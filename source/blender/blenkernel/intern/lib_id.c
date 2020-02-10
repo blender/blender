@@ -138,7 +138,7 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-static CLG_LogRef LOG = {"bke.library"};
+static CLG_LogRef LOG = {.identifier = "bke.lib_id"};
 
 /* GS reads the memory pointed at in a specific ordering.
  * only use this definition, makes little and big endian systems

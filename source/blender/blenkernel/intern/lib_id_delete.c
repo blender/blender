@@ -108,7 +108,7 @@
 #endif
 
 /* Not used currently. */
-// static CLG_LogRef LOG = {.identifier = "bke.lib.id.delete"};
+// static CLG_LogRef LOG = {.identifier = "bke.lib_id_delete"};
 
 void BKE_libblock_free_data(ID *id, const bool do_id_user)
 {

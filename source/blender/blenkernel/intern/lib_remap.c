@@ -51,7 +51,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-static CLG_LogRef LOG = {.identifier = "bke.library_remap"};
+static CLG_LogRef LOG = {.identifier = "bke.lib_remap"};
 
 BKE_library_free_window_manager_cb free_windowmanager_cb = NULL;
 
