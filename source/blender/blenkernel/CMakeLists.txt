@@ -136,6 +136,7 @@ set(SRC
   intern/layer.c
   intern/layer_utils.c
   intern/lib_id.c
+  intern/lib_id_delete.c
   intern/lib_override.c
   intern/lib_query.c
   intern/lib_remap.c
@@ -370,6 +371,7 @@ set(SRC
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
   intern/data_transfer_intern.h
+  intern/lib_intern.h
   intern/multires_inline.h
   intern/pbvh_intern.h
   intern/subdiv_converter.h
