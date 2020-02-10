@@ -21,30 +21,36 @@
 
 /** \file
  * \ingroup bke
+ *
+ * API to manage data-blocks inside of Blender's Main data-base, or as independant runtime-only
+ * data.
+ *
+ * \note `BKE_lib_` files are for operations over data-blocks themselves, although they might
+ * alter Main as well (when creating/renaming/deleting an ID e.g.).
+ *
+ * \section Function Names
+ *
+ * \warning Descriptions below is ideal goal, current status of naming does not yet fully follow it
+ * (this is WIP).
+ *
+ * - `BKE_lib_id_` should be used for rather high-level operations, that involve Main database and
+ *   relations with other IDs, and can be considered as 'safe' (as in, in themselves, they leave
+ *   affected IDs/Main in a consistent status).
+ * - `BKE_lib_libblock_` should be used for lower level operations, that perform some parts of
+ *   `BKE_lib_id_` ones, but will generally not ensure caller that affected data is in a consistent
+ *   state by their own execution alone.
+ * - `BKE_lib_main_` should be used for operations performed over all IDs of a given Main
+ *   data-base.
+ *
+ * \note External code should typically not use `BKE_lib_libblock_` functions, except in some
+ * specific cases requiring advanced (and potentially dangerous) handling.
  */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
-
-/**
- * Naming: BKE_id_ vs BKE_libblock_
- *
- * WARNING: description below is ideal goal, current status of naming does not yet
- * fully follow it (this is WIP).
- *
- * - BKE_id_ should be used for rather high-level operations, that involve Main database and
- *   relations with other IDs, and can be considered as 'safe'
- *   (as in, in themselves, they leave affected IDs/Main in a consistent status).
- *
- * - BKE_libblock_ should be used for lower level operations,
- *   that perform some parts of BKE_id_ ones, but will generally not ensure caller that affected
- *   data is in a consistent state by their own execution alone.
- *
- * Consequently, external code should not typically use BKE_libblock_ functions,
- * except in some specific cases requiring advanced (and potentially dangerous) handling.
- */
 
 struct GHash;
 struct ID;

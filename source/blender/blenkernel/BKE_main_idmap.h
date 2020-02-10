@@ -18,6 +18,16 @@
 
 /** \file
  * \ingroup bke
+ *
+ * API to generate and use a mapping from [ID type & name] to [id pointer], within a given Main
+ * data-base.
+ *
+ * \note `BKE_main` files are for operations over the Main database itself, or generating extra
+ * temp data to help working with it. Those should typically not affect the data-blocks themselves.
+ *
+ * \section Function Names
+ *
+ * - `BKE_main_idmap_` Should be used for functions in that file.
  */
 
 #include "BLI_compiler_attrs.h"

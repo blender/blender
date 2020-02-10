@@ -18,7 +18,21 @@
 
 /** \file
  * \ingroup bke
+ *
+ * API to perform remapping from one data-block pointer to another.
+ *
+ * \note `BKE_lib_` files are for operations over data-blocks themselves, although they might
+ * alter Main as well (when creating/renaming/deleting an ID e.g.).
+ *
+ * \section Function Names
+ *
+ * \warning Descriptions below is ideal goal, current status of naming does not yet fully follow it
+ * (this is WIP).
+ *
+ * - `BKE_lib_remap_libblock_` should be used for functions performing remapping.
+ * - `BKE_lib_remap_callback_` should be used for functions managing remapping callbacks.
  */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

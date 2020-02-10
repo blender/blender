@@ -22,13 +22,20 @@
 /** \file
  * \ingroup bke
  * \section aboutmain Main struct
- * Main is the root of the 'database' of a Blender context. All data
- * is stuffed into lists, and all these lists are knotted to here. A
- * Blender file is not much more but a binary dump of these
- * lists. This list of lists is not serialized itself.
+ * Main is the root of the 'data-base' of a Blender context. All data is put into lists, and all
+ * these lists are stored here.
  *
- * Oops... this should be a _types.h file.
+ * \note A Blender file is not much more than a binary dump of these lists. This list of lists is
+ * not serialized itself.
+ *
+ * \note `BKE_main` files are for operations over the Main database itself, or generating extra
+ * temp data to help working with it. Those should typically not affect the data-blocks themselves.
+ *
+ * \section Function Names
+ *
+ * - `BKE_main_` should be used for functions in that file.
  */
+
 #include "DNA_listBase.h"
 
 #include "BLI_compiler_attrs.h"

@@ -22,6 +22,21 @@
 
 /** \file
  * \ingroup bke
+ *
+ * API to manage data-blocks inside of Blender's Main data-base, or as independant runtime-only
+ * data.
+ *
+ * \note `BKE_lib_` files are for operations over data-blocks themselves, although they might
+ * alter Main as well (when creating/renaming/deleting an ID e.g.).
+ *
+ * \section Function Names
+ *
+ * \warning Descriptions below is ideal goal, current status of naming does not yet fully follow it
+ * (this is WIP).
+ *
+ *  - `BKE_lib_override_library_` should be used for function affecting a single ID.
+ *  - `BKE_lib_override_library_main_` should be used for function affecting the whole collection
+ *    of IDs in a given Main data-base.
  */
 
 struct ID;
