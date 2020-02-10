@@ -410,7 +410,7 @@ void multires_flush_sculpt_updates(Object *ob)
 {
   if (ob && ob->sculpt && ob->sculpt->pbvh != NULL) {
     SculptSession *sculpt_session = ob->sculpt;
-    if (BKE_pbvh_type(sculpt_session->pbvh) == PBVH_GRIDS) {
+    if (BKE_pbvh_type(sculpt_session->pbvh) == PBVH_GRIDS && sculpt_session->multires) {
       Mesh *mesh = ob->data;
       multiresModifier_reshapeFromCCG(
           sculpt_session->multires->totlvl, mesh, sculpt_session->subdiv_ccg);
