@@ -2510,7 +2510,7 @@ static bool image_should_be_saved_when_modified(Image *ima)
 static bool image_should_be_saved(Image *ima, bool *is_format_writable)
 {
   if (BKE_image_is_dirty_writable(ima, is_format_writable) &&
-      (ima->source == IMA_SRC_FILE || ima->source == IMA_SRC_GENERATED)) {
+      ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED, IMA_SRC_TILED)) {
     return image_should_be_saved_when_modified(ima);
   }
   else {
