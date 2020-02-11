@@ -34,13 +34,17 @@ set(SRC
   device_task.cpp
 )
 
-set(SRC_OPENCL
-  opencl/opencl.h
-  opencl/memory_manager.h
+set(SRC_CUDA
+  cuda/device_cuda.h
+  cuda/device_cuda_impl.cpp
+)
 
-  opencl/opencl_split.cpp
-  opencl/opencl_util.cpp
+set(SRC_OPENCL
+  opencl/device_opencl.h
+  opencl/device_opencl_impl.cpp
+  opencl/memory_manager.h
   opencl/memory_manager.cpp
+  opencl/opencl_util.cpp
 )
 
 if(WITH_CYCLES_NETWORK)
@@ -98,4 +102,4 @@ endif()
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-cycles_add_library(cycles_device "${LIB}" ${SRC} ${SRC_OPENCL} ${SRC_HEADERS})
+cycles_add_library(cycles_device "${LIB}" ${SRC} ${SRC_CUDA} ${SRC_OPENCL} ${SRC_HEADERS})

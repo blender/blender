@@ -16,7 +16,7 @@
 
 #ifdef WITH_OPENCL
 
-#  include "device/opencl/opencl.h"
+#  include "device/opencl/device_opencl.h"
 
 #  include "kernel/kernel_types.h"
 #  include "kernel/split/kernel_split_data_types.h"
