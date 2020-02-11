@@ -1893,7 +1893,7 @@ void paint_2d_bucket_fill(const bContext *C,
   int x_px, y_px;
   unsigned int color_b;
   float color_f[4];
-  float strength = br ? br->alpha : 1.0f;
+  float strength = br ? BKE_brush_alpha_get(s->scene, br) : 1.0f;
 
   bool do_float;
 
@@ -2118,6 +2118,7 @@ void paint_2d_gradient_fill(
   float image_init[2], image_final[2];
   float tangent[2];
   float line_len_sq_inv, line_len;
+  const float brush_alpha = BKE_brush_alpha_get(s->scene, br);
 
   bool do_float;
 
@@ -2179,7 +2180,7 @@ void paint_2d_gradient_fill(
         BKE_colorband_evaluate(br->gradient, f, color_f);
         /* convert to premultiplied */
         mul_v3_fl(color_f, color_f[3]);
-        color_f[3] *= br->alpha;
+        color_f[3] *= brush_alpha;
         IMB_blend_color_float(ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
                               ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
                               color_f,
@@ -2208,7 +2209,7 @@ void paint_2d_gradient_fill(
         BKE_colorband_evaluate(br->gradient, f, color_f);
         linearrgb_to_srgb_v3_v3(color_f, color_f);
         rgba_float_to_uchar((unsigned char *)&color_b, color_f);
-        ((unsigned char *)&color_b)[3] *= br->alpha;
+        ((unsigned char *)&color_b)[3] *= brush_alpha;
         IMB_blend_color_byte((unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
                              (unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
                              (unsigned char *)&color_b,

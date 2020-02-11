@@ -5293,7 +5293,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
               }
             }
             BKE_colorband_evaluate(brush->gradient, f, color_f);
-            color_f[3] *= ((float)projPixel->mask) * (1.0f / 65535.0f) * brush->alpha;
+            color_f[3] *= ((float)projPixel->mask) * (1.0f / 65535.0f) * brush_alpha;
 
             if (is_floatbuf) {
               /* convert to premultipied */
@@ -5321,7 +5321,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
           else {
             if (is_floatbuf) {
               float newColor_f[4];
-              newColor_f[3] = ((float)projPixel->mask) * (1.0f / 65535.0f) * brush->alpha;
+              newColor_f[3] = ((float)projPixel->mask) * (1.0f / 65535.0f) * brush_alpha;
               copy_v3_v3(newColor_f, ps->paint_color_linear);
 
               IMB_blend_color_float(
@@ -5329,7 +5329,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
             }
             else {
               float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
-              projPixel->newColor.ch[3] = mask * 255 * brush->alpha;
+              projPixel->newColor.ch[3] = mask * 255 * brush_alpha;
 
               rgb_float_to_uchar(projPixel->newColor.ch, ps->paint_color);
               IMB_blend_color_byte(projPixel->pixel.ch_pt,
