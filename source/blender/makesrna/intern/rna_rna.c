@@ -1297,14 +1297,14 @@ static int rna_property_override_diff_propptr(Main *bmain,
         if (op != NULL && (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
                            rna_itemindex_a != -1 || rna_itemindex_b != -1)) {
           BKE_lib_override_library_property_operation_get(op,
-                                                      IDOVERRIDE_LIBRARY_OP_REPLACE,
-                                                      rna_itemname_b,
-                                                      rna_itemname_a,
-                                                      rna_itemindex_b,
-                                                      rna_itemindex_a,
-                                                      true,
-                                                      NULL,
-                                                      &created);
+                                                          IDOVERRIDE_LIBRARY_OP_REPLACE,
+                                                          rna_itemname_b,
+                                                          rna_itemname_a,
+                                                          rna_itemindex_b,
+                                                          rna_itemindex_a,
+                                                          true,
+                                                          NULL,
+                                                          &created);
           if (r_override_changed) {
             *r_override_changed = created;
           }
@@ -1814,14 +1814,14 @@ int rna_property_override_diff_default(Main *bmain,
             }
 
             BKE_lib_override_library_property_operation_get(op,
-                                                        IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
-                                                        NULL,
-                                                        prev_propname_a,
-                                                        -1,
-                                                        idx_a - 1,
-                                                        true,
-                                                        NULL,
-                                                        NULL);
+                                                            IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
+                                                            NULL,
+                                                            prev_propname_a,
+                                                            -1,
+                                                            idx_a - 1,
+                                                            true,
+                                                            NULL,
+                                                            NULL);
 #  if 0
             printf("%s: Adding insertion op override after '%s'/%d\n",
                    rna_path,

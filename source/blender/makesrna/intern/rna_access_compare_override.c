@@ -1060,7 +1060,7 @@ IDOverrideLibraryProperty *RNA_property_override_property_find(PointerRNA *ptr, 
   char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
   if (rna_path) {
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(id->override_library,
-                                                                       rna_path);
+                                                                           rna_path);
     MEM_freeN(rna_path);
     return op;
   }

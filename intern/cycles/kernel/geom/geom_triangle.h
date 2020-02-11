@@ -153,7 +153,7 @@ ccl_device float triangle_attribute_float(
 
     return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
   }
-  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)
       *dx = 0.0f;
     if (dy)
@@ -220,7 +220,7 @@ ccl_device float2 triangle_attribute_float2(KernelGlobals *kg,
 
     return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
   }
-  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)
       *dx = make_float2(0.0f, 0.0f);
     if (dy)
@@ -288,7 +288,7 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals *kg,
 
     return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
   }
-  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)
       *dx = make_float3(0.0f, 0.0f, 0.0f);
     if (dy)
@@ -328,7 +328,7 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals *kg,
 
     return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
   }
-  else if(desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
+  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)
       *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
     if (dy)

@@ -19,4 +19,3 @@
 #if defined(i386) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)
 #  include "util_avxf_test.h"
 #endif
-
