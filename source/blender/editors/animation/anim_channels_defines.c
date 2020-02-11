@@ -3984,6 +3984,10 @@ void ANIM_channel_setting_set(bAnimContext *ac,
 #define SLIDER_WIDTH (4 * U.widget_unit)
 // min-width of rename textboxes
 #define RENAME_TEXT_MIN_WIDTH (U.widget_unit)
+// width of graph editor color bands
+#define GRAPH_COLOR_BAND_WIDTH (0.3f * U.widget_unit)
+// extra offset for the visibility icons in the graph editor
+#define GRAPH_ICON_VISIBILITY_OFFSET (GRAPH_COLOR_BAND_WIDTH * 1.5f)
 
 /* Helper - Check if a channel needs renaming */
 static bool achannel_is_being_renamed(const bAnimContext *ac,
@@ -4059,9 +4063,6 @@ void ANIM_channel_draw(
     offset += ICON_WIDTH;
   }
 
-  /* turn off blending, since not needed anymore... */
-  GPU_blend(false);
-
   /* step 4) draw special toggles  .................................
    * - in Graph Editor, checkboxes for visibility in curves area
    * - in NLA Editor, glowing dots for solo/not solo...
@@ -4071,7 +4072,7 @@ void ANIM_channel_draw(
     if ((ac->spacetype == SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
          acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
-      /* for F-Curves, draw color-preview of curve behind checkbox */
+      /* for F-Curves, draw color-preview of curve left to the visibility icon */
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
         FCurve *fcu = (FCurve *)ale->data;
         uint pos = GPU_vertformat_attr_add(
@@ -4082,17 +4083,26 @@ void ANIM_channel_draw(
         /* F-Curve channels need to have a special 'color code' box drawn,
          * which is colored with whatever color the curve has stored.
          */
-        immUniformColor3fv(fcu->color);
 
-        /* just a solid color rect
-         */
-        immRectf(pos, offset, yminc, offset + ICON_WIDTH, ymaxc);
+        /* If the curve is hidden, make the rect less opaque. */
+        float rect_alpha = (fcu->flag & FCURVE_VISIBLE) ? 1 : 0.3f;
+        immUniformColor3fvAlpha(fcu->color, rect_alpha);
 
+        immRectf(pos, offset, yminc, offset + GRAPH_COLOR_BAND_WIDTH, ymaxc);
         immUnbindProgram();
       }
+
+      /* turn off blending, since not needed anymore... */
+      GPU_blend(false);
+
       /* icon is drawn as widget now... */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
-        offset += ICON_WIDTH;
+        if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+          offset += ICON_WIDTH + GRAPH_ICON_VISIBILITY_OFFSET;
+        }
+        else {
+          offset += ICON_WIDTH;
+        }
       }
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) {
         offset += ICON_WIDTH;
@@ -4781,6 +4791,10 @@ void ANIM_channel_draw_widgets(const bContext *C,
       }
       /* visibility toggle  */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
+        /* For F-curves, add the extra space for the color bands. */
+        if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+          offset += GRAPH_ICON_VISIBILITY_OFFSET;
+        }
         draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_VISIBLE);
         offset += ICON_WIDTH;
       }
