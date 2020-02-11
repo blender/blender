@@ -1646,7 +1646,7 @@ void paint_2d_stroke(void *ps,
       continue;
     }
 
-    ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, &tile->iuser, NULL);
+    ImBuf *ibuf = tile->canvas;
 
     /* OCIO_TODO: float buffers are now always linear, so always use color correction
      *            this should probably be changed when texture painting color space is supported
@@ -1711,6 +1711,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   }
 
   if (ibuf->channels != 4) {
+    BKE_image_release_ibuf(s->image, ibuf, NULL);
     BKE_report(op->reports, RPT_WARNING, "Image requires 4 color channels to paint");
     MEM_freeN(s->tiles);
     MEM_freeN(s);
