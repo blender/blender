@@ -1326,6 +1326,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, domain_types);
   RNA_def_property_enum_funcs(prop, NULL, "rna_Fluid_domaintype_set", NULL);
   RNA_def_property_ui_text(prop, "Domain Type", "Change domain type of the simulation");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_flip_parts_update");
 
   /* smoke domain options */
@@ -1865,7 +1866,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0, 100.0);
   RNA_def_property_ui_text(
       prop,
-      "Weight",
+      "Velocity Factor",
       "Guiding velocity factor (higher value results in greater guiding velocities)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 

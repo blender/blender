@@ -481,8 +481,9 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "use_fractions", text="Fractional Obstacles")
-        col.active = domain.use_fractions
-        col.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
+        col1 = col.column()
+        col1.enabled = domain.use_fractions
+        col1.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
 
 
 class PHYSICS_PT_flow_source(PhysicButtonsPanel, Panel):
@@ -1145,7 +1146,7 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
         if md.domain_settings.domain_type in {'LIQUID'}:
             # File format for all particle systemes (FLIP and secondary)
             col = flow.column()
-            col.enabled = not is_baking_any and not has_baked_particles
+            col.enabled = not is_baking_any and not has_baked_particles and not has_baked_data
             col.prop(domain, "cache_particle_format", text="Particle File Format")
 
             if domain.use_mesh:
