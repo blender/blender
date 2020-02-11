@@ -1366,10 +1366,17 @@ void GHOST_SystemCocoa::handleQuitRequest()
 bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 {
   NSString *filepath = (NSString *)filepathStr;
-  bool confirmOpen = true;
   NSArray *windowsList;
   char *temp_buff;
   size_t filenameTextSize;
+
+  /* Check for blender opened windows and make the frontmost key. In case blender
+   * is minimized, opened on another desktop space, or in full-screen mode. */
+  windowsList = [NSApp orderedWindows];
+  if ([windowsList count]) {
+    [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+  }
+
   GHOST_Window *window = (GHOST_Window *)m_windowManager->getActiveWindow();
 
   if (!window) {
@@ -1377,51 +1384,25 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
   }
 
   /* Discard event if we are in cursor grab sequence,
-   * it'll lead to "stuck cursor" situation if the alert panel is raised */
-  if (window && window->getCursorGrabModeIsWarp())
+   * it'll lead to "stuck cursor" situation if the alert panel is raised. */
+  if (window && window->getCursorGrabModeIsWarp()) {
     return NO;
-
-  // Check open windows if some changes are not saved
-  if (m_windowManager->getAnyModifiedState()) {
-    @autoreleasepool {
-      NSAlert *alert = [[NSAlert alloc] init];
-      NSString *title = [NSString stringWithFormat:@"Opening %@", [filepath lastPathComponent]];
-      NSString *text = @"Current document has not been saved.\nDo you really want to proceed?";
-      [alert addButtonWithTitle:@"Open"];
-      [alert addButtonWithTitle:@"Cancel"];
-      [alert setMessageText:title];
-      [alert setInformativeText:text];
-      [alert setAlertStyle:NSAlertStyleInformational];
-      confirmOpen = [alert runModal] == NSAlertFirstButtonReturn;
-    }
   }
 
-  // Give back focus to the blender window
-  windowsList = [NSApp orderedWindows];
-  if ([windowsList count]) {
-    [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+  filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+  temp_buff = (char *)malloc(filenameTextSize + 1);
+
+  if (temp_buff == NULL) {
+    return GHOST_kFailure;
   }
 
-  if (confirmOpen) {
-    filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+  strncpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
+  temp_buff[filenameTextSize] = '\0';
 
-    temp_buff = (char *)malloc(filenameTextSize + 1);
+  pushEvent(new GHOST_EventString(
+      getMilliSeconds(), GHOST_kEventOpenMainFile, window, (GHOST_TEventDataPtr)temp_buff));
 
-    if (temp_buff == NULL) {
-      return GHOST_kFailure;
-    }
-
-    strncpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
-
-    temp_buff[filenameTextSize] = '\0';
-
-    pushEvent(new GHOST_EventString(
-        getMilliSeconds(), GHOST_kEventOpenMainFile, window, (GHOST_TEventDataPtr)temp_buff));
-
-    return YES;
-  }
-  else
-    return NO;
+  return YES;
 }
 
 GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventType)
