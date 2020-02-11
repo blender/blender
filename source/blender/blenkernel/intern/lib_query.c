@@ -23,8 +23,6 @@
 
 #include <stdlib.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
@@ -38,7 +36,6 @@
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
@@ -76,7 +73,6 @@
 #include "BKE_rigidbody.h"
 #include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
-#include "BKE_tracking.h"
 #include "BKE_workspace.h"
 
 #define FOREACH_FINALIZE _finalize

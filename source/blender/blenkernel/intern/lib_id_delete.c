@@ -20,12 +20,9 @@
  * Contains management of ID's for freeing & deletion.
  */
 
-#include "CLG_log.h"
-
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
@@ -66,7 +63,6 @@
 #include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_curve.h"
-#include "BKE_fcurve.h"
 #include "BKE_font.h"
 #include "BKE_gpencil.h"
 #include "BKE_idprop.h"

@@ -22,15 +22,10 @@
 
 #include "CLG_log.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
-
-#include "BLI_rect.h"
 
 #include "DNA_object_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_collection.h"
 #include "BKE_curve.h"
@@ -46,10 +41,10 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 
-#include "lib_intern.h"
-
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+
+#include "lib_intern.h" /* own include */
 
 static CLG_LogRef LOG = {.identifier = "bke.lib_remap"};
 

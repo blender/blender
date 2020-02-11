@@ -45,9 +45,6 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "PIL_time.h"
-#include "PIL_time_utildefines.h"
-
 #define OVERRIDE_AUTO_CHECK_DELAY 0.2 /* 200ms between auto-override checks. */
 
 static void lib_override_library_property_copy(IDOverrideLibraryProperty *op_dst,

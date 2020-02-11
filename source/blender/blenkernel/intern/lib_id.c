@@ -51,13 +51,11 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lightprobe_types.h"
-#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_speaker_types.h"
@@ -70,7 +68,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
@@ -103,7 +100,6 @@
 #include "BKE_lib_remap.h"
 #include "BKE_linestyle.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -113,7 +109,6 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
-#include "BKE_packedFile.h"
 #include "BKE_lightprobe.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sound.h"
@@ -126,9 +121,6 @@
 #include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
-
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 #include "atomic_ops.h"
 
