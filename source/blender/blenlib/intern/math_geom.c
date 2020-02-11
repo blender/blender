@@ -4152,13 +4152,15 @@ struct Float2_Len {
 static float mean_value_half_tan_v3(const struct Float3_Len *d_curr,
                                     const struct Float3_Len *d_next)
 {
-  float cross[3], area;
+  float cross[3];
   cross_v3_v3v3(cross, d_curr->dir, d_next->dir);
-  area = len_v3(cross);
-  if (LIKELY(fabsf(area) > FLT_EPSILON)) {
+  const float area = len_v3(cross);
+  /* Compare against zero since 'FLT_EPSILON' can be too large, see: T73348. */
+  if (LIKELY(area != 0.0f)) {
     const float dot = dot_v3v3(d_curr->dir, d_next->dir);
     const float len = d_curr->len * d_next->len;
-    return (len - dot) / area;
+    const float result = (len - dot) / area;
+    return isfinite(result) ? result : 0.0f;
   }
   else {
     return 0.0f;
@@ -4168,13 +4170,14 @@ static float mean_value_half_tan_v3(const struct Float3_Len *d_curr,
 static float mean_value_half_tan_v2(const struct Float2_Len *d_curr,
                                     const struct Float2_Len *d_next)
 {
-  float area;
   /* different from the 3d version but still correct */
-  area = cross_v2v2(d_curr->dir, d_next->dir);
-  if (LIKELY(fabsf(area) > FLT_EPSILON)) {
+  const float area = cross_v2v2(d_curr->dir, d_next->dir);
+  /* Compare against zero since 'FLT_EPSILON' can be too large, see: T73348. */
+  if (LIKELY(area != 0.0f)) {
     const float dot = dot_v2v2(d_curr->dir, d_next->dir);
     const float len = d_curr->len * d_next->len;
-    return (len - dot) / area;
+    const float result = (len - dot) / area;
+    return isfinite(result) ? result : 0.0f;
   }
   else {
     return 0.0f;
