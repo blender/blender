@@ -3402,7 +3402,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   resume_guide = (!is_startframe) && (mds->cache_frame_pause_guide == scene_framenr);
 
   bool read_cache, bake_cache;
-  read_cache = false,
+  read_cache = false;
   bake_cache = baking_data || baking_noise || baking_mesh || baking_particles || baking_guide;
 
   bool with_gdomain;

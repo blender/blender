@@ -109,7 +109,6 @@ ccl_device_inline void filter_calculate_scale_sse(float4 *scale, bool use_time)
   scale[2] = rcp(max(reduce_max(scale[2]), make_float4(0.01f)));
   if (use_time) {
     scale[10] = rcp(max(reduce_max(scale[6]), make_float4(0.01f)));
-    ;
   }
   scale[6] = rcp(max(reduce_max(scale[4]), make_float4(0.01f)));
   scale[7] = scale[8] = scale[9] = rcp(max(reduce_max(sqrt(scale[5])), make_float4(0.01f)));

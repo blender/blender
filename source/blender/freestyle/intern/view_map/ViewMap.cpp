@@ -386,7 +386,7 @@ void TVertex::setBackEdgeA(ViewEdge *iBackEdgeA, bool incoming)
   if (!_sortedEdges.empty()) {
     edge_pointers_container::iterator dve = _sortedEdges.begin(), dveend = _sortedEdges.end();
     for (; (dve != dveend) && ViewEdgeComp(**dve, _BackEdgeA); ++dve) {
-      ;
+      /* pass */
     }
     _sortedEdges.insert(dve, &_BackEdgeA);
   }
@@ -563,7 +563,7 @@ void NonTVertex::AddOutgoingViewEdge(ViewEdge *iVEdge)
   if (!_ViewEdges.empty()) {
     edges_container::iterator dve = _ViewEdges.begin(), dveend = _ViewEdges.end();
     for (; (dve != dveend) && ViewEdgeComp(*dve, idve); ++dve) {
-      ;
+      /* pass */
     }
     _ViewEdges.insert(dve, idve);
   }

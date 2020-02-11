@@ -389,7 +389,6 @@ static CDTEdge *connect_separate_parts(CDT_state *cdt, SymEdge *se1, SymEdge *se
 {
   CDTEdge *e;
   SymEdge *se1_rot, *se1_rotsym, *se2_rot, *se2_rotsym, *new_se, *new_se_sym;
-  ;
 
   BLI_assert(se1->face == cdt->outer_face && se2->face == cdt->outer_face);
   se1_rot = se1->rot;

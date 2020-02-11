@@ -4378,7 +4378,6 @@ static void particles_fluid_step(ParticleSimulationData *sim,
               1. / fabsf(ob->scale[0]), 1. / fabsf(ob->scale[1]), 1. / fabsf(ob->scale[2])};
           mul_v3_fl(scaleAbs, max_size);
           mul_v3_v3(pa->state.co, scaleAbs);
-          ;
 
           /* Match domain scale. */
           mul_m4_v3(ob->obmat, pa->state.co);

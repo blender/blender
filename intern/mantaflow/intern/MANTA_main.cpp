@@ -1440,7 +1440,6 @@ int MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
   FluidDomainSettings *mds = mmd->domain;
   std::ostringstream ss;
   char cacheDir[FILE_MAX], targetFile[FILE_MAX];
-  ;
   cacheDir[0] = '\0';
   targetFile[0] = '\0';
 

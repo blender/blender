@@ -46,6 +46,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "MOD_modifiertypes.h"
+
 //#define USE_WELD_DEBUG
 //#define USE_WELD_NORMALS
 

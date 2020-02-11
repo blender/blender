@@ -987,8 +987,9 @@ void DRW_mesh_batch_cache_create_requested(
   if (cache->batch_requested == 0) {
 #ifdef DEBUG
     goto check;
-#endif
+#else
     return;
+#endif
   }
 
   /* Sanity check. */
@@ -1127,8 +1128,9 @@ void DRW_mesh_batch_cache_create_requested(
   if ((batch_requested & ~cache->batch_ready) == 0) {
 #ifdef DEBUG
     goto check;
-#endif
+#else
     return;
+#endif
   }
 
   cache->batch_ready |= batch_requested;
