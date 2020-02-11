@@ -2645,8 +2645,11 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
   ot->description = "Make linked data local to each object";
   ot->idname = "OBJECT_OT_make_single_user";
 
+  /* Note that the invoke callback is only used from operator search,
+   * otherwise this does nothing by default. */
+
   /* api callbacks */
-  ot->invoke = WM_menu_invoke;
+  ot->invoke = WM_operator_props_popup_confirm;
   ot->exec = make_single_user_exec;
   ot->poll = ED_operator_objectmode;
 

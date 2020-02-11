@@ -2713,6 +2713,7 @@ class VIEW3D_MT_make_single_user(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        layout.operator_context = 'EXEC_DEFAULT'
 
         props = layout.operator("object.make_single_user", text="Object")
         props.object = True
