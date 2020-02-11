@@ -1338,10 +1338,16 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
       wrap_offset_in_line(st, ar, text->sell, text->selc, &offl, &offc);
 
       y1 = ar->winy - (vsell - offl) * lheight;
+      if (st->flags & ST_SCROLL_SELECT) {
+        y1 += st->runtime.scroll_ofs_px[1];
+      }
       y2 = y1 - (lheight * visible_lines);
     }
     else {
       y1 = ar->winy - vsell * lheight;
+      if (st->flags & ST_SCROLL_SELECT) {
+        y1 += st->runtime.scroll_ofs_px[1];
+      }
       y2 = y1 - (lheight);
     }
 
