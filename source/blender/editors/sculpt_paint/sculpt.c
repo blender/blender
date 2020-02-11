@@ -1109,7 +1109,10 @@ bool sculpt_brush_test_circle_sq(SculptBrushTest *test, const float co[3])
   }
 }
 
-bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float local[4][4])
+bool sculpt_brush_test_cube(SculptBrushTest *test,
+                            const float co[3],
+                            float local[4][4],
+                            const float roundness)
 {
   float side = M_SQRT1_2;
   float local_co[3];
@@ -1124,14 +1127,32 @@ bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float loca
   local_co[1] = fabsf(local_co[1]);
   local_co[2] = fabsf(local_co[2]);
 
-  const float p = 8.0f;
-  if (local_co[0] <= side && local_co[1] <= side && local_co[2] <= side) {
-    test->dist = ((powf(local_co[0], p) + powf(local_co[1], p) + powf(local_co[2], p)) /
-                  powf(side, p));
+  /* Keep the square and circular brush tips the same size. */
+  side += (1.0f - side) * roundness;
 
+  const float hardness = 1.0f - roundness;
+  const float constant_side = hardness * side;
+  const float falloff_side = roundness * side;
+
+  if (local_co[0] <= side && local_co[1] <= side && local_co[2] <= side) {
+    /* Corner, distance to the center of the corner circle. */
+    if (min_ff(local_co[0], local_co[1]) > constant_side) {
+      float r_point[3];
+      copy_v3_fl(r_point, constant_side);
+      test->dist = len_v2v2(r_point, local_co) / falloff_side;
+      return true;
+    }
+    /* Side, distance to the square XY axis. */
+    if (max_ff(local_co[0], local_co[1]) > constant_side) {
+      test->dist = (max_ff(local_co[0], local_co[1]) - constant_side) / falloff_side;
+      return true;
+    }
+    /* Inside the square, constant distance. */
+    test->dist = 0.0f;
     return true;
   }
   else {
+    /* Outside the square. */
     return false;
   }
 }
@@ -5467,7 +5488,7 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-    if (sculpt_brush_test_cube(&test, vd.co, mat)) {
+    if (sculpt_brush_test_cube(&test, vd.co, mat, brush->tip_roundness)) {
       if (plane_point_side_flip(vd.co, test.plane_tool, flip)) {
         float intr[3];
         float val[3];
@@ -7047,12 +7068,11 @@ static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, flo
     case SCULPT_TOOL_CLAY:
       return max_ff(initial_size * 0.20f, initial_size * pow3f(cache->pressure));
     case SCULPT_TOOL_CLAY_STRIPS:
-      return max_ff(initial_size * 0.35f, initial_size * pow2f(cache->pressure));
+      return max_ff(initial_size * 0.30f, initial_size * pow2f(cache->pressure));
     case SCULPT_TOOL_CLAY_THUMB: {
       float clay_stabilized_pressure = sculpt_clay_thumb_get_stabilized_pressure(cache);
       return initial_size * clay_stabilized_pressure;
     }
-
     default:
       return initial_size * cache->pressure;
   }

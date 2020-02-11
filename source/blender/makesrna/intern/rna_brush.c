@@ -1943,6 +1943,12 @@ static void rna_def_brush(BlenderRNA *brna)
       "Number of segments of the inverse kinematics chain that will deform the mesh");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "tip_roundness", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "tip_roundness");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(prop, "Tip Roundness", "Roundness of the brush tip");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "auto_smooth_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "autosmooth_factor");
   RNA_def_property_float_default(prop, 0);

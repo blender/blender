@@ -311,7 +311,7 @@ typedef struct Brush {
   char mask_tool;
   /** Active grease pencil tool. */
   char gpencil_tool;
-  char _pad1[5];
+  char _pad1[1];
 
   float autosmooth_factor;
 
@@ -329,6 +329,10 @@ typedef struct Brush {
 
   int curve_preset;
   int automasking_flags;
+
+  /* Factor that controls the shape of the brush tip by rounding the corners of a square. */
+  /* 0.0 value produces a square, 1.0 produces a circle. */
+  float tip_roundness;
 
   int elastic_deform_type;
   float elastic_deform_volume_preservation;

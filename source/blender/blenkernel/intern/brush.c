@@ -949,9 +949,10 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag |= BRUSH_ACCUMULATE | BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->alpha = 0.6f;
+      br->spacing = 5;
       br->normal_radius_factor = 1.55f;
-      br->curve_preset = BRUSH_CURVE_SPHERE;
-      br->spacing = 6;
+      br->tip_roundness = 0.18f;
+      br->curve_preset = BRUSH_CURVE_SMOOTHER;
       break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       br->flag2 |= BRUSH_MULTIPLANE_SCRAPE_DYNAMIC | BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW;

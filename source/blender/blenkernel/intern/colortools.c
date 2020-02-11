@@ -391,7 +391,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       cuma->curve[6].y = 0.025f;
       break;
     case CURVE_PRESET_BELL:
-      cuma->curve[0].x = 0;
+      cuma->curve[0].x = 0.0f;
       cuma->curve[0].y = 0.025f;
 
       cuma->curve[1].x = 0.50f;
