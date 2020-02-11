@@ -4440,5 +4440,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         br->pose_ik_segments = 1;
       }
     }
+
+    /* Pose brush keep anchor point. */
+    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+      if (br->sculpt_tool == SCULPT_TOOL_POSE) {
+        br->flag2 |= BRUSH_POSE_IK_ANCHORED;
+      }
+    }
   }
 }

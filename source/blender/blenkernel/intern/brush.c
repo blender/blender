@@ -1000,6 +1000,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_POSE:
       br->pose_smooth_iterations = 4;
       br->pose_ik_segments = 1;
+      br->flag2 |= BRUSH_POSE_IK_ANCHORED;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;

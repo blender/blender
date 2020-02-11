@@ -458,6 +458,7 @@ typedef enum eBrushSamplingFlags {
 typedef enum eBrushFlags2 {
   BRUSH_MULTIPLANE_SCRAPE_DYNAMIC = (1 << 0),
   BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW = (1 << 1),
+  BRUSH_POSE_IK_ANCHORED = (1 << 2),
 } eBrushFlags2;
 
 typedef enum {

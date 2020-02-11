@@ -620,6 +620,7 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "pose_offset")
             layout.prop(brush, "pose_smooth_iterations")
             layout.prop(brush, "pose_ik_segments")
+            layout.prop(brush, "use_pose_ik_anchored")
             layout.separator()
         
         if brush.sculpt_tool == 'SCRAPE':

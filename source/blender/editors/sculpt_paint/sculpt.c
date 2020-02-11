@@ -3576,7 +3576,9 @@ static void sculpt_flip_quat_by_symm_area(float quat[3],
   }
 }
 
-static void pose_solve_ik_chain(SculptPoseIKChain *ik_chain, const float initial_target[3])
+static void pose_solve_ik_chain(SculptPoseIKChain *ik_chain,
+                                const float initial_target[3],
+                                const bool use_anchor)
 {
   SculptPoseIKChainSegment *segments = ik_chain->segments;
   int tot_segments = ik_chain->tot_segments;
@@ -3615,13 +3617,15 @@ static void pose_solve_ik_chain(SculptPoseIKChain *ik_chain, const float initial
   }
 
   /* Move back the whole chain to preserve the anchor point. */
-  float anchor_diff[3];
-  sub_v3_v3v3(
-      anchor_diff, segments[tot_segments - 1].initial_orig, segments[tot_segments - 1].orig);
+  if (use_anchor) {
+    float anchor_diff[3];
+    sub_v3_v3v3(
+        anchor_diff, segments[tot_segments - 1].initial_orig, segments[tot_segments - 1].orig);
 
-  for (int i = 0; i < tot_segments; i++) {
-    add_v3_v3(segments[i].orig, anchor_diff);
-    add_v3_v3(segments[i].head, anchor_diff);
+    for (int i = 0; i < tot_segments; i++) {
+      add_v3_v3(segments[i].orig, anchor_diff);
+      add_v3_v3(segments[i].head, anchor_diff);
+    }
   }
 }
 
@@ -3742,8 +3746,8 @@ static void do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
     copy_v3_v3(ik_target, ss->cache->true_location);
     add_v3_v3(ik_target, ss->cache->grab_delta);
 
-    /* Solve the IK positions */
-    pose_solve_ik_chain(ik_chain, ik_target);
+    /* Solve the IK positions. */
+    pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
   }
 
   /* Flip the segment chain in all symmetry axis and calculate the transform matrices for each
