@@ -661,6 +661,7 @@ if(WITH_USD)
     set(USD_INCLUDE_DIRS ${LIBDIR}/usd/include)
     set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/libusd_m.lib)
     set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/libusd_m_d.lib)
+    set(USD_LIBRARY_DIR ${LIBDIR}/usd/lib/usd)
     set(USD_LIBRARIES
         debug ${USD_DEBUG_LIB}
         optimized ${USD_RELEASE_LIB}
