@@ -230,11 +230,7 @@ though they may be changed by running API functions or by using the data API.
 
 So ``bpy.context.active_object = obj`` will raise an error.
 
-But the following will work as expected:
-
-   >>> obj = bpy.data.objects["Cube"]
-   >>> obj.select_set(state = True, view_layer = bpy.context.view_layer)
-   >>> bpy.context.view_layer.objects.active = obj
+But ``bpy.context.view_layer.objects.active = obj`` works as expected.
 
 The context attributes change depending on where they are accessed.
 The 3D Viewport has different context members than the Python Console,
