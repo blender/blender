@@ -261,7 +261,10 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
     }
-    MEM_freeN(objects_eval);
+
+    if (objects_eval) {
+      MEM_freeN(objects_eval);
+    }
 
     if (use_transform_skip_children) {
       ED_object_xform_skip_child_container_update_all(xcs, bmain, depsgraph);
@@ -551,7 +554,10 @@ static int snap_selected_to_location(bContext *C,
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
       }
     }
-    MEM_freeN(objects);
+
+    if (objects) {
+      MEM_freeN(objects);
+    }
 
     if (use_transform_skip_children) {
       ED_object_xform_skip_child_container_update_all(xcs, bmain, depsgraph);
