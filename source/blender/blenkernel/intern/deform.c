@@ -255,10 +255,9 @@ void defvert_remap(MDeformVert *dvert, int *map, const int map_len)
   unsigned int i;
   for (i = dvert->totweight; i != 0; i--, dw++) {
     if (dw->def_nr < map_len) {
-      dw->def_nr = map[dw->def_nr];
+      BLI_assert(map[dw->def_nr] >= 0);
 
-      /* just in case */
-      BLI_assert(dw->def_nr >= 0);
+      dw->def_nr = map[dw->def_nr];
     }
   }
 }
@@ -337,7 +336,7 @@ void defvert_normalize(MDeformVert *dvert)
 void defvert_normalize_lock_single(MDeformVert *dvert,
                                    const bool *vgroup_subset,
                                    const int vgroup_tot,
-                                   const int def_nr_lock)
+                                   const uint def_nr_lock)
 {
   if (dvert->totweight == 0) {
     /* nothing */

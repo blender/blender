@@ -1562,8 +1562,8 @@ static void armature_vert_task(void *__restrict userdata,
     int deformed = 0;
     unsigned int j;
     for (j = dvert->totweight; j != 0; j--, dw++) {
-      const int index = dw->def_nr;
-      if (index >= 0 && index < data->defbase_tot && (pchan = data->defnrToPC[index])) {
+      const uint index = dw->def_nr;
+      if (index < data->defbase_tot && (pchan = data->defnrToPC[index])) {
         float weight = dw->weight;
         Bone *bone = pchan->bone;
 

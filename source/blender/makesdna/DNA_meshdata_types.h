@@ -280,7 +280,7 @@ typedef struct MStringProperty {
  */
 typedef struct MDeformWeight {
   /** The index for the vertex group, must *always* be unique when in an array. */
-  int def_nr;
+  unsigned int def_nr;
   /** Weight between 0.0 and 1.0. */
   float weight;
 } MDeformWeight;

@@ -784,22 +784,24 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
         /* note, greater than max defgroups is accounted for in our code, but not < 0 */
         if (!isfinite(dw->weight)) {
-          PRINT_ERR("\tVertex deform %u, group %d has weight: %f", i, dw->def_nr, dw->weight);
+          PRINT_ERR("\tVertex deform %u, group %u has weight: %f", i, dw->def_nr, dw->weight);
           if (do_fixes) {
             dw->weight = 0.0f;
             fix_flag.verts_weight = true;
           }
         }
         else if (dw->weight < 0.0f || dw->weight > 1.0f) {
-          PRINT_ERR("\tVertex deform %u, group %d has weight: %f", i, dw->def_nr, dw->weight);
+          PRINT_ERR("\tVertex deform %u, group %u has weight: %f", i, dw->def_nr, dw->weight);
           if (do_fixes) {
             CLAMP(dw->weight, 0.0f, 1.0f);
             fix_flag.verts_weight = true;
           }
         }
 
-        if (dw->def_nr < 0) {
-          PRINT_ERR("\tVertex deform %u, has invalid group %d", i, dw->def_nr);
+        /* Not technically incorrect since this is unsigned, however,
+         * a value over INT_MAX is almost certainly caused by wrapping an unsigned int. */
+        if (dw->def_nr >= INT_MAX) {
+          PRINT_ERR("\tVertex deform %u, has invalid group %u", i, dw->def_nr);
           if (do_fixes) {
             defvert_remove_group(dv, dw);
             fix_flag.verts_weight = true;

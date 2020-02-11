@@ -106,7 +106,7 @@ void defvert_normalize_subset(struct MDeformVert *dvert,
 void defvert_normalize_lock_single(struct MDeformVert *dvert,
                                    const bool *vgroup_subset,
                                    const int vgroup_tot,
-                                   const int def_nr_lock);
+                                   const uint def_nr_lock);
 void defvert_normalize_lock_map(struct MDeformVert *dvert,
                                 const bool *vgroup_subset,
                                 const int vgroup_tot,

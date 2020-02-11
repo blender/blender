@@ -230,19 +230,17 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
       float sumw = 0.0f;
 
       for (j = 0; j < vert->totweight; j++) {
-        int idx = vert->dw[j].def_nr;
+        uint idx = vert->dw[j].def_nr;
         if (idx >= joint_index_by_def_index.size()) {
           /* XXX: Maybe better find out where and
            *      why the Out Of Bound indexes get created ? */
           oob_counter += 1;
         }
         else {
-          if (idx >= 0) {
-            int joint_index = joint_index_by_def_index[idx];
-            if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
-              jw[joint_index] += vert->dw[j].weight;
-              sumw += vert->dw[j].weight;
-            }
+          int joint_index = joint_index_by_def_index[idx];
+          if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
+            jw[joint_index] += vert->dw[j].weight;
+            sumw += vert->dw[j].weight;
           }
         }
       }
