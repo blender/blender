@@ -545,7 +545,7 @@ void paint_sample_color(
             }
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, NULL);
-            if (ibuf && ibuf->rect) {
+            if (ibuf && (ibuf->rect || ibuf->rect_float)) {
               sample_success = true;
 
               u = u * ibuf->x;
