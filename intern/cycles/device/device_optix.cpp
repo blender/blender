@@ -213,6 +213,7 @@ class OptiXDevice : public Device {
 
   OptixDenoiser denoiser = NULL;
   vector<pair<int2, CUdeviceptr>> denoiser_state;
+  int denoiser_input_passes = 0;
 
  public:
   OptiXDevice(DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool background_)
@@ -632,7 +633,7 @@ class OptiXDevice : public Device {
     if (have_error())
       return;  // Abort early if there was an error previously
 
-    if (task.type == DeviceTask::RENDER) {
+    if (task.type == DeviceTask::RENDER || task.type == DeviceTask::DENOISE) {
       RenderTile tile;
       while (task.acquire_tile(this, tile)) {
         if (tile.task == RenderTile::PATH_TRACE)
@@ -651,6 +652,22 @@ class OptiXDevice : public Device {
     }
     else if (task.type == DeviceTask::FILM_CONVERT) {
       launch_film_convert(task, thread_index);
+    }
+    else if (task.type == DeviceTask::DENOISE_BUFFER) {
+      // Set up a single tile that covers the whole task and denoise it
+      RenderTile tile;
+      tile.x = task.x;
+      tile.y = task.y;
+      tile.w = task.w;
+      tile.h = task.h;
+      tile.buffer = task.buffer;
+      tile.num_samples = task.num_samples;
+      tile.start_sample = task.sample;
+      tile.offset = task.offset;
+      tile.stride = task.stride;
+      tile.buffers = task.buffers;
+
+      launch_denoise(task, tile, thread_index);
     }
   }
 
@@ -740,6 +757,7 @@ class OptiXDevice : public Device {
       RenderTile rtiles[10];
       rtiles[4] = rtile;
       task.map_neighbor_tiles(rtiles, this);
+      rtile = rtiles[4];  // Tile may have been modified by mapping code
 
       // Calculate size of the tile to denoise (including overlap)
       int4 rect = make_int4(
@@ -846,7 +864,14 @@ class OptiXDevice : public Device {
       }
 #  endif
 
-      if (denoiser == NULL) {
+      const bool recreate_denoiser = (denoiser == NULL) ||
+                                     (task.denoising.optix_input_passes != denoiser_input_passes);
+      if (recreate_denoiser) {
+        // Destroy existing handle before creating new one
+        if (denoiser != NULL) {
+          optixDenoiserDestroy(denoiser);
+        }
+
         // Create OptiX denoiser handle on demand when it is first used
         OptixDenoiserOptions denoiser_options;
         assert(task.denoising.optix_input_passes >= 1 && task.denoising.optix_input_passes <= 3);
@@ -856,6 +881,9 @@ class OptiXDevice : public Device {
         check_result_optix_ret(optixDenoiserCreate(context, &denoiser_options, &denoiser));
         check_result_optix_ret(
             optixDenoiserSetModel(denoiser, OPTIX_DENOISER_MODEL_KIND_HDR, NULL, 0));
+
+        // OptiX denoiser handle was created with the requested number of input passes
+        denoiser_input_passes = task.denoising.optix_input_passes;
       }
 
       OptixDenoiserSizes sizes = {};
@@ -868,13 +896,16 @@ class OptiXDevice : public Device {
       const size_t scratch_offset = sizes.stateSizeInBytes;
 
       // Allocate denoiser state if tile size has changed since last setup
-      if (state_size.x != rect_size.x || state_size.y != rect_size.y) {
+      if (state_size.x != rect_size.x || state_size.y != rect_size.y || recreate_denoiser) {
+        // Free existing state before allocating new one
         if (state) {
           cuMemFree(state);
           state = 0;
         }
+
         check_result_cuda_ret(cuMemAlloc(&state, scratch_offset + scratch_size));
 
+        // Initialize denoiser state for the current tile size
         check_result_optix_ret(optixDenoiserSetup(denoiser,
                                                   cuda_stream[thread_index],
                                                   rect_size.x,
@@ -1972,17 +2003,17 @@ class OptiXDevice : public Device {
     else if (mem.type == MEM_TEXTURE) {
       assert(!"mem_copy_from not supported for textures.");
     }
-    else {
+    else if (mem.host_pointer) {
       // Calculate linear memory offset and size
       const size_t size = elem * w * h;
       const size_t offset = elem * y * w;
 
-      if (mem.host_pointer && mem.device_pointer) {
+      if (mem.device_pointer) {
         const CUDAContextScope scope(cuda_context);
         check_result_cuda(cuMemcpyDtoH(
             (char *)mem.host_pointer + offset, (CUdeviceptr)mem.device_pointer + offset, size));
       }
-      else if (mem.host_pointer) {
+      else {
         memset((char *)mem.host_pointer + offset, 0, size);
       }
     }
@@ -1990,20 +2021,21 @@ class OptiXDevice : public Device {
 
   void mem_zero(device_memory &mem) override
   {
-    if (mem.host_pointer)
-      memset(mem.host_pointer, 0, mem.memory_size());
-
-    if (!mem.device_pointer)
+    if (!mem.device_pointer) {
       mem_alloc(mem);  // Need to allocate memory first if it does not exist yet
+    }
+    if (!mem.device_pointer) {
+      return;
+    }
 
-    /* If use_mapped_host of mem is false, mem.device_pointer currently
-     * refers to device memory regardless of mem.host_pointer and
-     * mem.shared_pointer. */
-
-    if (mem.device_pointer &&
-        (cuda_mem_map[&mem].use_mapped_host == false || mem.host_pointer != mem.shared_pointer)) {
+    /* If use_mapped_host of mem is false, mem.device_pointer currently refers to device memory
+     * regardless of mem.host_pointer and mem.shared_pointer. */
+    if (!cuda_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
       const CUDAContextScope scope(cuda_context);
       check_result_cuda(cuMemsetD8((CUdeviceptr)mem.device_pointer, 0, mem.memory_size()));
+    }
+    else if (mem.host_pointer) {
+      memset(mem.host_pointer, 0, mem.memory_size());
     }
   }
 

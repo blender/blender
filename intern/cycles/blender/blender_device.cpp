@@ -19,6 +19,22 @@
 
 CCL_NAMESPACE_BEGIN
 
+enum DenoiserType {
+  DENOISER_NONE = 0,
+  DENOISER_OPTIX = 1,
+
+  DENOISER_NUM
+};
+
+enum ComputeDevice {
+  COMPUTE_DEVICE_CPU = 0,
+  COMPUTE_DEVICE_CUDA = 1,
+  COMPUTE_DEVICE_OPENCL = 2,
+  COMPUTE_DEVICE_OPTIX = 3,
+
+  COMPUTE_DEVICE_NUM
+};
+
 int blender_device_threads(BL::Scene &b_scene)
 {
   BL::RenderSettings b_r = b_scene.render();
@@ -40,7 +56,7 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
     /* Find network device. */
     vector<DeviceInfo> devices = Device::available_devices(DEVICE_MASK_NETWORK);
     if (!devices.empty()) {
-      device = devices.front();
+      return devices.front();
     }
   }
   else if (get_enum(cscene, "device") == 1) {
@@ -57,14 +73,6 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
     }
 
     /* Test if we are using GPU devices. */
-    enum ComputeDevice {
-      COMPUTE_DEVICE_CPU = 0,
-      COMPUTE_DEVICE_CUDA = 1,
-      COMPUTE_DEVICE_OPENCL = 2,
-      COMPUTE_DEVICE_OPTIX = 3,
-      COMPUTE_DEVICE_NUM = 4,
-    };
-
     ComputeDevice compute_device = (ComputeDevice)get_enum(
         cpreferences, "compute_device_type", COMPUTE_DEVICE_NUM, COMPUTE_DEVICE_CPU);
 
@@ -103,6 +111,33 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
         device = Device::get_multi_device(used_devices, threads, background);
       }
       /* Else keep using the CPU device that was set before. */
+    }
+  }
+
+  /* Ensure there is an OptiX device when using the OptiX denoiser. */
+  bool use_optix_denoising = DENOISER_OPTIX ==
+                             get_enum(cscene, "preview_denoising", DENOISER_NUM, DENOISER_NONE);
+  BL::Scene::view_layers_iterator b_view_layer;
+  for (b_scene.view_layers.begin(b_view_layer); b_view_layer != b_scene.view_layers.end();
+       ++b_view_layer) {
+    PointerRNA crl = RNA_pointer_get(&b_view_layer->ptr, "cycles");
+    if (get_boolean(crl, "use_optix_denoising")) {
+      use_optix_denoising = true;
+    }
+  }
+
+  if (use_optix_denoising && device.type != DEVICE_OPTIX) {
+    vector<DeviceInfo> optix_devices = Device::available_devices(DEVICE_MASK_OPTIX);
+    if (!optix_devices.empty()) {
+      /* Convert to a special multi device with separate denoising devices. */
+      if (device.multi_devices.empty()) {
+        device.multi_devices.push_back(device);
+      }
+
+      /* Simply use the first available OptiX device. */
+      const DeviceInfo optix_device = optix_devices.front();
+      device.id += optix_device.id; /* Uniquely identify this special multi device. */
+      device.denoising_devices.push_back(optix_device);
     }
   }
 

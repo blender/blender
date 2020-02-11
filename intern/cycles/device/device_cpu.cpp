@@ -508,13 +508,14 @@ class CPUDevice : public Device {
 
   void thread_run(DeviceTask *task)
   {
-    if (task->type == DeviceTask::RENDER) {
+    if (task->type == DeviceTask::RENDER || task->type == DeviceTask::DENOISE)
       thread_render(*task);
-    }
-    else if (task->type == DeviceTask::FILM_CONVERT)
-      thread_film_convert(*task);
     else if (task->type == DeviceTask::SHADER)
       thread_shader(*task);
+    else if (task->type == DeviceTask::FILM_CONVERT)
+      thread_film_convert(*task);
+    else if (task->type == DeviceTask::DENOISE_BUFFER)
+      thread_denoise(*task);
   }
 
   class CPUDeviceTask : public DeviceTask {
@@ -952,6 +953,33 @@ class CPUDevice : public Device {
     kg->~KernelGlobals();
     kgbuffer.free();
     delete split_kernel;
+  }
+
+  void thread_denoise(DeviceTask &task)
+  {
+    RenderTile tile;
+    tile.x = task.x;
+    tile.y = task.y;
+    tile.w = task.w;
+    tile.h = task.h;
+    tile.buffer = task.buffer;
+    tile.sample = task.sample + task.num_samples;
+    tile.num_samples = task.num_samples;
+    tile.start_sample = task.sample;
+    tile.offset = task.offset;
+    tile.stride = task.stride;
+    tile.buffers = task.buffers;
+
+    DenoisingTask denoising(this, task);
+
+    ProfilingState denoising_profiler_state;
+    profiler.add_state(&denoising_profiler_state);
+    denoising.profiler = &denoising_profiler_state;
+
+    denoise(denoising, tile);
+    task.update_progress(&tile, tile.w * tile.h);
+
+    profiler.remove_state(&denoising_profiler_state);
   }
 
   void thread_film_convert(DeviceTask &task)

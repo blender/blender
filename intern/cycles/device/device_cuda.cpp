@@ -994,16 +994,16 @@ class CUDADevice : public Device {
     else if (mem.type == MEM_TEXTURE) {
       assert(!"mem_copy_from not supported for textures.");
     }
-    else {
-      CUDAContextScope scope(this);
-      size_t offset = elem * y * w;
-      size_t size = elem * w * h;
+    else if (mem.host_pointer) {
+      const size_t size = elem * w * h;
+      const size_t offset = elem * y * w;
 
-      if (mem.host_pointer && mem.device_pointer) {
+      if (mem.device_pointer) {
+        const CUDAContextScope scope(this);
         cuda_assert(cuMemcpyDtoH(
-            (uchar *)mem.host_pointer + offset, (CUdeviceptr)(mem.device_pointer + offset), size));
+            (char *)mem.host_pointer + offset, (CUdeviceptr)mem.device_pointer + offset, size));
       }
-      else if (mem.host_pointer) {
+      else {
         memset((char *)mem.host_pointer + offset, 0, size);
       }
     }
@@ -1014,19 +1014,18 @@ class CUDADevice : public Device {
     if (!mem.device_pointer) {
       mem_alloc(mem);
     }
-
-    if (mem.host_pointer) {
-      memset(mem.host_pointer, 0, mem.memory_size());
+    if (!mem.device_pointer) {
+      return;
     }
 
-    /* If use_mapped_host of mem is false, mem.device_pointer currently
-     * refers to device memory regardless of mem.host_pointer and
-     * mem.shared_pointer. */
-
-    if (mem.device_pointer &&
-        (cuda_mem_map[&mem].use_mapped_host == false || mem.host_pointer != mem.shared_pointer)) {
-      CUDAContextScope scope(this);
+    /* If use_mapped_host of mem is false, mem.device_pointer currently refers to device memory
+     * regardless of mem.host_pointer and mem.shared_pointer. */
+    if (!cuda_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
+      const CUDAContextScope scope(this);
       cuda_assert(cuMemsetD8(cuda_device_ptr(mem.device_pointer), 0, mem.memory_size()));
+    }
+    else if (mem.host_pointer) {
+      memset(mem.host_pointer, 0, mem.memory_size());
     }
   }
 
@@ -2240,7 +2239,7 @@ class CUDADevice : public Device {
   {
     CUDAContextScope scope(this);
 
-    if (task->type == DeviceTask::RENDER) {
+    if (task->type == DeviceTask::RENDER || task->type == DeviceTask::DENOISE) {
       DeviceRequestedFeatures requested_features;
       if (use_split_kernel()) {
         if (split_kernel == NULL) {
@@ -2287,6 +2286,24 @@ class CUDADevice : public Device {
       shader(*task);
 
       cuda_assert(cuCtxSynchronize());
+    }
+    else if (task->type == DeviceTask::DENOISE_BUFFER) {
+      RenderTile tile;
+      tile.x = task->x;
+      tile.y = task->y;
+      tile.w = task->w;
+      tile.h = task->h;
+      tile.buffer = task->buffer;
+      tile.sample = task->sample + task->num_samples;
+      tile.num_samples = task->num_samples;
+      tile.start_sample = task->sample;
+      tile.offset = task->offset;
+      tile.stride = task->stride;
+      tile.buffers = task->buffers;
+
+      DenoisingTask denoising(this, *task);
+      denoise(tile, denoising);
+      task->update_progress(&tile, tile.w * tile.h);
     }
   }
 

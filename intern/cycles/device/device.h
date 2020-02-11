@@ -83,6 +83,7 @@ class DeviceInfo {
   bool has_profiling;        /* Supports runtime collection of profiling info. */
   int cpu_threads;
   vector<DeviceInfo> multi_devices;
+  vector<DeviceInfo> denoising_devices;
 
   DeviceInfo()
   {

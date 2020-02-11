@@ -42,7 +42,7 @@ class MultiDevice : public Device {
     map<device_ptr, device_ptr> ptr_map;
   };
 
-  list<SubDevice> devices;
+  list<SubDevice> devices, denoising_devices;
   device_ptr unique_key;
 
   MultiDevice(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background_)
@@ -59,6 +59,12 @@ class MultiDevice : public Device {
       else {
         devices.push_front(SubDevice(device));
       }
+    }
+
+    foreach (DeviceInfo &subinfo, info.denoising_devices) {
+      Device *device = Device::create(subinfo, sub_stats_, profiler, background);
+
+      denoising_devices.push_back(SubDevice(device));
     }
 
 #ifdef WITH_NETWORK
@@ -80,17 +86,18 @@ class MultiDevice : public Device {
   {
     foreach (SubDevice &sub, devices)
       delete sub.device;
+    foreach (SubDevice &sub, denoising_devices)
+      delete sub.device;
   }
 
   const string &error_message()
   {
-    foreach (SubDevice &sub, devices) {
-      if (sub.device->error_message() != "") {
-        if (error_msg == "")
-          error_msg = sub.device->error_message();
-        break;
-      }
-    }
+    error_msg.clear();
+
+    foreach (SubDevice &sub, devices)
+      error_msg += sub.device->error_message();
+    foreach (SubDevice &sub, denoising_devices)
+      error_msg += sub.device->error_message();
 
     return error_msg;
   }
@@ -118,6 +125,12 @@ class MultiDevice : public Device {
       if (!sub.device->load_kernels(requested_features))
         return false;
 
+    if (requested_features.use_denoising) {
+      foreach (SubDevice &sub, denoising_devices)
+        if (!sub.device->load_kernels(requested_features))
+          return false;
+    }
+
     return true;
   }
 
@@ -126,6 +139,12 @@ class MultiDevice : public Device {
     foreach (SubDevice &sub, devices)
       if (!sub.device->wait_for_availability(requested_features))
         return false;
+
+    if (requested_features.use_denoising) {
+      foreach (SubDevice &sub, denoising_devices)
+        if (!sub.device->wait_for_availability(requested_features))
+          return false;
+    }
 
     return true;
   }
@@ -150,16 +169,17 @@ class MultiDevice : public Device {
           break;
       }
     }
+
     return result;
   }
 
   bool build_optix_bvh(BVH *bvh)
   {
-    // Broadcast acceleration structure build to all devices
-    foreach (SubDevice &sub, devices) {
+    // Broadcast acceleration structure build to all render devices
+    foreach (SubDevice &sub, devices)
       if (!sub.device->build_optix_bvh(bvh))
         return false;
-    }
+
     return true;
   }
 
@@ -236,6 +256,17 @@ class MultiDevice : public Device {
       sub.ptr_map[key] = mem.device_pointer;
     }
 
+    if (strcmp(mem.name, "RenderBuffers") == 0) {
+      foreach (SubDevice &sub, denoising_devices) {
+        mem.device = sub.device;
+        mem.device_pointer = (existing_key) ? sub.ptr_map[existing_key] : 0;
+        mem.device_size = existing_size;
+
+        sub.device->mem_zero(mem);
+        sub.ptr_map[key] = mem.device_pointer;
+      }
+    }
+
     mem.device = this;
     mem.device_pointer = key;
     stats.mem_alloc(mem.device_size - existing_size);
@@ -253,6 +284,17 @@ class MultiDevice : public Device {
 
       sub.device->mem_free(mem);
       sub.ptr_map.erase(sub.ptr_map.find(key));
+    }
+
+    if (strcmp(mem.name, "RenderBuffers") == 0) {
+      foreach (SubDevice &sub, denoising_devices) {
+        mem.device = sub.device;
+        mem.device_pointer = sub.ptr_map[key];
+        mem.device_size = existing_size;
+
+        sub.device->mem_free(mem);
+        sub.ptr_map.erase(sub.ptr_map.find(key));
+      }
     }
 
     mem.device = this;
@@ -302,10 +344,21 @@ class MultiDevice : public Device {
 
   void map_tile(Device *sub_device, RenderTile &tile)
   {
+    if (!tile.buffer) {
+      return;
+    }
+
     foreach (SubDevice &sub, devices) {
       if (sub.device == sub_device) {
-        if (tile.buffer)
-          tile.buffer = sub.ptr_map[tile.buffer];
+        tile.buffer = sub.ptr_map[tile.buffer];
+        return;
+      }
+    }
+
+    foreach (SubDevice &sub, denoising_devices) {
+      if (sub.device == sub_device) {
+        tile.buffer = sub.ptr_map[tile.buffer];
+        return;
       }
     }
   }
@@ -315,6 +368,12 @@ class MultiDevice : public Device {
     int i = 0;
 
     foreach (SubDevice &sub, devices) {
+      if (sub.device == sub_device)
+        return i;
+      i++;
+    }
+
+    foreach (SubDevice &sub, denoising_devices) {
       if (sub.device == sub_device)
         return i;
       i++;
@@ -330,11 +389,20 @@ class MultiDevice : public Device {
         continue;
       }
 
+      device_vector<float> &mem = tiles[i].buffers->buffer;
+      tiles[i].buffer = mem.device_pointer;
+
+      if (mem.device == this && denoising_devices.empty()) {
+        /* Skip unnecessary copies in viewport mode (buffer covers the
+         * whole image), but still need to fix up the tile evice pointer. */
+        map_tile(sub_device, tiles[i]);
+        continue;
+      }
+
       /* If the tile was rendered on another device, copy its memory to
        * to the current device now, for the duration of the denoising task.
        * Note that this temporarily modifies the RenderBuffers and calls
        * the device, so this function is not thread safe. */
-      device_vector<float> &mem = tiles[i].buffers->buffer;
       if (mem.device != sub_device) {
         /* Only copy from device to host once. This is faster, but
          * also required for the case where a CPU thread is denoising
@@ -342,12 +410,20 @@ class MultiDevice : public Device {
          * overwriting the buffer being denoised by the CPU thread. */
         if (!tiles[i].buffers->map_neighbor_copied) {
           tiles[i].buffers->map_neighbor_copied = true;
-          mem.copy_from_device(0, mem.data_size, 1);
+          mem.copy_from_device();
         }
 
-        mem.swap_device(sub_device, 0, 0);
+        if (mem.device == this) {
+          /* Can re-use memory if tile is already allocated on the sub device. */
+          map_tile(sub_device, tiles[i]);
+          mem.swap_device(sub_device, mem.device_size, tiles[i].buffer);
+        }
+        else {
+          mem.swap_device(sub_device, 0, 0);
+        }
 
         mem.copy_to_device();
+
         tiles[i].buffer = mem.device_pointer;
         tiles[i].device_size = mem.device_size;
 
@@ -358,11 +434,17 @@ class MultiDevice : public Device {
 
   void unmap_neighbor_tiles(Device *sub_device, RenderTile *tiles)
   {
-    /* Copy denoised result back to the host. */
     device_vector<float> &mem = tiles[9].buffers->buffer;
+
+    if (mem.device == this && denoising_devices.empty()) {
+      return;
+    }
+
+    /* Copy denoised result back to the host. */
     mem.swap_device(sub_device, tiles[9].device_size, tiles[9].buffer);
-    mem.copy_from_device(0, mem.data_size, 1);
+    mem.copy_from_device();
     mem.restore_device();
+
     /* Copy denoised result to the original device. */
     mem.copy_to_device();
 
@@ -372,7 +454,9 @@ class MultiDevice : public Device {
       }
 
       device_vector<float> &mem = tiles[i].buffers->buffer;
-      if (mem.device != sub_device) {
+
+      if (mem.device != sub_device && mem.device != this) {
+        /* Free up memory again if it was allocated for the copy above. */
         mem.swap_device(sub_device, tiles[i].device_size, tiles[i].buffer);
         sub_device->mem_free(mem);
         mem.restore_device();
@@ -398,10 +482,16 @@ class MultiDevice : public Device {
 
   void task_add(DeviceTask &task)
   {
-    list<DeviceTask> tasks;
-    task.split(tasks, devices.size());
+    list<SubDevice> &task_devices = denoising_devices.empty() ||
+                                            (task.type != DeviceTask::DENOISE &&
+                                             task.type != DeviceTask::DENOISE_BUFFER) ?
+                                        devices :
+                                        denoising_devices;
 
-    foreach (SubDevice &sub, devices) {
+    list<DeviceTask> tasks;
+    task.split(tasks, task_devices.size());
+
+    foreach (SubDevice &sub, task_devices) {
       if (!tasks.empty()) {
         DeviceTask subtask = tasks.front();
         tasks.pop_front();
@@ -426,11 +516,15 @@ class MultiDevice : public Device {
   {
     foreach (SubDevice &sub, devices)
       sub.device->task_wait();
+    foreach (SubDevice &sub, denoising_devices)
+      sub.device->task_wait();
   }
 
   void task_cancel()
   {
     foreach (SubDevice &sub, devices)
+      sub.device->task_cancel();
+    foreach (SubDevice &sub, denoising_devices)
       sub.device->task_cancel();
   }
 

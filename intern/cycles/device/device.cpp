@@ -366,6 +366,15 @@ void Device::draw_pixels(device_memory &rgba,
 
 Device *Device::create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background)
 {
+#ifdef WITH_MULTI
+  if (!info.multi_devices.empty()) {
+    /* Always create a multi device when info contains multiple devices.
+     * This is done so that the type can still be e.g. DEVICE_CPU to indicate
+     * that it is a homogeneous collection of devices, which simplifies checks. */
+    return device_multi_create(info, stats, profiler, background);
+  }
+#endif
+
   Device *device;
 
   switch (info.type) {
@@ -386,11 +395,6 @@ Device *Device::create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool 
         device = device_optix_create(info, stats, profiler, background);
       else
         device = NULL;
-      break;
-#endif
-#ifdef WITH_MULTI
-    case DEVICE_MULTI:
-      device = device_multi_create(info, stats, profiler, background);
       break;
 #endif
 #ifdef WITH_NETWORK
@@ -586,7 +590,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   }
 
   DeviceInfo info;
-  info.type = DEVICE_MULTI;
+  info.type = subdevices.front().type;
   info.id = "MULTI";
   info.description = "Multi Device";
   info.num = 0;
@@ -622,6 +626,14 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     }
     else {
       info.multi_devices.push_back(device);
+    }
+
+    /* Create unique ID for this combination of devices. */
+    info.id += device.id;
+
+    /* Set device type to MULTI if subdevices are not of a common type. */
+    if (device.type != info.type) {
+      info.type = DEVICE_MULTI;
     }
 
     /* Accumulate device info. */

@@ -427,6 +427,11 @@ template<typename T> class device_vector : public device_memory {
     device_copy_to();
   }
 
+  void copy_from_device()
+  {
+    device_copy_from(0, data_width, data_height, sizeof(T));
+  }
+
   void copy_from_device(int y, int w, int h)
   {
     device_copy_from(y, w, h, sizeof(T));

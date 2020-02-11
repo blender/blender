@@ -197,7 +197,12 @@ enum_aov_types = (
     ('COLOR', "Color", "Write a Color pass", 1),
 )
 
-enum_denoising_optix_input_passes= (
+enum_viewport_denoising = (
+    ('NONE', "None", "Disable viewport denoising", 0),
+    ('OPTIX', "OptiX AI-Accelerated", "Use the OptiX denoiser running on the GPU (requires at least one compatible OptiX device)", 1),
+)
+
+enum_denoising_optix_input_passes = (
     ('RGB', "Color", "Use only color as input", 1),
     ('RGB_ALBEDO', "Color + Albedo", "Use color and albedo data as input", 2),
     ('RGB_ALBEDO_NORMAL', "Color + Albedo + Normal", "Use color, albedo and normal data as input", 3),
@@ -229,6 +234,18 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default='PATH',
     )
 
+    preview_pause: BoolProperty(
+        name="Pause Preview",
+        description="Pause all viewport preview renders",
+        default=False,
+    )
+    preview_denoising: EnumProperty(
+        name="Viewport Denoising",
+        description="Denoise the image after each preview update with the selected denoiser engine",
+        items=enum_viewport_denoising,
+        default='NONE',
+    )
+
     use_square_samples: BoolProperty(
         name="Square Samples",
         description="Square sampling values for easier artist control",
@@ -247,11 +264,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         min=0, max=(1 << 24),
         default=32,
     )
-    preview_pause: BoolProperty(
-        name="Pause Preview",
-        description="Pause all viewport preview renders",
-        default=False,
-    )
     aa_samples: IntProperty(
         name="AA Samples",
         description="Number of antialiasing samples to render for each pixel",
@@ -264,6 +276,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         min=0, max=2097151,
         default=32,
     )
+
     diffuse_samples: IntProperty(
         name="Diffuse Samples",
         description="Number of diffuse bounce samples to render for each AA sample",
@@ -294,14 +307,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         min=1, max=1024,
         default=1,
     )
-
     subsurface_samples: IntProperty(
         name="Subsurface Samples",
         description="Number of subsurface scattering samples to render for each AA sample",
         min=1, max=1024,
         default=1,
     )
-
     volume_samples: IntProperty(
         name="Volume Samples",
         description="Number of volume scattering samples to render for each AA sample",
@@ -1305,12 +1316,6 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         default=False,
         update=update_render_passes,
     )
-    use_optix_denoising: BoolProperty(
-        name="Use OptiX AI Denoising",
-        description="Denoise the rendered image with the OptiX AI denoiser",
-        default=False,
-        update=update_render_passes,
-    )
     denoising_diffuse_direct: BoolProperty(
         name="Diffuse Direct",
         description="Denoise the direct diffuse lighting",
@@ -1387,11 +1392,18 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         min=0, max=7,
         default=0,
     )
+
+    use_optix_denoising: BoolProperty(
+        name="OptiX AI-Accelerated",
+        description="Use the OptiX denoiser to denoise the rendered image",
+        default=False,
+        update=update_render_passes,
+    )
     denoising_optix_input_passes: EnumProperty(
         name="Input Passes",
-        description="Controls which passes the OptiX AI denoiser should use as input, which can have different effects on the denoised image",
+        description="Passes handed over to the OptiX denoiser (this can have different effects on the denoised image)",
         items=enum_denoising_optix_input_passes,
-        default='RGB',
+        default='RGB_ALBEDO',
     )
 
     use_pass_crypto_object: BoolProperty(

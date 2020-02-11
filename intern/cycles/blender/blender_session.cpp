@@ -166,7 +166,7 @@ void BlenderSession::create_session()
 
   /* set buffer parameters */
   BufferParams buffer_params = BlenderSync::get_buffer_params(
-      b_render, b_v3d, b_rv3d, scene->camera, width, height);
+      b_scene, b_render, b_v3d, b_rv3d, scene->camera, width, height);
   session->reset(buffer_params, session_params.samples);
 
   b_engine.use_highlight_tiles(session_params.progressive_refine == false);
@@ -244,7 +244,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
   BL::SpaceView3D b_null_space_view3d(PointerRNA_NULL);
   BL::RegionView3D b_null_region_view3d(PointerRNA_NULL);
   BufferParams buffer_params = BlenderSync::get_buffer_params(
-      b_render, b_null_space_view3d, b_null_region_view3d, scene->camera, width, height);
+      b_scene, b_render, b_null_space_view3d, b_null_region_view3d, scene->camera, width, height);
   session->reset(buffer_params, session_params.samples);
 
   b_engine.use_highlight_tiles(session_params.progressive_refine == false);
@@ -460,7 +460,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   SessionParams session_params = BlenderSync::get_session_params(
       b_engine, b_userpref, b_scene, background);
   BufferParams buffer_params = BlenderSync::get_buffer_params(
-      b_render, b_v3d, b_rv3d, scene->camera, width, height);
+      b_scene, b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
   /* render each layer */
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
@@ -706,7 +706,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     SessionParams session_params = BlenderSync::get_session_params(
         b_engine, b_userpref, b_scene, background);
     BufferParams buffer_params = BlenderSync::get_buffer_params(
-        b_render, b_v3d, b_rv3d, scene->camera, width, height);
+        b_scene, b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
     scene->bake_manager->set_shader_limit((size_t)b_engine.tile_x(), (size_t)b_engine.tile_y());
 
@@ -851,7 +851,6 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   if (session->params.modified(session_params) || scene->params.modified(scene_params)) {
     free_session();
     create_session();
-    return;
   }
 
   /* increase samples, but never decrease */
@@ -886,10 +885,28 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   else
     sync->sync_camera(b_render, b_camera_override, width, height, "");
 
+  /* get buffer parameters */
+  BufferParams buffer_params = BlenderSync::get_buffer_params(
+      b_scene, b_render, b_v3d, b_rv3d, scene->camera, width, height);
+
+  if (session_params.device.type != DEVICE_OPTIX &&
+      session_params.device.denoising_devices.empty()) {
+    /* cannot use OptiX denoising when it is not supported by the device. */
+    buffer_params.denoising_data_pass = false;
+  }
+  else {
+    session->set_denoising(buffer_params.denoising_data_pass, true);
+  }
+
+  if (scene->film->denoising_data_pass != buffer_params.denoising_data_pass) {
+    scene->film->denoising_data_pass = buffer_params.denoising_data_pass;
+
+    /* Force a scene and session reset below. */
+    scene->film->tag_update(scene);
+  }
+
   /* reset if needed */
   if (scene->need_reset()) {
-    BufferParams buffer_params = BlenderSync::get_buffer_params(
-        b_render, b_v3d, b_rv3d, scene->camera, width, height);
     session->reset(buffer_params, session_params.samples);
 
     /* After session reset, so device is not accessing image data anymore. */
@@ -956,7 +973,7 @@ bool BlenderSession::draw(int w, int h)
       SessionParams session_params = BlenderSync::get_session_params(
           b_engine, b_userpref, b_scene, background);
       BufferParams buffer_params = BlenderSync::get_buffer_params(
-          b_render, b_v3d, b_rv3d, scene->camera, width, height);
+          b_scene, b_render, b_v3d, b_rv3d, scene->camera, width, height);
       bool session_pause = BlenderSync::get_session_pause(b_scene, background);
 
       if (session_pause == false) {
@@ -974,7 +991,7 @@ bool BlenderSession::draw(int w, int h)
 
   /* draw */
   BufferParams buffer_params = BlenderSync::get_buffer_params(
-      b_render, b_v3d, b_rv3d, scene->camera, width, height);
+      b_scene, b_render, b_v3d, b_rv3d, scene->camera, width, height);
   DeviceDrawParams draw_params;
 
   if (session->params.display_buffer_linear) {

@@ -846,20 +846,10 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
 
   /* progressive refine */
   BL::RenderSettings b_r = b_scene.render();
-  params.progressive_refine = (b_engine.is_preview() ||
-                               get_boolean(cscene, "use_progressive_refine")) &&
-                              !b_r.use_save_buffers();
-
-  if (params.progressive_refine) {
-    BL::Scene::view_layers_iterator b_view_layer;
-    for (b_scene.view_layers.begin(b_view_layer); b_view_layer != b_scene.view_layers.end();
-         ++b_view_layer) {
-      PointerRNA crl = RNA_pointer_get(&b_view_layer->ptr, "cycles");
-      if (get_boolean(crl, "use_denoising")) {
-        params.progressive_refine = false;
-      }
-    }
-  }
+  params.progressive_refine = b_engine.is_preview() ||
+                              get_boolean(cscene, "use_progressive_refine");
+  if (b_r.use_save_buffers())
+    params.progressive_refine = false;
 
   if (background) {
     if (params.progressive_refine)

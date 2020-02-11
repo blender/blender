@@ -101,6 +101,7 @@ TileManager::TileManager(bool progressive_,
   tile_order = tile_order_;
   start_resolution = start_resolution_;
   pixel_size = pixel_size_;
+  slice_overlap = 0;
   num_samples = num_samples_;
   num_devices = num_devices_;
   preserve_tile_device = preserve_tile_device_;
@@ -201,8 +202,7 @@ int TileManager::gen_tiles(bool sliced)
   int image_h = max(1, params.height / resolution);
   int2 center = make_int2(image_w / 2, image_h / 2);
 
-  int num_logical_devices = preserve_tile_device ? num_devices : 1;
-  int num = min(image_h, num_logical_devices);
+  int num = preserve_tile_device || sliced ? min(image_h, num_devices) : 1;
   int slice_num = sliced ? num : 1;
   int tile_w = (tile_size.x >= image_w) ? 1 : divide_up(image_w, tile_size.x);
 
@@ -216,7 +216,7 @@ int TileManager::gen_tiles(bool sliced)
   tile_list = state.render_tiles.begin();
 
   if (tile_order == TILE_HILBERT_SPIRAL) {
-    assert(!sliced);
+    assert(!sliced && slice_overlap == 0);
 
     int tile_h = (tile_size.y >= image_h) ? 1 : divide_up(image_h, tile_size.y);
     state.tiles.resize(tile_w * tile_h);
@@ -319,6 +319,12 @@ int TileManager::gen_tiles(bool sliced)
     int slice_h = (slice == slice_num - 1) ? image_h - slice * (image_h / slice_num) :
                                              image_h / slice_num;
 
+    if (slice_overlap != 0) {
+      int slice_y_offset = max(slice_y - slice_overlap, 0);
+      slice_h = min(slice_y + slice_h + slice_overlap, image_h) - slice_y_offset;
+      slice_y = slice_y_offset;
+    }
+
     int tile_h = (tile_size.y >= slice_h) ? 1 : divide_up(slice_h, tile_size.y);
 
     int tiles_per_device = divide_up(tile_w * tile_h, num);
@@ -363,6 +369,7 @@ void TileManager::gen_render_tiles()
 {
   /* Regenerate just the render tiles for progressive render. */
   foreach (Tile &tile, state.tiles) {
+    tile.state = Tile::RENDER;
     state.render_tiles[tile.device].push_back(tile.index);
   }
 }
@@ -386,17 +393,29 @@ void TileManager::set_tiles()
 
 int TileManager::get_neighbor_index(int index, int neighbor)
 {
-  static const int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1, 0}, dy[] = {-1, -1, -1, 0, 0, 1, 1, 1, 0};
+  /* Neighbor indices:
+   *   0 1 2
+   *   3 4 5
+   *   6 7 8
+   */
+  static const int dx[] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+  static const int dy[] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 
   int resolution = state.resolution_divider;
   int image_w = max(1, params.width / resolution);
   int image_h = max(1, params.height / resolution);
-  int tile_w = (tile_size.x >= image_w) ? 1 : divide_up(image_w, tile_size.x);
-  int tile_h = (tile_size.y >= image_h) ? 1 : divide_up(image_h, tile_size.y);
 
-  int nx = state.tiles[index].x / tile_size.x + dx[neighbor],
-      ny = state.tiles[index].y / tile_size.y + dy[neighbor];
-  if (nx < 0 || ny < 0 || nx >= tile_w || ny >= tile_h)
+  int num = min(image_h, num_devices);
+  int slice_num = !background ? num : 1;
+  int slice_h = image_h / slice_num;
+
+  int tile_w = (tile_size.x >= image_w) ? 1 : divide_up(image_w, tile_size.x);
+  int tile_h = (tile_size.y >= slice_h) ? 1 : divide_up(slice_h, tile_size.y);
+
+  /* Tiles in the state tile list are always indexed from left to right, top to bottom. */
+  int nx = (index % tile_w) + dx[neighbor];
+  int ny = (index / tile_w) + dy[neighbor];
+  if (nx < 0 || ny < 0 || nx >= tile_w || ny >= tile_h * slice_num)
     return -1;
 
   return ny * state.tile_stride + nx;
@@ -426,15 +445,11 @@ bool TileManager::finish_tile(int index, bool &delete_tile)
 {
   delete_tile = false;
 
-  if (progressive) {
-    return true;
-  }
-
   switch (state.tiles[index].state) {
     case Tile::RENDER: {
       if (!schedule_denoising) {
         state.tiles[index].state = Tile::DONE;
-        delete_tile = true;
+        delete_tile = !progressive;
         return true;
       }
       state.tiles[index].state = Tile::RENDERED;
@@ -457,15 +472,18 @@ bool TileManager::finish_tile(int index, bool &delete_tile)
         int nindex = get_neighbor_index(index, neighbor);
         if (check_neighbor_state(nindex, Tile::DENOISED)) {
           state.tiles[nindex].state = Tile::DONE;
-          /* It can happen that the tile just finished denoising and already can be freed here.
-           * However, in that case it still has to be written before deleting, so we can't delete
-           * it yet. */
-          if (neighbor == 8) {
-            delete_tile = true;
-          }
-          else {
-            delete state.tiles[nindex].buffers;
-            state.tiles[nindex].buffers = NULL;
+          /* Do not delete finished tiles in progressive mode. */
+          if (!progressive) {
+            /* It can happen that the tile just finished denoising and already can be freed here.
+             * However, in that case it still has to be written before deleting, so we can't delete
+             * it yet. */
+            if (neighbor == 4) {
+              delete_tile = true;
+            }
+            else {
+              delete state.tiles[nindex].buffers;
+              state.tiles[nindex].buffers = NULL;
+            }
           }
         }
       }
@@ -477,27 +495,56 @@ bool TileManager::finish_tile(int index, bool &delete_tile)
   }
 }
 
-bool TileManager::next_tile(Tile *&tile, int device)
+bool TileManager::next_tile(Tile *&tile, int device, bool denoising)
 {
-  int logical_device = preserve_tile_device ? device : 0;
+  /* Preserve device if requested, unless this is a separate denoising device that just wants to
+   * grab any available tile. */
+  const bool preserve_device = preserve_tile_device && device < num_devices;
 
-  if (logical_device >= state.render_tiles.size())
-    return false;
+  int tile_index = -1;
+  int logical_device = preserve_device ? device : 0;
 
-  if (!state.denoising_tiles[logical_device].empty()) {
-    int idx = state.denoising_tiles[logical_device].front();
-    state.denoising_tiles[logical_device].pop_front();
-    tile = &state.tiles[idx];
+  if (denoising) {
+    while (logical_device < state.denoising_tiles.size()) {
+      if (state.denoising_tiles[logical_device].empty()) {
+        if (preserve_device) {
+          return false;
+        }
+        else {
+          logical_device++;
+          continue;
+        }
+      }
+
+      tile_index = state.denoising_tiles[logical_device].front();
+      state.denoising_tiles[logical_device].pop_front();
+      break;
+    }
+  }
+  else {
+    while (logical_device < state.render_tiles.size()) {
+      if (state.render_tiles[logical_device].empty()) {
+        if (preserve_device) {
+          return false;
+        }
+        else {
+          logical_device++;
+          continue;
+        }
+      }
+
+      tile_index = state.render_tiles[logical_device].front();
+      state.render_tiles[logical_device].pop_front();
+      break;
+    }
+  }
+
+  if (tile_index >= 0) {
+    tile = &state.tiles[tile_index];
     return true;
   }
 
-  if (state.render_tiles[logical_device].empty())
-    return false;
-
-  int idx = state.render_tiles[logical_device].front();
-  state.render_tiles[logical_device].pop_front();
-  tile = &state.tiles[idx];
-  return true;
+  return false;
 }
 
 bool TileManager::done()
@@ -506,6 +553,16 @@ bool TileManager::done()
                                                range_start_sample + range_num_samples;
   return (state.resolution_divider == pixel_size) &&
          (state.sample + state.num_samples >= end_sample);
+}
+
+bool TileManager::has_tiles()
+{
+  foreach (Tile &tile, state.tiles) {
+    if (tile.state != Tile::DONE) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool TileManager::next()

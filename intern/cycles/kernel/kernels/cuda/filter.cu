@@ -57,9 +57,9 @@ kernel_cuda_filter_convert_to_rgb(float *rgb, float *buf, int sw, int sh, int st
 		if (num_inputs > 0) {
 			float *in = buf + x * pass_stride + (y * stride + pass_offset.x) / sizeof(float);
 			float *out = rgb + (x + y * sw) * 3;
-			out[0] = in[0];
-			out[1] = in[1];
-			out[2] = in[2];
+			out[0] = clamp(in[0], 0.0f, 10000.0f);
+			out[1] = clamp(in[1], 0.0f, 10000.0f);
+			out[2] = clamp(in[2], 0.0f, 10000.0f);
 		}
 		if (num_inputs > 1) {
 			float *in = buf + x * pass_stride + (y * stride + pass_offset.y) / sizeof(float);

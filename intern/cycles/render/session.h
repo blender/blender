@@ -154,6 +154,7 @@ class Session {
   void reset(BufferParams &params, int samples);
   void set_samples(int samples);
   void set_pause(bool pause);
+  void set_denoising(bool denoising, bool optix_denoising);
 
   bool update_scene();
   bool load_kernels(bool lock_scene = true);
@@ -178,8 +179,10 @@ class Session {
 
   void update_status_time(bool show_pause = false, bool show_done = false);
 
-  void copy_to_display_buffer(int sample);
   void render();
+  void denoise();
+  void copy_to_display_buffer(int sample);
+
   void reset_(BufferParams &params, int samples);
 
   void run_cpu();
@@ -190,7 +193,7 @@ class Session {
   bool draw_gpu(BufferParams &params, DeviceDrawParams &draw_params);
   void reset_gpu(BufferParams &params, int samples);
 
-  bool acquire_tile(Device *tile_device, RenderTile &tile);
+  bool acquire_tile(Device *tile_device, RenderTile &tile, RenderTile::Task task);
   void update_tile_sample(RenderTile &tile);
   void release_tile(RenderTile &tile);
 
@@ -213,14 +216,16 @@ class Session {
   thread_mutex tile_mutex;
   thread_mutex buffers_mutex;
   thread_mutex display_mutex;
+  thread_condition_variable denoising_cond;
 
   bool kernels_loaded;
   DeviceRequestedFeatures loaded_kernel_features;
 
   double reset_time;
+  double last_update_time;
+  double last_display_time;
 
   /* progressive refine */
-  double last_update_time;
   bool update_progressive_refine(bool cancel);
 
   DeviceRequestedFeatures get_requested_device_features();

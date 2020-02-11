@@ -146,7 +146,7 @@ void RenderBuffers::reset(BufferParams &params_)
   params = params_;
 
   /* re-allocate buffer */
-  buffer.alloc(params.width * params.height * params.get_passes_size());
+  buffer.alloc(params.width * params.get_passes_size(), params.height);
   buffer.zero_to_device();
 }
 
