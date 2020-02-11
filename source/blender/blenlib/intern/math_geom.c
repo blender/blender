@@ -4160,11 +4160,11 @@ static float mean_value_half_tan_v3(const struct Float3_Len *d_curr,
     const float dot = dot_v3v3(d_curr->dir, d_next->dir);
     const float len = d_curr->len * d_next->len;
     const float result = (len - dot) / area;
-    return isfinite(result) ? result : 0.0f;
+    if (isfinite(result)) {
+      return result;
+    }
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 static float mean_value_half_tan_v2(const struct Float2_Len *d_curr,
@@ -4177,11 +4177,11 @@ static float mean_value_half_tan_v2(const struct Float2_Len *d_curr,
     const float dot = dot_v2v2(d_curr->dir, d_next->dir);
     const float len = d_curr->len * d_next->len;
     const float result = (len - dot) / area;
-    return isfinite(result) ? result : 0.0f;
+    if (isfinite(result)) {
+      return result;
+    }
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[3])
