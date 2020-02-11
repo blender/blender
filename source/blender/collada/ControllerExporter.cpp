@@ -175,21 +175,6 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
    * joint names: ob -> vertex group names
    * vertex group weights: me->dvert -> groups -> index, weight */
 
-#if 0
-  me->dvert :
-
-      typedef struct MDeformVert {
-    struct MDeformWeight *dw;
-    int totweight;
-    int flag;  // flag only in use for weightpaint now
-  } MDeformVert;
-
-  typedef struct MDeformWeight {
-    int def_nr;
-    float weight;
-  } MDeformWeight;
-#endif
-
   bool use_instantiation = this->export_settings.get_use_object_instantiation();
   Mesh *me;
 
