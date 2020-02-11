@@ -101,43 +101,6 @@ static int gpu_shader_math(GPUMaterial *mat,
   }
 }
 
-static void node_shader_update_math(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  bNodeSocket *sock = BLI_findlink(&node->inputs, 1);
-  nodeSetSocketAvailability(sock,
-                            !ELEM(node->custom1,
-                                  NODE_MATH_SQRT,
-                                  NODE_MATH_SIGN,
-                                  NODE_MATH_CEIL,
-                                  NODE_MATH_SINE,
-                                  NODE_MATH_ROUND,
-                                  NODE_MATH_FLOOR,
-                                  NODE_MATH_COSINE,
-                                  NODE_MATH_ARCSINE,
-                                  NODE_MATH_TANGENT,
-                                  NODE_MATH_ABSOLUTE,
-                                  NODE_MATH_RADIANS,
-                                  NODE_MATH_DEGREES,
-                                  NODE_MATH_FRACTION,
-                                  NODE_MATH_ARCCOSINE,
-                                  NODE_MATH_ARCTANGENT) &&
-                                !ELEM(node->custom1,
-                                      NODE_MATH_INV_SQRT,
-                                      NODE_MATH_TRUNC,
-                                      NODE_MATH_EXPONENT,
-                                      NODE_MATH_COSH,
-                                      NODE_MATH_SINH,
-                                      NODE_MATH_TANH));
-  bNodeSocket *sock2 = BLI_findlink(&node->inputs, 2);
-  nodeSetSocketAvailability(sock2,
-                            ELEM(node->custom1,
-                                 NODE_MATH_COMPARE,
-                                 NODE_MATH_MULTIPLY_ADD,
-                                 NODE_MATH_WRAP,
-                                 NODE_MATH_SMOOTH_MIN,
-                                 NODE_MATH_SMOOTH_MAX));
-}
-
 void register_node_type_sh_math(void)
 {
   static bNodeType ntype;
@@ -146,7 +109,7 @@ void register_node_type_sh_math(void)
   node_type_socket_templates(&ntype, sh_node_math_in, sh_node_math_out);
   node_type_label(&ntype, node_math_label);
   node_type_gpu(&ntype, gpu_shader_math);
-  node_type_update(&ntype, node_shader_update_math);
+  node_type_update(&ntype, node_math_update);
 
   nodeRegisterType(&ntype);
 }

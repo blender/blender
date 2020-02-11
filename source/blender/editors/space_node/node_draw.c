@@ -354,6 +354,8 @@ void node_from_view(struct bNode *node, float x, float y, float *rx, float *ry)
   nodeFromView(node, x, y, rx, ry);
 }
 
+
+
 /* based on settings in node, sets drawing rect info. each redraw! */
 static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 {
@@ -409,8 +411,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     /* align output buttons to the right */
     row = uiLayoutRow(layout, 1);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
-
-    nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(nsock->name));
+    const char *socket_label = nodeSocketLabel(nsock);
+    nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
     UI_block_align_end(node->block);
     UI_block_layout_resolve(node->block, NULL, &buty);
@@ -535,7 +537,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 
     row = uiLayoutRow(layout, 1);
 
-    nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(nsock->name));
+    const char *socket_label = nodeSocketLabel(nsock);
+    nsock->typeinfo->draw((bContext *)C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
     UI_block_align_end(node->block);
     UI_block_layout_resolve(node->block, NULL, &buty);

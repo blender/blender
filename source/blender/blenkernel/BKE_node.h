@@ -740,6 +740,7 @@ void BKE_node_preview_set_pixel(
  * \{ */
 
 void nodeLabel(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
+const char *nodeSocketLabel(const struct bNodeSocket *sock);
 
 int nodeGroupPoll(struct bNodeTree *nodetree, struct bNodeTree *grouptree);
 

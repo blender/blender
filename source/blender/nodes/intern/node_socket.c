@@ -276,6 +276,11 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
   }
   node_socket_init_default_value(to);
 
+  /* use label instead of name if it has been set */
+  if (from->label[0] != '\0') {
+    BLI_strncpy(to->name, from->label, NODE_MAXSTR);
+  }
+
   switch (from->typeinfo->type) {
     case SOCK_FLOAT: {
       bNodeSocketValueFloat *toval = to->default_value;

@@ -530,7 +530,7 @@ class NODE_PT_active_node_properties(Panel):
             layout.label(text="Inputs:")
             for socket in value_inputs:
                 row = layout.row()
-                socket.draw(context, row, node, iface_(socket.name, socket.bl_rna.translation_context))
+                socket.draw(context, row, node, iface_(socket.label if socket.label else socket.name, socket.bl_rna.translation_context))
 
 
 class NODE_PT_texture_mapping(Panel):

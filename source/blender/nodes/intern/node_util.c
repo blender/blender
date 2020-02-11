@@ -77,6 +77,102 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context),
   return NULL; /* unused return */
 }
 
+/**** Updates ****/
+
+void node_sock_label(bNodeSocket *sock, const char *name)
+{
+  BLI_strncpy(sock->label, name, MAX_NAME);
+}
+
+void node_math_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  bNodeSocket *sock1 = BLI_findlink(&node->inputs, 0);
+  bNodeSocket *sock2 = BLI_findlink(&node->inputs, 1);
+  bNodeSocket *sock3 = BLI_findlink(&node->inputs, 2);
+  nodeSetSocketAvailability(sock2,
+                            !ELEM(node->custom1,
+                                  NODE_MATH_SQRT,
+                                  NODE_MATH_SIGN,
+                                  NODE_MATH_CEIL,
+                                  NODE_MATH_SINE,
+                                  NODE_MATH_ROUND,
+                                  NODE_MATH_FLOOR,
+                                  NODE_MATH_COSINE,
+                                  NODE_MATH_ARCSINE,
+                                  NODE_MATH_TANGENT,
+                                  NODE_MATH_ABSOLUTE,
+                                  NODE_MATH_RADIANS,
+                                  NODE_MATH_DEGREES,
+                                  NODE_MATH_FRACTION,
+                                  NODE_MATH_ARCCOSINE,
+                                  NODE_MATH_ARCTANGENT) &&
+                                !ELEM(node->custom1,
+                                      NODE_MATH_INV_SQRT,
+                                      NODE_MATH_TRUNC,
+                                      NODE_MATH_EXPONENT,
+                                      NODE_MATH_COSH,
+                                      NODE_MATH_SINH,
+                                      NODE_MATH_TANH));
+  nodeSetSocketAvailability(sock3,
+                            ELEM(node->custom1,
+                                 NODE_MATH_COMPARE,
+                                 NODE_MATH_MULTIPLY_ADD,
+                                 NODE_MATH_WRAP,
+                                 NODE_MATH_SMOOTH_MIN,
+                                 NODE_MATH_SMOOTH_MAX));
+
+  if (sock1->label[0] != '\0') {
+    sock1->label[0] = '\0';
+  }
+  if (sock2->label[0] != '\0') {
+    sock2->label[0] = '\0';
+  }
+  if (sock3->label[0] != '\0') {
+    sock3->label[0] = '\0';
+  }
+
+  switch (node->custom1) {
+    case NODE_MATH_WRAP:
+      node_sock_label(sock2, "Min");
+      node_sock_label(sock3, "Max");
+      break;
+    case NODE_MATH_MULTIPLY_ADD:
+      node_sock_label(sock2, "Multiplier");
+      node_sock_label(sock3, "Addend");
+      break;
+    case NODE_MATH_LESS_THAN:
+    case NODE_MATH_GREATER_THAN:
+      node_sock_label(sock2, "Threshold");
+      break;
+    case NODE_MATH_PINGPONG:
+      node_sock_label(sock2, "Scale");
+      break;
+    case NODE_MATH_SNAP:
+      node_sock_label(sock2, "Increment");
+      break;
+    case NODE_MATH_POWER:
+      node_sock_label(sock1, "Base");
+      node_sock_label(sock2, "Exponent");
+      break;
+    case NODE_MATH_LOGARITHM:
+      node_sock_label(sock2, "Base");
+      break;
+    case NODE_MATH_DEGREES:
+      node_sock_label(sock1, "Radians");
+      break;
+    case NODE_MATH_RADIANS:
+      node_sock_label(sock1, "Degrees");
+      break;
+    case NODE_MATH_COMPARE:
+      node_sock_label(sock3, "Epsilon");
+      break;
+    case NODE_MATH_SMOOTH_MAX:
+    case NODE_MATH_SMOOTH_MIN:
+      node_sock_label(sock3, "Distance");
+      break;
+  }
+}
+
 /**** Labels ****/
 
 void node_blend_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)

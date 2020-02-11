@@ -3574,6 +3574,12 @@ void nodeLabel(bNodeTree *ntree, bNode *node, char *label, int maxlen)
   }
 }
 
+/* Get node socket label if it is set */
+const char *nodeSocketLabel(const bNodeSocket *sock)
+{
+  return (sock->label[0] != '\0') ? sock->label : sock->name;
+}
+
 static void node_type_base_defaults(bNodeType *ntype)
 {
   /* default size values */
