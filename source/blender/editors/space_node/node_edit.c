@@ -895,9 +895,23 @@ static void node_resize_init(
   WM_event_add_modal_handler(C, op);
 }
 
-static void node_resize_exit(bContext *C, wmOperator *op, bool UNUSED(cancel))
+static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
 {
   WM_cursor_modal_restore(CTX_wm_window(C));
+
+  /* Restore old data on cancel. */
+  if (cancel) {
+    SpaceNode *snode = CTX_wm_space_node(C);
+    bNode *node = nodeGetActive(snode->edittree);
+    NodeSizeWidget *nsw = op->customdata;
+
+    node->locx = nsw->oldlocx;
+    node->locy = nsw->oldlocy;
+    node->offsetx = nsw->oldoffsetx;
+    node->offsety = nsw->oldoffsety;
+    node->width = nsw->oldwidth;
+    node->height = nsw->oldheight;
+  }
 
   MEM_freeN(op->customdata);
   op->customdata = NULL;
@@ -992,6 +1006,12 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_node_post_apply_transform(C, snode->edittree);
 
         return OPERATOR_FINISHED;
+      }
+      else if (event->val == KM_PRESS) {
+        node_resize_exit(C, op, true);
+        ED_region_tag_redraw(ar);
+
+        return OPERATOR_CANCELLED;
       }
       break;
   }
