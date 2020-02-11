@@ -79,6 +79,11 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_load_py_modules.py
 )
 
+add_blender_test(
+  script_bundled_modules
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_bundled_modules.py
+)
+
 # test running operators doesn't segfault under various conditions
 if(USE_EXPERIMENTAL_TESTS)
   add_blender_test(
