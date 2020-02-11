@@ -101,6 +101,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 
 #  include "IMB_colormanagement.h"
 #  include "GPU_extensions.h"
+#  include "GPU_shader.h"
 
 #  include "DEG_depsgraph_query.h"
 
@@ -126,15 +127,21 @@ static int engine_get_preview_pixel_size(RenderEngine *UNUSED(engine), Scene *sc
   return BKE_render_preview_pixel_size(&scene->r);
 }
 
-static void engine_bind_display_space_shader(RenderEngine *UNUSED(engine), Scene *scene)
+static void engine_bind_display_space_shader(RenderEngine *UNUSED(engine), Scene *UNUSED(scene))
 {
-  IMB_colormanagement_setup_glsl_draw(
-      &scene->view_settings, &scene->display_settings, scene->r.dither_intensity, false);
+  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_COLOR);
+  GPU_shader_bind(shader);
+
+  int img_loc = GPU_shader_get_uniform_ensure(shader, "image");
+  int color_loc = GPU_shader_get_uniform_ensure(shader, "color");
+
+  GPU_shader_uniform_int(shader, img_loc, 0);
+  GPU_shader_uniform_vector(shader, color_loc, 3, 1, (float[3]){1.0f, 1.0f, 1.0f});
 }
 
 static void engine_unbind_display_space_shader(RenderEngine *UNUSED(engine))
 {
-  IMB_colormanagement_finish_glsl_draw();
+  GPU_shader_unbind();
 }
 
 static void engine_update(RenderEngine *engine, Main *bmain, Depsgraph *depsgraph)

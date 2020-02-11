@@ -159,7 +159,6 @@ void workbench_render(WORKBENCH_Data *data,
       if (RE_engine_test_break(engine)) {
         break;
       }
-      workbench_deferred_draw_background(data);
       workbench_deferred_draw_scene(data);
     }
 
@@ -186,7 +185,6 @@ void workbench_render(WORKBENCH_Data *data,
         break;
       }
 
-      workbench_forward_draw_background(data);
       workbench_forward_draw_scene(data);
     }
 

@@ -72,7 +72,6 @@ extern char datatoc_workbench_forward_composite_frag_glsl[];
 extern char datatoc_workbench_forward_depth_frag_glsl[];
 extern char datatoc_workbench_forward_transparent_accum_frag_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
-extern char datatoc_workbench_background_lib_glsl[];
 extern char datatoc_workbench_checkerboard_depth_frag_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
 extern char datatoc_workbench_curvature_lib_glsl[];
@@ -128,7 +127,6 @@ static char *workbench_build_forward_composite_frag(void)
 
   BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
-  BLI_dynstr_append(ds, datatoc_workbench_background_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_object_outline_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_curvature_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_forward_composite_frag_glsl);
@@ -367,8 +365,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 
   const float *viewport_size = DRW_viewport_size_get();
   const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
-  const eGPUTextureFormat comp_tex_format = DRW_state_is_image_render() ? GPU_RGBA16F :
-                                                                          GPU_R11F_G11F_B10F;
+  const eGPUTextureFormat comp_tex_format = GPU_RGBA16F;
 
   e_data.object_id_tx = DRW_texture_pool_query_2d(
       size[0], size[1], GPU_R32UI, &draw_engine_workbench_transparent);
@@ -420,6 +417,10 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
   /* Composite */
   {
     int state = DRW_STATE_WRITE_COLOR;
+    if (DRW_state_is_scene_render()) {
+      /* Composite the scene over cleared background. */
+      state |= DRW_STATE_BLEND_ALPHA_PREMUL;
+    }
     psl->composite_pass = DRW_pass_create("Composite", state);
 
     grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
@@ -431,19 +432,6 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
     DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
     DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
     DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
-  }
-
-  /* TODO(campbell): displays but masks geometry,
-   * only use with wire or solid-without-xray for now. */
-  if ((wpd->shading.type != OB_WIRE && !XRAY_FLAG_ENABLED(wpd)) &&
-      RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) {
-    psl->background_pass = DRW_pass_create("Background",
-                                           DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
-    GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR_BACKGROUND);
-    grp = DRW_shgroup_create(shader, psl->background_pass);
-    wpd->world_clip_planes_batch = DRW_draw_background_clipping_batch_from_rv3d(draw_ctx->rv3d);
-    DRW_shgroup_call(grp, wpd->world_clip_planes_batch, NULL);
-    DRW_shgroup_uniform_vec4(grp, "color", &wpd->world_clip_planes_color[0], 1);
   }
 
   {
@@ -783,16 +771,6 @@ void workbench_forward_cache_finish(WORKBENCH_Data *UNUSED(vedata))
 {
 }
 
-void workbench_forward_draw_background(WORKBENCH_Data *UNUSED(vedata))
-{
-  const float clear_depth = 1.0f;
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  DRW_stats_group_start("Clear depth");
-  GPU_framebuffer_bind(dfbl->default_fb);
-  GPU_framebuffer_clear_depth_stencil(dfbl->default_fb, clear_depth, 0xFF);
-  DRW_stats_group_end();
-}
-
 void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 {
   WORKBENCH_PassList *psl = vedata->psl;
@@ -827,6 +805,13 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 
   /* Composite */
   GPU_framebuffer_bind(fbl->composite_fb);
+
+  if (DRW_state_is_scene_render()) {
+    float clear_color[4];
+    workbench_clear_color_get(clear_color);
+    GPU_framebuffer_clear_color(fbl->composite_fb, clear_color);
+  }
+
   DRW_draw_pass(psl->composite_pass);
   DRW_draw_pass(psl->volume_pass);
 

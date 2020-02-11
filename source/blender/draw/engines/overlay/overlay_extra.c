@@ -344,10 +344,13 @@ void OVERLAY_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 }
 
-static void OVERLAY_bounds(
-    OVERLAY_ExtraCallBuffers *cb, Object *ob, int theme_id, char boundtype, bool around_origin)
+static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
+                           Object *ob,
+                           const float *color,
+                           char boundtype,
+                           bool around_origin)
 {
-  float color[4], center[3], size[3], tmp[4][4], final_mat[4][4];
+  float center[3], size[3], tmp[4][4], final_mat[4][4];
   BoundBox bb_local;
 
   if (ob->type == OB_MBALL && !BKE_mball_is_basis(ob)) {
@@ -362,7 +365,6 @@ static void OVERLAY_bounds(
     BKE_boundbox_init_from_minmax(bb, min, max);
   }
 
-  UI_GetThemeColor4fv(theme_id, color);
   BKE_boundbox_calc_size_aabb(bb, size);
 
   if (around_origin) {
@@ -425,28 +427,28 @@ static void OVERLAY_bounds(
   }
 }
 
-static void OVERLAY_collision(OVERLAY_ExtraCallBuffers *cb, Object *ob, int theme_id)
+static void OVERLAY_collision(OVERLAY_ExtraCallBuffers *cb, Object *ob, const float *color)
 {
   switch (ob->rigidbody_object->shape) {
     case RB_SHAPE_BOX:
-      OVERLAY_bounds(cb, ob, theme_id, OB_BOUND_BOX, true);
+      OVERLAY_bounds(cb, ob, color, OB_BOUND_BOX, true);
       break;
     case RB_SHAPE_SPHERE:
-      OVERLAY_bounds(cb, ob, theme_id, OB_BOUND_SPHERE, true);
+      OVERLAY_bounds(cb, ob, color, OB_BOUND_SPHERE, true);
       break;
     case RB_SHAPE_CONE:
-      OVERLAY_bounds(cb, ob, theme_id, OB_BOUND_CONE, true);
+      OVERLAY_bounds(cb, ob, color, OB_BOUND_CONE, true);
       break;
     case RB_SHAPE_CYLINDER:
-      OVERLAY_bounds(cb, ob, theme_id, OB_BOUND_CYLINDER, true);
+      OVERLAY_bounds(cb, ob, color, OB_BOUND_CYLINDER, true);
       break;
     case RB_SHAPE_CAPSULE:
-      OVERLAY_bounds(cb, ob, theme_id, OB_BOUND_CAPSULE, true);
+      OVERLAY_bounds(cb, ob, color, OB_BOUND_CAPSULE, true);
       break;
   }
 }
 
-static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, int theme_id)
+static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, const float *color)
 {
   if (ob->data == NULL) {
     return;
@@ -477,13 +479,11 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, int 
       BLI_assert(0);
   }
 
-  float mat[4][4], color[4];
+  float mat[4][4];
   size_to_mat4(mat, texcosize);
   copy_v3_v3(mat[3], texcoloc);
 
   mul_m4_m4m4(mat, ob->obmat, mat);
-
-  UI_GetThemeColor4fv(theme_id, color);
 
   DRW_buffer_add_entry(cb->empty_cube, color, mat);
 }
@@ -600,7 +600,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   float *color_p;
   DRW_object_wire_theme_get(ob, view_layer, &color_p);
   /* Remove the alpha. */
-  float color[4] = {color_p[0], color_p[1], color_p[2], 1.0f};
+  float color[4] = {UNPACK3(color_p), 1.0f};
   /* Pack render data into object matrix. */
   union {
     float mat[4][4];
@@ -867,13 +867,13 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
   /* Index must start in 1, to mimic BKE_tracking_track_get_indexed. */
   int track_index = 1;
 
+  float bundle_color_custom[3];
+  float *bundle_color_solid = G_draw.block.colorBundleSolid;
+  float *bundle_color_unselected = G_draw.block.colorWire;
   uchar text_color_selected[4], text_color_unselected[4];
-  float bundle_color_unselected[4], bundle_color_solid[4];
-
+  /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
   UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
   UI_GetThemeColor4ubv(TH_TEXT, text_color_unselected);
-  UI_GetThemeColor4fv(TH_WIRE, bundle_color_unselected);
-  UI_GetThemeColor4fv(TH_BUNDLE_SOLID, bundle_color_solid);
 
   float camera_mat[4][4], normal_mat[4][4];
   BKE_tracking_get_camera_object_matrix(ob, camera_mat);
@@ -910,7 +910,10 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
 
       const float *bundle_color;
       if (track->flag & TRACK_CUSTOMCOLOR) {
-        bundle_color = track->color;
+        /* Meh, hardcoded srgb transform here. */
+        /* TODO change the actual DNA color to be linear. */
+        srgb_to_linearrgb_v3_v3(bundle_color_custom, track->color);
+        bundle_color = bundle_color_custom;
       }
       else if (is_solid_bundle) {
         bundle_color = bundle_color_solid;
@@ -1346,6 +1349,7 @@ static void OVERLAY_gpencil_color_names(Object *ob)
   ViewLayer *view_layer = draw_ctx->view_layer;
   int theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
   uchar color[4];
+  /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
   UI_GetThemeColor4ubv(theme_id, color);
   struct DRWTextStore *dt = DRW_text_cache_ensure();
 
@@ -1525,6 +1529,7 @@ static void OVERLAY_object_name(Object *ob, int theme_id)
 {
   struct DRWTextStore *dt = DRW_text_cache_ensure();
   uchar color[4];
+  /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
   UI_GetThemeColor4ubv(theme_id, color);
 
   DRW_text_cache_add(dt,
@@ -1576,11 +1581,11 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (draw_bounds) {
-    OVERLAY_bounds(cb, ob, theme_id, ob->boundtype, false);
+    OVERLAY_bounds(cb, ob, color, ob->boundtype, false);
   }
   /* Helpers for when we're transforming origins. */
   if (draw_xform) {
-    float color_xform[4] = {0.75f, 0.75f, 0.75f, 0.5f};
+    float color_xform[4] = {0.15f, 0.15f, 0.15f, 0.7f};
     DRW_buffer_add_entry(cb->origin_xform, color_xform, ob->obmat);
   }
   /* don't show object extras in set's */
@@ -1595,10 +1600,10 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
       OVERLAY_object_name(ob, theme_id);
     }
     if (draw_texspace) {
-      OVERLAY_texture_space(cb, ob, theme_id);
+      OVERLAY_texture_space(cb, ob, color);
     }
     if (ob->rigidbody_object != NULL) {
-      OVERLAY_collision(cb, ob, theme_id);
+      OVERLAY_collision(cb, ob, color);
     }
     if (ob->dtx & OB_AXIS) {
       DRW_buffer_add_entry(cb->empty_axes, color, ob->obmat);

@@ -577,7 +577,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
     if (ibuf->rect_float) {
       if (ibuf->float_colorspace) {
         ok = IMB_colormanagement_setup_glsl_draw_from_space(
-            view_settings, display_settings, ibuf->float_colorspace, ibuf->dither, true);
+            view_settings, display_settings, ibuf->float_colorspace, ibuf->dither, true, false);
       }
       else {
         ok = IMB_colormanagement_setup_glsl_draw(
@@ -586,7 +586,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
     }
     else {
       ok = IMB_colormanagement_setup_glsl_draw_from_space(
-          view_settings, display_settings, ibuf->rect_colorspace, ibuf->dither, false);
+          view_settings, display_settings, ibuf->rect_colorspace, ibuf->dither, false, false);
     }
 
     if (ok) {

@@ -646,13 +646,18 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
       ar->draw_buffer->viewport[ar->draw_buffer->stereo ? sima->iuser.multiview_eye : 0];
   DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
   GPU_framebuffer_bind(fbl->default_fb);
+  GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+  GPU_clear(GPU_COLOR_BIT);
+
+  GPU_framebuffer_bind(fbl->overlay_fb);
+  glDisable(GL_FRAMEBUFFER_SRGB);
 
   /* XXX not supported yet, disabling for now */
   scene->r.scemode &= ~R_COMP_CROP;
 
   /* clear and setup matrix */
   UI_GetThemeColor3fv(TH_BACK, col);
-  GPU_clear_color(col[0], col[1], col[2], 0.0f);
+  GPU_clear_color(col[0], col[1], col[2], 1.0f);
   GPU_clear(GPU_COLOR_BIT);
   GPU_depth_test(false);
 

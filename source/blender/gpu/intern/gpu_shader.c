@@ -80,7 +80,7 @@ extern char datatoc_gpu_shader_2D_nodelink_vert_glsl[];
 
 extern char datatoc_gpu_shader_3D_image_vert_glsl[];
 extern char datatoc_gpu_shader_image_frag_glsl[];
-extern char datatoc_gpu_shader_image_linear_frag_glsl[];
+extern char datatoc_gpu_shader_image_overlays_merge_frag_glsl[];
 extern char datatoc_gpu_shader_image_color_frag_glsl[];
 extern char datatoc_gpu_shader_image_desaturate_frag_glsl[];
 extern char datatoc_gpu_shader_image_varying_color_frag_glsl[];
@@ -1008,10 +1008,10 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .vert = datatoc_gpu_shader_2D_smooth_color_vert_glsl,
             .frag = datatoc_gpu_shader_2D_smooth_color_dithered_frag_glsl,
         },
-    [GPU_SHADER_2D_IMAGE_LINEAR_TO_SRGB] =
+    [GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE] =
         {
             .vert = datatoc_gpu_shader_2D_image_vert_glsl,
-            .frag = datatoc_gpu_shader_image_linear_frag_glsl,
+            .frag = datatoc_gpu_shader_image_overlays_merge_frag_glsl,
         },
     [GPU_SHADER_2D_IMAGE] =
         {

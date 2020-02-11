@@ -64,7 +64,7 @@ void main()
   /* Smooth lighting factor. */
   const float s = 0.2; /* [0.0-0.5] range */
   float fac = clamp((dot(n, l) * (1.0 - s)) + s, 0.0, 1.0);
-  fragColor.rgb = mix(finalStateColor, finalBoneColor, fac);
+  fragColor.rgb = mix(finalStateColor, finalBoneColor, fac * fac);
 
   /* 2x2 dither pattern to smooth the lighting. */
   float dither = (0.5 + dot(vec2(ivec2(gl_FragCoord.xy) & ivec2(1)), vec2(1.0, 2.0))) * 0.25;

@@ -88,6 +88,10 @@ void DRW_globals_update(void)
   UI_GetThemeColor4fv(TH_FACE_DOT, gb->colorFaceDot);
   UI_GetThemeColor4fv(TH_SKIN_ROOT, gb->colorSkinRoot);
   UI_GetThemeColor4fv(TH_BACK, gb->colorBackground);
+  UI_GetThemeColor4fv(TH_BACK_GRAD, gb->colorBackgroundGradient);
+  UI_COLOR_RGBA_FROM_U8(0x26, 0x26, 0x26, 0xFF, gb->colorCheckerLow);
+  UI_COLOR_RGBA_FROM_U8(0x33, 0x33, 0x33, 0xFF, gb->colorCheckerHigh);
+  UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, gb->colorClippingBorder);
 
   /* Custom median color to slightly affect the edit mesh colors. */
   interp_v4_v4v4(gb->colorEditMeshMiddle, gb->colorVertexSelect, gb->colorWireEdit, 0.35f);
@@ -108,6 +112,26 @@ void DRW_globals_update(void)
   zero_v4(gb->colorFaceFreestyle);
 #endif
 
+  UI_GetThemeColor4fv(TH_TEXT, gb->colorText);
+  UI_GetThemeColor4fv(TH_TEXT_HI, gb->colorTextHi);
+
+  /* Bone colors */
+  UI_GetThemeColor4fv(TH_BONE_POSE, gb->colorBonePose);
+  UI_GetThemeColor4fv(TH_BONE_POSE_ACTIVE, gb->colorBonePoseActive);
+  UI_GetThemeColorShade4fv(TH_EDGE_SELECT, 60, gb->colorBoneActive);
+  UI_GetThemeColorShade4fv(TH_EDGE_SELECT, -20, gb->colorBoneSelect);
+  UI_GetThemeColorBlendShade4fv(TH_WIRE, TH_BONE_POSE, 0.15f, 0, gb->colorBonePoseActiveUnsel);
+  UI_GetThemeColorBlendShade3fv(TH_WIRE_EDIT, TH_EDGE_SELECT, 0.15f, 0, gb->colorBoneActiveUnsel);
+  UI_COLOR_RGBA_FROM_U8(255, 150, 0, 80, gb->colorBonePoseTarget);
+  UI_COLOR_RGBA_FROM_U8(255, 255, 0, 80, gb->colorBonePoseIK);
+  UI_COLOR_RGBA_FROM_U8(200, 255, 0, 80, gb->colorBonePoseSplineIK);
+  UI_COLOR_RGBA_FROM_U8(0, 255, 120, 80, gb->colorBonePoseConstraint);
+  UI_GetThemeColor4fv(TH_BONE_SOLID, gb->colorBoneSolid);
+  UI_GetThemeColor4fv(TH_BONE_LOCKED_WEIGHT, gb->colorBoneLocked);
+  copy_v4_fl4(gb->colorBoneIKLine, 0.8f, 0.5f, 0.0f, 1.0f);
+  copy_v4_fl4(gb->colorBoneIKLineNoTarget, 0.8f, 0.8f, 0.2f, 1.0f);
+  copy_v4_fl4(gb->colorBoneIKLineSpline, 0.8f, 0.8f, 0.2f, 1.0f);
+
   /* Curve */
   UI_GetThemeColor4fv(TH_HANDLE_FREE, gb->colorHandleFree);
   UI_GetThemeColor4fv(TH_HANDLE_AUTO, gb->colorHandleAuto);
@@ -125,9 +149,13 @@ void DRW_globals_update(void)
   UI_GetThemeColor4fv(TH_NURB_SEL_VLINE, gb->colorNurbSelVline);
   UI_GetThemeColor4fv(TH_ACTIVE_SPLINE, gb->colorActiveSpline);
 
-  UI_GetThemeColor4fv(TH_BONE_POSE, gb->colorBonePose);
-
   UI_GetThemeColor4fv(TH_CFRAME, gb->colorCurrentFrame);
+
+  /* Metaball */
+  UI_COLOR_RGBA_FROM_U8(0xA0, 0x30, 0x30, 0xFF, gb->colorMballRadius);
+  UI_COLOR_RGBA_FROM_U8(0xF0, 0xA0, 0xA0, 0xFF, gb->colorMballRadiusSelect);
+  UI_COLOR_RGBA_FROM_U8(0x30, 0xA0, 0x30, 0xFF, gb->colorMballStiffness);
+  UI_COLOR_RGBA_FROM_U8(0xA0, 0xF0, 0xA0, 0xFF, gb->colorMballStiffnessSelect);
 
   /* Grid */
   UI_GetThemeColorShade4fv(TH_GRID, 10, gb->colorGrid);
@@ -173,7 +201,7 @@ void DRW_globals_update(void)
   invert_v2(gb->sizeViewportInv);
 
   /* Color management. */
-  if (!DRW_state_do_color_management()) {
+  {
     float *color = gb->UBO_FIRST_COLOR;
     do {
       /* TODO more accurate transform. */

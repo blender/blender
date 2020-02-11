@@ -44,4 +44,7 @@ struct GPUShader {
 #endif
 };
 
+/* XXX do not use it. Special hack to use OCIO with batch API. */
+void immGetProgram(GLuint *program, GPUShaderInterface **shaderface);
+
 #endif /* __GPU_SHADER_PRIVATE_H__ */

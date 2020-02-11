@@ -168,6 +168,13 @@ void immUnbindProgram(void)
   imm.bound_program = 0;
 }
 
+/* XXX do not use it. Special hack to use OCIO with batch API. */
+void immGetProgram(GLuint *program, GPUShaderInterface **shaderface)
+{
+  *program = imm.bound_program;
+  *shaderface = (GPUShaderInterface *)imm.shader_interface;
+}
+
 #if TRUST_NO_ONE
 static bool vertex_count_makes_sense_for_primitive(uint vertex_len, GPUPrimType prim_type)
 {

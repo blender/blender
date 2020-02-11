@@ -245,7 +245,6 @@ DrawEngineType draw_engine_basic_type = {
     &basic_cache_init,
     &basic_cache_populate,
     &basic_cache_finish,
-    NULL,
     &basic_draw_scene,
     NULL,
     NULL,

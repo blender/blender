@@ -979,6 +979,17 @@ void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id)
   GPU_batch_program_set_builtin_with_config(batch, shader_id, GPU_SHADER_CFG_DEFAULT);
 }
 
+/* Bind program bound to IMM to the batch.
+ * XXX Use this with much care. Drawing with the GPUBatch API is not compatible with IMM.
+ * DO NOT DRAW WITH THE BATCH BEFORE CALLING immUnbindProgram. */
+void GPU_batch_program_set_imm_shader(GPUBatch *batch)
+{
+  GLuint program;
+  GPUShaderInterface *interface;
+  immGetProgram(&program, &interface);
+  GPU_batch_program_set(batch, program, interface);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -58,13 +58,12 @@ static void workbench_solid_cache_finish(void *vedata)
   workbench_deferred_cache_finish(data);
 }
 
-static void workbench_solid_draw_background(void *vedata)
+static void workbench_solid_draw_scene(void *vedata)
 {
   WORKBENCH_Data *data = vedata;
   const int num_samples = workbench_num_viewport_rendering_iterations(data);
 
   for (int sample = 0; sample < num_samples; sample++) {
-    workbench_deferred_draw_background(data);
     workbench_deferred_draw_scene(data);
   }
   workbench_deferred_draw_finish(data);
@@ -113,8 +112,7 @@ DrawEngineType draw_engine_workbench_solid = {
     &workbench_solid_cache_init,
     &workbench_solid_cache_populate,
     &workbench_solid_cache_finish,
-    &workbench_solid_draw_background,
-    NULL,
+    &workbench_solid_draw_scene,
     &workbench_solid_view_update,
     &workbench_solid_id_update,
     &workbench_render_to_image,

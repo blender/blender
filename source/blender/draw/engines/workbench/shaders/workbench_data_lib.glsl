@@ -5,17 +5,12 @@ struct LightData {
 };
 
 struct WorldData {
-  vec4 background_color_low;
-  vec4 background_color_high;
   vec4 object_outline_color;
   vec4 shadow_direction_vs;
   LightData lights[4];
   vec4 ambient_color;
   int num_lights;
   int matcap_orientation;
-  float background_alpha;
   float curvature_ridge;
   float curvature_valley;
-  float background_dither_factor;
-  int pad[2];
 };

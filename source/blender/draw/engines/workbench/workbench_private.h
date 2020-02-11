@@ -183,19 +183,14 @@ typedef struct WORKBENCH_UBO_Light {
 } WORKBENCH_UBO_Light;
 
 typedef struct WORKBENCH_UBO_World {
-  float background_color_low[4];
-  float background_color_high[4];
   float object_outline_color[4];
   float shadow_direction_vs[4];
   WORKBENCH_UBO_Light lights[4];
   float ambient_color[4];
   int num_lights;
   int matcap_orientation;
-  float background_alpha;
   float curvature_ridge;
   float curvature_valley;
-  float background_dither_factor;
-  int pad[2];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
@@ -249,8 +244,6 @@ typedef struct WORKBENCH_PrivateData {
   bool is_playback;
 
   float (*world_clip_planes)[4];
-  struct GPUBatch *world_clip_planes_batch;
-  float world_clip_planes_color[4];
 
   /* Volumes */
   bool volumes_do;
@@ -434,26 +427,15 @@ BLI_INLINE eGPUTextureFormat workbench_color_texture_format(const WORKBENCH_Priv
       TEXTURE_DRAWING_ENABLED(wpd)) {
     result = GPU_RGBA16F;
   }
-  else if (workbench_is_in_vertex_paint_mode() || VERTEX_COLORS_ENABLED(wpd)) {
+  else {
     result = GPU_RGBA16;
   }
-  else {
-    result = GPU_RGBA8;
-  }
   return result;
-}
-
-BLI_INLINE bool workbench_background_dither_factor(const WORKBENCH_PrivateData *wpd)
-{
-  /* Only apply dithering when rendering on a RGBA8 texture.
-   * The dithering will remove banding when using a gradient as background */
-  return workbench_color_texture_format(wpd) == GPU_RGBA8;
 }
 
 /* workbench_deferred.c */
 void workbench_deferred_engine_init(WORKBENCH_Data *vedata);
 void workbench_deferred_engine_free(void);
-void workbench_deferred_draw_background(WORKBENCH_Data *vedata);
 void workbench_deferred_draw_scene(WORKBENCH_Data *vedata);
 void workbench_deferred_draw_finish(WORKBENCH_Data *vedata);
 void workbench_deferred_cache_init(WORKBENCH_Data *vedata);
@@ -463,7 +445,6 @@ void workbench_deferred_cache_finish(WORKBENCH_Data *vedata);
 /* workbench_forward.c */
 void workbench_forward_engine_init(WORKBENCH_Data *vedata);
 void workbench_forward_engine_free(void);
-void workbench_forward_draw_background(WORKBENCH_Data *vedata);
 void workbench_forward_draw_scene(WORKBENCH_Data *vedata);
 void workbench_forward_draw_finish(WORKBENCH_Data *vedata);
 void workbench_forward_cache_init(WORKBENCH_Data *vedata);
@@ -567,6 +548,7 @@ void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info);
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_get_light_direction(float r_light_direction[3]);
+void workbench_clear_color_get(float color[4]);
 
 /* workbench_volume.c */
 void workbench_volume_engine_init(void);

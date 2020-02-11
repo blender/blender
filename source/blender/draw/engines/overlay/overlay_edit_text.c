@@ -56,7 +56,9 @@ void OVERLAY_edit_text_cache_init(OVERLAY_Data *vedata)
     DRW_PASS_CREATE(psl->edit_text_overlay_ps, state | pd->clipping_state);
 
     sh = OVERLAY_shader_uniform_color();
-    pd->edit_text_overlay_grp = DRW_shgroup_create(sh, psl->edit_text_overlay_ps);
+    pd->edit_text_overlay_grp = grp = DRW_shgroup_create(sh, psl->edit_text_overlay_ps);
+
+    DRW_shgroup_uniform_vec4_copy(grp, "color", (float[4]){1.0f, 1.0f, 1.0f, 1.0f});
   }
 }
 

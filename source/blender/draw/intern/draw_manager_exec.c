@@ -234,11 +234,11 @@ void drw_state_set(DRWState state)
   /* Blending (all buffer) */
   {
     int test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_BLEND_ALPHA | DRW_STATE_BLEND_ALPHA_PREMUL |
-                                  DRW_STATE_BLEND_ADD | DRW_STATE_BLEND_MUL |
-                                  DRW_STATE_BLEND_ADD_FULL | DRW_STATE_BLEND_OIT |
-                                  DRW_STATE_BLEND_ALPHA_UNDER_PREMUL | DRW_STATE_BLEND_CUSTOM,
-                              test)) {
+    if (CHANGED_ANY_STORE_VAR(
+            DRW_STATE_BLEND_ALPHA | DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_BLEND_ADD |
+                DRW_STATE_BLEND_MUL | DRW_STATE_BLEND_ADD_FULL | DRW_STATE_BLEND_OIT |
+                DRW_STATE_BLEND_BACKGROUND | DRW_STATE_BLEND_CUSTOM | DRW_STATE_LOGIC_INVERT,
+            test)) {
       if (test) {
         glEnable(GL_BLEND);
 
@@ -248,8 +248,12 @@ void drw_state_set(DRWState state)
                               GL_ONE,
                               GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
         }
-        else if ((state & DRW_STATE_BLEND_ALPHA_UNDER_PREMUL) != 0) {
-          glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+        else if ((state & DRW_STATE_BLEND_BACKGROUND) != 0) {
+          /* Special blend to add color under and multiply dst by alpha. */
+          glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA,
+                              GL_SRC_ALPHA, /* RGB */
+                              GL_ZERO,
+                              GL_SRC_ALPHA); /* Alpha */
         }
         else if ((state & DRW_STATE_BLEND_ALPHA_PREMUL) != 0) {
           glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -278,6 +282,13 @@ void drw_state_set(DRWState state)
           /* Custom blend parameters using dual source blending.
            * Can only be used with one Draw Buffer. */
           glBlendFunc(GL_ONE, GL_SRC1_COLOR);
+        }
+        else if ((state & DRW_STATE_LOGIC_INVERT) != 0) {
+          /* Replace logic op by blend func to support floating point framebuffer. */
+          glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR,
+                              GL_ZERO, /* RGB */
+                              GL_ZERO,
+                              GL_ONE); /* Alpha */
         }
         else {
           BLI_assert(0);
@@ -320,21 +331,6 @@ void drw_state_set(DRWState state)
       }
       else {
         GPU_depth_range(0.0f, 1.0f);
-      }
-    }
-  }
-
-  /* Logic Ops */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_LOGIC_INVERT))) {
-      if (test == 1) {
-        glLogicOp(GL_INVERT);
-        glEnable(GL_COLOR_LOGIC_OP);
-      }
-      else {
-        glLogicOp(GL_COPY);
-        glDisable(GL_COLOR_LOGIC_OP);
       }
     }
   }

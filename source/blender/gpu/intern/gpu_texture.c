@@ -51,7 +51,7 @@ static struct GPUTextureGlobal {
 } GG = {NULL, NULL, NULL};
 
 /* Maximum number of FBOs a texture can be attached to. */
-#define GPU_TEX_MAX_FBO_ATTACHED 10
+#define GPU_TEX_MAX_FBO_ATTACHED 12
 
 typedef enum eGPUTextureFormatFlag {
   GPU_FORMAT_DEPTH = (1 << 0),
@@ -183,6 +183,7 @@ static int gpu_get_component_count(eGPUTextureFormat format)
     case GPU_RGBA16F:
     case GPU_RGBA16:
     case GPU_RGBA32F:
+    case GPU_SRGB8_A8:
       return 4;
     case GPU_RGB16F:
     case GPU_R11F_G11F_B10F:
@@ -221,7 +222,7 @@ static void gpu_validate_data_format(eGPUTextureFormat tex_format, eGPUDataForma
       }
     }
     /* Byte formats */
-    else if (ELEM(tex_format, GPU_R8, GPU_RG8, GPU_RGBA8, GPU_RGBA8UI)) {
+    else if (ELEM(tex_format, GPU_R8, GPU_RG8, GPU_RGBA8, GPU_RGBA8UI, GPU_SRGB8_A8)) {
       BLI_assert(ELEM(data_format, GPU_DATA_UNSIGNED_BYTE, GPU_DATA_FLOAT));
     }
     /* Special case */
@@ -349,6 +350,7 @@ static uint gpu_get_bytesize(eGPUTextureFormat data_type)
     case GPU_DEPTH_COMPONENT32F:
     case GPU_RGBA8UI:
     case GPU_RGBA8:
+    case GPU_SRGB8_A8:
     case GPU_R11F_G11F_B10F:
     case GPU_R32F:
     case GPU_R32UI:
@@ -398,6 +400,8 @@ static GLenum gpu_get_gl_internalformat(eGPUTextureFormat format)
       return GL_RGBA8;
     case GPU_RGBA8UI:
       return GL_RGBA8UI;
+    case GPU_SRGB8_A8:
+      return GL_SRGB8_ALPHA8;
     case GPU_R32F:
       return GL_R32F;
     case GPU_R32UI:

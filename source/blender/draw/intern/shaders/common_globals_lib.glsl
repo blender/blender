@@ -42,6 +42,10 @@ layout(std140) uniform globalsBlock
   vec4 colorLightNoAlpha;
 
   vec4 colorBackground;
+  vec4 colorBackgroundGradient;
+  vec4 colorCheckerLow;
+  vec4 colorCheckerHigh;
+  vec4 colorClippingBorder;
   vec4 colorEditMeshMiddle;
 
   vec4 colorHandleFree;
@@ -61,6 +65,30 @@ layout(std140) uniform globalsBlock
   vec4 colorActiveSpline;
 
   vec4 colorBonePose;
+  vec4 colorBonePoseActive;
+  vec4 colorBonePoseActiveUnsel;
+  vec4 colorBonePoseConstraint;
+  vec4 colorBonePoseIK;
+  vec4 colorBonePoseSplineIK;
+  vec4 colorBonePoseTarget;
+  vec4 colorBoneSolid;
+  vec4 colorBoneLocked;
+  vec4 colorBoneActive;
+  vec4 colorBoneActiveUnsel;
+  vec4 colorBoneSelect;
+  vec4 colorBoneIKLine;
+  vec4 colorBoneIKLineNoTarget;
+  vec4 colorBoneIKLineSpline;
+
+  vec4 colorText;
+  vec4 colorTextHi;
+
+  vec4 colorBundleSolid;
+
+  vec4 colorMballRadius;
+  vec4 colorMballRadiusSelect;
+  vec4 colorMballStiffness;
+  vec4 colorMballStiffnessSelect;
 
   vec4 colorCurrentFrame;
 

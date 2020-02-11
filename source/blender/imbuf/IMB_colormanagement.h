@@ -332,7 +332,8 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
     const struct ColorManagedDisplaySettings *display_settings,
     struct ColorSpace *colorspace,
     float dither,
-    bool predivide);
+    bool predivide,
+    bool do_overlay_merge);
 /* Same as setup_glsl_draw, but color management settings are guessing from a given context */
 bool IMB_colormanagement_setup_glsl_draw_ctx(const struct bContext *C,
                                              float dither,

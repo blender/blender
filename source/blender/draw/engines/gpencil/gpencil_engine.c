@@ -1180,7 +1180,6 @@ DrawEngineType draw_engine_gpencil_type = {
     &GPENCIL_cache_init,
     &GPENCIL_cache_populate,
     &GPENCIL_cache_finish,
-    NULL,
     &GPENCIL_draw_scene,
     NULL,
     NULL,

@@ -28,7 +28,7 @@ void main()
   /* Smooth lighting factor. */
   const float s = 0.2; /* [0.0-0.5] range */
   float fac = clamp((n * (1.0 - s)) + s, 0.0, 1.0);
-  finalColor.rgb = mix(state_color.rgb, bone_color.rgb, fac);
+  finalColor.rgb = mix(state_color.rgb, bone_color.rgb, fac * fac);
   finalColor.a = 1.0;
 
   vec4 worldPosition = model_mat * vec4(pos, 1.0);

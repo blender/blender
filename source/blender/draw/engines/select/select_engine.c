@@ -368,7 +368,6 @@ DrawEngineType draw_engine_select_type = {
     &select_cache_init,
     &select_cache_populate,
     NULL,
-    NULL,
     &select_draw_scene,
     NULL,
     NULL,

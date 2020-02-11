@@ -13,21 +13,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2016, Blender Foundation.
+ * Copyright 2020, Blender Foundation.
  */
 
 /** \file
  * \ingroup draw
  */
 
-#ifndef __DRAW_VIEW_H__
-#define __DRAW_VIEW_H__
+#ifndef __DRAW_COLOR_MANAGEMENT_H__
+#define __DRAW_COLOR_MANAGEMENT_H__
 
-void DRW_draw_region_info(void);
-void DRW_clear_background(void);
-void DRW_draw_background(bool do_alpha_checker);
-void DRW_draw_cursor(void);
-void DRW_draw_gizmo_3d(void);
-void DRW_draw_gizmo_2d(void);
+void DRW_transform_none(struct GPUTexture *tex);
 
-#endif /* __DRAW_VIEW_H__ */
+#endif /* __DRAW_COLOR_MANAGEMENT_H__ */

@@ -56,13 +56,12 @@ static void workbench_transparent_cache_finish(void *vedata)
   workbench_forward_cache_finish(data);
 }
 
-static void workbench_transparent_draw_background(void *vedata)
+static void workbench_transparent_draw_scene(void *vedata)
 {
   WORKBENCH_Data *data = vedata;
   const int num_samples = workbench_num_viewport_rendering_iterations(data);
 
   for (int sample = 0; sample < num_samples; sample++) {
-    workbench_forward_draw_background(data);
     workbench_forward_draw_scene(data);
   }
   workbench_forward_draw_finish(data);
@@ -91,8 +90,7 @@ DrawEngineType draw_engine_workbench_transparent = {
     &workbench_transparent_cache_init,
     &workbench_transparent_cache_populate,
     &workbench_transparent_cache_finish,
-    &workbench_transparent_draw_background,
-    NULL,
+    &workbench_transparent_draw_scene,
     &workbench_transparent_view_update,
     NULL,
     NULL,

@@ -99,7 +99,26 @@ static void workbench_world_data_update_shadow_direction_vs(WORKBENCH_PrivateDat
   /* Shadow direction. */
   mul_v3_mat3_m4v3(wd->shadow_direction_vs, view_matrix, light_direction);
 }
+
 /* \} */
+
+void workbench_clear_color_get(float color[4])
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene = draw_ctx->scene;
+
+  if (!DRW_state_is_scene_render() || !DRW_state_draw_background()) {
+    zero_v4(color);
+  }
+  else if (scene->world) {
+    copy_v3_v3(color, &scene->world->horr);
+    color[3] = 1.0f;
+  }
+  else {
+    zero_v3(color);
+    color[3] = 1.0f;
+  }
+}
 
 void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info)
 {
@@ -152,39 +171,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
   WORKBENCH_UBO_World *wd = &wpd->world_data;
   wd->matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
-  wd->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
-
-  if ((scene->world != NULL) &&
-      (!v3d || (v3d && ((v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD) ||
-                        (v3d->shading.type == OB_RENDER))))) {
-    copy_v3_v3(wd->background_color_low, &scene->world->horr);
-    copy_v3_v3(wd->background_color_high, &scene->world->horr);
-  }
-  else if (v3d && (v3d->shading.background_type == V3D_SHADING_BACKGROUND_VIEWPORT)) {
-    copy_v3_v3(wd->background_color_low, v3d->shading.background_color);
-    copy_v3_v3(wd->background_color_high, v3d->shading.background_color);
-  }
-  else if (v3d) {
-    UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_BACK_GRAD : TH_BACK,
-                        wd->background_color_low);
-    UI_GetThemeColor3fv(TH_BACK, wd->background_color_high);
-
-    /* XXX: Really quick conversion to avoid washed out background.
-     * Needs to be addressed properly (color managed using ocio). */
-    if (wpd->use_color_management) {
-      srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
-      srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
-    }
-    else {
-      copy_v3_v3(wd->background_color_high, wd->background_color_high);
-      copy_v3_v3(wd->background_color_low, wd->background_color_low);
-    }
-  }
-  else {
-    zero_v3(wd->background_color_low);
-    zero_v3(wd->background_color_high);
-  }
-  wd->background_dither_factor = workbench_background_dither_factor(wpd);
 
   studiolight_update_world(wpd, wpd->studio_light, wd);
 
@@ -197,13 +183,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   /* Will be NULL when rendering. */
   if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     wpd->world_clip_planes = rv3d->clip;
-    UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, wpd->world_clip_planes_color);
-    if (wpd->use_color_management) {
-      srgb_to_linearrgb_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
-    }
-    else {
-      copy_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);
-    }
   }
   else {
     wpd->world_clip_planes = NULL;
@@ -298,5 +277,4 @@ void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
   }
 
   DRW_UBO_FREE_SAFE(wpd->dof_ubo);
-  GPU_BATCH_DISCARD_SAFE(wpd->world_clip_planes_batch);
 }

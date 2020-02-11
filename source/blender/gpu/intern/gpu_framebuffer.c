@@ -513,6 +513,7 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 
   if (GPU_framebuffer_active_get() != fb) {
     glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
+    glEnable(GL_FRAMEBUFFER_SRGB);
   }
 
   gpu_framebuffer_current_set(fb);
@@ -547,6 +548,7 @@ void GPU_framebuffer_restore(void)
   if (GPU_framebuffer_active_get() != NULL) {
     glBindFramebuffer(GL_FRAMEBUFFER, GPU_framebuffer_default());
     gpu_framebuffer_current_set(NULL);
+    glDisable(GL_FRAMEBUFFER_SRGB);
   }
 }
 

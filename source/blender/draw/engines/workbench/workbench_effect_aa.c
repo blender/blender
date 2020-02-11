@@ -22,6 +22,8 @@
 
 #include "ED_screen.h"
 
+#include "draw_color_management.h"
+
 #include "workbench_private.h"
 
 void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
@@ -53,16 +55,9 @@ void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
   }
 }
 
-static void workspace_aa_draw_transform(GPUTexture *tx, WORKBENCH_PrivateData *wpd)
+static void workspace_aa_draw_transform(GPUTexture *tx, WORKBENCH_PrivateData *UNUSED(wpd))
 {
-  if (DRW_state_do_color_management()) {
-    /* Display space result for viewport. */
-    DRW_transform_to_display(tx, wpd->use_color_render_settings, wpd->use_color_render_settings);
-  }
-  else {
-    /* Linear result for render. */
-    DRW_transform_none(tx);
-  }
+  DRW_transform_none(tx);
 }
 
 void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)

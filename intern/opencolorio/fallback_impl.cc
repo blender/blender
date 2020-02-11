@@ -594,6 +594,43 @@ void FallbackImpl::OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id)
   MEM_freeN(id);
 }
 
+OCIO_GroupTransformRcPtr *FallbackImpl::createGroupTransform(void)
+{
+  FallbackTransform *transform = new FallbackTransform();
+  transform->type = TRANSFORM_UNKNOWN;
+  return (OCIO_GroupTransformRcPtr *)transform;
+}
+
+void FallbackImpl::groupTransformSetDirection(OCIO_GroupTransformRcPtr * /*gt*/,
+                                              const bool /*forward */)
+{
+}
+
+void FallbackImpl::groupTransformPushBack(OCIO_GroupTransformRcPtr * /*gt*/,
+                                          OCIO_ConstTransformRcPtr * /*transform*/)
+{
+}
+
+void FallbackImpl::groupTransformRelease(OCIO_GroupTransformRcPtr * /*gt*/)
+{
+}
+
+OCIO_ColorSpaceTransformRcPtr *FallbackImpl::createColorSpaceTransform(void)
+{
+  FallbackTransform *transform = new FallbackTransform();
+  transform->type = TRANSFORM_UNKNOWN;
+  return (OCIO_ColorSpaceTransformRcPtr *)transform;
+}
+
+void FallbackImpl::colorSpaceTransformSetSrc(OCIO_ColorSpaceTransformRcPtr * /*ct*/,
+                                             const char * /*name*/)
+{
+}
+
+void FallbackImpl::colorSpaceTransformRelease(OCIO_ColorSpaceTransformRcPtr * /*ct*/)
+{
+}
+
 OCIO_ExponentTransformRcPtr *FallbackImpl::createExponentTransform(void)
 {
   FallbackTransform *transform = new FallbackTransform();
@@ -658,10 +695,12 @@ bool FallbackImpl::supportGLSLDraw(void)
 }
 
 bool FallbackImpl::setupGLSLDraw(struct OCIO_GLSLDrawState ** /*state_r*/,
-                                 OCIO_ConstProcessorRcPtr * /*processor*/,
+                                 OCIO_ConstProcessorRcPtr * /*ocio_processor_scene_to_ui*/,
+                                 OCIO_ConstProcessorRcPtr * /*ocio_processor_ui_to_display*/,
                                  OCIO_CurveMappingSettings * /*curve_mapping_settings*/,
                                  float /*dither*/,
-                                 bool /*predivide*/)
+                                 bool /*predivide*/,
+                                 bool /*overlay*/)
 {
   return false;
 }

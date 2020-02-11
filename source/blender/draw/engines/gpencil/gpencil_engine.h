@@ -524,7 +524,6 @@ void DRW_gpencil_free_runtime_data(void *ved);
     if ((lvl > 0) && (fbl->multisample_fb != NULL) && (DRW_state_is_fbo())) { \
       DRW_stats_query_start("GP Multisample Resolve"); \
       GPU_framebuffer_bind(fb); \
-      DRW_multisamples_resolve(txl->multisample_depth, txl->multisample_color, true); \
       DRW_stats_query_end(); \
     } \
   } \

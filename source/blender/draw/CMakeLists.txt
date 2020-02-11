@@ -56,6 +56,7 @@ set(SRC
   intern/draw_cache_impl_mesh.c
   intern/draw_cache_impl_metaball.c
   intern/draw_cache_impl_particles.c
+  intern/draw_color_management.c
   intern/draw_common.c
   intern/draw_debug.c
   intern/draw_hair.c
@@ -121,6 +122,7 @@ set(SRC
   engines/select/select_engine.c
   engines/overlay/overlay_antialiasing.c
   engines/overlay/overlay_armature.c
+  engines/overlay/overlay_background.c
   engines/overlay/overlay_edit_curve.c
   engines/overlay/overlay_edit_mesh.c
   engines/overlay/overlay_edit_text.c
@@ -146,6 +148,7 @@ set(SRC
   intern/draw_cache_extract.h
   intern/draw_cache_impl.h
   intern/draw_cache_inline.h
+  intern/draw_color_management.h
   intern/draw_common.h
   intern/draw_debug.h
   intern/draw_hair_private.h
@@ -237,7 +240,6 @@ data_to_c_simple(engines/eevee/shaders/volumetric_resolve_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_scatter_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_integration_frag.glsl SRC)
 
-data_to_c_simple(engines/workbench/shaders/workbench_background_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_cavity_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_cavity_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_checkerboard_depth_frag.glsl SRC)
@@ -329,6 +331,8 @@ data_to_c_simple(engines/overlay/shaders/armature_stick_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/armature_stick_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/armature_wire_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/armature_wire_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/background_frag.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/clipbound_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/depth_only_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/edit_curve_handle_geom.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/edit_curve_handle_vert.glsl SRC)

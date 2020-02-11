@@ -307,6 +307,41 @@ void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id)
   impl->OCIO_PackedImageDescRelease(id);
 }
 
+OCIO_GroupTransformRcPtr *OCIO_createGroupTransform(void)
+{
+  return impl->createGroupTransform();
+}
+
+void OCIO_groupTransformSetDirection(OCIO_GroupTransformRcPtr *gt, const bool forward)
+{
+  impl->groupTransformSetDirection(gt, forward);
+}
+
+void OCIO_groupTransformPushBack(OCIO_GroupTransformRcPtr *gt, OCIO_ConstTransformRcPtr *tr)
+{
+  impl->groupTransformPushBack(gt, tr);
+}
+
+void OCIO_groupTransformRelease(OCIO_GroupTransformRcPtr *gt)
+{
+  impl->groupTransformRelease(gt);
+}
+
+OCIO_ColorSpaceTransformRcPtr *OCIO_createColorSpaceTransform(void)
+{
+  return impl->createColorSpaceTransform();
+}
+
+void OCIO_colorSpaceTransformSetSrc(OCIO_ColorSpaceTransformRcPtr *ct, const char *name)
+{
+  impl->colorSpaceTransformSetSrc(ct, name);
+}
+
+void OCIO_colorSpaceTransformRelease(OCIO_ColorSpaceTransformRcPtr *ct)
+{
+  impl->colorSpaceTransformRelease(ct);
+}
+
 OCIO_ExponentTransformRcPtr *OCIO_createExponentTransform(void)
 {
   return impl->createExponentTransform();
@@ -350,12 +385,20 @@ int OCIO_supportGLSLDraw(void)
 }
 
 int OCIO_setupGLSLDraw(struct OCIO_GLSLDrawState **state_r,
-                       OCIO_ConstProcessorRcPtr *processor,
+                       OCIO_ConstProcessorRcPtr *ocio_processor_scene_to_ui,
+                       OCIO_ConstProcessorRcPtr *ocio_processor_ui_to_display,
                        OCIO_CurveMappingSettings *curve_mapping_settings,
                        float dither,
-                       bool predivide)
+                       bool predivide,
+                       bool overlay)
 {
-  return (int)impl->setupGLSLDraw(state_r, processor, curve_mapping_settings, dither, predivide);
+  return (int)impl->setupGLSLDraw(state_r,
+                                  ocio_processor_scene_to_ui,
+                                  ocio_processor_ui_to_display,
+                                  curve_mapping_settings,
+                                  dither,
+                                  predivide,
+                                  overlay);
 }
 
 void OCIO_finishGLSLDraw(struct OCIO_GLSLDrawState *state)

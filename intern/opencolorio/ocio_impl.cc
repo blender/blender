@@ -822,6 +822,51 @@ void OCIOImpl::OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id)
   OBJECT_GUARDED_DELETE((PackedImageDesc *)id, PackedImageDesc);
 }
 
+OCIO_GroupTransformRcPtr *OCIOImpl::createGroupTransform(void)
+{
+  GroupTransformRcPtr *gt = OBJECT_GUARDED_NEW(GroupTransformRcPtr);
+
+  *gt = GroupTransform::Create();
+
+  return (OCIO_GroupTransformRcPtr *)gt;
+}
+
+void OCIOImpl::groupTransformSetDirection(OCIO_GroupTransformRcPtr *gt, const bool forward)
+{
+  TransformDirection dir = forward ? TRANSFORM_DIR_FORWARD : TRANSFORM_DIR_INVERSE;
+  (*(GroupTransformRcPtr *)gt)->setDirection(dir);
+}
+
+void OCIOImpl::groupTransformPushBack(OCIO_GroupTransformRcPtr *gt, OCIO_ConstTransformRcPtr *tr)
+{
+  (*(GroupTransformRcPtr *)gt)->push_back(*(ConstTransformRcPtr *)tr);
+}
+
+void OCIOImpl::groupTransformRelease(OCIO_GroupTransformRcPtr *gt)
+{
+  OBJECT_GUARDED_DELETE((GroupTransformRcPtr *)gt, GroupTransformRcPtr);
+}
+
+OCIO_ColorSpaceTransformRcPtr *OCIOImpl::createColorSpaceTransform(void)
+{
+  ColorSpaceTransformRcPtr *ct = OBJECT_GUARDED_NEW(ColorSpaceTransformRcPtr);
+
+  *ct = ColorSpaceTransform::Create();
+  (*ct)->setDirection(TRANSFORM_DIR_FORWARD);
+
+  return (OCIO_ColorSpaceTransformRcPtr *)ct;
+}
+
+void OCIOImpl::colorSpaceTransformSetSrc(OCIO_ColorSpaceTransformRcPtr *ct, const char *name)
+{
+  (*(ColorSpaceTransformRcPtr *)ct)->setSrc(name);
+}
+
+void OCIOImpl::colorSpaceTransformRelease(OCIO_ColorSpaceTransformRcPtr *ct)
+{
+  OBJECT_GUARDED_DELETE((ColorSpaceTransformRcPtr *)ct, ColorSpaceTransformRcPtr);
+}
+
 OCIO_ExponentTransformRcPtr *OCIOImpl::createExponentTransform(void)
 {
   ExponentTransformRcPtr *et = OBJECT_GUARDED_NEW(ExponentTransformRcPtr);
