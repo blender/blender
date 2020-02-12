@@ -871,7 +871,6 @@ void DRW_gpencil_free_runtime_data(void *ved)
 static void gpencil_draw_pass_range(GPENCIL_FramebufferList *fbl,
                                     GPENCIL_StorageList *stl,
                                     GPENCIL_PassList *psl,
-                                    GPENCIL_TextureList *txl,
                                     GPUFrameBuffer *fb,
                                     Object *ob,
                                     bGPdata *gpd,
@@ -950,7 +949,6 @@ void GPENCIL_draw_scene(void *ved)
   GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
   GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  GPENCIL_TextureList *txl = ((GPENCIL_Data *)vedata)->txl;
 
   tGPencilObjectCache *cache_ob;
   tGPencilObjectCache_shgrp *array_elm = NULL;
@@ -1047,7 +1045,7 @@ void GPENCIL_draw_scene(void *ved)
               use_blend = true;
               /* draw pending groups */
               gpencil_draw_pass_range(
-                  fbl, stl, psl, txl, fbl->temp_fb_a, ob, gpd, init_shgrp, end_shgrp, is_last);
+                  fbl, stl, psl, fbl->temp_fb_a, ob, gpd, init_shgrp, end_shgrp, is_last);
 
               /* Draw current group in separated texture to blend later */
               init_shgrp = array_elm->init_shgrp;
@@ -1056,7 +1054,7 @@ void GPENCIL_draw_scene(void *ved)
               GPU_framebuffer_bind(fbl->temp_fb_fx);
               GPU_framebuffer_clear_color_depth_stencil(fbl->temp_fb_fx, clearcol, 1.0f, 0x0);
               gpencil_draw_pass_range(
-                  fbl, stl, psl, txl, fbl->temp_fb_fx, ob, gpd, init_shgrp, end_shgrp, is_last);
+                  fbl, stl, psl, fbl->temp_fb_fx, ob, gpd, init_shgrp, end_shgrp, is_last);
 
               /* Blend A texture and FX texture */
               GPU_framebuffer_bind(fbl->temp_fb_b);
@@ -1081,7 +1079,7 @@ void GPENCIL_draw_scene(void *ved)
           }
           /* last group */
           gpencil_draw_pass_range(
-              fbl, stl, psl, txl, fbl->temp_fb_a, ob, gpd, init_shgrp, end_shgrp, true);
+              fbl, stl, psl, fbl->temp_fb_a, ob, gpd, init_shgrp, end_shgrp, true);
         }
 
         /* Current buffer drawing */
