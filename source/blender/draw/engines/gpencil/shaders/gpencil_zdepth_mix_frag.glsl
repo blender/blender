@@ -68,6 +68,8 @@ void main()
       if (check_borders(uv, 2)) {
         FragColor = select_color;
         gl_FragDepth = 0.000001;
+        /* Dirty fix waiting for new GPencil engine. */
+        FragColor.rgb = pow(FragColor.rgb, vec3(2.2));
       }
     }
   }

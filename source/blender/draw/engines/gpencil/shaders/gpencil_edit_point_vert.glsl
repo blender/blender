@@ -13,4 +13,7 @@ void main()
   gl_Position = point_world_to_ndc((gpModelMatrix * vec4(pos, 1.0)).xyz);
   finalColor = color;
   finalThickness = size;
+
+  /* Dirty fix waiting for new GPencil engine. */
+  finalColor.rgb = pow(finalColor.rgb, vec3(2.2));
 }

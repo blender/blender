@@ -343,12 +343,12 @@ static void set_wireframe_color(Object *ob,
         color[1] = world->horg;
         color[2] = world->horb;
         color[3] = 1.0f;
-        linearrgb_to_srgb_v4(stl->shgroups[id].wire_color, color);
+        copy_v4_v4(stl->shgroups[id].wire_color, color);
       }
       else {
         copy_v3_v3(color, v3d->shading.background_color);
         color[3] = 1.0f;
-        linearrgb_to_srgb_v4(stl->shgroups[id].wire_color, color);
+        copy_v4_v4(stl->shgroups[id].wire_color, color);
       }
       return;
     }
@@ -363,13 +363,13 @@ static void set_wireframe_color(Object *ob,
           copy_v3_v3(color, v3d->shading.single_color);
         }
         color[3] = 1.0f;
-        linearrgb_to_srgb_v4(stl->shgroups[id].wire_color, color);
+        copy_v4_v4(stl->shgroups[id].wire_color, color);
         break;
       }
       case V3D_SHADING_OBJECT_COLOR: {
         copy_v4_v4(color, ob->color);
         color[3] = 1.0f;
-        linearrgb_to_srgb_v4(stl->shgroups[id].wire_color, color);
+        copy_v4_v4(stl->shgroups[id].wire_color, color);
         break;
       }
       case V3D_SHADING_RANDOM_COLOR: {

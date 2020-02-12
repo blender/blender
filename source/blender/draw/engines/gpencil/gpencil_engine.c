@@ -1061,7 +1061,7 @@ void GPENCIL_draw_scene(void *ved)
               GPU_framebuffer_clear_color_depth_stencil(fbl->temp_fb_b, clearcol, 1.0f, 0x0);
               stl->storage->blend_mode = array_elm->mode;
               stl->storage->mask_layer = (int)array_elm->mask_layer;
-              stl->storage->tonemapping = DRW_state_do_color_management() ? 0 : 1;
+              stl->storage->tonemapping = 1;
               DRW_draw_pass(psl->blend_pass);
               stl->storage->tonemapping = 0;
 
@@ -1103,7 +1103,7 @@ void GPENCIL_draw_scene(void *ved)
           GPU_framebuffer_bind(fbl->main);
         }
         /* tonemapping */
-        stl->storage->tonemapping = DRW_state_do_color_management() ? 0 : 1;
+        stl->storage->tonemapping = 1;
 
         /* active select flag and selection color */
         if (!is_render) {
