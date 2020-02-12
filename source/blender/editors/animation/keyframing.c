@@ -3016,8 +3016,6 @@ bool ED_autokeyframe_property(
       ToolSettings *ts = scene->toolsettings;
       short flag = ANIM_get_keyframing_flags(scene, 1);
 
-      fcu->flag &= ~FCURVE_SELECTED;
-
       /* Note: We use rnaindex instead of fcu->array_index,
        *       because a button may control all items of an array at once.
        *       E.g., color wheels (see T42567). */
