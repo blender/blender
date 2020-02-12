@@ -1537,6 +1537,14 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 282, 7)) {
+    /* During development of Blender 2.80 the "Object.hide" property was
+     * removed, and reintroduced in 5e968a996a53 as "Object.hide_viewport". */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      BKE_fcurves_id_cb(&ob->id, do_version_fcurve_hide_viewport_fix, NULL);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1548,12 +1556,6 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
-
-    /* During development of Blender 2.80 the "Object.hide" property was
-     * removed, and reintroduced in 5e968a996a53 as "Object.hide_viewport". */
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      BKE_fcurves_id_cb(&ob->id, do_version_fcurve_hide_viewport_fix, NULL);
-    }
   }
 }
 
@@ -4297,18 +4299,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 282, 7)) {
     /* Cloth internal springs */
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
       for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
@@ -4361,5 +4352,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         br->pose_ik_segments = 1;
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

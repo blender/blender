@@ -692,6 +692,12 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     userdef->gpu_flag |= USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE;
   }
 
+  if (!USER_VERSION_ATLEAST(282, 7)) {
+    if (userdef->pixelsize == 0.0f) {
+      userdef->pixelsize = 1.0f;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -703,10 +709,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
-  }
-
-  if (userdef->pixelsize == 0.0f) {
-    userdef->pixelsize = 1.0f;
   }
 
   for (bTheme *btheme = userdef->themes.first; btheme; btheme = btheme->next) {
