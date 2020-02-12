@@ -16,6 +16,8 @@
 
 #ifdef WITH_CUDA
 
+#  include "device/device.h"
+#  include "device/device_intern.h"
 #  include "device/cuda/device_cuda.h"
 
 #  include "util/util_logging.h"
