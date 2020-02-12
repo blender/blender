@@ -3597,6 +3597,7 @@ static void write_workspace(WriteData *wd, WorkSpace *workspace)
   ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
   writestruct(wd, ID_WS, WorkSpace, 1, workspace);
+  write_iddata(wd, &workspace->id);
   writelist(wd, DATA, WorkSpaceLayout, layouts);
   writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
   writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
