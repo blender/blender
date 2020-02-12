@@ -72,7 +72,15 @@ class ArchiveWithIndicator:
 
     def is_ready(self) -> bool:
         """Check whether the archive is ready for access."""
-        return self.ready_indicator_filepath.exists()
+        if not self.ready_indicator_filepath.exists():
+            return False
+        # Sometimes on macOS indicator file appears prior to the actual archive
+        # despite the order of creation and os.sync() used in tag_ready().
+        # So consider archive not ready if there is an indicator without an
+        # actual archive.
+        if not self.archive_filepath.exists():
+            return False
+        return True
 
     def tag_ready(self) -> None:
         """
