@@ -1047,12 +1047,12 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_FILL:
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-      br->add_col[0] = 1.0f;
-      br->add_col[1] = 0.05f;
-      br->add_col[2] = 0.01f;
-      br->sub_col[0] = 1.0f;
-      br->sub_col[1] = 0.05f;
-      br->sub_col[2] = 0.01f;
+      br->add_col[0] = 0.877f;
+      br->add_col[1] = 0.142f;
+      br->add_col[2] = 0.117f;
+      br->sub_col[0] = 0.877f;
+      br->sub_col[1] = 0.142f;
+      br->sub_col[2] = 0.117f;
       break;
 
     case SCULPT_TOOL_PINCH:
