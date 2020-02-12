@@ -144,6 +144,19 @@ else()
   set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP /bigobj")
 endif()
 
+# C++ standards conformace (/permissive-) is available on msvc 15.5 (1912) and up
+if(MSVC_VERSION GREATER 1911 AND NOT MSVC_CLANG)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /permissive-")
+  # MSVC 2017 emits a whole lot of warnings (C4199) about two-phase lookup
+  # in combination with OpenMP, however my current MSVC2019 (16.4) does not.
+  # From the documentation it is not entirely clear when this got solved,
+  # so for any compiler versions >= 15.5 and < 16.4 opt in to the old non-conforming behavior.
+  if(MSVC_VERSION LESS 1924)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zc:twoPhase-")
+  endif()
+endif()
+
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd /ZI")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MDd /ZI")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")

@@ -19,10 +19,7 @@
  */
 
 #include <algorithm>
-
-#if !defined(WIN32)
-#  include <iostream>
-#endif
+#include <iostream>
 
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"

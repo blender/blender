@@ -30,6 +30,11 @@ if(WITH_OPENVDB)
   add_definitions(-DOPENVDB_STATICLIB)
 endif()
 
+if(WIN32)
+  add_definitions(-D_USE_MATH_DEFINES)
+endif()
+
+
 set(INC
   extern
   intern/strings

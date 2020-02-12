@@ -647,9 +647,11 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
   /* Silence warnings interpreted as errors by users when trying to get
    * a context with version higher than 3.3 Core. */
-  const bool silent = m_contextMajorVersion > 3;
-  if (!WIN32_CHK_SILENT(m_hGLRC != NULL, silent)) {
-    goto error;
+  {
+    const bool silent = m_contextMajorVersion > 3;
+    if (!WIN32_CHK_SILENT(m_hGLRC != NULL, silent)) {
+      goto error;
+    }
   }
 
   s_sharedCount++;
@@ -680,15 +682,17 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
   ::SwapBuffers(m_hDC);
 
 #ifndef NDEBUG
-  const char *vendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
-  const char *renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
-  const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+  {
+    const char *vendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
+    const char *renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
+    const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
 
-  reportContextString("Vendor", m_dummyVendor, vendor);
-  reportContextString("Renderer", m_dummyRenderer, renderer);
-  reportContextString("Version", m_dummyVersion, version);
+    reportContextString("Vendor", m_dummyVendor, vendor);
+    reportContextString("Renderer", m_dummyRenderer, renderer);
+    reportContextString("Version", m_dummyVersion, version);
 
-  fprintf(stderr, "Context Version: %d.%d\n", m_contextMajorVersion, m_contextMinorVersion);
+    fprintf(stderr, "Context Version: %d.%d\n", m_contextMajorVersion, m_contextMinorVersion);
+  }
 #endif
 
   return GHOST_kSuccess;
