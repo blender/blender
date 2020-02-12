@@ -143,6 +143,8 @@ struct HookData_cb {
 
   float mat_uniform[3][3];
   float mat[4][4];
+
+  bool invert_vgroup;
 };
 
 static float hook_falloff(const struct HookData_cb *hd, const float len_sq)
@@ -236,7 +238,8 @@ static void hook_co_apply(struct HookData_cb *hd, const int j)
 
   if (fac) {
     if (hd->dvert) {
-      fac *= defvert_find_weight(&hd->dvert[j], hd->defgrp_index);
+      fac *= hd->invert_vgroup ? 1.0f - defvert_find_weight(&hd->dvert[j], hd->defgrp_index) :
+                                 defvert_find_weight(&hd->dvert[j], hd->defgrp_index);
     }
 
     if (fac) {
@@ -259,6 +262,7 @@ static void deformVerts_do(HookModifierData *hmd,
   float dmat[4][4];
   int i, *index_pt;
   struct HookData_cb hd;
+  const bool invert_vgroup = (hmd->flag & MOD_HOOK_INVERT_VGROUP) != 0;
 
   if (hmd->curfalloff == NULL) {
     /* should never happen, but bad lib linking could cause it */
@@ -282,6 +286,8 @@ static void deformVerts_do(HookModifierData *hmd,
 
   hd.use_falloff = (hd.falloff_sq != 0.0f);
   hd.use_uniform = (hmd->flag & MOD_HOOK_UNIFORM_SPACE) != 0;
+
+  hd.invert_vgroup = invert_vgroup;
 
   if (hd.use_uniform) {
     copy_m3_m4(hd.mat_uniform, hmd->parentinv);

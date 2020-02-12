@@ -2550,6 +2550,11 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
       func, "indices", 1, NULL, INT_MIN, INT_MAX, "", "Vertex Indices", 0, INT_MAX);
   RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
+
+  prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_HOOK_INVERT_VGROUP);
+  RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_softbody(BlenderRNA *brna)

@@ -703,6 +703,7 @@ typedef struct ArmatureModifierData {
 
 enum {
   MOD_HOOK_UNIFORM_SPACE = (1 << 0),
+  MOD_HOOK_INVERT_VGROUP = (1 << 1)
 };
 
 /* same as WarpModifierFalloff */
