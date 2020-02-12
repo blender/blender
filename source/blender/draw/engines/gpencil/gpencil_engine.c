@@ -278,7 +278,8 @@ void GPENCIL_engine_init(void *vedata)
     stl->storage->shade_render[1] = 0;
   }
 
-  stl->storage->multisamples = U.gpencil_multisamples;
+  /* Not supported anymore. */
+  stl->storage->multisamples = 0;
 
   /* create shaders */
   GPENCIL_create_shaders();
