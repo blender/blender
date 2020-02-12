@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_convert_from_color(color value_color = 0.0,
                                output string value_string = "",

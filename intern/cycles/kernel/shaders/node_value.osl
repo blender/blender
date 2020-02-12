@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_value(float value_value = 0.0,
                   vector vector_value = vector(0.0, 0.0, 0.0),

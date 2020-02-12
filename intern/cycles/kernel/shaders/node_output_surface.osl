@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 surface node_output_surface(closure color Surface = 0)
 {

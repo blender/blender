@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "stdosl.h"
+ #include "stdcycles.h"
 
 shader node_anisotropic_bsdf(color Color = 0.0,
                              string distribution = "GGX",

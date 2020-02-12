@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_convert_from_normal(normal value_normal = normal(0.0, 0.0, 0.0),
                                 output string value_string = "",

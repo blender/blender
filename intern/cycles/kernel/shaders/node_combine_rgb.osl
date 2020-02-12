@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_combine_rgb(float R = 0.0, float G = 0.0, float B = 0.0, output color Image = 0.8)
 {

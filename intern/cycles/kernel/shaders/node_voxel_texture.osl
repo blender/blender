@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_voxel_texture(string filename = "",
                           string interpolation = "linear",

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_add_closure(closure color Closure1 = 0,
                         closure color Closure2 = 0,

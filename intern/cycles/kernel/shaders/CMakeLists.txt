@@ -95,16 +95,27 @@ set(SRC_OSL
   node_rgb_to_bw.osl
 )
 
+# FindOSL.cmake does not give us the location of the shader library
+# but generally it can be figured out from the location of the oslc
+# compiler. However if this fails you can set OSL_SHADER_DIR to
+# bypass the auto discovery.
+if(NOT DEFINED OSL_SHADER_DIR)
+  get_filename_component(OSL_SHADER_DIR ${OSL_COMPILER} DIRECTORY)
+  get_filename_component(OSL_SHADER_DIR ${OSL_SHADER_DIR}/../shaders ABSOLUTE)
+endif()
+
+# The headers that OSL ships differs per release so we can not
+# hardcode this.
+file(GLOB SRC_OSL_HEADER_DIST ${OSL_SHADER_DIR}/*.h)
+
 set(SRC_OSL_HEADERS
   node_color.h
   node_fresnel.h
   node_hash.h
   node_noise.h
   node_ramp_util.h
-  stdosl.h
-  oslutil.h
-  vector2.h
-  vector4.h
+  stdcycles.h
+  ${SRC_OSL_HEADER_DIST}
 )
 
 set(SRC_OSO

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_convert_from_vector(vector value_vector = vector(0.0, 0.0, 0.0),
                                 output string value_string = "",

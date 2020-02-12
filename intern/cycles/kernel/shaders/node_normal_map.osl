@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_normal_map(normal NormalIn = N,
                        float Strength = 1.0,

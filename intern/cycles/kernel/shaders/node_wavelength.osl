@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_wavelength(float Wavelength = 500.0, output color Color = 0.0)
 {

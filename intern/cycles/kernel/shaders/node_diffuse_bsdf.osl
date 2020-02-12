@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_diffuse_bsdf(color Color = 0.8,
                          float Roughness = 0.0,

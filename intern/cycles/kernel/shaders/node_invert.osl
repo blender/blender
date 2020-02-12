@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_invert(float Fac = 1.0, color ColorIn = 0.8, output color ColorOut = 0.8)
 {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_combine_xyz(float X = 0.0, float Y = 0.0, float Z = 0.0, output vector Vector = 0.8)
 {

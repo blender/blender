@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_refraction_bsdf(color Color = 0.8,
                             string distribution = "sharp",

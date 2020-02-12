@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_emission(color Color = 0.8, float Strength = 1.0, output closure color Emission = 0)
 {

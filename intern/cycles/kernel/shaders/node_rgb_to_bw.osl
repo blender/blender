@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_rgb_to_bw(color Color = 0.0, output float Val = 0.0)
 {

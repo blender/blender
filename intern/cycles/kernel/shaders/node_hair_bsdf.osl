@@ -16,7 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_hair_bsdf(color Color = 0.8,
                       string component = "reflection",

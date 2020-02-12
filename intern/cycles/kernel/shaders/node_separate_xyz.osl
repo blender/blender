@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_separate_xyz(vector Vector = 0.8,
                          output float X = 0.0,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_blackbody(float Temperature = 1200.0, output color Color = 0.0)
 {

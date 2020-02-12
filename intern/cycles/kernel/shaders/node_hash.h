@@ -1,4 +1,4 @@
-#include "stdosl.h"
+#include "stdcycles.h"
 #include "vector2.h"
 #include "vector4.h"
 

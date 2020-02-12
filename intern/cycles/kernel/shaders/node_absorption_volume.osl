@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_absorption_volume(color Color = color(0.8, 0.8, 0.8),
                               float Density = 1.0,

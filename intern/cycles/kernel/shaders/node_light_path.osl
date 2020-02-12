@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_light_path(output float IsCameraRay = 0.0,
                        output float IsShadowRay = 0.0,

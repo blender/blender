@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 /* "Bump Mapping Unparameterized Surfaces on the GPU"
  * Morten S. Mikkelsen, 2010 */

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_hair_info(output float IsStrand = 0.0,
                       output float Intercept = 0.0,

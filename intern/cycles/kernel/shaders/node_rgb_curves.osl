@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 #include "node_ramp_util.h"
 
 shader node_rgb_curves(color ramp[] = {0.0},

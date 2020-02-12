@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_object_info(output point Location = point(0.0, 0.0, 0.0),
                         output color Color = color(1.0, 1.0, 1.0),

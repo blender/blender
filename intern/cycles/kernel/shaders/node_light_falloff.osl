@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_light_falloff(float Strength = 0.0,
                           float Smooth = 0.0,

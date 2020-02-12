@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_normal(normal direction = normal(0.0, 0.0, 0.0),
                    normal NormalIn = normal(0.0, 0.0, 0.0),

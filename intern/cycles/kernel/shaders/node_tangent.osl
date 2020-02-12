@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_tangent(normal NormalIn = N,
                     string attr_name = "geom:tangent",

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_brightness(color ColorIn = 0.8,
                        float Bright = 0.0,

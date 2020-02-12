@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
+#include "stdcycles.h"
 
 shader node_particle_info(output float Index = 0.0,
                           output float Random = 0.0,
