@@ -354,8 +354,6 @@ void node_from_view(struct bNode *node, float x, float y, float *rx, float *ry)
   nodeFromView(node, x, y, rx, ry);
 }
 
-
-
 /* based on settings in node, sets drawing rect info. each redraw! */
 static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 {

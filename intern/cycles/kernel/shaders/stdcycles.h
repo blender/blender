@@ -147,5 +147,4 @@ normal ensure_valid_reflection(normal Ng, vector I, normal N)
   return N_new_x * X + N_new_z * Ng;
 }
 
-
 #endif /* CCL_STDOSL_H */
