@@ -32,6 +32,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+class CUDASplitKernel;
+
 class CUDADevice : public Device {
 
   friend class CUDASplitKernelFunction;

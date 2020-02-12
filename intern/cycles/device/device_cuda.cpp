@@ -20,12 +20,13 @@
 
 #  include "util/util_logging.h"
 #  include "util/util_string.h"
+#  include "util/util_windows.h"
 
 CCL_NAMESPACE_BEGIN
 
 bool device_cuda_init()
 {
-#ifdef WITH_CUDA_DYNLOAD
+#  ifdef WITH_CUDA_DYNLOAD
   static bool initialized = false;
   static bool result = false;
 
@@ -40,7 +41,7 @@ bool device_cuda_init()
       VLOG(1) << "Found precompiled kernels";
       result = true;
     }
-#  ifndef _WIN32
+#    ifndef _WIN32
     else if (cuewCompilerPath() != NULL) {
       VLOG(1) << "Found CUDA compiler " << cuewCompilerPath();
       result = true;
@@ -49,7 +50,7 @@ bool device_cuda_init()
       VLOG(1) << "Neither precompiled kernels nor CUDA compiler was found,"
               << " unable to use CUDA";
     }
-#  endif
+#    endif
   }
   else {
     VLOG(1) << "CUEW initialization failed: "
@@ -58,9 +59,9 @@ bool device_cuda_init()
   }
 
   return result;
-#else  /* WITH_CUDA_DYNLOAD */
+#  else  /* WITH_CUDA_DYNLOAD */
   return true;
-#endif /* WITH_CUDA_DYNLOAD */
+#  endif /* WITH_CUDA_DYNLOAD */
 }
 
 Device *device_cuda_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background)
@@ -70,7 +71,7 @@ Device *device_cuda_create(DeviceInfo &info, Stats &stats, Profiler &profiler, b
 
 static CUresult device_cuda_safe_init()
 {
-#ifdef _WIN32
+#  ifdef _WIN32
   __try {
     return cuInit(0);
   }
@@ -81,9 +82,9 @@ static CUresult device_cuda_safe_init()
   }
 
   return CUDA_ERROR_NO_DEVICE;
-#else
+#  else
   return cuInit(0);
-#endif
+#  endif
 }
 
 void device_cuda_info(vector<DeviceInfo> &devices)
@@ -195,13 +196,13 @@ string device_cuda_capabilities()
     }
     capabilities += string("\t") + name + "\n";
     int value;
-#define GET_ATTR(attr) \
-  { \
-    if (cuDeviceGetAttribute(&value, CU_DEVICE_ATTRIBUTE_##attr, num) == CUDA_SUCCESS) { \
-      capabilities += string_printf("\t\tCU_DEVICE_ATTRIBUTE_" #attr "\t\t\t%d\n", value); \
+#  define GET_ATTR(attr) \
+    { \
+      if (cuDeviceGetAttribute(&value, CU_DEVICE_ATTRIBUTE_##attr, num) == CUDA_SUCCESS) { \
+        capabilities += string_printf("\t\tCU_DEVICE_ATTRIBUTE_" #attr "\t\t\t%d\n", value); \
+      } \
     } \
-  } \
-  (void)0
+    (void)0
     /* TODO(sergey): Strip all attributes which are not useful for us
      * or does not depend on the driver.
      */
@@ -292,7 +293,7 @@ string device_cuda_capabilities()
     GET_ATTR(MANAGED_MEMORY);
     GET_ATTR(MULTI_GPU_BOARD);
     GET_ATTR(MULTI_GPU_BOARD_GROUP_ID);
-#undef GET_ATTR
+#  undef GET_ATTR
     capabilities += "\n";
   }
 
