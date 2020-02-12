@@ -274,9 +274,6 @@ typedef struct PTCacheEdit {
   ListBase pathcachebufs;
 
   int totpoint, totframes, totcached, edited;
-
-  unsigned char sel_col[3];
-  unsigned char nosel_col[3];
 } PTCacheEdit;
 
 /* Particle functions */

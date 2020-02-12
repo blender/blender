@@ -5188,15 +5188,6 @@ void PE_create_particle_edit(
       psys = NULL;
     }
 
-    /* Causes assert on startup. */
-#if 0
-    /* These are unused and can be removed. */
-    UI_GetThemeColor3ubv(TH_VERTEX_SELECT, edit->sel_col);
-    UI_GetThemeColor3ubv(TH_WIRE, edit->nosel_col);
-#else
-    memset(edit->sel_col, 0xff, sizeof(edit->sel_col));
-    memset(edit->nosel_col, 0x00, sizeof(edit->nosel_col));
-#endif
     recalc_lengths(edit);
     if (psys && !cache) {
       recalc_emitter_field(depsgraph, ob, psys);

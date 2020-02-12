@@ -3112,8 +3112,6 @@ typedef struct CacheEditrPathsIterData {
   ParticleData *pa;
   int segments;
   bool use_weight;
-  float sel_col[3];
-  float nosel_col[3];
 } CacheEditrPathsIterData;
 
 static void psys_cache_edit_paths_iter(void *__restrict iter_data_v,
@@ -3329,18 +3327,6 @@ void psys_cache_edit_paths(Depsgraph *depsgraph,
   iter_data.pa = pa;
   iter_data.segments = segments;
   iter_data.use_weight = use_weight;
-
-  if (use_weight) {
-    /* use weight painting colors now... */
-  }
-  else {
-    iter_data.sel_col[0] = (float)edit->sel_col[0] / 255.0f;
-    iter_data.sel_col[1] = (float)edit->sel_col[1] / 255.0f;
-    iter_data.sel_col[2] = (float)edit->sel_col[2] / 255.0f;
-    iter_data.nosel_col[0] = (float)edit->nosel_col[0] / 255.0f;
-    iter_data.nosel_col[1] = (float)edit->nosel_col[1] / 255.0f;
-    iter_data.nosel_col[2] = (float)edit->nosel_col[2] / 255.0f;
-  }
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
