@@ -690,10 +690,6 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
                                  "#  define USE_SSS\n"
                                  "#endif\n");
     }
-    /* Prune the unused nodes and extract attributes before compiling so the
-     * generated VBOs are ready to accept the future shader. */
-    GPU_nodes_prune(&mat->nodes, mat->outlink);
-    GPU_nodes_get_vertex_attrs(&mat->nodes, &mat->attrs);
     /* Create source code and search pass cache for an already compiled version. */
     mat->pass = GPU_generate_pass(mat,
                                   mat->outlink,

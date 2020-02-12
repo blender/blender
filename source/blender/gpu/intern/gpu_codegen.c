@@ -1684,7 +1684,7 @@ static void gpu_nodes_free(ListBase *nodes)
 
 /* vertex attributes */
 
-void GPU_nodes_get_vertex_attrs(ListBase *nodes, GPUVertAttrLayers *attrs)
+static void gpu_nodes_get_vertex_attrs(ListBase *nodes, GPUVertAttrLayers *attrs)
 {
   GPUNode *node;
   GPUInput *input;
@@ -1942,7 +1942,7 @@ static void gpu_nodes_tag(GPUNodeLink *link)
   }
 }
 
-void GPU_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
+static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 {
   GPUNode *node, *next;
 
@@ -2009,10 +2009,10 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   char *vertexcode, *geometrycode, *fragmentcode;
   GPUPass *pass = NULL, *pass_hash = NULL;
 
-  /* prune unused nodes */
-  GPU_nodes_prune(nodes, frag_outlink);
-
-  GPU_nodes_get_vertex_attrs(nodes, attrs);
+  /* Prune the unused nodes and extract attributes before compiling so the
+   * generated VBOs are ready to accept the future shader. */
+  gpu_nodes_prune(nodes, frag_outlink);
+  gpu_nodes_get_vertex_attrs(nodes, attrs);
 
   /* generate code */
   char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output, builtins);

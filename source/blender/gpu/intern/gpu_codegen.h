@@ -188,8 +188,6 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 struct GPUShader *GPU_pass_shader_get(GPUPass *pass);
 
 void GPU_nodes_extract_dynamic_inputs(struct GPUShader *shader, ListBase *inputs, ListBase *nodes);
-void GPU_nodes_get_vertex_attrs(ListBase *nodes, struct GPUVertAttrLayers *attrs);
-void GPU_nodes_prune(ListBase *nodes, struct GPUNodeLink *outlink);
 
 bool GPU_pass_compile(GPUPass *pass, const char *shname);
 void GPU_pass_release(GPUPass *pass);
