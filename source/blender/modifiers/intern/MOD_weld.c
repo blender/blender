@@ -37,6 +37,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_deform.h"
@@ -1623,7 +1624,6 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   const MPoly *mpoly, *mp;
   uint totvert, totedge, totloop, totpoly;
   uint i;
-  const bool invert_vgroup = (wmd->flag & MOD_WELD_INVERT_VGROUP) != 0;
 
   mvert = mesh->mvert;
   totvert = mesh->totvert;
@@ -1634,12 +1634,12 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
     MDeformVert *dvert, *dv;
     dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
     if (dvert) {
+      const bool invert_vgroup = (wmd->flag & MOD_WELD_INVERT_VGROUP) != 0;
       dv = &dvert[0];
       v_mask = BLI_BITMAP_NEW(totvert, __func__);
       for (i = 0; i < totvert; i++, dv++) {
-        const bool found = invert_vgroup ? 1.0f - defvert_find_weight(dv, defgrp_index) > 0.0f :
-                                           defvert_find_weight(dv, defgrp_index) > 0.0f;
-        if (found) {
+        const bool found = defvert_find_weight(dv, defgrp_index) > 0.0f;
+        if (found != invert_vgroup) {
           BLI_BITMAP_ENABLE(v_mask, i);
           v_mask_act++;
         }
