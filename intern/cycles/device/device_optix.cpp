@@ -659,8 +659,10 @@ class OptiXDevice : public CUDADevice {
 
   bool launch_denoise(DeviceTask &task, RenderTile &rtile, int thread_index)
   {
-    int total_samples = rtile.start_sample + rtile.num_samples;
+    // Update current sample (for display and NLM denoising task)
+    rtile.sample = rtile.start_sample + rtile.num_samples;
 
+    // Make CUDA context current now, since it is used for both denoising tasks
     const CUDAContextScope scope(cuContext);
 
     // Choose between OptiX and NLM denoising
@@ -770,7 +772,7 @@ class OptiXDevice : public CUDADevice {
                         &task.pass_stride,
                         const_cast<int *>(pass_offset),
                         &task.denoising.optix_input_passes,
-                        &total_samples};
+                        &rtile.sample};
         CUDA_GET_BLOCKSIZE(convert_to_rgb_func, rect_size.x, rect_size.y);
         CUDA_LAUNCH_KERNEL(convert_to_rgb_func, args);
 
@@ -920,8 +922,6 @@ class OptiXDevice : public CUDADevice {
       CUDADevice::denoise(rtile, denoising);
     }
 
-    // Update current sample, so it is displayed correctly
-    rtile.sample = total_samples;
     // Update task progress after the denoiser completed processing
     task.update_progress(&rtile, rtile.w * rtile.h);
 
@@ -1447,6 +1447,11 @@ class OptiXDevice : public CUDADevice {
   {
     // Upload texture information to device if it has changed since last launch
     load_texture_info();
+
+    {  // Synchronize all memory copies before executing task
+      const CUDAContextScope scope(cuContext);
+      check_result_cuda(cuCtxSynchronize());
+    }
 
     if (task.type == DeviceTask::FILM_CONVERT) {
       // Execute in main thread because of OpenGL access
