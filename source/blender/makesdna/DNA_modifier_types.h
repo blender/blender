@@ -1862,7 +1862,15 @@ typedef struct WeldModifierData {
   unsigned int max_interactions;
   /* Name of vertex group to use to mask, MAX_VGROUP_NAME. */
   char defgrp_name[64];
+
+  short flag;
+  char _pad[6];
 } WeldModifierData;
+
+/* WeldModifierData->flag */
+enum {
+  MOD_WELD_INVERT_VGROUP = (1 << 0),
+};
 
 typedef struct DataTransferModifierData {
   ModifierData modifier;

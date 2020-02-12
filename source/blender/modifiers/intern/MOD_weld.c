@@ -1623,6 +1623,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   const MPoly *mpoly, *mp;
   uint totvert, totedge, totloop, totpoly;
   uint i;
+  const bool invert_vgroup = (wmd->flag & MOD_WELD_INVERT_VGROUP) != 0;
 
   mvert = mesh->mvert;
   totvert = mesh->totvert;
@@ -1636,7 +1637,8 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
       dv = &dvert[0];
       v_mask = BLI_BITMAP_NEW(totvert, __func__);
       for (i = 0; i < totvert; i++, dv++) {
-        const bool found = defvert_find_weight(dv, defgrp_index) > 0.0f;
+        const bool found = invert_vgroup ? 1.0f - defvert_find_weight(dv, defgrp_index) > 0.0f :
+                                           defvert_find_weight(dv, defgrp_index) > 0.0f;
         if (found) {
           BLI_BITMAP_ENABLE(v_mask, i);
           v_mask_act++;

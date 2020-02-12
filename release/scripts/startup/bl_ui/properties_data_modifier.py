@@ -1498,7 +1498,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def WELD(self, layout, ob, md):
         layout.prop(md, "merge_threshold", text="Distance")
         layout.prop(md, "max_interactions")
-        layout.prop_search(md, "vertex_group", ob, "vertex_groups")
+        row = layout.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups")
+        row.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
     def DATA_TRANSFER(self, layout, ob, md):
         row = layout.row(align=True)
