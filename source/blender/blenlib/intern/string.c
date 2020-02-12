@@ -900,6 +900,24 @@ int BLI_str_index_in_array(const char *__restrict str, const char **__restrict s
   return -1;
 }
 
+/**
+ * Find if a string starts with another string.
+ *
+ * \param str: The string to search within.
+ * \param start: The string we look for at the start.
+ * \return If str starts with start.
+ */
+bool BLI_str_startswith(const char *__restrict str, const char *__restrict start)
+{
+  for (; *str && *start; str++, start++) {
+    if (*str != *start) {
+      return false;
+    }
+  }
+
+  return (*start == '\0');
+}
+
 bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t slength)
 {
   size_t elength = strlen(end);

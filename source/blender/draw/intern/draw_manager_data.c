@@ -46,8 +46,10 @@
 #endif
 
 #include "GPU_buffers.h"
+#include "GPU_material.h"
 
 #include "intern/gpu_codegen.h"
+#include "intern/gpu_node_graph.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Uniform Buffer Object (DRW_uniformbuffer)

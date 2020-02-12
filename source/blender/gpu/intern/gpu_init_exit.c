@@ -29,6 +29,7 @@
 #include "BKE_global.h"
 
 #include "intern/gpu_codegen.h"
+#include "intern/gpu_material_library.h"
 #include "intern/gpu_private.h"
 
 /**
@@ -50,6 +51,7 @@ void GPU_init(void)
   gpu_extensions_init(); /* must come first */
 
   gpu_codegen_init();
+  gpu_material_library_init();
   gpu_framebuffer_module_init();
 
   if (G.debug & G_DEBUG_GPU) {
@@ -80,6 +82,7 @@ void GPU_exit(void)
   }
 
   gpu_framebuffer_module_exit();
+  gpu_material_library_exit();
   gpu_codegen_exit();
 
   gpu_extensions_exit();

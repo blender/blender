@@ -118,6 +118,7 @@ int BLI_str_index_in_array_n(const char *__restrict str,
 int BLI_str_index_in_array(const char *__restrict str, const char **__restrict str_array)
     ATTR_NONNULL();
 
+bool BLI_str_startswith(const char *__restrict str, const char *__restrict start) ATTR_NONNULL();
 bool BLI_str_endswith(const char *__restrict str, const char *__restrict end) ATTR_NONNULL();
 bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t length)
     ATTR_NONNULL();

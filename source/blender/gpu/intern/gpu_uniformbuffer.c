@@ -26,8 +26,8 @@
 
 #include "BLI_blenlib.h"
 
-#include "gpu_codegen.h"
 #include "gpu_context_private.h"
+#include "gpu_node_graph.h"
 
 #include "GPU_extensions.h"
 #include "GPU_glew.h"

@@ -69,7 +69,9 @@ set(SRC
   intern/gpu_immediate_util.c
   intern/gpu_init_exit.c
   intern/gpu_material.c
+  intern/gpu_material_library.c
   intern/gpu_matrix.c
+  intern/gpu_node_graph.c
   intern/gpu_platform.c
   intern/gpu_primitive.c
   intern/gpu_select.c
@@ -121,6 +123,7 @@ set(SRC
   intern/gpu_context_private.h
   intern/gpu_material_library.h
   intern/gpu_matrix_private.h
+  intern/gpu_node_graph.h
   intern/gpu_primitive_private.h
   intern/gpu_private.h
   intern/gpu_select_private.h
