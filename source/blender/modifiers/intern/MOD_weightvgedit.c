@@ -167,6 +167,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   float *org_w; /* Array original weights. */
   float *new_w; /* Array new weights. */
   int i;
+  const bool invert_vgroup_mask = (wmd->edit_flags & MOD_WVG_EDIT_INVERT_VGROUP_MASK) != 0;
 
   /* Flags. */
   const bool do_add = (wmd->edit_flags & MOD_WVG_EDIT_ADD2VG) != 0;
@@ -259,7 +260,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
                    wmd->mask_tex_use_channel,
                    wmd->mask_tex_mapping,
                    wmd->mask_tex_map_obj,
-                   wmd->mask_tex_uvlayer_name);
+                   wmd->mask_tex_uvlayer_name,
+                   invert_vgroup_mask);
 
   /* Update/add/remove from vgroup. */
   weightvg_update_vg(dvert,

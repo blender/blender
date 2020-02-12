@@ -69,7 +69,8 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
                       const int tex_use_channel,
                       const int tex_mapping,
                       Object *tex_map_object,
-                      const char *tex_uvlayer_name);
+                      const char *tex_uvlayer_name,
+                      bool invert_vgroup_mask);
 
 void weightvg_update_vg(struct MDeformVert *dvert,
                         int defgrp_idx,

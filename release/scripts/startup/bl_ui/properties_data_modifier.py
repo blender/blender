@@ -1269,7 +1269,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if not md.mask_texture:
             split = layout.split(factor=0.4)
             split.label(text="Vertex Group Mask:")
-            split.prop_search(md, "mask_vertex_group", ob, "vertex_groups", text="")
+            row = split.row(align=True)
+            row.prop_search(md, "mask_vertex_group", ob, "vertex_groups", text="")
+            row.prop(md, "invert_mask_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
         if not md.mask_vertex_group:
             split = layout.split(factor=0.4)

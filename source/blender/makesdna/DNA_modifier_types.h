@@ -1387,7 +1387,8 @@ typedef struct WeightVGEditModifierData {
 
 /* WeightVGEdit flags. */
 enum {
-  /* (1 << 0), (1 << 1) and (1 << 2) are free for future use! */
+  /* (1 << 0) and (1 << 1) are free for future use! */
+  MOD_WVG_EDIT_INVERT_VGROUP_MASK = (1 << 2),
   /** Add vertices with higher weight than threshold to vgroup. */
   MOD_WVG_EDIT_ADD2VG = (1 << 3),
   /** Remove vertices with lower weight than threshold from vgroup. */
@@ -1430,8 +1431,10 @@ typedef struct WeightVGMixModifierData {
   /** Name of the UV map. MAX_CUSTOMDATA_LAYER_NAME. */
   char mask_tex_uvlayer_name[64];
 
+  char flag;
+
   /* Padding... */
-  char _pad1[4];
+  char _pad1[3];
 } WeightVGMixModifierData;
 
 /* How second vgroup's weights affect first ones. */
@@ -1464,6 +1467,11 @@ enum {
   MOD_WVG_SET_OR = 4,
   /** Affect only vertices in both vgroups. */
   MOD_WVG_SET_AND = 5,
+};
+
+/* WeightVGMix->flag */
+enum {
+  MOD_WVG_MIX_INVERT_VGROUP_MASK = (1 << 0),
 };
 
 typedef struct WeightVGProximityModifierData {
@@ -1522,6 +1530,7 @@ enum {
   MOD_WVG_PROXIMITY_GEOM_EDGES = (1 << 1),
   /* Use nearest faces of target obj, in MOD_WVG_PROXIMITY_GEOMETRY mode. */
   MOD_WVG_PROXIMITY_GEOM_FACES = (1 << 2),
+  MOD_WVG_PROXIMITY_INVERT_VGROUP_MASK = (1 << 3),
 };
 
 /* Defines common to all WeightVG modifiers. */

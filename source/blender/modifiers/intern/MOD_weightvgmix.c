@@ -218,6 +218,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   int *tidx, *indices = NULL;
   int numIdx = 0;
   int i;
+  const bool invert_vgroup_mask = (wmd->flag & MOD_WVG_MIX_INVERT_VGROUP_MASK) != 0;
   /* Flags. */
 #if 0
   const bool do_prev = (wmd->modifier.mode & eModifierMode_DoWeightPreview) != 0;
@@ -393,7 +394,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
                    wmd->mask_tex_use_channel,
                    wmd->mask_tex_mapping,
                    wmd->mask_tex_map_obj,
-                   wmd->mask_tex_uvlayer_name);
+                   wmd->mask_tex_uvlayer_name,
+                   invert_vgroup_mask);
 
   /* Update (add to) vgroup.
    * XXX Depending on the MOD_WVG_SET_xxx option chosen, we might have to add vertices to vgroup.
