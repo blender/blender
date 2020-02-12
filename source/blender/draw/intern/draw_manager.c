@@ -1309,6 +1309,9 @@ void DRW_draw_callbacks_post_scene(void)
      * function is done with sRGB color. Avoid double transform. */
     glDisable(GL_FRAMEBUFFER_SRGB);
 
+    GPU_matrix_projection_set(rv3d->winmat);
+    GPU_matrix_set(rv3d->viewmat);
+
     /* annotations - temporary drawing buffer (3d space) */
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
     if (do_annotations) {
@@ -1319,9 +1322,6 @@ void DRW_draw_callbacks_post_scene(void)
     }
 
     drw_debug_draw();
-
-    GPU_matrix_projection_set(rv3d->winmat);
-    GPU_matrix_set(rv3d->viewmat);
 
     GPU_depth_test(false);
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
