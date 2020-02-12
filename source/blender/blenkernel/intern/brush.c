@@ -1063,6 +1063,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_ROTATE:
     case SCULPT_TOOL_ELASTIC_DEFORM:
     case SCULPT_TOOL_POSE:
+    case SCULPT_TOOL_SLIDE_RELAX:
       br->add_col[0] = 1.0f;
       br->add_col[1] = 0.95f;
       br->add_col[2] = 0.005f;
