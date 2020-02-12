@@ -3390,7 +3390,6 @@ class BoneOptions:
             "use_deform",
             "use_envelope_multiply",
             "use_inherit_rotation",
-            "inherit_scale",
         ]
 
         if context.mode == 'EDIT_ARMATURE':
