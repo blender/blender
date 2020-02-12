@@ -226,7 +226,7 @@ static void uv_warp_deps_object_bone_new(struct DepsNodeHandle *node,
                                          const char *bonename)
 {
   if (object != NULL) {
-    if (bonename[0]) {
+    if (object->type == OB_ARMATURE && bonename[0]) {
       DEG_add_object_relation(node, object, DEG_OB_COMP_EVAL_POSE, "UVWarp Modifier");
     }
     else {
