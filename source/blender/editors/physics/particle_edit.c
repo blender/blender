@@ -2075,7 +2075,38 @@ void PARTICLE_OT_select_random(wmOperatorType *ot)
 
 /************************ select linked operator ************************/
 
-static int select_linked_exec(bContext *C, wmOperator *op)
+static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  PEData data;
+  PE_set_data(C, &data);
+  data.select = true;
+
+  foreach_selected_key(&data, select_keys);
+
+  PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
+  WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
+
+  return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_select_linked(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Linked All";
+  ot->idname = "PARTICLE_OT_select_linked";
+  ot->description = "Select all keys linked to already selected ones";
+
+  /* api callbacks */
+  ot->exec = select_linked_exec;
+  ot->poll = PE_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+}
+
+static int select_linked_pick_exec(bContext *C, wmOperator *op)
 {
   PEData data;
   int mval[2];
@@ -2097,22 +2128,22 @@ static int select_linked_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int select_linked_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RNA_int_set_array(op->ptr, "location", event->mval);
-  return select_linked_exec(C, op);
+  return select_linked_pick_exec(C, op);
 }
 
-void PARTICLE_OT_select_linked(wmOperatorType *ot)
+void PARTICLE_OT_select_linked_pick(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Linked";
-  ot->idname = "PARTICLE_OT_select_linked";
+  ot->idname = "PARTICLE_OT_select_linked_pick";
   ot->description = "Select nearest particle from mouse pointer";
 
   /* api callbacks */
-  ot->exec = select_linked_exec;
-  ot->invoke = select_linked_invoke;
+  ot->exec = select_linked_pick_exec;
+  ot->invoke = select_linked_pick_invoke;
   ot->poll = PE_poll_view3d;
 
   /* flags */

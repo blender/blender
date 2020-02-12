@@ -38,6 +38,7 @@ void PARTICLE_OT_select_roots(struct wmOperatorType *ot);
 void PARTICLE_OT_select_tips(struct wmOperatorType *ot);
 void PARTICLE_OT_select_random(struct wmOperatorType *ot);
 void PARTICLE_OT_select_linked(struct wmOperatorType *ot);
+void PARTICLE_OT_select_linked_pick(struct wmOperatorType *ot);
 void PARTICLE_OT_select_less(struct wmOperatorType *ot);
 void PARTICLE_OT_select_more(struct wmOperatorType *ot);
 

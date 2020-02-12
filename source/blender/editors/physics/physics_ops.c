@@ -43,6 +43,7 @@ static void operatortypes_particle(void)
   WM_operatortype_append(PARTICLE_OT_select_tips);
   WM_operatortype_append(PARTICLE_OT_select_random);
   WM_operatortype_append(PARTICLE_OT_select_linked);
+  WM_operatortype_append(PARTICLE_OT_select_linked_pick);
   WM_operatortype_append(PARTICLE_OT_select_less);
   WM_operatortype_append(PARTICLE_OT_select_more);
 
