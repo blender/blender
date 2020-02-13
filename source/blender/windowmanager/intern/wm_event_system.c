@@ -2381,13 +2381,13 @@ static int wm_handlers_do_keymap_with_keymap_handler(
 {
   int action = WM_HANDLER_CONTINUE;
 
-  PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
-
   if (keymap == NULL) {
     /* Only callback is allowed to have NULL keymaps. */
     BLI_assert(handler->dynamic.keymap_fn);
   }
   else {
+    PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
+
     if (WM_keymap_poll(C, keymap)) {
 
       PRINT("pass\n");
