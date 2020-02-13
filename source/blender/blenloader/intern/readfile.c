@@ -7758,6 +7758,9 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
   if (GS((*id_pointer)->name) == ID_GR) {
     Collection *collection = (Collection *)*id_pointer;
     if (collection->flag & COLLECTION_IS_MASTER) {
+      /* We should never reach that point anymore, since master collection private ID should be
+       * properly tagged with IDWALK_CB_PRIVATE. */
+      BLI_assert(0);
       return IDWALK_RET_NOP;
     }
   }

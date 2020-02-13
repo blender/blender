@@ -84,11 +84,11 @@ static bool id_check_type(const ID *id, const BLI_bitmap *types_bitmap)
 
 static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  IDUserMapData *data = cb_data->user_data;
-  ID *self_id = cb_data->id_self;
   ID **id_p = cb_data->id_pointer;
 
   if (*id_p) {
+    IDUserMapData *data = cb_data->user_data;
+    const int cb_flag = cb_data->cb_flag;
 
     if (data->types_bitmap) {
       if (!id_check_type(*id_p, data->types_bitmap)) {
@@ -96,13 +96,8 @@ static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_d
       }
     }
 
-    if ((GS(self_id->name) == ID_OB) && (id_p == (ID **)&((Object *)self_id)->proxy_from)) {
-      /* We skip proxy_from here,
-       * since it's some internal pointer which is not relevant info for py/API level. */
-      return IDWALK_RET_NOP;
-    }
-    else if ((GS(self_id->name) == ID_KE) && (id_p == (ID **)&((Key *)self_id)->from)) {
-      /* We skip from here,
+    if (cb_flag & IDWALK_CB_LOOPBACK) {
+      /* We skip loopback pointers like Object.proxy_from or Key.from here,
        * since it's some internal pointer which is not relevant info for py/API level. */
       return IDWALK_RET_NOP;
     }
