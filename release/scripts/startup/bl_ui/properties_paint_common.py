@@ -211,7 +211,7 @@ class ClonePanel(BrushPanel):
         settings = cls.paint_settings(context)
 
         mode = cls.get_brush_mode(context)
-        if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
+        if mode == 'PAINT_TEXTURE':
             brush = settings.brush
             return brush.image_tool == 'CLONE'
         return False
