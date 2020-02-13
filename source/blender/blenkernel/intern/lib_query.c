@@ -90,6 +90,7 @@
     ID *old_id = *(id_pp); \
     const int callback_return = (_data)->callback(&(struct LibraryIDLinkCallbackData){ \
         .user_data = (_data)->user_data, \
+        .id_owner = (_data)->owner_id, \
         .id_self = (_data)->self_id, \
         .id_pointer = id_pp, \
         .cb_flag = ((_cb_flag | (_data)->cb_flag) & ~(_data)->cb_flag_clear)}); \
@@ -133,7 +134,14 @@ enum {
 };
 
 typedef struct LibraryForeachIDData {
+  Main *bmain;
+  /* 'Real' ID, the one that might be in bmain, only differs from self_id when the later is a
+   * private one. */
+  ID *owner_id;
+  /* ID from which the current ID pointer is being processed. It may be a 'private' ID like master
+   * collection or root node tree. */
   ID *self_id;
+
   int flag;
   int cb_flag;
   int cb_flag_clear;
@@ -147,6 +155,7 @@ typedef struct LibraryForeachIDData {
 } LibraryForeachIDData;
 
 static void library_foreach_ID_link(Main *bmain,
+                                    ID *id_owner,
                                     ID *id,
                                     LibraryIDLinkCallback callback,
                                     void *user_data,
@@ -367,26 +376,31 @@ static void library_foreach_ID_as_subdata_link(ID **id_pp,
   if (flag & IDWALK_RECURSE) {
     /* Defer handling into main loop, recursively calling BKE_library_foreach_ID_link in
      * IDWALK_RECURSE case is troublesome, see T49553. */
+    /* XXX note that this breaks the 'owner id' thing now, we likely want to handle that
+     * differently at some point, but for now it should not be a problem in practice. */
     if (BLI_gset_add(data->ids_handled, id)) {
       BLI_LINKSTACK_PUSH(data->ids_todo, id);
     }
   }
   else {
-    library_foreach_ID_link(NULL, id, callback, user_data, flag, data);
+    library_foreach_ID_link(data->bmain, data->owner_id, id, callback, user_data, flag, data);
   }
 
   FOREACH_FINALIZE_VOID;
 }
 
 static void library_foreach_ID_link(Main *bmain,
+                                    ID *id_owner,
                                     ID *id,
                                     LibraryIDLinkCallback callback,
                                     void *user_data,
                                     int flag,
                                     LibraryForeachIDData *inherit_data)
 {
-  LibraryForeachIDData data;
+  LibraryForeachIDData data = {.bmain = bmain};
   int i;
+
+  BLI_assert(inherit_data == NULL || data.bmain == inherit_data->bmain);
 
   if (flag & IDWALK_RECURSE) {
     /* For now, recursion implies read-only. */
@@ -412,6 +426,7 @@ static void library_foreach_ID_link(Main *bmain,
 
   for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
     data.self_id = id;
+    data.owner_id = (id->flag & LIB_PRIVATE_DATA) ? id_owner : data.self_id;
 
     /* inherit_data is non-NULL when this function is called for some sub-data ID
      * (like root nodetree of a material).
@@ -1077,7 +1092,7 @@ FOREACH_FINALIZE:
 void BKE_library_foreach_ID_link(
     Main *bmain, ID *id, LibraryIDLinkCallback callback, void *user_data, int flag)
 {
-  library_foreach_ID_link(bmain, id, callback, user_data, flag, NULL);
+  library_foreach_ID_link(bmain, NULL, id, callback, user_data, flag, NULL);
 }
 
 /**
