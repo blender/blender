@@ -55,10 +55,6 @@
 #include "bpy_rna.h"
 
 typedef struct IDUserMapData {
-  /** Place-holder key only used for lookups to avoid creating new data only for lookups
-   * (never return its contents) */
-  PyObject *py_id_key_lookup_only;
-
   /** We loop over data-blocks that this ID points to (do build a reverse lookup table) */
   PyObject *py_id_curr;
   ID *id_curr;
@@ -102,28 +98,20 @@ static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_d
       return IDWALK_RET_NOP;
     }
 
-    /* pyrna_struct_hash() uses ptr.data only,
-     * but pyrna_struct_richcmp() uses also ptr.type,
-     * so we need to create a valid PointerRNA here...
-     */
-    PyObject *key = data->py_id_key_lookup_only;
-    RNA_id_pointer_create(*id_p, &((BPy_StructRNA *)key)->ptr);
+    PyObject *key = pyrna_id_CreatePyObject(*id_p);
 
     PyObject *set;
     if ((set = PyDict_GetItem(data->user_map, key)) == NULL) {
-
       /* limit to key's added already */
       if (data->is_subset) {
         return IDWALK_RET_NOP;
       }
 
-      /* Cannot use our placeholder key here! */
-      key = pyrna_id_CreatePyObject(*id_p);
       set = PySet_New(NULL);
       PyDict_SetItem(data->user_map, key, set);
       Py_DECREF(set);
-      Py_DECREF(key);
     }
+    Py_DECREF(key);
 
     if (data->py_id_curr == NULL) {
       data->py_id_curr = pyrna_id_CreatePyObject(data->id_curr);
@@ -232,34 +220,23 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
         }
       }
 
-      /* One-time init, ID is just used as placeholder here, we abuse this in iterator callback
-       * to avoid having to rebuild a complete bpyrna object each time for the key searching
-       * (where only ID pointer value is used). */
-      if (data_cb.py_id_key_lookup_only == NULL) {
-        data_cb.py_id_key_lookup_only = pyrna_id_CreatePyObject(id);
-      }
-
       if (!data_cb.is_subset &&
           /* We do not want to pre-add keys of flitered out types. */
           (key_types_bitmap == NULL || id_check_type(id, key_types_bitmap)) &&
           /* We do not want to pre-add keys when we have filter on value types,
            * but not on key types. */
           (val_types_bitmap == NULL || key_types_bitmap != NULL)) {
-        PyObject *key = data_cb.py_id_key_lookup_only;
+        PyObject *key = pyrna_id_CreatePyObject(id);
         PyObject *set;
-
-        RNA_id_pointer_create(id, &((BPy_StructRNA *)key)->ptr);
 
         /* We have to insert the key now,
          * otherwise ID unused would be missing from final dict... */
         if ((set = PyDict_GetItem(data_cb.user_map, key)) == NULL) {
-          /* Cannot use our placeholder key here! */
-          key = pyrna_id_CreatePyObject(id);
           set = PySet_New(NULL);
           PyDict_SetItem(data_cb.user_map, key, set);
           Py_DECREF(set);
-          Py_DECREF(key);
         }
+        Py_DECREF(key);
       }
 
       if (val_types_bitmap != NULL && !id_check_type(id, val_types_bitmap)) {
@@ -282,10 +259,6 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
   ret = data_cb.user_map;
 
 error:
-  if (data_cb.py_id_key_lookup_only != NULL) {
-    Py_XDECREF(data_cb.py_id_key_lookup_only);
-  }
-
   if (key_types_bitmap != NULL) {
     MEM_freeN(key_types_bitmap);
   }
