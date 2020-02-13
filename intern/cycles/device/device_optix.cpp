@@ -108,17 +108,30 @@ struct KernelParams {
     } \
     (void)0
 
-#  define CUDA_GET_BLOCKSIZE(func, w, h) \
-    int threads; \
-    check_result_cuda_ret( \
-        cuFuncGetAttribute(&threads, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
-    threads = (int)sqrt((float)threads); \
-    int xblocks = ((w) + threads - 1) / threads; \
-    int yblocks = ((h) + threads - 1) / threads;
-
-#  define CUDA_LAUNCH_KERNEL(func, args) \
-    check_result_cuda_ret(cuLaunchKernel( \
-        func, xblocks, yblocks, 1, threads, threads, 1, 0, cuda_stream[thread_index], args, 0));
+#  define launch_filter_kernel(func_name, w, h, args) \
+    { \
+      CUfunction func; \
+      check_result_cuda_ret(cuModuleGetFunction(&func, cuFilterModule, func_name)); \
+      check_result_cuda_ret(cuFuncSetCacheConfig(func, CU_FUNC_CACHE_PREFER_L1)); \
+      int threads; \
+      check_result_cuda_ret( \
+          cuFuncGetAttribute(&threads, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
+      threads = (int)sqrt((float)threads); \
+      int xblocks = ((w) + threads - 1) / threads; \
+      int yblocks = ((h) + threads - 1) / threads; \
+      check_result_cuda_ret(cuLaunchKernel(func, \
+                                           xblocks, \
+                                           yblocks, \
+                                           1, \
+                                           threads, \
+                                           threads, \
+                                           1, \
+                                           0, \
+                                           cuda_stream[thread_index], \
+                                           args, \
+                                           0)); \
+    } \
+    (void)0
 
 class OptiXDevice : public CUDADevice {
 
@@ -196,7 +209,7 @@ class OptiXDevice : public CUDADevice {
 
     // Make the CUDA context current
     if (!cuContext) {
-      return;
+      return;  // Do not initialize if CUDA context creation failed already
     }
     const CUDAContextScope scope(cuContext);
 
@@ -742,44 +755,30 @@ class OptiXDevice : public CUDADevice {
         tile_info->y[3] = rtiles[7].y + rtiles[7].h;
         tile_info_mem.copy_to_device();
 
-        CUfunction filter_copy_func;
-        check_result_cuda_ret(cuModuleGetFunction(
-            &filter_copy_func, cuFilterModule, "kernel_cuda_filter_copy_input"));
-        check_result_cuda_ret(cuFuncSetCacheConfig(filter_copy_func, CU_FUNC_CACHE_PREFER_L1));
-
         void *args[] = {
             &input.device_pointer, &tile_info_mem.device_pointer, &rect.x, &task.pass_stride};
-        CUDA_GET_BLOCKSIZE(filter_copy_func, rect_size.x, rect_size.y);
-        CUDA_LAUNCH_KERNEL(filter_copy_func, args);
+        launch_filter_kernel("kernel_cuda_filter_copy_input", rect_size.x, rect_size.y, args);
       }
 
 #  if OPTIX_DENOISER_NO_PIXEL_STRIDE
       device_only_memory<float> input_rgb(this, "denoiser input rgb");
-      {
-        input_rgb.alloc_to_device(rect_size.x * rect_size.y * 3 *
-                                  task.denoising.optix_input_passes);
+      input_rgb.alloc_to_device(rect_size.x * rect_size.y * 3 * task.denoising.optix_input_passes);
 
-        CUfunction convert_to_rgb_func;
-        check_result_cuda_ret(cuModuleGetFunction(
-            &convert_to_rgb_func, cuFilterModule, "kernel_cuda_filter_convert_to_rgb"));
-        check_result_cuda_ret(cuFuncSetCacheConfig(convert_to_rgb_func, CU_FUNC_CACHE_PREFER_L1));
+      void *input_args[] = {&input_rgb.device_pointer,
+                            &input_ptr,
+                            &rect_size.x,
+                            &rect_size.y,
+                            &input_stride,
+                            &task.pass_stride,
+                            const_cast<int *>(pass_offset),
+                            &task.denoising.optix_input_passes,
+                            &rtile.sample};
+      launch_filter_kernel(
+          "kernel_cuda_filter_convert_to_rgb", rect_size.x, rect_size.y, input_args);
 
-        void *args[] = {&input_rgb.device_pointer,
-                        &input_ptr,
-                        &rect_size.x,
-                        &rect_size.y,
-                        &input_stride,
-                        &task.pass_stride,
-                        const_cast<int *>(pass_offset),
-                        &task.denoising.optix_input_passes,
-                        &rtile.sample};
-        CUDA_GET_BLOCKSIZE(convert_to_rgb_func, rect_size.x, rect_size.y);
-        CUDA_LAUNCH_KERNEL(convert_to_rgb_func, args);
-
-        input_ptr = input_rgb.device_pointer;
-        pixel_stride = 3 * sizeof(float);
-        input_stride = rect_size.x * pixel_stride;
-      }
+      input_ptr = input_rgb.device_pointer;
+      pixel_stride = 3 * sizeof(float);
+      input_stride = rect_size.x * pixel_stride;
 #  endif
 
       const bool recreate_denoiser = (denoiser == NULL) ||
@@ -886,29 +885,21 @@ class OptiXDevice : public CUDADevice {
                                                  scratch_size));
 
 #  if OPTIX_DENOISER_NO_PIXEL_STRIDE
-      {
-        CUfunction convert_from_rgb_func;
-        check_result_cuda_ret(cuModuleGetFunction(
-            &convert_from_rgb_func, cuFilterModule, "kernel_cuda_filter_convert_from_rgb"));
-        check_result_cuda_ret(
-            cuFuncSetCacheConfig(convert_from_rgb_func, CU_FUNC_CACHE_PREFER_L1));
-
-        void *args[] = {&input_ptr,
-                        &rtiles[9].buffer,
-                        &output_offset.x,
-                        &output_offset.y,
-                        &rect_size.x,
-                        &rect_size.y,
-                        &rtiles[9].x,
-                        &rtiles[9].y,
-                        &rtiles[9].w,
-                        &rtiles[9].h,
-                        &rtiles[9].offset,
-                        &rtiles[9].stride,
-                        &task.pass_stride};
-        CUDA_GET_BLOCKSIZE(convert_from_rgb_func, rtiles[9].w, rtiles[9].h);
-        CUDA_LAUNCH_KERNEL(convert_from_rgb_func, args);
-      }
+      void *output_args[] = {&input_ptr,
+                             &rtiles[9].buffer,
+                             &output_offset.x,
+                             &output_offset.y,
+                             &rect_size.x,
+                             &rect_size.y,
+                             &rtiles[9].x,
+                             &rtiles[9].y,
+                             &rtiles[9].w,
+                             &rtiles[9].h,
+                             &rtiles[9].offset,
+                             &rtiles[9].stride,
+                             &task.pass_stride};
+      launch_filter_kernel(
+          "kernel_cuda_filter_convert_from_rgb", rtiles[9].w, rtiles[9].h, output_args);
 #  endif
 
       check_result_cuda_ret(cuStreamSynchronize(cuda_stream[thread_index]));
@@ -1448,11 +1439,6 @@ class OptiXDevice : public CUDADevice {
     // Upload texture information to device if it has changed since last launch
     load_texture_info();
 
-    {  // Synchronize all memory copies before executing task
-      const CUDAContextScope scope(cuContext);
-      check_result_cuda(cuCtxSynchronize());
-    }
-
     if (task.type == DeviceTask::FILM_CONVERT) {
       // Execute in main thread because of OpenGL access
       film_convert(task, task.buffer, task.rgba_byte, task.rgba_half);
@@ -1499,14 +1485,6 @@ bool device_optix_init()
   // Need to initialize CUDA as well
   if (!device_cuda_init())
     return false;
-
-#  ifdef WITH_CUDA_DYNLOAD
-  // Load NVRTC function pointers for adaptive kernel compilation
-  if (DebugFlags().cuda.adaptive_compile && cuewInit(CUEW_INIT_NVRTC) != CUEW_SUCCESS) {
-    VLOG(1) << "CUEW initialization failed for NVRTC. Adaptive kernel compilation won't be "
-               "available.";
-  }
-#  endif
 
   const OptixResult result = optixInit();
 
