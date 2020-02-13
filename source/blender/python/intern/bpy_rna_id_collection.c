@@ -98,6 +98,12 @@ static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_d
       return IDWALK_RET_NOP;
     }
 
+    if (cb_flag & IDWALK_CB_PRIVATE) {
+      /* We skip private pointers themselves, like root node trees, we'll 'link' their own ID
+       * pointers to their 'ID owner' instead. */
+      return IDWALK_RET_NOP;
+    }
+
     PyObject *key = pyrna_id_CreatePyObject(*id_p);
 
     PyObject *set;
