@@ -1467,8 +1467,6 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 
   UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
 
-  UI_block_active_only_flagged_buttons(C, ar, block);
-
   return block;
 }
 

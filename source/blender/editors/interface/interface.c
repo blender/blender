@@ -889,6 +889,10 @@ bool UI_but_active_only(const bContext *C, ARegion *ar, uiBlock *block, uiBut *b
   return UI_but_active_only_ex(C, ar, block, but, true);
 }
 
+/**
+ * \warning This must run after other handlers have been added,
+ * otherwise the handler wont be removed, see: T71112.
+ */
 bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *ar, uiBlock *block)
 {
   bool done = false;
