@@ -119,17 +119,8 @@ struct KernelParams {
       threads = (int)sqrt((float)threads); \
       int xblocks = ((w) + threads - 1) / threads; \
       int yblocks = ((h) + threads - 1) / threads; \
-      check_result_cuda_ret(cuLaunchKernel(func, \
-                                           xblocks, \
-                                           yblocks, \
-                                           1, \
-                                           threads, \
-                                           threads, \
-                                           1, \
-                                           0, \
-                                           cuda_stream[thread_index], \
-                                           args, \
-                                           0)); \
+      check_result_cuda_ret( \
+          cuLaunchKernel(func, xblocks, yblocks, 1, threads, threads, 1, 0, 0, args, 0)); \
     } \
     (void)0
 
@@ -195,7 +186,7 @@ class OptiXDevice : public CUDADevice {
   OptixTraversableHandle tlas_handle = 0;
 
   OptixDenoiser denoiser = NULL;
-  vector<pair<int2, CUdeviceptr>> denoiser_state;
+  pair<int2, CUdeviceptr> denoiser_state = {};
   int denoiser_input_passes = 0;
 
  public:
@@ -250,9 +241,6 @@ class OptiXDevice : public CUDADevice {
     launch_params.data_elements = sizeof(KernelParams);
     // Allocate launch parameter buffer memory on device
     launch_params.alloc_to_device(info.cpu_threads);
-
-    // Create denoiser state entries for all threads (but do not allocate yet)
-    denoiser_state.resize(info.cpu_threads);
   }
   ~OptiXDevice()
   {
@@ -267,9 +255,8 @@ class OptiXDevice : public CUDADevice {
       cuMemFree(mem);
     }
 
-    // Free denoiser state for all threads
-    for (const pair<int2, CUdeviceptr> &state : denoiser_state) {
-      cuMemFree(state.second);
+    if (denoiser_state.second) {
+      cuMemFree(denoiser_state.second);
     }
 
     sbt_data.free();
@@ -571,7 +558,7 @@ class OptiXDevice : public CUDADevice {
         if (tile.task == RenderTile::PATH_TRACE)
           launch_render(task, tile, thread_index);
         else if (tile.task == RenderTile::DENOISE)
-          launch_denoise(task, tile, thread_index);
+          launch_denoise(task, tile);
         task.release_tile(tile);
         if (task.get_cancel() && !task.need_finish_queue)
           break;  // User requested cancellation
@@ -596,7 +583,7 @@ class OptiXDevice : public CUDADevice {
       tile.stride = task.stride;
       tile.buffers = task.buffers;
 
-      launch_denoise(task, tile, thread_index);
+      launch_denoise(task, tile);
     }
   }
 
@@ -670,7 +657,7 @@ class OptiXDevice : public CUDADevice {
     }
   }
 
-  bool launch_denoise(DeviceTask &task, RenderTile &rtile, int thread_index)
+  bool launch_denoise(DeviceTask &task, RenderTile &rtile)
   {
     // Update current sample (for display and NLM denoising task)
     rtile.sample = rtile.start_sample + rtile.num_samples;
@@ -807,8 +794,8 @@ class OptiXDevice : public CUDADevice {
       check_result_optix_ret(
           optixDenoiserComputeMemoryResources(denoiser, rect_size.x, rect_size.y, &sizes));
 
-      auto &state = denoiser_state[thread_index].second;
-      auto &state_size = denoiser_state[thread_index].first;
+      auto &state = denoiser_state.second;
+      auto &state_size = denoiser_state.first;
       const size_t scratch_size = sizes.recommendedScratchSizeInBytes;
       const size_t scratch_offset = sizes.stateSizeInBytes;
 
@@ -824,7 +811,7 @@ class OptiXDevice : public CUDADevice {
 
         // Initialize denoiser state for the current tile size
         check_result_optix_ret(optixDenoiserSetup(denoiser,
-                                                  cuda_stream[thread_index],
+                                                  0,
                                                   rect_size.x,
                                                   rect_size.y,
                                                   state,
@@ -872,7 +859,7 @@ class OptiXDevice : public CUDADevice {
       // Finally run denonising
       OptixDenoiserParams params = {};  // All parameters are disabled/zero
       check_result_optix_ret(optixDenoiserInvoke(denoiser,
-                                                 cuda_stream[thread_index],
+                                                 0,
                                                  &params,
                                                  state,
                                                  scratch_offset,
@@ -902,12 +889,11 @@ class OptiXDevice : public CUDADevice {
           "kernel_cuda_filter_convert_from_rgb", rtiles[9].w, rtiles[9].h, output_args);
 #  endif
 
-      check_result_cuda_ret(cuStreamSynchronize(cuda_stream[thread_index]));
+      check_result_cuda_ret(cuStreamSynchronize(0));
 
       task.unmap_neighbor_tiles(rtiles, this);
     }
     else {
-      assert(thread_index == 0);
       // Run CUDA denoising kernels
       DenoisingTask denoising(this, task);
       CUDADevice::denoise(rtile, denoising);
@@ -1436,20 +1422,6 @@ class OptiXDevice : public CUDADevice {
 
   void task_add(DeviceTask &task) override
   {
-    // Upload texture information to device if it has changed since last launch
-    load_texture_info();
-
-    if (task.type == DeviceTask::FILM_CONVERT) {
-      // Execute in main thread because of OpenGL access
-      film_convert(task, task.buffer, task.rgba_byte, task.rgba_half);
-      return;
-    }
-
-    // Split task into smaller ones
-    list<DeviceTask> tasks;
-    task.split(tasks, info.cpu_threads);
-
-    // Queue tasks in internal task pool
     struct OptiXDeviceTask : public DeviceTask {
       OptiXDeviceTask(OptiXDevice *device, DeviceTask &task, int task_index) : DeviceTask(task)
       {
@@ -1459,6 +1431,26 @@ class OptiXDevice : public CUDADevice {
       }
     };
 
+    // Upload texture information to device if it has changed since last launch
+    load_texture_info();
+
+    if (task.type == DeviceTask::FILM_CONVERT) {
+      // Execute in main thread because of OpenGL access
+      film_convert(task, task.buffer, task.rgba_byte, task.rgba_half);
+      return;
+    }
+
+    if (task.type == DeviceTask::DENOISE || task.type == DeviceTask::DENOISE_BUFFER) {
+      // Execute denoising in a single thread (e.g. to avoid race conditions during creation)
+      task_pool.push(new OptiXDeviceTask(this, task, 0));
+      return;
+    }
+
+    // Split task into smaller ones
+    list<DeviceTask> tasks;
+    task.split(tasks, info.cpu_threads);
+
+    // Queue tasks in internal task pool
     int task_index = 0;
     for (DeviceTask &task : tasks)
       task_pool.push(new OptiXDeviceTask(this, task, task_index++));
