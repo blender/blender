@@ -91,7 +91,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   }
   else {
     /* Just a copy of the defaults framebuffers. */
-    color_tex = dtxl->color;
+    color_tex = dtxl->color_overlay;
   }
 
   GPU_framebuffer_ensure_config(&fbl->overlay_color_only_fb,
