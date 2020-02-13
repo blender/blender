@@ -87,7 +87,10 @@ typedef struct ViewLayer {
   /** Default allocated now. */
   struct SceneStats *stats;
   struct Base *basact;
-  /** LayerCollection. */
+
+  /** A view layer has one top level layer collection, because a scene has only one top level
+   * collection. The layer_collections list always contains a single element. ListBase is
+   * convenient when applying functions to all layer collections recursively. */
   ListBase layer_collections;
   LayerCollection *active_collection;
 
