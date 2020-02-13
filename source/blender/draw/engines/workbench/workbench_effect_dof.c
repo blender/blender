@@ -181,11 +181,11 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 #endif
 
   DRW_texture_ensure_2d(
-      &txl->dof_source_tx, size[0], size[1], GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+      &txl->dof_source_tx, size[0], size[1], GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
   DRW_texture_ensure_2d(
       &txl->coc_halfres_tx, size[0], size[1], GPU_RG8, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
   wpd->dof_blur_tx = DRW_texture_pool_query_2d(
-      size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_solid);
+      size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
 #if 0
   wpd->coc_temp_tx = DRW_texture_pool_query_2d(
       shrink_h_size[0], shrink_h_size[1], GPU_RG8, &draw_engine_workbench_solid);
@@ -299,7 +299,7 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata,
   psl->dof_blur1_ps = DRW_pass_create("DoF Blur 1", DRW_STATE_WRITE_COLOR);
   psl->dof_blur2_ps = DRW_pass_create("DoF Blur 2", DRW_STATE_WRITE_COLOR);
   psl->dof_resolve_ps = DRW_pass_create("DoF Resolve",
-                                        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
+                                        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
 
   {
     DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_prepare_sh, psl->dof_down_ps);
