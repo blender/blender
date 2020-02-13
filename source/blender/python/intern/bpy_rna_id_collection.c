@@ -348,6 +348,43 @@ error:
   return ret;
 }
 
+PyDoc_STRVAR(bpy_orphans_purge_doc,
+             ".. method:: orphans_purge()\n"
+             "\n"
+             "   Remove (delete) all IDs with no user.\n"
+             "\n"
+             "   WARNING: Considered experimental feature currently.\n");
+static PyObject *bpy_orphans_purge(PyObject *UNUSED(self),
+                                   PyObject *UNUSED(args),
+                                   PyObject *UNUSED(kwds))
+{
+#if 0 /* If someone knows how to get a proper 'self' in that case... */
+  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
+  Main *bmain = pyrna->ptr.data;
+#else
+  Main *bmain = G_MAIN; /* XXX Ugly, but should work! */
+#endif
+
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (id->us == 0) {
+      id->tag |= LIB_TAG_DOIT;
+    }
+    else {
+      id->tag &= ~LIB_TAG_DOIT;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  BKE_id_multi_tagged_delete(bmain);
+  /* Force full redraw, mandatory to avoid crashes when running this from UI... */
+  WM_main_add_notifier(NC_WINDOW, NULL);
+
+  Py_INCREF(Py_None);
+
+  return Py_None;
+}
+
 int BPY_rna_id_collection_module(PyObject *mod_par)
 {
   static PyMethodDef user_map = {
@@ -364,6 +401,16 @@ int BPY_rna_id_collection_module(PyObject *mod_par)
 
   PyModule_AddObject(
       mod_par, "_rna_id_collection_batch_remove", PyCFunction_New(&batch_remove, NULL));
+
+  static PyMethodDef orphans_purge = {
+      "orphans_purge",
+      (PyCFunction)bpy_orphans_purge,
+      METH_VARARGS | METH_KEYWORDS,
+      bpy_orphans_purge_doc,
+  };
+
+  PyModule_AddObject(
+      mod_par, "_rna_id_collection_orphans_purge", PyCFunction_New(&orphans_purge, NULL));
 
   return 0;
 }
