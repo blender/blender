@@ -1037,7 +1037,7 @@ static bool raycastObjects(SnapObjectContext *sctx,
  * \{ */
 
 /* Test BoundBox */
-static bool snap_bound_box_check_dist(float min[3],
+static bool snap_bound_box_check_dist(const float min[3],
                                       const float max[3],
                                       const float lpmat[4][4],
                                       const float win_size[2],

@@ -384,7 +384,7 @@ static MovieTrackingMarker *get_tracking_data_point(StabContext *ctx,
 }
 
 /* Define the reference point for rotation/scale measurement and compensation.
- * The stabilizator works by assuming the image was distorted by a affine linear
+ * The stabilizer works by assuming the image was distorted by a affine linear
  * transform, i.e. it was rotated and stretched around this reference point
  * (pivot point) and then shifted laterally. Any scale and orientation changes
  * will be picked up relative to this point. And later the image will be

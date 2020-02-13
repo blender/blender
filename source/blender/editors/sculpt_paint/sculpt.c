@@ -1111,7 +1111,7 @@ bool sculpt_brush_test_circle_sq(SculptBrushTest *test, const float co[3])
 
 bool sculpt_brush_test_cube(SculptBrushTest *test,
                             const float co[3],
-                            float local[4][4],
+                            const float local[4][4],
                             const float roundness)
 {
   float side = M_SQRT1_2;

@@ -476,7 +476,7 @@ int where_on_path(Object *ob,
 
   /* NOTE: commented out for follow constraint
    *
-   *       If it's ever be uncommented watch out for curve_deform_verts()
+   *       If it's ever be uncommentet watch out for curve_deform_verts()
    *       which used to temporary set CU_FOLLOW flag for the curve and no
    *       longer does it (because of threading issues of such a thing.
    */

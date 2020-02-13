@@ -1563,7 +1563,7 @@ static void sample_mesh(FluidFlowSettings *mfs,
 
   /* Distance between two opposing vertices in a unit cube.
    * I.e. the unit cube diagonal or sqrt(3).
-   * This value is our nearest neighbour search distance. */
+   * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
   nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance. */
 

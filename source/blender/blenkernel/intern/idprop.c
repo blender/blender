@@ -104,7 +104,7 @@ IDProperty *IDP_CopyIDPArray(const IDProperty *array, const int flag)
      * which doesn't work here.  instead, simply copy the
      * contents of the new structure into the array cell,
      * then free it.  this makes for more maintainable
-     * code than simply reimplementing the copy functions
+     * code than simply re-implementing the copy functions
      * in this loop.*/
     tmp = IDP_CopyProperty_ex(GETPROP(narray, i), flag);
     memcpy(GETPROP(narray, i), tmp, sizeof(IDProperty));

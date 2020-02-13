@@ -53,7 +53,7 @@
  * \{ */
 
 /* 'check' select */
-bool ED_mask_spline_select_check(MaskSpline *spline)
+bool ED_mask_spline_select_check(const MaskSpline *spline)
 {
   int i;
 
@@ -68,13 +68,13 @@ bool ED_mask_spline_select_check(MaskSpline *spline)
   return false;
 }
 
-bool ED_mask_layer_select_check(MaskLayer *mask_layer)
+bool ED_mask_layer_select_check(const MaskLayer *mask_layer)
 {
   if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
     return false;
   }
 
-  for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+  for (const MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
     if (ED_mask_spline_select_check(spline)) {
       return true;
     }
@@ -83,9 +83,10 @@ bool ED_mask_layer_select_check(MaskLayer *mask_layer)
   return false;
 }
 
-bool ED_mask_select_check(Mask *mask)
+bool ED_mask_select_check(const Mask *mask)
 {
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (const MaskLayer *mask_layer = mask->masklayers.first; mask_layer;
+       mask_layer = mask_layer->next) {
     if (ED_mask_layer_select_check(mask_layer)) {
       return true;
     }

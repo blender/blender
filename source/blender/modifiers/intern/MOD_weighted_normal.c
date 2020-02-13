@@ -360,7 +360,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   }
   else {
     /* TODO: Ideally, we could add an option to BKE_mesh_normals_loop_custom_[from_vertices_]set()
-     * to keep current clnors instead of resetting them to default autocomputed ones,
+     * to keep current clnors instead of resetting them to default auto-computed ones,
      * when given new custom normal is zero-vec.
      * But this is not exactly trivial change, better to keep this optimization for later...
      */

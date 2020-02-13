@@ -113,9 +113,9 @@ void MASK_OT_select_linked(struct wmOperatorType *ot);
 void MASK_OT_select_more(struct wmOperatorType *ot);
 void MASK_OT_select_less(struct wmOperatorType *ot);
 
-bool ED_mask_spline_select_check(struct MaskSpline *spline);
-bool ED_mask_layer_select_check(struct MaskLayer *mask_layer);
-bool ED_mask_select_check(struct Mask *mask);
+bool ED_mask_spline_select_check(const struct MaskSpline *spline);
+bool ED_mask_layer_select_check(const struct MaskLayer *mask_layer);
+bool ED_mask_select_check(const struct Mask *mask);
 
 void ED_mask_spline_select_set(struct MaskSpline *spline, const bool do_select);
 void ED_mask_layer_select_set(struct MaskLayer *mask_layer, const bool do_select);

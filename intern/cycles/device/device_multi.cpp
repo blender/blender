@@ -394,7 +394,7 @@ class MultiDevice : public Device {
 
       if (mem.device == this && denoising_devices.empty()) {
         /* Skip unnecessary copies in viewport mode (buffer covers the
-         * whole image), but still need to fix up the tile evice pointer. */
+         * whole image), but still need to fix up the tile device pointer. */
         map_tile(sub_device, tiles[i]);
         continue;
       }
@@ -407,7 +407,7 @@ class MultiDevice : public Device {
         /* Only copy from device to host once. This is faster, but
          * also required for the case where a CPU thread is denoising
          * a tile rendered on the GPU. In that case we have to avoid
-         * overwriting the buffer being denoised by the CPU thread. */
+         * overwriting the buffer being de-noised by the CPU thread. */
         if (!tiles[i].buffers->map_neighbor_copied) {
           tiles[i].buffers->map_neighbor_copied = true;
           mem.copy_from_device();
