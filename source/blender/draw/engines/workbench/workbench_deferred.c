@@ -827,7 +827,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
     }
     /* OIT Composite */
     {
-      int state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
+      int state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
       psl->oit_composite_pass = DRW_pass_create("OIT Composite", state);
 
       grp = DRW_shgroup_create(e_data.oit_resolve_sh, psl->oit_composite_pass);

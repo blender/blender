@@ -25,7 +25,8 @@ void main()
 
   vec3 trans_color = trans_accum.rgb / clamp(trans_accum.a, 1e-4, 5e4);
 
-  fragColor = vec4(trans_color, 1.0 - trans_revealage);
+  fragColor.a = 1.0 - trans_revealage;
+  fragColor.rgb = trans_color * fragColor.a;
 
 #ifdef V3D_SHADING_OBJECT_OUTLINE
   uint object_id = texelFetch(objectId, texel, 0).r;
