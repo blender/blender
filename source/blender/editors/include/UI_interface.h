@@ -723,6 +723,11 @@ void UI_but_drawflag_disable(uiBut *but, int flag);
 void UI_but_type_set_menu_from_pulldown(uiBut *but);
 
 /* special button case, only draw it when used actively, for outliner etc */
+bool UI_but_active_only_ex(const struct bContext *C,
+                           struct ARegion *ar,
+                           uiBlock *block,
+                           uiBut *but,
+                           bool remove_on_failure);
 bool UI_but_active_only(const struct bContext *C, struct ARegion *ar, uiBlock *block, uiBut *but);
 bool UI_block_active_only_flagged_buttons(const struct bContext *C,
                                           struct ARegion *ar,

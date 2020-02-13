@@ -849,7 +849,8 @@ static bool ui_but_update_from_old_block(const bContext *C,
 /* needed for temporarily rename buttons, such as in outliner or file-select,
  * they should keep calling uiDefButs to keep them alive */
 /* returns 0 when button removed */
-bool UI_but_active_only(const bContext *C, ARegion *ar, uiBlock *block, uiBut *but)
+bool UI_but_active_only_ex(
+    const bContext *C, ARegion *ar, uiBlock *block, uiBut *but, const bool remove_on_failure)
 {
   uiBlock *oldblock;
   uiBut *oldbut;
@@ -873,27 +874,44 @@ bool UI_but_active_only(const bContext *C, ARegion *ar, uiBlock *block, uiBut *b
     ui_but_activate_event((bContext *)C, ar, but);
   }
   else if ((found == true) && (isactive == false)) {
-    BLI_remlink(&block->buttons, but);
-    ui_but_free(C, but);
+    if (remove_on_failure) {
+      BLI_remlink(&block->buttons, but);
+      ui_but_free(C, but);
+    }
     return false;
   }
 
   return true;
 }
 
+bool UI_but_active_only(const bContext *C, ARegion *ar, uiBlock *block, uiBut *but)
+{
+  return UI_but_active_only_ex(C, ar, block, but, true);
+}
+
 bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *ar, uiBlock *block)
 {
   bool done = false;
   for (uiBut *but = block->buttons.first; but; but = but->next) {
-    if (!done && ui_but_is_editable(but)) {
-      if (but->flag & UI_BUT_ACTIVATE_ON_INIT) {
-        if (UI_but_active_only(C, ar, block, but)) {
+    if (but->flag & UI_BUT_ACTIVATE_ON_INIT) {
+      but->flag &= ~UI_BUT_ACTIVATE_ON_INIT;
+      if (ui_but_is_editable(but)) {
+        if (UI_but_active_only_ex(C, ar, block, but, false)) {
           done = true;
+          break;
         }
       }
     }
-    but->flag &= ~UI_BUT_ACTIVATE_ON_INIT;
   }
+
+  if (done) {
+    /* Run this in a second pass since it's possible activating the button
+     * removes the buttons being looped over. */
+    for (uiBut *but = block->buttons.first; but; but = but->next) {
+      but->flag &= ~UI_BUT_ACTIVATE_ON_INIT;
+    }
+  }
+
   return done;
 }
 
