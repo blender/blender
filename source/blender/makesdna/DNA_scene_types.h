@@ -317,6 +317,8 @@ typedef enum eScenePassType {
 #define RE_PASSNAME_SUBSURFACE_INDIRECT "SubsurfaceInd"
 #define RE_PASSNAME_SUBSURFACE_COLOR "SubsurfaceCol"
 
+#define RE_PASSNAME_FREESTYLE "Freestyle"
+
 /* View - MultiView */
 typedef struct SceneRenderView {
   struct SceneRenderView *next, *prev;

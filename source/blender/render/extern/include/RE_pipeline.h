@@ -228,6 +228,13 @@ struct RenderPass *RE_create_gp_pass(struct RenderResult *rr,
                                      const char *layername,
                                      const char *viewname);
 
+void RE_create_render_pass(struct RenderResult *rr,
+                           const char *name,
+                           int channels,
+                           const char *chan_id,
+                           const char *layername,
+                           const char *viewname);
+
 /* obligatory initialize call, disprect is optional */
 void RE_InitState(struct Render *re,
                   struct Render *source,

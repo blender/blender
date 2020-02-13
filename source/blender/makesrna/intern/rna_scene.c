@@ -1661,6 +1661,17 @@ void rna_Scene_freestyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
   DEG_id_tag_update(&scene->id, 0);
 }
 
+void rna_Scene_use_freestyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+
+  DEG_id_tag_update(&scene->id, 0);
+
+  if (scene->nodetree) {
+    ntreeCompositUpdateRLayers(scene->nodetree);
+  }
+}
+
 void rna_Scene_use_view_map_cache_update(Main *UNUSED(bmain),
                                          Scene *UNUSED(scene),
                                          PointerRNA *UNUSED(ptr))
@@ -4626,6 +4637,14 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
   RNA_def_property_update(
       prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_use_view_map_cache_update");
 
+  prop = RNA_def_property(srna, "as_render_pass", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_AS_RENDER_PASS);
+  RNA_def_property_ui_text(
+      prop,
+      "As Render Pass",
+      "Renders Freestyle output to a separate pass instead of overlaying it on the Combined pass");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+
   prop = RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "sphere_radius");
   RNA_def_property_range(prop, 0.0, 1000.0);
@@ -5691,7 +5710,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_boolean_sdna(prop, NULL, "mode", R_EDGE_FRS);
   RNA_def_property_ui_text(prop, "Edge", "Draw stylized strokes using Freestyle");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_use_freestyle_update");
 
   /* threads */
   prop = RNA_def_property(srna, "threads", PROP_INT, PROP_NONE);
