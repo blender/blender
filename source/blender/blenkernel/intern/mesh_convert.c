@@ -1167,11 +1167,9 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph, Object *object, bool preser
   return new_mesh;
 }
 
-static int foreach_libblock_make_original_callback(void *UNUSED(user_data_v),
-                                                   ID *UNUSED(id_self),
-                                                   ID **id_p,
-                                                   int UNUSED(cb_flag))
+static int foreach_libblock_make_original_callback(LibraryIDLinkCallbackData *cb_data)
 {
+  ID **id_p = cb_data->id_pointer;
   if (*id_p == NULL) {
     return IDWALK_RET_NOP;
   }
@@ -1180,15 +1178,14 @@ static int foreach_libblock_make_original_callback(void *UNUSED(user_data_v),
   return IDWALK_RET_NOP;
 }
 
-static int foreach_libblock_make_usercounts_callback(void *UNUSED(user_data_v),
-                                                     ID *UNUSED(id_self),
-                                                     ID **id_p,
-                                                     int cb_flag)
+static int foreach_libblock_make_usercounts_callback(LibraryIDLinkCallbackData *cb_data)
 {
+  ID **id_p = cb_data->id_pointer;
   if (*id_p == NULL) {
     return IDWALK_RET_NOP;
   }
 
+  const int cb_flag = cb_data->cb_flag;
   if (cb_flag & IDWALK_CB_USER) {
     id_us_plus(*id_p);
   }

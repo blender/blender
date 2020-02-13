@@ -97,13 +97,17 @@ enum {
   ID_REMAP_IS_USER_ONE_SKIPPED = 1 << 1, /* There was some skipped 'user_one' usages of old_id. */
 };
 
-static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id_p, int cb_flag)
+static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 {
+  const int cb_flag = cb_data->cb_flag;
+
   if (cb_flag & IDWALK_CB_PRIVATE) {
     return IDWALK_RET_NOP;
   }
 
-  IDRemap *id_remap_data = user_data;
+  ID *id_self = cb_data->id_self;
+  ID **id_p = cb_data->id_pointer;
+  IDRemap *id_remap_data = cb_data->user_data;
   ID *old_id = id_remap_data->old_id;
   ID *new_id = id_remap_data->new_id;
   ID *id = id_remap_data->id;
@@ -642,15 +646,14 @@ void BKE_libblock_relink_ex(
   DEG_relations_tag_update(bmain);
 }
 
-static int id_relink_to_newid_looper(void *UNUSED(user_data),
-                                     ID *UNUSED(self_id),
-                                     ID **id_pointer,
-                                     const int cb_flag)
+static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
 {
+  const int cb_flag = cb_data->cb_flag;
   if (cb_flag & IDWALK_CB_PRIVATE) {
     return IDWALK_RET_NOP;
   }
 
+  ID **id_pointer = cb_data->id_pointer;
   ID *id = *id_pointer;
   if (id) {
     /* See: NEW_ID macro */

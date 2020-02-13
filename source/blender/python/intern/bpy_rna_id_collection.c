@@ -82,12 +82,11 @@ static bool id_check_type(const ID *id, const BLI_bitmap *types_bitmap)
   return BLI_BITMAP_TEST_BOOL(types_bitmap, id_code_as_index(GS(id->name)));
 }
 
-static int foreach_libblock_id_user_map_callback(void *user_data,
-                                                 ID *self_id,
-                                                 ID **id_p,
-                                                 int UNUSED(cb_flag))
+static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  IDUserMapData *data = user_data;
+  IDUserMapData *data = cb_data->user_data;
+  ID *self_id = cb_data->id_self;
+  ID **id_p = cb_data->id_pointer;
 
   if (*id_p) {
 

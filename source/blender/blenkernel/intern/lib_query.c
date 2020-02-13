@@ -88,11 +88,11 @@
   if (!((_data)->status & IDWALK_STOP)) { \
     const int _flag = (_data)->flag; \
     ID *old_id = *(id_pp); \
-    const int callback_return = (_data)->callback((_data)->user_data, \
-                                                  (_data)->self_id, \
-                                                  id_pp, \
-                                                  (_cb_flag | (_data)->cb_flag) & \
-                                                      ~(_data)->cb_flag_clear); \
+    const int callback_return = (_data)->callback(&(struct LibraryIDLinkCallbackData){ \
+        .user_data = (_data)->user_data, \
+        .id_self = (_data)->self_id, \
+        .id_pointer = id_pp, \
+        .cb_flag = ((_cb_flag | (_data)->cb_flag) & ~(_data)->cb_flag_clear)}); \
     if (_flag & IDWALK_READONLY) { \
       BLI_assert(*(id_pp) == old_id); \
     } \
@@ -1226,12 +1226,11 @@ typedef struct IDUsersIter {
   int count_direct, count_indirect; /* Set by callback. */
 } IDUsersIter;
 
-static int foreach_libblock_id_users_callback(void *user_data,
-                                              ID *UNUSED(self_id),
-                                              ID **id_p,
-                                              int cb_flag)
+static int foreach_libblock_id_users_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  IDUsersIter *iter = user_data;
+  ID **id_p = cb_data->id_pointer;
+  const int cb_flag = cb_data->cb_flag;
+  IDUsersIter *iter = cb_data->user_data;
 
   if (*id_p) {
     /* 'Loopback' ID pointers (the ugly 'from' ones, Object->proxy_from and Key->from).
@@ -1379,12 +1378,12 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 }
 
 /* ***** IDs usages.checking/tagging. ***** */
-static int foreach_libblock_used_linked_data_tag_clear_cb(void *user_data,
-                                                          ID *self_id,
-                                                          ID **id_p,
-                                                          int cb_flag)
+static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  bool *is_changed = user_data;
+  ID *self_id = cb_data->id_self;
+  ID **id_p = cb_data->id_pointer;
+  const int cb_flag = cb_data->cb_flag;
+  bool *is_changed = cb_data->user_data;
 
   if (*id_p) {
     /* The infamous 'from' pointers (Key.from, Object.proxy_from, ...).

@@ -83,15 +83,19 @@ enum {
   IDWALK_RET_STOP_RECURSION = 1 << 1,
 };
 
+typedef struct LibraryIDLinkCallbackData {
+  void *user_data;
+  struct ID *id_self;
+  struct ID **id_pointer;
+  int cb_flag;
+} LibraryIDLinkCallbackData;
+
 /**
  * Call a callback for each ID link which the given ID uses.
  *
  * \return a set of flags to control further iteration (0 to keep going).
  */
-typedef int (*LibraryIDLinkCallback)(void *user_data,
-                                     struct ID *id_self,
-                                     struct ID **id_pointer,
-                                     int cb_flag);
+typedef int (*LibraryIDLinkCallback)(LibraryIDLinkCallbackData *cb_data);
 
 /* Flags for the foreach function itself. */
 enum {

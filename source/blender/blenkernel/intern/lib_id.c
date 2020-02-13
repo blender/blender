@@ -294,11 +294,11 @@ void BKE_id_clear_newpoin(ID *id)
   id->newid = NULL;
 }
 
-static int id_expand_local_callback(void *UNUSED(user_data),
-                                    struct ID *id_self,
-                                    struct ID **id_pointer,
-                                    int cb_flag)
+static int id_expand_local_callback(LibraryIDLinkCallbackData *cb_data)
 {
+  ID *id_self = cb_data->id_self;
+  ID **id_pointer = cb_data->id_pointer;
+  int const cb_flag = cb_data->cb_flag;
   if (cb_flag & IDWALK_CB_PRIVATE) {
     return IDWALK_RET_NOP;
   }
@@ -581,13 +581,12 @@ struct IDCopyLibManagementData {
 };
 
 /* Increases usercount as required, and remap self ID pointers. */
-static int id_copy_libmanagement_cb(void *user_data,
-                                    ID *UNUSED(id_self),
-                                    ID **id_pointer,
-                                    int cb_flag)
+static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  struct IDCopyLibManagementData *data = user_data;
+  ID **id_pointer = cb_data->id_pointer;
   ID *id = *id_pointer;
+  const int cb_flag = cb_data->cb_flag;
+  struct IDCopyLibManagementData *data = cb_data->user_data;
 
   /* Remap self-references to new copied ID. */
   if (id == data->id_src) {
@@ -900,11 +899,10 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
   return false;
 }
 
-static int libblock_management_us_plus(void *UNUSED(user_data),
-                                       ID *UNUSED(id_self),
-                                       ID **id_pointer,
-                                       int cb_flag)
+static int libblock_management_us_plus(LibraryIDLinkCallbackData *cb_data)
 {
+  ID **id_pointer = cb_data->id_pointer;
+  const int cb_flag = cb_data->cb_flag;
   if (cb_flag & IDWALK_CB_USER) {
     id_us_plus(*id_pointer);
   }
@@ -915,11 +913,10 @@ static int libblock_management_us_plus(void *UNUSED(user_data),
   return IDWALK_RET_NOP;
 }
 
-static int libblock_management_us_min(void *UNUSED(user_data),
-                                      ID *UNUSED(id_self),
-                                      ID **id_pointer,
-                                      int cb_flag)
+static int libblock_management_us_min(LibraryIDLinkCallbackData *cb_data)
 {
+  ID **id_pointer = cb_data->id_pointer;
+  const int cb_flag = cb_data->cb_flag;
   if (cb_flag & IDWALK_CB_USER) {
     id_us_min(*id_pointer);
   }
@@ -1978,12 +1975,11 @@ void BKE_main_id_clear_newpoins(Main *bmain)
   FOREACH_MAIN_ID_END;
 }
 
-static int id_refcount_recompute_callback(void *user_data,
-                                          struct ID *UNUSED(id_self),
-                                          struct ID **id_pointer,
-                                          int cb_flag)
+static int id_refcount_recompute_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  const bool do_linked_only = (bool)POINTER_AS_INT(user_data);
+  ID **id_pointer = cb_data->id_pointer;
+  const int cb_flag = cb_data->cb_flag;
+  const bool do_linked_only = (bool)POINTER_AS_INT(cb_data->user_data);
 
   if (*id_pointer == NULL) {
     return IDWALK_RET_NOP;

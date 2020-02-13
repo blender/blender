@@ -2087,11 +2087,9 @@ enum {
   MAKE_LOCAL_ALL = 4,
 };
 
-static int tag_localizable_looper(void *UNUSED(user_data),
-                                  ID *UNUSED(self_id),
-                                  ID **id_pointer,
-                                  const int UNUSED(cb_flag))
+static int tag_localizable_looper(LibraryIDLinkCallbackData *cb_data)
 {
+  ID **id_pointer = cb_data->id_pointer;
   if (*id_pointer) {
     (*id_pointer)->tag &= ~LIB_TAG_DOIT;
   }

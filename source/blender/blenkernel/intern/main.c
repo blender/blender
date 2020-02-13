@@ -209,12 +209,12 @@ void BKE_main_unlock(struct Main *bmain)
   BLI_spin_unlock((SpinLock *)bmain->lock);
 }
 
-static int main_relations_create_idlink_cb(void *user_data,
-                                           ID *id_self,
-                                           ID **id_pointer,
-                                           int cb_flag)
+static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  MainIDRelations *rel = user_data;
+  MainIDRelations *rel = cb_data->user_data;
+  ID *id_self = cb_data->id_self;
+  ID **id_pointer = cb_data->id_pointer;
+  const int cb_flag = cb_data->cb_flag;
 
   if (*id_pointer) {
     MainIDRelationsEntry *entry, **entry_p;

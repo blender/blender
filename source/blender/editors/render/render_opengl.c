@@ -584,20 +584,23 @@ static void gather_frames_to_render_for_grease_pencil(const OGLRender *oglrender
   }
 }
 
-static int gather_frames_to_render_for_id(void *user_data_v, ID *id_self, ID **id_p, int cb_flag)
+static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
 {
-  if (id_p == NULL || *id_p == NULL) {
+  ID **id_p = cb_data->id_pointer;
+  if (*id_p == NULL) {
     return IDWALK_RET_NOP;
   }
   ID *id = *id_p;
 
+  ID *id_self = cb_data->id_self;
+  const int cb_flag = cb_data->cb_flag;
   if (cb_flag == IDWALK_CB_LOOPBACK || id == id_self) {
     /* IDs may end up referencing themselves one way or the other, and those
      * (the id_self ones) have always already been processed. */
     return IDWALK_RET_STOP_RECURSION;
   }
 
-  OGLRender *oglrender = user_data_v;
+  OGLRender *oglrender = cb_data->user_data;
 
   /* Whitelist of datablocks to follow pointers into. */
   const ID_Type id_type = GS(id->name);

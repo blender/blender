@@ -3334,17 +3334,16 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
   }
 }
 
-static int previews_id_ensure_callback(void *userdata,
-                                       ID *UNUSED(self_id),
-                                       ID **idptr,
-                                       int cb_flag)
+static int previews_id_ensure_callback(LibraryIDLinkCallbackData *cb_data)
 {
+  const int cb_flag = cb_data->cb_flag;
+
   if (cb_flag & IDWALK_CB_PRIVATE) {
     return IDWALK_RET_NOP;
   }
 
-  PreviewsIDEnsureData *data = userdata;
-  ID *id = *idptr;
+  PreviewsIDEnsureData *data = cb_data->user_data;
+  ID *id = *cb_data->id_pointer;
 
   if (id && (id->tag & LIB_TAG_DOIT)) {
     BLI_assert(ELEM(GS(id->name), ID_MA, ID_TE, ID_IM, ID_WO, ID_LA));

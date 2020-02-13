@@ -7744,11 +7744,10 @@ static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
   BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
 }
 
-static int lib_link_main_data_restore_cb(void *user_data,
-                                         ID *UNUSED(id_self),
-                                         ID **id_pointer,
-                                         int cb_flag)
+static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
 {
+  const int cb_flag = cb_data->cb_flag;
+  ID **id_pointer = cb_data->id_pointer;
   if (cb_flag & IDWALK_CB_PRIVATE || *id_pointer == NULL) {
     return IDWALK_RET_NOP;
   }
@@ -7763,7 +7762,7 @@ static int lib_link_main_data_restore_cb(void *user_data,
     }
   }
 
-  struct IDNameLib_Map *id_map = user_data;
+  struct IDNameLib_Map *id_map = cb_data->user_data;
 
   /* Note: Handling of usercount here is really bad, defining its own system...
    * Will have to be refactored at some point, but that is not top priority task for now.
