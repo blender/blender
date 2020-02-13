@@ -338,7 +338,13 @@ static void library_foreach_bone(LibraryForeachIDData *data, Bone *bone)
 static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
 {
   for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
-    FOREACH_CALLBACK_INVOKE(data, lc->collection, IDWALK_CB_NOP);
+    /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
+     * anyway... */
+    const int cb_flag = (lc->collection != NULL &&
+                         (lc->collection->id.flag & LIB_PRIVATE_DATA) != 0) ?
+                            IDWALK_CB_PRIVATE :
+                            IDWALK_CB_NOP;
+    FOREACH_CALLBACK_INVOKE(data, lc->collection, cb_flag);
     library_foreach_layer_collection(data, &lc->layer_collections);
   }
 
@@ -356,7 +362,14 @@ static void library_foreach_collection(LibraryForeachIDData *data, Collection *c
     FOREACH_CALLBACK_INVOKE(data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
   }
   for (CollectionParent *parent = collection->parents.first; parent; parent = parent->next) {
-    FOREACH_CALLBACK_INVOKE(data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK);
+    /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
+     * anyway... */
+    const int cb_flag = ((parent->collection != NULL &&
+                          (parent->collection->id.flag & LIB_PRIVATE_DATA) != 0) ?
+                             IDWALK_CB_PRIVATE :
+                             IDWALK_CB_NOP);
+    FOREACH_CALLBACK_INVOKE(
+        data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
   }
 
   FOREACH_FINALIZE_VOID;
