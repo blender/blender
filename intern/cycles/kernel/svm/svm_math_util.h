@@ -16,8 +16,13 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_vector_math(
-    float *value, float3 *vector, NodeVectorMathType type, float3 a, float3 b, float3 c, float scale)
+ccl_device void svm_vector_math(float *value,
+                                float3 *vector,
+                                NodeVectorMathType type,
+                                float3 a,
+                                float3 b,
+                                float3 c,
+                                float scale)
 {
   switch (type) {
     case NODE_VECTOR_MATH_ADD:
@@ -69,8 +74,7 @@ ccl_device void svm_vector_math(
       *vector = make_float3(safe_modulo(a.x, b.x), safe_modulo(a.y, b.y), safe_modulo(a.z, b.z));
       break;
     case NODE_VECTOR_MATH_WRAP:
-      *vector = make_float3(
-          wrapf(a.x, b.x, c.x), wrapf(a.y, b.y, c.y), wrapf(a.z, b.z, c.z));
+      *vector = make_float3(wrapf(a.x, b.x, c.x), wrapf(a.y, b.y, c.y), wrapf(a.z, b.z, c.z));
       break;
     case NODE_VECTOR_MATH_FRACTION:
       *vector = a - floor(a);
