@@ -28,6 +28,7 @@ set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
 # ugh, any better way to do this on testing only?
 file(MAKE_DIRECTORY ${TEST_OUT_DIR})
 file(MAKE_DIRECTORY ${TEST_OUT_DIR}/io_tests)
+file(MAKE_DIRECTORY ${TEST_OUT_DIR}/blendfile_io)
 
 # if(NOT IS_DIRECTORY ${TEST_SRC_DIR})
 #   message(FATAL_ERROR "CMake test directory not found!")

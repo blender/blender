@@ -3,35 +3,10 @@
 # ./blender.bin --background -noaudio --python tests/python/bl_blendfile_io.py
 import bpy
 import os
-import pprint
+import sys
 
-
-class TestHelper:
-
-    @staticmethod
-    def id_to_uid(id_data):
-        return (type(id_data).__name__,
-                id_data.name,
-                id_data.users,
-                id_data.library.filepath if id_data.library else None)
-
-    @classmethod
-    def blender_data_to_tuple(cls, bdata):
-        return sorted(tuple((cls.id_to_uid(k), sorted(tuple(cls.id_to_uid(vv) for vv in v)))
-                            for k, v in bdata.user_map().items()))
-        
-    @staticmethod
-    def ensure_path(path):
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-    def run_all_tests(self):
-        for inst_attr_id in dir(self):
-            if not inst_attr_id.startswith("test_"):
-                continue
-            inst_attr = getattr(self, inst_attr_id)
-            if callable(inst_attr):
-                inst_attr()
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from bl_blendfile_utils import TestHelper
 
 
 class TestBlendFileSaveLoadBasic(TestHelper):
@@ -47,25 +22,25 @@ class TestBlendFileSaveLoadBasic(TestHelper):
         self.ensure_path(output_dir)
         output_path = os.path.join(output_dir, "blendfile.blend")
 
-        orig_data = self.blender_data_to_tuple(bpy.data)
+        orig_data = self.blender_data_to_tuple(bpy.data, "orig_data 1")
 
         bpy.ops.wm.save_as_mainfile(filepath=output_path, check_existing=False, compress=False)
         bpy.ops.wm.open_mainfile(filepath=output_path, load_ui=False)
 
-        read_data = self.blender_data_to_tuple(bpy.data)
-        
+        read_data = self.blender_data_to_tuple(bpy.data, "read_data 1")
+
         # We have orphaned data, which should be removed by file reading, so there should not be equality here.
         assert(orig_data != read_data)
 
         bpy.data.orphans_purge()
-        
-        orig_data = self.blender_data_to_tuple(bpy.data)
+
+        orig_data = self.blender_data_to_tuple(bpy.data, "orig_data 2")
 
         bpy.ops.wm.save_as_mainfile(filepath=output_path, check_existing=False, compress=False)
         bpy.ops.wm.open_mainfile(filepath=output_path, load_ui=False)
 
-        read_data = self.blender_data_to_tuple(bpy.data)
-        
+        read_data = self.blender_data_to_tuple(bpy.data, "read_data 2")
+
         assert(orig_data == read_data)
 
 
