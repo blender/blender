@@ -43,11 +43,11 @@
 #include "../space_info/textview.h"
 
 static int console_line_data(struct TextViewContext *tvc,
-                             unsigned char fg[4],
-                             unsigned char UNUSED(bg[4]),
+                             uchar fg[4],
+                             uchar UNUSED(bg[4]),
                              int *UNUSED(icon),
-                             unsigned char UNUSED(icon_fg[4]),
-                             unsigned char UNUSED(icon_bg[4]))
+                             uchar UNUSED(icon_fg[4]),
+                             uchar UNUSED(icon_bg[4]))
 {
   ConsoleLine *cl_iter = (ConsoleLine *)tvc->iter;
   int fg_id = TH_TEXT;
@@ -180,7 +180,7 @@ static void console_textview_draw_cursor(struct TextViewContext *tvc)
   immUnbindProgram();
 }
 
-static void console_textview_const_colors(TextViewContext *UNUSED(tvc), unsigned char bg_sel[4])
+static void console_textview_const_colors(TextViewContext *UNUSED(tvc), uchar bg_sel[4])
 {
   UI_GetThemeColor4ubv(TH_CONSOLE_SELECT, bg_sel);
 }

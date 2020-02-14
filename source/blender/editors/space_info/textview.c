@@ -79,7 +79,7 @@ static void console_draw_sel(const char *str,
                              const int xy[2],
                              const int str_len_draw,
                              TextViewDrawState *tds,
-                             const unsigned char bg_sel[4])
+                             const uchar bg_sel[4])
 {
   const int sel[2] = {tds->sel[0], tds->sel[1]};
   const int cwidth = tds->cwidth;
@@ -144,12 +144,12 @@ static int console_wrap_offsets(const char *str, int len, int width, int *lines,
 static bool console_draw_string(TextViewDrawState *tds,
                                 const char *str,
                                 int str_len,
-                                const unsigned char fg[4],
-                                const unsigned char bg[4],
+                                const uchar fg[4],
+                                const uchar bg[4],
                                 int icon,
-                                const unsigned char icon_fg[4],
-                                const unsigned char icon_bg[4],
-                                const unsigned char bg_sel[4])
+                                const uchar icon_fg[4],
+                                const uchar icon_bg[4],
+                                const uchar bg_sel[4])
 {
   int tot_lines; /* Total number of lines for wrapping. */
   int *offsets;  /* Offsets of line beginnings for wrapping. */
@@ -325,7 +325,7 @@ int textview_draw(TextViewContext *tvc,
   int xy[2];
   /* Disable selection by. */
   int sel[2] = {-1, -1};
-  unsigned char fg[4], bg[4], icon_fg[4], icon_bg[4];
+  uchar fg[4], bg[4], icon_fg[4], icon_bg[4];
   int icon = 0;
   const int font_id = blf_mono_font;
 
@@ -383,7 +383,7 @@ int textview_draw(TextViewContext *tvc,
   }
 
   if (tvc->begin(tvc)) {
-    unsigned char bg_sel[4] = {0};
+    uchar bg_sel[4] = {0};
 
     if (do_draw && tvc->const_colors) {
       tvc->const_colors(tvc, bg_sel);
