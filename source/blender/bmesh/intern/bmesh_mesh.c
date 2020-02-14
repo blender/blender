@@ -1838,7 +1838,8 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char htype)
  * To avoid correcting them afterwards, set 'bm->elem_index_dirty' however its possible
  * this flag is set incorrectly which could crash blender.
  *
- * These functions ensure its correct and are called more often in debug mode.
+ * Code that calls this functions may depend on dirty indices on being set.
+ * Keep this function read-only.
  */
 
 void BM_mesh_elem_index_validate(
@@ -1867,10 +1868,9 @@ void BM_mesh_elem_index_validate(
           err_val = BM_elem_index_get(ele);
           err_idx = index;
           is_error = true;
+          break;
         }
       }
-
-      BM_elem_index_set(ele, index); /* set_ok */
       index++;
     }
 
