@@ -736,7 +736,7 @@ static void extrawindow_spin_cursor(ExtraWindow *ew, GHOST_TUns64 time)
     mask[y][x / 8] |= (1 << (x % 8));
   }
 
-  GHOST_SetCustomCursorShape(ew->win, bitmap, mask, 16, 16, 0, 0, true);
+  GHOST_SetCustomCursorShape(ew->win, &bitmap[0][0], &mask[0][0], 16, 16, 0, 0, true);
 }
 
 static void extrawindow_handle(void *priv, GHOST_EventHandle evt)
@@ -850,7 +850,7 @@ static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr dat
      * that is, events without a window.
      */
     switch (type) {
-      case GHOST_kEventQuit:
+      case GHOST_kEventQuitRequest:
         app->exit = 1;
         break;
 

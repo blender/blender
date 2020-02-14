@@ -41,7 +41,7 @@ char *eventtype_to_string(GHOST_TEventType type)
     case GHOST_kEventKeyUp:
       return "KeyUp";
 
-    case GHOST_kEventQuit:
+    case GHOST_kEventQuitRequest:
       return "Quit";
 
     case GHOST_kEventWindowClose:
