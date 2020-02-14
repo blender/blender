@@ -41,7 +41,7 @@
 
 #include "textview.h"
 
-static void console_font_begin(const int font_id, const int lheight)
+static void textview_font_begin(const int font_id, const int lheight)
 {
   /* Font size in relation to line height. */
   BLF_size(font_id, 0.8f * lheight, 72);
@@ -69,17 +69,17 @@ typedef struct TextViewDrawState {
   bool do_draw;
 } TextViewDrawState;
 
-BLI_INLINE void console_step_sel(TextViewDrawState *tds, const int step)
+BLI_INLINE void textview_step_sel(TextViewDrawState *tds, const int step)
 {
   tds->sel[0] += step;
   tds->sel[1] += step;
 }
 
-static void console_draw_sel(const char *str,
-                             const int xy[2],
-                             const int str_len_draw,
-                             TextViewDrawState *tds,
-                             const uchar bg_sel[4])
+static void textview_draw_sel(const char *str,
+                              const int xy[2],
+                              const int str_len_draw,
+                              TextViewDrawState *tds,
+                              const uchar bg_sel[4])
 {
   const int sel[2] = {tds->sel[0], tds->sel[1]};
   const int cwidth = tds->cwidth;
@@ -110,7 +110,7 @@ static void console_draw_sel(const char *str,
  * \warning Allocated memory for 'offsets' must be freed by caller.
  * \return The length in bytes.
  */
-static int console_wrap_offsets(const char *str, int len, int width, int *lines, int **offsets)
+static int textview_wrap_offsets(const char *str, int len, int width, int *lines, int **offsets)
 {
   int i, end; /* Offset as unicode code-point. */
   int j;      /* Offset as bytes. */
@@ -120,7 +120,7 @@ static int console_wrap_offsets(const char *str, int len, int width, int *lines,
   *offsets = MEM_callocN(
       sizeof(**offsets) *
           (len * BLI_UTF8_WIDTH_MAX / MAX2(1, width - (BLI_UTF8_WIDTH_MAX - 1)) + 1),
-      "console_wrap_offsets");
+      __func__);
   (*offsets)[0] = 0;
 
   for (i = 0, end = width, j = 0; j < len && str[j]; j += BLI_str_utf8_size_safe(str + j)) {
@@ -141,20 +141,20 @@ static int console_wrap_offsets(const char *str, int len, int width, int *lines,
  * return false if the last line is off the screen
  * should be able to use this for any string type.
  */
-static bool console_draw_string(TextViewDrawState *tds,
-                                const char *str,
-                                int str_len,
-                                const uchar fg[4],
-                                const uchar bg[4],
-                                int icon,
-                                const uchar icon_fg[4],
-                                const uchar icon_bg[4],
-                                const uchar bg_sel[4])
+static bool textview_draw_string(TextViewDrawState *tds,
+                                 const char *str,
+                                 int str_len,
+                                 const uchar fg[4],
+                                 const uchar bg[4],
+                                 int icon,
+                                 const uchar icon_fg[4],
+                                 const uchar icon_bg[4],
+                                 const uchar bg_sel[4])
 {
   int tot_lines; /* Total number of lines for wrapping. */
   int *offsets;  /* Offsets of line beginnings for wrapping. */
 
-  str_len = console_wrap_offsets(str, str_len, tds->columns, &tot_lines, &offsets);
+  str_len = textview_wrap_offsets(str, str_len, tds->columns, &tot_lines, &offsets);
 
   int line_height = (tot_lines * tds->lheight) + (tds->row_vpadding * 2);
   int line_bottom = tds->xy[1];
@@ -196,7 +196,7 @@ static bool console_draw_string(TextViewDrawState *tds,
 
     /* Adjust selection even if not drawing. */
     if (tds->sel[0] != tds->sel[1]) {
-      console_step_sel(tds, -(str_len + 1));
+      textview_step_sel(tds, -(str_len + 1));
     }
 
     MEM_freeN(offsets);
@@ -267,9 +267,9 @@ static bool console_draw_string(TextViewDrawState *tds,
   BLF_draw_mono(tds->font_id, s, len, tds->cwidth);
 
   if (tds->sel[0] != tds->sel[1]) {
-    console_step_sel(tds, -final_offset);
+    textview_step_sel(tds, -final_offset);
     int pos[2] = {tds->xy[0], line_bottom};
-    console_draw_sel(s, pos, len, tds, bg_sel);
+    textview_draw_sel(s, pos, len, tds, bg_sel);
   }
 
   tds->xy[1] += tds->lheight;
@@ -284,8 +284,8 @@ static bool console_draw_string(TextViewDrawState *tds,
     BLF_draw_mono(tds->font_id, s, len, tds->cwidth);
 
     if (tds->sel[0] != tds->sel[1]) {
-      console_step_sel(tds, len);
-      console_draw_sel(s, tds->xy, len, tds, bg_sel);
+      textview_step_sel(tds, len);
+      textview_draw_sel(s, tds->xy, len, tds, bg_sel);
     }
 
     tds->xy[1] += tds->lheight;
@@ -300,7 +300,7 @@ static bool console_draw_string(TextViewDrawState *tds,
   tds->xy[1] = y_next;
 
   copy_v2_v2_int(tds->sel, sel_orig);
-  console_step_sel(tds, -(str_len + 1));
+  textview_step_sel(tds, -(str_len + 1));
 
   MEM_freeN(offsets);
   return true;
@@ -329,7 +329,7 @@ int textview_draw(TextViewContext *tvc,
   int icon = 0;
   const int font_id = blf_mono_font;
 
-  console_font_begin(font_id, tvc->lheight);
+  textview_font_begin(font_id, tvc->lheight);
 
   xy[0] = x_orig;
   xy[1] = y_orig;
@@ -402,15 +402,15 @@ int textview_draw(TextViewContext *tvc,
 
       tvc->line_get(tvc, &ext_line, &ext_len);
 
-      if (!console_draw_string(&tds,
-                               ext_line,
-                               ext_len,
-                               (data_flag & TVC_LINE_FG) ? fg : NULL,
-                               (data_flag & TVC_LINE_BG) ? bg : NULL,
-                               (data_flag & TVC_LINE_ICON) ? icon : 0,
-                               (data_flag & TVC_LINE_ICON_FG) ? icon_fg : NULL,
-                               (data_flag & TVC_LINE_ICON_BG) ? icon_bg : NULL,
-                               bg_sel)) {
+      if (!textview_draw_string(&tds,
+                                ext_line,
+                                ext_len,
+                                (data_flag & TVC_LINE_FG) ? fg : NULL,
+                                (data_flag & TVC_LINE_BG) ? bg : NULL,
+                                (data_flag & TVC_LINE_ICON) ? icon : 0,
+                                (data_flag & TVC_LINE_ICON_FG) ? icon_fg : NULL,
+                                (data_flag & TVC_LINE_ICON_BG) ? icon_bg : NULL,
+                                bg_sel)) {
         /* When drawing, if we pass v2d->cur.ymax, then quit. */
         if (do_draw) {
           /* Past the y limits. */
