@@ -398,6 +398,7 @@ typedef struct EEVEE_ShadowCascadeRender {
   float projmat[MAX_CASCADE_NUM][4][4];
   float viewmat[4][4], viewinv[4][4];
   float radius[MAX_CASCADE_NUM];
+  float original_bias;
   float cascade_max_dist;
   float cascade_exponent;
   float cascade_fade;

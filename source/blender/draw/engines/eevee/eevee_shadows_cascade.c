@@ -40,7 +40,6 @@ void EEVEE_shadows_cascade_add(EEVEE_LightsInfo *linfo, EEVEE_Light *evli, Objec
   EEVEE_ShadowCascade *csm_data = linfo->shadow_cascade_data + linfo->cascade_len;
   EEVEE_ShadowCascadeRender *csm_render = linfo->shadow_cascade_render + linfo->cascade_len;
 
-  sh_data->bias = max_ff(la->bias * 0.00002f, 0.0f);
   eevee_contact_shadow_setup(la, sh_data);
 
   linfo->shadow_cascade_light_indices[linfo->cascade_len] = linfo->num_light;
@@ -51,6 +50,7 @@ void EEVEE_shadows_cascade_add(EEVEE_LightsInfo *linfo, EEVEE_Light *evli, Objec
   csm_render->cascade_count = la->cascade_count;
   csm_render->cascade_exponent = la->cascade_exponent;
   csm_render->cascade_max_dist = la->cascade_max_dist;
+  csm_render->original_bias = max_ff(la->bias, 0.0f);
 
   linfo->num_cascade_layer += la->cascade_count;
 }
@@ -380,6 +380,8 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
 #endif
   }
 
+  /* Bias is in clipspace, divide by range. */
+  shdw_data->bias = csm_render->original_bias * 0.05f / fabsf(sh_far - sh_near);
   shdw_data->near = sh_near;
   shdw_data->far = sh_far;
 }

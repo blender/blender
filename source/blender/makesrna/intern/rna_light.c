@@ -294,7 +294,7 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
 
   prop = RNA_def_property(srna, "shadow_buffer_bias", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "bias");
-  RNA_def_property_range(prop, 0.001f, 9999.0f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.001f, 5.0f, 1.0, 3);
   RNA_def_property_ui_text(prop, "Shadow Buffer Bias", "Bias for reducing self shadowing");
   RNA_def_property_update(prop, 0, "rna_Light_update");

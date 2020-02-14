@@ -4461,5 +4461,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* EEVEE: Cascade shadow bias fix */
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      if (light->type == LA_SUN) {
+        /* Should be 0.0004 but for practical reason we make it bigger.
+         * Correct factor is scene dependent. */
+        light->bias *= 0.002f;
+      }
+    }
   }
 }
