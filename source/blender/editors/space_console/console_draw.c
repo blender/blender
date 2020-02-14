@@ -161,7 +161,7 @@ static void console_textview_draw_cursor(struct TextViewContext *tvc)
 
   console_cursor_wrap_offset(sc->prompt, tvc->columns, &offl, &offc, NULL);
   console_cursor_wrap_offset(cl->line, tvc->columns, &offl, &offc, cl->line + cl->cursor);
-  pen[0] = tvc->cwidth * (offc + tvc->margin_left_chars);
+  pen[0] = tvc->cwidth * offc;
   pen[1] = -2 - tvc->lheight * offl;
 
   console_cursor_wrap_offset(cl->line + cl->cursor, tvc->columns, &offl, &offc, NULL);
@@ -185,12 +185,21 @@ static void console_textview_const_colors(TextViewContext *UNUSED(tvc), unsigned
   UI_GetThemeColor4ubv(TH_CONSOLE_SELECT, bg_sel);
 }
 
-static void console_textview_draw_rect_calc(const ARegion *ar, rcti *draw_rect)
+static void console_textview_draw_rect_calc(const ARegion *ar,
+                                            rcti *r_draw_rect,
+                                            rcti *r_draw_rect_outer)
 {
-  draw_rect->xmin = 0;
-  draw_rect->xmax = ar->winx;
-  draw_rect->ymin = 0;
-  draw_rect->ymax = ar->winy;
+  const int margin = 4 * UI_DPI_FAC;
+  r_draw_rect->xmin = margin;
+  r_draw_rect->xmax = ar->winx - V2D_SCROLL_WIDTH;
+  r_draw_rect->ymin = margin;
+  /* No margin at the top (allow text to scroll off the window). */
+  r_draw_rect->ymax = ar->winy;
+
+  r_draw_rect_outer->xmin = 0;
+  r_draw_rect_outer->xmax = ar->winx;
+  r_draw_rect_outer->ymin = 0;
+  r_draw_rect_outer->ymax = ar->winy;
 }
 
 static int console_textview_main__internal(struct SpaceConsole *sc,
@@ -223,12 +232,10 @@ static int console_textview_main__internal(struct SpaceConsole *sc,
   tvc.sel_start = sc->sel_start;
   tvc.sel_end = sc->sel_end;
   tvc.lheight = sc->lheight * 1.2f * UI_DPI_FAC;
-  tvc.margin_left_chars = 1;
-  tvc.margin_right_chars = 2;
   tvc.scroll_ymin = v2d->cur.ymin;
   tvc.scroll_ymax = v2d->cur.ymax;
 
-  console_textview_draw_rect_calc(ar, &tvc.draw_rect);
+  console_textview_draw_rect_calc(ar, &tvc.draw_rect, &tvc.draw_rect_outer);
 
   console_scrollback_prompt_begin(sc, &cl_dummy);
   ret = textview_draw(&tvc, do_draw, mval, r_mval_pick_item, r_mval_pick_offset);
@@ -253,9 +260,6 @@ int console_char_pick(struct SpaceConsole *sc, const ARegion *ar, const int mval
 {
   int r_mval_pick_offset = 0;
   void *mval_pick_item = NULL;
-
-  rcti draw_rect;
-  console_textview_draw_rect_calc(ar, &draw_rect);
 
   console_textview_main__internal(sc, ar, false, mval, &mval_pick_item, &r_mval_pick_offset);
   return r_mval_pick_offset;

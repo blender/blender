@@ -53,12 +53,13 @@ typedef struct TextViewDrawState {
   int lheight;
   /** Text vertical offset per line. */
   int lofs;
-  int margin_left_chars;
-  int margin_right_chars;
   int row_vpadding;
   /** Number of characters that fit into the width of the console (fixed width). */
   int columns;
+  /** For drawing text. */
   const rcti *draw_rect;
+  /** For drawing backgrounds colors which may extend beyond text. */
+  const rcti *draw_rect_outer;
   int scroll_ymin, scroll_ymax;
   int *xy;   // [2]
   int *sel;  // [2]
@@ -85,9 +86,8 @@ static void console_draw_sel(const char *str,
   const int lheight = tds->lheight;
 
   if (sel[0] <= str_len_draw && sel[1] >= 0) {
-    const int sta = BLI_str_utf8_offset_to_column(str, max_ii(sel[0], 0)) + tds->margin_left_chars;
-    const int end = BLI_str_utf8_offset_to_column(str, min_ii(sel[1], str_len_draw)) +
-                    tds->margin_left_chars;
+    const int sta = BLI_str_utf8_offset_to_column(str, max_ii(sel[0], 0));
+    const int end = BLI_str_utf8_offset_to_column(str, min_ii(sel[1], str_len_draw));
 
     GPU_blend(true);
     GPU_blend_set_func_separate(
@@ -154,11 +154,7 @@ static bool console_draw_string(TextViewDrawState *tds,
   int tot_lines; /* Total number of lines for wrapping. */
   int *offsets;  /* Offsets of line beginnings for wrapping. */
 
-  str_len = console_wrap_offsets(str,
-                                 str_len,
-                                 tds->columns - (tds->margin_left_chars + tds->margin_right_chars),
-                                 &tot_lines,
-                                 &offsets);
+  str_len = console_wrap_offsets(str, str_len, tds->columns, &tot_lines, &offsets);
 
   int line_height = (tot_lines * tds->lheight) + (tds->row_vpadding * 2);
   int line_bottom = tds->xy[1];
@@ -223,15 +219,15 @@ static bool console_draw_string(TextViewDrawState *tds,
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
     immUniformColor4ubv(bg);
-    immRecti(pos, 0, line_bottom, tds->draw_rect->xmax, line_top);
+    immRecti(pos, tds->draw_rect_outer->xmin, line_bottom, tds->draw_rect_outer->xmax, line_top);
     immUnbindProgram();
   }
 
   if (icon_bg) {
     float col[4];
-    int bg_size = 20 * UI_DPI_FAC;
+    int bg_size = UI_DPI_ICON_SIZE * 1.2;
     float vpadding = (tds->lheight + (tds->row_vpadding * 2) - bg_size) / 2;
-    float hpadding = ((tds->margin_left_chars * tds->cwidth) - bg_size) / 2;
+    float hpadding = tds->draw_rect->xmin - (bg_size * 1.2f);
 
     rgba_uchar_to_float(col, icon_bg);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
@@ -246,7 +242,7 @@ static bool console_draw_string(TextViewDrawState *tds,
 
   if (icon) {
     int vpadding = (tds->lheight + (tds->row_vpadding * 2) - UI_DPI_ICON_SIZE) / 2;
-    int hpadding = ((tds->margin_left_chars * tds->cwidth) - UI_DPI_ICON_SIZE) / 2;
+    int hpadding = tds->draw_rect->xmin - (UI_DPI_ICON_SIZE * 1.3f);
 
     GPU_blend(true);
     UI_icon_draw_ex(hpadding,
@@ -266,10 +262,7 @@ static bool console_draw_string(TextViewDrawState *tds,
   const int final_offset = offsets[tot_lines - 1];
   len = str_len - final_offset;
   s = str + final_offset;
-  BLF_position(tds->font_id,
-               tds->xy[0] + (tds->margin_left_chars * tds->cwidth),
-               tds->lofs + line_bottom + tds->row_vpadding,
-               0);
+  BLF_position(tds->font_id, tds->xy[0], tds->lofs + line_bottom + tds->row_vpadding, 0);
   BLF_color4ubv(tds->font_id, fg);
   BLF_draw_mono(tds->font_id, s, len, tds->cwidth);
 
@@ -287,10 +280,7 @@ static bool console_draw_string(TextViewDrawState *tds,
     len = offsets[i] - offsets[i - 1];
     s = str + offsets[i - 1];
 
-    BLF_position(tds->font_id,
-                 tds->xy[0] + (tds->margin_left_chars * tds->cwidth),
-                 tds->lofs + tds->xy[1],
-                 0);
+    BLF_position(tds->font_id, tds->xy[0], tds->lofs + tds->xy[1], 0);
     BLF_draw_mono(tds->font_id, s, len, tds->cwidth);
 
     if (tds->sel[0] != tds->sel[1]) {
@@ -364,8 +354,6 @@ int textview_draw(TextViewContext *tvc,
   tds.cwidth = (int)BLF_fixed_width(font_id);
   BLI_assert(tds.cwidth > 0);
   tds.lheight = tvc->lheight;
-  tds.margin_left_chars = tvc->margin_left_chars;
-  tds.margin_right_chars = tvc->margin_right_chars;
   tds.row_vpadding = tvc->row_vpadding;
   tds.lofs = -BLF_descender(font_id);
   /* Note, scroll bar must be already subtracted. */
@@ -375,6 +363,7 @@ int textview_draw(TextViewContext *tvc,
     tds.columns = 1;
   }
   tds.draw_rect = &tvc->draw_rect;
+  tds.draw_rect_outer = &tvc->draw_rect_outer;
   tds.scroll_ymin = tvc->scroll_ymin;
   tds.scroll_ymax = tvc->scroll_ymax;
   tds.xy = xy;

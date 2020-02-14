@@ -206,12 +206,21 @@ static int report_textview_line_get(struct TextViewContext *tvc, const char **li
   return 1;
 }
 
-static void info_textview_draw_rect_calc(const ARegion *ar, rcti *draw_rect)
+static void info_textview_draw_rect_calc(const ARegion *ar,
+                                         rcti *r_draw_rect,
+                                         rcti *r_draw_rect_outer)
 {
-  draw_rect->xmin = 0;
-  draw_rect->xmax = ar->winx;
-  draw_rect->ymin = 0;
-  draw_rect->ymax = ar->winy;
+  const int margin = 0.45f * U.widget_unit;
+  r_draw_rect->xmin = margin + UI_UNIT_X;
+  r_draw_rect->xmax = ar->winx - V2D_SCROLL_WIDTH;
+  r_draw_rect->ymin = margin;
+  r_draw_rect->ymax = ar->winy;
+  /* No margin at the top (allow text to scroll off the window). */
+
+  r_draw_rect_outer->xmin = 0;
+  r_draw_rect_outer->xmax = ar->winx;
+  r_draw_rect_outer->ymin = 0;
+  r_draw_rect_outer->ymax = ar->winy;
 }
 
 static int info_textview_main__internal(struct SpaceInfo *sinfo,
@@ -243,12 +252,10 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo,
   tvc.sel_end = 0;
   tvc.lheight = 17 * UI_DPI_FAC;
   tvc.row_vpadding = 0.4 * tvc.lheight;
-  tvc.margin_left_chars = 5;
-  tvc.margin_right_chars = 2;
   tvc.scroll_ymin = v2d->cur.ymin;
   tvc.scroll_ymax = v2d->cur.ymax;
 
-  info_textview_draw_rect_calc(ar, &tvc.draw_rect);
+  info_textview_draw_rect_calc(ar, &tvc.draw_rect, &tvc.draw_rect_outer);
 
   ret = textview_draw(&tvc, do_draw, mval, r_mval_pick_item, r_mval_pick_offset);
 

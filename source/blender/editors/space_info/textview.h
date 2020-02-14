@@ -32,11 +32,11 @@ typedef struct TextViewContext {
   int columns; /* shouldnt be needed! */
 
   int row_vpadding;
-  int margin_left_chars;
-  int margin_right_chars;
 
-  /** Area to draw: (0, 0, winx, winy) with a margin applied and scroll-bar subtracted. */
+  /** Area to draw text: (0, 0, winx, winy) with a margin applied and scroll-bar subtracted. */
   rcti draw_rect;
+  /** Area to draw text background colors (extending beyond text in some cases). */
+  rcti draw_rect_outer;
 
   /** Scroll offset in pixels. */
   int scroll_ymin, scroll_ymax;
