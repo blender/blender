@@ -52,8 +52,10 @@ def module_filesystem_remove(path_base, module_name):
 # This duplicates shutil.copytree from Python 3.8, with the new dirs_exist_ok
 # argument that we need. Once we upgrade to 3.8 we can remove this.
 def _preferences_copytree(entries, src, dst):
-    import shutil
     import os
+    import shutil
+    from shutil import Error
+
     os.makedirs(dst, exist_ok=True)
     errors = []
 
