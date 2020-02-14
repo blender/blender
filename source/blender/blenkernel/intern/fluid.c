@@ -2283,8 +2283,8 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
     /* Instead of using 1.0 for all new fuel add slight falloff to reduce flow blocky-ness. */
     float value = 1.0f - pow2f(1.0f - emission_value);
 
-    if (fuel[index] > FLT_EPSILON && value > react[index]) {
-      float f = fuel_flow / fuel[index];
+    if (fuel_in[index] > FLT_EPSILON && value >= react[index]) {
+      float f = fuel_flow / fuel_in[index];
       react_in[index] = value * f + (1.0f - f) * react[index];
       CLAMP(react_in[index], 0.0f, value);
     }
