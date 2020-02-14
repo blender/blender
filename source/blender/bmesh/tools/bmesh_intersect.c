@@ -1083,7 +1083,7 @@ bool BM_mesh_intersect(BMesh *bm,
   }
 
   int flag = BVH_OVERLAP_USE_THREADING | BVH_OVERLAP_RETURN_PAIRS;
-#  if DEBUG
+#  ifdef DEBUG
   /* The overlap result must match that obtained in Release to succeed
    * in the `bmesh_boolean` test. */
   if (looptris_tot < 1024) {
