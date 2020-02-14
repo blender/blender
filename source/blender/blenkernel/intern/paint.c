@@ -771,6 +771,8 @@ void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
   UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
   Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
 
+  BKE_paint_ensure_from_paintmode(sce, mode);
+
   /* If there's no brush, create one */
   if (PAINT_MODE_HAS_BRUSH(mode)) {
     Brush *brush = BKE_paint_brush(paint);
