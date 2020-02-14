@@ -1123,7 +1123,8 @@ void UI_view2d_zoom_cache_reset(void)
   /* While scaling we can accumulate fonts at many sizes (~20 or so).
    * Not an issue with embedded font, but can use over 500Mb with i18n ones! See [#38244]. */
 
-  /* note: only some views draw text, we could check for this case to avoid clearning cache */
+  /* note: This can be very bad for performance.
+   *       Only some views draw text, we could check for this case to avoid clearning cache. */
   BLF_cache_clear();
 }
 
