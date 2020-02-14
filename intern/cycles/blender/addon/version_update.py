@@ -42,10 +42,7 @@ def custom_bake_remap(scene):
         'GLOSSY_COLOR',
         'TRANSMISSION_DIRECT',
         'TRANSMISSION_INDIRECT',
-        'TRANSMISSION_COLOR',
-        'SUBSURFACE_DIRECT',
-        'SUBSURFACE_INDIRECT',
-        'SUBSURFACE_COLOR')
+        'TRANSMISSION_COLOR')
 
     diffuse_direct_idx = bake_lookup.index('DIFFUSE_DIRECT')
 

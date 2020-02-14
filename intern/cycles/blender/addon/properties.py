@@ -178,10 +178,6 @@ enum_view3d_shading_render_pass= (
     ('TRANSMISSION_INDIRECT', "Transmission Indirect", "Show the Transmission Indirect render pass", 45),
     ('TRANSMISSION_COLOR', "Transmission Color", "Show the Transmission Color render pass", 46),
 
-    ('SUBSURFACE_DIRECT', "Subsurface Direct", "Show the Subsurface Direct render pass", 47),
-    ('SUBSURFACE_INDIRECT', "Subsurface Indirect", "Show the Subsurface Indirect render pass", 48),
-    ('SUBSURFACE_COLOR', "Subsurface Color", "Show the Subsurface Color render pass", 49),
-
     ('VOLUME_DIRECT', "Volume Direct", "Show the Volume Direct render pass", 50),
     ('VOLUME_INDIRECT', "Volume Indirect", "Show the Volume Indirect render pass", 51),
 
@@ -652,7 +648,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             ('DIFFUSE', "Diffuse", ""),
             ('GLOSSY', "Glossy", ""),
             ('TRANSMISSION', "Transmission", ""),
-            ('SUBSURFACE', "Subsurface", ""),
         ),
     )
 
@@ -1344,16 +1339,6 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
     denoising_transmission_indirect: BoolProperty(
         name="Transmission Indirect",
         description="Denoise the indirect transmission lighting",
-        default=True,
-    )
-    denoising_subsurface_direct: BoolProperty(
-        name="Subsurface Direct",
-        description="Denoise the direct subsurface lighting",
-        default=True,
-    )
-    denoising_subsurface_indirect: BoolProperty(
-        name="Subsurface Indirect",
-        description="Denoise the indirect subsurface lighting",
         default=True,
     )
     denoising_strength: FloatProperty(

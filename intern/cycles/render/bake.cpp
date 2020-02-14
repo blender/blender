@@ -285,8 +285,6 @@ int BakeManager::shader_type_to_pass_filter(ShaderEvalType type, const int pass_
       return BAKE_FILTER_GLOSSY | component_flags;
     case SHADER_EVAL_TRANSMISSION:
       return BAKE_FILTER_TRANSMISSION | component_flags;
-    case SHADER_EVAL_SUBSURFACE:
-      return BAKE_FILTER_SUBSURFACE | component_flags;
     case SHADER_EVAL_COMBINED:
       return pass_filter;
     default:

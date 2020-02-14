@@ -461,19 +461,16 @@ PassType BlenderSync::get_pass_type(BL::RenderPass &b_pass)
   MAP_PASS("DiffDir", PASS_DIFFUSE_DIRECT);
   MAP_PASS("GlossDir", PASS_GLOSSY_DIRECT);
   MAP_PASS("TransDir", PASS_TRANSMISSION_DIRECT);
-  MAP_PASS("SubsurfaceDir", PASS_SUBSURFACE_DIRECT);
   MAP_PASS("VolumeDir", PASS_VOLUME_DIRECT);
 
   MAP_PASS("DiffInd", PASS_DIFFUSE_INDIRECT);
   MAP_PASS("GlossInd", PASS_GLOSSY_INDIRECT);
   MAP_PASS("TransInd", PASS_TRANSMISSION_INDIRECT);
-  MAP_PASS("SubsurfaceInd", PASS_SUBSURFACE_INDIRECT);
   MAP_PASS("VolumeInd", PASS_VOLUME_INDIRECT);
 
   MAP_PASS("DiffCol", PASS_DIFFUSE_COLOR);
   MAP_PASS("GlossCol", PASS_GLOSSY_COLOR);
   MAP_PASS("TransCol", PASS_TRANSMISSION_COLOR);
-  MAP_PASS("SubsurfaceCol", PASS_SUBSURFACE_COLOR);
 
   MAP_PASS("Emit", PASS_EMISSION);
   MAP_PASS("Env", PASS_BACKGROUND);
@@ -556,8 +553,6 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLa
       MAP_OPTION("denoising_glossy_indirect", DENOISING_CLEAN_GLOSSY_IND);
       MAP_OPTION("denoising_transmission_direct", DENOISING_CLEAN_TRANSMISSION_DIR);
       MAP_OPTION("denoising_transmission_indirect", DENOISING_CLEAN_TRANSMISSION_IND);
-      MAP_OPTION("denoising_subsurface_direct", DENOISING_CLEAN_SUBSURFACE_DIR);
-      MAP_OPTION("denoising_subsurface_indirect", DENOISING_CLEAN_SUBSURFACE_IND);
 #undef MAP_OPTION
     }
     b_engine.add_pass("Noisy Image", 4, "RGBA", b_view_layer.name().c_str());

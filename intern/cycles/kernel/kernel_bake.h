@@ -71,7 +71,7 @@ ccl_device_inline void compute_light_pass(
 
 #  ifdef __SUBSURFACE__
     /* sample subsurface scattering */
-    if ((pass_filter & BAKE_FILTER_SUBSURFACE) && (sd->flag & SD_BSSRDF)) {
+    if ((pass_filter & BAKE_FILTER_DIFFUSE) && (sd->flag & SD_BSSRDF)) {
       /* When mixing BSSRDF and BSDF closures we should skip BSDF lighting
        * if scattering was successful. */
       SubsurfaceIndirectRays ss_indirect;
@@ -123,7 +123,7 @@ ccl_device_inline void compute_light_pass(
 
 #    ifdef __SUBSURFACE__
     /* sample subsurface scattering */
-    if ((pass_filter & BAKE_FILTER_SUBSURFACE) && (sd->flag & SD_BSSRDF)) {
+    if ((pass_filter & BAKE_FILTER_DIFFUSE) && (sd->flag & SD_BSSRDF)) {
       /* When mixing BSSRDF and BSDF closures we should skip BSDF lighting
        * if scattering was successful. */
       kernel_branched_path_subsurface_scatter(
@@ -178,10 +178,6 @@ ccl_device_inline float3 kernel_bake_shader_bsdf(KernelGlobals *kg,
       return shader_bsdf_glossy(kg, sd);
     case SHADER_EVAL_TRANSMISSION:
       return shader_bsdf_transmission(kg, sd);
-#  ifdef __SUBSURFACE__
-    case SHADER_EVAL_SUBSURFACE:
-      return shader_bsdf_subsurface(kg, sd);
-#  endif
     default:
       kernel_assert(!"Unknown bake type passed to BSDF evaluate");
       return make_float3(0.0f, 0.0f, 0.0f);
@@ -385,11 +381,6 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg,
       if ((pass_filter & BAKE_FILTER_TRANSMISSION_INDIRECT) == BAKE_FILTER_TRANSMISSION_INDIRECT)
         out += L.indirect_transmission;
 
-      if ((pass_filter & BAKE_FILTER_SUBSURFACE_DIRECT) == BAKE_FILTER_SUBSURFACE_DIRECT)
-        out += L.direct_subsurface;
-      if ((pass_filter & BAKE_FILTER_SUBSURFACE_INDIRECT) == BAKE_FILTER_SUBSURFACE_INDIRECT)
-        out += L.indirect_subsurface;
-
       if ((pass_filter & BAKE_FILTER_EMISSION) != 0)
         out += L.emission;
 
@@ -412,13 +403,6 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg,
     case SHADER_EVAL_TRANSMISSION: {
       out = kernel_bake_evaluate_direct_indirect(
           kg, &sd, &state, L.direct_transmission, L.indirect_transmission, type, pass_filter);
-      break;
-    }
-    case SHADER_EVAL_SUBSURFACE: {
-#    ifdef __SUBSURFACE__
-      out = kernel_bake_evaluate_direct_indirect(
-          kg, &sd, &state, L.direct_subsurface, L.indirect_subsurface, type, pass_filter);
-#    endif
       break;
     }
 #  endif

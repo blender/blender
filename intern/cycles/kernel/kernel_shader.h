@@ -901,7 +901,8 @@ ccl_device float3 shader_bsdf_diffuse(KernelGlobals *kg, ShaderData *sd)
   for (int i = 0; i < sd->num_closure; i++) {
     ShaderClosure *sc = &sd->closure[i];
 
-    if (CLOSURE_IS_BSDF_DIFFUSE(sc->type))
+    if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type) ||
+        CLOSURE_IS_BSDF_BSSRDF(sc->type))
       eval += sc->weight;
   }
 
@@ -930,20 +931,6 @@ ccl_device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
     ShaderClosure *sc = &sd->closure[i];
 
     if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type))
-      eval += sc->weight;
-  }
-
-  return eval;
-}
-
-ccl_device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
-{
-  float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-
-  for (int i = 0; i < sd->num_closure; i++) {
-    ShaderClosure *sc = &sd->closure[i];
-
-    if (CLOSURE_IS_BSSRDF(sc->type) || CLOSURE_IS_BSDF_BSSRDF(sc->type))
       eval += sc->weight;
   }
 

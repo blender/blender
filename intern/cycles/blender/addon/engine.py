@@ -245,9 +245,6 @@ def list_render_passes(srl):
     if srl.use_pass_transmission_direct:   yield ("TransDir",      "RGB",  'COLOR')
     if srl.use_pass_transmission_indirect: yield ("TransInd",      "RGB",  'COLOR')
     if srl.use_pass_transmission_color:    yield ("TransCol",      "RGB",  'COLOR')
-    if srl.use_pass_subsurface_direct:     yield ("SubsurfaceDir", "RGB",  'COLOR')
-    if srl.use_pass_subsurface_indirect:   yield ("SubsurfaceInd", "RGB",  'COLOR')
-    if srl.use_pass_subsurface_color:      yield ("SubsurfaceCol", "RGB",  'COLOR')
     if srl.use_pass_emit:                  yield ("Emit",          "RGB",  'COLOR')
     if srl.use_pass_environment:           yield ("Env",           "RGB",  'COLOR')
 
@@ -284,8 +281,7 @@ def list_render_passes(srl):
             yield ("Denoising Intensity",       "X",   'VALUE')
             clean_options = ("denoising_diffuse_direct", "denoising_diffuse_indirect",
                              "denoising_glossy_direct", "denoising_glossy_indirect",
-                             "denoising_transmission_direct", "denoising_transmission_indirect",
-                             "denoising_subsurface_direct", "denoising_subsurface_indirect")
+                             "denoising_transmission_direct", "denoising_transmission_indirect")
             if any(getattr(crl, option) for option in clean_options):
                 yield ("Denoising Clean", "RGB", 'COLOR')
 

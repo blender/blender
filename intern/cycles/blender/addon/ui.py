@@ -853,14 +853,6 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
 
         split = layout.split(factor=0.35)
         split.use_property_split = False
-        split.label(text="Subsurface")
-        row = split.row(align=True)
-        row.prop(view_layer, "use_pass_subsurface_direct", text="Direct", toggle=True)
-        row.prop(view_layer, "use_pass_subsurface_indirect", text="Indirect", toggle=True)
-        row.prop(view_layer, "use_pass_subsurface_color", text="Color", toggle=True)
-
-        split = layout.split(factor=0.35)
-        split.use_property_split = False
         split.label(text="Volume")
         row = split.row(align=True)
         row.prop(cycles_view_layer, "use_pass_volume_direct", text="Direct", toggle=True)
@@ -1039,15 +1031,6 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
 
         split = layout.split(factor=0.5)
         split.active = cycles_view_layer.use_denoising or cycles_view_layer.denoising_store_passes
-
-        col = split.column()
-        col.alignment = 'RIGHT'
-        col.label(text="Subsurface")
-
-        row = split.row(align=True)
-        row.use_property_split = False
-        row.prop(cycles_view_layer, "denoising_subsurface_direct", text="Direct", toggle=True)
-        row.prop(cycles_view_layer, "denoising_subsurface_indirect", text="Indirect", toggle=True)
 
 
 class CYCLES_PT_post_processing(CyclesButtonsPanel, Panel):
@@ -1856,7 +1839,7 @@ class CYCLES_RENDER_PT_bake_influence(CyclesButtonsPanel, Panel):
         cscene = scene.cycles
         rd = scene.render
         if rd.use_bake_multires == False and cscene.bake_type in {
-                'NORMAL', 'COMBINED', 'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
+                'NORMAL', 'COMBINED', 'DIFFUSE', 'GLOSSY', 'TRANSMISSION'}:
             return True
 
     def draw(self, context):
@@ -1895,7 +1878,7 @@ class CYCLES_RENDER_PT_bake_influence(CyclesButtonsPanel, Panel):
             flow.prop(cbk, "use_pass_ambient_occlusion")
             flow.prop(cbk, "use_pass_emit")
 
-        elif cscene.bake_type in {'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
+        elif cscene.bake_type in {'DIFFUSE', 'GLOSSY', 'TRANSMISSION'}:
             row = col.row(align=True)
             row.use_property_split = False
             row.prop(cbk, "use_pass_direct", toggle=True)

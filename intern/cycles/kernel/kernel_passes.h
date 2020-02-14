@@ -249,8 +249,6 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg,
     L->color_glossy += shader_bsdf_glossy(kg, sd) * throughput;
   if (light_flag & PASSMASK_COMPONENT(TRANSMISSION))
     L->color_transmission += shader_bsdf_transmission(kg, sd) * throughput;
-  if (light_flag & PASSMASK_COMPONENT(SUBSURFACE))
-    L->color_subsurface += shader_bsdf_subsurface(kg, sd) * throughput;
 
   if (light_flag & PASSMASK(MIST)) {
     /* bring depth into 0..1 range */
@@ -296,11 +294,8 @@ ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg,
   if (light_flag & PASSMASK(TRANSMISSION_INDIRECT))
     kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_indirect,
                              L->indirect_transmission);
-  if (light_flag & PASSMASK(SUBSURFACE_INDIRECT))
-    kernel_write_pass_float3(buffer + kernel_data.film.pass_subsurface_indirect,
-                             L->indirect_subsurface);
   if (light_flag & PASSMASK(VOLUME_INDIRECT))
-    kernel_write_pass_float3(buffer + kernel_data.film.pass_volume_indirect, L->indirect_scatter);
+    kernel_write_pass_float3(buffer + kernel_data.film.pass_volume_indirect, L->indirect_volume);
   if (light_flag & PASSMASK(DIFFUSE_DIRECT))
     kernel_write_pass_float3(buffer + kernel_data.film.pass_diffuse_direct, L->direct_diffuse);
   if (light_flag & PASSMASK(GLOSSY_DIRECT))
@@ -308,11 +303,8 @@ ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg,
   if (light_flag & PASSMASK(TRANSMISSION_DIRECT))
     kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_direct,
                              L->direct_transmission);
-  if (light_flag & PASSMASK(SUBSURFACE_DIRECT))
-    kernel_write_pass_float3(buffer + kernel_data.film.pass_subsurface_direct,
-                             L->direct_subsurface);
   if (light_flag & PASSMASK(VOLUME_DIRECT))
-    kernel_write_pass_float3(buffer + kernel_data.film.pass_volume_direct, L->direct_scatter);
+    kernel_write_pass_float3(buffer + kernel_data.film.pass_volume_direct, L->direct_volume);
 
   if (light_flag & PASSMASK(EMISSION))
     kernel_write_pass_float3(buffer + kernel_data.film.pass_emission, L->emission);
@@ -328,8 +320,6 @@ ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg,
   if (light_flag & PASSMASK(TRANSMISSION_COLOR))
     kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_color,
                              L->color_transmission);
-  if (light_flag & PASSMASK(SUBSURFACE_COLOR))
-    kernel_write_pass_float3(buffer + kernel_data.film.pass_subsurface_color, L->color_subsurface);
   if (light_flag & PASSMASK(SHADOW)) {
     float4 shadow = L->shadow;
     shadow.w = kernel_data.film.pass_shadow_scale;

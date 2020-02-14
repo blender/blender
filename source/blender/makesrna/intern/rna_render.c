@@ -86,7 +86,6 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
     {SCE_PASS_DIFFUSE_COLOR, "DIFFUSE", 0, "Diffuse", ""},
     {SCE_PASS_GLOSSY_COLOR, "GLOSSY", 0, "Glossy", ""},
     {SCE_PASS_TRANSM_COLOR, "TRANSMISSION", 0, "Transmission", ""},
-    {SCE_PASS_SUBSURFACE_COLOR, "SUBSURFACE", 0, "Subsurface", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -533,7 +532,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
                      0,
                      INT_MAX,
                      "Pass Filter",
-                     "Filter to combined, diffuse, glossy, transmission and subsurface passes",
+                     "Filter to combined, diffuse, glossy and transmission passes",
                      0,
                      INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
