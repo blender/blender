@@ -18,11 +18,7 @@
  * \ingroup spconsole
  */
 
-#include <math.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <limits.h>
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"

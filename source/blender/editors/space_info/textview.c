@@ -18,12 +18,6 @@
  * \ingroup spinfo
  */
 
-#include <math.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <limits.h>
-#include <assert.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLF_api.h"
@@ -35,7 +29,8 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "BKE_report.h"
+#include "DNA_userdef_types.h" /* For 'U.dpi_fac' */
+
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
