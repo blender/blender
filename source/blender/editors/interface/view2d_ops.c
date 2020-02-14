@@ -1738,46 +1738,32 @@ enum {
  */
 static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_min, int sh_max)
 {
-  bool in_min, in_max, in_bar, out_min, out_max, in_view = 1;
-
   /* firstly, check if
    * - 'bubble' fills entire scroller
    * - 'bubble' completely out of view on either side
    */
-  if ((sh_min <= sc_min) && (sh_max >= sc_max)) {
-    in_view = 0;
+  bool in_view = true;
+  if (sh_min <= sc_min && sc_max <= sh_max) {
+    in_view = false;
   }
-  if (sh_min == sh_max) {
-    if (sh_min <= sc_min) {
-      in_view = 0;
-    }
-    if (sh_max >= sc_max) {
-      in_view = 0;
-    }
-  }
-  else {
-    if (sh_max <= sc_min) {
-      in_view = 0;
-    }
-    if (sh_min >= sc_max) {
-      in_view = 0;
-    }
+  else if (sh_max <= sc_min || sc_max <= sh_min) {
+    in_view = false;
   }
 
-  if (in_view == 0) {
+  if (!in_view) {
     return SCROLLHANDLE_BAR;
   }
 
   /* check if mouse is in or past either handle */
   /* TODO: check if these extents are still valid or not */
-  in_max = ((mouse >= (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
-            (mouse <= (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
-  in_min = ((mouse <= (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
-            (mouse >= (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
-  in_bar = ((mouse < (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
-            (mouse > (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
-  out_min = mouse < (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
-  out_max = mouse > (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
+  bool in_max = ((mouse >= (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
+                 (mouse <= (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
+  bool in_min = ((mouse <= (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
+                 (mouse >= (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
+  bool in_bar = ((mouse < (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
+                 (mouse > (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
+  bool out_min = mouse < (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
+  bool out_max = mouse > (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
 
   if (in_bar) {
     return SCROLLHANDLE_BAR;
