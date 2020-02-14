@@ -338,7 +338,10 @@ class CPUDevice : public Device {
     if (DebugFlags().cpu.has_sse2() && system_cpu_support_sse2()) {
       bvh_layout_mask |= BVH_LAYOUT_BVH4;
     }
-#if defined(__x86_64__) || defined(_M_X64)
+    /* MSVC does not support the -march=native switch and you always end up  */
+    /* with an sse2 kernel when you use WITH_KERNEL_NATIVE. We *cannot* feed */
+    /* that kernel BVH8 even if the CPU flags would allow for it. */
+#if (defined(__x86_64__) || defined(_M_X64)) && !(defined(_MSC_VER) && defined(WITH_KERNEL_NATIVE))
     if (DebugFlags().cpu.has_avx2() && system_cpu_support_avx2()) {
       bvh_layout_mask |= BVH_LAYOUT_BVH8;
     }
