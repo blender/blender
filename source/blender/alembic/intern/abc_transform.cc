@@ -42,23 +42,6 @@ using Alembic::AbcGeom::OXform;
 
 /* ************************************************************************** */
 
-static bool has_parent_camera(Object *ob)
-{
-  if (!ob->parent) {
-    return false;
-  }
-
-  Object *parent = ob->parent;
-
-  if (parent->type == OB_CAMERA) {
-    return true;
-  }
-
-  return has_parent_camera(parent);
-}
-
-/* ************************************************************************** */
-
 AbcTransformWriter::AbcTransformWriter(Object *ob,
                                        const OObject &abc_parent,
                                        AbcTransformWriter *parent,
@@ -98,14 +81,22 @@ void AbcTransformWriter::do_write()
   create_transform_matrix(
       ob_eval, yup_mat, m_inherits_xform ? ABC_MATRIX_LOCAL : ABC_MATRIX_WORLD, m_proxy_from);
 
-  /* Only apply rotation to root camera, parenting will propagate it. */
-  if (ob_eval->type == OB_CAMERA && (!m_inherits_xform || !has_parent_camera(ob_eval))) {
+  /* If the parent is a camera, undo its to-Maya rotation (see below). */
+  bool is_root_object = !m_inherits_xform || ob_eval->parent == nullptr;
+  if (!is_root_object && ob_eval->parent->type == OB_CAMERA) {
+    float rot_mat[4][4];
+    axis_angle_to_mat4_single(rot_mat, 'X', M_PI_2);
+    mul_m4_m4m4(yup_mat, rot_mat, yup_mat);
+  }
+
+  /* If the object is a camera, apply an extra rotation to Maya camera orientation. */
+  if (ob_eval->type == OB_CAMERA) {
     float rot_mat[4][4];
     axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
     mul_m4_m4m4(yup_mat, yup_mat, rot_mat);
   }
 
-  if (!ob_eval->parent || !m_inherits_xform) {
+  if (is_root_object) {
     /* Only apply scaling to root objects, parenting will propagate it. */
     float scale_mat[4][4];
     scale_m4_fl(scale_mat, m_settings.global_scale);

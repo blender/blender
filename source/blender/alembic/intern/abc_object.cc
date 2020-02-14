@@ -257,11 +257,19 @@ bool AbcObjectReader::topology_changed(Mesh * /*existing_mesh*/,
 void AbcObjectReader::setupObjectTransform(const float time)
 {
   bool is_constant = false;
+  float transform_from_alembic[4][4];
 
-  this->read_matrix(m_object->obmat, time, m_settings->scale, is_constant);
-  invert_m4_m4(m_object->imat, m_object->obmat);
+  /* If the parent is a camera, apply the inverse rotation to make up for the from-Maya rotation.
+   * This assumes that the parent object also was imported from Alembic. */
+  if (m_object->parent != nullptr && m_object->parent->type == OB_CAMERA) {
+    axis_angle_to_mat4_single(m_object->parentinv, 'X', -M_PI_2);
+  }
 
-  BKE_object_apply_mat4(m_object, m_object->obmat, false, false);
+  this->read_matrix(transform_from_alembic, time, m_settings->scale, is_constant);
+
+  /* Apply the matrix to the object. */
+  BKE_object_apply_mat4(m_object, transform_from_alembic, true, false);
+  BKE_object_to_mat4(m_object, m_object->obmat);
 
   if (!is_constant) {
     bConstraint *con = BKE_constraint_add_for_object(
@@ -311,7 +319,7 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
   return IXform();
 }
 
-void AbcObjectReader::read_matrix(float r_mat[4][4],
+void AbcObjectReader::read_matrix(float r_mat[4][4] /* local matrix */,
                                   const float time,
                                   const float scale,
                                   bool &is_constant)
@@ -331,25 +339,19 @@ void AbcObjectReader::read_matrix(float r_mat[4][4],
   }
 
   const Imath::M44d matrix = get_matrix(schema, time);
-  convert_matrix(matrix, m_object, r_mat);
+  convert_matrix(matrix, r_mat);
+  copy_m44_axis_swap(r_mat, r_mat, ABC_ZUP_FROM_YUP);
 
-  if (m_inherits_xform) {
-    /* In this case, the matrix in Alembic is in local coordinates, so
-     * convert to world matrix. To prevent us from reading and accumulating
-     * all parent matrices in the Alembic file, we assume that the Blender
-     * parent object is already updated for the current timekey, and use its
-     * world matrix. */
-    if (m_object->parent) {
-      mul_m4_m4m4(r_mat, m_object->parent->obmat, r_mat);
-    }
-    else {
-      /* This can happen if the user deleted the parent object, but also if the Alembic parent was
-       * not imported (because of unknown/unsupported schema, for example). In that case just use
-       * the local matrix as if it is the world matrix. This allows us to import Alembic files from
-       * MeshRoom, see T61935. */
-    }
+  /* Convert from Maya to Blender camera orientation. Children of this camera
+   * will have the opposite transform as their Parent Inverse matrix.
+   * See AbcObjectReader::setupObjectTransform(). */
+  if (m_object->type == OB_CAMERA) {
+    float camera_rotation[4][4];
+    axis_angle_to_mat4_single(camera_rotation, 'X', M_PI_2);
+    mul_m4_m4m4(r_mat, r_mat, camera_rotation);
   }
-  else {
+
+  if (!m_inherits_xform) {
     /* Only apply scaling to root objects, parenting will propagate it. */
     float scale_mat[4][4];
     scale_m4_fl(scale_mat, scale);

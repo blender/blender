@@ -224,21 +224,13 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
   mul_m4_m4m4(dst_mat, dst_mat, dst_scale_mat);
 }
 
-void convert_matrix(const Imath::M44d &xform, Object *ob, float r_mat[4][4])
+void convert_matrix(const Imath::M44d &xform, float r_mat[4][4])
 {
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
       r_mat[i][j] = static_cast<float>(xform[i][j]);
     }
   }
-
-  if (ob->type == OB_CAMERA) {
-    float cam_to_yup[4][4];
-    axis_angle_to_mat4_single(cam_to_yup, 'X', M_PI_2);
-    mul_m4_m4m4(r_mat, r_mat, cam_to_yup);
-  }
-
-  copy_m44_axis_swap(r_mat, r_mat, ABC_ZUP_FROM_YUP);
 }
 
 /* Recompute transform matrix of object in new coordinate system

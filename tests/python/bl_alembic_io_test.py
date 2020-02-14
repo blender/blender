@@ -22,11 +22,14 @@
 ./blender.bin --background -noaudio --factory-startup --python tests/python/bl_alembic_io_test.py -- --testdir /path/to/lib/tests/alembic
 """
 
+import math
 import pathlib
 import sys
+import tempfile
 import unittest
 
 import bpy
+from mathutils import Euler, Matrix, Vector
 
 args = None
 
@@ -134,8 +137,6 @@ class SimpleImportTest(AbstractAlembicTest):
             self.assertEqual('Cube' in ob.name, ob.select_get())
 
     def test_change_path_constraint(self):
-        import math
-
         fname = 'cube-rotating1.abc'
         abc = self.testdir / fname
         relpath = bpy.path.relpath(str(abc))
@@ -248,6 +249,105 @@ class VertexColourImportTest(AbstractAlembicTest):
         self.assertAlmostEqualFloatArray(layer.data[0].color, (1.0, 0.0156862, 0.3607843, 1.0))
         self.assertAlmostEqualFloatArray(layer.data[98].color, (0.0941176, 0.1215686, 0.9137254, 1.0))
         self.assertAlmostEqualFloatArray(layer.data[99].color, (0.1294117, 0.3529411, 0.7529411, 1.0))
+
+
+class CameraExportImportTest(unittest.TestCase):
+    names = [
+        'CAM_Unit_Transform',
+        'CAM_Look_+Y',
+        'CAM_Static_Child_Left',
+        'CAM_Static_Child_Right',
+        'Static_Child',
+        'CAM_Animated',
+        'CAM_Animated_Child_Left',
+        'CAM_Animated_Child_Right',
+        'Animated_Child',
+    ]
+
+    def setUp(self):
+        self._tempdir = tempfile.TemporaryDirectory()
+        self.tempdir = pathlib.Path(self._tempdir.name)
+
+    def tearDown(self):
+        self._tempdir.cleanup()
+
+    def test_export_hierarchy(self):
+        self.do_export_import_test(flatten=False)
+
+        # Double-check that the export was hierarchical.
+        objects = bpy.context.scene.collection.objects
+        for name in self.names:
+            if 'Child' in name:
+                self.assertIsNotNone(objects[name].parent)
+            else:
+                self.assertIsNone(objects[name].parent)
+
+    def test_export_flattened(self):
+        self.do_export_import_test(flatten=True)
+
+        # Double-check that the export was flat.
+        objects = bpy.context.scene.collection.objects
+        for name in self.names:
+            self.assertIsNone(objects[name].parent)
+
+    def do_export_import_test(self, *, flatten: bool):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "camera_transforms.blend"))
+
+        abc_path = self.tempdir / "camera_transforms.abc"
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=str(abc_path),
+            renderable_only=False,
+            flatten=flatten,
+        ))
+
+        # Re-import what we just exported into an empty file.
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_import(filepath=str(abc_path)))
+
+        # Test that the import was ok.
+        bpy.context.scene.frame_set(1)
+        self.loc_rot_scale('CAM_Unit_Transform', (0, 0, 0), (0, 0, 0))
+
+        self.loc_rot_scale('CAM_Look_+Y', (2, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('CAM_Static_Child_Left', (2-0.15, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('CAM_Static_Child_Right', (2+0.15, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('Static_Child', (2, 0, 1), (90, 0, 0))
+
+        self.loc_rot_scale('CAM_Animated', (4, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('CAM_Animated_Child_Left', (4-0.15, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('CAM_Animated_Child_Right', (4+0.15, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('Animated_Child', (4, 0, 1), (90, 0, 0))
+
+        bpy.context.scene.frame_set(10)
+
+        self.loc_rot_scale('CAM_Animated', (4, 1, 2), (90, 0, 25))
+        self.loc_rot_scale('CAM_Animated_Child_Left', (3.864053, 0.936607, 2), (90, 0, 25))
+        self.loc_rot_scale('CAM_Animated_Child_Right', (4.135946, 1.063392, 2), (90, 0, 25))
+        self.loc_rot_scale('Animated_Child', (4, 1, 3), (90, -45, 25))
+
+    def loc_rot_scale(self, name: str, expect_loc, expect_rot_deg):
+        """Assert world loc/rot/scale is OK."""
+
+        objects = bpy.context.scene.collection.objects
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        ob_eval = objects[name].evaluated_get(depsgraph)
+
+        actual_loc = ob_eval.matrix_world.to_translation()
+        actual_rot = ob_eval.matrix_world.to_euler('XYZ')
+        actual_scale = ob_eval.matrix_world.to_scale()
+
+        self.assertAlmostEqual(expect_loc[0], actual_loc.x, delta=1e-5)
+        self.assertAlmostEqual(expect_loc[1], actual_loc.y, delta=1e-5)
+        self.assertAlmostEqual(expect_loc[2], actual_loc.z, delta=1e-5)
+
+        self.assertAlmostEqual(expect_rot_deg[0], math.degrees(actual_rot.x), delta=1e-5)
+        self.assertAlmostEqual(expect_rot_deg[1], math.degrees(actual_rot.y), delta=1e-5)
+        self.assertAlmostEqual(expect_rot_deg[2], math.degrees(actual_rot.z), delta=1e-5)
+
+        # This test doesn't use scale.
+        self.assertAlmostEqual(1, actual_scale.x, delta=1e-5)
+        self.assertAlmostEqual(1, actual_scale.y, delta=1e-5)
+        self.assertAlmostEqual(1, actual_scale.z, delta=1e-5)
 
 
 def main():

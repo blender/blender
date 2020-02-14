@@ -51,6 +51,7 @@ std::string get_id_name(const ID *const id);
 std::string get_id_name(const Object *const ob);
 std::string get_object_dag_path_name(const Object *const ob, Object *dupli_parent);
 
+/* Convert from float to Alembic matrix representations. Does NOT convert from Z-up to Y-up. */
 Imath::M44d convert_matrix(float mat[4][4]);
 
 typedef enum {
@@ -69,7 +70,8 @@ template<class TContainer> bool begins_with(const TContainer &input, const TCont
   return input.size() >= match.size() && std::equal(match.begin(), match.end(), input.begin());
 }
 
-void convert_matrix(const Imath::M44d &xform, Object *ob, float r_mat[4][4]);
+/* Convert from Alembic to float matrix representations. Does NOT convert from Y-up to Z-up. */
+void convert_matrix(const Imath::M44d &xform, float r_mat[4][4]);
 
 template<typename Schema>
 void get_min_max_time_ex(const Schema &schema, chrono_t &min, chrono_t &max)

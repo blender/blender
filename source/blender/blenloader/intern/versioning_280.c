@@ -4473,5 +4473,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    
+    /* Alembic Transform Cache changed from world to local space. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
+        if (con->type == CONSTRAINT_TYPE_TRANSFORM_CACHE) {
+          con->ownspace = CONSTRAINT_SPACE_LOCAL;
+        }
+      }
+    }
   }
 }
