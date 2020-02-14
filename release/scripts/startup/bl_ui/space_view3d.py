@@ -3583,7 +3583,8 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
-            col.operator("mesh.loopcut_slide")
+            props = col.operator("mesh.loopcut_slide")
+            props.TRANSFORM_OT_edge_slide.release_confirm = False
             col.operator("mesh.offset_edge_loops_slide")
 
             col.separator()
