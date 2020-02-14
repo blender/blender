@@ -525,7 +525,7 @@ void doVertSlide(TransInfo *t, float perc)
   }
 }
 
-void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
+static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;

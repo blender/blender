@@ -75,8 +75,6 @@ static void drawTransformApply(const struct bContext *C, ARegion *ar, void *arg)
 
 static void initSnapSpatial(TransInfo *t, float r_snap[3]);
 
-static void storeCustomLNorValue(TransDataContainer *t, BMesh *bm);
-
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
   return ((around == V3D_AROUND_LOCAL_ORIGINS) && ((ELEM(t->obedit_type, OB_MESH))));
