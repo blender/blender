@@ -148,7 +148,7 @@ static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
                 BLI_assert(gzgroup->parent_gzmap == gzmap);
                 if (gz->type == gzt) {
                   WM_gizmo_unlink(&gzgroup->gizmos, gzgroup->parent_gzmap, gz, C);
-                  ED_region_tag_redraw(ar);
+                  ED_region_tag_redraw_editor_overlays(ar);
                 }
               }
             }

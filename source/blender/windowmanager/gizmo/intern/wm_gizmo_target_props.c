@@ -318,7 +318,8 @@ void WM_gizmo_do_msg_notify_tag_refresh(bContext *UNUSED(C),
   ARegion *ar = msg_val->owner;
   wmGizmoMap *gzmap = msg_val->user_data;
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(ar); /* Could possibly avoid a full redraw and only tag for editor overlays
+                               redraw in some cases, see ED_region_tag_redraw_editor_overlays(). */
   WM_gizmomap_tag_refresh(gzmap);
 }
 

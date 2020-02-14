@@ -678,6 +678,9 @@ enum {
   RGN_DRAWING = 8,
   /* For popups, to refresh UI layout along with drawing. */
   RGN_REFRESH_UI = 16,
+
+  /* Only editor overlays (currently gizmos only!) should be redrawn. */
+  RGN_DRAW_EDITOR_OVERLAYS = 32,
 };
 
 #endif /* __DNA_SCREEN_TYPES_H__ */

@@ -310,7 +310,7 @@ void WM_gizmo_group_remove_by_tool(bContext *C,
               if (gzgroup->type == gzgt) {
                 BLI_assert(gzgroup->parent_gzmap == gzmap);
                 wm_gizmogroup_free(C, gzgroup);
-                ED_region_tag_redraw(ar);
+                ED_region_tag_redraw_editor_overlays(ar);
               }
             }
           }
@@ -391,7 +391,7 @@ static int gizmo_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     }
 
     if (redraw) {
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw_editor_overlays(ar);
     }
 
     return OPERATOR_FINISHED;
@@ -941,7 +941,7 @@ wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(wmGizmoMapType *gzm
 
   wm_gizmomap_highlight_set(gzmap, NULL, NULL, 0);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw_editor_overlays(ar);
 
   return gzgroup;
 }
@@ -973,7 +973,7 @@ void WM_gizmomaptype_group_unlink(bContext *C,
               if (gzgroup->type == gzgt) {
                 BLI_assert(gzgroup->parent_gzmap == gzmap);
                 wm_gizmogroup_free(C, gzgroup);
-                ED_region_tag_redraw(ar);
+                ED_region_tag_redraw_editor_overlays(ar);
               }
             }
           }

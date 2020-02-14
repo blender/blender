@@ -276,7 +276,7 @@ static int gizmo2d_modal(bContext *C,
   gizmo2d_origin_to_region(ar, origin);
   WM_gizmo_set_matrix_location(widget, origin);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw_editor_overlays(ar);
 
   return OPERATOR_RUNNING_MODAL;
 }

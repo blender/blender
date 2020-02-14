@@ -1047,7 +1047,7 @@ bool wm_gizmomap_highlight_set(wmGizmoMap *gzmap, const bContext *C, wmGizmo *gz
     /* tag the region for redraw */
     if (C) {
       ARegion *ar = CTX_wm_region(C);
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw_editor_overlays(ar);
     }
 
     return true;
@@ -1135,7 +1135,7 @@ void wm_gizmomap_modal_set(
           WM_cursor_warp(win, UNPACK2(gzmap->gzmap_context.event_xy));
         }
       }
-      ED_region_tag_redraw(CTX_wm_region(C));
+      ED_region_tag_redraw_editor_overlays(CTX_wm_region(C));
       WM_event_add_mousemove(C);
     }
 
@@ -1385,7 +1385,7 @@ void WM_gizmoconfig_update(struct Main *bmain)
                 gzgroup_next = gzgroup->next;
                 if (gzgroup->tag_remove) {
                   wm_gizmogroup_free(NULL, gzgroup);
-                  ED_region_tag_redraw(ar);
+                  ED_region_tag_redraw_editor_overlays(ar);
                 }
               }
             }

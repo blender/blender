@@ -75,6 +75,7 @@ void ED_region_tag_redraw_partial(struct ARegion *ar, const struct rcti *rct, bo
 void ED_region_tag_redraw_overlay(struct ARegion *ar);
 void ED_region_tag_redraw_no_rebuild(struct ARegion *ar);
 void ED_region_tag_refresh_ui(struct ARegion *ar);
+void ED_region_tag_redraw_editor_overlays(struct ARegion *ar);
 
 void ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
 void ED_region_panels_ex(const struct bContext *C,

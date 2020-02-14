@@ -303,7 +303,7 @@ static int gizmo_move_modal(bContext *C,
     zero_v3(move->prop_co);
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw_editor_overlays(ar);
 
   inter->prev.tweak_flag = tweak_flag;
 

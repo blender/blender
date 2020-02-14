@@ -227,7 +227,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
 
   if (best.ele) {
     ARegion *ar = CTX_wm_region(C);
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw_editor_overlays(ar);
   }
 
   // return best.eed ? 0 : -1;
@@ -383,7 +383,7 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
     RNA_int_set(gz->ptr, "edge_index", gz_ring->edge_index);
 
     ARegion *ar = CTX_wm_region(C);
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw_editor_overlays(ar);
   }
 
   // return best.eed ? 0 : -1;

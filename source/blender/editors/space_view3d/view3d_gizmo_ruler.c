@@ -933,7 +933,7 @@ static int gizmo_ruler_modal(bContext *C,
   ruler_info->drag_state_prev.do_thickness = do_thickness;
 
   if (do_draw) {
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw_editor_overlays(ar);
   }
   return exit_code;
 }
@@ -1187,7 +1187,7 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
       /* Update the annotation layer. */
       view3d_ruler_to_gpencil(C, gzgroup);
 
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw_editor_overlays(ar);
       return OPERATOR_FINISHED;
     }
   }

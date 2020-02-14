@@ -1567,7 +1567,7 @@ static int gizmo_modal(bContext *C,
     WM_gizmo_set_matrix_location(widget, rv3d->twmat[3]);
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw_editor_overlays(ar);
 
   return OPERATOR_RUNNING_MODAL;
 }

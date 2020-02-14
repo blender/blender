@@ -629,7 +629,7 @@ void ED_region_tag_redraw(ARegion *ar)
    * but python scripts can cause this to happen indirectly */
   if (ar && !(ar->do_draw & RGN_DRAWING)) {
     /* zero region means full region redraw */
-    ar->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_NO_REBUILD);
+    ar->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_NO_REBUILD | RGN_DRAW_EDITOR_OVERLAYS);
     ar->do_draw |= RGN_DRAW;
     memset(&ar->drawrct, 0, sizeof(ar->drawrct));
   }
@@ -645,7 +645,7 @@ void ED_region_tag_redraw_overlay(ARegion *ar)
 void ED_region_tag_redraw_no_rebuild(ARegion *ar)
 {
   if (ar && !(ar->do_draw & (RGN_DRAWING | RGN_DRAW))) {
-    ar->do_draw &= ~RGN_DRAW_PARTIAL;
+    ar->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_EDITOR_OVERLAYS);
     ar->do_draw |= RGN_DRAW_NO_REBUILD;
     memset(&ar->drawrct, 0, sizeof(ar->drawrct));
   }
@@ -655,6 +655,22 @@ void ED_region_tag_refresh_ui(ARegion *ar)
 {
   if (ar) {
     ar->do_draw |= RGN_REFRESH_UI;
+  }
+}
+
+/**
+ * Tag editor overlays to be redrawn. If in doubt about which parts need to be redrawn (partial
+ * clipping rectangle set), redraw everything.
+ */
+void ED_region_tag_redraw_editor_overlays(struct ARegion *ar)
+{
+  if (ar && !(ar->do_draw & (RGN_DRAWING | RGN_DRAW))) {
+    if (ar->do_draw & RGN_DRAW_PARTIAL) {
+      ED_region_tag_redraw(ar);
+    }
+    else {
+      ar->do_draw |= RGN_DRAW_EDITOR_OVERLAYS;
+    }
   }
 }
 
