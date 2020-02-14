@@ -1128,6 +1128,10 @@ void Session::denoise()
   else {
     assert(buffers);
 
+    if (tile_manager.state.buffer.width == 0 || tile_manager.state.buffer.height == 0) {
+      return; /* Avoid empty launches. */
+    }
+
     /* Wait for rendering to finish. */
     device->task_wait();
 
