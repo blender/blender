@@ -93,7 +93,7 @@ static void textview_draw_sel(const char *str,
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
     immUniformColor4ubv(bg_sel);
-    immRecti(pos, xy[0] + (cwidth * sta), xy[1] - 2 + lheight, xy[0] + (cwidth * end), xy[1] - 2);
+    immRecti(pos, xy[0] + (cwidth * sta), xy[1] + lheight, xy[0] + (cwidth * end), xy[1]);
 
     immUnbindProgram();
 
@@ -316,7 +316,7 @@ int textview_draw(TextViewContext *tvc,
 {
   TextViewDrawState tds = {0};
 
-  int x_orig = tvc->draw_rect.xmin, y_orig = tvc->draw_rect.ymin + tvc->lheight / 6;
+  const int x_orig = tvc->draw_rect.xmin, y_orig = tvc->draw_rect.ymin;
   int xy[2];
   /* Disable selection by. */
   int sel[2] = {-1, -1};
@@ -367,11 +367,6 @@ int textview_draw(TextViewContext *tvc,
   tds.mval = mval;
   tds.do_draw = do_draw;
 
-  /* Shouldnt be needed. */
-  tvc->cwidth = tds.cwidth;
-  tvc->columns = tds.columns;
-  tvc->iter_index = 0;
-
   if (tvc->sel_start != tvc->sel_end) {
     sel[0] = tvc->sel_start;
     sel[1] = tvc->sel_end;
@@ -384,6 +379,7 @@ int textview_draw(TextViewContext *tvc,
       tvc->const_colors(tvc, bg_sel);
     }
 
+    int iter_index = 0;
     do {
       const char *ext_line;
       int ext_len;
@@ -414,8 +410,8 @@ int textview_draw(TextViewContext *tvc,
       }
 
       if (do_draw) {
-        if (tvc->draw_cursor && tvc->iter_index == 0) {
-          tvc->draw_cursor(tvc);
+        if (tvc->draw_cursor && iter_index == 0) {
+          tvc->draw_cursor(tvc, tds.cwidth, tds.columns, tds.lofs);
         }
       }
 
@@ -424,7 +420,7 @@ int textview_draw(TextViewContext *tvc,
         break;
       }
 
-      tvc->iter_index++;
+      iter_index++;
 
     } while (tvc->step(tvc));
   }

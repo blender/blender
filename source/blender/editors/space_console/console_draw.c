@@ -144,34 +144,37 @@ static void console_cursor_wrap_offset(
   return;
 }
 
-static void console_textview_draw_cursor(struct TextViewContext *tvc)
+static void console_textview_draw_cursor(struct TextViewContext *tvc,
+                                         int cwidth,
+                                         int columns,
+                                         int descender)
 {
-  const SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
-  const ConsoleLine *cl = (ConsoleLine *)sc->history.last;
-  int offl = 0, offc = 0;
-  int xy[2] = {tvc->draw_rect.xmin, tvc->draw_rect.ymin};
   int pen[2];
-  GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  xy[1] += tvc->lheight * 0.35f;
+  {
+    const SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
+    const ConsoleLine *cl = (ConsoleLine *)sc->history.last;
+    int offl = 0, offc = 0;
 
-  console_cursor_wrap_offset(sc->prompt, tvc->columns, &offl, &offc, NULL);
-  console_cursor_wrap_offset(cl->line, tvc->columns, &offl, &offc, cl->line + cl->cursor);
-  pen[0] = tvc->cwidth * offc;
-  pen[1] = -2 - tvc->lheight * offl;
+    console_cursor_wrap_offset(sc->prompt, columns, &offl, &offc, NULL);
+    console_cursor_wrap_offset(cl->line, columns, &offl, &offc, cl->line + cl->cursor);
+    pen[0] = cwidth * offc;
+    pen[1] = -2 - (tvc->lheight + descender) * offl;
 
-  console_cursor_wrap_offset(cl->line + cl->cursor, tvc->columns, &offl, &offc, NULL);
-  pen[1] += tvc->lheight * offl;
+    console_cursor_wrap_offset(cl->line + cl->cursor, columns, &offl, &offc, NULL);
+    pen[1] += (tvc->lheight + descender) * offl;
+
+    pen[0] += tvc->draw_rect.xmin;
+    pen[1] += tvc->draw_rect.ymin;
+  }
 
   /* cursor */
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CONSOLE_CURSOR);
 
-  immRectf(pos,
-           (xy[0] + pen[0]) - U.pixelsize,
-           (xy[1] + pen[1]),
-           (xy[0] + pen[0]) + U.pixelsize,
-           (xy[1] + pen[1] + tvc->lheight));
+  immRectf(
+      pos, pen[0] - U.pixelsize, pen[1], pen[0] + U.pixelsize, pen[1] + tvc->lheight + descender);
 
   immUnbindProgram();
 }
