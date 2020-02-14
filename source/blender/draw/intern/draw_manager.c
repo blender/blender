@@ -1595,7 +1595,26 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
   DST.options.draw_background = draw_background;
   DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, render_viewport, NULL);
 
+  if (draw_background) {
+    /* HACK(fclem): In this case we need to make sure the final alpha is 1.
+     * We use the blend mode to ensure that. A better way to fix that would
+     * be to do that in the colormanagmeent shader. */
+    GPU_offscreen_bind(ofs, false);
+    GPU_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+    GPU_clear(GPU_COLOR_BIT);
+    /* Premult Alpha over black background. */
+    GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend(true);
+  }
+
   GPU_viewport_unbind_from_offscreen(render_viewport, ofs, do_color_management);
+
+  if (draw_background) {
+    /* Reset default. */
+    GPU_blend_set_func_separate(
+        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend(false);
+  }
 
   /* Free temporary viewport. */
   if (viewport == NULL) {
