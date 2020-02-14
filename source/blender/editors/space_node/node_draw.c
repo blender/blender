@@ -1341,14 +1341,14 @@ static void node_draw_hidden(const bContext *C,
     GPU_blend(true);
     GPU_line_smooth(true);
 
-    UI_draw_roundbox_3fvAlpha(false,
-                              rct->xmin + 1,
-                              rct->ymin + 1,
-                              rct->xmax - 1,
-                              rct->ymax - 1,
-                              hiddenrad,
-                              node->color,
-                              1.0f);
+    UI_draw_roundbox_3fv_alpha(false,
+                               rct->xmin + 1,
+                               rct->ymin + 1,
+                               rct->xmax - 1,
+                               rct->ymax - 1,
+                               hiddenrad,
+                               node->color,
+                               1.0f);
 
     GPU_line_smooth(false);
     GPU_blend(false);

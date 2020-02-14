@@ -80,14 +80,14 @@ int UI_draw_roundbox_corner_get(void)
 }
 #endif
 
-void UI_draw_roundbox_3ubAlpha(bool filled,
-                               float minx,
-                               float miny,
-                               float maxx,
-                               float maxy,
-                               float rad,
-                               const uchar col[3],
-                               uchar alpha)
+void UI_draw_roundbox_3ub_alpha(bool filled,
+                                float minx,
+                                float miny,
+                                float maxx,
+                                float maxy,
+                                float rad,
+                                const uchar col[3],
+                                uchar alpha)
 {
   float colv[4];
   colv[0] = ((float)col[0]) / 255;
@@ -97,14 +97,14 @@ void UI_draw_roundbox_3ubAlpha(bool filled,
   UI_draw_roundbox_4fv(filled, minx, miny, maxx, maxy, rad, colv);
 }
 
-void UI_draw_roundbox_3fvAlpha(bool filled,
-                               float minx,
-                               float miny,
-                               float maxx,
-                               float maxy,
-                               float rad,
-                               const float col[3],
-                               float alpha)
+void UI_draw_roundbox_3fv_alpha(bool filled,
+                                float minx,
+                                float miny,
+                                float maxx,
+                                float maxy,
+                                float rad,
+                                const float col[3],
+                                float alpha)
 {
   float colv[4];
   colv[0] = col[0];
@@ -1740,7 +1740,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
 
   /* backdrop */
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_3ubAlpha(
+  UI_draw_roundbox_3ub_alpha(
       true, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f, wcol->inner, 255);
 
   glCullFace(GL_BACK);

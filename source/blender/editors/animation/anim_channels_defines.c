@@ -125,7 +125,7 @@ static void acf_generic_root_backdrop(bAnimContext *ac,
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
   UI_draw_roundbox_corner_set((expanded) ? UI_CNR_TOP_LEFT :
                                            (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-  UI_draw_roundbox_3fvAlpha(
+  UI_draw_roundbox_3fv_alpha(
       true, offset, yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8, color, 1.0f);
 }
 
@@ -477,7 +477,7 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
    * - special hack: make the top a bit higher, since we are first...
    */
   UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
-  UI_draw_roundbox_3fvAlpha(
+  UI_draw_roundbox_3fv_alpha(
       true, 0, yminc - 2, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8, color, 1.0f);
 }
 
@@ -884,7 +884,7 @@ static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc
 
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
   UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-  UI_draw_roundbox_3fvAlpha(
+  UI_draw_roundbox_3fv_alpha(
       true, offset, yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8, color, 1.0f);
 }
 
@@ -1157,7 +1157,7 @@ static void acf_nla_controls_backdrop(bAnimContext *ac,
 
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
   UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-  UI_draw_roundbox_3fvAlpha(
+  UI_draw_roundbox_3fv_alpha(
       true, offset, yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 5, color, 1.0f);
 }
 

@@ -403,22 +403,22 @@ void UI_draw_roundbox_aa(
     bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4]);
 void UI_draw_roundbox_4fv(
     bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[4]);
-void UI_draw_roundbox_3ubAlpha(bool filled,
-                               float minx,
-                               float miny,
-                               float maxx,
-                               float maxy,
-                               float rad,
-                               const unsigned char col[3],
-                               unsigned char alpha);
-void UI_draw_roundbox_3fvAlpha(bool filled,
-                               float minx,
-                               float miny,
-                               float maxx,
-                               float maxy,
-                               float rad,
-                               const float col[3],
-                               float alpha);
+void UI_draw_roundbox_3ub_alpha(bool filled,
+                                float minx,
+                                float miny,
+                                float maxx,
+                                float maxy,
+                                float rad,
+                                const unsigned char col[3],
+                                unsigned char alpha);
+void UI_draw_roundbox_3fv_alpha(bool filled,
+                                float minx,
+                                float miny,
+                                float maxx,
+                                float maxy,
+                                float rad,
+                                const float col[3],
+                                float alpha);
 void UI_draw_roundbox_shade_x(bool filled,
                               float minx,
                               float miny,
