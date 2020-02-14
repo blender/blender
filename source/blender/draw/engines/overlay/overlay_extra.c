@@ -1350,7 +1350,7 @@ static void OVERLAY_gpencil_color_names(Object *ob)
   int theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
   uchar color[4];
   /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
-  UI_GetThemeColor4ubv(theme_id, color);
+  UI_GetThemeColor3ubv(theme_id, color);
   color[3] = 255;
   struct DRWTextStore *dt = DRW_text_cache_ensure();
 

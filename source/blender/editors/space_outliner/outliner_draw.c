@@ -2703,7 +2703,7 @@ static void outliner_draw_iconrow_number(const uiFontStyle *fstyle,
   /* Now the numbers. */
   uchar text_col[4];
 
-  UI_GetThemeColor4ubv(TH_TEXT_HI, text_col);
+  UI_GetThemeColor3ubv(TH_TEXT_HI, text_col);
   text_col[3] = 255;
 
   uiFontStyle fstyle_small = *fstyle;
