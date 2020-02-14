@@ -875,6 +875,43 @@ enum {
   MULTI_POINTS = 1 << 3,
 };
 
+/** keymap modal items */
+/* NOTE: these values are saved in keymap files, do not change then but just add new ones. */
+enum {
+  TFM_MODAL_CANCEL = 1,
+  TFM_MODAL_CONFIRM = 2,
+  TFM_MODAL_TRANSLATE = 3,
+  TFM_MODAL_ROTATE = 4,
+  TFM_MODAL_RESIZE = 5,
+  TFM_MODAL_SNAP_INV_ON = 6,
+  TFM_MODAL_SNAP_INV_OFF = 7,
+  TFM_MODAL_SNAP_TOGGLE = 8,
+  TFM_MODAL_AXIS_X = 9,
+  TFM_MODAL_AXIS_Y = 10,
+  TFM_MODAL_AXIS_Z = 11,
+  TFM_MODAL_PLANE_X = 12,
+  TFM_MODAL_PLANE_Y = 13,
+  TFM_MODAL_PLANE_Z = 14,
+  TFM_MODAL_CONS_OFF = 15,
+  TFM_MODAL_ADD_SNAP = 16,
+  TFM_MODAL_REMOVE_SNAP = 17,
+
+  /* 18 and 19 used by numinput, defined in transform.h */
+
+  TFM_MODAL_PROPSIZE_UP = 20,
+  TFM_MODAL_PROPSIZE_DOWN = 21,
+  TFM_MODAL_AUTOIK_LEN_INC = 22,
+  TFM_MODAL_AUTOIK_LEN_DEC = 23,
+
+  TFM_MODAL_EDGESLIDE_UP = 24,
+  TFM_MODAL_EDGESLIDE_DOWN = 25,
+
+  /* for analog input, like trackpad */
+  TFM_MODAL_PROPSIZE = 26,
+  /* node editor insert offset (aka auto-offset) direction toggle */
+  TFM_MODAL_INSERTOFS_TOGGLE_DIR = 27,
+};
+
 /* Hard min/max for proportional size. */
 #define T_PROP_SIZE_MIN 1e-6f
 #define T_PROP_SIZE_MAX 1e12f
@@ -1051,12 +1088,6 @@ int getTransformOrientation_ex(const struct bContext *C,
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3]);
 
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
-
-void freeEdgeSlideVerts(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
-void projectEdgeSlideData(TransInfo *t, bool is_final);
-
-void freeVertSlideVerts(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
-void projectVertSlideData(TransInfo *t, bool is_final);
 
 /* TODO. transform_query.c */
 bool checkUseAxisMatrix(TransInfo *t);
