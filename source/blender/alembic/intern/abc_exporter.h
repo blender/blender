@@ -79,9 +79,6 @@ struct ExportSettings {
 
   int quad_method;
   int ngon_method;
-
-  bool do_convert_axis;
-  float convert_matrix[3][3];
 };
 
 class AbcExporter {

@@ -99,8 +99,7 @@ ExportSettings::ExportSettings()
       pack_uv(false),
       triangulate(false),
       quad_method(0),
-      ngon_method(0),
-      do_convert_axis(false)
+      ngon_method(0)
 {
 }
 
