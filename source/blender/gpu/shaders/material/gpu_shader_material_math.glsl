@@ -127,8 +127,7 @@ void math_pingpong(float a, float b, float c, out float result)
 /* Adapted from godotengine math_funcs.h. */
 void math_wrap(float a, float b, float c, out float result)
 {
-  float range = b - c;
-  result = (range != 0.0) ? a - (range * floor((a - c) / range)) : c;
+  result = wrap(a, b, c);
 }
 
 void math_sine(float a, float b, float c, out float result)

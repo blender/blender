@@ -15,33 +15,12 @@
  */
 
 #include "stdcycles.h"
-
-float safe_divide(float a, float b)
-{
-  return (b != 0.0) ? a / b : 0.0;
-}
-
-vector safe_divide(vector a, vector b)
-{
-  return vector((b[0] != 0.0) ? a[0] / b[0] : 0.0,
-                (b[1] != 0.0) ? a[1] / b[1] : 0.0,
-                (b[2] != 0.0) ? a[2] / b[2] : 0.0);
-}
-
-vector project(vector v, vector v_proj)
-{
-  float lenSquared = dot(v_proj, v_proj);
-  return (lenSquared != 0.0) ? (dot(v, v_proj) / lenSquared) * v_proj : vector(0.0);
-}
-
-vector snap(vector a, vector b)
-{
-  return floor(safe_divide(a, b)) * b;
-}
+#include "node_math.h"
 
 shader node_vector_math(string type = "add",
                         vector Vector1 = vector(0.0, 0.0, 0.0),
                         vector Vector2 = vector(0.0, 0.0, 0.0),
+                        vector Vector3 = vector(0.0, 0.0, 0.0),
                         float Scale = 1.0,
                         output float Value = 0.0,
                         output vector Vector = vector(0.0, 0.0, 0.0))
@@ -94,6 +73,9 @@ shader node_vector_math(string type = "add",
   else if (type == "modulo") {
     Vector = fmod(Vector1, Vector2);
   }
+  else if (type == "wrap") {
+    Vector = wrap(Vector1, Vector2, Vector3);
+  }
   else if (type == "fraction") {
     Vector = Vector1 - floor(Vector1);
   }
@@ -105,6 +87,15 @@ shader node_vector_math(string type = "add",
   }
   else if (type == "maximum") {
     Vector = max(Vector1, Vector2);
+  }
+  else if (type == "sine") {
+    Vector = sin(Vector1);
+  }
+  else if (type == "cosine") {
+    Vector = cos(Vector1);
+  }
+  else if (type == "tangent") {
+    Vector = tan(Vector1);
   }
   else {
     warning("%s", "Unknown vector math operator!");

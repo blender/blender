@@ -15,55 +15,7 @@
  */
 
 #include "stdcycles.h"
-
-float safe_divide(float a, float b)
-{
-  return (b != 0.0) ? a / b : 0.0;
-}
-
-float safe_modulo(float a, float b)
-{
-  return (b != 0.0) ? fmod(a, b) : 0.0;
-}
-
-float fract(float a)
-{
-  return a - floor(a);
-}
-
-/* Adapted from godotengine math_funcs.h. */
-float wrap(float value, float max, float min)
-{
-  float range = max - min;
-  return (range != 0.0) ? value - (range * floor((value - min) / range)) : min;
-}
-
-/* See: https://www.iquilezles.org/www/articles/smin/smin.htm. */
-float smoothmin(float a, float b, float c)
-{
-  if (c != 0.0) {
-    float h = max(c - abs(a - b), 0.0) / c;
-    return min(a, b) - h * h * h * c * (1.0 / 6.0);
-  }
-  else {
-    return min(a, b);
-  }
-}
-
-float pingpong(float a, float b)
-{
-  return (b != 0.0) ? abs(fract((a - b) / (b * 2.0)) * b * 2.0 - b) : 0.0;
-}
-
-float safe_sqrt(float a)
-{
-  return (a > 0.0) ? sqrt(a) : 0.0;
-}
-
-float safe_log(float a, float b)
-{
-  return (a > 0.0 && b > 0.0) ? log(a) / log(b) : 0.0;
-}
+#include "node_math.h"
 
 /* OSL asin, acos, and pow functions are safe by default. */
 shader node_math(string type = "add",

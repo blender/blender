@@ -6022,14 +6022,20 @@ NODE_DEFINE(VectorMathNode)
   type_enum.insert("floor", NODE_VECTOR_MATH_FLOOR);
   type_enum.insert("ceil", NODE_VECTOR_MATH_CEIL);
   type_enum.insert("modulo", NODE_VECTOR_MATH_MODULO);
+  type_enum.insert("wrap", NODE_VECTOR_MATH_WRAP);
   type_enum.insert("fraction", NODE_VECTOR_MATH_FRACTION);
   type_enum.insert("absolute", NODE_VECTOR_MATH_ABSOLUTE);
   type_enum.insert("minimum", NODE_VECTOR_MATH_MINIMUM);
   type_enum.insert("maximum", NODE_VECTOR_MATH_MAXIMUM);
+
+  type_enum.insert("sine", NODE_VECTOR_MATH_SINE);
+  type_enum.insert("cosine", NODE_VECTOR_MATH_COSINE);
+  type_enum.insert("tangent", NODE_VECTOR_MATH_TANGENT);
   SOCKET_ENUM(type, "Type", type_enum, NODE_VECTOR_MATH_ADD);
 
   SOCKET_IN_VECTOR(vector1, "Vector1", make_float3(0.0f, 0.0f, 0.0f));
   SOCKET_IN_VECTOR(vector2, "Vector2", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_IN_VECTOR(vector3, "Vector3", make_float3(0.0f, 0.0f, 0.0f));
   SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
 
   SOCKET_OUT_FLOAT(value, "Value");
@@ -6048,7 +6054,7 @@ void VectorMathNode::constant_fold(const ConstantFolder &folder)
   float3 vector = make_float3(0.0f, 0.0f, 0.0f);
 
   if (folder.all_inputs_constant()) {
-    svm_vector_math(&value, &vector, type, vector1, vector2, scale);
+    svm_vector_math(&value, &vector, type, vector1, vector2, vector3, scale);
     if (folder.output == output("Value")) {
       folder.make_constant(value);
     }
@@ -6075,11 +6081,24 @@ void VectorMathNode::compile(SVMCompiler &compiler)
   int value_stack_offset = compiler.stack_assign_if_linked(value_out);
   int vector_stack_offset = compiler.stack_assign_if_linked(vector_out);
 
-  compiler.add_node(
-      NODE_VECTOR_MATH,
-      type,
-      compiler.encode_uchar4(vector1_stack_offset, vector2_stack_offset, scale_stack_offset),
-      compiler.encode_uchar4(value_stack_offset, vector_stack_offset));
+  /* 3 Vector Operators */
+  if (type == NODE_VECTOR_MATH_WRAP) {
+    ShaderInput *vector3_in = input("Vector3");
+    int vector3_stack_offset = compiler.stack_assign(vector3_in);
+    compiler.add_node(
+        NODE_VECTOR_MATH,
+        type,
+        compiler.encode_uchar4(vector1_stack_offset, vector2_stack_offset, scale_stack_offset),
+        compiler.encode_uchar4(value_stack_offset, vector_stack_offset));
+    compiler.add_node(vector3_stack_offset);
+  }
+  else {
+    compiler.add_node(
+        NODE_VECTOR_MATH,
+        type,
+        compiler.encode_uchar4(vector1_stack_offset, vector2_stack_offset, scale_stack_offset),
+        compiler.encode_uchar4(value_stack_offset, vector_stack_offset));
+  }
 }
 
 void VectorMathNode::compile(OSLCompiler &compiler)
