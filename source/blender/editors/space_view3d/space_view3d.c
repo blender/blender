@@ -829,7 +829,7 @@ static void view3d_main_region_listener(
     case NC_BRUSH:
       switch (wmn->action) {
         case NA_EDITED:
-          ED_region_tag_redraw_overlay(ar);
+          ED_region_tag_redraw_cursor(ar);
           break;
         case NA_SELECTED:
           /* used on brush changes - needed because 3d cursor

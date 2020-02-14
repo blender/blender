@@ -635,7 +635,7 @@ void ED_region_tag_redraw(ARegion *ar)
   }
 }
 
-void ED_region_tag_redraw_overlay(ARegion *ar)
+void ED_region_tag_redraw_cursor(ARegion *ar)
 {
   if (ar) {
     ar->do_draw_overlay = RGN_DRAW;
