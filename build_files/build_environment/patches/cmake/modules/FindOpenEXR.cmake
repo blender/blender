@@ -230,7 +230,7 @@ if(OPENEXR_FOUND)
 endif()
 
 # Restore the original find library ordering
-if( OPENEXR_USE_STATIC_LIBS )
+if(OPENEXR_USE_STATIC_LIBS )
   set(CMAKE_FIND_LIBRARY_SUFFIXES ${_openexr_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
 endif()
 

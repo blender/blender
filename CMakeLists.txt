@@ -492,7 +492,8 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     if(NOT MSVC)
       find_library(COMPILER_ASAN_LIBRARY asan ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES})
     else()
-      find_library( COMPILER_ASAN_LIBRARY NAMES clang_rt.asan-x86_64
+      find_library(
+        COMPILER_ASAN_LIBRARY NAMES clang_rt.asan-x86_64
         PATHS
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/7.0.0/lib/windows
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/6.0.0/lib/windows

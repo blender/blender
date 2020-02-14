@@ -50,7 +50,7 @@ endif()
 
 # ------------------------------------------------------------------------------
 # GENERAL PYTHON CORRECTNESS TESTS
-macro (COLLADA_TEST module test_name blend_file)
+macro(COLLADA_TEST module test_name blend_file)
   add_test(
     NAME collada_${module}_${test_name}
     COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} ${TEST_SRC_DIR}/collada/${module}/${blend_file}

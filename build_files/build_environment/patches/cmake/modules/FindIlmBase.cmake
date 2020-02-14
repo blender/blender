@@ -26,8 +26,8 @@ include(FindPackageMessage)
 include(SelectLibraryConfigurations)
 
 
-if( ILMBASE_USE_STATIC_LIBS )
-  set( _ilmbase_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+if(ILMBASE_USE_STATIC_LIBS)
+  set(_ilmbase_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
   if(WIN32)
     set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   else()
@@ -247,7 +247,7 @@ if(ILMBASE_FOUND)
 endif()
 
 # Restore the original find library ordering
-if( ILMBASE_USE_STATIC_LIBS )
+if(ILMBASE_USE_STATIC_LIBS )
   set(CMAKE_FIND_LIBRARY_SUFFIXES ${_ilmbase_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})
 endif()
 

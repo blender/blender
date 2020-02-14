@@ -40,5 +40,5 @@ execute_process(
 )
 
 if(NOT exit_code EQUAL "0")
-    message( FATAL_ERROR "Non-zero exit code of codesign tool")
+    message(FATAL_ERROR "Non-zero exit code of codesign tool")
 endif()
