@@ -470,15 +470,13 @@ void uiStyleInit(void)
       uchar *font_ttf = (uchar *)datatoc_bfont_ttf;
       static int last_font_size = 0;
 
-      /* use unicode font for translation */
-      if (U.transopts & USER_DOTRANSLATE) {
-        font_ttf = BLF_get_unifont(&font_size);
+      /* use unicode font if available */
+      font_ttf = BLF_get_unifont(&font_size);
 
-        if (!font_ttf) {
-          /* fall back if not found */
-          font_size = datatoc_bfont_ttf_size;
-          font_ttf = (uchar *)datatoc_bfont_ttf;
-        }
+      if (!font_ttf) {
+        /* fall back if not found */
+        font_size = datatoc_bfont_ttf_size;
+        font_ttf = (uchar *)datatoc_bfont_ttf;
       }
 
       /* relload only if needed */
@@ -523,14 +521,12 @@ void uiStyleInit(void)
 
 #ifdef WITH_INTERNATIONAL
   /* use unicode font for text editor and interactive console */
-  if (U.transopts & USER_DOTRANSLATE) {
-    monofont_ttf = BLF_get_unifont_mono(&monofont_size);
+  monofont_ttf = BLF_get_unifont_mono(&monofont_size);
 
-    if (!monofont_ttf) {
-      /* fall back if not found */
-      monofont_size = datatoc_bmonofont_ttf_size;
-      monofont_ttf = (uchar *)datatoc_bmonofont_ttf;
-    }
+  if (!monofont_ttf) {
+    /* fall back if not found */
+    monofont_size = datatoc_bmonofont_ttf_size;
+    monofont_ttf = (uchar *)datatoc_bmonofont_ttf;
   }
 #endif
 

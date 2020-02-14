@@ -8,6 +8,9 @@ Blender Mono I18n font includes glyphs imported from the following fonts:
 These were merged using FontForge in the above order.  For each glyph,
 a license of the font from which it was imported is applied.
 
+Feb 2020 - Cyrillic unicode range (specifically U+400-U+0525) reimported
+from current version of DejaVu Sans Mono.
+
 ----------------------------------------------------------------------
 Summary of Copyrights and Licenses
 

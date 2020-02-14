@@ -45,8 +45,8 @@ struct FontBuf {
   int data_len;
 };
 
-static struct FontBuf unifont_ttf = {"droidsans.ttf.gz"};
-static struct FontBuf unifont_mono_ttf = {"bmonofont-i18n.ttf.gz"};
+static struct FontBuf unifont_ttf = {"droidsans.ttf"};
+static struct FontBuf unifont_mono_ttf = {"bmonofont-i18n.ttf"};
 
 static void fontbuf_load(struct FontBuf *fb)
 {
