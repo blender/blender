@@ -1351,6 +1351,7 @@ static void OVERLAY_gpencil_color_names(Object *ob)
   uchar color[4];
   /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
   UI_GetThemeColor4ubv(theme_id, color);
+  color[3] = 255;
   struct DRWTextStore *dt = DRW_text_cache_ensure();
 
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
