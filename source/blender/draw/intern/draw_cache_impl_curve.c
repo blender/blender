@@ -307,16 +307,16 @@ static void curve_cd_calc_used_gpu_layers(int *cd_layers,
                                           struct GPUMaterial **gpumat_array,
                                           int gpumat_array_len)
 {
-  GPUVertAttrLayers gpu_attrs = {{{0}}};
   for (int i = 0; i < gpumat_array_len; i++) {
     struct GPUMaterial *gpumat = gpumat_array[i];
     if (gpumat == NULL) {
       continue;
     }
-    GPU_material_vertex_attrs(gpumat, &gpu_attrs);
-    for (int j = 0; j < gpu_attrs.totlayer; j++) {
-      const char *name = gpu_attrs.layer[j].name;
-      int type = gpu_attrs.layer[j].type;
+
+    ListBase gpu_attrs = GPU_material_attributes(gpumat);
+    for (GPUMaterialAttribute *gpu_attr = gpu_attrs.first; gpu_attr; gpu_attr = gpu_attr->next) {
+      const char *name = gpu_attr->name;
+      int type = gpu_attr->type;
 
       /* Curves cannot have named layers.
        * Note: We could relax this assumption later. */

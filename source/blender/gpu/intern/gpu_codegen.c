@@ -70,16 +70,13 @@ extern char datatoc_common_view_lib_glsl[];
 static GPUPass *pass_cache = NULL;
 static SpinLock pass_cache_spin;
 
-static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs, GPUVertAttrLayers *attrs)
+static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs, ListBase *attributes)
 {
   BLI_HashMurmur2A hm2a;
   BLI_hash_mm2a_init(&hm2a, 0);
   BLI_hash_mm2a_add(&hm2a, (uchar *)frag_gen, strlen(frag_gen));
-  if (attrs) {
-    for (int att_idx = 0; att_idx < attrs->totlayer; att_idx++) {
-      char *name = attrs->layer[att_idx].name;
-      BLI_hash_mm2a_add(&hm2a, (uchar *)name, strlen(name));
-    }
+  for (GPUMaterialAttribute *attr = attributes->first; attr; attr = attr->next) {
+    BLI_hash_mm2a_add(&hm2a, (uchar *)attr->name, strlen(attr->name));
   }
   if (defs) {
     BLI_hash_mm2a_add(&hm2a, (uchar *)defs, strlen(defs));
@@ -302,55 +299,17 @@ static const char *gpu_builtin_name(eGPUBuiltin builtin)
   }
 }
 
-/* assign only one texid per buffer to avoid sampling the same texture twice */
-static void codegen_set_texid(GHash *bindhash, GPUInput *input, int *texid, void *key1, int key2)
-{
-  GHashPair pair = {key1, POINTER_FROM_INT(key2)};
-  if (BLI_ghash_haskey(bindhash, &pair)) {
-    /* Reuse existing texid */
-    input->texid = POINTER_AS_INT(BLI_ghash_lookup(bindhash, &pair));
-  }
-  else {
-    /* Allocate new texid */
-    input->texid = *texid;
-    (*texid)++;
-    input->bindtex = true;
-    void *key = BLI_ghashutil_pairalloc(key1, POINTER_FROM_INT(key2));
-    BLI_ghash_insert(bindhash, key, POINTER_FROM_INT(input->texid));
-  }
-}
-
 static void codegen_set_unique_ids(ListBase *nodes)
 {
-  GHash *bindhash;
   GPUNode *node;
   GPUInput *input;
   GPUOutput *output;
-  int id = 1, texid = 0;
-
-  bindhash = BLI_ghash_pair_new("codegen_set_unique_ids1 gh");
+  int id = 1;
 
   for (node = nodes->first; node; node = node->next) {
     for (input = node->inputs.first; input; input = input->next) {
       /* set id for unique names of uniform variables */
       input->id = id++;
-
-      /* set texid used for settings texture slot */
-      if (codegen_input_has_texture(input)) {
-        input->bindtex = false;
-        if (input->ima) {
-          /* input is texture from image */
-          codegen_set_texid(bindhash, input, &texid, input->ima, input->type);
-        }
-        else if (input->coba) {
-          /* input is color band texture, check coba pointer */
-          codegen_set_texid(bindhash, input, &texid, input->coba, 0);
-        }
-        else {
-          /* Either input->ima or input->coba should be non-NULL. */
-          BLI_assert(0);
-        }
-      }
     }
 
     for (output = node->outputs.first; output; output = output->next) {
@@ -358,8 +317,6 @@ static void codegen_set_unique_ids(ListBase *nodes)
       output->id = id++;
     }
   }
-
-  BLI_ghash_free(bindhash, BLI_ghashutil_pairfree, NULL);
 }
 
 /**
@@ -380,7 +337,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
         /* create exactly one sampler for each texture */
         if (codegen_input_has_texture(input) && input->bindtex) {
           const char *type;
-          if (input->coba || input->type == GPU_TEX1D_ARRAY) {
+          if (input->colorband || input->type == GPU_TEX1D_ARRAY) {
             type = "sampler1DArray";
           }
           else if (input->type == GPU_TEX2D_ARRAY) {
@@ -570,10 +527,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
   BLI_dynstr_append(ds, ";\n");
 }
 
-static char *code_generate_fragment(GPUMaterial *material,
-                                    ListBase *nodes,
-                                    GPUOutput *output,
-                                    int *rbuiltins)
+static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUOutput *output)
 {
   DynStr *ds = BLI_dynstr_new();
   char *code;
@@ -584,7 +538,7 @@ static char *code_generate_fragment(GPUMaterial *material,
 #endif
 
   codegen_set_unique_ids(nodes);
-  *rbuiltins = builtins = codegen_process_uniforms_functions(material, ds, nodes);
+  builtins = codegen_process_uniforms_functions(material, ds, nodes);
 
   if (builtins & (GPU_OBJECT_INFO | GPU_OBJECT_COLOR)) {
     BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
@@ -1099,45 +1053,90 @@ GPUShader *GPU_pass_shader_get(GPUPass *pass)
   return pass->shader;
 }
 
-/* Vertex Attributes */
+/* Requested Attributes */
 
-static void gpu_nodes_get_vertex_attrs(ListBase *nodes, GPUVertAttrLayers *attrs)
+static ListBase gpu_nodes_requested_attributes(ListBase *nodes)
 {
-  GPUNode *node;
-  GPUInput *input;
-  int a;
+  ListBase attributes = {NULL};
+  int num_attributes = 0;
 
-  /* convert attributes requested by node inputs to an array of layers,
+  /* Convert attributes requested by node inputs to list, checking for
    * checking for duplicates and assigning id's starting from zero. */
+  for (GPUNode *node = nodes->first; node; node = node->next) {
+    for (GPUInput *input = node->inputs.first; input; input = input->next) {
+      if (input->source != GPU_SOURCE_ATTR) {
+        continue;
+      }
 
-  memset(attrs, 0, sizeof(*attrs));
-
-  for (node = nodes->first; node; node = node->next) {
-    for (input = node->inputs.first; input; input = input->next) {
-      if (input->source == GPU_SOURCE_ATTR) {
-        for (a = 0; a < attrs->totlayer; a++) {
-          if (attrs->layer[a].type == input->attr_type &&
-              STREQ(attrs->layer[a].name, input->attr_name)) {
-            break;
-          }
+      GPUMaterialAttribute *attr = attributes.first;
+      for (; attr; attr = attr->next) {
+        if (attr->type == input->attr_type && STREQ(attr->name, input->attr_name)) {
+          break;
         }
+      }
 
-        if (a < GPU_MAX_ATTR) {
-          if (a == attrs->totlayer) {
-            input->attr_id = attrs->totlayer++;
-            input->attr_first = true;
+      /* Add new requested attribute if it's within GPU limits. */
+      if (attr == NULL && num_attributes < GPU_MAX_ATTR) {
+        attr = MEM_callocN(sizeof(*attr), __func__);
+        attr->type = input->attr_type;
+        STRNCPY(attr->name, input->attr_name);
+        attr->id = num_attributes++;
+        BLI_addtail(&attributes, attr);
 
-            attrs->layer[a].type = input->attr_type;
-            attrs->layer[a].attr_id = input->attr_id;
-            BLI_strncpy(attrs->layer[a].name, input->attr_name, sizeof(attrs->layer[a].name));
-          }
-          else {
-            input->attr_id = attrs->layer[a].attr_id;
-          }
-        }
+        input->attr_id = attr->id;
+        input->attr_first = true;
+      }
+      else if (attr != NULL) {
+        input->attr_id = attr->id;
       }
     }
   }
+
+  return attributes;
+}
+
+/* Requested Textures */
+
+static ListBase gpu_nodes_requested_textures(ListBase *nodes)
+{
+  ListBase textures = {NULL};
+  int num_textures = 0;
+
+  /* Convert textures requested by node inputs to list, checking for
+   * checking for duplicates and assigning id's starting from zero. */
+  for (GPUNode *node = nodes->first; node; node = node->next) {
+    for (GPUInput *input = node->inputs.first; input; input = input->next) {
+      if (!codegen_input_has_texture(input)) {
+        continue;
+      }
+
+      GPUMaterialTexture *tex = textures.first;
+      for (; tex; tex = tex->next) {
+        if (tex->ima == input->ima && tex->colorband == input->colorband) {
+          break;
+        }
+      }
+
+      if (tex == NULL) {
+        tex = MEM_callocN(sizeof(*tex), __func__);
+        tex->ima = input->ima;
+        tex->iuser = input->iuser;
+        tex->colorband = input->colorband;
+        tex->id = num_textures++;
+        BLI_snprintf(tex->shadername, sizeof(tex->shadername), "samp%d", tex->id);
+        BLI_addtail(&textures, tex);
+
+        input->texid = tex->id;
+        input->bindtex = true;
+      }
+      else {
+        input->texid = tex->id;
+        input->bindtex = false;
+      }
+    }
+  }
+
+  return textures;
 }
 
 /* Pass create/free */
@@ -1155,21 +1154,19 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
                            const char *frag_lib,
                            const char *defines)
 {
-  char *vertexcode, *geometrycode, *fragmentcode;
-  GPUPass *pass = NULL, *pass_hash = NULL;
-
   /* Prune the unused nodes and extract attributes before compiling so the
    * generated VBOs are ready to accept the future shader. */
   gpu_node_graph_prune_unused(graph);
-  gpu_nodes_get_vertex_attrs(&graph->nodes, &graph->attrs);
+
+  graph->attributes = gpu_nodes_requested_attributes(&graph->nodes);
+  graph->textures = gpu_nodes_requested_textures(&graph->nodes);
 
   /* generate code */
-  char *fragmentgen = code_generate_fragment(
-      material, &graph->nodes, graph->outlink->output, &graph->builtins);
+  char *fragmentgen = code_generate_fragment(material, &graph->nodes, graph->outlink->output);
 
   /* Cache lookup: Reuse shaders already compiled */
-  uint32_t hash = gpu_pass_hash(fragmentgen, defines, &graph->attrs);
-  pass_hash = gpu_pass_cache_lookup(hash);
+  uint32_t hash = gpu_pass_hash(fragmentgen, defines, &graph->attributes);
+  GPUPass *pass_hash = gpu_pass_cache_lookup(hash);
 
   if (pass_hash && (pass_hash->next == NULL || pass_hash->next->hash != hash)) {
     /* No collision, just return the pass. */
@@ -1187,13 +1184,14 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   GSet *used_libraries = gpu_material_used_libraries(material);
   char *tmp = gpu_material_library_generate_code(used_libraries, frag_lib);
 
-  geometrycode = code_generate_geometry(&graph->nodes, geom_code, defines);
-  vertexcode = code_generate_vertex(&graph->nodes, vert_code, (geometrycode != NULL));
-  fragmentcode = BLI_strdupcat(tmp, fragmentgen);
+  char *geometrycode = code_generate_geometry(&graph->nodes, geom_code, defines);
+  char *vertexcode = code_generate_vertex(&graph->nodes, vert_code, (geometrycode != NULL));
+  char *fragmentcode = BLI_strdupcat(tmp, fragmentgen);
 
   MEM_freeN(fragmentgen);
   MEM_freeN(tmp);
 
+  GPUPass *pass = NULL;
   if (pass_hash) {
     /* Cache lookup: Reuse shaders already compiled */
     pass = gpu_pass_cache_resolve_collision(
@@ -1201,15 +1199,15 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   }
 
   if (pass) {
+    MEM_SAFE_FREE(vertexcode);
+    MEM_SAFE_FREE(fragmentcode);
+    MEM_SAFE_FREE(geometrycode);
+
     /* Cache hit. Reuse the same GPUPass and GPUShader. */
     if (!gpu_pass_is_valid(pass)) {
       /* Shader has already been created but failed to compile. */
       return NULL;
     }
-
-    MEM_SAFE_FREE(vertexcode);
-    MEM_SAFE_FREE(fragmentcode);
-    MEM_SAFE_FREE(geometrycode);
 
     pass->refcount += 1;
   }

@@ -83,7 +83,7 @@ struct GPUNodeLink {
     /* GPU_NODE_LINK_BUILTIN */
     eGPUBuiltin builtin;
     /* GPU_NODE_LINK_COLORBAND */
-    struct GPUTexture **coba;
+    struct GPUTexture **colorband;
     /* GPU_NODE_LINK_OUTPUT */
     struct GPUOutput *output;
     /* GPU_NODE_LINK_ATTR */
@@ -129,12 +129,12 @@ typedef struct GPUInput {
     eGPUBuiltin builtin; /* builtin uniform */
     /* GPU_SOURCE_TEX */
     struct {
-      struct GPUTexture **coba; /* input texture, only set at runtime */
-      struct Image *ima;        /* image */
-      struct ImageUser *iuser;  /* image user */
-      bool bindtex;             /* input is responsible for binding the texture? */
-      int texid;                /* number for multitexture, starting from zero */
-      eGPUType textype;         /* texture type (2D, 1D Array ...) */
+      struct GPUTexture **colorband; /* input texture, only set at runtime */
+      struct Image *ima;             /* image */
+      struct ImageUser *iuser;       /* image user */
+      bool bindtex;                  /* input is responsible for binding the texture? */
+      int texid;                     /* number for multitexture, starting from zero */
+      eGPUType textype;              /* texture type (2D, 1D Array ...) */
     };
     /* GPU_SOURCE_ATTR */
     struct {
@@ -158,15 +158,15 @@ typedef struct GPUNodeGraph {
   ListBase inputs;
   GPUNodeLink *outlink;
 
-  /* Needed attributes. */
-  GPUVertAttrLayers attrs;
-  int builtins;
+  /* Requested attributes and textures. */
+  ListBase attributes;
+  ListBase textures;
 } GPUNodeGraph;
 
 /* Node Graph */
 
 void gpu_node_graph_prune_unused(GPUNodeGraph *graph);
-void gpu_node_graph_extract_dynamic_inputs(struct GPUShader *shader, GPUNodeGraph *graph);
+void gpu_node_graph_free_nodes(GPUNodeGraph *graph);
 void gpu_node_graph_free(GPUNodeGraph *graph);
 
 /* Material calls */

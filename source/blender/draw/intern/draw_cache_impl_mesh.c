@@ -142,11 +142,10 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
   for (int i = 0; i < gpumat_array_len; i++) {
     GPUMaterial *gpumat = gpumat_array[i];
     if (gpumat) {
-      GPUVertAttrLayers gpu_attrs;
-      GPU_material_vertex_attrs(gpumat, &gpu_attrs);
-      for (int j = 0; j < gpu_attrs.totlayer; j++) {
-        const char *name = gpu_attrs.layer[j].name;
-        int type = gpu_attrs.layer[j].type;
+      ListBase gpu_attrs = GPU_material_attributes(gpumat);
+      for (GPUMaterialAttribute *gpu_attr = gpu_attrs.first; gpu_attr; gpu_attr = gpu_attr->next) {
+        const char *name = gpu_attr->name;
+        int type = gpu_attr->type;
         int layer = -1;
 
         if (type == CD_AUTO_FROM_NAME) {

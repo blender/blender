@@ -197,11 +197,6 @@ void GPU_material_free(ListBase *gpumaterial)
   BLI_freelistN(gpumaterial);
 }
 
-eGPUBuiltin GPU_get_material_builtins(GPUMaterial *material)
-{
-  return material->graph.builtins;
-}
-
 Scene *GPU_material_scene(GPUMaterial *material)
 {
   return material->scene;
@@ -567,9 +562,14 @@ struct GPUUniformBuffer *GPU_material_create_sss_profile_ubo(void)
 #undef SSS_EXPONENT
 #undef SSS_SAMPLES
 
-void GPU_material_vertex_attrs(GPUMaterial *material, GPUVertAttrLayers *r_attrs)
+ListBase GPU_material_attributes(GPUMaterial *material)
 {
-  *r_attrs = material->graph.attrs;
+  return material->graph.attributes;
+}
+
+ListBase GPU_material_textures(GPUMaterial *material)
+{
+  return material->graph.textures;
 }
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link)
@@ -696,13 +696,14 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
     if (mat->pass == NULL) {
       /* We had a cache hit and the shader has already failed to compile. */
       mat->status = GPU_MAT_FAILED;
+      gpu_node_graph_free(&mat->graph);
     }
     else {
       GPUShader *sh = GPU_pass_shader_get(mat->pass);
       if (sh != NULL) {
         /* We had a cache hit and the shader is already compiled. */
         mat->status = GPU_MAT_SUCCESS;
-        gpu_node_graph_extract_dynamic_inputs(sh, &mat->graph);
+        gpu_node_graph_free_nodes(&mat->graph);
       }
       else {
         mat->status = GPU_MAT_QUEUED;
@@ -711,6 +712,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   }
   else {
     mat->status = GPU_MAT_FAILED;
+    gpu_node_graph_free(&mat->graph);
   }
 
   /* Only free after GPU_pass_shader_get where GPUUniformBuffer
@@ -748,14 +750,14 @@ void GPU_material_compile(GPUMaterial *mat)
     GPUShader *sh = GPU_pass_shader_get(mat->pass);
     if (sh != NULL) {
       mat->status = GPU_MAT_SUCCESS;
-      gpu_node_graph_extract_dynamic_inputs(sh, &mat->graph);
+      gpu_node_graph_free_nodes(&mat->graph);
     }
   }
   else {
     mat->status = GPU_MAT_FAILED;
-    gpu_node_graph_free(&mat->graph);
     GPU_pass_release(mat->pass);
     mat->pass = NULL;
+    gpu_node_graph_free(&mat->graph);
   }
 }
 

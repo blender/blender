@@ -111,7 +111,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
       break;
     case GPU_NODE_LINK_COLORBAND:
       input->source = GPU_SOURCE_TEX;
-      input->coba = link->coba;
+      input->colorband = link->colorband;
       break;
     case GPU_NODE_LINK_IMAGE_BLENDER:
     case GPU_NODE_LINK_IMAGE_TILEMAP:
@@ -295,7 +295,7 @@ GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *ro
 {
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_COLORBAND;
-  link->coba = gpu_material_ramp_texture_row_set(mat, size, pixels, row);
+  link->colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, row);
   MEM_freeN(pixels);
   return link;
 }
@@ -460,7 +460,8 @@ static void gpu_node_free(GPUNode *node)
   MEM_freeN(node);
 }
 
-void gpu_node_graph_free(GPUNodeGraph *graph)
+/* Free intermediate node graph. */
+void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 {
   GPUNode *node;
 
@@ -470,51 +471,14 @@ void gpu_node_graph_free(GPUNodeGraph *graph)
 
   gpu_inputs_free(&graph->inputs);
   graph->outlink = NULL;
-  graph->builtins = 0;
-  memset(&graph->attrs, 0, sizeof(graph->attrs));
 }
 
-/* Extract Dynamic Inputs */
-
-void gpu_node_graph_extract_dynamic_inputs(GPUShader *shader, GPUNodeGraph *graph)
+/* Free both node graph and requested attributes and textures. */
+void gpu_node_graph_free(GPUNodeGraph *graph)
 {
-  GPUNode *node;
-  GPUInput *next, *input;
-
-  if (!shader) {
-    return;
-  }
-
-  while ((node = BLI_pophead(&graph->nodes))) {
-    for (input = node->inputs.first; input; input = next) {
-      next = input->next;
-
-      /* attributes don't need to be bound, they already have
-       * an id that the drawing functions will use. Builtins have
-       * constant names. */
-      if (ELEM(input->source, GPU_SOURCE_ATTR, GPU_SOURCE_BUILTIN)) {
-        continue;
-      }
-
-      if (input->source == GPU_SOURCE_TEX) {
-        BLI_snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
-      }
-      else {
-        BLI_snprintf(input->shadername, sizeof(input->shadername), "unf%d", input->id);
-      }
-
-      if (input->source == GPU_SOURCE_TEX) {
-        if (input->bindtex) {
-          input->shaderloc = GPU_shader_get_uniform_ensure(shader, input->shadername);
-          /* extract nodes */
-          BLI_remlink(&node->inputs, input);
-          BLI_addtail(&graph->inputs, input);
-        }
-      }
-    }
-
-    gpu_node_free(node);
-  }
+  gpu_node_graph_free_nodes(graph);
+  BLI_freelistN(&graph->attributes);
+  BLI_freelistN(&graph->textures);
 }
 
 /* Prune Unused Nodes */
