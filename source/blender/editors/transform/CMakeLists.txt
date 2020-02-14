@@ -70,10 +70,10 @@ set(SRC
   transform_mode.c
   transform_mode_align.c
   transform_mode_baketime.c
+  transform_mode_bbone_resize.c
   transform_mode_bend.c
   transform_mode_boneenvelope.c
   transform_mode_boneroll.c
-  transform_mode_bonesize.c
   transform_mode_curveshrinkfatten.c
   transform_mode_edge_bevelweight.c
   transform_mode_edge_crease.c
