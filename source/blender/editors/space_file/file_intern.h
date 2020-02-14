@@ -137,5 +137,6 @@ void file_execute_region_panels_register(struct ARegionType *art);
 
 /* file_utils.c */
 void file_tile_boundbox(const ARegion *ar, FileLayout *layout, const int file, rcti *r_bounds);
+void file_path_existing_or_default_root(char *dir);
 
 #endif /* __FILE_INTERN_H__ */

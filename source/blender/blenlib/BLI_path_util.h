@@ -34,7 +34,6 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1);
 
 void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file);
-void BLI_make_exist(char *dir);
 bool BLI_make_existing_file(const char *name);
 void BLI_split_dirfile(
     const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen);
@@ -92,8 +91,10 @@ void BLI_cleanup_path(const char *relabase, char *path) ATTR_NONNULL(2);
 bool BLI_filename_make_safe(char *fname) ATTR_NONNULL(1);
 bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
 
-/* go back one directory */
+/* Go back one directory. */
 bool BLI_parent_dir(char *path) ATTR_NONNULL();
+/* Go back until the directory is found. */
+bool BLI_parent_dir_until_exists(char *path) ATTR_NONNULL();
 
 bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL();
 bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();

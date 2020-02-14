@@ -729,6 +729,21 @@ bool BLI_parent_dir(char *path)
 }
 
 /**
+ * Strips off nonexistent (or non-accessible) subdirectories from the end of *dir,
+ * leaving the path of the lowest-level directory that does exist and we can read.
+ */
+bool BLI_parent_dir_until_exists(char *dir)
+{
+  bool valid_path = true;
+
+  /* Loop as long as cur path is not a dir, and we can get a parent path. */
+  while ((BLI_access(dir, R_OK) != 0) && (valid_path = BLI_parent_dir(dir))) {
+    /* pass */
+  }
+  return (valid_path && dir[0]);
+}
+
+/**
  * Looks for a sequence of "#" characters in the last slash-separated component of *path,
  * returning the indexes of the first and one past the last character in the sequence in
  * *char_start and *char_end respectively. Returns true if such a sequence was found.
@@ -1310,29 +1325,6 @@ const char *BLI_getenv(const char *env)
 #else
   return getenv(env);
 #endif
-}
-
-/**
- * Strips off nonexistent (or non-accessible) subdirectories from the end of *dir,
- * leaving the path of the lowest-level directory that does exist and we can read.
- */
-void BLI_make_exist(char *dir)
-{
-  bool valid_path = true;
-
-  /* Loop as long as cur path is not a dir, and we can get a parent path. */
-  while ((BLI_access(dir, R_OK) != 0) && (valid_path = BLI_parent_dir(dir))) {
-    /* pass */
-  }
-
-  /* If we could not find an existing dir, use default root... */
-  if (!valid_path || !dir[0]) {
-#ifdef WIN32
-    get_default_root(dir);
-#else
-    strcpy(dir, "/");
-#endif
-  }
 }
 
 /**

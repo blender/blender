@@ -1046,12 +1046,23 @@ int filelist_geticon(struct FileList *filelist, const int index, const bool is_m
 
 /* ********** Main ********** */
 
+static void parent_dir_until_exists_or_default_root(char *dir)
+{
+  if (!BLI_parent_dir_until_exists(dir)) {
+#ifdef WIN32
+    get_default_root(dir);
+#else
+    strcpy(dir, "/");
+#endif
+  }
+}
+
 static bool filelist_checkdir_dir(struct FileList *UNUSED(filelist),
                                   char *r_dir,
                                   const bool do_change)
 {
   if (do_change) {
-    BLI_make_exist(r_dir);
+    parent_dir_until_exists_or_default_root(r_dir);
     return true;
   }
   else {
@@ -1072,7 +1083,7 @@ static bool filelist_checkdir_lib(struct FileList *UNUSED(filelist),
 
   if (do_change && !is_valid) {
     /* if not a valid library, we need it to be a valid directory! */
-    BLI_make_exist(r_dir);
+    parent_dir_until_exists_or_default_root(r_dir);
     return true;
   }
   return is_valid;
