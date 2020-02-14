@@ -265,9 +265,11 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
     gc->p2_height = font->tex_size_max;
   }
 
+  unsigned char *pixels = MEM_callocN((size_t)gc->p2_width * (size_t)gc->p2_height,
+                                      "BLF texture init");
   GPUTexture *tex = GPU_texture_create_nD(
-      gc->p2_width, gc->p2_height, 0, 2, NULL, GPU_R8, GPU_DATA_UNSIGNED_BYTE, 0, false, error);
-
+      gc->p2_width, gc->p2_height, 0, 2, pixels, GPU_R8, GPU_DATA_UNSIGNED_BYTE, 0, false, error);
+  MEM_freeN(pixels);
   gc->textures[gc->texture_current] = tex;
   GPU_texture_bind(tex, 0);
   GPU_texture_wrap_mode(tex, false);
