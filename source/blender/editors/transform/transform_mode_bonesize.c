@@ -108,22 +108,26 @@ static void ElementBoneSize(TransInfo *t, TransDataContainer *tc, TransData *td,
 
 static void applyBoneSize(TransInfo *t, const int UNUSED(mval[2]))
 {
-  float size[3], mat[3][3];
-  float ratio = t->values[0];
+  float mat[3][3];
   int i;
   char str[UI_MAX_DRAW_STR];
 
-  copy_v3_fl(size, ratio);
+  if (t->flag & T_INPUT_IS_VALUES_FINAL) {
+    copy_v3_v3(t->values_final, t->values);
+  }
+  else {
+    float ratio = t->values[0];
 
-  snapGridIncrement(t, size);
+    copy_v3_fl(t->values_final, ratio);
 
-  if (applyNumInput(&t->num, size)) {
-    constraintNumInput(t, size);
+    snapGridIncrement(t, t->values_final);
+
+    if (applyNumInput(&t->num, t->values_final)) {
+      constraintNumInput(t, t->values_final);
+    }
   }
 
-  copy_v3_v3(t->values_final, size);
-
-  size_to_mat3(mat, size);
+  size_to_mat3(mat, t->values_final);
 
   if (t->con.applySize) {
     t->con.applySize(t, NULL, NULL, mat);
@@ -131,7 +135,7 @@ static void applyBoneSize(TransInfo *t, const int UNUSED(mval[2]))
 
   copy_m3_m3(t->mat, mat);  // used in gizmo
 
-  headerBoneSize(t, size, str);
+  headerBoneSize(t, t->values_final, str);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;

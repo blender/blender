@@ -75,6 +75,7 @@ static const char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
 static const char OP_TILT[] = "TRANSFORM_OT_tilt";
 static const char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
 static const char OP_MIRROR[] = "TRANSFORM_OT_mirror";
+static const char OP_BONE_SIZE[] = "TRANSFORM_OT_bbone_resize";
 static const char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
 static const char OP_VERT_SLIDE[] = "TRANSFORM_OT_vert_slide";
 static const char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
@@ -94,6 +95,7 @@ static void TRANSFORM_OT_push_pull(struct wmOperatorType *ot);
 static void TRANSFORM_OT_tilt(struct wmOperatorType *ot);
 static void TRANSFORM_OT_trackball(struct wmOperatorType *ot);
 static void TRANSFORM_OT_mirror(struct wmOperatorType *ot);
+static void TRANSFORM_OT_bbone_resize(struct wmOperatorType *ot);
 static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot);
 static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot);
 static void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot);
@@ -114,6 +116,7 @@ static TransformModeItem transform_modes[] = {
     {OP_TILT, TFM_TILT, TRANSFORM_OT_tilt},
     {OP_TRACKBALL, TFM_TRACKBALL, TRANSFORM_OT_trackball},
     {OP_MIRROR, TFM_MIRROR, TRANSFORM_OT_mirror},
+    {OP_BONE_SIZE, TFM_BONESIZE, TRANSFORM_OT_bbone_resize},
     {OP_EDGE_SLIDE, TFM_EDGE_SLIDE, TRANSFORM_OT_edge_slide},
     {OP_VERT_SLIDE, TFM_VERT_SLIDE, TRANSFORM_OT_vert_slide},
     {OP_EDGE_CREASE, TFM_CREASE, TRANSFORM_OT_edge_crease},
@@ -1013,6 +1016,30 @@ static void TRANSFORM_OT_mirror(struct wmOperatorType *ot)
 
   Transform_Properties(
       ot, P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_GPENCIL_EDIT | P_CENTER);
+}
+
+static void TRANSFORM_OT_bbone_resize(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Scale B-Bone";
+  ot->description = "Scale selected bendy bones display size";
+  ot->idname = OP_BONE_SIZE;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+
+  /* api callbacks */
+  ot->invoke = transform_invoke;
+  ot->exec = transform_exec;
+  ot->modal = transform_modal;
+  ot->cancel = transform_cancel;
+  ot->poll = ED_operator_screenactive;
+  ot->poll_property = transform_poll_property;
+
+  RNA_def_float_translation(
+      ot->srna, "value", 2, VecOne, -FLT_MAX, FLT_MAX, "Display Size", "", -FLT_MAX, FLT_MAX);
+
+  WM_operatortype_props_advanced_begin(ot);
+
+  Transform_Properties(ot, P_ORIENT_MATRIX | P_CONSTRAINT | P_MIRROR);
 }
 
 static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
