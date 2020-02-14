@@ -26,6 +26,8 @@
 #include "BLI_math.h"
 #include "BLI_alloca.h"
 #include "BLI_memarena.h"
+#include "BLI_utildefines_stack.h"
+
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
@@ -512,8 +514,138 @@ static float bm_edge_info_average_length(BMVert *v, SplitEdgeInfo *edge_info)
     }
   }
 
-  BLI_assert(tot != 0);
-  return len / (float)tot;
+  if (tot != 0) {
+    return len / (float)tot;
+  }
+  else {
+    return -1.0f;
+  }
+}
+
+/**.
+ * Fill in any central vertex locations by their connected edges.
+ *
+ * This is lazily initialized since it's a relatively expensive operation,
+ * and it's not needed in cases where all vertices being inset are connected to
+ * edges that are part of the inset.
+ */
+static float bm_edge_info_average_length_fallback(BMVert *v_lookup,
+                                                  SplitEdgeInfo *edge_info,
+                                                  BMesh *bm,
+                                                  void **vert_lengths_p)
+{
+  struct {
+    /**
+     * Use to fill in length accumulated values based on the topological distance
+     * to vertices at the inset boundaries.
+     *
+     * Unlike edge-lengths of vertices immediately around the vertex,
+     * this ensures the values are more evenly distributed.
+     */
+    float length_accum;
+    /**
+     * The number of connected vertices we have added to `length_accum`.
+     * The sign of the value is used to avoid mixing current and previous passes.
+     *
+     * - Zero:      Uninitialized, can be added to `vert_stack`.
+     * - Positive:  Part of the current pass, `length_accum` has not yet been divided.
+     * - Minus One: Part of previous passes, `length_accum` value has been divided.
+     */
+    int count;
+  } *vert_lengths = *vert_lengths_p;
+
+  /* Only run this once, if needed. */
+  if (UNLIKELY(vert_lengths == NULL)) {
+    BMVert **vert_stack = MEM_mallocN(sizeof(*vert_stack) * bm->totvert, __func__);
+    STACK_DECLARE(vert_stack);
+    STACK_INIT(vert_stack, bm->totvert);
+
+    vert_lengths = MEM_callocN(sizeof(*vert_lengths) * bm->totvert, __func__);
+
+    /* Needed for 'vert_lengths' lookup from connected vertices. */
+    BM_mesh_elem_index_ensure(bm, BM_VERT);
+
+    {
+      BMIter iter;
+      BMEdge *e;
+      BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+        if (BM_elem_index_get(e) != -1) {
+          for (int i = 0; i < 2; i++) {
+            BMVert *v = *((&e->v1) + i);
+            if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+              const int v_index = BM_elem_index_get(v);
+              if (vert_lengths[v_index].count == 0) {
+                STACK_PUSH(vert_stack, v);
+                /* Needed for the first pass, avoid a separate loop to handle the first pass. */
+                vert_lengths[v_index].count = 1;
+                /* We know the edge lengths exist in this case, should never be -1. */
+                vert_lengths[v_index].length_accum = bm_edge_info_average_length(v, edge_info);
+                BLI_assert(vert_lengths[v_index].length_accum != -1.0f);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* While there are vertices without their accumulated lengths divided by the count. */
+    while (STACK_SIZE(vert_stack) != 0) {
+      int stack_index = STACK_SIZE(vert_stack);
+      while (stack_index--) {
+        BMVert *v = vert_stack[stack_index];
+        STACK_REMOVE(vert_stack, stack_index);
+        const int v_index = BM_elem_index_get(v);
+
+        BLI_assert(vert_lengths[v_index].count > 0);
+        vert_lengths[v_index].length_accum /= (float)vert_lengths[v_index].count;
+        vert_lengths[v_index].count = -1; /* Ignore in future passes. */
+
+        BMIter iter;
+        BMEdge *e;
+        BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+          if (!BM_elem_flag_test(e, BM_ELEM_TAG)) {
+            continue;
+          }
+          BMVert *v_other = BM_edge_other_vert(e, v);
+          if (!BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
+            continue;
+          }
+          int v_other_index = BM_elem_index_get(v_other);
+          if (vert_lengths[v_other_index].count >= 0) {
+            if (vert_lengths[v_other_index].count == 0) {
+              STACK_PUSH(vert_stack, v_other);
+            }
+            BLI_assert(vert_lengths[v_index].length_accum >= 0.0f);
+            vert_lengths[v_other_index].count += 1;
+            vert_lengths[v_other_index].length_accum += vert_lengths[v_index].length_accum;
+          }
+        }
+      }
+    }
+    MEM_freeN(vert_stack);
+    *vert_lengths_p = vert_lengths;
+  }
+
+  BLI_assert(vert_lengths[BM_elem_index_get(v_lookup)].length_accum >= 0.0f);
+  return vert_lengths[BM_elem_index_get(v_lookup)].length_accum;
+}
+
+static float bm_edge_info_average_length_with_fallback(
+    BMVert *v,
+    SplitEdgeInfo *edge_info,
+
+    /* Needed for 'bm_edge_info_average_length_fallback' */
+    BMesh *bm,
+    void **vert_lengths_p)
+{
+
+  const float length = bm_edge_info_average_length(v, edge_info);
+  if (length != -1.0f) {
+    return length;
+  }
+  else {
+    return bm_edge_info_average_length_fallback(v, edge_info, bm, vert_lengths_p);
+  }
 }
 
 /**
@@ -1193,9 +1325,12 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
     /* tag face verts */
     BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
-      BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
-        BM_elem_flag_enable(v, BM_ELEM_TAG);
-      }
+      BMLoop *l_iter, *l_first;
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
+        BM_elem_flag_enable(l_iter->e, BM_ELEM_TAG);
+      } while ((l_iter = l_iter->next) != l_first);
     }
 
     /* do in 2 passes so moving the verts doesn't feed back into face angle checks
@@ -1203,15 +1338,27 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
     /* over allocate */
     varr_co = MEM_callocN(sizeof(*varr_co) * bm->totvert, __func__);
+    void *vert_lengths_p = NULL;
 
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
       if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-        const float fac = (depth *
-                           (use_relative_offset ? bm_edge_info_average_length(v, edge_info) :
-                                                  1.0f) *
-                           (use_even_boundary ? BM_vert_calc_shell_factor(v) : 1.0f));
+        const float fac =
+            depth *
+            (use_relative_offset ?
+                 bm_edge_info_average_length_with_fallback(
+                     v,
+                     edge_info,
+                     /* Variables needed for filling interior values for vertex lengths. */
+                     bm,
+                     &vert_lengths_p) :
+                 1.0f) *
+            (use_even_boundary ? BM_vert_calc_shell_factor(v) : 1.0f);
         madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
       }
+    }
+
+    if (vert_lengths_p != NULL) {
+      MEM_freeN(vert_lengths_p);
     }
 
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
