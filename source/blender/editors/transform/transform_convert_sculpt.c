@@ -21,15 +21,12 @@
  * \ingroup edtransform
  */
 
-#include "DNA_space_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
 #include "BKE_paint.h"
 
 #include "transform.h"

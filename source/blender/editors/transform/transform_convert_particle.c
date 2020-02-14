@@ -29,7 +29,6 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 

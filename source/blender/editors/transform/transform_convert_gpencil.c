@@ -30,7 +30,6 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
-#include "BKE_report.h"
 
 #include "ED_gpencil.h"
 
