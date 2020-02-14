@@ -469,6 +469,9 @@ static void library_foreach_ID_link(Main *bmain,
       continue;
     }
 
+    /* Note: ID.lib pointer is purposedly fully ignored here...
+     * We may want to add it at some point? */
+
     if (id->override_library != NULL) {
       CALLBACK_INVOKE_ID(id->override_library->reference,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
