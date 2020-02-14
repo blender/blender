@@ -680,6 +680,9 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   /* Important, consistency with main ID reading code from read_libblock(). */
   lib->id.us = ID_FAKE_USERS(lib);
 
+  /* Matches lib_link_library(). */
+  id_us_ensure_real(&lib->id);
+
   BLI_strncpy(lib->name, filepath, sizeof(lib->name));
   BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
 
