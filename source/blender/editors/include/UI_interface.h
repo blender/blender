@@ -727,7 +727,7 @@ bool UI_but_active_only_ex(const struct bContext *C,
                            struct ARegion *ar,
                            uiBlock *block,
                            uiBut *but,
-                           bool remove_on_failure);
+                           const bool remove_on_failure);
 bool UI_but_active_only(const struct bContext *C, struct ARegion *ar, uiBlock *block, uiBut *but);
 bool UI_block_active_only_flagged_buttons(const struct bContext *C,
                                           struct ARegion *ar,
