@@ -339,7 +339,7 @@ void AbcObjectReader::read_matrix(float r_mat[4][4] /* local matrix */,
   }
 
   const Imath::M44d matrix = get_matrix(schema, time);
-  convert_matrix(matrix, r_mat);
+  convert_matrix_datatype(matrix, r_mat);
   copy_m44_axis_swap(r_mat, r_mat, ABC_ZUP_FROM_YUP);
 
   /* Convert from Maya to Blender camera orientation. Children of this camera

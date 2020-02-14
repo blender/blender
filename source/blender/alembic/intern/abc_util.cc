@@ -86,7 +86,7 @@ std::string get_object_dag_path_name(const Object *const ob, Object *dupli_paren
   return name;
 }
 
-Imath::M44d convert_matrix(float mat[4][4])
+Imath::M44d convert_matrix_datatype(float mat[4][4])
 {
   Imath::M44d m;
 
@@ -97,6 +97,15 @@ Imath::M44d convert_matrix(float mat[4][4])
   }
 
   return m;
+}
+
+void convert_matrix_datatype(const Imath::M44d &xform, float r_mat[4][4])
+{
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      r_mat[i][j] = static_cast<float>(xform[i][j]);
+    }
+  }
 }
 
 void split(const std::string &s, const char delim, std::vector<std::string> &tokens)
@@ -222,15 +231,6 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
 
   size_to_mat4(dst_scale_mat, dst_scale);
   mul_m4_m4m4(dst_mat, dst_mat, dst_scale_mat);
-}
-
-void convert_matrix(const Imath::M44d &xform, float r_mat[4][4])
-{
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      r_mat[i][j] = static_cast<float>(xform[i][j]);
-    }
-  }
 }
 
 /* Recompute transform matrix of object in new coordinate system

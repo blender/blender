@@ -105,7 +105,7 @@ void AbcTransformWriter::do_write()
     yup_mat[3][3] /= m_settings.global_scale; /* normalise the homogeneous component */
   }
 
-  m_matrix = convert_matrix(yup_mat);
+  m_matrix = convert_matrix_datatype(yup_mat);
   m_sample.setMatrix(m_matrix);
   m_sample.setInheritsXforms(m_inherits_xform);
   m_schema.set(m_sample);
