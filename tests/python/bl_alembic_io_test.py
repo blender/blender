@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 """
-./blender.bin --background -noaudio --factory-startup --python tests/python/bl_alembic_import_test.py -- --testdir /path/to/lib/tests/alembic
+./blender.bin --background -noaudio --factory-startup --python tests/python/bl_alembic_io_test.py -- --testdir /path/to/lib/tests/alembic
 """
 
 import pathlib
