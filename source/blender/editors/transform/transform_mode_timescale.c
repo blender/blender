@@ -81,13 +81,6 @@ static void applyTimeScaleValue(TransInfo *t, float value)
       float startx = CFRA;
       float fac = value;
 
-      if (autosnap == SACTSNAP_TSTEP) {
-        fac = (float)(floor((double)fac / secf + 0.5) * secf);
-      }
-      else if (autosnap == SACTSNAP_STEP) {
-        fac = floorf(fac + 0.5f);
-      }
-
       /* take proportional editing into account */
       fac = ((fac - 1.0f) * td->factor) + 1;
 

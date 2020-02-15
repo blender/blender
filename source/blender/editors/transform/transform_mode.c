@@ -1063,11 +1063,11 @@ short getAnimEdit_SnapMode(TransInfo *t)
 void doAnimEdit_SnapFrame(
     TransInfo *t, TransData *td, TransData2D *td2d, AnimData *adt, short autosnap)
 {
-  if (ELEM(autosnap, SACTSNAP_FRAME, SACTSNAP_SECOND, SACTSNAP_MARKER)) {
+  if (autosnap != SACTSNAP_OFF) {
     float val;
 
     /* convert frame to nla-action time (if needed) */
-    if (adt) {
+    if (adt && (t->spacetype != SPACE_SEQ)) {
       val = BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
     }
     else {
@@ -1077,7 +1077,7 @@ void doAnimEdit_SnapFrame(
     snapFrameTransform(t, autosnap, true, val, &val);
 
     /* convert frame out of nla-action time */
-    if (adt) {
+    if (adt && (t->spacetype != SPACE_SEQ)) {
       *(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
     }
     else {

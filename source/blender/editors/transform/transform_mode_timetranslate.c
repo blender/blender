@@ -87,15 +87,13 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
   }
 }
 
-static void applyTimeTranslateValue(TransInfo *t, float value)
+static void applyTimeTranslateValue(TransInfo *t, const float deltax)
 {
   Scene *scene = t->scene;
   int i;
 
   const short autosnap = getAnimEdit_SnapMode(t);
   const double secf = FPS;
-
-  float deltax, val /* , valprev */;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
@@ -110,37 +108,8 @@ static void applyTimeTranslateValue(TransInfo *t, float value)
        */
       AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
-      /* valprev = *td->val; */ /* UNUSED */
-
-      /* check if any need to apply nla-mapping */
-      if (adt && (t->spacetype != SPACE_SEQ)) {
-        deltax = value;
-
-        if (autosnap == SACTSNAP_TSTEP) {
-          deltax = (float)(floor(((double)deltax / secf) + 0.5) * secf);
-        }
-        else if (autosnap == SACTSNAP_STEP) {
-          deltax = floorf(deltax + 0.5f);
-        }
-
-        val = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
-        val += deltax * td->factor;
-        *(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
-      }
-      else {
-        deltax = val = t->values_final[0];
-
-        if (autosnap == SACTSNAP_TSTEP) {
-          val = (float)(floor(((double)deltax / secf) + 0.5) * secf);
-        }
-        else if (autosnap == SACTSNAP_STEP) {
-          val = floorf(val + 0.5f);
-        }
-
-        *(td->val) = td->ival + val * td->factor;
-      }
-
       /* apply nearest snapping */
+      *(td->val) = td->ival + deltax * td->factor;
       doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
     }
   }
