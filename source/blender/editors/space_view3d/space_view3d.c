@@ -395,13 +395,7 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
   keymap = WM_keymap_ensure(wm->defaultconf, "Mesh", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Curve", 0, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
-
   keymap = WM_keymap_ensure(wm->defaultconf, "Armature", 0, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
-
-  keymap = WM_keymap_ensure(wm->defaultconf, "Pose", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Metaball", 0, 0);
