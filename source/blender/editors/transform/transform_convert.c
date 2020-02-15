@@ -1870,13 +1870,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
       }
       else {
         if (t->mode == TFM_EDGE_SLIDE) {
-          EdgeSlideParams *slp = t->custom.mode.data;
-          slp->perc = 0.0;
           projectEdgeSlideData(t, false);
         }
         else if (t->mode == TFM_VERT_SLIDE) {
-          EdgeSlideParams *slp = t->custom.mode.data;
-          slp->perc = 0.0;
           projectVertSlideData(t, false);
         }
       }

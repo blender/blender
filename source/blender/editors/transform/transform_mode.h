@@ -26,9 +26,17 @@
 #define __TRANSFORM_MODE_H__
 
 struct AnimData;
+struct LinkNode;
 struct TransInfo;
 struct TransDataContainer;
 struct TransData;
+
+/* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */
+typedef struct TransDataGenericSlideVert {
+  struct BMVert *v;
+  struct LinkNode **cd_loop_groups;
+  float co_orig_3d[3];
+} TransDataGenericSlideVert;
 
 /* transform_mode.c */
 bool transdata_check_local_center(TransInfo *t, short around);

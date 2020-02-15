@@ -45,24 +45,17 @@
 #include "transform.h"
 #include "transform_convert.h"
 
-bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
-{
-  bConstraint *con = pchan->constraints.first;
-
-  for (; con; con = con->next) {
-    if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce != 0.0f)) {
-      bKinematicConstraint *data = con->data;
-
-      if (data->tar == NULL) {
-        return data;
-      }
-      if (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0) {
-        return data;
-      }
-    }
-  }
-  return NULL;
-}
+typedef struct BoneInitData {
+  struct EditBone *bone;
+  float tail[3];
+  float rad_head;
+  float rad_tail;
+  float roll;
+  float head[3];
+  float dist;
+  float xwidth;
+  float zwidth;
+} BoneInitData;
 
 static void add_pose_transdata(
     TransInfo *t, bPoseChannel *pchan, Object *ob, TransDataContainer *tc, TransData *td)
@@ -216,6 +209,29 @@ static void add_pose_transdata(
 
   /* store reference to first constraint */
   td->con = pchan->constraints.first;
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Auto-IK
+ * \{ */
+
+bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
+{
+  bConstraint *con = pchan->constraints.first;
+
+  for (; con; con = con->next) {
+    if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce != 0.0f)) {
+      bKinematicConstraint *data = con->data;
+
+      if (data->tar == NULL) {
+        return data;
+      }
+      if (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0) {
+        return data;
+      }
+    }
+  }
+  return NULL;
 }
 
 /* adds the IK to pchan - returns if added */
@@ -406,6 +422,36 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
   return (tot_ik) ? 1 : 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Mirror
+ * \{ */
+
+typedef struct PoseInitData_Mirror {
+  /** Points to the bone which this info is initialized & restored to.
+   * A NULL value is used to terminate the array. */
+  struct bPoseChannel *pchan;
+  struct {
+    float loc[3];
+    float size[3];
+    union {
+      float eul[3];
+      float quat[4];
+      float axis_angle[4];
+    };
+    float curve_in_x;
+    float curve_out_x;
+    float roll1;
+    float roll2;
+  } orig;
+  /**
+   * An extra offset to apply after mirroring.
+   * Use with #POSE_MIRROR_RELATIVE.
+   */
+  float offset_mtx[4][4];
+} PoseInitData_Mirror;
+
 static void pose_mirror_info_init(PoseInitData_Mirror *pid,
                                   bPoseChannel *pchan,
                                   bPoseChannel *pchan_orig,
@@ -473,6 +519,89 @@ static void pose_mirror_info_restore(const PoseInitData_Mirror *pid)
     copy_qt_qt(pchan->quat, pid->orig.quat);
   }
 }
+
+/**
+ * if pose bone (partial) selected, copy data.
+ * context; posemode armature, with mirror editing enabled.
+ */
+void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, Object *ob)
+{
+  float flip_mtx[4][4];
+  unit_m4(flip_mtx);
+  flip_mtx[0][0] = -1;
+
+  bPose *pose = ob->pose;
+  PoseInitData_Mirror *pid = NULL;
+  if ((t->mode != TFM_BONESIZE) && (pose->flag & POSE_MIRROR_RELATIVE)) {
+    pid = tc->custom.type.data;
+  }
+
+  TransData *td = tc->data;
+  for (int i = tc->data_len; i--; td++) {
+    bPoseChannel *pchan_orig = td->extra;
+    BLI_assert(pchan_orig->bone->flag & BONE_TRANSFORM);
+    /* No layer check, correct mirror is more important. */
+    bPoseChannel *pchan = BKE_pose_channel_get_mirrored(pose, pchan_orig->name);
+    if (pchan == NULL) {
+      continue;
+    }
+
+    /* Also do bbone scaling. */
+    pchan->bone->xwidth = pchan_orig->bone->xwidth;
+    pchan->bone->zwidth = pchan_orig->bone->zwidth;
+
+    /* We assume X-axis flipping for now. */
+    pchan->curve_in_x = pchan_orig->curve_in_x * -1;
+    pchan->curve_out_x = pchan_orig->curve_out_x * -1;
+    pchan->roll1 = pchan_orig->roll1 * -1;  // XXX?
+    pchan->roll2 = pchan_orig->roll2 * -1;  // XXX?
+
+    float pchan_mtx_final[4][4];
+    BKE_pchan_to_mat4(pchan_orig, pchan_mtx_final);
+    mul_m4_m4m4(pchan_mtx_final, pchan_mtx_final, flip_mtx);
+    mul_m4_m4m4(pchan_mtx_final, flip_mtx, pchan_mtx_final);
+    if (pid) {
+      mul_m4_m4m4(pchan_mtx_final, pid->offset_mtx, pchan_mtx_final);
+    }
+    BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
+
+    /* In this case we can do target-less IK grabbing. */
+    if (t->mode == TFM_TRANSLATION) {
+      bKinematicConstraint *data = has_targetless_ik(pchan);
+      if (data == NULL) {
+        continue;
+      }
+      mul_v3_m4v3(data->grabtarget, flip_mtx, td->loc);
+      if (pid) {
+        /* TODO(germano): Realitve Mirror support */
+      }
+      data->flag |= CONSTRAINT_IK_AUTO;
+    }
+
+    if (pid) {
+      pid++;
+    }
+  }
+}
+
+void restoreMirrorPoseBones(TransDataContainer *tc)
+{
+  bPose *pose = tc->poseobj->pose;
+
+  if (!(pose->flag & POSE_MIRROR_EDIT)) {
+    return;
+  }
+
+  for (PoseInitData_Mirror *pid = tc->custom.type.data; pid->pchan; pid++) {
+    pose_mirror_info_restore(pid);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Armature
+ * \{ */
 
 /**
  * When objects array is NULL, use 't->data_container' as is.
@@ -620,19 +749,6 @@ void createTransPose(TransInfo *t)
   t->flag &= ~T_PROP_EDIT_ALL;
 }
 
-void restoreMirrorPoseBones(TransDataContainer *tc)
-{
-  bPose *pose = tc->poseobj->pose;
-
-  if (!(pose->flag & POSE_MIRROR_EDIT)) {
-    return;
-  }
-
-  for (PoseInitData_Mirror *pid = tc->custom.type.data; pid->pchan; pid++) {
-    pose_mirror_info_restore(pid);
-  }
-}
-
 void restoreBones(TransDataContainer *tc)
 {
   bArmature *arm;
@@ -682,7 +798,6 @@ void restoreBones(TransDataContainer *tc)
   }
 }
 
-/* ********************* armature ************** */
 void createTransArmatureVerts(TransInfo *t)
 {
   t->data_len_all = 0;
@@ -936,3 +1051,5 @@ void createTransArmatureVerts(TransInfo *t)
     }
   }
 }
+
+/** \} */

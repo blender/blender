@@ -63,6 +63,7 @@ void clipUVData(TransInfo *t);
 void flushTransIntFrameActionData(TransInfo *t);
 
 /* transform_convert_armature.c */
+void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, Object *ob);
 void restoreMirrorPoseBones(TransDataContainer *tc);
 void restoreBones(TransDataContainer *tc);
 

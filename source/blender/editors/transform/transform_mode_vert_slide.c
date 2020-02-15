@@ -57,6 +57,34 @@
 /** \name Transform Vert Slide
  * \{ */
 
+typedef struct TransDataVertSlideVert {
+  /** #TransDataGenericSlideVert (header) */
+  struct BMVert *v;
+  struct LinkNode **cd_loop_groups;
+  float co_orig_3d[3];
+  /* end generic */
+
+  float (*co_link_orig_3d)[3];
+  int co_link_tot;
+  int co_link_curr;
+} TransDataVertSlideVert;
+
+typedef struct VertSlideData {
+  TransDataVertSlideVert *sv;
+  int totsv;
+  int curr_sv_index;
+
+  /* result of ED_view3d_ob_project_mat_get */
+  float proj_mat[4][4];
+} VertSlideData;
+
+typedef struct VertSlideParams {
+  float perc;
+
+  bool use_even;
+  bool flipped;
+} VertSlideParams;
+
 static void calcVertSlideCustomPoints(struct TransInfo *t)
 {
   VertSlideParams *slp = t->custom.mode.data;

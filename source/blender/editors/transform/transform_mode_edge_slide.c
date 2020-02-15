@@ -60,6 +60,41 @@
 /** \name Transform Edge Slide
  * \{ */
 
+typedef struct TransDataEdgeSlideVert {
+  /** #TransDataGenericSlideVert (header) */
+  struct BMVert *v;
+  struct LinkNode **cd_loop_groups;
+  float v_co_orig[3];
+  /* end generic */
+
+  float edge_len;
+
+  struct BMVert *v_side[2];
+
+  /* add origvert.co to get the original locations */
+  float dir_side[2][3];
+
+  int loop_nr;
+} TransDataEdgeSlideVert;
+
+typedef struct EdgeSlideData {
+  TransDataEdgeSlideVert *sv;
+  int totsv;
+
+  int mval_start[2], mval_end[2];
+  int curr_sv_index;
+
+  /** when un-clamped - use this index: #TransDataEdgeSlideVert.dir_side */
+  int curr_side_unclamp;
+} EdgeSlideData;
+
+typedef struct EdgeSlideParams {
+  float perc;
+
+  bool use_even;
+  bool flipped;
+} EdgeSlideParams;
+
 /**
  * Get the first valid EdgeSlideData.
  *
