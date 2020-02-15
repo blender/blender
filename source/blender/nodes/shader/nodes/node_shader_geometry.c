@@ -68,8 +68,14 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
      * The resulting vector can still be a bit wrong but not as much.
      * (see T70644) */
     if (node->branch_tag != 0 && ELEM(i, 1, 2, 4)) {
-      GPU_link(
-          mat, "vector_math_normalize", out[i].link, out[i].link, out[i].link, &out[i].link, NULL);
+      GPU_link(mat,
+               "vector_math_normalize",
+               out[i].link,
+               out[i].link,
+               out[i].link,
+               out[i].link,
+               &out[i].link,
+               NULL);
     }
   }
 
