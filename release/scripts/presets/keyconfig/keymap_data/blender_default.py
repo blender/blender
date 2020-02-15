@@ -1074,6 +1074,11 @@ def km_view3d(params):
              {"properties": [("type", 'RIGHT')]}),
             ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'WEST', "alt": True},
              {"properties": [("type", 'LEFT')]}),
+            # Match the pie menu.
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'NORTH_WEST', "alt": True},
+             {"properties": [("type", 'FRONT')]}),
+            ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'NORTH_EAST', "alt": True},
+             {"properties": [("type", 'BACK')]}),
         )),
         ("view3d.view_center_pick", {"type": 'MIDDLEMOUSE', "value": 'CLICK', "alt": True}, None),
         ("view3d.ndof_orbit_zoom", {"type": 'NDOF_MOTION', "value": 'ANY'}, None),
