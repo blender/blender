@@ -341,20 +341,23 @@ static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
 bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
 {
   if (win && event->val == KM_PRESS) {
+    /* Must move at least this much to avoid rounding in WM_cursor_warp. */
+    float fac = GHOST_GetNativePixelSize(win->ghostwin);
+
     if (event->type == UPARROWKEY) {
-      wm_cursor_warp_relative(win, 0, 1);
+      wm_cursor_warp_relative(win, 0, fac);
       return 1;
     }
     else if (event->type == DOWNARROWKEY) {
-      wm_cursor_warp_relative(win, 0, -1);
+      wm_cursor_warp_relative(win, 0, -fac);
       return 1;
     }
     else if (event->type == LEFTARROWKEY) {
-      wm_cursor_warp_relative(win, -1, 0);
+      wm_cursor_warp_relative(win, -fac, 0);
       return 1;
     }
     else if (event->type == RIGHTARROWKEY) {
-      wm_cursor_warp_relative(win, 1, 0);
+      wm_cursor_warp_relative(win, fac, 0);
       return 1;
     }
   }
