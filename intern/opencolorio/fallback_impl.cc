@@ -565,8 +565,9 @@ void FallbackImpl::displayTransformSetLooksOverrideEnabled(OCIO_DisplayTransform
 {
 }
 
-void FallbackImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr * /*dt*/)
+void FallbackImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr *dt)
 {
+  MEM_freeN(dt);
 }
 
 OCIO_PackedImageDesc *FallbackImpl::createOCIO_PackedImageDesc(float *data,
