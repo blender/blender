@@ -35,7 +35,6 @@
 #include "workbench_engine.h"
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
-#define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 #define MAX_COMPOSITE_SHADERS (1 << 7)
 #define MAX_PREPASS_SHADERS (1 << 8)
 #define MAX_ACCUM_SHADERS (1 << 8)
