@@ -217,6 +217,7 @@ void GPU_texture_update_sub(GPUTexture *tex,
                             int depth);
 
 void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int miplvl);
+void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat gpu_data_format, const void *color);
 
 void GPU_invalid_tex_init(void);
 void GPU_invalid_tex_bind(int mode);

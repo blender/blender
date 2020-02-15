@@ -21,6 +21,8 @@
  * \ingroup gpu
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_image_types.h"
@@ -1433,6 +1435,30 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int mipl
   glBindTexture(tex->target, 0);
 
   return buf;
+}
+
+void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat gpu_data_format, const void *color)
+{
+  if (GLEW_ARB_clear_texture) {
+    GLenum data_format = gpu_get_gl_dataformat(tex->format, &tex->format_flag);
+    GLenum data_type = gpu_get_gl_datatype(gpu_data_format);
+    glClearTexImage(tex->bindcode, 0, data_format, data_type, color);
+  }
+  else {
+    size_t buffer_len = gpu_texture_memory_footprint_compute(tex);
+    unsigned char *pixels = MEM_mallocN(buffer_len, __func__);
+    if (color) {
+      size_t bytesize = tex->bytesize;
+      for (size_t byte = 0; byte < buffer_len; byte += bytesize) {
+        memcpy(&pixels[byte], color, bytesize);
+      }
+    }
+    else {
+      memset(pixels, 0, buffer_len);
+    }
+    GPU_texture_update(tex, gpu_data_format, pixels);
+    MEM_freeN(pixels);
+  }
 }
 
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *pixels)
