@@ -367,6 +367,13 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
   keymap = WM_keymap_ensure(wm->defaultconf, "Weight Paint Vertex Selection", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
+  /* Before 'Pose' so weight paint menus aren't overridden by pose menus. */
+  keymap = WM_keymap_ensure(wm->defaultconf, "Weight Paint", 0, 0);
+  WM_event_add_keymap_handler(&ar->handlers, keymap);
+
+  keymap = WM_keymap_ensure(wm->defaultconf, "Vertex Paint", 0, 0);
+  WM_event_add_keymap_handler(&ar->handlers, keymap);
+
   /* pose is not modal, operator poll checks for this */
   keymap = WM_keymap_ensure(wm->defaultconf, "Pose", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -381,12 +388,6 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Image Paint", 0, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
-
-  keymap = WM_keymap_ensure(wm->defaultconf, "Vertex Paint", 0, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
-
-  keymap = WM_keymap_ensure(wm->defaultconf, "Weight Paint", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Sculpt", 0, 0);
