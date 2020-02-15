@@ -286,7 +286,6 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 
   scene->r.cfra = 1.0f;
-  scene->r.displaymode = R_OUTPUT_WINDOW;
 
   /* Don't enable compositing nodes. */
   if (scene->nodetree) {

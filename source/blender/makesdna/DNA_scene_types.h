@@ -658,9 +658,8 @@ typedef struct RenderData {
   /**
    * Render to image editor, fullscreen or to new window.
    */
-  short displaymode;
   char use_lock_interface;
-  char _pad7;
+  char _pad7[3];
 
   /**
    * Flags for render settings. Use bit-masking to access the settings.
@@ -1852,13 +1851,6 @@ enum {
   R_SEQ_UNUSED_4 = (1 << 4), /* cleared */
   R_SEQ_OVERRIDE_SCENE_SETTINGS = (1 << 5),
 };
-
-/** #RenderData.displaymode */
-#define R_OUTPUT_SCREEN 0
-#define R_OUTPUT_AREA 1
-#define R_OUTPUT_WINDOW 2
-#define R_OUTPUT_NONE 3
-/*#define R_OUTPUT_FORKED   4*/
 
 /** #RenderData.filtertype (used for nodes) */
 #define R_FILTER_BOX 0

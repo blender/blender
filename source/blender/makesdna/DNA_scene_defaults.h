@@ -85,7 +85,6 @@
  \
     .im_format = _DNA_DEFAULT_ImageFormatData, \
  \
-    .displaymode = R_OUTPUT_WINDOW, \
     .framapto = 100, \
     .images = 100, \
     .framelen = 1.0, \
