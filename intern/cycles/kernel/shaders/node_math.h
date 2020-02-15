@@ -63,11 +63,6 @@ float safe_log(float a, float b)
   return (a > 0.0 && b > 0.0) ? log(a) / log(b) : 0.0;
 }
 
-float safe_divide(float a, float b)
-{
-  return (b != 0.0) ? a / b : 0.0;
-}
-
 vector project(vector v, vector v_proj)
 {
   float lenSquared = dot(v_proj, v_proj);
