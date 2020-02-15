@@ -880,7 +880,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
    * texture with zero bindcode so we don't keep trying. */
   uint bindcode = 0;
   ImageTile *tile = BKE_image_get_tile(ima, 0);
-  if (tile->ok == 0) {
+  if (tile == NULL || tile->ok == 0) {
     *tex = GPU_texture_from_bindcode(textarget, bindcode);
     return *tex;
   }
