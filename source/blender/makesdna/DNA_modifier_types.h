@@ -1323,11 +1323,10 @@ typedef struct WarpModifierData {
   char _pad[6];
 } WarpModifierData;
 
-#define MOD_WARP_VOLUME_PRESERVE 1
-
 /* WarpModifierData->flag */
 enum {
-  MOD_WARP_INVERT_VGROUP = (1 << 0),
+  MOD_WARP_VOLUME_PRESERVE = (1 << 0),
+  MOD_WARP_INVERT_VGROUP = (1 << 1),
 };
 
 typedef enum {
