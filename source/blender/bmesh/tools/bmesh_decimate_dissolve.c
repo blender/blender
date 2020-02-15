@@ -35,10 +35,21 @@
 
 #define COST_INVALID FLT_MAX
 
+struct DelimitData;
+
+static bool bm_edge_is_delimiter(const BMEdge *e,
+                                 const BMO_Delimit delimit,
+                                 const struct DelimitData *delimit_data);
+static bool bm_vert_is_delimiter(const BMVert *v,
+                                 const BMO_Delimit delimit,
+                                 const struct DelimitData *delimit_data);
+
 /* multiply vertex edge angle by face angle
  * this means we are not left with sharp corners between _almost_ planer faces
  * convert angles [0-PI/2] -> [0-1], multiply together, then convert back to radians. */
-static float bm_vert_edge_face_angle(BMVert *v)
+static float bm_vert_edge_face_angle(BMVert *v,
+                                     const BMO_Delimit delimit,
+                                     const struct DelimitData *delimit_data)
 {
 #define UNIT_TO_ANGLE DEG2RADF(90.0f)
 #define ANGLE_TO_UNIT (1.0f / UNIT_TO_ANGLE)
@@ -46,12 +57,18 @@ static float bm_vert_edge_face_angle(BMVert *v)
   const float angle = BM_vert_calc_edge_angle(v);
   /* note: could be either edge, it doesn't matter */
   if (v->e && BM_edge_is_manifold(v->e)) {
-    return ((angle * ANGLE_TO_UNIT) * (BM_edge_calc_face_angle(v->e) * ANGLE_TO_UNIT)) *
-           UNIT_TO_ANGLE;
+    /* Checking delimited is important here,
+     * otherwise the boundary between two materials for e.g.
+     * will collapse if the faces on either side of the edge have a small angle.
+     *
+     * This way, delimiting edges are treated like boundary edges,
+     * the detail between two delimiting regions won't over-collapse. */
+    if (!bm_vert_is_delimiter(v, delimit, delimit_data)) {
+      return ((angle * ANGLE_TO_UNIT) * (BM_edge_calc_face_angle(v->e) * ANGLE_TO_UNIT)) *
+             UNIT_TO_ANGLE;
+    }
   }
-  else {
-    return angle;
-  }
+  return angle;
 
 #undef UNIT_TO_ANGLE
 #undef ANGLE_TO_UNIT
@@ -79,44 +96,76 @@ static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e,
   return true;
 }
 
+static bool bm_edge_is_delimiter(const BMEdge *e,
+                                 const BMO_Delimit delimit,
+                                 const struct DelimitData *delimit_data)
+{
+  /* Caller must ensure. */
+  BLI_assert(BM_edge_is_manifold(e));
+
+  if (delimit != 0) {
+    if (delimit & BMO_DELIM_SEAM) {
+      if (BM_elem_flag_test(e, BM_ELEM_SEAM)) {
+        return true;
+      }
+    }
+    if (delimit & BMO_DELIM_SHARP) {
+      if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == 0) {
+        return true;
+      }
+    }
+    if (delimit & BMO_DELIM_MATERIAL) {
+      if (e->l->f->mat_nr != e->l->radial_next->f->mat_nr) {
+        return true;
+      }
+    }
+    if (delimit & BMO_DELIM_NORMAL) {
+      if (!BM_edge_is_contiguous(e)) {
+        return true;
+      }
+    }
+    if (delimit & BMO_DELIM_UV) {
+      if (bm_edge_is_contiguous_loop_cd_all(e, delimit_data) == 0) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+static bool bm_vert_is_delimiter(const BMVert *v,
+                                 const BMO_Delimit delimit,
+                                 const struct DelimitData *delimit_data)
+{
+  BLI_assert(v->e != NULL);
+
+  if (delimit != 0) {
+    const BMEdge *e, *e_first;
+    e = e_first = v->e;
+    do {
+      if (BM_edge_is_manifold(e)) {
+        if (bm_edge_is_delimiter(e, delimit, delimit_data)) {
+          return true;
+        }
+      }
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != e_first);
+  }
+  return false;
+}
+
 static float bm_edge_calc_dissolve_error(const BMEdge *e,
                                          const BMO_Delimit delimit,
                                          const struct DelimitData *delimit_data)
 {
-  if (!BM_edge_is_manifold(e)) {
-    goto fail;
+  if (BM_edge_is_manifold(e) && !bm_edge_is_delimiter(e, delimit, delimit_data)) {
+    float angle_cos_neg = dot_v3v3(e->l->f->no, e->l->radial_next->f->no);
+    if (BM_edge_is_contiguous(e)) {
+      angle_cos_neg *= -1;
+    }
+    return angle_cos_neg;
   }
 
-  if ((delimit & BMO_DELIM_SEAM) && (BM_elem_flag_test(e, BM_ELEM_SEAM))) {
-    goto fail;
-  }
-
-  if ((delimit & BMO_DELIM_SHARP) && (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == 0)) {
-    goto fail;
-  }
-
-  if ((delimit & BMO_DELIM_MATERIAL) && (e->l->f->mat_nr != e->l->radial_next->f->mat_nr)) {
-    goto fail;
-  }
-
-  const bool is_contig = BM_edge_is_contiguous(e);
-
-  if ((delimit & BMO_DELIM_NORMAL) && (is_contig == false)) {
-    goto fail;
-  }
-
-  if ((delimit & BMO_DELIM_UV) && (bm_edge_is_contiguous_loop_cd_all(e, delimit_data) == 0)) {
-    goto fail;
-  }
-
-  float angle_cos_neg = dot_v3v3(e->l->f->no, e->l->radial_next->f->no);
-  if (is_contig) {
-    angle_cos_neg *= -1;
-  }
-
-  return angle_cos_neg;
-
-fail:
   return COST_INVALID;
 }
 
@@ -411,7 +460,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     for (i = 0; i < vinput_len; i++) {
       BMVert *v = vinput_arr[i];
       if (LIKELY(v != NULL)) {
-        const float cost = bm_vert_edge_face_angle(v);
+        const float cost = bm_vert_edge_face_angle(v, delimit, &delimit_data);
         vheap_table[i] = BLI_heap_insert(vheap, cost, v);
         BM_elem_index_set(v, i); /* set dirty */
       }
@@ -452,7 +501,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
           BM_ITER_ELEM (v_iter, &iter, e_new, BM_VERTS_OF_EDGE) {
             const int j = BM_elem_index_get(v_iter);
             if (j != -1 && vheap_table[j]) {
-              const float cost = bm_vert_edge_face_angle(v_iter);
+              const float cost = bm_vert_edge_face_angle(v_iter, delimit, &delimit_data);
               BLI_heap_node_value_update(vheap, vheap_table[j], cost);
             }
           }
@@ -472,7 +521,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
                 const int j = BM_elem_index_get(l_cycle_iter->v);
                 if (j != -1 && vheap_table[j] &&
                     (BLI_heap_node_value(vheap_table[j]) == COST_INVALID)) {
-                  const float cost = bm_vert_edge_face_angle(l_cycle_iter->v);
+                  const float cost = bm_vert_edge_face_angle(
+                      l_cycle_iter->v, delimit, &delimit_data);
                   BLI_heap_node_value_update(vheap, vheap_table[j], cost);
                 }
               } while ((l_cycle_iter = l_cycle_iter->next) != l_cycle_first);
