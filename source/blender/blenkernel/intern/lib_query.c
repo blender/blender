@@ -448,7 +448,7 @@ static void library_foreach_ID_link(Main *bmain,
     if (inherit_data == NULL) {
       data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
       /* When an ID is not in Main database, it should never refcount IDs it is using.
-       * Exceptions: NodeTrees (yeeahhh!) directly used by Materials. */
+       * Exceptions: NodeTrees (yeah!) directly used by Materials. */
       data.cb_flag_clear = (id->tag & LIB_TAG_NO_MAIN) ? IDWALK_CB_USER | IDWALK_CB_USER_ONE : 0;
     }
     else {
@@ -469,7 +469,7 @@ static void library_foreach_ID_link(Main *bmain,
       continue;
     }
 
-    /* Note: ID.lib pointer is purposedly fully ignored here...
+    /* Note: ID.lib pointer is purposefully fully ignored here...
      * We may want to add it at some point? */
 
     if (id->override_library != NULL) {

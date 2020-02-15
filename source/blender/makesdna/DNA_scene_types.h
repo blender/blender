@@ -655,9 +655,6 @@ typedef struct RenderData {
   short subimtype DNA_DEPRECATED;
   short quality DNA_DEPRECATED;
 
-  /**
-   * Render to image editor, fullscreen or to new window.
-   */
   char use_lock_interface;
   char _pad7[3];
 

@@ -2050,8 +2050,8 @@ bool sculpt_search_circle_cb(PBVHNode *node, void *data_v)
   const float dist_sq = dist_squared_ray_to_aabb_v3(
       data->dist_ray_to_aabb_precalc, bb_min, bb_max, dummy_co, &dummy_depth);
 
-  /* Seems like debug code. Maybe this fucntion can just return true if the node is not fully
-   * masked. */
+  /* Seems like debug code.
+   * Maybe this function can just return true if the node is not fully masked. */
   return dist_sq < data->radius_squared || true;
 }
 

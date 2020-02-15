@@ -137,9 +137,11 @@ BLI_INLINE SymEdge *prev(const SymEdge *se)
   return se->rot->next->rot;
 }
 
-/** Return true if a -- b -- c are in that order, assuming they are on a straight line according to
- * orient2d and we know the order is either abc or bac.
- * This means ab . ac and bc . ac must both be non-negative.  */
+/**
+ * Return true if a -- b -- c are in that order, assuming they are on a straight line according to
+ * orient2d and we know the order is either `abc` or `bac`.
+ * This means `ab . ac` and `bc . ac` must both be non-negative.
+ */
 static bool in_line(const double a[2], const double b[2], const double c[2])
 {
   double ab[2], bc[2], ac[2];
@@ -3463,8 +3465,8 @@ static double isperrboundA, isperrboundB, isperrboundC;
  *  floating-point arithmetic.  `epsilon' bounds the relative roundoff
  *  error.  It is used for floating-point error analysis.
  *
- *  `splitter' is used to split floating-point numbers into two half-
- *  length significands for exact multiplication.
+ *  `splitter' is used to split floating-point numbers into two
+ *  half-length significances for exact multiplication.
  *
  *  I imagine that a highly optimizing compiler might be too smart for its
  *  own good, and somehow cause this routine to fail, if it pretends that
