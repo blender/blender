@@ -24,9 +24,6 @@
 #ifndef __GIZMO_LIBRARY_INTERN_H__
 #define __GIZMO_LIBRARY_INTERN_H__
 
-/* distance around which gizmos respond to input (and get highlighted) */
-#define GIZMO_HOTSPOT 14.0f
-
 /**
  * Data for common interactions. Used in gizmo_library_utils.c functions.
  */

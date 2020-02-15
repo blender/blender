@@ -165,15 +165,12 @@ float effector_falloff(struct EffectorData *eff,
 
 /* EffectedPoint->flag */
 #define PE_WIND_AS_SPEED 1
-#define PE_DYNAMIC_ROTATION 2
 #define PE_USE_NORMAL_DATA 4
 
 /* EffectorData->flag */
 #define PE_VELOCITY_TO_IMPULSE 1
 
 /* ======== Simulation Debugging ======== */
-
-#define SIM_DEBUG_HASH_BASE 5381
 
 unsigned int BKE_sim_debug_data_hash(int i);
 unsigned int BKE_sim_debug_data_hash_combine(unsigned int kx, unsigned int ky);

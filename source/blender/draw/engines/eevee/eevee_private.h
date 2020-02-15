@@ -123,7 +123,6 @@ extern struct DrawEngineType draw_engine_eevee_type;
   } \
   ((void)0)
 
-#define MATERIAL_PREVIEW_MODE_ENABLED(v3d) ((v3d) && (v3d->shading.type == OB_MATERIAL))
 #define LOOK_DEV_OVERLAY_ENABLED(v3d) \
   ((v3d) && (v3d->shading.type == OB_MATERIAL) && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && \
    (v3d->overlay.flag & V3D_OVERLAY_LOOK_DEV))

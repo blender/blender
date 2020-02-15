@@ -39,7 +39,6 @@ struct GPUBatch;
 struct GPUVertBuf;
 struct GPUVertFormat;
 
-#define GPENCIL_CACHE_BLOCK_SIZE 8
 #define GPENCIL_MAX_SHGROUPS 65536
 #define GPENCIL_GROUPS_BLOCK_SIZE 1024
 
@@ -49,8 +48,6 @@ struct GPUVertFormat;
 #define GPENCIL_COLOR_SOLID 0
 #define GPENCIL_COLOR_TEXTURE 1
 #define GPENCIL_COLOR_PATTERN 2
-
-#define GP_IS_CAMERAVIEW ((rv3d != NULL) && (rv3d->persp == RV3D_CAMOB && v3d->camera))
 
 /* *********** OBJECTS CACHE *********** */
 typedef struct tGPencilObjectCache_shgrp {

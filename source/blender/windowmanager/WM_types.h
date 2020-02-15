@@ -371,7 +371,6 @@ typedef struct wmNotifier {
 /* NC_LAMP Light */
 #define ND_LIGHTING (40 << 16)
 #define ND_LIGHTING_DRAW (41 << 16)
-#define ND_SKY (42 << 16)
 
 /* NC_WORLD World */
 #define ND_WORLD_DRAW (45 << 16)
