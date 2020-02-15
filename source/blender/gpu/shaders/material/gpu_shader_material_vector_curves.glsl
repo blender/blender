@@ -1,5 +1,5 @@
 /* ext is vec4(in_x, in_dy, out_x, out_dy). */
-float curve_extrapolate(float x, float y, vec4 ext)
+float curve_vec_extrapolate(float x, float y, vec4 ext)
 {
   if (x < 0.0) {
     return y + x * ext.y;
@@ -33,9 +33,9 @@ void curves_vec(float fac,
   outvec.y = texture(curvemap, co.yw).y;
   outvec.z = texture(curvemap, co.zw).z;
 
-  outvec.x = curve_extrapolate(co.x, outvec.r, ext_x);
-  outvec.y = curve_extrapolate(co.y, outvec.g, ext_y);
-  outvec.z = curve_extrapolate(co.z, outvec.b, ext_z);
+  outvec.x = curve_vec_extrapolate(co.x, outvec.r, ext_x);
+  outvec.y = curve_vec_extrapolate(co.y, outvec.g, ext_y);
+  outvec.z = curve_vec_extrapolate(co.z, outvec.b, ext_z);
 
   outvec = mix(vec, outvec, fac);
 }
