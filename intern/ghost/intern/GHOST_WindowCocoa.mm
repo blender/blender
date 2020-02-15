@@ -952,7 +952,9 @@ static NSCursor *getImageCursor(GHOST_TStandardCursor shape, NSString *name, NSP
   const int index = (int)shape;
   if (!loaded[index]) {
     /* Load image from file in application Resources folder. */
+    /* clang-format off */
     @autoreleasepool {
+      /* clang-format on */
       NSImage *image = [NSImage imageNamed:name];
       if (image != NULL) {
         cursors[index] = [[NSCursor alloc] initWithImage:image hotSpot:hotspot];

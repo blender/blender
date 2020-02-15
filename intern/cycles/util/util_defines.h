@@ -15,6 +15,11 @@
  * limitations under the License.
  */
 
+/* clang-format off */
+
+/* #define __forceinline triggers a bug in some clang-format versions, disable
+ * format for entire file to keep results consistent. */
+
 #ifndef __UTIL_DEFINES_H__
 #define __UTIL_DEFINES_H__
 

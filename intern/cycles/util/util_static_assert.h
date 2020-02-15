@@ -14,34 +14,20 @@
  * limitations under the License.
  */
 
+/* clang-format off */
+
+/* #define static_assert triggers a bug in some clang-format versions, disable
+ * format for entire file to keep results consistent. */
+
 #ifndef __UTIL_STATIC_ASSERT_H__
 #define __UTIL_STATIC_ASSERT_H__
 
 CCL_NAMESPACE_BEGIN
 
-/* TODO(sergey): In theory CUDA might work with own static assert
- * implementation since it's just pure C++.
- */
-#ifdef __KERNEL_GPU__
-#  ifndef static_assert
-#    define static_assert(statement, message)
-#  endif
+#ifdef __KERNEL_OPECL__
+#  define static_assert(statement, message)
 #endif /* __KERNEL_GPU__ */
 
-/* TODO(sergey): For until C++11 is a bare minimum for us,
- * we do a bit of a trickery to show meaningful message so
- * it's more or less clear what's wrong when building without
- * C++11.
- *
- * The thing here is: our non-C++11 implementation doesn't
- * have a way to print any message after preprocessor
- * substitution so we rely on the message which is passed to
- * static_assert() since that's the only message visible when
- * compilation fails.
- *
- * After C++11 bump it should be possible to glue structure
- * name to the error message,
- */
 #define static_assert_align(st, align) \
   static_assert((sizeof(st) % (align) == 0), "Structure must be strictly aligned")  // NOLINT
 
