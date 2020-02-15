@@ -60,6 +60,9 @@ void copy_m4d_m4(double R[4][4], const float A[4][4]);
 void swap_m3m3(float A[3][3], float B[3][3]);
 void swap_m4m4(float A[4][4], float B[4][4]);
 
+/* Build index shuffle matrix */
+void shuffle_m4(float R[4][4], int index[4]);
+
 /******************************** Arithmetic *********************************/
 
 void add_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3]);

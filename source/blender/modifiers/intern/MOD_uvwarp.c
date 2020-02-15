@@ -38,18 +38,13 @@
 
 #include "MOD_util.h"
 
-static void uv_warp_from_mat4_pair(
-    float uv_dst[2], const float uv_src[2], float warp_mat[4][4], int axis_u, int axis_v)
+static void uv_warp_from_mat4_pair(float uv_dst[2], const float uv_src[2], float warp_mat[4][4])
 {
   float tuv[3] = {0.0f};
 
-  tuv[axis_u] = uv_src[0];
-  tuv[axis_v] = uv_src[1];
-
+  copy_v2_v2(tuv, uv_src);
   mul_m4_v3(warp_mat, tuv);
-
-  uv_dst[0] = tuv[axis_u];
-  uv_dst[1] = tuv[axis_v];
+  copy_v2_v2(uv_dst, tuv);
 }
 
 static void initData(ModifierData *md)
@@ -58,6 +53,7 @@ static void initData(ModifierData *md)
   umd->axis_u = 0;
   umd->axis_v = 1;
   copy_v2_fl(umd->center, 0.5f);
+  copy_v2_fl(umd->scale, 1.0f);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -92,8 +88,6 @@ typedef struct UVWarpData {
   int defgrp_index;
 
   float (*warp_mat)[4];
-  int axis_u;
-  int axis_v;
 } UVWarpData;
 
 static void uv_warp_compute(void *__restrict userdata,
@@ -110,8 +104,6 @@ static void uv_warp_compute(void *__restrict userdata,
   const int defgrp_index = data->defgrp_index;
 
   float(*warp_mat)[4] = data->warp_mat;
-  const int axis_u = data->axis_u;
-  const int axis_v = data->axis_v;
 
   int l;
 
@@ -120,13 +112,13 @@ static void uv_warp_compute(void *__restrict userdata,
       float uv[2];
       const float weight = defvert_find_weight(&dvert[ml->v], defgrp_index);
 
-      uv_warp_from_mat4_pair(uv, mluv->uv, warp_mat, axis_u, axis_v);
+      uv_warp_from_mat4_pair(uv, mluv->uv, warp_mat);
       interp_v2_v2v2(mluv->uv, mluv->uv, uv, weight);
     }
   }
   else {
     for (l = 0; l < mp->totloop; l++, ml++, mluv++) {
-      uv_warp_from_mat4_pair(mluv->uv, mluv->uv, warp_mat, axis_u, axis_v);
+      uv_warp_from_mat4_pair(mluv->uv, mluv->uv, warp_mat);
     }
   }
 }
@@ -141,9 +133,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   MDeformVert *dvert;
   int defgrp_index;
   char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-  float mat_src[4][4];
-  float mat_dst[4][4];
-  float imat_dst[4][4];
   float warp_mat[4][4];
   const int axis_u = umd->axis_u;
   const int axis_v = umd->axis_v;
@@ -152,32 +141,52 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
     return mesh;
   }
-  else if (ELEM(NULL, umd->object_src, umd->object_dst)) {
-    modifier_setError(md, "From/To objects must be set");
-    return mesh;
+
+  if (!ELEM(NULL, umd->object_src, umd->object_dst)) {
+    float mat_src[4][4];
+    float mat_dst[4][4];
+    float imat_dst[4][4];
+    float shuf_mat[4][4];
+
+    /* make sure anything moving UVs is available */
+    matrix_from_obj_pchan(mat_src, umd->object_src, umd->bone_src);
+    matrix_from_obj_pchan(mat_dst, umd->object_dst, umd->bone_dst);
+
+    invert_m4_m4(imat_dst, mat_dst);
+    mul_m4_m4m4(warp_mat, imat_dst, mat_src);
+
+    /* apply warp */
+    if (!is_zero_v2(umd->center)) {
+      float mat_cent[4][4];
+      float imat_cent[4][4];
+
+      unit_m4(mat_cent);
+      mat_cent[3][axis_u] = umd->center[0];
+      mat_cent[3][axis_v] = umd->center[1];
+
+      invert_m4_m4(imat_cent, mat_cent);
+
+      mul_m4_m4m4(warp_mat, warp_mat, imat_cent);
+      mul_m4_m4m4(warp_mat, mat_cent, warp_mat);
+    }
+
+    int shuf_indices[4] = {axis_u, axis_v, -1, 3};
+    shuffle_m4(shuf_mat, shuf_indices);
+    mul_m4_m4m4(warp_mat, shuf_mat, warp_mat);
+    transpose_m4(shuf_mat);
+    mul_m4_m4m4(warp_mat, warp_mat, shuf_mat);
+  }
+  else {
+    unit_m4(warp_mat);
   }
 
-  /* make sure anything moving UVs is available */
-  matrix_from_obj_pchan(mat_src, umd->object_src, umd->bone_src);
-  matrix_from_obj_pchan(mat_dst, umd->object_dst, umd->bone_dst);
-
-  invert_m4_m4(imat_dst, mat_dst);
-  mul_m4_m4m4(warp_mat, imat_dst, mat_src);
-
-  /* apply warp */
-  if (!is_zero_v2(umd->center)) {
-    float mat_cent[4][4];
-    float imat_cent[4][4];
-
-    unit_m4(mat_cent);
-    mat_cent[3][axis_u] = umd->center[0];
-    mat_cent[3][axis_v] = umd->center[1];
-
-    invert_m4_m4(imat_cent, mat_cent);
-
-    mul_m4_m4m4(warp_mat, warp_mat, imat_cent);
-    mul_m4_m4m4(warp_mat, mat_cent, warp_mat);
-  }
+  /* Apply direct 2d transform. */
+  translate_m4(warp_mat, umd->center[0], umd->center[1], 0.0f);
+  const float scale[3] = {umd->scale[0], umd->scale[1], 1.0f};
+  rescale_m4(warp_mat, scale);
+  rotate_m4(warp_mat, 'Z', umd->rotation);
+  translate_m4(warp_mat, umd->offset[0], umd->offset[1], 0.0f);
+  translate_m4(warp_mat, -umd->center[0], -umd->center[1], 0.0f);
 
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
@@ -199,8 +208,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       .dvert = dvert,
       .defgrp_index = defgrp_index,
       .warp_mat = warp_mat,
-      .axis_u = axis_u,
-      .axis_v = axis_v,
   };
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);

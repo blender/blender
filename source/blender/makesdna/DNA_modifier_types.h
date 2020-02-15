@@ -1742,9 +1742,13 @@ typedef struct UVWarpModifierData {
   ModifierData modifier;
 
   char axis_u, axis_v;
-  char _pad[6];
+  char _pad[2];
   /** Used for rotate/scale. */
   float center[2];
+
+  float offset[2];
+  float scale[2];
+  float rotation;
 
   /** Source. */
   struct Object *object_src;

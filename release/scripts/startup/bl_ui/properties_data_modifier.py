@@ -1456,6 +1456,19 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.prop_search(md, "bone_to", obj.data, "bones", text="")
 
         split = layout.split()
+        col = split.column()
+        col.label(text="Offset:")
+        col.prop(md, "offset", text="")
+
+        col = split.column()
+        col.label(text="Scale:")
+        col.prop(md, "scale", text="")
+
+        col = split.column()
+        col.label(text="Rotate:")
+        col.prop(md, "rotation", text="")
+
+        split = layout.split()
 
         col = split.column()
         col.label(text="Vertex Group:")
