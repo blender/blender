@@ -40,14 +40,17 @@
 #define ELE_NEW 1
 
 /* -------------------------------------------------------------------- */
-/* Generic Interp Face (use for both types of inset) */
-
-/**
+/** \name Generic Face Interpolation
+ *
+ *  Use for both kinds of inset.
+ *
  * Interpolation, this is more complex for regions since we're not creating new faces
  * and throwing away old ones, so instead, store face data needed for interpolation.
  *
- * \note This uses CustomData functions in quite a low-level way which should be
- * avoided, but in this case its hard to do without storing a duplicate mesh. */
+ * \note This uses #CustomData functions in quite a low-level way which should be
+ * avoided, but in this case its hard to do without storing a duplicate mesh.
+ *
+ * \{ */
 
 /* just enough of a face to store interpolation data we can use once the inset is done */
 typedef struct InterpFace {
@@ -248,8 +251,13 @@ static void bm_loop_customdata_merge(BMesh *bm,
 }
 #endif /* USE_LOOP_CUSTOMDATA_MERGE */
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Inset Individual */
+/** \name Inset Individual
+ *
+ * Each face has a smaller face created inside it (simple logic).
+ * \{ */
 
 static void bmo_face_inset_individual(BMesh *bm,
                                       BMFace *f,
@@ -449,8 +457,13 @@ void bmo_inset_individual_exec(BMesh *bm, BMOperator *op)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Inset Region */
+/** \name Inset Region
+ *
+ * The boundary between tagged and untagged faces is inset (more involved logic).
+ * \{ */
 
 typedef struct SplitEdgeInfo {
   float no[3];
@@ -461,7 +474,7 @@ typedef struct SplitEdgeInfo {
 } SplitEdgeInfo;
 
 /**
- * return the tag loop where there is...
+ * Return the tag loop where there is:
  * - only 1 tagged face attached to this edge.
  * - 1 or more untagged faces.
  *
@@ -523,11 +536,18 @@ static float bm_edge_info_average_length(BMVert *v, SplitEdgeInfo *edge_info)
 }
 
 /**.
- * Fill in any central vertex locations by their connected edges.
+ * Fill in any vertices that are in the inset region but not connected to an edge being inset.
+ *
  *
  * This is lazily initialized since it's a relatively expensive operation,
  * and it's not needed in cases where all vertices being inset are connected to
  * edges that are part of the inset.
+ *
+ * \note This only runs under the following conditions:
+ *
+ * - "depth" is non-zero.
+ * - "use_relative_offset" is enabled.
+ * - There are interior vertices which aren't used by an edge being inset.
  */
 static float bm_edge_info_average_length_fallback(BMVert *v_lookup,
                                                   SplitEdgeInfo *edge_info,
@@ -648,18 +668,18 @@ static float bm_edge_info_average_length_with_fallback(
   }
 }
 
-/**
- * implementation is as follows...
- *
- * - set all faces as tagged/untagged based on selection.
- * - find all edges that have 1 tagged, 1 untagged face.
- * - separate these edges and tag vertices, set their index to point to the original edge.
- * - build faces between old/new edges.
- * - inset the new edges into their faces.
- */
-
 void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 {
+  /*
+   * Implementation:
+   *
+   * - Set all faces as tagged/untagged based on selection.
+   * - Find all edges that have 1 tagged, 1 untagged face.
+   * - Separate these edges and tag vertices, set their index to point to the original edge.
+   * - Build faces between old/new edges.
+   * - Inset the new edges into their faces.
+   */
+
   const bool use_outset = BMO_slot_bool_get(op->slots_in, "use_outset");
   const bool use_boundary = BMO_slot_bool_get(op->slots_in, "use_boundary") &&
                             (use_outset == false);
@@ -1001,9 +1021,11 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
               if (use_even_boundary) {
 
-                /* This case where only one edge attached to v_split
+                /**
+                 * This case where only one edge attached to #v_split
                  * is used - ei - the face to inset is on a boundary.
                  *
+                 * <pre>
                  *                  We want the inset to align flush with the
                  *                  boundary edge, not the normal of the interior
                  *             <--- edge which would give an unsightly bump.
@@ -1018,8 +1040,9 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
                  * --+-----------------+-----------------------+--
                  *   |                                         |
                  *   |                                         |
+                 * </pre>
                  *
-                 * note, the fact we are doing location comparisons on verts that are moved about
+                 * \note The fact we are doing location comparisons on verts that are moved about
                  * doesn't matter because the direction will remain the same in this case.
                  */
 
@@ -1371,3 +1394,5 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
   MEM_freeN(edge_info);
 }
+
+/** \} */
