@@ -1112,7 +1112,8 @@ static ListBase gpu_nodes_requested_textures(ListBase *nodes)
 
       GPUMaterialTexture *tex = textures.first;
       for (; tex; tex = tex->next) {
-        if (tex->ima == input->ima && tex->colorband == input->colorband) {
+        if (tex->ima == input->ima && tex->colorband == input->colorband &&
+            tex->type == input->type) {
           break;
         }
       }
@@ -1123,6 +1124,7 @@ static ListBase gpu_nodes_requested_textures(ListBase *nodes)
         tex->iuser = input->iuser;
         tex->colorband = input->colorband;
         tex->id = num_textures++;
+        tex->type = input->type;
         BLI_snprintf(tex->shadername, sizeof(tex->shadername), "samp%d", tex->id);
         BLI_addtail(&textures, tex);
 
