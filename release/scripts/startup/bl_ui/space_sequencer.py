@@ -716,8 +716,8 @@ class SEQUENCER_MT_strip(Menu):
         layout.menu("SEQUENCER_MT_strip_transform")
 
         layout.separator()
-        layout.operator("sequencer.cut", text="Cut").type = 'SOFT'
-        layout.operator("sequencer.cut", text="Hold Cut").type = 'HARD'
+        layout.operator("sequencer.split", text="Split").type = 'SOFT'
+        layout.operator("sequencer.split", text="Hold Split").type = 'HARD'
 
         layout.separator()
         layout.operator("sequencer.copy", text="Copy")

@@ -104,7 +104,7 @@ extern EnumPropertyItem prop_side_types[];
 struct wmKeyConfig;
 struct wmOperatorType;
 
-void SEQUENCER_OT_cut(struct wmOperatorType *ot);
+void SEQUENCER_OT_split(struct wmOperatorType *ot);
 void SEQUENCER_OT_slip(struct wmOperatorType *ot);
 void SEQUENCER_OT_mute(struct wmOperatorType *ot);
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot);
@@ -178,8 +178,8 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
 
 enum {
-  SEQ_CUT_SOFT,
-  SEQ_CUT_HARD,
+  SEQ_SPLIT_SOFT,
+  SEQ_SPLIT_HARD,
 };
 enum {
   SEQ_SELECTED,

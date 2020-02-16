@@ -43,7 +43,7 @@
 void sequencer_operatortypes(void)
 {
   /* sequencer_edit.c */
-  WM_operatortype_append(SEQUENCER_OT_cut);
+  WM_operatortype_append(SEQUENCER_OT_split);
   WM_operatortype_append(SEQUENCER_OT_slip);
   WM_operatortype_append(SEQUENCER_OT_mute);
   WM_operatortype_append(SEQUENCER_OT_unmute);

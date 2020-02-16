@@ -2397,9 +2397,9 @@ def km_sequencer(params):
 
     items.extend([
         *_template_items_select_actions(params, "sequencer.select_all"),
-        ("sequencer.cut", {"type": 'K', "value": 'PRESS'},
+        ("sequencer.split", {"type": 'K', "value": 'PRESS'},
          {"properties": [("type", 'SOFT')]}),
-        ("sequencer.cut", {"type": 'K', "value": 'PRESS', "shift": True},
+        ("sequencer.split", {"type": 'K', "value": 'PRESS', "shift": True},
          {"properties": [("type", 'HARD')]}),
         ("sequencer.mute", {"type": 'H', "value": 'PRESS'},
          {"properties": [("unselected", False)]}),
@@ -2450,7 +2450,7 @@ def km_sequencer(params):
         ("sequencer.snap", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("sequencer.swap_inputs", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         *(
-            (("sequencer.cut_multicam",
+            (("sequencer.split_multicam",
               {"type": NUMBERS_1[i], "value": 'PRESS'},
               {"properties": [("camera", i + 1)]})
              for i in range(10)
@@ -6120,12 +6120,12 @@ def km_sequencer_editor_tool_select_box(params):
     )
 
 
-def km_sequencer_editor_tool_cut(_params):
+def km_sequencer_editor_tool_blade(_params):
     return (
-        "Sequencer Tool: Cut",
+        "Sequencer Tool: Blade",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
-        {"items":[
-            ("sequencer.cut", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+        {"items": [
+            ("sequencer.split", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": [("type", 'SOFT'), ("side", 'NO_CHANGE'), ("use_cursor_position", True), ("ignore_selection", True)]}),
         ]},
     )
@@ -6346,7 +6346,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_gpencil_select_lasso(params),
         km_sequencer_editor_tool_select(params),
         km_sequencer_editor_tool_select_box(params),
-        km_sequencer_editor_tool_cut(params),
+        km_sequencer_editor_tool_blade(params),
     ]
 
 # ------------------------------------------------------------------------------

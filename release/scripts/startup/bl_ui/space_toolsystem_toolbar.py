@@ -1706,22 +1706,23 @@ class _defs_node_edit:
             keymap="Node Tool: Links Cut",
         )
 
+
 class _defs_sequencer_generic:
 
     @ToolDef.from_fn
-    def cut():
+    def blade():
         def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("sequencer.cut")
+            props = tool.operator_properties("sequencer.split")
             row = layout.row()
             row.use_property_split = False
             row.prop(props, "type", expand=True)
         return dict(
-            idname="builtin.cut",
-            label="Cut",
+            idname="builtin.blade",
+            label="Blade",
             icon="ops.sequencer.blade",
             cursor='CROSSHAIR',
             widget=None,
-            keymap="Sequencer Tool: Cut",
+            keymap="Sequencer Tool: Blade",
             draw_settings=draw_settings,
         )
 
@@ -2255,14 +2256,15 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'SEQUENCER': [
             *_tools_select,
-            _defs_sequencer_generic.cut,
+            _defs_sequencer_generic.blade,
         ],
         'SEQUENCER_PREVIEW': [
             *_tools_select,
             *_tools_annotate,
-            _defs_sequencer_generic.cut,
+            _defs_sequencer_generic.blade,
         ],
     }
+
 
 classes = (
     IMAGE_PT_tools_active,
