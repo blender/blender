@@ -45,3 +45,7 @@ elseif(APPLE)
   # OpenMP causes linking error on build, disable.
   set(WITH_MEM_JEMALLOC        OFF CACHE BOOL "" FORCE)
 endif()
+
+if(WIN32)
+  set(WITH_WINDOWS_BUNDLE_CRT  OFF CACHE BOOL "" FORCE)
+endif()
