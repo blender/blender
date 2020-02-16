@@ -3739,7 +3739,7 @@ def keymap_transform_tool_mmb(keymap):
                     km_items_new.append(kmi)
                 elif ty == 'EVT_TWEAK_L':
                     kmi = (kmi[0], kmi[1].copy(), kmi[2])
-                    kmi[1]["type"] = 'EVT_TWEAK_M'
+                    kmi[1]["type"] = 'MIDDLEMOUSE'
                     km_items_new.append(kmi)
             km_items.extend(km_items_new)
 
