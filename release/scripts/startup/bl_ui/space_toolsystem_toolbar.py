@@ -1718,11 +1718,13 @@ class _defs_sequencer_generic:
         return dict(
             idname="builtin.cut",
             label="Cut",
-            icon="ops.mesh.knife_tool",
+            icon="ops.sequencer.blade",
+            cursor='CROSSHAIR',
             widget=None,
             keymap="Sequencer Tool: Cut",
             draw_settings=draw_settings,
         )
+
 
 class _defs_sequencer_select:
     @ToolDef.from_fn
