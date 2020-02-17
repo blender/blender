@@ -3364,7 +3364,9 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
       if (ima->source != IMA_SRC_TILED) {
         /* Free all but the first tile. */
         ImageTile *base_tile = BKE_image_get_tile(ima, 0);
-        for (ImageTile *tile = base_tile->next; tile; tile = tile->next) {
+        BLI_assert(base_tile == ima->tiles.first);
+        for (ImageTile *tile = base_tile->next, *tile_next; tile; tile = tile_next) {
+          tile_next = tile->next;
           image_free_tile(ima, tile);
           MEM_freeN(tile);
         }
