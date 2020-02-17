@@ -717,6 +717,20 @@ void BKE_sequencer_cache_put(
   seq_cache_unlock(scene);
 }
 
+size_t BKE_sequencer_cache_get_num_items(struct Scene *scene)
+{
+  SeqCache *cache = seq_cache_get_from_scene(scene);
+  if (!cache) {
+    return 0;
+  }
+
+  seq_cache_lock(scene);
+  size_t num_items = BLI_ghash_len(cache->hash);
+  seq_cache_unlock(scene);
+
+  return num_items;
+}
+
 void BKE_sequencer_cache_iterate(
     struct Scene *scene,
     void *userdata,
