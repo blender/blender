@@ -874,6 +874,15 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_function_return(func, parm);
 
   RNA_def_function(srna, "print_undo_steps", "rna_WindowManager_print_undo_steps");
+
+  parm = RNA_def_property(srna, "is_interface_locked", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      parm,
+      "Is Interface Locked",
+      "If true, the interface is currently locked by a running job and data shouldn't be modified "
+      "from application timers. Otherwise, the running job might conflict with the handler "
+      "causing unexpected results or even crashes.");
+  RNA_def_property_clear_flag(parm, PROP_EDITABLE);
 }
 
 void RNA_api_operator(StructRNA *srna)
