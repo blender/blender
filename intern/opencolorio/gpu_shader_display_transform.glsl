@@ -115,9 +115,20 @@ vec4 curvemapping_evaluate_premulRGBF(vec4 col)
   return result;
 }
 
+/* Using a triangle distribution which gives a more final uniform noise.
+ * See Banding in Games:A Noisy Rant(revision 5) Mikkel Gjøl, Playdead (slide 27) */
+/* GPUs are rounding before writting to framebuffer so we center the distribution around 0.0. */
+/* Return triangle noise in [-1..1[ range */
 float dither_random_value(vec2 co)
 {
-  return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453) * 0.005 * dither;
+  /* Original code from https://www.shadertoy.com/view/4t2SDh */
+  /* Uniform noise in [0..1[ range */
+  float nrnd0 = fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+  /* Convert uniform distribution into triangle-shaped distribution. */
+  float orig = nrnd0 * 2.0 - 1.0;
+  nrnd0 = orig * inversesqrt(abs(orig));
+  nrnd0 = max(-1.0, nrnd0); /* Removes nan's */
+  return nrnd0 - sign(orig);
 }
 
 vec2 round_to_pixel(sampler2D tex, vec2 uv)
@@ -128,7 +139,7 @@ vec2 round_to_pixel(sampler2D tex, vec2 uv)
 
 vec4 apply_dither(vec4 col, vec2 uv)
 {
-  col.rgb += dither_random_value(uv);
+  col.rgb += dither_random_value(uv) * 0.0033 * dither;
   return col;
 }
 
@@ -151,16 +162,16 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay, vec2 noise_uv)
 
   col = OCIO_to_display_linear_with_look(col, lut3d_texture);
 
-  if (dither > 0.0) {
-    col = apply_dither(col, noise_uv);
-  }
-
   if (overlay) {
     col *= 1.0 - col_overlay.a;
     col += col_overlay; /* Assumed unassociated alpha. */
   }
 
   col = OCIO_to_display_encoded(col, lut3d_display_texture);
+
+  if (dither > 0.0) {
+    col = apply_dither(col, noise_uv);
+  }
 
   return col;
 }

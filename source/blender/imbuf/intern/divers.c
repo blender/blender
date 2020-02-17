@@ -75,7 +75,7 @@ MINLINE void ushort_to_byte_dither_v4(
     uchar b[4], const unsigned short us[4], DitherContext *di, float s, float t)
 {
 #define USHORTTOFLOAT(val) ((float)val / 65535.0f)
-  float dither_value = dither_random_value(s, t) * 0.005f * di->dither;
+  float dither_value = dither_random_value(s, t) * 0.0033f * di->dither;
 
   b[0] = ftochar(dither_value + USHORTTOFLOAT(us[0]));
   b[1] = ftochar(dither_value + USHORTTOFLOAT(us[1]));
@@ -88,7 +88,7 @@ MINLINE void ushort_to_byte_dither_v4(
 MINLINE void float_to_byte_dither_v4(
     uchar b[4], const float f[4], DitherContext *di, float s, float t)
 {
-  float dither_value = dither_random_value(s, t) * 0.005f * di->dither;
+  float dither_value = dither_random_value(s, t) * 0.0033f * di->dither;
 
   b[0] = ftochar(dither_value + f[0]);
   b[1] = ftochar(dither_value + f[1]);

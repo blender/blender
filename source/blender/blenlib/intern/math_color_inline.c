@@ -317,19 +317,27 @@ MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
   return 0;
 }
 
+/* Using a triangle distribution which gives a more final uniform noise.
+ * See Banding in Games:A Noisy Rant(revision 5) Mikkel Gjøl, Playdead (slide 27) */
+/* Return triangle noise in [-0.5..1.5[ range */
 MINLINE float dither_random_value(float s, float t)
 {
-  static float vec[2] = {12.9898f, 78.233f};
-  float value;
-
-  value = sinf(s * vec[0] + t * vec[1]) * 43758.5453f;
-  return value - floorf(value);
+  /* Original code from https://www.shadertoy.com/view/4t2SDh */
+  /* The nois reshaping technique does not work on CPU.
+   * We generate and merge two distribution instead */
+  /* Uniform noise in [0..1[ range */
+  float nrnd0 = sinf(s * 12.9898f + t * 78.233f) * 43758.5453f;
+  float nrnd1 = sinf(s * 19.9898f + t * 119.233f) * 43798.5453f;
+  nrnd0 -= floorf(nrnd0);
+  nrnd1 -= floorf(nrnd1);
+  /* Convert uniform distribution into triangle-shaped distribution. */
+  return nrnd0 + nrnd1 - 0.5f;
 }
 
 MINLINE void float_to_byte_dither_v3(
     unsigned char b[3], const float f[3], float dither, float s, float t)
 {
-  float dither_value = dither_random_value(s, t) * 0.005f * dither;
+  float dither_value = dither_random_value(s, t) * 0.0033f * dither;
 
   b[0] = unit_float_to_uchar_clamp(dither_value + f[0]);
   b[1] = unit_float_to_uchar_clamp(dither_value + f[1]);

@@ -5683,7 +5683,8 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "dither_intensity", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "dither_intensity");
-  RNA_def_property_range(prop, 0.0f, 2.0f);
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 2.0, 0.1, 2);
   RNA_def_property_ui_text(
       prop,
       "Dither Intensity",
