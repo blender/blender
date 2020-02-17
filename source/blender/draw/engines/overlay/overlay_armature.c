@@ -815,6 +815,7 @@ static bool set_pchan_color(const ArmatureDrawContext *ctx,
     case PCHAN_COLOR_SOLID: {
       if (bcolor) {
         rgb_uchar_to_float(fcolor, (uchar *)bcolor->solid);
+        fcolor[3] = 1.0f;
         /* Meh, hardcoded srgb transform here. */
         srgb_to_linearrgb_v4(fcolor, fcolor);
       }
