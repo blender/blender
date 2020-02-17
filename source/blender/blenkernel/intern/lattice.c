@@ -282,6 +282,8 @@ void BKE_lattice_copy_data(Main *bmain, Lattice *lt_dst, const Lattice *lt_src, 
 
   if (lt_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &lt_src->key->id, (ID **)&lt_dst->key, flag);
+    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
+    lt_dst->key->from = &lt_dst->id;
   }
 
   if (lt_src->dvert) {

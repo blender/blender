@@ -608,6 +608,8 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
   /* TODO Do we want to add flag to prevent this? */
   if (me_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &me_src->key->id, (ID **)&me_dst->key, flag);
+    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
+    me_dst->key->from = &me_dst->id;
   }
 }
 

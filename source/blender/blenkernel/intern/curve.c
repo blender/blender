@@ -205,6 +205,8 @@ void BKE_curve_copy_data(Main *bmain, Curve *cu_dst, const Curve *cu_src, const 
 
   if (cu_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &cu_src->key->id, (ID **)&cu_dst->key, flag);
+    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
+    cu_dst->key->from = &cu_dst->id;
   }
 
   cu_dst->editnurb = NULL;
