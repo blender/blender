@@ -2246,7 +2246,7 @@ void OVERLAY_armature_in_front_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
 
-  if (psl->armature_bone_select_ps == NULL) {
+  if (psl->armature_bone_select_ps == NULL || DRW_state_is_select()) {
     DRW_draw_pass(psl->armature_ps[1]);
   }
 }
