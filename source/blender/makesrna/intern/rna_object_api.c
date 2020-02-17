@@ -688,8 +688,11 @@ void rna_Object_me_eval_info(
   }
 }
 #  else
-void rna_Object_me_eval_info(
-    struct Object *ob, bContext *C, int type, PointerRNA *rnaptr_depsgraph, char *result)
+void rna_Object_me_eval_info(struct Object *UNUSED(ob),
+                             bContext *UNUSED(C),
+                             int UNUSED(type),
+                             PointerRNA *UNUSED(rnaptr_depsgraph),
+                             char *result)
 {
   result[0] = '\0';
 }

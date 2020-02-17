@@ -19,7 +19,7 @@
 
 /* Wave */
 
-float wave(point p,
+float wave(point p_input,
            string type,
            string bands_direction,
            string rings_direction,
@@ -30,7 +30,7 @@ float wave(point p,
            float phase)
 {
   /* Prevent precision issues on unit coordinates. */
-  p = (p + 0.000001) * 0.999999;
+  point p = (p_input + 0.000001) * 0.999999;
 
   float n = 0.0;
 
