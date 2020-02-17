@@ -43,7 +43,6 @@ bool device_cuda_init()
       VLOG(1) << "Found precompiled kernels";
       result = true;
     }
-#    ifndef _WIN32
     else if (cuewCompilerPath() != NULL) {
       VLOG(1) << "Found CUDA compiler " << cuewCompilerPath();
       result = true;
@@ -52,7 +51,6 @@ bool device_cuda_init()
       VLOG(1) << "Neither precompiled kernels nor CUDA compiler was found,"
               << " unable to use CUDA";
     }
-#    endif
   }
   else {
     VLOG(1) << "CUEW initialization failed: "

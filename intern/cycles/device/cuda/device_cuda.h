@@ -109,15 +109,13 @@ class CUDADevice : public Device {
 
   bool use_split_kernel();
 
-  string compile_kernel_get_common_cflags(const DeviceRequestedFeatures &requested_features,
-                                          bool filter = false,
-                                          bool split = false);
-
-  bool compile_check_compiler();
+  virtual string compile_kernel_get_common_cflags(
+      const DeviceRequestedFeatures &requested_features, bool filter = false, bool split = false);
 
   string compile_kernel(const DeviceRequestedFeatures &requested_features,
-                        bool filter = false,
-                        bool split = false);
+                        const char *name,
+                        const char *base = "cuda",
+                        bool force_ptx = false);
 
   virtual bool load_kernels(const DeviceRequestedFeatures &requested_features);
 

@@ -293,6 +293,23 @@ class OptiXDevice : public CUDADevice {
     return BVH_LAYOUT_OPTIX;
   }
 
+  string compile_kernel_get_common_cflags(const DeviceRequestedFeatures &requested_features,
+                                          bool filter,
+                                          bool /*split*/) override
+  {
+    // Split kernel is not supported in OptiX
+    string common_cflags = CUDADevice::compile_kernel_get_common_cflags(
+        requested_features, filter, false);
+
+    // Add OptiX SDK include directory to include paths
+    const char *optix_sdk_path = getenv("OPTIX_ROOT_DIR");
+    if (optix_sdk_path) {
+      common_cflags += string_printf(" -I\"%s/include\"", optix_sdk_path);
+    }
+
+    return common_cflags;
+  }
+
   bool load_kernels(const DeviceRequestedFeatures &requested_features) override
   {
     if (have_error()) {
@@ -367,9 +384,11 @@ class OptiXDevice : public CUDADevice {
     }
 
     {  // Load and compile PTX module with OptiX kernels
-      string ptx_data;
-      const string ptx_filename = "lib/kernel_optix.ptx";
-      if (!path_read_text(path_get(ptx_filename), ptx_data)) {
+      string ptx_data, ptx_filename = path_get("lib/kernel_optix.ptx");
+      if (use_adaptive_compilation()) {
+        ptx_filename = compile_kernel(requested_features, "kernel_optix", "optix", true);
+      }
+      if (ptx_filename.empty() || !path_read_text(ptx_filename, ptx_data)) {
         set_error("Failed loading OptiX kernel " + ptx_filename + ".");
         return false;
       }

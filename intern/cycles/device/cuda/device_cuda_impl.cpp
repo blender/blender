@@ -329,70 +329,27 @@ string CUDADevice::compile_kernel_get_common_cflags(
   return cflags;
 }
 
-bool CUDADevice::compile_check_compiler()
-{
-  const char *nvcc = cuewCompilerPath();
-  if (nvcc == NULL) {
-    cuda_error_message(
-        "CUDA nvcc compiler not found. "
-        "Install CUDA toolkit in default location.");
-    return false;
-  }
-  const int cuda_version = cuewCompilerVersion();
-  VLOG(1) << "Found nvcc " << nvcc << ", CUDA version " << cuda_version << ".";
-  const int major = cuda_version / 10, minor = cuda_version % 10;
-  if (cuda_version == 0) {
-    cuda_error_message("CUDA nvcc compiler version could not be parsed.");
-    return false;
-  }
-  if (cuda_version < 80) {
-    printf(
-        "Unsupported CUDA version %d.%d detected, "
-        "you need CUDA 8.0 or newer.\n",
-        major,
-        minor);
-    return false;
-  }
-  else if (cuda_version != 101) {
-    printf(
-        "CUDA version %d.%d detected, build may succeed but only "
-        "CUDA 10.1 is officially supported.\n",
-        major,
-        minor);
-  }
-  return true;
-}
-
 string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_features,
-                                  bool filter,
-                                  bool split)
+                                  const char *name,
+                                  const char *base,
+                                  bool force_ptx)
 {
-  const char *name, *source;
-  if (filter) {
-    name = "filter";
-    source = "filter.cu";
-  }
-  else if (split) {
-    name = "kernel_split";
-    source = "kernel_split.cu";
-  }
-  else {
-    name = "kernel";
-    source = "kernel.cu";
-  }
-  /* Compute cubin name. */
+  /* Compute kernel name. */
   int major, minor;
   cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
   cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
 
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
-    const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin", name, major, minor));
-    VLOG(1) << "Testing for pre-compiled kernel " << cubin << ".";
-    if (path_exists(cubin)) {
-      VLOG(1) << "Using precompiled kernel.";
-      return cubin;
+    if (!force_ptx) {
+      const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin", name, major, minor));
+      VLOG(1) << "Testing for pre-compiled kernel " << cubin << ".";
+      if (path_exists(cubin)) {
+        VLOG(1) << "Using precompiled kernel.";
+        return cubin;
+      }
     }
+
     const string ptx = path_get(string_printf("lib/%s_compute_%d%d.ptx", name, major, minor));
     VLOG(1) << "Testing for pre-compiled kernel " << ptx << ".";
     if (path_exists(ptx)) {
@@ -401,19 +358,21 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
     }
   }
 
-  const string common_cflags = compile_kernel_get_common_cflags(requested_features, filter, split);
-
   /* Try to use locally compiled kernel. */
-  const string source_path = path_get("source");
-  const string kernel_md5 = path_files_md5_hash(source_path);
+  string source_path = path_get("source");
+  const string source_md5 = path_files_md5_hash(source_path);
 
   /* We include cflags into md5 so changing cuda toolkit or changing other
    * compiler command line arguments makes sure cubin gets re-built.
    */
-  const string cubin_md5 = util_md5_string(kernel_md5 + common_cflags);
+  string common_cflags = compile_kernel_get_common_cflags(
+      requested_features, strstr(name, "filter") != NULL, strstr(name, "split") != NULL);
+  const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
+  const char *const kernel_ext = force_ptx ? "ptx" : "cubin";
+  const char *const kernel_arch = force_ptx ? "compute" : "sm";
   const string cubin_file = string_printf(
-      "cycles_%s_sm%d%d_%s.cubin", name, major, minor, cubin_md5.c_str());
+      "cycles_%s_%s_%d%d_%s.%s", name, kernel_arch, major, minor, kernel_md5.c_str(), kernel_ext);
   const string cubin = path_cache_get(path_join("kernels", cubin_file));
   VLOG(1) << "Testing for locally compiled kernel " << cubin << ".";
   if (path_exists(cubin)) {
@@ -422,7 +381,7 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
   }
 
 #  ifdef _WIN32
-  if (have_precompiled_kernels()) {
+  if (!use_adaptive_compilation() && have_precompiled_kernels()) {
     if (major < 3) {
       cuda_error_message(
           string_printf("CUDA device requires compute capability 3.0 or up, "
@@ -437,42 +396,69 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
                         major,
                         minor));
     }
-    return "";
+    return string();
   }
 #  endif
 
   /* Compile. */
-  if (!compile_check_compiler()) {
-    return "";
+  const char *const nvcc = cuewCompilerPath();
+  if (nvcc == NULL) {
+    cuda_error_message(
+        "CUDA nvcc compiler not found. "
+        "Install CUDA toolkit in default location.");
+    return string();
   }
-  const char *nvcc = cuewCompilerPath();
-  const string kernel = path_join(path_join(source_path, "kernel"),
-                                  path_join("kernels", path_join("cuda", source)));
+
+  const int nvcc_cuda_version = cuewCompilerVersion();
+  VLOG(1) << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
+  if (nvcc_cuda_version < 80) {
+    printf(
+        "Unsupported CUDA version %d.%d detected, "
+        "you need CUDA 8.0 or newer.\n",
+        nvcc_cuda_version / 10,
+        nvcc_cuda_version % 10);
+    return string();
+  }
+  else if (nvcc_cuda_version != 101) {
+    printf(
+        "CUDA version %d.%d detected, build may succeed but only "
+        "CUDA 10.1 is officially supported.\n",
+        nvcc_cuda_version / 10,
+        nvcc_cuda_version % 10);
+  }
+
   double starttime = time_dt();
-  printf("Compiling CUDA kernel ...\n");
 
   path_create_directories(cubin);
 
+  source_path = path_join(path_join(source_path, "kernel"),
+                          path_join("kernels", path_join(base, string_printf("%s.cu", name))));
+
   string command = string_printf(
       "\"%s\" "
-      "-arch=sm_%d%d "
-      "--cubin \"%s\" "
+      "-arch=%s_%d%d "
+      "--%s \"%s\" "
       "-o \"%s\" "
-      "%s ",
+      "%s",
       nvcc,
+      kernel_arch,
       major,
       minor,
-      kernel.c_str(),
+      kernel_ext,
+      source_path.c_str(),
       cubin.c_str(),
       common_cflags.c_str());
 
-  printf("%s\n", command.c_str());
+  printf("Compiling CUDA kernel ...\n%s\n", command.c_str());
 
-  if (system(command.c_str()) == -1) {
+#ifdef _WIN32
+  command = "call " + command;
+#endif
+  if (system(command.c_str()) != 0) {
     cuda_error_message(
         "Failed to execute compilation command, "
         "see console for details.");
-    return "";
+    return string();
   }
 
   /* Verify if compilation succeeded */
@@ -480,7 +466,7 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
     cuda_error_message(
         "CUDA kernel compilation failed, "
         "see console for details.");
-    return "";
+    return string();
   }
 
   printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
@@ -509,12 +495,14 @@ bool CUDADevice::load_kernels(const DeviceRequestedFeatures &requested_features)
     return false;
 
   /* get kernel */
-  string cubin = compile_kernel(requested_features, false, use_split_kernel());
-  if (cubin == "")
+  const char *kernel_name = use_split_kernel() ? "kernel_split" : "kernel";
+  string cubin = compile_kernel(requested_features, kernel_name);
+  if (cubin.empty())
     return false;
 
-  string filter_cubin = compile_kernel(requested_features, true, false);
-  if (filter_cubin == "")
+  const char *filter_name = "filter";
+  string filter_cubin = compile_kernel(requested_features, filter_name);
+  if (filter_cubin.empty())
     return false;
 
   /* open module */

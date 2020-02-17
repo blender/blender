@@ -683,23 +683,23 @@ static int cuewNvrtcInit(void) {
 
 
 int cuewInit(cuuint32_t flags) {
-	int result = CUEW_SUCCESS;
+  int result = CUEW_SUCCESS;
 
-	if (flags & CUEW_INIT_CUDA) {
-		result = cuewCudaInit();
-		if (result != CUEW_SUCCESS) {
-			return result;
-		}
-	}
+  if (flags & CUEW_INIT_CUDA) {
+    result = cuewCudaInit();
+    if (result != CUEW_SUCCESS) {
+      return result;
+    }
+  }
 
-	if (flags & CUEW_INIT_NVRTC) {
-		result = cuewNvrtcInit();
-		if (result != CUEW_SUCCESS) {
-			return result;
-		}
-	}
+  if (flags & CUEW_INIT_NVRTC) {
+    result = cuewNvrtcInit();
+    if (result != CUEW_SUCCESS) {
+      return result;
+    }
+  }
 
-	return result;
+  return result;
 }
 
 
@@ -798,7 +798,10 @@ static int path_exists(const char *path) {
 
 const char *cuewCompilerPath(void) {
 #ifdef _WIN32
-  const char *defaultpaths[] = {"C:/CUDA/bin", NULL};
+  const char *defaultpaths[] = {
+    "C:/CUDA/bin",
+    "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1/bin",
+    NULL};
   const char *executable = "nvcc.exe";
 #else
   const char *defaultpaths[] = {
@@ -832,9 +835,12 @@ const char *cuewCompilerPath(void) {
     }
   }
 
-#ifndef _WIN32
   {
+#ifdef _WIN32
+    FILE *handle = popen("where nvcc", "r");
+#else
     FILE *handle = popen("which nvcc", "r");
+#endif
     if (handle) {
       char buffer[4096] = {0};
       int len = fread(buffer, 1, sizeof(buffer) - 1, handle);
@@ -845,7 +851,6 @@ const char *cuewCompilerPath(void) {
       }
     }
   }
-#endif
 
   return NULL;
 }
@@ -857,23 +862,6 @@ int cuewNvrtcVersion(void) {
     return 10 * major + minor;
   }
   return 0;
-}
-
-static size_t safe_strnlen(const char *s, size_t maxlen) {
-  size_t length;
-  for (length = 0; length < maxlen; s++, length++) {
-    if (*s == '\0') {
-      break;
-    }
-  }
-  return length;
-}
-
-static char *safe_strncpy(char *dest, const char *src, size_t n) {
-  const size_t src_len = safe_strnlen(src, n - 1);
-  memcpy(dest, src, src_len);
-  dest[src_len] = '\0';
-  return dest;
 }
 
 int cuewCompilerVersion(void) {
@@ -891,8 +879,9 @@ int cuewCompilerVersion(void) {
   }
 
   /* get --version output */
-  safe_strncpy(command, path, sizeof(command));
-  strncat(command, " --version", sizeof(command) - strlen(path));
+  strncat(command, "\"", 1);
+  strncat(command, path, sizeof(command) - 1);
+  strncat(command, "\" --version", sizeof(command) - strlen(path) - 1);
   pipe = popen(command, "r");
   if (!pipe) {
     fprintf(stderr, "CUDA: failed to run compiler to retrieve version");
@@ -922,4 +911,3 @@ int cuewCompilerVersion(void) {
 
   return 10 * major + minor;
 }
-
