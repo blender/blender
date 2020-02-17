@@ -24,7 +24,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef __KERNEL_OPECL__
+#ifdef __KERNEL_OPENCL__
 #  define static_assert(statement, message)
 #endif /* __KERNEL_GPU__ */
 
