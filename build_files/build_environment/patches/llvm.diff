@@ -1,0 +1,13 @@
+--- a/lib/Support/Unix/Path.inc	2020-02-17 09:24:26.000000000 +0100
++++ b/lib/Support/Unix/Path.inc	2020-02-17 09:26:25.000000000 +0100
+@@ -1200,7 +1200,9 @@
+ /// implementation.
+ std::error_code copy_file(const Twine &From, const Twine &To) {
+   uint32_t Flag = COPYFILE_DATA;
+-#if __has_builtin(__builtin_available) && defined(COPYFILE_CLONE)
++  // BLENDER: This optimization makes LLVM not build on older Xcode versions,
++  // just disable until everyone has new enough Xcode versions.
++#if 0
+   if (__builtin_available(macos 10.12, *)) {
+     bool IsSymlink;
+     if (std::error_code Error = is_symlink_file(From, IsSymlink))
