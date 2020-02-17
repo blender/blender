@@ -880,7 +880,7 @@ void RNA_api_wm(StructRNA *srna)
       "Is Interface Locked",
       "If true, the interface is currently locked by a running job and data shouldn't be modified "
       "from application timers. Otherwise, the running job might conflict with the handler "
-      "causing unexpected results or even crashes.");
+      "causing unexpected results or even crashes");
   RNA_def_property_clear_flag(parm, PROP_EDITABLE);
 }
 
