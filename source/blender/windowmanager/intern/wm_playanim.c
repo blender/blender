@@ -1292,8 +1292,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   /* initialize the font */
   BLF_init();
-  ps.fontid = BLF_load_mem(
-      "monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
+  ps.fontid = BLF_load_mono_default(false);
   BLF_size(ps.fontid, 11, 72);
 
   ps.ibufx = ibuf->x;

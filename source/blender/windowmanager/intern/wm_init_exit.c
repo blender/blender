@@ -609,8 +609,6 @@ void WM_exit_ex(bContext *C, const bool do_python)
   }
 
 #ifdef WITH_INTERNATIONAL
-  BLF_free_unifont();
-  BLF_free_unifont_mono();
   BLT_lang_free();
 #endif
 

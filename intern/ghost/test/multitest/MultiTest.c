@@ -595,7 +595,7 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
     lw->app = app;
     lw->win = win;
 
-    lw->font = BLF_load_mem("default", (unsigned char *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+    lw->font = BLF_load_default(false);
     BLF_size(lw->font, 11, 72);
     lw->fontheight = BLF_height(lw->font, "A_", 2);
 

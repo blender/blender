@@ -63,50 +63,6 @@ macro(suffix_relpaths
   unset(_file)
 endmacro()
 
-macro(data_to_c
-      file_from file_to
-      list_to_add)
-
-  list(APPEND ${list_to_add} ${file_to})
-
-  get_filename_component(_file_to_path ${file_to} PATH)
-
-  add_custom_command(
-    OUTPUT ${file_to}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to}
-    DEPENDS ${file_from} datatoc)
-  unset(_file_to_path)
-endmacro()
-
-# same as above but generates the var name and output automatic.
-function(data_to_c_simple
-  file_from
-  list_to_add
-  )
-
-  # remove ../'s
-  get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}   REALPATH)
-  get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c REALPATH)
-
-
-  list(APPEND ${list_to_add} ${_file_to})
-  source_group(Generated FILES ${_file_to})
-  list(APPEND ${list_to_add} ${file_from})
-  set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
-
-  get_filename_component(_file_to_path ${_file_to} PATH)
-
-  message(OUTPUT "  ${_file_to}")
-  add_custom_command(
-    OUTPUT  ${_file_to}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
-    DEPENDS ${_file_from} datatoc)
-
-  set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
-endfunction()
-
 # -----------------------------------------------------------------------------
 # Defines
 
@@ -311,13 +267,6 @@ target_link_libraries(gears_cpp
 
 
 # MultiTest (C)
-set(data_to_c_files)
-data_to_c(
-  ${CMAKE_SOURCE_DIR}/../../../release/datafiles/bfont.ttf
-  ${CMAKE_CURRENT_BINARY_DIR}/bfont.ttf.c
-  data_to_c_files
-)
-
 add_executable(multitest_c
   ${CMAKE_SOURCE_DIR}/multitest/Basic.c
   ${CMAKE_SOURCE_DIR}/multitest/EventToBuf.c
@@ -326,7 +275,6 @@ add_executable(multitest_c
   ${CMAKE_SOURCE_DIR}/multitest/Util.c
   ${CMAKE_SOURCE_DIR}/multitest/WindowData.c
   ${CMAKE_SOURCE_DIR}/multitest/stubs.c
-  ${data_to_c_files}
 )
 
 

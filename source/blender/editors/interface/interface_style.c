@@ -422,8 +422,6 @@ void uiStyleInit(void)
 {
   uiFont *font;
   uiStyle *style = U.uistyles.first;
-  int monofont_size = datatoc_bmonofont_ttf_size;
-  uchar *monofont_ttf = (uchar *)datatoc_bmonofont_ttf;
 
   /* recover from uninitialized dpi */
   if (U.dpi == 0) {
@@ -463,37 +461,15 @@ void uiStyleInit(void)
   }
 
   for (font = U.uifonts.first; font; font = font->next) {
+    const bool unique = false;
 
     if (font->uifont_id == UIFONT_DEFAULT) {
-#ifdef WITH_INTERNATIONAL
-      int font_size = datatoc_bfont_ttf_size;
-      uchar *font_ttf = (uchar *)datatoc_bfont_ttf;
-      static int last_font_size = 0;
-
-      /* use unicode font if available */
-      font_ttf = BLF_get_unifont(&font_size);
-
-      if (!font_ttf) {
-        /* fall back if not found */
-        font_size = datatoc_bfont_ttf_size;
-        font_ttf = (uchar *)datatoc_bfont_ttf;
-      }
-
-      /* relload only if needed */
-      if (last_font_size != font_size) {
-        BLF_unload("default");
-        last_font_size = font_size;
-      }
-
-      font->blf_id = BLF_load_mem("default", font_ttf, font_size);
-#else
-      font->blf_id = BLF_load_mem("default", (uchar *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
-#endif
+      font->blf_id = BLF_load_default(unique);
     }
     else {
       font->blf_id = BLF_load(font->filename);
       if (font->blf_id == -1) {
-        font->blf_id = BLF_load_mem("default", (uchar *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+        font->blf_id = BLF_load_default(unique);
       }
     }
 
@@ -519,25 +495,17 @@ void uiStyleInit(void)
     ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
   }
 
-#ifdef WITH_INTERNATIONAL
-  /* use unicode font for text editor and interactive console */
-  monofont_ttf = BLF_get_unifont_mono(&monofont_size);
-
-  if (!monofont_ttf) {
-    /* fall back if not found */
-    monofont_size = datatoc_bmonofont_ttf_size;
-    monofont_ttf = (uchar *)datatoc_bmonofont_ttf;
-  }
-#endif
-
   /* XXX, this should be moved into a style,
    * but for now best only load the monospaced font once. */
   BLI_assert(blf_mono_font == -1);
+  /* Use unique font loading to avoid thread safety issues with mono font
+   * used for render metadata stamp in threads. */
   if (U.font_path_ui_mono[0]) {
     blf_mono_font = BLF_load_unique(U.font_path_ui_mono);
   }
   if (blf_mono_font == -1) {
-    blf_mono_font = BLF_load_mem_unique("monospace", monofont_ttf, monofont_size);
+    const bool unique = true;
+    blf_mono_font = BLF_load_mono_default(unique);
   }
 
   BLF_size(blf_mono_font, 12 * U.pixelsize, 72);
@@ -580,7 +548,8 @@ void uiStyleInit(void)
    * keep for now though, since without this there is no way to display many unicode chars.
    */
   if (blf_mono_font_render == -1) {
-    blf_mono_font_render = BLF_load_mem_unique("monospace", monofont_ttf, monofont_size);
+    const bool unique = true;
+    blf_mono_font_render = BLF_load_mono_default(unique);
   }
 
   BLF_size(blf_mono_font_render, 12 * U.pixelsize, 72);

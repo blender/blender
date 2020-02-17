@@ -60,12 +60,6 @@ extern char datatoc_splash_2x_png[];
 extern int datatoc_bfont_pfb_size;
 extern char datatoc_bfont_pfb[];
 
-extern int datatoc_bfont_ttf_size;
-extern char datatoc_bfont_ttf[];
-
-extern int datatoc_bmonofont_ttf_size;
-extern char datatoc_bmonofont_ttf[];
-
 /* Brush icon datafiles */
 /* TODO: this could be simplified by putting all
  * the brush icons in one file */
