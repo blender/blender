@@ -439,7 +439,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
     ctx.num_hits = 0;
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
-    kernel_embree_setup_ray(*ray, rtc_ray, PATH_RAY_SHADOW);
+    kernel_embree_setup_ray(*ray, rtc_ray, visibility);
     rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
 
     if (ctx.num_hits > max_hits) {

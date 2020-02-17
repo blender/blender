@@ -589,7 +589,7 @@ void BVHEmbree::add_instance(Object *ob, int i)
   pack.prim_tri_index.push_back_slow(-1);
 
   rtcSetGeometryUserData(geom_id, (void *)instance_bvh->scene);
-  rtcSetGeometryMask(geom_id, ob->visibility);
+  rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
   rtcCommitGeometry(geom_id);
   rtcAttachGeometryByID(scene, geom_id, i * 2);
@@ -653,7 +653,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func);
   rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
-  rtcSetGeometryMask(geom_id, ob->visibility);
+  rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
   rtcCommitGeometry(geom_id);
   rtcAttachGeometryByID(scene, geom_id, i * 2);
@@ -841,7 +841,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func);
   rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
-  rtcSetGeometryMask(geom_id, ob->visibility);
+  rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
   rtcCommitGeometry(geom_id);
   rtcAttachGeometryByID(scene, geom_id, i * 2 + 1);
