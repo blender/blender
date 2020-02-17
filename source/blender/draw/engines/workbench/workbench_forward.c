@@ -779,6 +779,12 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
   WORKBENCH_PrivateData *wpd = stl->g_data;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
+  if (dfbl->in_front_fb) {
+    /* TODO(fclem) This clear should be done in a global place. */
+    GPU_framebuffer_bind(dfbl->in_front_fb);
+    GPU_framebuffer_clear_depth(dfbl->in_front_fb, 1.0f);
+  }
+
   if (workbench_is_taa_enabled(wpd)) {
     workbench_taa_draw_scene_start(vedata);
   }
