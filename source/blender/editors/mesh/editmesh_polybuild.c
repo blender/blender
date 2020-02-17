@@ -436,7 +436,7 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "create_quads",
                   true,
-                  "Create quads",
+                  "Create Quads",
                   "Automatically split edges in triangles to maintain quad topology");
   /* to give to transform */
   Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
