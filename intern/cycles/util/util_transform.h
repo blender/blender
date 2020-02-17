@@ -344,10 +344,10 @@ ccl_device_inline Transform transform_empty()
 
 ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
-  /* use simpe nlerp instead of slerp. it's faster and almost the same */
+  /* Optix is using lerp to interpolate motion transformations. */
+#ifdef __KERNEL_OPTIX__
   return normalize((1.0f - t) * q1 + t * q2);
-
-#if 0
+#else  /* __KERNEL_OPTIX__ */
   /* note: this does not ensure rotation around shortest angle, q1 and q2
    * are assumed to be matched already in transform_motion_decompose */
   float costheta = dot(q1, q2);
@@ -365,7 +365,7 @@ ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
     float thetap = theta * t;
     return q1 * cosf(thetap) + qperp * sinf(thetap);
   }
-#endif
+#endif /* __KERNEL_OPTIX__ */
 }
 
 ccl_device_inline Transform transform_quick_inverse(Transform M)
@@ -467,29 +467,6 @@ ccl_device void transform_motion_array_interpolate(Transform *tfm,
 }
 
 #ifndef __KERNEL_GPU__
-
-#  ifdef WITH_EMBREE
-ccl_device void transform_motion_array_interpolate_straight(
-    Transform *tfm, const ccl_global DecomposedTransform *motion, uint numsteps, float time)
-{
-  /* Figure out which steps we need to interpolate. */
-  int maxstep = numsteps - 1;
-  int step = min((int)(time * maxstep), maxstep - 1);
-  float t = time * maxstep - step;
-
-  const ccl_global DecomposedTransform *a = motion + step;
-  const ccl_global DecomposedTransform *b = motion + step + 1;
-  Transform step1, step2;
-
-  transform_compose(&step1, a);
-  transform_compose(&step2, b);
-
-  /* matrix lerp */
-  tfm->x = (1.0f - t) * step1.x + t * step2.x;
-  tfm->y = (1.0f - t) * step1.y + t * step2.y;
-  tfm->z = (1.0f - t) * step1.z + t * step2.z;
-}
-#  endif
 
 class BoundBox2D;
 
