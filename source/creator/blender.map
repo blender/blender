@@ -20,5 +20,6 @@ local:
 	X86CompilationCallback*;
 	*boost*;
 	*SDL*;
+	*embree*;
 };
 
