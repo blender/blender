@@ -333,6 +333,8 @@ static int screen_render_exec(bContext *C, wmOperator *op)
   re = RE_NewSceneRender(scene);
 
   G.is_break = false;
+
+  RE_draw_lock_cb(re, NULL, NULL);
   RE_test_break_cb(re, NULL, render_break);
 
   ima = BKE_image_verify_viewer(mainp, IMA_TYPE_R_RESULT, "Render Result");
