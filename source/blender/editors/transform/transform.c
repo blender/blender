@@ -1637,6 +1637,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
+  if ((prop = RNA_struct_find_property(op->ptr, "mouse_coordinate_override"))) {
+    /* Important for redo operations. */
+    RNA_property_int_set_array(op->ptr, prop, t->mouse.imval);
+  }
+
   if (t->flag & T_PROP_EDIT_ALL) {
     if (t->flag & T_PROP_EDIT) {
       proportional |= PROP_EDIT_USE;

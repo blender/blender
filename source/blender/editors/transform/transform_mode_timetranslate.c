@@ -146,7 +146,6 @@ void initTimeTranslate(TransInfo *t)
     t->state = TRANS_CANCEL;
   }
 
-  t->mode = TFM_TIME_TRANSLATE;
   t->transform = applyTimeTranslate;
 
   initMouseInputMode(t, &t->mouse, INPUT_NONE);

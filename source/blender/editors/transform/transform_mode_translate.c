@@ -384,7 +384,6 @@ void initTranslation(TransInfo *t)
     t->state = TRANS_CANCEL;
   }
 
-  t->mode = TFM_TRANSLATION;
   t->transform = applyTranslation;
 
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);

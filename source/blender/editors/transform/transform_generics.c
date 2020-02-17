@@ -1374,6 +1374,24 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   bGPdata *gpd = CTX_data_gpencil_data(C);
   PropertyRNA *prop;
 
+  if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_float_get_array(op->ptr, prop, t->center_global);
+    mul_v3_v3(t->center_global, t->aspect);
+    t->flag |= T_OVERRIDE_CENTER;
+  }
+
+  if (op && (prop = RNA_struct_find_property(op->ptr, "mouse_coordinate_override")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_int_get_array(op->ptr, prop, t->mval);
+  }
+  else if (event) {
+    copy_v2_v2_int(t->mval, event->mval);
+  }
+  else {
+    zero_v2_int(t->mval);
+  }
+
   t->depsgraph = CTX_data_depsgraph_pointer(C);
   t->scene = sce;
   t->view_layer = view_layer;
@@ -1402,20 +1420,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->redraw = TREDRAW_HARD; /* redraw first time */
 
-  if (event) {
-    t->mouse.imval[0] = event->mval[0];
-    t->mouse.imval[1] = event->mval[1];
-  }
-  else {
-    t->mouse.imval[0] = 0;
-    t->mouse.imval[1] = 0;
-  }
+  t->mouse.imval[0] = t->mval[0];
+  t->mouse.imval[1] = t->mval[1];
 
   t->con.imval[0] = t->mouse.imval[0];
   t->con.imval[1] = t->mouse.imval[1];
-
-  t->mval[0] = t->mouse.imval[0];
-  t->mval[1] = t->mouse.imval[1];
 
   t->transform = NULL;
   t->handleEvent = NULL;
@@ -1770,13 +1779,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 #endif
 
   setTransformViewAspect(t, t->aspect);
-
-  if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
-      RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_float_get_array(op->ptr, prop, t->center_global);
-    mul_v3_v3(t->center_global, t->aspect);
-    t->flag |= T_OVERRIDE_CENTER;
-  }
 
   setTransformViewMatrices(t);
   initNumInput(&t->num);
