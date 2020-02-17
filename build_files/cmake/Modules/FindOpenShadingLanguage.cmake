@@ -66,6 +66,22 @@ FIND_PROGRAM(OSL_COMPILER oslc
              HINTS ${_osl_SEARCH_DIRS}
              PATH_SUFFIXES bin)
 
+get_filename_component(OSL_SHADER_HINT ${OSL_COMPILER} DIRECTORY)
+get_filename_component(OSL_SHADER_HINT ${OSL_SHADER_DIR}/../ ABSOLUTE)
+
+FIND_PATH(OSL_SHADER_DIR
+  NAMES
+    stdosl.h
+  HINTS
+    ${OSL_ROOT_DIR}
+    ${OSL_SHADER_HINT}
+    $ENV{OSLHOME}
+    /usr/share/OSL/
+    /usr/include/OSL/
+  PATH_SUFFIXES
+    shaders
+)
+
 # handle the QUIETLY and REQUIRED arguments and set OSL_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
