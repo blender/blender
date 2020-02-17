@@ -28,6 +28,10 @@
 #include "BLI_sys_types.h" /* size_t */
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Struct Declarations */
 
 struct ARegion;
@@ -2483,5 +2487,9 @@ void UI_interface_tag_script_reload(void);
 
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __UI_INTERFACE_H__ */
