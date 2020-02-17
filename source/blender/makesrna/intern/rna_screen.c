@@ -109,21 +109,9 @@ static const EnumPropertyItem *rna_Area_type_itemf(bContext *UNUSED(C),
                                                    PropertyRNA *UNUSED(prop),
                                                    bool *r_free)
 {
-  EnumPropertyItem *item = NULL;
-  int totitem = 0;
-
   /* +1 to skip SPACE_EMPTY */
-  for (const EnumPropertyItem *item_from = rna_enum_space_type_items + 1; item_from->identifier;
-       item_from++) {
-    if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR)) {
-      continue;
-    }
-    RNA_enum_item_add(&item, &totitem, item_from);
-  }
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-
-  return item;
+  *r_free = false;
+  return rna_enum_space_type_items + 1;
 }
 
 static int rna_Area_type_get(PointerRNA *ptr)
