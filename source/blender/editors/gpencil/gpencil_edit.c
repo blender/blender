@@ -1441,7 +1441,8 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
 
 static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 {
-  bGPdata *gpd = CTX_data_gpencil_data(C);
+  Object *ob = CTX_data_active_object(C);
+  bGPdata *gpd = (bGPdata *)ob->data;
   Scene *scene = CTX_data_scene(C);
   bGPDlayer *target_layer = NULL;
   ListBase strokes = {NULL, NULL};
@@ -1489,6 +1490,11 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 
       /* skip strokes that are invalid for current view */
       if (ED_gpencil_stroke_can_use(C, gps) == false) {
+        continue;
+      }
+
+      /* Check if the color is editable. */
+      if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
         continue;
       }
 
