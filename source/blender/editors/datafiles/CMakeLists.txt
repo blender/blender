@@ -739,6 +739,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.border_mask
   ops.sculpt.lasso_mask
   ops.sculpt.mesh_filter
+  ops.sequencer.blade
   ops.transform.bone_envelope
   ops.transform.bone_size
   ops.transform.edge_slide
