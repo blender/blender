@@ -2973,7 +2973,6 @@ static ImBuf *do_multicam(const SeqRenderData *context,
                           ImBuf *UNUSED(ibuf2),
                           ImBuf *UNUSED(ibuf3))
 {
-  ImBuf *i;
   ImBuf *out;
   Editing *ed;
   ListBase *seqbasep;
@@ -2991,18 +2990,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
     return NULL;
   }
 
-  i = BKE_sequencer_give_ibuf_seqbase(context, cfra, seq->multicam_source, seqbasep);
-  if (!i) {
-    return NULL;
-  }
-
-  if (BKE_sequencer_input_have_to_preprocess(context, seq, cfra)) {
-    out = IMB_dupImBuf(i);
-    IMB_freeImBuf(i);
-  }
-  else {
-    out = i;
-  }
+  out = BKE_sequencer_give_ibuf_seqbase(context, cfra, seq->multicam_source, seqbasep);
 
   return out;
 }
@@ -3061,7 +3049,6 @@ static ImBuf *do_adjustment(const SeqRenderData *context,
                             ImBuf *UNUSED(ibuf2),
                             ImBuf *UNUSED(ibuf3))
 {
-  ImBuf *i = NULL;
   ImBuf *out;
   Editing *ed;
 
@@ -3071,18 +3058,7 @@ static ImBuf *do_adjustment(const SeqRenderData *context,
     return NULL;
   }
 
-  i = do_adjustment_impl(context, seq, cfra);
-
-  if (BKE_sequencer_input_have_to_preprocess(context, seq, cfra)) {
-    out = IMB_dupImBuf(i);
-    if (out) {
-      IMB_metadata_copy(out, i);
-    }
-    IMB_freeImBuf(i);
-  }
-  else {
-    out = i;
-  }
+  out = do_adjustment_impl(context, seq, cfra);
 
   return out;
 }

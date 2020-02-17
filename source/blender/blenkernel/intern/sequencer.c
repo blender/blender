@@ -2980,30 +2980,12 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
       break;
     case EARLY_USE_INPUT_1:
       if (input[0]) {
-        ibuf[0] = seq_render_strip(context, state, input[0], cfra);
-      }
-      if (ibuf[0]) {
-        if (BKE_sequencer_input_have_to_preprocess(context, seq, cfra)) {
-          out = IMB_dupImBuf(ibuf[0]);
-        }
-        else {
-          out = ibuf[0];
-          IMB_refImBuf(out);
-        }
+        out = seq_render_strip(context, state, input[0], cfra);
       }
       break;
     case EARLY_USE_INPUT_2:
       if (input[1]) {
-        ibuf[1] = seq_render_strip(context, state, input[1], cfra);
-      }
-      if (ibuf[1]) {
-        if (BKE_sequencer_input_have_to_preprocess(context, seq, cfra)) {
-          out = IMB_dupImBuf(ibuf[1]);
-        }
-        else {
-          out = ibuf[1];
-          IMB_refImBuf(out);
-        }
+        out = seq_render_strip(context, state, input[1], cfra);
       }
       break;
   }
@@ -3659,10 +3641,9 @@ finally:
 static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
                                       SeqRenderState *state,
                                       Sequence *seq,
-                                      float nr,
-                                      bool use_preprocess)
+                                      float nr)
 {
-  ImBuf *meta_ibuf = NULL, *ibuf = NULL;
+  ImBuf *ibuf = NULL;
   ListBase *seqbase = NULL;
   int offset;
 
@@ -3675,23 +3656,12 @@ static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
           context->bmain, context->depsgraph, seq->scene, nr + offset);
     }
 
-    meta_ibuf = seq_render_strip_stack(context,
+    ibuf = seq_render_strip_stack(context,
                                        state,
                                        seqbase,
                                        /* scene strips don't have their start taken into account */
                                        nr + offset,
                                        0);
-  }
-
-  if (meta_ibuf) {
-    ibuf = meta_ibuf;
-    if (ibuf && use_preprocess) {
-      ImBuf *i = IMB_dupImBuf(ibuf);
-
-      IMB_freeImBuf(ibuf);
-
-      ibuf = i;
-    }
   }
 
   return ibuf;
@@ -3706,11 +3676,9 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
   float nr = give_stripelem_index(seq, cfra);
   int type = (seq->type & SEQ_TYPE_EFFECT && seq->type != SEQ_TYPE_SPEED) ? SEQ_TYPE_EFFECT :
                                                                             seq->type;
-  bool use_preprocess = BKE_sequencer_input_have_to_preprocess(context, seq, cfra);
-
   switch (type) {
     case SEQ_TYPE_META: {
-      ibuf = do_render_strip_seqbase(context, state, seq, nr, use_preprocess);
+      ibuf = do_render_strip_seqbase(context, state, seq, nr);
       break;
     }
 
@@ -3735,7 +3703,7 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
           local_context.scene = seq->scene;
           local_context.skip_cache = true;
 
-          ibuf = do_render_strip_seqbase(&local_context, state, seq, nr, use_preprocess);
+          ibuf = do_render_strip_seqbase(&local_context, state, seq, nr);
 
           /* step back in the list */
           state->scene_parents = state->scene_parents->next;
@@ -3750,8 +3718,6 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
     }
 
     case SEQ_TYPE_SPEED: {
-      ImBuf *child_ibuf = NULL;
-
       float f_cfra;
       SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
 
@@ -3759,19 +3725,8 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
 
       /* weeek! */
       f_cfra = seq->start + s->frameMap[(int)nr];
+      ibuf = seq_render_strip(context, state, seq->seq1, f_cfra);
 
-      child_ibuf = seq_render_strip(context, state, seq->seq1, f_cfra);
-
-      if (child_ibuf) {
-        ibuf = child_ibuf;
-        if (ibuf && use_preprocess) {
-          ImBuf *i = IMB_dupImBuf(ibuf);
-
-          IMB_freeImBuf(ibuf);
-
-          ibuf = i;
-        }
-      }
       break;
     }
 
