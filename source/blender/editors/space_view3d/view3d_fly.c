@@ -242,7 +242,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  immUniformThemeColor(TH_VIEW_OVERLAY);
+  immUniformThemeColor3(TH_VIEW_OVERLAY);
 
   immBegin(GPU_PRIM_LINES, 16);
 

@@ -570,7 +570,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
       GPU_blend(false);
     }
 
-    immUniformThemeColor(TH_BACK);
+    immUniformThemeColor3(TH_BACK);
     imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
@@ -607,7 +607,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
       imm_draw_box_wire_2d(shdr_pos, x1i - 1, y1i - 1, x2i + 1, y2i + 1);
     }
 
-    immUniformThemeColor(TH_VIEW_OVERLAY);
+    immUniformThemeColor3(TH_VIEW_OVERLAY);
     imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
   }
 

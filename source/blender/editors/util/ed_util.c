@@ -458,7 +458,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
   immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
   immUniform1i("colors_len", 0); /* "simple" mode */
-  immUniformThemeColor(TH_VIEW_OVERLAY);
+  immUniformThemeColor3(TH_VIEW_OVERLAY);
   immUniform1f("dash_width", 6.0f);
   immUniform1f("dash_factor", 0.5f);
 
