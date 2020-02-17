@@ -1136,7 +1136,7 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
       ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
-      ot->srna, "include_handles", 0, "Select Handles", "Select the strips' handles");
+      ot->srna, "include_handles", 0, "Select Handles", "Select the strips and their handles");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
