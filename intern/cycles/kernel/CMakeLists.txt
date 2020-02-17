@@ -228,6 +228,7 @@ set(SRC_SVM_HEADERS
   svm/svm_fractal_noise.h
   svm/svm_types.h
   svm/svm_value.h
+  svm/svm_vector_rotate.h
   svm/svm_vector_transform.h
   svm/svm_voronoi.h
   svm/svm_voxel.h

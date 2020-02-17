@@ -1384,6 +1384,22 @@ class VectorMathNode : public ShaderNode {
   NodeVectorMathType type;
 };
 
+class VectorRotateNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(VectorRotateNode)
+
+  virtual int get_group()
+  {
+    return NODE_GROUP_LEVEL_3;
+  }
+  NodeVectorRotateType type;
+  float3 vector;
+  float3 center;
+  float3 axis;
+  float angle;
+  float3 rotation;
+};
+
 class VectorTransformNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(VectorTransformNode)

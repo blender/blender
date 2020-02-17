@@ -122,6 +122,49 @@ const EnumPropertyItem rna_enum_mapping_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_vector_rotate_type_items[] = {
+    {NODE_VECTOR_ROTATE_TYPE_AXIS,
+     "AXIS_ANGLE",
+     0,
+     "Axis Angle",
+     "Rotate a point using axis angle"},
+    {NODE_VECTOR_ROTATE_TYPE_AXIS_X, "X_AXIS", 0, "X Axis", "Rotate a point using X axis"},
+    {NODE_VECTOR_ROTATE_TYPE_AXIS_Y, "Y_AXIS", 0, "Y Axis", "Rotate a point using Y axis"},
+    {NODE_VECTOR_ROTATE_TYPE_AXIS_Z, "Z_AXIS", 0, "Z Axis", "Rotate a point using Z axis"},
+    {NODE_VECTOR_ROTATE_TYPE_EULER_XYZ,
+     "EULER_XYZ",
+     0,
+     "XYZ Euler",
+     "Rotate a point using XYZ order"},
+
+    {NODE_VECTOR_ROTATE_TYPE_EULER_XZY,
+     "EULER_XZY",
+     0,
+     "XZY Euler",
+     "Rotate a point using XZY order"},
+    {NODE_VECTOR_ROTATE_TYPE_EULER_YXZ,
+     "EULER_YXZ",
+     0,
+     "YXZ Euler",
+     "Rotate a point using YXZ order"},
+    {NODE_VECTOR_ROTATE_TYPE_EULER_YZX,
+     "EULER_YZX",
+     0,
+     "YZX Euler",
+     "Rotate a point using YZX order"},
+    {NODE_VECTOR_ROTATE_TYPE_EULER_ZXY,
+     "EULER_ZXY",
+     0,
+     "ZXY Euler",
+     "Rotate a point using ZXY order"},
+    {NODE_VECTOR_ROTATE_TYPE_EULER_ZYX,
+     "EULER_ZYX",
+     0,
+     "XZY Euler",
+     "Rotate a point using ZYX order"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 const EnumPropertyItem rna_enum_node_math_items[] = {
     {0, "", 0, N_("Functions"), ""},
     {NODE_MATH_ADD, "ADD", 0, "Add", "A + B"},
@@ -4138,6 +4181,17 @@ static void def_sh_mapping(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_mapping_type_items);
   RNA_def_property_ui_text(prop, "Type", "Type of vector that the mapping transforms");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+}
+
+static void def_sh_vector_rotate(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "rotation_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_vector_rotate_type_items);
+  RNA_def_property_ui_text(prop, "Type", "Type of rotation");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 

@@ -87,3 +87,24 @@ point wrap(point value, point max, point min)
                wrap(value[1], max[1], min[1]),
                wrap(value[2], max[2], min[2]));
 }
+
+matrix euler_to_mat(point euler)
+{
+  float cx = cos(euler[0]);
+  float cy = cos(euler[1]);
+  float cz = cos(euler[2]);
+  float sx = sin(euler[0]);
+  float sy = sin(euler[1]);
+  float sz = sin(euler[2]);
+  matrix mat = matrix(1.0);
+  mat[0][0] = cy * cz;
+  mat[0][1] = cy * sz;
+  mat[0][2] = -sy;
+  mat[1][0] = sy * sx * cz - cx * sz;
+  mat[1][1] = sy * sx * sz + cx * cz;
+  mat[1][2] = cy * sx;
+  +mat[2][0] = sy * cx * cz + sx * sz;
+  mat[2][1] = sy * cx * sz - sx * cz;
+  mat[2][2] = cy * cx;
+  return mat;
+}

@@ -200,6 +200,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/svm_voronoi.h"
 #include "kernel/svm/svm_checker.h"
 #include "kernel/svm/svm_brick.h"
+#include "kernel/svm/svm_vector_rotate.h"
 #include "kernel/svm/svm_vector_transform.h"
 #include "kernel/svm/svm_voxel.h"
 #include "kernel/svm/svm_bump.h"
@@ -512,6 +513,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
         break;
       case NODE_COMBINE_HSV:
         svm_node_combine_hsv(kg, sd, stack, node.y, node.z, node.w, &offset);
+        break;
+      case NODE_VECTOR_ROTATE:
+        svm_node_vector_rotate(sd, stack, node.y, node.z, node.w);
         break;
       case NODE_VECTOR_TRANSFORM:
         svm_node_vector_transform(kg, sd, stack, node);

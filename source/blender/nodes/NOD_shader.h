@@ -85,6 +85,7 @@ void register_node_type_sh_volume_info(void);
 void register_node_type_sh_script(void);
 void register_node_type_sh_normal_map(void);
 void register_node_type_sh_tangent(void);
+void register_node_type_sh_vector_rotate(void);
 void register_node_type_sh_vect_transform(void);
 void register_node_type_sh_vertex_color(void);
 

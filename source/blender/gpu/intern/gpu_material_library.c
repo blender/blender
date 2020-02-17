@@ -119,6 +119,7 @@ extern char datatoc_gpu_shader_material_uv_map_glsl[];
 extern char datatoc_gpu_shader_material_vector_curves_glsl[];
 extern char datatoc_gpu_shader_material_vector_displacement_glsl[];
 extern char datatoc_gpu_shader_material_vector_math_glsl[];
+extern char datatoc_gpu_shader_material_vector_rotate_glsl[];
 extern char datatoc_gpu_shader_material_velvet_glsl[];
 extern char datatoc_gpu_shader_material_vertex_color_glsl[];
 extern char datatoc_gpu_shader_material_volume_absorption_glsl[];
@@ -527,6 +528,11 @@ static GPUMaterialLibrary gpu_shader_material_vector_math_library = {
     .dependencies = {&gpu_shader_material_math_util_library, NULL},
 };
 
+static GPUMaterialLibrary gpu_shader_material_vector_rotate_library = {
+    .code = datatoc_gpu_shader_material_vector_rotate_glsl,
+    .dependencies = {&gpu_shader_material_math_util_library, NULL},
+};
+
 static GPUMaterialLibrary gpu_shader_material_velvet_library = {
     .code = datatoc_gpu_shader_material_velvet_glsl,
     .dependencies = {&gpu_shader_material_diffuse_library, NULL},
@@ -647,6 +653,7 @@ static GPUMaterialLibrary *gpu_material_libraries[] = {
     &gpu_shader_material_vector_curves_library,
     &gpu_shader_material_vector_displacement_library,
     &gpu_shader_material_vector_math_library,
+    &gpu_shader_material_vector_rotate_library,
     &gpu_shader_material_velvet_library,
     &gpu_shader_material_vertex_color_library,
     &gpu_shader_material_volume_absorption_library,
@@ -879,4 +886,3 @@ char *gpu_material_library_generate_code(GSet *used_libraries, const char *frag_
 
   return result;
 }
-

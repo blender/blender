@@ -323,6 +323,12 @@ static ShaderNode *add_node(Scene *scene,
     vector_math_node->type = (NodeVectorMathType)b_vector_math_node.operation();
     node = vector_math_node;
   }
+  else if (b_node.is_a(&RNA_ShaderNodeVectorRotate)) {
+    BL::ShaderNodeVectorRotate b_vector_rotate_node(b_node);
+    VectorRotateNode *vector_rotate_node = new VectorRotateNode();
+    vector_rotate_node->type = (NodeVectorRotateType)b_vector_rotate_node.rotation_type();
+    node = vector_rotate_node;
+  }
   else if (b_node.is_a(&RNA_ShaderNodeVectorTransform)) {
     BL::ShaderNodeVectorTransform b_vector_transform_node(b_node);
     VectorTransformNode *vtransform = new VectorTransformNode();
