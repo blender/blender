@@ -21,29 +21,20 @@
  * \ingroup balembic
  */
 
-#include "abc_points.h"
-
-#include "abc_mesh.h"
-#include "abc_transform.h"
+#include "abc_reader_points.h"
+#include "abc_reader_mesh.h"
+#include "abc_reader_transform.h"
 #include "abc_util.h"
 
 extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_cdderivedmesh.h"
-#include "BKE_lattice.h"
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
-#include "BKE_scene.h"
-
-#include "BLI_math.h"
-
-#include "DEG_depsgraph_query.h"
 }
 
-using Alembic::AbcGeom::kVertexScope;
 using Alembic::AbcGeom::kWrapExisting;
 using Alembic::AbcGeom::N3fArraySamplePtr;
 using Alembic::AbcGeom::P3fArraySamplePtr;
@@ -53,91 +44,6 @@ using Alembic::AbcGeom::IN3fArrayProperty;
 using Alembic::AbcGeom::IPoints;
 using Alembic::AbcGeom::IPointsSchema;
 using Alembic::AbcGeom::ISampleSelector;
-
-using Alembic::AbcGeom::OPoints;
-using Alembic::AbcGeom::OPointsSchema;
-
-/* ************************************************************************** */
-
-AbcPointsWriter::AbcPointsWriter(Object *ob,
-                                 AbcTransformWriter *parent,
-                                 uint32_t time_sampling,
-                                 ExportSettings &settings,
-                                 ParticleSystem *psys)
-    : AbcObjectWriter(ob, time_sampling, settings, parent)
-{
-  m_psys = psys;
-
-  OPoints points(parent->alembicXform(), psys->name, m_time_sampling);
-  m_schema = points.getSchema();
-}
-
-void AbcPointsWriter::do_write()
-{
-  if (!m_psys) {
-    return;
-  }
-
-  std::vector<Imath::V3f> points;
-  std::vector<Imath::V3f> velocities;
-  std::vector<float> widths;
-  std::vector<uint64_t> ids;
-
-  ParticleKey state;
-
-  ParticleSimulationData sim;
-  sim.depsgraph = m_settings.depsgraph;
-  sim.scene = m_settings.scene;
-  sim.ob = m_object;
-  sim.psys = m_psys;
-
-  m_psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
-
-  uint64_t index = 0;
-  for (int p = 0; p < m_psys->totpart; p++) {
-    float pos[3], vel[3];
-
-    if (m_psys->particles[p].flag & (PARS_NO_DISP | PARS_UNEXIST)) {
-      continue;
-    }
-
-    state.time = DEG_get_ctime(m_settings.depsgraph);
-
-    if (psys_get_particle_state(&sim, p, &state, 0) == 0) {
-      continue;
-    }
-
-    /* location */
-    mul_v3_m4v3(pos, m_object->imat, state.co);
-
-    /* velocity */
-    sub_v3_v3v3(vel, state.co, m_psys->particles[p].prev_state.co);
-
-    /* Convert Z-up to Y-up. */
-    points.push_back(Imath::V3f(pos[0], pos[2], -pos[1]));
-    velocities.push_back(Imath::V3f(vel[0], vel[2], -vel[1]));
-    widths.push_back(m_psys->particles[p].size);
-    ids.push_back(index++);
-  }
-
-  if (m_psys->lattice_deform_data) {
-    end_latt_deform(m_psys->lattice_deform_data);
-    m_psys->lattice_deform_data = NULL;
-  }
-
-  Alembic::Abc::P3fArraySample psample(points);
-  Alembic::Abc::UInt64ArraySample idsample(ids);
-  Alembic::Abc::V3fArraySample vsample(velocities);
-  Alembic::Abc::FloatArraySample wsample_array(widths);
-  Alembic::AbcGeom::OFloatGeomParam::Sample wsample(wsample_array, kVertexScope);
-
-  m_sample = OPointsSchema::Sample(psample, idsample, vsample, wsample);
-  m_sample.setSelfBounds(bounds());
-
-  m_schema.set(m_sample);
-}
-
-/* ************************************************************************** */
 
 AbcPointsReader::AbcPointsReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)

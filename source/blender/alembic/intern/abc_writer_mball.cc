@@ -18,25 +18,20 @@
  * \ingroup balembic
  */
 
-#include "abc_mball.h"
-#include "abc_mesh.h"
-#include "abc_transform.h"
-
-#include "MEM_guardedalloc.h"
+#include "abc_writer_mball.h"
+#include "abc_writer_mesh.h"
 
 extern "C" {
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_lib_id.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 
-#include "DEG_depsgraph.h"
+#include "BLI_utildefines.h"
 }
 
 AbcMBallWriter::AbcMBallWriter(Main *bmain,

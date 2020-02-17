@@ -21,8 +21,8 @@
  * \ingroup balembic
  */
 
-#ifndef __ABC_ARCHIVE_H__
-#define __ABC_ARCHIVE_H__
+#ifndef __ABC_READER_ARCHIVE_H__
+#define __ABC_READER_ARCHIVE_H__
 
 #include <Alembic/Abc/All.h>
 
@@ -64,17 +64,4 @@ class ArchiveReader {
   Alembic::Abc::IObject getTop();
 };
 
-class ArchiveWriter {
-  std::ofstream m_outfile;
-  Alembic::Abc::OArchive m_archive;
-
- public:
-  ArchiveWriter(const char *filename,
-                const std::string &abc_scene_name,
-                const Scene *scene,
-                bool do_ogawa);
-
-  Alembic::Abc::OArchive &archive();
-};
-
-#endif /* __ABC_ARCHIVE_H__ */
+#endif /* __ABC_READER_ARCHIVE_H__ */

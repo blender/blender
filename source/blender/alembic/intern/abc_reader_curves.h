@@ -21,39 +21,21 @@
  * \ingroup balembic
  */
 
-#ifndef __ABC_POINTS_H__
-#define __ABC_POINTS_H__
+#ifndef __ABC_READER_CURVES_H__
+#define __ABC_READER_CURVES_H__
 
-#include "abc_object.h"
-#include "abc_customdata.h"
+#include "abc_reader_object.h"
+#include "abc_reader_mesh.h"
 
-struct ParticleSystem;
+struct Curve;
 
-/* ************************************************************************** */
+#define ABC_CURVE_RESOLUTION_U_PROPNAME "blender:resolution"
 
-class AbcPointsWriter : public AbcObjectWriter {
-  Alembic::AbcGeom::OPointsSchema m_schema;
-  Alembic::AbcGeom::OPointsSchema::Sample m_sample;
-  ParticleSystem *m_psys;
+class AbcCurveReader : public AbcObjectReader {
+  Alembic::AbcGeom::ICurvesSchema m_curves_schema;
 
  public:
-  AbcPointsWriter(Object *ob,
-                  AbcTransformWriter *parent,
-                  uint32_t time_sampling,
-                  ExportSettings &settings,
-                  ParticleSystem *psys);
-
-  void do_write();
-};
-
-/* ************************************************************************** */
-
-class AbcPointsReader : public AbcObjectReader {
-  Alembic::AbcGeom::IPointsSchema m_schema;
-  Alembic::AbcGeom::IPointsSchema::Sample m_sample;
-
- public:
-  AbcPointsReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+  AbcCurveReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
   bool valid() const;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
@@ -61,15 +43,14 @@ class AbcPointsReader : public AbcObjectReader {
                            const char **err_str) const;
 
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
-
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
                          int read_flag,
                          const char **err_str);
+
+  void read_curve_sample(Curve *cu,
+                         const Alembic::AbcGeom::ICurvesSchema &schema,
+                         const Alembic::Abc::ISampleSelector &sample_selector);
 };
 
-void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,
-                        const Alembic::AbcGeom::ISampleSelector &selector,
-                        CDStreamConfig &config);
-
-#endif /* __ABC_POINTS_H__ */
+#endif /* __ABC_READER_CURVES_H__ */

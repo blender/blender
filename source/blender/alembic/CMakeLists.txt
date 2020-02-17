@@ -41,35 +41,51 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/abc_archive.cc
-  intern/abc_camera.cc
-  intern/abc_curves.cc
   intern/abc_customdata.cc
   intern/abc_exporter.cc
-  intern/abc_hair.cc
-  intern/abc_mball.cc
-  intern/abc_mesh.cc
-  intern/abc_nurbs.cc
-  intern/abc_object.cc
-  intern/abc_points.cc
-  intern/abc_transform.cc
+  intern/abc_reader_archive.cc
+  intern/abc_reader_camera.cc
+  intern/abc_reader_curves.cc
+  intern/abc_reader_mesh.cc
+  intern/abc_reader_nurbs.cc
+  intern/abc_reader_object.cc
+  intern/abc_reader_points.cc
+  intern/abc_reader_transform.cc
   intern/abc_util.cc
+  intern/abc_writer_archive.cc
+  intern/abc_writer_camera.cc
+  intern/abc_writer_curves.cc
+  intern/abc_writer_hair.cc
+  intern/abc_writer_mball.cc
+  intern/abc_writer_mesh.cc
+  intern/abc_writer_nurbs.cc
+  intern/abc_writer_object.cc
+  intern/abc_writer_points.cc
+  intern/abc_writer_transform.cc
   intern/alembic_capi.cc
 
   ABC_alembic.h
-  intern/abc_archive.h
-  intern/abc_camera.h
-  intern/abc_curves.h
   intern/abc_customdata.h
   intern/abc_exporter.h
-  intern/abc_hair.h
-  intern/abc_mball.h
-  intern/abc_mesh.h
-  intern/abc_nurbs.h
-  intern/abc_object.h
-  intern/abc_points.h
-  intern/abc_transform.h
+  intern/abc_reader_archive.h
+  intern/abc_reader_camera.h
+  intern/abc_reader_curves.h
+  intern/abc_reader_mesh.h
+  intern/abc_reader_nurbs.h
+  intern/abc_reader_object.h
+  intern/abc_reader_points.h
+  intern/abc_reader_transform.h
   intern/abc_util.h
+  intern/abc_writer_archive.h
+  intern/abc_writer_camera.h
+  intern/abc_writer_curves.h
+  intern/abc_writer_hair.h
+  intern/abc_writer_mball.h
+  intern/abc_writer_mesh.h
+  intern/abc_writer_nurbs.h
+  intern/abc_writer_object.h
+  intern/abc_writer_points.h
+  intern/abc_writer_transform.h
 )
 
 set(LIB

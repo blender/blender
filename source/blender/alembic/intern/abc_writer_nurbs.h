@@ -18,12 +18,10 @@
  * \ingroup balembic
  */
 
-#ifndef __ABC_NURBS_H__
-#define __ABC_NURBS_H__
+#ifndef __ABC_WRITER_NURBS_H__
+#define __ABC_WRITER_NURBS_H__
 
-#include "abc_object.h"
-
-/* ************************************************************************** */
+#include "abc_writer_object.h"
 
 class AbcNurbsWriter : public AbcObjectWriter {
   std::vector<Alembic::AbcGeom::ONuPatchSchema> m_nurbs_schema;
@@ -41,20 +39,4 @@ class AbcNurbsWriter : public AbcObjectWriter {
   bool isAnimated() const;
 };
 
-/* ************************************************************************** */
-
-class AbcNurbsReader : public AbcObjectReader {
-  std::vector<std::pair<Alembic::AbcGeom::INuPatchSchema, Alembic::Abc::IObject>> m_schemas;
-
- public:
-  AbcNurbsReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
-
-  bool valid() const;
-
-  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
-
- private:
-  void getNurbsPatches(const Alembic::Abc::IObject &obj);
-};
-
-#endif /* __ABC_NURBS_H__ */
+#endif /* __ABC_WRITER_NURBS_H__ */

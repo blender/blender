@@ -22,15 +22,15 @@
 
 #include <cmath>
 
-#include "abc_archive.h"
-#include "abc_camera.h"
-#include "abc_curves.h"
-#include "abc_hair.h"
-#include "abc_mball.h"
-#include "abc_mesh.h"
-#include "abc_nurbs.h"
-#include "abc_points.h"
-#include "abc_transform.h"
+#include "abc_writer_archive.h"
+#include "abc_writer_camera.h"
+#include "abc_writer_curves.h"
+#include "abc_writer_hair.h"
+#include "abc_writer_mball.h"
+#include "abc_writer_mesh.h"
+#include "abc_writer_nurbs.h"
+#include "abc_writer_points.h"
+#include "abc_writer_transform.h"
 #include "abc_util.h"
 
 extern "C" {

@@ -18,31 +18,10 @@
  * \ingroup balembic
  */
 
-#ifndef __ABC_CAMERA_H__
-#define __ABC_CAMERA_H__
+#ifndef __ABC_READER_CAMERA_H__
+#define __ABC_READER_CAMERA_H__
 
-#include "abc_object.h"
-
-/* ************************************************************************** */
-
-class AbcCameraWriter : public AbcObjectWriter {
-  Alembic::AbcGeom::OCameraSchema m_camera_schema;
-  Alembic::AbcGeom::CameraSample m_camera_sample;
-  Alembic::AbcGeom::OCompoundProperty m_custom_data_container;
-  Alembic::AbcGeom::OFloatProperty m_stereo_distance;
-  Alembic::AbcGeom::OFloatProperty m_eye_separation;
-
- public:
-  AbcCameraWriter(Object *ob,
-                  AbcTransformWriter *parent,
-                  uint32_t time_sampling,
-                  ExportSettings &settings);
-
- private:
-  virtual void do_write();
-};
-
-/* ************************************************************************** */
+#include "abc_reader_object.h"
 
 class AbcCameraReader : public AbcObjectReader {
   Alembic::AbcGeom::ICameraSchema m_schema;
@@ -58,4 +37,4 @@ class AbcCameraReader : public AbcObjectReader {
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
 };
 
-#endif /* __ABC_CAMERA_H__ */
+#endif /* __ABC_READER_CAMERA_H__ */

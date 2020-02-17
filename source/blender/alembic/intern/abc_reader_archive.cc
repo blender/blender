@@ -21,15 +21,13 @@
  * \ingroup balembic
  */
 
-#include "abc_archive.h"
+#include "abc_reader_archive.h"
+
 extern "C" {
-#include "BKE_blender_version.h"
 #include "BKE_main.h"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-
-#include "DNA_scene_types.h"
 }
 
 #ifdef WIN32
@@ -42,7 +40,6 @@ using Alembic::Abc::ErrorHandler;
 using Alembic::Abc::Exception;
 using Alembic::Abc::IArchive;
 using Alembic::Abc::kWrapExisting;
-using Alembic::Abc::OArchive;
 
 static IArchive open_archive(const std::string &filename,
                              const std::vector<std::istream *> &input_streams,
@@ -140,78 +137,4 @@ bool ArchiveReader::valid() const
 Alembic::Abc::IObject ArchiveReader::getTop()
 {
   return m_archive.getTop();
-}
-
-/* ************************************************************************** */
-
-/* This kinda duplicates CreateArchiveWithInfo, but Alembic does not seem to
- * have a version supporting streams. */
-static OArchive create_archive(std::ostream *ostream,
-                               const std::string &filename,
-                               const std::string &scene_name,
-                               double scene_fps,
-                               bool ogawa)
-{
-  Alembic::Abc::MetaData abc_metadata;
-
-  abc_metadata.set(Alembic::Abc::kApplicationNameKey, "Blender");
-  abc_metadata.set(Alembic::Abc::kUserDescriptionKey, scene_name);
-  abc_metadata.set("blender_version", versionstr);
-  abc_metadata.set("FramesPerTimeUnit", std::to_string(scene_fps));
-
-  time_t raw_time;
-  time(&raw_time);
-  char buffer[128];
-
-#if defined _WIN32 || defined _WIN64
-  ctime_s(buffer, 128, &raw_time);
-#else
-  ctime_r(&raw_time, buffer);
-#endif
-
-  const std::size_t buffer_len = strlen(buffer);
-  if (buffer_len > 0 && buffer[buffer_len - 1] == '\n') {
-    buffer[buffer_len - 1] = '\0';
-  }
-
-  abc_metadata.set(Alembic::Abc::kDateWrittenKey, buffer);
-
-  ErrorHandler::Policy policy = ErrorHandler::kThrowPolicy;
-
-#ifdef WITH_ALEMBIC_HDF5
-  if (!ogawa) {
-    return OArchive(Alembic::AbcCoreHDF5::WriteArchive(), filename, abc_metadata, policy);
-  }
-#else
-  static_cast<void>(filename);
-  static_cast<void>(ogawa);
-#endif
-
-  Alembic::AbcCoreOgawa::WriteArchive archive_writer;
-  return OArchive(archive_writer(ostream, abc_metadata), kWrapExisting, policy);
-}
-
-ArchiveWriter::ArchiveWriter(const char *filename,
-                             const std::string &abc_scene_name,
-                             const Scene *scene,
-                             bool do_ogawa)
-{
-  /* Use stream to support unicode character paths on Windows. */
-  if (do_ogawa) {
-#ifdef WIN32
-    UTF16_ENCODE(filename);
-    std::wstring wstr(filename_16);
-    m_outfile.open(wstr.c_str(), std::ios::out | std::ios::binary);
-    UTF16_UN_ENCODE(filename);
-#else
-    m_outfile.open(filename, std::ios::out | std::ios::binary);
-#endif
-  }
-
-  m_archive = create_archive(&m_outfile, filename, abc_scene_name, FPS, do_ogawa);
-}
-
-OArchive &ArchiveWriter::archive()
-{
-  return m_archive;
 }

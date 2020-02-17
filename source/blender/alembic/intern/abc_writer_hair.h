@@ -18,15 +18,13 @@
  * \ingroup balembic
  */
 
-#ifndef __ABC_HAIR_H__
-#define __ABC_HAIR_H__
+#ifndef __ABC_WRITER_HAIR_H__
+#define __ABC_WRITER_HAIR_H__
 
-#include "abc_object.h"
+#include "abc_writer_object.h"
 
 struct ParticleSettings;
 struct ParticleSystem;
-
-/* ************************************************************************** */
 
 class AbcHairWriter : public AbcObjectWriter {
   ParticleSystem *m_psys;
@@ -61,4 +59,4 @@ class AbcHairWriter : public AbcObjectWriter {
                                std::vector<int32_t> &hvertices);
 };
 
-#endif /* __ABC_HAIR_H__ */
+#endif /* __ABC_WRITER_HAIR_H__ */

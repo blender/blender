@@ -18,11 +18,11 @@
  * \ingroup balembic
  */
 
-#ifndef __ABC_MBALL_H__
-#define __ABC_MBALL_H__
+#ifndef __ABC_WRITER_MBALL_H__
+#define __ABC_WRITER_MBALL_H__
 
-#include "abc_object.h"
-#include "abc_mesh.h"
+#include "abc_writer_object.h"
+#include "abc_writer_mesh.h"
 
 struct Main;
 struct Object;
@@ -53,4 +53,4 @@ class AbcMBallWriter : public AbcGenericMeshWriter {
   bool isAnimated() const override;
 };
 
-#endif /* __ABC_MBALL_H__ */
+#endif /* __ABC_WRITER_MBALL_H__ */

@@ -21,15 +21,11 @@
  * \ingroup balembic
  */
 
-#ifndef __ABC_CURVES_H__
-#define __ABC_CURVES_H__
+#ifndef __ABC_WRITER_CURVES_H__
+#define __ABC_WRITER_CURVES_H__
 
-#include "abc_object.h"
-#include "abc_mesh.h"
-
-struct Curve;
-
-/* ************************************************************************** */
+#include "abc_writer_object.h"
+#include "abc_writer_mesh.h"
 
 class AbcCurveWriter : public AbcObjectWriter {
   Alembic::AbcGeom::OCurvesSchema m_schema;
@@ -56,30 +52,4 @@ class AbcCurveMeshWriter : public AbcGenericMeshWriter {
   Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree);
 };
 
-/* ************************************************************************** */
-
-class AbcCurveReader : public AbcObjectReader {
-  Alembic::AbcGeom::ICurvesSchema m_curves_schema;
-
- public:
-  AbcCurveReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
-
-  bool valid() const;
-  bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
-                           const Object *const ob,
-                           const char **err_str) const;
-
-  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
-  struct Mesh *read_mesh(struct Mesh *existing_mesh,
-                         const Alembic::Abc::ISampleSelector &sample_sel,
-                         int read_flag,
-                         const char **err_str);
-
-  void read_curve_sample(Curve *cu,
-                         const Alembic::AbcGeom::ICurvesSchema &schema,
-                         const Alembic::Abc::ISampleSelector &sample_selector);
-};
-
-/* ************************************************************************** */
-
-#endif /* __ABC_CURVES_H__ */
+#endif /* __ABC_WRITER_CURVES_H__ */

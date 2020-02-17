@@ -18,14 +18,12 @@
  * \ingroup balembic
  */
 
-#ifndef __ABC_TRANSFORM_H__
-#define __ABC_TRANSFORM_H__
+#ifndef __ABC_WRITER_TRANSFORM_H__
+#define __ABC_WRITER_TRANSFORM_H__
 
-#include "abc_object.h"
+#include "abc_writer_object.h"
 
 #include <Alembic/AbcGeom/All.h>
-
-/* ************************************************************************** */
 
 class AbcTransformWriter : public AbcObjectWriter {
   Alembic::AbcGeom::OXform m_xform;
@@ -59,20 +57,4 @@ class AbcTransformWriter : public AbcObjectWriter {
   bool hasAnimation(Object *ob) const;
 };
 
-/* ************************************************************************** */
-
-class AbcEmptyReader : public AbcObjectReader {
-  Alembic::AbcGeom::IXformSchema m_schema;
-
- public:
-  AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
-
-  bool valid() const;
-  bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
-                           const Object *const ob,
-                           const char **err_str) const;
-
-  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
-};
-
-#endif /* __ABC_TRANSFORM_H__ */
+#endif /* __ABC_WRITER_TRANSFORM_H__ */

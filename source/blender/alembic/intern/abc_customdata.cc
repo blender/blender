@@ -32,6 +32,8 @@ extern "C" {
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math_base.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_customdata.h"
 }
 

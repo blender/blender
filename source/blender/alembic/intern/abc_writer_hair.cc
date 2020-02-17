@@ -18,26 +18,22 @@
  * \ingroup balembic
  */
 
-#include "abc_hair.h"
-
-#include <cstdio>
-
-#include "abc_transform.h"
+#include "abc_writer_hair.h"
+#include "abc_writer_transform.h"
 #include "abc_util.h"
 
-#include "MEM_guardedalloc.h"
+#include <cstdio>
 
 extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_object.h"
 #include "BKE_particle.h"
 }
 
