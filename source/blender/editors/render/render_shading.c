@@ -217,13 +217,38 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
   View3D *v3d = CTX_wm_view3d(C);
   bool changed_multi = false;
 
+  Object *obact = CTX_data_active_object(C);
+  const Material *mat_active = obact ? BKE_object_material_get(obact, obact->actcol) : NULL;
+
   uint objects_len = 0;
   Object **objects = object_array_for_shading(C, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
-    if (ob->actcol <= 0) {
+    short mat_nr_active = -1;
+
+    if (ob->totcol == 0) {
       continue;
     }
+    if (obact && (mat_active == BKE_object_material_get(ob, obact->actcol))) {
+      /* Avoid searching since there may be multiple slots with the same material.
+       * For the active object or duplicates: match the material slot index first. */
+      mat_nr_active = obact->actcol - 1;
+    }
+    else {
+      /* Find the first matching material.
+       * Note: there may be multiple but that's not a common use case. */
+      for (short i = 0; i < ob->totcol; i++) {
+        const Material *mat = BKE_object_material_get(ob, i + 1);
+        if (mat_active == mat) {
+          mat_nr_active = i;
+          break;
+        }
+      }
+      if (mat_nr_active == -1) {
+        continue;
+      }
+    }
+
     bool changed = false;
     if (ob->type == OB_MESH) {
       BMEditMesh *em = BKE_editmesh_from_object(ob);
@@ -234,7 +259,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
         BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
           if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
             changed = true;
-            efa->mat_nr = ob->actcol - 1;
+            efa->mat_nr = mat_nr_active;
           }
         }
       }
@@ -247,7 +272,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
         for (nu = nurbs->first; nu; nu = nu->next) {
           if (ED_curve_nurb_select_check(v3d, nu)) {
             changed = true;
-            nu->mat_nr = ob->actcol - 1;
+            nu->mat_nr = mat_nr_active;
           }
         }
       }
@@ -259,7 +284,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
       if (ef && BKE_vfont_select_get(ob, &selstart, &selend)) {
         for (i = selstart; i <= selend; i++) {
           changed = true;
-          ef->textbufinfo[i].mat_nr = ob->actcol;
+          ef->textbufinfo[i].mat_nr = mat_nr_active + 1;
         }
       }
     }
