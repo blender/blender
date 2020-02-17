@@ -162,7 +162,8 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         name="Major Radius",
         description=("Radius from the origin to the "
                      "center of the cross sections"),
-        min=0.01, max=100.0,
+        soft_min=0.0, soft_max=100.0,
+        min=0.0, max=10_000.0,
         default=1.0,
         subtype='DISTANCE',
         unit='LENGTH',
@@ -170,7 +171,8 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     minor_radius: FloatProperty(
         name="Minor Radius",
         description="Radius of the torus' cross section",
-        min=0.01, max=100.0,
+        soft_min=0.0, soft_max=100.0,
+        min=0.0, max=10_000.0,
         default=0.25,
         subtype='DISTANCE',
         unit='LENGTH',
@@ -178,7 +180,8 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     abso_major_rad: FloatProperty(
         name="Exterior Radius",
         description="Total Exterior Radius of the torus",
-        min=0.01, max=100.0,
+        soft_min=0.0, soft_max=100.0,
+        min=0.0, max=10_000.0,
         default=1.25,
         subtype='DISTANCE',
         unit='LENGTH',
@@ -186,7 +189,8 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     abso_minor_rad: FloatProperty(
         name="Interior Radius",
         description="Total Interior Radius of the torus",
-        min=0.01, max=100.0,
+        soft_min=0.0, soft_max=100.0,
+        min=0.0, max=10_000.0,
         default=0.75,
         subtype='DISTANCE',
         unit='LENGTH',
