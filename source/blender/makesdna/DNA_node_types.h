@@ -896,6 +896,8 @@ typedef struct NodeTexMusgrave {
 typedef struct NodeTexWave {
   NodeTexBase base;
   int wave_type;
+  int bands_direction;
+  int rings_direction;
   int wave_profile;
 } NodeTexWave;
 
@@ -1139,8 +1141,25 @@ enum {
 #define SHD_WAVE_BANDS 0
 #define SHD_WAVE_RINGS 1
 
-#define SHD_WAVE_PROFILE_SIN 0
-#define SHD_WAVE_PROFILE_SAW 1
+enum {
+  SHD_WAVE_BANDS_DIRECTION_X = 0,
+  SHD_WAVE_BANDS_DIRECTION_Y = 1,
+  SHD_WAVE_BANDS_DIRECTION_Z = 2,
+  SHD_WAVE_BANDS_DIRECTION_DIAGONAL = 3,
+};
+
+enum {
+  SHD_WAVE_RINGS_DIRECTION_X = 0,
+  SHD_WAVE_RINGS_DIRECTION_Y = 1,
+  SHD_WAVE_RINGS_DIRECTION_Z = 2,
+  SHD_WAVE_RINGS_DIRECTION_SPHERICAL = 3,
+};
+
+enum {
+  SHD_WAVE_PROFILE_SIN = 0,
+  SHD_WAVE_PROFILE_SAW = 1,
+  SHD_WAVE_PROFILE_TRI = 2,
+};
 
 /* sky texture */
 #define SHD_SKY_OLD 0

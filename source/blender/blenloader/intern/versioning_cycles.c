@@ -1250,6 +1250,31 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
   }
 }
 
+/* Wave Texture node: Restore previous texture directions and offset.
+ * 1. In 2.81, Wave texture had fixed diagonal direction (Bands) or
+ *    mapping along distance (Rings). Now, directions are customizable
+ *    properties, with X axis being new default. To fix this we set new
+ *    direction options to Diagonal and Spherical.
+ * 2. Sine profile is now negatively offseted by PI/2 to better match
+ *    other profiles. To fix this we set new Phase Offset input to PI/2
+ *    in nodes with Sine profile.
+ */
+static void update_wave_node_directions_and_offset(bNodeTree *ntree)
+{
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    if (node->type == SH_NODE_TEX_WAVE) {
+      NodeTexWave *tex = (NodeTexWave *)node->storage;
+      tex->bands_direction = SHD_WAVE_BANDS_DIRECTION_DIAGONAL;
+      tex->rings_direction = SHD_WAVE_RINGS_DIRECTION_SPHERICAL;
+
+      if (tex->wave_profile == SHD_WAVE_PROFILE_SIN) {
+        bNodeSocket *sockPhaseOffset = nodeFindSocket(node, SOCK_IN, "Phase Offset");
+        *cycles_node_socket_float_value(sockPhaseOffset) = M_PI_2;
+      }
+    }
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -1485,6 +1510,15 @@ void do_versions_after_linking_cycles(Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         update_noise_and_wave_distortion(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 283, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        update_wave_node_directions_and_offset(ntree);
       }
     }
     FOREACH_NODETREE_END;

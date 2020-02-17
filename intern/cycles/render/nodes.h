@@ -288,9 +288,11 @@ class WaveTextureNode : public TextureNode {
   }
 
   NodeWaveType type;
+  NodeWaveBandsDirection bands_direction;
+  NodeWaveRingsDirection rings_direction;
   NodeWaveProfile profile;
 
-  float scale, distortion, detail, detail_scale;
+  float scale, distortion, detail, detail_scale, phase;
   float3 vector;
 };
 

@@ -4556,9 +4556,30 @@ static void def_sh_tex_wave(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static EnumPropertyItem prop_wave_bands_direction_items[] = {
+      {SHD_WAVE_BANDS_DIRECTION_X, "X", 0, "X", "Bands across X axis"},
+      {SHD_WAVE_BANDS_DIRECTION_Y, "Y", 0, "Y", "Bands across Y axis"},
+      {SHD_WAVE_BANDS_DIRECTION_Z, "Z", 0, "Z", "Bands across Z axis"},
+      {SHD_WAVE_BANDS_DIRECTION_DIAGONAL, "DIAGONAL", 0, "Diagonal", "Bands across diagonal axis"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static EnumPropertyItem prop_wave_rings_direction_items[] = {
+      {SHD_WAVE_RINGS_DIRECTION_X, "X", 0, "X", "Rings along X axis"},
+      {SHD_WAVE_RINGS_DIRECTION_Y, "Y", 0, "Y", "Rings along Y axis"},
+      {SHD_WAVE_RINGS_DIRECTION_Z, "Z", 0, "Z", "Rings along Z axis"},
+      {SHD_WAVE_RINGS_DIRECTION_SPHERICAL,
+       "SPHERICAL",
+       0,
+       "Spherical",
+       "Rings along spherical distance"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem prop_wave_profile_items[] = {
       {SHD_WAVE_PROFILE_SIN, "SIN", 0, "Sine", "Use a standard sine profile"},
       {SHD_WAVE_PROFILE_SAW, "SAW", 0, "Saw", "Use a sawtooth profile"},
+      {SHD_WAVE_PROFILE_TRI, "TRI", 0, "Triangle", "Use a triangle profile"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -4571,6 +4592,18 @@ static void def_sh_tex_wave(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "wave_type");
   RNA_def_property_enum_items(prop, prop_wave_type_items);
   RNA_def_property_ui_text(prop, "Wave Type", "");
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "bands_direction", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "bands_direction");
+  RNA_def_property_enum_items(prop, prop_wave_bands_direction_items);
+  RNA_def_property_ui_text(prop, "Bands Direction", "");
+  RNA_def_property_update(prop, 0, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "rings_direction", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "rings_direction");
+  RNA_def_property_enum_items(prop, prop_wave_rings_direction_items);
+  RNA_def_property_ui_text(prop, "Rings Direction", "");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "wave_profile", PROP_ENUM, PROP_NONE);

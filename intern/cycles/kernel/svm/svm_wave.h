@@ -19,52 +19,101 @@ CCL_NAMESPACE_BEGIN
 /* Wave */
 
 ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
+                                       NodeWaveBandsDirection bands_dir,
+                                       NodeWaveRingsDirection rings_dir,
                                        NodeWaveProfile profile,
                                        float3 p,
                                        float detail,
                                        float distortion,
-                                       float dscale)
+                                       float dscale,
+                                       float phase)
 {
+  /* Prevent precision issues on unit coordinates. */
+  p = (p + 0.000001f) * 0.999999f;
+
   float n;
 
-  if (type == NODE_WAVE_BANDS)
-    n = (p.x + p.y + p.z) * 10.0f;
-  else /* NODE_WAVE_RINGS */
-    n = len(p) * 20.0f;
+  if (type == NODE_WAVE_BANDS) {
+    if (bands_dir == NODE_WAVE_BANDS_DIRECTION_X) {
+      n = p.x * 20.0f;
+    }
+    else if (bands_dir == NODE_WAVE_BANDS_DIRECTION_Y) {
+      n = p.y * 20.0f;
+    }
+    else if (bands_dir == NODE_WAVE_BANDS_DIRECTION_Z) {
+      n = p.z * 20.0f;
+    }
+    else { /* NODE_WAVE_BANDS_DIRECTION_DIAGONAL */
+      n = (p.x + p.y + p.z) * 10.0f;
+    }
+  }
+  else { /* NODE_WAVE_RINGS */
+    float3 rp = p;
+    if (rings_dir == NODE_WAVE_RINGS_DIRECTION_X) {
+      rp *= make_float3(0.0f, 1.0f, 1.0f);
+    }
+    else if (rings_dir == NODE_WAVE_RINGS_DIRECTION_Y) {
+      rp *= make_float3(1.0f, 0.0f, 1.0f);
+    }
+    else if (rings_dir == NODE_WAVE_RINGS_DIRECTION_Z) {
+      rp *= make_float3(1.0f, 1.0f, 0.0f);
+    }
+    /* else: NODE_WAVE_RINGS_DIRECTION_SPHERICAL */
+
+    n = len(rp) * 20.0f;
+  }
+
+  n += phase;
 
   if (distortion != 0.0f)
     n += distortion * (fractal_noise_3d(p * dscale, detail) * 2.0f - 1.0f);
 
   if (profile == NODE_WAVE_PROFILE_SIN) {
-    return 0.5f + 0.5f * sinf(n);
+    return 0.5f + 0.5f * sinf(n - M_PI_2_F);
   }
-  else { /* NODE_WAVE_PROFILE_SAW */
+  else if (profile == NODE_WAVE_PROFILE_SAW) {
     n /= M_2PI_F;
-    n -= (int)n;
-    return (n < 0.0f) ? n + 1.0f : n;
+    return n - floorf(n);
+  }
+  else { /* NODE_WAVE_PROFILE_TRI */
+    n /= M_2PI_F;
+    return fabsf(n - floorf(n + 0.5f)) * 2.0f;
   }
 }
 
 ccl_device void svm_node_tex_wave(
     KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-  uint4 node2 = read_node(kg, offset);
+  uint4 defaults1 = read_node(kg, offset);
+  uint4 defaults2 = read_node(kg, offset);
 
-  uint type;
-  uint co_offset, scale_offset, detail_offset, dscale_offset, distortion_offset, color_offset,
-      fac_offset;
+  /* RNA properties */
+  uint type_offset, bands_dir_offset, rings_dir_offset, profile_offset;
+  /* Inputs, Outputs */
+  uint co_offset, scale_offset, distortion_offset, detail_offset, dscale_offset, phase_offset;
+  uint color_offset, fac_offset;
 
-  svm_unpack_node_uchar4(node.y, &type, &color_offset, &fac_offset, &dscale_offset);
-  svm_unpack_node_uchar4(node.z, &co_offset, &scale_offset, &detail_offset, &distortion_offset);
+  svm_unpack_node_uchar4(
+      node.y, &type_offset, &bands_dir_offset, &rings_dir_offset, &profile_offset);
+  svm_unpack_node_uchar4(node.z, &co_offset, &scale_offset, &distortion_offset, &detail_offset);
+  svm_unpack_node_uchar4(node.w, &dscale_offset, &phase_offset, &color_offset, &fac_offset);
 
   float3 co = stack_load_float3(stack, co_offset);
-  float scale = stack_load_float_default(stack, scale_offset, node2.x);
-  float detail = stack_load_float_default(stack, detail_offset, node2.y);
-  float distortion = stack_load_float_default(stack, distortion_offset, node2.z);
-  float dscale = stack_load_float_default(stack, dscale_offset, node2.w);
+  float scale = stack_load_float_default(stack, scale_offset, defaults1.x);
+  float detail = stack_load_float_default(stack, detail_offset, defaults1.y);
+  float distortion = stack_load_float_default(stack, distortion_offset, defaults1.z);
+  float dscale = stack_load_float_default(stack, dscale_offset, defaults1.w);
+  float phase = stack_load_float_default(stack, phase_offset, defaults2.x);
 
-  float f = svm_wave(
-      (NodeWaveType)type, (NodeWaveProfile)node.w, co * scale, detail, distortion, dscale);
+  float f = svm_wave((NodeWaveType)type_offset,
+                     (NodeWaveBandsDirection)bands_dir_offset,
+                     (NodeWaveRingsDirection)rings_dir_offset,
+                     (NodeWaveProfile)profile_offset,
+                     co * scale,
+                     detail,
+                     distortion,
+                     dscale,
+                     phase);
 
   if (stack_valid(fac_offset))
     stack_store_float(stack, fac_offset, f);

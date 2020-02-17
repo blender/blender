@@ -770,6 +770,8 @@ static ShaderNode *add_node(Scene *scene,
     BL::ShaderNodeTexWave b_wave_node(b_node);
     WaveTextureNode *wave = new WaveTextureNode();
     wave->type = (NodeWaveType)b_wave_node.wave_type();
+    wave->bands_direction = (NodeWaveBandsDirection)b_wave_node.bands_direction();
+    wave->rings_direction = (NodeWaveRingsDirection)b_wave_node.rings_direction();
     wave->profile = (NodeWaveProfile)b_wave_node.wave_profile();
     BL::TexMapping b_texture_mapping(b_wave_node.texture_mapping());
     get_tex_mapping(&wave->tex_mapping, b_texture_mapping);

@@ -384,9 +384,24 @@ typedef enum NodeMusgraveType {
 
 typedef enum NodeWaveType { NODE_WAVE_BANDS, NODE_WAVE_RINGS } NodeWaveType;
 
-typedef enum NodeWaveProfiles {
+typedef enum NodeWaveBandsDirection {
+  NODE_WAVE_BANDS_DIRECTION_X,
+  NODE_WAVE_BANDS_DIRECTION_Y,
+  NODE_WAVE_BANDS_DIRECTION_Z,
+  NODE_WAVE_BANDS_DIRECTION_DIAGONAL
+} NodeWaveBandsDirection;
+
+typedef enum NodeWaveRingsDirection {
+  NODE_WAVE_RINGS_DIRECTION_X,
+  NODE_WAVE_RINGS_DIRECTION_Y,
+  NODE_WAVE_RINGS_DIRECTION_Z,
+  NODE_WAVE_RINGS_DIRECTION_SPHERICAL
+} NodeWaveRingsDirection;
+
+typedef enum NodeWaveProfile {
   NODE_WAVE_PROFILE_SIN,
   NODE_WAVE_PROFILE_SAW,
+  NODE_WAVE_PROFILE_TRI,
 } NodeWaveProfile;
 
 typedef enum NodeSkyType { NODE_SKY_OLD, NODE_SKY_NEW } NodeSkyType;
