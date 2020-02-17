@@ -1629,10 +1629,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
        /* When using redo, don't use the custom constraint matrix
         * if the user selects a different orientation. */
        (RNA_enum_get(op->ptr, "orient_type") == RNA_enum_get(op->ptr, "orient_matrix_type")))) {
-    RNA_property_float_get_array(op->ptr, prop, &t->spacemtx[0][0]);
+    RNA_property_float_get_array(op->ptr, prop, &t->orient_matrix[0][0]);
+    copy_m3_m3(t->spacemtx, t->orient_matrix);
+    negate_m3(t->spacemtx);
     /* Some transform modes use this to operate on an axis. */
-    t->orient_matrix_is_set = true;
-    copy_m3_m3(t->orient_matrix, t->spacemtx);
     t->orient_matrix_is_set = true;
     t->orientation.user = V3D_ORIENT_CUSTOM_MATRIX;
     t->orientation.custom = 0;
