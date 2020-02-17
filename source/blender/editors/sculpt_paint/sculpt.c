@@ -1637,7 +1637,7 @@ static void calc_area_center(
       .use_area_cos = true,
   };
 
-  AreaNormalCenterTLSData anctd = {0};
+  AreaNormalCenterTLSData anctd = {{{0}}};
 
   PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
