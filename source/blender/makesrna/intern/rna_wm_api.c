@@ -552,24 +552,24 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   }
 
   if (!ELEM(value, KM_PRESS, KM_RELEASE, KM_NOTHING)) {
-    BKE_report(reports, RPT_ERROR, "value: only 'PRESS/RELEASE/NOTHING' are supported");
+    BKE_report(reports, RPT_ERROR, "Value: only 'PRESS/RELEASE/NOTHING' are supported");
     return NULL;
   }
   if (ISKEYBOARD(type) || ISMOUSE_BUTTON(type)) {
     if (!ELEM(value, KM_PRESS, KM_RELEASE)) {
-      BKE_report(reports, RPT_ERROR, "value: must be 'PRESS/RELEASE' for keyboard/buttons");
+      BKE_report(reports, RPT_ERROR, "Value: must be 'PRESS/RELEASE' for keyboard/buttons");
       return NULL;
     }
   }
   if (ELEM(type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     if (value != KM_NOTHING) {
-      BKE_report(reports, RPT_ERROR, "value: must be 'NOTHING' for motion");
+      BKE_report(reports, RPT_ERROR, "Value: must be 'NOTHING' for motion");
       return NULL;
     }
   }
   if (unicode != NULL) {
     if (value != KM_PRESS) {
-      BKE_report(reports, RPT_ERROR, "value: must be 'PRESS' when unicode is set");
+      BKE_report(reports, RPT_ERROR, "Value: must be 'PRESS' when unicode is set");
       return NULL;
     }
   }

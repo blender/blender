@@ -164,7 +164,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "SCREW",
      ICON_MOD_SCREW,
      "Screw",
-     "Lathe around an axis, treating the inout mesh as a profile"},
+     "Lathe around an axis, treating the input mesh as a profile"},
     {eModifierType_Skin,
      "SKIN",
      ICON_MOD_SKIN,
@@ -3923,7 +3923,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_custom_profile", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_BEVEL_CUSTOM_PROFILE);
   RNA_def_property_ui_text(
-      prop, "Custom Profile", "Whether to use a user inputed curve for the bevel's profile");
+      prop, "Custom Profile", "Whether to use a user inputted curve for the bevel's profile");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "custom_profile", PROP_POINTER, PROP_NONE);

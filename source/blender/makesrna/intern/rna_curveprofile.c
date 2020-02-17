@@ -230,8 +230,8 @@ static void rna_def_curveprofile(BlenderRNA *brna)
   static const EnumPropertyItem rna_enum_curveprofile_preset_items[] = {
       {PROF_PRESET_LINE, "LINE", 0, "Line", "Default"},
       {PROF_PRESET_SUPPORTS, "SUPPORTS", 0, "Support Loops", "Loops on each side of the profile"},
-      {PROF_PRESET_CORNICE, "CORNICE", 0, "Cornice Moulding", ""},
-      {PROF_PRESET_CROWN, "CROWN", 0, "Crown Moulding", ""},
+      {PROF_PRESET_CORNICE, "CORNICE", 0, "Cornice Molding", ""},
+      {PROF_PRESET_CROWN, "CROWN", 0, "Crown Molding", ""},
       {PROF_PRESET_STEPS, "STEPS", 0, "Steps", "A number of steps defined by the segments"},
       {0, NULL, 0, NULL, NULL},
   };

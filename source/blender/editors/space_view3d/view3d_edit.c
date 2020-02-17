@@ -3632,7 +3632,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
     /* ignore dist_range min */
     dist_range[0] = v3d->clip_start * 1.5f;
   }
-  else { /* othographic */
+  else { /* orthographic */
     /* find the current window width and height */
     vb[0] = ar->winx;
     vb[1] = ar->winy;

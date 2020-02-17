@@ -153,12 +153,12 @@ class CYCLES_OT_denoise_animation(Operator):
             self.report({'ERROR'}, str(e))
             return {'FINISHED'}
 
-        self.report({'INFO'}, "Denoising completed.")
+        self.report({'INFO'}, "Denoising completed")
         return {'FINISHED'}
 
 
 class CYCLES_OT_merge_images(Operator):
-    "Combine OpenEXR multilayer images rendered with different sample" \
+    "Combine OpenEXR multilayer images rendered with different sample " \
     "ranges into one image with reduced noise"
     bl_idname = "cycles.merge_images"
     bl_label = "Merge Images"

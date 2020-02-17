@@ -3427,7 +3427,7 @@ static const EnumPropertyItem preview_id_type_items[] = {
      "SHADING",
      0,
      "All Shading Types",
-     "Clear previews for materiasl, lights, worlds, textures and images"},
+     "Clear previews for materials, lights, worlds, textures and images"},
     {FILTER_ID_SCE, "SCENE", 0, "Scenes", ""},
     {FILTER_ID_GR, "GROUP", 0, "Groups", ""},
     {FILTER_ID_OB, "OBJECT", 0, "Objects", ""},

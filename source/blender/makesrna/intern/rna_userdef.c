@@ -2567,7 +2567,7 @@ static void rna_def_userdef_theme_space_info(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "info_property", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Property Icon Background", "Backgrond color of Property icon");
+  RNA_def_property_ui_text(prop, "Property Icon Background", "Background color of Property icon");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "info_property_text", PROP_FLOAT, PROP_COLOR_GAMMA);

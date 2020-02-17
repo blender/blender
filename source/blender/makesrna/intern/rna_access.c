@@ -3771,7 +3771,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
     if (ptr_value.type != NULL && !RNA_struct_is_a(ptr_value.type, pprop->type)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s: expected %s type, not %s.\n",
+                  "%s: expected %s type, not %s",
                   __func__,
                   pprop->type->identifier,
                   ptr_value.type->identifier);
@@ -3783,7 +3783,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
     if (ptr_value.type != NULL && !RNA_struct_is_a(ptr_value.type, &RNA_ID)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s: expected ID type, not %s.\n",
+                  "%s: expected ID type, not %s",
                   __func__,
                   ptr_value.type->identifier);
       return;

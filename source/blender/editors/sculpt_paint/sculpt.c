@@ -6864,7 +6864,7 @@ static const char *sculpt_tool_name(Sculpt *sd)
     case SCULPT_TOOL_POSE:
       return "Pose Brush";
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-      return "Multiplane Scrape Brush";
+      return "Multi-plane Scrape Brush";
     case SCULPT_TOOL_SLIDE_RELAX:
       return "Slide/Relax Brush";
   }
@@ -10458,7 +10458,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   BKE_pbvh_parallel_range(0, ss->filter_cache->totnode, &data, sculpt_expand_task_cb, &settings);
 
   const char *status_str = TIP_(
-      "Move the mouse to expand the mask from the active vertex. LBM: confirm mask, ESC/RMB: "
+      "Move the mouse to expand the mask from the active vertex. LMB: confirm mask, ESC/RMB: "
       "cancel");
   ED_workspace_status_text(C, status_str);
 

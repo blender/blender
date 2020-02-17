@@ -1004,13 +1004,13 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
        "IMPROVED",
        0,
        "Final",
-       "Use improved particle levelset (slower but more precise and with mesh smoothening "
+       "Use improved particle level set (slower but more precise and with mesh smoothening "
        "options)"},
       {FLUID_DOMAIN_MESH_UNION,
        "UNION",
        0,
        "Preview",
-       "Use union particle levelset (faster but lower quality)"},
+       "Use union particle level set (faster but lower quality)"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1102,7 +1102,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
        "OFF",
        0,
        "Off",
-       "Create a seperate particle system for every secondary particle type"},
+       "Create a separate particle system for every secondary particle type"},
       {SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM,
        "SPRAY_FOAM",
        0,
@@ -1286,32 +1286,32 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_collision_border_front", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "border_collisions", FLUID_DOMAIN_BORDER_FRONT);
-  RNA_def_property_ui_text(prop, "Front", "Enable collisons with front domain border");
+  RNA_def_property_ui_text(prop, "Front", "Enable collisions with front domain border");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
   prop = RNA_def_property(srna, "use_collision_border_back", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "border_collisions", FLUID_DOMAIN_BORDER_BACK);
-  RNA_def_property_ui_text(prop, "Back", "Enable collisons with back domain border");
+  RNA_def_property_ui_text(prop, "Back", "Enable collisions with back domain border");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
   prop = RNA_def_property(srna, "use_collision_border_right", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "border_collisions", FLUID_DOMAIN_BORDER_RIGHT);
-  RNA_def_property_ui_text(prop, "Right", "Enable collisons with right domain border");
+  RNA_def_property_ui_text(prop, "Right", "Enable collisions with right domain border");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
   prop = RNA_def_property(srna, "use_collision_border_left", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "border_collisions", FLUID_DOMAIN_BORDER_LEFT);
-  RNA_def_property_ui_text(prop, "Left", "Enable collisons with left domain border");
+  RNA_def_property_ui_text(prop, "Left", "Enable collisions with left domain border");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
   prop = RNA_def_property(srna, "use_collision_border_top", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "border_collisions", FLUID_DOMAIN_BORDER_TOP);
-  RNA_def_property_ui_text(prop, "Top", "Enable collisons with top domain border");
+  RNA_def_property_ui_text(prop, "Top", "Enable collisions with top domain border");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
   prop = RNA_def_property(srna, "use_collision_border_bottom", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "border_collisions", FLUID_DOMAIN_BORDER_BOTTOM);
-  RNA_def_property_ui_text(prop, "Bottom", "Enable collisons with bottom domain border");
+  RNA_def_property_ui_text(prop, "Bottom", "Enable collisions with bottom domain border");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
   prop = RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
@@ -1638,7 +1638,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "mesh_generator", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "mesh_generator");
   RNA_def_property_enum_items(prop, fluid_mesh_quality_items);
-  RNA_def_property_ui_text(prop, "Mesh generator", "Which particle levelset generator to use");
+  RNA_def_property_ui_text(prop, "Mesh generator", "Which particle level set generator to use");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Fluid_update");
 
   prop = RNA_def_property(srna, "mesh_vertices", PROP_COLLECTION, PROP_NONE);
@@ -2024,10 +2024,10 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_EXPORT_MANTA_SCRIPT);
   RNA_def_property_ui_text(
       prop,
-      "Export Fluidflow Script",
-      "Generate and export Fluidflow script from current domain settings during bake. This is "
-      "only needed if you plan to analyse the cache (e.g. view grids, velocity vectors, "
-      "particles) in Fluidflow directly (outside of Blender) after baking the simulation");
+      "Export Mantaflow Script",
+      "Generate and export Mantaflow script from current domain settings during bake. This is "
+      "only needed if you plan to analyze the cache (e.g. view grids, velocity vectors, "
+      "particles) in Mantaflow directly (outside of Blender) after baking the simulation");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 

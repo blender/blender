@@ -711,7 +711,7 @@ bool rna_Object_generate_gpencil_strokes(Object *ob,
   if (ob->type != OB_CURVE) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Object '%s' not valid for this operation! Only curves supported.",
+                "Object '%s' is not valid for this operation! Only curves are supported",
                 ob->id.name + 2);
     return false;
   }

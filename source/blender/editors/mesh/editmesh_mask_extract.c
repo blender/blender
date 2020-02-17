@@ -63,7 +63,7 @@ static bool paint_mask_extract_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
   if (ob != NULL && ob->mode == OB_MODE_SCULPT) {
     if (ob->sculpt->bm) {
-      CTX_wm_operator_poll_msg_set(C, "The mask can not be extracted with dyntopo activated.");
+      CTX_wm_operator_poll_msg_set(C, "The mask can not be extracted with dyntopo activated");
       return false;
     }
     else {

@@ -668,7 +668,7 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
        "SAMPLE",
        ICON_IPO_EASE_IN_OUT,
        "Sample",
-       "Resample the stroke with segments of the specified length"},
+       "Re-sample the stroke with segments of the specified length"},
       {GP_SIMPLIFY_MERGE,
        "MERGE",
        ICON_IPO_EASE_IN_OUT,
@@ -1952,7 +1952,7 @@ static void rna_def_modifier_gpencilmultiply(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_range(prop, -1, 1, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Offset", "Offset of duplications. -1 to 1: inner to outer");
+  RNA_def_property_ui_text(prop, "Offset", "Offset of duplicates. -1 to 1: inner to outer");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "fading_thickness", PROP_FLOAT, PROP_NONE);

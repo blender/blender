@@ -275,7 +275,7 @@ class FILEBROWSER_PT_bookmarks_recents(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
     bl_category = "Bookmarks"
-    bl_label = "Recents"
+    bl_label = "Recent"
 
     @classmethod
     def poll(cls, context):

@@ -83,18 +83,18 @@ static bool object_remesh_poll(bContext *C)
   }
 
   if (BKE_object_is_in_editmode(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "The remesher cannot run from edit mode.");
+    CTX_wm_operator_poll_msg_set(C, "The remesher cannot run from edit mode");
     return false;
   }
 
   if (ob->mode == OB_MODE_SCULPT && ob->sculpt->bm) {
-    CTX_wm_operator_poll_msg_set(C, "The remesher cannot run with dyntopo activated.");
+    CTX_wm_operator_poll_msg_set(C, "The remesher cannot run with dyntopo activated");
     return false;
   }
 
   if (modifiers_usesMultires(ob)) {
     CTX_wm_operator_poll_msg_set(
-        C, "The remesher cannot run with a Multires modifier in the modifier stack.");
+        C, "The remesher cannot run with a Multires modifier in the modifier stack");
     return false;
   }
 
@@ -109,7 +109,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   Mesh *new_mesh;
 
   if (mesh->remesh_voxel_size <= 0.0f) {
-    BKE_report(op->reports, RPT_ERROR, "Voxel remesher cannot run with a voxel size of 0.0.");
+    BKE_report(op->reports, RPT_ERROR, "Voxel remesher cannot run with a voxel size of 0.0");
     return OPERATOR_CANCELLED;
   }
 
@@ -122,7 +122,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
       mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue);
 
   if (!new_mesh) {
-    BKE_report(op->reports, RPT_ERROR, "Voxel remesher failed to create mesh.");
+    BKE_report(op->reports, RPT_ERROR, "Voxel remesher failed to create mesh");
     return OPERATOR_CANCELLED;
   }
 
@@ -461,18 +461,18 @@ static void quadriflow_end_job(void *customdata)
   switch (qj->success) {
     case 1:
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      WM_reportf(RPT_INFO, "QuadriFlow: Completed remeshing!");
+      WM_reportf(RPT_INFO, "QuadriFlow: Remeshing completed");
       break;
     case 0:
-      WM_reportf(RPT_ERROR, "QuadriFlow: remeshing failed!");
+      WM_reportf(RPT_ERROR, "QuadriFlow: Remeshing failed");
       break;
     case -1:
-      WM_report(RPT_WARNING, "QuadriFlow: remeshing canceled!");
+      WM_report(RPT_WARNING, "QuadriFlow: Remeshing cancelled");
       break;
     case -2:
       WM_report(RPT_WARNING,
                 "QuadriFlow: The mesh needs to be manifold and have face normals that point in a "
-                "consistent direction.");
+                "consistent direction");
       break;
   }
 }
@@ -640,7 +640,7 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
                   "use_paint_symmetry",
                   true,
                   "Use Paint Symmetry",
-                  "Generates a symmetrycal mesh using the paint symmetry configuration");
+                  "Generates a symmetrical mesh using the paint symmetry configuration");
 
   RNA_def_boolean(ot->srna,
                   "use_preserve_sharp",

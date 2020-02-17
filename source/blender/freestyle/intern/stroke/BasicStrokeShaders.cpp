@@ -417,7 +417,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
     }
   }
 
-  // Resample the Stroke depending on the number of vertices of the bezier curve:
+  // Re-sample the Stroke depending on the number of vertices of the bezier curve:
   int originalSize = CurveVertices.size();
 #if 0
   float sampling = stroke.ComputeSampling(originalSize);

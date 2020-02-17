@@ -207,7 +207,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
                     note = layout.split()
                     note_flag = False
                     note.enabled = note_flag
-                    note.label(icon='INFO', text="Unbaked Guides: Bake Guides or disable them.")
+                    note.label(icon='INFO', text="Unbaked Guides: Bake Guides or disable them")
 
                 split = layout.split()
                 split.enabled = note_flag
@@ -724,7 +724,7 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
                 note = layout.split()
                 note_flag = False
                 note.enabled = note_flag
-                note.label(icon='INFO', text="Unbaked Data: Bake Data first.")
+                note.label(icon='INFO', text="Unbaked Data: Bake Data first")
 
             split = layout.split()
             split.enabled = domain.has_cache_baked_data and note_flag
@@ -809,7 +809,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
                 note = layout.split()
                 note_flag = False
                 note.enabled = note_flag
-                note.label(icon='INFO', text="Unbaked Data: Bake Data first.")
+                note.label(icon='INFO', text="Unbaked Data: Bake Data first")
 
             split = layout.split()
             split.enabled = domain.has_cache_baked_data and note_flag
@@ -921,7 +921,7 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
                 note = layout.split()
                 note_flag = False
                 note.enabled = note_flag
-                note.label(icon='INFO', text="Unbaked Data: Bake Data first.")
+                note.label(icon='INFO', text="Unbaked Data: Bake Data first")
 
             split = layout.split()
             split.enabled = (

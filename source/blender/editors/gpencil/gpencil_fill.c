@@ -1372,7 +1372,7 @@ static int gpencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     }
   }
   if (!valid) {
-    BKE_report(op->reports, RPT_ERROR, "Fill tool needs active material.");
+    BKE_report(op->reports, RPT_ERROR, "Fill tool needs active material");
     return OPERATOR_CANCELLED;
   }
 

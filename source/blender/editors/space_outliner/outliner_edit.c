@@ -2218,7 +2218,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
   RNA_int_set(op->ptr, "num_deleted", num_tagged[INDEX_ID_NULL]);
 
   if (num_tagged[INDEX_ID_NULL] == 0) {
-    BKE_report(op->reports, RPT_INFO, "No orphanned data-blocks to purge");
+    BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
     return OPERATOR_CANCELLED;
   }
 
@@ -2265,7 +2265,7 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
     FOREACH_MAIN_ID_END;
 
     if (num_tagged[INDEX_ID_NULL] == 0) {
-      BKE_report(op->reports, RPT_INFO, "No orphanned data-blocks to purge");
+      BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
       return OPERATOR_CANCELLED;
     }
   }

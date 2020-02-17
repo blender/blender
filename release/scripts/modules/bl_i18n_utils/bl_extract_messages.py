@@ -166,7 +166,8 @@ def print_info(reports, pot):
     spell_errors = check_ctxt.get("spell_errors")
 
     # XXX Temp, no multi_rnatip nor py_in_rna, see below.
-    keys = multi_lines | not_capitalized | end_point | undoc_ops | spell_errors.keys()
+    # Also, multi-lines tooltips are valid now.
+    keys = not_capitalized | end_point | undoc_ops | spell_errors.keys()
     if keys:
         _print("WARNINGS:")
         for key in keys:
