@@ -74,12 +74,35 @@ class ArchiveWithIndicator:
         """Check whether the archive is ready for access."""
         if not self.ready_indicator_filepath.exists():
             return False
+
         # Sometimes on macOS indicator file appears prior to the actual archive
         # despite the order of creation and os.sync() used in tag_ready().
         # So consider archive not ready if there is an indicator without an
         # actual archive.
         if not self.archive_filepath.exists():
+            print('Found indicator without actual archive, waiting for archive '
+                  f'({self.archive_filepath}) to appear.')
             return False
+
+        # Read archive size from indicator/
+        #
+        # Assume that file is either empty or is fully written. This is being checked
+        # by performing ValueError check since empty string will throw this exception
+        # when attempted to be converted to int.
+        expected_archive_size_str = self.ready_indicator_filepath.read_text()
+        try:
+            expected_archive_size = int(expected_archive_size_str)
+        except ValueError:
+            print(f'Invalid archive size "{expected_archive_size_str}"')
+            return False
+
+        # Wait for until archive is fully stored.
+        actual_archive_size = self.archive_filepath.stat().st_size
+        if  actual_archive_size != expected_archive_size:
+            print('Partial/invalid archive size (expected '
+                  f'{expected_archive_size} got {actual_archive_size})')
+            return False
+
         return True
 
     def tag_ready(self) -> None:
@@ -96,7 +119,8 @@ class ArchiveWithIndicator:
         # an actual file.
         if util.get_current_platform() != util.Platform.WINDOWS:
             os.sync()
-        self.ready_indicator_filepath.touch()
+        archive_size = self.archive_filepath.stat().st_size
+        self.ready_indicator_filepath.write_text(str(archive_size))
 
     def clean(self) -> None:
         """
