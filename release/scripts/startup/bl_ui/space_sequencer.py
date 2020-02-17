@@ -404,6 +404,8 @@ class SEQUENCER_MT_select(Menu):
         layout.separator()
 
         layout.operator("sequencer.select_box", text="Box Select")
+        props = layout.operator("sequencer.select_box", text="Box Select (Handles)")
+        props.include_handles = True
 
         layout.separator()
 

@@ -1026,7 +1026,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
   }
 
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
-  const bool handles = RNA_boolean_get(op->ptr, "handles");
+  const bool handles = RNA_boolean_get(op->ptr, "include_handles");
   const bool select = (sel_op != SEL_OP_SUB);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -1135,7 +1135,8 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "handles", 0, "Select Handles", "Select the strips' handles");
+  prop = RNA_def_boolean(
+      ot->srna, "include_handles", 0, "Select Handles", "Select the strips' handles");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
