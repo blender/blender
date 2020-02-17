@@ -269,6 +269,10 @@ class CameraExportImportTest(unittest.TestCase):
         self.tempdir = pathlib.Path(self._tempdir.name)
 
     def tearDown(self):
+        # Unload the current blend file to release the imported Alembic file.
+        # This is necessary on Windows in order to be able to delete the
+        # temporary ABC file.
+        bpy.ops.wm.read_homefile()
         self._tempdir.cleanup()
 
     def test_export_hierarchy(self):
@@ -336,18 +340,22 @@ class CameraExportImportTest(unittest.TestCase):
         actual_rot = ob_eval.matrix_world.to_euler('XYZ')
         actual_scale = ob_eval.matrix_world.to_scale()
 
-        self.assertAlmostEqual(expect_loc[0], actual_loc.x, delta=1e-5)
-        self.assertAlmostEqual(expect_loc[1], actual_loc.y, delta=1e-5)
-        self.assertAlmostEqual(expect_loc[2], actual_loc.z, delta=1e-5)
+        # Precision of the 'almost equal' comparisons.
+        delta_loc = delta_scale = 1e-6
+        delta_rot = math.degrees(1e-6)
 
-        self.assertAlmostEqual(expect_rot_deg[0], math.degrees(actual_rot.x), delta=1e-5)
-        self.assertAlmostEqual(expect_rot_deg[1], math.degrees(actual_rot.y), delta=1e-5)
-        self.assertAlmostEqual(expect_rot_deg[2], math.degrees(actual_rot.z), delta=1e-5)
+        self.assertAlmostEqual(expect_loc[0], actual_loc.x, delta=delta_loc)
+        self.assertAlmostEqual(expect_loc[1], actual_loc.y, delta=delta_loc)
+        self.assertAlmostEqual(expect_loc[2], actual_loc.z, delta=delta_loc)
+
+        self.assertAlmostEqual(expect_rot_deg[0], math.degrees(actual_rot.x), delta=delta_rot)
+        self.assertAlmostEqual(expect_rot_deg[1], math.degrees(actual_rot.y), delta=delta_rot)
+        self.assertAlmostEqual(expect_rot_deg[2], math.degrees(actual_rot.z), delta=delta_rot)
 
         # This test doesn't use scale.
-        self.assertAlmostEqual(1, actual_scale.x, delta=1e-5)
-        self.assertAlmostEqual(1, actual_scale.y, delta=1e-5)
-        self.assertAlmostEqual(1, actual_scale.z, delta=1e-5)
+        self.assertAlmostEqual(1, actual_scale.x, delta=delta_scale)
+        self.assertAlmostEqual(1, actual_scale.y, delta=delta_scale)
+        self.assertAlmostEqual(1, actual_scale.z, delta=delta_scale)
 
 
 def main():
