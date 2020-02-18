@@ -36,13 +36,12 @@ void curvebounds(float *lower, float *upper, float3 *p, int dim)
   float *p2 = &p[2].x;
   float *p3 = &p[3].x;
 
-  float fc = 0.71f;
+  /* Catmull-Rom weights. */
   float curve_coef[4];
   curve_coef[0] = p1[dim];
-  curve_coef[1] = -fc * p0[dim] + fc * p2[dim];
-  curve_coef[2] = 2.0f * fc * p0[dim] + (fc - 3.0f) * p1[dim] + (3.0f - 2.0f * fc) * p2[dim] -
-                  fc * p3[dim];
-  curve_coef[3] = -fc * p0[dim] + (2.0f - fc) * p1[dim] + (fc - 2.0f) * p2[dim] + fc * p3[dim];
+  curve_coef[1] = 0.5f * (-p0[dim] + p2[dim]);
+  curve_coef[2] = 0.5f * (2 * p0[dim] - 5 * p1[dim] + 4 * p2[dim] - p3[dim]);
+  curve_coef[3] = 0.5f * (-p0[dim] + 3 * p1[dim] - 3 * p2[dim] + p3[dim]);
 
   float discroot = curve_coef[2] * curve_coef[2] - 3 * curve_coef[3] * curve_coef[1];
   float ta = -1.0f;
@@ -115,7 +114,8 @@ void CurveSystemManager::device_update(Device *device,
       kcurve->curveflags |= CURVE_KN_RIBBONS;
     }
 
-    kcurve->subdivisions = subdivisions;
+    /* Matching the tesselation rate limit in Embree. */
+    kcurve->subdivisions = clamp(1 << subdivisions, 1, 16);
   }
 
   if (progress.get_cancel())

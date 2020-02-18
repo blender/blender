@@ -50,14 +50,14 @@ ccl_device_inline int find_attribute_curve_motion(KernelGlobals *kg,
   return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
 }
 
-ccl_device_inline void motion_curve_keys_for_step(KernelGlobals *kg,
-                                                  int offset,
-                                                  int numkeys,
-                                                  int numsteps,
-                                                  int step,
-                                                  int k0,
-                                                  int k1,
-                                                  float4 keys[2])
+ccl_device_inline void motion_curve_keys_for_step_linear(KernelGlobals *kg,
+                                                         int offset,
+                                                         int numkeys,
+                                                         int numsteps,
+                                                         int step,
+                                                         int k0,
+                                                         int k1,
+                                                         float4 keys[2])
 {
   if (step == numsteps) {
     /* center step: regular key location */
@@ -77,7 +77,7 @@ ccl_device_inline void motion_curve_keys_for_step(KernelGlobals *kg,
 }
 
 /* return 2 curve key locations */
-ccl_device_inline void motion_curve_keys(
+ccl_device_inline void motion_curve_keys_linear(
     KernelGlobals *kg, int object, int prim, float time, int k0, int k1, float4 keys[2])
 {
   /* get motion info */
@@ -97,8 +97,8 @@ ccl_device_inline void motion_curve_keys(
   /* fetch key coordinates */
   float4 next_keys[2];
 
-  motion_curve_keys_for_step(kg, offset, numkeys, numsteps, step, k0, k1, keys);
-  motion_curve_keys_for_step(kg, offset, numkeys, numsteps, step + 1, k0, k1, next_keys);
+  motion_curve_keys_for_step_linear(kg, offset, numkeys, numsteps, step, k0, k1, keys);
+  motion_curve_keys_for_step_linear(kg, offset, numkeys, numsteps, step + 1, k0, k1, next_keys);
 
   /* interpolate between steps */
   keys[0] = (1.0f - t) * keys[0] + t * next_keys[0];

@@ -407,7 +407,6 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.prop(ccscene, "shape", text="Shape")
         if ccscene.shape == 'RIBBONS':
-            # TODO: use for embree
             col.prop(ccscene, "subdivisions", text="Curve subdivisions")
 
 

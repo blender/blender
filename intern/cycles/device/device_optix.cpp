@@ -428,11 +428,20 @@ class OptiXDevice : public CUDADevice {
     group_descs[PG_HITS].hitgroup.entryFunctionNameAH = "__anyhit__kernel_optix_shadow_all_hit";
 
     if (requested_features.use_hair) {
-      // Add curve intersection programs
       group_descs[PG_HITD].hitgroup.moduleIS = optix_module;
-      group_descs[PG_HITD].hitgroup.entryFunctionNameIS = "__intersection__curve";
       group_descs[PG_HITS].hitgroup.moduleIS = optix_module;
-      group_descs[PG_HITS].hitgroup.entryFunctionNameIS = "__intersection__curve";
+
+      // Add curve intersection programs
+      if (requested_features.use_hair_thick) {
+        // Slower programs for thick hair since that also slows down ribbons.
+        // Ideally this should not be needed.
+        group_descs[PG_HITD].hitgroup.entryFunctionNameIS = "__intersection__curve_all";
+        group_descs[PG_HITS].hitgroup.entryFunctionNameIS = "__intersection__curve_all";
+      }
+      else {
+        group_descs[PG_HITD].hitgroup.entryFunctionNameIS = "__intersection__curve_ribbon";
+        group_descs[PG_HITS].hitgroup.entryFunctionNameIS = "__intersection__curve_ribbon";
+      }
     }
 
     if (requested_features.use_subsurface || requested_features.use_shader_raytrace) {

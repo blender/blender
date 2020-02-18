@@ -73,8 +73,8 @@ enum_panorama_types = (
 )
 
 enum_curve_shape = (
-    ('RIBBONS', "Ribbons", "Ignore thickness of each hair"),
-    ('THICK', "Thick", "Use thickness of hair when rendering"),
+    ('RIBBONS', "Rounded Ribbons", "Render hair as flat ribbon with rounded normals, for fast rendering"),
+    ('THICK', "3D Curves", "Render hair as 3D curve, for accurate results when viewing hair close up"),
 )
 
 enum_tile_order = (
@@ -1223,7 +1223,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         name="Shape",
         description="Form of hair",
         items=enum_curve_shape,
-        default='THICK',
+        default='RIBBONS',
     )
     use_curves: BoolProperty(
         name="Use Cycles Hair Rendering",
@@ -1234,7 +1234,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         name="Subdivisions",
         description="Number of subdivisions used in Cardinal curve intersection (power of 2)",
         min=0, max=24,
-        default=4,
+        default=2,
     )
 
     @classmethod

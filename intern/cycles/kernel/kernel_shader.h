@@ -86,10 +86,7 @@ ccl_device_noinline
 #ifdef __HAIR__
   if (sd->type & PRIMITIVE_ALL_CURVE) {
     /* curve */
-    float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-
-    sd->shader = __float_as_int(curvedata.z);
-    sd->P = curve_refine(kg, sd, isect, ray);
+    curve_shader_setup(kg, sd, isect, ray);
   }
   else
 #endif

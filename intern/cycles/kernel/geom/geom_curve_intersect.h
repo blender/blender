@@ -1,4 +1,7 @@
 /*
+ * Copyright 2009-2020 Intel Corporation. Adapted from Embree with
+ * with modifications.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,15 +17,610 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Curve primitive intersection functions. */
+/* Curve primitive intersection functions.
+ *
+ * The code here was adapted from curve_intersector_sweep.h in Embree, to get
+ * an exact match betwee Embree CPU ray-tracing and our GPU ray-tracing. */
+
+#define CURVE_NUM_BEZIER_SUBDIVISIONS 3
+#define CURVE_NUM_BEZIER_SUBDIVISIONS_UNSTABLE (CURVE_NUM_BEZIER_SUBDIVISIONS + 1)
+#define CURVE_NUM_BEZIER_STEPS 2
+#define CURVE_NUM_JACOBIAN_ITERATIONS 5
 
 #ifdef __HAIR__
 
-/* On CPU pass P and dir by reference to aligned vector. */
+/* Catmull-rom curve evaluation. */
+
+ccl_device_inline float4 catmull_rom_basis_eval(const float4 curve[4], float u)
+{
+  const float t = u;
+  const float s = 1.0f - u;
+  const float n0 = -t * s * s;
+  const float n1 = 2.0f + t * t * (3.0f * t - 5.0f);
+  const float n2 = 2.0f + s * s * (3.0f * s - 5.0f);
+  const float n3 = -s * t * t;
+  return 0.5f * (curve[0] * n0 + curve[1] * n1 + curve[2] * n2 + curve[3] * n3);
+}
+
+ccl_device_inline float4 catmull_rom_basis_derivative(const float4 curve[4], float u)
+{
+  const float t = u;
+  const float s = 1.0f - u;
+  const float n0 = -s * s + 2.0f * s * t;
+  const float n1 = 2.0f * t * (3.0f * t - 5.0f) + 3.0f * t * t;
+  const float n2 = 2.0f * s * (3.0f * t + 2.0f) - 3.0f * s * s;
+  const float n3 = -2.0f * s * t + t * t;
+  return 0.5f * (curve[0] * n0 + curve[1] * n1 + curve[2] * n2 + curve[3] * n3);
+}
+
+ccl_device_inline float4 catmull_rom_basis_derivative2(const float4 curve[4], float u)
+{
+
+  const float t = u;
+  const float n0 = -3.0f * t + 2.0f;
+  const float n1 = 9.0f * t - 5.0f;
+  const float n2 = -9.0f * t + 4.0f;
+  const float n3 = 3.0f * t - 1.0f;
+  return (curve[0] * n0 + curve[1] * n1 + curve[2] * n2 + curve[3] * n3);
+}
+
+/* Thick Curve */
+
+ccl_device_inline float3 dnormalize(const float3 p, const float3 dp)
+{
+  const float pp = dot(p, p);
+  const float pdp = dot(p, dp);
+  return (pp * dp - pdp * p) / (pp * sqrtf(pp));
+}
+
+ccl_device_inline float sqr_point_to_line_distance(const float3 PmQ0, const float3 Q1mQ0)
+{
+  const float3 N = cross(PmQ0, Q1mQ0);
+  const float3 D = Q1mQ0;
+  return dot(N, N) / dot(D, D);
+}
+
+ccl_device_inline bool cylinder_intersect(const float3 cylinder_start,
+                                          const float3 cylinder_end,
+                                          const float cylinder_radius,
+                                          const float3 ray_dir,
+                                          float2 *t_o,
+                                          float *u0_o,
+                                          float3 *Ng0_o,
+                                          float *u1_o,
+                                          float3 *Ng1_o)
+{
+  /* Calculate quadratic equation to solve. */
+  const float rl = 1.0f / len(cylinder_end - cylinder_start);
+  const float3 P0 = cylinder_start, dP = (cylinder_end - cylinder_start) * rl;
+  const float3 O = -P0, dO = ray_dir;
+
+  const float dOdO = dot(dO, dO);
+  const float OdO = dot(dO, O);
+  const float OO = dot(O, O);
+  const float dOz = dot(dP, dO);
+  const float Oz = dot(dP, O);
+
+  const float A = dOdO - sqr(dOz);
+  const float B = 2.0f * (OdO - dOz * Oz);
+  const float C = OO - sqr(Oz) - sqr(cylinder_radius);
+
+  /* We miss the cylinder if determinant is smaller than zero. */
+  const float D = B * B - 4.0f * A * C;
+  if (!(D >= 0.0f)) {
+    *t_o = make_float2(FLT_MAX, -FLT_MAX);
+    return false;
+  }
+
+  /* Special case for rays that are parallel to the cylinder. */
+  const float eps = 16.0f * FLT_EPSILON * max(fabsf(dOdO), fabsf(sqr(dOz)));
+  if (fabsf(A) < eps) {
+    if (C <= 0.0f) {
+      *t_o = make_float2(-FLT_MAX, FLT_MAX);
+      return true;
+    }
+    else {
+      *t_o = make_float2(-FLT_MAX, FLT_MAX);
+      return false;
+    }
+  }
+
+  /* Standard case for rays that are not parallel to the cylinder. */
+  const float Q = sqrtf(D);
+  const float rcp_2A = 1.0f / (2.0f * A);
+  const float t0 = (-B - Q) * rcp_2A;
+  const float t1 = (-B + Q) * rcp_2A;
+
+  /* Calculates u and Ng for near hit. */
+  {
+    *u0_o = (t0 * dOz + Oz) * rl;
+    const float3 Pr = t0 * ray_dir;
+    const float3 Pl = (*u0_o) * (cylinder_end - cylinder_start) + cylinder_start;
+    *Ng0_o = Pr - Pl;
+  }
+
+  /* Calculates u and Ng for far hit. */
+  {
+    *u1_o = (t1 * dOz + Oz) * rl;
+    const float3 Pr = t1 * ray_dir;
+    const float3 Pl = (*u1_o) * (cylinder_end - cylinder_start) + cylinder_start;
+    *Ng1_o = Pr - Pl;
+  }
+
+  *t_o = make_float2(t0, t1);
+
+  return true;
+}
+
+ccl_device_inline float2 half_plane_intersect(const float3 P, const float3 N, const float3 ray_dir)
+{
+  const float3 O = -P;
+  const float3 D = ray_dir;
+  const float ON = dot(O, N);
+  const float DN = dot(D, N);
+  const float min_rcp_input = 1e-18f;
+  const bool eps = fabsf(DN) < min_rcp_input;
+  const float t = -ON / DN;
+  const float lower = (eps || DN < 0.0f) ? -FLT_MAX : t;
+  const float upper = (eps || DN > 0.0f) ? FLT_MAX : t;
+  return make_float2(lower, upper);
+}
+
+ccl_device bool curve_intersect_iterative(const float3 ray_dir,
+                                          const float dt,
+                                          const float4 curve[4],
+                                          float u,
+                                          float t,
+                                          const bool use_backfacing,
+                                          Intersection *isect)
+{
+  const float length_ray_dir = len(ray_dir);
+
+  /* Error of curve evaluations is propertional to largest coordinate. */
+  const float4 box_min = min(min(curve[0], curve[1]), min(curve[2], curve[3]));
+  const float4 box_max = max(min(curve[0], curve[1]), max(curve[2], curve[3]));
+  const float4 box_abs = max(fabs(box_min), fabs(box_max));
+  const float P_err = 16.0f * FLT_EPSILON *
+                      max(box_abs.x, max(box_abs.y, max(box_abs.z, box_abs.w)));
+  const float radius_max = box_max.w;
+
+  for (int i = 0; i < CURVE_NUM_JACOBIAN_ITERATIONS; i++) {
+    const float3 Q = ray_dir * t;
+    const float3 dQdt = ray_dir;
+    const float Q_err = 16.0f * FLT_EPSILON * length_ray_dir * t;
+
+    const float4 P4 = catmull_rom_basis_eval(curve, u);
+    const float4 dPdu4 = catmull_rom_basis_derivative(curve, u);
+
+    const float3 P = float4_to_float3(P4);
+    const float3 dPdu = float4_to_float3(dPdu4);
+    const float radius = P4.w;
+    const float dradiusdu = dPdu4.w;
+
+    const float3 ddPdu = float4_to_float3(catmull_rom_basis_derivative2(curve, u));
+
+    const float3 R = Q - P;
+    const float len_R = len(R);
+    const float R_err = max(Q_err, P_err);
+    const float3 dRdu = -dPdu;
+    const float3 dRdt = dQdt;
+
+    const float3 T = normalize(dPdu);
+    const float3 dTdu = dnormalize(dPdu, ddPdu);
+    const float cos_err = P_err / len(dPdu);
+
+    const float f = dot(R, T);
+    const float f_err = len_R * P_err + R_err + cos_err * (1.0f + len_R);
+    const float dfdu = dot(dRdu, T) + dot(R, dTdu);
+    const float dfdt = dot(dRdt, T);
+
+    const float K = dot(R, R) - sqr(f);
+    const float dKdu = (dot(R, dRdu) - f * dfdu);
+    const float dKdt = (dot(R, dRdt) - f * dfdt);
+    const float rsqrt_K = inversesqrtf(K);
+
+    const float g = sqrtf(K) - radius;
+    const float g_err = R_err + f_err + 16.0f * FLT_EPSILON * radius_max;
+    const float dgdu = dKdu * rsqrt_K - dradiusdu;
+    const float dgdt = dKdt * rsqrt_K;
+
+    const float invdet = 1.0f / (dfdu * dgdt - dgdu * dfdt);
+    u -= (dgdt * f - dfdt * g) * invdet;
+    t -= (-dgdu * f + dfdu * g) * invdet;
+
+    if (fabsf(f) < f_err && fabsf(g) < g_err) {
+      t += dt;
+      if (!(0.0f <= t && t <= isect->t)) {
+        return false; /* Rejects NaNs */
+      }
+      if (!(u >= 0.0f && u <= 1.0f)) {
+        return false; /* Rejects NaNs */
+      }
+
+      /* Backface culling. */
+      const float3 R = normalize(Q - P);
+      const float3 U = dradiusdu * R + dPdu;
+      const float3 V = cross(dPdu, R);
+      const float3 Ng = cross(V, U);
+      if (!use_backfacing && dot(ray_dir, Ng) > 0.0f) {
+        return false;
+      }
+
+      /* Record intersection. */
+      isect->t = t;
+      isect->u = u;
+      isect->v = 0.0f;
+
+      return true;
+    }
+  }
+  return false;
+}
+
+ccl_device bool curve_intersect_recursive(const float3 ray_orig,
+                                          const float3 ray_dir,
+                                          float4 curve[4],
+                                          Intersection *isect)
+{
+  /* Move ray closer to make intersection stable. */
+  const float3 center = float4_to_float3(0.25f * (curve[0] + curve[1] + curve[2] + curve[3]));
+  const float dt = dot(center - ray_orig, ray_dir) / dot(ray_dir, ray_dir);
+  const float3 ref = ray_orig + ray_dir * dt;
+  const float4 ref4 = make_float4(ref.x, ref.y, ref.z, 0.0f);
+  curve[0] -= ref4;
+  curve[1] -= ref4;
+  curve[2] -= ref4;
+  curve[3] -= ref4;
+
+  const bool use_backfacing = false;
+  const float step_size = 1.0f / (float)(CURVE_NUM_BEZIER_STEPS);
+
+  int depth = 0;
+
+  /* todo: optimize stack for GPU somehow? Possibly some bitflags are enough, and
+   * u0/u1 can be derived from the depth. */
+  struct {
+    float u0, u1;
+    int i;
+  } stack[CURVE_NUM_BEZIER_SUBDIVISIONS_UNSTABLE];
+
+  bool found = false;
+
+  float u0 = 0.0f;
+  float u1 = 1.0f;
+  int i = 0;
+
+  while (1) {
+    for (; i < CURVE_NUM_BEZIER_STEPS; i++) {
+      const float step = i * step_size;
+
+      /* Subdivide curve. */
+      const float dscale = (u1 - u0) * (1.0f / 3.0f) * step_size;
+      const float vu0 = mix(u0, u1, step);
+      const float vu1 = mix(u0, u1, step + step_size);
+
+      const float4 P0 = catmull_rom_basis_eval(curve, vu0);
+      const float4 dP0du = dscale * catmull_rom_basis_derivative(curve, vu0);
+      const float4 P3 = catmull_rom_basis_eval(curve, vu1);
+      const float4 dP3du = dscale * catmull_rom_basis_derivative(curve, vu1);
+
+      const float4 P1 = P0 + dP0du;
+      const float4 P2 = P3 - dP3du;
+
+      /* Calculate bounding cylinders. */
+      const float rr1 = sqr_point_to_line_distance(float4_to_float3(dP0du),
+                                                   float4_to_float3(P3 - P0));
+      const float rr2 = sqr_point_to_line_distance(float4_to_float3(dP3du),
+                                                   float4_to_float3(P3 - P0));
+      const float maxr12 = sqrtf(max(rr1, rr2));
+      const float one_plus_ulp = 1.0f + 2.0f * FLT_EPSILON;
+      const float one_minus_ulp = 1.0f - 2.0f * FLT_EPSILON;
+      float r_outer = max(max(P0.w, P1.w), max(P2.w, P3.w)) + maxr12;
+      float r_inner = min(min(P0.w, P1.w), min(P2.w, P3.w)) - maxr12;
+      r_outer = one_plus_ulp * r_outer;
+      r_inner = max(0.0f, one_minus_ulp * r_inner);
+      bool valid = true;
+
+      /* Intersect with outer cylinder. */
+      float2 tc_outer;
+      float u_outer0, u_outer1;
+      float3 Ng_outer0, Ng_outer1;
+      valid = cylinder_intersect(float4_to_float3(P0),
+                                 float4_to_float3(P3),
+                                 r_outer,
+                                 ray_dir,
+                                 &tc_outer,
+                                 &u_outer0,
+                                 &Ng_outer0,
+                                 &u_outer1,
+                                 &Ng_outer1);
+      if (!valid) {
+        continue;
+      }
+
+      /* Intersect with cap-planes. */
+      float2 tp = make_float2(-dt, isect->t - dt);
+      tp = make_float2(max(tp.x, tc_outer.x), min(tp.y, tc_outer.y));
+      const float2 h0 = half_plane_intersect(
+          float4_to_float3(P0), float4_to_float3(dP0du), ray_dir);
+      tp = make_float2(max(tp.x, h0.x), min(tp.y, h0.y));
+      const float2 h1 = half_plane_intersect(
+          float4_to_float3(P3), -float4_to_float3(dP3du), ray_dir);
+      tp = make_float2(max(tp.x, h1.x), min(tp.y, h1.y));
+      valid = tp.x <= tp.y;
+      if (!valid) {
+        continue;
+      }
+
+      /* Clamp and correct u parameter. */
+      u_outer0 = clamp(u_outer0, 0.0f, 1.0f);
+      u_outer1 = clamp(u_outer1, 0.0f, 1.0f);
+      u_outer0 = mix(u0, u1, (step + u_outer0) * (1.0f / (float)(CURVE_NUM_BEZIER_STEPS + 1)));
+      u_outer1 = mix(u0, u1, (step + u_outer1) * (1.0f / (float)(CURVE_NUM_BEZIER_STEPS + 1)));
+
+      /* Intersect with inner cylinder. */
+      float2 tc_inner;
+      float u_inner0, u_inner1;
+      float3 Ng_inner0, Ng_inner1;
+      const bool valid_inner = cylinder_intersect(float4_to_float3(P0),
+                                                  float4_to_float3(P3),
+                                                  r_inner,
+                                                  ray_dir,
+                                                  &tc_inner,
+                                                  &u_inner0,
+                                                  &Ng_inner0,
+                                                  &u_inner1,
+                                                  &Ng_inner1);
+
+      /* At the unstable area we subdivide deeper. */
+#  if 0
+      const bool unstable0 = (!valid_inner) |
+                             (fabsf(dot(normalize(ray_dir), normalize(Ng_inner0))) < 0.3f);
+      const bool unstable1 = (!valid_inner) |
+                             (fabsf(dot(normalize(ray_dir), normalize(Ng_inner1))) < 0.3f);
+#  else
+      /* On the GPU appears to be a little faster if always enabled. */
+      (void)valid_inner;
+
+      const bool unstable0 = true;
+      const bool unstable1 = true;
+#  endif
+
+      /* Subtract the inner interval from the current hit interval. */
+      float2 tp0 = make_float2(tp.x, min(tp.y, tc_inner.x));
+      float2 tp1 = make_float2(max(tp.x, tc_inner.y), tp.y);
+      bool valid0 = valid && (tp0.x <= tp0.y);
+      bool valid1 = valid && (tp1.x <= tp1.y);
+      if (!(valid0 || valid1)) {
+        continue;
+      }
+
+      /* Process one or two hits. */
+      bool recurse = false;
+      if (valid0) {
+        const int termDepth = unstable0 ? CURVE_NUM_BEZIER_SUBDIVISIONS_UNSTABLE :
+                                          CURVE_NUM_BEZIER_SUBDIVISIONS;
+        if (depth >= termDepth) {
+          found |= curve_intersect_iterative(
+              ray_dir, dt, curve, u_outer0, tp0.x, use_backfacing, isect);
+        }
+        else {
+          recurse = true;
+        }
+      }
+
+      if (valid1 && (tp1.x + dt <= isect->t)) {
+        const int termDepth = unstable1 ? CURVE_NUM_BEZIER_SUBDIVISIONS_UNSTABLE :
+                                          CURVE_NUM_BEZIER_SUBDIVISIONS;
+        if (depth >= termDepth) {
+          found |= curve_intersect_iterative(
+              ray_dir, dt, curve, u_outer1, tp1.y, use_backfacing, isect);
+        }
+        else {
+          recurse = true;
+        }
+      }
+
+      if (recurse) {
+        stack[depth].u0 = u0;
+        stack[depth].u1 = u1;
+        stack[depth].i = i + 1;
+        depth++;
+
+        u0 = vu0;
+        u1 = vu1;
+        i = -1;
+      }
+    }
+
+    if (depth > 0) {
+      depth--;
+      u0 = stack[depth].u0;
+      u1 = stack[depth].u1;
+      i = stack[depth].i;
+    }
+    else {
+      break;
+    }
+  }
+
+  return found;
+}
+
+/* Ribbons */
+
+ccl_device_inline bool cylinder_culling_test(const float2 p1, const float2 p2, const float r)
+{
+  /* Performs culling against a cylinder. */
+  const float2 dp = p2 - p1;
+  const float num = dp.x * p1.y - dp.y * p1.x;
+  const float den2 = dot(p2 - p1, p2 - p1);
+  return num * num <= r * r * den2;
+}
+
+/*! Intersects a ray with a quad with backface culling
+ *  enabled. The quad v0,v1,v2,v3 is split into two triangles
+ *  v0,v1,v3 and v2,v3,v1. The edge v1,v2 decides which of the two
+ *  triangles gets intersected. */
+ccl_device_inline bool ribbon_intersect_quad(const float ray_tfar,
+                                             const float3 quad_v0,
+                                             const float3 quad_v1,
+                                             const float3 quad_v2,
+                                             const float3 quad_v3,
+                                             float *u_o,
+                                             float *v_o,
+                                             float *t_o)
+{
+  /* Calculate vertices relative to ray origin? */
+  const float3 O = make_float3(0.0f, 0.0f, 0.0f);
+  const float3 D = make_float3(0.0f, 0.0f, 1.0f);
+  const float3 va = quad_v0 - O;
+  const float3 vb = quad_v1 - O;
+  const float3 vc = quad_v2 - O;
+  const float3 vd = quad_v3 - O;
+
+  const float3 edb = vb - vd;
+  const float WW = dot(cross(vd, edb), D);
+  const float3 v0 = (WW <= 0.0f) ? va : vc;
+  const float3 v1 = (WW <= 0.0f) ? vb : vd;
+  const float3 v2 = (WW <= 0.0f) ? vd : vb;
+
+  /* Calculate edges? */
+  const float3 e0 = v2 - v0;
+  const float3 e1 = v0 - v1;
+
+  /* perform edge tests */
+  const float U = dot(cross(v0, e0), D);
+  const float V = dot(cross(v1, e1), D);
+  if (!(max(U, V) <= 0.0f)) {
+    return false;
+  }
+
+  /* Calculate geometry normal and denominator? */
+  const float3 Ng = cross(e1, e0);
+  const float den = dot(Ng, D);
+  const float rcpDen = 1.0f / den;
+
+  /* Perform depth test? */
+  const float t = rcpDen * dot(v0, Ng);
+  if (!(0.0f <= t && t <= ray_tfar)) {
+    return false;
+  }
+
+  /* Avoid division by 0? */
+  if (!(den != 0.0f)) {
+    return false;
+  }
+
+  /* Update hit information? */
+  *t_o = t;
+  *u_o = U * rcpDen;
+  *v_o = V * rcpDen;
+  *u_o = (WW <= 0.0f) ? *u_o : 1.0f - *u_o;
+  *v_o = (WW <= 0.0f) ? *v_o : 1.0f - *v_o;
+  return true;
+}
+
+ccl_device_inline void ribbon_ray_space(const float3 ray_dir, float3 ray_space[3])
+{
+  const float3 dx0 = make_float3(0, ray_dir.z, -ray_dir.y);
+  const float3 dx1 = make_float3(-ray_dir.z, 0, ray_dir.x);
+  ray_space[0] = normalize(dot(dx0, dx0) > dot(dx1, dx1) ? dx0 : dx1);
+  ray_space[1] = normalize(cross(ray_dir, ray_space[0]));
+  ray_space[2] = ray_dir;
+}
+
+ccl_device_inline float4 ribbon_to_ray_space(const float3 ray_space[3],
+                                             const float3 ray_org,
+                                             const float4 P4)
+{
+  float3 P = float4_to_float3(P4) - ray_org;
+  return make_float4(dot(ray_space[0], P), dot(ray_space[1], P), dot(ray_space[2], P), P4.w);
+}
+
+ccl_device_inline bool ribbon_intersect(const float3 ray_org,
+                                        const float3 ray_dir,
+                                        const float ray_tfar,
+                                        const int N,
+                                        float4 curve[4],
+                                        Intersection *isect)
+{
+  /* Transform control points into ray space. */
+  float3 ray_space[3];
+  ribbon_ray_space(ray_dir, ray_space);
+
+  curve[0] = ribbon_to_ray_space(ray_space, ray_org, curve[0]);
+  curve[1] = ribbon_to_ray_space(ray_space, ray_org, curve[1]);
+  curve[2] = ribbon_to_ray_space(ray_space, ray_org, curve[2]);
+  curve[3] = ribbon_to_ray_space(ray_space, ray_org, curve[3]);
+
+  const float4 mx = max(max(fabs(curve[0]), fabs(curve[1])), max(fabs(curve[2]), fabs(curve[3])));
+  const float eps = 4.0f * FLT_EPSILON * max(max(mx.x, mx.y), max(mx.z, mx.w));
+  const float step_size = 1.0f / (float)N;
+
+  /* Evaluate first point and radius scaled normal direction. */
+  float4 p0 = catmull_rom_basis_eval(curve, 0.0f);
+  float3 dp0dt = float4_to_float3(catmull_rom_basis_derivative(curve, 0.0f));
+  if (max3(fabs(dp0dt)) < eps) {
+    const float4 p1 = catmull_rom_basis_eval(curve, step_size);
+    dp0dt = float4_to_float3(p1 - p0);
+  }
+  float3 wn0 = normalize(make_float3(dp0dt.y, -dp0dt.x, 0.0f)) * p0.w;
+
+  /* Evaluate the bezier curve. */
+  for (int i = 0; i < N; i++) {
+    const float u = i * step_size;
+    const float4 p1 = catmull_rom_basis_eval(curve, u + step_size);
+    bool valid = cylinder_culling_test(
+        make_float2(p0.x, p0.y), make_float2(p1.x, p1.y), max(p0.w, p1.w));
+    if (!valid) {
+      continue;
+    }
+
+    /* Evaluate next point. */
+    float3 dp1dt = float4_to_float3(catmull_rom_basis_derivative(curve, u + step_size));
+    dp1dt = (max3(fabs(dp1dt)) < eps) ? float4_to_float3(p1 - p0) : dp1dt;
+    const float3 wn1 = normalize(make_float3(dp1dt.y, -dp1dt.x, 0.0f)) * p1.w;
+
+    /* Construct quad coordinates. */
+    const float3 lp0 = float4_to_float3(p0) + wn0;
+    const float3 lp1 = float4_to_float3(p1) + wn1;
+    const float3 up0 = float4_to_float3(p0) - wn0;
+    const float3 up1 = float4_to_float3(p1) - wn1;
+
+    /* Intersect quad. */
+    float vu, vv, vt;
+    bool valid0 = ribbon_intersect_quad(isect->t, lp0, lp1, up1, up0, &vu, &vv, &vt);
+
+    if (valid0) {
+      /* ignore self intersections */
+      const float avoidance_factor = 2.0f;
+      if (avoidance_factor != 0.0f) {
+        float r = mix(p0.w, p1.w, vu);
+        valid0 = vt > avoidance_factor * r;
+      }
+
+      if (valid0) {
+        vv = 2.0f * vv - 1.0f;
+
+        /* Record intersection. */
+        isect->t = vt;
+        isect->u = u + vu * step_size;
+        isect->v = vv;
+        return true;
+      }
+    }
+
+    p0 = p1;
+    wn0 = wn1;
+  }
+  return false;
+}
+
 ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
                                             Intersection *isect,
-                                            const float3 ccl_ref P,
-                                            const float3 ccl_ref dir,
+                                            const float3 P,
+                                            const float3 dir,
                                             uint visibility,
                                             int object,
                                             int curveAddr,
@@ -31,7 +629,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
 {
   const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
 
-#  ifndef __KERNEL_OPTIX__ /* see OptiX motion flag OPTIX_MOTION_FLAG_[START|END]_VANISH */
+#  ifndef __KERNEL_OPTIX__ /* See OptiX motion flag OPTIX_MOTION_FLAG_[START|END]_VANISH */
   if (!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
     const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
     if (time < prim_time.x || time > prim_time.y) {
@@ -41,310 +639,63 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
 #  endif
 
   int segment = PRIMITIVE_UNPACK_SEGMENT(type);
-  float epsilon = 0.0f;
-  float r_st, r_en;
-
-  int depth = kernel_data.curve.subdivisions;
-  int flags = kernel_data.curve.curveflags;
   int prim = kernel_tex_fetch(__prim_index, curveAddr);
 
-  float3 curve_coef[4];
+  float4 v00 = kernel_tex_fetch(__curves, prim);
 
-  /* curve Intersection check */
-  /* obtain curve parameters */
-  {
-    /* ray transform created - this should be created at beginning of intersection loop */
-    Transform htfm;
-    float d = sqrtf(dir.x * dir.x + dir.z * dir.z);
-    htfm = make_transform(dir.z / d,
-                          0,
-                          -dir.x / d,
-                          0,
-                          -dir.x * dir.y / d,
-                          d,
-                          -dir.y * dir.z / d,
-                          0,
-                          dir.x,
-                          dir.y,
-                          dir.z,
-                          0);
+  int k0 = __float_as_int(v00.x) + segment;
+  int k1 = k0 + 1;
 
-    float4 v00 = kernel_tex_fetch(__curves, prim);
+  int ka = max(k0 - 1, __float_as_int(v00.x));
+  int kb = min(k1 + 1, __float_as_int(v00.x) + __float_as_int(v00.y) - 1);
 
-    int k0 = __float_as_int(v00.x) + segment;
-    int k1 = k0 + 1;
-
-    int ka = max(k0 - 1, __float_as_int(v00.x));
-    int kb = min(k1 + 1, __float_as_int(v00.x) + __float_as_int(v00.y) - 1);
-
-    float4 P_curve[4];
-
-    if (is_curve_primitive) {
-      P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
-      P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
-      P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
-      P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
-    }
-    else {
-      int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-      motion_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, P_curve);
-    }
-
-    float3 p0 = transform_point(&htfm, float4_to_float3(P_curve[0]) - P);
-    float3 p1 = transform_point(&htfm, float4_to_float3(P_curve[1]) - P);
-    float3 p2 = transform_point(&htfm, float4_to_float3(P_curve[2]) - P);
-    float3 p3 = transform_point(&htfm, float4_to_float3(P_curve[3]) - P);
-
-    float fc = 0.71f;
-    curve_coef[0] = p1;
-    curve_coef[1] = -fc * p0 + fc * p2;
-    curve_coef[2] = 2.0f * fc * p0 + (fc - 3.0f) * p1 + (3.0f - 2.0f * fc) * p2 - fc * p3;
-    curve_coef[3] = -fc * p0 + (2.0f - fc) * p1 + (fc - 2.0f) * p2 + fc * p3;
-    r_st = P_curve[1].w;
-    r_en = P_curve[2].w;
+  float4 curve[4];
+  if (is_curve_primitive) {
+    curve[0] = kernel_tex_fetch(__curve_keys, ka);
+    curve[1] = kernel_tex_fetch(__curve_keys, k0);
+    curve[2] = kernel_tex_fetch(__curve_keys, k1);
+    curve[3] = kernel_tex_fetch(__curve_keys, kb);
   }
-
-  float r_curr = max(r_st, r_en);
-
-  epsilon = 2 * r_curr;
-
-  /* find bounds - this is slow for cubic curves */
-  float upper, lower;
-
-  float zextrem[4];
-  curvebounds(&lower,
-              &upper,
-              &zextrem[0],
-              &zextrem[1],
-              &zextrem[2],
-              &zextrem[3],
-              curve_coef[0].z,
-              curve_coef[1].z,
-              curve_coef[2].z,
-              curve_coef[3].z);
-  if (lower - r_curr > isect->t || upper + r_curr < epsilon)
-    return false;
-
-  /* minimum width extension */
-  float xextrem[4];
-  curvebounds(&lower,
-              &upper,
-              &xextrem[0],
-              &xextrem[1],
-              &xextrem[2],
-              &xextrem[3],
-              curve_coef[0].x,
-              curve_coef[1].x,
-              curve_coef[2].x,
-              curve_coef[3].x);
-  if (lower > r_curr || upper < -r_curr)
-    return false;
-
-  float yextrem[4];
-  curvebounds(&lower,
-              &upper,
-              &yextrem[0],
-              &yextrem[1],
-              &yextrem[2],
-              &yextrem[3],
-              curve_coef[0].y,
-              curve_coef[1].y,
-              curve_coef[2].y,
-              curve_coef[3].y);
-  if (lower > r_curr || upper < -r_curr)
-    return false;
-
-  /* setup recurrent loop */
-  int level = 1 << depth;
-  int tree = 0;
-  float resol = 1.0f / (float)level;
-  bool hit = false;
-
-  /* begin loop */
-  while (!(tree >> (depth))) {
-    const float i_st = tree * resol;
-    const float i_en = i_st + (level * resol);
-
-    float3 p_st = ((curve_coef[3] * i_st + curve_coef[2]) * i_st + curve_coef[1]) * i_st +
-                  curve_coef[0];
-    float3 p_en = ((curve_coef[3] * i_en + curve_coef[2]) * i_en + curve_coef[1]) * i_en +
-                  curve_coef[0];
-
-    float bminx = min(p_st.x, p_en.x);
-    float bmaxx = max(p_st.x, p_en.x);
-    float bminy = min(p_st.y, p_en.y);
-    float bmaxy = max(p_st.y, p_en.y);
-    float bminz = min(p_st.z, p_en.z);
-    float bmaxz = max(p_st.z, p_en.z);
-
-    if (xextrem[0] >= i_st && xextrem[0] <= i_en) {
-      bminx = min(bminx, xextrem[1]);
-      bmaxx = max(bmaxx, xextrem[1]);
-    }
-    if (xextrem[2] >= i_st && xextrem[2] <= i_en) {
-      bminx = min(bminx, xextrem[3]);
-      bmaxx = max(bmaxx, xextrem[3]);
-    }
-    if (yextrem[0] >= i_st && yextrem[0] <= i_en) {
-      bminy = min(bminy, yextrem[1]);
-      bmaxy = max(bmaxy, yextrem[1]);
-    }
-    if (yextrem[2] >= i_st && yextrem[2] <= i_en) {
-      bminy = min(bminy, yextrem[3]);
-      bmaxy = max(bmaxy, yextrem[3]);
-    }
-    if (zextrem[0] >= i_st && zextrem[0] <= i_en) {
-      bminz = min(bminz, zextrem[1]);
-      bmaxz = max(bmaxz, zextrem[1]);
-    }
-    if (zextrem[2] >= i_st && zextrem[2] <= i_en) {
-      bminz = min(bminz, zextrem[3]);
-      bmaxz = max(bmaxz, zextrem[3]);
-    }
-
-    float r1 = r_st + (r_en - r_st) * i_st;
-    float r2 = r_st + (r_en - r_st) * i_en;
-    r_curr = max(r1, r2);
-
-    if (bminz - r_curr > isect->t || bmaxz + r_curr < epsilon || bminx > r_curr ||
-        bmaxx < -r_curr || bminy > r_curr || bmaxy < -r_curr) {
-      /* the bounding box does not overlap the square centered at O */
-      tree += level;
-      level = tree & -tree;
-    }
-    else if (level == 1) {
-
-      /* the maximum recursion depth is reached.
-       * check if dP0.(Q-P0)>=0 and dPn.(Pn-Q)>=0.
-       * dP* is reversed if necessary.*/
-      float t = isect->t;
-      float u = 0.0f;
-      float gd = 0.0f;
-
-      if (flags & CURVE_KN_RIBBONS) {
-        float3 tg = (p_en - p_st);
-        float w = tg.x * tg.x + tg.y * tg.y;
-        if (w == 0) {
-          tree++;
-          level = tree & -tree;
-          continue;
-        }
-        w = -(p_st.x * tg.x + p_st.y * tg.y) / w;
-        w = saturate(w);
-
-        /* compute u on the curve segment */
-        u = i_st * (1 - w) + i_en * w;
-        r_curr = r_st + (r_en - r_st) * u;
-        /* compare x-y distances */
-        float3 p_curr = ((curve_coef[3] * u + curve_coef[2]) * u + curve_coef[1]) * u +
-                        curve_coef[0];
-
-        float3 dp_st = (3 * curve_coef[3] * i_st + 2 * curve_coef[2]) * i_st + curve_coef[1];
-        if (dot(tg, dp_st) < 0)
-          dp_st *= -1;
-        if (dot(dp_st, -p_st) + p_curr.z * dp_st.z < 0) {
-          tree++;
-          level = tree & -tree;
-          continue;
-        }
-        float3 dp_en = (3 * curve_coef[3] * i_en + 2 * curve_coef[2]) * i_en + curve_coef[1];
-        if (dot(tg, dp_en) < 0)
-          dp_en *= -1;
-        if (dot(dp_en, p_en) - p_curr.z * dp_en.z < 0) {
-          tree++;
-          level = tree & -tree;
-          continue;
-        }
-
-        if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_curr * r_curr || p_curr.z <= epsilon ||
-            isect->t < p_curr.z) {
-          tree++;
-          level = tree & -tree;
-          continue;
-        }
-
-        t = p_curr.z;
-      }
-      else {
-        float l = len(p_en - p_st);
-        float invl = 1.0f / l;
-        float3 tg = (p_en - p_st) * invl;
-        gd = (r2 - r1) * invl;
-        float difz = -dot(p_st, tg);
-        float cyla = 1.0f - (tg.z * tg.z * (1 + gd * gd));
-        float invcyla = 1.0f / cyla;
-        float halfb = (-p_st.z - tg.z * (difz + gd * (difz * gd + r1)));
-        float tcentre = -halfb * invcyla;
-        float zcentre = difz + (tg.z * tcentre);
-        float3 tdif = -p_st;
-        tdif.z += tcentre;
-        float tdifz = dot(tdif, tg);
-        float tb = 2 * (tdif.z - tg.z * (tdifz + gd * (tdifz * gd + r1)));
-        float tc = dot(tdif, tdif) - tdifz * tdifz * (1 + gd * gd) - r1 * r1 - 2 * r1 * tdifz * gd;
-        float td = tb * tb - 4 * cyla * tc;
-        if (td < 0.0f) {
-          tree++;
-          level = tree & -tree;
-          continue;
-        }
-
-        float rootd = sqrtf(td);
-        float correction = (-tb - rootd) * 0.5f * invcyla;
-        t = tcentre + correction;
-
-        float3 dp_st = (3 * curve_coef[3] * i_st + 2 * curve_coef[2]) * i_st + curve_coef[1];
-        if (dot(tg, dp_st) < 0)
-          dp_st *= -1;
-        float3 dp_en = (3 * curve_coef[3] * i_en + 2 * curve_coef[2]) * i_en + curve_coef[1];
-        if (dot(tg, dp_en) < 0)
-          dp_en *= -1;
-
-        if (dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 ||
-            isect->t < t || t <= 0.0f) {
-          tree++;
-          level = tree & -tree;
-          continue;
-        }
-
-        float w = (zcentre + (tg.z * correction)) * invl;
-        w = saturate(w);
-        /* compute u on the curve segment */
-        u = i_st * (1 - w) + i_en * w;
-      }
-      /* we found a new intersection */
+  else {
+    int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
+    motion_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, curve);
+  }
 
 #  ifdef __VISIBILITY_FLAG__
-      /* visibility flag test. we do it here under the assumption
-       * that most triangles are culled by node flags */
-      if (kernel_tex_fetch(__prim_visibility, curveAddr) & visibility)
-#  endif
-      {
-        /* record intersection */
-        isect->t = t;
-        isect->u = u;
-        isect->v = gd;
-        isect->prim = curveAddr;
-        isect->object = object;
-        isect->type = type;
-        hit = true;
-      }
-
-      tree++;
-      level = tree & -tree;
-    }
-    else {
-      /* split the curve into two curves and process */
-      level = level >> 1;
-    }
+  if (!(kernel_tex_fetch(__prim_visibility, curveAddr) & visibility)) {
+    return false;
   }
+#  endif
 
-  return hit;
+  const bool use_ribbon = (kernel_data.curve.curveflags & CURVE_KN_RIBBONS) != 0;
+  if (use_ribbon) {
+    /* todo: adaptive number of subdivisions could help performance here. */
+    const int subdivisions = kernel_data.curve.subdivisions;
+    if (ribbon_intersect(P, dir, isect->t, subdivisions, curve, isect)) {
+      isect->prim = curveAddr;
+      isect->object = object;
+      isect->type = type;
+      return true;
+    }
+
+    return false;
+  }
+  else {
+    if (curve_intersect_recursive(P, dir, curve, isect)) {
+      isect->prim = curveAddr;
+      isect->object = object;
+      isect->type = type;
+      return true;
+    }
+
+    return false;
+  }
 }
 
-ccl_device_inline float3 curve_refine(KernelGlobals *kg,
-                                      ShaderData *sd,
-                                      const Intersection *isect,
-                                      const Ray *ray)
+ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
+                                          ShaderData *sd,
+                                          const Intersection *isect,
+                                          const Ray *ray)
 {
   float t = isect->t;
   float3 P = ray->P;
@@ -383,53 +734,45 @@ ccl_device_inline float3 curve_refine(KernelGlobals *kg,
     motion_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
   }
 
-  float3 p[4];
-  p[0] = float4_to_float3(P_curve[0]);
-  p[1] = float4_to_float3(P_curve[1]);
-  p[2] = float4_to_float3(P_curve[2]);
-  p[3] = float4_to_float3(P_curve[3]);
+  sd->u = isect->u;
+  sd->v = isect->v;
 
   P = P + D * t;
 
-  sd->u = isect->u;
-  sd->v = 0.0f;
-
-  float3 tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
+  const float4 dPdu4 = catmull_rom_basis_derivative(P_curve, isect->u);
+  const float3 dPdu = float4_to_float3(dPdu4);
 
   if (kernel_data.curve.curveflags & CURVE_KN_RIBBONS) {
-    sd->Ng = normalize(-(D - tg * (dot(tg, D))));
+    /* Rounded smooth normals for ribbons, to approximate thick curve shape. */
+    const float3 tangent = normalize(dPdu);
+    const float3 bitangent = normalize(cross(tangent, -D));
+    const float sine = isect->v;
+    const float cosine = safe_sqrtf(1.0f - sine * sine);
+
+    sd->N = normalize(sine * bitangent - cosine * normalize(cross(tangent, bitangent)));
+    sd->Ng = -D;
+
+#  if 0
+    /* This approximates the position and geometric normal of a thick curve too,
+     * but gives too many issues with wrong self intersections. */
+    const float dPdu_radius = dPdu4.w;
+    sd->Ng = sd->N;
+    P += sd->N * dPdu_radius;
+#  endif
   }
   else {
-#  ifdef __EMBREE__
-    if (kernel_data.bvh.scene) {
-      sd->Ng = normalize(isect->Ng);
-    }
-    else
-#  endif
-    {
-      /* direction from inside to surface of curve */
-      float3 p_curr = curvepoint(isect->u, p[0], p[1], p[2], p[3]);
-      sd->Ng = normalize(P - p_curr);
-
-      /* adjustment for changing radius */
-      float gd = isect->v;
-
-      if (gd != 0.0f) {
-        sd->Ng = sd->Ng - gd * tg;
-        sd->Ng = normalize(sd->Ng);
-      }
-    }
+    /* Thick curves, compute normal using direction from inside the curve.
+     * This could be optimized by recording the normal in the intersection,
+     * however for Optix this would go beyond the size of the payload. */
+    const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, isect->u));
+    sd->Ng = normalize(P - P_inside);
+    sd->N = sd->Ng;
   }
-
-  /* todo: sometimes the normal is still so that this is detected as
-   * backfacing even if cull backfaces is enabled */
-
-  sd->N = sd->Ng;
 
 #  ifdef __DPDU__
   /* dPdu/dPdv */
-  sd->dPdu = tg;
-  sd->dPdv = cross(tg, sd->Ng);
+  sd->dPdu = dPdu;
+  sd->dPdv = cross(dPdu, sd->Ng);
 #  endif
 
   if (isect->object != OBJECT_NONE) {
@@ -442,7 +785,10 @@ ccl_device_inline float3 curve_refine(KernelGlobals *kg,
     P = transform_point(&tfm, P);
   }
 
-  return P;
+  sd->P = P;
+
+  float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
+  sd->shader = __float_as_int(curvedata.z);
 }
 
 #endif

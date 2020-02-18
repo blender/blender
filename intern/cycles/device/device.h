@@ -132,6 +132,7 @@ class DeviceRequestedFeatures {
 
   /* BVH/sampling kernel features. */
   bool use_hair;
+  bool use_hair_thick;
   bool use_object_motion;
   bool use_camera_motion;
 
@@ -178,6 +179,7 @@ class DeviceRequestedFeatures {
     max_nodes_group = 0;
     nodes_features = 0;
     use_hair = false;
+    use_hair_thick = false;
     use_object_motion = false;
     use_camera_motion = false;
     use_baking = false;
@@ -200,6 +202,7 @@ class DeviceRequestedFeatures {
              max_nodes_group == requested_features.max_nodes_group &&
              nodes_features == requested_features.nodes_features &&
              use_hair == requested_features.use_hair &&
+             use_hair_thick == requested_features.use_hair_thick &&
              use_object_motion == requested_features.use_object_motion &&
              use_camera_motion == requested_features.use_camera_motion &&
              use_baking == requested_features.use_baking &&
