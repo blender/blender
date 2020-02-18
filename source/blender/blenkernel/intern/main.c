@@ -246,7 +246,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
 }
 
 /** Generate the mappings between used IDs and their users, and vice-versa. */
-void BKE_main_relations_create(Main *bmain)
+void BKE_main_relations_create(Main *bmain, const short flag)
 {
   if (bmain->relations != NULL) {
     BKE_main_relations_free(bmain);
@@ -262,10 +262,14 @@ void BKE_main_relations_create(Main *bmain)
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    const int idwalk_flag = IDWALK_READONLY |
+                            ((flag & MAINIDRELATIONS_INCLUDE_UI) != 0 ? IDWALK_INCLUDE_UI : 0);
     BKE_library_foreach_ID_link(
-        NULL, id, main_relations_create_idlink_cb, bmain->relations, IDWALK_READONLY);
+        NULL, id, main_relations_create_idlink_cb, bmain->relations, idwalk_flag);
   }
   FOREACH_MAIN_ID_END;
+
+  bmain->relations->flag = flag;
 }
 
 void BKE_main_relations_free(Main *bmain)

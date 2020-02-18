@@ -41,11 +41,13 @@
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
@@ -375,6 +377,148 @@ static void library_foreach_collection(LibraryForeachIDData *data, Collection *c
   FOREACH_FINALIZE_VOID;
 }
 
+static void library_foreach_dopesheet(LibraryForeachIDData *data, bDopeSheet *ads)
+{
+  if (ads != NULL) {
+    FOREACH_CALLBACK_INVOKE_ID(data, ads->source, IDWALK_CB_NOP);
+    FOREACH_CALLBACK_INVOKE(data, ads->filter_grp, IDWALK_CB_NOP);
+  }
+
+  FOREACH_FINALIZE_VOID;
+}
+
+static void library_foreach_screen_area(LibraryForeachIDData *data, ScrArea *area)
+{
+  FOREACH_CALLBACK_INVOKE(data, area->full, IDWALK_CB_NOP);
+
+  for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+    switch (sl->spacetype) {
+      case SPACE_VIEW3D: {
+        View3D *v3d = (View3D *)sl;
+
+        FOREACH_CALLBACK_INVOKE(data, v3d->camera, IDWALK_CB_NOP);
+        FOREACH_CALLBACK_INVOKE(data, v3d->ob_centre, IDWALK_CB_NOP);
+
+        if (v3d->localvd) {
+          FOREACH_CALLBACK_INVOKE(data, v3d->localvd->camera, IDWALK_CB_NOP);
+        }
+        break;
+      }
+      case SPACE_GRAPH: {
+        SpaceGraph *sipo = (SpaceGraph *)sl;
+
+        library_foreach_dopesheet(data, sipo->ads);
+        break;
+      }
+      case SPACE_PROPERTIES: {
+        SpaceProperties *sbuts = (SpaceProperties *)sl;
+
+        FOREACH_CALLBACK_INVOKE_ID(data, sbuts->pinid, IDWALK_CB_NOP);
+        break;
+      }
+      case SPACE_FILE:
+        break;
+      case SPACE_ACTION: {
+        SpaceAction *saction = (SpaceAction *)sl;
+
+        library_foreach_dopesheet(data, &saction->ads);
+        FOREACH_CALLBACK_INVOKE(data, saction->action, IDWALK_CB_NOP);
+        break;
+      }
+      case SPACE_IMAGE: {
+        SpaceImage *sima = (SpaceImage *)sl;
+
+        FOREACH_CALLBACK_INVOKE(data, sima->image, IDWALK_CB_USER_ONE);
+        FOREACH_CALLBACK_INVOKE(data, sima->mask_info.mask, IDWALK_CB_USER_ONE);
+        FOREACH_CALLBACK_INVOKE(data, sima->gpd, IDWALK_CB_USER);
+        break;
+      }
+      case SPACE_SEQ: {
+        SpaceSeq *sseq = (SpaceSeq *)sl;
+
+        FOREACH_CALLBACK_INVOKE(data, sseq->gpd, IDWALK_CB_USER);
+        break;
+      }
+      case SPACE_NLA: {
+        SpaceNla *snla = (SpaceNla *)sl;
+
+        library_foreach_dopesheet(data, snla->ads);
+        break;
+      }
+      case SPACE_TEXT: {
+        SpaceText *st = (SpaceText *)sl;
+
+        FOREACH_CALLBACK_INVOKE(data, st->text, IDWALK_CB_NOP);
+        break;
+      }
+      case SPACE_SCRIPT: {
+        SpaceScript *scpt = (SpaceScript *)sl;
+
+        FOREACH_CALLBACK_INVOKE(data, scpt->script, IDWALK_CB_NOP);
+        break;
+      }
+      case SPACE_OUTLINER: {
+        SpaceOutliner *so = (SpaceOutliner *)sl;
+
+        FOREACH_CALLBACK_INVOKE_ID(data, so->search_tse.id, IDWALK_CB_NOP);
+
+        if (so->treestore != NULL) {
+          TreeStoreElem *tselem;
+          BLI_mempool_iter iter;
+
+          BLI_mempool_iternew(so->treestore, &iter);
+          while ((tselem = BLI_mempool_iterstep(&iter))) {
+            FOREACH_CALLBACK_INVOKE_ID(data, tselem->id, IDWALK_CB_NOP);
+          }
+        }
+        break;
+      }
+      case SPACE_NODE: {
+        SpaceNode *snode = (SpaceNode *)sl;
+        bNodeTreePath *path;
+
+        const bool is_private_nodetree = snode->id != NULL &&
+                                         ntreeFromID(snode->id) == snode->nodetree;
+
+        FOREACH_CALLBACK_INVOKE_ID(data, snode->id, IDWALK_CB_NOP);
+        FOREACH_CALLBACK_INVOKE_ID(data, snode->from, IDWALK_CB_NOP);
+
+        FOREACH_CALLBACK_INVOKE(
+            data, snode->nodetree, is_private_nodetree ? IDWALK_CB_PRIVATE : IDWALK_CB_USER);
+
+        for (path = snode->treepath.first; path; path = path->next) {
+          if (path == snode->treepath.first) {
+            /* first nodetree in path is same as snode->nodetree */
+            FOREACH_CALLBACK_INVOKE(
+                data, path->nodetree, is_private_nodetree ? IDWALK_CB_PRIVATE : IDWALK_CB_NOP);
+          }
+          else {
+            FOREACH_CALLBACK_INVOKE(data, path->nodetree, IDWALK_CB_USER);
+          }
+
+          if (path->nodetree == NULL) {
+            break;
+          }
+        }
+
+        FOREACH_CALLBACK_INVOKE(data, snode->edittree, IDWALK_CB_NOP);
+        break;
+      }
+      case SPACE_CLIP: {
+        SpaceClip *sclip = (SpaceClip *)sl;
+
+        FOREACH_CALLBACK_INVOKE(data, sclip->clip, IDWALK_CB_USER_ONE);
+        FOREACH_CALLBACK_INVOKE(data, sclip->mask_info.mask, IDWALK_CB_USER_ONE);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  FOREACH_FINALIZE_VOID;
+}
+
 static void library_foreach_ID_as_subdata_link(ID **id_pp,
                                                LibraryIDLinkCallback callback,
                                                void *user_data,
@@ -456,7 +600,9 @@ static void library_foreach_ID_link(Main *bmain,
       data.cb_flag_clear = inherit_data->cb_flag_clear;
     }
 
-    if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY)) {
+    if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY) &&
+        (((bmain->relations->flag & MAINIDRELATIONS_INCLUDE_UI) == 0) ==
+         ((data.flag & IDWALK_INCLUDE_UI) == 0))) {
       /* Note that this is minor optimization, even in worst cases (like id being an object with
        * lots of drivers and constraints and modifiers, or material etc. with huge node tree),
        * but we might as well use it (Main->relations is always assumed valid,
@@ -1020,6 +1166,7 @@ static void library_foreach_ID_link(Main *bmain,
         }
         break;
       }
+
       case ID_AC: {
         bAction *act = (bAction *)id;
 
@@ -1042,6 +1189,11 @@ static void library_foreach_ID_link(Main *bmain,
             /* allow callback to set a different workspace */
             BKE_workspace_active_set(win->workspace_hook, (WorkSpace *)workspace);
           }
+          if (data.flag & IDWALK_INCLUDE_UI) {
+            for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+              library_foreach_screen_area(&data, area);
+            }
+          }
         }
         break;
       }
@@ -1062,6 +1214,7 @@ static void library_foreach_ID_link(Main *bmain,
         }
         break;
       }
+
       case ID_GD: {
         bGPdata *gpencil = (bGPdata *)id;
         /* materials */
@@ -1077,8 +1230,18 @@ static void library_foreach_ID_link(Main *bmain,
         break;
       }
 
+      case ID_SCR: {
+        if (data.flag & IDWALK_INCLUDE_UI) {
+          bScreen *screen = (bScreen *)id;
+
+          for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+            library_foreach_screen_area(&data, area);
+          }
+        }
+        break;
+      }
+
       /* Nothing needed for those... */
-      case ID_SCR:
       case ID_IM:
       case ID_VF:
       case ID_TXT:

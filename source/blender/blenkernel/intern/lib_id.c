@@ -2022,7 +2022,7 @@ void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_onl
                                 id,
                                 id_refcount_recompute_callback,
                                 POINTER_FROM_INT((int)do_linked_only),
-                                IDWALK_READONLY);
+                                IDWALK_READONLY | IDWALK_INCLUDE_UI);
   }
   FOREACH_MAIN_ID_END;
 }
@@ -2128,7 +2128,7 @@ void BKE_library_make_local(Main *bmain,
   TIMEIT_START(make_local);
 #endif
 
-  BKE_main_relations_create(bmain);
+  BKE_main_relations_create(bmain, 0);
 
 #ifdef DEBUG_TIME
   printf("Pre-compute current ID relations: Done.\n");
