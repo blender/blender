@@ -2668,7 +2668,7 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
                   "relative_remap",
                   true,
                   "Remap Relative",
-                  "Make paths relative when saving to a different directory");
+                  "Remap relative paths when saving to a different directory");
   prop = RNA_def_boolean(
       ot->srna,
       "copy",
@@ -2740,7 +2740,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
                   "relative_remap",
                   false,
                   "Remap Relative",
-                  "Make paths relative when saving to a different directory");
+                  "Remap relative paths when saving to a different directory");
 
   prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "Exit Blender after saving");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);

@@ -113,6 +113,81 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Rebase Relative Paths
+ * \{ */
+
+typedef struct BPathRebase_Data {
+  const char *basedir_src;
+  const char *basedir_dst;
+  ReportList *reports;
+
+  int count_tot;
+  int count_changed;
+  int count_failed;
+} BPathRebase_Data;
+
+static bool bpath_relative_rebase_visit_cb(void *userdata, char *path_dst, const char *path_src)
+{
+  BPathRebase_Data *data = (BPathRebase_Data *)userdata;
+
+  data->count_tot++;
+
+  if (BLI_path_is_rel(path_src)) {
+    char filepath[(FILE_MAXDIR * 2) + FILE_MAXFILE];
+    BLI_strncpy(filepath, path_src, FILE_MAX);
+    if (BLI_path_abs(filepath, data->basedir_src)) {
+      BLI_cleanup_path(NULL, filepath);
+
+      /* This may fail, if so it's fine to leave absolute since the path is still valid. */
+      BLI_path_rel(filepath, data->basedir_dst);
+
+      BLI_strncpy(path_dst, filepath, FILE_MAX);
+      data->count_changed++;
+      return true;
+    }
+    else {
+      /* Failed to make relative path absolute. */
+      BLI_assert(0);
+      BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made absolute", path_src);
+      data->count_failed++;
+      return false;
+    }
+    return false;
+  }
+  else {
+    /* Absolute, leave this as-is. */
+    return false;
+  }
+}
+
+void BKE_bpath_relative_rebase(Main *bmain,
+                               const char *basedir_src,
+                               const char *basedir_dst,
+                               ReportList *reports)
+{
+  BPathRebase_Data data = {NULL};
+  const int flag = BKE_BPATH_TRAVERSE_SKIP_LIBRARY;
+
+  BLI_assert(basedir_src[0] != '\0');
+  BLI_assert(basedir_dst[0] != '\0');
+
+  data.basedir_src = basedir_src;
+  data.basedir_dst = basedir_dst;
+  data.reports = reports;
+
+  BKE_bpath_traverse_main(bmain, bpath_relative_rebase_visit_cb, flag, (void *)&data);
+
+  BKE_reportf(reports,
+              data.count_failed ? RPT_WARNING : RPT_INFO,
+              "Total files %d | Changed %d | Failed %d",
+              data.count_tot,
+              data.count_changed,
+              data.count_failed);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Make Paths Relative
  * \{ */
 
