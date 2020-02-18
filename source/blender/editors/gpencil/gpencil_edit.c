@@ -4222,6 +4222,13 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
     }
   }
 
+  /* Ensure destination object has one active layer. */
+  if (gpd_dst->layers.first != NULL) {
+    if (BKE_gpencil_layer_getactive(gpd_dst) == NULL) {
+      BKE_gpencil_layer_setactive(gpd_dst, gpd_dst->layers.first);
+    }
+  }
+
   DEG_id_tag_update(&gpd_src->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   DEG_id_tag_update(&gpd_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
