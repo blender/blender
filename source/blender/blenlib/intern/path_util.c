@@ -576,7 +576,7 @@ void BLI_path_rel(char *file, const char *relfile)
         }
       }
     }
-    else if (temp[1] == ':' && file[1] == ':' && temp[0] != file[0]) {
+    else if ((temp[1] == ':' && file[1] == ':') && (tolower(temp[0]) != tolower(file[0]))) {
       return;
     }
   }
