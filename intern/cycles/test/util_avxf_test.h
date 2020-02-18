@@ -44,6 +44,10 @@ bool validate_cpu_capabilities()
   for (size_t index = 0; index < a.size; index++) \
     EXPECT_FLOAT_EQ(a[index], b[index]);
 
+#define compare_vector_vector_near(a, b, abserror) \
+  for (size_t index = 0; index < a.size; index++) \
+    EXPECT_NEAR(a[index], b[index], abserror);
+
 #define basic_test_vv(a, b, op) \
   VALIDATECPU \
   avxf c = a op b; \
@@ -190,23 +194,21 @@ TEST(util_avx, avxf_shuffle)
   compare_vector_vector(res, avxf(0.4f, 0.2f, 0.1f, 0.3f, 0.5f, 0.6f, 0.7f, 0.8f));
 }
 
-/* XXX Test Fails on AVX2, needs further investigation before it can be enabled */
-#if 0
 TEST(util_avx, avxf_cross)
 {
-	VALIDATECPU
-	avxf res = cross(avxf_b, avxf_c);
-	compare_vector_vector(res,
-	                      avxf(0.0f,
-	                           -9.5367432e-07f,
-	                           0.0f,
-	                           4.7683716e-07f,
-	                           0.0f,
-	                           -3.8146973e-06f,
-	                           3.8146973e-06f,
-	                           3.8146973e-06f));
+  VALIDATECPU
+  avxf res = cross(avxf_b, avxf_c);
+  compare_vector_vector_near(res,
+                             avxf(0.0f,
+                                  -9.5367432e-07f,
+                                  0.0f,
+                                  4.7683716e-07f,
+                                  0.0f,
+                                  -3.8146973e-06f,
+                                  3.8146973e-06f,
+                                  3.8146973e-06f),
+                             0.000002000f);
 }
-#endif
 
 TEST(util_avx, avxf_dot3)
 {
