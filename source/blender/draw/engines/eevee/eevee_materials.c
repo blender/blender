@@ -1136,7 +1136,7 @@ static void material_opaque(Material *ma,
 
   const bool do_cull = (ma->blend_flag & MA_BL_CULL_BACKFACE) != 0;
   const bool use_gpumat = (ma->use_nodes && ma->nodetree && !holdout);
-  const bool use_ssrefract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
+  const bool use_ssrefract = use_gpumat && ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
                              ((effects->enabled_effects & EFFECT_REFRACT) != 0);
   const bool use_translucency = ((ma->blend_flag & MA_BL_TRANSLUCENCY) != 0);
 
@@ -1340,8 +1340,9 @@ static void material_transparent(Material *ma,
   EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 
   const bool do_cull = (ma->blend_flag & MA_BL_CULL_BACKFACE) != 0;
-  const bool use_ssrefract = (((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
-                              ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0));
+  const bool use_gpumat = ma->use_nodes && ma->nodetree;
+  const bool use_ssrefract = use_gpumat && ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
+                             ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0);
   const float *color_p = &ma->r;
   const float *metal_p = &ma->metallic;
   const float *spec_p = &ma->spec;
@@ -1365,7 +1366,7 @@ static void material_transparent(Material *ma,
     DRW_shgroup_state_enable(*shgrp_depth, cur_state);
   }
 
-  if (ma->use_nodes && ma->nodetree) {
+  if (use_gpumat) {
     static float error_col[3] = {1.0f, 0.0f, 1.0f};
     static float compile_col[3] = {0.5f, 0.5f, 0.5f};
     static float half = 0.5f;
