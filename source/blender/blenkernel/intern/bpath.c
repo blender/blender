@@ -84,6 +84,10 @@
 
 static CLG_LogRef LOG = {"bke.bpath"};
 
+/* -------------------------------------------------------------------- */
+/** \name Check Missing Files
+ * \{ */
+
 static bool checkMissingFiles_visit_cb(void *userdata,
                                        char *UNUSED(path_dst),
                                        const char *path_src)
@@ -105,6 +109,12 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
                           BKE_BPATH_TRAVERSE_ABS | BKE_BPATH_TRAVERSE_SKIP_PACKED,
                           reports);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Make Paths Relative
+ * \{ */
 
 typedef struct BPathRemap_Data {
   const char *basedir;
@@ -161,6 +171,12 @@ void BKE_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *re
               data.count_failed);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Make Paths Absolute
+ * \{ */
+
 static bool bpath_absolute_convert_visit_cb(void *userdata, char *path_dst, const char *path_src)
 {
   BPathRemap_Data *data = (BPathRemap_Data *)userdata;
@@ -207,6 +223,12 @@ void BKE_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *re
               data.count_changed,
               data.count_failed);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Find Missing Files
+ * \{ */
 
 /**
  * find this file recursively, use the biggest file so thumbnails don't get used by mistake
@@ -350,7 +372,15 @@ void BKE_bpath_missing_files_find(Main *bmain,
   BKE_bpath_traverse_main(bmain, missing_files_find__visit_cb, flag, (void *)&data);
 }
 
-/* Run a visitor on a string, replacing the contents of the string as needed. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic File Path Traversal API
+ * \{ */
+
+/**
+ * Run a visitor on a string, replacing the contents of the string as needed.
+ */
 static bool rewrite_path_fixed(char *path,
                                BPathVisitor visit_cb,
                                const char *absbase,
@@ -436,7 +466,9 @@ static bool rewrite_path_alloc(char **path,
   }
 }
 
-/* Run visitor function 'visit' on all paths contained in 'id'. */
+/**
+ * Run visitor function 'visit' on all paths contained in 'id'.
+ */
 void BKE_bpath_traverse_id(
     Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
@@ -683,8 +715,10 @@ void BKE_bpath_traverse_main(Main *bmain,
   }
 }
 
-/* Rewrites a relative path to be relative to the main file - unless the path is
- * absolute, in which case it is not altered. */
+/**
+ * Rewrites a relative path to be relative to the main file - unless the path is
+ * absolute, in which case it is not altered.
+ */
 bool BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
 {
   /* be sure there is low chance of the path being too short */
@@ -715,11 +749,13 @@ bool BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pa
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/**
- * Backup/Restore/Free functions,
+/** \name Backup/Restore/Free functions,
+ *
  * \note These functions assume the data won't change order.
- */
+ * \{ */
 
 struct PathStore {
   struct PathStore *next, *prev;
@@ -783,3 +819,5 @@ void BKE_bpath_list_free(void *ls_handle)
   BLI_freelistN(ls);
   MEM_freeN(ls);
 }
+
+/** \} */
