@@ -528,6 +528,7 @@ static void initSystem(
   MDeformVert *dvert = NULL;
   MDeformVert *dv = NULL;
   LaplacianSystem *sys;
+  const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 
   if (isValidVertexGroup(lmd, ob, mesh)) {
     int *index_anchors = MEM_malloc_arrayN(numVerts, sizeof(int), __func__); /* over-alloc */
@@ -542,7 +543,8 @@ static void initSystem(
     BLI_assert(dvert != NULL);
     dv = dvert;
     for (i = 0; i < numVerts; i++) {
-      wpaint = defvert_find_weight(dv, defgrp_index);
+      wpaint = invert_vgroup ? 1.0f - defvert_find_weight(dv, defgrp_index) :
+                               defvert_find_weight(dv, defgrp_index);
       dv++;
       if (wpaint > 0.0f) {
         STACK_PUSH(index_anchors, i);
@@ -596,6 +598,7 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
   MDeformVert *dvert = NULL;
   MDeformVert *dv = NULL;
   LaplacianSystem *sys = (LaplacianSystem *)lmd->cache_system;
+  const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 
   if (sys->total_verts != numVerts) {
     return LAPDEFORM_SYSTEM_CHANGE_VERTEXES;
@@ -612,7 +615,8 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
   }
   dv = dvert;
   for (i = 0; i < numVerts; i++) {
-    wpaint = defvert_find_weight(dv, defgrp_index);
+    wpaint = invert_vgroup ? 1.0f - defvert_find_weight(dv, defgrp_index) :
+                             defvert_find_weight(dv, defgrp_index);
     dv++;
     if (wpaint > 0.0f) {
       total_anchors++;

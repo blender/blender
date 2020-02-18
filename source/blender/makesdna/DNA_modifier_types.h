@@ -1843,6 +1843,7 @@ typedef struct LaplacianDeformModifierData {
 /* Laplacian Deform modifier flags */
 enum {
   MOD_LAPLACIANDEFORM_BIND = 1 << 0,
+  MOD_LAPLACIANDEFORM_INVERT_VGROUP = 1 << 1,
 };
 
 /* many of these options match 'solidify' */
