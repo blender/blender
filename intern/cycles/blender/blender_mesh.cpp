@@ -965,6 +965,12 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
                                    Mesh *mesh,
                                    int motion_step)
 {
+  /* Fluid motion blur already exported. */
+  BL::FluidDomainSettings b_fluid_domain = object_fluid_liquid_domain_find(b_ob);
+  if (b_fluid_domain) {
+    return;
+  }
+
   /* Skip if no vertices were exported. */
   size_t numverts = mesh->verts.size();
   if (numverts == 0) {

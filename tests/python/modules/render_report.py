@@ -31,7 +31,7 @@ COLORS = COLORS_DUMMY
 
 # NOTE: Keep everything lowercase.
 BLACKLIST = (
-  'fluid_motion_blur.blend',
+  # 'file_to_blacklist.blend',
 )
 
 def print_message(message, type=None, status=''):
