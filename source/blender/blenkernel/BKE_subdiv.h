@@ -53,10 +53,33 @@ typedef enum eSubdivFVarLinearInterpolation {
 } eSubdivFVarLinearInterpolation;
 
 typedef struct SubdivSettings {
+  /* Simple subdivision corresponds to "Simple" option in the interface. When its enabled the
+   * subdivided mesh is not "smoothed": new vertices are added uniformly on the existing surface.
+   *
+   * On an OpenSubdiv implementation level this translates to a subdivision scheme:
+   * when is_simple is true OSD_SCHEME_BILINEAR is used, otherwise OSD_SCHEME_CATMARK. */
   bool is_simple;
+
+  /* This refers to an adaptive isolation when creating patches for the subdivided surface.
+   *
+   * When is set to to false (aka uniform subdivision) fixed depth of isolation is used, which
+   * allows to iteratively add more subdivisions (uniform subdivision level 2 = uniform subdivision
+   * level 1 + uniform subdivision level 1). Uniform subdivisions will progressively go to a limit
+   * surface.
+   *
+   * Adaptive isolation generates patches at a limit surface (aka as if infinite number of uniform
+   * subdivisions have been applied). This setting allows to have matches normal and tangent space
+   * the same independent of number of subdivisions set in modifier settings. */
   bool is_adaptive;
+
+  /* Corresponds to Quality option in modifier settings: higher values means the final surface
+   * will be more accurately represented by patches.
+   *
+   * On an OpenSubdiv implementation level this is an isolation level. */
   int level;
+
   bool use_creases;
+
   eSubdivVtxBoundaryInterpolation vtx_boundary_interpolation;
   eSubdivFVarLinearInterpolation fvar_linear_interpolation;
 } SubdivSettings;
