@@ -1683,6 +1683,7 @@ enum {
   MOD_LAPLACIANSMOOTH_Z = (1 << 3),
   MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME = (1 << 4),
   MOD_LAPLACIANSMOOTH_NORMALIZED = (1 << 5),
+  MOD_LAPLACIANSMOOTH_INVERT_VGROUP = (1 << 6),
 };
 
 typedef struct CorrectiveSmoothDeltaCache {

@@ -525,7 +525,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "use_normalized")
 
         layout.label(text="Vertex Group:")
-        layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        row = layout.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        row.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
     def LATTICE(self, layout, ob, md):
         split = layout.split()
