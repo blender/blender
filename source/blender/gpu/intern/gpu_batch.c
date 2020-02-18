@@ -919,8 +919,12 @@ void GPU_draw_list_submit(GPUDrawList *list)
 
   /* Only do multi-draw indirect if doing more than 2 drawcall.
    * This avoids the overhead of buffer mapping if scene is
-   * not very instance friendly. */
-  if (USE_MULTI_DRAW_INDIRECT && cmd_len > 2) {
+   * not very instance friendly.
+   * BUT we also need to take into account the case where only
+   * a few instances are needed to finish filling a call buffer. */
+  const bool do_mdi = (cmd_len > 2) || (list->cmd_offset + bytes_used == list->buffer_size);
+
+  if (USE_MULTI_DRAW_INDIRECT && do_mdi) {
     GLenum prim = batch->gl_prim_type;
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, list->buffer_id);
