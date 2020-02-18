@@ -139,7 +139,8 @@ add_blender_test(
 
 add_blender_test(
   blendfile_liblink
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_liblink.py
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_liblink.py --
+  --output-dir ${TEST_OUT_DIR}/blendfile_io/
 )
 
 # ------------------------------------------------------------------------------
