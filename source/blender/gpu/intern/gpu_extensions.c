@@ -90,6 +90,7 @@ static struct GPUGlobal {
   /* Crappy driver don't know how to map framebuffer slot to output vars...
    * We need to have no "holes" in the output buffer slots. */
   bool unused_fb_slot_workaround;
+  bool broken_amd_driver;
   /* Some crappy Intel drivers don't work well with shaders created in different
    * rendering contexts. */
   bool context_local_shaders_workaround;
@@ -219,7 +220,7 @@ bool GPU_context_local_shaders_workaround(void)
 bool GPU_crappy_amd_driver(void)
 {
   /* Currently are the same drivers with the `unused_fb_slot` problem. */
-  return GPU_unused_fb_slot_workaround();
+  return GG.broken_amd_driver;
 }
 
 void gpu_extensions_init(void)
@@ -268,6 +269,7 @@ void gpu_extensions_init(void)
        * And many others... */
 
       GG.unused_fb_slot_workaround = true;
+      GG.broken_amd_driver = true;
     }
   }
 
@@ -328,7 +330,9 @@ void gpu_extensions_init(void)
       GG.context_local_shaders_workaround = true;
     }
   }
-  else if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
+  else if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
+           (strstr(version, "Mesa 18.") || strstr(version, "Mesa 19.0") ||
+            strstr(version, "Mesa 19.1") || strstr(version, "Mesa 19.2"))) {
     /* See T70187: merging vertices fail. This has been tested from 18.2.2 till 19.3.0~dev of the
      * Mesa driver */
     GG.unused_fb_slot_workaround = true;
