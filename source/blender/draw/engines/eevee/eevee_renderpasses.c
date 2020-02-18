@@ -88,6 +88,7 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_PrivateData *g_data = stl->g_data;
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   const bool needs_post_processing = (g_data->render_passes &
                                       EEVEE_RENDERPASSES_WITH_POST_PROCESSING) > 0;
@@ -124,6 +125,15 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
 
     /* Create Pass. */
     DRW_PASS_CREATE(psl->renderpass_pass, DRW_STATE_WRITE_COLOR);
+    DRWShadingGroup *grp = DRW_shgroup_create(e_data.postprocess_sh, psl->renderpass_pass);
+    /* We set a default texture as not all post processes uses the inputBuffer. */
+    g_data->renderpass_input = txl->color;
+    DRW_shgroup_uniform_texture_ref(grp, "inputBuffer", &g_data->renderpass_input);
+    DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+    DRW_shgroup_uniform_int(grp, "currentSample", &g_data->renderpass_current_sample, 1);
+    DRW_shgroup_uniform_int(grp, "renderpassType", &g_data->renderpass_type, 1);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
   else {
     /* Free unneeded memory */
@@ -142,73 +152,47 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
  * Only invoke this function for passes that need post-processing.
  *
  * After invoking this function the active framebuffer is set to `vedata->fbl->renderpass_fb`. */
-void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *sldata,
+void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
                                     EEVEE_Data *vedata,
                                     eScenePassType renderpass_type)
 {
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_StorageList *stl = vedata->stl;
-  EEVEE_FramebufferList *fbl = vedata->fbl;
+  EEVEE_PrivateData *g_data = stl->g_data;
   EEVEE_EffectsInfo *effects = stl->effects;
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   const int current_sample = effects->taa_current_sample;
-
-  DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.postprocess_sh, psl->renderpass_pass);
-  DRW_shgroup_uniform_int_copy(shgrp, "renderpassType", renderpass_type);
+  g_data->renderpass_current_sample = current_sample;
+  g_data->renderpass_type = renderpass_type;
 
   switch (renderpass_type) {
-    case SCE_PASS_Z: {
-      DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
-      DRW_shgroup_uniform_texture_ref(shgrp, "depthBuffer", &dtxl->depth);
-      break;
-    }
-
     case SCE_PASS_AO: {
-      DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
-      DRW_shgroup_uniform_texture_ref(shgrp, "inputBuffer", &txl->ao_accum);
-      DRW_shgroup_uniform_int_copy(shgrp, "currentSample", current_sample);
+      g_data->renderpass_input = txl->ao_accum;
       break;
     }
-
     case SCE_PASS_NORMAL: {
-      DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
-      DRW_shgroup_uniform_texture_ref(shgrp, "inputBuffer", &effects->ssr_normal_input);
-      DRW_shgroup_uniform_texture_ref(shgrp, "depthBuffer", &dtxl->depth);
+      g_data->renderpass_input = effects->ssr_normal_input;
       break;
     }
-
     case SCE_PASS_MIST: {
-      DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
-      DRW_shgroup_uniform_texture_ref(shgrp, "inputBuffer", &txl->mist_accum);
-      DRW_shgroup_uniform_int_copy(shgrp, "currentSample", current_sample);
+      g_data->renderpass_input = txl->mist_accum;
       break;
     }
-
     case SCE_PASS_SUBSURFACE_DIRECT: {
-      DRW_shgroup_uniform_texture_ref(shgrp, "inputBuffer", &txl->sss_dir_accum);
-      DRW_shgroup_uniform_int_copy(shgrp, "currentSample", current_sample);
+      g_data->renderpass_input = txl->sss_dir_accum;
       break;
     }
-
     case SCE_PASS_SUBSURFACE_COLOR: {
-      DRW_shgroup_uniform_texture_ref(shgrp, "inputBuffer", &txl->sss_col_accum);
-      DRW_shgroup_uniform_int_copy(shgrp, "currentSample", current_sample);
+      g_data->renderpass_input = txl->sss_col_accum;
       break;
     }
-
     default: {
       break;
     }
   }
-
-  DRW_shgroup_call(shgrp, DRW_cache_fullscreen_quad_get(), NULL);
-
-  /* only draw the shading group that has been added. This function can be called multiple times
-   * and the pass still hold the previous shading groups.*/
-  GPU_framebuffer_bind(fbl->renderpass_fb);
-  DRW_draw_pass_subset(psl->renderpass_pass, shgrp, shgrp);
+  GPU_framebuffer_bind(vedata->fbl->renderpass_fb);
+  DRW_draw_pass(psl->renderpass_pass);
 }
 
 void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)

@@ -804,6 +804,11 @@ typedef struct EEVEE_PrivateData {
   /* Renderpasses */
   /* Bitmask containing the active render_passes */
   eScenePassType render_passes;
+  /* Uniform references that are referenced inside the `renderpass_pass`. They are updated
+   * to reuse the drawing pass and the shading group. */
+  int renderpass_type;
+  int renderpass_current_sample;
+  GPUTexture *renderpass_input;
 
   /** For rendering shadows. */
   struct DRWView *cube_views[6];
