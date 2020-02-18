@@ -3600,6 +3600,11 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
   RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME);
   RNA_def_property_ui_text(prop, "Particle UV", "UV map to change with particle age");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_INVERT_VGROUP);
+  RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_cloth(BlenderRNA *brna)

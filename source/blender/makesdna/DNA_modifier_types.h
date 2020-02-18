@@ -977,6 +977,7 @@ typedef enum {
   eExplodeFlag_Unborn = (1 << 3),
   eExplodeFlag_Alive = (1 << 4),
   eExplodeFlag_Dead = (1 << 5),
+  eExplodeFlag_INVERT_VGROUP = (1 << 6),
 } ExplodeModifierFlag;
 
 typedef struct ExplodeModifierData {

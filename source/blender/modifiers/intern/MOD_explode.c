@@ -97,6 +97,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   float center[3], co[3];
   int *facepa = NULL, *vertpa = NULL, totvert = 0, totface = 0, totpart = 0;
   int i, p, v1, v2, v3, v4 = 0;
+  const bool invert_vgroup = (emd->flag & eExplodeFlag_INVERT_VGROUP) != 0;
 
   mvert = mesh->mvert;
   mface = mesh->mface;
@@ -129,7 +130,9 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
       for (i = 0; i < totvert; i++, dvert++) {
         float val = BLI_rng_get_float(rng);
         val = (1.0f - emd->protect) * val + emd->protect * 0.5f;
-        if (val < defvert_find_weight(dvert, defgrp_index)) {
+        const float weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert, defgrp_index) :
+                                             defvert_find_weight(dvert, defgrp_index);
+        if (val < weight) {
           vertpa[i] = -1;
         }
       }
