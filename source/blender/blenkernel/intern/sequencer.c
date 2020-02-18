@@ -3657,11 +3657,11 @@ static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
     }
 
     ibuf = seq_render_strip_stack(context,
-                                       state,
-                                       seqbase,
-                                       /* scene strips don't have their start taken into account */
-                                       nr + offset,
-                                       0);
+                                  state,
+                                  seqbase,
+                                  /* scene strips don't have their start taken into account */
+                                  nr + offset,
+                                  0);
   }
 
   return ibuf;
