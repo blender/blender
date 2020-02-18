@@ -420,7 +420,7 @@ typedef struct BevelModifierData {
 /* BevelModifierData->flags and BevelModifierData->lim_flags */
 enum {
   MOD_BEVEL_VERT = (1 << 1),
-  /*  unused                  = (1 << 2), */
+  MOD_BEVEL_INVERT_VGROUP = (1 << 2),
   MOD_BEVEL_ANGLE = (1 << 3),
   MOD_BEVEL_WEIGHT = (1 << 4),
   MOD_BEVEL_VGROUP = (1 << 5),

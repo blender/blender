@@ -118,6 +118,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   const float spread = bmd->spread;
   const bool use_custom_profile = (bmd->flags & MOD_BEVEL_CUSTOM_PROFILE);
   const int vmesh_method = bmd->vmesh_method;
+  const bool invert_vgroup = (bmd->flags & MOD_BEVEL_INVERT_VGROUP) != 0;
 
   bm = BKE_mesh_to_bmesh_ex(mesh,
                             &(struct BMeshCreateParams){0},
@@ -146,7 +147,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         }
       }
       else if (vgroup != -1) {
-        weight = defvert_array_find_weight_safe(dvert, BM_elem_index_get(v), vgroup);
+        weight = invert_vgroup ?
+                     1.0f - defvert_array_find_weight_safe(dvert, BM_elem_index_get(v), vgroup) :
+                     defvert_array_find_weight_safe(dvert, BM_elem_index_get(v), vgroup);
         /* Check is against 0.5 rather than != 0.0 because cascaded bevel modifiers will
          * interpolate weights for newly created vertices, and may cause unexpected "selection" */
         if (weight < 0.5f) {
@@ -180,8 +183,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
           }
         }
         else if (vgroup != -1) {
-          weight = defvert_array_find_weight_safe(dvert, BM_elem_index_get(e->v1), vgroup);
-          weight2 = defvert_array_find_weight_safe(dvert, BM_elem_index_get(e->v2), vgroup);
+          weight = invert_vgroup ?
+                       1.0f - defvert_array_find_weight_safe(
+                                  dvert, BM_elem_index_get(e->v1), vgroup) :
+                       defvert_array_find_weight_safe(dvert, BM_elem_index_get(e->v1), vgroup);
+          weight2 = invert_vgroup ?
+                        1.0f - defvert_array_find_weight_safe(
+                                   dvert, BM_elem_index_get(e->v2), vgroup) :
+                        defvert_array_find_weight_safe(dvert, BM_elem_index_get(e->v2), vgroup);
           if (weight < 0.5f || weight2 < 0.5f) {
             continue;
           }
