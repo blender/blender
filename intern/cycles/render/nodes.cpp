@@ -4519,7 +4519,10 @@ VertexColorNode::VertexColorNode() : ShaderNode(node_type)
 void VertexColorNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
   if (!(output("Color")->links.empty() && output("Alpha")->links.empty())) {
-    attributes->add_standard(layer_name);
+    if (layer_name != "")
+      attributes->add_standard(layer_name);
+    else
+      attributes->add(ATTR_STD_VERTEX_COLOR);
   }
   ShaderNode::attributes(shader, attributes);
 }
@@ -4528,7 +4531,14 @@ void VertexColorNode::compile(SVMCompiler &compiler)
 {
   ShaderOutput *color_out = output("Color");
   ShaderOutput *alpha_out = output("Alpha");
-  int layer_id = compiler.attribute(layer_name);
+  int layer_id = 0;
+
+  if (layer_name != "") {
+    layer_id = compiler.attribute(layer_name);
+  }
+  else {
+    layer_id = compiler.attribute(ATTR_STD_VERTEX_COLOR);
+  }
 
   ShaderNodeType node;
 
@@ -4555,7 +4565,19 @@ void VertexColorNode::compile(OSLCompiler &compiler)
   else {
     compiler.parameter("bump_offset", "center");
   }
-  compiler.parameter("layer_name", layer_name.c_str());
+
+  if (layer_name.empty()) {
+    compiler.parameter("layer_name", ustring("geom:vertex_color"));
+  }
+  else {
+    if (Attribute::name_standard(layer_name.c_str()) != ATTR_STD_NONE) {
+      compiler.parameter("name", (string("geom:") + layer_name.c_str()).c_str());
+    }
+    else {
+      compiler.parameter("layer_name", layer_name.c_str());
+    }
+  }
+
   compiler.add(this, "node_vertex_color");
 }
 

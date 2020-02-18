@@ -285,14 +285,27 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
     BL::Mesh::vertex_colors_iterator l;
 
     for (b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
-      if (!mesh->need_attribute(scene, ustring(l->name().c_str())))
-        continue;
+      const bool active_render = l->active_render();
+      AttributeStandard vcol_std = (active_render) ? ATTR_STD_VERTEX_COLOR : ATTR_STD_NONE;
+      ustring vcol_name = ustring(l->name().c_str());
 
-      Attribute *attr = mesh->subd_attributes.add(
-          ustring(l->name().c_str()), TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
+      const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
+                           mesh->need_attribute(scene, vcol_std);
+
+      if (!need_vcol) {
+        continue;
+      }
+
+      Attribute *vcol_attr = NULL;
+      if (active_render) {
+        vcol_attr = mesh->subd_attributes.add(vcol_std, vcol_name);
+      }
+      else {
+        vcol_attr = mesh->subd_attributes.add(vcol_name, TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
+      }
 
       BL::Mesh::polygons_iterator p;
-      uchar4 *cdata = attr->data_uchar4();
+      uchar4 *cdata = vcol_attr->data_uchar4();
 
       for (b_mesh.polygons.begin(p); p != b_mesh.polygons.end(); ++p) {
         int n = p->loop_total();
@@ -307,14 +320,27 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
   else {
     BL::Mesh::vertex_colors_iterator l;
     for (b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
-      if (!mesh->need_attribute(scene, ustring(l->name().c_str())))
-        continue;
+      const bool active_render = l->active_render();
+      AttributeStandard vcol_std = (active_render) ? ATTR_STD_VERTEX_COLOR : ATTR_STD_NONE;
+      ustring vcol_name = ustring(l->name().c_str());
 
-      Attribute *attr = mesh->attributes.add(
-          ustring(l->name().c_str()), TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
+      const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
+                           mesh->need_attribute(scene, vcol_std);
+
+      if (!need_vcol) {
+        continue;
+      }
+
+      Attribute *vcol_attr = NULL;
+      if (active_render) {
+        vcol_attr = mesh->attributes.add(vcol_std, vcol_name);
+      }
+      else {
+        vcol_attr = mesh->attributes.add(vcol_name, TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
+      }
 
       BL::Mesh::loop_triangles_iterator t;
-      uchar4 *cdata = attr->data_uchar4();
+      uchar4 *cdata = vcol_attr->data_uchar4();
 
       for (b_mesh.loop_triangles.begin(t); t != b_mesh.loop_triangles.end(); ++t) {
         int3 li = get_int3(t->loops());
