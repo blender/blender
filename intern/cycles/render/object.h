@@ -81,6 +81,9 @@ class Object : public Node {
   int motion_step(float time) const;
   void update_motion();
 
+  /* Maximum number of motion steps supported (due to Embree). */
+  static const uint MAX_MOTION_STEPS = 129;
+
   /* Check whether object is traceable and it worth adding it to
    * kernel scene.
    */

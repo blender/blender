@@ -266,7 +266,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
       uint motion_steps;
 
       if (need_motion == Scene::MOTION_BLUR) {
-        motion_steps = object_motion_steps(b_parent, b_ob);
+        motion_steps = object_motion_steps(b_parent, b_ob, Object::MAX_MOTION_STEPS);
         geom->motion_steps = motion_steps;
         if (motion_steps && object_use_deform_motion(b_parent, b_ob)) {
           geom->use_motion_blur = true;

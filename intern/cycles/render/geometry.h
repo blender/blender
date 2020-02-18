@@ -72,6 +72,9 @@ class Geometry : public Node {
   uint motion_steps;
   bool use_motion_blur;
 
+  /* Maximum number of motion steps supported (due to Embree). */
+  static const uint MAX_MOTION_STEPS = 129;
+
   /* BVH */
   BVH *bvh;
   size_t attr_map_offset;

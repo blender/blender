@@ -483,7 +483,9 @@ static inline void mesh_texture_space(BL::Mesh &b_mesh, float3 &loc, float3 &siz
 }
 
 /* Object motion steps, returns 0 if no motion blur needed. */
-static inline uint object_motion_steps(BL::Object &b_parent, BL::Object &b_ob)
+static inline uint object_motion_steps(BL::Object &b_parent,
+                                       BL::Object &b_ob,
+                                       const int max_steps = INT_MAX)
 {
   /* Get motion enabled and steps from object itself. */
   PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
@@ -492,7 +494,7 @@ static inline uint object_motion_steps(BL::Object &b_parent, BL::Object &b_ob)
     return 0;
   }
 
-  uint steps = max(1, get_int(cobject, "motion_steps"));
+  int steps = max(1, get_int(cobject, "motion_steps"));
 
   /* Also check parent object, so motion blur and steps can be
    * controlled by dupligroup duplicator for linked groups. */
@@ -510,7 +512,7 @@ static inline uint object_motion_steps(BL::Object &b_parent, BL::Object &b_ob)
   /* Use uneven number of steps so we get one keyframe at the current frame,
    * and use 2^(steps - 1) so objects with more/fewer steps still have samples
    * at the same times, to avoid sampling at many different times. */
-  return (2 << (steps - 1)) + 1;
+  return min((2 << (steps - 1)) + 1, max_steps);
 }
 
 /* object uses deformation motion blur */

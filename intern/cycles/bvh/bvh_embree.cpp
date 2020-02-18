@@ -58,6 +58,11 @@
 
 CCL_NAMESPACE_BEGIN
 
+static_assert(Object::MAX_MOTION_STEPS <= RTC_MAX_TIME_STEP_COUNT,
+              "Object and Embree max motion steps inconsistent");
+static_assert(Object::MAX_MOTION_STEPS == Geometry::MAX_MOTION_STEPS,
+              "Object and Geometry max motion steps inconsistent");
+
 #  define IS_HAIR(x) (x & 1)
 
 /* This gets called by Embree at every valid ray/object intersection.
@@ -557,7 +562,10 @@ void BVHEmbree::add_instance(Object *ob, int i)
     instance_bvh->top_level = this;
   }
 
-  const size_t num_motion_steps = ob->use_motion() ? ob->motion.size() : 1;
+  const size_t num_object_motion_steps = ob->use_motion() ? ob->motion.size() : 1;
+  const size_t num_motion_steps = min(num_object_motion_steps, RTC_MAX_TIME_STEP_COUNT);
+  assert(num_object_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
+
   RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, RTC_GEOMETRY_TYPE_INSTANCE);
   rtcSetGeometryInstancedScene(geom_id, instance_bvh->scene);
   rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
@@ -600,17 +608,16 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 {
   size_t prim_offset = pack.prim_index.size();
   const Attribute *attr_mP = NULL;
-  size_t num_motion_steps = 1;
+  size_t num_geometry_motion_steps = 1;
   if (mesh->has_motion_blur()) {
     attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (attr_mP) {
-      num_motion_steps = mesh->motion_steps;
-      if (num_motion_steps > RTC_MAX_TIME_STEP_COUNT) {
-        assert(0);
-        num_motion_steps = RTC_MAX_TIME_STEP_COUNT;
-      }
+      num_geometry_motion_steps = mesh->motion_steps;
     }
   }
+
+  const size_t num_motion_steps = min(num_geometry_motion_steps, RTC_MAX_TIME_STEP_COUNT);
+  assert(num_geometry_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
 
   const size_t num_triangles = mesh->num_triangles();
   RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, RTC_GEOMETRY_TYPE_TRIANGLE);
@@ -782,13 +789,16 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 {
   size_t prim_offset = pack.prim_index.size();
   const Attribute *attr_mP = NULL;
-  size_t num_motion_steps = 1;
+  size_t num_geometry_motion_steps = 1;
   if (hair->has_motion_blur()) {
     attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (attr_mP) {
-      num_motion_steps = hair->motion_steps;
+      num_geometry_motion_steps = hair->motion_steps;
     }
   }
+
+  const size_t num_motion_steps = min(num_geometry_motion_steps, RTC_MAX_TIME_STEP_COUNT);
+  assert(num_geometry_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
 
   const size_t num_curves = hair->num_curves();
   size_t num_segments = 0;
