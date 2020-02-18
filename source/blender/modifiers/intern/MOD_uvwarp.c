@@ -88,6 +88,7 @@ typedef struct UVWarpData {
   int defgrp_index;
 
   float (*warp_mat)[4];
+  bool invert_vgroup;
 } UVWarpData;
 
 static void uv_warp_compute(void *__restrict userdata,
@@ -110,7 +111,9 @@ static void uv_warp_compute(void *__restrict userdata,
   if (dvert) {
     for (l = 0; l < mp->totloop; l++, ml++, mluv++) {
       float uv[2];
-      const float weight = defvert_find_weight(&dvert[ml->v], defgrp_index);
+      const float weight = data->invert_vgroup ?
+                               1.0f - defvert_find_weight(&dvert[ml->v], defgrp_index) :
+                               defvert_find_weight(&dvert[ml->v], defgrp_index);
 
       uv_warp_from_mat4_pair(uv, mluv->uv, warp_mat);
       interp_v2_v2v2(mluv->uv, mluv->uv, uv, weight);
@@ -136,6 +139,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   float warp_mat[4][4];
   const int axis_u = umd->axis_u;
   const int axis_v = umd->axis_v;
+  const bool invert_vgroup = (umd->flag & MOD_UVWARP_INVERT_VGROUP) != 0;
 
   /* make sure there are UV Maps available */
   if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
@@ -208,6 +212,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       .dvert = dvert,
       .defgrp_index = defgrp_index,
       .warp_mat = warp_mat,
+      .invert_vgroup = invert_vgroup,
   };
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);

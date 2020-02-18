@@ -1743,7 +1743,7 @@ typedef struct UVWarpModifierData {
   ModifierData modifier;
 
   char axis_u, axis_v;
-  char _pad[2];
+  short flag;
   /** Used for rotate/scale. */
   float center[2];
 
@@ -1765,6 +1765,11 @@ typedef struct UVWarpModifierData {
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char uvlayer_name[64];
 } UVWarpModifierData;
+
+/* UVWarp modifier flags */
+enum {
+  MOD_UVWARP_INVERT_VGROUP = 1 << 0,
+};
 
 /* cache modifier */
 typedef struct MeshCacheModifierData {
