@@ -23,7 +23,6 @@ class TestBlendLibLinkSaveLoadBasic(TestHelper):
         self.ensure_path(output_dir)
         output_path = os.path.join(output_dir, "blendlib.blend")
 
-        print("Saving lib blend file to ", output_path)
         bpy.ops.wm.save_as_mainfile(filepath=output_path, check_existing=False, compress=False)
 
         bpy.ops.wm.read_factory_settings()
@@ -32,17 +31,12 @@ class TestBlendLibLinkSaveLoadBasic(TestHelper):
         link_dir = os.path.join(output_path, "Mesh")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
 
-        print("Linked lib blend file from ", link_dir)
-        print("lib file path: ", bpy.data.libraries[0].filepath)
-
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
 
         output_path = os.path.join(output_dir, "blendfile.blend")
         bpy.ops.wm.save_as_mainfile(filepath=output_path, check_existing=False, compress=False)
-        print("lib file path after saving: ", bpy.data.libraries[0].filepath)
         bpy.ops.wm.open_mainfile(filepath=output_path, load_ui=False)
 
-        print("lib file path after reloading: ", bpy.data.libraries[0].filepath)
         read_data = self.blender_data_to_tuple(bpy.data, "read_data")
 
         assert(orig_data == read_data)
