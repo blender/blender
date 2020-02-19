@@ -47,17 +47,17 @@ if [[ "$CLEAN_REPOSITORY" -eq "1" ]]; then
   git checkout develop
 fi
 
-MANTA_BUILD_PATH=$MANTA_INSTALLATION/mantaflowgit/build_blender/
+MANTA_BUILD_PATH=$MANTA_INSTALLATION/build_blender/
 mkdir -p $MANTA_BUILD_PATH
 cd $MANTA_BUILD_PATH
-cmake .. -DGUI=OFF -DOPENMP=$USE_OMP -DTBB=$USE_TBB -DBLENDER=ON -DPREPDEBUG=ON && make -j8
+cmake ../mantaflowgit -DGUI=OFF -DOPENMP=$USE_OMP -DTBB=$USE_TBB -DBLENDER=ON -DPREPDEBUG=ON && make -j8
 
 # ==================== 3) COPY MANTAFLOW FILES TO BLENDER ROOT ===========================
 
 mkdir -p $BLENDER_INSTALLATION/blender/tmp/dependencies/ && cp -Rf $MANTA_INSTALLATION/mantaflowgit/dependencies/cnpy "$_"
 mkdir -p $BLENDER_INSTALLATION/blender/tmp/helper/ && cp -Rf $MANTA_INSTALLATION/mantaflowgit/source/util "$_"
 mkdir -p $BLENDER_INSTALLATION/blender/tmp/helper/ && cp -Rf $MANTA_INSTALLATION/mantaflowgit/source/pwrapper "$_"
-mkdir -p $BLENDER_INSTALLATION/blender/tmp/preprocessed/ && cp -Rf $MANTA_INSTALLATION/mantaflowgit/build_blender/pp/source/. "$_"
+mkdir -p $BLENDER_INSTALLATION/blender/tmp/preprocessed/ && cp -Rf $MANTA_INSTALLATION/build_blender/pp/source/. "$_"
 
 # Remove some files that are not need in Blender
 rm $BLENDER_INSTALLATION/blender/tmp/dependencies/cnpy/example1.cpp
