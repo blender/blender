@@ -182,7 +182,7 @@ void BasicParticleSystem::writeParticlesText(const string name) const
 void BasicParticleSystem::writeParticlesRawPositionsGz(const string name) const
 {
 #if NO_ZLIB != 1
-  gzFile gzf = gzopen(name.c_str(), "wb1");
+  gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");
   if (!gzf)
     errMsg("can't open file " << name);
   for (IndexInt i = 0; i < this->size(); ++i) {
@@ -198,7 +198,7 @@ void BasicParticleSystem::writeParticlesRawPositionsGz(const string name) const
 void BasicParticleSystem::writeParticlesRawVelocityGz(const string name) const
 {
 #if NO_ZLIB != 1
-  gzFile gzf = gzopen(name.c_str(), "wb1");
+  gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");
   if (!gzf)
     errMsg("can't open file " << name);
   if (mPdataVec3.size() < 1)

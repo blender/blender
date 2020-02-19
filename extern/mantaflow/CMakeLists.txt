@@ -117,6 +117,7 @@ set(SRC
   ${MANTA_PP}/fastmarch.cpp
   ${MANTA_PP}/fastmarch.h
   ${MANTA_PP}/fastmarch.h.reg.cpp
+  ${MANTA_PP}/fileio/ioutil.cpp
   ${MANTA_PP}/fileio/iogrids.cpp
   ${MANTA_PP}/fileio/iomeshes.cpp
   ${MANTA_PP}/fileio/ioparticles.cpp

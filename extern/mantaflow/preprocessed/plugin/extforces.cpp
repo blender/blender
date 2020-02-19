@@ -1335,7 +1335,7 @@ struct KnConfForce : public KernelBase {
 
 void vorticityConfinement(MACGrid &vel,
                           const FlagGrid &flags,
-                          Real strengthGlobal = 0,
+                          Real strength = 0,
                           const Grid<Real> *strengthCell = NULL)
 {
   Grid<Vec3> velCenter(flags.getParent()), curl(flags.getParent()), force(flags.getParent());
@@ -1344,7 +1344,7 @@ void vorticityConfinement(MACGrid &vel,
   GetCentered(velCenter, vel);
   CurlOp(velCenter, curl);
   GridNorm(norm, curl);
-  KnConfForce(force, norm, curl, strengthGlobal, strengthCell);
+  KnConfForce(force, norm, curl, strength, strengthCell);
   KnApplyForceField(flags, vel, force, NULL, true, false);
 }
 static PyObject *_W_8(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
@@ -1359,11 +1359,11 @@ static PyObject *_W_8(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       ArgLocker _lock;
       MACGrid &vel = *_args.getPtr<MACGrid>("vel", 0, &_lock);
       const FlagGrid &flags = *_args.getPtr<FlagGrid>("flags", 1, &_lock);
-      Real strengthGlobal = _args.getOpt<Real>("strengthGlobal", 2, 0, &_lock);
+      Real strength = _args.getOpt<Real>("strength", 2, 0, &_lock);
       const Grid<Real> *strengthCell = _args.getPtrOpt<Grid<Real>>(
           "strengthCell", 3, NULL, &_lock);
       _retval = getPyNone();
-      vorticityConfinement(vel, flags, strengthGlobal, strengthCell);
+      vorticityConfinement(vel, flags, strength, strengthCell);
       _args.check();
     }
     pbFinalizePlugin(parent, "vorticityConfinement", !noTiming);

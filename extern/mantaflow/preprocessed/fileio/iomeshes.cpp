@@ -158,7 +158,7 @@ void readBobjFile(const string &name, Mesh *mesh, bool append)
   const Real dx = mesh->getParent()->getDx();
   const Vec3 gs = toVec3(mesh->getParent()->getGridSize());
 
-  gzFile gzf = gzopen(name.c_str(), "rb1");  // do some compression
+  gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb1");  // do some compression
   if (!gzf)
     errMsg("readBobj: unable to open file");
 
@@ -213,7 +213,7 @@ void writeBobjFile(const string &name, Mesh *mesh)
   const Real dx = mesh->getParent()->getDx();
   const Vec3i gs = mesh->getParent()->getGridSize();
 
-  gzFile gzf = gzopen(name.c_str(), "wb1");  // do some compression
+  gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
   if (!gzf)
     errMsg("writeBobj: unable to open file");
 
@@ -412,7 +412,7 @@ template<class T> void readMdataUni(const std::string &name, MeshDataImpl<T> *md
   debMsg("reading mesh data " << mdata->getName() << " from uni file " << name, 1);
 
 #if NO_ZLIB != 1
-  gzFile gzf = gzopen(name.c_str(), "rb");
+  gzFile gzf = (gzFile)safeGzopen(name.c_str(), "rb");
   if (!gzf)
     errMsg("can't open file " << name);
 
@@ -460,7 +460,7 @@ template<class T> void writeMdataUni(const std::string &name, MeshDataImpl<T> *m
   MuTime stamp;
   head.timestamp = stamp.time;
 
-  gzFile gzf = gzopen(name.c_str(), "wb1");  // do some compression
+  gzFile gzf = (gzFile)safeGzopen(name.c_str(), "wb1");  // do some compression
   if (!gzf)
     errMsg("can't open file " << name);
   gzwrite(gzf, ID, 4);
