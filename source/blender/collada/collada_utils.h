@@ -119,13 +119,6 @@ inline bAction *bc_getSceneMaterialAction(Material *ma)
   return (ma->adt && ma->adt->action) ? ma->adt->action : NULL;
 }
 
-inline void bc_setSceneObjectAction(bAction *action, Object *ob)
-{
-  if (ob->adt) {
-    ob->adt->action = action;
-  }
-}
-
 std::string bc_get_action_id(std::string action_name,
                              std::string ob_name,
                              std::string channel_type,

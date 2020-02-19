@@ -409,7 +409,6 @@ void OVERLAY_background_draw(OVERLAY_Data *vedata);
 void OVERLAY_bone_instance_data_set_color_hint(BoneInstanceData *data, const float hint_color[4]);
 void OVERLAY_bone_instance_data_set_color(BoneInstanceData *data, const float bone_color[4]);
 
-void OVERLAY_edit_curve_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_curve_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_surf_cache_populate(OVERLAY_Data *vedata, Object *ob);

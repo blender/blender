@@ -192,7 +192,6 @@ GPUTexture *GPU_texture_from_blender(struct Image *ima,
                                      struct ImageUser *iuser,
                                      struct ImBuf *ibuf,
                                      int textarget);
-GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
 
 /* movie clip drawing */
 GPUTexture *GPU_texture_from_movieclip(struct MovieClip *clip,

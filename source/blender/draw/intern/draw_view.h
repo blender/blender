@@ -25,7 +25,6 @@
 
 void DRW_draw_region_info(void);
 void DRW_clear_background(void);
-void DRW_draw_background(bool do_alpha_checker);
 void DRW_draw_cursor(void);
 void DRW_draw_gizmo_3d(void);
 void DRW_draw_gizmo_2d(void);

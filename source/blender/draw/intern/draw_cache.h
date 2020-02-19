@@ -44,7 +44,6 @@ struct GPUBatch *DRW_cache_quad_get(void);
 struct GPUBatch *DRW_cache_quad_wires_get(void);
 struct GPUBatch *DRW_cache_cube_get(void);
 struct GPUBatch *DRW_cache_sphere_get(void);
-struct GPUBatch *DRW_cache_screenspace_circle_get(void);
 struct GPUBatch *DRW_cache_normal_arrow_get(void);
 
 /* Common Object */

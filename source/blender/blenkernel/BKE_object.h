@@ -299,7 +299,6 @@ void BKE_object_eval_transform_all(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *object);
 
-void BKE_object_eval_update_shading(struct Depsgraph *depsgraph, struct Object *object);
 void BKE_object_data_select_update(struct Depsgraph *depsgraph, struct ID *object_data);
 void BKE_object_select_update(struct Depsgraph *depsgraph, struct Object *object);
 

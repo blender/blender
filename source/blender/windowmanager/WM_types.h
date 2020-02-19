@@ -573,13 +573,6 @@ typedef struct wmEvent {
 } wmEvent;
 
 /**
- * Values below are considered a click, above are considered a drag.
- */
-int WM_event_cursor_click_drag_threshold_from_event_(const wmEvent *event);
-
-bool WM_event_cursor_click_drag_threshold_met(const wmEvent *event);
-
-/**
  * Values below are ignored when detecting if the user intentionally moved the cursor.
  * Keep this very small since it's used for selection cycling for eg,
  * where we want intended adjustments to pass this threshold and select new items.

@@ -2035,7 +2035,6 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(const struct bContext *C,
                                                    const eButLabelAlign label_align,
                                                    const short flag);
 void uiTemplateHeader3D_mode(uiLayout *layout, struct bContext *C);
-void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateInputStatus(uiLayout *layout, struct bContext *C);
@@ -2055,8 +2054,6 @@ void uiTemplateCacheFile(uiLayout *layout,
                          struct bContext *C,
                          struct PointerRNA *ptr,
                          const char *propname);
-
-struct ColorBand *UI_block_get_colorband_from_template_menu(struct uiBlock *block);
 
 /* Default UIList class name, keep in sync with its declaration in bl_ui/__init__.py */
 #define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"

@@ -232,9 +232,6 @@ void ED_view3d_cameracontrol_update(struct View3DCameraControl *vctrl,
 void ED_view3d_cameracontrol_release(struct View3DCameraControl *vctrl, const bool restore);
 struct Object *ED_view3d_cameracontrol_object_get(struct View3DCameraControl *vctrl);
 
-/* view3d_toolbar.c */
-void VIEW3D_OT_toolshelf(struct wmOperatorType *ot);
-
 /* view3d_snap.c */
 bool ED_view3d_minmax_verts(struct Object *obedit, float min[3], float max[3]);
 

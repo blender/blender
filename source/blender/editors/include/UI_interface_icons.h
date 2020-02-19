@@ -78,14 +78,6 @@ void UI_icon_draw_ex(float x,
                      const uchar mono_color[4],
                      const bool mono_border);
 
-void UI_icon_draw_desaturate(float x,
-                             float y,
-                             int icon_id,
-                             float aspect,
-                             float alpha,
-                             float desaturate,
-                             const char mono_color[4]);
-
 void UI_icons_free(void);
 void UI_icons_free_drawinfo(void *drawinfo);
 

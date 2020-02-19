@@ -116,8 +116,6 @@ struct bGPdata *ED_annotation_data_get_active_direct(struct ID *screen_id,
 bool ED_gpencil_data_owner_is_annotation(struct PointerRNA *owner_ptr);
 
 /* 3D View */
-struct bGPdata *ED_gpencil_data_get_active_v3d(struct ViewLayer *view_layer, struct View3D *v3d);
-
 bool ED_gpencil_has_keyframe_v3d(struct Scene *scene, struct Object *ob, int cfra);
 
 /* ----------- Stroke Editing Utilities ---------------- */

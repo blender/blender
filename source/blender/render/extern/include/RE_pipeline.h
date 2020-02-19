@@ -254,9 +254,6 @@ void RE_SetCamera(struct Render *re, struct Object *camera);
 void RE_SetWindow(struct Render *re, const rctf *viewplane, float clip_start, float clip_end);
 void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clip_start, float clip_end);
 
-/* option to set viewmatrix before making dbase */
-void RE_SetView(struct Render *re, float mat[4][4]);
-
 /* get current view and window transform */
 void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 
