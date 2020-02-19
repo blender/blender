@@ -2177,17 +2177,11 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 static bool ed_operator_outliner_id_orphans_active(bContext *C)
 {
   ScrArea *sa = CTX_wm_area(C);
-  if (sa != NULL) {
-    if (sa->spacetype == SPACE_TOPBAR) {
-      return true;
-    }
-
-    if (sa->spacetype == SPACE_OUTLINER) {
-      SpaceOutliner *so = CTX_wm_space_outliner(C);
-      return (so->outlinevis == SO_ID_ORPHANS);
-    }
+  if (sa != NULL && sa->spacetype == SPACE_OUTLINER) {
+    SpaceOutliner *so = CTX_wm_space_outliner(C);
+    return (so->outlinevis == SO_ID_ORPHANS);
   }
-  return 0;
+  return true;
 }
 
 /* Purge Orphans Operator --------------------------------------- */
