@@ -1654,6 +1654,20 @@ static void rna_Scene_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   DEG_relations_tag_update(bmain);
 }
 
+static void rna_Scene_mesh_quality_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+
+  FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
+    if (ob->type == OB_MESH) {
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    }
+  }
+  FOREACH_SCENE_OBJECT_END;
+
+  rna_Scene_glsl_update(bmain, scene, ptr);
+}
+
 void rna_Scene_freestyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
@@ -5761,6 +5775,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 3);
   RNA_def_property_ui_text(prop, "Additional Subdiv", "Additional subdivision along the hair");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
+
+  /* Performance */
+  prop = RNA_def_property(srna, "use_high_quality_normals", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "perf_flag", SCE_PERF_HQ_NORMALS);
+  RNA_def_property_ui_text(prop,
+                           "High Quality Normals",
+                           "Use high quality tangent space at the cost of lower performance");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_mesh_quality_update");
 
   /* border */
   prop = RNA_def_property(srna, "use_border", PROP_BOOLEAN, PROP_NONE);

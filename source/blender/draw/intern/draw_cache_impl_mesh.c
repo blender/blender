@@ -1341,6 +1341,7 @@ void DRW_mesh_batch_cache_create_requested(
                                        true,
                                        false,
                                        &cache->cd_used,
+                                       scene,
                                        ts,
                                        true);
   }
@@ -1355,6 +1356,7 @@ void DRW_mesh_batch_cache_create_requested(
                                        false,
                                        use_subsurf_fdots,
                                        &cache->cd_used,
+                                       scene,
                                        ts,
                                        true);
   }
@@ -1368,6 +1370,7 @@ void DRW_mesh_batch_cache_create_requested(
                                      false,
                                      use_subsurf_fdots,
                                      &cache->cd_used,
+                                     scene,
                                      ts,
                                      use_hide);
 

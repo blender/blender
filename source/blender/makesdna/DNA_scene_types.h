@@ -750,7 +750,10 @@ typedef struct RenderData {
 
   /* render engine */
   char engine[32];
-  char _pad2[4];
+  char _pad2[2];
+
+  /* Performance Options */
+  short perf_flag;
 
   /* Cycles baking */
   struct BakeData bake;
@@ -775,6 +778,11 @@ typedef struct RenderData {
   /* Motion blur shutter */
   struct CurveMapping mblur_shutter_curve;
 } RenderData;
+
+/* RenderData.quality_flag */
+typedef enum eQualityOption {
+  SCE_PERF_HQ_NORMALS = (1 << 0),
+} eQualityOption;
 
 /* RenderData.hair_type */
 typedef enum eHairType {

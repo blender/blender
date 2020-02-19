@@ -253,6 +253,7 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
                                         const bool do_uvedit,
                                         const bool use_subsurf_fdots,
                                         const DRW_MeshCDMask *cd_layer_used,
+                                        const Scene *scene,
                                         const ToolSettings *ts,
                                         const bool use_hide);
 

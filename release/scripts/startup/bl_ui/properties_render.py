@@ -524,6 +524,25 @@ class RENDER_PT_eevee_hair(RenderButtonsPanel, Panel):
         layout.prop(rd, "hair_subdiv")
 
 
+class RENDER_PT_eevee_performance(RenderButtonsPanel, Panel):
+    bl_label = "Performance"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        rd = scene.render
+
+        layout.use_property_split = True
+
+        layout.prop(rd, "use_high_quality_normals")
+
+
 class RENDER_PT_opengl_sampling(RenderButtonsPanel, Panel):
     bl_label = "Sampling"
     COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
@@ -674,6 +693,7 @@ classes = (
     RENDER_PT_eevee_volumetric,
     RENDER_PT_eevee_volumetric_lighting,
     RENDER_PT_eevee_volumetric_shadows,
+    RENDER_PT_eevee_performance,
     RENDER_PT_eevee_hair,
     RENDER_PT_eevee_shadows,
     RENDER_PT_eevee_indirect_lighting,

@@ -1580,6 +1580,81 @@ static const MeshExtract extract_pos_nor = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Extract HQ Loop Normal
+ * \{ */
+
+typedef struct gpuHQNor {
+  short x, y, z, w;
+} gpuHQNor;
+
+static void *extract_lnor_hq_init(const MeshRenderData *mr, void *buf)
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_alias_add(&format, "lnor");
+  }
+  GPUVertBuf *vbo = buf;
+  GPU_vertbuf_init_with_format(vbo, &format);
+  GPU_vertbuf_data_alloc(vbo, mr->loop_len);
+
+  return vbo->data;
+}
+
+static void extract_lnor_hq_loop_bmesh(const MeshRenderData *mr, int l, BMLoop *loop, void *data)
+{
+  if (mr->loop_normals) {
+    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, mr->loop_normals[l]);
+  }
+  else if (BM_elem_flag_test(loop->f, BM_ELEM_SMOOTH)) {
+    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, loop->v->no);
+  }
+  else {
+    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, loop->f->no);
+  }
+}
+
+static void extract_lnor_hq_loop_mesh(
+    const MeshRenderData *mr, int l, const MLoop *mloop, int p, const MPoly *mpoly, void *data)
+{
+  if (mr->loop_normals) {
+    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, mr->loop_normals[l]);
+  }
+  else if (mpoly->flag & ME_SMOOTH) {
+    copy_v3_v3_short(&((gpuHQNor *)data)[l].x, mr->mvert[mloop->v].no);
+  }
+  else {
+    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, mr->poly_normals[p]);
+  }
+  /* Flag for paint mode overlay. */
+  if (mpoly->flag & ME_HIDE) {
+    ((gpuHQNor *)data)[l].w = -1;
+  }
+  else if (mpoly->flag & ME_FACE_SEL) {
+    ((gpuHQNor *)data)[l].w = 1;
+  }
+  else {
+    ((gpuHQNor *)data)[l].w = 0;
+  }
+}
+
+static const MeshExtract extract_lnor_hq = {
+    extract_lnor_hq_init,
+    NULL,
+    NULL,
+    extract_lnor_hq_loop_bmesh,
+    extract_lnor_hq_loop_mesh,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    MR_DATA_LOOP_NOR,
+    true,
+};
+
+/** \} */
+/* ---------------------------------------------------------------------- */
 /** \name Extract Loop Normal
  * \{ */
 
@@ -1762,8 +1837,11 @@ static const MeshExtract extract_uv = {
 /** \name Extract Tangent layers
  * \{ */
 
-static void *extract_tan_init(const MeshRenderData *mr, void *buf)
+static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool do_hq)
 {
+  GPUVertCompType comp_type = do_hq ? GPU_COMP_F32 : GPU_COMP_I10;
+  GPUVertFetchMode fetch_mode = do_hq ? GPU_FETCH_FLOAT : GPU_FETCH_INT_TO_FLOAT_UNIT;
+
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
 
@@ -1784,7 +1862,7 @@ static void *extract_tan_init(const MeshRenderData *mr, void *buf)
       GPU_vertformat_safe_attrib_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
       /* Tangent layer name. */
       BLI_snprintf(attr_name, sizeof(attr_name), "t%s", attr_safe_name);
-      GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      GPU_vertformat_attr_add(&format, attr_name, comp_type, 4, fetch_mode);
       /* Active render layer name. */
       if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPUV)) {
         GPU_vertformat_alias_add(&format, "t");
@@ -1860,7 +1938,7 @@ static void *extract_tan_init(const MeshRenderData *mr, void *buf)
     const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_TANGENT, 0);
     GPU_vertformat_safe_attrib_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
     BLI_snprintf(attr_name, sizeof(*attr_name), "t%s", attr_safe_name);
-    GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, attr_name, comp_type, 4, fetch_mode);
     GPU_vertformat_alias_add(&format, "t");
     GPU_vertformat_alias_add(&format, "at");
   }
@@ -1876,28 +1954,88 @@ static void *extract_tan_init(const MeshRenderData *mr, void *buf)
     v_len = 1;
   }
 
-  GPUVertBuf *vbo = buf;
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, v_len);
 
-  float(*tan_data)[4] = (float(*)[4])vbo->data;
-  for (int i = 0; i < tan_len; i++) {
-    void *layer_data = CustomData_get_layer_named(cd_ldata, CD_TANGENT, tangent_names[i]);
-    memcpy(tan_data, layer_data, sizeof(*tan_data) * mr->loop_len);
-    tan_data += mr->loop_len;
+  if (do_hq) {
+    short(*tan_data)[4] = (short(*)[4])vbo->data;
+    for (int i = 0; i < tan_len; i++) {
+      const char *name = tangent_names[i];
+      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(cd_ldata, CD_TANGENT, name);
+      for (int l = 0; l < mr->loop_len; l++) {
+        normal_float_to_short_v3(*tan_data, layer_data[l]);
+        (*tan_data)[3] = (layer_data[l][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
+        tan_data++;
+      }
+    }
+    if (use_orco_tan) {
+      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(cd_ldata, CD_TANGENT, 0);
+      for (int l = 0; l < mr->loop_len; l++) {
+        normal_float_to_short_v3(*tan_data, layer_data[l]);
+        (*tan_data)[3] = (layer_data[l][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
+        tan_data++;
+      }
+    }
   }
-  if (use_orco_tan) {
-    void *layer_data = CustomData_get_layer_n(cd_ldata, CD_TANGENT, 0);
-    memcpy(tan_data, layer_data, sizeof(*tan_data) * mr->loop_len);
+  else {
+    GPUPackedNormal *tan_data = (GPUPackedNormal *)vbo->data;
+    for (int i = 0; i < tan_len; i++) {
+      const char *name = tangent_names[i];
+      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(cd_ldata, CD_TANGENT, name);
+      for (int l = 0; l < mr->loop_len; l++) {
+        *tan_data = GPU_normal_convert_i10_v3(layer_data[l]);
+        tan_data->w = (layer_data[l][3] > 0.0f) ? 1 : -2;
+        tan_data++;
+      }
+    }
+    if (use_orco_tan) {
+      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(cd_ldata, CD_TANGENT, 0);
+      for (int l = 0; l < mr->loop_len; l++) {
+        *tan_data = GPU_normal_convert_i10_v3(layer_data[l]);
+        tan_data->w = (layer_data[l][3] > 0.0f) ? 1 : -2;
+        tan_data++;
+      }
+    }
   }
 
   CustomData_free_layers(cd_ldata, CD_TANGENT, mr->loop_len);
+}
 
+static void *extract_tan_init(const MeshRenderData *mr, void *buf)
+{
+  extract_tan_ex(mr, buf, false);
   return NULL;
 }
 
 static const MeshExtract extract_tan = {
     extract_tan_init,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI,
+    false,
+};
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Extract HQ Tangent layers
+ * \{ */
+
+static void *extract_tan_hq_init(const MeshRenderData *mr, void *buf)
+{
+  extract_tan_ex(mr, buf, true);
+  return NULL;
+}
+
+static const MeshExtract extract_tan_hq = {
+    extract_tan_hq_init,
     NULL,
     NULL,
     NULL,
@@ -4354,11 +4492,20 @@ static void extract_range_task_create(
 }
 
 static void extract_task_create(TaskPool *task_pool,
+                                const Scene *scene,
                                 const MeshRenderData *mr,
                                 const MeshExtract *extract,
                                 void *buf,
                                 int32_t *task_counter)
 {
+  const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0;
+  if (do_hq_normals && (extract == &extract_lnor)) {
+    extract = &extract_lnor_hq;
+  }
+  if (do_hq_normals && (extract == &extract_tan)) {
+    extract = &extract_tan_hq;
+  }
+
   /* Divide extraction of the VBO/IBO into sensible chunks of works. */
   ExtractTaskData *taskdata = MEM_mallocN(sizeof(*taskdata), "ExtractTaskData");
   taskdata->mr = mr;
@@ -4419,6 +4566,7 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
                                         const bool do_uvedit,
                                         const bool use_subsurf_fdots,
                                         const DRW_MeshCDMask *cd_layer_used,
+                                        const Scene *scene,
                                         const ToolSettings *ts,
                                         const bool use_hide)
 {
@@ -4498,7 +4646,7 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
 #define EXTRACT(buf, name) \
   if (mbc.buf.name) { \
     extract_task_create( \
-        task_pool, mr, &extract_##name, mbc.buf.name, &task_counters[counter_used++]); \
+        task_pool, scene, mr, &extract_##name, mbc.buf.name, &task_counters[counter_used++]); \
   } \
   ((void)0)
 
