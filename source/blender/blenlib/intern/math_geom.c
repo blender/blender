@@ -3680,7 +3680,9 @@ static float tri_signed_area(
   return 0.5f * ((v1[i] - v2[i]) * (v2[j] - v3[j]) + (v1[j] - v2[j]) * (v3[i] - v2[i]));
 }
 
-/* return 1 when degenerate */
+/**
+ * \return false when degenerate.
+ */
 static bool barycentric_weights(const float v1[3],
                                 const float v2[3],
                                 const float v3[3],
@@ -3699,15 +3701,18 @@ static bool barycentric_weights(const float v1[3],
 
   wtot = w[0] + w[1] + w[2];
 
-  if (fabsf(wtot) > FLT_EPSILON) {
+#ifdef DEBUG /* Avoid floating point exception when debugging. */
+  if (wtot != 0.0f)
+#endif
+  {
     mul_v3_fl(w, 1.0f / wtot);
-    return false;
+    if (is_finite_v3(w)) {
+      return true;
+    }
   }
-  else {
-    /* zero area triangle */
-    copy_v3_fl(w, 1.0f / 3.0f);
-    return true;
-  }
+  /* Zero area triangle. */
+  copy_v3_fl(w, 1.0f / 3.0f);
+  return false;
 }
 
 void interp_weights_tri_v3(
@@ -3728,7 +3733,7 @@ void interp_weights_quad_v3(float w[4],
 {
   float w2[3];
 
-  w[0] = w[1] = w[2] = w[3] = 0.0f;
+  zero_v4(w);
 
   /* first check for exact match */
   if (equals_v3v3(co, v1)) {
@@ -3746,21 +3751,21 @@ void interp_weights_quad_v3(float w[4],
   else {
     /* otherwise compute barycentric interpolation weights */
     float n1[3], n2[3], n[3];
-    bool degenerate;
+    bool ok;
 
     sub_v3_v3v3(n1, v1, v3);
     sub_v3_v3v3(n2, v2, v4);
     cross_v3_v3v3(n, n1, n2);
 
-    degenerate = barycentric_weights(v1, v2, v4, co, n, w);
+    ok = barycentric_weights(v1, v2, v4, co, n, w);
     SWAP(float, w[2], w[3]);
 
-    if (degenerate || (w[0] < 0.0f)) {
+    if (!ok || (w[0] < 0.0f)) {
       /* if w[1] is negative, co is on the other side of the v1-v3 edge,
        * so we interpolate using the other triangle */
-      degenerate = barycentric_weights(v2, v3, v4, co, n, w2);
+      ok = barycentric_weights(v2, v3, v4, co, n, w2);
 
-      if (!degenerate) {
+      if (ok) {
         w[0] = 0.0f;
         w[1] = w2[0];
         w[2] = w2[1];
@@ -3789,7 +3794,9 @@ int barycentric_inside_triangle_v2(const float w[3])
   return 0;
 }
 
-/* returns 0 for degenerated triangles */
+/**
+ * \return false for degenerated triangles.
+ */
 bool barycentric_coords_v2(
     const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
 {
@@ -3799,12 +3806,16 @@ bool barycentric_coords_v2(
   const float x3 = v3[0], y3 = v3[1];
   const float det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
-  if (fabsf(det) > FLT_EPSILON) {
+#ifdef DEBUG /* Avoid floating point exception when debugging. */
+  if (det != 0.0f)
+#endif
+  {
     w[0] = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
     w[1] = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
     w[2] = 1.0f - w[0] - w[1];
-
-    return true;
+    if (is_finite_v3(w)) {
+      return true;
+    }
   }
 
   return false;
@@ -3826,12 +3837,17 @@ void barycentric_weights_v2(
   w[2] = cross_tri_v2(v1, v2, co);
   wtot = w[0] + w[1] + w[2];
 
-  if (wtot != 0.0f) {
+#ifdef DEBUG /* Avoid floating point exception when debugging. */
+  if (wtot != 0.0f)
+#endif
+  {
     mul_v3_fl(w, 1.0f / wtot);
+    if (is_finite_v3(w)) {
+      return;
+    }
   }
-  else { /* dummy values for zero area face */
-    copy_v3_fl(w, 1.0f / 3.0f);
-  }
+  /* Dummy values for zero area face. */
+  copy_v3_fl(w, 1.0f / 3.0f);
 }
 
 /**
@@ -3849,12 +3865,17 @@ void barycentric_weights_v2_clamped(
   w[2] = max_ff(cross_tri_v2(v1, v2, co), 0.0f);
   wtot = w[0] + w[1] + w[2];
 
-  if (wtot != 0.0f) {
+#ifdef DEBUG /* Avoid floating point exception when debugging. */
+  if (wtot != 0.0f)
+#endif
+  {
     mul_v3_fl(w, 1.0f / wtot);
+    if (is_finite_v3(w)) {
+      return;
+    }
   }
-  else { /* dummy values for zero area face */
-    copy_v3_fl(w, 1.0f / 3.0f);
-  }
+  /* Dummy values for zero area face. */
+  copy_v3_fl(w, 1.0f / 3.0f);
 }
 
 /**
@@ -3871,12 +3892,17 @@ void barycentric_weights_v2_persp(
   w[2] = cross_tri_v2(v1, v2, co) / v3[3];
   wtot = w[0] + w[1] + w[2];
 
-  if (wtot != 0.0f) {
+#ifdef DEBUG /* Avoid floating point exception when debugging. */
+  if (wtot != 0.0f)
+#endif
+  {
     mul_v3_fl(w, 1.0f / wtot);
+    if (is_finite_v3(w)) {
+      return;
+    }
   }
-  else { /* dummy values for zero area face */
-    w[0] = w[1] = w[2] = 1.0f / 3.0f;
-  }
+  /* Dummy values for zero area face. */
+  copy_v3_fl(w, 1.0f / 3.0f);
 }
 
 /**
@@ -3962,12 +3988,17 @@ void barycentric_weights_v2_quad(const float v1[2],
 
     wtot = w[0] + w[1] + w[2] + w[3];
 
-    if (wtot != 0.0f) {
+#ifdef DEBUG /* Avoid floating point exception when debugging. */
+    if (wtot != 0.0f)
+#endif
+    {
       mul_v4_fl(w, 1.0f / wtot);
+      if (is_finite_v4(w)) {
+        return;
+      }
     }
-    else { /* dummy values for zero area face */
-      copy_v4_fl(w, 1.0f / 4.0f);
-    }
+    /* Dummy values for zero area face. */
+    copy_v4_fl(w, 1.0f / 4.0f);
   }
 }
 
