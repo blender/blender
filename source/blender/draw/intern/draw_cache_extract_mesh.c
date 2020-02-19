@@ -1839,8 +1839,8 @@ static const MeshExtract extract_uv = {
 
 static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool do_hq)
 {
-  GPUVertCompType comp_type = do_hq ? GPU_COMP_F32 : GPU_COMP_I10;
-  GPUVertFetchMode fetch_mode = do_hq ? GPU_FETCH_FLOAT : GPU_FETCH_INT_TO_FLOAT_UNIT;
+  GPUVertCompType comp_type = do_hq ? GPU_COMP_I16 : GPU_COMP_I10;
+  GPUVertFetchMode fetch_mode = GPU_FETCH_INT_TO_FLOAT_UNIT;
 
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
