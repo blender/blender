@@ -895,7 +895,7 @@ void DepsgraphNodeBuilder::build_animation_images(ID *id)
   if (BKE_image_user_id_has_animation(id)) {
     ID *id_cow = get_cow_id(id);
     add_operation_node(id,
-                       NodeType::ANIMATION,
+                       NodeType::IMAGE_ANIMATION,
                        OperationCode::IMAGE_ANIMATION,
                        function_bind(BKE_image_user_id_eval_animation, _1, id_cow));
   }

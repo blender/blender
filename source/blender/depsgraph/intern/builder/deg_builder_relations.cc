@@ -1384,9 +1384,8 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
 {
   /* TODO: can we check for existence of node for performance? */
   if (BKE_image_user_id_has_animation(id)) {
-    OperationKey image_animation_key(id, NodeType::ANIMATION, OperationCode::IMAGE_ANIMATION);
-    ComponentKey cow_key(id, NodeType::COPY_ON_WRITE);
-    add_relation(cow_key, image_animation_key, "CoW -> Image Animation");
+    OperationKey image_animation_key(
+        id, NodeType::IMAGE_ANIMATION, OperationCode::IMAGE_ANIMATION);
     TimeSourceKey time_src_key;
     add_relation(time_src_key, image_animation_key, "TimeSrc -> Image Animation");
   }
