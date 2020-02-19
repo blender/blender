@@ -1832,8 +1832,18 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
       for (i = 0; item[i].identifier; i++) {
         eprop->totitem++;
 
-        if (item[i].identifier[0] && item[i].value == eprop->defaultvalue) {
-          defaultfound = 1;
+        if (item[i].identifier[0]) {
+          if (strstr(item[i].identifier, " ")) {
+            CLOG_ERROR(&LOG,
+                       "\"%s.%s\", enum identifiers must not contain spaces.",
+                       srna->identifier,
+                       prop->identifier);
+            DefRNA.error = 1;
+            break;
+          }
+          else if (item[i].value == eprop->defaultvalue) {
+            defaultfound = 1;
+          }
         }
       }
 
