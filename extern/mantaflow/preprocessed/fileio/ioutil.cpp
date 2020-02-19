@@ -29,7 +29,7 @@ namespace Manta {
 void *safeGzopen(const char *filename, const char *mode)
 {
   gzFile gzfile;
-#  if defined(WIN32) || defined(_WIN32)
+#  if 0
   UTF16_ENCODE(filename);
 
   // gzopen_w() is supported since zlib v1.2.7
