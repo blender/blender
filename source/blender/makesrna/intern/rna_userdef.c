@@ -1308,7 +1308,7 @@ static void rna_def_userdef_theme_ui_panel(BlenderRNA *brna)
 
 const EnumPropertyItem rna_enum_userdef_theme_background_types_items[] = {
     {TH_BACKGROUND_SINGLE_COLOR,
-     "Single Color",
+     "SINGLE_COLOR",
      0,
      "Single Color",
      "Use a solid color as viewport background"},
