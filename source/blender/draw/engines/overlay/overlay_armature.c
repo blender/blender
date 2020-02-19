@@ -1025,7 +1025,7 @@ static void pchan_draw_data_init(bPoseChannel *pchan)
 
 static void draw_bone_update_disp_matrix_default(EditBone *eBone, bPoseChannel *pchan)
 {
-  float s[4][4], ebmat[4][4];
+  float ebmat[4][4];
   float length;
   float(*bone_mat)[4];
   float(*disp_mat)[4];
@@ -1050,8 +1050,8 @@ static void draw_bone_update_disp_matrix_default(EditBone *eBone, bPoseChannel *
     disp_tail_mat = eBone->disp_tail_mat;
   }
 
-  scale_m4_fl(s, length);
-  mul_m4_m4m4(disp_mat, bone_mat, s);
+  copy_m4_m4(disp_mat, bone_mat);
+  rescale_m4(disp_mat, (float[3]){length, length, length});
   copy_m4_m4(disp_tail_mat, disp_mat);
   translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
 }
@@ -1250,7 +1250,6 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 
 static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
 {
-  float s[4][4];
   float length;
   float(*bone_mat)[4];
   float(*disp_mat)[4];
@@ -1262,13 +1261,16 @@ static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
   disp_mat = pchan->disp_mat;
   disp_tail_mat = pchan->disp_tail_mat;
 
-  scale_m4_fl(s, length);
-  mul_m4_m4m4(disp_mat, bone_mat, s);
+  copy_m4_m4(disp_mat, bone_mat);
+  rescale_m4(disp_mat, (float[3]){length, length, length});
   copy_m4_m4(disp_tail_mat, disp_mat);
   translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
 }
 
-static void draw_axes(ArmatureDrawContext *ctx, EditBone *eBone, bPoseChannel *pchan)
+static void draw_axes(ArmatureDrawContext *ctx,
+                      const EditBone *eBone,
+                      const bPoseChannel *pchan,
+                      const bArmature *arm)
 {
   float final_col[4];
   const float *col = (ctx->const_color) ?
@@ -1278,7 +1280,21 @@ static void draw_axes(ArmatureDrawContext *ctx, EditBone *eBone, bPoseChannel *p
   copy_v4_v4(final_col, col);
   /* Mix with axes color. */
   final_col[3] = (ctx->const_color) ? 1.0 : (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? 0.1 : 0.65;
-  drw_shgroup_bone_axes(ctx, BONE_VAR(eBone, pchan, disp_mat), final_col);
+
+  if (pchan && pchan->custom && !(arm->flag & ARM_NO_CUSTOM)) {
+    /** Special case: Custom bones can have different scale than the bone.
+     * Recompute display matrix without the custom scalling applied. (T65640)
+     **/
+    float axis_mat[4][4];
+    float length = pchan->bone->length;
+    copy_m4_m4(axis_mat, pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat);
+    rescale_m4(axis_mat, (float[3]){length, length, length});
+
+    drw_shgroup_bone_axes(ctx, axis_mat, final_col);
+  }
+  else {
+    drw_shgroup_bone_axes(ctx, BONE_VAR(eBone, pchan, disp_mat), final_col);
+  }
 }
 
 static void draw_points(ArmatureDrawContext *ctx,
@@ -1938,7 +1954,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
         }
 
         if (arm->flag & ARM_DRAWAXES) {
-          draw_axes(ctx, eBone, NULL);
+          draw_axes(ctx, eBone, NULL, arm);
         }
       }
     }
@@ -2083,7 +2099,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
         }
 
         if (arm->flag & ARM_DRAWAXES) {
-          draw_axes(ctx, NULL, pchan);
+          draw_axes(ctx, NULL, pchan, arm);
         }
       }
     }
