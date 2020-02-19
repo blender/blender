@@ -502,7 +502,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   if (mesh->medge == ((Mesh *)ob->data)->medge) {
     /* We need to duplicate data here, otherwise setting custom normals
      * (which may also affect sharp edges) could
-     * modify org mesh, see T43671. */
+     * modify original mesh, see T43671. */
     BKE_id_copy_ex(NULL, &mesh->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
   }
   else {
@@ -527,18 +527,14 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   float(*polynors)[3];
 
   CustomData *ldata = &result->ldata;
-  if (CustomData_has_layer(ldata, CD_NORMAL)) {
-    loopnors = CustomData_get_layer(ldata, CD_NORMAL);
-  }
-  else {
-    loopnors = CustomData_add_layer(ldata, CD_NORMAL, CD_CALLOC, NULL, num_loops);
-  }
+  loopnors = MEM_malloc_arrayN((size_t)num_loops, sizeof(*loopnors), __func__);
 
   /* Compute poly (always needed) and vert normals. */
   CustomData *pdata = &result->pdata;
   polynors = CustomData_get_layer(pdata, CD_NORMAL);
   if (!polynors) {
     polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, num_polys);
+    CustomData_set_layer_flag(pdata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   BKE_mesh_calc_normals_poly(mvert,
                              NULL,
@@ -552,6 +548,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   result->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
 
+  clnors = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
   if (use_current_clnors) {
     clnors = CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, num_loops);
 
@@ -572,7 +569,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                 NULL);
   }
 
-  if (!clnors) {
+  if (clnors == NULL) {
     clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, num_loops);
   }
 
@@ -624,6 +621,10 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       mpoly,
                                       num_polys);
   }
+
+  /* Currently Modifier stack assumes there is no poly normal data passed around... */
+  CustomData_free_layers(pdata, CD_NORMAL, num_polys);
+  MEM_freeN(loopnors);
 
   return result;
 }
