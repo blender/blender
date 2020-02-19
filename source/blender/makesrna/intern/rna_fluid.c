@@ -1720,7 +1720,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0, 1000.0, 100.0, 3);
   RNA_def_property_ui_text(
       prop,
-      "tauMin_k",
+      "Minimum Kinetic Energy Potential",
       "Lower clamping threshold that indicates the fluid speed where cells start to emit "
       "particles (lower values result in generally more particles)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
@@ -1731,7 +1731,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0, 1000.0, 100.0, 3);
   RNA_def_property_ui_text(
       prop,
-      "tauMax_k",
+      "Maximum Kinetic Energy Potential",
       "Upper clamping threshold that indicates the fluid speed where cells no longer emit more "
       "particles (higher value results in generally less particles)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
