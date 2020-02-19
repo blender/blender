@@ -129,8 +129,8 @@ int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b);
 enum {
   DO_SINGLE_WIPE,
   DO_DOUBLE_WIPE,
-  DO_BOX_WIPE,
-  DO_CROSS_WIPE,
+  /* DO_BOX_WIPE, */   /* UNUSED */
+  /* DO_CROSS_WIPE, */ /* UNUSED */
   DO_IRIS_WIPE,
   DO_CLOCK_WIPE,
 };

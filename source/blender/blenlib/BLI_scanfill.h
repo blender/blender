@@ -98,8 +98,6 @@ struct ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx,
                                            struct ScanFillVert *v2);
 
 enum {
-  BLI_SCANFILL_CALC_QUADTRI_FASTPATH = (1 << 0),
-
   /* note: using BLI_SCANFILL_CALC_REMOVE_DOUBLES
    * Assumes ordered edges, otherwise we risk an eternal loop
    * removing double verts. - campbell */

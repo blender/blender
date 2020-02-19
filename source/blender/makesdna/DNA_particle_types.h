@@ -413,9 +413,9 @@ typedef enum eParticleDrawFlag {
   PART_DRAW_HEALTH = (1 << 4),
   PART_ABS_PATH_TIME = (1 << 5),
   PART_DRAW_COUNT_GR = (1 << 6),
-  PART_DRAW_BB_LOCK = (1 << 7),
-  /* used with billboards */      /* DEPRECATED */
-  PART_DRAW_ROTATE_OB = (1 << 7), /* used with instance object/collection */
+  /* PART_DRAW_BB_LOCK = (1 << 7), */ /* DEPRECATED */
+  /* used with billboards */          /* DEPRECATED */
+  PART_DRAW_ROTATE_OB = (1 << 7),     /* used with instance object/collection */
   PART_DRAW_PARENT = (1 << 8),
   PART_DRAW_NUM = (1 << 9),
   PART_DRAW_RAND_GR = (1 << 10),
@@ -451,14 +451,14 @@ enum {
 
 /* Mirroring Mantaflow particle types from particle.h (Mantaflow header). */
 enum {
-  PARTICLE_TYPE_NONE = (0 << 0),
-  PARTICLE_TYPE_NEW = (1 << 0),
+  /* PARTICLE_TYPE_NONE = (0 << 0), */ /* UNUSED */
+  /* PARTICLE_TYPE_NEW = (1 << 0), */  /* UNUSED */
   PARTICLE_TYPE_SPRAY = (1 << 1),
   PARTICLE_TYPE_BUBBLE = (1 << 2),
   PARTICLE_TYPE_FOAM = (1 << 3),
   PARTICLE_TYPE_TRACER = (1 << 4),
   PARTICLE_TYPE_DELETE = (1 << 10),
-  PARTICLE_TYPE_INVALID = (1 << 30),
+  /* PARTICLE_TYPE_INVALID = (1 << 30), */ /* UNUSED */
 };
 
 /* part->flag */

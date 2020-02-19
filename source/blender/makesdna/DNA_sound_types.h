@@ -104,12 +104,6 @@ typedef enum eSound_Type {
 } eSound_Type;
 #endif
 
-/* spacesound->flag */
-enum {
-  SND_DRAWFRAMES = 1,
-  SND_CFRA_NUM = 2,
-};
-
 /* bSound->flags */
 enum {
 #ifdef DNA_DEPRECATED_ALLOW

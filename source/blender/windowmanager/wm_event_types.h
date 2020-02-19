@@ -28,7 +28,6 @@
 
 /* customdata type */
 enum {
-  EVT_DATA_GESTURE = 1,
   EVT_DATA_TIMER = 2,
   EVT_DATA_DRAGDROP = 3,
   EVT_DATA_NDOF_MOTION = 4,
@@ -443,15 +442,6 @@ enum {
   EVT_GESTURE_SW = 6,
   EVT_GESTURE_W = 7,
   EVT_GESTURE_NW = 8,
-  /* value of corner gestures */
-  EVT_GESTURE_N_E = 9,
-  EVT_GESTURE_N_W = 10,
-  EVT_GESTURE_E_N = 11,
-  EVT_GESTURE_E_S = 12,
-  EVT_GESTURE_S_E = 13,
-  EVT_GESTURE_S_W = 14,
-  EVT_GESTURE_W_S = 15,
-  EVT_GESTURE_W_N = 16,
 };
 
 /* File select */

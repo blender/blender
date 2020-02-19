@@ -46,7 +46,6 @@ enum ePF_FileStatus {
   PF_USE_ORIGINAL = 6,
   PF_KEEP = 7,
   PF_REMOVE = 8,
-  PF_NOOP = 9,
 
   PF_ASK = 10,
 };

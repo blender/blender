@@ -93,7 +93,7 @@ enum {
   /* *** Specific options to some ID types or usages. *** */
   /* *** May be ignored by unrelated ID copying functions. *** */
   /** Object only, needed by make_local code. */
-  LIB_ID_COPY_NO_PROXY_CLEAR = 1 << 16,
+  /* LIB_ID_COPY_NO_PROXY_CLEAR = 1 << 16, */ /* UNUSED */
   /** Do not copy preview data, when supported. */
   LIB_ID_COPY_NO_PREVIEW = 1 << 17,
   /** Copy runtime data caches. */

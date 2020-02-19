@@ -207,7 +207,7 @@ typedef enum {
   /** Require internal springs to be created between points with opposite normals. */
   CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL = (1 << 9),
   /** Edit cache in edit-mode. */
-  CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12),
+  /* CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12), */ /* UNUSED */
   /** Don't allow spring compression. */
   CLOTH_SIMSETTINGS_FLAG_RESIST_SPRING_COMPRESS = (1 << 13),
   /** Pull ends of loose edges together. */

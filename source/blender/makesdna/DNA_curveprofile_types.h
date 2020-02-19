@@ -76,10 +76,10 @@ typedef struct CurveProfile {
 
 /** #CurveProfile.flag */
 enum {
-  PROF_USE_CLIP = (1 << 0),              /* Keep control points inside bounding rectangle. */
-  PROF_SYMMETRY_MODE = (1 << 1),         /* Unused for now. */
-  PROF_SAMPLE_STRAIGHT_EDGES = (1 << 2), /* Sample extra points on straight edges. */
-  PROF_SAMPLE_EVEN_LENGTHS = (1 << 3),   /* Put segments evenly spaced along the path. */
+  PROF_USE_CLIP = (1 << 0),                    /* Keep control points inside bounding rectangle. */
+  /* PROF_SYMMETRY_MODE = (1 << 1),         */ /* Unused for now. */
+  PROF_SAMPLE_STRAIGHT_EDGES = (1 << 2),       /* Sample extra points on straight edges. */
+  PROF_SAMPLE_EVEN_LENGTHS = (1 << 3),         /* Put segments evenly spaced along the path. */
 };
 
 typedef enum eCurveProfilePresets {

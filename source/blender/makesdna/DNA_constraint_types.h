@@ -125,7 +125,7 @@ typedef enum eConstraintObType {
   /** string is vertex-group name */
   CONSTRAINT_OBTYPE_VERT = 3,
   /** string is vertex-group name - is not available until curves get vgroups */
-  CONSTRAINT_OBTYPE_CV = 4,
+  /* CONSTRAINT_OBTYPE_CV = 4, */ /* UNUSED */
 } eConstraintObType;
 
 /* Python Script Constraint */
@@ -726,13 +726,6 @@ typedef enum eBConstraint_SpaceTypes {
   CONSTRAINT_SPACE_INVALID = 4, /* do not exchange for anything! */
 } eBConstraint_SpaceTypes;
 
-/* bConstraintChannel.flag */
-// XXX deprecated... old AnimSys
-typedef enum eConstraintChannel_Flags {
-  CONSTRAINT_CHANNEL_SELECT = (1 << 0),
-  CONSTRAINT_CHANNEL_PROTECTED = (1 << 1),
-} eConstraintChannel_Flags;
-
 /* Common enum for constraints that support override. */
 typedef enum eConstraint_EulerOrder {
   /** Automatic euler mode. */
@@ -1047,7 +1040,7 @@ typedef enum eFloor_Flags {
 /* transform limiting constraints -> flag2 */
 typedef enum eTransformLimits_Flags2 {
   /* not used anymore - for older Limit Location constraints only */
-  LIMIT_NOPARENT = (1 << 0),
+  /* LIMIT_NOPARENT = (1 << 0), */ /* UNUSED */
   /* for all Limit constraints - allow to be used during transform? */
   LIMIT_TRANSFORM = (1 << 1),
 } eTransformLimits_Flags2;

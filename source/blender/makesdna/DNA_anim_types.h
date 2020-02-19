@@ -799,7 +799,7 @@ typedef enum eNlaStrip_Flag {
   /** NLA strip is muted (i.e. doesn't contribute in any way) */
   NLASTRIP_FLAG_MUTED = (1 << 12),
   /** NLA Strip is played back in 'ping-pong' style */
-  NLASTRIP_FLAG_MIRROR = (1 << 13),
+  /* NLASTRIP_FLAG_MIRROR = (1 << 13), */ /* UNUSED */
 
   /* temporary editing flags */
   /** NLA strip should ignore frame range and hold settings, and evaluate at global time. */
@@ -922,7 +922,7 @@ typedef enum eKSP_Grouping {
   KSP_GROUP_KSNAME,
   /** Path should be grouped using name of inner-most context item from templates
    * - this is most useful for relative KeyingSets only. */
-  KSP_GROUP_TEMPLATE_ITEM,
+  /* KSP_GROUP_TEMPLATE_ITEM, */ /* UNUSED */
 } eKSP_Grouping;
 
 /* ---------------- */
@@ -970,7 +970,7 @@ typedef struct KeyingSet {
 /* KeyingSet settings */
 typedef enum eKS_Settings {
   /** Keyingset cannot be removed (and doesn't need to be freed). */
-  KEYINGSET_BUILTIN = (1 << 0),
+  /* KEYINGSET_BUILTIN = (1 << 0), */ /* UNUSED */
   /** Keyingset does not depend on context info (i.e. paths are absolute). */
   KEYINGSET_ABSOLUTE = (1 << 1),
 } eKS_Settings;
@@ -985,7 +985,7 @@ typedef enum eInsertKeyFlags {
   /** don't recalculate handles,etc. after adding key */
   INSERTKEY_FAST = (1 << 2),
   /** don't realloc mem (or increase count, as array has already been set out) */
-  INSERTKEY_FASTR = (1 << 3),
+  /* INSERTKEY_FASTR = (1 << 3), */ /* UNUSED */
   /** only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
   INSERTKEY_REPLACE = (1 << 4),
   /** transform F-Curves should have XYZ->RGB color mode */
@@ -1110,7 +1110,7 @@ typedef enum eAnimData_Flag {
   /** Drivers expanded in UI. */
   ADT_DRIVERS_COLLAPSED = (1 << 10),
   /** Don't execute drivers. */
-  ADT_DRIVERS_DISABLED = (1 << 11),
+  /* ADT_DRIVERS_DISABLED = (1 << 11), */ /* UNUSED */
 
   /** AnimData block is selected in UI. */
   ADT_UI_SELECTED = (1 << 14),

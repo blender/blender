@@ -594,12 +594,6 @@ typedef enum eBakePassFilter {
 
 #define R_BAKE_PASS_FILTER_ALL (~0)
 
-/* RenderEngineSettingsClay.options */
-typedef enum ClayFlagSettings {
-  CLAY_USE_AO = (1 << 0),
-  CLAY_USE_HSV = (1 << 1),
-} ClayFlagSettings;
-
 /* *************************************************************** */
 /* Render Data */
 
@@ -2324,7 +2318,7 @@ typedef enum eGPencil_Placement_Flags {
   GP_PROJECT_VIEWSPACE = (1 << 0),
 
   /* Viewport space, but relative to render canvas (Sequencer Preview Only) */
-  GP_PROJECT_CANVAS = (1 << 1),
+  /* GP_PROJECT_CANVAS = (1 << 1), */ /* UNUSED */
 
   /* Project into the screen's Z values */
   GP_PROJECT_DEPTH_VIEW = (1 << 2),
@@ -2430,8 +2424,8 @@ enum {
 /* SceneEEVEE->shadow_method */
 enum {
   SHADOW_ESM = 1,
-  SHADOW_VSM = 2,
-  SHADOW_METHOD_MAX = 3,
+  /* SHADOW_VSM = 2, */        /* UNUSED */
+  /* SHADOW_METHOD_MAX = 3, */ /* UNUSED */
 };
 
 /* SceneDisplay->render_aa, SceneDisplay->viewport_aa */

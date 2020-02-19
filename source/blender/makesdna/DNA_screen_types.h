@@ -583,7 +583,7 @@ enum {
 enum {
   /* Plain values (only one is valid at a time, once masked with UILST_FLT_SORT_MASK. */
   /** Just for sake of consistency. */
-  UILST_FLT_SORT_INDEX = 0,
+  /* UILST_FLT_SORT_INDEX = 0, */ /* UNUSED */
   UILST_FLT_SORT_ALPHA = 1,
 
   /* Bitflags affecting behavior of any kind of sorting. */

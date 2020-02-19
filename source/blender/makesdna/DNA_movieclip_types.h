@@ -179,12 +179,6 @@ enum {
   MCLIP_SRC_MOVIE = 2,
 };
 
-/* MovieClip->selection types */
-enum {
-  MCLIP_SEL_NONE = 0,
-  MCLIP_SEL_TRACK = 1,
-};
-
 /* MovieClip->flag */
 enum {
   MCLIP_USE_PROXY = (1 << 0),

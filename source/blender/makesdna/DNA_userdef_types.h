@@ -48,7 +48,7 @@ typedef enum eUIFont_ID {
 
   /* free slots */
   UIFONT_CUSTOM1 = 2,
-  UIFONT_CUSTOM2 = 3,
+  /* UIFONT_CUSTOM2 = 3, */ /* UNUSED */
 } eUIFont_ID;
 
 /* default fonts to load/initialize */
@@ -446,7 +446,7 @@ typedef struct ThemeWireColor {
 /** #ThemeWireColor.flag */
 typedef enum eWireColor_Flags {
   TH_WIRECOLOR_CONSTCOLS = (1 << 0),
-  TH_WIRECOLOR_TEXTCOLS = (1 << 1),
+  /* TH_WIRECOLOR_TEXTCOLS = (1 << 1), */ /* UNUSED */
 } eWireColor_Flags;
 
 /**
@@ -1132,16 +1132,6 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_LIGHTPROBE = (1 << 12),
   USER_DUP_GPENCIL = (1 << 13),
 } eDupli_ID_Flags;
-
-/**
- * Max anti alias draw method
- * #UserDef.gpu_viewport_antialias
- */
-typedef enum eOpenGL_AntiAliasMethod {
-  USER_AA_NONE = 0,
-  USER_AA_FXAA = 1,
-  USER_AA_TAA8 = 2,
-} eOpenGL_AntiAliasMethod;
 
 /**
  * Text draw options

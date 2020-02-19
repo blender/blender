@@ -223,7 +223,7 @@ enum {
 
 /* Image.source, where the image comes from */
 enum {
-  IMA_SRC_CHECK = 0,
+  /* IMA_SRC_CHECK = 0, */ /* UNUSED */
   IMA_SRC_FILE = 1,
   IMA_SRC_SEQUENCE = 2,
   IMA_SRC_MOVIE = 3,

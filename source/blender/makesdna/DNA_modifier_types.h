@@ -425,7 +425,7 @@ enum {
   MOD_BEVEL_WEIGHT = (1 << 4),
   MOD_BEVEL_VGROUP = (1 << 5),
   MOD_BEVEL_CUSTOM_PROFILE = (1 << 7),
-  MOD_BEVEL_SAMPLE_STRAIGHT = (1 << 8),
+  /* MOD_BEVEL_SAMPLE_STRAIGHT = (1 << 8), */ /* UNUSED */
   /*  unused                  = (1 << 9), */
   /*  unused                  = (1 << 10), */
   /*  unused                  = (1 << 11), */
@@ -558,11 +558,6 @@ typedef struct UVProjectModifierData {
 } UVProjectModifierData;
 
 #define MOD_UVPROJECT_MAXPROJECTORS 10
-
-/* UVProjectModifierData->flags */
-enum {
-  MOD_UVPROJECT_OVERRIDEIMAGE = (1 << 0),
-};
 
 typedef struct DecimateModifierData {
   ModifierData modifier;
@@ -914,11 +909,6 @@ typedef struct MeshDeformModifierData {
 enum {
   MOD_MDEF_INVERT_VGROUP = (1 << 0),
   MOD_MDEF_DYNAMIC_BIND = (1 << 1),
-};
-
-enum {
-  MOD_MDEF_VOLUME = 0,
-  MOD_MDEF_SURFACE = 1,
 };
 
 typedef struct ParticleSystemModifierData {
@@ -2034,8 +2024,8 @@ enum {
   /* This indicates "do bind on next modifier evaluation" as well as "is bound". */
   MOD_SDEF_BIND = (1 << 0),
 
-  MOD_SDEF_USES_LOOPTRI = (1 << 1),
-  MOD_SDEF_HAS_CONCAVE = (1 << 2),
+  /* MOD_SDEF_USES_LOOPTRI = (1 << 1), */ /* UNUSED */
+  /* MOD_SDEF_HAS_CONCAVE = (1 << 2), */  /* UNUSED */
 };
 
 /* Surface Deform vertex bind modes */

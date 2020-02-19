@@ -51,7 +51,7 @@ typedef enum {
 } GpencilModifierTypeType;
 
 typedef enum {
-  eGpencilModifierTypeFlag_SupportsMapping = (1 << 0),
+  /* eGpencilModifierTypeFlag_SupportsMapping = (1 << 0), */ /* UNUSED */
   eGpencilModifierTypeFlag_SupportsEditmode = (1 << 1),
 
   /**
@@ -66,7 +66,7 @@ typedef enum {
    * For modifiers that require original data and so cannot
    * be placed after any non-deform modifier.
    */
-  eGpencilModifierTypeFlag_RequiresOriginalData = (1 << 3),
+  /* eGpencilModifierTypeFlag_RequiresOriginalData = (1 << 3), */ /* UNUSED */
 
   /** Max one per type. */
   eGpencilModifierTypeFlag_Single = (1 << 4),

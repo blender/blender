@@ -91,7 +91,7 @@ typedef enum eRigidBodyWorld_Flag {
   /* should sim world be skipped when evaluating (user setting) */
   RBW_FLAG_MUTED = (1 << 0),
   /* sim data needs to be rebuilt */
-  RBW_FLAG_NEEDS_REBUILD = (1 << 1),
+  /* RBW_FLAG_NEEDS_REBUILD = (1 << 1), */ /* UNUSED */
   /* usse split impulse when stepping the simulation */
   RBW_FLAG_USE_SPLIT_IMPULSE = (1 << 2),
 } eRigidBodyWorld_Flag;
@@ -307,24 +307,24 @@ typedef enum eRigidBodyCon_Type {
   /** lets bodies rotate around a specified axis */
   RBC_TYPE_HINGE,
   /** simulates wheel suspension */
-  RBC_TYPE_HINGE2,
+  /* RBC_TYPE_HINGE2, */ /* UNUSED */
   /** restricts movent to a specified axis */
   RBC_TYPE_SLIDER,
-  /** lets object rotate within a cpecified cone */
-  RBC_TYPE_CONE_TWIST,
+  /** lets object rotate within a specified cone */
+  /* RBC_TYPE_CONE_TWIST, */ /* UNUSED */
   /** allows user to specify constraint axes */
   RBC_TYPE_6DOF,
   /** like 6DOF but has springs */
   RBC_TYPE_6DOF_SPRING,
   /** simulates a universal joint */
-  RBC_TYPE_UNIVERSAL,
+  /* RBC_TYPE_UNIVERSAL, */ /* UNUSED */
   /** glues two bodies together */
   RBC_TYPE_FIXED,
   /** similar to slider but also allows rotation around slider axis */
   RBC_TYPE_PISTON,
   /** Simplified spring constraint with only once axis that's
    * automatically placed between the connected bodies */
-  RBC_TYPE_SPRING,
+  /* RBC_TYPE_SPRING, */ /* UNUSED */
   /** dirves bodies by applying linear and angular forces */
   RBC_TYPE_MOTOR,
 } eRigidBodyCon_Type;

@@ -599,7 +599,7 @@ typedef enum StructFlag {
 
   /* internal flags */
   STRUCT_RUNTIME = (1 << 3),
-  STRUCT_GENERATED = (1 << 4),
+  /* STRUCT_GENERATED = (1 << 4), */ /* UNUSED */
   STRUCT_FREE_POINTERS = (1 << 5),
   /** Menus and Panels don't need properties */
   STRUCT_NO_IDPROPERTIES = (1 << 6),

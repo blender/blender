@@ -1736,7 +1736,7 @@ enum {
 };
 
 enum {
-  UI_ITEM_O_RETURN_PROPS = 1 << 0,
+  /* UI_ITEM_O_RETURN_PROPS = 1 << 0, */ /* UNUSED */
   UI_ITEM_R_EXPAND = 1 << 1,
   UI_ITEM_R_SLIDER = 1 << 2,
   /**

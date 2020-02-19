@@ -218,7 +218,7 @@ typedef enum eSpaceButtons_Context {
 
 /* SpaceProperties.flag */
 typedef enum eSpaceButtons_Flag {
-  SB_PRV_OSA = (1 << 0),
+  /* SB_PRV_OSA = (1 << 0), */ /* UNUSED */
   SB_PIN_CONTEXT = (1 << 1),
   SB_FLAG_UNUSED_2 = (1 << 2),
   SB_FLAG_UNUSED_3 = (1 << 3),
@@ -279,10 +279,10 @@ typedef struct SpaceOutliner {
 
 /* SpaceOutliner.flag */
 typedef enum eSpaceOutliner_Flag {
-  SO_TESTBLOCKS = (1 << 0),
-  SO_NEWSELECTED = (1 << 1),
-  SO_FLAG_UNUSED_1 = (1 << 2), /* cleared */
-  SO_HIDE_KEYINGSETINFO = (1 << 3),
+  /* SO_TESTBLOCKS = (1 << 0), */         /* UNUSED */
+  /* SO_NEWSELECTED = (1 << 1), */        /* UNUSED */
+  SO_FLAG_UNUSED_1 = (1 << 2),            /* cleared */
+  /* SO_HIDE_KEYINGSETINFO = (1 << 3), */ /* UNUSED */
   SO_SKIP_SORT_ALPHA = (1 << 4),
   SO_SYNC_SELECT = (1 << 5),
 } eSpaceOutliner_Flag;
@@ -450,7 +450,7 @@ typedef enum eGraphEdit_Flag {
   SIPO_SELCUVERTSONLY = (1 << 5),
   /* draw names of F-Curves beside the respective curves */
   /* NOTE: currently not used */
-  SIPO_DRAWNAMES = (1 << 6),
+  /* SIPO_DRAWNAMES = (1 << 6), */ /* UNUSED */
   /* show sliders in channels list */
   SIPO_SLIDERS = (1 << 7),
   /* don't show the horizontal component of the cursor */
@@ -999,11 +999,13 @@ typedef struct FileDirEntryArr {
   char root[1024];
 } FileDirEntryArr;
 
+#if 0 /* UNUSED */
 /* FileDirEntry.status */
 enum {
   ASSET_STATUS_LOCAL = 1 << 0,  /* If active uuid is available locally/immediately. */
   ASSET_STATUS_LATEST = 1 << 1, /* If active uuid is latest available version. */
 };
+#endif
 
 /* FileDirEntry.flags */
 enum {
@@ -1157,12 +1159,6 @@ typedef enum eSpaceImage_Flag {
   SI_SHOW_G = (1 << 28),
   SI_SHOW_B = (1 << 29),
 } eSpaceImage_Flag;
-
-/* SpaceImage.other_uv_filter */
-typedef enum eSpaceImage_OtherUVFilter {
-  SI_FILTER_SAME_IMAGE = 0,
-  SI_FILTER_ALL = 1,
-} eSpaceImage_OtherUVFilter;
 
 /** \} */
 

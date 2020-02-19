@@ -120,9 +120,9 @@ typedef enum CustomDataType {
   CD_MLOOPCOL = 17,
   CD_TANGENT = 18,
   CD_MDISPS = 19,
-  CD_PREVIEW_MCOL = 20, /* for displaying weightpaint colors */
-                        /*  CD_ID_MCOL          = 21, */
-  CD_TEXTURE_MLOOPCOL = 22,
+  CD_PREVIEW_MCOL = 20,           /* for displaying weightpaint colors */
+                                  /*  CD_ID_MCOL          = 21, */
+  /* CD_TEXTURE_MLOOPCOL = 22, */ /* UNUSED */
   CD_CLOTH_ORCO = 23,
   CD_RECAST = 24,
 

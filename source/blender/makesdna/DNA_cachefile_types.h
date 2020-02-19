@@ -38,10 +38,12 @@ enum {
   CACHEFILE_UNUSED_0 = (1 << 1),
 };
 
+#if 0 /* UNUSED */
 /* CacheFile::draw_flag */
 enum {
   CACHEFILE_KEYFRAME_DRAWN = (1 << 0),
 };
+#endif
 
 /* Representation of an object's path inside the Alembic file.
  * Note that this is not a file path. */
@@ -74,7 +76,7 @@ typedef struct CacheFile {
 
   /** Animation flag. */
   short flag;
-  short draw_flag;
+  short draw_flag; /* UNUSED */
 
   char _pad[4];
 

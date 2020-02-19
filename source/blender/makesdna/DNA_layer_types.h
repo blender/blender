@@ -149,7 +149,7 @@ enum {
    Keep it synced with base->flag based on g_base_collection_flags. */
 enum {
   LAYER_COLLECTION_HAS_OBJECTS = (1 << 0),
-  LAYER_COLLECTION_VISIBLE_DEPSGRAPH = (1 << 1),
+  /* LAYER_COLLECTION_VISIBLE_DEPSGRAPH = (1 << 1), */ /* UNUSED */
   LAYER_COLLECTION_RESTRICT_VIEWPORT = (1 << 2),
   LAYER_COLLECTION_VISIBLE_VIEW_LAYER = (1 << 4),
 };

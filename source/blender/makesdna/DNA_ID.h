@@ -112,24 +112,6 @@ enum {
   IDP_STRING_SUB_BYTE = 1, /* arbitrary byte array, _not_ null terminated */
 };
 
-/* IDP_GROUP */
-enum {
-  /** Default. */
-  IDP_GROUP_SUB_NONE = 0,
-  /** Object mode settings. */
-  IDP_GROUP_SUB_MODE_OBJECT = 1,
-  /** Mesh edit mode settings. */
-  IDP_GROUP_SUB_MODE_EDIT = 2,
-  /** Render engine settings. */
-  IDP_GROUP_SUB_ENGINE_RENDER = 3,
-  /** Data override. */
-  IDP_GROUP_SUB_OVERRIDE = 4,
-  /** Weight paint mode settings. */
-  IDP_GROUP_SUB_MODE_PAINT_WEIGHT = 5,
-  /** Vertex paint mode settings. */
-  IDP_GROUP_SUB_MODE_PAINT_VERTEX = 6,
-};
-
 /*->flag*/
 enum {
   /** This IDProp may be statically overridden.

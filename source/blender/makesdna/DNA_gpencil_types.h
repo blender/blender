@@ -131,7 +131,7 @@ typedef struct bGPDpalettecolor {
 /* bGPDpalettecolor->flag */
 typedef enum eGPDpalettecolor_Flag {
   /* color is active */
-  PC_COLOR_ACTIVE = (1 << 0),
+  /* PC_COLOR_ACTIVE = (1 << 0), */ /* UNUSED */
   /* don't display color */
   PC_COLOR_HIDE = (1 << 1),
   /* protected from further editing */

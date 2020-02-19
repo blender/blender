@@ -189,7 +189,7 @@ typedef struct bAnimListElem {
 typedef enum eAnim_ChannelType {
   ANIMTYPE_NONE = 0,
   ANIMTYPE_ANIMDATA,
-  ANIMTYPE_SPECIALDATA,
+  ANIMTYPE_SPECIALDATA__UNUSED,
 
   ANIMTYPE_SUMMARY,
 
@@ -474,7 +474,7 @@ typedef enum eAnimChannel_Role {
   /** datablock expander - a "composite" channel type */
   ACHANNEL_ROLE_EXPANDER = -1,
   /** special purposes - not generally for hierarchy processing */
-  ACHANNEL_ROLE_SPECIAL = 0,
+  /* ACHANNEL_ROLE_SPECIAL = 0, */ /* UNUSED */
   /** data channel - a channel representing one of the actual building blocks of channels */
   ACHANNEL_ROLE_CHANNEL = 1,
 } eAnimChannel_Role;
@@ -628,7 +628,7 @@ bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt);
 /* flags for Current Frame Drawing */
 enum eAnimEditDraw_CurrentFrame {
   /* plain time indicator with no special indicators */
-  DRAWCFRA_PLAIN = 0,
+  /* DRAWCFRA_PLAIN = 0, */ /* UNUSED */
   /* time indication in seconds or frames */
   DRAWCFRA_UNIT_SECONDS = (1 << 0),
   /* draw indicator extra wide (for timeline) */
@@ -729,7 +729,7 @@ typedef enum eAnimUnitConv_Flags {
   ANIM_UNITCONV_ONLYSEL = (1 << 2),
   /* only touch selected vertices */
   ANIM_UNITCONV_SELVERTS = (1 << 3),
-  ANIM_UNITCONV_SKIPKNOTS = (1 << 4),
+  /* ANIM_UNITCONV_SKIPKNOTS = (1 << 4), */ /* UNUSED */
   /* Scale FCurve i a way it fits to -1..1 space */
   ANIM_UNITCONV_NORMALIZE = (1 << 5),
   /* Only when normalization is used: use scale factor from previous run,

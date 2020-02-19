@@ -101,12 +101,6 @@ typedef enum DerivedMeshType {
   DM_TYPE_CCGDM,
 } DerivedMeshType;
 
-typedef enum DMForeachFlag {
-  DM_FOREACH_NOP = 0,
-  /* foreachMappedVert, foreachMappedLoop, foreachMappedFaceCenter */
-  DM_FOREACH_USE_NORMAL = (1 << 0),
-} DMForeachFlag;
-
 typedef enum DMDirtyFlag {
   /* dm has valid tessellated faces, but tessellated CDDATA need to be updated. */
   DM_DIRTY_TESS_CDLAYERS = 1 << 0,
