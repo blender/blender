@@ -527,7 +527,6 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   float(*polynors)[3];
 
   CustomData *ldata = &result->ldata;
-  loopnors = MEM_malloc_arrayN((size_t)num_loops, sizeof(*loopnors), __func__);
 
   /* Compute poly (always needed) and vert normals. */
   CustomData *pdata = &result->pdata;
@@ -551,6 +550,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   clnors = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
   if (use_current_clnors) {
     clnors = CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, num_loops);
+    loopnors = MEM_malloc_arrayN((size_t)num_loops, sizeof(*loopnors), __func__);
 
     BKE_mesh_normals_loop_split(mvert,
                                 num_verts,
@@ -624,7 +624,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   /* Currently Modifier stack assumes there is no poly normal data passed around... */
   CustomData_free_layers(pdata, CD_NORMAL, num_polys);
-  MEM_freeN(loopnors);
+  MEM_SAFE_FREE(loopnors);
 
   return result;
 }
