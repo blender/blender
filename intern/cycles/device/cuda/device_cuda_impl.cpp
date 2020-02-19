@@ -451,9 +451,9 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
 
   printf("Compiling CUDA kernel ...\n%s\n", command.c_str());
 
-#ifdef _WIN32
+#  ifdef _WIN32
   command = "call " + command;
-#endif
+#  endif
   if (system(command.c_str()) != 0) {
     cuda_error_message(
         "Failed to execute compilation command, "

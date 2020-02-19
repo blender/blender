@@ -290,7 +290,7 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
       ustring vcol_name = ustring(l->name().c_str());
 
       const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
-                           mesh->need_attribute(scene, vcol_std);
+                             mesh->need_attribute(scene, vcol_std);
 
       if (!need_vcol) {
         continue;
@@ -325,7 +325,7 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
       ustring vcol_name = ustring(l->name().c_str());
 
       const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
-                           mesh->need_attribute(scene, vcol_std);
+                             mesh->need_attribute(scene, vcol_std);
 
       if (!need_vcol) {
         continue;

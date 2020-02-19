@@ -483,7 +483,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
         break;
       case ATTR_STD_VERTEX_COLOR:
-        attr = add(name,TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
+        attr = add(name, TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
         break;
       case ATTR_STD_GENERATED:
       case ATTR_STD_POSITION_UNDEFORMED:
