@@ -362,6 +362,8 @@ struct DRWView {
   int clip_planes_len;
   /** Does culling result needs to be updated. */
   bool is_dirty;
+  /** Does facing needs to be reversed? */
+  bool is_inverted;
   /** Culling */
   uint32_t culling_mask;
   BoundBox frustum_corners;

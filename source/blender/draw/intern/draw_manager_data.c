@@ -1551,13 +1551,6 @@ static void draw_view_matrix_state_update(DRWViewUboStorage *storage,
                                           const float viewmat[4][4],
                                           const float winmat[4][4])
 {
-  /* If only one the matrices is negative, then the
-   * polygon winding changes and we don't want that.
-   * By convention, the winmat is negative because
-   * looking through the -Z axis. So this inverse the
-   * changes the test for the winmat. */
-  BLI_assert(is_negative_m4(viewmat) == !is_negative_m4(winmat));
-
   copy_m4_m4(storage->viewmat, viewmat);
   invert_m4_m4(storage->viewinv, storage->viewmat);
 
@@ -1629,6 +1622,7 @@ void DRW_view_update_sub(DRWView *view, const float viewmat[4][4], const float w
   BLI_assert(view->parent != NULL);
 
   view->is_dirty = true;
+  view->is_inverted = (is_negative_m4(viewmat) == is_negative_m4(winmat));
 
   draw_view_matrix_state_update(&view->storage, viewmat, winmat);
 }
@@ -1646,6 +1640,7 @@ void DRW_view_update(DRWView *view,
   BLI_assert(view->parent == NULL);
 
   view->is_dirty = true;
+  view->is_inverted = (is_negative_m4(viewmat) == is_negative_m4(winmat));
 
   draw_view_matrix_state_update(&view->storage, viewmat, winmat);
 
