@@ -820,7 +820,7 @@ static void key_evaluate_relative(const int start,
         KeyBlock *refb;
         float weight,
             *weights = per_keyblock_weights ? per_keyblock_weights[keyblock_index] : NULL;
-        char *freefrom = NULL, *freereffrom = NULL;
+        char *freefrom = NULL;
 
         /* reference now can be any block */
         refb = BLI_findlink(&key->block, kb->relative);
@@ -830,7 +830,10 @@ static void key_evaluate_relative(const int start,
 
         poin = basispoin;
         from = key_block_get_data(key, actkb, kb, &freefrom);
-        reffrom = key_block_get_data(key, actkb, refb, &freereffrom);
+
+        /* For meshes, use the original values instead of the bmesh values to
+         * maintain a constant offset. */
+        reffrom = refb->data;
 
         poin += start * poinsize;
         reffrom += key->elemsize * start;  // key elemsize yes!
@@ -876,9 +879,6 @@ static void key_evaluate_relative(const int start,
                 if (freefrom) {
                   MEM_freeN(freefrom);
                 }
-                if (freereffrom) {
-                  MEM_freeN(freereffrom);
-                }
                 BLI_assert(!"invalid 'cp[1]'");
                 return;
             }
@@ -899,9 +899,6 @@ static void key_evaluate_relative(const int start,
 
         if (freefrom) {
           MEM_freeN(freefrom);
-        }
-        if (freereffrom) {
-          MEM_freeN(freereffrom);
         }
       }
     }
