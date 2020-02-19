@@ -10758,13 +10758,13 @@ static EnumPropertyItem prop_sculpt_pivot_position_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   ARegion *ar = CTX_wm_region(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   int mode = RNA_enum_get(op->ptr, "mode");
@@ -10783,8 +10783,8 @@ static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const w
   else if (mode == SCULPT_PIVOT_POSITION_CURSOR_SURFACE) {
     float stroke_location[3];
     float mouse[2];
-    mouse[0] = event->mval[0];
-    mouse[1] = event->mval[1];
+    mouse[0] = RNA_float_get(op->ptr, "mouse_x");
+    mouse[1] = RNA_float_get(op->ptr, "mouse_y");
     if (sculpt_stroke_get_location(C, stroke_location, mouse)) {
       copy_v3_v3(ss->pivot_pos, stroke_location);
     }
@@ -10849,6 +10849,13 @@ static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const w
   return OPERATOR_FINISHED;
 }
 
+static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  RNA_float_set(op->ptr, "mouse_x", event->mval[0]);
+  RNA_float_set(op->ptr, "mouse_y", event->mval[1]);
+  return sculpt_set_pivot_position_exec(C, op);
+}
+
 static void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -10858,6 +10865,7 @@ static void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->invoke = sculpt_set_pivot_position_invoke;
+  ot->exec = sculpt_set_pivot_position_exec;
   ot->poll = sculpt_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -10867,6 +10875,25 @@ static void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
                SCULPT_PIVOT_POSITION_UNMASKED,
                "Mode",
                "");
+
+  RNA_def_float(ot->srna,
+                "mouse_x",
+                0.0f,
+                0.0f,
+                FLT_MAX,
+                "Mouse Position X",
+                "Position of the mouse used for \"Surface\" mode",
+                0.0f,
+                10000.0f);
+  RNA_def_float(ot->srna,
+                "mouse_y",
+                0.0f,
+                0.0f,
+                FLT_MAX,
+                "Mouse Position Y",
+                "Position of the mouse used for \"Surface\" mode",
+                0.0f,
+                10000.0f);
 }
 
 void ED_operatortypes_sculpt(void)
