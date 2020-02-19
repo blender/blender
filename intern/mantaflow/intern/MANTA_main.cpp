@@ -1455,7 +1455,7 @@ int MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
   BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
   BLI_path_frame(targetFile, framenr, 0);
 
-  gzFile gzf = (gzfile)BLI_gzopen(targetFile, "wb1");  // do some compression
+  gzFile gzf = (gzFile)BLI_gzopen(targetFile, "wb1");  // do some compression
   if (!gzf)
     std::cerr << "writeConfiguration: can't open file: " << targetFile << std::endl;
 
@@ -1550,7 +1550,7 @@ int MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
   if (!BLI_exists(targetFile))
     return 0;
 
-  gzFile gzf = (gzfile)BLI_gzopen(targetFile, "rb");  // do some compression
+  gzFile gzf = (gzFile)BLI_gzopen(targetFile, "rb");  // do some compression
   if (!gzf)
     std::cerr << "readConfiguration: can't open file: " << targetFile << std::endl;
 
