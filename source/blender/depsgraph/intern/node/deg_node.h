@@ -114,6 +114,8 @@ enum class NodeType {
   SHADING_PARAMETERS,
   /* Point cache Component */
   POINT_CACHE,
+  /* Image Animation Component */
+  IMAGE_ANIMATION,
   /* Cache Component */
   /* TODO(sergey); Verify that we really need this. */
   CACHE,

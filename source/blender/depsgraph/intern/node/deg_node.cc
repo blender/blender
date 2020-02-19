@@ -99,6 +99,8 @@ const char *nodeTypeAsString(NodeType type)
       return "CACHE";
     case NodeType::POINT_CACHE:
       return "POINT_CACHE";
+    case NodeType::IMAGE_ANIMATION:
+      return "IMAGE_ANIMATION";
     case NodeType::BATCH_CACHE:
       return "BATCH_CACHE";
     case NodeType::DUPLI:
@@ -156,6 +158,7 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::PARTICLE_SETTINGS:
     case NodeType::SHADING_PARAMETERS:
     case NodeType::POINT_CACHE:
+    case NodeType::IMAGE_ANIMATION:
     case NodeType::BATCH_CACHE:
     case NodeType::DUPLI:
     case NodeType::SYNCHRONIZATION:
@@ -237,6 +240,7 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
     case NodeType::PARTICLE_SETTINGS:
     case NodeType::SHADING_PARAMETERS:
     case NodeType::POINT_CACHE:
+    case NodeType::IMAGE_ANIMATION:
     case NodeType::BATCH_CACHE:
     case NodeType::DUPLI:
     case NodeType::SYNCHRONIZATION:

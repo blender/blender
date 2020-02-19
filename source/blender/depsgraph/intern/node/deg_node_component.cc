@@ -349,6 +349,7 @@ DEG_COMPONENT_NODE_DEFINE(BatchCache, BATCH_CACHE, ID_RECALC_SHADING);
 DEG_COMPONENT_NODE_DEFINE(Bone, BONE, ID_RECALC_GEOMETRY);
 DEG_COMPONENT_NODE_DEFINE(Cache, CACHE, 0);
 DEG_COMPONENT_NODE_DEFINE(CopyOnWrite, COPY_ON_WRITE, ID_RECALC_COPY_ON_WRITE);
+DEG_COMPONENT_NODE_DEFINE(ImageAnimation, IMAGE_ANIMATION, 0);
 DEG_COMPONENT_NODE_DEFINE(Geometry, GEOMETRY, ID_RECALC_GEOMETRY);
 DEG_COMPONENT_NODE_DEFINE(LayerCollections, LAYER_COLLECTIONS, 0);
 DEG_COMPONENT_NODE_DEFINE(Parameters, PARAMETERS, 0);
@@ -383,6 +384,7 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_PARTICLE_SYSTEM);
   register_node_typeinfo(&DNTI_PARTICLE_SETTINGS);
   register_node_typeinfo(&DNTI_POINT_CACHE);
+  register_node_typeinfo(&DNTI_IMAGE_ANIMATION);
   register_node_typeinfo(&DNTI_PROXY);
   register_node_typeinfo(&DNTI_EVAL_POSE);
   register_node_typeinfo(&DNTI_SEQUENCER);
