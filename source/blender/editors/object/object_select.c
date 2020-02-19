@@ -836,14 +836,15 @@ static bool select_grouped_parent(bContext *C) /* Makes parent active and de-sel
 /* Select objects in the same group as the active */
 static bool select_grouped_collection(bContext *C, Object *ob)
 {
+  Main *bmain = CTX_data_main(C);
   bool changed = false;
   Collection *collection, *ob_collections[COLLECTION_MENU_MAX];
   int collection_count = 0, i;
   uiPopupMenu *pup;
   uiLayout *layout;
 
-  for (collection = CTX_data_main(C)->collections.first;
-       collection && collection_count < COLLECTION_MENU_MAX;
+  for (collection = bmain->collections.first;
+       collection && (collection_count < COLLECTION_MENU_MAX);
        collection = collection->id.next) {
     if (BKE_collection_has_object(collection, ob)) {
       ob_collections[collection_count] = collection;

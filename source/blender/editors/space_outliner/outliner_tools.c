@@ -1926,6 +1926,7 @@ static void actionset_id_cb(TreeElement *UNUSED(te),
 
 static int outliner_action_set_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
 
@@ -1938,7 +1939,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
   set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
   /* get action to use */
-  act = BLI_findlink(&CTX_data_main(C)->actions, RNA_enum_get(op->ptr, "action"));
+  act = BLI_findlink(&bmain->actions, RNA_enum_get(op->ptr, "action"));
 
   if (act == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No valid action to add");

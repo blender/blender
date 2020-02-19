@@ -587,6 +587,7 @@ void NLA_OT_view_frame(wmOperatorType *ot)
 /* add the specified action as new strip */
 static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   bAnimContext ac;
   Scene *scene;
 
@@ -608,7 +609,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
   cfra = (float)CFRA;
 
   /* get action to use */
-  act = BLI_findlink(&CTX_data_main(C)->actions, RNA_enum_get(op->ptr, "action"));
+  act = BLI_findlink(&bmain->actions, RNA_enum_get(op->ptr, "action"));
 
   if (act == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No valid action to add");

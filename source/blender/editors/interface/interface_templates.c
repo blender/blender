@@ -6871,6 +6871,7 @@ static char *progress_tooltip_func(bContext *UNUSED(C), void *argN, const char *
 
 void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 {
+  Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   ScrArea *sa = CTX_wm_area(C);
   uiBlock *block;
@@ -6884,7 +6885,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
   Scene *scene;
   /* another scene can be rendering too, for example via compositor */
-  for (scene = CTX_data_main(C)->scenes.first; scene; scene = scene->id.next) {
+  for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
     if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
       handle_event = B_STOPOTHER;
       icon = ICON_NONE;

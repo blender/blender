@@ -348,7 +348,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
   start_frame = RNA_int_get(op->ptr, "frame_start");
   channel = RNA_int_get(op->ptr, "channel");
 
-  sce_seq = BLI_findlink(&CTX_data_main(C)->scenes, RNA_enum_get(op->ptr, "scene"));
+  sce_seq = BLI_findlink(&bmain->scenes, RNA_enum_get(op->ptr, "scene"));
 
   if (sce_seq == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Scene not found");
@@ -420,6 +420,7 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 /* add movieclip operator */
 static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, true);
 
@@ -432,7 +433,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
   start_frame = RNA_int_get(op->ptr, "frame_start");
   channel = RNA_int_get(op->ptr, "channel");
 
-  clip = BLI_findlink(&CTX_data_main(C)->movieclips, RNA_enum_get(op->ptr, "clip"));
+  clip = BLI_findlink(&bmain->movieclips, RNA_enum_get(op->ptr, "clip"));
 
   if (clip == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Movie clip not found");
@@ -504,6 +505,7 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 
 static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, true);
 
@@ -516,7 +518,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
   start_frame = RNA_int_get(op->ptr, "frame_start");
   channel = RNA_int_get(op->ptr, "channel");
 
-  mask = BLI_findlink(&CTX_data_main(C)->masks, RNA_enum_get(op->ptr, "mask"));
+  mask = BLI_findlink(&bmain->masks, RNA_enum_get(op->ptr, "mask"));
 
   if (mask == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Mask not found");

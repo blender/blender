@@ -209,7 +209,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
     RNA_string_get(op->ptr, "directory", dir_only);
     if (relative) {
-      BLI_path_rel(dir_only, CTX_data_main(C)->name);
+      BLI_path_rel(dir_only, bmain->name);
     }
 
     prop = RNA_struct_find_property(op->ptr, "files");

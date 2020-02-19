@@ -3199,6 +3199,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
 static int image_unpack_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Image *ima = image_from_context(C);
   int method = RNA_enum_get(op->ptr, "method");
 
@@ -3206,7 +3207,7 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
   if (RNA_struct_property_is_set(op->ptr, "id")) {
     char imaname[MAX_ID_NAME - 2];
     RNA_string_get(op->ptr, "id", imaname);
-    ima = BLI_findstring(&CTX_data_main(C)->images, imaname, offsetof(ID, name) + 2);
+    ima = BLI_findstring(&bmain->images, imaname, offsetof(ID, name) + 2);
     if (!ima) {
       ima = image_from_context(C);
     }

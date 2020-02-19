@@ -6065,7 +6065,8 @@ void paint_proj_stroke_done(void *ps_handle_p)
 /* use project paint to re-apply an image */
 static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 {
-  Image *image = BLI_findlink(&CTX_data_main(C)->images, RNA_enum_get(op->ptr, "image"));
+  Main *bmain = CTX_data_main(C);
+  Image *image = BLI_findlink(&bmain->images, RNA_enum_get(op->ptr, "image"));
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   ProjPaintState ps = {NULL};

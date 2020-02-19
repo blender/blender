@@ -267,7 +267,7 @@ void WM_check(bContext *C)
 
   /* wm context */
   if (wm == NULL) {
-    wm = CTX_data_main(C)->wm.first;
+    wm = bmain->wm.first;
     CTX_wm_manager_set(C, wm);
   }
 
