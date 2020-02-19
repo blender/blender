@@ -640,6 +640,14 @@ static ShaderNode *add_node(Scene *scene,
     BL::Image b_image(b_image_node.image());
     BL::ImageUser b_image_user(b_image_node.image_user());
     ImageTextureNode *image = new ImageTextureNode();
+
+    image->interpolation = get_image_interpolation(b_image_node);
+    image->extension = get_image_extension(b_image_node);
+    image->projection = (NodeImageProjection)b_image_node.projection();
+    image->projection_blend = b_image_node.projection_blend();
+    BL::TexMapping b_texture_mapping(b_image_node.texture_mapping());
+    get_tex_mapping(&image->tex_mapping, b_texture_mapping);
+
     if (b_image) {
       /* builtin images will use callback-based reading because
        * they could only be loaded correct from blender side
@@ -682,21 +690,10 @@ static ShaderNode *add_node(Scene *scene,
       /* TODO(sergey): Does not work properly when we change builtin type. */
 #if 0
       if (b_image.is_updated()) {
-        scene->image_manager->tag_reload_image(image->filename.string(),
-                                               image->builtin_data,
-                                               get_image_interpolation(b_image_node),
-                                               get_image_extension(b_image_node),
-                                               image->use_alpha,
-                                               image->colorspace);
+        scene->image_manager->tag_reload_image(image->image_key());
       }
 #endif
     }
-    image->projection = (NodeImageProjection)b_image_node.projection();
-    image->interpolation = get_image_interpolation(b_image_node);
-    image->extension = get_image_extension(b_image_node);
-    image->projection_blend = b_image_node.projection_blend();
-    BL::TexMapping b_texture_mapping(b_image_node.texture_mapping());
-    get_tex_mapping(&image->tex_mapping, b_texture_mapping);
     node = image;
   }
   else if (b_node.is_a(&RNA_ShaderNodeTexEnvironment)) {
@@ -704,6 +701,12 @@ static ShaderNode *add_node(Scene *scene,
     BL::Image b_image(b_env_node.image());
     BL::ImageUser b_image_user(b_env_node.image_user());
     EnvironmentTextureNode *env = new EnvironmentTextureNode();
+
+    env->interpolation = get_image_interpolation(b_env_node);
+    env->projection = (NodeEnvironmentProjection)b_env_node.projection();
+    BL::TexMapping b_texture_mapping(b_env_node.texture_mapping());
+    get_tex_mapping(&env->tex_mapping, b_texture_mapping);
+
     if (b_image) {
       bool is_builtin = b_image.packed_file() || b_image.source() == BL::Image::source_GENERATED ||
                         b_image.source() == BL::Image::source_MOVIE ||
@@ -731,19 +734,10 @@ static ShaderNode *add_node(Scene *scene,
       /* TODO(sergey): Does not work properly when we change builtin type. */
 #if 0
       if (b_image.is_updated()) {
-        scene->image_manager->tag_reload_image(env->filename.string(),
-                                               env->builtin_data,
-                                               get_image_interpolation(b_env_node),
-                                               EXTENSION_REPEAT,
-                                               env->use_alpha,
-                                               env->colorspace);
+        scene->image_manager->tag_reload_image(env->image_key());
       }
 #endif
     }
-    env->interpolation = get_image_interpolation(b_env_node);
-    env->projection = (NodeEnvironmentProjection)b_env_node.projection();
-    BL::TexMapping b_texture_mapping(b_env_node.texture_mapping());
-    get_tex_mapping(&env->tex_mapping, b_texture_mapping);
     node = env;
   }
   else if (b_node.is_a(&RNA_ShaderNodeTexGradient)) {
@@ -896,12 +890,7 @@ static ShaderNode *add_node(Scene *scene,
     if (true) {
       point_density->add_image();
       b_point_density_node.cache_point_density(b_depsgraph);
-      scene->image_manager->tag_reload_image(point_density->filename.string(),
-                                             point_density->builtin_data,
-                                             point_density->interpolation,
-                                             EXTENSION_CLIP,
-                                             IMAGE_ALPHA_AUTO,
-                                             u_colorspace_raw);
+      scene->image_manager->tag_reload_image(point_density->image_key());
     }
     node = point_density;
 

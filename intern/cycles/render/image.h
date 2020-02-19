@@ -72,38 +72,46 @@ class ImageMetaData {
   }
 };
 
+class ImageKey {
+ public:
+  string filename;
+  void *builtin_data;
+  bool animated;
+  InterpolationType interpolation;
+  ExtensionType extension;
+  ImageAlphaType alpha_type;
+  ustring colorspace;
+
+  ImageKey()
+      : builtin_data(NULL),
+        animated(false),
+        interpolation(INTERPOLATION_LINEAR),
+        extension(EXTENSION_CLIP),
+        alpha_type(IMAGE_ALPHA_AUTO),
+        colorspace(u_colorspace_raw)
+  {
+  }
+
+  bool operator==(const ImageKey &other) const
+  {
+    return (filename == other.filename && builtin_data == other.builtin_data &&
+            animated == other.animated && interpolation == other.interpolation &&
+            extension == other.extension && alpha_type == other.alpha_type &&
+            colorspace == other.colorspace);
+  }
+};
+
 class ImageManager {
  public:
   explicit ImageManager(const DeviceInfo &info);
   ~ImageManager();
 
-  int add_image(const string &filename,
-                void *builtin_data,
-                bool animated,
-                float frame,
-                InterpolationType interpolation,
-                ExtensionType extension,
-                ImageAlphaType alpha_type,
-                ustring colorspace,
-                ImageMetaData &metadata);
+  int add_image(const ImageKey &key, float frame, ImageMetaData &metadata);
   void add_image_user(int flat_slot);
   void remove_image(int flat_slot);
-  void remove_image(const string &filename,
-                    void *builtin_data,
-                    InterpolationType interpolation,
-                    ExtensionType extension,
-                    ImageAlphaType alpha_type,
-                    ustring colorspace);
-  void tag_reload_image(const string &filename,
-                        void *builtin_data,
-                        InterpolationType interpolation,
-                        ExtensionType extension,
-                        ImageAlphaType alpha_type,
-                        ustring colorspace);
-  bool get_image_metadata(const string &filename,
-                          void *builtin_data,
-                          ustring colorspace,
-                          ImageMetaData &metadata);
+  void remove_image(const ImageKey &key);
+  void tag_reload_image(const ImageKey &key);
+  bool get_image_metadata(const ImageKey &key, ImageMetaData &metadata);
   bool get_image_metadata(int flat_slot, ImageMetaData &metadata);
 
   void device_update(Device *device, Scene *scene, Progress &progress);
@@ -146,17 +154,11 @@ class ImageManager {
       builtin_image_float_pixels_cb;
 
   struct Image {
-    string filename;
-    void *builtin_data;
+    ImageKey key;
     ImageMetaData metadata;
 
-    ustring colorspace;
-    ImageAlphaType alpha_type;
-    bool need_load;
-    bool animated;
     float frame;
-    InterpolationType interpolation;
-    ExtensionType extension;
+    bool need_load;
 
     string mem_name;
     device_memory *mem;

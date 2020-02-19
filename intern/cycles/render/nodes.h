@@ -18,6 +18,7 @@
 #define __NODES_H__
 
 #include "render/graph.h"
+#include "render/image.h"
 #include "graph/node.h"
 
 #include "util/util_array.h"
@@ -102,6 +103,8 @@ class ImageTextureNode : public ImageSlotTextureNode {
            animated == image_node.animated;
   }
 
+  ImageKey image_key(const int tile = 0) const;
+
   /* Parameters. */
   ustring filename;
   void *builtin_data;
@@ -144,6 +147,8 @@ class EnvironmentTextureNode : public ImageSlotTextureNode {
     return ImageSlotTextureNode::equals(other) && builtin_data == env_node.builtin_data &&
            animated == env_node.animated;
   }
+
+  ImageKey image_key() const;
 
   /* Parameters. */
   ustring filename;
@@ -366,6 +371,8 @@ class PointDensityTextureNode : public ShaderNode {
   }
 
   void add_image();
+
+  ImageKey image_key() const;
 
   /* Parameters. */
   ustring filename;

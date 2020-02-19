@@ -289,6 +289,22 @@ ShaderNode *ImageTextureNode::clone() const
   return new ImageTextureNode(*this);
 }
 
+ImageKey ImageTextureNode::image_key(const int tile) const
+{
+  ImageKey key;
+  key.filename = filename.string();
+  if (tile != 0) {
+    string_replace(key.filename, "<UDIM>", string_printf("%04d", tile));
+  }
+  key.builtin_data = builtin_data;
+  key.animated = animated;
+  key.interpolation = interpolation;
+  key.extension = extension;
+  key.alpha_type = alpha_type;
+  key.colorspace = colorspace;
+  return key;
+}
+
 void ImageTextureNode::cull_tiles(Scene *scene, ShaderGraph *graph)
 {
   /* Box projection computes its own UVs that always lie in the
@@ -378,19 +394,9 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
 
     bool have_metadata = false;
     foreach (int tile, tiles) {
-      string tile_name = filename.string();
-      string_replace(tile_name, "<UDIM>", string_printf("%04d", tile));
-
+      ImageKey key = image_key(tile);
       ImageMetaData metadata;
-      int slot = image_manager->add_image(tile_name,
-                                          builtin_data,
-                                          animated,
-                                          0,
-                                          interpolation,
-                                          extension,
-                                          alpha_type,
-                                          colorspace,
-                                          metadata);
+      int slot = image_manager->add_image(key, 0, metadata);
       slots.push_back(slot);
 
       /* We assume that all tiles have the same metadata. */
@@ -500,21 +506,12 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   if (slots.size() == 0) {
     ImageMetaData metadata;
     if (builtin_data == NULL) {
-      string tile_name = filename.string();
-      string_replace(tile_name, "<UDIM>", "1001");
-      image_manager->get_image_metadata(tile_name, NULL, colorspace, metadata);
+      ImageKey key = image_key(1001);
+      image_manager->get_image_metadata(key, metadata);
       slots.push_back(-1);
     }
     else {
-      int slot = image_manager->add_image(filename.string(),
-                                          builtin_data,
-                                          animated,
-                                          0,
-                                          interpolation,
-                                          extension,
-                                          alpha_type,
-                                          colorspace,
-                                          metadata);
+      int slot = image_manager->add_image(image_key(), 0, metadata);
       slots.push_back(slot);
     }
     is_float = metadata.is_float;
@@ -602,6 +599,19 @@ ShaderNode *EnvironmentTextureNode::clone() const
   return new EnvironmentTextureNode(*this);
 }
 
+ImageKey EnvironmentTextureNode::image_key() const
+{
+  ImageKey key;
+  key.filename = filename.string();
+  key.builtin_data = builtin_data;
+  key.animated = animated;
+  key.interpolation = interpolation;
+  key.extension = EXTENSION_REPEAT;
+  key.alpha_type = alpha_type;
+  key.colorspace = colorspace;
+  return key;
+}
+
 void EnvironmentTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 #ifdef WITH_PTEX
@@ -624,15 +634,7 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
   image_manager = compiler.scene->image_manager;
   if (slots.empty()) {
     ImageMetaData metadata;
-    int slot = image_manager->add_image(filename.string(),
-                                        builtin_data,
-                                        animated,
-                                        0,
-                                        interpolation,
-                                        EXTENSION_REPEAT,
-                                        alpha_type,
-                                        colorspace,
-                                        metadata);
+    int slot = image_manager->add_image(image_key(), 0, metadata);
     slots.push_back(slot);
     is_float = metadata.is_float;
     compress_as_srgb = metadata.compress_as_srgb;
@@ -682,19 +684,11 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
   if (slots.empty()) {
     ImageMetaData metadata;
     if (builtin_data == NULL) {
-      image_manager->get_image_metadata(filename.string(), NULL, colorspace, metadata);
+      image_manager->get_image_metadata(image_key(), metadata);
       slots.push_back(-1);
     }
     else {
-      int slot = image_manager->add_image(filename.string(),
-                                          builtin_data,
-                                          animated,
-                                          0,
-                                          interpolation,
-                                          EXTENSION_REPEAT,
-                                          alpha_type,
-                                          colorspace,
-                                          metadata);
+      int slot = image_manager->add_image(image_key(), 0, metadata);
       slots.push_back(slot);
     }
     is_float = metadata.is_float;
@@ -1754,12 +1748,7 @@ PointDensityTextureNode::PointDensityTextureNode() : ShaderNode(node_type)
 PointDensityTextureNode::~PointDensityTextureNode()
 {
   if (image_manager) {
-    image_manager->remove_image(filename.string(),
-                                builtin_data,
-                                interpolation,
-                                EXTENSION_CLIP,
-                                IMAGE_ALPHA_AUTO,
-                                ustring());
+    image_manager->remove_image(image_key());
   }
 }
 
@@ -1786,16 +1775,17 @@ void PointDensityTextureNode::add_image()
 {
   if (slot == -1) {
     ImageMetaData metadata;
-    slot = image_manager->add_image(filename.string(),
-                                    builtin_data,
-                                    false,
-                                    0,
-                                    interpolation,
-                                    EXTENSION_CLIP,
-                                    IMAGE_ALPHA_AUTO,
-                                    u_colorspace_raw,
-                                    metadata);
+    slot = image_manager->add_image(image_key(), 0, metadata);
   }
+}
+
+ImageKey PointDensityTextureNode::image_key() const
+{
+  ImageKey key;
+  key.filename = filename.string();
+  key.builtin_data = builtin_data;
+  key.interpolation = interpolation;
+  return key;
 }
 
 void PointDensityTextureNode::compile(SVMCompiler &compiler)
