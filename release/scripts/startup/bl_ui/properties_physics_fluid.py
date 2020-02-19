@@ -875,18 +875,18 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         col.separator()
 
         col = flow.column(align=True)
-        col.prop(domain, "sndparticle_tau_max_wc", text="Wave Crest Potential Maximum")
-        col.prop(domain, "sndparticle_tau_min_wc", text="Minimum")
+        col.prop(domain, "sndparticle_potential_max_wavecrest", text="Wave Crest Potential Maximum")
+        col.prop(domain, "sndparticle_potential_min_wavecrest", text="Minimum")
         col.separator()
 
         col = flow.column(align=True)
-        col.prop(domain, "sndparticle_tau_max_ta", text="Trapped Air Potential Maximum")
-        col.prop(domain, "sndparticle_tau_min_ta", text="Minimum")
+        col.prop(domain, "sndparticle_potential_max_trappedair", text="Trapped Air Potential Maximum")
+        col.prop(domain, "sndparticle_potential_min_trappedair", text="Minimum")
         col.separator()
 
         col = flow.column(align=True)
-        col.prop(domain, "sndparticle_tau_max_k", text="Kinetic Energy Potential Maximum")
-        col.prop(domain, "sndparticle_tau_min_k", text="Minimum")
+        col.prop(domain, "sndparticle_potential_max_energy", text="Kinetic Energy Potential Maximum")
+        col.prop(domain, "sndparticle_potential_min_energy", text="Minimum")
         col.separator()
 
         col = flow.column(align=True)
@@ -895,18 +895,18 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         col.separator()
 
         col = flow.column(align=True)
-        col.prop(domain, "sndparticle_k_wc", text="Wave Crest Particle Sampling")
-        col.prop(domain, "sndparticle_k_ta", text="Trapped Air Particle Sampling")
+        col.prop(domain, "sndparticle_sampling_wavecrest", text="Wave Crest Particle Sampling")
+        col.prop(domain, "sndparticle_sampling_trappedair", text="Trapped Air Particle Sampling")
         col.separator()
 
         col = flow.column(align=True)
-        col.prop(domain, "sndparticle_l_max", text="Particle Life Maximum")
-        col.prop(domain, "sndparticle_l_min", text="Minimum")
+        col.prop(domain, "sndparticle_life_max", text="Particle Life Maximum")
+        col.prop(domain, "sndparticle_life_min", text="Minimum")
         col.separator()
 
         col = flow.column(align=True)
-        col.prop(domain, "sndparticle_k_b", text="Bubble Buoyancy")
-        col.prop(domain, "sndparticle_k_d", text="Bubble Drag")
+        col.prop(domain, "sndparticle_bubble_buoyancy", text="Bubble Buoyancy")
+        col.prop(domain, "sndparticle_bubble_drag", text="Bubble Drag")
         col.separator()
 
         col = flow.column()
