@@ -94,6 +94,17 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
                               GPU_uniform(&mul_bias[1]),
                               GPU_uniform(&coba->data[0].r),
                               GPU_uniform(&coba->data[1].r));
+      case COLBAND_INTERP_EASE:
+        mul_bias[0] = 1.0f / (coba->data[1].pos - coba->data[0].pos);
+        mul_bias[1] = -mul_bias[0] * coba->data[0].pos;
+        return GPU_stack_link(mat,
+                              node,
+                              "valtorgb_opti_ease",
+                              in,
+                              out,
+                              GPU_uniform(mul_bias),
+                              GPU_uniform(&coba->data[0].r),
+                              GPU_uniform(&coba->data[1].r));
       default:
         break;
     }
