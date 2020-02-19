@@ -1306,6 +1306,25 @@ static void rna_def_userdef_theme_ui_panel(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }
 
+const EnumPropertyItem rna_enum_userdef_theme_background_types_items[] = {
+    {TH_BACKGROUND_SINGLE_COLOR,
+     "Single Color",
+     0,
+     "Single Color",
+     "Use a solid color as viewport background"},
+    {TH_BACKGROUND_GRADIENT_LINEAR,
+     "LINEAR",
+     0,
+     "Linear Gradient",
+     "Use a screen space vertical linear gradient as viewport background"},
+    {TH_BACKGROUND_GRADIENT_RADIAL,
+     "RADIAL",
+     0,
+     "Vignette",
+     "Use a radial gradient as viewport background"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static void rna_def_userdef_theme_ui_gradient(BlenderRNA *brna)
 {
   /* Fake struct, keep this for compatible theme presets. */
@@ -1318,10 +1337,10 @@ static void rna_def_userdef_theme_ui_gradient(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Theme Background Color", "Theme settings for background colors and gradient");
 
-  prop = RNA_def_property(srna, "show_grad", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "show_back_grad", 1);
-  RNA_def_property_ui_text(
-      prop, "Use Gradient", "Do a gradient for the background of the viewport working area");
+  prop = RNA_def_property(srna, "background_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "background_type");
+  RNA_def_property_enum_items(prop, rna_enum_userdef_theme_background_types_items);
+  RNA_def_property_ui_text(prop, "Background Type", "Type of background in the 3D viewport");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "high_gradient", PROP_FLOAT, PROP_COLOR_GAMMA);

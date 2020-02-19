@@ -30,6 +30,7 @@
 #define BG_SOLID 0
 #define BG_GRADIENT 1
 #define BG_CHECKER 2
+#define BG_RADIAL 3
 
 void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
 {
@@ -67,11 +68,18 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
       copy_v3_v3(color_override, v3d->shading.background_color);
       color_override[3] = 1.0f;
     }
-    else if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
-      background_type = BG_GRADIENT;
-    }
     else {
-      background_type = BG_SOLID;
+      switch (UI_GetThemeValue(TH_BACKGROUND_TYPE)) {
+        case TH_BACKGROUND_SINGLE_COLOR:
+          background_type = BG_SOLID;
+          break;
+        case TH_BACKGROUND_GRADIENT_LINEAR:
+          background_type = BG_GRADIENT;
+          break;
+        case TH_BACKGROUND_GRADIENT_RADIAL:
+          background_type = BG_RADIAL;
+          break;
+      }
     }
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_BACKGROUND;

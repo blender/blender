@@ -12,6 +12,8 @@ out vec4 fragColor;
 #define BG_SOLID 0
 #define BG_GRADIENT 1
 #define BG_CHECKER 2
+#define BG_RADIAL 3
+#define SQRT2 1.4142135623730950488
 
 /* 4x4 bayer matrix prepared for 8bit UNORM precision error. */
 #define P(x) (((x + 0.5) * (1.0 / 16.0) - 0.5) * (1.0 / 255.0))
@@ -38,6 +40,8 @@ void main()
   float depth = texture(depthBuffer, uvcoordsvar.st).r;
 
   vec3 bg_col;
+  vec3 col_high;
+  vec3 col_low;
 
   switch (bgType) {
     case BG_SOLID:
@@ -45,9 +49,22 @@ void main()
       break;
     case BG_GRADIENT:
       /* XXX do interpolation in a non-linear space to have a better visual result. */
-      vec3 col_high = pow(colorBackground.rgb, vec3(1.0 / 2.2));
-      vec3 col_low = pow(colorBackgroundGradient.rgb, vec3(1.0 / 2.2));
+      col_high = pow(colorBackground.rgb, vec3(1.0 / 2.2));
+      col_low = pow(colorBackgroundGradient.rgb, vec3(1.0 / 2.2));
       bg_col = mix(col_low, col_high, uvcoordsvar.t);
+      /* Convert back to linear. */
+      bg_col = pow(bg_col, vec3(2.2));
+      /*  Dither to hide low precision buffer. (Could be improved) */
+      bg_col += dither();
+      break;
+    case BG_RADIAL:
+      /* Do interpolation in a non-linear space to have a better visual result. */
+      col_high = pow(colorBackground.rgb, vec3(1.0 / 2.2));
+      col_low = pow(colorBackgroundGradient.rgb, vec3(1.0 / 2.2));
+
+      vec2 uv_n = uvcoordsvar.xy - 0.5;
+      bg_col = mix(col_high, col_low, length(uv_n) * SQRT2);
+
       /* Convert back to linear. */
       bg_col = pow(bg_col, vec3(2.2));
       /*  Dither to hide low precision buffer. (Could be improved) */

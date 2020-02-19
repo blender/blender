@@ -214,7 +214,7 @@ typedef struct ThemeSpace {
   unsigned char back[4];
   unsigned char back_grad[4];
 
-  char show_back_grad;
+  char background_type;
   char _pad0[3];
 
   /** Panel title. */
@@ -423,6 +423,14 @@ typedef struct ThemeSpace {
   unsigned char metadatatext[4];
 
 } ThemeSpace;
+
+/* Viewport Background Gradient Types. */
+
+typedef enum eBackgroundGradientTypes {
+  TH_BACKGROUND_SINGLE_COLOR = 0,
+  TH_BACKGROUND_GRADIENT_LINEAR = 1,
+  TH_BACKGROUND_GRADIENT_RADIAL = 2,
+} eBackgroundGradientTypes;
 
 /* set of colors for use as a custom color set for Objects/Bones wire drawing */
 typedef struct ThemeWireColor {

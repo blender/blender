@@ -196,9 +196,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->back_grad;
           break;
 
-        case TH_SHOW_BACK_GRAD:
+        case TH_BACKGROUND_TYPE:
           cp = &setting;
-          setting = ts->show_back_grad;
+          setting = ts->background_type;
           break;
         case TH_TEXT:
           if (theme_regionid == RGN_TYPE_WINDOW) {
