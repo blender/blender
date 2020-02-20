@@ -34,6 +34,9 @@ if "%VS_InstallDir%"=="" (
 
 set VCVARS=%VS_InstallDir%\VC\Auxiliary\Build\vcvarsall.bat
 if exist "%VCVARS%" (
+	if NOT "%verbose%" == "" (
+		echo calling "%VCVARS%" %BUILD_ARCH%
+	)
 	call "%VCVARS%" %BUILD_ARCH%
 ) else (
 	if NOT "%verbose%" == "" (
@@ -43,6 +46,9 @@ if exist "%VCVARS%" (
 )
 
 rem try msbuild
+if NOT "%verbose%" == "" (
+	echo Testing for MSBuild 
+)
 msbuild /version > NUL 
 if errorlevel 1 (
 	if NOT "%verbose%" == "" (
@@ -56,6 +62,9 @@ if NOT "%verbose%" == "" (
 )
 
 REM try the c++ compiler
+if NOT "%verbose%" == "" (
+	echo Testing for the C/C++ Compiler
+)
 cl 2> NUL 1>&2
 if errorlevel 1 (
 	if NOT "%verbose%" == "" (
