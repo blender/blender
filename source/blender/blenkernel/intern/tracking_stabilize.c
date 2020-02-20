@@ -476,7 +476,7 @@ static float rotation_contribution(TrackStabilizationBase *track_ref,
   sub_v2_v2v2(pos, marker->pos, pivot);
 
   pos[0] *= aspect;
-  mul_m2v2(track_ref->stabilization_rotation_base, pos);
+  mul_m2_v2(track_ref->stabilization_rotation_base, pos);
 
   *result_angle = atan2f(pos[1], pos[0]);
 
@@ -516,7 +516,7 @@ static void compensate_rotation_center(const int size,
   copy_v2_v2(rotated_pivot, pivot);
   angle_to_mat2(rotation_mat, +angle);
   sub_v2_v2(rotated_pivot, origin);
-  mul_m2v2(rotation_mat, rotated_pivot);
+  mul_m2_v2(rotation_mat, rotated_pivot);
   mul_v2_fl(rotated_pivot, scale);
   add_v2_v2(rotated_pivot, origin);
   add_v2_v2(result_translation, intended_pivot);
