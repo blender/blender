@@ -72,13 +72,14 @@ static bNodeSocketTemplate cmp_node_rlayers_out[] = {
     {SOCK_RGBA, 0, N_(RE_PASSNAME_SUBSURFACE_COLOR), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, 0, ""},
 };
+#define MAX_LEGACY_SOCKET_INDEX 30
 
 static void cmp_node_image_add_pass_output(bNodeTree *ntree,
                                            bNode *node,
                                            const char *name,
                                            const char *passname,
                                            int rres_index,
-                                           int type,
+                                           eNodeSocketDatatype type,
                                            int is_rlayers,
                                            LinkNodePair *available_sockets,
                                            int *prev_index)
@@ -94,8 +95,8 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
      * New sockets are placed behind the previously traversed one,
      * but always after the first 31. */
     int after_index = *prev_index;
-    if (is_rlayers && after_index < 30) {
-      after_index = 30;
+    if (is_rlayers && after_index < MAX_LEGACY_SOCKET_INDEX) {
+      after_index = MAX_LEGACY_SOCKET_INDEX;
     }
 
     if (rres_index >= 0) {
@@ -238,8 +239,12 @@ typedef struct RLayerUpdateData {
   int prev_index;
 } RLayerUpdateData;
 
-void node_cmp_rlayers_register_pass(
-    bNodeTree *ntree, bNode *node, Scene *scene, ViewLayer *view_layer, const char *name, int type)
+void node_cmp_rlayers_register_pass(bNodeTree *ntree,
+                                    bNode *node,
+                                    Scene *scene,
+                                    ViewLayer *view_layer,
+                                    const char *name,
+                                    eNodeSocketDatatype type)
 {
   RLayerUpdateData *data = node->storage;
 
@@ -389,7 +394,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
           break;
         }
       }
-      if (!link && (!rlayer || sock_index > 30)) {
+      if (!link && (!rlayer || sock_index > MAX_LEGACY_SOCKET_INDEX)) {
         MEM_freeN(sock->storage);
         nodeRemoveSocket(ntree, node, sock);
       }
@@ -508,7 +513,7 @@ const char *node_cmp_rlayers_sock_to_pass(int sock_index)
       RE_PASSNAME_SUBSURFACE_INDIRECT,
       RE_PASSNAME_SUBSURFACE_COLOR,
   };
-  if (sock_index > 30) {
+  if (sock_index > MAX_LEGACY_SOCKET_INDEX) {
     return NULL;
   }
   return sock_to_passname[sock_index];

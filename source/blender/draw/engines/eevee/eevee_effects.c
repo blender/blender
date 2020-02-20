@@ -170,7 +170,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   EEVEE_subsurface_init(sldata, vedata);
 
   /* Force normal buffer creation. */
-  if (!minimal && (stl->g_data->render_passes & SCE_PASS_NORMAL) != 0) {
+  if (!minimal && (stl->g_data->render_passes & EEVEE_RENDER_PASS_NORMAL) != 0) {
     effects->enabled_effects |= EFFECT_NORMAL_BUFFER;
   }
 
@@ -333,6 +333,8 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     grp = DRW_shgroup_create(EEVEE_shaders_velocity_resolve_sh_get(), psl->velocity_resolve);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+    DRW_shgroup_uniform_block(
+        grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
     DRW_shgroup_uniform_mat4(grp, "currPersinv", effects->velocity_curr_persinv);
     DRW_shgroup_uniform_mat4(grp, "pastPersmat", effects->velocity_past_persmat);
     DRW_shgroup_call(grp, quad, NULL);
@@ -513,7 +515,7 @@ static void EEVEE_velocity_resolve(EEVEE_Data *vedata)
   DRW_view_persmat_get(view, effects->velocity_past_persmat, false);
 }
 
-void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -540,6 +542,10 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 
   EEVEE_temporal_sampling_draw(vedata);
   EEVEE_bloom_draw(vedata);
+
+  /* Post effect render passes are done here just after the drawing of the effects and just before
+   * the swapping of the buffers. */
+  EEVEE_renderpasses_output_accumulate(sldata, vedata, true);
 
   /* Save the final texture and framebuffer for final transformation or read. */
   effects->final_tx = effects->source_buffer;

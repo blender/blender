@@ -32,7 +32,9 @@ void node_eevee_specular(vec4 diffuse,
 
   float alpha = 1.0 - transp;
   result = CLOSURE_DEFAULT;
-  result.radiance = out_diff * diffuse.rgb + out_spec + emissive.rgb;
+  result.radiance = render_pass_diffuse_mask(diffuse.rgb, out_diff * diffuse.rgb);
+  result.radiance += render_pass_glossy_mask(vec3(1.0), out_spec);
+  result.radiance += render_pass_emission_mask(emissive.rgb);
   result.radiance *= alpha;
   result.transmittance = vec3(transp);
 

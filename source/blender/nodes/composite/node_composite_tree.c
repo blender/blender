@@ -281,8 +281,11 @@ void ntreeCompositUpdateRLayers(bNodeTree *ntree)
   }
 }
 
-void ntreeCompositRegisterPass(
-    bNodeTree *ntree, Scene *scene, ViewLayer *view_layer, const char *name, int type)
+void ntreeCompositRegisterPass(bNodeTree *ntree,
+                               Scene *scene,
+                               ViewLayer *view_layer,
+                               const char *name,
+                               eNodeSocketDatatype type)
 {
   bNode *node;
 

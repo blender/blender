@@ -173,19 +173,17 @@ float light_attenuation(LightData ld, vec4 l_vector)
   return vis;
 }
 
-float light_visibility(LightData ld,
-                       vec3 W,
+float light_shadowing(LightData ld,
+                      vec3 W,
 #ifndef VOLUMETRICS
-                       vec3 viewPosition,
-                       float tracing_depth,
-                       vec3 true_normal,
-                       float rand_x,
-                       const bool use_contact_shadows,
+                      vec3 viewPosition,
+                      float tracing_depth,
+                      vec3 true_normal,
+                      float rand_x,
+                      const bool use_contact_shadows,
 #endif
-                       vec4 l_vector)
+                      float vis)
 {
-  float vis = light_attenuation(ld, l_vector);
-
 #if !defined(VOLUMETRICS) || defined(VOLUME_SHADOW)
   /* shadowing */
   if (ld.l_shadowid >= 0.0 && vis > 0.001) {
@@ -234,6 +232,30 @@ float light_visibility(LightData ld,
 #endif
 
   return vis;
+}
+
+float light_visibility(LightData ld,
+                       vec3 W,
+#ifndef VOLUMETRICS
+                       vec3 viewPosition,
+                       float tracing_depth,
+                       vec3 true_normal,
+                       float rand_x,
+                       const bool use_contact_shadows,
+#endif
+                       vec4 l_vector)
+{
+  float l_atten = light_attenuation(ld, l_vector);
+  return light_shadowing(ld,
+                         W,
+#ifndef VOLUMETRICS
+                         viewPosition,
+                         tracing_depth,
+                         true_normal,
+                         rand_x,
+                         use_contact_shadows,
+#endif
+                         l_atten);
 }
 
 #ifdef USE_LTC

@@ -34,7 +34,8 @@ Closure nodetree_exec(void)
   eevee_closure_default(N, albedo, f0, f90, 1, roughness, 1.0, true, out_diff, out_spec, ssr_spec);
 
   Closure cl = CLOSURE_DEFAULT;
-  cl.radiance = out_spec + out_diff * albedo;
+  cl.radiance = render_pass_glossy_mask(vec3(1.0), out_spec) +
+                render_pass_diffuse_mask(albedo, out_diff * albedo);
   closure_load_ssr_data(ssr_spec, roughness, N, viewCameraVec, 1, cl);
 
 #ifdef LOOKDEV

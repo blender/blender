@@ -230,6 +230,9 @@ static void eevee_render_color_result(RenderLayer *rl,
                                       EEVEE_Data *vedata)
 {
   RenderPass *rp = RE_pass_find_by_name(rl, render_pass_name, viewname);
+  if (rp == NULL) {
+    return;
+  }
   GPU_framebuffer_bind(framebuffer);
   GPU_framebuffer_read_color(framebuffer,
                              vedata->stl->g_data->overscan_pixels + rect->xmin,
@@ -251,35 +254,6 @@ static void eevee_render_result_combined(RenderLayer *rl,
       rl, viewname, rect, RE_PASSNAME_COMBINED, 4, vedata->stl->effects->final_fb, vedata);
 }
 
-static void eevee_render_result_subsurface(RenderLayer *rl,
-                                           const char *viewname,
-                                           const rcti *rect,
-                                           EEVEE_Data *vedata,
-                                           EEVEE_ViewLayerData *sldata)
-{
-  if (vedata->fbl->sss_accum_fb == NULL) {
-    /* SSS is not enabled. */
-    return;
-  }
-
-  if ((vedata->stl->g_data->render_passes & SCE_PASS_SUBSURFACE_COLOR) != 0) {
-    EEVEE_renderpasses_postprocess(sldata, vedata, SCE_PASS_SUBSURFACE_COLOR);
-    eevee_render_color_result(
-        rl, viewname, rect, RE_PASSNAME_SUBSURFACE_COLOR, 3, vedata->fbl->renderpass_fb, vedata);
-  }
-
-  if ((vedata->stl->g_data->render_passes & SCE_PASS_SUBSURFACE_DIRECT) != 0) {
-    EEVEE_renderpasses_postprocess(sldata, vedata, SCE_PASS_SUBSURFACE_DIRECT);
-    eevee_render_color_result(
-        rl, viewname, rect, RE_PASSNAME_SUBSURFACE_DIRECT, 3, vedata->fbl->renderpass_fb, vedata);
-  }
-
-  if ((vedata->stl->g_data->render_passes & SCE_PASS_SUBSURFACE_INDIRECT) != 0) {
-    /* Do nothing as all the lighting is in the direct pass.
-     * TODO : Separate Direct from indirect lighting. */
-  }
-}
-
 static void eevee_render_result_normal(RenderLayer *rl,
                                        const char *viewname,
                                        const rcti *rect,
@@ -293,8 +267,8 @@ static void eevee_render_result_normal(RenderLayer *rl,
     return;
   }
 
-  if ((vedata->stl->g_data->render_passes & SCE_PASS_NORMAL) != 0) {
-    EEVEE_renderpasses_postprocess(sldata, vedata, SCE_PASS_NORMAL);
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_NORMAL) != 0) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_NORMAL);
     eevee_render_color_result(
         rl, viewname, rect, RE_PASSNAME_NORMAL, 3, vedata->fbl->renderpass_fb, vedata);
   }
@@ -313,8 +287,8 @@ static void eevee_render_result_z(RenderLayer *rl,
     return;
   }
 
-  if ((vedata->stl->g_data->render_passes & SCE_PASS_Z) != 0) {
-    EEVEE_renderpasses_postprocess(sldata, vedata, SCE_PASS_Z);
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_Z) != 0) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_Z);
     eevee_render_color_result(
         rl, viewname, rect, RE_PASSNAME_Z, 1, vedata->fbl->renderpass_fb, vedata);
   }
@@ -326,10 +300,23 @@ static void eevee_render_result_mist(RenderLayer *rl,
                                      EEVEE_Data *vedata,
                                      EEVEE_ViewLayerData *sldata)
 {
-  if ((vedata->stl->g_data->render_passes & SCE_PASS_MIST) != 0) {
-    EEVEE_renderpasses_postprocess(sldata, vedata, SCE_PASS_MIST);
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_MIST) != 0) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_MIST);
     eevee_render_color_result(
         rl, viewname, rect, RE_PASSNAME_MIST, 1, vedata->fbl->renderpass_fb, vedata);
+  }
+}
+
+static void eevee_render_result_shadow(RenderLayer *rl,
+                                       const char *viewname,
+                                       const rcti *rect,
+                                       EEVEE_Data *vedata,
+                                       EEVEE_ViewLayerData *sldata)
+{
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_SHADOW) != 0) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_SHADOW);
+    eevee_render_color_result(
+        rl, viewname, rect, RE_PASSNAME_SHADOW, 3, vedata->fbl->renderpass_fb, vedata);
   }
 }
 
@@ -339,17 +326,115 @@ static void eevee_render_result_occlusion(RenderLayer *rl,
                                           EEVEE_Data *vedata,
                                           EEVEE_ViewLayerData *sldata)
 {
-  if (vedata->fbl->ao_accum_fb == NULL) {
+  if ((vedata->stl->effects->enabled_effects & EFFECT_GTAO) == 0) {
     /* AO is not enabled. */
     return;
   }
 
-  if ((vedata->stl->g_data->render_passes & SCE_PASS_AO) != 0) {
-    EEVEE_renderpasses_postprocess(sldata, vedata, SCE_PASS_AO);
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_AO) != 0) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_AO);
     eevee_render_color_result(
         rl, viewname, rect, RE_PASSNAME_AO, 3, vedata->fbl->renderpass_fb, vedata);
   }
 }
+
+static void eevee_render_result_bloom(RenderLayer *rl,
+                                      const char *viewname,
+                                      const rcti *rect,
+                                      EEVEE_Data *vedata,
+                                      EEVEE_ViewLayerData *sldata)
+{
+  if ((vedata->stl->effects->enabled_effects & EFFECT_BLOOM) == 0) {
+    /* Bloom is not enabled. */
+    return;
+  }
+
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_BLOOM) != 0) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_BLOOM);
+    eevee_render_color_result(
+        rl, viewname, rect, RE_PASSNAME_BLOOM, 3, vedata->fbl->renderpass_fb, vedata);
+  }
+}
+
+#define EEVEE_RENDER_RESULT_MATERIAL_PASS(pass_name, eevee_pass_type) \
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_##eevee_pass_type) != 0) { \
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_##eevee_pass_type); \
+    eevee_render_color_result( \
+        rl, viewname, rect, RE_PASSNAME_##pass_name, 3, vedata->fbl->renderpass_fb, vedata); \
+  }
+
+static void eevee_render_result_diffuse_color(RenderLayer *rl,
+                                              const char *viewname,
+                                              const rcti *rect,
+                                              EEVEE_Data *vedata,
+                                              EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(DIFFUSE_COLOR, DIFFUSE_COLOR)
+}
+
+static void eevee_render_result_diffuse_direct(RenderLayer *rl,
+                                               const char *viewname,
+                                               const rcti *rect,
+                                               EEVEE_Data *vedata,
+                                               EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(DIFFUSE_DIRECT, DIFFUSE_LIGHT)
+}
+
+static void eevee_render_result_specular_color(RenderLayer *rl,
+                                               const char *viewname,
+                                               const rcti *rect,
+                                               EEVEE_Data *vedata,
+                                               EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(GLOSSY_COLOR, SPECULAR_COLOR)
+}
+
+static void eevee_render_result_specular_direct(RenderLayer *rl,
+                                                const char *viewname,
+                                                const rcti *rect,
+                                                EEVEE_Data *vedata,
+                                                EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(GLOSSY_DIRECT, SPECULAR_LIGHT)
+}
+
+static void eevee_render_result_emission(RenderLayer *rl,
+                                         const char *viewname,
+                                         const rcti *rect,
+                                         EEVEE_Data *vedata,
+                                         EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(EMIT, EMIT)
+}
+
+static void eevee_render_result_environment(RenderLayer *rl,
+                                            const char *viewname,
+                                            const rcti *rect,
+                                            EEVEE_Data *vedata,
+                                            EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(ENVIRONMENT, ENVIRONMENT)
+}
+
+static void eevee_render_result_volume_scatter(RenderLayer *rl,
+                                               const char *viewname,
+                                               const rcti *rect,
+                                               EEVEE_Data *vedata,
+                                               EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(VOLUME_SCATTER, VOLUME_SCATTER)
+}
+static void eevee_render_result_volume_transmittance(RenderLayer *rl,
+                                                     const char *viewname,
+                                                     const rcti *rect,
+                                                     EEVEE_Data *vedata,
+                                                     EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_RENDER_RESULT_MATERIAL_PASS(VOLUME_TRANSMITTANCE, VOLUME_TRANSMITTANCE)
+}
+
+#undef EEVEE_RENDER_RESULT_MATERIAL_PASS
 
 static void eevee_render_draw_background(EEVEE_Data *vedata)
 {
@@ -508,7 +593,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Volumetrics Resolve Opaque */
     EEVEE_volumes_resolve(sldata, vedata);
     /* Subsurface output, Occlusion output, Mist output */
-    EEVEE_renderpasses_output_accumulate(sldata, vedata);
+    EEVEE_renderpasses_output_accumulate(sldata, vedata, false);
     /* Transparent */
     GPU_framebuffer_texture_attach(fbl->main_color_fb, dtxl->depth, 0, 0);
     GPU_framebuffer_bind(fbl->main_color_fb);
@@ -527,9 +612,18 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   }
 
   eevee_render_result_combined(rl, viewname, rect, vedata, sldata);
-  eevee_render_result_subsurface(rl, viewname, rect, vedata, sldata);
   eevee_render_result_mist(rl, viewname, rect, vedata, sldata);
   eevee_render_result_occlusion(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_shadow(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_diffuse_color(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_diffuse_direct(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_specular_color(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_specular_direct(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_emission(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_environment(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_bloom(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_volume_scatter(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_volume_transmittance(rl, viewname, rect, vedata, sldata);
 
   /* Restore original viewport size. */
   DRW_render_viewport_size_set((int[2]){g_data->size_orig[0], g_data->size_orig[1]});
@@ -537,29 +631,35 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
 void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
-  int type;
-
   RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_COMBINED, 4, "RGBA", SOCK_RGBA);
 
-#define CHECK_PASS(name, channels, chanid) \
+#define CHECK_PASS_LEGACY(name, type, channels, chanid) \
   if (view_layer->passflag & (SCE_PASS_##name)) { \
-    if (channels == 4) \
-      type = SOCK_RGBA; \
-    else if (channels == 3) \
-      type = SOCK_VECTOR; \
-    else \
-      type = SOCK_FLOAT; \
+    RE_engine_register_pass( \
+        engine, scene, view_layer, RE_PASSNAME_##name, channels, chanid, type); \
+  } \
+  ((void)0)
+#define CHECK_PASS_EEVEE(name, type, channels, chanid) \
+  if (view_layer->eevee.render_passes & (EEVEE_RENDER_PASS_##name)) { \
     RE_engine_register_pass( \
         engine, scene, view_layer, RE_PASSNAME_##name, channels, chanid, type); \
   } \
   ((void)0)
 
-  CHECK_PASS(Z, 1, "Z");
-  CHECK_PASS(MIST, 1, "Z");
-  CHECK_PASS(NORMAL, 3, "XYZ");
-  CHECK_PASS(AO, 3, "RGB");
-  CHECK_PASS(SUBSURFACE_COLOR, 3, "RGB");
-  CHECK_PASS(SUBSURFACE_DIRECT, 3, "RGB");
+  CHECK_PASS_LEGACY(Z, SOCK_FLOAT, 1, "Z");
+  CHECK_PASS_LEGACY(MIST, SOCK_FLOAT, 1, "Z");
+  CHECK_PASS_LEGACY(NORMAL, SOCK_VECTOR, 3, "XYZ");
+  CHECK_PASS_LEGACY(SHADOW, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(DIFFUSE_COLOR, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(DIFFUSE_DIRECT, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(GLOSSY_COLOR, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(GLOSSY_DIRECT, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(EMIT, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(ENVIRONMENT, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_EEVEE(VOLUME_SCATTER, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_EEVEE(VOLUME_TRANSMITTANCE, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_EEVEE(BLOOM, SOCK_RGBA, 3, "RGB");
 
 #undef CHECK_PASS
 }

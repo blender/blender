@@ -28,6 +28,26 @@ extern "C" {
 #include "DNA_freestyle_types.h"
 #include "DNA_listBase.h"
 
+/* Renderpasses for EEVEE.
+ * ViewLayerEEVEE.render_passes */
+typedef enum eViewLayerEEVEEPassType {
+  EEVEE_RENDER_PASS_COMBINED = (1 << 0),
+  EEVEE_RENDER_PASS_Z = (1 << 1),
+  EEVEE_RENDER_PASS_MIST = (1 << 2),
+  EEVEE_RENDER_PASS_NORMAL = (1 << 3),
+  EEVEE_RENDER_PASS_DIFFUSE_LIGHT = (1 << 4),
+  EEVEE_RENDER_PASS_DIFFUSE_COLOR = (1 << 5),
+  EEVEE_RENDER_PASS_SPECULAR_LIGHT = (1 << 6),
+  EEVEE_RENDER_PASS_SPECULAR_COLOR = (1 << 7),
+  EEVEE_RENDER_PASS_VOLUME_TRANSMITTANCE = (1 << 8),
+  EEVEE_RENDER_PASS_VOLUME_SCATTER = (1 << 9),
+  EEVEE_RENDER_PASS_EMIT = (1 << 10),
+  EEVEE_RENDER_PASS_ENVIRONMENT = (1 << 11),
+  EEVEE_RENDER_PASS_SHADOW = (1 << 12),
+  EEVEE_RENDER_PASS_AO = (1 << 13),
+  EEVEE_RENDER_PASS_BLOOM = (1 << 14),
+} eViewLayerEEVEEPassType;
+
 typedef struct Base {
   struct Base *next, *prev;
 
@@ -76,6 +96,12 @@ typedef struct LayerCollection {
   short _pad2[3];
 } LayerCollection;
 
+/* Type containing EEVEE settings per view-layer */
+typedef struct ViewLayerEEVEE {
+  int render_passes;
+  int _pad[1];
+} ViewLayerEEVEE;
+
 typedef struct ViewLayer {
   struct ViewLayer *next, *prev;
   /** MAX_NAME. */
@@ -106,6 +132,7 @@ typedef struct ViewLayer {
   struct IDProperty *id_properties;
 
   struct FreestyleConfig freestyle_config;
+  struct ViewLayerEEVEE eevee;
 
   /* Runtime data */
   /** ViewLayerEngineData. */

@@ -151,7 +151,8 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
 static void eevee_cache_finish(void *vedata)
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-  EEVEE_PrivateData *g_data = ((EEVEE_Data *)vedata)->stl->g_data;
+  EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+  EEVEE_PrivateData *g_data = stl->g_data;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
@@ -176,6 +177,9 @@ static void eevee_cache_finish(void *vedata)
   if (g_data->queued_shaders_count != g_data->queued_shaders_count_prev) {
     g_data->queued_shaders_count_prev = g_data->queued_shaders_count;
     EEVEE_temporal_sampling_reset(vedata);
+    /* At this moment the TAA sampling will be redrawn in the next iteration.
+     * we set the taa_current_sample to 0 so the next iteration will use sample 1 */
+    stl->effects->taa_current_sample = 0;
   }
 }
 
@@ -307,6 +311,9 @@ static void eevee_draw_scene(void *vedata)
     /* Volumetrics Resolve Opaque */
     EEVEE_volumes_resolve(sldata, vedata);
 
+    /* Renderpasses */
+    EEVEE_renderpasses_output_accumulate(sldata, vedata, false);
+
     /* Transparent */
     /* TODO(fclem): should be its own Framebuffer.
      * This is needed because dualsource blending only works with 1 color buffer. */
@@ -321,8 +328,6 @@ static void eevee_draw_scene(void *vedata)
     EEVEE_draw_effects(sldata, vedata);
     DRW_stats_group_end();
 
-    EEVEE_renderpasses_output_accumulate(sldata, vedata);
-
     DRW_view_set_active(NULL);
 
     if (DRW_state_is_image_render() && (stl->effects->enabled_effects & EFFECT_SSR) &&
@@ -336,7 +341,7 @@ static void eevee_draw_scene(void *vedata)
     }
   }
 
-  if ((stl->g_data->render_passes & SCE_PASS_COMBINED) > 0) {
+  if ((stl->g_data->render_passes & EEVEE_RENDER_PASS_COMBINED) != 0) {
     /* Transfer result to default framebuffer. */
     GPU_framebuffer_bind(dfbl->default_fb);
     DRW_transform_none(stl->effects->final_tx);

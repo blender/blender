@@ -20,13 +20,7 @@ uniform sampler2DArray utilTex;
 #  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
-#ifdef RESULT_ACCUM
-/* Render Passes Accumulation */
-layout(location = 0) out vec4 sssDirect;
-layout(location = 1) out vec4 sssColor;
-#else
 layout(location = 0) out vec4 sssRadiance;
-#endif
 
 float get_view_z_from_depth(float depth)
 {
@@ -87,10 +81,7 @@ void main(void)
     accum += kernel[i].rgb * mix(color, sss_irradiance, s);
   }
 
-#ifdef RESULT_ACCUM
-  sssDirect = vec4(accum, 1.0);
-  sssColor = vec4(texture(sssAlbedo, uvs).rgb, 1.0);
-#elif defined(FIRST_PASS)
+#if defined(FIRST_PASS)
   sssRadiance = vec4(accum, 1.0);
 #else /* SECOND_PASS */
   sssRadiance = vec4(accum * texture(sssAlbedo, uvs).rgb, 1.0);

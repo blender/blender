@@ -17,12 +17,12 @@ void node_bsdf_glass(
                       out_spec,
                       out_refr,
                       ssr_spec);
-  out_refr *= refr_color;
-  out_spec *= color.rgb;
   float fresnel = F_eta(ior, dot(N, cameraVec));
   vec3 vN = mat3(ViewMatrix) * N;
   result = CLOSURE_DEFAULT;
-  result.radiance = mix(out_refr, out_spec, fresnel);
+  result.radiance = render_pass_glossy_mask(refr_color, out_refr * refr_color) * (1.0 - fresnel);
+  result.radiance += render_pass_glossy_mask(color.rgb, out_spec * color.rgb) * fresnel;
+
   closure_load_ssr_data(
       ssr_spec * color.rgb * fresnel, roughness, N, viewCameraVec, int(ssr_id), result);
 }

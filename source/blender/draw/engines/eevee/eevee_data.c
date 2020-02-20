@@ -54,6 +54,9 @@ void EEVEE_view_layer_data_free(void *storage)
   DRW_UBO_FREE_SAFE(sldata->grid_ubo);
   DRW_UBO_FREE_SAFE(sldata->planar_ubo);
   DRW_UBO_FREE_SAFE(sldata->common_ubo);
+  for (int i = 0; i < MAX_MATERIAL_RENDER_PASSES_UBO; i++) {
+    DRW_UBO_FREE_SAFE(sldata->renderpass_ubo[i]);
+  }
 }
 
 EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void)

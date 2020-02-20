@@ -863,7 +863,7 @@ void RE_engine_register_pass(struct RenderEngine *engine,
                              const char *name,
                              int channels,
                              const char *chanid,
-                             int type)
+                             eNodeSocketDatatype type)
 {
   if (!(scene && view_layer && engine && engine->update_render_passes_cb)) {
     return;

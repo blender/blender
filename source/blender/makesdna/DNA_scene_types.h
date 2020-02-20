@@ -318,6 +318,9 @@ typedef enum eScenePassType {
 #define RE_PASSNAME_SUBSURFACE_COLOR "SubsurfaceCol"
 
 #define RE_PASSNAME_FREESTYLE "Freestyle"
+#define RE_PASSNAME_BLOOM "BloomCol"
+#define RE_PASSNAME_VOLUME_TRANSMITTANCE "VolumeTransmCol"
+#define RE_PASSNAME_VOLUME_SCATTER "VolumeScatterCol"
 
 /* View - MultiView */
 typedef struct SceneRenderView {

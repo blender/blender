@@ -7,7 +7,7 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, float ssr_id, out Clo
       N, vec3(1.0), vec3(1.0), int(ssr_id), roughness, 1.0, true, out_spec, ssr_spec);
   vec3 vN = mat3(ViewMatrix) * N;
   result = CLOSURE_DEFAULT;
-  result.radiance = out_spec * color.rgb;
+  result.radiance = render_pass_glossy_mask(vec3(1.0), out_spec) * color.rgb;
   closure_load_ssr_data(ssr_spec * color.rgb, roughness, N, viewCameraVec, int(ssr_id), result);
 }
 #else
