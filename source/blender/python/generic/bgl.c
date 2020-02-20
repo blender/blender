@@ -167,19 +167,19 @@ typedef struct BufferOrOffset {
  * so we use signed everything (even stuff that should be unsigned.
  */
 
-/* typedef unsigned int GLenum; */
+/* typedef uint GLenum; */
 #define GLenum_str "i"
 #define GLenum_var(num) bgl_var##num
 #define GLenum_ref(num) &bgl_var##num
 #define GLenum_def(num) /* unsigned */ int GLenum_var(num)
 
-/* typedef unsigned int GLboolean; */
+/* typedef uint GLboolean; */
 #define GLboolean_str "b"
 #define GLboolean_var(num) bgl_var##num
 #define GLboolean_ref(num) &bgl_var##num
 #define GLboolean_def(num) /* unsigned */ char GLboolean_var(num)
 
-/* typedef unsigned int GLbitfield; */
+/* typedef uint GLbitfield; */
 #define GLbitfield_str "i"
 #define GLbitfield_var(num) bgl_var##num
 #define GLbitfield_ref(num) &bgl_var##num
@@ -223,27 +223,27 @@ typedef struct BufferOrOffset {
 #define GLintptr_ref(num) &bgl_var##num
 #define GLintptr_def(num) size_t GLintptr_var(num)
 
-/* typedef unsigned char GLubyte; */
+/* typedef uchar GLubyte; */
 #define GLubyte_str "B"
 #define GLubyte_var(num) bgl_var##num
 #define GLubyte_ref(num) &bgl_var##num
 #define GLubyte_def(num) /* unsigned */ char GLubyte_var(num)
 
 #if 0
-/* typedef unsigned short GLushort; */
+/* typedef ushort GLushort; */
 #  define GLushort_str "H"
 #  define GLushort_var(num) bgl_var##num
 #  define GLushort_ref(num) &bgl_var##num
 #  define GLushort_def(num) /* unsigned */ short GLushort_var(num)
 #endif
 
-/* typedef unsigned int GLuint; */
+/* typedef uint GLuint; */
 #define GLuint_str "I"
 #define GLuint_var(num) bgl_var##num
 #define GLuint_ref(num) &bgl_var##num
 #define GLuint_def(num) /* unsigned */ int GLuint_var(num)
 
-/* typedef unsigned int GLuint64; */
+/* typedef uint GLuint64; */
 #if 0
 #  define GLuint64_str "Q"
 #  define GLuint64_var(num) bgl_var##num
@@ -251,7 +251,7 @@ typedef struct BufferOrOffset {
 #  define GLuint64_def(num) /* unsigned */ int GLuint64_var(num)
 #endif
 
-/* typedef unsigned int GLsync; */
+/* typedef uint GLsync; */
 #if 0
 #  define GLsync_str "I"
 #  define GLsync_var(num) bgl_var##num
@@ -384,7 +384,7 @@ typedef struct BufferOrOffset {
 #define ret_set_GLint ret_int =
 #define ret_ret_GLint return PyLong_FromLong(ret_int)
 
-#define ret_def_GLuint unsigned int ret_uint
+#define ret_def_GLuint uint ret_uint
 #define ret_set_GLuint ret_uint =
 #define ret_ret_GLuint return PyLong_FromLong((long)ret_uint)
 
@@ -395,20 +395,20 @@ typedef struct BufferOrOffset {
 #endif
 
 #if 0
-#  define ret_def_GLsync unsigned int ret_sync
+#  define ret_def_GLsync uint ret_sync
 #  define ret_set_GLsync ret_sync =
 #  define ret_ret_GLsync return PyLong_FromLong((long)ret_sync)
 #endif
 
-#define ret_def_GLenum unsigned int ret_uint
+#define ret_def_GLenum uint ret_uint
 #define ret_set_GLenum ret_uint =
 #define ret_ret_GLenum return PyLong_FromLong((long)ret_uint)
 
-#define ret_def_GLboolean unsigned char ret_bool
+#define ret_def_GLboolean uchar ret_bool
 #define ret_set_GLboolean ret_bool =
 #define ret_ret_GLboolean return PyLong_FromLong((long)ret_bool)
 
-#define ret_def_GLstring const unsigned char *ret_str
+#define ret_def_GLstring const uchar *ret_str
 #define ret_set_GLstring ret_str =
 
 #define ret_ret_GLstring \
@@ -2612,7 +2612,7 @@ PyObject *BPyInit_bgl(void)
 
 static PyObject *Method_ShaderSource(PyObject *UNUSED(self), PyObject *args)
 {
-  unsigned int shader;
+  uint shader;
   const char *source;
 
   if (!PyArg_ParseTuple(args, "Is", &shader, &source)) {

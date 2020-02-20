@@ -848,8 +848,8 @@ PyObject *Euler_CreatePyObject_wrap(float eul[3], const short order, PyTypeObjec
 
 PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
                                   const short order,
-                                  unsigned char cb_type,
-                                  unsigned char cb_subtype)
+                                  uchar cb_type,
+                                  uchar cb_subtype)
 {
   EulerObject *self = (EulerObject *)Euler_CreatePyObject(NULL, order, NULL);
   if (self) {

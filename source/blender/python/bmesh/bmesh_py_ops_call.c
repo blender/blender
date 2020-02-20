@@ -337,7 +337,7 @@ static int bpy_slot_from_py(BMesh *bm,
           BMIter iter;
           BMHeader *ele;
           int tot;
-          unsigned int i;
+          uint i;
 
           if (bpy_slot_from_py_elemseq_check(
                   (BPy_BMGeneric *)value,

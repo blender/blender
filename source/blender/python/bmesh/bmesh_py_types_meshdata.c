@@ -284,15 +284,15 @@ PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin)
 
 static void mloopcol_to_float(const MLoopCol *mloopcol, float r_col[3])
 {
-  rgba_uchar_to_float(r_col, (const unsigned char *)&mloopcol->r);
+  rgba_uchar_to_float(r_col, (const uchar *)&mloopcol->r);
 }
 
 static void mloopcol_from_float(MLoopCol *mloopcol, const float col[3])
 {
-  rgba_float_to_uchar((unsigned char *)&mloopcol->r, col);
+  rgba_float_to_uchar((uchar *)&mloopcol->r, col);
 }
 
-static unsigned char mathutils_bmloopcol_cb_index = -1;
+static uchar mathutils_bmloopcol_cb_index = -1;
 
 static int mathutils_bmloopcol_check(BaseMathObject *UNUSED(bmo))
 {

@@ -75,7 +75,7 @@ static int matrix_col_vector_check(MatrixObject *mat, VectorObject *vec, int col
  * matrix row callbacks
  * this is so you can do matrix[i][j] = val OR matrix.row[i][j] = val */
 
-unsigned char mathutils_matrix_row_cb_index = -1;
+uchar mathutils_matrix_row_cb_index = -1;
 
 static int mathutils_matrix_row_check(BaseMathObject *bmo)
 {
@@ -166,7 +166,7 @@ Mathutils_Callback mathutils_matrix_row_cb = {
  * matrix row callbacks
  * this is so you can do matrix.col[i][j] = val */
 
-unsigned char mathutils_matrix_col_cb_index = -1;
+uchar mathutils_matrix_col_cb_index = -1;
 
 static int mathutils_matrix_col_check(BaseMathObject *bmo)
 {
@@ -266,7 +266,7 @@ Mathutils_Callback mathutils_matrix_col_cb = {
  * this is so you can do matrix.translation = val
  * note, this is _exactly like matrix.col except the 4th component is always omitted */
 
-unsigned char mathutils_matrix_translation_cb_index = -1;
+uchar mathutils_matrix_translation_cb_index = -1;
 
 static int mathutils_matrix_translation_check(BaseMathObject *bmo)
 {
@@ -364,13 +364,13 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
       /* Input is now as a sequence of rows so length of sequence
        * is the number of rows */
       /* -1 is an error, size checks will account for this */
-      const unsigned short num_row = PySequence_Size(arg);
+      const ushort num_row = PySequence_Size(arg);
 
       if (num_row >= 2 && num_row <= 4) {
         PyObject *item = PySequence_GetItem(arg, 0);
         /* Since each item is a row, number of items is the
          * same as the number of columns */
-        const unsigned short num_col = PySequence_Size(item);
+        const ushort num_col = PySequence_Size(item);
         Py_XDECREF(item);
 
         if (num_col >= 2 && num_col <= 4) {
@@ -1002,8 +1002,8 @@ static void matrix_unit_internal(MatrixObject *self)
 /* transposes memory layout, rol/col's don't have to match */
 static void matrix_transpose_internal(float mat_dst_fl[], const MatrixObject *mat_src)
 {
-  unsigned short col, row;
-  unsigned int i = 0;
+  ushort col, row;
+  uint i = 0;
 
   for (row = 0; row < mat_src->num_row; row++) {
     for (col = 0; col < mat_src->num_col; col++) {
@@ -1037,7 +1037,7 @@ static float matrix_determinant_internal(const MatrixObject *self)
   }
 }
 
-static void adjoint_matrix_n(float *mat_dst, const float *mat_src, const unsigned short dim)
+static void adjoint_matrix_n(float *mat_dst, const float *mat_src, const ushort dim)
 {
   /* calculate the classical adjoint */
   switch (dim) {
@@ -1061,10 +1061,10 @@ static void adjoint_matrix_n(float *mat_dst, const float *mat_src, const unsigne
 static void matrix_invert_with_det_n_internal(float *mat_dst,
                                               const float *mat_src,
                                               const float det,
-                                              const unsigned short dim)
+                                              const ushort dim)
 {
   float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
-  unsigned short i, j, k;
+  ushort i, j, k;
 
   BLI_assert(det != 0.0f);
 
@@ -3204,8 +3204,8 @@ PyTypeObject matrix_Type = {
 };
 
 PyObject *Matrix_CreatePyObject(const float *mat,
-                                const unsigned short num_col,
-                                const unsigned short num_row,
+                                const ushort num_col,
+                                const ushort num_row,
                                 PyTypeObject *base_type)
 {
   MatrixObject *self;
@@ -3258,8 +3258,8 @@ PyObject *Matrix_CreatePyObject(const float *mat,
 }
 
 PyObject *Matrix_CreatePyObject_wrap(float *mat,
-                                     const unsigned short num_col,
-                                     const unsigned short num_row,
+                                     const ushort num_col,
+                                     const ushort num_row,
                                      PyTypeObject *base_type)
 {
   MatrixObject *self;
@@ -3287,11 +3287,8 @@ PyObject *Matrix_CreatePyObject_wrap(float *mat,
   return (PyObject *)self;
 }
 
-PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
-                                   const unsigned short num_col,
-                                   const unsigned short num_row,
-                                   unsigned char cb_type,
-                                   unsigned char cb_subtype)
+PyObject *Matrix_CreatePyObject_cb(
+    PyObject *cb_user, const ushort num_col, const ushort num_row, uchar cb_type, uchar cb_subtype)
 {
   MatrixObject *self = (MatrixObject *)Matrix_CreatePyObject(NULL, num_col, num_row, NULL);
   if (self) {
@@ -3308,8 +3305,8 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
  * \param mat: Initialized matrix value to use in-place, allocated with #PyMem_Malloc
  */
 PyObject *Matrix_CreatePyObject_alloc(float *mat,
-                                      const unsigned short num_col,
-                                      const unsigned short num_row,
+                                      const ushort num_col,
+                                      const ushort num_row,
                                       PyTypeObject *base_type)
 {
   MatrixObject *self;

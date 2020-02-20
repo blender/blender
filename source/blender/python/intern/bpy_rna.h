@@ -202,12 +202,12 @@ int pyrna_pydict_to_props(PointerRNA *ptr,
                           const char *error_prefix);
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
-unsigned int *pyrna_set_to_enum_bitmap(const struct EnumPropertyItem *items,
-                                       PyObject *value,
-                                       int type_size,
-                                       bool type_convert_sign,
-                                       int bitmap_size,
-                                       const char *error_prefix);
+uint *pyrna_set_to_enum_bitmap(const struct EnumPropertyItem *items,
+                               PyObject *value,
+                               int type_size,
+                               bool type_convert_sign,
+                               int bitmap_size,
+                               const char *error_prefix);
 PyObject *pyrna_enum_bitfield_to_py(const struct EnumPropertyItem *items, int value);
 int pyrna_set_to_enum_bitfield(const struct EnumPropertyItem *items,
                                PyObject *value,

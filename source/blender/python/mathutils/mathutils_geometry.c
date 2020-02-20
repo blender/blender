@@ -1084,7 +1084,7 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
 {
   PyObject *py_planes;
   float(*planes)[4];
-  unsigned int planes_len;
+  uint planes_len;
 
   if (!PyArg_ParseTuple(args, "O:points_in_planes", &py_planes)) {
     return NULL;
@@ -1097,8 +1097,8 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
   else {
     /* note, this could be refactored into plain C easy - py bits are noted */
     const float eps = 0.0001f;
-    const unsigned int len = (unsigned int)planes_len;
-    unsigned int i, j, k, l;
+    const uint len = (uint)planes_len;
+    uint i, j, k, l;
 
     float n1n2[3], n2n3[3], n3n1[3];
     float potentialVertex[3];

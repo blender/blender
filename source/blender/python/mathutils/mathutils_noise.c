@@ -93,14 +93,14 @@
 #define MIXBITS(u, v) (((u)&UMASK) | ((v)&LMASK))
 #define TWIST(u, v) ((MIXBITS(u, v) >> 1) ^ ((v)&1UL ? MATRIX_A : 0UL))
 
-static unsigned long state[N]; /* the array for the state vector  */
+static ulong state[N]; /* the array for the state vector  */
 static int left = 1;
 static int initf = 0;
-static unsigned long *next;
+static ulong *next;
 static float state_offset_vector[3 * 3];
 
 /* initializes state[N] with a seed */
-static void init_genrand(unsigned long s)
+static void init_genrand(ulong s)
 {
   int j;
   state[0] = s & 0xffffffffUL;
@@ -117,7 +117,7 @@ static void init_genrand(unsigned long s)
 
   /* update vector offset */
   {
-    const unsigned long *state_offset = &state[N - ARRAY_SIZE(state_offset_vector)];
+    const ulong *state_offset = &state[N - ARRAY_SIZE(state_offset_vector)];
     const float range = 32; /* range in both pos/neg direction */
     for (j = 0; j < ARRAY_SIZE(state_offset_vector); j++, state_offset++) {
       /* overflow is fine here */
@@ -128,7 +128,7 @@ static void init_genrand(unsigned long s)
 
 static void next_state(void)
 {
-  unsigned long *p = state;
+  ulong *p = state;
   int j;
 
   /* if init_genrand() has not been called, */
@@ -166,7 +166,7 @@ static void setRndSeed(int seed)
 /* float number in range [0, 1) using the mersenne twister rng */
 static float frand(void)
 {
-  unsigned long y;
+  ulong y;
 
   if (--left == 0) {
     next_state();

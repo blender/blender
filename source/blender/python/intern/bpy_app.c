@@ -66,7 +66,7 @@
 #ifdef BUILD_DATE
 extern char build_date[];
 extern char build_time[];
-extern unsigned long build_commit_timestamp;
+extern ulong build_commit_timestamp;
 extern char build_commit_date[];
 extern char build_commit_time[];
 extern char build_hash[];

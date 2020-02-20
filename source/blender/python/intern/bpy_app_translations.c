@@ -80,10 +80,10 @@ static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
   return key;
 }
 
-static unsigned int _ghashutil_keyhash(const void *ptr)
+static uint _ghashutil_keyhash(const void *ptr)
 {
   const GHashKey *key = ptr;
-  unsigned int hash = BLI_ghashutil_strhash(key->msgctxt);
+  uint hash = BLI_ghashutil_strhash(key->msgctxt);
   return hash ^ BLI_ghashutil_strhash(key->msgid);
 }
 

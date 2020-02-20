@@ -125,7 +125,7 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
 int mathutils_array_parse(
     float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
-  const unsigned int flag = array_max;
+  const uint flag = array_max;
   int size;
 
   array_max &= ~MU_ARRAY_FLAGS;
@@ -540,7 +540,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
  * [3] https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  * instead.
  */
-#define SIGNMASK(i) (-(int)(((unsigned int)(i)) >> 31))
+#define SIGNMASK(i) (-(int)(((uint)(i)) >> 31))
 
 int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 {
@@ -593,9 +593,9 @@ PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 #define MATHUTILS_TOT_CB 17
 static Mathutils_Callback *mathutils_callbacks[MATHUTILS_TOT_CB] = {NULL};
 
-unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb)
+uchar Mathutils_RegisterCallback(Mathutils_Callback *cb)
 {
-  unsigned char i;
+  uchar i;
 
   /* find the first free slot */
   for (i = 0; mathutils_callbacks[i]; i++) {

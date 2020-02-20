@@ -1655,9 +1655,7 @@ PyObject *Quaternion_CreatePyObject_wrap(float quat[4], PyTypeObject *base_type)
   return (PyObject *)self;
 }
 
-PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user,
-                                       unsigned char cb_type,
-                                       unsigned char cb_subtype)
+PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar cb_subtype)
 {
   QuaternionObject *self = (QuaternionObject *)Quaternion_CreatePyObject(NULL, NULL);
   if (self) {

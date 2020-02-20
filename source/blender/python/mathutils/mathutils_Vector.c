@@ -2419,7 +2419,7 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
   size_t axis_to;
   size_t axis_from;
   float vec[MAX_DIMENSIONS];
-  unsigned int swizzleClosure;
+  uint swizzleClosure;
 
   if (BaseMath_ReadCallback(self) == -1) {
     return NULL;
@@ -2464,7 +2464,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
   size_t axis_from;
   size_t axis_to;
 
-  unsigned int swizzleClosure;
+  uint swizzleClosure;
 
   float tvec[MAX_DIMENSIONS];
   float vec_assign[MAX_DIMENSIONS];
@@ -3218,10 +3218,7 @@ PyObject *Vector_CreatePyObject_wrap(float *vec, const int size, PyTypeObject *b
  * Create a vector where the value is defined by registered callbacks,
  * see: #Mathutils_RegisterCallback
  */
-PyObject *Vector_CreatePyObject_cb(PyObject *cb_user,
-                                   int size,
-                                   unsigned char cb_type,
-                                   unsigned char cb_subtype)
+PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, uchar cb_type, uchar cb_subtype)
 {
   VectorObject *self = (VectorObject *)Vector_CreatePyObject(NULL, size, NULL);
   if (self) {

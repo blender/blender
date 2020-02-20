@@ -198,8 +198,8 @@ PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len)
  */
 void PyC_Tuple_Fill(PyObject *tuple, PyObject *value)
 {
-  unsigned int tot = PyTuple_GET_SIZE(tuple);
-  unsigned int i;
+  uint tot = PyTuple_GET_SIZE(tuple);
+  uint i;
 
   for (i = 0; i < tot; i++) {
     PyTuple_SET_ITEM(tuple, i, value);
@@ -209,8 +209,8 @@ void PyC_Tuple_Fill(PyObject *tuple, PyObject *value)
 
 void PyC_List_Fill(PyObject *list, PyObject *value)
 {
-  unsigned int tot = PyList_GET_SIZE(list);
-  unsigned int i;
+  uint tot = PyList_GET_SIZE(list);
+  uint i;
 
   for (i = 0; i < tot; i++) {
     PyList_SET_ITEM(list, i, value);

@@ -1040,12 +1040,12 @@ bool BPY_string_is_keyword(const char *str)
 
 /* EVIL, define text.c functions here... */
 /* BKE_text.h */
-int text_check_identifier_unicode(const unsigned int ch)
+int text_check_identifier_unicode(const uint ch)
 {
   return (ch < 255 && text_check_identifier((char)ch)) || Py_UNICODE_ISALNUM(ch);
 }
 
-int text_check_identifier_nodigit_unicode(const unsigned int ch)
+int text_check_identifier_nodigit_unicode(const uint ch)
 {
   return (ch < 255 && text_check_identifier_nodigit((char)ch)) || Py_UNICODE_ISALPHA(ch);
 }

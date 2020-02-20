@@ -130,8 +130,8 @@ struct gc_generation {
 
 static void id_release_gc(struct ID *id)
 {
-  unsigned int j;
-  // unsigned int i = 0;
+  uint j;
+  // uint i = 0;
   for (j = 0; j < 3; j++) {
     /* Hack below to get the 2 other lists from _PyGC_generation0 that are normally not exposed. */
     PyGC_Head *gen = (PyGC_Head *)(((char *)_PyGC_generation0) + (sizeof(gc_generation) * j));
@@ -382,7 +382,7 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr,
                                             PropertyRNA **r_prop_eul_order);
 
 /* bpyrna vector/euler/quat callbacks. */
-static unsigned char mathutils_rna_array_cb_index = -1; /* Index for our callbacks. */
+static uchar mathutils_rna_array_cb_index = -1; /* Index for our callbacks. */
 
 /* Subtype not used much yet. */
 #  define MATHUTILS_CB_SUBTYPE_EUL 0
@@ -532,7 +532,7 @@ static Mathutils_Callback mathutils_rna_array_cb = {
 };
 
 /* bpyrna matrix callbacks */
-static unsigned char mathutils_rna_matrix_cb_index = -1; /* Index for our callbacks. */
+static uchar mathutils_rna_matrix_cb_index = -1; /* Index for our callbacks. */
 
 static int mathutils_rna_matrix_get(BaseMathObject *bmo, int UNUSED(subtype))
 {
@@ -1302,7 +1302,7 @@ BLI_bitmap *pyrna_set_to_enum_bitmap(const EnumPropertyItem *items,
       if (type_size == 2) {
         union {
           signed short as_signed;
-          unsigned short as_unsigned;
+          ushort as_unsigned;
         } ret_convert;
         ret_convert.as_signed = (signed short)ret;
         index = (int)ret_convert.as_unsigned;
@@ -1310,7 +1310,7 @@ BLI_bitmap *pyrna_set_to_enum_bitmap(const EnumPropertyItem *items,
       else if (type_size == 1) {
         union {
           signed char as_signed;
-          unsigned char as_unsigned;
+          uchar as_unsigned;
         } ret_convert;
         ret_convert.as_signed = (signed char)ret;
         index = (int)ret_convert.as_unsigned;

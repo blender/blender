@@ -49,7 +49,7 @@ PyObject *bpy_intern_str_unregister;
 
 void bpy_intern_string_init(void)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
 #define BPY_INTERN_STR(var, str) \
   { \
@@ -81,7 +81,7 @@ void bpy_intern_string_init(void)
 
 void bpy_intern_string_exit(void)
 {
-  unsigned int i = ARRAY_SIZE(bpy_intern_str_arr);
+  uint i = ARRAY_SIZE(bpy_intern_str_arr);
   while (i--) {
     Py_DECREF(bpy_intern_str_arr[i]);
   }

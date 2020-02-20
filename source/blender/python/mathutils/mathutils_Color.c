@@ -1004,9 +1004,7 @@ PyObject *Color_CreatePyObject_wrap(float col[3], PyTypeObject *base_type)
   return (PyObject *)self;
 }
 
-PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
-                                  unsigned char cb_type,
-                                  unsigned char cb_subtype)
+PyObject *Color_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar cb_subtype)
 {
   ColorObject *self = (ColorObject *)Color_CreatePyObject(NULL, NULL);
   if (self) {

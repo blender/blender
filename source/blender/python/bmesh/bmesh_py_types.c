@@ -2680,12 +2680,12 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 
   double *keys;
   int *elem_idx;
-  unsigned int *elem_map_idx;
+  uint *elem_map_idx;
   int (*elem_idx_compare_by_keys)(const void *, const void *, void *);
 
-  unsigned int *vert_idx = NULL;
-  unsigned int *edge_idx = NULL;
-  unsigned int *face_idx = NULL;
+  uint *vert_idx = NULL;
+  uint *edge_idx = NULL;
+  uint *face_idx = NULL;
   int i;
 
   BMesh *bm = self->bm;
@@ -4065,7 +4065,7 @@ int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 int bpy_bm_generic_valid_check_source(BMesh *bm_source,
                                       const char *error_prefix,
                                       void **args,
-                                      unsigned int args_tot)
+                                      uint args_tot)
 {
   int ret = 0;
 

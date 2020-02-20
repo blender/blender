@@ -186,7 +186,7 @@ static PyObject *py_blf_draw(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  BLF_draw(fontid, text, (unsigned int)text_length);
+  BLF_draw(fontid, text, (uint)text_length);
 
   Py_RETURN_NONE;
 }
