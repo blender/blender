@@ -24,6 +24,8 @@
 extern PyTypeObject matrix_Type;
 extern PyTypeObject matrix_access_Type;
 
+typedef unsigned short ushort;
+
 #define MatrixObject_Check(v) PyObject_TypeCheck((v), &matrix_Type)
 #define MatrixObject_CheckExact(v) (Py_TYPE(v) == &matrix_Type)
 
