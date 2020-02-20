@@ -582,9 +582,6 @@ typedef struct SpaceSeq {
   /** Multiview current eye - for internal use. */
   char multiview_eye;
   char _pad2[7];
-
-  struct GPUFX *compositor;
-  void *_pad3;
 } SpaceSeq;
 
 /* SpaceSeq.mainb */

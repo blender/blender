@@ -7243,7 +7243,6 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       sseq->scopes.sep_waveform_ibuf = NULL;
       sseq->scopes.vector_ibuf = NULL;
       sseq->scopes.histogram_ibuf = NULL;
-      sseq->compositor = NULL;
     }
     else if (sl->spacetype == SPACE_PROPERTIES) {
       SpaceProperties *sbuts = (SpaceProperties *)sl;

@@ -52,8 +52,6 @@ typedef struct GPUMaterial GPUMaterial;
 typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
 
-typedef struct GPUParticleInfo GPUParticleInfo;
-
 /* Functions to create GPU Materials nodes */
 
 typedef enum eGPUType {
