@@ -40,6 +40,8 @@ class Buffer;
 class AUD_API IFileInput
 {
 public:
+	virtual ~IFileInput() {};
+
 	/**
 	 * Creates a reader for a file to be read.
 	 * \param filename Path to the file to be read.

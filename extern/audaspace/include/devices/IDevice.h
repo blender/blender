@@ -37,10 +37,10 @@ class ISynchronizer;
 /**
  * @interface IDevice
  * The IDevice interface represents an output device for sound sources.
- * Output devices may be several backends such as plattform independand like
- * SDL or OpenAL or plattform specific like ALSA, but they may also be
+ * Output devices may be several backends such as platform independand like
+ * SDL or OpenAL or platform specific like ALSA, but they may also be
  * files, RAM buffers or other types of streams.
- * \warning Thread safety must be insured so that no reader is beeing called
+ * \warning Thread safety must be insured so that no reader is being called
  *          twice at the same time.
  */
 class IDevice : public ILockable

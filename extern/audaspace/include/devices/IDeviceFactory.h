@@ -35,6 +35,8 @@ AUD_NAMESPACE_BEGIN
 class AUD_API IDeviceFactory
 {
 public:
+	virtual ~IDeviceFactory() {}
+
 	/**
 	 * Opens an audio device for playback.
 	 * \exception Exception Thrown if the audio device cannot be opened.
