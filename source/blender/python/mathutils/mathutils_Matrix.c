@@ -3306,6 +3306,23 @@ int Matrix_ParseAny(PyObject *o, void *p)
   return 1;
 }
 
+int Matrix_Parse2x2(PyObject *o, void *p)
+{
+  MatrixObject **pymat_p = p;
+  MatrixObject *pymat = (MatrixObject *)o;
+
+  if (!Matrix_ParseCheck(pymat)) {
+    return 0;
+  }
+  if ((pymat->num_col != 2) || (pymat->num_row != 2)) {
+    PyErr_SetString(PyExc_ValueError, "matrix must be 2x2");
+    return 0;
+  }
+
+  *pymat_p = pymat;
+  return 1;
+}
+
 int Matrix_Parse3x3(PyObject *o, void *p)
 {
   MatrixObject **pymat_p = p;

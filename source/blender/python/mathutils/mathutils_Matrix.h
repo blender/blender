@@ -76,6 +76,7 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *user,
 
 /* PyArg_ParseTuple's "O&" formatting helpers. */
 int Matrix_ParseAny(PyObject *o, void *p);
+int Matrix_Parse2x2(PyObject *o, void *p);
 int Matrix_Parse3x3(PyObject *o, void *p);
 int Matrix_Parse4x4(PyObject *o, void *p);
 

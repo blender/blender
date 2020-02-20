@@ -1273,31 +1273,42 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
   return Vector_CreatePyObject(ret_vec, size, Py_TYPE(self));
 }
 
-PyDoc_STRVAR(Vector_rotate_doc,
-             ".. function:: rotate(other)\n"
-             "\n"
-             "   Rotate the vector by a rotation value.\n"
-             "\n"
-             "   :arg other: rotation component of mathutils value\n"
-             "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n");
+PyDoc_STRVAR(
+    Vector_rotate_doc,
+    ".. function:: rotate(other)\n"
+    "\n"
+    "   Rotate the vector by a rotation value.\n"
+    "\n"
+    "   .. note:: 2D vectors are a special case that can only be rotated by a 2x2 matrix.\n"
+    "\n"
+    "   :arg other: rotation component of mathutils value\n"
+    "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n");
 static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
 {
-  float other_rmat[3][3];
-
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
     return NULL;
   }
 
-  if (mathutils_any_to_rotmat(other_rmat, value, "Vector.rotate(value)") == -1) {
-    return NULL;
+  if (self->size == 2) {
+    /* Special case for 2D Vector with 2x2 matrix, so we avoid resizing it to a 3x3. */
+    float other_rmat[2][2];
+    MatrixObject *pymat;
+    if (!Matrix_Parse2x2(value, &pymat)) {
+      return NULL;
+    }
+    normalize_m2_m2(other_rmat, (const float(*)[2])pymat->matrix);
+    /* Equivalent to a rotation along the Z axis. */
+    mul_m2_v2(other_rmat, self->vec);
   }
+  else {
+    float other_rmat[3][3];
 
-  if (self->size < 3 || self->size > 4) {
-    PyErr_SetString(PyExc_ValueError, "Vector must be 3D or 4D");
-    return NULL;
+    if (mathutils_any_to_rotmat(other_rmat, value, "Vector.rotate(value)") == -1) {
+      return NULL;
+    }
+
+    mul_m3_v3(other_rmat, self->vec);
   }
-
-  mul_m3_v3(other_rmat, self->vec);
 
   (void)BaseMath_WriteCallback(self);
   Py_RETURN_NONE;
