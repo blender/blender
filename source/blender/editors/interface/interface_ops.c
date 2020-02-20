@@ -735,6 +735,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
 {
   *r_use_path_from_id = false;
   *r_path = NULL;
+  /* special case for bone constraints */
+  char *path_from_bone = NULL;
 
   /* PropertyGroup objects don't have a reference to the struct that actually owns
    * them, so it is normally necessary to do a brute force search to find it. This
@@ -796,6 +798,11 @@ bool UI_context_copy_to_selected_list(bContext *C,
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_FCurve)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_fcurves");
+  }
+  else if (RNA_struct_is_a(ptr->type, &RNA_Constraint) &&
+           (path_from_bone = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_PoseBone)) != NULL) {
+    *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
+    *r_path = path_from_bone;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Node) || RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
     ListBase lb = {NULL, NULL};
