@@ -143,6 +143,44 @@ void copy_m4_m3(float m1[4][4], const float m2[3][3]) /* no clear */
   m1[3][3] = 1.0f;
 }
 
+void copy_m3_m2(float m1[3][3], const float m2[2][2])
+{
+  m1[0][0] = m2[0][0];
+  m1[0][1] = m2[0][1];
+  m1[0][2] = 0.0f;
+
+  m1[1][0] = m2[1][0];
+  m1[1][1] = m2[1][1];
+  m1[1][2] = 0.0f;
+
+  m1[2][0] = 0.0f;
+  m1[2][1] = 0.0f;
+  m1[2][2] = 1.0f;
+}
+
+void copy_m4_m2(float m1[4][4], const float m2[2][2])
+{
+  m1[0][0] = m2[0][0];
+  m1[0][1] = m2[0][1];
+  m1[0][2] = 0.0f;
+  m1[0][3] = 0.0f;
+
+  m1[1][0] = m2[1][0];
+  m1[1][1] = m2[1][1];
+  m1[1][2] = 0.0f;
+  m1[1][3] = 0.0f;
+
+  m1[2][0] = 0.0f;
+  m1[2][1] = 0.0f;
+  m1[2][2] = 1.0f;
+  m1[2][3] = 0.0f;
+
+  m1[3][0] = 0.0f;
+  m1[3][1] = 0.0f;
+  m1[3][2] = 0.0f;
+  m1[3][3] = 1.0f;
+}
+
 void copy_m4d_m4(double m1[4][4], const float m2[4][4])
 {
   m1[0][0] = m2[0][0];
@@ -1753,6 +1791,37 @@ bool is_uniform_scaled_m4(const float m[4][4])
   float t[3][3];
   copy_m3_m4(t, m);
   return is_uniform_scaled_m3(t);
+}
+
+void normalize_m2_ex(float mat[2][2], float r_scale[2])
+{
+  int i;
+  for (i = 0; i < 2; i++) {
+    r_scale[i] = normalize_v2(mat[i]);
+  }
+}
+
+void normalize_m2(float mat[2][2])
+{
+  int i;
+  for (i = 0; i < 2; i++) {
+    normalize_v2(mat[i]);
+  }
+}
+
+void normalize_m2_m2_ex(float rmat[2][2], const float mat[2][2], float r_scale[2])
+{
+  int i;
+  for (i = 0; i < 2; i++) {
+    r_scale[i] = normalize_v2_v2(rmat[i], mat[i]);
+  }
+}
+void normalize_m2_m2(float rmat[2][2], const float mat[2][2])
+{
+  int i;
+  for (i = 0; i < 2; i++) {
+    normalize_v2_v2(rmat[i], mat[i]);
+  }
 }
 
 void normalize_m3_ex(float mat[3][3], float r_scale[3])

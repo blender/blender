@@ -48,6 +48,8 @@ void copy_m3_m3(float R[3][3], const float A[3][3]);
 void copy_m4_m4(float R[4][4], const float A[4][4]);
 void copy_m3_m4(float R[3][3], const float A[4][4]);
 void copy_m4_m3(float R[4][4], const float A[3][3]);
+void copy_m3_m2(float R[3][3], const float A[2][2]);
+void copy_m4_m2(float R[4][4], const float A[2][2]);
 
 void copy_m4_m4_db(double m1[4][4], const double m2[4][4]);
 
@@ -245,6 +247,10 @@ void transpose_m4_m4(float R[4][4], const float A[4][4]);
 
 int compare_m4m4(const float mat1[4][4], const float mat2[4][4], float limit);
 
+void normalize_m2_ex(float R[2][2], float r_scale[2]) ATTR_NONNULL();
+void normalize_m2(float R[2][2]) ATTR_NONNULL();
+void normalize_m2_m2_ex(float R[2][2], const float A[2][2], float r_scale[2]) ATTR_NONNULL();
+void normalize_m2_m2(float R[2][2], const float A[2][2]) ATTR_NONNULL();
 void normalize_m3_ex(float R[3][3], float r_scale[3]) ATTR_NONNULL();
 void normalize_m3(float R[3][3]) ATTR_NONNULL();
 void normalize_m3_m3_ex(float R[3][3], const float A[3][3], float r_scale[3]) ATTR_NONNULL();
