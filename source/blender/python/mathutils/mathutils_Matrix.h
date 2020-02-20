@@ -74,6 +74,11 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *user,
                                    unsigned char cb_type,
                                    unsigned char cb_subtype) ATTR_WARN_UNUSED_RESULT;
 
+PyObject *Matrix_CreatePyObject_alloc(float *mat,
+                                      const unsigned short num_col,
+                                      const unsigned short num_row,
+                                      PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
+
 /* PyArg_ParseTuple's "O&" formatting helpers. */
 int Matrix_ParseAny(PyObject *o, void *p);
 int Matrix_Parse2x2(PyObject *o, void *p);

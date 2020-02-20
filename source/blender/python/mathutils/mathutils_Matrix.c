@@ -988,6 +988,17 @@ static void matrix_copy(MatrixObject *mat_dst, const MatrixObject *mat_src)
   memcpy(mat_dst->matrix, mat_src->matrix, sizeof(float) * (mat_dst->num_col * mat_dst->num_row));
 }
 
+static void matrix_unit_internal(MatrixObject *self)
+{
+  const int mat_size = sizeof(float) * (self->num_col * self->num_row);
+  memset(self->matrix, 0x0, mat_size);
+  const int col_row_max = min_ii(self->num_col, self->num_row);
+  const int num_row = self->num_row;
+  for (int col = 0; col < col_row_max; col++) {
+    self->matrix[(col * num_row) + col] = 1.0f;
+  }
+}
+
 /* transposes memory layout, rol/col's don't have to match */
 static void matrix_transpose_internal(float mat_dst_fl[], const MatrixObject *mat_src)
 {
@@ -1323,33 +1334,42 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Matrix_to_4x4_doc,
-             ".. method:: to_4x4()\n"
+static PyObject *Matrix_to_NxN(MatrixObject *self, const int num_col, const int num_row)
+{
+  const int mat_size = sizeof(float) * (num_col * num_row);
+  MatrixObject *pymat = (MatrixObject *)Matrix_CreatePyObject_alloc(
+      PyMem_Malloc(mat_size), num_col, num_row, Py_TYPE(self));
+
+  if ((self->num_row == num_row) && (self->num_col == num_col)) {
+    memcpy(pymat->matrix, self->matrix, mat_size);
+  }
+  else {
+    if ((self->num_col < num_col) || (self->num_row < num_row)) {
+      matrix_unit_internal(pymat);
+    }
+    const int col_len_src = min_ii(num_col, self->num_col);
+    const int row_len_src = min_ii(num_row, self->num_row);
+    for (int col = 0; col < col_len_src; col++) {
+      memcpy(
+          &pymat->matrix[col * num_row], MATRIX_COL_PTR(self, col), sizeof(float) * row_len_src);
+    }
+  }
+  return (PyObject *)pymat;
+}
+
+PyDoc_STRVAR(Matrix_to_2x2_doc,
+             ".. method:: to_2x2()\n"
              "\n"
-             "   Return a 4x4 copy of this matrix.\n"
+             "   Return a 2x2 copy of this matrix.\n"
              "\n"
              "   :return: a new matrix.\n"
              "   :rtype: :class:`Matrix`\n");
-static PyObject *Matrix_to_4x4(MatrixObject *self)
+static PyObject *Matrix_to_2x2(MatrixObject *self)
 {
   if (BaseMath_ReadCallback(self) == -1) {
     return NULL;
   }
-
-  if (self->num_row == 4 && self->num_col == 4) {
-    return Matrix_CreatePyObject(self->matrix, 4, 4, Py_TYPE(self));
-  }
-  else if (self->num_row == 3 && self->num_col == 3) {
-    float mat[4][4];
-    copy_m4_m3(mat, (float(*)[3])self->matrix);
-    return Matrix_CreatePyObject((float *)mat, 4, 4, Py_TYPE(self));
-  }
-  /* TODO, 2x2 matrix */
-
-  PyErr_SetString(PyExc_ValueError,
-                  "Matrix.to_4x4(): "
-                  "inappropriate matrix size");
-  return NULL;
+  return Matrix_to_NxN(self, 2, 2);
 }
 
 PyDoc_STRVAR(Matrix_to_3x3_doc,
@@ -1361,20 +1381,26 @@ PyDoc_STRVAR(Matrix_to_3x3_doc,
              "   :rtype: :class:`Matrix`\n");
 static PyObject *Matrix_to_3x3(MatrixObject *self)
 {
-  float mat[3][3];
+  if (BaseMath_ReadCallback(self) == -1) {
+    return NULL;
+  }
+  return Matrix_to_NxN(self, 3, 3);
+}
+
+PyDoc_STRVAR(Matrix_to_4x4_doc,
+             ".. method:: to_4x4()\n"
+             "\n"
+             "   Return a 4x4 copy of this matrix.\n"
+             "\n"
+             "   :return: a new matrix.\n"
+             "   :rtype: :class:`Matrix`\n");
+static PyObject *Matrix_to_4x4(MatrixObject *self)
+{
 
   if (BaseMath_ReadCallback(self) == -1) {
     return NULL;
   }
-
-  if ((self->num_row < 3) || (self->num_col < 3)) {
-    PyErr_SetString(PyExc_ValueError, "Matrix.to_3x3(): inappropriate matrix size");
-    return NULL;
-  }
-
-  matrix_as_3x3(mat, self);
-
-  return Matrix_CreatePyObject((float *)mat, 3, 3, Py_TYPE(self));
+  return Matrix_to_NxN(self, 4, 4);
 }
 
 PyDoc_STRVAR(Matrix_to_translation_doc,
@@ -3075,9 +3101,10 @@ static struct PyMethodDef Matrix_methods[] = {
     {"inverted_safe", (PyCFunction)Matrix_inverted_safe, METH_NOARGS, Matrix_inverted_safe_doc},
     {"adjugate", (PyCFunction)Matrix_adjugate, METH_NOARGS, Matrix_adjugate_doc},
     {"adjugated", (PyCFunction)Matrix_adjugated, METH_NOARGS, Matrix_adjugated_doc},
+    {"to_2x2", (PyCFunction)Matrix_to_2x2, METH_NOARGS, Matrix_to_2x2_doc},
     {"to_3x3", (PyCFunction)Matrix_to_3x3, METH_NOARGS, Matrix_to_3x3_doc},
-    /* TODO. {"resize_3x3", (PyCFunction) Matrix_resize3x3, METH_NOARGS, Matrix_resize3x3_doc}, */
     {"to_4x4", (PyCFunction)Matrix_to_4x4, METH_NOARGS, Matrix_to_4x4_doc},
+    /* TODO. {"resize_3x3", (PyCFunction) Matrix_resize3x3, METH_NOARGS, Matrix_resize3x3_doc}, */
     {"resize_4x4", (PyCFunction)Matrix_resize_4x4, METH_NOARGS, Matrix_resize_4x4_doc},
     {"rotate", (PyCFunction)Matrix_rotate, METH_O, Matrix_rotate_doc},
 
@@ -3274,6 +3301,23 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
     self->cb_subtype = cb_subtype;
     PyObject_GC_Track(self);
   }
+  return (PyObject *)self;
+}
+
+/**
+ * \param mat: Initialized matrix value to use in-place, allocated with #PyMem_Malloc
+ */
+PyObject *Matrix_CreatePyObject_alloc(float *mat,
+                                      const unsigned short num_col,
+                                      const unsigned short num_row,
+                                      PyTypeObject *base_type)
+{
+  MatrixObject *self;
+  self = (MatrixObject *)Matrix_CreatePyObject_wrap(mat, num_col, num_row, base_type);
+  if (self) {
+    self->flag &= ~BASE_MATH_FLAG_IS_WRAP;
+  }
+
   return (PyObject *)self;
 }
 

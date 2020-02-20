@@ -3236,14 +3236,14 @@ PyObject *Vector_CreatePyObject_cb(PyObject *cb_user,
 }
 
 /**
- * \param vec: Initialized vector value to use in-place, allocated with: PyMem_Malloc
+ * \param vec: Initialized vector value to use in-place, allocated with #PyMem_Malloc
  */
 PyObject *Vector_CreatePyObject_alloc(float *vec, const int size, PyTypeObject *base_type)
 {
   VectorObject *self;
   self = (VectorObject *)Vector_CreatePyObject_wrap(vec, size, base_type);
   if (self) {
-    self->flag = BASE_MATH_FLAG_DEFAULT;
+    self->flag &= ~BASE_MATH_FLAG_IS_WRAP;
   }
 
   return (PyObject *)self;
