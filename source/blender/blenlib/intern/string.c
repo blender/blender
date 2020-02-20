@@ -512,8 +512,8 @@ int BLI_strcaseeq(const char *a, const char *b)
  */
 char *BLI_strcasestr(const char *s, const char *find)
 {
-  register char c, sc;
-  register size_t len;
+  char c, sc;
+  size_t len;
 
   if ((c = *find++) != 0) {
     c = tolower(c);
@@ -536,7 +536,7 @@ char *BLI_strcasestr(const char *s, const char *find)
  */
 char *BLI_strncasestr(const char *s, const char *find, size_t len)
 {
-  register char c, sc;
+  char c, sc;
 
   if ((c = *find++) != 0) {
     c = tolower(c);
@@ -567,8 +567,8 @@ char *BLI_strncasestr(const char *s, const char *find, size_t len)
 
 int BLI_strcasecmp(const char *s1, const char *s2)
 {
-  register int i;
-  register char c1, c2;
+  int i;
+  char c1, c2;
 
   for (i = 0;; i++) {
     c1 = tolower(s1[i]);
@@ -590,8 +590,8 @@ int BLI_strcasecmp(const char *s1, const char *s2)
 
 int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 {
-  register size_t i;
-  register char c1, c2;
+  size_t i;
+  char c1, c2;
 
   for (i = 0; i < len; i++) {
     c1 = tolower(s1[i]);
@@ -669,8 +669,8 @@ static int left_number_strcmp(const char *s1, const char *s2, int *tiebreaker)
  */
 int BLI_strcasecmp_natural(const char *s1, const char *s2)
 {
-  register int d1 = 0, d2 = 0;
-  register char c1, c2;
+  int d1 = 0, d2 = 0;
+  char c1, c2;
   int tiebreaker = 0;
 
   /* if both chars are numeric, to a left_number_strcmp().

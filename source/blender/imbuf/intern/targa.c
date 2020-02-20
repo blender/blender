@@ -127,9 +127,9 @@ static int tga_out4(unsigned int data, FILE *file)
 
 static bool makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE *))
 {
-  register int last, this;
-  register int copy, bytes;
-  register unsigned int *rect, *rectstart, *temp;
+  int last, this;
+  int copy, bytes;
+  unsigned int *rect, *rectstart, *temp;
   int y;
 
   for (y = 0; y < ibuf->y; y++) {

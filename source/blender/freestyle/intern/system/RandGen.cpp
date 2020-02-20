@@ -70,10 +70,10 @@ namespace Freestyle {
     (void)0
 
 #  define NEST(TYPE, f, F) \
-    TYPE f(register unsigned short *xsubi) \
+    TYPE f(unsigned short *xsubi) \
     { \
-      register int i; \
-      register TYPE v; \
+      int i; \
+      TYPE v; \
       unsigned temp[3]; \
       for (i = 0; i < 3; i++) { \
         temp[i] = x[i]; \
