@@ -140,7 +140,7 @@ static void tracking_dopesheet_free(MovieTrackingDopesheet *dopesheet)
 {
   MovieTrackingDopesheetChannel *channel;
 
-  /* Free channel's sergments. */
+  /* Free channel's segments. */
   channel = dopesheet->channels.first;
   while (channel) {
     if (channel->segments) {
