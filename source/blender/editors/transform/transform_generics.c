@@ -1374,13 +1374,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   bGPdata *gpd = CTX_data_gpencil_data(C);
   PropertyRNA *prop;
 
-  if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
-      RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_float_get_array(op->ptr, prop, t->center_global);
-    mul_v3_v3(t->center_global, t->aspect);
-    t->flag |= T_OVERRIDE_CENTER;
-  }
-
   if (op && (prop = RNA_struct_find_property(op->ptr, "mouse_coordinate_override")) &&
       RNA_property_is_set(op->ptr, prop)) {
     RNA_property_int_get_array(op->ptr, prop, t->mval);
@@ -1779,6 +1772,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 #endif
 
   setTransformViewAspect(t, t->aspect);
+
+  if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_float_get_array(op->ptr, prop, t->center_global);
+    mul_v3_v3(t->center_global, t->aspect);
+    t->flag |= T_OVERRIDE_CENTER;
+  }
 
   setTransformViewMatrices(t);
   initNumInput(&t->num);
