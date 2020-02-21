@@ -1711,7 +1711,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Maximum Trapped Air Potential",
                            "Upper clamping threshold for marking fluid cells where air is trapped "
-                           "(highe value results in less marked cells)");
+                           "(higher value results in less marked cells)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_resetCache");
 
   prop = RNA_def_property(srna, "sndparticle_potential_min_energy", PROP_FLOAT, PROP_NONE);
