@@ -398,6 +398,20 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */
 
 /* screen sets cursor based on active region */
+static void region_cursor_set_ex(wmWindow *win, ScrArea *sa, ARegion *ar, bool swin_changed)
+{
+  BLI_assert(WM_window_get_active_screen(win)->active_region == ar);
+  if (sa->flag & AREA_FLAG_CURSOR_UPDATE || swin_changed || (ar->type && ar->type->event_cursor)) {
+    sa->flag &= ~AREA_FLAG_CURSOR_UPDATE;
+    if (ar->gizmo_map != NULL) {
+      if (WM_gizmomap_cursor_set(ar->gizmo_map, win)) {
+        return;
+      }
+    }
+    ED_region_cursor_set(win, sa, ar);
+  }
+}
+
 static void region_cursor_set(wmWindow *win, bool swin_changed)
 {
   bScreen *screen = WM_window_get_active_screen(win);
@@ -406,16 +420,7 @@ static void region_cursor_set(wmWindow *win, bool swin_changed)
   {
     for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
       if (ar == screen->active_region) {
-        if (swin_changed || (sa->flag & AREA_FLAG_CURSOR_UPDATE) ||
-            (ar->type && ar->type->event_cursor)) {
-          sa->flag &= ~AREA_FLAG_CURSOR_UPDATE;
-          if (ar->gizmo_map != NULL) {
-            if (WM_gizmomap_cursor_set(ar->gizmo_map, win)) {
-              return;
-            }
-          }
-          ED_region_cursor_set(win, sa, ar);
-        }
+        region_cursor_set_ex(win, sa, ar, swin_changed);
         return;
       }
     }
@@ -753,18 +758,16 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
     }
     else {
       /* notifier invokes freeing the buttons... causing a bit too much redraws */
-      if (old_ar != scr->active_region) {
-        region_cursor_set(win, true);
+      const bool swin_changed = (old_ar != scr->active_region);
+      region_cursor_set_ex(win, sa, scr->active_region, swin_changed);
 
+      if (old_ar != scr->active_region) {
         /* this used to be a notifier, but needs to be done immediate
          * because it can undo setting the right button as active due
          * to delayed notifier handling */
         if (C) {
           UI_screen_free_active_but(C, scr);
         }
-      }
-      else {
-        region_cursor_set(win, false);
       }
     }
   }
