@@ -302,6 +302,8 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
 
   virtual void build_copy_on_write_relations();
   virtual void build_copy_on_write_relations(IDNode *id_node);
+  virtual void build_driver_relations();
+  virtual void build_driver_relations(IDNode *id_node);
 
   template<typename KeyType> OperationNode *find_operation_node(const KeyType &key);
 

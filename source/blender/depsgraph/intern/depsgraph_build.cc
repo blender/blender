@@ -251,6 +251,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
   relation_builder.begin_build();
   relation_builder.build_view_layer(scene, view_layer, DEG::DEG_ID_LINKED_DIRECTLY);
   relation_builder.build_copy_on_write_relations();
+  relation_builder.build_driver_relations();
   /* Finalize building. */
   graph_build_finalize_common(deg_graph, bmain);
   /* Finish statistics. */
@@ -284,6 +285,7 @@ void DEG_graph_build_for_render_pipeline(Depsgraph *graph,
   relation_builder.begin_build();
   relation_builder.build_scene_render(scene, view_layer);
   relation_builder.build_copy_on_write_relations();
+  relation_builder.build_driver_relations();
   /* Finalize building. */
   graph_build_finalize_common(deg_graph, bmain);
   /* Finish statistics. */
@@ -317,6 +319,7 @@ void DEG_graph_build_for_compositor_preview(
   relation_builder.build_scene_render(scene, view_layer);
   relation_builder.build_nodetree(nodetree);
   relation_builder.build_copy_on_write_relations();
+  relation_builder.build_driver_relations();
   /* Finalize building. */
   graph_build_finalize_common(deg_graph, bmain);
   /* Finish statistics. */
@@ -458,6 +461,7 @@ void DEG_graph_build_from_ids(Depsgraph *graph,
     relation_builder.build_id(ids[i]);
   }
   relation_builder.build_copy_on_write_relations();
+  relation_builder.build_driver_relations();
   /* Finalize building. */
   graph_build_finalize_common(deg_graph, bmain);
   /* Finish statistics. */
