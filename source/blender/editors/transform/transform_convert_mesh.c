@@ -1030,7 +1030,15 @@ static void create_trans_vert_customdata_layer(BMVert *v,
 void trans_mesh_customdata_correction_init(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    BLI_assert(tc->custom.type.data == NULL);
+    if (tc->custom.type.data) {
+      if (tc->custom.type.free_cb == trans_mesh_customdata_free_cb) {
+        /* Custom data correction has initiated before. */
+        continue;
+      }
+      else {
+        BLI_assert(false);
+      }
+    }
     int i;
 
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
