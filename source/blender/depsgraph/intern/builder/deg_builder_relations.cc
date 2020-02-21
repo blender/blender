@@ -1488,7 +1488,11 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
   }
   else {
     /* If it's not a Bone, handle the generic single dependency case. */
-    add_relation(driver_key, property_entry_key, "Driver -> Driven Property");
+    Node *node_to = get_node(property_entry_key);
+    if (node_to != nullptr) {
+      add_relation(driver_key, property_entry_key, "Driver -> Driven Property");
+    }
+
     /* Similar to the case with f-curves, driver might drive a nested
      * data-block, which means driver execution should wait for that
      * data-block to be copied. */
