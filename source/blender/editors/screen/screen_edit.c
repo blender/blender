@@ -406,7 +406,9 @@ static void region_cursor_set(wmWindow *win, bool swin_changed)
   {
     for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
       if (ar == screen->active_region) {
-        if (swin_changed || (ar->type && ar->type->event_cursor)) {
+        if (swin_changed || (sa->flag & AREA_FLAG_CURSOR_UPDATE) ||
+            (ar->type && ar->type->event_cursor)) {
+          sa->flag &= ~AREA_FLAG_CURSOR_UPDATE;
           if (ar->gizmo_map != NULL) {
             if (WM_gizmomap_cursor_set(ar->gizmo_map, win)) {
               return;
