@@ -326,6 +326,9 @@ class BaseCodeSigner(metaclass=abc.ABCMeta):
             self.copy_signed_files_to_directory(
                 unpacked_signed_files_dir, destination_dir)
 
+        logger_builder.info('Removing archive with signed files...')
+        self.signed_archive_info.clean()
+
     ############################################################################
     # Signing server side helpers.
 
