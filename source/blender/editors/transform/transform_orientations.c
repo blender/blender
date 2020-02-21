@@ -512,11 +512,11 @@ void initTransformOrientation(bContext *C, TransInfo *t)
       t->orientation.unset = V3D_ORIENT_VIEW;
       copy_m3_m4(t->orient_matrix, t->viewinv);
       normalize_m3(t->orient_matrix);
+      negate_m3(t->orient_matrix);
     }
     else {
       copy_m3_m3(t->orient_matrix, t->spacemtx);
     }
-    negate_m3(t->orient_matrix);
   }
 }
 
