@@ -661,10 +661,6 @@ static void toolsystem_refresh_screen_from_active_tool(Main *bmain,
             if (mode == tref->mode) {
               sa->runtime.tool = tref;
               sa->runtime.is_tool_set = true;
-              /* We only need to do this for the active area,
-               * however at this point the context isn't available.
-               * Set this here since it doesn't cause any extra work. */
-              sa->flag |= AREA_FLAG_CURSOR_UPDATE;
             }
           }
         }

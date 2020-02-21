@@ -679,95 +679,98 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
   }
 }
 
-/* called in wm_event_system.c. sets state vars in screen, cursors */
-/* event type is mouse move */
+/**
+ * Called in wm_event_system.c. sets state vars in screen, cursors.
+ * event type is mouse move.
+ */
 void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 {
   bScreen *scr = WM_window_get_active_screen(win);
+  if (scr == NULL) {
+    return;
+  }
 
-  if (scr) {
-    ScrArea *sa = NULL;
-    ARegion *ar;
-    ARegion *old_ar = scr->active_region;
+  ScrArea *sa = NULL;
+  ARegion *ar;
+  ARegion *old_ar = scr->active_region;
 
-    ED_screen_areas_iter(win, scr, area_iter)
-    {
-      if (xy[0] > area_iter->totrct.xmin && xy[0] < area_iter->totrct.xmax) {
-        if (xy[1] > area_iter->totrct.ymin && xy[1] < area_iter->totrct.ymax) {
-          if (ED_area_azones_update(area_iter, xy) == NULL) {
-            sa = area_iter;
-            break;
-          }
-        }
-      }
-    }
-    if (sa) {
-      /* make overlap active when mouse over */
-      for (ar = sa->regionbase.first; ar; ar = ar->next) {
-        if (ED_region_contains_xy(ar, xy)) {
-          scr->active_region = ar;
+  ED_screen_areas_iter(win, scr, area_iter)
+  {
+    if (xy[0] > area_iter->totrct.xmin && xy[0] < area_iter->totrct.xmax) {
+      if (xy[1] > area_iter->totrct.ymin && xy[1] < area_iter->totrct.ymax) {
+        if (ED_area_azones_update(area_iter, xy) == NULL) {
+          sa = area_iter;
           break;
         }
       }
     }
-    else {
-      scr->active_region = NULL;
+  }
+  if (sa) {
+    /* Make overlap active when mouse over. */
+    for (ar = sa->regionbase.first; ar; ar = ar->next) {
+      if (ED_region_contains_xy(ar, xy)) {
+        scr->active_region = ar;
+        break;
+      }
     }
+  }
+  else {
+    scr->active_region = NULL;
+  }
 
-    /* check for redraw headers */
-    if (old_ar != scr->active_region) {
+  /* Check for redraw headers. */
+  if (old_ar != scr->active_region) {
 
-      ED_screen_areas_iter(win, scr, area_iter)
-      {
-        bool do_draw = false;
+    ED_screen_areas_iter(win, scr, area_iter)
+    {
+      bool do_draw = false;
 
-        for (ar = area_iter->regionbase.first; ar; ar = ar->next) {
+      for (ar = area_iter->regionbase.first; ar; ar = ar->next) {
 
-          /* call old area's deactivate if assigned */
-          if (ar == old_ar && area_iter->type->deactivate) {
-            area_iter->type->deactivate(area_iter);
-          }
+        /* Call old area's deactivate if assigned. */
+        if (ar == old_ar && area_iter->type->deactivate) {
+          area_iter->type->deactivate(area_iter);
+        }
 
-          if (ar == old_ar && ar != scr->active_region) {
-            wmGizmoMap *gzmap = old_ar->gizmo_map;
-            if (gzmap) {
-              if (WM_gizmo_highlight_set(gzmap, NULL)) {
-                ED_region_tag_redraw_no_rebuild(old_ar);
-              }
+        if (ar == old_ar && ar != scr->active_region) {
+          wmGizmoMap *gzmap = old_ar->gizmo_map;
+          if (gzmap) {
+            if (WM_gizmo_highlight_set(gzmap, NULL)) {
+              ED_region_tag_redraw_no_rebuild(old_ar);
             }
-          }
-
-          if (ar == old_ar || ar == scr->active_region) {
-            do_draw = true;
           }
         }
 
-        if (do_draw) {
-          for (ar = area_iter->regionbase.first; ar; ar = ar->next) {
-            if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
-              ED_region_tag_redraw_no_rebuild(ar);
-            }
+        if (ar == old_ar || ar == scr->active_region) {
+          do_draw = true;
+        }
+      }
+
+      if (do_draw) {
+        for (ar = area_iter->regionbase.first; ar; ar = ar->next) {
+          if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+            ED_region_tag_redraw_no_rebuild(ar);
           }
         }
       }
     }
+  }
 
-    /* cursors, for time being set always on edges, otherwise aregion doesn't switch */
-    if (scr->active_region == NULL) {
-      screen_cursor_set(win, xy);
-    }
-    else {
-      /* notifier invokes freeing the buttons... causing a bit too much redraws */
-      const bool swin_changed = (old_ar != scr->active_region);
-      region_cursor_set_ex(win, sa, scr->active_region, swin_changed);
+  /* Cursors, for time being set always on edges,
+   * otherwise the active region doesn't switch. */
+  if (scr->active_region == NULL) {
+    screen_cursor_set(win, xy);
+  }
+  else {
+    /* Notifier invokes freeing the buttons... causing a bit too much redraws. */
+    region_cursor_set_ex(win, sa, scr->active_region, old_ar != scr->active_region);
 
-      if (old_ar != scr->active_region) {
-        /* this used to be a notifier, but needs to be done immediate
-         * because it can undo setting the right button as active due
-         * to delayed notifier handling */
-        if (C) {
-          UI_screen_free_active_but(C, scr);
-        }
+    if (old_ar != scr->active_region) {
+      /* This used to be a notifier, but needs to be done immediate
+       * because it can undo setting the right button as active due
+       * to delayed notifier handling. */
+      if (C) {
+        UI_screen_free_active_but(C, scr);
       }
     }
   }
