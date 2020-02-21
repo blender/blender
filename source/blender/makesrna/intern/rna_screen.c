@@ -80,7 +80,7 @@ static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
   /* the settings for this are currently only available from a menu in the TimeLine,
    * hence refresh=SPACE_ACTION, as timeline is now in there
    */
-  ED_screen_animation_timer_update(screen, screen->redraws_flag, SPACE_ACTION);
+  ED_screen_animation_timer_update(screen, screen->redraws_flag);
 }
 
 static bool rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))

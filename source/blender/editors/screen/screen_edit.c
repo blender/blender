@@ -1449,7 +1449,7 @@ void ED_refresh_viewport_fps(bContext *C)
 /* redraws: uses defines from stime->redraws
  * enable: 1 - forward on, -1 - backwards on, 0 - off
  */
-void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, int enable)
+void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 {
   bScreen *screen = CTX_wm_screen(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -1489,7 +1489,6 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
       }
     }
     sad->redraws = redraws;
-    sad->refresh = refresh;
     sad->flag |= (enable < 0) ? ANIMPLAY_FLAG_REVERSE : 0;
     sad->flag |= (sync == 0) ? ANIMPLAY_FLAG_NO_SYNC : (sync == 1) ? ANIMPLAY_FLAG_SYNC : 0;
 
@@ -1534,14 +1533,13 @@ static ARegion *time_top_left_3dwindow(bScreen *screen)
   return aret;
 }
 
-void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
+void ED_screen_animation_timer_update(bScreen *screen, int redraws)
 {
   if (screen && screen->animtimer) {
     wmTimer *wt = screen->animtimer;
     ScreenAnimData *sad = wt->customdata;
 
     sad->redraws = redraws;
-    sad->refresh = refresh;
     sad->ar = NULL;
     if (redraws & TIME_REGION) {
       sad->ar = time_top_left_3dwindow(screen);
