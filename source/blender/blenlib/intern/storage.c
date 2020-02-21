@@ -199,6 +199,69 @@ size_t BLI_file_size(const char *path)
   return stats.st_size;
 }
 
+eFileAttributes BLI_file_attributes(const char *path)
+{
+  int ret = 0;
+
+#ifdef WIN32
+  wchar_t wline[FILE_MAXDIR];
+  BLI_strncpy_wchar_from_utf8(wline, path, ARRAY_SIZE(wline));
+  DWORD attr = GetFileAttributesW(wline);
+  if (attr & FILE_ATTRIBUTE_READONLY) {
+    ret |= FILE_ATTR_READONLY;
+  }
+  if (attr & FILE_ATTRIBUTE_HIDDEN) {
+    ret |= FILE_ATTR_HIDDEN;
+  }
+  if (attr & FILE_ATTRIBUTE_SYSTEM) {
+    ret |= FILE_ATTR_SYSTEM;
+  }
+  if (attr & FILE_ATTRIBUTE_ARCHIVE) {
+    ret |= FILE_ATTR_ARCHIVE;
+  }
+  if (attr & FILE_ATTRIBUTE_COMPRESSED) {
+    ret |= FILE_ATTR_COMPRESSED;
+  }
+  if (attr & FILE_ATTRIBUTE_ENCRYPTED) {
+    ret |= FILE_ATTR_ENCRYPTED;
+  }
+  if (attr & FILE_ATTRIBUTE_TEMPORARY) {
+    ret |= FILE_ATTR_TEMPORARY;
+  }
+  if (attr & FILE_ATTRIBUTE_SPARSE_FILE) {
+    ret |= FILE_ATTR_SPARSE_FILE;
+  }
+  if (attr & FILE_ATTRIBUTE_OFFLINE) {
+    ret |= FILE_ATTR_OFFLINE;
+  }
+  if (attr & FILE_ATTRIBUTE_REPARSE_POINT) {
+    ret |= FILE_ATTR_REPARSE_POINT;
+  }
+
+#endif
+
+#ifdef __APPLE__
+
+  /* TODO:
+   * If Hidden (Invisible) set FILE_ATTR_HIDDEN
+   * If Locked set FILE_ATTR_READONLY
+   * If Restricted set FILE_ATTR_RESTRICTED
+   */
+
+#endif
+
+#ifdef __linux__
+
+  /* TODO:
+   * If Immutable set FILE_ATTR_READONLY
+   * If Archived set FILE_ATTR_ARCHIVE
+   */
+
+#endif
+
+  return ret;
+}
+
 /**
  * Returns the st_mode from stat-ing the specified path name, or 0 if stat fails
  * (most likely doesn't exist or no access).

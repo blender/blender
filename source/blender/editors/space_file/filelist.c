@@ -213,6 +213,9 @@ typedef struct FileListInternEntry {
   /** not strictly needed, but used during sorting, avoids to have to recompute it there... */
   char *name;
 
+  /** Defined in BLI_fileops.h */
+  eFileAttributes attributes;
+
   BLI_stat_t st;
 } FileListInternEntry;
 
@@ -609,54 +612,76 @@ void filelist_setsorting(struct FileList *filelist, const short sort, bool inver
 
 /* ********** Filter helpers ********** */
 
-static bool is_hidden_file(const char *filename, FileListFilter *filter)
+/* True if filename is meant to be hidden, eg. starting with period. */
+static bool is_hidden_dot_filename(const char *filename, FileListInternEntry *file)
 {
-  char *sep = (char *)BLI_last_slash(filename);
-  bool is_hidden = false;
+  if (filename[0] == '.' && !ELEM(filename[1], '.', '\0')) {
+    return true; /* ignore .file */
+  }
+  else {
+    int len = strlen(filename);
+    if ((len > 0) && (filename[len - 1] == '~')) {
+      return true; /* ignore file~ */
+    }
+  }
 
-  if (filter->flags & FLF_HIDE_DOT) {
-    if (filename[0] == '.' && filename[1] != '.' && filename[1] != '\0') {
-      is_hidden = true; /* ignore .file */
-    }
-    else {
-      int len = strlen(filename);
-      if ((len > 0) && (filename[len - 1] == '~')) {
-        is_hidden = true; /* ignore file~ */
-      }
-    }
-  }
-  if (!is_hidden && (filter->flags & FLF_HIDE_PARENT)) {
-    if (filename[0] == '.' && filename[1] == '.' && filename[2] == '\0') {
-      is_hidden = true; /* ignore .. */
-    }
-  }
-  if (!is_hidden && ((filename[0] == '.') && (filename[1] == '\0'))) {
-    is_hidden = true; /* ignore . */
-  }
   /* filename might actually be a piece of path, in which case we have to check all its parts. */
-  if (!is_hidden && sep) {
+
+  bool hidden = false;
+  char *sep = (char *)BLI_last_slash(filename);
+
+  if (!hidden && sep) {
     char tmp_filename[FILE_MAX_LIBEXTRA];
 
     BLI_strncpy(tmp_filename, filename, sizeof(tmp_filename));
     sep = tmp_filename + (sep - filename);
     while (sep) {
       BLI_assert(sep[1] != '\0');
-      if (is_hidden_file(sep + 1, filter)) {
-        is_hidden = true;
+      if (is_hidden_dot_filename(sep + 1, file)) {
+        hidden = true;
         break;
       }
       *sep = '\0';
       sep = (char *)BLI_last_slash(tmp_filename);
     }
   }
-  return is_hidden;
+  return hidden;
+}
+
+/* True if should be hidden, based on current filtering. */
+static bool is_filtered_hidden(const char *filename,
+                               FileListFilter *filter,
+                               FileListInternEntry *file)
+{
+  if ((filename[0] == '.') && (filename[1] == '\0')) {
+    return true; /* Ignore . */
+  }
+
+  if (filter->flags & FLF_HIDE_PARENT) {
+    if (filename[0] == '.' && filename[1] == '.' && filename[2] == '\0') {
+      return true; /* Ignore .. */
+    }
+  }
+
+  if ((filter->flags & FLF_HIDE_DOT) && (file->attributes & FILE_ATTR_HIDDEN)) {
+    return true; /* Ignore files with Hidden attribute. */
+  }
+
+#ifndef WIN32
+  /* Check for unix-style names starting with period. */
+  if ((filter->flags & FLF_HIDE_DOT) && is_hidden_dot_filename(filename, file)) {
+    return true;
+  }
+#endif
+
+  return false;
 }
 
 static bool is_filtered_file(FileListInternEntry *file,
                              const char *UNUSED(root),
                              FileListFilter *filter)
 {
-  bool is_filtered = !is_hidden_file(file->relpath, filter);
+  bool is_filtered = !is_filtered_hidden(file->relpath, filter, file);
 
   if (is_filtered && !FILENAME_IS_CURRPAR(file->relpath)) {
     /* We only check for types if some type are enabled in filtering. */
@@ -699,7 +724,7 @@ static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileLis
   BLI_join_dirfile(path, sizeof(path), root, file->relpath);
 
   if (BLO_library_path_explode(path, dir, &group, &name)) {
-    is_filtered = !is_hidden_file(file->relpath, filter);
+    is_filtered = !is_filtered_hidden(file->relpath, filter, file);
     if (is_filtered && !FILENAME_IS_CURRPAR(file->relpath)) {
       /* We only check for types if some type are enabled in filtering. */
       if ((filter->filter || filter->filter_id) && (filter->flags & FLF_DO_FILTER)) {
@@ -747,7 +772,7 @@ static bool is_filtered_main(FileListInternEntry *file,
                              const char *UNUSED(dir),
                              FileListFilter *filter)
 {
-  return !is_hidden_file(file->relpath, filter);
+  return !is_filtered_hidden(file->relpath, filter, file);
 }
 
 static void filelist_filter_clear(FileList *filelist)
@@ -968,7 +993,7 @@ static int filelist_geticon_ex(FileDirEntry *file,
     else if (is_main) {
       /* Do not return icon for folders if icons are not 'main' draw type
        * (e.g. when used over previews). */
-      return ICON_FILE_FOLDER;
+      return (file->attributes & FILE_ATTR_ANY_LINK) ? ICON_FOLDER_REDIRECT : ICON_FILE_FOLDER;
     }
     else {
       /* If this path is in System list then use that icon. */
@@ -983,6 +1008,19 @@ static int filelist_geticon_ex(FileDirEntry *file,
           return (tfsm->icon == ICON_FILE_FOLDER) ? ICON_NONE : tfsm->icon;
         }
       }
+    }
+
+    if (file->attributes & FILE_ATTR_ANY_LINK) {
+      return ICON_LOOP_FORWARDS;
+    }
+    else if (file->attributes & FILE_ATTR_OFFLINE) {
+      return ICON_ERROR;
+    }
+    else if (file->attributes & FILE_ATTR_TEMPORARY) {
+      return ICON_FILE_CACHE;
+    }
+    else if (file->attributes & FILE_ATTR_SYSTEM) {
+      return ICON_SYSTEM;
     }
   }
 
@@ -1621,7 +1659,7 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   memcpy(ret->uuid, entry->uuid, sizeof(ret->uuid));
   ret->blentype = entry->blentype;
   ret->typeflag = entry->typeflag;
-
+  ret->attributes = entry->attributes;
   BLI_addtail(&cache->cached_entries, ret);
   return ret;
 }
@@ -2401,6 +2439,7 @@ static int filelist_readjob_list_dir(const char *root,
 {
   struct direntry *files;
   int nbr_files, nbr_entries = 0;
+  char path[FILE_MAX];
 
   nbr_files = BLI_filelist_dir_contents(root, &files);
   if (files) {
@@ -2416,20 +2455,17 @@ static int filelist_readjob_list_dir(const char *root,
       entry->relpath = MEM_dupallocN(files[i].relname);
       entry->st = files[i].s;
 
+      BLI_join_dirfile(path, sizeof(path), root, entry->relpath);
+
       /* Set file type. */
       if (S_ISDIR(files[i].s.st_mode)) {
         entry->typeflag = FILE_TYPE_DIR;
       }
       else if (do_lib && BLO_has_bfile_extension(entry->relpath)) {
         /* If we are considering .blend files as libs, promote them to directory status. */
-        char name[FILE_MAX];
-
         entry->typeflag = FILE_TYPE_BLENDER;
-
-        BLI_join_dirfile(name, sizeof(name), root, entry->relpath);
-
         /* prevent current file being used as acceptable dir */
-        if (BLI_path_cmp(main_name, name) != 0) {
+        if (BLI_path_cmp(main_name, path) != 0) {
           entry->typeflag |= FILE_TYPE_DIR;
         }
       }
@@ -2440,6 +2476,16 @@ static int filelist_readjob_list_dir(const char *root,
           entry->typeflag |= FILE_TYPE_OPERATOR;
         }
       }
+
+      /* Set file attributes. */
+      entry->attributes = BLI_file_attributes(path);
+
+#ifndef WIN32
+      /* Set linux-style dot files hidden too. */
+      if (is_hidden_dot_filename(entry->relpath, entry)) {
+        entry->attributes |= FILE_ATTR_HIDDEN;
+      }
+#endif
 
       BLI_addtail(entries, entry);
       nbr_entries++;

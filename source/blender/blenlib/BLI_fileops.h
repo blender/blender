@@ -73,6 +73,29 @@ int BLI_stat(const char *path, BLI_stat_t *buffer) ATTR_WARN_UNUSED_RESULT ATTR_
 int BLI_wstat(const wchar_t *path, BLI_stat_t *buffer);
 #endif
 
+typedef enum eFileAttributes {
+  FILE_ATTR_READONLY = 1 << 0,        /* Read-only or Immutable. */
+  FILE_ATTR_HIDDEN = 1 << 1,          /* Hidden or invisible. */
+  FILE_ATTR_SYSTEM = 1 << 2,          /* Used by the Operating System. */
+  FILE_ATTR_ARCHIVE = 1 << 3,         /* Marked as archived. */
+  FILE_ATTR_COMPRESSED = 1 << 4,      /* Compressed. */
+  FILE_ATTR_ENCRYPTED = 1 << 5,       /* Encrypted. */
+  FILE_ATTR_RESTRICTED = 1 << 6,      /* Protected by OS. */
+  FILE_ATTR_TEMPORARY = 1 << 7,       /* Used for temporary storage. */
+  FILE_ATTR_SPARSE_FILE = 1 << 8,     /* Sparse File. */
+  FILE_ATTR_OFFLINE = 1 << 9,         /* Data is not immediately available. */
+  FILE_ATTR_ALIAS = 1 << 10,          /* Mac Alias or Windows Lnk. File-based redirection. */
+  FILE_ATTR_REPARSE_POINT = 1 << 11,  /* File has associated reparse point. */
+  FILE_ATTR_SYMLINK = 1 << 12,        /* Reference to another file. */
+  FILE_ATTR_JUNCTION_POINT = 1 << 13, /* Folder Symlink. */
+  FILE_ATTR_MOUNT_POINT = 1 << 14,    /* Volume mounted as a folder. */
+  FILE_ATTR_HARDLINK = 1 << 15,       /* Duplicated directory entry. */
+} eFileAttributes;
+
+#define FILE_ATTR_ANY_LINK \
+  (FILE_ATTR_ALIAS | FILE_ATTR_REPARSE_POINT | FILE_ATTR_SYMLINK | FILE_ATTR_JUNCTION_POINT | \
+   FILE_ATTR_MOUNT_POINT | FILE_ATTR_HARDLINK)
+
 /* Directories */
 
 struct direntry;
@@ -83,6 +106,7 @@ bool BLI_dir_create_recursive(const char *dir) ATTR_NONNULL();
 double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 char *BLI_current_working_dir(char *dir, const size_t maxlen) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
+eFileAttributes BLI_file_attributes(const char *path);
 
 /* Filelist */
 

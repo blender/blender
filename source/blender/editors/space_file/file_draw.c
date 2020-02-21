@@ -133,8 +133,15 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
       true, (float)sx, (float)(sy - height), (float)(sx + width), (float)sy, 5.0f, color);
 }
 
-static void file_draw_icon(
-    uiBlock *block, const char *path, int sx, int sy, int icon, int width, int height, bool drag)
+static void file_draw_icon(uiBlock *block,
+                           const char *path,
+                           int sx,
+                           int sy,
+                           int icon,
+                           int width,
+                           int height,
+                           bool drag,
+                           bool dimmed)
 {
   uiBut *but;
   int x, y;
@@ -142,8 +149,11 @@ static void file_draw_icon(
   x = sx;
   y = sy - height;
 
+  /* For uiDefIconBut(), if a1==1.0 then a2 is alpha 0.0 - 1.0 */
+  const float a1 = dimmed ? 1.0f : 0.0f;
+  const float a2 = dimmed ? 0.3f : 0.0f;
   but = uiDefIconBut(
-      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, NULL);
+      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, a1, a2, NULL);
   UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path));
 
   if (drag) {
@@ -210,7 +220,8 @@ static void file_draw_preview(uiBlock *block,
                               FileLayout *layout,
                               const bool is_icon,
                               const int typeflags,
-                              const bool drag)
+                              const bool drag,
+                              const bool dimmed)
 {
   uiBut *but;
   float fx, fy;
@@ -271,6 +282,10 @@ static void file_draw_preview(uiBlock *block,
   }
   else if (typeflags & FILE_TYPE_FTFONT) {
     UI_GetThemeColor4fv(TH_TEXT, col);
+  }
+
+  if (dimmed) {
+    col[3] *= 0.3f;
   }
 
   if (!is_icon && typeflags & FILE_TYPE_BLENDERLIB) {
@@ -775,6 +790,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
     /* don't drag parent or refresh items */
     do_drag = !(FILENAME_IS_CURRPAR(file->relpath));
+    const bool is_hidden = (file->attributes & FILE_ATTR_HIDDEN);
 
     if (FILE_IMGDISPLAY == params->display) {
       const int icon = filelist_geticon(files, i, false);
@@ -795,7 +811,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
                         layout,
                         is_icon,
                         file->typeflag,
-                        do_drag);
+                        do_drag,
+                        is_hidden);
     }
     else {
       file_draw_icon(block,
@@ -805,7 +822,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
                      filelist_geticon(files, i, true),
                      ICON_DEFAULT_WIDTH_SCALE,
                      ICON_DEFAULT_HEIGHT_SCALE,
-                     do_drag);
+                     do_drag,
+                     is_hidden);
       icon_ofs += ICON_DEFAULT_WIDTH_SCALE + 0.2f * UI_UNIT_X;
     }
 
