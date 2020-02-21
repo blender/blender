@@ -70,8 +70,12 @@ class ArchiveWithIndicator:
         self.archive_filepath = self.base_dir / archive_name
         self.ready_indicator_filepath = self.base_dir / ready_indicator_name
 
-    def is_ready(self) -> bool:
-        """Check whether the archive is ready for access."""
+    def is_ready_unsafe(self) -> bool:
+        """
+        Check whether the archive is ready for access.
+
+        No guarding about possible network failres is done here.
+        """
         if not self.ready_indicator_filepath.exists():
             return False
 
@@ -104,6 +108,26 @@ class ArchiveWithIndicator:
             return False
 
         return True
+
+    def is_ready(self) -> bool:
+        """
+        Check whether the archive is ready for access.
+
+        Will tolerate possible network failures: if there is a network failure
+        or if there is still no proper permission on a file False is returned.
+        """
+
+        # There are some intermitten problem happening at a random which is
+        # translates to "OSError : [WinError 59] An unexpected network error occurred".
+        # Some reports suggests it might be due to lack of permissions to the file,
+        # which might be applicable in our case since it's possible that file is
+        # initially created with non-accessible permissions and gets chmod-ed
+        # after initial creation.
+        try:
+            return self.is_ready_unsafe()
+        except OSError as e:
+            print(f'Exception checking archive: {e}')
+            return False
 
     def tag_ready(self) -> None:
         """
