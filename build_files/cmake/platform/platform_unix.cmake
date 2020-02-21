@@ -72,25 +72,20 @@ macro(find_package_wrapper)
   endif()
 endmacro()
 
+# ----------------------------------------------------------------------------
+# Precompiled Libraries
+#
+# These are libraries that may be precompiled. For this we disable searching in
+# the system directories so that we don't accidentally use them instead.
+
+if(EXISTS ${LIBDIR})
+  without_system_libs_begin()
+endif()
+
 find_package_wrapper(JPEG REQUIRED)
 find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Freetype REQUIRED)
-
-if(WITH_LZO AND WITH_SYSTEM_LZO)
-  find_package_wrapper(LZO)
-  if(NOT LZO_FOUND)
-    message(FATAL_ERROR "Failed finding system LZO version!")
-  endif()
-endif()
-
-if(WITH_SYSTEM_EIGEN3)
-  find_package_wrapper(Eigen3)
-  if(NOT EIGEN3_FOUND)
-    message(FATAL_ERROR "Failed finding system Eigen3 version!")
-  endif()
-endif()
-# else values are set below for all platforms
 
 if(WITH_PYTHON)
   # No way to set py35, remove for now.
@@ -126,14 +121,6 @@ if(WITH_IMAGE_TIFF)
   endif()
 endif()
 
-# Audio IO
-if(WITH_SYSTEM_AUDASPACE)
-  find_package_wrapper(Audaspace)
-  if(NOT AUDASPACE_FOUND OR NOT AUDASPACE_C_FOUND)
-    message(FATAL_ERROR "Audaspace external library not found!")
-  endif()
-endif()
-
 if(WITH_OPENAL)
   find_package_wrapper(OpenAL)
   if(NOT OPENAL_FOUND)
@@ -163,13 +150,6 @@ if(WITH_SDL)
     if(NOT SDL_FOUND)
       set(WITH_SDL OFF)
     endif()
-  endif()
-endif()
-
-if(WITH_JACK)
-  find_package_wrapper(Jack)
-  if(NOT JACK_FOUND)
-    set(WITH_JACK OFF)
   endif()
 endif()
 
@@ -448,6 +428,13 @@ if(WITH_TBB)
   find_package_wrapper(TBB)
 endif()
 
+if(EXISTS ${LIBDIR})
+  without_system_libs_end()
+endif()
+
+# ----------------------------------------------------------------------------
+# Build and Link Flags
+
 # OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
 if(HAIKU)
   list(APPEND PLATFORM_LINKLIBS -lnetwork)
@@ -479,6 +466,36 @@ add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
 # System Libraries
 #
 # Keep last, so indirectly linked libraries don't override our own pre-compiled libs.
+
+if(WITH_LZO AND WITH_SYSTEM_LZO)
+  find_package_wrapper(LZO)
+  if(NOT LZO_FOUND)
+    message(FATAL_ERROR "Failed finding system LZO version!")
+  endif()
+endif()
+
+if(WITH_SYSTEM_EIGEN3)
+  find_package_wrapper(Eigen3)
+  if(NOT EIGEN3_FOUND)
+    message(FATAL_ERROR "Failed finding system Eigen3 version!")
+  endif()
+endif()
+
+# Jack is intended to use the system library.
+if(WITH_JACK)
+  find_package_wrapper(Jack)
+  if(NOT JACK_FOUND)
+    set(WITH_JACK OFF)
+  endif()
+endif()
+
+# Audio IO
+if(WITH_SYSTEM_AUDASPACE)
+  find_package_wrapper(Audaspace)
+  if(NOT AUDASPACE_FOUND OR NOT AUDASPACE_C_FOUND)
+    message(FATAL_ERROR "Audaspace external library not found!")
+  endif()
+endif()
 
 if(WITH_X11)
   find_package(X11 REQUIRED)
