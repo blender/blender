@@ -773,9 +773,9 @@ void LevelsetGrid::createMesh(Mesh &mesh)
   Grid<int> edgeVY(mParent);
   Grid<int> edgeVZ(mParent);
 
-  for (int i = 0; i < mSize.x - 1; i++)
+  for (int k = 0; k < mSize.z - 1; k++)
     for (int j = 0; j < mSize.y - 1; j++)
-      for (int k = 0; k < mSize.z - 1; k++) {
+      for (int i = 0; i < mSize.x - 1; i++) {
         Real value[8] = {get(i, j, k),
                          get(i + 1, j, k),
                          get(i + 1, j + 1, k),

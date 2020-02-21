@@ -23,21 +23,36 @@ extern "C" {
 #  include <zlib.h>
 }
 
+#  if defined(WIN32) || defined(_WIN32)
+#    include <windows.h>
+#    include <string>
+#  endif
+
+using namespace std;
+
 namespace Manta {
 
-//! helper to handle non ascii filenames correctly, mainly problematic on windows
+#  if defined(WIN32) || defined(_WIN32)
+static wstring stringToWstring(const char *str)
+{
+  const int length_wc = MultiByteToWideChar(CP_UTF8, 0, str, strlen(str), NULL, 0);
+  wstring strWide(length_wc, 0);
+  MultiByteToWideChar(CP_UTF8, 0, str, strlen(str), &strWide[0], length_wc);
+  return strWide;
+}
+#  endif
+
 void *safeGzopen(const char *filename, const char *mode)
 {
   gzFile gzfile;
-#  if 0
-  UTF16_ENCODE(filename);
 
-  // gzopen_w() is supported since zlib v1.2.7
-  gzfile = gzopen_w(filename_16, mode);
-  UTF16_UN_ENCODE(filename);
+#  if defined(WIN32) || defined(_WIN32)
+  wstring filenameWide = stringToWstring(filename);
+  gzfile = gzopen_w(filenameWide.c_str(), mode);
 #  else
   gzfile = gzopen(filename, mode);
 #  endif
+
   return gzfile;
 }
 #endif
