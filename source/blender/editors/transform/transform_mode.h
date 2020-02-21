@@ -30,6 +30,7 @@ struct LinkNode;
 struct TransInfo;
 struct TransDataContainer;
 struct TransData;
+struct wmOperator;
 
 /* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */
 typedef struct TransDataGenericSlideVert {
@@ -56,6 +57,7 @@ void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, float ma
 short getAnimEdit_SnapMode(TransInfo *t);
 void doAnimEdit_SnapFrame(
     TransInfo *t, TransData *td, TransData2D *td2d, struct AnimData *adt, short autosnap);
+void transform_mode_init(TransInfo *t, struct wmOperator *op, const int mode);
 
 /* transform_mode_align.c */
 void initAlign(TransInfo *t);
