@@ -403,11 +403,6 @@ static void region_cursor_set_ex(wmWindow *win, ScrArea *sa, ARegion *ar, bool s
   BLI_assert(WM_window_get_active_screen(win)->active_region == ar);
   if (sa->flag & AREA_FLAG_CURSOR_UPDATE || swin_changed || (ar->type && ar->type->event_cursor)) {
     sa->flag &= ~AREA_FLAG_CURSOR_UPDATE;
-    if (ar->gizmo_map != NULL) {
-      if (WM_gizmomap_cursor_set(ar->gizmo_map, win)) {
-        return;
-      }
-    }
     ED_region_cursor_set(win, sa, ar);
   }
 }

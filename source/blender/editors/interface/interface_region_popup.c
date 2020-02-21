@@ -555,9 +555,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
 
   /* reset to region cursor (only if there's not another menu open) */
   if (BLI_listbase_is_empty(&sc->regionbase)) {
-    ED_region_cursor_set(win, ctx_sa, ctx_ar);
-    /* in case cursor needs to be changed again */
-    WM_event_add_mousemove(C);
+    ctx_sa->flag |= AREA_FLAG_CURSOR_UPDATE;
   }
 
   if (handle->scrolltimer) {
