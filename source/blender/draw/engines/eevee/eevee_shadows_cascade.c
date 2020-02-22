@@ -120,11 +120,6 @@ static void frustum_min_bounding_sphere(const float corners[8][3],
 #endif
 }
 
-BLI_INLINE float lerp(float t, float a, float b)
-{
-  return ((a) + (t) * ((b) - (a)));
-}
-
 static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
                                        EEVEE_Light *evli,
                                        DRWView *view,
@@ -254,11 +249,11 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
 
   for (int c = 1; c < cascade_nbr; c++) {
     /* View Space */
-    float linear_split = lerp(((float)(c) / (float)cascade_nbr), csm_start, csm_end);
-    float exp_split = csm_start * powf(csm_end / csm_start, (float)(c) / (float)cascade_nbr);
+    float linear_split = interpf(csm_end, csm_start, c / (float)cascade_nbr);
+    float exp_split = csm_start * powf(csm_end / csm_start, c / (float)cascade_nbr);
 
     if (is_persp) {
-      csm_data->split_start[c] = lerp(cascade_exponent, linear_split, exp_split);
+      csm_data->split_start[c] = interpf(exp_split, linear_split, cascade_exponent);
     }
     else {
       csm_data->split_start[c] = linear_split;
@@ -266,10 +261,10 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
     csm_data->split_end[c - 1] = csm_data->split_start[c];
 
     /* Add some overlap for smooth transition */
-    csm_data->split_start[c] = lerp(cascade_fade,
-                                    csm_data->split_end[c - 1],
-                                    (c > 1) ? csm_data->split_end[c - 2] :
-                                              csm_data->split_start[0]);
+    csm_data->split_start[c] = interpf((c > 1) ? csm_data->split_end[c - 2] :
+                                                 csm_data->split_start[0],
+                                       csm_data->split_end[c - 1],
+                                       cascade_fade);
 
     /* NDC Space */
     {
@@ -298,7 +293,8 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
   /* Set last cascade split fade distance into the first split_start. */
   float prev_split = (cascade_nbr > 1) ? csm_data->split_end[cascade_nbr - 2] :
                                          csm_data->split_start[0];
-  csm_data->split_start[0] = lerp(cascade_fade, csm_data->split_end[cascade_nbr - 1], prev_split);
+  csm_data->split_start[0] = interpf(
+      prev_split, csm_data->split_end[cascade_nbr - 1], cascade_fade);
 
   /* For each cascade */
   for (int c = 0; c < cascade_nbr; c++) {
