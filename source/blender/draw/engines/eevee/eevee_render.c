@@ -46,7 +46,8 @@
 
 #include "eevee_private.h"
 
-void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *depsgraph)
+/* Return true if init properly. */
+bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *depsgraph)
 {
   EEVEE_Data *vedata = (EEVEE_Data *)ved;
   EEVEE_StorageList *stl = vedata->stl;
@@ -106,7 +107,7 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
                  max_dim);
     RE_engine_set_error_message(engine, error_msg);
     G.is_break = true;
-    return;
+    return false;
   }
 
   /* XXX overriding viewport size. Simplify things but is not really 100% safe. */
@@ -168,6 +169,8 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   EEVEE_subsurface_cache_init(sldata, vedata);
   EEVEE_temporal_sampling_cache_init(sldata, vedata);
   EEVEE_volumes_cache_init(sldata, vedata);
+
+  return true;
 }
 
 /* Used by light cache. in this case engine is NULL. */

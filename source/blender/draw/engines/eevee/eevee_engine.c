@@ -421,9 +421,8 @@ static void eevee_render_to_image(void *vedata,
                                   const rcti *rect)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  EEVEE_render_init(vedata, engine, draw_ctx->depsgraph);
 
-  if (RE_engine_test_break(engine)) {
+  if (!EEVEE_render_init(vedata, engine, draw_ctx->depsgraph)) {
     return;
   }
 

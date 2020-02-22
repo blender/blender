@@ -1168,7 +1168,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_free(void);
 
 /* eevee_render.c */
-void EEVEE_render_init(EEVEE_Data *vedata,
+bool EEVEE_render_init(EEVEE_Data *vedata,
                        struct RenderEngine *engine,
                        struct Depsgraph *depsgraph);
 void EEVEE_render_cache(void *vedata,
