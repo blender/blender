@@ -53,6 +53,11 @@ enum_displacement_methods = (
     ('BOTH', "Displacement and Bump", "Combination of true displacement and bump mapping for finer detail"),
 )
 
+enum_bvh_layouts = (
+    ('BVH2', "BVH2", "", 1),
+    ('EMBREE', "Embree", "", 4),
+)
+
 enum_bvh_types = (
     ('DYNAMIC_BVH', "Dynamic BVH", "Objects can be individually updated, at the cost of slower render time"),
     ('STATIC_BVH', "Static BVH", "Any object modification requires a complete BVH rebuild, but renders faster"),
@@ -612,11 +617,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         items=enum_bvh_types,
         default='DYNAMIC_BVH',
     )
-    use_bvh_embree: BoolProperty(
-        name="Use Embree",
-        description="Use Embree as ray accelerator",
-        default=False,
-    )
     debug_use_spatial_splits: BoolProperty(
         name="Use Spatial Splits",
         description="Use BVH spatial splits: longer builder time, faster render",
@@ -766,6 +766,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     debug_use_cpu_sse41: BoolProperty(name="SSE41", default=True)
     debug_use_cpu_sse3: BoolProperty(name="SSE3", default=True)
     debug_use_cpu_sse2: BoolProperty(name="SSE2", default=True)
+    debug_bvh_layout: EnumProperty(
+        name="BVH Layout",
+        items=enum_bvh_layouts,
+        default='EMBREE',
+    )
     debug_use_cpu_split_kernel: BoolProperty(name="Split Kernel", default=False)
 
     debug_use_cuda_adaptive_compile: BoolProperty(name="Adaptive Compile", default=False)

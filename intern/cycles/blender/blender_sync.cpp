@@ -757,11 +757,6 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene, bool background)
 
   params.bvh_layout = DebugFlags().cpu.bvh_layout;
 
-#ifdef WITH_EMBREE
-  params.bvh_layout = RNA_boolean_get(&cscene, "use_bvh_embree") ? BVH_LAYOUT_EMBREE :
-                                                                   params.bvh_layout;
-#endif
-
   params.background = background;
 
   return params;

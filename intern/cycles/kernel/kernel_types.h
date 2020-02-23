@@ -1400,7 +1400,8 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_EMBREE = (1 << 1),
   BVH_LAYOUT_OPTIX = (1 << 2),
 
-  BVH_LAYOUT_AUTO = BVH_LAYOUT_BVH2,
+  /* Default BVH layout to use for CPU. */
+  BVH_LAYOUT_AUTO = BVH_LAYOUT_EMBREE,
   BVH_LAYOUT_ALL = (unsigned int)(~0u),
 } KernelBVHLayout;
 
