@@ -584,9 +584,6 @@ static void blf_draw_gl__start(FontBLF *font)
    * in BLF_position (old ui_rasterpos_safe).
    */
 
-  /* always bind the texture for the first glyph */
-  font->tex_bind_state = 0;
-
   if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0) {
     return; /* glyphs will be translated individually and batched. */
   }

@@ -84,16 +84,19 @@ static void blf_batch_draw_init(void)
 {
   GPUVertFormat format = {0};
   g_batch.pos_loc = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  g_batch.tex_loc = GPU_vertformat_attr_add(&format, "tex", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   g_batch.col_loc = GPU_vertformat_attr_add(
       &format, "col", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  g_batch.offset_loc = GPU_vertformat_attr_add(&format, "offset", GPU_COMP_I32, 1, GPU_FETCH_INT);
+  g_batch.glyph_size_loc = GPU_vertformat_attr_add(
+      &format, "glyph_size", GPU_COMP_I32, 2, GPU_FETCH_INT);
 
   g_batch.verts = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STREAM);
   GPU_vertbuf_data_alloc(g_batch.verts, BLF_BATCH_DRAW_LEN_MAX);
 
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
+  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.offset_loc, &g_batch.offset_step);
+  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_size_loc, &g_batch.glyph_size_step);
   g_batch.glyph_len = 0;
 
   /* A dummy vbo containing 4 points, attribs are not used.  */
@@ -177,6 +180,46 @@ void blf_batch_draw_begin(FontBLF *font)
   }
 }
 
+static GPUTexture *blf_batch_cache_texture_load(void)
+{
+  GlyphCacheBLF *gc = g_batch.glyph_cache;
+  BLI_assert(gc);
+  BLI_assert(gc->bitmap_len > 0);
+
+  if (gc->bitmap_len > gc->bitmap_len_landed) {
+    const int tex_width = GPU_texture_width(gc->texture);
+
+    int bitmap_len_landed = gc->bitmap_len_landed;
+    int remain = gc->bitmap_len - bitmap_len_landed;
+    int offset_x = bitmap_len_landed % tex_width;
+    int offset_y = bitmap_len_landed / tex_width;
+
+    /* TODO(germano): Update more than one row in a single call. */
+    while (remain) {
+      int remain_row = tex_width - offset_x;
+      int width = remain > remain_row ? remain_row : remain;
+      GPU_texture_update_sub(gc->texture,
+                             GPU_DATA_UNSIGNED_BYTE,
+                             &gc->bitmap_result[bitmap_len_landed],
+                             offset_x,
+                             offset_y,
+                             0,
+                             width,
+                             1,
+                             0);
+
+      bitmap_len_landed += width;
+      remain -= width;
+      offset_x = 0;
+      offset_y += 1;
+    }
+
+    gc->bitmap_len_landed = bitmap_len_landed;
+  }
+
+  return gc->texture;
+}
+
 void blf_batch_draw(void)
 {
   if (g_batch.glyph_len == 0) {
@@ -190,7 +233,8 @@ void blf_batch_draw(void)
   /* We need to flush widget base first to ensure correct ordering. */
   UI_widgetbase_draw_cache_flush();
 
-  GPU_texture_bind(g_batch.tex_bind_state, 0);
+  GPUTexture *texture = blf_batch_cache_texture_load();
+  GPU_texture_bind(texture, 0);
   GPU_vertbuf_data_len_set(g_batch.verts, g_batch.glyph_len);
   GPU_vertbuf_use(g_batch.verts); /* send data */
 
@@ -202,8 +246,9 @@ void blf_batch_draw(void)
 
   /* restart to 1st vertex data pointers */
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
-  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
+  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.offset_loc, &g_batch.offset_step);
+  GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.glyph_size_loc, &g_batch.glyph_size_step);
   g_batch.glyph_len = 0;
 }
 
