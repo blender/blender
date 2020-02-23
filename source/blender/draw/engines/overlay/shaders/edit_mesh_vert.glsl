@@ -26,6 +26,14 @@ bool test_occlusion()
   return ndc.z > texture(depthTex, ndc.xy).r;
 }
 
+vec3 non_linear_blend_color(vec3 col1, vec3 col2, float fac)
+{
+  col1 = pow(col1, vec3(1.0 / 2.2));
+  col2 = pow(col2, vec3(1.0 / 2.2));
+  vec3 col = mix(col1, col2, fac);
+  return pow(col, vec3(2.2));
+}
+
 void main()
 {
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
@@ -88,7 +96,8 @@ void main()
   float facing = dot(view_vec, view_normal);
   facing = 1.0 - abs(facing) * 0.2;
 
-  finalColor.rgb = mix(colorEditMeshMiddle.rgb, finalColor.rgb, facing);
+  /* Do interpolation in a non-linear space to have a better visual result. */
+  finalColor.rgb = non_linear_blend_color(colorEditMeshMiddle.rgb, finalColor.rgb, facing);
 #endif
 
 #ifdef USE_WORLD_CLIP_PLANES
