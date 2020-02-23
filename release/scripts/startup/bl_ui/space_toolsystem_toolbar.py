@@ -608,15 +608,6 @@ class _defs_edit_mesh:
             region_type = context.region.type
 
             if not extra:
-                if props.offset_type == 'PERCENT':
-                    layout.prop(props, "offset_pct")
-                else:
-                    offset_text = "Width"
-                    if props.offset_type == 'DEPTH':
-                        offset_text = "Depth"
-                    elif props.offset_type == 'OFFSET':
-                        offset_text = "Offset"
-                    layout.prop(props, "offset", text=offset_text)
                 if region_type == 'TOOL_HEADER':
                     layout.prop(props, "offset_type", text="")
                 else:
