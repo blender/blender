@@ -84,9 +84,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Kernel features */
 #define __SOBOL__
-#define __INSTANCING__
 #define __DPDU__
-#define __UV__
 #define __BACKGROUND__
 #define __CAUSTICS_TRICKS__
 #define __VISIBILITY_FLAG__
@@ -1406,9 +1404,9 @@ typedef struct KernelBVH {
   int root;
   int have_motion;
   int have_curves;
-  int have_instancing;
   int bvh_layout;
   int use_bvh_steps;
+  int pad;
 
   /* Custom BVH */
 #ifdef __KERNEL_OPTIX__

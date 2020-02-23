@@ -41,11 +41,9 @@ ccl_device_inline void svm_node_geometry(
     case NODE_GEOM_Ng:
       data = sd->Ng;
       break;
-#ifdef __UV__
     case NODE_GEOM_uv:
       data = make_float3(sd->u, sd->v, 0.0f);
       break;
-#endif
     default:
       data = make_float3(0.0f, 0.0f, 0.0f);
   }

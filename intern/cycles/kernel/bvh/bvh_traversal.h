@@ -34,7 +34,6 @@
  * enabled/disabled. This way we can compile optimized versions for each case
  * without new features slowing things down.
  *
- * BVH_INSTANCING: object instancing
  * BVH_HAIR: hair curve rendering
  * BVH_MOTION: motion blur rendering
  */
@@ -173,9 +172,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
         float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr - 1));
         int prim_addr = __float_as_int(leaf.x);
 
-#if BVH_FEATURE(BVH_INSTANCING)
         if (prim_addr >= 0) {
-#endif
           const int prim_addr2 = __float_as_int(leaf.y);
           const uint type = __float_as_int(leaf.w);
 
@@ -259,17 +256,16 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #endif /* BVH_FEATURE(BVH_HAIR) */
           }
         }
-#if BVH_FEATURE(BVH_INSTANCING)
         else {
           /* instance push */
           object = kernel_tex_fetch(__prim_object, -prim_addr - 1);
 
-#  if BVH_FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
           isect->t = bvh_instance_motion_push(
               kg, object, ray, &P, &dir, &idir, isect->t, &ob_itfm);
-#  else
+#else
           isect->t = bvh_instance_push(kg, object, ray, &P, &dir, &idir, isect->t);
-#  endif
+#endif
 
 #  if defined(__KERNEL_SSE2__)
           Psplat[0] = ssef(P.x);
@@ -293,19 +289,17 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
           BVH_DEBUG_NEXT_INSTANCE();
         }
       }
-#endif /* FEATURE(BVH_INSTANCING) */
     } while (node_addr != ENTRYPOINT_SENTINEL);
 
-#if BVH_FEATURE(BVH_INSTANCING)
     if (stack_ptr >= 0) {
       kernel_assert(object != OBJECT_NONE);
 
       /* instance pop */
-#  if BVH_FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
       isect->t = bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, isect->t, &ob_itfm);
-#  else
+#else
       isect->t = bvh_instance_pop(kg, object, ray, &P, &dir, &idir, isect->t);
-#  endif
+#endif
 
 #  if defined(__KERNEL_SSE2__)
       Psplat[0] = ssef(P.x);
@@ -324,7 +318,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
       node_addr = traversal_stack[stack_ptr];
       --stack_ptr;
     }
-#endif /* FEATURE(BVH_INSTANCING) */
   } while (node_addr != ENTRYPOINT_SENTINEL);
 
   return (isect->prim != PRIM_NONE);

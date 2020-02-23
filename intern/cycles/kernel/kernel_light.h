@@ -313,20 +313,18 @@ ccl_device_inline bool triangle_world_space_vertices(
     triangle_vertices(kg, prim, V);
   }
 
-#ifdef __INSTANCING__
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-#  ifdef __OBJECT_MOTION__
+#ifdef __OBJECT_MOTION__
     float object_time = (time >= 0.0f) ? time : 0.5f;
     Transform tfm = object_fetch_transform_motion_test(kg, object, object_time, NULL);
-#  else
+#else
     Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-#  endif
+#endif
     V[0] = transform_point(&tfm, V[0]);
     V[1] = transform_point(&tfm, V[1]);
     V[2] = transform_point(&tfm, V[2]);
     has_motion = true;
   }
-#endif
   return has_motion;
 }
 

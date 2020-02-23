@@ -35,9 +35,8 @@ CCL_NAMESPACE_BEGIN
 #define BVH_OSTACK_SIZE 768
 /* BVH intersection function variations */
 
-#define BVH_INSTANCING 1
-#define BVH_MOTION 2
-#define BVH_HAIR 4
+#define BVH_MOTION 1
+#define BVH_HAIR 2
 
 #define BVH_NAME_JOIN(x, y) x##_##y
 #define BVH_NAME_EVAL(x, y) BVH_NAME_JOIN(x, y)

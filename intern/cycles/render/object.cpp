@@ -616,7 +616,6 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
 
   dscene->data.bvh.have_motion = state.have_motion;
   dscene->data.bvh.have_curves = state.have_curves;
-  dscene->data.bvh.have_instancing = true;
 }
 
 void ObjectManager::device_update(Device *device,
@@ -791,7 +790,6 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
   bool motion_blur = need_motion == Scene::MOTION_BLUR;
   bool apply_to_motion = need_motion != Scene::MOTION_PASS;
   int i = 0;
-  bool have_instancing = false;
 
   foreach (Object *object, scene->objects) {
     map<Geometry *, int>::iterator it = geometry_users.find(object->geometry);
@@ -837,16 +835,10 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
         if (geom->transform_negative_scaled)
           object_flag[i] |= SD_OBJECT_NEGATIVE_SCALE_APPLIED;
       }
-      else
-        have_instancing = true;
     }
-    else
-      have_instancing = true;
 
     i++;
   }
-
-  dscene->data.bvh.have_instancing = have_instancing;
 }
 
 void ObjectManager::tag_update(Scene *scene)

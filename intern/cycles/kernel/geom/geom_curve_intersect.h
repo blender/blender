@@ -529,10 +529,8 @@ ccl_device_inline float3 curve_refine(KernelGlobals *kg,
 
   P = P + D * t;
 
-#  ifdef __UV__
   sd->u = isect->u;
   sd->v = 0.0f;
-#  endif
 
   float3 tg = normalize(curvetangent(isect->u, p[0], p[1], p[2], p[3]));
 

@@ -34,7 +34,6 @@
  * enabled/disabled. This way we can compile optimized versions for each case
  * without new features slowing things down.
  *
- * BVH_INSTANCING: object instancing
  * BVH_HAIR: hair curve rendering
  * BVH_MOTION: motion blur rendering
  */
@@ -76,9 +75,7 @@ ccl_device_inline
   Transform ob_itfm;
 #endif
 
-#if BVH_FEATURE(BVH_INSTANCING)
   int num_hits_in_instance = 0;
-#endif
 
   *num_hits = 0;
   isect_array->t = tmax;
@@ -174,9 +171,7 @@ ccl_device_inline
         float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr - 1));
         int prim_addr = __float_as_int(leaf.x);
 
-#if BVH_FEATURE(BVH_INSTANCING)
         if (prim_addr >= 0) {
-#endif
           const int prim_addr2 = __float_as_int(leaf.y);
           const uint type = __float_as_int(leaf.w);
           const uint p_type = type & PRIMITIVE_ALL;
@@ -256,9 +251,7 @@ ccl_device_inline
               /* move on to next entry in intersections array */
               isect_array++;
               (*num_hits)++;
-#if BVH_FEATURE(BVH_INSTANCING)
               num_hits_in_instance++;
-#endif
 
               isect_array->t = isect_t;
             }
@@ -266,16 +259,15 @@ ccl_device_inline
             prim_addr++;
           }
         }
-#if BVH_FEATURE(BVH_INSTANCING)
         else {
           /* instance push */
           object = kernel_tex_fetch(__prim_object, -prim_addr - 1);
 
-#  if BVH_FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
           isect_t = bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, isect_t, &ob_itfm);
-#  else
+#else
           isect_t = bvh_instance_push(kg, object, ray, &P, &dir, &idir, isect_t);
-#  endif
+#endif
 
           num_hits_in_instance = 0;
           isect_array->t = isect_t;
@@ -299,10 +291,8 @@ ccl_device_inline
           node_addr = kernel_tex_fetch(__object_node, object);
         }
       }
-#endif /* FEATURE(BVH_INSTANCING) */
     } while (node_addr != ENTRYPOINT_SENTINEL);
 
-#if BVH_FEATURE(BVH_INSTANCING)
     if (stack_ptr >= 0) {
       kernel_assert(object != OBJECT_NONE);
 
@@ -310,11 +300,11 @@ ccl_device_inline
       if (num_hits_in_instance) {
         float t_fac;
 
-#  if BVH_FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
         bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
-#  else
+#else
         bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
-#  endif
+#endif
 
         /* scale isect->t to adjust for instancing */
         for (int i = 0; i < num_hits_in_instance; i++) {
@@ -322,11 +312,11 @@ ccl_device_inline
         }
       }
       else {
-#  if BVH_FEATURE(BVH_MOTION)
+#if BVH_FEATURE(BVH_MOTION)
         bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, FLT_MAX, &ob_itfm);
-#  else
+#else
         bvh_instance_pop(kg, object, ray, &P, &dir, &idir, FLT_MAX);
-#  endif
+#endif
       }
 
       isect_t = tmax;
@@ -348,7 +338,6 @@ ccl_device_inline
       node_addr = traversal_stack[stack_ptr];
       --stack_ptr;
     }
-#endif /* FEATURE(BVH_INSTANCING) */
   } while (node_addr != ENTRYPOINT_SENTINEL);
 
   return false;
