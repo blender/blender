@@ -50,33 +50,3 @@ void node_vector_rotate_euler_xyz(
 {
   vec = euler_to_mat3(rotation) * (vector_in - center) + center;
 }
-
-void node_vector_rotate_euler_xzy(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
-{
-  vec = euler_to_mat3(-rotation.xzy) * (vector_in - center) + center;
-}
-
-void node_vector_rotate_euler_yxz(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
-{
-  vec = euler_to_mat3(-rotation.yxz) * (vector_in - center) + center;
-}
-
-void node_vector_rotate_euler_yzx(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
-{
-  vec = euler_to_mat3(rotation.yzx) * (vector_in - center) + center;
-}
-
-void node_vector_rotate_euler_zxy(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
-{
-  vec = euler_to_mat3(rotation.zxy) * (vector_in - center) + center;
-}
-
-void node_vector_rotate_euler_zyx(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
-{
-  vec = euler_to_mat3(-rotation.zyx) * (vector_in - center) + center;
-}

@@ -35,26 +35,8 @@ ccl_device void svm_node_vector_rotate(ShaderData *sd,
   float3 center = stack_load_float3(stack, center_stack_offset);
   float3 result = make_float3(0.0f, 0.0f, 0.0f);
 
-  if (type != NODE_VECTOR_ROTATE_TYPE_AXIS && type != NODE_VECTOR_ROTATE_TYPE_AXIS_X &&
-      type != NODE_VECTOR_ROTATE_TYPE_AXIS_Y && type != NODE_VECTOR_ROTATE_TYPE_AXIS_Z) {
+  if (type == NODE_VECTOR_ROTATE_TYPE_EULER_XYZ) {
     float3 rotation = stack_load_float3(stack, rotation_stack_offset);  // Default XYZ.
-    switch (type) {
-      case NODE_VECTOR_ROTATE_TYPE_EULER_XZY:
-        rotation = make_float3(-rotation.x, -rotation.z, -rotation.y);
-        break;
-      case NODE_VECTOR_ROTATE_TYPE_EULER_YXZ:
-        rotation = make_float3(-rotation.y, -rotation.x, -rotation.z);
-        break;
-      case NODE_VECTOR_ROTATE_TYPE_EULER_YZX:
-        rotation = make_float3(rotation.y, rotation.z, rotation.x);
-        break;
-      case NODE_VECTOR_ROTATE_TYPE_EULER_ZXY:
-        rotation = make_float3(rotation.z, rotation.x, rotation.y);
-        break;
-      case NODE_VECTOR_ROTATE_TYPE_EULER_ZYX:
-        rotation = make_float3(-rotation.z, -rotation.y, -rotation.x);
-        break;
-    }
     Transform rotationTransform = euler_to_transform(rotation);
     result = transform_direction(&rotationTransform, vector - center) + center;
   }
@@ -75,7 +57,7 @@ ccl_device void svm_node_vector_rotate(ShaderData *sd,
         break;
     }
     float angle = stack_load_float(stack, angle_stack_offset);
-    result = is_zero(axis) ? vector : rotate_around_axis(vector - center, axis, angle) + center;
+    result = len(axis) ? rotate_around_axis(vector - center, axis, angle) + center : vector;
   }
 
   /* Output */

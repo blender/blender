@@ -48,11 +48,6 @@ static int gpu_shader_vector_rotate(GPUMaterial *mat,
       [NODE_VECTOR_ROTATE_TYPE_AXIS_Y] = "node_vector_rotate_axis_y",
       [NODE_VECTOR_ROTATE_TYPE_AXIS_Z] = "node_vector_rotate_axis_z",
       [NODE_VECTOR_ROTATE_TYPE_EULER_XYZ] = "node_vector_rotate_euler_xyz",
-      [NODE_VECTOR_ROTATE_TYPE_EULER_XZY] = "node_vector_rotate_euler_xzy",
-      [NODE_VECTOR_ROTATE_TYPE_EULER_YXZ] = "node_vector_rotate_euler_yxz",
-      [NODE_VECTOR_ROTATE_TYPE_EULER_YZX] = "node_vector_rotate_euler_yzx",
-      [NODE_VECTOR_ROTATE_TYPE_EULER_ZXY] = "node_vector_rotate_euler_zxy",
-      [NODE_VECTOR_ROTATE_TYPE_EULER_ZYX] = "node_vector_rotate_euler_zyx",
   };
 
   if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
@@ -66,21 +61,11 @@ static int gpu_shader_vector_rotate(GPUMaterial *mat,
 static void node_shader_update_vector_rotate(bNodeTree *UNUSED(ntree), bNode *node)
 {
   bNodeSocket *sock_rotation = nodeFindSocket(node, SOCK_IN, "Rotation");
-  nodeSetSocketAvailability(sock_rotation,
-                            !ELEM(node->custom1,
-                                  NODE_VECTOR_ROTATE_TYPE_AXIS,
-                                  NODE_VECTOR_ROTATE_TYPE_AXIS_X,
-                                  NODE_VECTOR_ROTATE_TYPE_AXIS_Y,
-                                  NODE_VECTOR_ROTATE_TYPE_AXIS_Z));
+  nodeSetSocketAvailability(sock_rotation, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
   bNodeSocket *sock_axis = nodeFindSocket(node, SOCK_IN, "Axis");
   nodeSetSocketAvailability(sock_axis, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_AXIS));
   bNodeSocket *sock_angle = nodeFindSocket(node, SOCK_IN, "Angle");
-  nodeSetSocketAvailability(sock_angle,
-                            ELEM(node->custom1,
-                                 NODE_VECTOR_ROTATE_TYPE_AXIS,
-                                 NODE_VECTOR_ROTATE_TYPE_AXIS_X,
-                                 NODE_VECTOR_ROTATE_TYPE_AXIS_Y,
-                                 NODE_VECTOR_ROTATE_TYPE_AXIS_Z));
+  nodeSetSocketAvailability(sock_angle, !ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
 }
 
 void register_node_type_sh_vector_rotate(void)

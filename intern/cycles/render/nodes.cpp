@@ -6165,11 +6165,6 @@ NODE_DEFINE(VectorRotateNode)
   type_enum.insert("y_axis", NODE_VECTOR_ROTATE_TYPE_AXIS_Y);
   type_enum.insert("z_axis", NODE_VECTOR_ROTATE_TYPE_AXIS_Z);
   type_enum.insert("euler_xyz", NODE_VECTOR_ROTATE_TYPE_EULER_XYZ);
-  type_enum.insert("euler_xzy", NODE_VECTOR_ROTATE_TYPE_EULER_XZY);
-  type_enum.insert("euler_yxz", NODE_VECTOR_ROTATE_TYPE_EULER_YXZ);
-  type_enum.insert("euler_yzx", NODE_VECTOR_ROTATE_TYPE_EULER_YZX);
-  type_enum.insert("euler_zxy", NODE_VECTOR_ROTATE_TYPE_EULER_ZXY);
-  type_enum.insert("euler_zyx", NODE_VECTOR_ROTATE_TYPE_EULER_ZYX);
   SOCKET_ENUM(type, "Type", type_enum, NODE_VECTOR_ROTATE_TYPE_AXIS);
 
   SOCKET_IN_VECTOR(vector, "Vector", make_float3(0.0f, 0.0f, 0.0f));

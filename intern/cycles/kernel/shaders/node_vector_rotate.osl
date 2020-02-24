@@ -28,31 +28,6 @@ shader node_vector_rotate(string type = "axis",
   if (type == "euler_xyz") {
     VectorOut = transform(euler_to_mat(Rotation), VectorIn - Center) + Center;
   }
-  else if (type == "euler_xzy") {
-    VectorOut = transform(euler_to_mat(point(-Rotation[0], -Rotation[2], -Rotation[1])),
-                          VectorIn - Center) +
-                Center;
-  }
-  else if (type == "euler_yxz") {
-    VectorOut = transform(euler_to_mat(point(-Rotation[1], -Rotation[0], -Rotation[2])),
-                          VectorIn - Center) +
-                Center;
-  }
-  else if (type == "euler_yzx") {
-    VectorOut = transform(euler_to_mat(point(Rotation[1], Rotation[2], Rotation[0])),
-                          VectorIn - Center) +
-                Center;
-  }
-  else if (type == "euler_zxy") {
-    VectorOut = transform(euler_to_mat(point(Rotation[2], Rotation[0], Rotation[1])),
-                          VectorIn - Center) +
-                Center;
-  }
-  else if (type == "euler_zyx") {
-    VectorOut = transform(euler_to_mat(point(-Rotation[2], -Rotation[1], -Rotation[0])),
-                          VectorIn - Center) +
-                Center;
-  }
   else if (type == "x_axis") {
     VectorOut = rotate(VectorIn - Center, Angle, point(0.0), vector(1.0, 0.0, 0.0)) + Center;
   }
