@@ -86,10 +86,6 @@ if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()
 
-if(WITH_MOD_FLUID)
-  add_definitions(-DWITH_FLUID)
-endif()
-
 if(WITH_FREESTYLE)
   list(APPEND INC
     ../freestyle

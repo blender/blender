@@ -28,6 +28,8 @@ add_definitions(-DWITH_FLUID=1)
 if(WITH_OPENVDB)
   add_definitions(-DOPENVDB=1)
   add_definitions(-DOPENVDB_STATICLIB)
+else()
+  add_definitions(-DOPENVDB=0)
 endif()
 
 if(WIN32)
