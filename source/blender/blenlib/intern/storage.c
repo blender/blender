@@ -251,6 +251,7 @@ eFileAttributes BLI_file_attributes(const char *path)
 #endif
 
 #ifdef __linux__
+  UNUSED_VARS(path);
 
   /* TODO:
    * If Immutable set FILE_ATTR_READONLY
