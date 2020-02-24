@@ -460,7 +460,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
     int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS;
     psl->checker_depth_pass = DRW_pass_create("Checker Depth", state);
     grp = DRW_shgroup_create(e_data.checker_depth_sh, psl->checker_depth_pass);
-    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    // DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
     DRW_shgroup_uniform_float_copy(grp, "threshold", blend_threshold);
     DRW_shgroup_uniform_float_copy(grp, "offset", noise_offset);
   }

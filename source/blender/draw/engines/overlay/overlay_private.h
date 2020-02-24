@@ -35,6 +35,7 @@ typedef struct OVERLAY_FramebufferList {
   struct GPUFrameBuffer *overlay_color_only_fb;
   struct GPUFrameBuffer *overlay_in_front_fb;
   struct GPUFrameBuffer *overlay_line_in_front_fb;
+  struct GPUFrameBuffer *overlay_xray_depth_copy_fb;
   struct GPUFrameBuffer *outlines_prepass_fb;
   struct GPUFrameBuffer *outlines_resolve_fb;
 } OVERLAY_FramebufferList;
@@ -94,6 +95,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *sculpt_mask_ps;
   DRWPass *wireframe_ps;
   DRWPass *wireframe_xray_ps;
+  DRWPass *xray_fade_ps;
 } OVERLAY_PassList;
 
 /* Data used by GLSL shader. To be used as UBO. */
@@ -272,6 +274,7 @@ typedef struct OVERLAY_PrivateData {
   bool hide_overlays;
   bool xray_enabled;
   bool xray_enabled_and_not_wire;
+  float xray_opacity;
   short v3d_flag;     /* TODO move to View3DOverlay */
   short v3d_gridflag; /* TODO move to View3DOverlay */
   DRWState clipping_state;
@@ -391,6 +394,8 @@ void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_antialiasing_cache_finish(OVERLAY_Data *vedata);
 void OVERLAY_antialiasing_start(OVERLAY_Data *vedata);
 void OVERLAY_antialiasing_end(OVERLAY_Data *vedata);
+void OVERLAY_xray_fade_draw(OVERLAY_Data *vedata);
+void OVERLAY_xray_depth_copy(OVERLAY_Data *vedata);
 
 bool OVERLAY_armature_is_pose_mode(Object *ob, const struct DRWContextState *draw_ctx);
 void OVERLAY_armature_cache_init(OVERLAY_Data *vedata);
@@ -579,6 +584,7 @@ GPUShader *OVERLAY_shader_sculpt_mask(void);
 GPUShader *OVERLAY_shader_volume_velocity(bool use_needle);
 GPUShader *OVERLAY_shader_wireframe(void);
 GPUShader *OVERLAY_shader_wireframe_select(void);
+GPUShader *OVERLAY_shader_xray_fade(void);
 
 OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void);
 

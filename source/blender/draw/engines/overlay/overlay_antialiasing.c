@@ -68,7 +68,10 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   /* Small texture which will have very small impact on rendertime. */
-  DRW_texture_ensure_2d(&txl->dummy_depth_tx, 1, 1, GPU_DEPTH_COMPONENT24, 0);
+  if (txl->dummy_depth_tx == NULL) {
+    float pixel[1] = {1.0f};
+    txl->dummy_depth_tx = DRW_texture_create_2d(1, 1, GPU_DEPTH_COMPONENT24, 0, pixel);
+  }
 
   if (!DRW_state_is_fbo()) {
     pd->antialiasing.enabled = false;
@@ -110,6 +113,16 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
                                     GPU_ATTACHMENT_TEXTURE(color_tex),
                                     GPU_ATTACHMENT_TEXTURE(line_tex),
                                 });
+
+  if (pd->xray_enabled) {
+    DRW_texture_ensure_fullscreen_2d(&txl->temp_depth_tx, GPU_DEPTH24_STENCIL8, 0);
+
+    GPU_framebuffer_ensure_config(&fbl->overlay_xray_depth_copy_fb,
+                                  {
+                                      GPU_ATTACHMENT_TEXTURE(txl->temp_depth_tx),
+                                      GPU_ATTACHMENT_NONE,
+                                  });
+  }
 }
 
 void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata)
@@ -135,6 +148,18 @@ void OVERLAY_antialiasing_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "depthTex", &dtxl->depth);
     DRW_shgroup_uniform_texture_ref(grp, "colorTex", &txl->overlay_color_tx);
     DRW_shgroup_uniform_texture_ref(grp, "lineTex", &txl->overlay_line_tx);
+    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+  }
+
+  /* A bit out of place... not related to antialiasing. */
+  if (pd->xray_enabled) {
+    DRW_PASS_CREATE(psl->xray_fade_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_MUL);
+
+    sh = OVERLAY_shader_xray_fade();
+    grp = DRW_shgroup_create(sh, psl->xray_fade_ps);
+    DRW_shgroup_uniform_texture_ref(grp, "depthTex", &dtxl->depth);
+    DRW_shgroup_uniform_texture_ref(grp, "xrayDepthTex", &txl->temp_depth_tx);
+    DRW_shgroup_uniform_float_copy(grp, "opacity", 1.0f - pd->xray_opacity);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
 }
@@ -184,6 +209,34 @@ void OVERLAY_antialiasing_start(OVERLAY_Data *vedata)
     /* TODO(fclem) This clear should be done in a global place. */
     GPU_framebuffer_bind(fbl->overlay_in_front_fb);
     GPU_framebuffer_clear_depth(fbl->overlay_in_front_fb, 1.0f);
+  }
+}
+
+void OVERLAY_xray_depth_copy(OVERLAY_Data *vedata)
+{
+  OVERLAY_FramebufferList *fbl = vedata->fbl;
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
+
+  if (DRW_state_is_fbo() && pd->xray_enabled) {
+    if (pd->xray_opacity > 0.0f) {
+      /* We copy the depth of the rendered geometry to be able to compare to the overlays depth. */
+      GPU_framebuffer_blit(
+          fbl->overlay_default_fb, 0, fbl->overlay_xray_depth_copy_fb, 0, GPU_DEPTH_BIT);
+    }
+    /* We then clear to not occlude the overlays directly. */
+    GPU_framebuffer_bind(fbl->overlay_default_fb);
+    GPU_framebuffer_clear_depth(fbl->overlay_default_fb, 1.0f);
+  }
+}
+
+void OVERLAY_xray_fade_draw(OVERLAY_Data *vedata)
+{
+  OVERLAY_PassList *psl = vedata->psl;
+  OVERLAY_PrivateData *pd = vedata->stl->pd;
+
+  if (DRW_state_is_fbo() && pd->xray_enabled && pd->xray_opacity > 0.0f) {
+    /* Partially occlude overlays using the geometry depth pass. */
+    DRW_draw_pass(psl->xray_fade_ps);
   }
 }
 

@@ -75,6 +75,7 @@ static void OVERLAY_engine_init(void *vedata)
 
   pd->wireframe_mode = (v3d->shading.type == OB_WIRE);
   pd->clipping_state = RV3D_CLIPPING_ENABLED(v3d, rv3d) ? DRW_STATE_CLIP_PLANES : 0;
+  pd->xray_opacity = XRAY_ALPHA(v3d);
   pd->xray_enabled = XRAY_ACTIVE(v3d);
   pd->xray_enabled_and_not_wire = pd->xray_enabled && v3d->shading.type > OB_WIRE;
   pd->clear_in_front = (v3d->shading.type != OB_SOLID);
@@ -410,6 +411,7 @@ static void OVERLAY_draw_scene(void *vedata)
   }
 
   OVERLAY_outline_draw(vedata);
+  OVERLAY_xray_depth_copy(vedata);
 
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_default_fb);
@@ -433,6 +435,7 @@ static void OVERLAY_draw_scene(void *vedata)
     GPU_framebuffer_bind(fbl->overlay_color_only_fb);
   }
 
+  OVERLAY_xray_fade_draw(vedata);
   OVERLAY_grid_draw(vedata);
 
   if (DRW_state_is_fbo()) {

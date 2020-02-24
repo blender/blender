@@ -103,6 +103,7 @@ extern char datatoc_sculpt_mask_vert_glsl[];
 extern char datatoc_volume_velocity_vert_glsl[];
 extern char datatoc_wireframe_vert_glsl[];
 extern char datatoc_wireframe_frag_glsl[];
+extern char datatoc_xray_fade_frag_glsl[];
 
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
@@ -179,6 +180,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *volume_velocity_sh;
   GPUShader *wireframe_select;
   GPUShader *wireframe;
+  GPUShader *xray_fade;
 } OVERLAY_Shaders;
 
 static struct {
@@ -1263,6 +1265,18 @@ GPUShader *OVERLAY_shader_wireframe(void)
     });
   }
   return sh_data->wireframe;
+}
+
+GPUShader *OVERLAY_shader_xray_fade(void)
+{
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
+  if (!sh_data->xray_fade) {
+    sh_data->xray_fade = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){datatoc_common_fullscreen_vert_glsl, NULL},
+        .frag = (const char *[]){datatoc_xray_fade_frag_glsl, NULL},
+    });
+  }
+  return sh_data->xray_fade;
 }
 
 static OVERLAY_InstanceFormats g_formats = {NULL};

@@ -392,6 +392,7 @@ data_to_c_simple(engines/overlay/shaders/sculpt_mask_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/volume_velocity_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/wireframe_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/wireframe_frag.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/xray_fade_frag.glsl SRC)
 
 list(APPEND INC
 )
