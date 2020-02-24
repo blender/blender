@@ -115,8 +115,9 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
   }
 
   /* Ensure there is an OptiX device when using the OptiX denoiser. */
-  bool use_optix_denoising = DENOISER_OPTIX ==
-                             get_enum(cscene, "preview_denoising", DENOISER_NUM, DENOISER_NONE);
+  bool use_optix_denoising = get_enum(cscene, "preview_denoising", DENOISER_NUM, DENOISER_NONE) ==
+                                 DENOISER_OPTIX &&
+                             !background;
   BL::Scene::view_layers_iterator b_view_layer;
   for (b_scene.view_layers.begin(b_view_layer); b_view_layer != b_scene.view_layers.end();
        ++b_view_layer) {
