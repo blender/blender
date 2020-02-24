@@ -16,6 +16,19 @@ index 95abbe2..4f14f30 100644
  		message("WARNING: Native PCRE not found, taking PCRE from ./Externals")
  		add_definitions(-DPCRE_STATIC)
  		add_subdirectory(${EXTERNAL_LIBRARIES}/pcre)
+diff --git a/DAEValidator/CMakeLists.txt b/DAEValidator/CMakeLists.txt
+index 03ad540..f7d05cf 100644
+--- a/DAEValidator/CMakeLists.txt
++++ b/DAEValidator/CMakeLists.txt
+@@ -98,7 +98,7 @@ if (WIN32)
+ # C4710: 'function' : function not inlined
+ # C4711: function 'function' selected for inline expansion
+ # C4820: 'bytes' bytes padding added after construct 'member_name'
+-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /WX /wd4505 /wd4514 /wd4592 /wd4710 /wd4711 /wd4820")
++	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4505 /wd4514 /wd4592 /wd4710 /wd4711 /wd4820")
+ else ()
+ 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror")
+ endif ()
 diff --git a/DAEValidator/library/include/no_warning_begin b/DAEValidator/library/include/no_warning_begin
 index 7a69c32..defb315 100644
 --- a/DAEValidator/library/include/no_warning_begin
@@ -30,34 +43,8 @@ index 7a69c32..defb315 100644
  #	if defined(_MSC_VER) && defined(_DEBUG)
  #		pragma warning(disable:4548)
  #	endif
-diff --git a/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp b/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
-index 1f9a3ee..d151e9a 100644
---- a/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
-+++ b/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
-@@ -1553,7 +1553,7 @@ namespace GeneratedSaxParser
- #if defined(COLLADABU_OS_WIN) && !defined(__MINGW32__)
-         return _isnan( value ) ? true : false;
- #else
--#ifdef isnan
-+#if defined(isnan) || defined(__APPLE__)
-         return isnan( value );
- #else
-         return std::isnan(value);
-diff --git a/DAEValidator/CMakeLists.txt b/DAEValidator/CMakeLists.txt
-index 03ad540f..f7d05cfb 100644
---- a/DAEValidator/CMakeLists.txt
-+++ b/DAEValidator/CMakeLists.txt
-@@ -98,7 +98,7 @@ if (WIN32)
- # C4710: 'function' : function not inlined
- # C4711: function 'function' selected for inline expansion
- # C4820: 'bytes' bytes padding added after construct 'member_name'
--	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /WX /wd4505 /wd4514 /wd4592 /wd4710 /wd4711 /wd4820")
-+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4505 /wd4514 /wd4592 /wd4710 /wd4711 /wd4820")
- else ()
- 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror")
- endif ()
 diff --git a/DAEValidator/library/src/ArgumentParser.cpp b/DAEValidator/library/src/ArgumentParser.cpp
-index 897e4dcf..98a69ff1 100644
+index 897e4dc..98a69ff 100644
 --- a/DAEValidator/library/src/ArgumentParser.cpp
 +++ b/DAEValidator/library/src/ArgumentParser.cpp
 @@ -6,10 +6,10 @@
@@ -74,10 +61,11 @@ index 897e4dcf..98a69ff1 100644
  #endif
  
  namespace opencollada
-diff -Naur orig/Externals/LibXML/CMakeLists.txt external_opencollada/Externals/LibXML/CMakeLists.txt
---- orig/Externals/LibXML/CMakeLists.txt	2018-11-26 15:43:10 -0700
-+++ external_opencollada/Externals/LibXML/CMakeLists.txt	2020-01-21 14:15:04 -0700
-@@ -9,6 +9,7 @@
+diff --git a/Externals/LibXML/CMakeLists.txt b/Externals/LibXML/CMakeLists.txt
+index 40081e7..e1d1bfa 100644
+--- a/Externals/LibXML/CMakeLists.txt
++++ b/Externals/LibXML/CMakeLists.txt
+@@ -9,6 +9,7 @@ add_definitions(
  		-DLIBXML_SCHEMAS_ENABLED
  		-DLIBXML_XPATH_ENABLED
  		-DLIBXML_TREE_ENABLED
@@ -85,3 +73,16 @@ diff -Naur orig/Externals/LibXML/CMakeLists.txt external_opencollada/Externals/L
  	)
  	
  if(USE_STATIC_MSVC_RUNTIME)
+diff --git a/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp b/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
+index 1f9a3ee..d151e9a 100644
+--- a/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
++++ b/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
+@@ -1553,7 +1553,7 @@ namespace GeneratedSaxParser
+ #if defined(COLLADABU_OS_WIN) && !defined(__MINGW32__)
+         return _isnan( value ) ? true : false;
+ #else
+-#ifdef isnan
++#if defined(isnan) || defined(__APPLE__)
+         return isnan( value );
+ #else
+         return std::isnan(value);

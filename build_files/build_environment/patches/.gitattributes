@@ -1,0 +1,2 @@
+# Files contains mixed line endings, patch needs to preserve them to apply.
+opencollada.diff binary
