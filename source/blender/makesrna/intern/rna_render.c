@@ -128,14 +128,12 @@ static int engine_get_preview_pixel_size(RenderEngine *UNUSED(engine), Scene *sc
 
 static void engine_bind_display_space_shader(RenderEngine *UNUSED(engine), Scene *UNUSED(scene))
 {
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_COLOR);
+  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE);
   GPU_shader_bind(shader);
 
   int img_loc = GPU_shader_get_uniform_ensure(shader, "image");
-  int color_loc = GPU_shader_get_uniform_ensure(shader, "color");
 
   GPU_shader_uniform_int(shader, img_loc, 0);
-  GPU_shader_uniform_vector(shader, color_loc, 3, 1, (float[3]){1.0f, 1.0f, 1.0f});
 }
 
 static void engine_unbind_display_space_shader(RenderEngine *UNUSED(engine))
