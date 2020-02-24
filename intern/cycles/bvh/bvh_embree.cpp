@@ -728,8 +728,9 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair
   }
 
   /* Catmull-Rom splines need extra CVs at the beginning and end of each curve. */
+  size_t num_keys_embree = num_keys;
   if (use_curves) {
-    num_keys += num_curves * 2;
+    num_keys_embree += num_curves * 2;
   }
 
   /* Copy the CV data to Embree */
@@ -746,7 +747,7 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair
     }
 
     float4 *rtc_verts = (float4 *)rtcSetNewGeometryBuffer(
-        geom_id, RTC_BUFFER_TYPE_VERTEX, t, RTC_FORMAT_FLOAT4, sizeof(float) * 4, num_keys);
+        geom_id, RTC_BUFFER_TYPE_VERTEX, t, RTC_FORMAT_FLOAT4, sizeof(float) * 4, num_keys_embree);
 
     assert(rtc_verts);
     if (rtc_verts) {
@@ -767,7 +768,7 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair
         }
       }
       else {
-        for (size_t j = 0; j < num_keys; ++j) {
+        for (size_t j = 0; j < num_keys_embree; ++j) {
           rtc_verts[j] = float3_to_float4(verts[j]);
           rtc_verts[j].w = curve_radius[j];
         }
