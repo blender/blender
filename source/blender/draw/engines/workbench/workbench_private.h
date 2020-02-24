@@ -164,7 +164,6 @@ typedef struct WORKBENCH_PassList {
   struct DRWPass *transparent_accum_pass;
   struct DRWPass *object_outline_pass;
   struct DRWPass *depth_pass;
-  struct DRWPass *checker_depth_pass;
 } WORKBENCH_PassList;
 
 typedef struct WORKBENCH_Data {
