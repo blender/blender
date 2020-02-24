@@ -2274,7 +2274,7 @@ static void rna_def_mesh_looptris(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
 
-  RNA_def_property_srna(cprop, "MeshLoopTriangle");
+  RNA_def_property_srna(cprop, "MeshLoopTriangles");
   srna = RNA_def_struct(brna, "MeshLoopTriangles", NULL);
   RNA_def_struct_sdna(srna, "Mesh");
   RNA_def_struct_ui_text(
