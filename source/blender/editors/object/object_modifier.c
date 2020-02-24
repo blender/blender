@@ -754,30 +754,30 @@ static int modifier_apply_obdata(
   return 1;
 }
 
-int ED_object_modifier_apply(Main *bmain,
-                             ReportList *reports,
-                             Depsgraph *depsgraph,
-                             Scene *scene,
-                             Object *ob,
-                             ModifierData *md,
-                             int mode)
+bool ED_object_modifier_apply(Main *bmain,
+                              ReportList *reports,
+                              Depsgraph *depsgraph,
+                              Scene *scene,
+                              Object *ob,
+                              ModifierData *md,
+                              int mode)
 {
   int prev_mode;
 
   if (BKE_object_is_in_editmode(ob)) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in edit mode");
-    return 0;
+    return false;
   }
-  else if (((ID *)ob->data)->us > 1) {
+  else if (ID_REAL_USERS(ob->data) > 1) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
-    return 0;
+    return false;
   }
   else if ((ob->mode & OB_MODE_SCULPT) && (find_multires_modifier_before(scene, md)) &&
            (modifier_isSameTopology(md) == false)) {
     BKE_report(reports,
                RPT_ERROR,
                "Constructive modifier cannot be applied to multi-res data in sculpt mode");
-    return 0;
+    return false;
   }
 
   if (md != ob->modifiers.first) {
@@ -796,13 +796,13 @@ int ED_object_modifier_apply(Main *bmain,
   if (mode == MODIFIER_APPLY_SHAPE) {
     if (!modifier_apply_shape(bmain, reports, depsgraph, scene, ob, md_eval)) {
       md_eval->mode = prev_mode;
-      return 0;
+      return false;
     }
   }
   else {
     if (!modifier_apply_obdata(reports, depsgraph, scene, ob, md_eval)) {
       md_eval->mode = prev_mode;
-      return 0;
+      return false;
     }
   }
 
@@ -812,7 +812,7 @@ int ED_object_modifier_apply(Main *bmain,
 
   BKE_object_free_derived_caches(ob);
 
-  return 1;
+  return true;
 }
 
 int ED_object_modifier_copy(ReportList *UNUSED(reports), Object *ob, ModifierData *md)
@@ -931,28 +931,28 @@ bool edit_modifier_poll_generic(bContext *C,
   ModifierData *mod = ptr.data; /* May be NULL. */
 
   if (!ob || ID_IS_LINKED(ob)) {
-    return 0;
+    return false;
   }
   if (obtype_flag && ((1 << ob->type) & obtype_flag) == 0) {
-    return 0;
+    return false;
   }
   if (ptr.owner_id && ID_IS_LINKED(ptr.owner_id)) {
-    return 0;
+    return false;
   }
 
   if (ID_IS_OVERRIDE_LIBRARY(ob)) {
     if ((mod != NULL) && (mod->flag & eModifierFlag_OverrideLibrary_Local) == 0) {
       CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from library override");
-      return 0;
+      return false;
     }
   }
 
   if (!is_editmode_allowed && CTX_data_edit_object(C) != NULL) {
     CTX_wm_operator_poll_msg_set(C, "This modifier operation is not allowed from Edit mode");
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool edit_modifier_poll(bContext *C)
@@ -1139,6 +1139,32 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 
 /************************ apply modifier operator *********************/
 
+static bool modifier_apply_poll(bContext *C)
+{
+  if (!edit_modifier_poll_generic(C, &RNA_Modifier, 0, false)) {
+    return false;
+  }
+
+  Scene *scene = CTX_data_scene(C);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  Object *ob = (ptr.owner_id != NULL) ? (Object *)ptr.owner_id : ED_object_active_context(C);
+  ModifierData *md = ptr.data; /* May be NULL. */
+
+  if (ID_REAL_USERS(ob->data) > 1) {
+    CTX_wm_operator_poll_msg_set(C, "Modifiers cannot be applied to multi-user data");
+    return false;
+  }
+  else if (md != NULL) {
+    if ((ob->mode & OB_MODE_SCULPT) && (find_multires_modifier_before(scene, md)) &&
+        (modifier_isSameTopology(md) == false)) {
+      CTX_wm_operator_poll_msg_set(
+          C, "Constructive modifier cannot be applied to multi-res data in sculpt mode");
+      return false;
+    }
+  }
+  return true;
+}
+
 static int modifier_apply_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1187,7 +1213,7 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 
   ot->invoke = modifier_apply_invoke;
   ot->exec = modifier_apply_exec;
-  ot->poll = edit_modifier_poll;
+  ot->poll = modifier_apply_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

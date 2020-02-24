@@ -362,13 +362,13 @@ int ED_object_modifier_convert(struct ReportList *reports,
                                struct ViewLayer *view_layer,
                                struct Object *ob,
                                struct ModifierData *md);
-int ED_object_modifier_apply(struct Main *bmain,
-                             struct ReportList *reports,
-                             struct Depsgraph *depsgraph,
-                             struct Scene *scene,
-                             struct Object *ob,
-                             struct ModifierData *md,
-                             int mode);
+bool ED_object_modifier_apply(struct Main *bmain,
+                              struct ReportList *reports,
+                              struct Depsgraph *depsgraph,
+                              struct Scene *scene,
+                              struct Object *ob,
+                              struct ModifierData *md,
+                              int mode);
 int ED_object_modifier_copy(struct ReportList *reports,
                             struct Object *ob,
                             struct ModifierData *md);
