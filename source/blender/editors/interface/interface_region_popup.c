@@ -554,8 +554,8 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
   CTX_wm_region_set(C, ctx_ar);
 
   /* reset to region cursor (only if there's not another menu open) */
-  if ((ctx_sa != NULL) && (BLI_listbase_is_empty(&sc->regionbase))) {
-    ctx_sa->flag |= AREA_FLAG_CURSOR_UPDATE;
+  if (BLI_listbase_is_empty(&sc->regionbase)) {
+    win->tag_cursor_refresh = true;
   }
 
   if (handle->scrolltimer) {

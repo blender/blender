@@ -254,7 +254,8 @@ typedef struct wmWindow {
   short grabcursor;
   /** Internal: tag this for extra mousemove event,
    * makes cursors/buttons active on UI switching. */
-  short addmousemove;
+  char addmousemove;
+  char tag_cursor_refresh;
 
   /** Winid also in screens, is for retrieving this window after read. */
   int winid;

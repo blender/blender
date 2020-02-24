@@ -377,10 +377,9 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
   /* Set the cursor if possible, if not - it's fine as entering the region will refresh it. */
   {
     wmWindow *win = CTX_wm_window(C);
-    ScrArea *sa = CTX_wm_area(C);
-    if (win && sa) {
+    if (win != NULL) {
       win->addmousemove = true;
-      sa->flag |= AREA_FLAG_CURSOR_UPDATE;
+      win->tag_cursor_refresh = true;
     }
   }
 

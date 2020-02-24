@@ -401,8 +401,8 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 static void region_cursor_set_ex(wmWindow *win, ScrArea *sa, ARegion *ar, bool swin_changed)
 {
   BLI_assert(WM_window_get_active_screen(win)->active_region == ar);
-  if (sa->flag & AREA_FLAG_CURSOR_UPDATE || swin_changed || (ar->type && ar->type->event_cursor)) {
-    sa->flag &= ~AREA_FLAG_CURSOR_UPDATE;
+  if (win->tag_cursor_refresh || swin_changed || (ar->type && ar->type->event_cursor)) {
+    win->tag_cursor_refresh = false;
     ED_region_cursor_set(win, sa, ar);
   }
 }
