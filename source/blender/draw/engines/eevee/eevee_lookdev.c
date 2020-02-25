@@ -117,7 +117,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 #elif defined(IRRADIANCE_HL2)
         int grid_res = 4;
 #endif
-        int cube_res = OCTAHEDRAL_SIZE_FROM_CUBESIZE(scene_eval->eevee.gi_cubemap_resolution);
+        int cube_res = octahedral_size_from_cubesize(scene_eval->eevee.gi_cubemap_resolution);
         int vis_res = scene_eval->eevee.gi_visibility_resolution;
 
         stl->lookdev_lightcache = EEVEE_lightcache_create(

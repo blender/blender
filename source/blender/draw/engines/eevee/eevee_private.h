@@ -136,9 +136,20 @@ extern struct DrawEngineType draw_engine_eevee_type;
              ((v3d->shading.type == OB_RENDER) && \
               ((v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER) == 0))))
 
-#define OCTAHEDRAL_SIZE_FROM_CUBESIZE(cube_size) \
-  ((int)ceilf(sqrtf((cube_size * cube_size) * 6.0f)))
 #define MIN_CUBE_LOD_LEVEL 3
+
+BLI_INLINE int octahedral_size_from_cubesize(int cube_size)
+{
+  int cube_pixel_count = SQUARE(cube_size) * 6.0f;
+  int octa_size = (int)ceilf(sqrtf(cube_pixel_count));
+  int lod_count = log2_floor_u(octa_size) - MIN_CUBE_LOD_LEVEL;
+  /* Find lowest lod size and grow back to avoid having non matching mipsizes that would
+   * break trilinear interpolation. */
+  octa_size /= 1 << lod_count;
+  octa_size *= 1 << lod_count;
+  return octa_size;
+}
+
 #define MAX_PLANAR_LOD_LEVEL 9
 
 /* All the renderpasses that use the GPUMaterial for accumulation */
