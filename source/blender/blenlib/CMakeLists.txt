@@ -277,6 +277,12 @@ if(WIN32)
   )
 endif()
 
+if(UNIX AND NOT APPLE)
+  list(APPEND LIB
+    bf_intern_libc_compat
+  )
+endif()
+
 # no need to compile object files for inline headers.
 set_source_files_properties(
   intern/math_base_inline.c
