@@ -78,7 +78,18 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 
   if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
     /* Viewport / Spheres size. */
-    const rcti *rect = ED_region_visible_rect(draw_ctx->ar);
+    const rcti *rect;
+    rcti fallback_rect;
+    if (DRW_state_is_opengl_render()) {
+      const float *vp_size = DRW_viewport_size_get();
+      fallback_rect.xmax = vp_size[0];
+      fallback_rect.ymax = vp_size[1];
+      fallback_rect.xmin = fallback_rect.ymin = 0;
+      rect = &fallback_rect;
+    }
+    else {
+      rect = ED_region_visible_rect(draw_ctx->ar);
+    }
 
     /* Make the viewport width scale the lookdev spheres a bit.
      * Scale between 1000px and 2000px. */
