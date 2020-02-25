@@ -3239,9 +3239,18 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "studiolight_background_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "studiolight_background");
-  RNA_def_property_ui_text(prop, "Background", "Show the studiolight in the background");
+  RNA_def_property_ui_text(prop, "World Opacity", "Show the studiolight in the background");
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 3);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 3);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "studiolight_background_blur", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "studiolight_blur");
+  RNA_def_property_ui_text(prop, "Blur", "Blur the studiolight in the background");
+  RNA_def_property_float_default(prop, 0.5f);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 2);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 

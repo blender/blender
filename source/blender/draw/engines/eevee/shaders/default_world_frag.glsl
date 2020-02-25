@@ -4,11 +4,12 @@ uniform vec3 color;
 
 out vec4 FragColor;
 
-#ifdef LOOKDEV
+#if defined(LOOKDEV_BG) || defined(LOOKDEV)
+
 uniform mat3 StudioLightMatrix;
 uniform sampler2D image;
-uniform float studioLightBackground = 1.0;
 uniform float studioLightIntensity = 1.0;
+uniform float studioLightBlur = 0.0;
 in vec3 viewPosition;
 
 #  define M_PI 3.14159265358979323846
@@ -49,11 +50,17 @@ vec4 node_tex_environment_equirectangular(vec3 co, sampler2D ima)
 void main()
 {
   vec3 background_color;
-#ifdef LOOKDEV
+
+#if defined(LOOKDEV_BG)
+  vec3 worldvec = background_transform_to_world(viewPosition);
+  background_color = probe_evaluate_world_spec(worldvec, studioLightBlur).rgb;
+  background_color *= studioLightIntensity;
+
+#elif defined(LOOKDEV)
   vec3 worldvec = background_transform_to_world(viewPosition);
   background_color = node_tex_environment_equirectangular(StudioLightMatrix * worldvec, image).rgb;
   background_color *= studioLightIntensity;
-  background_color = mix(color, background_color, studioLightBackground);
+
 #else
   background_color = color;
 #endif

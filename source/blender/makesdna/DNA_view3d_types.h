@@ -170,6 +170,7 @@ typedef struct View3DShading {
   float studiolight_rot_z;
   float studiolight_background;
   float studiolight_intensity;
+  float studiolight_blur;
 
   float object_outline_color[3];
   float xray_alpha;
@@ -185,7 +186,6 @@ typedef struct View3DShading {
 
   /* Render pass displayed in the viewport. Is an `eScenePassType` where one bit is set */
   int render_pass;
-  char _pad2[4];
 
   struct IDProperty *prop;
 } View3DShading;

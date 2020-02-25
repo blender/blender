@@ -987,6 +987,7 @@ struct GPUShader *EEVEE_shaders_probe_filter_visibility_sh_get(void);
 struct GPUShader *EEVEE_shaders_probe_grid_fill_sh_get(void);
 struct GPUShader *EEVEE_shaders_probe_planar_downsample_sh_get(void);
 struct GPUShader *EEVEE_shaders_default_studiolight_sh_get(void);
+struct GPUShader *EEVEE_shaders_background_studiolight_sh_get(void);
 struct GPUShader *EEVEE_shaders_probe_cube_display_sh_get(void);
 struct GPUShader *EEVEE_shaders_probe_grid_display_sh_get(void);
 struct GPUShader *EEVEE_shaders_probe_planar_display_sh_get(void);
@@ -1196,9 +1197,9 @@ void EEVEE_render_update_passes(struct RenderEngine *engine,
 
 /** eevee_lookdev.c */
 void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
+                              EEVEE_ViewLayerData *sldata,
                               DRWShadingGroup **grp,
                               DRWPass *pass,
-                              float background_alpha,
                               struct World *world,
                               EEVEE_LightProbesInfo *pinfo);
 void EEVEE_lookdev_draw(EEVEE_Data *vedata);
