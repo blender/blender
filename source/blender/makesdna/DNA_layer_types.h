@@ -47,6 +47,7 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_AO = (1 << 13),
   EEVEE_RENDER_PASS_BLOOM = (1 << 14),
 } eViewLayerEEVEEPassType;
+#define EEVEE_RENDER_PASS_MAX_BIT 15
 
 typedef struct Base {
   struct Base *next, *prev;

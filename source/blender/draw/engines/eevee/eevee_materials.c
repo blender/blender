@@ -124,7 +124,8 @@ extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
                                                                   ~EEVEE_RENDER_PASS_ENVIRONMENT; \
   if (__filtered_##render_pass_index_ != 0) { \
     int render_pass_index_ = 1; \
-    for (int bit_##render_pass_ = 0; bit_##render_pass_ < 32; bit_##render_pass_++) { \
+    for (int bit_##render_pass_ = 0; bit_##render_pass_ < EEVEE_RENDER_PASS_MAX_BIT; \
+         bit_##render_pass_++) { \
       eViewLayerEEVEEPassType render_pass_ = (1 << bit_##render_pass_); \
       if ((__filtered_##render_pass_index_ & render_pass_) != 0) {
 #define RENDER_PASS_ITER_END(render_pass_index_) \
