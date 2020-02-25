@@ -31,8 +31,18 @@ from mathutils import Matrix
 class AbstractConstraintTests(unittest.TestCase):
     """Useful functionality for constraint tests."""
 
+    layer_collection = ''  # When set, this layer collection will be enabled.
+
     def setUp(self):
         bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "constraints.blend"))
+
+        # This allows developers to disable layer collections and declutter the
+        # 3D Viewport while working in constraints.blend, without influencing
+        # the actual unit tests themselves.
+        if self.layer_collection:
+            top_collection = bpy.context.view_layer.layer_collection
+            collection = top_collection.children[self.layer_collection]
+            collection.exclude = False
 
     def assert_matrix(self, actual_matrix, expect_matrix, object_name: str, places=6, delta=None):
         """Asserts that the matrices almost equal."""
@@ -76,6 +86,8 @@ class AbstractConstraintTests(unittest.TestCase):
 
 
 class ChildOfTest(AbstractConstraintTests):
+    layer_collection = 'Child Of'
+
     def test_object_simple_parent(self):
         """Child Of: simple evaluation of object parent."""
         initial_matrix = Matrix((
