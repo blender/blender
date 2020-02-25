@@ -748,6 +748,7 @@ static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), Poin
 static void node_shader_buts_vector_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "rotation_type", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "invert", 0, NULL, 0);
 }
 
 static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

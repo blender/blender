@@ -6157,6 +6157,8 @@ NODE_DEFINE(VectorRotateNode)
   type_enum.insert("euler_xyz", NODE_VECTOR_ROTATE_TYPE_EULER_XYZ);
   SOCKET_ENUM(type, "Type", type_enum, NODE_VECTOR_ROTATE_TYPE_AXIS);
 
+  SOCKET_BOOLEAN(invert, "Invert", false);
+
   SOCKET_IN_VECTOR(vector, "Vector", make_float3(0.0f, 0.0f, 0.0f));
   SOCKET_IN_POINT(rotation, "Rotation", make_float3(0.0f, 0.0f, 0.0f));
   SOCKET_IN_POINT(center, "Center", make_float3(0.0f, 0.0f, 0.0f));
@@ -6180,19 +6182,20 @@ void VectorRotateNode::compile(SVMCompiler &compiler)
   ShaderInput *angle_in = input("Angle");
   ShaderOutput *vector_out = output("Vector");
 
-  compiler.add_node(NODE_VECTOR_ROTATE,
-                    compiler.encode_uchar4(type,
-                                           compiler.stack_assign(vector_in),
-                                           compiler.stack_assign(rotation_in)),
-                    compiler.encode_uchar4(compiler.stack_assign(center_in),
-                                           compiler.stack_assign(axis_in),
-                                           compiler.stack_assign(angle_in)),
-                    compiler.stack_assign(vector_out));
+  compiler.add_node(
+      NODE_VECTOR_ROTATE,
+      compiler.encode_uchar4(
+          type, compiler.stack_assign(vector_in), compiler.stack_assign(rotation_in), invert),
+      compiler.encode_uchar4(compiler.stack_assign(center_in),
+                             compiler.stack_assign(axis_in),
+                             compiler.stack_assign(angle_in)),
+      compiler.stack_assign(vector_out));
 }
 
 void VectorRotateNode::compile(OSLCompiler &compiler)
 {
   compiler.parameter(this, "type");
+  compiler.parameter(this, "invert");
   compiler.add(this, "node_vector_rotate");
 }
 

@@ -327,6 +327,7 @@ static ShaderNode *add_node(Scene *scene,
     BL::ShaderNodeVectorRotate b_vector_rotate_node(b_node);
     VectorRotateNode *vector_rotate_node = new VectorRotateNode();
     vector_rotate_node->type = (NodeVectorRotateType)b_vector_rotate_node.rotation_type();
+    vector_rotate_node->invert = b_vector_rotate_node.invert();
     node = vector_rotate_node;
   }
   else if (b_node.is_a(&RNA_ShaderNodeVectorTransform)) {

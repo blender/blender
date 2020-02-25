@@ -1400,6 +1400,7 @@ class VectorRotateNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
   NodeVectorRotateType type;
+  bool invert;
   float3 vector;
   float3 center;
   float3 axis;

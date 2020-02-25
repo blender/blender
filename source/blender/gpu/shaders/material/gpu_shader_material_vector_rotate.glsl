@@ -20,33 +20,34 @@ vec3 rotate_around_axis(vec3 p, vec3 axis, float angle)
 }
 
 void node_vector_rotate_axis_angle(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
+    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
 {
   vec = (length(axis) != 0.0) ?
-            rotate_around_axis(vector_in - center, normalize(axis), angle) + center :
+            rotate_around_axis(vector_in - center, normalize(axis), angle * invert) + center :
             vector_in;
 }
 
 void node_vector_rotate_axis_x(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
+    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
 {
-  vec = rotate_around_axis(vector_in - center, vec3(1.0, 0.0, 0.0), angle) + center;
+  vec = rotate_around_axis(vector_in - center, vec3(1.0, 0.0, 0.0), angle * invert) + center;
 }
 
 void node_vector_rotate_axis_y(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
+    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
 {
-  vec = rotate_around_axis(vector_in - center, vec3(0.0, 1.0, 0.0), angle) + center;
+  vec = rotate_around_axis(vector_in - center, vec3(0.0, 1.0, 0.0), angle * invert) + center;
 }
 
 void node_vector_rotate_axis_z(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
+    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
 {
-  vec = rotate_around_axis(vector_in - center, vec3(0.0, 0.0, 1.0), angle) + center;
+  vec = rotate_around_axis(vector_in - center, vec3(0.0, 0.0, 1.0), angle * invert) + center;
 }
 
 void node_vector_rotate_euler_xyz(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, out vec3 vec)
+    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
 {
-  vec = euler_to_mat3(rotation) * (vector_in - center) + center;
+  mat3 rmat = (invert < 0.0) ? transpose(euler_to_mat3(rotation)) : euler_to_mat3(rotation);
+  vec = rmat * (vector_in - center) + center;
 }
