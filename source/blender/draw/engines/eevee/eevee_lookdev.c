@@ -104,14 +104,17 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       GPUShader *shader = probe_render ? EEVEE_shaders_default_studiolight_sh_get() :
                                          EEVEE_shaders_background_studiolight_sh_get();
 
+      const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+      int cube_res = octahedral_size_from_cubesize(scene_eval->eevee.gi_cubemap_resolution);
+
       /* If one of the component is missing we start from scratch. */
       if ((stl->lookdev_grid_data == NULL) || (stl->lookdev_cube_data == NULL) ||
-          (txl->lookdev_grid_tx == NULL) || (txl->lookdev_cube_tx == NULL)) {
+          (txl->lookdev_grid_tx == NULL) || (txl->lookdev_cube_tx == NULL) ||
+          (g_data->light_cache && g_data->light_cache->ref_res != cube_res)) {
         eevee_lookdev_lightcache_delete(vedata);
       }
 
       if (stl->lookdev_lightcache == NULL) {
-        const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 #if defined(IRRADIANCE_SH_L2)
         int grid_res = 4;
 #elif defined(IRRADIANCE_CUBEMAP)
@@ -119,11 +122,9 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 #elif defined(IRRADIANCE_HL2)
         int grid_res = 4;
 #endif
-        int cube_res = octahedral_size_from_cubesize(scene_eval->eevee.gi_cubemap_resolution);
-        int vis_res = scene_eval->eevee.gi_visibility_resolution;
 
         stl->lookdev_lightcache = EEVEE_lightcache_create(
-            1, 1, cube_res, vis_res, (int[3]){grid_res, grid_res, 1});
+            1, 1, cube_res, 8, (int[3]){grid_res, grid_res, 1});
 
         /* XXX: Fix memleak. TODO find out why. */
         MEM_SAFE_FREE(stl->lookdev_cube_mips);
