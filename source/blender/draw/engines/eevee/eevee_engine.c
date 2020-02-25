@@ -177,9 +177,6 @@ static void eevee_cache_finish(void *vedata)
   if (g_data->queued_shaders_count != g_data->queued_shaders_count_prev) {
     g_data->queued_shaders_count_prev = g_data->queued_shaders_count;
     EEVEE_temporal_sampling_reset(vedata);
-    /* At this moment the TAA sampling will be redrawn in the next iteration.
-     * we set the taa_current_sample to 0 so the next iteration will use sample 1 */
-    stl->effects->taa_current_sample = 0;
   }
 }
 
