@@ -49,6 +49,8 @@
 
 #include "RE_render_ext.h"
 
+#include "BLI_hash.h"
+
 #ifdef WITH_OCEANSIM
 
 /* Ocean code */
@@ -985,11 +987,15 @@ void BKE_ocean_init(struct Ocean *o,
     }
   }
 
-  /*srand(seed);*/
   rng = BLI_rng_new(seed);
 
   for (i = 0; i < o->_M; i++) {
     for (j = 0; j < o->_N; j++) {
+      /* This ensures we get a value tied to the surface location, avoiding dramatic surface
+       * change with changing resolution. */
+      int new_seed = seed + BLI_hash_int_2d(o->_kx[i] * 360.0f, o->_kz[j] * 360.0f);
+
+      BLI_rng_seed(rng, new_seed);
       float r1 = gaussRand(rng);
       float r2 = gaussRand(rng);
 
