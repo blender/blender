@@ -1154,7 +1154,10 @@ void BlenderSync::sync_particle_hair(
   }
 }
 
-void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Geometry *geom)
+void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph,
+                            BL::Object b_ob,
+                            Geometry *geom,
+                            const vector<Shader *> &used_shaders)
 {
   Hair *hair = (geom->type == Geometry::HAIR) ? static_cast<Hair *>(geom) : NULL;
   Mesh *mesh = (geom->type == Geometry::MESH) ? static_cast<Mesh *>(geom) : NULL;
@@ -1171,6 +1174,9 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Geometry
   else {
     oldtriangles.steal_data(mesh->triangles);
   }
+
+  geom->clear();
+  geom->used_shaders = used_shaders;
 
   if (view_layer.use_hair && scene->curve_system_manager->use_curves) {
     /* Particle hair. */

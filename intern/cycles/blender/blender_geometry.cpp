@@ -117,20 +117,18 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
   geometry_synced.insert(geom);
 
-  geom->clear();
-  geom->used_shaders = used_shaders;
   geom->name = ustring(b_ob_data.name().c_str());
 
   if (use_particle_hair) {
-    sync_hair(b_depsgraph, b_ob, geom);
+    sync_hair(b_depsgraph, b_ob, geom, used_shaders);
   }
   else if (object_fluid_gas_domain_find(b_ob)) {
     Mesh *mesh = static_cast<Mesh *>(geom);
-    sync_volume(b_ob, mesh);
+    sync_volume(b_ob, mesh, used_shaders);
   }
   else {
     Mesh *mesh = static_cast<Mesh *>(geom);
-    sync_mesh(b_depsgraph, b_ob, mesh);
+    sync_mesh(b_depsgraph, b_ob, mesh, used_shaders);
   }
 
   return geom;

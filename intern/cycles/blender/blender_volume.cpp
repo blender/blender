@@ -80,9 +80,12 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Mesh *mesh, float 
   }
 }
 
-void BlenderSync::sync_volume(BL::Object &b_ob, Mesh *mesh)
+void BlenderSync::sync_volume(BL::Object &b_ob, Mesh *mesh, const vector<Shader *> &used_shaders)
 {
   bool old_has_voxel_attributes = mesh->has_voxel_attributes();
+
+  mesh->clear();
+  mesh->used_shaders = used_shaders;
 
   /* Smoke domain. */
   sync_smoke_volume(scene, b_ob, mesh, b_scene.frame_current());
