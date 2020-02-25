@@ -147,6 +147,23 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 
 static void do_versions_image_settings_2_60(Scene *sce)
 {
+  /* RenderData.subimtype flag options for imtype */
+  enum {
+    R_OPENEXR_HALF = (1 << 0),
+    R_OPENEXR_ZBUF = (1 << 1),
+    R_PREVIEW_JPG = (1 << 2),
+    R_CINEON_LOG = (1 << 3),
+    R_TIFF_16BIT = (1 << 4),
+
+    R_JPEG2K_12BIT = (1 << 5),
+    /* Jpeg2000 */
+    R_JPEG2K_16BIT = (1 << 6),
+    R_JPEG2K_YCC = (1 << 7),
+    /* when disabled use RGB */
+    R_JPEG2K_CINE_PRESET = (1 << 8),
+    R_JPEG2K_CINE_48FPS = (1 << 9),
+  };
+
   /* note: rd->subimtype is moved into individual settings now and no longer
    * exists */
   RenderData *rd = &sce->r;

@@ -1926,25 +1926,6 @@ enum {
   R_COLOR_MANAGEMENT_UNUSED_1 = (1 << 1),
 };
 
-#ifdef DNA_DEPRECATED_ALLOW
-/* RenderData.subimtype flag options for imtype */
-enum {
-  R_OPENEXR_HALF = (1 << 0), /*deprecated*/
-  R_OPENEXR_ZBUF = (1 << 1), /*deprecated*/
-  R_PREVIEW_JPG = (1 << 2),  /*deprecated*/
-  R_CINEON_LOG = (1 << 3),   /*deprecated*/
-  R_TIFF_16BIT = (1 << 4),   /*deprecated*/
-
-  R_JPEG2K_12BIT = (1 << 5),
-  /* Jpeg2000 */             /*deprecated*/
-  R_JPEG2K_16BIT = (1 << 6), /*deprecated*/
-  R_JPEG2K_YCC = (1 << 7),
-  /* when disabled use RGB */      /*deprecated*/
-  R_JPEG2K_CINE_PRESET = (1 << 8), /*deprecated*/
-  R_JPEG2K_CINE_48FPS = (1 << 9),  /*deprecated*/
-};
-#endif
-
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* RenderData.bake_flag */
 #define R_BAKE_CLEAR (1 << 0)

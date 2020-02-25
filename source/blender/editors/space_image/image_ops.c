@@ -1980,9 +1980,6 @@ static int image_save_options_init(Main *bmain,
       opts->im_format.views_format = ima->views_format;
     }
 
-    ///* XXX - this is lame, we need to make these available too! */
-    // opts->subimtype = scene->r.subimtype;
-
     BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
 
     /* sanitize all settings */
