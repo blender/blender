@@ -1240,8 +1240,9 @@ static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 
   /* despite 3 layers of checks, we may still not be able to find a constraint */
   if (data == NULL) {
-    printf("DEBUG: Child-Of Set Inverse - object = '%s'\n", (ob) ? ob->id.name + 2 : "<None>");
-    BKE_report(op->reports, RPT_ERROR, "Could not find constraint data for Child-Of Set Inverse");
+    printf("DEBUG: ObjectSolver Set Inverse - object = '%s'\n", (ob) ? ob->id.name + 2 : "<None>");
+    BKE_report(
+        op->reports, RPT_ERROR, "Could not find constraint data for ObjectSolver Set Inverse");
     return OPERATOR_CANCELLED;
   }
 
