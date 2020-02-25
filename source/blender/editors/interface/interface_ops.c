@@ -800,7 +800,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
     *r_lb = CTX_data_collection_get(C, "selected_editable_fcurves");
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Constraint) &&
-           (path_from_bone = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_PoseBone)) != NULL) {
+           (path_from_bone = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_PoseBone)) !=
+               NULL) {
     *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
     *r_path = path_from_bone;
   }

@@ -30,20 +30,21 @@ const vec2 offsets16[16] = vec2[16](vec2(-1.5, 1.5),
                                     vec2(1.5, -1.5));
 
 //#define GPU_NEAREST
-#define sample_glyph_offset(texel, ofs) texture_1D_custom_bilinear_filter(texCoord_interp + ofs * texel)
+#define sample_glyph_offset(texel, ofs) \
+  texture_1D_custom_bilinear_filter(texCoord_interp + ofs * texel)
 
 float texel_fetch(int index)
 {
-    int size_x = textureSize(glyph, 0).r;
-    if (index >= size_x) {
-        return texelFetch(glyph, ivec2(index % size_x, index / size_x), 0).r;
-    }
-    return texelFetch(glyph, ivec2(index, 0), 0).r;
+  int size_x = textureSize(glyph, 0).r;
+  if (index >= size_x) {
+    return texelFetch(glyph, ivec2(index % size_x, index / size_x), 0).r;
+  }
+  return texelFetch(glyph, ivec2(index, 0), 0).r;
 }
 
 bool is_inside_box(ivec2 v)
 {
-    return all(greaterThanEqual(v, ivec2(0))) && all(lessThan(v, glyph_dim));
+  return all(greaterThanEqual(v, ivec2(0))) && all(lessThan(v, glyph_dim));
 }
 
 float texture_1D_custom_bilinear_filter(vec2 uv)
@@ -60,7 +61,7 @@ float texture_1D_custom_bilinear_filter(vec2 uv)
 
 #ifdef GPU_NEAREST
   return tl;
-#else //GPU_LINEAR
+#else  // GPU_LINEAR
   int offset_x = 1;
   int offset_y = glyph_dim.x;
 
