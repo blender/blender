@@ -53,6 +53,8 @@
 #include "BKE_scene.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
+#include "BKE_mesh.h"
 
 #include "DEG_depsgraph.h"
 
@@ -500,11 +502,15 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   smd.levels = smd_real->levels;
   smd.subdivType = smd_real->subdivType;
 
-  initialDerived = CDDM_from_editbmesh(em, false);
-  derivedMesh = subsurf_make_derived_from_derived(
-      initialDerived, &smd, scene, NULL, SUBSURF_IN_EDIT_MODE);
+  {
+    Mesh *me_from_em = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, ob->data);
+    initialDerived = CDDM_from_mesh_ex(me_from_em, CD_REFERENCE, &CD_MASK_MESH);
+    derivedMesh = subsurf_make_derived_from_derived(
+        initialDerived, &smd, scene, NULL, SUBSURF_IN_EDIT_MODE);
 
-  initialDerived->release(initialDerived);
+    initialDerived->release(initialDerived);
+    BKE_id_free(NULL, me_from_em);
+  }
 
   /* get the derived data */
   subsurfedVerts = derivedMesh->getVertArray(derivedMesh);

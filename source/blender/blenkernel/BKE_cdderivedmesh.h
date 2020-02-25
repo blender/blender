@@ -49,9 +49,6 @@ struct DerivedMesh *CDDM_from_mesh_ex(struct Mesh *mesh,
                                       eCDAllocType alloctype,
                                       const struct CustomData_MeshMasks *mask);
 
-/* creates a CDDerivedMesh from the given BMEditMesh */
-DerivedMesh *CDDM_from_editbmesh(struct BMEditMesh *em, const bool use_mdisps);
-
 /* Copies the given DerivedMesh with verts, faces & edges stored as
  * custom element data.
  */
