@@ -855,7 +855,7 @@ void uiTemplateImage(uiLayout *layout,
 
   /* Disable editing if image was modified, to avoid losing changes. */
   const bool is_dirty = BKE_image_is_dirty(ima);
-  if (is_dirty) {
+  if (is_dirty && CTX_wm_space_image(C)) {
     uiLayout *row = uiLayoutRow(layout, true);
     uiItemO(row, IFACE_("Save"), ICON_NONE, "image.save");
     uiItemO(row, IFACE_("Discard"), ICON_NONE, "image.reload");
