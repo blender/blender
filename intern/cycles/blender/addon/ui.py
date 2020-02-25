@@ -710,6 +710,11 @@ class CYCLES_RENDER_PT_performance_viewport(CyclesButtonsPanel, Panel):
         col.prop(rd, "preview_pixel_size", text="Pixel Size")
         col.prop(cscene, "preview_start_resolution", text="Start Pixels")
 
+        if show_optix_denoising(context):
+            sub = col.row(align=True)
+            sub.active = cscene.preview_denoising != 'NONE'
+            sub.prop(cscene, "preview_denoising_start_sample", text="Denoising Start Sample")
+
 
 class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
     bl_label = "Filter"

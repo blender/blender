@@ -569,6 +569,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=64,
         subtype='PIXEL'
     )
+    preview_denoising_start_sample: IntProperty(
+        name="Start Denoising",
+        description="Sample to start denoising the preview at",
+        min=0, max=(1 << 24),
+        default=1,
+    )
 
     debug_reset_timeout: FloatProperty(
         name="Reset timeout",

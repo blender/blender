@@ -53,6 +53,7 @@ class SessionParams {
   int2 tile_size;
   TileOrder tile_order;
   int start_resolution;
+  int denoising_start_sample;
   int pixel_size;
   int threads;
 
@@ -85,6 +86,7 @@ class SessionParams {
     samples = 1024;
     tile_size = make_int2(64, 64);
     start_resolution = INT_MAX;
+    denoising_start_sample = 0;
     pixel_size = 1;
     threads = 0;
 
@@ -109,9 +111,10 @@ class SessionParams {
   bool modified(const SessionParams &params)
   {
     return !(device == params.device && background == params.background &&
-             progressive_refine == params.progressive_refine
-             /* && samples == params.samples */
-             && progressive == params.progressive && experimental == params.experimental &&
+             progressive_refine == params.progressive_refine &&
+             /* samples == params.samples && denoising_start_sample ==
+                params.denoising_start_sample && */
+             progressive == params.progressive && experimental == params.experimental &&
              tile_size == params.tile_size && start_resolution == params.start_resolution &&
              pixel_size == params.pixel_size && threads == params.threads &&
              use_profiling == params.use_profiling &&
@@ -152,9 +155,10 @@ class Session {
 
   bool ready_to_reset();
   void reset(BufferParams &params, int samples);
-  void set_samples(int samples);
   void set_pause(bool pause);
+  void set_samples(int samples);
   void set_denoising(bool denoising, bool optix_denoising);
+  void set_denoising_start_sample(int sample);
 
   bool update_scene();
   bool load_kernels(bool lock_scene = true);
