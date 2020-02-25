@@ -71,6 +71,7 @@ void GPU_create_gl_tex(unsigned int *bind,
                        int recth,
                        int textarget,
                        bool mipmap,
+                       bool half_float,
                        bool use_srgb,
                        struct Image *ima);
 void GPU_create_gl_tex_compressed(unsigned int *bind,

@@ -291,6 +291,7 @@ enum {
   IB_alphamode_ignore = 1 << 15,
   IB_thumbnail = 1 << 16,
   IB_multiview = 1 << 17,
+  IB_halffloat = 1 << 18,
 };
 
 /** \} */

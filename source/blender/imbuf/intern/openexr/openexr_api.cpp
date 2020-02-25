@@ -1757,6 +1757,18 @@ static bool exr_has_alpha(MultiPartInputFile &file)
   return !(file.header(0).channels().findChannel("A") == NULL);
 }
 
+static bool exr_is_half_float(MultiPartInputFile &file)
+{
+  const ChannelList &channels = file.header(0).channels();
+  for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i) {
+    const Channel &channel = i.channel();
+    if (channel.type != HALF) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static bool imb_exr_is_multilayer_file(MultiPartInputFile &file)
 {
   const ChannelList &channels = file.header(0).channels();
@@ -1909,6 +1921,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
       const int is_alpha = exr_has_alpha(*file);
 
       ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, 0);
+      ibuf->flags |= exr_is_half_float(*file) ? IB_halffloat : 0;
 
       if (hasXDensity(file->header(0))) {
         ibuf->ppm[0] = xDensity(file->header(0)) * 39.3700787f;

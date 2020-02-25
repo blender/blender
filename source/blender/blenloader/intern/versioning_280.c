@@ -3364,7 +3364,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (Image *image = bmain->images.first; image; image = image->id.next) {
-      image->flag &= ~(IMA_FLAG_UNUSED_0 | IMA_FLAG_UNUSED_1 | IMA_FLAG_UNUSED_4 |
+      image->flag &= ~(IMA_HIGH_BITDEPTH | IMA_FLAG_UNUSED_1 | IMA_FLAG_UNUSED_4 |
                        IMA_FLAG_UNUSED_6 | IMA_FLAG_UNUSED_8 | IMA_FLAG_UNUSED_15 |
                        IMA_FLAG_UNUSED_16);
     }

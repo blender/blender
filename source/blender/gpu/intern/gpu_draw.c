@@ -328,7 +328,9 @@ static uint gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   GLenum data_type, internal_format;
   if (main_ibuf->rect_float) {
     data_type = GL_FLOAT;
-    internal_format = GL_RGBA16F;
+    internal_format = (!(main_ibuf->flags & IB_halffloat) && (ima->flag & IMA_HIGH_BITDEPTH)) ?
+                          GL_RGBA32F :
+                          GL_RGBA16F;
   }
   else {
     data_type = GL_UNSIGNED_BYTE;
@@ -472,6 +474,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
 {
   uint bindcode = 0;
   const bool mipmap = GPU_get_mipmap();
+  const bool half_float = (ibuf->flags & IB_halffloat) != 0;
 
 #ifdef WITH_DDS
   if (ibuf->ftype == IMB_FTYPE_DDS) {
@@ -536,6 +539,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
                     ibuf->y,
                     textarget,
                     mipmap,
+                    half_float,
                     compress_as_srgb,
                     ima);
 
@@ -1043,6 +1047,7 @@ void GPU_create_gl_tex(uint *bind,
                        int recth,
                        int textarget,
                        bool mipmap,
+                       bool half_float,
                        bool use_srgb,
                        Image *ima)
 {
@@ -1072,7 +1077,8 @@ void GPU_create_gl_tex(uint *bind,
   glGenTextures(1, (GLuint *)bind);
   glBindTexture(textarget, *bind);
 
-  GLenum internal_format = (frect) ? GL_RGBA16F : (use_srgb) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+  GLenum float_format = (!half_float && ima->flag & IMA_HIGH_BITDEPTH) ? GL_RGBA32F : GL_RGBA16F;
+  GLenum internal_format = (frect) ? float_format : (use_srgb) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
 
   if (textarget == GL_TEXTURE_2D) {
     if (frect) {
@@ -1236,18 +1242,21 @@ void GPU_create_gl_tex_compressed(unsigned int *bind, int textarget, Image *ima,
   const bool use_srgb = !(IMB_colormanagement_space_is_data(ibuf->rect_colorspace) ||
                           IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace));
   const bool mipmap = GPU_get_mipmap();
+  const bool half_float = (ibuf->flags & IB_halffloat) != 0;
 
 #ifndef WITH_DDS
   (void)ibuf;
   /* Fall back to uncompressed if DDS isn't enabled */
-  GPU_create_gl_tex(bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, use_srgb, ima);
+  GPU_create_gl_tex(
+      bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, half_float, use_srgb, ima);
 #else
   glGenTextures(1, (GLuint *)bind);
   glBindTexture(textarget, *bind);
 
   if (textarget == GL_TEXTURE_2D && GPU_upload_dxt_texture(ibuf, use_srgb) == 0) {
     glDeleteTextures(1, (GLuint *)bind);
-    GPU_create_gl_tex(bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, use_srgb, ima);
+    GPU_create_gl_tex(
+        bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, half_float, use_srgb, ima);
   }
 
   glBindTexture(textarget, 0);
