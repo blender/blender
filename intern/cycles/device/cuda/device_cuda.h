@@ -82,11 +82,6 @@ class CUDADevice : public Device {
   device_vector<TextureInfo> texture_info;
   bool need_texture_info;
 
-  CUdeviceptr cuda_device_ptr(device_ptr mem)
-  {
-    return (CUdeviceptr)mem;
-  }
-
   static bool have_precompiled_kernels();
 
   virtual bool show_samples() const;
