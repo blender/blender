@@ -855,95 +855,97 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   bConstraintTarget *ct = targets->first;
 
   /* only evaluate if there is a target */
-  if (VALID_CONS_TARGET(ct)) {
-    float parmat[4][4];
+  if (!VALID_CONS_TARGET(ct)) {
+    return;
+  }
 
-    /* simple matrix parenting */
-    if (data->flag == CHILDOF_ALL) {
+  float parmat[4][4];
 
-      /* multiply target (parent matrix) by offset (parent inverse) to get
-       * the effect of the parent that will be exerted on the owner
-       */
-      mul_m4_m4m4(parmat, ct->matrix, data->invmat);
+  /* simple matrix parenting */
+  if (data->flag == CHILDOF_ALL) {
 
-      /* now multiply the parent matrix by the owner matrix to get the
-       * the effect of this constraint (i.e. owner is 'parented' to parent)
-       */
-      mul_m4_m4m4(cob->matrix, parmat, cob->matrix);
+    /* multiply target (parent matrix) by offset (parent inverse) to get
+     * the effect of the parent that will be exerted on the owner
+     */
+    mul_m4_m4m4(parmat, ct->matrix, data->invmat);
+
+    /* now multiply the parent matrix by the owner matrix to get the
+     * the effect of this constraint (i.e. owner is 'parented' to parent)
+     */
+    mul_m4_m4m4(cob->matrix, parmat, cob->matrix);
+  }
+  else {
+    float invmat[4][4], tempmat[4][4];
+    float loc[3], eul[3], size[3];
+    float loco[3], eulo[3], sizo[3];
+
+    /* get offset (parent-inverse) matrix */
+    copy_m4_m4(invmat, data->invmat);
+
+    /* extract components of both matrices */
+    copy_v3_v3(loc, ct->matrix[3]);
+    mat4_to_eulO(eul, ct->rotOrder, ct->matrix);
+    mat4_to_size(size, ct->matrix);
+
+    copy_v3_v3(loco, invmat[3]);
+    mat4_to_eulO(eulo, cob->rotOrder, invmat);
+    mat4_to_size(sizo, invmat);
+
+    /* disable channels not enabled */
+    if (!(data->flag & CHILDOF_LOCX)) {
+      loc[0] = loco[0] = 0.0f;
     }
-    else {
-      float invmat[4][4], tempmat[4][4];
-      float loc[3], eul[3], size[3];
-      float loco[3], eulo[3], sizo[3];
+    if (!(data->flag & CHILDOF_LOCY)) {
+      loc[1] = loco[1] = 0.0f;
+    }
+    if (!(data->flag & CHILDOF_LOCZ)) {
+      loc[2] = loco[2] = 0.0f;
+    }
+    if (!(data->flag & CHILDOF_ROTX)) {
+      eul[0] = eulo[0] = 0.0f;
+    }
+    if (!(data->flag & CHILDOF_ROTY)) {
+      eul[1] = eulo[1] = 0.0f;
+    }
+    if (!(data->flag & CHILDOF_ROTZ)) {
+      eul[2] = eulo[2] = 0.0f;
+    }
+    if (!(data->flag & CHILDOF_SIZEX)) {
+      size[0] = sizo[0] = 1.0f;
+    }
+    if (!(data->flag & CHILDOF_SIZEY)) {
+      size[1] = sizo[1] = 1.0f;
+    }
+    if (!(data->flag & CHILDOF_SIZEZ)) {
+      size[2] = sizo[2] = 1.0f;
+    }
 
-      /* get offset (parent-inverse) matrix */
-      copy_m4_m4(invmat, data->invmat);
+    /* make new target mat and offset mat */
+    loc_eulO_size_to_mat4(ct->matrix, loc, eul, size, ct->rotOrder);
+    loc_eulO_size_to_mat4(invmat, loco, eulo, sizo, cob->rotOrder);
 
-      /* extract components of both matrices */
-      copy_v3_v3(loc, ct->matrix[3]);
-      mat4_to_eulO(eul, ct->rotOrder, ct->matrix);
-      mat4_to_size(size, ct->matrix);
+    /* multiply target (parent matrix) by offset (parent inverse) to get
+     * the effect of the parent that will be exerted on the owner
+     */
+    mul_m4_m4m4(parmat, ct->matrix, invmat);
 
-      copy_v3_v3(loco, invmat[3]);
-      mat4_to_eulO(eulo, cob->rotOrder, invmat);
-      mat4_to_size(sizo, invmat);
+    /* now multiply the parent matrix by the owner matrix to get the
+     * the effect of this constraint (i.e.  owner is 'parented' to parent)
+     */
+    copy_m4_m4(tempmat, cob->matrix);
+    mul_m4_m4m4(cob->matrix, parmat, tempmat);
 
-      /* disable channels not enabled */
-      if (!(data->flag & CHILDOF_LOCX)) {
-        loc[0] = loco[0] = 0.0f;
-      }
-      if (!(data->flag & CHILDOF_LOCY)) {
-        loc[1] = loco[1] = 0.0f;
-      }
-      if (!(data->flag & CHILDOF_LOCZ)) {
-        loc[2] = loco[2] = 0.0f;
-      }
-      if (!(data->flag & CHILDOF_ROTX)) {
-        eul[0] = eulo[0] = 0.0f;
-      }
-      if (!(data->flag & CHILDOF_ROTY)) {
-        eul[1] = eulo[1] = 0.0f;
-      }
-      if (!(data->flag & CHILDOF_ROTZ)) {
-        eul[2] = eulo[2] = 0.0f;
-      }
-      if (!(data->flag & CHILDOF_SIZEX)) {
-        size[0] = sizo[0] = 1.0f;
-      }
-      if (!(data->flag & CHILDOF_SIZEY)) {
-        size[1] = sizo[1] = 1.0f;
-      }
-      if (!(data->flag & CHILDOF_SIZEZ)) {
-        size[2] = sizo[2] = 1.0f;
-      }
-
-      /* make new target mat and offset mat */
-      loc_eulO_size_to_mat4(ct->matrix, loc, eul, size, ct->rotOrder);
-      loc_eulO_size_to_mat4(invmat, loco, eulo, sizo, cob->rotOrder);
-
-      /* multiply target (parent matrix) by offset (parent inverse) to get
-       * the effect of the parent that will be exerted on the owner
-       */
-      mul_m4_m4m4(parmat, ct->matrix, invmat);
-
-      /* now multiply the parent matrix by the owner matrix to get the
-       * the effect of this constraint (i.e.  owner is 'parented' to parent)
-       */
-      copy_m4_m4(tempmat, cob->matrix);
-      mul_m4_m4m4(cob->matrix, parmat, tempmat);
-
-      /* without this, changes to scale and rotation can change location
-       * of a parentless bone or a disconnected bone. Even though its set
-       * to zero above. */
-      if (!(data->flag & CHILDOF_LOCX)) {
-        cob->matrix[3][0] = tempmat[3][0];
-      }
-      if (!(data->flag & CHILDOF_LOCY)) {
-        cob->matrix[3][1] = tempmat[3][1];
-      }
-      if (!(data->flag & CHILDOF_LOCZ)) {
-        cob->matrix[3][2] = tempmat[3][2];
-      }
+    /* without this, changes to scale and rotation can change location
+     * of a parentless bone or a disconnected bone. Even though its set
+     * to zero above. */
+    if (!(data->flag & CHILDOF_LOCX)) {
+      cob->matrix[3][0] = tempmat[3][0];
+    }
+    if (!(data->flag & CHILDOF_LOCY)) {
+      cob->matrix[3][1] = tempmat[3][1];
+    }
+    if (!(data->flag & CHILDOF_LOCZ)) {
+      cob->matrix[3][2] = tempmat[3][2];
     }
   }
 }
