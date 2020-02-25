@@ -396,7 +396,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
                              NODE_WIDTH(node) - NODE_DY,
                              NODE_DY,
                              0,
-                             UI_style_get());
+                             UI_style_get_dpi());
 
     if (node->flag & NODE_MUTED) {
       uiLayoutSetActive(layout, false);
@@ -491,7 +491,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
                              node->butr.xmax,
                              0,
                              0,
-                             UI_style_get());
+                             UI_style_get_dpi());
 
     if (node->flag & NODE_MUTED) {
       uiLayoutSetActive(layout, false);
@@ -523,7 +523,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
                              NODE_WIDTH(node) - NODE_DY,
                              NODE_DY,
                              0,
-                             UI_style_get());
+                             UI_style_get_dpi());
 
     if (node->flag & NODE_MUTED) {
       uiLayoutSetActive(layout, false);

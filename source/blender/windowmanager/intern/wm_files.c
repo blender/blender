@@ -2808,7 +2808,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                                              void *UNUSED(arg1))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  uiStyle *style = UI_style_get();
+  uiStyle *style = UI_style_get_dpi();
   uiBlock *block = UI_block_begin(C, ar, "autorun_warning_popup", UI_EMBOSS);
 
   UI_block_flag_enable(
@@ -3067,6 +3067,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
 
   /* Create dialog */
   uiBlock *block = UI_block_begin(C, ar, close_file_dialog_name, UI_EMBOSS);
+  style = UI_style_get_dpi();
 
   UI_block_flag_enable(
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);

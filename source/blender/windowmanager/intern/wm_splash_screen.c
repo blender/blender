@@ -259,7 +259,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 {
   uiBlock *block;
   uiBut *but;
-  uiStyle *style = UI_style_get();
+  uiStyle *style = UI_style_get_dpi();
 
   block = UI_block_begin(C, ar, "splash", UI_EMBOSS);
 

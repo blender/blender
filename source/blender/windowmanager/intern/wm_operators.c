@@ -1319,7 +1319,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
   wmOperator *op = arg_op;
   uiBlock *block;
   uiLayout *layout;
-  uiStyle *style = UI_style_get();
+  uiStyle *style = UI_style_get_dpi();
   int width = 15 * UI_UNIT_X;
 
   block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
@@ -1401,7 +1401,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
   wmOperator *op = data->op;
   uiBlock *block;
   uiLayout *layout;
-  uiStyle *style = UI_style_get();
+  uiStyle *style = UI_style_get_dpi();
 
   block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
@@ -1450,7 +1450,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
   wmOperator *op = data->op;
   uiBlock *block;
   uiLayout *layout;
-  uiStyle *style = UI_style_get();
+  uiStyle *style = UI_style_get_dpi();
 
   block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
