@@ -193,7 +193,9 @@ static char *rna_ImageUser_path(PointerRNA *ptr)
   return BLI_strdup("");
 }
 
-static void rna_Image_gpu_texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Image_gpu_texture_update(Main *UNUSED(bmain),
+                                         Scene *UNUSED(scene),
+                                         PointerRNA *ptr)
 {
   Image *ima = (Image *)ptr->owner_id;
 
