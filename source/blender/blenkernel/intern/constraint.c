@@ -4877,37 +4877,35 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
   if (data->flag & OBJECTSOLVER_ACTIVECLIP) {
     clip = scene->clip;
   }
-
   if (!camob || !clip) {
     return;
   }
 
-  if (clip) {
-    MovieTracking *tracking = &clip->tracking;
-    MovieTrackingObject *object;
+  MovieTracking *tracking = &clip->tracking;
+  MovieTrackingObject *object;
 
-    object = BKE_tracking_object_get_named(tracking, data->object);
-
-    if (object) {
-      float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
-      float ctime = DEG_get_ctime(depsgraph);
-      float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
-
-      BKE_object_where_is_calc_mat4(camob, cammat);
-
-      BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
-
-      invert_m4_m4(camimat, cammat);
-      mul_m4_m4m4(parmat, cammat, data->invmat);
-
-      copy_m4_m4(cammat, camob->obmat);
-      copy_m4_m4(obmat, cob->matrix);
-
-      invert_m4_m4(imat, mat);
-
-      mul_m4_series(cob->matrix, cammat, imat, camimat, parmat, obmat);
-    }
+  object = BKE_tracking_object_get_named(tracking, data->object);
+  if (!object) {
+    return;
   }
+
+  float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
+  float ctime = DEG_get_ctime(depsgraph);
+  float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
+
+  BKE_object_where_is_calc_mat4(camob, cammat);
+
+  BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
+
+  invert_m4_m4(camimat, cammat);
+  mul_m4_m4m4(parmat, cammat, data->invmat);
+
+  copy_m4_m4(cammat, camob->obmat);
+  copy_m4_m4(obmat, cob->matrix);
+
+  invert_m4_m4(imat, mat);
+
+  mul_m4_series(cob->matrix, cammat, imat, camimat, parmat, obmat);
 }
 
 static bConstraintTypeInfo CTI_OBJECTSOLVER = {
