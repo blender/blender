@@ -188,6 +188,33 @@ class ChildOfTest(AbstractConstraintTests):
         bpy.ops.constraint.childof_clear_inverse(context, constraint='Child Of')
         self.matrix_test('Child Of.armature.owner', initial_matrix)
 
+
+class ObjectSolverTest(AbstractConstraintTests):
+    layer_collection = 'Object Solver'
+
+    def test_simple_parent(self):
+        """Object Solver: simple evaluation of parent."""
+        initial_matrix = Matrix((
+            (-0.970368504524231, 0.03756079450249672, -0.23869234323501587, -0.681557297706604),
+            (-0.24130365252494812, -0.2019258439540863, 0.9492092132568359, 6.148940086364746),
+            (-0.012545102275907993, 0.9786801934242249, 0.20500603318214417, 2.2278831005096436),
+            (0.0, 0.0, 0.0, 1.0),
+        ))
+        self.matrix_test('Object Solver.owner', initial_matrix)
+
+        context = self.constraint_context('Object Solver')
+        bpy.ops.constraint.objectsolver_set_inverse(context, constraint='Object Solver')
+        self.matrix_test('Object Solver.owner', Matrix((
+            (0.9992386102676392, 0.019843988120555878, -0.03359176218509674, 0.10000000149011612),
+            (-0.017441775649785995, 0.997369647026062, 0.0703534483909607, 0.20000000298023224),
+            (0.03489949554204941, -0.06971397995948792, 0.9969563484191895, 0.30000001192092896),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+
+        bpy.ops.constraint.objectsolver_clear_inverse(context, constraint='Object Solver')
+        self.matrix_test('Object Solver.owner', initial_matrix)
+
+
 def main():
     global args
     import argparse
