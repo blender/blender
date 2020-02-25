@@ -163,6 +163,7 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay, vec2 noise_uv)
   col = OCIO_to_display_linear_with_look(col, lut3d_texture);
 
   if (overlay) {
+    col = clamp(col, 0.0, 1.0);
     col *= 1.0 - col_overlay.a;
     col += col_overlay; /* Assumed unassociated alpha. */
   }
