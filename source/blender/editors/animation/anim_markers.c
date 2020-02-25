@@ -416,41 +416,44 @@ void debug_markers_print_list(ListBase *markers)
 
 /* ************* Marker Drawing ************ */
 
-static void marker_color_get(TimeMarker *marker, unsigned char *color)
+static void marker_color_get(const TimeMarker *marker, uchar *r_text_color, uchar *r_line_color)
 {
   if (marker->flag & SELECT) {
-    UI_GetThemeColor4ubv(TH_TEXT_HI, color);
+    UI_GetThemeColor4ubv(TH_TEXT_HI, r_text_color);
+    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE_SELECTED, r_line_color);
   }
   else {
-    UI_GetThemeColor4ubv(TH_TEXT, color);
+    UI_GetThemeColor4ubv(TH_TEXT, r_text_color);
+    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE, r_line_color);
   }
 }
 
-static void draw_marker_name(const uiFontStyle *fstyle,
+static void draw_marker_name(const uchar *text_color,
+                             const uiFontStyle *fstyle,
                              TimeMarker *marker,
                              float marker_x,
                              float text_y)
 {
-  unsigned char text_color[4];
-  marker_color_get(marker, text_color);
-
   const char *name = marker->name;
+  uchar final_text_color[4];
+
+  copy_v4_v4_uchar(final_text_color, text_color);
 
 #ifdef DURIAN_CAMERA_SWITCH
   if (marker->camera) {
     Object *camera = marker->camera;
     name = camera->id.name + 2;
     if (camera->restrictflag & OB_RESTRICT_RENDER) {
-      text_color[3] = 100;
+      final_text_color[3] = 100;
     }
   }
 #endif
 
   int name_x = marker_x + UI_DPI_ICON_SIZE * 0.6;
-  UI_fontstyle_draw_simple(fstyle, name_x, text_y, name, text_color);
+  UI_fontstyle_draw_simple(fstyle, name_x, text_y, name, final_text_color);
 }
 
-static void draw_marker_line(const float color[4], int xpos, int ymin, int ymax)
+static void draw_marker_line(const uchar *color, int xpos, int ymin, int ymax)
 {
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -461,7 +464,7 @@ static void draw_marker_line(const float color[4], int xpos, int ymin, int ymax)
   GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
-  immUniformColor4fv(color);
+  immUniformColor4ubv(color);
   immUniform1i("colors_len", 0); /* "simple" mode */
   immUniform1f("dash_width", 6.0f);
   immUniform1f("dash_factor", 0.5f);
@@ -493,19 +496,15 @@ static int marker_get_icon_id(TimeMarker *marker, int flag)
 static void draw_marker(
     const uiFontStyle *fstyle, TimeMarker *marker, int cfra, int xpos, int flag, int region_height)
 {
+  uchar line_color[4], text_color[4];
+
+  marker_color_get(marker, text_color, line_color);
+
   GPU_blend(true);
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-  float color[4];
-  if (marker->flag & SELECT) {
-    copy_v4_fl4(color, 1.0f, 1.0f, 1.0f, 0.38f);
-  }
-  else {
-    copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 0.38f);
-  }
-
-  draw_marker_line(color, xpos, UI_DPI_FAC * 20, region_height);
+  draw_marker_line(line_color, xpos, UI_DPI_FAC * 20, region_height);
 
   int icon_id = marker_get_icon_id(marker, flag);
   UI_icon_draw(xpos - 0.55f * UI_DPI_ICON_SIZE, UI_DPI_FAC * 18, icon_id);
@@ -518,7 +517,7 @@ static void draw_marker(
   if ((marker->flag & SELECT) || (cfra - 4 <= marker->frame && marker->frame <= cfra)) {
     name_y += UI_DPI_FAC * 10;
   }
-  draw_marker_name(fstyle, marker, xpos, name_y);
+  draw_marker_name(text_color, fstyle, marker, xpos, name_y);
 }
 
 static void draw_markers_background(rctf *rect)

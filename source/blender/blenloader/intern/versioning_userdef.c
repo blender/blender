@@ -175,6 +175,19 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_info.info_operator_text);
   }
 
+  if (!USER_VERSION_ATLEAST(283, 5)) {
+    FROM_DEFAULT_V4_UCHAR(space_graph.time_marker_line);
+    FROM_DEFAULT_V4_UCHAR(space_action.time_marker_line);
+    FROM_DEFAULT_V4_UCHAR(space_nla.time_marker_line);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.time_marker_line);
+    FROM_DEFAULT_V4_UCHAR(space_clip.time_marker_line);
+    FROM_DEFAULT_V4_UCHAR(space_graph.time_marker_line_selected);
+    FROM_DEFAULT_V4_UCHAR(space_action.time_marker_line_selected);
+    FROM_DEFAULT_V4_UCHAR(space_nla.time_marker_line_selected);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.time_marker_line_selected);
+    FROM_DEFAULT_V4_UCHAR(space_clip.time_marker_line_selected);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
