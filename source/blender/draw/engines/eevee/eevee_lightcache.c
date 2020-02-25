@@ -264,7 +264,7 @@ static bool EEVEE_lightcache_validate(const LightCache *light_cache,
     if ((irr_size[0] == light_cache->grid_tx.tex_size[0]) &&
         (irr_size[1] == light_cache->grid_tx.tex_size[1]) &&
         (irr_size[2] == light_cache->grid_tx.tex_size[2]) && (grid_len == light_cache->grid_len)) {
-      int mip_len = (int)(floorf(log2f(cube_res)) - MIN_CUBE_LOD_LEVEL);
+      int mip_len = log2_floor_u(cube_res) - MIN_CUBE_LOD_LEVEL;
       if ((cube_res == light_cache->cube_tx.tex_size[0]) &&
           (cube_len == light_cache->cube_tx.tex_size[2]) && (cube_len == light_cache->cube_len) &&
           (mip_len == light_cache->mips_len)) {
@@ -298,7 +298,7 @@ LightCache *EEVEE_lightcache_create(const int grid_len,
   light_cache->cube_tx.tex_size[1] = cube_size;
   light_cache->cube_tx.tex_size[2] = cube_len;
 
-  light_cache->mips_len = (int)(floorf(log2f(cube_size)) - MIN_CUBE_LOD_LEVEL);
+  light_cache->mips_len = log2_floor_u(cube_size) - MIN_CUBE_LOD_LEVEL;
   light_cache->vis_res = vis_size;
   light_cache->ref_res = cube_size;
 
@@ -491,7 +491,7 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
 
   irradiance_pool_size_get(lbake->vis_res, lbake->total_irr_samples, lbake->irr_size);
 
-  lbake->ref_cube_res = OCTAHEDRAL_SIZE_FROM_CUBESIZE(lbake->rt_res);
+  lbake->ref_cube_res = octahedral_size_from_cubesize(lbake->rt_res);
 
   lbake->cube_prb = MEM_callocN(sizeof(LightProbe *) * lbake->cube_len, "EEVEE Cube visgroup ptr");
   lbake->grid_prb = MEM_callocN(sizeof(LightProbe *) * lbake->grid_len, "EEVEE Grid visgroup ptr");

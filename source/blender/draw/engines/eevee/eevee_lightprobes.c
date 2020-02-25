@@ -1060,7 +1060,7 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
   float target_size = (float)GPU_texture_width(rt_color);
 
   /* Max lod used from the render target probe */
-  pinfo->lod_rt_max = floorf(log2f(target_size)) - 2.0f;
+  pinfo->lod_rt_max = log2_floor_u(target_size) - 2.0f;
   pinfo->intensity_fac = intensity;
 
   /* Start fresh */
@@ -1169,7 +1169,7 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
   pinfo->lodfactor = bias + 0.5f *
                                 log((float)(target_size * target_size) * pinfo->samples_len_inv) /
                                 log(2);
-  pinfo->lod_rt_max = floorf(log2f(target_size)) - 2.0f;
+  pinfo->lod_rt_max = log2_floor_u(target_size) - 2.0f;
 #else
   pinfo->shres = 32;        /* Less texture fetches & reduce branches */
   pinfo->lod_rt_max = 2.0f; /* Improve cache reuse */
