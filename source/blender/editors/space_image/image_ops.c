@@ -2033,6 +2033,8 @@ static int image_save_options_init(Main *bmain,
     /* color management */
     BKE_color_managed_display_settings_copy(&opts->im_format.display_settings,
                                             &scene->display_settings);
+
+    BKE_color_managed_view_settings_free(&opts->im_format.view_settings);
     BKE_color_managed_view_settings_copy(&opts->im_format.view_settings, &scene->view_settings);
   }
 
@@ -2357,6 +2359,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
   ImageUser *iuser = image_user_from_context(C);
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
+  bool ok = false;
 
   if (BKE_image_has_packedfile(image)) {
     /* Save packed files to memory. */
@@ -2374,15 +2377,22 @@ static int image_save_exec(bContext *C, wmOperator *op)
     if (save_image_op(bmain, image, iuser, op, &opts)) {
       /* report since this can be called from key-shortcuts */
       BKE_reportf(op->reports, RPT_INFO, "Saved Image '%s'", opts.filepath);
+      ok = true;
     }
   }
   else {
     BKE_reportf(
         op->reports, RPT_ERROR, "Cannot save image, path '%s' is not writable", opts.filepath);
-    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_FINISHED;
+  BKE_color_managed_view_settings_free(&opts.im_format.view_settings);
+
+  if (ok) {
+    return OPERATOR_FINISHED;
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
 }
 
 static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
