@@ -1901,6 +1901,12 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 /** \name Save Image As Operator
  * \{ */
 
+typedef struct ImageSaveData {
+  ImageUser *iuser;
+  Image *image;
+  ImageFormatData im_format;
+} ImageSaveData;
+
 static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 {
   const char depth_ok = BKE_imtype_valid_depths(imtype);
@@ -2038,9 +2044,9 @@ static int image_save_options_init(Main *bmain,
 static void image_save_options_from_op(Main *bmain, ImageSaveOptions *opts, wmOperator *op)
 {
   if (op->customdata) {
+    ImageSaveData *isd = op->customdata;
     BKE_color_managed_view_settings_free(&opts->im_format.view_settings);
-
-    opts->im_format = *(ImageFormatData *)op->customdata;
+    opts->im_format = isd->im_format;
   }
 
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -2052,20 +2058,17 @@ static void image_save_options_from_op(Main *bmain, ImageSaveOptions *opts, wmOp
 static void image_save_options_to_op(ImageSaveOptions *opts, wmOperator *op)
 {
   if (op->customdata) {
-    BKE_color_managed_view_settings_free(&((ImageFormatData *)op->customdata)->view_settings);
-
-    *(ImageFormatData *)op->customdata = opts->im_format;
+    ImageSaveData *isd = op->customdata;
+    BKE_color_managed_view_settings_free(&isd->im_format.view_settings);
+    isd->im_format = opts->im_format;
   }
 
   RNA_string_set(op->ptr, "filepath", opts->filepath);
 }
 
-static bool save_image_op(const bContext *C, wmOperator *op, ImageSaveOptions *opts)
+static bool save_image_op(
+    Main *bmain, Image *ima, ImageUser *iuser, wmOperator *op, ImageSaveOptions *opts)
 {
-  Main *bmain = CTX_data_main(C);
-  Image *ima = image_from_context(C);
-  ImageUser *iuser = image_user_from_context(C);
-
   opts->relative = (RNA_struct_find_property(op->ptr, "relative_path") &&
                     RNA_boolean_get(op->ptr, "relative_path"));
   opts->save_copy = (RNA_struct_find_property(op->ptr, "copy") &&
@@ -2082,7 +2085,7 @@ static bool save_image_op(const bContext *C, wmOperator *op, ImageSaveOptions *o
   /* Remember file path for next save. */
   BLI_strncpy(G.ima, opts->filepath, sizeof(G.ima));
 
-  WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+  WM_main_add_notifier(NC_IMAGE | NA_EDITED, ima);
 
   return ok;
 }
@@ -2090,8 +2093,8 @@ static bool save_image_op(const bContext *C, wmOperator *op, ImageSaveOptions *o
 static void image_save_as_free(wmOperator *op)
 {
   if (op->customdata) {
-    ImageFormatData *im_format = (ImageFormatData *)op->customdata;
-    BKE_color_managed_view_settings_free(&im_format->view_settings);
+    ImageSaveData *isd = op->customdata;
+    BKE_color_managed_view_settings_free(&isd->im_format.view_settings);
 
     MEM_freeN(op->customdata);
     op->customdata = NULL;
@@ -2102,9 +2105,19 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Image *image = image_from_context(C);
-  ImageUser *iuser = image_user_from_context(C);
   ImageSaveOptions opts;
+
+  Image *image = NULL;
+  ImageUser *iuser = NULL;
+  if (op->customdata) {
+    ImageSaveData *isd = op->customdata;
+    image = isd->image;
+    iuser = isd->iuser;
+  }
+  else {
+    image = image_from_context(C);
+    iuser = image_user_from_context(C);
+  }
 
   BKE_image_save_options_init(&opts, bmain, scene);
 
@@ -2115,7 +2128,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
   image_save_options_from_op(bmain, &opts, op);
   opts.do_newpath = true;
 
-  save_image_op(C, op, &opts);
+  save_image_op(bmain, image, iuser, op, &opts);
 
   if (opts.save_copy == false) {
     BKE_image_free_packedfiles(image);
@@ -2128,8 +2141,8 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 
 static bool image_save_as_check(bContext *UNUSED(C), wmOperator *op)
 {
-  ImageFormatData *imf = op->customdata;
-  return WM_operator_filesel_ensure_ext_imtype(op, imf);
+  ImageSaveData *isd = op->customdata;
+  return WM_operator_filesel_ensure_ext_imtype(op, &isd->im_format);
 }
 
 static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -2161,8 +2174,12 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
   RNA_boolean_set(op->ptr, "save_as_render", save_as_render);
 
-  op->customdata = MEM_mallocN(sizeof(opts.im_format), __func__);
-  memcpy(op->customdata, &opts.im_format, sizeof(opts.im_format));
+  ImageSaveData *isd = MEM_callocN(sizeof(*isd), __func__);
+  isd->image = ima;
+  isd->iuser = iuser;
+
+  memcpy(&isd->im_format, &opts.im_format, sizeof(opts.im_format));
+  op->customdata = isd;
 
   /* show multiview save options only if image has multiviews */
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
@@ -2195,12 +2212,12 @@ static bool image_save_as_draw_check_prop(PointerRNA *ptr,
 static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  ImageFormatData *imf = op->customdata;
+  ImageSaveData *isd = op->customdata;
   PointerRNA imf_ptr, ptr;
   const bool is_multiview = RNA_boolean_get(op->ptr, "show_multiview");
 
   /* image template */
-  RNA_pointer_create(NULL, &RNA_ImageFormatSettings, imf, &imf_ptr);
+  RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->im_format, &imf_ptr);
   uiTemplateImageSettings(layout, &imf_ptr, false);
 
   /* main draw call */
@@ -2354,7 +2371,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
   image_save_options_from_op(bmain, &opts, op);
 
   if (BLI_exists(opts.filepath) && BLI_file_is_writable(opts.filepath)) {
-    if (save_image_op(C, op, &opts)) {
+    if (save_image_op(bmain, image, iuser, op, &opts)) {
       /* report since this can be called from key-shortcuts */
       BKE_reportf(op->reports, RPT_INFO, "Saved Image '%s'", opts.filepath);
     }
