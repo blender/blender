@@ -183,6 +183,13 @@ add_blender_test(
   --run-all-tests
 )
 
+add_blender_test(
+  constraints
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_constraints.py
+  --
+  --testdir "${TEST_SRC_DIR}/constraints"
+)
+
 # ------------------------------------------------------------------------------
 # OPERATORS TESTS
 add_blender_test(
