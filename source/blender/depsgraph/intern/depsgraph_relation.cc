@@ -42,7 +42,7 @@ Relation::Relation(Node *from, Node *to, const char *description)
   /* Hook it up to the nodes which use it.
    *
    * NOTE: We register relation in the nodes which this link connects to here
-   * in constructor but we don't unregister it in the destructor.
+   * in constructor but we don't un-register it in the destructor.
    *
    * Reasoning:
    *
@@ -50,7 +50,7 @@ Relation::Relation(Node *from, Node *to, const char *description)
    *   real need in avoiding dangling pointers, all the memory is to be freed
    *   anyway.
    *
-   * - Unregistering relation is not a cheap operation, so better to have it
+   * - Un-registering relation is not a cheap operation, so better to have it
    *   as an explicit call if we need this. */
   from->outlinks.push_back(this);
   to->inlinks.push_back(this);

@@ -293,7 +293,7 @@ typedef enum PropertyOverrideFlag {
    * Forbid usage of this property in comparison (& hence override) code.
    * Useful e.g. for collections of data like mesh's geometry, particles, etc.
    * Also for runtime data that should never be considered as part of actual Blend data (e.g.
-   * dpesgraph from ViewLayers...).
+   * depsgraph from ViewLayers...).
    */
   PROPOVERRIDE_NO_COMPARISON = (1 << 1),
 

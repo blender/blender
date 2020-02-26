@@ -3524,8 +3524,8 @@ static void exactinit(void)
  *  Sets h = e + f.  See the long version of my paper for details.
  *
  *  If round-to-even is used (as with IEEE 754), maintains the strongly
- *  nonoverlapping property.  (That is, if e is strongly nonoverlapping, h
- *  will be also.)  Does NOT maintain the nonoverlapping or nonadjacent
+ *  non-overlapping property.  (That is, if e is strongly non-overlapping, h
+ *  will be also.)  Does NOT maintain the non-overlapping or non-adjacent
  *  properties.
  */
 

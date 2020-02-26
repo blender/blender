@@ -1438,7 +1438,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
            * around tablet surface */
           window->GetTabletData().Active = xtablet.mode;
 
-          /* Note: This event might be generated with incomplete dataset
+          /* Note: This event might be generated with incomplete data-set
            * (don't exactly know why, looks like in some cases, if the value does not change,
            * it is not included in subsequent XDeviceMotionEvent events).
            * So we have to check which values this event actually contains!

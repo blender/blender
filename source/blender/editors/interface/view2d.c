@@ -1607,7 +1607,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
      * - slider bubble is large enough (no overdraw confusion)
      * - scale is shown on the scroller
      *   (workaround to make sure that button windows don't show these,
-     *   and only the time-grids with their zoomability can do so)
+     *   and only the time-grids with their zoom-ability can do so).
      */
     if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) &&
         (BLI_rcti_size_x(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) {

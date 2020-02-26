@@ -1045,7 +1045,7 @@ static void rna_Scene_active_keying_set_set(PointerRNA *ptr,
 
 /* get KeyingSet index stuff for list of Keying Sets editing UI
  * - active_keyingset-1 since 0 is reserved for 'none'
- * - don't clamp, otherwise can never set builtins types as active...
+ * - don't clamp, otherwise can never set builtin's types as active...
  */
 static int rna_Scene_active_keying_set_index_get(PointerRNA *ptr)
 {
