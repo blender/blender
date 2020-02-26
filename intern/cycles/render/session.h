@@ -183,8 +183,7 @@ class Session {
 
   void update_status_time(bool show_pause = false, bool show_done = false);
 
-  void render();
-  void denoise();
+  void render(bool with_denoising);
   void copy_to_display_buffer(int sample);
 
   void reset_(BufferParams &params, int samples);
@@ -197,7 +196,7 @@ class Session {
   bool draw_gpu(BufferParams &params, DeviceDrawParams &draw_params);
   void reset_gpu(BufferParams &params, int samples);
 
-  bool acquire_tile(Device *tile_device, RenderTile &tile, RenderTile::Task task);
+  bool acquire_tile(RenderTile &tile, Device *tile_device, uint tile_types);
   void update_tile_sample(RenderTile &tile);
   void release_tile(RenderTile &tile);
 

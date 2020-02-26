@@ -511,7 +511,7 @@ class CPUDevice : public Device {
 
   void thread_run(DeviceTask *task)
   {
-    if (task->type == DeviceTask::RENDER || task->type == DeviceTask::DENOISE)
+    if (task->type == DeviceTask::RENDER)
       thread_render(*task);
     else if (task->type == DeviceTask::SHADER)
       thread_shader(*task);
@@ -927,7 +927,7 @@ class CPUDevice : public Device {
     DenoisingTask denoising(this, task);
     denoising.profiler = &kg->profiler;
 
-    while (task.acquire_tile(this, tile)) {
+    while (task.acquire_tile(this, tile, task.tile_types)) {
       if (tile.task == RenderTile::PATH_TRACE) {
         if (use_split_kernel) {
           device_only_memory<uchar> void_buffer(this, "void_buffer");

@@ -2144,7 +2144,7 @@ void CUDADevice::thread_run(DeviceTask *task)
 {
   CUDAContextScope scope(this);
 
-  if (task->type == DeviceTask::RENDER || task->type == DeviceTask::DENOISE) {
+  if (task->type == DeviceTask::RENDER) {
     DeviceRequestedFeatures requested_features;
     if (use_split_kernel()) {
       if (split_kernel == NULL) {
@@ -2159,7 +2159,7 @@ void CUDADevice::thread_run(DeviceTask *task)
     RenderTile tile;
     DenoisingTask denoising(this, *task);
 
-    while (task->acquire_tile(this, tile)) {
+    while (task->acquire_tile(this, tile, task->tile_types)) {
       if (tile.task == RenderTile::PATH_TRACE) {
         if (use_split_kernel()) {
           device_only_memory<uchar> void_buffer(this, "void_buffer");

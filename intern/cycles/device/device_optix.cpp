@@ -569,9 +569,14 @@ class OptiXDevice : public CUDADevice {
     if (have_error())
       return;  // Abort early if there was an error previously
 
-    if (task.type == DeviceTask::RENDER || task.type == DeviceTask::DENOISE) {
+    if (task.type == DeviceTask::RENDER) {
+      if (thread_index != 0) {
+        // Only execute denoising in a single thread (see also 'task_add')
+        task.tile_types &= ~RenderTile::DENOISE;
+      }
+
       RenderTile tile;
-      while (task.acquire_tile(this, tile)) {
+      while (task.acquire_tile(this, tile, task.tile_types)) {
         if (tile.task == RenderTile::PATH_TRACE)
           launch_render(task, tile, thread_index);
         else if (tile.task == RenderTile::DENOISE)
@@ -1451,7 +1456,7 @@ class OptiXDevice : public CUDADevice {
       return;
     }
 
-    if (task.type == DeviceTask::DENOISE || task.type == DeviceTask::DENOISE_BUFFER) {
+    if (task.type == DeviceTask::DENOISE_BUFFER) {
       // Execute denoising in a single thread (e.g. to avoid race conditions during creation)
       task_pool.push(new OptiXDeviceTask(this, task, 0));
       return;

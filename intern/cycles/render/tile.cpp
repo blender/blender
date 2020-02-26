@@ -495,20 +495,20 @@ bool TileManager::finish_tile(int index, bool &delete_tile)
   }
 }
 
-bool TileManager::next_tile(Tile *&tile, int device, bool denoising)
+bool TileManager::next_tile(Tile *&tile, int device, uint tile_types)
 {
   /* Preserve device if requested, unless this is a separate denoising device that just wants to
    * grab any available tile. */
   const bool preserve_device = preserve_tile_device && device < num_devices;
 
-  int tile_index = -1;
-  int logical_device = preserve_device ? device : 0;
+  if (tile_types & RenderTile::DENOISE) {
+    int tile_index = -1;
+    int logical_device = preserve_device ? device : 0;
 
-  if (denoising) {
     while (logical_device < state.denoising_tiles.size()) {
       if (state.denoising_tiles[logical_device].empty()) {
         if (preserve_device) {
-          return false;
+          break;
         }
         else {
           logical_device++;
@@ -520,12 +520,21 @@ bool TileManager::next_tile(Tile *&tile, int device, bool denoising)
       state.denoising_tiles[logical_device].pop_front();
       break;
     }
+
+    if (tile_index >= 0) {
+      tile = &state.tiles[tile_index];
+      return true;
+    }
   }
-  else {
+
+  if (tile_types & RenderTile::PATH_TRACE) {
+    int tile_index = -1;
+    int logical_device = preserve_device ? device : 0;
+
     while (logical_device < state.render_tiles.size()) {
       if (state.render_tiles[logical_device].empty()) {
         if (preserve_device) {
-          return false;
+          break;
         }
         else {
           logical_device++;
@@ -537,11 +546,11 @@ bool TileManager::next_tile(Tile *&tile, int device, bool denoising)
       state.render_tiles[logical_device].pop_front();
       break;
     }
-  }
 
-  if (tile_index >= 0) {
-    tile = &state.tiles[tile_index];
-    return true;
+    if (tile_index >= 0) {
+      tile = &state.tiles[tile_index];
+      return true;
+    }
   }
 
   return false;

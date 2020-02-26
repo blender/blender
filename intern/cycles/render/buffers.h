@@ -130,7 +130,7 @@ class DisplayBuffer {
 
 class RenderTile {
  public:
-  typedef enum { PATH_TRACE, DENOISE } Task;
+  typedef enum { PATH_TRACE = (1 << 0), DENOISE = (1 << 1) } Task;
 
   Task task;
   int x, y, w, h;

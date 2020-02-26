@@ -1308,7 +1308,7 @@ void OpenCLDevice::thread_run(DeviceTask *task)
 {
   flush_texture_buffers();
 
-  if (task->type == DeviceTask::RENDER || task->type == DeviceTask::DENOISE) {
+  if (task->type == DeviceTask::RENDER) {
     RenderTile tile;
     DenoisingTask denoising(this, *task);
 
@@ -1317,7 +1317,7 @@ void OpenCLDevice::thread_run(DeviceTask *task)
     kgbuffer.alloc_to_device(1);
 
     /* Keep rendering tiles until done. */
-    while (task->acquire_tile(this, tile)) {
+    while (task->acquire_tile(this, tile, task->tile_types)) {
       if (tile.task == RenderTile::PATH_TRACE) {
         assert(tile.task == RenderTile::PATH_TRACE);
         scoped_timer timer(&tile.buffers->render_time);

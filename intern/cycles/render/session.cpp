@@ -301,12 +301,7 @@ void Session::run_gpu()
       update_status_time();
 
       /* render */
-      render();
-
-      /* denoise */
-      if (need_denoise) {
-        denoise();
-      }
+      render(need_denoise);
 
       device->task_wait();
 
@@ -384,7 +379,7 @@ bool Session::draw_cpu(BufferParams &buffer_params, DeviceDrawParams &draw_param
   return false;
 }
 
-bool Session::acquire_tile(Device *tile_device, RenderTile &rtile, RenderTile::Task task)
+bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_types)
 {
   if (progress.get_cancel()) {
     if (params.progressive_refine == false) {
@@ -399,9 +394,9 @@ bool Session::acquire_tile(Device *tile_device, RenderTile &rtile, RenderTile::T
   Tile *tile;
   int device_num = device->device_number(tile_device);
 
-  while (!tile_manager.next_tile(tile, device_num, task == RenderTile::DENOISE)) {
+  while (!tile_manager.next_tile(tile, device_num, tile_types)) {
     /* Wait for denoising tiles to become available */
-    if (task == RenderTile::DENOISE && !progress.get_cancel() && tile_manager.has_tiles()) {
+    if ((tile_types & RenderTile::DENOISE) && !progress.get_cancel() && tile_manager.has_tiles()) {
       denoising_cond.wait(tile_lock);
       continue;
     }
@@ -417,7 +412,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile &rtile, RenderTile::T
   rtile.num_samples = tile_manager.state.num_samples;
   rtile.resolution = tile_manager.state.resolution_divider;
   rtile.tile_index = tile->index;
-  rtile.task = task;
+  rtile.task = tile->state == Tile::DENOISE ? RenderTile::DENOISE : RenderTile::PATH_TRACE;
 
   tile_lock.unlock();
 
@@ -700,12 +695,7 @@ void Session::run_cpu()
       update_status_time();
 
       /* render */
-      render();
-
-      /* denoise */
-      if (need_denoise) {
-        denoise();
-      }
+      render(need_denoise);
 
       /* update status and timing */
       update_status_time();
@@ -1089,99 +1079,90 @@ void Session::update_status_time(bool show_pause, bool show_done)
   progress.set_status(status, substatus);
 }
 
-void Session::render()
+void Session::render(bool with_denoising)
 {
-  /* Clear buffers. */
   if (buffers && tile_manager.state.sample == tile_manager.range_start_sample) {
+    /* Clear buffers. */
     buffers->zero();
+  }
+
+  if (tile_manager.state.buffer.width == 0 || tile_manager.state.buffer.height == 0) {
+    return; /* Avoid empty launches. */
   }
 
   /* Add path trace task. */
   DeviceTask task(DeviceTask::RENDER);
 
-  task.acquire_tile = function_bind(&Session::acquire_tile, this, _1, _2, RenderTile::PATH_TRACE);
+  task.acquire_tile = function_bind(&Session::acquire_tile, this, _2, _1, _3);
   task.release_tile = function_bind(&Session::release_tile, this, _1);
+  task.map_neighbor_tiles = function_bind(&Session::map_neighbor_tiles, this, _1, _2);
+  task.unmap_neighbor_tiles = function_bind(&Session::unmap_neighbor_tiles, this, _1, _2);
   task.get_cancel = function_bind(&Progress::get_cancel, &this->progress);
   task.update_tile_sample = function_bind(&Session::update_tile_sample, this, _1);
   task.update_progress_sample = function_bind(&Progress::add_samples, &this->progress, _1, _2);
   task.need_finish_queue = params.progressive_refine;
   task.integrator_branched = scene->integrator->method == Integrator::BRANCHED_PATH;
 
-  device->task_add(task);
-}
+  /* Acquire render tiles by default. */
+  task.tile_types = RenderTile::PATH_TRACE;
 
-void Session::denoise()
-{
-  if (!params.run_denoising) {
-    return;
-  }
-
-  /* Do not denoise viewport until the sample at which denoising should start is reached. */
-  if (!params.background && tile_manager.state.sample < params.denoising_start_sample) {
-    return;
-  }
-
-  /* Cannot denoise with resolution divider and separate denoising devices.
-   * It breaks the copy in 'MultiDevice::map_neighbor_tiles' (which operates on the full buffer
-   * dimensions and not the scaled ones). */
-  if (!params.device.denoising_devices.empty() && tile_manager.state.resolution_divider > 1) {
-    return;
-  }
-
-  /* It can happen that denoising was already enabled, but the scene still needs an update. */
-  if (scene->film->need_update || !scene->film->denoising_data_offset) {
-    return;
-  }
-
-  /* Add separate denoising task. */
-  DeviceTask task(DeviceTask::DENOISE);
-
-  if (tile_manager.schedule_denoising) {
-    /* Run denoising on each tile. */
-    task.acquire_tile = function_bind(&Session::acquire_tile, this, _1, _2, RenderTile::DENOISE);
-    task.release_tile = function_bind(&Session::release_tile, this, _1);
-    task.update_tile_sample = function_bind(&Session::update_tile_sample, this, _1);
-    task.update_progress_sample = function_bind(&Progress::add_samples, &this->progress, _1, _2);
-  }
-  else {
-    assert(buffers);
-
-    if (tile_manager.state.buffer.width == 0 || tile_manager.state.buffer.height == 0) {
-      return; /* Avoid empty launches. */
+  with_denoising = params.run_denoising && with_denoising;
+  if (with_denoising) {
+    /* Do not denoise viewport until the sample at which denoising should start is reached. */
+    if (!params.background && tile_manager.state.sample < params.denoising_start_sample) {
+      with_denoising = false;
     }
 
-    /* Wait for rendering to finish. */
-    device->task_wait();
+    /* Cannot denoise with resolution divider and separate denoising devices.
+     * It breaks the copy in 'MultiDevice::map_neighbor_tiles' (which operates on the full buffer
+     * dimensions and not the scaled ones). */
+    if (!params.device.denoising_devices.empty() && tile_manager.state.resolution_divider > 1) {
+      with_denoising = false;
+    }
 
-    /* Run denoising on the whole image at once. */
-    task.type = DeviceTask::DENOISE_BUFFER;
-    task.x = tile_manager.state.buffer.full_x;
-    task.y = tile_manager.state.buffer.full_y;
-    task.w = tile_manager.state.buffer.width;
-    task.h = tile_manager.state.buffer.height;
-    task.buffer = buffers->buffer.device_pointer;
-    task.sample = tile_manager.state.sample;
-    task.num_samples = tile_manager.state.num_samples;
-    tile_manager.state.buffer.get_offset_stride(task.offset, task.stride);
-    task.buffers = buffers;
+    /* It can happen that denoising was already enabled, but the scene still needs an update. */
+    if (scene->film->need_update || !scene->film->denoising_data_offset) {
+      with_denoising = false;
+    }
   }
 
-  task.get_cancel = function_bind(&Progress::get_cancel, &this->progress);
-  task.need_finish_queue = params.progressive_refine;
-  task.map_neighbor_tiles = function_bind(&Session::map_neighbor_tiles, this, _1, _2);
-  task.unmap_neighbor_tiles = function_bind(&Session::unmap_neighbor_tiles, this, _1, _2);
+  if (with_denoising) {
+    task.denoising = params.denoising;
 
-  task.denoising = params.denoising;
+    task.pass_stride = scene->film->pass_stride;
+    task.target_pass_stride = task.pass_stride;
+    task.pass_denoising_data = scene->film->denoising_data_offset;
+    task.pass_denoising_clean = scene->film->denoising_clean_offset;
 
-  task.pass_stride = scene->film->pass_stride;
-  task.target_pass_stride = task.pass_stride;
-  task.pass_denoising_data = scene->film->denoising_data_offset;
-  task.pass_denoising_clean = scene->film->denoising_clean_offset;
+    task.denoising_from_render = true;
+    task.denoising_do_filter = params.full_denoising;
+    task.denoising_use_optix = params.optix_denoising;
+    task.denoising_write_passes = params.write_denoising_passes;
 
-  task.denoising_from_render = true;
-  task.denoising_do_filter = params.full_denoising;
-  task.denoising_use_optix = params.optix_denoising;
-  task.denoising_write_passes = params.write_denoising_passes;
+    if (tile_manager.schedule_denoising) {
+      /* Acquire denoising tiles during rendering. */
+      task.tile_types |= RenderTile::DENOISE;
+    }
+    else {
+      assert(buffers);
+
+      /* Schedule rendering and wait for it to finish. */
+      device->task_add(task);
+      device->task_wait();
+
+      /* Then run denoising on the whole image at once. */
+      task.type = DeviceTask::DENOISE_BUFFER;
+      task.x = tile_manager.state.buffer.full_x;
+      task.y = tile_manager.state.buffer.full_y;
+      task.w = tile_manager.state.buffer.width;
+      task.h = tile_manager.state.buffer.height;
+      task.buffer = buffers->buffer.device_pointer;
+      task.sample = tile_manager.state.sample;
+      task.num_samples = tile_manager.state.num_samples;
+      tile_manager.state.buffer.get_offset_stride(task.offset, task.stride);
+      task.buffers = buffers;
+    }
+  }
 
   device->task_add(task);
 }
