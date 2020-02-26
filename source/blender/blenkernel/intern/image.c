@@ -5180,6 +5180,14 @@ void BKE_image_user_frame_calc(Image *ima, ImageUser *iuser, int cfra)
       iuser->ok = 1;
     }
 
+    if (ima) {
+      LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+        if (tile->ok == 0) {
+          tile->ok = IMA_OK;
+        }
+      }
+    }
+
     iuser->flag &= ~IMA_NEED_FRAME_RECALC;
   }
 }
