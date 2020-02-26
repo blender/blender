@@ -838,7 +838,8 @@ static void minmax_v3_v3v3(const float vec[3], float min[3], float max[3])
   }
 }
 
-static void ccgDM_getMinMax(DerivedMesh *dm, float r_min[3], float r_max[3])
+/* UNUSED, keep since this functionality may be useful in the future. */
+static void UNUSED_FUNCTION(ccgDM_getMinMax)(DerivedMesh *dm, float r_min[3], float r_max[3])
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGSubSurf *ss = ccgdm->ss;
@@ -2042,7 +2043,6 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 
 static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
 {
-  ccgdm->dm.getMinMax = ccgDM_getMinMax;
   ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
   ccgdm->dm.getNumEdges = ccgDM_getNumEdges;
   ccgdm->dm.getNumLoops = ccgDM_getNumLoops;

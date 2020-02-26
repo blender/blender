@@ -317,8 +317,6 @@ void DM_init_funcs(DerivedMesh *dm)
   dm->getTessFaceDataArray = DM_get_tessface_data_layer;
   dm->getPolyDataArray = DM_get_poly_data_layer;
   dm->getLoopDataArray = DM_get_loop_data_layer;
-
-  dm->bvhCache = NULL;
 }
 
 /**
@@ -411,18 +409,11 @@ void DM_from_template(DerivedMesh *dm,
 int DM_release(DerivedMesh *dm)
 {
   if (dm->needsFree) {
-    bvhcache_free(&dm->bvhCache);
     CustomData_free(&dm->vertData, dm->numVertData);
     CustomData_free(&dm->edgeData, dm->numEdgeData);
     CustomData_free(&dm->faceData, dm->numTessFaceData);
     CustomData_free(&dm->loopData, dm->numLoopData);
     CustomData_free(&dm->polyData, dm->numPolyData);
-
-    if (dm->mat) {
-      MEM_freeN(dm->mat);
-      dm->mat = NULL;
-      dm->totmat = 0;
-    }
 
     MEM_SAFE_FREE(dm->looptris.array);
     dm->looptris.num = 0;

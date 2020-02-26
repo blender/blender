@@ -151,22 +151,6 @@ static void cdDM_copyPolyArray(DerivedMesh *dm, MPoly *r_poly)
   memcpy(r_poly, cddm->mpoly, sizeof(*r_poly) * dm->numPolyData);
 }
 
-static void cdDM_getMinMax(DerivedMesh *dm, float r_min[3], float r_max[3])
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  int i;
-
-  if (dm->numVertData) {
-    for (i = 0; i < dm->numVertData; i++) {
-      minmax_v3v3_v3(r_min, r_max, cddm->mvert[i].co);
-    }
-  }
-  else {
-    zero_v3(r_min);
-    zero_v3(r_max);
-  }
-}
-
 static void cdDM_getVertCo(DerivedMesh *dm, int index, float r_co[3])
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
@@ -240,8 +224,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
   cddm = MEM_callocN(sizeof(*cddm), desc);
   dm = &cddm->dm;
-
-  dm->getMinMax = cdDM_getMinMax;
 
   dm->getNumVerts = cdDM_getNumVerts;
   dm->getNumEdges = cdDM_getNumEdges;
