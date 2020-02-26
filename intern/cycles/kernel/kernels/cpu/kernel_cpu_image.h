@@ -474,7 +474,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
 
-  switch (kernel_tex_type(id)) {
+  switch (info.data_type) {
     case IMAGE_DATA_TYPE_HALF:
       return TextureInterpolator<half>::interp(info, x, y);
     case IMAGE_DATA_TYPE_BYTE:
@@ -503,7 +503,7 @@ ccl_device float4 kernel_tex_image_interp_3d(
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
 
-  switch (kernel_tex_type(id)) {
+  switch (info.data_type) {
     case IMAGE_DATA_TYPE_HALF:
       return TextureInterpolator<half>::interp_3d(info, x, y, z, interp);
     case IMAGE_DATA_TYPE_BYTE:

@@ -208,6 +208,7 @@ class device_memory {
   size_t data_depth;
   MemoryType type;
   const char *name;
+  ImageDataType image_data_type;
   InterpolationType interpolation;
   ExtensionType extension;
 

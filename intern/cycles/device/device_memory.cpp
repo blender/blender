@@ -31,6 +31,7 @@ device_memory::device_memory(Device *device, const char *name, MemoryType type)
       data_depth(0),
       type(type),
       name(name),
+      image_data_type(IMAGE_DATA_NUM_TYPES),
       interpolation(INTERPOLATION_NONE),
       extension(EXTENSION_REPEAT),
       device(device),

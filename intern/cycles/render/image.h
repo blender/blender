@@ -57,7 +57,7 @@ class ImageMetaData {
         height(0),
         depth(0),
         builtin_free_cache(false),
-        type((ImageDataType)0),
+        type(IMAGE_DATA_NUM_TYPES),
         colorspace(u_colorspace_raw),
         compress_as_srgb(false)
   {
@@ -107,15 +107,15 @@ class ImageManager {
   ~ImageManager();
 
   int add_image(const ImageKey &key, float frame, ImageMetaData &metadata);
-  void add_image_user(int flat_slot);
-  void remove_image(int flat_slot);
+  void add_image_user(int slot);
+  void remove_image(int slot);
   void remove_image(const ImageKey &key);
   void tag_reload_image(const ImageKey &key);
   bool get_image_metadata(const ImageKey &key, ImageMetaData &metadata);
-  bool get_image_metadata(int flat_slot, ImageMetaData &metadata);
+  bool get_image_metadata(int slot, ImageMetaData &metadata);
 
   void device_update(Device *device, Scene *scene, Progress &progress);
-  void device_update_slot(Device *device, Scene *scene, int flat_slot, Progress *progress);
+  void device_update_slot(Device *device, Scene *scene, int slot, Progress *progress);
   void device_free(Device *device);
 
   void device_load_builtin(Device *device, Scene *scene, Progress &progress);
@@ -124,7 +124,7 @@ class ImageManager {
   void set_osl_texture_system(void *texture_system);
   bool set_animation_frame_update(int frame);
 
-  device_memory *image_memory(int flat_slot);
+  device_memory *image_memory(int slot);
 
   void collect_statistics(RenderStats *stats);
 
@@ -167,29 +167,25 @@ class ImageManager {
   };
 
  private:
-  int tex_num_images[IMAGE_DATA_NUM_TYPES];
+  int tex_num_images;
   int max_num_images;
   bool has_half_images;
 
   thread_mutex device_mutex;
   int animation_frame;
 
-  vector<Image *> images[IMAGE_DATA_NUM_TYPES];
+  vector<Image *> images;
   void *osl_texture_system;
 
   bool file_load_image_generic(Image *img, unique_ptr<ImageInput> *in);
 
   template<TypeDesc::BASETYPE FileFormat, typename StorageType, typename DeviceType>
-  bool file_load_image(Image *img,
-                       ImageDataType type,
-                       int texture_limit,
-                       device_vector<DeviceType> &tex_img);
+  bool file_load_image(Image *img, int texture_limit, device_vector<DeviceType> &tex_img);
 
   void metadata_detect_colorspace(ImageMetaData &metadata, const char *file_format);
 
-  void device_load_image(
-      Device *device, Scene *scene, ImageDataType type, int slot, Progress *progress);
-  void device_free_image(Device *device, ImageDataType type, int slot);
+  void device_load_image(Device *device, Scene *scene, int slot, Progress *progress);
+  void device_free_image(Device *device, int slot);
 };
 
 CCL_NAMESPACE_END

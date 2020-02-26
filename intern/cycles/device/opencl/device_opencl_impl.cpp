@@ -1298,6 +1298,8 @@ void OpenCLDevice::flush_texture_buffers()
     if (string_startswith(slot.name, "__tex_image")) {
       device_memory *mem = textures[slot.name];
 
+      info.data_type = mem->image_data_type;
+
       info.width = mem->data_width;
       info.height = mem->data_height;
       info.depth = mem->data_depth;

@@ -465,23 +465,24 @@ class CPUDevice : public Device {
     }
     else {
       /* Image Texture. */
-      int flat_slot = 0;
+      int slot = 0;
       if (string_startswith(mem.name, "__tex_image")) {
         int pos = string(mem.name).rfind("_");
-        flat_slot = atoi(mem.name + pos + 1);
+        slot = atoi(mem.name + pos + 1);
       }
       else {
         assert(0);
       }
 
-      if (flat_slot >= texture_info.size()) {
+      if (slot >= texture_info.size()) {
         /* Allocate some slots in advance, to reduce amount
          * of re-allocations. */
-        texture_info.resize(flat_slot + 128);
+        texture_info.resize(slot + 128);
       }
 
-      TextureInfo &info = texture_info[flat_slot];
+      TextureInfo &info = texture_info[slot];
       info.data = (uint64_t)mem.host_pointer;
+      info.data_type = mem.image_data_type;
       info.cl_buffer = 0;
       info.interpolation = mem.interpolation;
       info.extension = mem.extension;

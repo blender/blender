@@ -91,12 +91,15 @@ typedef enum ExtensionType {
 typedef struct TextureInfo {
   /* Pointer, offset or texture depending on device. */
   uint64_t data;
+  /* Data Type */
+  uint data_type;
   /* Buffer number for OpenCL. */
   uint cl_buffer;
   /* Interpolation and extension type. */
   uint interpolation, extension;
   /* Dimensions. */
   uint width, height, depth;
+  uint pad[3];
 } TextureInfo;
 
 CCL_NAMESPACE_END

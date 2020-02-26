@@ -1169,10 +1169,10 @@ void CUDADevice::tex_alloc(device_memory &mem)
   }
 
   /* Kepler+, bindless textures. */
-  int flat_slot = 0;
+  int slot = 0;
   if (string_startswith(mem.name, "__tex_image")) {
     int pos = string(mem.name).rfind("_");
-    flat_slot = atoi(mem.name + pos + 1);
+    slot = atoi(mem.name + pos + 1);
   }
   else {
     assert(0);
@@ -1214,15 +1214,16 @@ void CUDADevice::tex_alloc(device_memory &mem)
   cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
 
   /* Resize once */
-  if (flat_slot >= texture_info.size()) {
+  if (slot >= texture_info.size()) {
     /* Allocate some slots in advance, to reduce amount
      * of re-allocations. */
-    texture_info.resize(flat_slot + 128);
+    texture_info.resize(slot + 128);
   }
 
   /* Set Mapping and tag that we need to (re-)upload to device */
-  TextureInfo &info = texture_info[flat_slot];
+  TextureInfo &info = texture_info[slot];
   info.data = (uint64_t)cmem->texobject;
+  info.data_type = mem.image_data_type;
   info.cl_buffer = 0;
   info.interpolation = mem.interpolation;
   info.extension = mem.extension;
