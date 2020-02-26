@@ -45,7 +45,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_anim.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_key.h"

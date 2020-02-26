@@ -977,7 +977,6 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   explode = BKE_mesh_new_nomain_from_template(mesh, totdup, 0, totface - delface, 0, 0);
 
   mtface = CustomData_get_layer_named(&explode->fdata, CD_MTFACE, emd->uvname);
-  /*dupvert = CDDM_get_verts(explode);*/
 
   /* getting back to object space */
   invert_m4_m4(imat, ctx->object->obmat);

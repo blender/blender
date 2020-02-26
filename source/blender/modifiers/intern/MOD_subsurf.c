@@ -31,7 +31,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_ccg.h"

@@ -22,59 +22,24 @@
  * \section aboutcdderivedmesh CDDerivedMesh interface
  *   CDDerivedMesh (CD = Custom Data) is a DerivedMesh backend which stores
  *   mesh elements (vertices, edges and faces) as layers of custom element data.
+ *
+ * \note This is deprecated & should eventually be removed.
  */
 
 #ifndef __BKE_CDDERIVEDMESH_H__
 #define __BKE_CDDERIVEDMESH_H__
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_customdata.h"
-
-struct BMEditMesh;
-struct CustomData_MeshMasks;
 struct DerivedMesh;
 struct Mesh;
-
-/* creates a new CDDerivedMesh */
-struct DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces, int numLoops, int numPolys);
 
 /* creates a CDDerivedMesh from the given Mesh, this will reference the
  * original data in Mesh, but it is safe to apply vertex coordinates or
  * calculate normals as those functions will automatically create new
- * data to not overwrite the original */
+ * data to not overwrite the original. */
 struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh);
 
-/* creates a CDDerivedMesh from the given Mesh with custom allocation type. */
-struct DerivedMesh *CDDM_from_mesh_ex(struct Mesh *mesh,
-                                      eCDAllocType alloctype,
-                                      const struct CustomData_MeshMasks *mask);
-
 /* Copies the given DerivedMesh with verts, faces & edges stored as
- * custom element data.
- */
+ * custom element data. */
 struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm);
-
-void CDDM_recalc_looptri(struct DerivedMesh *dm);
-
-/* vertex/edge/face access functions
- * should always succeed if index is within bounds
- * note these return pointers - any change modifies the internals of the mesh
- */
-struct MVert *CDDM_get_vert(struct DerivedMesh *dm, int index);
-struct MEdge *CDDM_get_edge(struct DerivedMesh *dm, int index);
-struct MFace *CDDM_get_tessface(struct DerivedMesh *dm, int index);
-struct MLoop *CDDM_get_loop(struct DerivedMesh *dm, int index);
-struct MPoly *CDDM_get_poly(struct DerivedMesh *dm, int index);
-
-/* vertex/edge/face array access functions - return the array holding the
- * desired data
- * should always succeed
- * note these return pointers - any change modifies the internals of the mesh
- */
-struct MVert *CDDM_get_verts(struct DerivedMesh *dm);
-struct MEdge *CDDM_get_edges(struct DerivedMesh *dm);
-struct MFace *CDDM_get_tessfaces(struct DerivedMesh *dm);
-struct MLoop *CDDM_get_loops(struct DerivedMesh *dm);
-struct MPoly *CDDM_get_polys(struct DerivedMesh *dm);
 
 #endif

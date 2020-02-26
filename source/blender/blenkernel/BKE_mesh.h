@@ -129,7 +129,7 @@ struct Mesh *BKE_mesh_new_nomain_from_template_ex(const struct Mesh *me_src,
                                                   int tessface_len,
                                                   int loops_len,
                                                   int polys_len,
-                                                  CustomData_MeshMasks mask);
+                                                  struct CustomData_MeshMasks mask);
 
 void BKE_mesh_eval_delete(struct Mesh *me_eval);
 

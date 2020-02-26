@@ -68,7 +68,6 @@
 #include "BKE_lib_id.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
-#include "BKE_cdderivedmesh.h" /* for weight_to_rgb() */
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_deform.h"

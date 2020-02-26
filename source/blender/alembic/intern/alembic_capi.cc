@@ -48,7 +48,6 @@ extern "C" {
 #include "DNA_scene_types.h"
 
 #include "BKE_cachefile.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"

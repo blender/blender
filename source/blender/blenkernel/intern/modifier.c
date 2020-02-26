@@ -48,7 +48,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_appdir.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_idcode.h"

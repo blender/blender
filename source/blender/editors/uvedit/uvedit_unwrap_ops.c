@@ -504,7 +504,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   {
     Mesh *me_from_em = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, ob->data);
-    initialDerived = CDDM_from_mesh_ex(me_from_em, CD_REFERENCE, &CD_MASK_MESH);
+    initialDerived = CDDM_from_mesh(me_from_em);
     derivedMesh = subsurf_make_derived_from_derived(
         initialDerived, &smd, scene, NULL, SUBSURF_IN_EDIT_MODE);
 

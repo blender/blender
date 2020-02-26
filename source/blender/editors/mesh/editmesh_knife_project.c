@@ -31,7 +31,6 @@
 #include "BKE_mesh.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_report.h"

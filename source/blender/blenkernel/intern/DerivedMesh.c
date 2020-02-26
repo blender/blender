@@ -43,7 +43,7 @@
 #include "BLI_linklist.h"
 #include "BLI_task.h"
 
-#include "BKE_cdderivedmesh.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_colorband.h"
 #include "BKE_editmesh.h"
 #include "BKE_key.h"

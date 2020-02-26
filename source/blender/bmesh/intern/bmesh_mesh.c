@@ -25,6 +25,7 @@
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -32,7 +33,6 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
