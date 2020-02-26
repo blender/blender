@@ -49,6 +49,11 @@ if(WITH_TBB)
   add_definitions(-DTBB=1)
 endif()
 
+if(WITH_OPENVDB)
+  add_definitions(-DOPENVDB=1)
+  add_definitions(-DOPENVDB_STATICLIB)
+endif()
+
 if(WIN32)
   add_definitions(-D_USE_MATH_DEFINES)
 endif()
@@ -78,7 +83,6 @@ if(WITH_TBB)
 endif()
 
 if(WITH_OPENVDB)
-  add_definitions(-DOPENVDB=1 ${OPENVDB_DEFINITIONS})
   list(APPEND INC_SYS
     ${OPENVDB_INCLUDE_DIRS}
   )
