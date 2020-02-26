@@ -192,17 +192,14 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
                                     int icon,
                                     const char *home)
 {
-  char dirpath[FILE_MAXDIR];
-  char *xdg_path = xdg_map ? BLI_ghash_lookup(xdg_map, key) : NULL;
+  char xdg_path_buf[FILE_MAXDIR];
+  const char *xdg_path = xdg_map ? BLI_ghash_lookup(xdg_map, key) : NULL;
   if (xdg_path == NULL) {
-    BLI_path_join(dirpath, sizeof(dirpath), home, default_path, NULL);
+    BLI_path_join(xdg_path_buf, sizeof(xdg_path_buf), home, default_path, NULL);
+    xdg_path = xdg_path_buf;
   }
-  else {
-    STRNCPY(dirpath, xdg_path);
-  }
-
   fsmenu_insert_entry(
-      fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, dirpath, IFACE_(default_path), icon, FS_INSERT_LAST);
+      fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, xdg_path, IFACE_(default_path), icon, FS_INSERT_LAST);
 }
 
 /** \} */
