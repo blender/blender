@@ -4290,6 +4290,7 @@ class VIEW3D_MT_edit_curve_context_menu(Menu):
         # Remove
         layout.operator("curve.split")
         layout.operator("curve.decimate")
+        layout.operator("curve.separate")
         layout.operator("curve.dissolve_verts")
         layout.operator("curve.delete", text="Delete Segment").type = 'SEGMENT'
         layout.operator("curve.delete", text="Delete Point").type = 'VERT'
@@ -4537,6 +4538,7 @@ class VIEW3D_MT_armature_context_menu(Menu):
 
         # Remove
         layout.operator("armature.split")
+        layout.operator("armature.separate")
         layout.operator("armature.merge")
         layout.operator("armature.dissolve")
         layout.operator("armature.delete")
