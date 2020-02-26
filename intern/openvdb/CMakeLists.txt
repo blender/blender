@@ -35,28 +35,9 @@ set(LIB
 )
 
 if(WITH_OPENVDB)
-  add_definitions(
-    -DWITH_OPENVDB
-    ${OPENVDB_DEFINITIONS}
-  )
-
-  if(WIN32)
-    add_definitions(
-      -DOPENVDB_STATICLIB
-      -D_USE_MATH_DEFINES
-    )
-  endif()
-
-  if(WITH_OPENVDB_3_ABI_COMPATIBLE)
-    add_definitions(
-      -DOPENVDB_3_ABI_COMPATIBLE
-    )
-  endif()
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 
   list(APPEND INC_SYS
-    ${BOOST_INCLUDE_DIR}
-    ${TBB_INCLUDE_DIRS}
-    ${OPENEXR_INCLUDE_DIRS}
     ${OPENVDB_INCLUDE_DIRS}
   )
 
@@ -79,23 +60,6 @@ if(WITH_OPENVDB)
 
   list(APPEND LIB
     ${OPENVDB_LIBRARIES}
-    ${OPENEXR_LIBRARIES}
-    ${ZLIB_LIBRARIES}
-  )
-
-  if(WITH_OPENVDB_BLOSC)
-    add_definitions(
-      -DWITH_OPENVDB_BLOSC
-    )
-    list(APPEND LIB
-      ${BLOSC_LIBRARIES}
-      ${ZLIB_LIBRARIES}
-    )
-  endif()
-
-  list(APPEND LIB
-    ${BOOST_LIBRARIES}
-    ${TBB_LIBRARIES}
   )
 endif()
 
