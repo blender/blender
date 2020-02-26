@@ -12,7 +12,9 @@ uniform float studioLightIntensity = 1.0;
 uniform float studioLightBlur = 0.0;
 in vec3 viewPosition;
 
-#  define M_PI 3.14159265358979323846
+#  ifndef M_PI
+#    define M_PI 3.14159265358979323846
+#  endif
 
 vec3 background_transform_to_world(vec3 viewvec)
 {
