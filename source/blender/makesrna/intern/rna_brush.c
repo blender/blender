@@ -155,7 +155,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_eraser_modes_items[] = {
     {GP_BRUSH_ERASER_SOFT,
      "SOFT",
      0,
-     "Dissolve,",
+     "Dissolve",
      "Erase strokes, fading their points strength and thickness"},
     {GP_BRUSH_ERASER_HARD, "HARD", 0, "Point", "Erase stroke points"},
     {GP_BRUSH_ERASER_STROKE, "STROKE", 0, "Stroke", "Erase entire strokes"},
