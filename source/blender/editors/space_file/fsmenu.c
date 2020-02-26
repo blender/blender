@@ -198,7 +198,7 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
     BLI_path_join(dirpath, sizeof(dirpath), home, default_path, NULL);
   }
   else {
-    BLI_snprintf(dirpath, sizeof(dirpath), xdg_path);
+    STRNCPY(dirpath, xdg_path);
   }
 
   fsmenu_insert_entry(
