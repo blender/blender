@@ -162,7 +162,6 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
           }
 
           BLI_ghash_insert(xdg_map, BLI_strdup(l), BLI_strdup(l_value_final));
-          printf("'%s' = '%s'\n", l, l_value_final);
         }
       }
     }
