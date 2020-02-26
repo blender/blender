@@ -223,6 +223,7 @@ else:
         "aud",
         "bgl",
         "blf",
+        "imbuf",
         "bmesh",
         "bmesh.ops",
         "bmesh.types",
@@ -1779,7 +1780,7 @@ def write_rst_contents(basepath):
 
     standalone_modules = (
         # submodules are added in parent page
-        "mathutils", "freestyle", "bgl", "blf", "gpu", "gpu_extras",
+        "mathutils", "freestyle", "bgl", "blf", "imbuf", "gpu", "gpu_extras",
         "aud", "bpy_extras", "idprop.types", "bmesh",
     )
 
@@ -1886,6 +1887,7 @@ def write_rst_importable_modules(basepath):
         # C_modules
         "aud": "Audio System",
         "blf": "Font Drawing",
+        "imbuf": "Image Buffer",
         "gpu": "GPU Shader Module",
         "gpu.types": "GPU Types",
         "gpu.matrix": "GPU Matrix",
