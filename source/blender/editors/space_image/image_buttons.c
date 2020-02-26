@@ -985,7 +985,7 @@ void uiTemplateImage(uiLayout *layout,
           void *lock;
           ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
-          if (ibuf->rect_float && (ibuf->flags & IB_halffloat) == 0) {
+          if (ibuf && ibuf->rect_float && (ibuf->flags & IB_halffloat) == 0) {
             uiItemR(col, &imaptr, "use_half_precision", 0, NULL, ICON_NONE);
           }
           BKE_image_release_ibuf(ima, ibuf, lock);
