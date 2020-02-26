@@ -1428,12 +1428,10 @@ static void pbvh_grids_node_visibility_update(PBVH *bvh, PBVHNode *node)
   BKE_pbvh_node_fully_hidden_set(node, true);
 }
 
-static void pbvh_bmesh_node_visibility_update(PBVH *bvh, PBVHNode *node)
+static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
 {
-  BMesh *bm;
   GSet *unique, *other;
 
-  bm = BKE_pbvh_get_bmesh(bvh);
   unique = BKE_pbvh_bmesh_node_unique_verts(node);
   other = BKE_pbvh_bmesh_node_other_verts(node);
 
@@ -1475,7 +1473,7 @@ static void pbvh_update_visibility_task_cb(void *__restrict userdata,
         pbvh_grids_node_visibility_update(bvh, node);
         break;
       case PBVH_BMESH:
-        pbvh_bmesh_node_visibility_update(bvh, node);
+        pbvh_bmesh_node_visibility_update(node);
         break;
     }
     node->flag &= ~PBVH_UpdateMask;
