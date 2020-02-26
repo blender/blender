@@ -809,10 +809,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
     if (read_bookmarks && home) {
 
-      if (BLI_exists(home)) {
-        fsmenu_insert_entry(
-            fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, home, IFACE_("Home"), ICON_HOME, FS_INSERT_LAST);
-      }
+      fsmenu_insert_entry(
+          fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, home, IFACE_("Home"), ICON_HOME, FS_INSERT_LAST);
 
       /* Follow the XDG spec, check if these are available. */
       GHash *xdg_map = fsmenu_xdg_user_dirs_parse(home);
