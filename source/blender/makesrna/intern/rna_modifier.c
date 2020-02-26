@@ -5635,7 +5635,7 @@ static void rna_def_modifier_laplaciandeform(BlenderRNA *brna)
   prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "anchor_grp_name");
   RNA_def_property_ui_text(
-      prop, "Vertex Group for Anchors", "Name of Vertex Group which determines Anchors");
+      prop, "Anchor Weights", "Name of Vertex Group which determines Anchors");
   RNA_def_property_string_funcs(
       prop, NULL, NULL, "rna_LaplacianDeformModifier_anchor_grp_name_set");
 
