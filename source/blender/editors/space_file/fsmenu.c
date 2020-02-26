@@ -809,10 +809,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
     if (read_bookmarks && home) {
 
-      BLI_snprintf(line, sizeof(line), "%s/", home);
-      if (BLI_exists(line)) {
+      if (BLI_exists(home)) {
         fsmenu_insert_entry(
-            fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, IFACE_("Home"), ICON_HOME, FS_INSERT_LAST);
+            fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, home, IFACE_("Home"), ICON_HOME, FS_INSERT_LAST);
       }
 
       /* Follow the XDG spec, check if these are available. */
@@ -844,7 +843,6 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #    ifdef __linux__
       /* loop over mount points */
       struct mntent *mnt;
-      int len;
       FILE *fp;
 
       fp = setmntent(MOUNTED, "r");
@@ -866,16 +864,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
             continue;
           }
 
-          len = strlen(mnt->mnt_dir);
-          if (len && mnt->mnt_dir[len - 1] != '/') {
-            BLI_snprintf(line, sizeof(line), "%s/", mnt->mnt_dir);
-            fsmenu_insert_entry(
-                fsmenu, FS_CATEGORY_SYSTEM, line, NULL, ICON_DISK_DRIVE, FS_INSERT_SORTED);
-          }
-          else {
-            fsmenu_insert_entry(
-                fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, NULL, ICON_DISK_DRIVE, FS_INSERT_SORTED);
-          }
+          fsmenu_insert_entry(
+              fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, NULL, ICON_DISK_DRIVE, FS_INSERT_SORTED);
 
           found = 1;
         }
@@ -903,7 +893,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                 const char *label_test = label + 6;
                 label = *label_test ? label_test : dirname;
               }
-              BLI_snprintf(line, sizeof(line), "%s%s/", name, dirname);
+              BLI_snprintf(line, sizeof(line), "%s%s", name, dirname);
               fsmenu_insert_entry(
                   fsmenu, FS_CATEGORY_SYSTEM, line, label, ICON_NETWORK_DRIVE, FS_INSERT_SORTED);
               found = 1;
