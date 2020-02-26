@@ -449,6 +449,63 @@ void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t
 }
 
 /**
+ * Return the text file data with:
+
+ * - Newlines replaced with '\0'.
+ * - Optionally trim whitespace, replacing trailing ' ' & '\t' with '\0'.
+ *
+ * This is an alternative to using #BLI_file_read_as_lines,
+ * allowing us to loop over lines without converting it into a linked list
+ * with individual allocations.
+ *
+ * \param trim_trailing_space: Replace trailing spaces & tabs with nil.
+ * This arguments prevents the caller from counting blank lines (if that's important).
+ * \param pad_bytes: When this is non-zero, the first byte is set to nil,
+ * to simplify parsing the file.
+ * It's recommended to pass in 1, so all text is nil terminated.
+ *
+ * Example looping over lines:
+ *
+ * \code{.c}
+ * size_t data_len;
+ * char *data = BLI_file_read_text_as_mem_with_newline_as_nil(filepath, true, 1, &data_len);
+ * char *data_end = data + data_len;
+ * for (char *line = data; line != data_end; line = strlen(line) + 1) {
+ *  printf("line='%s'\n", line);
+ * }
+ * \endcode
+ */
+void *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
+                                                    bool trim_trailing_space,
+                                                    size_t pad_bytes,
+                                                    size_t *r_size)
+{
+  char *mem = BLI_file_read_text_as_mem(filepath, pad_bytes, r_size);
+  if (mem != NULL) {
+    char *mem_end = mem + *r_size;
+    if (pad_bytes != 0) {
+      *mem_end = '\0';
+    }
+    for (char *p = mem, *p_next; p != mem_end; p = p_next) {
+      p_next = memchr(p, '\n', mem_end - p);
+      if (p_next != NULL) {
+        if (trim_trailing_space) {
+          for (char *p_trim = p_next - 1; p_trim > p && ELEM(*p_trim, ' ', '\t'); p_trim--) {
+            *p_trim = '\0';
+          }
+        }
+        *p_next = '\0';
+        p_next++;
+      }
+      else {
+        p_next = mem_end;
+      }
+    }
+  }
+  return mem;
+}
+
+/**
  * Reads the contents of a text file and returns the lines in a linked list.
  */
 LinkNode *BLI_file_read_as_lines(const char *name)
