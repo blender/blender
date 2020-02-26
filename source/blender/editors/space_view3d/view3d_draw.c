@@ -98,7 +98,7 @@
 
 #include "view3d_intern.h" /* own include */
 
-#define M_GOLDEN_RATION_CONJUGATE 0.618033988749895f
+#define M_GOLDEN_RATION_CONJUGATE 1.618033988749895f
 
 /* -------------------------------------------------------------------- */
 /** \name General Functions
