@@ -216,6 +216,7 @@ colorspaces:
     from_reference: !<GroupTransform>
         children:
             - !<ColorSpaceTransform> {src: Linear, dst: Filmic Log}
+            - !<MatrixTransform> {matrix: [0.2126729, 0.7151521, 0.0721750, 0, 0.2126729, 0.7151521, 0.0721750, 0, 0.2126729, 0.7151521, 0.0721750, 0, 0, 0, 0, 1]}
             - !<FileTransform> {src: filmic_false_color.spi3d, interpolation: best}
 looks:
   - !<Look>
