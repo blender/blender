@@ -31,8 +31,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_report.h"
 
-#include "UI_view2d.h"
-
 #include "transform.h"
 #include "transform_convert.h"
 
@@ -526,14 +524,12 @@ void createTransSeqData(bContext *C, TransInfo *t)
 {
 #define XXX_DURIAN_ANIM_TX_HACK
 
-  View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = t->scene;
   Editing *ed = BKE_sequencer_editing_get(t->scene, false);
   TransData *td = NULL;
   TransData2D *td2d = NULL;
   TransDataSeq *tdsq = NULL;
   TransSeq *ts = NULL;
-  int xmouse;
 
   int count = 0;
 
@@ -545,18 +541,10 @@ void createTransSeqData(bContext *C, TransInfo *t)
   }
 
   tc->custom.type.free_cb = freeSeqData;
-
-  xmouse = (int)UI_view2d_region_to_view_x(v2d, t->mouse.imval[0]);
-
-  /* which side of the current frame should be allowed */
-  if (t->mode == TFM_TIME_EXTEND) {
-    /* only side on which mouse is gets transformed */
-    t->frame_side = (xmouse > CFRA) ? 'R' : 'L';
-  }
-  else {
-    /* normal transform - both sides of current frame are considered */
-    t->frame_side = 'B';
-  }
+  /* only side on which center is gets transformed */
+  float center[2];
+  transform_convert_center_global_v2(t, center);
+  t->frame_side = (center[0] > CFRA) ? 'R' : 'L';
 
 #ifdef XXX_DURIAN_ANIM_TX_HACK
   {
@@ -599,7 +587,7 @@ void createTransSeqData(bContext *C, TransInfo *t)
   SeqTransDataBounds(t, ed->seqbasep, ts);
 
   /* set the snap mode based on how close the mouse is at the end/start points */
-  if (abs(xmouse - ts->max) > abs(xmouse - ts->min)) {
+  if (abs(center[0] - ts->max) > abs(center[0] - ts->min)) {
     ts->snap_left = true;
   }
 

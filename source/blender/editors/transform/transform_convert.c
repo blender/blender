@@ -69,6 +69,8 @@
 #include "ED_clip.h"
 #include "ED_mask.h"
 
+#include "UI_view2d.h"
+
 #include "WM_api.h" /* for WM_event_add_notifier to deal with stabilization nodes */
 #include "WM_types.h"
 
@@ -786,6 +788,19 @@ void clipUVData(TransInfo *t)
 }
 
 /* ********************* ANIMATION EDITORS (GENERAL) ************************* */
+
+/* In modal, `t->center_global` may not have been inited yet. */
+void transform_convert_center_global_v2(TransInfo *t, float r_center[2])
+{
+  /* In modal, `t->center2d` may not have been inited yet. */
+  if (t->flag & T_MODAL) {
+    UI_view2d_region_to_view(
+        (View2D *)t->view, t->mouse.imval[0], t->mouse.imval[1], &r_center[0], &r_center[1]);
+  }
+  else {
+    copy_v2_v2(r_center, t->center_global);
+  }
+}
 
 /* This function tests if a point is on the "mouse" side of the cursor/frame-marking */
 bool FrameOnMouseSide(char side, float frame, float cframe)

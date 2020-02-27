@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -261,11 +261,10 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
   /* which side of the current frame should be allowed */
   // XXX we still want this mode, but how to get this using standard transform too?
   if (t->mode == TFM_TIME_EXTEND) {
-    /* only side on which mouse is gets transformed */
-    float xmouse, ymouse;
-
-    UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[1], &xmouse, &ymouse);
-    t->frame_side = (xmouse > CFRA) ? 'R' : 'L';  // XXX use t->frame_side
+    /* only side on which center is gets transformed */
+    float center[2];
+    transform_convert_center_global_v2(t, center);
+    t->frame_side = (center[0] > CFRA) ? 'R' : 'L';
   }
   else {
     /* normal transform - both sides of current frame are considered */

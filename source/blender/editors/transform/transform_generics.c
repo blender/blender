@@ -1374,17 +1374,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   bGPdata *gpd = CTX_data_gpencil_data(C);
   PropertyRNA *prop;
 
-  if (op && (prop = RNA_struct_find_property(op->ptr, "mouse_coordinate_override")) &&
-      RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_int_get_array(op->ptr, prop, t->mval);
-  }
-  else if (event) {
-    copy_v2_v2_int(t->mval, event->mval);
-  }
-  else {
-    zero_v2_int(t->mval);
-  }
-
   t->depsgraph = CTX_data_depsgraph_pointer(C);
   t->scene = sce;
   t->view_layer = view_layer;
@@ -1413,11 +1402,16 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->redraw = TREDRAW_HARD; /* redraw first time */
 
-  t->mouse.imval[0] = t->mval[0];
-  t->mouse.imval[1] = t->mval[1];
-
-  t->con.imval[0] = t->mouse.imval[0];
-  t->con.imval[1] = t->mouse.imval[1];
+  int mval[2];
+  if (event) {
+    copy_v2_v2_int(mval, event->mval);
+  }
+  else {
+    zero_v2_int(mval);
+  }
+  copy_v2_v2_int(t->mval, mval);
+  copy_v2_v2_int(t->mouse.imval, mval);
+  copy_v2_v2_int(t->con.imval, mval);
 
   t->transform = NULL;
   t->handleEvent = NULL;

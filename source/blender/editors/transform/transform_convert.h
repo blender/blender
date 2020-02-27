@@ -104,6 +104,7 @@ void transform_around_single_fallback(TransInfo *t);
 bool constraints_list_needinv(TransInfo *t, ListBase *list);
 void calc_distanceCurveVerts(TransData *head, TransData *tail);
 struct TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt);
+void transform_convert_center_global_v2(TransInfo *t, float r_center[2]);
 bool FrameOnMouseSide(char side, float frame, float cframe);
 
 /* transform_convert_action.c */
