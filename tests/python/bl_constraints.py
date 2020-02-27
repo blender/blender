@@ -156,9 +156,9 @@ class ChildOfTest(AbstractConstraintTests):
         context = self.constraint_context('Child Of', owner_name='Child Of.object.owner')
         bpy.ops.constraint.childof_set_inverse(context, constraint='Child Of')
         self.matrix_test('Child Of.object.owner', Matrix((
-            (0.9228900671005249, 0.23250490427017212, -0.035540513694286346, 0.10000000149011612),
-            (-0.011224273592233658, 0.9838480949401855, 0.24731633067131042, 0.21246682107448578),
-            (0.0383986234664917, -0.3163823187351227, 0.9553266167640686, 0.27248233556747437),
+            (0.9992386102676392, 0.019843991845846176, -0.03359176218509674, 0.10000000149011612),
+            (-0.017441775649785995, 0.997369647026062, 0.0703534483909607, 0.2000001221895218),
+            (0.034899499267339706, -0.06971398741006851, 0.996956467628479, 0.3000001311302185),
             (0.0, 0.0, 0.0, 1.0),
         )))
 
@@ -188,6 +188,29 @@ class ChildOfTest(AbstractConstraintTests):
         bpy.ops.constraint.childof_clear_inverse(context, constraint='Child Of')
         self.matrix_test('Child Of.armature.owner', initial_matrix)
 
+    def test_vertexgroup_simple_parent(self):
+        """Child Of: simple evaluation of vertex group parent."""
+        initial_matrix = Matrix((
+            (-0.8076590895652771, 0.397272527217865, 0.4357309341430664, 1.188504934310913),
+            (-0.4534659683704376, -0.8908230066299438, -0.028334975242614746, 1.7851561307907104),
+            (0.3769024908542633, -0.22047416865825653, 0.8996308445930481, 3.4457669258117676),
+            (0.0, 0.0, 0.0, 1.0),
+        ))
+        self.matrix_test('Child Of.vertexgroup.owner', initial_matrix)
+
+        context = self.constraint_context('Child Of', owner_name='Child Of.vertexgroup.owner')
+        bpy.ops.constraint.childof_set_inverse(context, constraint='Child Of')
+
+        self.matrix_test('Child Of.vertexgroup.owner', Matrix((
+            (0.9992386102676392, 0.019843988120555878, -0.03359176218509674, 0.10000000149011612),
+            (-0.017441775649785995, 0.997369647026062, 0.0703534483909607, 0.20000000298023224),
+            (0.03489949554204941, -0.06971397995948792, 0.9969563484191895, 0.30000001192092896),
+            (0.0, 0.0, 0.0, 1.0),
+        )))
+
+        bpy.ops.constraint.childof_clear_inverse(context, constraint='Child Of')
+        self.matrix_test('Child Of.vertexgroup.owner', initial_matrix)
+
 
 class ObjectSolverTest(AbstractConstraintTests):
     layer_collection = 'Object Solver'
@@ -205,9 +228,9 @@ class ObjectSolverTest(AbstractConstraintTests):
         context = self.constraint_context('Object Solver')
         bpy.ops.constraint.objectsolver_set_inverse(context, constraint='Object Solver')
         self.matrix_test('Object Solver.owner', Matrix((
-            (0.9992386102676392, 0.019843988120555878, -0.03359176218509674, 0.10000000149011612),
-            (-0.017441775649785995, 0.997369647026062, 0.0703534483909607, 0.20000000298023224),
-            (0.03489949554204941, -0.06971397995948792, 0.9969563484191895, 0.30000001192092896),
+            (0.9992387294769287, 0.019843989983201027, -0.03359176591038704, 0.10000025480985641),
+            (-0.017441747710108757, 0.9973697662353516, 0.07035345584154129, 0.1999993920326233),
+            (0.034899502992630005, -0.06971398741006851, 0.996956467628479, 0.29999980330467224),
             (0.0, 0.0, 0.0, 1.0),
         )))
 

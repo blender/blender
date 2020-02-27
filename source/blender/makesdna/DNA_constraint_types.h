@@ -1096,6 +1096,8 @@ typedef enum eChildOf_Flags {
   CHILDOF_SIZEY = (1 << 7),
   CHILDOF_SIZEZ = (1 << 8),
   CHILDOF_ALL = 511,
+  /* Temporary flag used by the Set Inverse operator. */
+  CHILDOF_SET_INVERSE = (1 << 9),
 } eChildOf_Flags;
 
 /* Pivot Constraint */
@@ -1147,6 +1149,8 @@ typedef enum eCameraSolver_Flags {
 /* ObjectSolver Constraint -> flag */
 typedef enum eObjectSolver_Flags {
   OBJECTSOLVER_ACTIVECLIP = (1 << 0),
+  /* Temporary flag used by the Set Inverse operator. */
+  OBJECTSOLVER_SET_INVERSE = (1 << 1),
 } eObjectSolver_Flags;
 
 /* ObjectSolver Constraint -> flag */

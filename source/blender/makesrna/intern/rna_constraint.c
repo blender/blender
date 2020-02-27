@@ -973,11 +973,18 @@ static void rna_def_constraint_childof(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Scale Z", "Use Z Scale of Parent");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
+  prop = RNA_def_property(srna, "set_inverse_pending", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_SET_INVERSE);
+  RNA_def_property_ui_text(
+      prop, "Set Inverse Pending", "Set to true to request recalculation of the inverse matrix");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
   prop = RNA_def_property(srna, "inverse_matrix", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_float_sdna(prop, NULL, "invmat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Inverse Matrix", "Transformation matrix to apply before");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }
 
 static void rna_def_constraint_python(BlenderRNA *brna)
@@ -3150,6 +3157,12 @@ static void rna_def_constraint_object_solver(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_active_clip", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CAMERASOLVER_ACTIVECLIP);
   RNA_def_property_ui_text(prop, "Active Clip", "Use active clip defined in scene");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+  prop = RNA_def_property(srna, "set_inverse_pending", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", OBJECTSOLVER_SET_INVERSE);
+  RNA_def_property_ui_text(
+      prop, "Set Inverse Pending", "Set to true to request recalculation of the inverse matrix");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   /* object */
