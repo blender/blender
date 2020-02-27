@@ -340,6 +340,8 @@ static void nla_region_listener(wmWindow *UNUSED(win),
         case ND_OB_ACTIVE:
         case ND_FRAME:
         case ND_MARKERS:
+        case ND_LAYER_CONTENT:
+        case ND_OB_SELECT:
           ED_region_tag_redraw(ar);
           break;
       }
@@ -349,6 +351,7 @@ static void nla_region_listener(wmWindow *UNUSED(win),
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
         case ND_KEYS:
+        case ND_DRAW:
           ED_region_tag_redraw(ar);
           break;
       }
@@ -379,6 +382,8 @@ static void nla_main_region_listener(wmWindow *UNUSED(win),
         case ND_FRAME:
         case ND_FRAME_RANGE:
         case ND_MARKERS:
+        case ND_LAYER_CONTENT:
+        case ND_OB_SELECT:
           ED_region_tag_redraw(ar);
           break;
       }
@@ -474,6 +479,8 @@ static void nla_channel_region_listener(wmWindow *UNUSED(win),
     case NC_SCENE:
       switch (wmn->data) {
         case ND_OB_ACTIVE:
+        case ND_LAYER_CONTENT:
+        case ND_OB_SELECT:
           ED_region_tag_redraw(ar);
           break;
       }
@@ -483,6 +490,7 @@ static void nla_channel_region_listener(wmWindow *UNUSED(win),
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
         case ND_KEYS:
+        case ND_DRAW:
           ED_region_tag_redraw(ar);
           break;
       }
