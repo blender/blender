@@ -1103,6 +1103,23 @@ static void subdiv_foreach_loops_of_poly(SubdivForeachTaskContext *ctx,
                              e3);
 }
 
+static int subdiv_foreach_loops_corner_index(const float u,
+                                             const float v,
+                                             const float du,
+                                             const float dv)
+{
+  if (u + du <= 0.5f && v + dv <= 0.5f) {
+    return 0;
+  }
+  else if (u >= 0.5f && v + dv <= 0.5f) {
+    return 1;
+  }
+  else if (u >= 0.5f && v >= 0.5f) {
+    return 2;
+  }
+  return 3;
+}
+
 static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
                                          void *tls,
                                          const MPoly *coarse_poly)
@@ -1146,12 +1163,13 @@ static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
       const int e1 = e0 + ptex_inner_resolution;
       const int e2 = e0 + (2 * ptex_inner_resolution - 1);
       const int e3 = e0 + ptex_inner_resolution - 1;
+
       subdiv_foreach_loops_of_poly(ctx,
                                    tls,
                                    subdiv_loop_index,
                                    ptex_face_index,
                                    coarse_poly_index,
-                                   0,
+                                   subdiv_foreach_loops_corner_index(u, v, du, dv),
                                    0,
                                    v0,
                                    e0,
@@ -1265,12 +1283,16 @@ static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
       else {
         e2 = start_edge_index + e2_offset + e2_stride * (i - 1);
       }
+
+      const float loop_u = u + delta_u * i;
+      const float loop_v = v + delta_v * i;
+
       subdiv_foreach_loops_of_poly(ctx,
                                    tls,
                                    subdiv_loop_index,
                                    ptex_face_index,
                                    coarse_poly_index,
-                                   corner,
+                                   subdiv_foreach_loops_corner_index(loop_u, loop_v, du, dv),
                                    corner,
                                    v0,
                                    e0,
@@ -1280,8 +1302,8 @@ static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
                                    e2,
                                    v3,
                                    e3,
-                                   u + delta_u * i,
-                                   v + delta_v * i,
+                                   loop_u,
+                                   loop_v,
                                    du,
                                    dv);
       v0 = v1;
