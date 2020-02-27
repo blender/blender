@@ -7145,7 +7145,7 @@ static void bevel_limit_offset(BevelParams *bp, BMesh *bm)
 void BM_mesh_bevel(BMesh *bm,
                    const float offset,
                    const int offset_type,
-                   const float segments,
+                   const int segments,
                    const float profile,
                    const bool vertex_only,
                    const bool use_weights,
@@ -7176,7 +7176,7 @@ void BM_mesh_bevel(BMesh *bm,
 
   bp.offset = offset;
   bp.offset_type = offset_type;
-  bp.seg = (int)segments;
+  bp.seg = segments;
   bp.profile = profile;
   bp.pro_super_r = -logf(2.0) / logf(sqrtf(profile)); /* Convert to superellipse exponent. */
   bp.vertex_only = vertex_only;
@@ -7205,6 +7205,10 @@ void BM_mesh_bevel(BMesh *bm,
   if (bp.vmesh_method == BEVEL_VMESH_CUTOFF) {
     bp.miter_outer = BEVEL_MITER_SHARP;
     bp.miter_inner = BEVEL_MITER_SHARP;
+  }
+
+  if (bp.seg <= 1) {
+    bp.seg = 1;
   }
 
   if (profile >= 0.950f) { /* r ~ 692, so PRO_SQUARE_R is 1e4 */
