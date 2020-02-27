@@ -131,7 +131,7 @@ typedef struct GlyphBLF {
   float pos_x;
   float pos_y;
 
-  bool cached;
+  struct GlyphCacheBLF *glyph_cache;
 } GlyphBLF;
 
 typedef struct FontBufInfoBLF {

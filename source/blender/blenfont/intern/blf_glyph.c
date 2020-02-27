@@ -461,7 +461,7 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
     return;
   }
 
-  if (!g->cached) {
+  if (g->glyph_cache == NULL) {
     if (font->tex_size_max == -1) {
       font->tex_size_max = GPU_max_texture_size();
     }
@@ -492,7 +492,7 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
     gc->bitmap_len = bitmap_len;
 
     gc->glyphs_len_free--;
-    g->cached = true;
+    g->glyph_cache = gc;
   }
 
   if (font->flags & BLF_CLIPPING) {
@@ -505,8 +505,10 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
     }
   }
 
-  g_batch.glyph_cache = gc;
-  BLI_assert(g->offset < gc->bitmap_len);
+  if (g_batch.glyph_cache != g->glyph_cache) {
+    blf_batch_draw();
+    g_batch.glyph_cache = g->glyph_cache;
+  }
 
   if (font->flags & BLF_SHADOW) {
     rctf rect_ofs;
