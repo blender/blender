@@ -11,7 +11,7 @@ void main()
 {
   if (laNumLight == 0) {
     /* Early exit: No lights in scene */
-    fragColor.r = 0.0;
+    fragColor.r = 1.0;
     return;
   }
 
