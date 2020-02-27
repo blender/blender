@@ -1283,6 +1283,21 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
   *r_free = true;
   return result;
 }
+static int rna_3DViewShading_render_pass_get(PointerRNA *ptr)
+{
+  View3DShading *shading = (View3DShading *)ptr->data;
+  eViewLayerEEVEEPassType result = shading->render_pass;
+  Scene *scene = rna_3DViewShading_scene(ptr);
+
+  if (result == EEVEE_RENDER_PASS_AO && ((scene->eevee.flag & SCE_EEVEE_GTAO_ENABLED) == 0)) {
+    result = EEVEE_RENDER_PASS_COMBINED;
+  }
+  if (result == EEVEE_RENDER_PASS_BLOOM && ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
+    result = EEVEE_RENDER_PASS_COMBINED;
+  }
+
+  return result;
+}
 
 static void rna_SpaceView3D_use_local_collections_update(bContext *C, PointerRNA *ptr)
 {
@@ -3379,7 +3394,8 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "render_pass");
   RNA_def_property_enum_items(prop, rna_enum_view3dshading_render_pass_type_items);
   RNA_def_property_ui_text(prop, "Render Pass", "Render Pass to show in the viewport");
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_3DViewShading_render_pass_itemf");
+  RNA_def_property_enum_funcs(
+      prop, "rna_3DViewShading_render_pass_get", NULL, "rna_3DViewShading_render_pass_itemf");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
