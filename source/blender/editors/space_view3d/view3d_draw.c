@@ -98,7 +98,7 @@
 
 #include "view3d_intern.h" /* own include */
 
-#define M_GOLDEN_RATION_CONJUGATE 1.618033988749895f
+#define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 
 /* -------------------------------------------------------------------- */
 /** \name General Functions
@@ -452,7 +452,7 @@ static void drawviewborder_triangle(
 
   if (w > h) {
     if (golden) {
-      ofs = w * (1.0f - (1.0f / M_GOLDEN_RATION_CONJUGATE));
+      ofs = w * (1.0f - M_GOLDEN_RATIO_CONJUGATE);
     }
     else {
       ofs = h * (h / w);
@@ -472,7 +472,7 @@ static void drawviewborder_triangle(
   }
   else {
     if (golden) {
-      ofs = h * (1.0f - (1.0f / M_GOLDEN_RATION_CONJUGATE));
+      ofs = h * (1.0f - M_GOLDEN_RATIO_CONJUGATE);
     }
     else {
       ofs = w * (w / h);
@@ -662,7 +662,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
     }
 
     if (ca->dtx & CAM_DTX_GOLDEN) {
-      drawviewborder_grid3(shdr_pos, x1, x2, y1, y2, 1.0f - (1.0f / M_GOLDEN_RATION_CONJUGATE));
+      drawviewborder_grid3(shdr_pos, x1, x2, y1, y2, 1.0f - M_GOLDEN_RATIO_CONJUGATE);
     }
 
     if (ca->dtx & CAM_DTX_GOLDEN_TRI_A) {
