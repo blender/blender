@@ -57,7 +57,9 @@ ccl_device void svm_node_vector_rotate(ShaderData *sd,
         break;
     }
     float angle = stack_load_float(stack, angle_stack_offset);
-    result = len(axis) ? rotate_around_axis(vector - center, axis, angle) + center : vector;
+    result = (len_squared(axis) != 0.0f) ?
+                 rotate_around_axis(vector - center, axis, angle) + center :
+                 vector;
   }
 
   /* Output */
