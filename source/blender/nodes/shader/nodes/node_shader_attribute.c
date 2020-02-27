@@ -66,7 +66,7 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
                           GPU_builtin(GPU_VOLUME_TEMPERATURE));
   }
   else {
-    GPUNodeLink *cd_attr = GPU_attribute(CD_AUTO_FROM_NAME, attr->name);
+    GPUNodeLink *cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
     GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 
     /* for each output. */

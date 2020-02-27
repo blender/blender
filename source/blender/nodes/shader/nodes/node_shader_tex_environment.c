@@ -88,7 +88,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
              "node_tex_environment_equirectangular",
              in[0].link,
              GPU_constant(&clamp_size),
-             GPU_image(ima, iuser),
+             GPU_image(mat, ima, iuser),
              &in[0].link);
   }
   else {
@@ -103,7 +103,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
       GPU_link(mat,
                "node_tex_image_linear_no_mip",
                in[0].link,
-               GPU_image(ima, iuser),
+               GPU_image(mat, ima, iuser),
                &out[0].link,
                &outalpha);
       break;
@@ -111,13 +111,17 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
       GPU_link(mat,
                "node_tex_image_nearest",
                in[0].link,
-               GPU_image(ima, iuser),
+               GPU_image(mat, ima, iuser),
                &out[0].link,
                &outalpha);
       break;
     default:
-      GPU_link(
-          mat, "node_tex_image_cubic", in[0].link, GPU_image(ima, iuser), &out[0].link, &outalpha);
+      GPU_link(mat,
+               "node_tex_image_cubic",
+               in[0].link,
+               GPU_image(mat, ima, iuser),
+               &out[0].link,
+               &outalpha);
       break;
   }
 

@@ -1203,6 +1203,19 @@ static DRWShadingGroup *drw_shgroup_material_create_ex(GPUPass *gpupass, DRWPass
   return grp;
 }
 
+static void drw_shgroup_material_texture(DRWShadingGroup *grp,
+                                         GPUMaterialTexture *tex,
+                                         const char *name,
+                                         int textarget)
+{
+  GPUTexture *gputex = GPU_texture_from_blender(tex->ima, tex->iuser, NULL, textarget);
+  DRW_shgroup_uniform_texture(grp, name, gputex);
+
+  GPUTexture **gputex_ref = BLI_memblock_alloc(DST.vmempool->images);
+  *gputex_ref = gputex;
+  GPU_texture_ref(gputex);
+}
+
 static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
                                                     struct GPUMaterial *material)
 {
@@ -1210,35 +1223,20 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
 
   /* Bind all textures needed by the material. */
   for (GPUMaterialTexture *tex = textures.first; tex; tex = tex->next) {
-    GPUTexture *gputex;
-
     if (tex->ima) {
       /* Image */
-      GPUTexture **gputex_ref = BLI_memblock_alloc(DST.vmempool->images);
-
-      int textarget;
-      if (tex->type == GPU_TEX2D_ARRAY) {
-        textarget = GL_TEXTURE_2D_ARRAY;
-      }
-      else if (tex->type == GPU_TEX1D_ARRAY) {
-        textarget = GL_TEXTURE_1D_ARRAY;
+      if (tex->tiled_mapping_name[0]) {
+        drw_shgroup_material_texture(grp, tex, tex->sampler_name, GL_TEXTURE_2D_ARRAY);
+        drw_shgroup_material_texture(grp, tex, tex->tiled_mapping_name, GL_TEXTURE_1D_ARRAY);
       }
       else {
-        textarget = GL_TEXTURE_2D;
+        drw_shgroup_material_texture(grp, tex, tex->sampler_name, GL_TEXTURE_2D);
       }
-      *gputex_ref = gputex = GPU_texture_from_blender(tex->ima, tex->iuser, NULL, textarget);
-
-      GPU_texture_ref(gputex);
     }
     else if (tex->colorband) {
       /* Color Ramp */
-      gputex = *tex->colorband;
+      DRW_shgroup_uniform_texture(grp, tex->sampler_name, *tex->colorband);
     }
-    else {
-      continue;
-    }
-
-    DRW_shgroup_uniform_texture(grp, tex->shadername, gputex);
   }
 
   GPUUniformBuffer *ubo = GPU_material_uniform_buffer_get(material);

@@ -92,7 +92,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
       GPU_link(mat,
                "node_normal_map",
                GPU_builtin(GPU_OBJECT_INFO),
-               GPU_attribute(CD_TANGENT, nm->uv_map),
+               GPU_attribute(mat, CD_TANGENT, nm->uv_map),
                GPU_builtin(GPU_WORLD_NORMAL),
                newnormal,
                &newnormal);

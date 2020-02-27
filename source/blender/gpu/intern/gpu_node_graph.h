@@ -19,6 +19,8 @@
 
 /** \file
  * \ingroup gpu
+ *
+ * Intermediate node graph for generating GLSL shaders.
  */
 
 #ifndef __GPU_NODE_GRAPH_H__
@@ -45,6 +47,7 @@ typedef enum eGPUDataSource {
   GPU_SOURCE_BUILTIN,
   GPU_SOURCE_STRUCT,
   GPU_SOURCE_TEX,
+  GPU_SOURCE_TEX_TILED_MAPPING,
 } eGPUDataSource;
 
 typedef enum {
@@ -53,8 +56,9 @@ typedef enum {
   GPU_NODE_LINK_BUILTIN,
   GPU_NODE_LINK_COLORBAND,
   GPU_NODE_LINK_CONSTANT,
-  GPU_NODE_LINK_IMAGE_BLENDER,
-  GPU_NODE_LINK_IMAGE_TILEMAP,
+  GPU_NODE_LINK_IMAGE,
+  GPU_NODE_LINK_IMAGE_TILED,
+  GPU_NODE_LINK_IMAGE_TILED_MAPPING,
   GPU_NODE_LINK_OUTPUT,
   GPU_NODE_LINK_UNIFORM,
 } GPUNodeLinkType;
@@ -79,7 +83,7 @@ struct GPUNodeLink {
 
   union {
     /* GPU_NODE_LINK_CONSTANT | GPU_NODE_LINK_UNIFORM */
-    float *data;
+    const float *data;
     /* GPU_NODE_LINK_BUILTIN */
     eGPUBuiltin builtin;
     /* GPU_NODE_LINK_COLORBAND */
@@ -87,15 +91,9 @@ struct GPUNodeLink {
     /* GPU_NODE_LINK_OUTPUT */
     struct GPUOutput *output;
     /* GPU_NODE_LINK_ATTR */
-    struct {
-      const char *attr_name;
-      CustomDataType attr_type;
-    };
-    /* GPU_NODE_LINK_IMAGE_BLENDER | GPU_NODE_LINK_IMAGE_TILEMAP */
-    struct {
-      struct Image *ima;
-      struct ImageUser *iuser;
-    };
+    struct GPUMaterialAttribute *attr;
+    /* GPU_NODE_LINK_IMAGE_BLENDER */
+    struct GPUMaterialTexture *texture;
   };
 };
 
@@ -118,35 +116,16 @@ typedef struct GPUInput {
 
   eGPUDataSource source; /* data source */
 
-  int shaderloc;       /* id from opengl */
-  char shadername[32]; /* name in shader */
-
   /* Content based on eGPUDataSource */
   union {
     /* GPU_SOURCE_CONSTANT | GPU_SOURCE_UNIFORM */
     float vec[16]; /* vector data */
     /* GPU_SOURCE_BUILTIN */
     eGPUBuiltin builtin; /* builtin uniform */
-    /* GPU_SOURCE_TEX */
-    struct {
-      struct GPUTexture **colorband; /* input texture, only set at runtime */
-      struct Image *ima;             /* image */
-      struct ImageUser *iuser;       /* image user */
-      bool bindtex;                  /* input is responsible for binding the texture? */
-      int texid;                     /* number for multitexture, starting from zero */
-      eGPUType textype;              /* texture type (2D, 1D Array ...) */
-    };
+    /* GPU_SOURCE_TEX | GPU_SOURCE_TEX_TILED_MAPPING */
+    struct GPUMaterialTexture *texture;
     /* GPU_SOURCE_ATTR */
-    struct {
-      /** Attribute name. */
-      char attr_name[MAX_CUSTOMDATA_LAYER_NAME];
-      /** ID for vertex attributes. */
-      int attr_id;
-      /** This is the first one that is bound. */
-      bool attr_first;
-      /** Attribute type. */
-      CustomDataType attr_type;
-    };
+    struct GPUMaterialAttribute *attr;
   };
 } GPUInput;
 
@@ -154,8 +133,7 @@ typedef struct GPUNodeGraph {
   /* Nodes */
   ListBase nodes;
 
-  /* Inputs and output. */
-  ListBase inputs;
+  /* Output. */
   GPUNodeLink *outlink;
 
   /* Requested attributes and textures. */
@@ -171,7 +149,7 @@ void gpu_node_graph_free(GPUNodeGraph *graph);
 
 /* Material calls */
 
-void gpu_material_add_node(struct GPUMaterial *material, struct GPUNode *node);
+struct GPUNodeGraph *gpu_material_node_graph(struct GPUMaterial *material);
 struct GPUTexture **gpu_material_ramp_texture_row_set(struct GPUMaterial *mat,
                                                       int size,
                                                       float *pixels,

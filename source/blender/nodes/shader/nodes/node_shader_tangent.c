@@ -43,10 +43,10 @@ static int node_shader_gpu_tangent(GPUMaterial *mat,
 
   if (attr->direction_type == SHD_TANGENT_UVMAP) {
     return GPU_stack_link(
-        mat, node, "node_tangentmap", in, out, GPU_attribute(CD_TANGENT, attr->uv_map));
+        mat, node, "node_tangentmap", in, out, GPU_attribute(mat, CD_TANGENT, attr->uv_map));
   }
   else {
-    GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
+    GPUNodeLink *orco = GPU_attribute(mat, CD_ORCO, "");
 
     if (attr->axis == SHD_TANGENT_AXIS_X) {
       GPU_link(mat, "tangent_orco_x", orco, &orco);

@@ -47,8 +47,8 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
 
   /* Opti: don't request orco if not needed. */
   GPUNodeLink *orco = (!out[0].hasoutput) ? GPU_constant((float[4]){0.0f, 0.0f, 0.0f, 0.0f}) :
-                                            GPU_attribute(CD_ORCO, "");
-  GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
+                                            GPU_attribute(mat, CD_ORCO, "");
+  GPUNodeLink *mtface = GPU_attribute(mat, CD_MTFACE, "");
   GPUNodeLink *viewpos = GPU_builtin(GPU_VIEW_POSITION);
   GPUNodeLink *worldnor = GPU_builtin(GPU_WORLD_NORMAL);
   GPUNodeLink *texcofacs = GPU_builtin(GPU_CAMERA_TEXCO_FACTORS);
