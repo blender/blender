@@ -68,8 +68,8 @@ ToolDef = namedtuple(
         "idname",
         # The name to display in the interface.
         "label",
-        # Description (for tooltip), when not set, use the description of 'operator',
-        # may be a string or a 'function(context, item, keymap) -> string'.
+        # Description (for tool-tip), when not set, use the description of 'operator',
+        # may be a string or a 'function(context, item, key-map) -> string'.
         "description",
         # The name of the icon to use (found in ``release/datafiles/icons``) or None for no icon.
         "icon",
@@ -77,13 +77,34 @@ ToolDef = namedtuple(
         "cursor",
         # An optional gizmo group to activate when the tool is set or None for no gizmo.
         "widget",
-        # Optional keymap for tool, either:
-        # - A function that populates a keymaps passed in as an argument.
+        # Optional key-map for tool, possible values are:
+        #
+        # - ``None`` when the tool doesn't have a key-map.
+        #   Also the default value when no key-map value is defined.
+        #
+        # - A string literal for the key-map name, the key-map items are located in the default key-map.
+        #
+        # - ``()`` an empty tuple for a default name.
+        #   This is convenience functionality for generating a key-map name.
+        #   So if a tool name is "Bone Size", in "Edit Armature" mode for the "3D View",
+        #   All of these values are combined into an id, e.g:
+        #     "3D View Tool: Edit Armature, Bone Envelope"
+        #
+        #   Typically searching for a string ending with the tool name
+        #   in the default key-map will lead you to the key-map for a tool.
+        #
+        # - A function that populates a key-maps passed in as an argument.
+        #
         # - A tuple filled with triple's of:
         #   ``(operator_id, operator_properties, keymap_item_args)``.
         #
+        #   Use this to define the key-map in-line.
+        #
+        #   Note that this isn't used for Blender's built in tools which use the built-in key-map.
+        #   Keep this functionality since it's likely useful for add-on key-maps.
+        #
         # Warning: currently 'from_dict' this is a list of one item,
-        # so internally we can swap the keymap function for the keymap it's self.
+        # so internally we can swap the key-map function for the key-map it's self.
         # This isn't very nice and may change, tool definitions shouldn't care about this.
         "keymap",
         # Optional data-block associated with this tool.
