@@ -204,7 +204,7 @@ void EEVEE_render_cache(void *vedata,
 
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   if (ob_visibility & OB_VISIBLE_PARTICLES) {
-    EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
+    EEVEE_particle_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
   }
 
   if (ob_visibility & OB_VISIBLE_SELF) {

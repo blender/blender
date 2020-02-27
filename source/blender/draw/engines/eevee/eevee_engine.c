@@ -120,7 +120,7 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
   bool cast_shadow = false;
 
   if (ob_visibility & OB_VISIBLE_PARTICLES) {
-    EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
+    EEVEE_particle_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
   }
 
   if (DRW_object_is_renderable(ob) && (ob_visibility & OB_VISIBLE_SELF)) {
