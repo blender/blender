@@ -390,7 +390,7 @@ typedef enum PassType {
   PASS_TRANSMISSION_DIRECT,
   PASS_TRANSMISSION_INDIRECT,
   PASS_TRANSMISSION_COLOR,
-  PASS_VOLUME_DIRECT,
+  PASS_VOLUME_DIRECT = 50,
   PASS_VOLUME_INDIRECT,
   /* No Scatter color since it's tricky to define what it would even mean. */
   PASS_CATEGORY_LIGHT_END = 63,
