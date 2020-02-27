@@ -1280,6 +1280,8 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
       RNA_enum_item_add(&result, &totitem, item);
     }
   }
+
+  RNA_enum_item_end(&result, &totitem);
   *r_free = true;
   return result;
 }
