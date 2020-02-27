@@ -1077,7 +1077,8 @@ void GPU_create_gl_tex(uint *bind,
   glGenTextures(1, (GLuint *)bind);
   glBindTexture(textarget, *bind);
 
-  GLenum float_format = (!half_float && ima->flag & IMA_HIGH_BITDEPTH) ? GL_RGBA32F : GL_RGBA16F;
+  GLenum float_format = (!half_float && (ima && (ima->flag & IMA_HIGH_BITDEPTH))) ? GL_RGBA32F :
+                                                                                    GL_RGBA16F;
   GLenum internal_format = (frect) ? float_format : (use_srgb) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
 
   if (textarget == GL_TEXTURE_2D) {
