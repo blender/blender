@@ -80,7 +80,7 @@ static void set_coarse_positions(Subdiv *subdiv,
       BLI_BITMAP_ENABLE(vertex_used_map, loop->v);
     }
   }
-  for (int vertex_index = 0, manifold_veretx_index = 0; vertex_index < mesh->totvert;
+  for (int vertex_index = 0, manifold_vertex_index = 0; vertex_index < mesh->totvert;
        vertex_index++) {
     if (!BLI_BITMAP_TEST_BOOL(vertex_used_map, vertex_index)) {
       continue;
@@ -93,8 +93,8 @@ static void set_coarse_positions(Subdiv *subdiv,
       const MVert *vertex = &mvert[vertex_index];
       vertex_co = vertex->co;
     }
-    subdiv->evaluator->setCoarsePositions(subdiv->evaluator, vertex_co, manifold_veretx_index, 1);
-    manifold_veretx_index++;
+    subdiv->evaluator->setCoarsePositions(subdiv->evaluator, vertex_co, manifold_vertex_index, 1);
+    manifold_vertex_index++;
   }
   MEM_freeN(vertex_used_map);
 }

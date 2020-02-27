@@ -620,7 +620,7 @@ class Stroke : public Interface1D {
    *  \param iVertex:
    *    The StrokeVertex to insert in the Stroke.
    *  \param next:
-   *    A StrokeVertexIterator pointing to the StrokeVeretx before which iVertex must be inserted.
+   *    A StrokeVertexIterator pointing to the StrokeVertex before which iVertex must be inserted.
    */
   void InsertVertex(StrokeVertex *iVertex, StrokeInternal::StrokeVertexIterator next);
 
