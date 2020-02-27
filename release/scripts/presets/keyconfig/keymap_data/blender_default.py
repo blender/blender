@@ -5383,7 +5383,7 @@ def km_3d_view_tool_edit_armature_bone_size(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("transform.transform", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("release_confirm", True), ("mode", 'BONE_SIZE')]}),
+             {"properties": [("release_confirm", True), ("mode", 'BONE_ENVELOPE')]}),
         ]},
     )
 
@@ -5392,9 +5392,10 @@ def km_3d_view_tool_edit_armature_bone_envelope(params):
     return (
         "3D View Tool: Edit Armature, Bone Envelope",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+
         {"items": [
-            ("transform.transform", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("release_confirm", True), ("mode", 'BONE_ENVELOPE')]}),
+            ("transform.bbone_resize", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("release_confirm", True)]}),
         ]},
     )
 
