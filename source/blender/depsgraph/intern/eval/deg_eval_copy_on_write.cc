@@ -781,9 +781,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       const Object *object_orig = (const Object *)id_orig;
       object_cow->mode = object_orig->mode;
       object_cow->sculpt = object_orig->sculpt;
-      if (object_cow->type == OB_MESH) {
-        object_cow->runtime.mesh_orig = (Mesh *)object_cow->data;
-      }
+      object_cow->runtime.data_orig = (ID *)object_cow->data;
       if (object_cow->type == OB_ARMATURE) {
         const bArmature *armature_orig = (bArmature *)object_orig->data;
         bArmature *armature_cow = (bArmature *)object_cow->data;

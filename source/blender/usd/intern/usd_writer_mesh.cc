@@ -483,7 +483,7 @@ USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx) : USDGenericMeshWrit
 
 Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/)
 {
-  return object_eval->runtime.mesh_eval;
+  return BKE_object_get_evaluated_mesh(object_eval);
 }
 
 }  // namespace USD

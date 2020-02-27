@@ -363,11 +363,11 @@ static void object_update_from_subsurf_ccg(Object *object)
    * (happens on dependency graph free where order of CoW-ed IDs free is undefined).
    *
    * Good news is: such mesh does not have modifiers applied, so no need to worry about CCG. */
-  if (!object->runtime.is_mesh_eval_owned) {
+  if (!object->runtime.is_data_eval_owned) {
     return;
   }
   /* Object was never evaluated, so can not have CCG subdivision surface. */
-  Mesh *mesh_eval = object->runtime.mesh_eval;
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object);
   if (mesh_eval == NULL) {
     return;
   }
@@ -410,18 +410,45 @@ static void object_update_from_subsurf_ccg(Object *object)
   /* TODO(sergey): Solve this somehow, to be fully stable for threaded
    * evaluation environment.
    */
-  /* NOTE: runtime.mesh_orig is what was before assigning mesh_eval,
+  /* NOTE: runtime.data_orig is what was before assigning mesh_eval,
    * it is orig as in what was in object_eval->data before evaluating
    * modifier stack.
    *
    * mesh_cow is a copy-on-written version od object_orig->data.
    */
-  Mesh *mesh_cow = object->runtime.mesh_orig;
+  Mesh *mesh_cow = (Mesh *)object->runtime.data_orig;
   copy_ccg_data(mesh_cow, mesh_orig, CD_MDISPS);
   copy_ccg_data(mesh_cow, mesh_orig, CD_GRID_PAINT_MASK);
   /* Everything is now up-to-date. */
   subdiv_ccg->dirty.coords = false;
   subdiv_ccg->dirty.hidden = false;
+}
+
+/* Assign data after modifier stack evaluation. */
+void BKE_object_eval_assign_data(Object *object_eval, ID *data_eval, bool is_owned)
+{
+  BLI_assert(object_eval->id.tag & LIB_TAG_COPIED_ON_WRITE);
+  BLI_assert(object_eval->runtime.data_eval == NULL);
+  BLI_assert(data_eval->tag & LIB_TAG_NO_MAIN);
+
+  if (is_owned) {
+    /* Set flag for debugging. */
+    data_eval->tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
+  }
+
+  /* Assigned evaluated data. */
+  object_eval->runtime.data_eval = data_eval;
+  object_eval->runtime.is_data_eval_owned = is_owned;
+
+  /* Overwrite data of evaluated object, if the datablock types match. */
+  ID *data = object_eval->data;
+  if (GS(data->name) == GS(data_eval->name)) {
+    /* NOTE: we are not supposed to invoke evaluation for original objects,
+     * but some areas are still being ported, so we play safe here. */
+    if (object_eval->id.tag & LIB_TAG_COPIED_ON_WRITE) {
+      object_eval->data = data_eval;
+    }
+  }
 }
 
 /* free data derived from mesh, called when mesh changes or is freed */
@@ -431,22 +458,29 @@ void BKE_object_free_derived_caches(Object *ob)
 
   object_update_from_subsurf_ccg(ob);
 
-  /* Restore initial pointer. */
-  if (ob->runtime.mesh_orig != NULL) {
-    ob->data = ob->runtime.mesh_orig;
-  }
-
-  if (ob->runtime.mesh_eval != NULL) {
-    if (ob->runtime.is_mesh_eval_owned) {
-      Mesh *mesh_eval = ob->runtime.mesh_eval;
-      BKE_mesh_eval_delete(mesh_eval);
+  if (ob->runtime.data_eval != NULL) {
+    if (ob->runtime.is_data_eval_owned) {
+      ID *data_eval = ob->runtime.data_eval;
+      if (GS(data_eval->name) == ID_ME) {
+        BKE_mesh_eval_delete((Mesh *)data_eval);
+      }
+      else {
+        BKE_libblock_free_datablock(data_eval, 0);
+        MEM_freeN(data_eval);
+      }
     }
-    ob->runtime.mesh_eval = NULL;
+    ob->runtime.data_eval = NULL;
   }
   if (ob->runtime.mesh_deform_eval != NULL) {
     Mesh *mesh_deform_eval = ob->runtime.mesh_deform_eval;
     BKE_mesh_eval_delete(mesh_deform_eval);
     ob->runtime.mesh_deform_eval = NULL;
+  }
+
+  /* Restore initial pointer for copy-on-write datablocks, object->data
+   * might be pointing to an evaluated datablock data was just freed above. */
+  if (ob->runtime.data_orig != NULL) {
+    ob->data = ob->runtime.data_orig;
   }
 
   BKE_object_to_mesh_clear(ob);
@@ -2308,7 +2342,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
   if (par->type == OB_MESH) {
     Mesh *me = par->data;
     BMEditMesh *em = me->edit_mesh;
-    Mesh *me_eval = (em) ? em->mesh_eval_final : par->runtime.mesh_eval;
+    Mesh *me_eval = (em) ? em->mesh_eval_final : BKE_object_get_evaluated_mesh(par);
 
     if (me_eval) {
       int count = 0;
@@ -3067,12 +3101,12 @@ void BKE_object_foreach_display_point(Object *ob,
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   float co[3];
 
-  if (ob->runtime.mesh_eval) {
-    const Mesh *me = ob->runtime.mesh_eval;
-    const MVert *mv = me->mvert;
-    const int totvert = me->totvert;
+  if (mesh_eval != NULL) {
+    const MVert *mv = mesh_eval->mvert;
+    const int totvert = mesh_eval->totvert;
     for (int i = 0; i < totvert; i++, mv++) {
       mul_v3_m4v3(co, obmat, mv->co);
       func_cb(co, user_data);
@@ -3342,24 +3376,11 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
   return 1;
 }
 
-/** Get evaluated mesh for given (main, original) object and depsgraph. */
-Mesh *BKE_object_get_evaluated_mesh(const Depsgraph *depsgraph, Object *ob)
+/** Get evaluated mesh for given object. */
+Mesh *BKE_object_get_evaluated_mesh(Object *object)
 {
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  return ob_eval->runtime.mesh_eval;
-}
-
-/* Get object's mesh with all modifiers applied. */
-Mesh *BKE_object_get_final_mesh(Object *object)
-{
-  if (object->runtime.mesh_eval != NULL) {
-    BLI_assert((object->id.tag & LIB_TAG_COPIED_ON_WRITE) != 0);
-    BLI_assert(object->runtime.mesh_eval == object->data);
-    BLI_assert((object->runtime.mesh_eval->id.tag & LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT) != 0);
-    return object->runtime.mesh_eval;
-  }
-  /* Wasn't evaluated yet. */
-  return object->data;
+  ID *data_eval = object->runtime.data_eval;
+  return (data_eval && GS(data_eval->name) == ID_ME) ? (Mesh *)data_eval : NULL;
 }
 
 /* Get mesh which is not affected by modifiers:
@@ -3370,11 +3391,11 @@ Mesh *BKE_object_get_final_mesh(Object *object)
  */
 Mesh *BKE_object_get_pre_modified_mesh(Object *object)
 {
-  if (object->runtime.mesh_orig != NULL) {
+  if (object->type == OB_MESH && object->runtime.data_orig != NULL) {
     BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
     BLI_assert(object->id.orig_id != NULL);
-    BLI_assert(object->runtime.mesh_orig->id.orig_id == ((Object *)object->id.orig_id)->data);
-    Mesh *result = object->runtime.mesh_orig;
+    BLI_assert(object->runtime.data_orig->orig_id == ((Object *)object->id.orig_id)->data);
+    Mesh *result = (Mesh *)object->runtime.data_orig;
     BLI_assert((result->id.tag & LIB_TAG_COPIED_ON_WRITE) != 0);
     BLI_assert((result->id.tag & LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT) == 0);
     return result;
@@ -3925,7 +3946,7 @@ void BKE_object_runtime_reset(Object *object)
 void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
 {
   Object_Runtime *runtime = &object->runtime;
-  runtime->mesh_eval = NULL;
+  runtime->data_eval = NULL;
   runtime->mesh_deform_eval = NULL;
   runtime->curve_cache = NULL;
   runtime->gpencil_cache = NULL;

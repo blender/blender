@@ -1719,43 +1719,12 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
 }
 
-static void assign_object_mesh_eval(Object *object)
-{
-  BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
-
-  Mesh *mesh = (Mesh *)object->data;
-  Mesh *mesh_eval = object->runtime.mesh_eval;
-
-  /* The modifier stack evaluation is storing result in mesh->runtime.mesh_eval, but this result
-   * is not guaranteed to be owned by object.
-   *
-   * Check ownership now, since later on we can not go to a mesh owned by someone else via object's
-   * runtime: this could cause access freed data on depsgraph destruction (mesh who owns the final
-   * result might be freed prior to object). */
-  if (mesh_eval == mesh->runtime.mesh_eval) {
-    object->runtime.is_mesh_eval_owned = false;
-  }
-  else {
-    mesh_eval->id.tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
-    object->runtime.is_mesh_eval_owned = true;
-  }
-
-  /* NOTE: We are not supposed to invoke evaluation for original object, but some areas are still
-   * under process of being ported, so we play safe here. */
-  if (object->id.tag & LIB_TAG_COPIED_ON_WRITE) {
-    object->data = mesh_eval;
-  }
-  else {
-    /* evaluated will be available via: 'object->runtime.mesh_eval' */
-  }
-}
-
-static void mesh_build_extra_data(struct Depsgraph *depsgraph, Object *ob)
+static void mesh_build_extra_data(struct Depsgraph *depsgraph, Object *ob, Mesh *mesh_eval)
 {
   uint32_t eval_flags = DEG_get_eval_flags_for_id(depsgraph, &ob->id);
 
   if (eval_flags & DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY) {
-    BKE_shrinkwrap_compute_boundary_data(ob->runtime.mesh_eval);
+    BKE_shrinkwrap_compute_boundary_data(mesh_eval);
   }
 }
 
@@ -1793,6 +1762,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
   }
 #endif
 
+  Mesh *mesh_eval = NULL, *mesh_deform_eval = NULL;
   mesh_calc_modifiers(depsgraph,
                       scene,
                       ob,
@@ -1802,15 +1772,24 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                       -1,
                       true,
                       true,
-                      &ob->runtime.mesh_deform_eval,
-                      &ob->runtime.mesh_eval);
+                      &mesh_deform_eval,
+                      &mesh_eval);
 
-  BKE_object_boundbox_calc_from_mesh(ob, ob->runtime.mesh_eval);
+  /* The modifier stack evaluation is storing result in mesh->runtime.mesh_eval, but this result
+   * is not guaranteed to be owned by object.
+   *
+   * Check ownership now, since later on we can not go to a mesh owned by someone else via
+   * object's runtime: this could cause access freed data on depsgraph destruction (mesh who owns
+   * the final result might be freed prior to object). */
+  Mesh *mesh = ob->data;
+  const bool is_mesh_eval_owned = (mesh_eval != mesh->runtime.mesh_eval);
+  BKE_object_eval_assign_data(ob, &mesh_eval->id, is_mesh_eval_owned);
 
-  assign_object_mesh_eval(ob);
-
+  ob->runtime.mesh_deform_eval = mesh_deform_eval;
   ob->runtime.last_data_mask = *dataMask;
   ob->runtime.last_need_mapping = need_mapping;
+
+  BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
 
   if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
     if (DEG_is_active(depsgraph)) {
@@ -1818,10 +1797,10 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
     }
   }
 
-  if (ob->runtime.mesh_eval != NULL) {
-    mesh_runtime_check_normals_valid(ob->runtime.mesh_eval);
+  if (mesh_eval != NULL) {
+    mesh_runtime_check_normals_valid(mesh_eval);
   }
-  mesh_build_extra_data(depsgraph, ob);
+  mesh_build_extra_data(depsgraph, ob, mesh_eval);
 }
 
 static void editbmesh_build_data(struct Depsgraph *depsgraph,
@@ -1942,18 +1921,20 @@ Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
   CustomData_MeshMasks cddata_masks = *dataMask;
   object_get_datamask(depsgraph, ob, &cddata_masks, &need_mapping);
 
-  if (!ob->runtime.mesh_eval ||
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  if ((mesh_eval == NULL) ||
       !CustomData_MeshMasks_are_matching(&(ob->runtime.last_data_mask), &cddata_masks) ||
       (need_mapping && !ob->runtime.last_need_mapping)) {
     CustomData_MeshMasks_update(&cddata_masks, &ob->runtime.last_data_mask);
     mesh_build_data(
         depsgraph, scene, ob, &cddata_masks, need_mapping || ob->runtime.last_need_mapping);
+    mesh_eval = BKE_object_get_evaluated_mesh(ob);
   }
 
-  if (ob->runtime.mesh_eval) {
-    BLI_assert(!(ob->runtime.mesh_eval->runtime.cd_dirty_vert & CD_MASK_NORMAL));
+  if (mesh_eval != NULL) {
+    BLI_assert(!(mesh_eval->runtime.cd_dirty_vert & CD_MASK_NORMAL));
   }
-  return ob->runtime.mesh_eval;
+  return mesh_eval;
 }
 
 Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,

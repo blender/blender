@@ -44,7 +44,6 @@ ObjectRuntimeBackup::ObjectRuntimeBackup(const Depsgraph * /*depsgraph*/)
 void ObjectRuntimeBackup::init_from_object(Object *object)
 {
   /* Store evaluated mesh and curve_cache, and make sure we don't free it. */
-  Mesh *mesh_eval = object->runtime.mesh_eval;
   runtime = object->runtime;
   BKE_object_runtime_reset(object);
   /* Keep bbox (for now at least). */
@@ -52,9 +51,7 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
   /* Object update will override actual object->data to an evaluated version.
    * Need to make sure we don't have data set to evaluated one before free
    * anything. */
-  if (mesh_eval != nullptr && object->data == mesh_eval) {
-    object->data = runtime.mesh_orig;
-  }
+  object->data = runtime.data_orig;
   /* Make a backup of base flags. */
   base_flag = object->base_flag;
   base_local_view_bits = object->base_local_view_bits;
@@ -98,12 +95,13 @@ void ObjectRuntimeBackup::backup_pose_channel_runtime_data(Object *object)
 
 void ObjectRuntimeBackup::restore_to_object(Object *object)
 {
-  Mesh *mesh_orig = object->runtime.mesh_orig;
+  ID *data_orig = object->runtime.data_orig;
+  ID *data_eval = runtime.data_eval;
   BoundBox *bb = object->runtime.bb;
   object->runtime = runtime;
-  object->runtime.mesh_orig = mesh_orig;
+  object->runtime.data_orig = data_orig;
   object->runtime.bb = bb;
-  if (object->type == OB_MESH && object->runtime.mesh_eval != nullptr) {
+  if (object->type == OB_MESH && data_eval != nullptr) {
     if (object->id.recalc & ID_RECALC_GEOMETRY) {
       /* If geometry is tagged for update it means, that part of
        * evaluated mesh are not valid anymore. In this case we can not
@@ -111,20 +109,24 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
        *
        * We restore object's data datablock to an original copy of
        * that datablock. */
-      object->data = mesh_orig;
+      object->data = data_orig;
 
       /* After that, immediately free the invalidated caches. */
       BKE_object_free_derived_caches(object);
     }
     else {
-      Mesh *mesh_eval = object->runtime.mesh_eval;
       /* Do same thing as object update: override actual object data
        * pointer with evaluated datablock. */
-      object->data = mesh_eval;
+      object->data = data_eval;
+
       /* Evaluated mesh simply copied edit_mesh pointer from
        * original mesh during update, need to make sure no dead
        * pointers are left behind. */
-      mesh_eval->edit_mesh = mesh_orig->edit_mesh;
+      if (object->type == OB_MESH) {
+        Mesh *mesh_eval = (Mesh *)data_eval;
+        Mesh *mesh_orig = (Mesh *)data_orig;
+        mesh_eval->edit_mesh = mesh_orig->edit_mesh;
+      }
     }
   }
   object->base_flag = base_flag;

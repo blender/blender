@@ -368,7 +368,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   /* when not in EditMode, use the 'final' evaluated mesh, depsgraph
    * ensures we build with CD_MDEFORMVERT layer
    */
-  Mesh *me_eval = ob->runtime.mesh_eval;
+  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   float plane[3];
   float imat[3][3], tmat[3][3];
@@ -3968,7 +3968,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
     float track_no[3] = {0.0f, 0.0f, 0.0f};
 
     SpaceTransform transform;
-    Mesh *target_eval = ct->tar->runtime.mesh_eval;
+    Mesh *target_eval = BKE_object_get_evaluated_mesh(ct->tar);
 
     copy_m4_m4(ct->matrix, cob->matrix);
 
@@ -4736,7 +4736,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
       if (data->depth_ob) {
         Object *depth_ob = data->depth_ob;
-        Mesh *target_eval = depth_ob->runtime.mesh_eval;
+        Mesh *target_eval = BKE_object_get_evaluated_mesh(depth_ob);
         if (target_eval) {
           BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
           BVHTreeRayHit hit;

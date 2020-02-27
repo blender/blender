@@ -338,8 +338,8 @@ static void crazyspace_init_object_for_eval(struct Depsgraph *depsgraph,
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   *object_crazy = *object_eval;
-  if (object_crazy->runtime.mesh_orig != NULL) {
-    object_crazy->data = object_crazy->runtime.mesh_orig;
+  if (object_crazy->runtime.data_orig != NULL) {
+    object_crazy->data = object_crazy->runtime.data_orig;
   }
 }
 

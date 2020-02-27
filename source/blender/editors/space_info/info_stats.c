@@ -137,7 +137,7 @@ static void stats_object(Object *ob, SceneStats *stats, GSet *objects_gset)
   switch (ob->type) {
     case OB_MESH: {
       /* we assume evaluated mesh is already built, this strictly does stats now. */
-      Mesh *me_eval = ob->runtime.mesh_eval;
+      Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
       if (!BLI_gset_add(objects_gset, me_eval)) {
         break;
       }
@@ -153,8 +153,7 @@ static void stats_object(Object *ob, SceneStats *stats, GSet *objects_gset)
     case OB_SURF:
     case OB_CURVE:
     case OB_FONT: {
-      Mesh *me_eval = ob->runtime.mesh_eval;
-
+      Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
       if ((me_eval != NULL) && !BLI_gset_add(objects_gset, me_eval)) {
         break;
       }

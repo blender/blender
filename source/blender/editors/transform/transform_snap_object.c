@@ -936,12 +936,13 @@ static bool raycastObj(SnapObjectContext *sctx,
     case OB_CURVE:
     case OB_SURF:
     case OB_FONT: {
-      if (ob->runtime.mesh_eval) {
+      Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+      if (mesh_eval) {
         retval = raycastMesh(sctx,
                              ray_start,
                              ray_dir,
                              ob,
-                             ob->runtime.mesh_eval,
+                             mesh_eval,
                              obmat,
                              ob_index,
                              false,
@@ -2654,11 +2655,12 @@ static short snapObject(SnapObjectContext *sctx,
       break; /* Use ATTR_FALLTHROUGH if we want to snap to the generated mesh. */
     case OB_SURF:
     case OB_FONT: {
-      if (ob->runtime.mesh_eval) {
+      Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+      if (mesh_eval) {
         retval |= snapMesh(sctx,
                            snapdata,
                            ob,
-                           ob->runtime.mesh_eval,
+                           mesh_eval,
                            obmat,
                            use_backface_culling,
                            dist_px,

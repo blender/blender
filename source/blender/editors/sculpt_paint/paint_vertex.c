@@ -181,7 +181,7 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev,
  * (without evaluating modifiers) */
 static bool vertex_paint_use_fast_update_check(Object *ob)
 {
-  Mesh *me_eval = ob->runtime.mesh_eval;
+  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
 
   if (me_eval != NULL) {
     Mesh *me = BKE_mesh_from_object(ob);
