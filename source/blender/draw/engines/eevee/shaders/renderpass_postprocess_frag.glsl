@@ -15,6 +15,38 @@ uniform sampler2D inputColorBuffer;
 
 out vec4 fragColor;
 
+vec3 safe_divide_even_color(vec3 a, vec3 b)
+{
+  vec3 result = vec3((b.r != 0.0) ? a.r / b.r : 0.0,
+                     (b.g != 0.0) ? a.g / b.g : 0.0,
+                     (b.b != 0.0) ? a.b / b.b : 0.0);
+  /* try to get gray even if b is zero */
+  if (b.r == 0.0) {
+    if (b.g == 0.0) {
+      result = result.bbb;
+    }
+    else if (b.b == 0.0) {
+      result = result.ggg;
+    }
+    else {
+      result.r = 0.5 * (result.g + result.b);
+    }
+  }
+  else if (b.g == 0.0) {
+    if (b.b == 0.0) {
+      result = result.rrr;
+    }
+    else {
+      result.g = 0.5 * (result.r + result.b);
+    }
+  }
+  else if (b.b == 0.0) {
+    result.b = 0.5 * (result.r + result.g);
+  }
+
+  return result;
+}
+
 void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -58,41 +90,13 @@ void main()
   else if (postProcessType == PASS_POST_ACCUMULATED_LIGHT) {
     vec3 accumulated_light = texelFetch(inputBuffer, texel, 0).rgb;
     vec3 accumulated_color = texelFetch(inputColorBuffer, texel, 0).rgb;
-
-    /* Fix INF in the case a color component is 0.0 */
-    if (accumulated_color.r == 0.0) {
-      accumulated_color.r = 1.0;
-      accumulated_light.r = 0.0;
-    }
-    if (accumulated_color.g == 0.0) {
-      accumulated_color.g = 1.0;
-      accumulated_light.g = 0.0;
-    }
-    if (accumulated_color.b == 0.0) {
-      accumulated_color.b = 1.0;
-      accumulated_light.b = 0.0;
-    }
-    fragColor = vec4(accumulated_light / accumulated_color, 1.0);
+    fragColor = vec4(safe_divide_even_color(accumulated_light, accumulated_color), 1.0);
   }
   else if (postProcessType == PASS_POST_TWO_LIGHT_BUFFERS) {
     vec3 accumulated_light = texelFetch(inputBuffer, texel, 0).rgb +
                              texelFetch(inputSecondLightBuffer, texel, 0).rgb;
     vec3 accumulated_color = texelFetch(inputColorBuffer, texel, 0).rgb;
-
-    /* Fix INF in the case a color component is 0.0 */
-    if (accumulated_color.r == 0.0) {
-      accumulated_color.r = 1.0;
-      accumulated_light.r = 0.0;
-    }
-    if (accumulated_color.g == 0.0) {
-      accumulated_color.g = 1.0;
-      accumulated_light.g = 0.0;
-    }
-    if (accumulated_color.b == 0.0) {
-      accumulated_color.b = 1.0;
-      accumulated_light.b = 0.0;
-    }
-    fragColor = vec4(accumulated_light / accumulated_color, 1.0);
+    fragColor = vec4(safe_divide_even_color(accumulated_light, accumulated_color), 1.0);
   }
   else {
     /* Output error color: Unknown how to post process this pass. */
