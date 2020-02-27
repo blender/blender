@@ -1351,7 +1351,7 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
   /* Update after mesh evaluation in the dependency graph, to rebuild PBVH or
    * other data when modifiers change the mesh. */
   Object *ob_orig = DEG_get_original_object(ob_eval);
-  Mesh *me_eval = ob_eval->runtime.mesh_eval;
+  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   BLI_assert(me_eval != NULL);
 

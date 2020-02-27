@@ -287,6 +287,7 @@ void BKE_object_eval_uber_transform(struct Depsgraph *depsgraph, struct Object *
 void BKE_object_eval_uber_data(struct Depsgraph *depsgraph,
                                struct Scene *scene,
                                struct Object *ob);
+void BKE_object_eval_assign_data(struct Object *object, struct ID *data, bool is_owned);
 
 void BKE_object_eval_boundbox(struct Depsgraph *depsgraph, struct Object *object);
 void BKE_object_synchronize_to_original(struct Depsgraph *depsgraph, struct Object *object);
@@ -326,8 +327,7 @@ int BKE_object_obdata_texspace_get(struct Object *ob,
                                    float **r_loc,
                                    float **r_size);
 
-struct Mesh *BKE_object_get_evaluated_mesh(const struct Depsgraph *depsgraph, struct Object *ob);
-struct Mesh *BKE_object_get_final_mesh(struct Object *object);
+struct Mesh *BKE_object_get_evaluated_mesh(struct Object *object);
 struct Mesh *BKE_object_get_pre_modified_mesh(struct Object *object);
 struct Mesh *BKE_object_get_original_mesh(struct Object *object);
 

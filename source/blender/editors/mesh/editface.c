@@ -35,6 +35,7 @@
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -80,8 +81,8 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
     return;
   }
 
-  Mesh *me_orig = ob_eval->runtime.mesh_orig;
-  Mesh *me_eval = ob_eval->runtime.mesh_eval;
+  Mesh *me_orig = (Mesh *)ob_eval->runtime.data_orig;
+  Mesh *me_eval = (Mesh *)ob_eval->runtime.data_eval;
   bool updated = false;
 
   if (me_orig != NULL && me_eval != NULL && me_orig->totpoly == me->totpoly) {
@@ -443,7 +444,7 @@ bool paintface_mouse_select(
 void paintvert_flush_flags(Object *ob)
 {
   Mesh *me = BKE_mesh_from_object(ob);
-  Mesh *me_eval = ob->runtime.mesh_eval;
+  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
   MVert *mvert_eval, *mv;
   const int *index_array = NULL;
   int totvert;

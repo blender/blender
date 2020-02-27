@@ -426,7 +426,7 @@ static void make_duplis_verts(const DupliContext *ctx)
       vdd.me_eval = vdd.edit_mesh->mesh_eval_cage;
     }
     else {
-      vdd.me_eval = parent->runtime.mesh_eval;
+      vdd.me_eval = BKE_object_get_evaluated_mesh(parent);
     }
 
     if (vdd.me_eval == NULL) {
@@ -702,7 +702,7 @@ static void make_duplis_faces(const DupliContext *ctx)
       fdd.me_eval = em->mesh_eval_cage;
     }
     else {
-      fdd.me_eval = parent->runtime.mesh_eval;
+      fdd.me_eval = BKE_object_get_evaluated_mesh(parent);
     }
 
     if (fdd.me_eval == NULL) {

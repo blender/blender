@@ -124,7 +124,7 @@ struct CustomData_MeshMasks;
 typedef struct Object_Runtime {
   /**
    * The custom data layer mask that was last used
-   * to calculate mesh_eval and mesh_deform_eval.
+   * to calculate data_eval and mesh_deform_eval.
    */
   CustomData_MeshMasks last_data_mask;
 
@@ -141,25 +141,25 @@ typedef struct Object_Runtime {
   char _pad1[3];
 
   /**
-   * Denotes whether the evaluated mesh is owned by this object or is referenced and owned by
+   * Denotes whether the evaluated data is owned by this object or is referenced and owned by
    * somebody else.
    */
-  char is_mesh_eval_owned;
+  char is_data_eval_owned;
 
   /** Axis aligned boundbox (in localspace). */
   struct BoundBox *bb;
 
   /**
-   * Original mesh pointer, before object->data was changed to point
-   * to mesh_eval.
+   * Original data pointer, before object->data was changed to point
+   * to data_eval.
    * Is assigned by dependency graph's copy-on-write evaluation.
    */
-  struct Mesh *mesh_orig;
+  struct ID *data_orig;
   /**
-   * Mesh structure created during object evaluation.
+   * Object data structure created during object evaluation.
    * It has all modifiers applied.
    */
-  struct Mesh *mesh_eval;
+  struct ID *data_eval;
   /**
    * Mesh structure created during object evaluation.
    * It has deformation only modifiers applied on it.

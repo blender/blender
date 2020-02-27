@@ -33,6 +33,7 @@
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -61,9 +62,9 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
   struct Mesh *me_eval;
   bool me_eval_needs_free;
 
-  if (ob->type == OB_MESH || ob->runtime.mesh_eval) {
+  if (ob->type == OB_MESH || ob->runtime.data_eval) {
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    me_eval = ob_eval->runtime.mesh_eval;
+    me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     if (me_eval == NULL) {
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
       me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);

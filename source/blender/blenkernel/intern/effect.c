@@ -315,7 +315,7 @@ ListBase *BKE_effectors_create(Depsgraph *depsgraph,
       else if (weights->weight[ob->pd->forcefield] == 0.0f) {
         continue;
       }
-      else if (ob->pd->shape == PFIELD_SHAPE_POINTS && ob->runtime.mesh_eval == NULL) {
+      else if (ob->pd->shape == PFIELD_SHAPE_POINTS && BKE_object_get_evaluated_mesh(ob) == NULL) {
         continue;
       }
 
@@ -656,7 +656,7 @@ int get_effector_data(EffectorCache *eff,
     efd->size = 0.0f;
   }
   else if (eff->pd && eff->pd->shape == PFIELD_SHAPE_POINTS) {
-    Mesh *me_eval = eff->ob->runtime.mesh_eval;
+    Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
     if (me_eval != NULL) {
       copy_v3_v3(efd->loc, me_eval->mvert[*efd->index].co);
       normal_short_to_float_v3(efd->nor, me_eval->mvert[*efd->index].no);
@@ -769,7 +769,7 @@ static void get_effector_tot(
   efd->index = p;
 
   if (eff->pd->shape == PFIELD_SHAPE_POINTS) {
-    Mesh *me_eval = eff->ob->runtime.mesh_eval;
+    Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
     *tot = me_eval != NULL ? me_eval->totvert : 1;
 
     if (*tot && eff->pd->forcefield == PFIELD_HARMONIC && point->index >= 0) {

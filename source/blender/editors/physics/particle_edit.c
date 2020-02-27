@@ -488,7 +488,8 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 static bool PE_create_shape_tree(PEData *data, Object *shapeob)
 {
-  Mesh *mesh = BKE_object_get_evaluated_mesh(data->depsgraph, shapeob);
+  Object *shapeob_eval = DEG_get_evaluated_object(data->depsgraph, shapeob);
+  Mesh *mesh = BKE_object_get_evaluated_mesh(shapeob_eval);
 
   memset(&data->shape_bvh, 0, sizeof(data->shape_bvh));
 
