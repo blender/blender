@@ -2181,8 +2181,17 @@ int ED_path_extension_type(const char *path)
   else if (BLI_path_extension_check(path, ".py")) {
     return FILE_TYPE_PYSCRIPT;
   }
-  else if (BLI_path_extension_check_n(
-               path, ".txt", ".glsl", ".osl", ".data", ".pov", ".ini", ".mcr", ".inc", NULL)) {
+  else if (BLI_path_extension_check_n(path,
+                                      ".txt",
+                                      ".glsl",
+                                      ".osl",
+                                      ".data",
+                                      ".pov",
+                                      ".ini",
+                                      ".mcr",
+                                      ".inc",
+                                      ".fountain",
+                                      NULL)) {
     return FILE_TYPE_TEXT;
   }
   else if (BLI_path_extension_check_n(path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", NULL)) {
