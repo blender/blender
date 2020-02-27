@@ -88,7 +88,17 @@ void EEVEE_renderpasses_init(EEVEE_Data *vedata)
   View3D *v3d = draw_ctx->v3d;
 
   if (v3d) {
-    g_data->render_passes = v3d->shading.render_pass;
+    const Scene *scene = draw_ctx->scene;
+    eViewLayerEEVEEPassType render_pass = v3d->shading.render_pass;
+    if (render_pass == EEVEE_RENDER_PASS_AO &&
+        ((scene->eevee.flag & SCE_EEVEE_GTAO_ENABLED) == 0)) {
+      render_pass = EEVEE_RENDER_PASS_COMBINED;
+    }
+    else if (render_pass == EEVEE_RENDER_PASS_BLOOM &&
+             ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
+      render_pass = EEVEE_RENDER_PASS_COMBINED;
+    }
+    g_data->render_passes = render_pass;
   }
   else {
     eViewLayerEEVEEPassType enabled_render_passes = view_layer->eevee.render_passes;
