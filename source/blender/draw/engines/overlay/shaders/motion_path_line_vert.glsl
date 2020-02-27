@@ -32,7 +32,7 @@ void main()
 
   float intensity; /* how faint */
 
-  vec3 blend_base = (abs(frame - frameCurrent) == 1) ?
+  vec3 blend_base = (abs(frame - frameCurrent) == 0) ?
                         colorCurrentFrame.rgb :
                         colorBackground.rgb; /* "bleed" cframe color to ease color blending */
   bool use_custom_color = customColor.x >= 0.0;
@@ -78,13 +78,12 @@ void main()
     else {
       /* green - on frameCurrent */
       if (selected) {
-        intensity = 0.5f;
+        intensity = 0.92f;
       }
       else {
-        intensity = 0.99f;
+        intensity = 0.75f;
       }
-      finalColor_geom.rgb = clamp(
-          mix(colorCurrentFrame.rgb, colorBackground.rgb, intensity) - 0.1, 0.0, 0.1);
+      finalColor_geom.rgb = mix(colorBackground.rgb, blend_base, intensity);
     }
   }
 
