@@ -21,7 +21,11 @@
  * incompatible with the system libraries that Blender is built on. To solve
  * this we add a few -ffast-math symbols that can be missing. */
 
-#include <math.h>
+#ifdef __linux__
+#  include <features.h>
+#  include <math.h>
+
+#  if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 31)
 
 double __exp_finite(double x);
 double __acos_finite(double x);
@@ -107,3 +111,6 @@ float __powf_finite(float x, float y)
 {
   return powf(x, y);
 }
+
+#  endif /* __GLIBC_PREREQ */
+#endif   /* __linux__ */
