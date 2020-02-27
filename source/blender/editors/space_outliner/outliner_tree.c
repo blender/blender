@@ -2090,12 +2090,12 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
       }
 
       if (exclude_filter & SO_FILTER_OB_STATE_VISIBLE) {
-        if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
+        if ((base->flag & BASE_VISIBLE_VIEWLAYER) == 0) {
           return false;
         }
       }
       else if (exclude_filter & SO_FILTER_OB_STATE_HIDDEN) {
-        if ((base->flag & BASE_VISIBLE_DEPSGRAPH) != 0) {
+        if ((base->flag & BASE_VISIBLE_VIEWLAYER) != 0) {
           return false;
         }
       }
