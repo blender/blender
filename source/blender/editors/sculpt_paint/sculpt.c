@@ -129,8 +129,15 @@ static int sculpt_vertex_count_get(SculptSession *ss)
 const float *sculpt_vertex_co_get(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      return ss->mvert[index].co;
+    case PBVH_FACES: {
+      if (ss->shapekey_active || ss->deform_modifiers_active) {
+        const MVert *mverts = BKE_pbvh_get_verts(ss->pbvh);
+        return mverts[index].co;
+      }
+      else {
+        return ss->mvert[index].co;
+      }
+    }
     case PBVH_BMESH:
       return BM_vert_at_index(BKE_pbvh_get_bmesh(ss->pbvh), index)->co;
     case PBVH_GRIDS: {

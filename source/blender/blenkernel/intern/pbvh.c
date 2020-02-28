@@ -2885,3 +2885,9 @@ void BKE_pbvh_parallel_range_settings(PBVHParallelSettings *settings,
   memset(settings, 0, sizeof(*settings));
   settings->use_threading = use_threading && totnode > 1;
 }
+
+MVert *BKE_pbvh_get_verts(const PBVH *bvh)
+{
+  BLI_assert(bvh->type == PBVH_FACES);
+  return bvh->verts;
+}

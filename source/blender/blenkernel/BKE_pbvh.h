@@ -470,6 +470,8 @@ void BKE_pbvh_parallel_range(const int start,
                              PBVHParallelRangeFunc func,
                              const struct PBVHParallelSettings *settings);
 
+struct MVert *BKE_pbvh_get_verts(const PBVH *bvh);
+
 #ifdef __cplusplus
 }
 #endif
