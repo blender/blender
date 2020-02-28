@@ -371,6 +371,10 @@ static Scene *preview_prepare_scene(
   if (sce) {
     ViewLayer *view_layer = sce->view_layers.first;
 
+    /* Only enable the combined renderpass */
+    view_layer->passflag = SCE_PASS_COMBINED;
+    view_layer->eevee.render_passes = 0;
+
     /* this flag tells render to not execute depsgraph or ipos etc */
     sce->r.scemode |= R_BUTS_PREVIEW;
     /* set world always back, is used now */
