@@ -140,6 +140,12 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
   using OpenSubdiv::Sdc::Crease;
   const OpenSubdiv_Converter *converter = cb_data.converter;
   const bool full_topology_specified = converter->specifiesFullTopology(converter);
+  if (!full_topology_specified && converter->getNumEdges == NULL) {
+    assert(converter->getEdgeSharpness == NULL);
+    assert(converter->getVertexSharpness == NULL);
+    assert(converter->isInfiniteSharpVertex == NULL);
+    return true;
+  }
   const int num_edges = converter->getNumEdges(converter);
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
     const float sharpness = converter->getEdgeSharpness(converter, edge_index);
@@ -190,6 +196,13 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignFaceVaryingTopolo
     TopologyRefiner &refiner, const TopologyRefinerData &cb_data)
 {
   const OpenSubdiv_Converter *converter = cb_data.converter;
+  if (converter->getNumUVLayers == NULL) {
+    assert(converter->precalcUVLayer == NULL);
+    assert(converter->getNumUVCoordinates == NULL);
+    assert(converter->getFaceCornerUVIndex == NULL);
+    assert(converter->finishUVLayer == NULL);
+    return true;
+  }
   const int num_layers = converter->getNumUVLayers(converter);
   if (num_layers <= 0) {
     // No UV maps, we can skip any face-varying data.
