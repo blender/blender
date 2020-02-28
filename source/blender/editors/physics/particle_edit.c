@@ -207,7 +207,7 @@ static float pe_brush_size_get(const Scene *UNUSED(scene), ParticleBrushData *br
   // UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   // float size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
 
-  return brush->size * U.pixelsize;
+  return brush->size;
 }
 
 PTCacheEdit *PE_get_current_from_psys(ParticleSystem *psys)
