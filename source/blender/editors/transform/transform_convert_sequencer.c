@@ -520,7 +520,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   DEG_id_tag_update(&t->scene->id, ID_RECALC_SEQUENCER_STRIPS);
 }
 
-void createTransSeqData(bContext *C, TransInfo *t)
+void createTransSeqData(TransInfo *t)
 {
 #define XXX_DURIAN_ANIM_TX_HACK
 
@@ -542,8 +542,8 @@ void createTransSeqData(bContext *C, TransInfo *t)
 
   tc->custom.type.free_cb = freeSeqData;
   /* only side on which center is gets transformed */
-  float center[2];
-  transform_convert_center_global_v2(t, center);
+  int center[2];
+  transform_convert_center_global_v2_int(t, center);
   t->frame_side = (center[0] > CFRA) ? 'R' : 'L';
 
 #ifdef XXX_DURIAN_ANIM_TX_HACK
