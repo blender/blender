@@ -413,10 +413,11 @@ static void drw_shgroup_bone_envelope_distance(ArmatureDrawContext *ctx,
     mul_m4_v4(ctx->ob->obmat, tail_sph);
     mul_m4_v4(ctx->ob->obmat, xaxis);
     sub_v3_v3(xaxis, head_sph);
-    head_sph[3] = *radius_head;
-    head_sph[3] += *distance;
-    tail_sph[3] = *radius_tail;
-    tail_sph[3] += *distance;
+    float obscale = mat4_to_scale(ctx->ob->obmat);
+    head_sph[3] = *radius_head * obscale;
+    head_sph[3] += *distance * obscale;
+    tail_sph[3] = *radius_tail * obscale;
+    tail_sph[3] += *distance * obscale;
     DRW_buffer_add_entry(ctx->envelope_distance, head_sph, tail_sph, xaxis);
   }
 }
@@ -438,8 +439,9 @@ static void drw_shgroup_bone_envelope(ArmatureDrawContext *ctx,
   mul_m4_v4(ctx->ob->obmat, head_sph);
   mul_m4_v4(ctx->ob->obmat, tail_sph);
   mul_m4_v4(ctx->ob->obmat, xaxis);
-  head_sph[3] = *radius_head;
-  tail_sph[3] = *radius_tail;
+  float obscale = mat4_to_scale(ctx->ob->obmat);
+  head_sph[3] = *radius_head * obscale;
+  tail_sph[3] = *radius_tail * obscale;
 
   if (head_sph[3] < 0.0f || tail_sph[3] < 0.0f) {
     BoneInstanceData inst_data;
