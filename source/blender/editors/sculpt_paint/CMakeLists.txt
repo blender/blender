@@ -59,6 +59,7 @@ set(SRC
   paint_vertex_weight_ops.c
   paint_vertex_weight_utils.c
   sculpt.c
+  sculpt_cloth.c
   sculpt_undo.c
   sculpt_uv.c
 

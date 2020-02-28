@@ -626,6 +626,18 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "pose_ik_segments")
             layout.prop(brush, "use_pose_ik_anchored")
             layout.separator()
+
+        if brush.sculpt_tool == 'CLOTH':
+            layout.separator()
+            layout.prop(brush, "cloth_sim_limit")
+            layout.prop(brush, "cloth_sim_falloff")
+            layout.separator()
+            layout.prop(brush, "cloth_deform_type")
+            layout.prop(brush, "cloth_force_falloff_type")
+            layout.separator()
+            layout.prop(brush, "cloth_mass")
+            layout.prop(brush, "cloth_damping")
+            layout.separator()
         
         if brush.sculpt_tool == 'SCRAPE':
             row = layout.row()

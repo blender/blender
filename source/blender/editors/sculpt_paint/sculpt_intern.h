@@ -85,12 +85,91 @@ struct SculptPoseIKChain *sculpt_pose_ik_chain_init(struct Sculpt *sd,
 void sculpt_pose_ik_chain_free(struct SculptPoseIKChain *ik_chain);
 
 /* Sculpt PBVH abstraction API */
+int sculpt_vertex_count_get(struct SculptSession *ss);
 const float *sculpt_vertex_co_get(struct SculptSession *ss, int index);
+float sculpt_vertex_mask_get(struct SculptSession *ss, int index);
+
+#define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
+typedef struct SculptVertexNeighborIter {
+  /* Storage */
+  int *neighbors;
+  int size;
+  int capacity;
+  int neighbors_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
+
+  /* Internal iterator. */
+  int num_duplicates;
+  int i;
+
+  /* Public */
+  int index;
+  bool is_duplicate;
+} SculptVertexNeighborIter;
+
+void sculpt_vertex_neighbors_get(struct SculptSession *ss,
+                                 const int index,
+                                 const bool include_duplicates,
+                                 SculptVertexNeighborIter *iter);
+
+/* Iterator over neighboring vertices. */
+#define sculpt_vertex_neighbors_iter_begin(ss, v_index, neighbor_iterator) \
+  sculpt_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
+  for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
+       neighbor_iterator.i++) { \
+    neighbor_iterator.index = ni.neighbors[ni.i];
+
+/* Iterate over neighboring and duplicate vertices (for PBVH_GRIDS). Duplicates come
+ * first since they are nearest for floodfill. */
+#define sculpt_vertex_duplicates_and_neighbors_iter_begin(ss, v_index, neighbor_iterator) \
+  sculpt_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
+  for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
+       neighbor_iterator.i--) { \
+    neighbor_iterator.index = ni.neighbors[ni.i]; \
+    neighbor_iterator.is_duplicate = (ni.i >= \
+                                      neighbor_iterator.size - neighbor_iterator.num_duplicates);
+
+#define sculpt_vertex_neighbors_iter_end(neighbor_iterator) \
+  } \
+  if (neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
+    MEM_freeN(neighbor_iterator.neighbors); \
+  } \
+  ((void)0)
 
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);
 void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
 void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
+
+/* Utils. */
+void SCULPT_calc_brush_plane(struct Sculpt *sd,
+                             struct Object *ob,
+                             struct PBVHNode **nodes,
+                             int totnode,
+                             float r_area_no[3],
+                             float r_area_co[3]);
+
+/* Brushes. */
+
+/* Cloth Brush. */
+void SCULPT_do_cloth_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim);
+
+void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
+                                         const struct Brush *brush,
+                                         const float obmat[4][4],
+                                         const float location[3],
+                                         const float normal[3],
+                                         const float rds,
+                                         const float line_width,
+                                         const float outline_col[3],
+                                         const float alpha);
+void SCULPT_cloth_plane_falloff_preview_draw(const uint gpuattr,
+                                             struct SculptSession *ss,
+                                             const float outline_col[3],
+                                             float outline_alpha);
 
 /* Undo */
 
@@ -241,6 +320,8 @@ typedef struct SculptThreadedTaskData {
   bool mask_expand_keep_prev_mask;
 
   float transform_mats[8][4][4];
+
+  float cloth_time_step;
 
   float dirty_mask_min;
   float dirty_mask_max;
@@ -415,6 +496,13 @@ typedef struct StrokeCache {
   /* Stores pressure samples to get an stabilized strength and radius variation. */
   float clay_pressure_stabilizer[CLAY_STABILIZER_LEN];
   int clay_pressure_stabilizer_index;
+
+  /* Cloth brush */
+  struct SculptClothSimulation *cloth_sim;
+  float initial_location[3];
+  float true_initial_location[3];
+  float initial_normal[3];
+  float true_initial_normal[3];
 
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;

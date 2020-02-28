@@ -228,6 +228,10 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
                SCULPT_TOOL_THUMB)) {
         return false;
       }
+      else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
+               brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+        return false;
+      }
       else {
         return true;
       }
@@ -259,6 +263,7 @@ static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode m
                SCULPT_TOOL_THUMB,
                SCULPT_TOOL_SNAKE_HOOK,
                SCULPT_TOOL_ELASTIC_DEFORM,
+               SCULPT_TOOL_CLOTH,
                SCULPT_TOOL_POSE)) {
         return false;
       }
@@ -999,6 +1004,10 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 
 static bool sculpt_is_grab_tool(Brush *br)
 {
+
+  if (br->sculpt_tool == SCULPT_TOOL_CLOTH && br->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+    return true;
+  }
   return ELEM(br->sculpt_tool,
               SCULPT_TOOL_GRAB,
               SCULPT_TOOL_ELASTIC_DEFORM,

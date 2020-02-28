@@ -245,6 +245,31 @@ typedef struct SculptPoseIKChain {
   int tot_segments;
 } SculptPoseIKChain;
 
+/* Cloth Brush */
+
+typedef struct SculptClothLengthConstraint {
+  int v1;
+  int v2;
+
+  float length;
+} SculptClothLengthConstraint;
+
+typedef struct SculptClothSimulation {
+  SculptClothLengthConstraint *length_constraints;
+  int tot_length_constraints;
+  int capacity_length_constraints;
+  float *length_constraint_tweak;
+
+  float mass;
+  float damping;
+
+  float (*acceleration)[3];
+  float (*pos)[3];
+  float (*init_pos)[3];
+  float (*prev_pos)[3];
+
+} SculptClothSimulation;
+
 /* Session data (mode-specific) */
 
 typedef struct SculptSession {
@@ -298,6 +323,7 @@ typedef struct SculptSession {
   float cursor_radius;
   float cursor_location[3];
   float cursor_normal[3];
+  float cursor_sampled_normal[3];
   float cursor_view_normal[3];
 
   /* TODO(jbakker): Replace rv3d adn v3d with ViewContext */

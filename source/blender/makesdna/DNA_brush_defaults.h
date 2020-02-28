@@ -48,6 +48,10 @@
     .normal_radius_factor = 0.5f, \
     .area_radius_factor = 0.5f, \
     .sculpt_plane = SCULPT_DISP_DIR_AREA, \
+    .cloth_damping = 0.01, \
+    .cloth_mass = 1, \
+    .cloth_sim_limit = 2.5f, \
+    .cloth_sim_falloff = 0.75f, \
     /* How far above or below the plane that is found by averaging the faces. */ \
     .plane_offset = 0.0f, \
     .plane_trim = 0.5f, \

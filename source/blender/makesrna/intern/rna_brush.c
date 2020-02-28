@@ -96,6 +96,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_ROTATE, "ROTATE", ICON_BRUSH_ROTATE, "Rotate", ""},
     {SCULPT_TOOL_SLIDE_RELAX, "TOPOLOGY", ICON_BRUSH_GRAB, "Slide Relax", ""},
     {0, "", 0, NULL, NULL},
+    {SCULPT_TOOL_CLOTH, "CLOTH", ICON_BRUSH_SCULPT_DRAW, "Cloth", ""},
     {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", ICON_BRUSH_DATA, "Simplify", ""},
     {SCULPT_TOOL_MASK, "MASK", ICON_BRUSH_MASK, "Mask", ""},
     {0, NULL, 0, NULL, NULL},
@@ -1641,6 +1642,27 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_cloth_deform_type_items[] = {
+      {BRUSH_CLOTH_DEFORM_DRAG, "DRAG", 0, "Drag", ""},
+      {BRUSH_CLOTH_DEFORM_PUSH, "PUSH", 0, "Push", ""},
+      {BRUSH_CLOTH_DEFORM_PINCH_POINT, "PINCH_POINT", 0, "Pinch Point", ""},
+      {BRUSH_CLOTH_DEFORM_PINCH_PERPENDICULAR,
+       "PINCH_PERPENDICULAR",
+       0,
+       "Pinch Perpendicular",
+       ""},
+      {BRUSH_CLOTH_DEFORM_INFLATE, "INFLATE", 0, "Inflate", ""},
+      {BRUSH_CLOTH_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
+      {BRUSH_CLOTH_DEFORM_EXPAND, "EXPAND", 0, "Expand", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem brush_cloth_force_falloff_type_items[] = {
+      {BRUSH_CLOTH_FORCE_FALLOFF_RADIAL, "RADIAL", 0, "Radial", ""},
+      {BRUSH_CLOTH_FORCE_FALLOFF_PLANE, "PLANE", 0, "Plane", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "Brush", "ID");
   RNA_def_struct_ui_text(
       srna, "Brush", "Brush data-block for storing brush settings for painting and sculpting");
@@ -1724,6 +1746,17 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "elastic_deform_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_elastic_deform_type_items);
   RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "cloth_deform_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_cloth_deform_type_items);
+  RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "cloth_force_falloff_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_cloth_force_falloff_type_items);
+  RNA_def_property_ui_text(
+      prop, "Force Falloff", "Shape used in the brush to apply force to the cloth");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "jitter_unit", PROP_ENUM, PROP_NONE); /* as an enum */
@@ -1947,6 +1980,36 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "tip_roundness");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Tip Roundness", "Roundness of the brush tip");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "cloth_mass", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "cloth_mass");
+  RNA_def_property_range(prop, 0.01f, 2.0f);
+  RNA_def_property_ui_text(prop, "Cloth mass", "Mass of each simulation particle");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "cloth_damping", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "cloth_damping");
+  RNA_def_property_range(prop, 0.01f, 1.0f);
+  RNA_def_property_ui_text(
+      prop, "Cloth Damping", "How much the applied forces are propagated through the cloth");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "cloth_sim_limit", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "cloth_sim_limit");
+  RNA_def_property_range(prop, 0.1f, 10.0f);
+  RNA_def_property_ui_text(
+      prop,
+      "Simulation Limit",
+      "Factor added relative to the size of the radius to limit the cloth simulation effects");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "cloth_sim_falloff", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "cloth_sim_falloff");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(prop,
+                           "Simulation Falloff",
+                           "Area to apply deformation falloff to the effects of the simulation");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "auto_smooth_factor", PROP_FLOAT, PROP_FACTOR);
