@@ -91,7 +91,7 @@ static bool gizmo_calc_rect_view_scale(const wmGizmo *gz, const float dims[2], f
 static bool gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[2], float margin[2])
 {
   float handle_size;
-  handle_size = 0.15f;
+  handle_size = 10.0f;
   handle_size *= gz->scale_final;
   float scale_xy[2];
   if (!gizmo_calc_rect_view_scale(gz, dims, scale_xy)) {
