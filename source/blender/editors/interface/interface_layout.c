@@ -2957,6 +2957,21 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
   return but;
 }
 
+void uiItemL_ex(
+    uiLayout *layout, const char *name, int icon, const bool highlight, const bool redalert)
+{
+  uiBut *but = uiItemL_(layout, name, icon);
+
+  if (highlight) {
+    /* TODO: add another flag for this. */
+    UI_but_flag_enable(but, UI_SELECT_DRAW);
+  }
+
+  if (redalert) {
+    UI_but_flag_enable(but, UI_BUT_REDALERT);
+  }
+}
+
 void uiItemL(uiLayout *layout, const char *name, int icon)
 {
   uiItemL_(layout, name, icon);
