@@ -664,5 +664,6 @@ void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *v
   CHECK_PASS_EEVEE(VOLUME_TRANSMITTANCE, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_EEVEE(BLOOM, SOCK_RGBA, 3, "RGB");
 
-#undef CHECK_PASS
+#undef CHECK_PASS_LEGACY
+#undef CHECK_PASS_EEVEE
 }
