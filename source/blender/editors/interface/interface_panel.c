@@ -998,7 +998,7 @@ static int compare_panel(const void *a1, const void *a2)
 static void align_sub_panels(Panel *pa)
 {
   /* Position sub panels. */
-  int ofsy = get_panel_real_ofsy(pa) + pa->sizey - pa->blocksizey;
+  int ofsy = pa->ofsy + pa->sizey - pa->blocksizey;
 
   for (Panel *pachild = pa->children.first; pachild; pachild = pachild->next) {
     if (pachild->runtime_flag & PNL_ACTIVE) {
