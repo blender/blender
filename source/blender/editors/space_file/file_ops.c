@@ -2542,6 +2542,28 @@ void FILE_OT_delete(struct wmOperatorType *ot)
   ot->poll = file_delete_poll; /* <- important, handler is on window level */
 }
 
+static int file_start_filter_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+  SpaceFile *sf = CTX_wm_space_file(C);
+
+  UI_textbutton_activate_rna(C, ar, sf->params, "filter_search");
+  return OPERATOR_FINISHED;
+}
+
+void FILE_OT_start_filter(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Filter";
+  ot->description = "Start entering filter text";
+  ot->idname = "FILE_OT_start_filter";
+
+  /* api callbacks */
+  ot->exec = file_start_filter_exec;
+  ot->poll = ED_operator_file_active;
+}
+
 void ED_operatormacros_file(void)
 {
   //  wmOperatorType *ot;

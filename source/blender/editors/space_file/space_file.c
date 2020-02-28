@@ -541,6 +541,7 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_rename);
   WM_operatortype_append(FILE_OT_smoothscroll);
   WM_operatortype_append(FILE_OT_filepath_drop);
+  WM_operatortype_append(FILE_OT_start_filter);
 }
 
 /* NOTE: do not add .blend file reading on this level */

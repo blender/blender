@@ -80,6 +80,7 @@ void FILE_OT_delete(struct wmOperatorType *ot);
 void FILE_OT_rename(struct wmOperatorType *ot);
 void FILE_OT_smoothscroll(struct wmOperatorType *ot);
 void FILE_OT_filepath_drop(struct wmOperatorType *ot);
+void FILE_OT_start_filter(struct wmOperatorType *ot);
 
 int file_exec(bContext *C, struct wmOperator *exec_op);
 int file_cancel_exec(bContext *C, struct wmOperator *unused);
