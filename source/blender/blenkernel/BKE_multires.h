@@ -53,9 +53,9 @@ void multires_mark_as_modified(struct Depsgraph *depsgraph,
                                struct Object *object,
                                enum MultiresModifiedFlags flags);
 
-void multires_flush_sculpt_updates(struct Object *ob);
-void multires_force_sculpt_rebuild(struct Object *ob);
-void multires_force_external_reload(struct Object *ob);
+void multires_flush_sculpt_updates(struct Object *object);
+void multires_force_sculpt_rebuild(struct Object *object);
+void multires_force_external_reload(struct Object *object);
 
 /* internal, only called in subsurf_ccg.c */
 void multires_modifier_update_mdisps(struct DerivedMesh *dm, struct Scene *scene);

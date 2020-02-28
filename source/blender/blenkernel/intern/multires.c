@@ -406,27 +406,27 @@ void multires_mark_as_modified(Depsgraph *depsgraph, Object *object, MultiresMod
   multires_ccg_mark_as_modified(subdiv_ccg, flags);
 }
 
-void multires_flush_sculpt_updates(Object *ob)
+void multires_flush_sculpt_updates(Object *object)
 {
-  if (ob && ob->sculpt && ob->sculpt->pbvh != NULL) {
-    SculptSession *sculpt_session = ob->sculpt;
+  if (object && object->sculpt && object->sculpt->pbvh != NULL) {
+    SculptSession *sculpt_session = object->sculpt;
     if (BKE_pbvh_type(sculpt_session->pbvh) == PBVH_GRIDS && sculpt_session->multires) {
-      Mesh *mesh = ob->data;
+      Mesh *mesh = object->data;
       multiresModifier_reshapeFromCCG(
           sculpt_session->multires->totlvl, mesh, sculpt_session->subdiv_ccg);
     }
   }
 }
 
-void multires_force_sculpt_rebuild(Object *ob)
+void multires_force_sculpt_rebuild(Object *object)
 {
-  multires_flush_sculpt_updates(ob);
+  multires_flush_sculpt_updates(object);
 
-  if (ob && ob->sculpt) {
-    SculptSession *ss = ob->sculpt;
+  if (object && object->sculpt) {
+    SculptSession *ss = object->sculpt;
     if (ss->pbvh) {
       BKE_pbvh_free(ss->pbvh);
-      ob->sculpt->pbvh = NULL;
+      object->sculpt->pbvh = NULL;
     }
 
     if (ss->pmap) {
@@ -441,12 +441,12 @@ void multires_force_sculpt_rebuild(Object *ob)
   }
 }
 
-void multires_force_external_reload(Object *ob)
+void multires_force_external_reload(Object *object)
 {
-  Mesh *me = BKE_mesh_from_object(ob);
+  Mesh *mesh = BKE_mesh_from_object(object);
 
-  CustomData_external_reload(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
-  multires_force_sculpt_rebuild(ob);
+  CustomData_external_reload(&mesh->ldata, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+  multires_force_sculpt_rebuild(object);
 }
 
 /* reset the multires levels to match the number of mdisps */
