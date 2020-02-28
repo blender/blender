@@ -208,13 +208,13 @@ void register_node_type_frame(void)
 {
   /* frame type is used for all tree types, needs dynamic allocation */
   bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "frame node type");
+  ntype->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND);
   node_type_init(ntype, node_frame_init);
   node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
   node_type_size(ntype, 150, 100, 0);
 
-  ntype->needs_free = 1;
   nodeRegisterType(ntype);
 }
 
@@ -253,12 +253,12 @@ void register_node_type_reroute(void)
 {
   /* frame type is used for all tree types, needs dynamic allocation */
   bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "frame node type");
+  ntype->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
   node_type_init(ntype, node_reroute_init);
   node_type_internal_links(ntype, node_reroute_update_internal_links);
 
-  ntype->needs_free = 1;
   nodeRegisterType(ntype);
 }
 
@@ -491,13 +491,13 @@ void register_node_type_group_input(void)
 {
   /* used for all tree types, needs dynamic allocation */
   bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "node type");
+  ntype->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE, 0);
   node_type_size(ntype, 140, 80, 400);
   node_type_init(ntype, node_group_input_init);
   node_type_update(ntype, node_group_input_update);
 
-  ntype->needs_free = 1;
   nodeRegisterType(ntype);
 }
 
@@ -589,12 +589,12 @@ void register_node_type_group_output(void)
 {
   /* used for all tree types, needs dynamic allocation */
   bNodeType *ntype = MEM_callocN(sizeof(bNodeType), "node type");
+  ntype->free_self = (void (*)(bNodeType *))MEM_freeN;
 
   node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE, 0);
   node_type_size(ntype, 140, 80, 400);
   node_type_init(ntype, node_group_output_init);
   node_type_update(ntype, node_group_output_update);
 
-  ntype->needs_free = 1;
   nodeRegisterType(ntype);
 }

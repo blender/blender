@@ -412,8 +412,9 @@ static void node_free_type(void *nodetype_v)
     free_dynamic_typeinfo(nodetype);
   }
 
-  if (nodetype->needs_free) {
-    MEM_freeN(nodetype);
+  /* Can be NULL when the type is not dynamically allocated. */
+  if (nodetype->free_self) {
+    nodetype->free_self(nodetype);
   }
 }
 
@@ -468,7 +469,7 @@ static void node_free_socket_type(void *socktype_v)
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, NULL, NULL, NULL, socktype, true);
 
-  MEM_freeN(socktype);
+  socktype->free_self(socktype);
 }
 
 void nodeRegisterSocketType(bNodeSocketType *st)

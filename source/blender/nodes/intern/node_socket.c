@@ -403,6 +403,7 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
   StructRNA *srna;
 
   stype = MEM_callocN(sizeof(bNodeSocketType), "node socket C type");
+  stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
   BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
 
   /* set the RNA type
@@ -441,6 +442,7 @@ static bNodeSocketType *make_socket_type_virtual(void)
   StructRNA *srna;
 
   stype = MEM_callocN(sizeof(bNodeSocketType), "node socket C type");
+  stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
   BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
 
   /* set the RNA type
