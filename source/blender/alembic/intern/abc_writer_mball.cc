@@ -30,7 +30,6 @@ extern "C" {
 #include "BKE_lib_id.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 
 #include "BLI_utildefines.h"
 }
@@ -56,11 +55,10 @@ bool AbcMBallWriter::isAnimated() const
 
 Mesh *AbcMBallWriter::getEvaluatedMesh(Scene * /*scene_eval*/, Object *ob_eval, bool &r_needsfree)
 {
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  if (mesh_eval != NULL) {
+  if (ob_eval->runtime.mesh_eval != NULL) {
     /* Mesh_eval only exists when generative modifiers are in use. */
     r_needsfree = false;
-    return mesh_eval;
+    return ob_eval->runtime.mesh_eval;
   }
   r_needsfree = true;
 

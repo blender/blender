@@ -28,9 +28,9 @@
 #include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_editmesh.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
+
+#include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -120,9 +120,8 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
   Mesh *me = ob->data;
   {
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-    if (me_eval != NULL) {
-      me = me_eval;
+    if (ob_eval->runtime.mesh_eval) {
+      me = ob_eval->runtime.mesh_eval;
     }
   }
 
