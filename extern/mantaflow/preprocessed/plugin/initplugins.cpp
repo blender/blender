@@ -1829,13 +1829,15 @@ struct KnUpdateFlagsObs : public KernelBase {
                    const MACGrid *fractions,
                    const Grid<Real> &phiObs,
                    const Grid<Real> *phiOut,
-                   const Grid<Real> *phiIn)
-      : KernelBase(&flags, 1),
+                   const Grid<Real> *phiIn,
+                   int boundaryWidth)
+      : KernelBase(&flags, boundaryWidth),
         flags(flags),
         fractions(fractions),
         phiObs(phiObs),
         phiOut(phiOut),
-        phiIn(phiIn)
+        phiIn(phiIn),
+        boundaryWidth(boundaryWidth)
   {
     runMessage();
     run();
@@ -1847,7 +1849,8 @@ struct KnUpdateFlagsObs : public KernelBase {
                  const MACGrid *fractions,
                  const Grid<Real> &phiObs,
                  const Grid<Real> *phiOut,
-                 const Grid<Real> *phiIn) const
+                 const Grid<Real> *phiIn,
+                 int boundaryWidth) const
   {
 
     bool isObs = false;
@@ -1910,6 +1913,11 @@ struct KnUpdateFlagsObs : public KernelBase {
     return phiIn;
   }
   typedef Grid<Real> type4;
+  inline int &getArg5()
+  {
+    return boundaryWidth;
+  }
+  typedef int type5;
   void runMessage()
   {
     debMsg("Executing kernel KnUpdateFlagsObs ", 3);
@@ -1923,15 +1931,15 @@ struct KnUpdateFlagsObs : public KernelBase {
     const int _maxY = maxY;
     if (maxZ > 1) {
       for (int k = __r.begin(); k != (int)__r.end(); k++)
-        for (int j = 1; j < _maxY; j++)
-          for (int i = 1; i < _maxX; i++)
-            op(i, j, k, flags, fractions, phiObs, phiOut, phiIn);
+        for (int j = boundaryWidth; j < _maxY; j++)
+          for (int i = boundaryWidth; i < _maxX; i++)
+            op(i, j, k, flags, fractions, phiObs, phiOut, phiIn, boundaryWidth);
     }
     else {
       const int k = 0;
       for (int j = __r.begin(); j != (int)__r.end(); j++)
-        for (int i = 1; i < _maxX; i++)
-          op(i, j, k, flags, fractions, phiObs, phiOut, phiIn);
+        for (int i = boundaryWidth; i < _maxX; i++)
+          op(i, j, k, flags, fractions, phiObs, phiOut, phiIn, boundaryWidth);
     }
   }
   void run()
@@ -1939,13 +1947,14 @@ struct KnUpdateFlagsObs : public KernelBase {
     if (maxZ > 1)
       tbb::parallel_for(tbb::blocked_range<IndexInt>(minZ, maxZ), *this);
     else
-      tbb::parallel_for(tbb::blocked_range<IndexInt>(1, maxY), *this);
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(boundaryWidth, maxY), *this);
   }
   FlagGrid &flags;
   const MACGrid *fractions;
   const Grid<Real> &phiObs;
   const Grid<Real> *phiOut;
   const Grid<Real> *phiIn;
+  int boundaryWidth;
 };
 
 //! update obstacle and outflow flags from levelsets
@@ -1954,9 +1963,10 @@ void setObstacleFlags(FlagGrid &flags,
                       const Grid<Real> &phiObs,
                       const MACGrid *fractions = NULL,
                       const Grid<Real> *phiOut = NULL,
-                      const Grid<Real> *phiIn = NULL)
+                      const Grid<Real> *phiIn = NULL,
+                      int boundaryWidth = 1)
 {
-  KnUpdateFlagsObs(flags, fractions, phiObs, phiOut, phiIn);
+  KnUpdateFlagsObs(flags, fractions, phiObs, phiOut, phiIn, boundaryWidth);
 }
 static PyObject *_W_18(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
@@ -1973,8 +1983,9 @@ static PyObject *_W_18(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const MACGrid *fractions = _args.getPtrOpt<MACGrid>("fractions", 2, NULL, &_lock);
       const Grid<Real> *phiOut = _args.getPtrOpt<Grid<Real>>("phiOut", 3, NULL, &_lock);
       const Grid<Real> *phiIn = _args.getPtrOpt<Grid<Real>>("phiIn", 4, NULL, &_lock);
+      int boundaryWidth = _args.getOpt<int>("boundaryWidth", 5, 1, &_lock);
       _retval = getPyNone();
-      setObstacleFlags(flags, phiObs, fractions, phiOut, phiIn);
+      setObstacleFlags(flags, phiObs, fractions, phiOut, phiIn, boundaryWidth);
       _args.check();
     }
     pbFinalizePlugin(parent, "setObstacleFlags", !noTiming);

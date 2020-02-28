@@ -17,16 +17,13 @@
 
 // link to omp & tbb for now
 #if OPENMP == 1 || TBB == 1
-#  define MANTA_ENABLE_PARALLEL 0
+#  define MANTA_ENABLE_PARALLEL 1
 // allow the preconditioner to be computed in parallel? (can lead to slightly non-deterministic
 // results)
 #  define MANTA_ENABLE_PARALLEL_PC 0
-// use c++11 code?
-#  define MANTA_USE_CPP11 1
 #else
 #  define MANTA_ENABLE_PARALLEL 0
 #  define MANTA_ENABLE_PARALLEL_PC 0
-#  define MANTA_USE_CPP11 0
 #endif
 
 #if MANTA_ENABLE_PARALLEL == 1
@@ -503,11 +500,7 @@ template<class N, class T> struct RCMatrix {
       for (Iterator it = row_begin(i); it; ++it)
         result.fix_element(it.index(), i, it.value());
     }
-#if MANTA_USE_CPP11 == 1
-    return std::move(result);
-#else
     return result;
-#endif
   }
 
   RCMatrix getKtK() const
@@ -532,12 +525,7 @@ template<class N, class T> struct RCMatrix {
         }
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 
   RCMatrix operator*(const RCMatrix &m) const
@@ -561,12 +549,7 @@ template<class N, class T> struct RCMatrix {
         }
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 
   RCMatrix sqrt() const
@@ -581,12 +564,7 @@ template<class N, class T> struct RCMatrix {
         result.set_element(i, j, std::sqrt(it_A.value()));
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 
   RCMatrix operator*(const double k) const
@@ -601,12 +579,7 @@ template<class N, class T> struct RCMatrix {
         result.add_to_element(i, j, it_A.value() * k);
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 
   RCMatrix applyKernel(const RCMatrix &kernel, const int nx, const int ny) const
@@ -640,12 +613,7 @@ template<class N, class T> struct RCMatrix {
         }
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 
   RCMatrix applyHorizontalKernel(const RCMatrix &kernel, const int nx, const int ny) const
@@ -679,12 +647,7 @@ template<class N, class T> struct RCMatrix {
         }
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 
   RCMatrix applyVerticalKernel(const RCMatrix &kernel, const int nx, const int ny) const
@@ -718,12 +681,7 @@ template<class N, class T> struct RCMatrix {
         }
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 
   RCMatrix applySeparableKernel(const RCMatrix &kernelH,
@@ -747,11 +705,7 @@ template<class N, class T> struct RCMatrix {
   {
     std::vector<T> result(n, 0.0);
     multiply(rhs, result);
-#if MANTA_USE_CPP11 == 1
-    return std::move(result);
-#else
     return result;
-#endif
   }
   void multiply(const std::vector<T> &rhs, std::vector<T> &result) const
   {
@@ -832,11 +786,7 @@ template<class N, class T> struct RCMatrix {
     for (N i = 0; i < result.size(); i++) {
       result[i] = std::abs(result[i] - rhs[i]);
     }
-#if MANTA_USE_CPP11 == 1
-    return std::move(result);
-#else
     return result;
-#endif
   }
   T norm() const
   {
@@ -1024,11 +974,7 @@ template<class N, class T> struct RCFixedMatrix {
   {
     std::vector<T> result(n, 0.0);
     multiply(rhs, result);
-#if MANTA_USE_CPP11 == 1
-    return std::move(result);
-#else
     return result;
-#endif
   }
   void multiply(const std::vector<T> &rhs, std::vector<T> &result) const
   {
@@ -1064,12 +1010,7 @@ template<class N, class T> struct RCFixedMatrix {
         }
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 
   RCMatrix<N, T> toRCMatrix() const
@@ -1087,12 +1028,7 @@ template<class N, class T> struct RCFixedMatrix {
         result.matrix[i]->value[j] = value[rowstart[i] + j];
       }
     }
-    parallel_end
-#if MANTA_USE_CPP11 == 1
-        return std::move(result);
-#else
-        return result;
-#endif
+    parallel_end return result;
   }
 };
 
