@@ -408,36 +408,43 @@ void multires_mark_as_modified(Depsgraph *depsgraph, Object *object, MultiresMod
 
 void multires_flush_sculpt_updates(Object *object)
 {
-  if (object && object->sculpt && object->sculpt->pbvh != NULL) {
-    SculptSession *sculpt_session = object->sculpt;
-    if (BKE_pbvh_type(sculpt_session->pbvh) == PBVH_GRIDS && sculpt_session->multires) {
-      Mesh *mesh = object->data;
-      multiresModifier_reshapeFromCCG(
-          sculpt_session->multires->totlvl, mesh, sculpt_session->subdiv_ccg);
-    }
+  if (object == NULL || object->sculpt == NULL || object->sculpt->pbvh == NULL) {
+    return;
   }
+
+  SculptSession *sculpt_session = object->sculpt;
+  if (BKE_pbvh_type(sculpt_session->pbvh) != PBVH_GRIDS || sculpt_session->multires == NULL) {
+    return;
+  }
+
+  Mesh *mesh = object->data;
+  multiresModifier_reshapeFromCCG(
+      sculpt_session->multires->totlvl, mesh, sculpt_session->subdiv_ccg);
 }
 
 void multires_force_sculpt_rebuild(Object *object)
 {
   multires_flush_sculpt_updates(object);
 
-  if (object && object->sculpt) {
-    SculptSession *ss = object->sculpt;
-    if (ss->pbvh) {
-      BKE_pbvh_free(ss->pbvh);
-      object->sculpt->pbvh = NULL;
-    }
+  if (object == NULL || object->sculpt == NULL) {
+    return;
+  }
 
-    if (ss->pmap) {
-      MEM_freeN(ss->pmap);
-      ss->pmap = NULL;
-    }
+  SculptSession *ss = object->sculpt;
 
-    if (ss->pmap_mem) {
-      MEM_freeN(ss->pmap_mem);
-      ss->pmap_mem = NULL;
-    }
+  if (ss->pbvh != NULL) {
+    BKE_pbvh_free(ss->pbvh);
+    object->sculpt->pbvh = NULL;
+  }
+
+  if (ss->pmap != NULL) {
+    MEM_freeN(ss->pmap);
+    ss->pmap = NULL;
+  }
+
+  if (ss->pmap_mem != NULL) {
+    MEM_freeN(ss->pmap_mem);
+    ss->pmap_mem = NULL;
   }
 }
 
