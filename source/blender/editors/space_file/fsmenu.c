@@ -115,8 +115,9 @@ struct FSMenuEntry *ED_fsmenu_get_category(struct FSMenu *fsmenu, FSMenuCategory
  */
 static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
 {
-  size_t data_len;
-  char *data;
+  /* Add to the default for variable, equals & quotes. */
+  char l[128 + FILE_MAXDIR];
+  FILE *fp;
 
   /* Check if the config file exists. */
   {
@@ -128,17 +129,14 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
     else {
       BLI_path_join(filepath, sizeof(filepath), home, ".config", "user-dirs.dirs", NULL);
     }
-    data = BLI_file_read_text_as_mem_with_newline_as_nil(filepath, true, 1, &data_len);
-    if (data == NULL) {
+    fp = BLI_fopen(filepath, "r");
+    if (!fp) {
       return NULL;
     }
   }
   /* By default there are 8 paths. */
   GHash *xdg_map = BLI_ghash_str_new_ex(__func__, 8);
-  char *data_end = data + data_len;
-  uint l_len;
-  for (char *l = data; l != data_end; l += l_len + 1) {
-    l_len = strlen(l);
+  while (fgets(l, sizeof(l), fp) != NULL) { /* read a line */
 
     /* Avoid inserting invalid values. */
     if (STRPREFIX(l, "XDG_")) {
@@ -146,9 +144,12 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
       if (l_value != NULL) {
         *l_value = '\0';
         l_value++;
-        if (*l_value == '"' && l[l_len - 1] == '"') {
+
+        BLI_str_rstrip(l_value);
+        const uint l_value_len = strlen(l_value);
+        if ((l_value[0] == '"') && (l_value_len > 0) && (l_value[l_value_len - 1] == '"')) {
           l_value++;
-          l[l_len - 1] = '\0';
+          l_value[l_value_len - 1] = '\0';
 
           char l_value_expanded[FILE_MAX];
           char *l_value_final = l_value;
@@ -166,7 +167,6 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
       }
     }
   }
-  MEM_freeN(data);
   return xdg_map;
 }
 
