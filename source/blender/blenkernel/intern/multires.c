@@ -417,9 +417,21 @@ void multires_flush_sculpt_updates(Object *object)
     return;
   }
 
+  SubdivCCG *subdiv_ccg = sculpt_session->subdiv_ccg;
+  if (subdiv_ccg == NULL) {
+    return;
+  }
+
+  if (!subdiv_ccg->dirty.coords && !subdiv_ccg->dirty.hidden) {
+    return;
+  }
+
   Mesh *mesh = object->data;
   multiresModifier_reshapeFromCCG(
       sculpt_session->multires->totlvl, mesh, sculpt_session->subdiv_ccg);
+
+  subdiv_ccg->dirty.coords = false;
+  subdiv_ccg->dirty.hidden = false;
 }
 
 void multires_force_sculpt_rebuild(Object *object)
