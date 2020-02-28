@@ -111,7 +111,7 @@ static void ui_popover_create_block(bContext *C, uiPopover *pup, int opcontext)
                                 0,
                                 pup->ui_size_x,
                                 0,
-                                UI_MENU_PADDING,
+                                0,
                                 style);
 
   uiLayoutSetOperatorContext(pup->layout, opcontext);

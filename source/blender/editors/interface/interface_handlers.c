@@ -9197,24 +9197,27 @@ static char ui_menu_scroll_test(uiBlock *block, int my)
 static void ui_menu_scroll_apply_offset_y(ARegion *ar, uiBlock *block, float dy)
 {
   BLI_assert(dy != 0.0f);
-  if (dy < 0.0f) {
-    /* stop at top item, extra 0.5 unit Y makes it snap nicer */
-    float ymax = -FLT_MAX;
-    for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
-      ymax = max_ff(ymax, bt->rect.ymax);
+
+  if (ui_block_is_menu(block)) {
+    if (dy < 0.0f) {
+      /* Stop at top item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
+      float ymax = -FLT_MAX;
+      for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+        ymax = max_ff(ymax, bt->rect.ymax);
+      }
+      if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD) {
+        dy = block->rect.ymax - ymax - UI_MENU_SCROLL_PAD;
+      }
     }
-    if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD) {
-      dy = block->rect.ymax - ymax - UI_MENU_SCROLL_PAD;
-    }
-  }
-  else {
-    /* stop at bottom item, extra 0.5 unit Y makes it snap nicer */
-    float ymin = FLT_MAX;
-    for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
-      ymin = min_ff(ymin, bt->rect.ymin);
-    }
-    if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD) {
-      dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
+    else {
+      /* Stop at bottom item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
+      float ymin = FLT_MAX;
+      for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+        ymin = min_ff(ymin, bt->rect.ymin);
+      }
+      if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD) {
+        dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
+      }
     }
   }
 

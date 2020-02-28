@@ -4970,8 +4970,6 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
                                              rect->xmin + unit_size,
                                              rect->xmax - unit_size) :
                                      BLI_rcti_cent_x(rect);
-  rect->ymax -= unit_half;
-  rect->ymin += unit_half;
 
   GPU_blend(true);
 
