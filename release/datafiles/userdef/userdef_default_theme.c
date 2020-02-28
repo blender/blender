@@ -827,6 +827,7 @@ const bTheme U_theme_default = {
     .nodeclass_pattern = RGBA(0x6c696fff),
     .nodeclass_layout = RGBA(0x6c696fff),
     .movie = RGBA(0x1a1a1acc),
+    .grid_levels = 2,
     .gp_vertex_size = 3,
     .gp_vertex = RGBA(0x97979700),
     .gp_vertex_select = RGBA(0xff8500ff),

@@ -920,6 +920,7 @@
         matte_node="#977474"
         distor_node="#749797"
         noodle_curving="0"
+        grid_levels="2"
         input_node="#ff6675"
         output_node="#ff6675"
         filter_node="#6c696f"

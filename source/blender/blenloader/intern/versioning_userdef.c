@@ -188,6 +188,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_clip.time_marker_line_selected);
   }
 
+  if (!USER_VERSION_ATLEAST(283, 6)) {
+    btheme->space_node.grid_levels = U_theme_default.space_node.grid_levels;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
