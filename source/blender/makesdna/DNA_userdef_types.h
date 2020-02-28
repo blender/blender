@@ -748,7 +748,7 @@ typedef struct UserDef {
   /** Milliseconds to spend spinning the view. */
   short smooth_viewtx;
   short glreslimit;
-  short curssize;
+  short curssize DNA_DEPRECATED;
   /** #eColorPicker_Types. */
   short color_picker_type;
   /** Curve smoothing type for newly added F-Curves. */

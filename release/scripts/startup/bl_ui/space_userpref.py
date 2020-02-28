@@ -197,7 +197,6 @@ class USERPREF_PT_interface_display(InterfacePanel, CenterAlignMixIn, Panel):
         flow.prop(view, "show_tooltips")
         flow.prop(view, "show_tooltips_python")
         flow.prop(view, "show_developer_ui")
-        flow.prop(view, "show_large_cursors")
 
 
 class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):
