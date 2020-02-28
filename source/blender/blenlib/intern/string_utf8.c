@@ -373,23 +373,23 @@ size_t BLI_strlen_utf8_ex(const char *strc, size_t *r_len_bytes)
 
 size_t BLI_strlen_utf8(const char *strc)
 {
-  size_t len;
-
-  for (len = 0; *strc; len++) {
-    strc += BLI_str_utf8_size_safe(strc);
-  }
-
-  return len;
+  size_t len_bytes;
+  return BLI_strlen_utf8_ex(strc, &len_bytes);
 }
 
 size_t BLI_strnlen_utf8_ex(const char *strc, const size_t maxlen, size_t *r_len_bytes)
 {
-  size_t len;
+  size_t len = 0;
   const char *strc_orig = strc;
   const char *strc_end = strc + maxlen;
 
-  for (len = 0; *strc && strc < strc_end; len++) {
-    strc += BLI_str_utf8_size_safe(strc);
+  while (true) {
+    size_t step = (size_t)BLI_str_utf8_size_safe(strc);
+    if (!*strc || strc + step > strc_end) {
+      break;
+    }
+    strc += step;
+    len++;
   }
 
   *r_len_bytes = (size_t)(strc - strc_orig);
@@ -403,14 +403,8 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t maxlen, size_t *r_len_
  */
 size_t BLI_strnlen_utf8(const char *strc, const size_t maxlen)
 {
-  size_t len;
-  const char *strc_end = strc + maxlen;
-
-  for (len = 0; *strc && strc < strc_end; len++) {
-    strc += BLI_str_utf8_size_safe(strc);
-  }
-
-  return len;
+  size_t len_bytes;
+  return BLI_strnlen_utf8_ex(strc, maxlen, &len_bytes);
 }
 
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
