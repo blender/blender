@@ -32,7 +32,7 @@
 #include "BLI_delaunay_2d.h"
 
 /* Uncomment this define to get helpful debugging functions etc. defined. */
-#define DEBUG_CDT
+// #define DEBUG_CDT
 
 struct CDTEdge;
 struct CDTFace;
@@ -52,6 +52,7 @@ typedef struct CDTVert {
   LinkNode *input_ids; /* List of corresponding vertex input ids. */
   int index;           /* Index into array that cdt keeps. */
   int merge_to_index;  /* Index of a CDTVert that this has merged to. -1 if no merge. */
+  int visit_index;     /* Which visit epoch has this been seen. */
 } CDTVert;
 
 typedef struct CDTEdge {
@@ -61,7 +62,7 @@ typedef struct CDTEdge {
 } CDTEdge;
 
 typedef struct CDTFace {
-  SymEdge *symedge;    /* A symedge in face; only used during output. */
+  SymEdge *symedge;    /* A symedge in face; only used during output, so only valid then. */
   LinkNode *input_ids; /* List of input face ids that this is part of. */
   int visit_index;     /* Which visit epoch has this been seen. */
   bool deleted;        /* Marks this face no longer used. */
@@ -69,34 +70,29 @@ typedef struct CDTFace {
 } CDTFace;
 
 typedef struct CDT_state {
-  LinkNode *edges;
-  LinkNode *faces;
-  CDTFace *outer_face;
-  CDTVert **vert_array;
-  int vert_array_len;
-  int vert_array_len_alloc;
-  int input_vert_tot;
-  double minx;
-  double miny;
-  double maxx;
-  double maxy;
-  double margin;
-  int visit_count;
-  int face_edge_offset;
-  MemArena *arena;
-  BLI_mempool *listpool;
-  double epsilon;
-  double epsilon_squared;
-  bool output_prepared;
+  LinkNode *edges;          /* List of CDTEdge pointer. */
+  LinkNode *faces;          /* List of CDTFace pointer. */
+  CDTFace *outer_face;      /* Which CDTFace is the outer face. */
+  CDTVert **vert_array;     /* Array of CDTVert pointer, grows. */
+  int vert_array_len;       /* Current length of vert_array. */
+  int vert_array_len_alloc; /* Allocated length of vert_array. */
+  int input_vert_tot;       /* How many verts were in input (will be first in vert_array). */
+  double minx;              /* Used for debug drawing. */
+  double miny;              /* Used for debug drawing. */
+  double maxx;              /* Used for debug drawing. */
+  double maxy;              /* Used for debug drawing. */
+  double margin;            /* Used for debug drawing. */
+  int visit_count; /* Used for visiting things without having to initialized their visit fields. */
+  int face_edge_offset;  /* Input edge id where we start numbering the face edges. */
+  MemArena *arena;       /* Most allocations are done from here, so can free all at once at end. */
+  BLI_mempool *listpool; /* Allocations of ListNodes done from this pool. */
+  double epsilon;        /* The user-specified nearness limit. */
+  double epsilon_squared; /* Square of epsilon. */
+  bool output_prepared;   /* Set after the mesh has been modified for output (may not be all
+                             triangles now). */
 } CDT_state;
 
 #define DLNY_ARENASIZE 1 << 14
-
-/**
- * This margin means that will only be a 1 degree possible
- * concavity on outside if remove all border touching triangles.
- */
-#define DLNY_MARGIN_PCT 2000.0
 
 #ifdef DEBUG_CDT
 #  ifdef __GNUC__
@@ -106,14 +102,22 @@ typedef struct CDT_state {
 #  endif
 #  define F2(p) p[0], p[1]
 #  define F3(p) p[0], p[1], p[2]
+struct CrossData;
 ATTU static void dump_se(const SymEdge *se, const char *lab);
+ATTU static void dump_se_short(const SymEdge *se, const char *lab);
 ATTU static void dump_v(const CDTVert *v, const char *lab);
 ATTU static void dump_se_cycle(const SymEdge *se, const char *lab, const int limit);
 ATTU static void dump_id_list(const LinkNode *id_list, const char *lab);
+ATTU static void dump_cross_data(struct CrossData *cd, const char *lab);
 ATTU static void dump_cdt(const CDT_state *cdt, const char *lab);
 ATTU static void dump_cdt_vert_neighborhood(CDT_state *cdt, int v, int maxdist, const char *lab);
 ATTU static void cdt_draw(CDT_state *cdt, const char *lab);
+ATTU static void cdt_draw_region(
+    CDT_state *cdt, const char *lab, double minx, double miny, double maxx, double maxy);
+
 ATTU static void cdt_draw_vertex_region(CDT_state *cdt, int v, double dist, const char *lab);
+ATTU static void cdt_draw_edge_region(
+    CDT_state *cdt, int v1, int v2, double dist, const char *lab);
 ATTU static void write_cdt_input_to_file(const CDT_input *inp);
 ATTU static void validate_cdt(CDT_state *cdt,
                               bool check_all_tris,
@@ -140,8 +144,7 @@ BLI_INLINE SymEdge *prev(const SymEdge *se)
 /**
  * Return true if a -- b -- c are in that order, assuming they are on a straight line according to
  * orient2d and we know the order is either `abc` or `bac`.
- * This means `ab . ac` and `bc . ac` must both be non-negative.
- */
+ * This means `ab . ac` and `bc . ac` must both be non-negative.  */
 static bool in_line(const double a[2], const double b[2], const double c[2])
 {
   double ab[2], bc[2], ac[2];
@@ -187,6 +190,7 @@ static CDTVert *add_cdtvert(CDT_state *cdt, double x, double y)
   BLI_assert(cdt->vert_array_len < cdt->vert_array_len_alloc);
   v->index = cdt->vert_array_len;
   v->merge_to_index = -1;
+  v->visit_index = 0;
   cdt->vert_array[cdt->vert_array_len++] = v;
   return v;
 }
@@ -290,20 +294,38 @@ BLI_INLINE bool is_original_vert(const CDTVert *v, CDT_state *cdt)
   return (v->index < cdt->input_vert_tot);
 }
 
-/** Is there already an edge between a and b? */
-static bool exists_edge(const CDTVert *a, const CDTVert *b)
+/** Return the Symedge that goes from v1 to v2, if it exists, else return NULL. */
+static SymEdge *find_symedge_between_verts(const CDTVert *v1, const CDTVert *v2)
 {
-  SymEdge *se, *ss;
-  se = a->symedge;
-  if (se->next->vert == b) {
-    return true;
-  }
-  for (ss = se->rot; ss != se; ss = ss->rot) {
-    if (ss->next->vert == b) {
-      return true;
+  SymEdge *tstart, *t;
+
+  t = tstart = v1->symedge;
+  do {
+    if (t->next->vert == v2) {
+      return t;
     }
-  }
-  return false;
+  } while ((t = t->rot) != tstart);
+  return NULL;
+}
+
+/** Return the SymEdge attached to v that has face f, if it exists, else return NULL. */
+static SymEdge *find_symedge_with_face(const CDTVert *v, const CDTFace *f)
+{
+  SymEdge *tstart, *t;
+
+  t = tstart = v->symedge;
+  do {
+    if (t->face == f) {
+      return t;
+    }
+  } while ((t = t->rot) != tstart);
+  return NULL;
+}
+
+/** Is there already an edge between a and b? */
+static inline bool exists_edge(const CDTVert *v1, const CDTVert *v2)
+{
+  return find_symedge_between_verts(v1, v2) != NULL;
 }
 
 /** Is the vertex v incident on face f? */
@@ -533,7 +555,7 @@ static void delete_edge(CDT_state *cdt, SymEdge *e)
   }
 }
 
-static CDT_state *new_cdt_init(const CDT_input *in)
+static CDT_state *cdt_init(const CDT_input *in)
 {
   int i;
   MemArena *arena = BLI_memarena_new(DLNY_ARENASIZE, __func__);
@@ -1121,6 +1143,378 @@ static void re_delaunay_triangulate(CDT_state *cdt, SymEdge *se)
   }
 }
 
+static double tri_orient(const SymEdge *t)
+{
+  return orient2d(t->vert->co, t->next->vert->co, t->next->next->vert->co);
+}
+
+/**
+ * The CrossData struct gives defines either an endpoint or an intermediate point
+ * in the path we will take to insert an edge constraint.
+ * Each such point will either be
+ * (a) a vertex or
+ * (b) a fraction lambda (0 < lambda < 1) along some SymEdge.]
+ *
+ * In general, lambda=0 indicates case a and lambda != 0 indicates case be.
+ * The 'in' edge gives the destination attachment point of a diagonal from the previous crossing,
+ * and the 'out' edge gives the origin attachment point of a diagonal to the next crossing.
+ * But in some cases, 'in' and 'out' are undefined or not needed, and will be NULL.
+ *
+ * For case (a), 'vert' will be the vertex, and lambda will be 0, and 'in' will be the SymEdge from
+ * 'vert' that has as face the one that you go through to get to this vertex. If you go exactly
+ * along an edge then we set 'in' to NULL, since it won't be needed. The first crossing will have
+ * 'in' = NULL. We set 'out' to the SymEdge that has the face we go though to get to the next
+ * crossing, or, if the next crossing is a case (a), then it is the edge that goes to that next
+ * vertex. 'out' wlll be NULL for the last one.
+ *
+ * For case (b), vert will be NULL at first, and later filled in with the created split vertex,
+ * and 'in' will be the SymEdge that we go through, and lambda will be between 0 and 1,
+ * the fraction from in's vert to in->next's vert to put the split vertex.
+ * 'out' is not needed in this case, since the attachment point will be the sym of the first
+ * half of the split edge.
+ */
+typedef struct CrossData {
+  double lambda;
+  CDTVert *vert;
+  SymEdge *in;
+  SymEdge *out;
+} CrossData;
+
+static bool get_next_crossing_from_vert(CDT_state *cdt,
+                                        CrossData *cd,
+                                        CrossData *cd_next,
+                                        const CDTVert *v2);
+
+/**
+ * As part of finding crossings, we found a case where the next crossing goes through vert v.
+ * If it came from a previous vert in cd, then cd_out is the edge that leads from that to v.
+ * Else cd_out can be NULL, because it won't be used.
+ * Set *cd_next to indicate this. We can set 'in' but not 'out'.  We can set the 'out' of the
+ * current cd.
+ */
+static void fill_crossdata_for_through_vert(CDTVert *v,
+                                            SymEdge *cd_out,
+                                            CrossData *cd,
+                                            CrossData *cd_next)
+{
+  SymEdge *se;
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
+
+  if (global_dbg) {
+    dbg_level = 1;
+  }
+#endif
+
+  cd_next->lambda = 0.0;
+  cd_next->vert = v;
+  cd_next->in = NULL;
+  cd_next->out = NULL;
+  if (cd->lambda == 0.0) {
+    cd->out = cd_out;
+  }
+  else {
+    /* One of the edges in the triangle with edge sym(cd->in) contains v. */
+    se = sym(cd->in);
+    if (se->vert != v) {
+      se = se->next;
+      if (se->vert != v) {
+        se = se->next;
+      }
+    }
+    BLI_assert(se->vert == v);
+    cd_next->in = se;
+  }
+#ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    dump_cross_data(cd, "cd through vert, cd");
+    dump_cross_data(cd_next, "cd_next through vert, cd");
+  }
+#endif
+}
+
+/**
+ * As part of finding crossings, we found a case where orient tests say that the next crossing
+ * is on the SymEdge t, while intersecting with the ray from curco to v2.
+ * Find the intersection point and fill in the CrossData for that point.
+ * It may turn out that when doing the intersection, we get an answer that says that
+ * this case is better handled as through-vertex case instead, so we may do that.
+ * In the latter case, we want to avoid a situation where the current crossing is on an edge
+ * and the next will be an endpoint of the same edge. When that happens, we "rewrite history"
+ * and turn the current crossing into a vert one, and then extend from there.
+ *
+ * We cannot fill cd_next's 'out' edge yet, in the case that the next one ends up being a vert
+ * case. We need to fill in cd's 'out' edge if it was a vert case.
+ */
+static void fill_crossdata_for_intersect(CDT_state *cdt,
+                                         const double *curco,
+                                         const CDTVert *v2,
+                                         SymEdge *t,
+                                         CrossData *cd,
+                                         CrossData *cd_next)
+{
+  CDTVert *va, *vb, *vc;
+  double lambda, mu, len_ab;
+  SymEdge *se_vcva, *se_vcvb;
+  int isect;
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
+#endif
+
+  va = t->vert;
+  vb = t->next->vert;
+  vc = t->next->next->vert;
+  se_vcvb = sym(t->next);
+  se_vcva = t->next->next;
+  BLI_assert(se_vcva->vert == vc && se_vcva->next->vert == va);
+  BLI_assert(se_vcvb->vert == vc && se_vcvb->next->vert == vb);
+  isect = isect_seg_seg_v2_lambda_mu_db(va->co, vb->co, curco, v2->co, &lambda, &mu);
+#ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    double co[2];
+    fprintf(stderr, "crossdata for intersect gets lambda=%.17g, mu=%.17g\n", lambda, mu);
+    fprintf(stderr,
+            "isect=%s\n",
+            isect == 2 ? "cross" : (isect == 1 ? "exact" : (isect == 0 ? "none" : "colinear")));
+    fprintf(stderr,
+            "va=v%d=(%g,%g), vb=v%d=(%g,%g), vc=v%d, curco=(%g,%g), v2=(%g,%g)\n",
+            va->index,
+            F2(va->co),
+            vb->index,
+            F2(vb->co),
+            vc->index,
+            F2(curco),
+            F2(v2->co));
+    dump_se_short(se_vcva, "vcva=");
+    dump_se_short(se_vcvb, " vcvb=");
+    interp_v2_v2v2_db(co, va->co, vb->co, lambda);
+    fprintf(stderr, "\nco=(%.17g,%.17g)\n", F2(co));
+  }
+#endif
+  switch (isect) {
+    case ISECT_LINE_LINE_CROSS:
+      len_ab = len_v2v2_db(va->co, vb->co);
+#ifdef DEBUG_CDT
+      if (dbg_level > 0) {
+        fprintf(stderr,
+                "len_ab=%g, near a=%g, near b=%g\n",
+                len_ab,
+                lambda * len_ab,
+                (1.0 - lambda) * len_ab);
+      }
+#endif
+      if (lambda * len_ab <= cdt->epsilon) {
+        fill_crossdata_for_through_vert(va, se_vcva, cd, cd_next);
+      }
+      else if ((1.0 - lambda) * len_ab <= cdt->epsilon) {
+        fill_crossdata_for_through_vert(vb, se_vcvb, cd, cd_next);
+      }
+      else {
+        *cd_next = (CrossData){lambda, NULL, t, NULL};
+        if (cd->lambda == 0.0) {
+          cd->out = se_vcva;
+        }
+      }
+      break;
+    case ISECT_LINE_LINE_EXACT:
+      if (lambda == 0.0) {
+        fill_crossdata_for_through_vert(va, se_vcva, cd, cd_next);
+      }
+      else if (lambda == 1.0) {
+        fill_crossdata_for_through_vert(vb, se_vcvb, cd, cd_next);
+      }
+      else {
+        *cd_next = (CrossData){lambda, NULL, t, NULL};
+        if (cd->lambda == 0.0) {
+          cd->out = se_vcva;
+        }
+      }
+      break;
+    case ISECT_LINE_LINE_NONE:
+      /* It should be very near one end or other of segment. */
+      if (lambda <= 0.5) {
+        fill_crossdata_for_through_vert(va, se_vcva, cd, cd_next);
+      }
+      else {
+        fill_crossdata_for_through_vert(vb, se_vcvb, cd, cd_next);
+      }
+      break;
+    case ISECT_LINE_LINE_COLINEAR:
+      if (len_squared_v2v2_db(va->co, v2->co) <= len_squared_v2v2_db(vb->co, v2->co)) {
+        fill_crossdata_for_through_vert(va, se_vcva, cd, cd_next);
+      }
+      else {
+        fill_crossdata_for_through_vert(vb, se_vcvb, cd, cd_next);
+      }
+      break;
+  }
+}
+
+/**
+ * As part of finding the crossings of a ray to v2, find the next crossing after 'cd', assuming
+ * 'cd' represents a crossing that goes through a vertex.
+ *
+ * We do a rotational scan around cd's vertex, looking for the triangle where the ray from cd->vert
+ * to v2 goes between the two arms from cd->vert, or where it goes along one of the edges.
+ */
+static bool get_next_crossing_from_vert(CDT_state *cdt,
+                                        CrossData *cd,
+                                        CrossData *cd_next,
+                                        const CDTVert *v2)
+{
+  SymEdge *t, *tstart;
+  CDTVert *vcur, *va, *vb;
+  double orient1, orient2;
+  bool ok;
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
+
+  if (dbg_level > 0) {
+    fprintf(stderr, "\nget_next_crossing_from_vert\n");
+    dump_v(cd->vert, "  cd->vert");
+  }
+#endif
+
+  t = tstart = cd->vert->symedge;
+  vcur = cd->vert;
+  ok = false;
+  do {
+    /*
+     * The ray from vcur to v2 has to go either between two successive
+     * edges around vcur or exactly along them. This time through the
+     * loop, check to see if the ray goes along vcur-va
+     * or between vcur-va and vcur-vb, where va is the end of t
+     * and vb is the next vertex (on the next rot edge around vcur, but
+     * should also be the next vert of triangle starting with vcur-va.
+     */
+    if (t->face != cdt->outer_face && tri_orient(t) < 0.0) {
+      fprintf(stderr, "BAD TRI orientation %g\n", tri_orient(t)); /* TODO: handle this */
+#ifdef DEBUG_CDT
+      dump_se_cycle(t, "top of ccw scan loop", 4);
+#endif
+    }
+    va = t->next->vert;
+    vb = t->next->next->vert;
+    orient1 = orient2d(t->vert->co, va->co, v2->co);
+#ifdef DEBUG_CDT
+    if (dbg_level > 1) {
+      fprintf(stderr, "non-final through vert case\n");
+      dump_v(va, " va");
+      dump_v(vb, " vb");
+      fprintf(stderr, "orient1=%g\n", orient1);
+    }
+#endif
+    if (orient1 == 0.0 && in_line(vcur->co, va->co, v2->co)) {
+#ifdef DEBUG_CDT
+      if (dbg_level > 1) {
+        fprintf(stderr, "ray goes through va\n");
+      }
+#endif
+      fill_crossdata_for_through_vert(va, t, cd, cd_next);
+      ok = true;
+      break;
+    }
+    else if (t->face != cdt->outer_face) {
+      orient2 = orient2d(vcur->co, vb->co, v2->co);
+#ifdef DEBUG_CDT
+      if (dbg_level > 1) {
+        fprintf(stderr, "orient2=%g\n", orient2);
+      }
+#endif
+      /* Don't handle orient2 == 0.0 case here: next rotation will get it. */
+      if (orient1 > 0.0 && orient2 < 0.0) {
+#ifdef DEBUG_CDT
+        if (dbg_level > 1) {
+          fprintf(stderr, "segment intersects\n");
+        }
+#endif
+        t = t->next;
+        fill_crossdata_for_intersect(cdt, vcur->co, v2, t, cd, cd_next);
+        ok = true;
+        break;
+      }
+    }
+  } while ((t = t->rot) != tstart);
+#ifdef DEBUG_CDT
+  if (!ok) {
+    /* Didn't find the exit! Shouldn't happen. */
+    fprintf(stderr, "shouldn't happen: can't find next crossing from vert\n");
+  }
+#endif
+  return ok;
+}
+
+/**
+ * As part of finding the crossings of a ray to v2, find the next crossing after 'cd', assuming
+ * 'cd' represents a crossing that goes through a an edge, not at either end of that edge.
+ *
+ * We have the triangle vb-va-vc, where va and vb are the split edge and vc is the third vertex on
+ * that new side of the edge (should be closer to v2). The next crossing should be through vc or
+ * intersecting vb-vc or va-vc.
+ */
+static void get_next_crossing_from_edge(CDT_state *cdt,
+                                        CrossData *cd,
+                                        CrossData *cd_next,
+                                        const CDTVert *v2)
+{
+  double curco[2];
+  double orient;
+  CDTVert *va, *vb, *vc;
+  SymEdge *se_ac;
+#ifdef DEBUG_CDT
+  int dbg_level = 0;
+
+  if (dbg_level > 0) {
+    fprintf(stderr, "\nget_next_crossing_from_edge\n");
+    fprintf(stderr, "  lambda=%.17g\n", cd->lambda);
+    dump_se_short(cd->in, "  cd->in");
+  }
+#endif
+
+  va = cd->in->vert;
+  vb = cd->in->next->vert;
+  interp_v2_v2v2_db(curco, va->co, vb->co, cd->lambda);
+#ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    fprintf(stderr, "  curco=(%.17g,%.17g)\n", F2(curco));
+  }
+#endif
+  se_ac = sym(cd->in)->next;
+  vc = se_ac->next->vert;
+  orient = orient2d(curco, v2->co, vc->co);
+#ifdef DEBUG_CDT
+  if (dbg_level > 1) {
+    fprintf(stderr, "now searching with third vertex ");
+    dump_v(vc, "vc");
+    fprintf(stderr, "orient2d(cur, v2, vc) = %g\n", orient);
+  }
+#endif
+  if (orient < 0.0) {
+#ifdef DEBUG_CDT
+    if (dbg_level > 1) {
+      fprintf(stderr, "curco--v2 intersects vb--vc\n");
+    }
+#endif
+    fill_crossdata_for_intersect(cdt, curco, v2, se_ac->next, cd, cd_next);
+  }
+  else if (orient > 0.0) {
+#ifdef DEBUG_CDT
+    if (dbg_level > 1) {
+      fprintf(stderr, "curco--v2 intersects va--vc\n");
+    }
+#endif
+    fill_crossdata_for_intersect(cdt, curco, v2, se_ac, cd, cd_next);
+  }
+  else {
+#ifdef DEBUG_CDT
+    if (dbg_level > 1) {
+      fprintf(stderr, "orient==0 case, so going through or to vc\n");
+    }
+#endif
+    *cd_next = (CrossData){0.0, vc, se_ac->next, NULL};
+  }
+}
+
 /**
  * Add a constrained edge between v1 and v2 to cdt structure.
  * This may result in a number of #CDTEdges created, due to intersections
@@ -1135,482 +1529,325 @@ static void re_delaunay_triangulate(CDT_state *cdt, SymEdge *se)
 static void add_edge_constraint(
     CDT_state *cdt, CDTVert *v1, CDTVert *v2, int input_id, LinkNode **r_edges)
 {
-  CDTVert *va, *vb, *vc;
-  SymEdge *vse1;
-#ifdef DEBUG_CDT
-  SymEdge *vse2;
-#endif
-  SymEdge *t, *tstart, *tout, *tnext;
-  SymEdge *se;
-  CDTEdge *edge;
-  int isect;
-  double orient1, orient2;
-  int i, search_count;
-  double curco[2];
-  double lambda;
-  bool done, state_through_vert;
-  LinkNodePair edge_list = {NULL, NULL};
-  typedef struct CrossData {
-    double lambda;
-    CDTVert *vert;
-    SymEdge *in;
-    SymEdge *out;
-  } CrossData;
-  CrossData cdata;
+  SymEdge *t, *se, *tstart, *tnext;
+  int i, j, n, visit;
+  bool ok;
   CrossData *crossings = NULL;
-  CrossData *cd;
+  CrossData *cd, *cd_prev, *cd_next;
+  CDTVert *v;
+  CDTEdge *edge;
+  LinkNodePair edge_list = {NULL, NULL};
   BLI_array_staticdeclare(crossings, 128);
 #ifdef DEBUG_CDT
   int dbg_level = 0;
+
+  if (dbg_level > 0) {
+    fprintf(stderr, "\nADD_EDGE_CONSTRAINT\n");
+    dump_v(v1, "  1");
+    dump_v(v2, "  2");
+  }
 #endif
 
-  /* Find path through structure from v1 to v2 and record how we got there in crossings.
-   * In crossings array, each CrossData is populated as follows:
-   *
-   * If ray from previous node goes through a face, not along an edge:
-   *
-   *               _  B
-   *            /    |\
-   *         - -     | \
-   *     prev........X  \
-   *       \ d       |   \C
-   *        --       |   /
-   *          \     a| b/
-   *           - -   | /
-   *               \  A
-   *
-   *   lambda = fraction of way along AB where X is.
-   *   vert = NULL initially, will later get new node that splits AB
-   *   in = a (SymEdge from A->B, whose face the ray goes through)
-   *   out = b (SymEdge from A->C, whose face the ray goes through next
-   *
-   * If the ray from the previous node goes directly to an existing vertex, say A
-   * in the previous diagram, maybe along an existing edge like d in that diagram
-   * but if prev had lambda !=0 then there may be no such edge d, then:
-   *
-   *    lambda = 0
-   *    vert = A
-   *    in = a
-   *    out = b
-   *
-   * crossings[0] will have in = NULL, and crossings[last] will have out = NULL.
-   */
   if (r_edges) {
     *r_edges = NULL;
   }
-  vse1 = v1->symedge;
-#ifdef DEBUG_CDT
-  if (dbg_level > 0) {
-    vse2 = v2->symedge;
-    if (dbg_level > 2) {
-      // dump_cdt(cdt, "before insert_segment");
-      cdt_draw(cdt, "before insert segment");
-    }
-    fprintf(stderr, "\ninsert_segment %d\n", input_id);
-    dump_v(v1, "  1");
-    dump_v(v2, "  2");
-    if (dbg_level > 1) {
-      dump_se(vse1, "  se1");
-      dump_se(vse2, "  se2");
-    }
-  }
-#endif
+
+  /*
+   * Handle two special cases first:
+   * 1) The two end vertices are the same (can happen because of merging).
+   * 2) There is already an edge between v1 and v2.
+   */
   if (v1 == v2) {
-#ifdef DEBUG_CDT
-    if (dbg_level > 0) {
-      fprintf(stderr, "segment between same vertices, ignored\n");
-    }
-#endif
     return;
   }
-  /* Quick check for special case where segment is one of edges from v1. */
-  tstart = t = vse1;
-  done = false;
-  do {
-    if (t->next->vert == v2) {
-      cdata.in = NULL;
-      cdata.out = t->next;
-      cdata.lambda = 0.0;
-      cdata.vert = t->vert;
-      BLI_array_append(crossings, cdata);
-      cdata.in = t->next->rot;
-      cdata.out = NULL;
-      cdata.lambda = 0.0;
-      cdata.vert = v2;
-      BLI_array_append(crossings, cdata);
-#ifdef DEBUG_CDT
-      if (dbg_level > 0) {
-        fprintf(stderr, "special one segment case\n");
-        dump_se(t, "  ");
-      }
-#endif
-      done = true;
-      break;
-    }
-    t = t->rot;
-  } while (t != tstart);
-  if (!done) {
-    state_through_vert = true;
-    done = false;
-    t = vse1;
-    search_count = 0;
-    while (!done) {
-      /* Invariant: crossings[0 .. BLI_array_len(crossings)] has crossing info for path up to
-       * but not including the crossing of edge t, which will either be through a vert
-       * (if state_through_vert is true) or through edge t not at either end.
-       * In the latter case, t->face is the face that ray v1--v2 goes through after path-so-far.
-       * Rather than continually looking for intersection of v1--v2, we keep track of
-       * last vertex or intersection point in curco,because that may be slightly off the ray
-       * v1--v2.
-       */
-#ifdef DEBUG_CDT
-      if (dbg_level > 1) {
-        fprintf(stderr,
-                "top of insert_segment main loop, state_through_vert=%d\n",
-                state_through_vert);
-        dump_se_cycle(t, "current t ", 4);
-      }
-#endif
-      if (state_through_vert) {
-        /* Invariant: ray vcur--v2 contains t->vert. */
-        cdata.in = (BLI_array_len(crossings) == 0) ? NULL : t;
-        cdata.out = NULL; /* To be filled in if this isn't final. */
-        cdata.lambda = 0.0;
-        cdata.vert = t->vert;
-        BLI_array_append(crossings, cdata);
-        if (t->vert == v2) {
-#ifdef DEBUG_CDT
-          if (dbg_level > 1) {
-            fprintf(stderr, "found v2, so done\n");
-          }
-#endif
-          done = true;
-        }
-        else {
-          /* Do ccw scan of triangles around t->vert to find exit triangle for ray vcur--v2. */
-          tstart = t;
-          tout = NULL;
-          do {
-            va = t->next->vert;
-            vb = t->next->next->vert;
-            orient1 = orient2d(t->vert->co, va->co, v2->co);
-#ifdef DEBUG_CDT
-            if (dbg_level > 1) {
-              fprintf(stderr, "non-final through vert case\n");
-              dump_v(va, " va");
-              dump_v(vb, " vb");
-              fprintf(stderr, "orient1=%g\n", orient1);
-            }
-#endif
-            if (orient1 == 0.0 && in_line(t->vert->co, va->co, v2->co)) {
-#ifdef DEBUG_CDT
-              if (dbg_level > 1) {
-                fprintf(stderr, "ray goes through va\n");
-              }
-#endif
-              state_through_vert = true;
-              tout = t;
-              t = t->next;
-              break;
-            }
-            else if (t->face != cdt->outer_face) {
-              orient2 = orient2d(t->vert->co, vb->co, v2->co);
-#ifdef DEBUG_CDT
-              if (dbg_level > 1) {
-                fprintf(stderr, "orient2=%g\n", orient2);
-              }
-#endif
-              if (orient2 == 0.0 && in_line(t->vert->co, vb->co, v2->co)) {
-#ifdef DEBUG_CDT
-                if (dbg_level > 1) {
-                  fprintf(stderr, "ray goes through vb\n");
-                }
-#endif
-                state_through_vert = true;
-                t = t->next->next;
-                tout = sym(t);
-                break;
-              }
-              else if (orient1 > 0.0 && orient2 < 0.0) {
-#ifdef DEBUG_CDT
-                if (dbg_level > 1) {
-                  fprintf(stderr, "segment intersects\n");
-                }
-#endif
-                state_through_vert = false;
-                tout = t;
-                t = t->next;
-                break;
-              }
-            }
-            t = t->rot;
-#ifdef DEBUG_CDT
-            if (dbg_level > 1) {
-              dump_se_cycle(t, "next rot tri", 4);
-            }
-#endif
-          } while (t != tstart);
-          BLI_assert(tout != NULL);
-          crossings[BLI_array_len(crossings) - 1].out = tout;
-        }
-      }
-      else { /* State is "through edge", not "through vert" */
-        /* Invariant: ray v1--v2 intersects segment t->edge, not at either end.
-         * and t->face is the face we have just passed through.
-         */
-        va = t->vert;
-        vb = t->next->vert;
-        /* Get curco; cdata should have data from last time through the loop still. */
-        if (cdata.lambda == 0.0) {
-          copy_v2_v2_db(curco, cdata.vert->co);
-        }
-        else {
-          interp_v2_v2v2_db(curco, cdata.in->vert->co, cdata.in->next->vert->co, lambda);
-        }
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "through edge case, curco=(%f,%f)\n", F2(curco));
-          dump_v(va, " va");
-          dump_v(vb, " vb");
-        }
-#endif
-        isect = isect_seg_seg_v2_lambda_mu_db(va->co, vb->co, curco, v2->co, &lambda, NULL);
-        if (isect == ISECT_LINE_LINE_NONE || isect == ISECT_LINE_LINE_EXACT) {
-          /* The orient tests say that there is an intersection between
-           * va and vb, but the inexact intersection routine has either put the
-           * intersection exactly on one of the endpoints or just outside
-           * one of them.
-           * Or this is an exact intersection at one of the curco / v2 ends.
-           * If lambda is outside of range, move the intersection to somewhere
-           * just inside the segment.
-           * Could also snap to an endpoint and redo this as a "through vert"
-           * case, but the short edge will be cleaned up later and this seems
-           * less risky to get into "impossible" cases.
-           */
-          if (lambda <= 0.0) {
-            lambda = 4.0 * (double)FLT_EPSILON;
-          }
-          else if (lambda >= 1.0) {
-            lambda = 1.0 - 4.0 * (double)FLT_EPSILON;
-          }
-        }
-        if (isect == ISECT_LINE_LINE_COLINEAR) {
-#ifdef DEBUG_CDT
-          if (dbg_level > 1) {
-            fprintf(stderr, "intersect is collinear, treating as through vert\n");
-          }
-          dump_v(va, "va");
-#endif
-          state_through_vert = true;
-          continue;
-        }
-#ifdef DEBUG_CDT
-        interp_v2_v2v2_db(curco, va->co, vb->co, lambda);
-        if (dbg_level > 0) {
-          fprintf(stderr, "intersect point at lambda=%.17g along va--vb\n", lambda);
-          fprintf(stderr, "which is (%g,%g)\n", F2(curco));
-          if (dbg_level > 1) {
-            dump_v(va, " va");
-            dump_v(vb, " vb");
-          }
-        }
-#endif
-        tout = sym(t)->next;
-        cdata.in = t;
-        cdata.out = tout;
-        cdata.lambda = lambda;
-        cdata.vert = NULL; /* To be filled in with edge split vertex later. */
-        BLI_array_append(crossings, cdata);
-#ifdef DEBUG_CDT
-        if (dbg_level > 0) {
-          dump_se_cycle(tout, "next search tri", 4);
-          dump_se(tout, "tout");
-        }
-#endif
-        /* 'tout' is 'symedge' from 'va' to third vertex, 'vc'. */
-        BLI_assert(tout->vert == va);
-        vc = tout->next->vert;
-        orient1 = orient2d(curco, v2->co, vc->co);
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "now searching with third vertex ");
-          dump_v(vc, "vc");
-          fprintf(stderr, "orient2d(vcur, v2, vc) = %g\n", orient1);
-        }
-#endif
-        if (orient1 < 0.0) {
-          /* vcur--v2 should intersect vb--vc. */
-#ifdef DEBUG_CDT
-          if (dbg_level > 1) {
-            fprintf(stderr, "curco--v2 intersects vb--vc\n");
-          }
-#endif
-          t = tout->next;
-          state_through_vert = false;
-        }
-        else if (orient1 > 0.0) {
-          /* vcur--v2 should intersect va--vc. */
-#ifdef DEBUG_CDT
-          if (dbg_level > 1) {
-            fprintf(stderr, "curco--v2 intersects va--vc\n");
-          }
-#endif
-          t = tout;
-          state_through_vert = false;
-        }
-        else if (orient1 == 0.0) {
-#ifdef DEBUG_CDT
-          if (dbg_level > 1) {
-            fprintf(stderr, "ccw==0 case, so going through or to vc\n");
-          }
-#endif
-          t = tout->next;
-          state_through_vert = true;
-        }
-        else {
-#ifdef DEBUG_CDT
-          fprintf(stderr, "add_edge_constraint desperation search needed\n");
-#endif
-        }
-      }
-      if (++search_count > 1000000) {
-        fprintf(stderr, "infinite loop? bailing out\n");
-        BLI_assert(0); /* Catch these while developing. */
-        break;
-      }
-    }
-  }
-#ifdef DEBUG_CDT
-  if (dbg_level > 0) {
-    fprintf(stderr, "Crossing info gathered:\n");
-    for (i = 0; i < BLI_array_len(crossings); i++) {
-      cd = &crossings[i];
-      fprintf(stderr, "%d:\n", i);
-      if (cd->vert != NULL) {
-        dump_v(cd->vert, "  vert: ");
-      }
-      else {
-        fprintf(stderr, "  lambda=%f along in\n", cd->lambda);
-      }
-      if (cd->in) {
-        dump_se(cd->in, "  in: ");
-      }
-      if (cd->out) {
-        dump_se(cd->out, "  out: ");
-      }
-    }
-  }
-#endif
-
-  if (BLI_array_len(crossings) == 2) {
-    /* For speed, handle special case of segment must have already been there. */
-    se = crossings[1].in;
-    if (se->next->vert != v1) {
-      se = prev(se);
-    }
-    BLI_assert(se->vert == v1 || se->next->vert == v1);
+  if ((t = find_symedge_between_verts(v1, v2)) != NULL) {
 #ifdef DEBUG_CDT
     if (dbg_level > 0) {
-      fprintf(stderr, "segment already there: ");
-      dump_se(se, "");
+      fprintf(stderr, "segment already there\n");
     }
 #endif
-    add_to_input_ids(&se->edge->input_ids, input_id, cdt);
+    add_to_input_ids(&t->edge->input_ids, input_id, cdt);
     if (r_edges != NULL) {
-      BLI_linklist_append_pool(&edge_list, se->edge, cdt->listpool);
+      BLI_linklist_append_pool(&edge_list, t->edge, cdt->listpool);
+      *r_edges = edge_list.list;
+    }
+    return;
+  }
+
+  /*
+   * Fill crossings array with CrossData points for intersection path from v1 to v2.
+   *
+   * At every point, the crossings array has the path so far, except that
+   * the .out field of the last element of it may not be known yet -- if that
+   * last element is a vertex, then we won't know the output edge until we
+   * find the next crossing.
+   *
+   * To protect against infinite loops, we keep track of which vertices
+   * we have visited by setting their visit_index to a new visit epoch.
+   *
+   * We check a special case first: where the segment is already there in
+   * one hop. Saves a bunch of orient2d tests in that common case.
+   */
+  visit = ++cdt->visit_count;
+  BLI_array_grow_one(crossings);
+  crossings[0] = (CrossData){0.0, v1, NULL, NULL};
+  while (!((n = BLI_array_len(crossings)) > 0 && crossings[n - 1].vert == v2)) {
+    BLI_array_grow_one(crossings);
+    cd = &crossings[n - 1];
+    cd_next = &crossings[n];
+    if (crossings[n - 1].lambda == 0.0) {
+      ok = get_next_crossing_from_vert(cdt, cd, cd_next, v2);
+    }
+    else {
+      get_next_crossing_from_edge(cdt, cd, cd_next, v2);
+    }
+    if (!ok || BLI_array_len(crossings) == 100000) {
+      /* Shouldn't happen but if does, just bail out. */
+#ifdef DEBUG_CDT
+      fprintf(stderr, "FAILURE adding segment, bailing out\n");
+#endif
+      BLI_array_free(crossings);
+      return;
+    }
+#ifdef DEBUG_CDT
+    if (dbg_level > 1) {
+      fprintf(stderr, "crossings[%d]: ", n);
+      dump_cross_data(&crossings[n], "");
+    }
+#endif
+    if (crossings[n].lambda == 0.0) {
+      if (crossings[n].vert->visit_index == visit) {
+        fprintf(stderr, "WHOOPS, REVISIT. Bailing out.\n"); /*TODO: desperation search here. */
+        BLI_array_free(crossings);
+        return;
+      }
+      crossings[n].vert->visit_index = visit;
     }
   }
-  else {
-    /* Insert all intersection points. */
-    for (i = 0; i < BLI_array_len(crossings); i++) {
-      cd = &crossings[i];
-      if (cd->lambda != 0.0 && is_constrained_edge(cd->in->edge)) {
-        edge = split_edge(cdt, cd->in, cd->lambda);
-        cd->vert = edge->symedges[0].vert;
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "insert vert for crossing %d: ", i);
-          dump_v(cd->vert, "inserted");
-        }
-#endif
-      }
-    }
 
-    /* Remove any crossed, non-intersected edges. */
+#ifdef DEBUG_CDT
+  if (dbg_level > 0) {
+    fprintf(stderr, "\ncrossings found\n");
     for (i = 0; i < BLI_array_len(crossings); i++) {
-      cd = &crossings[i];
-      if (cd->lambda != 0.0 && !is_constrained_edge(cd->in->edge)) {
-        delete_edge(cdt, cd->in);
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "delete edge for crossing %d\n", i);
-        }
-#endif
-      }
-    }
-
-    /* Insert segments for v1->v2. */
-    tstart = crossings[0].out;
-    for (i = 1; i < BLI_array_len(crossings); i++) {
-      cd = &crossings[i];
-      t = tnext = NULL;
-      if (cd->lambda != 0.0) {
-        if (is_constrained_edge(cd->in->edge)) {
-          t = cd->vert->symedge;
-          tnext = sym(t)->next;
-        }
-      }
-      else if (cd->lambda == 0.0) {
-        t = cd->in;
-        tnext = cd->out;
-      }
-      if (t) {
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "insert diagonal between\n");
-          dump_se(tstart, "  ");
-          dump_se(t, " ");
-          dump_se_cycle(tstart, "tstart", 100);
-          dump_se_cycle(t, "t", 100);
-        }
-#endif
-        if (tstart->next->vert == t->vert) {
-          edge = tstart->edge;
-#ifdef DEBUG_CDT
-          if (dbg_level > 1) {
-            fprintf(stderr, "already there\n");
-          }
-#endif
+      fprintf(stderr, "%d: ", i);
+      dump_cross_data(&crossings[i], "");
+      if (crossings[i].lambda == 0.0) {
+        if (i == 0 || crossings[i - 1].lambda == 0.0) {
+          BLI_assert(crossings[i].in == NULL);
         }
         else {
-          edge = add_diagonal(cdt, tstart, t);
+          BLI_assert(crossings[i].in != NULL && crossings[i].in->vert == crossings[i].vert);
+          BLI_assert(crossings[i].in->face == sym(crossings[i - 1].in)->face);
         }
-        add_to_input_ids(&edge->input_ids, input_id, cdt);
-#ifdef DEBUG_CDT
-        if (dbg_level > 1) {
-          fprintf(stderr, "added\n");
+        if (i == BLI_array_len(crossings) - 1) {
+          BLI_assert(crossings[i].vert == v2);
+          BLI_assert(crossings[i].out == NULL);
         }
-#endif
-        if (r_edges != NULL) {
-          BLI_linklist_append_pool(&edge_list, edge, cdt->listpool);
+        else {
+          BLI_assert(crossings[i].out->vert == crossings[i].vert);
+          if (crossings[i + 1].lambda == 0.0) {
+            BLI_assert(crossings[i].out->next->vert == crossings[i + 1].vert);
+          }
+          else {
+            BLI_assert(crossings[i].out->face == crossings[i + 1].in->face);
+          }
         }
-        /* Now retriangulate upper and lower gaps. */
-        re_delaunay_triangulate(cdt, &edge->symedges[0]);
-        re_delaunay_triangulate(cdt, &edge->symedges[1]);
       }
-      if (i < BLI_array_len(crossings) - 1) {
-        if (tnext != NULL) {
-          tstart = tnext;
+      else {
+        if (i > 0 && crossings[i - 1].lambda == 0.0) {
+          BLI_assert(crossings[i].in->face == crossings[i - 1].out->face);
+        }
+        BLI_assert(crossings[i].out == NULL);
+      }
+    }
+  }
+#endif
+
+  /*
+   * Postprocess crossings.
+   * Some crossings may have an intersection crossing followed
+   * by a vertex crossing that is on the same edge that was just
+   * intersected. We prefer to go directly from the previous
+   * crossing directly to the vertex. This may chain backwards.
+   *
+   * This loop marks certain crossings as "deleted", by setting
+   * their lambdas to -1.0.
+   */
+  for (i = 2; i < BLI_array_len(crossings); i++) {
+    cd = &crossings[i];
+    if (cd->lambda == 0.0) {
+      v = cd->vert;
+      for (j = i - 1; j > 0; j--) {
+        cd_prev = &crossings[j];
+        if ((cd_prev->lambda == 0.0 && cd_prev->vert != v) ||
+            (cd_prev->lambda != 0.0 && cd_prev->in->vert != v && cd_prev->in->next->vert != v)) {
+          break;
+        }
+        else {
+          cd_prev->lambda = -1.0; /* Mark cd_prev as 'deleted'. */
 #ifdef DEBUG_CDT
-          if (dbg_level > 1) {
-            fprintf(stderr, "now tstart = ");
-            dump_se(tstart, "");
+          if (dbg_level > 0) {
+            fprintf(stderr, "deleted crossing %d\n", j);
           }
 #endif
         }
       }
+      if (j < i - 1) {
+        /* Some crossings were deleted. Fix the in and out edges across gap. */
+        cd_prev = &crossings[j];
+        if (cd_prev->lambda == 0.0) {
+          se = find_symedge_between_verts(cd_prev->vert, v);
+          if (se == NULL) {
+#ifdef DEBUG_CDT
+            fprintf(stderr, "FAILURE(a) in delete crossings, bailing out.\n");
+#endif
+            BLI_array_free(crossings);
+            return;
+          }
+          cd_prev->out = se;
+          cd->in = NULL;
+        }
+        else {
+          se = find_symedge_with_face(v, sym(cd_prev->in)->face);
+          if (se == NULL) {
+#ifdef DEBUG_CDT
+            fprintf(stderr, "FAILURE(b) in delete crossings, bailing out.\n");
+#endif
+            BLI_array_free(crossings);
+            return;
+          }
+          cd->in = se;
+        }
+#ifdef DEBUG_CDT
+        if (dbg_level > 0) {
+          fprintf(stderr, "after deleting crossings:\n");
+          fprintf(stderr, "cross[%d]: ", j);
+          dump_cross_data(cd_prev, "");
+          fprintf(stderr, "cross[%d]: ", i);
+          dump_cross_data(cd, "");
+        }
+#endif
+      }
     }
   }
+
+  /*
+   * Insert all intersection points on constrained edges.
+   */
+  for (i = 0; i < BLI_array_len(crossings); i++) {
+    cd = &crossings[i];
+    if (cd->lambda != 0.0 && cd->lambda != -1.0 && is_constrained_edge(cd->in->edge)) {
+      edge = split_edge(cdt, cd->in, cd->lambda);
+      cd->vert = edge->symedges[0].vert;
+#ifdef DEBUG_CDT
+      if (dbg_level > 1) {
+        fprintf(stderr, "insert vert for crossing %d: ", i);
+        dump_v(cd->vert, "inserted");
+      }
+#endif
+    }
+  }
+
+  /*
+   * Remove any crossed, non-intersected edges.
+   */
+  for (i = 0; i < BLI_array_len(crossings); i++) {
+    cd = &crossings[i];
+    if (cd->lambda != 0.0 && cd->lambda != -1.0 && !is_constrained_edge(cd->in->edge)) {
+      delete_edge(cdt, cd->in);
+#ifdef DEBUG_CDT
+      if (dbg_level > 1) {
+        fprintf(stderr, "delete edge for crossing %d\n", i);
+      }
+#endif
+    }
+  }
+
+  /*
+   * Insert segments for v1->v2.
+   */
+  tstart = crossings[0].out;
+  for (i = 1; i < BLI_array_len(crossings); i++) {
+    cd = &crossings[i];
+    if (cd->lambda == -1.0) {
+      continue; /* This crossing was deleted. */
+    }
+    t = tnext = NULL;
+    if (cd->lambda != 0.0) {
+      if (is_constrained_edge(cd->in->edge)) {
+        t = cd->vert->symedge;
+        tnext = sym(t)->next;
+      }
+    }
+    else if (cd->lambda == 0.0) {
+      t = cd->in;
+      tnext = cd->out;
+      if (t == NULL) {
+        /* Previous non-deleted crossing must also have been a vert, and segment should exist. */
+        for (j = i - 1; j >= 0; j--) {
+          cd_prev = &crossings[j];
+          if (cd_prev->lambda != -1.0) {
+            break;
+          }
+        }
+        BLI_assert(cd_prev->lambda == 0.0);
+        BLI_assert(cd_prev->out->next->vert == cd->vert);
+#ifdef DEBUG_CDT
+        if (dbg_level > 1) {
+          fprintf(stderr, "edge to crossing %d already there\n", i);
+        }
+#endif
+        edge = cd_prev->out->edge;
+        add_to_input_ids(&edge->input_ids, input_id, cdt);
+      }
+    }
+    if (t != NULL) {
+#ifdef DEBUG_CDT
+      if (dbg_level > 1) {
+        fprintf(stderr, "edge to crossing %d: insert diagonal between\n", i);
+        dump_se(tstart, "  ");
+        dump_se(t, " ");
+        dump_se_cycle(tstart, "tstart", 100);
+        dump_se_cycle(t, "t", 100);
+      }
+#endif
+      if (tstart->next->vert == t->vert) {
+        edge = tstart->edge;
+#ifdef DEBUG_CDT
+        if (dbg_level > 1) {
+          fprintf(stderr, "already there (b)\n");
+        }
+#endif
+      }
+      else {
+        edge = add_diagonal(cdt, tstart, t);
+      }
+      add_to_input_ids(&edge->input_ids, input_id, cdt);
+#ifdef DEBUG_CDT
+      if (dbg_level > 1) {
+        fprintf(stderr, "added\n");
+      }
+#endif
+      if (r_edges != NULL) {
+        BLI_linklist_append_pool(&edge_list, edge, cdt->listpool);
+      }
+      /* Now retriangulate upper and lower gaps. */
+      re_delaunay_triangulate(cdt, &edge->symedges[0]);
+      re_delaunay_triangulate(cdt, &edge->symedges[1]);
+    }
+    if (i < BLI_array_len(crossings) - 1) {
+      if (tnext != NULL) {
+        tstart = tnext;
+#ifdef DEBUG_CDT
+        if (dbg_level > 1) {
+          fprintf(stderr, "now tstart = ");
+          dump_se(tstart, "");
+        }
+#endif
+      }
+    }
+  }
+
   if (r_edges) {
     *r_edges = edge_list.list;
   }
@@ -1697,6 +1934,475 @@ static void dissolve_symedge(CDT_state *cdt, SymEdge *se)
     }
   }
   delete_edge(cdt, se);
+}
+
+/* Slow way to get face and start vertex index within face for edge id e. */
+static bool get_face_edge_id_indices(const CDT_input *in, int e, int *r_f, int *r_fi)
+{
+  int f;
+  int id;
+
+  id = in->edges_len;
+  if (e < id) {
+    return false;
+  }
+  for (f = 0; f < in->faces_len; f++) {
+    if (e < id + in->faces_len_table[f]) {
+      *r_f = f;
+      *r_fi = e - id;
+      return true;
+    }
+    id += in->faces_len_table[f];
+  }
+  return false;
+}
+
+/* Is pt_co when snapped to segment seg1 seg2 all of:
+ * a) strictly within that segment
+ * b) within epsilon from original pt_co
+ * c) pt_co is not within epsilon of either seg1 or seg2.
+ * Return true if so, and return in *r_lambda the fraction of the way from seg1 to seg2 of the
+ * snapped point.
+ */
+static bool check_vert_near_segment(const double *pt_co,
+                                    const double *seg1,
+                                    const double *seg2,
+                                    double epsilon_squared,
+                                    double *r_lambda)
+{
+  double lambda, snap_co[2];
+
+  lambda = closest_to_line_v2_db(snap_co, pt_co, seg1, seg2);
+  *r_lambda = lambda;
+  if (lambda <= 0.0 || lambda >= 1.0) {
+    return false;
+  }
+  if (len_squared_v2v2_db(pt_co, snap_co) > epsilon_squared) {
+    return false;
+  }
+  if (len_squared_v2v2_db(pt_co, seg1) <= epsilon_squared ||
+      len_squared_v2v2_db(pt_co, seg2) <= epsilon_squared) {
+    return false;
+  }
+  return true;
+}
+
+typedef struct EdgeVertLambda {
+  int e_id;
+  int v_id;
+  double lambda;
+} EdgeVertLambda;
+
+/* For sorting first by edge id, then by lambda, then by vert id. */
+static int evl_cmp(const void *a, const void *b)
+{
+  const EdgeVertLambda *sa = a;
+  const EdgeVertLambda *sb = b;
+
+  if (sa->e_id < sb->e_id) {
+    return -1;
+  }
+  else if (sa->e_id > sb->e_id) {
+    return 1;
+  }
+  else if (sa->lambda < sb->lambda) {
+    return -1;
+  }
+  else if (sa->lambda > sb->lambda) {
+    return 1;
+  }
+  else if (sa->v_id < sb->v_id) {
+    return -1;
+  }
+  else if (sa->v_id > sb->v_id) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
+ * If epsilon > 0, and input doesn't have skip_modify_input == true,
+ * check input to see if any constraint edge ends (including face edges) come
+ * within epsilon of another edge.
+ * For all such cases, we want to split the constraint edge at the point nearest to near vertex
+ * and move the vertex coordinates to be on that edge.
+ * But exclude cases where they come within epsilon of either end because those will be handled
+ * by vertex merging in the main triangulation algorithm.
+ *
+ * If any such splits are found, make a new CDT_input reflecting this change, and provide an
+ * edge map to map from edge ids in the new input space to edge ids in the old input space.
+ *
+ * TODO: replace naive O(n^2) algorithm with kdopbvh-based one.
+ */
+static const CDT_input *modify_input_for_near_edge_ends(const CDT_input *input, int **r_edge_map)
+{
+  CDT_input *new_input = NULL;
+  int e, eprev, e1, e2, f, fi, flen, start, i, j;
+  int i_new, i_old, i_evl;
+  int v11, v12, v21, v22;
+  double co11[2], co12[2], co21[2], co22[2];
+  double lambda;
+  double eps = (double)input->epsilon;
+  double eps_sq = eps * eps;
+  int tot_edge_constraints, edges_len, tot_face_edges;
+  int new_tot_face_edges, new_tot_con_edges;
+  int delta_con_edges, delta_face_edges, cur_e_cnt;
+  int *edge_map;
+  int evl_len;
+  EdgeVertLambda *edge_vert_lambda = NULL;
+  BLI_array_staticdeclare(edge_vert_lambda, 128);
+#ifdef DEBUG_CDT
+  EdgeVertLambda *evl;
+  int dbg_level = 0;
+
+  if (dbg_level > 0) {
+    fprintf(stderr, "\nMODIFY INPUT\n\n");
+  }
+#endif
+
+  *r_edge_map = NULL;
+  if (input->epsilon == 0.0 || input->skip_input_modify ||
+      (input->edges_len == 0 && input->faces_len == 0)) {
+    return input;
+  }
+
+  /* Edge constraints are union of the explicitly provided edges and the implicit edges
+   * that are part of the provided faces. We index constraints by have the first input->edges_len
+   * ints standing for the explicit edge with the same index, and the rest being face edges in
+   * the order that the faces appear and then edges within those faces, with indices offset by
+   * input->edges_len.
+   * Calculate tot_edge_constraints to be the sum of the two kinds of edges.
+   * We first have to count the number of face edges.
+   * That is the same as the number of vertices in the faces table, which
+   * we can find by adding the last length to the last start.
+   */
+  edges_len = input->edges_len;
+  tot_edge_constraints = edges_len;
+  if (input->faces_len > 0) {
+    tot_face_edges = input->faces_start_table[input->faces_len - 1] +
+                     input->faces_len_table[input->faces_len - 1];
+  }
+  else {
+    tot_face_edges = 0;
+  }
+  tot_edge_constraints = edges_len + tot_face_edges;
+
+  for (e1 = 0; e1 < tot_edge_constraints - 1; e1++) {
+    if (e1 < edges_len) {
+      v11 = input->edges[e1][0];
+      v12 = input->edges[e1][1];
+    }
+    else {
+      if (!get_face_edge_id_indices(input, e1, &f, &fi)) {
+        /* Must be bad input. Will be caught later so don't need to signal here. */
+        continue;
+      }
+      start = input->faces_start_table[f];
+      flen = input->faces_len_table[f];
+      v11 = input->faces[start + fi];
+      v12 = input->faces[(fi == flen - 1) ? start : start + fi + 1];
+    }
+    for (e2 = e1 + 1; e2 < tot_edge_constraints; e2++) {
+      if (e2 < edges_len) {
+        v21 = input->edges[e2][0];
+        v22 = input->edges[e2][1];
+      }
+      else {
+        if (!get_face_edge_id_indices(input, e2, &f, &fi)) {
+          continue;
+        }
+        start = input->faces_start_table[f];
+        flen = input->faces_len_table[f];
+        v21 = input->faces[start + fi];
+        v22 = input->faces[(fi == flen - 1) ? start : start + fi + 1];
+      }
+      copy_v2db_v2fl(co11, input->vert_coords[v11]);
+      copy_v2db_v2fl(co12, input->vert_coords[v12]);
+      copy_v2db_v2fl(co21, input->vert_coords[v21]);
+      copy_v2db_v2fl(co22, input->vert_coords[v22]);
+      if (check_vert_near_segment(co11, co21, co22, eps_sq, &lambda)) {
+
+        BLI_array_append(edge_vert_lambda, ((EdgeVertLambda){e2, v11, lambda}));
+      }
+      if (check_vert_near_segment(co12, co21, co22, eps_sq, &lambda)) {
+        BLI_array_append(edge_vert_lambda, ((EdgeVertLambda){e2, v12, lambda}));
+      }
+      if (check_vert_near_segment(co21, co11, co12, eps_sq, &lambda)) {
+        BLI_array_append(edge_vert_lambda, ((EdgeVertLambda){e1, v21, lambda}));
+      }
+      if (check_vert_near_segment(co22, co11, co12, eps_sq, &lambda)) {
+        BLI_array_append(edge_vert_lambda, ((EdgeVertLambda){e1, v22, lambda}));
+      }
+    }
+  }
+
+  evl_len = BLI_array_len(edge_vert_lambda);
+  if (evl_len > 0) {
+    /* Sort to bring splits for each edge together,
+     * and for each edge, to be in order of lambda. */
+    qsort(edge_vert_lambda, evl_len, sizeof(EdgeVertLambda), evl_cmp);
+#ifdef DEBUG_CDT
+    if (dbg_level > 0) {
+      fprintf(stderr, "\nafter sorting\n");
+      for (i = 0; i < evl_len; i++) {
+        evl = &edge_vert_lambda[i];
+        fprintf(stderr, "e%d, v%d, %g\n", evl->e_id, evl->v_id, evl->lambda);
+      }
+    }
+#endif
+
+    /* Remove dups in edge_vert_lambda, where dup means that the edge is the
+     * same, and the verts are either the same or will be merged by epsilon-nearness.
+     */
+    i = 0;
+    j = 0;
+    /* In loop, copy from position j to position i. */
+    for (j = 0; j < evl_len;) {
+      int k;
+      if (i != j) {
+        memmove(&edge_vert_lambda[i], &edge_vert_lambda[j], sizeof(EdgeVertLambda));
+      }
+      for (k = j + 1; k < evl_len; k++) {
+        int vj = edge_vert_lambda[j].v_id;
+        int vk = edge_vert_lambda[k].v_id;
+        if (vj != vk) {
+          if (len_squared_v2v2(input->vert_coords[vj], input->vert_coords[vk]) > (float)eps_sq) {
+            break;
+          }
+        }
+      }
+      j = k;
+      i++;
+    }
+
+    if (i != evl_len) {
+      evl_len = i;
+#ifdef DEBUG_CDT
+      if (dbg_level > 0) {
+        fprintf(stderr, "\nduplicates eliminated\n");
+        for (i = 0; i < evl_len; i++) {
+          evl = &edge_vert_lambda[i];
+          fprintf(stderr, "e%d, v%d, %g\n", evl->e_id, evl->v_id, evl->lambda);
+        }
+      }
+#endif
+    }
+    /* Find delta in number of constraint edges and face edges.
+     * This may be overestimates of true number, due to duplicates. */
+    delta_con_edges = 0;
+    delta_face_edges = 0;
+    cur_e_cnt = 0;
+    eprev = -1;
+    for (i = 0; i < evl_len; i++) {
+      e = edge_vert_lambda[i].e_id;
+      if (i > 0 && e > eprev) {
+        /* New edge group. Previous group had cur_e_cnt split vertices.
+         * That is the delta in the number of edges needed in input since
+         * there will be cur_e_cnt + 1 edges replacing one edge.
+         */
+        if (eprev < edges_len) {
+          delta_con_edges += cur_e_cnt;
+        }
+        else {
+          delta_face_edges += cur_e_cnt;
+        }
+        cur_e_cnt = 1;
+        ;
+      }
+      else {
+        cur_e_cnt++;
+      }
+      eprev = e;
+    }
+    if (eprev < edges_len) {
+      delta_con_edges += cur_e_cnt;
+    }
+    else {
+      delta_face_edges += cur_e_cnt;
+    }
+    new_tot_con_edges = input->edges_len + delta_con_edges;
+    if (input->faces_len > 0) {
+      new_tot_face_edges = input->faces_start_table[input->faces_len - 1] +
+                           input->faces_len_table[input->faces_len - 1] + delta_face_edges;
+    }
+    else {
+      new_tot_face_edges = 0;
+    }
+
+    /* Allocate new CDT_input, now we know sizes needed (perhaps overestimated a bit).
+     * Caller will be reponsible for freeing it and its arrays.
+     */
+    new_input = MEM_callocN(sizeof(CDT_input), __func__);
+    new_input->epsilon = input->epsilon;
+    new_input->verts_len = input->verts_len;
+    new_input->vert_coords = (float(*)[2])MEM_malloc_arrayN(
+        new_input->verts_len, 2 * sizeof(float), __func__);
+    /* We don't do it now, but may decide to change coords of snapped verts. */
+    memmove(new_input->vert_coords,
+            input->vert_coords,
+            (size_t)new_input->verts_len * sizeof(float) * 2);
+
+    if (edges_len > 0) {
+      new_input->edges_len = new_tot_con_edges;
+      new_input->edges = (int(*)[2])MEM_malloc_arrayN(
+          new_tot_con_edges, 2 * sizeof(int), __func__);
+    }
+
+    if (input->faces_len > 0) {
+      new_input->faces_len = input->faces_len;
+      new_input->faces_start_table = (int *)MEM_malloc_arrayN(
+          new_input->faces_len, sizeof(int), __func__);
+      new_input->faces_len_table = (int *)MEM_malloc_arrayN(
+          new_input->faces_len, sizeof(int), __func__);
+      new_input->faces = (int *)MEM_malloc_arrayN(new_tot_face_edges, sizeof(int), __func__);
+    }
+
+    edge_map = (int *)MEM_malloc_arrayN(
+        new_tot_con_edges + new_tot_face_edges, sizeof(int), __func__);
+    *r_edge_map = edge_map;
+
+    i_new = i_old = i_evl = 0;
+    e = edge_vert_lambda[0].e_id;
+    /* First do new constraint edges. */
+    for (i_old = 0; i_old < edges_len; i_old++) {
+      if (i_old < e) {
+        /* Edge for i_old not split; copy it into new_input. */
+        new_input->edges[i_new][0] = input->edges[i_old][0];
+        new_input->edges[i_new][1] = input->edges[i_old][1];
+        edge_map[i_new] = i_old;
+        i_new++;
+      }
+      else {
+        /* Edge for i_old is split. */
+        BLI_assert(i_old == e);
+        new_input->edges[i_new][0] = input->edges[i_old][0];
+        new_input->edges[i_new][1] = edge_vert_lambda[i_evl].v_id;
+        edge_map[i_new] = i_old;
+        i_new++;
+        i_evl++;
+        while (i_evl < evl_len && e == edge_vert_lambda[i_evl].e_id) {
+          new_input->edges[i_new][0] = new_input->edges[i_new - 1][1];
+          new_input->edges[i_new][1] = edge_vert_lambda[i_evl].v_id;
+          edge_map[i_new] = i_old;
+          i_new++;
+          i_evl++;
+        }
+        new_input->edges[i_new][0] = new_input->edges[i_new - 1][1];
+        new_input->edges[i_new][1] = input->edges[i_old][1];
+        edge_map[i_new] = i_old;
+        i_new++;
+        if (i_evl < evl_len) {
+          e = edge_vert_lambda[i_evl].e_id;
+        }
+        else {
+          e = INT_MAX;
+        }
+      }
+    }
+    BLI_assert(i_new <= new_tot_con_edges);
+    new_input->edges_len = i_new;
+
+    /* Now do face constraints. */
+    if (input->faces_len > 0) {
+      f = 0;
+      i_new = 0; /* Now will index cur place in new_input->faces. */
+      while (i_old < tot_edge_constraints) {
+        flen = input->faces_len_table[f];
+        BLI_assert(i_old - edges_len == input->faces_start_table[f]);
+        new_input->faces_start_table[f] = i_new;
+        if (i_old + flen - 1 < e) {
+          /* Face f is not split. */
+          for (j = 0; j < flen; j++) {
+            new_input->faces[i_new] = input->faces[i_old - edges_len + j];
+            edge_map[i_new + new_input->edges_len] = i_old + j;
+            i_new++;
+          }
+          i_old += flen;
+          new_input->faces_len_table[f] = flen;
+          f++;
+        }
+        else {
+          /* Face f has at least one split edge. */
+          int i_new_start = i_new;
+          for (j = 0; j < flen; j++) {
+            if (i_old + j < e) {
+              /* jth edge of f is not split. */
+              new_input->faces[i_new] = input->faces[i_old - edges_len + j];
+              edge_map[i_new + new_input->edges_len] = i_old + j;
+              i_new++;
+            }
+            else {
+              /* jth edge of f is split. */
+              BLI_assert(i_old + j == e);
+              new_input->faces[i_new] = input->faces[i_old - edges_len + j];
+              edge_map[i_new + new_input->edges_len] = i_old + j;
+              i_new++;
+              while (i_evl < evl_len && e == edge_vert_lambda[i_evl].e_id) {
+                new_input->faces[i_new] = edge_vert_lambda[i_evl].v_id;
+                edge_map[i_new + new_input->edges_len] = i_old + j;
+                i_new++;
+                i_evl++;
+              }
+              if (i_evl < evl_len) {
+                e = edge_vert_lambda[i_evl].e_id;
+              }
+              else {
+                e = INT_MAX;
+              }
+            }
+          }
+          new_input->faces_len_table[f] = i_new - i_new_start;
+          i_old += flen;
+          f++;
+        }
+      }
+    }
+
+#ifdef DEBUG_CDT
+    if (dbg_level > 0) {
+      fprintf(stderr, "\nnew constraint edges\n");
+      for (i = 0; i < new_input->edges_len; i++) {
+        fprintf(stderr, "  e%d: (%d,%d)\n", i, new_input->edges[i][0], new_input->edges[i][1]);
+      }
+      fprintf(stderr, "\nnew faces\n");
+      for (f = 0; f < new_input->faces_len; f++) {
+        flen = new_input->faces_len_table[f];
+        start = new_input->faces_start_table[f];
+        fprintf(stderr, "  f%d: start=%d, len=%d\n    ", f, start, flen);
+        for (i = start; i < start + flen; i++) {
+          fprintf(stderr, "%d ", new_input->faces[i]);
+        }
+        fprintf(stderr, "\n");
+      }
+      fprintf(stderr, "\nedge map (new->old)\n");
+      for (i = 0; i < new_tot_con_edges + new_tot_face_edges; i++) {
+        fprintf(stderr, "  %d->%d\n", i, edge_map[i]);
+      }
+    }
+#endif
+  }
+
+  BLI_array_free(edge_vert_lambda);
+  if (new_input != NULL) {
+    return (const CDT_input *)new_input;
+  }
+  else {
+    return input;
+  }
+}
+
+static void free_modified_input(CDT_input *input)
+{
+  MEM_freeN(input->vert_coords);
+  if (input->edges != NULL) {
+    MEM_freeN(input->edges);
+  }
+  if (input->faces != NULL) {
+    MEM_freeN(input->faces);
+    MEM_freeN(input->faces_len_table);
+    MEM_freeN(input->faces_start_table);
+  }
+  MEM_freeN(input);
 }
 
 /* Return true if we can merge se's vert into se->next's vert
@@ -2439,8 +3145,7 @@ static CDT_result *cdt_get_output(CDT_state *cdt,
  * face intersection.
  *
  * This routine also takes an epsilon parameter in the \a input. Input vertices closer than epsilon
- * will be merged, and we collapse tiny edges (less than epsilon length) and skinny triangles
- * (having an altitude of less than epsilon).
+ * will be merged, and we collapse tiny edges (less than epsilon length).
  *
  * The current initial Deluanay triangulation algorithm is the Guibas-Stolfi Divide and Conquer
  * algorithm (see "Primitives for the Manipulation of General Subdivisions and the Computation of
@@ -2463,13 +3168,15 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
   int nv = input->verts_len;
   int ne = input->edges_len;
   int nf = input->faces_len;
-  int i, iv1, iv2, f, fedge_start, fedge_end;
+  int i, iv1, iv2, f, fedge_start, fedge_end, ei;
   CDT_state *cdt;
   CDTVert *v1, *v2;
   CDTEdge *face_edge;
   SymEdge *face_symedge;
   LinkNode *edge_list;
   CDT_result *result;
+  const CDT_input *input_orig;
+  int *new_edge_map;
   static bool called_exactinit = false;
 #ifdef DEBUG_CDT
   int dbg_level = 0;
@@ -2504,11 +3211,26 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
     return NULL;
   }
 
-  cdt = new_cdt_init(input);
+  input_orig = input;
+  input = modify_input_for_near_edge_ends(input, &new_edge_map);
+  if (input != input_orig) {
+    nv = input->verts_len;
+    ne = input->edges_len;
+    nf = input->faces_len;
+#ifdef DEBUG_CDT
+    if (dbg_level > 4) {
+      fprintf(stderr, "input modified for near ends; now ne=%d\n", ne);
+    }
+#endif
+  }
+  cdt = cdt_init(input);
   initial_triangulation(cdt);
 #ifdef DEBUG_CDT
   if (dbg_level > 0) {
     validate_cdt(cdt, true, false, false);
+    if (dbg_level > 1) {
+      cdt_draw(cdt, "after initial triangulation");
+    }
   }
 #endif
 
@@ -2529,7 +3251,13 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
     if (v2->merge_to_index != -1) {
       v2 = cdt->vert_array[v2->merge_to_index];
     }
-    add_edge_constraint(cdt, v1, v2, i, NULL);
+    if (new_edge_map) {
+      ei = new_edge_map[i];
+    }
+    else {
+      ei = i;
+    }
+    add_edge_constraint(cdt, v1, v2, ei, NULL);
 #ifdef DEBUG_CDT
     if (dbg_level > 3) {
       char namebuf[60];
@@ -2553,6 +3281,9 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
     }
     for (i = 0; i < flen; i++) {
       int face_edge_id = cdt->face_edge_offset + fstart + i;
+      if (new_edge_map) {
+        face_edge_id = new_edge_map[face_edge_id];
+      }
       iv1 = input->faces[fstart + i];
       iv2 = input->faces[fstart + ((i + 1) % flen)];
       if (iv1 < 0 || iv1 >= nv || iv2 < 0 || iv2 >= nv) {
@@ -2619,9 +3350,9 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
     remove_small_features(cdt);
 #ifdef DEBUG_CDT
     if (dbg_level > 2) {
-      cdt_draw(cdt, "after collapse skinny triangles\n");
+      cdt_draw(cdt, "after remove small features\n");
       if (dbg_level > 3) {
-        dump_cdt(cdt, "after collapse skinny triangles\n");
+        dump_cdt(cdt, "after remove small features\n");
       }
     }
 #endif
@@ -2634,6 +3365,9 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
   }
 #endif
 
+  if (input != input_orig) {
+    free_modified_input((CDT_input *)input);
+  }
   new_cdt_free(cdt);
   return result;
 }
@@ -2708,14 +3442,14 @@ ATTU static const char *sename(const SymEdge *se)
 
 static void dump_v(const CDTVert *v, const char *lab)
 {
-  fprintf(stderr, "%s%s(%.3f,%.3f)\n", lab, vertname(v), F2(v->co));
+  fprintf(stderr, "%s%s(%.10f,%.10f)\n", lab, vertname(v), F2(v->co));
 }
 
 static void dump_se(const SymEdge *se, const char *lab)
 {
   if (se->next) {
     fprintf(stderr,
-            "%s%s((%.3f,%.3f)->(%.3f,%.3f))",
+            "%s%s((%.10f,%.10f)->(%.10f,%.10f))",
             lab,
             vertname(se->vert),
             F2(se->vert->co),
@@ -2723,7 +3457,18 @@ static void dump_se(const SymEdge *se, const char *lab)
     fprintf(stderr, "%s\n", vertname(se->next->vert));
   }
   else {
-    fprintf(stderr, "%s%s((%.3f,%.3f)->NULL)\n", lab, vertname(se->vert), F2(se->vert->co));
+    fprintf(stderr, "%s%s((%.10f,%.10f)->NULL)\n", lab, vertname(se->vert), F2(se->vert->co));
+  }
+}
+
+static void dump_se_short(const SymEdge *se, const char *lab)
+{
+  if (se == NULL) {
+    fprintf(stderr, "%sNULL", lab);
+  }
+  else {
+    fprintf(stderr, "%s%s", lab, vertname(se->vert));
+    fprintf(stderr, "%s", se->next == NULL ? "[NULL]" : vertname(se->next->vert));
   }
 }
 
@@ -2752,6 +3497,20 @@ static void dump_id_list(const LinkNode *id_list, const char *lab)
   for (ln = id_list; ln; ln = ln->next) {
     fprintf(stderr, "%d%c", POINTER_AS_INT(ln->link), ln->next ? ' ' : '\n');
   }
+}
+
+static void dump_cross_data(struct CrossData *cd, const char *lab)
+{
+  fprintf(stderr, "%s", lab);
+  if (cd->lambda == 0.0) {
+    fprintf(stderr, "v%d", cd->vert->index);
+  }
+  else {
+    fprintf(stderr, "lambda=%.17g", cd->lambda);
+  }
+  dump_se_short(cd->in, " in=");
+  dump_se_short(cd->out, " out=");
+  fprintf(stderr, "\n");
 }
 
 /* If filter_fn != NULL, only dump vert v its edges when filter_fn(cdt, v, filter_data) is true. */
@@ -2941,7 +3700,7 @@ static void dump_cdt_vert_neighborhood(CDT_state *cdt, int v, int maxdist, const
 #  define MAX_DRAW_WIDTH 2000
 #  define MAX_DRAW_HEIGHT 1400
 #  define THIN_LINE 1
-#  define THICK_LINE 3
+#  define THICK_LINE 4
 #  define VERT_RADIUS 3
 #  define DRAW_VERT_LABELS 1
 #  define DRAW_EDGE_LABELS 0
@@ -3025,7 +3784,7 @@ static void cdt_draw_region(
             SX(v->co[0]),
             SY(v->co[1]),
             VERT_RADIUS);
-    fprintf(f, "  <title>%s(%.3f,%.3f)</title>\n", vertname(v), v->co[0], v->co[1]);
+    fprintf(f, "  <title>%s(%.10f,%.10f)</title>\n", vertname(v), v->co[0], v->co[1]);
     fprintf(f, "</circle>\n");
 #  if DRAW_VERT_LABELS
     fprintf(f,
@@ -3062,6 +3821,19 @@ static void cdt_draw_vertex_region(CDT_state *cdt, int v, double dist, const cha
   cdt_draw_region(cdt, lab, co[0] - dist, co[1] - dist, co[0] + dist, co[1] + dist);
 }
 
+static void cdt_draw_edge_region(CDT_state *cdt, int v1, int v2, double dist, const char *lab)
+{
+  const double *co1 = cdt->vert_array[v1]->co;
+  const double *co2 = cdt->vert_array[v2]->co;
+  double minx, miny, maxx, maxy;
+
+  minx = min_dd(co1[0], co2[0]);
+  miny = min_dd(co1[1], co2[1]);
+  maxx = max_dd(co1[0], co2[0]);
+  maxy = max_dd(co1[1], co2[1]);
+  cdt_draw_region(cdt, lab, minx - dist, miny - dist, maxx + dist, maxy + dist);
+}
+
 #  define CDTFILE "/tmp/cdtinput.txt"
 static void write_cdt_input_to_file(const CDT_input *inp)
 {
@@ -3087,7 +3859,7 @@ static void write_cdt_input_to_file(const CDT_input *inp)
 #  ifndef NDEBUG /* Only used in assert. */
 /*
  * Is a visible from b: i.e., ab crosses no edge of cdt?
- * If constrained is true, consider only constrained edges as possible crosser's.
+ * If constrained is true, consider only constrained edges as possible crossed edges.
  * In any case, don't count an edge ab itself.
  * Note: this is an expensive test if there are a lot of edges.
  */
@@ -3232,9 +4004,12 @@ static void validate_cdt(CDT_state *cdt,
         v1 = se->vert;
         v2 = se->next->vert;
         v3 = se->next->next->vert;
-        BLI_assert(orient2d(v1->co, v2->co, v3->co) >= 0.0);
-        BLI_assert(orient2d(v2->co, v3->co, v1->co) >= 0.0);
-        BLI_assert(orient2d(v3->co, v1->co, v2->co) >= 0.0);
+        /* The triangle should be positively oriented, but because
+         * the insertion of intersection vertices doesn't use exact
+         * arithmetic, this may not be true, so allow a little slop. */
+        BLI_assert(orient2d(v1->co, v2->co, v3->co) >= -FLT_EPSILON);
+        BLI_assert(orient2d(v2->co, v3->co, v1->co) >= -FLT_EPSILON);
+        BLI_assert(orient2d(v3->co, v1->co, v2->co) >= -FLT_EPSILON);
       }
       UNUSED_VARS_NDEBUG(limit);
       BLI_assert(se->next->next != se);
@@ -3466,7 +4241,7 @@ static double isperrboundA, isperrboundB, isperrboundC;
  *  error.  It is used for floating-point error analysis.
  *
  *  `splitter' is used to split floating-point numbers into two
- *  half-length significances for exact multiplication.
+ *  half-length significands for exact multiplication.
  *
  *  I imagine that a highly optimizing compiler might be too smart for its
  *  own good, and somehow cause this routine to fail, if it pretends that

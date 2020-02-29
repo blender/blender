@@ -1649,6 +1649,7 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject *UNUSED(self), PyObject *ar
   in.faces_start_table = in_faces_start_table;
   in.faces_len_table = in_faces_len_table;
   in.epsilon = epsilon;
+  in.skip_input_modify = false;
 
   res = BLI_delaunay_2d_cdt_calc(&in, output_type);
 
