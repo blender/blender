@@ -210,6 +210,33 @@ def main():
         ["testCubeLattice", "expectedCubeLattice",
          [ModifierSpec('lattice', 'LATTICE', {'object': bpy.data.objects["testLattice"]})]],
 
+        # ModifierSpec('laplacian_deform', 'LAPLACIANDEFORM', {}) Laplacian requires a more complex mesh
+
+        # Mesh Deform Modifier requires user input, so skip.
+
+        # mesh_test = MeshTest("testMonkeyDeform", "expectedMonkeyDeform",[
+        #        ModifierSpec('mesh_deform', 'MESH_DEFORM', {'object': bpy.data.objects["testDeformStructure"]}),
+        #        OperatorSpec('meshdeform_bind',{'modifier':'MeshDeform'},'FACE',{i for in range(500)})
+        # ] ,True)
+
+        ["testPlaneShrinkWrap", "expectedPlaneShrinkWrap",
+         [ModifierSpec('shrinkwrap', 'SHRINKWRAP', {'target': bpy.data.objects["testCubeWrap"], 'offset': 0.5})]],
+
+        ["testCylinderSimpleDeform", "expectedCylinderSimpleDeform",
+         [ModifierSpec('simple_deform', 'SIMPLE_DEFORM', {'angle': math.radians(180), 'deform_axis': 'Z'})]],
+
+        ["testPlaneSmooth", "expectedPlaneSmooth",
+         [ModifierSpec('smooth', 'SMOOTH', {'iterations': 11})]],
+
+        # Smooth corrective requires a complex mesh.
+
+        ["testBalloonLaplacianSmooth", "expectedBalloonLaplacianSmooth",
+         [ModifierSpec('laplaciansmooth', 'LAPLACIANSMOOTH', {'lambda_factor': 12, 'lambda_border': 12})]],
+
+        # Surface Deform and Warp requires user input, so skip.
+
+        # Wave - requires complex mesh, so skip.
+
     ]
 
     modifiers_test = ModifierTest(tests)
