@@ -61,6 +61,7 @@
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_constraints.h"
 #include "transform_convert.h"
 #include "transform_draw_cursors.h"
 #include "transform_mode.h"

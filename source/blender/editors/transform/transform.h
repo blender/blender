@@ -829,8 +829,6 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2]);
 void applyAspectRatio(TransInfo *t, float vec[2]);
 void removeAspectRatio(TransInfo *t, float vec[2]);
 
-void drawPropCircle(const struct bContext *C, TransInfo *t);
-
 struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 
 /*********************** transform_gizmo.c ********** */
@@ -843,32 +841,6 @@ void drawDial3d(const TransInfo *t);
 
 /*********************** TransData Creation and General Handling *********** */
 bool transdata_check_local_islands(TransInfo *t, short around);
-
-/*********************** Constraints *****************************/
-
-void drawConstraint(TransInfo *t);
-
-void getConstraintMatrix(TransInfo *t);
-void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
-void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[]);
-void setLocalConstraint(TransInfo *t, int mode, const char text[]);
-void setUserConstraint(TransInfo *t, short orientation, int mode, const char text[]);
-
-void constraintNumInput(TransInfo *t, float vec[3]);
-
-bool isLockConstraint(TransInfo *t);
-int getConstraintSpaceDimension(TransInfo *t);
-int constraintModeToIndex(const TransInfo *t);
-char constraintModeToChar(const TransInfo *t);
-
-void startConstraint(TransInfo *t);
-void stopConstraint(TransInfo *t);
-
-void initSelectConstraint(TransInfo *t, float mtx[3][3]);
-void selectConstraint(TransInfo *t);
-void postSelectConstraint(TransInfo *t);
-
-void setNearestAxis(TransInfo *t);
 
 /********************** Mouse Input ******************************/
 

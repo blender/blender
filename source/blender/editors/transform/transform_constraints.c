@@ -52,6 +52,9 @@
 #include "transform.h"
 #include "transform_snap.h"
 
+/* Own include. */
+#include "transform_constraints.h"
+
 static void drawObjectConstraint(TransInfo *t);
 
 /* ************************** CONSTRAINTS ************************* */

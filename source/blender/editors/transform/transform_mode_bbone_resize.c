@@ -36,6 +36,7 @@
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_constraints.h"
 #include "transform_snap.h"
 #include "transform_mode.h"
 
