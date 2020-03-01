@@ -118,6 +118,8 @@ typedef struct PaintStroke {
   float last_pressure;
   int stroke_mode;
 
+  float last_tablet_event_pressure;
+
   float zoom_2d;
   int pen_flip;
 
@@ -1354,6 +1356,15 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
   pressure = ((br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ?
                   1.0f :
                   WM_event_tablet_data(event, &stroke->pen_flip, NULL));
+
+  /* When processing a timer event the pressure from the event is 0, so use the last valid
+   * pressure. */
+  if (event->type == TIMER) {
+    pressure = stroke->last_tablet_event_pressure;
+  }
+  else {
+    stroke->last_tablet_event_pressure = pressure;
+  }
 
   paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
   paint_stroke_sample_average(stroke, &sample_average);
