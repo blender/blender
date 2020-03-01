@@ -4352,11 +4352,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       prop, "Display Object Info", "Display objects name and frame number in 3D view");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-  prop = RNA_def_property(srna, "show_large_cursors", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "curssize", 0);
-  RNA_def_property_ui_text(prop, "Large Cursors", "Use large mouse cursors when available");
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
-
   prop = RNA_def_property(srna, "show_view_name", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_VIEWPORTNAME);
   RNA_def_property_ui_text(

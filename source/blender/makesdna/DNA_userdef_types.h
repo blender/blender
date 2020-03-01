@@ -748,7 +748,6 @@ typedef struct UserDef {
   /** Milliseconds to spend spinning the view. */
   short smooth_viewtx;
   short glreslimit;
-  short curssize DNA_DEPRECATED;
   /** #eColorPicker_Types. */
   short color_picker_type;
   /** Curve smoothing type for newly added F-Curves. */
@@ -757,7 +756,7 @@ typedef struct UserDef {
   char ipo_new;
   /** Handle types for newly added keyframes. */
   char keyhandles_new;
-  char _pad11[2];
+  char _pad11[4];
   /** #eZoomFrame_Mode. */
   char view_frame_type;
 

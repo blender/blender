@@ -136,7 +136,6 @@ const UserDef U_default = {
     .recent_files = 10,
     .smooth_viewtx = 200,
     .glreslimit = 0,
-    .curssize = 0,
     .color_picker_type = USER_CP_CIRCLE_HSV,
     .auto_smoothing_new = FCURVE_SMOOTH_CONT_ACCEL,
     .ipo_new = BEZT_IPO_BEZ,
