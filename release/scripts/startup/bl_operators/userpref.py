@@ -1040,7 +1040,7 @@ class PREFERENCES_OT_studiolight_new(Operator):
         if os.path.isfile(filepath_final):
             if not self.ask_overide:
                 self.ask_overide = True
-                return wm.invoke_props_dialog(self, width=600)
+                return wm.invoke_props_dialog(self, width=320)
             else:
                 for studio_light in prefs.studio_lights:
                     if studio_light.name == filename:
@@ -1066,7 +1066,7 @@ class PREFERENCES_OT_studiolight_new(Operator):
 
     def invoke(self, context, _event):
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=600)
+        return wm.invoke_props_dialog(self, width=320)
 
 
 class PREFERENCES_OT_studiolight_uninstall(Operator):
