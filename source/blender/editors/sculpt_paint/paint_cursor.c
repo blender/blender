@@ -1482,11 +1482,11 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
               /* Free the previous pose brush preview. */
               if (ss->pose_ik_chain_preview) {
-                sculpt_pose_ik_chain_free(ss->pose_ik_chain_preview);
+                SCULPT_pose_ik_chain_free(ss->pose_ik_chain_preview);
               }
 
               /* Generate a new pose brush preview from the current cursor location. */
-              ss->pose_ik_chain_preview = sculpt_pose_ik_chain_init(
+              ss->pose_ik_chain_preview = SCULPT_pose_ik_chain_init(
                   sd, vc.obact, ss, brush, gi.location, rds);
             }
 
