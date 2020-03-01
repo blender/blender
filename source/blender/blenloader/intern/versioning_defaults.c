@@ -542,6 +542,30 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       brush->sculpt_tool = SCULPT_TOOL_MULTIPLANE_SCRAPE;
     }
 
+    brush_name = "Clay Thumb";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
+      id_us_min(&brush->id);
+      brush->sculpt_tool = SCULPT_TOOL_CLAY_THUMB;
+    }
+
+    brush_name = "Cloth";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
+      id_us_min(&brush->id);
+      brush->sculpt_tool = SCULPT_TOOL_CLOTH;
+    }
+
+    brush_name = "Slide Relax";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
+      id_us_min(&brush->id);
+      brush->sculpt_tool = SCULPT_TOOL_SLIDE_RELAX;
+    }
+
     brush_name = "Simplify";
     brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
     if (!brush) {
