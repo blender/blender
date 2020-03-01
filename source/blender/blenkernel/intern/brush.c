@@ -943,6 +943,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->alpha = 0.5f;
       br->normal_radius_factor = 1.0f;
       br->spacing = 6;
+      br->hardness = 0.5f;
       br->flag |= BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;

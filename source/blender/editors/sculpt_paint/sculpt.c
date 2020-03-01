@@ -5344,7 +5344,6 @@ static void do_clay_thumb_brush_task_cb_ex(void *__restrict userdata,
   float(*mat)[4] = data->mat;
   const float *area_no_sp = data->area_no_sp;
   const float *area_co = data->area_co;
-  const float hardness = 0.50f;
 
   PBVHVertexIter vd;
   float(*proxy)[3];
@@ -5387,17 +5386,10 @@ static void do_clay_thumb_brush_task_cb_ex(void *__restrict userdata,
       interp_v3_v3v3(intr, intr, intr_tilt, tilt_mix);
       sub_v3_v3v3(val, intr_tilt, vd.co);
 
-      /* Deform the real vertex test distance with a hardness factor. This moves the falloff
-       * towards the edges of the brush, producing a more defined falloff and a flat center. */
-      float dist = sqrtf(test.dist);
-      float p = dist / ss->cache->radius;
-      p = (p - hardness) / (1.0f - hardness);
-      CLAMP(p, 0.0f, 1.0f);
-      dist *= p;
       const float fade = bstrength * tex_strength(ss,
                                                   brush,
                                                   vd.co,
-                                                  dist,
+                                                  sqrtf(test.dist),
                                                   vd.no,
                                                   vd.fno,
                                                   vd.mask ? *vd.mask : 0.0f,
