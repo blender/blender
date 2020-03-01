@@ -1231,7 +1231,7 @@ static void sculpt_multiplane_scrape_preview_draw(const uint gpuattr,
   float local_mat_inv[4][4];
   invert_m4_m4(local_mat_inv, ss->cache->stroke_local_mat);
   GPU_matrix_mul(local_mat_inv);
-  float angle = ss->cache->multiplane_scrape_sampled_angle;
+  float angle = ss->cache->multiplane_scrape_angle;
   if (ss->cache->pen_flip || ss->cache->invert) {
     angle = -angle;
   }

@@ -5510,6 +5510,7 @@ static void do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
 
   /* Delay the first daub because grab delta is not setup. */
   if (ss->cache->first_time) {
+    ss->cache->multiplane_scrape_angle = 0.0f;
     return;
   }
 
@@ -5533,10 +5534,8 @@ static void do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
   normalize_m4(mat);
   invert_m4(mat);
 
-  float angle = brush->multiplane_scrape_angle;
-
   /* Update matrix for the cursor preview. */
-  if (ss->cache->mirror_symmetry_pass == 0) {
+  if (ss->cache->mirror_symmetry_pass == 0 && ss->cache->radial_symmetry_pass == 0) {
     copy_m4_m4(ss->cache->stroke_local_mat, mat);
   }
 
@@ -5593,8 +5592,8 @@ static void do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
       sampled_angle = -sampled_angle;
     }
 
-    /* In dynamic mode, set the angle to 0 when inverting the brush, so you can trim plane surfaces
-     * without changing the brush. */
+    /* In dynamic mode, set the angle to 0 when inverting the brush, so you can trim plane
+     * surfaces without changing the brush. */
     if (flip) {
       sampled_angle = 0.0f;
     }
@@ -5602,19 +5601,20 @@ static void do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
       copy_v3_v3(area_co, ss->cache->location);
     }
 
-    angle = RAD2DEGF(sampled_angle);
+    /* Interpolate between the previous and new sampled angles to avoid artifacts when if angle
+     * difference between two samples is too big. */
+    ss->cache->multiplane_scrape_angle = interpf(
+        RAD2DEGF(sampled_angle), ss->cache->multiplane_scrape_angle, 0.2f);
   }
   else {
 
     /* Standard mode: Scrape with the brush property fixed angle. */
     copy_v3_v3(area_co, ss->cache->location);
+    ss->cache->multiplane_scrape_angle = brush->multiplane_scrape_angle;
     if (flip) {
-      angle = -angle;
+      ss->cache->multiplane_scrape_angle *= -1.0f;
     }
   }
-
-  /* Set the angle for the cursor preview. */
-  ss->cache->multiplane_scrape_sampled_angle = angle;
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -5622,7 +5622,7 @@ static void do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
       .brush = brush,
       .nodes = nodes,
       .mat = mat,
-      .multiplane_scrape_angle = angle,
+      .multiplane_scrape_angle = ss->cache->multiplane_scrape_angle,
   };
 
   /* Calculate the final left and right scrape planes. */
@@ -5633,13 +5633,15 @@ static void do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
   invert_m4_m4(mat_inv, mat);
 
   mul_v3_mat3_m4v3(plane_no, mat, area_no);
-  rotate_v3_v3v3fl(plane_no_rot, plane_no, y_axis, DEG2RADF(-angle * 0.5f));
+  rotate_v3_v3v3fl(
+      plane_no_rot, plane_no, y_axis, DEG2RADF(-ss->cache->multiplane_scrape_angle * 0.5f));
   mul_v3_mat3_m4v3(plane_no, mat_inv, plane_no_rot);
   normalize_v3(plane_no);
   plane_from_point_normal_v3(data.multiplane_scrape_planes[1], area_co, plane_no);
 
   mul_v3_mat3_m4v3(plane_no, mat, area_no);
-  rotate_v3_v3v3fl(plane_no_rot, plane_no, y_axis, DEG2RADF(angle * 0.5f));
+  rotate_v3_v3v3fl(
+      plane_no_rot, plane_no, y_axis, DEG2RADF(ss->cache->multiplane_scrape_angle * 0.5f));
   mul_v3_mat3_m4v3(plane_no, mat_inv, plane_no_rot);
   normalize_v3(plane_no);
   plane_from_point_normal_v3(data.multiplane_scrape_planes[0], area_co, plane_no);

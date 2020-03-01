@@ -521,7 +521,7 @@ typedef struct StrokeCache {
   float *automask;
 
   float stroke_local_mat[4][4];
-  float multiplane_scrape_sampled_angle;
+  float multiplane_scrape_angle;
 
   rcti previous_r; /* previous redraw rectangle */
   rcti current_r;  /* current redraw rectangle */
