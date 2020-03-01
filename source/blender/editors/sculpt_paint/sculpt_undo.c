@@ -632,14 +632,14 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
     }
 
-    tag_update |= ID_REAL_USERS(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, v3d);
+    tag_update |= ID_REAL_USERS(ob->data) > 1 || !BKE_sculptsession_use_pbvh_draw(ob, v3d) ||
+                  ss->shapekey_active || ss->deform_modifiers_active;
 
-    if (ss->shapekey_active || ss->deform_modifiers_active) {
+    if (tag_update) {
       Mesh *mesh = ob->data;
       BKE_mesh_calc_normals(mesh);
 
       BKE_sculptsession_free_deformMats(ss);
-      tag_update |= true;
     }
 
     if (update_visibility) {
