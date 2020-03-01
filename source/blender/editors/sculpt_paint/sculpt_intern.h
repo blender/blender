@@ -30,6 +30,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_threads.h"
+#include "BLI_gsqueue.h"
 
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -173,7 +174,7 @@ void SCULPT_flip_quat_by_symm_area(float quat[3],
 
 /* Flood Fill. */
 typedef struct {
-  struct GSQueue *queue;
+  GSQueue *queue;
   char *visited_vertices;
 } SculptFloodFill;
 
