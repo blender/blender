@@ -170,6 +170,7 @@ function(blender_include_dirs_sys
 endfunction()
 
 function(blender_source_group
+  name
   sources
   )
 
@@ -204,6 +205,13 @@ function(blender_source_group
       endif()
       source_group("${GROUP_ID}" FILES ${_SRC})
     endforeach()
+  endif()
+
+  # if enabled, set the FOLDER property for visual studio projects
+  if(WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS)
+    get_filename_component(FolderDir ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+    string(REPLACE ${CMAKE_SOURCE_DIR} "" FolderDir ${FolderDir})
+    set_target_properties(${name} PROPERTIES FOLDER ${FolderDir})
   endif()
 endfunction()
 
@@ -308,14 +316,7 @@ function(blender_add_lib__impl
 
   # works fine without having the includes
   # listed is helpful for IDE's (QtCreator/MSVC)
-  blender_source_group("${sources}")
-
-  # if enabled, set the FOLDER property for visual studio projects
-  if(WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS)
-    get_filename_component(FolderDir ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
-    string(REPLACE ${CMAKE_SOURCE_DIR} "" FolderDir ${FolderDir})
-    set_target_properties(${name} PROPERTIES FOLDER ${FolderDir})
-  endif()
+  blender_source_group("${name}" "${sources}")
 
   list_assert_duplicates("${sources}")
   list_assert_duplicates("${includes}")
