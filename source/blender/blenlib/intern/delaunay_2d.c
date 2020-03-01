@@ -1200,10 +1200,6 @@ static void fill_crossdata_for_through_vert(CDTVert *v,
   SymEdge *se;
 #ifdef DEBUG_CDT
   int dbg_level = 0;
-
-  if (global_dbg) {
-    dbg_level = 1;
-  }
 #endif
 
   cd_next->lambda = 0.0;
@@ -3030,7 +3026,9 @@ static CDT_result *cdt_get_output(CDT_state *cdt,
       result->vert_coords[i][0] = (float)v->co[0];
       result->vert_coords[i][1] = (float)v->co[1];
       result->verts_orig_start_table[i] = orig_map_index;
-      result->verts_orig[orig_map_index++] = j;
+      if (j < input->verts_len) {
+        result->verts_orig[orig_map_index++] = j;
+      }
       for (ln = v->input_ids; ln; ln = ln->next) {
         result->verts_orig[orig_map_index++] = POINTER_AS_INT(ln->link);
       }

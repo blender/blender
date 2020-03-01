@@ -895,6 +895,8 @@ TEST(delaunay, OverlapFaces)
     EXPECT_NEAR(out->vert_coords[v_int1][1], 0.5, in.epsilon);
     EXPECT_NEAR(out->vert_coords[v_int2][0], 0.5, in.epsilon);
     EXPECT_NEAR(out->vert_coords[v_int2][1], 1.0, in.epsilon);
+    EXPECT_EQ(out->verts_orig_len_table[v_int1], 0);
+    EXPECT_EQ(out->verts_orig_len_table[v_int2], 0);
   }
   f0_out = get_face_tri(out, v_out[1], v_int1, v_out[4]);
   EXPECT_NE(f0_out, -1);
@@ -1283,10 +1285,11 @@ TEST(delaunay, FaceNearSegs)
   EXPECT_EQ(out->edges_len, 13);
   EXPECT_EQ(out->faces_len, 5);
   if (out->verts_len == 9 && out->edges_len == 13) {
-    for (i = 0; i < 9; i++) {
+    for (i = 0; i < 8; i++) {
       v[i] = get_output_vert_index(out, i);
       EXPECT_NE(v[i], -1);
     }
+    v[8] = 8;
     e0 = get_edge(out, v[0], v[1]);
     e1 = get_edge(out, v[4], v[6]);
     e2 = get_edge(out, v[3], v[0]);
