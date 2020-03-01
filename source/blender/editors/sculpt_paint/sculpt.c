@@ -1953,8 +1953,20 @@ float tex_strength(SculptSession *ss,
     }
   }
 
+  /* Hardness. */
+  float final_len = len;
+  const float hardness = br->hardness;
+  float p = len / cache->radius;
+  if (p < hardness) {
+    final_len = 0.0f;
+  }
+  else {
+    p = (p - hardness) / (1.0f - hardness);
+    final_len = p * cache->radius;
+  }
+
   /* Falloff curve. */
-  avg *= BKE_brush_curve_strength(br, len, cache->radius);
+  avg *= BKE_brush_curve_strength(br, final_len, cache->radius);
   avg *= frontface(br, cache->view_normal, vno, fno);
 
   /* Paint mask. */

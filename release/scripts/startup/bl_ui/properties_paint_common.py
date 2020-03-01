@@ -536,6 +536,7 @@ def brush_settings(layout, context, brush, popover=False):
 
         # normal_radius_factor
         layout.prop(brush, "normal_radius_factor", slider=True)
+        layout.prop(brush, "hardness", slider=True)
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
