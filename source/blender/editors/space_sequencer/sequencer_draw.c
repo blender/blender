@@ -338,6 +338,7 @@ static void drawseqwave(View2D *v2d,
       if (fcu && !BKE_fcurve_is_empty(fcu)) {
         float evaltime = x1_offset + (i * stepsize);
         volume = evaluate_fcurve(fcu, evaltime);
+        CLAMP_MIN(volume, 0.0f);
       }
       value1 *= volume;
       value2 *= volume;
