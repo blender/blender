@@ -26,6 +26,10 @@
 
 #include "DNA_vec_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct DEGEditorUpdateContext;
 struct ID;
 struct MTex;
@@ -102,5 +106,9 @@ void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, void *s
 void ED_render_clear_mtex_copybuf(void);
 
 void ED_render_internal_init(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

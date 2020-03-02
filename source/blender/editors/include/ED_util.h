@@ -26,6 +26,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Main;
 struct bContext;
 struct wmOperatorType;
@@ -63,5 +67,9 @@ void unpack_menu(struct bContext *C,
                  const char *abs_name,
                  const char *folder,
                  struct PackedFile *pf);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_UTIL_H__ */

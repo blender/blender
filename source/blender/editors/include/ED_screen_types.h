@@ -24,6 +24,10 @@
 #ifndef __ED_SCREEN_TYPES_H__
 #define __ED_SCREEN_TYPES_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ----------------------------------------------------- */
 
 /* for animplayer */
@@ -132,5 +136,9 @@ enum {
    */
   AZONE_REGION_SCROLL,
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_SCREEN_TYPES_H__ */

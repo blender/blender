@@ -24,6 +24,10 @@
 #ifndef __ED_KEYFRAMES_DRAW_H__
 #define __ED_KEYFRAMES_DRAW_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct CacheFile;
 struct DLRBT_Tree;
@@ -265,5 +269,9 @@ bool actkeyblock_is_valid(ActKeyColumn *ab);
 
 /* Checks if ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds") */
 int actkeyblock_get_valid_hold(ActKeyColumn *ab);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*  __ED_KEYFRAMES_DRAW_H__ */

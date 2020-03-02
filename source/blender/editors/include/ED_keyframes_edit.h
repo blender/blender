@@ -24,6 +24,10 @@
 #ifndef __ED_KEYFRAMES_EDIT_H__
 #define __ED_KEYFRAMES_EDIT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BezTriple;
 struct FCurve;
 struct Scene;
@@ -324,5 +328,9 @@ short paste_animedit_keys(struct bAnimContext *ac,
                           bool flip);
 
 /* ************************************************ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_KEYFRAMES_EDIT_H__ */

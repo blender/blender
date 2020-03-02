@@ -27,6 +27,10 @@
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct ImBuf;
 struct Image;
@@ -141,5 +145,9 @@ typedef struct ImageFrameRange {
 ListBase ED_image_filesel_detect_sequences(struct Main *bmain,
                                            struct wmOperator *op,
                                            const bool detect_udim);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_IMAGE_H__ */

@@ -24,6 +24,10 @@
 #ifndef __ED_MBALL_H__
 #define __ED_MBALL_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Base;
 struct Object;
 struct UndoType;
@@ -55,5 +59,9 @@ void ED_mball_undosys_type(struct UndoType *ut);
 #define MBALLSEL_ANY (MBALLSEL_STIFF | MBALLSEL_RADIUS)
 
 #define MBALL_NOSEL (1u << 31u)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_MBALL_H__ */

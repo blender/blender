@@ -24,6 +24,10 @@
 #ifndef __ED_SCULPT_H__
 #define __ED_SCULPT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct Object;
 struct UndoType;
@@ -49,5 +53,9 @@ void ED_sculpt_undosys_type(struct UndoType *ut);
 
 void ED_sculpt_undo_geometry_begin(struct Object *ob, const char *name);
 void ED_sculpt_undo_geometry_end(struct Object *ob);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_SCULPT_H__ */

@@ -24,6 +24,10 @@
 #ifndef __ED_PHYSICS_H__
 #define __ED_PHYSICS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ReportList;
 struct bContext;
 struct wmKeyConfig;
@@ -55,5 +59,9 @@ void ED_rigidbody_constraint_remove(struct Main *bmain, struct Scene *scene, str
 /* operators */
 void ED_operatortypes_physics(void);
 void ED_keymap_physics(struct wmKeyConfig *keyconf);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_PHYSICS_H__ */

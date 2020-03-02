@@ -28,6 +28,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ------------------------------------------ */
 /* Settings and Defines:                      */
 
@@ -272,5 +276,9 @@ void UI_view2d_smooth_view(struct bContext *C,
 /* view2d_gizmo_navigate.c */
 /* Caller passes in own idname.  */
 void VIEW2D_GGT_navigate_impl(struct wmGizmoGroupType *gzgt, const char *idname);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __UI_VIEW2D_H__ */

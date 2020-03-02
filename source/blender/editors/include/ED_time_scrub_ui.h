@@ -24,6 +24,10 @@
 #ifndef __ED_TIME_SCRUB_UI_H__
 #define __ED_TIME_SCRUB_UI_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bContext;
 struct bDopeSheet;
 struct wmEvent;
@@ -38,5 +42,9 @@ bool ED_time_scrub_event_in_region(const struct ARegion *ar, const struct wmEven
 void ED_time_scrub_channel_search_draw(const struct bContext *C,
                                        struct ARegion *ar,
                                        struct bDopeSheet *dopesheet);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_TIME_SCRUB_UI_H__ */

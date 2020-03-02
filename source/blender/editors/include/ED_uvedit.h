@@ -24,6 +24,10 @@
 #ifndef __ED_UVEDIT_H__
 #define __ED_UVEDIT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegionType;
 struct BMEditMesh;
 struct BMFace;
@@ -205,5 +209,9 @@ void ED_uvedit_draw_main(struct SpaceImage *sima,
 
 /* uvedit_buttons.c */
 void ED_uvedit_buttons_register(struct ARegionType *art);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_UVEDIT_H__ */

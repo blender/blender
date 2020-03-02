@@ -24,6 +24,10 @@
 #ifndef __ED_CLIP_H__
 #define __ED_CLIP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct ImBuf;
 struct Main;
@@ -92,5 +96,9 @@ void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mas
 
 /* ** clip_ops.c ** */
 void ED_operatormacros_clip(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_CLIP_H__ */

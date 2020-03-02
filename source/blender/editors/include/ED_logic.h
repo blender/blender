@@ -24,7 +24,15 @@
 #ifndef __ED_LOGIC_H__
 #define __ED_LOGIC_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* logic_ops.c */
 void ED_operatortypes_logic(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_LOGIC_H__ */

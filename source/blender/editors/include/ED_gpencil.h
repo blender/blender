@@ -24,6 +24,10 @@
 #ifndef __ED_GPENCIL_H__
 #define __ED_GPENCIL_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 struct ListBase;
 struct PointerRNA;
@@ -301,5 +305,9 @@ struct tGPspoint *ED_gpencil_sbuffer_ensure(struct tGPspoint *buffer_array,
                                             const bool clear);
 /* Tag all scene grease pencil object to update. */
 void ED_gpencil_tag_scene_gpencil(struct Scene *scene);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*  __ED_GPENCIL_H__ */

@@ -23,6 +23,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Base;
 struct CLG_LogRef;
 struct Object;
@@ -81,5 +85,9 @@ void ED_undosys_type_free(void);
 
 /* memfile_undo.c */
 struct MemFile *ED_undosys_stack_memfile_get_active(struct UndoStack *ustack);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_UNDO_H__ */

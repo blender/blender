@@ -24,6 +24,10 @@
 #ifndef __BIF_GLUTIL_H__
 #define __BIF_GLUTIL_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct rcti;
 
 struct ColorManagedDisplaySettings;
@@ -176,5 +180,9 @@ float bglPolygonOffsetCalc(const float winmat[16], float viewdist, float dist);
 void bglPolygonOffset(float viewdist, float dist);
 
 void immDrawBorderCorners(unsigned int pos, const struct rcti *border, float zoomx, float zoomy);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BIF_GLUTIL_H__ */

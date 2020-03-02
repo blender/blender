@@ -24,6 +24,10 @@
 #ifndef __ED_PARTICLE_H__
 #define __ED_PARTICLE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Object;
 struct PTCacheEdit;
 struct ParticleEditSettings;
@@ -75,5 +79,9 @@ bool PE_deselect_all_visible(struct bContext *C);
 
 /* particle_edit_undo.c */
 void ED_particle_undosys_type(struct UndoType *ut);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_PARTICLE_H__ */

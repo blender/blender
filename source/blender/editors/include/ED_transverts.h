@@ -24,6 +24,10 @@
 #ifndef __ED_TRANSVERTS_H__
 #define __ED_TRANSVERTS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Object;
 
 typedef struct TransVert {
@@ -67,5 +71,9 @@ enum {
   TX_VERT_USE_MAPLOC = (1 << 1),
   TX_VERT_USE_NORMAL = (1 << 2), /* avoid nonzero check */
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_TRANSVERTS_H__ */

@@ -24,6 +24,10 @@
 #ifndef __ED_FILESELECT_H__
 #define __ED_FILESELECT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct FileSelectParams;
 struct ScrArea;
@@ -199,5 +203,9 @@ void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name);
 
 int ED_fsmenu_entry_get_icon(struct FSMenuEntry *fsentry);
 void ED_fsmenu_entry_set_icon(struct FSMenuEntry *fsentry, const int icon);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_FILESELECT_H__ */

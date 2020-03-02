@@ -23,6 +23,10 @@
 #ifndef __ED_GIZMO_UTILS_H__
 #define __ED_GIZMO_UTILS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bContext;
 struct wmGizmoGroupType;
 
@@ -38,5 +42,9 @@ bool ED_gizmo_poll_or_unlink_delayed_from_tool_ex(const struct bContext *C,
 /** Use this as poll function directly for: #wmGizmoGroupType.poll */
 bool ED_gizmo_poll_or_unlink_delayed_from_tool(const struct bContext *C,
                                                struct wmGizmoGroupType *gzgt);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_GIZMO_UTILS_H__ */

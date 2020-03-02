@@ -25,6 +25,10 @@
 #ifndef __ED_GIZMO_LIBRARY_H__
 #define __ED_GIZMO_LIBRARY_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* initialize gizmos */
 void ED_gizmotypes_arrow_3d(void);
 void ED_gizmotypes_button_2d(void);
@@ -236,5 +240,9 @@ void ED_gizmotypes_dial_3d_draw_util(const float matrix_basis[4][4],
                                      const float color[4],
                                      const bool select,
                                      struct Dial3dParams *params);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_GIZMO_LIBRARY_H__ */

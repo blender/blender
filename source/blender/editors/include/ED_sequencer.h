@@ -23,6 +23,10 @@
 #ifndef __ED_SEQUENCER_H__
 #define __ED_SEQUENCER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Scene;
 struct Sequence;
 struct SpaceSeq;
@@ -45,5 +49,9 @@ void ED_operatormacros_sequencer(void);
 Sequence *ED_sequencer_special_preview_get(void);
 void ED_sequencer_special_preview_set(struct bContext *C, const int mval[2]);
 void ED_sequencer_special_preview_clear(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*  __ED_SEQUENCER_H__ */

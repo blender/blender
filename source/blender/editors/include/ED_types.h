@@ -24,6 +24,10 @@
 #ifndef __ED_TYPES_H__
 #define __ED_TYPES_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* **************** GENERAL EDITOR-WIDE TYPES AND DEFINES ************************** */
 
 /* old blender defines... should be deprecated? */
@@ -34,5 +38,9 @@
 /* proposal = put scene pointers on function calls? */
 // #define BASACT                    (scene->basact)
 // #define OBACT                     (BASACT ? BASACT->object : NULL)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_TYPES_H__ */

@@ -24,6 +24,10 @@
 #ifndef __ED_VIEW3D_H__
 #define __ED_VIEW3D_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
 struct BMEdge;
@@ -746,5 +750,9 @@ void ED_view3d_buttons_region_layout_ex(const struct bContext *C,
 /* view3d_view.c */
 bool ED_view3d_local_collections_set(struct Main *bmain, struct View3D *v3d);
 void ED_view3d_local_collections_reset(struct bContext *C, const bool reset_all);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_VIEW3D_H__ */

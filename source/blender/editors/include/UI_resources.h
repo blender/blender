@@ -26,6 +26,10 @@
 
 #include "BLI_sys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Define icon enum. */
 #define DEF_ICON(name) ICON_##name,
 #define DEF_ICON_VECTOR(name) ICON_##name,
@@ -443,5 +447,9 @@ int UI_ThemeMenuShadowWidth(void);
 const unsigned char *UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 
 void UI_make_axis_color(const unsigned char *src_col, unsigned char *dst_col, const char axis);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __UI_RESOURCES_H__ */

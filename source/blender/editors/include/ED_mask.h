@@ -24,6 +24,10 @@
 #ifndef __ED_MASK_H__
 #define __ED_MASK_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Depsgraph;
 struct KeyframeEditData;
 struct MaskLayer;
@@ -112,6 +116,10 @@ void copy_gpdata(void);
 void paste_gpdata(void);
 
 void mirror_masklayer_frames(struct MaskLayer *mask_layer, short mode);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __ED_MASK_H__ */

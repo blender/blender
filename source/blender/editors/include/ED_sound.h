@@ -24,6 +24,14 @@
 #ifndef __ED_SOUND_H__
 #define __ED_SOUND_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void ED_operatortypes_sound(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_SOUND_H__ */

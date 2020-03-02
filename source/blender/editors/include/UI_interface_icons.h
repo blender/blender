@@ -24,6 +24,10 @@
 #ifndef __UI_INTERFACE_ICONS_H__
 #define __UI_INTERFACE_ICONS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 struct PointerRNA;
 struct PreviewImage;
@@ -91,5 +95,9 @@ struct PreviewImage *UI_icon_to_preview(int icon_id);
 
 int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, const bool big);
 int UI_idcode_icon_get(const int idcode);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*  __UI_INTERFACE_ICONS_H__ */

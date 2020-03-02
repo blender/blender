@@ -21,6 +21,10 @@
 #ifndef __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__
 #define __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMEdge;
 struct BMFace;
 struct BMVert;
@@ -148,5 +152,9 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
                                                     float ray_depth,
                                                     bool sort,
                                                     ListBase *r_hit_list);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__ */

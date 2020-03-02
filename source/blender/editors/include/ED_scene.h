@@ -23,6 +23,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum eSceneCopyMethod;
 
 struct Scene *ED_scene_add(struct Main *bmain,
@@ -38,5 +42,9 @@ bool ED_scene_view_layer_delete(struct Main *bmain,
                                 struct ReportList *reports) ATTR_NONNULL(1, 2, 3);
 
 void ED_operatortypes_scene(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_SCENE_H__ */

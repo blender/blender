@@ -24,6 +24,10 @@
 #ifndef __ED_DATAFILES_H__
 #define __ED_DATAFILES_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Datafiles embedded in Blender */
 
 extern int datatoc_startup_blend_size;
@@ -299,5 +303,9 @@ extern char datatoc_gp_brush_erase_hard_png[];
 
 extern int datatoc_gp_brush_erase_stroke_png_size;
 extern char datatoc_gp_brush_erase_stroke_png[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_DATAFILES_H__ */

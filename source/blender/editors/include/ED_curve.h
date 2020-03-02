@@ -24,6 +24,10 @@
 #ifndef __ED_CURVE_H__
 #define __ED_CURVE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BPoint;
 struct Base;
 struct BezTriple;
@@ -102,6 +106,10 @@ void ED_font_undosys_type(struct UndoType *ut);
 #if 0
 /* debug only */
 void printknots(struct Object *obedit);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __ED_CURVE_H__ */

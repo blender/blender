@@ -21,6 +21,10 @@
 #ifndef __ED_PAINT_H__
 #define __ED_PAINT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ImBuf;
 struct Image;
 struct UndoStep;
@@ -95,5 +99,9 @@ void ED_paintcurve_undo_push_begin(const char *name);
 void ED_paintcurve_undo_push_end(void);
 
 void ED_paintcurve_undosys_type(struct UndoType *ut);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_PAINT_H__ */

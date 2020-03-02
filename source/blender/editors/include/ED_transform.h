@@ -24,6 +24,10 @@
 #ifndef __ED_TRANSFORM_H__
 #define __ED_TRANSFORM_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ******************* Registration Function ********************** */
 
 struct Object;
@@ -205,5 +209,9 @@ struct TransformCalcParams {
 int ED_transform_calc_gizmo_stats(const struct bContext *C,
                                   const struct TransformCalcParams *params,
                                   struct TransformBounds *tbounds);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_TRANSFORM_H__ */

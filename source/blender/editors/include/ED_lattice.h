@@ -24,6 +24,10 @@
 #ifndef __ED_LATTICE_H__
 #define __ED_LATTICE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Base;
 struct Object;
 struct UndoType;
@@ -43,5 +47,9 @@ bool ED_lattice_deselect_all_multi(struct bContext *C);
 
 /* editlattice_undo.c */
 void ED_lattice_undosys_type(struct UndoType *ut);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_LATTICE_H__ */

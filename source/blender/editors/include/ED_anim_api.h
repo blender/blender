@@ -24,6 +24,10 @@
 #ifndef __ED_ANIM_API_H__
 #define __ED_ANIM_API_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct Depsgraph;
 struct ID;
@@ -858,5 +862,9 @@ void animviz_calc_motionpaths(struct Depsgraph *depsgraph,
                               bool restore);
 
 void animviz_get_object_motionpaths(struct Object *ob, ListBase *targets);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_ANIM_API_H__ */

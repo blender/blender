@@ -34,6 +34,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct Depsgraph;
 struct IDProperty;
@@ -459,5 +463,9 @@ enum {
   SPACE_CONTEXT_CYCLE_PREV,
   SPACE_CONTEXT_CYCLE_NEXT,
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ED_SCREEN_H__ */
