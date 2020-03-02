@@ -3132,22 +3132,22 @@ static EdgeHalf *next_edgehalf_bev(BevelParams *bp,
  */
 static void regularize_profile_orientation(BevelParams *bp, BMEdge *bme)
 {
-  BevVert *start_bv;
-  BevVert *bv;
-  EdgeHalf *start_edgehalf, *edgehalf;
-  bool toward_bv;
-
-  start_bv = find_bevvert(bp, bme->v1);
-  start_edgehalf = find_edge_half(start_bv, bme);
+  BevVert *start_bv = find_bevvert(bp, bme->v1);
+  EdgeHalf *start_edgehalf = find_edge_half(start_bv, bme);
   if (!start_edgehalf->is_bev || start_edgehalf->visited_rpo) {
     return;
   }
 
-  /* Pick a BoundVert on one side of the profile to use for the start of the profile. */
-  start_edgehalf->leftv->is_profile_start = false;
+  /* Pick a BoundVert on one side of the profile to use for the starting side. Use the one highest
+   * on the Z axis because even any rule is better than an arbitrary decision. */
+  bool right_highest = start_edgehalf->leftv->nv.co[2] < start_edgehalf->rightv->nv.co[2];
+  start_edgehalf->leftv->is_profile_start = right_highest;
   start_edgehalf->visited_rpo = true;
 
   /* First loop starts in the away from BevVert direction and the second starts toward it. */
+  bool toward_bv;
+  BevVert *bv;
+  EdgeHalf *edgehalf;
   for (int i = 0; i < 2; i++) {
     edgehalf = start_edgehalf;
     bv = start_bv;
@@ -3160,11 +3160,11 @@ static void regularize_profile_orientation(BevelParams *bp, BMEdge *bme)
        * The direction relative to the BevVert switches every step, so also switch
        * the orientation every step. */
       if (i == 0) {
-        edgehalf->leftv->is_profile_start = toward_bv;
+        edgehalf->leftv->is_profile_start = toward_bv ^ right_highest;
       }
       else {
         /* The opposite side as the first direction because we're moving the other way. */
-        edgehalf->leftv->is_profile_start = !toward_bv;
+        edgehalf->leftv->is_profile_start = !toward_bv ^ right_highest;
       }
 
       /* The next jump will in the opposite direction relative to the BevVert. */
