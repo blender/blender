@@ -432,6 +432,8 @@ static void WIDGETGROUP_camera_view_setup(const bContext *UNUSED(C), wmGizmoGrou
   /* Box style is more subtle in this case. */
   RNA_enum_set(viewgroup->border->ptr, "draw_style", ED_GIZMO_CAGE2D_STYLE_BOX);
 
+  WM_gizmo_set_scale(viewgroup->border, 10.0f / 0.15f);
+
   gzgroup->customdata = viewgroup;
 }
 
