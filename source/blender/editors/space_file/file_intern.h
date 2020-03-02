@@ -48,13 +48,6 @@ bool file_draw_check_exists(SpaceFile *sfile);
 struct wmOperator;
 struct wmOperatorType;
 
-typedef enum WalkSelectDirection {
-  FILE_SELECT_WALK_UP,
-  FILE_SELECT_WALK_DOWN,
-  FILE_SELECT_WALK_LEFT,
-  FILE_SELECT_WALK_RIGHT,
-} WalkSelectDirections;
-
 void FILE_OT_highlight(struct wmOperatorType *ot);
 void FILE_OT_sort_column_ui_context(struct wmOperatorType *ot);
 void FILE_OT_select(struct wmOperatorType *ot);

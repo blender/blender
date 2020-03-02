@@ -49,14 +49,6 @@ typedef enum TreeElementInsertType {
   TE_INSERT_INTO,
 } TreeElementInsertType;
 
-/* Use generic walk select after D4771 is committed */
-typedef enum WalkSelectDirection {
-  OUTLINER_SELECT_WALK_UP,
-  OUTLINER_SELECT_WALK_DOWN,
-  OUTLINER_SELECT_WALK_LEFT,
-  OUTLINER_SELECT_WALK_RIGHT,
-} WalkSelectDirection;
-
 typedef enum TreeTraversalAction {
   /* Continue traversal regularly, don't skip children. */
   TRAVERSE_CONTINUE = 0,

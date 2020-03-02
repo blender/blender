@@ -1636,16 +1636,16 @@ static TreeElement *do_outliner_select_walk(SpaceOutliner *soops,
   tselem->flag &= ~TSE_ACTIVE_WALK;
 
   switch (direction) {
-    case OUTLINER_SELECT_WALK_UP:
+    case UI_SELECT_WALK_UP:
       walk_element = outliner_find_previous_element(soops, walk_element);
       break;
-    case OUTLINER_SELECT_WALK_DOWN:
+    case UI_SELECT_WALK_DOWN:
       walk_element = outliner_find_next_element(soops, walk_element);
       break;
-    case OUTLINER_SELECT_WALK_LEFT:
+    case UI_SELECT_WALK_LEFT:
       outliner_item_openclose(walk_element, false, toggle_all);
       break;
-    case OUTLINER_SELECT_WALK_RIGHT:
+    case UI_SELECT_WALK_RIGHT:
       outliner_item_openclose(walk_element, true, toggle_all);
       break;
   }
@@ -1748,14 +1748,6 @@ static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEven
 
 void OUTLINER_OT_select_walk(wmOperatorType *ot)
 {
-  static const EnumPropertyItem direction_items[] = {
-      {OUTLINER_SELECT_WALK_UP, "UP", 0, "Up", ""},
-      {OUTLINER_SELECT_WALK_DOWN, "DOWN", 0, "Down", ""},
-      {OUTLINER_SELECT_WALK_LEFT, "LEFT", 0, "Left", ""},
-      {OUTLINER_SELECT_WALK_RIGHT, "RIGHT", 0, "Right", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   /* identifiers */
   ot->name = "Walk Select";
   ot->idname = "OUTLINER_OT_select_walk";
@@ -1769,13 +1761,7 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop;
-  prop = RNA_def_enum(ot->srna,
-                      "direction",
-                      direction_items,
-                      0,
-                      "Walk Direction",
-                      "Select element in this direction");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  WM_operator_properties_select_walk_direction(ot);
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection on walk");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
