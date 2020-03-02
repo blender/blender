@@ -1578,7 +1578,7 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 
   bool use_internal_springs = (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS);
 
-  if (use_internal_springs) {
+  if (use_internal_springs && numpolys > 0) {
     BVHTreeFromMesh treedata = {NULL};
     unsigned int tar_v_idx;
     BLI_bitmap *verts_used = NULL;
