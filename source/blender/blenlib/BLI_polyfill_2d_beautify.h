@@ -21,6 +21,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Heap;
 struct MemArena;
 
@@ -43,5 +47,9 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
 
 /* avoid realloc's when creating new structures for polyfill ngons */
 #define BLI_POLYFILL_ALLOC_NGON_RESERVE 64
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_POLYFILL_2D_BEAUTIFY_H__ */

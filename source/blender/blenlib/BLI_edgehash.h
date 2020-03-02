@@ -23,6 +23,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct EdgeHash;
 typedef struct EdgeHash EdgeHash;
 
@@ -149,5 +153,9 @@ BLI_INLINE bool BLI_edgesetIterator_isDone(EdgeSetIterator *esi)
 {
   return esi->index >= esi->length;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_EDGEHASH_H__ */

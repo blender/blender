@@ -24,6 +24,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum eStrCursorJumpType {
   STRCUR_JUMP_NONE,
   STRCUR_JUMP_DELIM,
@@ -51,5 +55,9 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
                                eStrCursorJumpDirection direction,
                                eStrCursorJumpType jump,
                                bool use_init_step);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_STRING_CURSOR_UTF8_H__ */

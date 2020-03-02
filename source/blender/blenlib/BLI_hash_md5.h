@@ -21,6 +21,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The
  * result is always in little endian byte order, so that a byte-wise
  * output yields to the wanted ASCII representation of the message
@@ -35,5 +39,9 @@ void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock);
 int BLI_hash_md5_stream(FILE *stream, void *resblock);
 
 char *BLI_hash_md5_to_hexdigest(void *resblock, char r_hex_digest[33]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_HASH_MD5_H__ */

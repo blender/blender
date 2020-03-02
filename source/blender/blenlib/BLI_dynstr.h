@@ -34,6 +34,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct DynStr;
 
 /** The abstract DynStr type */
@@ -56,5 +60,9 @@ void BLI_dynstr_get_cstring_ex(DynStr *__restrict ds, char *__restrict str) ATTR
 
 void BLI_dynstr_clear(DynStr *ds) ATTR_NONNULL();
 void BLI_dynstr_free(DynStr *ds) ATTR_NONNULL();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_DYNSTR_H__ */

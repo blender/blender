@@ -21,6 +21,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct BLI_Buffer {
   void *data;
   const size_t elem_size;
@@ -92,5 +96,9 @@ void _bli_buffer_free(BLI_Buffer *buffer);
   (void)0
 
 #define BLI_buffer_field_free(name_) _bli_buffer_free(name_)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_BUFFER_H__ */

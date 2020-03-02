@@ -24,6 +24,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Find the index number of a voxel, given x/y/z integer coords and resolution vector. */
 
 #define BLI_VOXEL_INDEX(x, y, z, res) \
@@ -35,5 +39,9 @@ float BLI_voxel_sample_nearest(float *data, const int res[3], const float co[3])
 float BLI_voxel_sample_trilinear(float *data, const int res[3], const float co[3]);
 float BLI_voxel_sample_triquadratic(float *data, const int res[3], const float co[3]);
 float BLI_voxel_sample_tricubic(float *data, const int res[3], const float co[3], int bspline);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_VOXEL_H__ */

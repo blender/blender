@@ -26,6 +26,10 @@
  * \ingroup BLI
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ret < 0: the timer will be removed.
  * ret >= 0: the timer will be called again in ret seconds */
 typedef double (*BLI_timer_func)(uintptr_t uuid, void *user_data);
@@ -53,5 +57,9 @@ void BLI_timer_free(void);
 /* This function is to be called next to BKE_CB_EVT_LOAD_PRE, to make sure the module
  * is properly configured for the new file. */
 void BLI_timer_on_file_load(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_TIMER_H__ */

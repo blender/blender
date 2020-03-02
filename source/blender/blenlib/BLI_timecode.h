@@ -26,6 +26,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 size_t BLI_timecode_string_from_time(char *str,
                                      const size_t len,
                                      const int brevity_level,
@@ -41,5 +45,9 @@ size_t BLI_timecode_string_from_time_seconds(char *str,
                                              const size_t len,
                                              const int brevity_level,
                                              const float time_seconds) ATTR_NONNULL();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_TIMECODE_H__ */

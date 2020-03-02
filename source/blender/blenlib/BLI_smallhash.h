@@ -26,6 +26,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
   uintptr_t key;
   void *val;
@@ -72,6 +76,10 @@ void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr
 
 #ifdef DEBUG
 double BLI_smallhash_calc_quality(SmallHash *sh);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __BLI_SMALLHASH_H__ */

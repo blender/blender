@@ -17,6 +17,10 @@
 #ifndef __BLI_ENDIAN_SWITCH_INLINE_H__
 #define __BLI_ENDIAN_SWITCH_INLINE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* only include from header */
 #ifndef __BLI_ENDIAN_SWITCH_H__
 #  error "this file isnt to be directly included"
@@ -84,5 +88,9 @@ BLI_INLINE void BLI_endian_switch_double(double *val)
 {
   BLI_endian_switch_uint64((uint64_t *)val);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_ENDIAN_SWITCH_INLINE_H__ */

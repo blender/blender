@@ -21,6 +21,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct MemArena;
 
 void BLI_polyfill_calc_arena(const float (*coords)[2],
@@ -37,5 +41,9 @@ void BLI_polyfill_calc(const float (*coords)[2],
 
 /* default size of polyfill arena */
 #define BLI_POLYFILL_ARENA_SIZE MEM_SIZE_OPTIMAL(1 << 14)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_POLYFILL_2D_H__ */

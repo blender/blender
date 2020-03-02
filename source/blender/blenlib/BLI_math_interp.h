@@ -24,6 +24,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void BLI_bicubic_interpolation_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v);
 
@@ -87,5 +91,9 @@ void BLI_ewa_filter(const int width,
                     ewa_filter_read_pixel_cb read_pixel_cb,
                     void *customdata,
                     float result[4]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_MATH_INTERP_H__ */

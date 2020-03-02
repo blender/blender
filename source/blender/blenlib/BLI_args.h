@@ -25,6 +25,10 @@
  * \brief A general argument parsing module.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bArgs;
 typedef struct bArgs bArgs;
 
@@ -70,5 +74,9 @@ void BLI_argsPrintOtherDoc(struct bArgs *ba);
 
 void BLI_argsPrint(struct bArgs *ba);
 const char **BLI_argsArgv(struct bArgs *ba);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

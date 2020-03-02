@@ -22,6 +22,10 @@
  * \brief A min-heap / priority queue ADT
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct HeapSimple;
 typedef struct HeapSimple HeapSimple;
 
@@ -36,5 +40,9 @@ bool BLI_heapsimple_is_empty(const HeapSimple *heap) ATTR_NONNULL(1);
 uint BLI_heapsimple_len(const HeapSimple *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 float BLI_heapsimple_top_value(const HeapSimple *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void *BLI_heapsimple_pop_min(HeapSimple *heap) ATTR_NONNULL(1);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_HEAP_SIMPLE_H__ */

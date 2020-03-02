@@ -26,6 +26,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BLI_mempool;
 struct MemArena;
 
@@ -92,5 +96,9 @@ LinkNode *BLI_linklist_sort_r(LinkNode *list,
   BLI_linklist_prepend_nlink(listp, ptr, alloca(sizeof(LinkNode)))
 #define BLI_linklist_append_alloca(list_pair, ptr) \
   BLI_linklist_append_nlink(list_pair, ptr, alloca(sizeof(LinkNode)))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_LINKLIST_H__ */

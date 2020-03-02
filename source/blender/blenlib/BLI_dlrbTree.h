@@ -24,6 +24,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Double-Linked Red-Black Tree Implementation:
  *
  * This is simply a Red-Black Tree implementation whose nodes can later
@@ -158,5 +162,9 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree,
 void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node);
 
 /* ********************************************** */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_DLRBTREE_H__ */

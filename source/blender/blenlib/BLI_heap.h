@@ -22,6 +22,10 @@
  * \brief A min-heap / priority queue ADT
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Heap;
 struct HeapNode;
 typedef struct Heap Heap;
@@ -51,5 +55,9 @@ float BLI_heap_node_value(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NON
 void *BLI_heap_node_ptr(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /* only for gtest */
 bool BLI_heap_is_valid(const Heap *heap);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_HEAP_H__ */

@@ -21,6 +21,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Interface for Constrained Delaunay Triangulation (CDT) in 2D.
  *
@@ -201,5 +205,9 @@ typedef enum CDT_output_type {
 CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_type output_type);
 
 void BLI_delaunay_2d_cdt_free(CDT_result *result);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_DELAUNAY_2D_H__ */

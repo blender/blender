@@ -24,6 +24,10 @@
  * \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct rcti;
 
 void BLI_lasso_boundbox(struct rcti *rect, const int mcords[][2], const unsigned int moves);
@@ -39,5 +43,9 @@ bool BLI_lasso_is_edge_inside(const int mcords[][2],
                               int x1,
                               int y1,
                               const int error_value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_LASSO_2D_H__ */
