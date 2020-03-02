@@ -26,6 +26,10 @@
  * Resizable Icons for Blender
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void (*DrawInfoFreeFP)(void *drawinfo);
 
 enum {
@@ -165,5 +169,9 @@ void BKE_icon_geom_invert_lightness(struct Icon_Geom *geom);
 int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*  __BKE_ICONS_H__ */

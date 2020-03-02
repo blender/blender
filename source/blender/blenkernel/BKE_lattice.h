@@ -26,6 +26,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BPoint;
 struct Depsgraph;
 struct Lattice;
@@ -139,5 +143,9 @@ void BKE_lattice_batch_cache_free(struct Lattice *lt);
 
 extern void (*BKE_lattice_batch_cache_dirty_tag_cb)(struct Lattice *lt, int mode);
 extern void (*BKE_lattice_batch_cache_free_cb)(struct Lattice *lt);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_LATTICE_H__ */

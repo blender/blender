@@ -23,6 +23,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Depsgraph;
 struct Object;
 struct Scene;
@@ -68,5 +72,9 @@ extern void sbObjectToSoftbody(struct Object *ob);
 extern void sbSetInterruptCallBack(int (*f)(void));
 
 extern void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float lscale[3][3]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -27,6 +27,10 @@
 #include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* dl->type */
 #define DL_POLY 0
 #define DL_SEGM 1
@@ -111,5 +115,9 @@ float BKE_displist_calc_taper(
     struct Depsgraph *depsgraph, struct Scene *scene, struct Object *taperobj, int cur, int tot);
 
 void BKE_displist_minmax(struct ListBase *dispbase, float min[3], float max[3]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

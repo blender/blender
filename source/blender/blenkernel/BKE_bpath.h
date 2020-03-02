@@ -23,6 +23,10 @@
 #ifndef __BKE_BPATH_H__
 #define __BKE_BPATH_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 struct ListBase;
 struct Main;
@@ -84,5 +88,9 @@ void BKE_bpath_relative_convert(struct Main *bmain,
 void BKE_bpath_absolute_convert(struct Main *bmain,
                                 const char *basedir,
                                 struct ReportList *reports);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_BPATH_H__ */

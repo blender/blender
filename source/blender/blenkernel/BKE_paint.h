@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMFace;
 struct BMesh;
 struct Brush;
@@ -408,4 +412,9 @@ enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
   SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),
 };
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

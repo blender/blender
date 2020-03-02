@@ -39,6 +39,10 @@
  *    of IDs in a given Main data-base.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 struct IDOverrideLibrary;
 struct IDOverrideLibraryProperty;
@@ -110,5 +114,9 @@ struct ID *BKE_lib_override_library_operations_store_start(
 void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage *override_storage,
                                                    struct ID *local);
 void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_LIB_OVERRIDE_H__ */

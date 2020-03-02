@@ -35,6 +35,10 @@
  * - `BKE_lib_query_` should be used for functions in that file.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 struct Main;
 
@@ -130,5 +134,9 @@ void BKE_library_ID_test_usages(struct Main *bmain,
 
 void BKE_library_unused_linked_data_set_tag(struct Main *bmain, const bool do_init_tag);
 void BKE_library_indirectly_used_data_tag_clear(struct Main *bmain);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_LIB_QUERY_H__ */

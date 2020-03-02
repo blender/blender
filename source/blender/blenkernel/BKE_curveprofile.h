@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CurveProfile;
 struct CurveProfilePoint;
 
@@ -73,4 +77,9 @@ void BKE_curveprofile_evaluate_length_portion(const struct CurveProfile *profile
                                               float length_portion,
                                               float *x_out,
                                               float *y_out);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

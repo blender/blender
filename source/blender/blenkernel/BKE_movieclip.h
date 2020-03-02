@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Depsgraph;
 struct ImBuf;
 struct Main;
@@ -131,5 +135,9 @@ void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, struct Mov
 #define MOVIECLIP_DISABLE_GREEN (1 << 1)
 #define MOVIECLIP_DISABLE_BLUE (1 << 2)
 #define MOVIECLIP_PREVIEW_GRAYSCALE (1 << 3)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

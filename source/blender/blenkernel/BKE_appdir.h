@@ -19,6 +19,11 @@
 /** \file
  * \ingroup bli
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ListBase;
 
 /* note on naming: typical _get() suffix is omitted here,
@@ -92,5 +97,9 @@ enum {
 #define BLENDER_BOOKMARK_FILE "bookmarks.txt"
 #define BLENDER_HISTORY_FILE "recent-files.txt"
 #define BLENDER_PLATFORM_SUPPORT_FILE "platform_support.txt"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_APPDIR_H__ */

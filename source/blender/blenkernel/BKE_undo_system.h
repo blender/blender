@@ -20,6 +20,13 @@
  * \ingroup bke
  */
 
+#include "DNA_ID.h"
+#include "DNA_listBase.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Main;
 struct UndoStep;
 struct bContext;
@@ -30,9 +37,6 @@ struct Mesh;
 struct Object;
 struct Scene;
 struct Text;
-
-#include "DNA_ID.h"
-#include "DNA_listBase.h"
 
 typedef struct UndoRefID {
   struct ID *ptr;
@@ -197,5 +201,9 @@ void BKE_undosys_foreach_ID_ref(UndoStack *ustack,
 #endif
 
 void BKE_undosys_print(UndoStack *ustack);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_UNDO_SYSTEM_H__ */

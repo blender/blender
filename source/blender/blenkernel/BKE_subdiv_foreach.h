@@ -26,6 +26,10 @@
 
 #include "BLI_sys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Mesh;
 struct Subdiv;
 struct SubdivForeachContext;
@@ -166,5 +170,9 @@ bool BKE_subdiv_foreach_subdiv_geometry(struct Subdiv *subdiv,
                                         const struct SubdivForeachContext *context,
                                         const struct SubdivToMeshSettings *mesh_settings,
                                         const struct Mesh *coarse_mesh);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_SUBDIV_FOREACH_H__ */

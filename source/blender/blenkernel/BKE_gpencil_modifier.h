@@ -22,6 +22,10 @@
 
 #include "DNA_gpencil_modifier_types.h" /* needed for all enum typdefs */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Depsgraph;
 struct GpencilModifierData;
 struct ID;
@@ -317,5 +321,9 @@ void BKE_gpencil_lattice_clear(struct Object *ob);
 void BKE_gpencil_modifiers_calc(struct Depsgraph *depsgraph,
                                 struct Scene *scene,
                                 struct Object *ob);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_GPENCIL_MODIFIER_H__ */

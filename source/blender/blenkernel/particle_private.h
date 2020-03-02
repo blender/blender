@@ -24,6 +24,10 @@
 #ifndef __PARTICLE_PRIVATE_H__
 #define __PARTICLE_PRIVATE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct ParticleChildModifierContext {
   ParticleThreadContext *thread_ctx;
   ParticleSimulationData *sim;
@@ -64,5 +68,9 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
                         float mat[4][4],
                         ParticleKey *state,
                         float t);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PARTICLE_PRIVATE_H__ */

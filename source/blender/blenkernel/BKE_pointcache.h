@@ -30,6 +30,10 @@
 #include "DNA_boid_types.h"
 #include <stdio.h> /* for FILE */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non inclusive (they wont remove the cfra) */
 #define PTCACHE_CLEAR_ALL 0
@@ -377,5 +381,9 @@ void BKE_ptcache_validate(struct PointCache *cache, int framenr);
 
 /* Set correct flags after unsuccessful simulation step */
 void BKE_ptcache_invalidate(struct PointCache *cache);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

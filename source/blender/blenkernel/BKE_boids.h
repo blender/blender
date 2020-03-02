@@ -26,6 +26,10 @@
 
 #include "DNA_boid_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct RNG;
 
 typedef struct BoidBrainData {
@@ -53,4 +57,9 @@ BoidState *boid_duplicate_state(BoidSettings *boids, BoidState *state);
 void boid_free_settings(BoidSettings *boids);
 BoidSettings *boid_copy_settings(const BoidSettings *boids);
 BoidState *boid_get_current_state(BoidSettings *boids);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

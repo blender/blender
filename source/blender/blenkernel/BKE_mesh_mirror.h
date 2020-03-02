@@ -26,6 +26,10 @@
 
 #include "BLI_utildefines.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct MirrorModifierData;
 struct ModifierEvalContext;
 struct Object;
@@ -41,5 +45,9 @@ struct Mesh *BKE_mesh_mirror_apply_mirror_on_axis(struct MirrorModifierData *mmd
                                                   struct Object *ob,
                                                   const struct Mesh *mesh,
                                                   int axis);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_MESH_MIRROR_H__ */

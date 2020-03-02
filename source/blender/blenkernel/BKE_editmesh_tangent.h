@@ -21,6 +21,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
                                     bool calc_active_tangent,
                                     const char (*tangent_names)[MAX_NAME],
@@ -31,5 +35,9 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
                                     CustomData *dm_loopdata_out,
                                     const uint dm_loopdata_out_len,
                                     short *tangent_mask_curr_p);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_EDITMESH_TANGENT_H__ */

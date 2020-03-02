@@ -21,6 +21,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CustomData;
 struct CustomData_MeshMasks;
 struct MVert;
@@ -226,5 +230,9 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
                                          const bool dirty_nors_dst,
                                          struct Mesh *me_src,
                                          struct MeshPairRemap *r_map);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_MESH_REMAP_H__ */

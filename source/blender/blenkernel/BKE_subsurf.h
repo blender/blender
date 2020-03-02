@@ -29,6 +29,10 @@
 /* Thread sync primitives used directly.  */
 #include "BLI_threads.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CCGEdge;
 struct CCGElem;
 struct CCGFace;
@@ -157,6 +161,10 @@ typedef struct CCGDerivedMesh {
 void BKE_subsurf_osd_init(void);
 void BKE_subsurf_free_unused_buffers(void);
 void BKE_subsurf_osd_cleanup(void);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

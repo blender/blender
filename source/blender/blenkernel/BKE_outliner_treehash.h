@@ -20,6 +20,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BLI_mempool;
 struct ID;
 struct TreeStoreElem;
@@ -51,5 +55,9 @@ struct TreeStoreElem *BKE_outliner_treehash_lookup_any(void *treehash,
 
 /* free treehash structure */
 void BKE_outliner_treehash_free(void *treehash);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

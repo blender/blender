@@ -28,6 +28,10 @@
 #  include "openvdb_capi.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Mesh;
 
 /* OpenVDB Voxel Remesher */
@@ -56,5 +60,9 @@ struct Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(struct Mesh *mesh,
 
 /* Data reprojection functions */
 void BKE_mesh_remesh_reproject_paint_mask(struct Mesh *target, struct Mesh *source);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_MESH_REMESH_VOXEL_H__ */

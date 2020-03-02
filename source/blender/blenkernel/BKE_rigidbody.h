@@ -25,6 +25,10 @@
 #ifndef __BKE_RIGIDBODY_H__
 #define __BKE_RIGIDBODY_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct RigidBodyOb;
 struct RigidBodyWorld;
 
@@ -154,5 +158,9 @@ void BKE_rigidbody_eval_simulation(struct Depsgraph *depsgraph, struct Scene *sc
 void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
                                           struct Scene *scene,
                                           struct Object *ob);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_RIGIDBODY_H__ */

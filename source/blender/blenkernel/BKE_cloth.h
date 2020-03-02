@@ -26,6 +26,10 @@
 #include <float.h>
 #include "BLI_math_inline.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ClothModifierData;
 struct CollisionModifierData;
 struct Depsgraph;
@@ -298,5 +302,9 @@ void cloth_parallel_transport_hair_frame(float mat[3][3],
                                          const float dir_new[3]);
 
 ////////////////////////////////////////////////
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

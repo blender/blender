@@ -32,6 +32,10 @@
 
 #include "DNA_userdef_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ImBuf;
 
 /*
@@ -160,5 +164,9 @@ void BKE_studiolight_set_free_function(StudioLight *sl,
                                        StudioLightFreeFunction *free_function,
                                        void *data);
 void BKE_studiolight_unset_icon_id(StudioLight *sl, int icon_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*  __BKE_STUDIOLIGHT_H__ */

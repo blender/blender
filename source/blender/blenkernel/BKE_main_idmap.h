@@ -32,6 +32,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 struct IDNameLib_Map;
 struct Main;
@@ -51,5 +55,9 @@ struct ID *BKE_main_idmap_lookup(struct IDNameLib_Map *id_typemap,
 struct ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_typemap,
                                     const struct ID *id) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_MAIN_IDMAP_H__ */

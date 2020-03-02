@@ -26,6 +26,10 @@
 
 #include "BLI_sys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Mesh;
 struct Subdiv;
 
@@ -134,5 +138,9 @@ void BKE_subdiv_eval_limit_patch_resolution_point_and_short_normal(struct Subdiv
                                                                    void *normal_buffer,
                                                                    const int normal_offset,
                                                                    const int normal_stride);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_SUBDIV_EVAL_H__ */

@@ -27,6 +27,10 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Mesh;
 struct MultiresModifierData;
 struct OpenSubdiv_Converter;
@@ -282,6 +286,10 @@ BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(const float quad_u,
  * normalized ptex coordinates. */
 BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
     const int corner, const float grid_u, const float grid_v, float *r_quad_u, float *r_quad_v);
+
+#ifdef __cplusplus
+}
+#endif
 
 #include "intern/subdiv_inline.h"
 

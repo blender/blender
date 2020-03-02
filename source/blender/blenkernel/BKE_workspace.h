@@ -23,6 +23,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Main;
 struct bScreen;
 struct bToolRef;
@@ -111,5 +115,9 @@ void BKE_workspace_id_tag_all_visible(struct Main *bmain, int tag) ATTR_NONNULL(
 
 #undef GETTER_ATTRS
 #undef SETTER_ATTRS
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_WORKSPACE_H__ */

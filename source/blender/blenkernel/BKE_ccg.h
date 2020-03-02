@@ -31,6 +31,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CCGSubSurf;
 
 /* Each CCGElem is CCGSubSurf's representation of a subdivided
@@ -158,5 +162,9 @@ BLI_INLINE CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem)
 {
   return CCG_elem_offset(key, elem, 1);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -23,6 +23,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
@@ -137,4 +141,9 @@ void BKE_color_managed_colorspace_settings_copy(
 bool BKE_color_managed_colorspace_settings_equals(
     const struct ColorManagedColorspaceSettings *settings1,
     const struct ColorManagedColorspaceSettings *settings2);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

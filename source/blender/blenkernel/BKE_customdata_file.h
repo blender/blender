@@ -21,6 +21,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define CDF_TYPE_IMAGE 0
 #define CDF_TYPE_MESH 1
 
@@ -52,5 +56,9 @@ void cdf_remove(const char *filename);
 
 CDataFileLayer *cdf_layer_find(CDataFile *cdf, int type, const char *name);
 CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t datasize);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_CUSTOMDATA_FILE_H__ */

@@ -23,6 +23,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BezTriple;
 struct Curve;
 struct Depsgraph;
@@ -291,5 +295,9 @@ void BKE_curve_decimate_nurb(struct Nurb *nu,
 
 extern void (*BKE_curve_batch_cache_dirty_tag_cb)(struct Curve *cu, int mode);
 extern void (*BKE_curve_batch_cache_free_cb)(struct Curve *cu);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_CURVE_H__ */

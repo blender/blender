@@ -34,6 +34,10 @@
 
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET 512
 
@@ -1297,5 +1301,9 @@ void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
 
 extern struct bNodeType NodeTypeUndefined;
 extern struct bNodeSocketType NodeSocketTypeUndefined;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_NODE_H__ */

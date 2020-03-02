@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Camera;
 struct ImBuf;
 struct ListBase;
@@ -475,5 +479,9 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 #define TRACK_AREA_SEARCH 4
 
 #define TRACK_AREA_ALL (TRACK_AREA_POINT | TRACK_AREA_PAT | TRACK_AREA_SEARCH)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

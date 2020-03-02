@@ -26,6 +26,10 @@
 #include "BLI_bitmap.h"
 #include "BLI_kdopbvh.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * This header encapsulates necessary code to build a BVH
  */
@@ -243,5 +247,9 @@ bool bvhcache_find(const BVHCache *cache, int type, BVHTree **r_tree);
 bool bvhcache_has_tree(const BVHCache *cache, const BVHTree *tree);
 void bvhcache_insert(BVHCache **cache_p, BVHTree *tree, int type);
 void bvhcache_free(BVHCache **cache_p);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

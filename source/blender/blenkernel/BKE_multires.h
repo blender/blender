@@ -26,6 +26,10 @@
 
 #include "BLI_compiler_compat.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum MultiresModifiedFlags;
 
 struct Depsgraph;
@@ -183,6 +187,10 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3]
                                                       const int corner);
 
 int BKE_multires_sculpt_level_get(const struct MultiresModifierData *mmd);
+
+#ifdef __cplusplus
+}
+#endif
 
 #include "intern/multires_inline.h"
 

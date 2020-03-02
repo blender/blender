@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct Main;
 struct NlaStrip;
@@ -138,5 +142,9 @@ enum eNlaTime_ConvertModes {
 };
 
 float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short mode);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

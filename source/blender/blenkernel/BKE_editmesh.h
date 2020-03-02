@@ -28,6 +28,10 @@
 #include "BKE_customdata.h"
 #include "bmesh.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMLoop;
 struct BMesh;
 struct BoundBox;
@@ -99,5 +103,9 @@ float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3]
 void BKE_editmesh_lnorspace_update(BMEditMesh *em, struct Mesh *me);
 void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, struct Mesh *me);
 struct BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_EDITMESH_H__ */

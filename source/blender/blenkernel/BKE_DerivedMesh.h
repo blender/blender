@@ -72,6 +72,10 @@
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMEditMesh;
 struct CCGElem;
 struct CCGKey;
@@ -381,6 +385,10 @@ void DM_debug_print(DerivedMesh *dm);
 void DM_debug_print_cdlayers(CustomData *cdata);
 
 bool DM_is_valid(DerivedMesh *dm);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __BKE_DERIVEDMESH_H__ */

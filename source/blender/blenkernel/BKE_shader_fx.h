@@ -24,6 +24,10 @@
 #include "BLI_compiler_attrs.h"
 #include "BKE_customdata.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 struct ListBase;
 struct ModifierUpdateDepsgraphContext;
@@ -174,5 +178,9 @@ void BKE_shaderfx_copyData_ex(struct ShaderFxData *fx,
 void BKE_shaderfx_foreachIDLink(struct Object *ob, ShaderFxIDWalkFunc walk, void *userData);
 
 bool BKE_shaderfx_has_gpencil(struct Object *ob);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_SHADER_FX_H__ */

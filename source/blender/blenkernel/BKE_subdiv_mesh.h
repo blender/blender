@@ -26,6 +26,10 @@
 
 #include "BLI_sys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Mesh;
 struct Subdiv;
 
@@ -45,5 +49,9 @@ typedef struct SubdivToMeshSettings {
 struct Mesh *BKE_subdiv_to_mesh(struct Subdiv *subdiv,
                                 const SubdivToMeshSettings *settings,
                                 const struct Mesh *coarse_mesh);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_SUBDIV)MESH_H__ */

@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Depsgraph;
 struct FluidDomainSettings;
 struct FluidEffectorSettings;
@@ -88,5 +92,9 @@ void BKE_fluid_effector_type_set(struct Object *object,
 void BKE_fluid_flow_behavior_set(struct Object *object,
                                  struct FluidFlowSettings *settings,
                                  int behavior);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BKE_FLUID_H__ */

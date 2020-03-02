@@ -23,6 +23,14 @@
  * \ingroup bke
  */
 
+#include "BLI_compiler_attrs.h"
+
+#include "RNA_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct Header;
 struct ID;
@@ -48,10 +56,6 @@ struct wmMsgBus;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
-
-#include "BLI_compiler_attrs.h"
-
-#include "RNA_types.h"
 
 /* spacetype has everything stored to get an editor working, it gets initialized via
  * ED_spacetypes_init() in editors/space_api/spacetypes.c   */
@@ -387,5 +391,9 @@ void BKE_screen_remove_unused_scredges(struct bScreen *sc);
 void BKE_screen_remove_unused_scrverts(struct bScreen *sc);
 
 void BKE_screen_header_alignment_reset(struct bScreen *screen);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

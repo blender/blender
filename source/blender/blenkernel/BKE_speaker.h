@@ -22,6 +22,10 @@
  * \brief General operations for speakers.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Main;
 struct Speaker;
 
@@ -34,5 +38,9 @@ void BKE_speaker_copy_data(struct Main *bmain,
 struct Speaker *BKE_speaker_copy(struct Main *bmain, const struct Speaker *spk);
 void BKE_speaker_make_local(struct Main *bmain, struct Speaker *spk, const bool lib_local);
 void BKE_speaker_free(struct Speaker *spk);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

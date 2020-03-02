@@ -29,6 +29,10 @@
 #ifndef __BKE_CDDERIVEDMESH_H__
 #define __BKE_CDDERIVEDMESH_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct DerivedMesh;
 struct Mesh;
 
@@ -41,5 +45,9 @@ struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh);
 /* Copies the given DerivedMesh with verts, faces & edges stored as
  * custom element data. */
 struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

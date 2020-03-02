@@ -24,6 +24,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BoundBox;
 struct Brush;
 struct CurveMapping;
@@ -271,5 +275,9 @@ void BKE_gpencil_convert_curve(struct Main *bmain,
 
 extern void (*BKE_gpencil_batch_cache_dirty_tag_cb)(struct bGPdata *gpd);
 extern void (*BKE_gpencil_batch_cache_free_cb)(struct bGPdata *gpd);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*  __BKE_GPENCIL_H__ */

@@ -22,6 +22,11 @@
 /** \file
  * \ingroup bke
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Depsgraph;
 struct ListBase;
 struct Object;
@@ -88,5 +93,9 @@ typedef struct DupliObject {
   /* Random ID for shading */
   unsigned int random_id;
 } DupliObject;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

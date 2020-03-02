@@ -34,6 +34,10 @@
 
 #include "BLI_kdopbvh.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Collection;
 struct CollisionModifierData;
 struct Depsgraph;
@@ -170,5 +174,9 @@ void BKE_collider_cache_free(struct ListBase **colliders);
 /////////////////////////////////////////////////
 
 /////////////////////////////////////////////////
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
