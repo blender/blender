@@ -218,14 +218,23 @@ static SnapObjectData *snap_object_data_lookup(SnapObjectContext *sctx, Object *
 
 static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx, Object *ob)
 {
+  SnapObjectData *sod;
   void **sod_p;
+  bool init = false;
+
   if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
-    BLI_assert(((SnapObjectData *)*sod_p)->type == SNAP_MESH);
+    sod = *sod_p;
+    if (sod->type != SNAP_MESH) {
+      snap_object_data_clear(sod);
+      init = true;
+    }
   }
   else {
-    SnapObjectData *sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
+    sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
+    init = true;
+  }
 
-    /* Init. */
+  if (init) {
     sod->type = SNAP_MESH;
     /* start assuming that it has each of these element types */
     sod->has_looptris = true;
@@ -233,14 +242,16 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx, Object
     sod->has_loose_vert = true;
   }
 
-  return *sod_p;
+  return sod;
 }
 
 static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
                                                      Object *ob,
                                                      BMEditMesh *em)
 {
+  SnapObjectData *sod;
   void **sod_p;
+  bool init = false;
 
   {
     /* Use object-data as the key in ghash since the editmesh
@@ -258,18 +269,24 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
   }
 
   if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
-    BLI_assert(((SnapObjectData *)*sod_p)->type == SNAP_EDIT_MESH);
+    sod = *sod_p;
+    if (sod->type != SNAP_EDIT_MESH) {
+      snap_object_data_clear(sod);
+      init = true;
+    }
   }
   else {
-    SnapObjectData *sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
+    sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
+    init = true;
+  }
 
-    /* Init. */
+  if (init) {
     sod->type = SNAP_EDIT_MESH;
     sod->treedata_editmesh.em = em;
     bm_mesh_minmax(em->bm, sod->min, sod->max);
   }
 
-  return *sod_p;
+  return sod;
 }
 
 /** \} */
@@ -2447,7 +2464,16 @@ static short snapEditMesh(SnapObjectContext *sctx,
     return 0;
   }
 
-  BVHCache **em_bvh_cache = &((Mesh *)ob->data)->runtime.bvh_cache;
+  BVHCache **em_bvh_cache;
+  if (em->mesh_eval_final) {
+    em_bvh_cache = &em->mesh_eval_final->runtime.bvh_cache;
+  }
+  else if (em->mesh_eval_cage) {
+    em_bvh_cache = &em->mesh_eval_cage->runtime.bvh_cache;
+  }
+  else {
+    em_bvh_cache = &((Mesh *)ob->data)->runtime.bvh_cache;
+  }
 
   if (snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX) {
     BVHTreeFromEditMesh treedata = {.tree = sod->bvhtree[0]};
