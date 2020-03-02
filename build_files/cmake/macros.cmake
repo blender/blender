@@ -122,7 +122,7 @@ function(target_link_libraries_optimized
   )
 
   foreach(_LIB ${LIBS})
-    target_link_libraries(${TARGET} optimized "${_LIB}")
+    target_link_libraries(${TARGET} INTERFACE optimized "${_LIB}")
   endforeach()
 endfunction()
 
@@ -132,7 +132,7 @@ function(target_link_libraries_debug
   )
 
   foreach(_LIB ${LIBS})
-    target_link_libraries(${TARGET} debug "${_LIB}")
+    target_link_libraries(${TARGET} INTERFACE debug "${_LIB}")
   endforeach()
 endfunction()
 
@@ -303,11 +303,11 @@ function(blender_add_lib__impl
         set(next_library_mode "${library_lower}")
       else()
         if("${next_library_mode}" STREQUAL "optimized")
-          target_link_libraries(${name} optimized ${library})
+          target_link_libraries(${name} INTERFACE optimized ${library})
         elseif("${next_library_mode}" STREQUAL "debug")
-          target_link_libraries(${name} debug ${library})
+          target_link_libraries(${name} INTERFACE debug ${library})
         else()
-          target_link_libraries(${name} ${library})
+          target_link_libraries(${name} INTERFACE ${library})
         endif()
         set(next_library_mode "")
       endif()
