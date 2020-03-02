@@ -1890,6 +1890,18 @@ static void initData(ModifierData *md)
   wmd->defgrp_name[0] = '\0';
 }
 
+static void requiredDataMask(Object *UNUSED(ob),
+                             ModifierData *md,
+                             CustomData_MeshMasks *r_cddata_masks)
+{
+  WeldModifierData *wmd = (WeldModifierData *)md;
+
+  /* Ask for vertexgroups if we need them. */
+  if (wmd->defgrp_name[0] != '\0') {
+    r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+  }
+}
+
 ModifierTypeInfo modifierType_Weld = {
     /* name */ "Weld",
     /* structName */ "WeldModifierData",
@@ -1908,7 +1920,7 @@ ModifierTypeInfo modifierType_Weld = {
     /* applyModifier */ applyModifier,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
+    /* requiredDataMask */ requiredDataMask,
     /* freeData */ NULL,
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
