@@ -41,6 +41,7 @@ struct ViewContext;
 struct bContext;
 struct rcti;
 struct wmEvent;
+struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 struct wmWindowManager;
