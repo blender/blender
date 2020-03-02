@@ -22,6 +22,10 @@
 
 #include "DNA_vec_types.h" /* for rcti */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \file
  * \ingroup imbuf
  * \brief Contains defines and structs used throughout the imbuf module.
@@ -346,5 +350,9 @@ enum {
 };
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __IMB_IMBUF_TYPES_H__ */

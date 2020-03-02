@@ -56,10 +56,14 @@
 #ifndef __IMB_IMBUF_H__
 #define __IMB_IMBUF_H__
 
-#define IM_MAX_SPACE 64
-
 /* for bool */
 #include "../blenlib/BLI_sys_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define IM_MAX_SPACE 64
 
 /**
  *
@@ -754,5 +758,9 @@ void IMB_ImBufFromStereo3d(struct Stereo3dFormat *s3d,
                            struct ImBuf *ibuf_stereo,
                            struct ImBuf **r_ibuf_left,
                            struct ImBuf **r_ibuf_right);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

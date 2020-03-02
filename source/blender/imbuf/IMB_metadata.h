@@ -24,6 +24,10 @@
 #ifndef __IMB_METADATA_H__
 #define __IMB_METADATA_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct IDProperty;
 struct ImBuf;
 struct anim;
@@ -76,5 +80,9 @@ struct IDProperty *IMB_anim_load_metadata(struct anim *anim);
 /* Invoke callback for every value stored in the metadata. */
 typedef void (*IMBMetadataForeachCb)(const char *field, const char *value, void *userdata);
 void IMB_metadata_foreach(struct ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __IMB_METADATA_H__ */

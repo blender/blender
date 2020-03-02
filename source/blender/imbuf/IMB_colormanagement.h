@@ -27,6 +27,10 @@
 #include "BLI_sys_types.h"
 #include "BLI_compiler_compat.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define BCM_CONFIG_FILE "config.ocio"
 
 struct ColorManagedColorspaceSettings;
@@ -362,6 +366,10 @@ enum {
   COLOR_ROLE_DEFAULT_FLOAT,
   COLOR_ROLE_DATA,
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #include "intern/colormanagement_inline.c"
 
