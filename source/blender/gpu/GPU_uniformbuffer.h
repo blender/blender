@@ -24,6 +24,10 @@
 #ifndef __GPU_UNIFORMBUFFER_H__
 #define __GPU_UNIFORMBUFFER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ListBase;
 
 typedef struct GPUUniformBuffer GPUUniformBuffer;
@@ -45,5 +49,9 @@ bool GPU_uniformbuffer_is_empty(GPUUniformBuffer *ubo);
 bool GPU_uniformbuffer_is_dirty(GPUUniformBuffer *ubo);
 
 #define GPU_UBO_BLOCK_NAME "nodeTree"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GPU_UNIFORMBUFFER_H__ */

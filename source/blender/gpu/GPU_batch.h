@@ -32,6 +32,10 @@
 #include "GPU_shader_interface.h"
 #include "GPU_shader.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
   GPU_BATCH_UNUSED,
   GPU_BATCH_READY_TO_FORMAT,
@@ -240,5 +244,9 @@ void gpu_batch_exit(void);
       MEM_freeN(_batch_array); \
     } \
   } while (0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GPU_BATCH_H__ */

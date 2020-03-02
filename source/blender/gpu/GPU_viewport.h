@@ -31,6 +31,10 @@
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT */
 #define GLA_PIXEL_OFS 0.375f
 
@@ -136,5 +140,9 @@ GPUTexture *GPU_viewport_texture_pool_query(
 
 bool GPU_viewport_engines_data_validate(GPUViewport *viewport, void **engine_handle_array);
 void GPU_viewport_cache_release(GPUViewport *viewport);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // __GPU_VIEWPORT_H__

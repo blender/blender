@@ -28,6 +28,10 @@
 
 #include "GPU_vertex_format.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define VRAM_USAGE 1
 /**
  * How to create a #GPUVertBuf:
@@ -137,5 +141,9 @@ uint GPU_vertbuf_get_memory_usage(void);
       verts = NULL; \
     } \
   } while (0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GPU_VERTEX_BUFFER_H__ */

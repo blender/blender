@@ -28,6 +28,10 @@
 
 #include "GPU_primitive.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define GPU_TRACK_INDEX_RANGE 1
 
 typedef enum {
@@ -108,5 +112,9 @@ int GPU_indexbuf_primitive_len(GPUPrimType prim_type);
       elem = NULL; \
     } \
   } while (0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GPU_ELEMENT_H__ */

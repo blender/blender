@@ -30,6 +30,10 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* gpu_batch_presets.c */
 
 /* Replacement for gluSphere */
@@ -41,5 +45,9 @@ void gpu_batch_presets_register(struct GPUBatch *preset_batch);
 bool gpu_batch_presets_unregister(struct GPUBatch *preset_batch);
 void gpu_batch_presets_reset(void);
 void gpu_batch_presets_exit(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GPU_BATCH_PRESETS_H__ */

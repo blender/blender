@@ -28,6 +28,10 @@
 
 #include "GPU_common.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
   GPU_PRIM_POINTS,
   GPU_PRIM_LINES,
@@ -55,5 +59,9 @@ typedef enum {
 
 GPUPrimClass GPU_primtype_class(GPUPrimType);
 bool GPU_primtype_belongs_to_class(GPUPrimType, GPUPrimClass);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GPU_PRIMITIVE_H__ */

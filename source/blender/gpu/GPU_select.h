@@ -26,6 +26,10 @@
 
 #include "BLI_sys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct rcti;
 
 /* flags for mode of operation */
@@ -54,5 +58,9 @@ void GPU_select_cache_end(void);
 /* utilities */
 const uint *GPU_select_buffer_near(const uint *buffer, int hits);
 void GPU_select_buffer_stride_realign(const struct rcti *src, const struct rcti *dst, uint *r_buf);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

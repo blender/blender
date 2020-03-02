@@ -30,6 +30,10 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_assert.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define GPU_VERT_ATTR_MAX_LEN 16
 #define GPU_VERT_ATTR_MAX_NAMES 6
 #define GPU_VERT_ATTR_NAMES_BUF_LEN 256
@@ -184,5 +188,9 @@ BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
   };
   return n;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GPU_VERTEX_FORMAT_H__ */

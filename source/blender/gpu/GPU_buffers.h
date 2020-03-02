@@ -26,6 +26,10 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMesh;
 struct CCGElem;
 struct CCGKey;
@@ -105,5 +109,9 @@ struct GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast
 short GPU_pbvh_buffers_material_index_get(GPU_PBVH_Buffers *buffers);
 
 bool GPU_pbvh_buffers_has_mask(GPU_PBVH_Buffers *buffers);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
