@@ -34,6 +34,7 @@
 #include "BLI_rand.h"
 #include "BLI_edgehash.h"
 #include "BLI_linklist.h"
+#include "BLI_ghash.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -583,6 +584,11 @@ void cloth_free_modifier(ClothModifierData *clmd)
       BLI_edgeset_free(cloth->edgeset);
     }
 
+    if (cloth->sew_edge_graph) {
+      BLI_ghash_free(cloth->sew_edge_graph, MEM_freeN, NULL);
+      cloth->sew_edge_graph = NULL;
+    }
+
 #if 0
     if (clmd->clothObject->facemarks) {
       MEM_freeN(clmd->clothObject->facemarks);
@@ -658,6 +664,11 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
 
     if (cloth->edgeset) {
       BLI_edgeset_free(cloth->edgeset);
+    }
+
+    if (cloth->sew_edge_graph) {
+      BLI_ghash_free(cloth->sew_edge_graph, MEM_freeN, NULL);
+      cloth->sew_edge_graph = NULL;
     }
 
 #if 0
@@ -844,6 +855,8 @@ static int cloth_from_object(
   // create springs
   clmd->clothObject->springs = NULL;
   clmd->clothObject->numsprings = -1;
+
+  clmd->clothObject->sew_edge_graph = NULL;
 
   if (clmd->sim_parms->shapekey_rest &&
       !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH)) {
@@ -1644,6 +1657,13 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     cloth->verts[i].avg_spring_len = 0.0f;
   }
 
+  if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW) {
+    /* cloth->sew_edge_graph should not exist before this */
+    BLI_assert(cloth->sew_edge_graph == NULL);
+    cloth->sew_edge_graph = BLI_ghash_new(
+        BLI_ghashutil_inthash_v2_p, BLI_ghashutil_inthash_v2_cmp, "cloth_sewing_edges_graph");
+  }
+
   /* Structural springs. */
   for (int i = 0; i < numedges; i++) {
     spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
@@ -1655,6 +1675,19 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         spring->restlen = 0.0f;
         spring->lin_stiffness = 1.0f;
         spring->type = CLOTH_SPRING_TYPE_SEWING;
+
+        /* set indices of verts of the sewing edge symmetrically in sew_edge_graph */
+        unsigned int *vertex_index_pair = MEM_mallocN(sizeof(unsigned int) * 2,
+                                                      "sewing_edge_index_pair_01");
+        if (medge[i].v1 < medge[i].v2) {
+          vertex_index_pair[0] = medge[i].v1;
+          vertex_index_pair[1] = medge[i].v2;
+        }
+        else {
+          vertex_index_pair[0] = medge[i].v2;
+          vertex_index_pair[1] = medge[i].v1;
+        }
+        BLI_ghash_insert(cloth->sew_edge_graph, vertex_index_pair, NULL);
       }
       else {
         shrink_factor = cloth_shrink_factor(clmd, cloth->verts, spring->ij, spring->kl);

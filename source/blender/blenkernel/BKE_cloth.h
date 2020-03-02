@@ -32,6 +32,7 @@ struct Depsgraph;
 struct Mesh;
 struct Object;
 struct Scene;
+struct GHash;
 
 #define DO_INLINE MALWAYS_INLINE
 
@@ -44,8 +45,8 @@ struct Scene;
 
 /* Bits to or into the ClothVertex.flags. */
 typedef enum eClothVertexFlag {
-  CLOTH_VERT_FLAG_PINNED = 1,
-  CLOTH_VERT_FLAG_NOSELFCOLL = 2, /* vertex NOT used for self collisions */
+  CLOTH_VERT_FLAG_PINNED = (1 << 0),
+  CLOTH_VERT_FLAG_NOSELFCOLL = (1 << 1), /* vertex NOT used for self collisions */
 } eClothVertexFlag;
 
 typedef struct ClothHairData {
@@ -88,8 +89,9 @@ typedef struct Cloth {
   struct Implicit_Data *implicit; /* our implicit solver connects to this pointer */
   struct EdgeSet *edgeset;        /* used for selfcollisions */
   int last_frame;
-  float initial_mesh_volume; /* Initial volume of the mesh. Used for pressure */
-  struct MEdge *edges;       /* Used for hair collisions. */
+  float initial_mesh_volume;    /* Initial volume of the mesh. Used for pressure */
+  struct MEdge *edges;          /* Used for hair collisions. */
+  struct GHash *sew_edge_graph; /* Sewing edges represented using a GHash */
 } Cloth;
 
 /**

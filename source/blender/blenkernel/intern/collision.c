@@ -37,6 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_ghash.h"
 
 #include "BKE_cloth.h"
 #include "BKE_collection.h"
@@ -1138,15 +1139,33 @@ static void cloth_collision(void *__restrict userdata,
   }
 }
 
-static bool cloth_bvh_selfcollision_is_active(const ClothVertex *verts,
+static bool cloth_bvh_selfcollision_is_active(const Cloth *cloth,
                                               const MVertTri *tri_a,
-                                              const MVertTri *tri_b)
+                                              const MVertTri *tri_b,
+                                              bool sewing_active)
 {
-  /* Ignore overlap of neighboring triangles. */
+  const ClothVertex *verts = cloth->verts;
+  /* Ignore overlap of neighboring triangles and triangles connected by a sewing edge. */
   for (uint i = 0; i < 3; i++) {
     for (uint j = 0; j < 3; j++) {
       if (tri_a->tri[i] == tri_b->tri[j]) {
         return false;
+      }
+
+      if (sewing_active) {
+        unsigned int vertex_index_pair[2];
+        /* The indices pair are ordered, thus must ensure the same here as well */
+        if (tri_a->tri[i] < tri_b->tri[j]) {
+          vertex_index_pair[0] = tri_a->tri[i];
+          vertex_index_pair[1] = tri_b->tri[j];
+        }
+        else {
+          vertex_index_pair[0] = tri_b->tri[j];
+          vertex_index_pair[1] = tri_a->tri[i];
+        }
+        if (BLI_ghash_haskey(cloth->sew_edge_graph, vertex_index_pair)) {
+          return false;
+        }
       }
     }
   }
@@ -1177,7 +1196,10 @@ static void cloth_selfcollision(void *__restrict userdata,
   tri_a = &clmd->clothObject->tri[data->overlap[index].indexA];
   tri_b = &clmd->clothObject->tri[data->overlap[index].indexB];
 
-  BLI_assert(cloth_bvh_selfcollision_is_active(verts1, tri_a, tri_b));
+#ifdef DEBUG
+  bool sewing_active = (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW);
+  BLI_assert(cloth_bvh_selfcollision_is_active(clmd->clothObject, tri_a, tri_b, sewing_active));
+#endif
 
   /* Compute distance and normal. */
   distance = compute_collision_point_tri_tri(verts1[tri_a->tri[0]].tx,
@@ -1580,12 +1602,15 @@ static bool cloth_bvh_self_overlap_cb(void *userdata, int index_a, int index_b, 
 {
   /* No need for equal combinations (eg. (0,1) & (1,0)). */
   if (index_a < index_b) {
-    struct Cloth *clothObject = userdata;
+    ClothModifierData *clmd = (ClothModifierData *)userdata;
+    struct Cloth *clothObject = clmd->clothObject;
     const MVertTri *tri_a, *tri_b;
     tri_a = &clothObject->tri[index_a];
     tri_b = &clothObject->tri[index_b];
 
-    if (cloth_bvh_selfcollision_is_active(clothObject->verts, tri_a, tri_b)) {
+    bool sewing_active = (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW);
+
+    if (cloth_bvh_selfcollision_is_active(clothObject, tri_a, tri_b, sewing_active)) {
       return true;
     }
   }
@@ -1652,11 +1677,8 @@ int cloth_bvh_collision(
   if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF) {
     bvhtree_update_from_cloth(clmd, false, true);
 
-    overlap_self = BLI_bvhtree_overlap(cloth->bvhselftree,
-                                       cloth->bvhselftree,
-                                       &coll_count_self,
-                                       cloth_bvh_self_overlap_cb,
-                                       clmd->clothObject);
+    overlap_self = BLI_bvhtree_overlap(
+        cloth->bvhselftree, cloth->bvhselftree, &coll_count_self, cloth_bvh_self_overlap_cb, clmd);
   }
 
   do {

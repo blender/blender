@@ -75,6 +75,7 @@ uint BLI_ghashutil_uinthash_v4(const uint key[4])
   hash += key[3];
   return hash;
 }
+
 uint BLI_ghashutil_uinthash_v4_murmur(const uint key[4])
 {
   return BLI_hash_mm2((const unsigned char *)key, sizeof(int) * 4 /* sizeof(key) */, 0);
@@ -83,6 +84,25 @@ uint BLI_ghashutil_uinthash_v4_murmur(const uint key[4])
 bool BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b)
 {
   return (memcmp(a, b, sizeof(uint[4])) != 0);
+}
+
+uint BLI_ghashutil_uinthash_v2(const uint key[2])
+{
+  uint hash;
+  hash = key[0];
+  hash *= 37;
+  hash += key[1];
+  return hash;
+}
+
+uint BLI_ghashutil_uinthash_v2_murmur(const uint key[2])
+{
+  return BLI_hash_mm2((const unsigned char *)key, sizeof(int) * 2 /* sizeof(key) */, 0);
+}
+
+bool BLI_ghashutil_uinthash_v2_cmp(const void *a, const void *b)
+{
+  return (memcmp(a, b, sizeof(uint[2])) != 0);
 }
 
 uint BLI_ghashutil_uinthash(uint key)
