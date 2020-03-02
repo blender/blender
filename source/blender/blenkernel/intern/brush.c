@@ -78,6 +78,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(weight);
   FROM_DEFAULT(size);
   FROM_DEFAULT(alpha);
+  FROM_DEFAULT(hardness);
   FROM_DEFAULT(autosmooth_factor);
   FROM_DEFAULT(topology_rake_factor);
   FROM_DEFAULT(crease_pinch_factor);
