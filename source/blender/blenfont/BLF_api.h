@@ -27,6 +27,10 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* enable this only if needed (unused circa 2016) */
 #define BLF_BLUR_ENABLE 0
 
@@ -276,5 +280,9 @@ struct ResultBLF {
    */
   int width;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLF_API_H__ */
