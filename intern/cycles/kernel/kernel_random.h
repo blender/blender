@@ -43,7 +43,7 @@ ccl_device uint sobol_dimension(KernelGlobals *kg, int index, int dimension)
   uint i = index + SOBOL_SKIP;
   for (int j = 0, x; (x = find_first_set(i)); i >>= x) {
     j += x;
-    result ^= kernel_tex_fetch(__sobol_directions, 32 * dimension + j - 1);
+    result ^= kernel_tex_fetch(__sample_pattern_lut, 32 * dimension + j - 1);
   }
   return result;
 }
@@ -56,7 +56,9 @@ ccl_device_forceinline float path_rng_1D(
 #ifdef __DEBUG_CORRELATION__
   return (float)drand48();
 #endif
-
+  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_PMJ) {
+    return pmj_sample_1D(kg, sample, rng_hash, dimension);
+  }
 #ifdef __CMJ__
 #  ifdef __SOBOL__
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ)
@@ -99,7 +101,10 @@ ccl_device_forceinline void path_rng_2D(KernelGlobals *kg,
   *fy = (float)drand48();
   return;
 #endif
-
+  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_PMJ) {
+    pmj_sample_2D(kg, sample, rng_hash, dimension, fx, fy);
+    return;
+  }
 #ifdef __CMJ__
 #  ifdef __SOBOL__
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ)
@@ -282,6 +287,30 @@ ccl_device float lcg_step_float_addrspace(ccl_addr_space uint *rng)
   /* Implicit mod 2^32 */
   *rng = (1103515245 * (*rng) + 12345);
   return (float)*rng * (1.0f / (float)0xFFFFFFFF);
+}
+
+ccl_device_inline bool sample_is_even(int pattern, int sample)
+{
+  if (pattern == SAMPLING_PATTERN_PMJ) {
+    /* See Section 10.2.1, "Progressive Multi-Jittered Sample Sequences", Christensen et al.
+     * We can use this to get divide sample sequence into two classes for easier variance
+     * estimation. There must be a more elegant way of writing this? */
+#if defined(__GNUC__) && !defined(__KERNEL_GPU__)
+    return __builtin_popcount(sample & 0xaaaaaaaa) & 1;
+#elif defined(__NVCC__)
+    return __popc(sample & 0xaaaaaaaa) & 1;
+#else
+    int i = sample & 0xaaaaaaaa;
+    i = i - ((i >> 1) & 0x55555555);
+    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+    i = (((i + (i >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+    return i & 1;
+#endif
+  }
+  else {
+    /* TODO(Stefan): Are there reliable ways of dividing CMJ and Sobol into two classes? */
+    return sample & 0x1;
+  }
 }
 
 CCL_NAMESPACE_END

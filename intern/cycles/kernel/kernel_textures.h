@@ -77,7 +77,7 @@ KERNEL_TEX(KernelShader, __shaders)
 KERNEL_TEX(float, __lookup_table)
 
 /* sobol */
-KERNEL_TEX(uint, __sobol_directions)
+KERNEL_TEX(uint, __sample_pattern_lut)
 
 /* image textures */
 KERNEL_TEX(TextureInfo, __texture_info)
