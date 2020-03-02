@@ -1122,7 +1122,7 @@ url_manual_mapping = (
 	("bpy.types.menu*", "interface/controls/buttons/menus.html#bpy-types-menu"),
 	("bpy.types.mesh*", "modeling/meshes/index.html#bpy-types-mesh"),
 	("bpy.types.pose*", "animation/armatures/posing/index.html#bpy-types-pose"),
-	("bpy.types.text*", "modeling/texts/index.html#bpy-types-text"),
+	("bpy.types.text*", "editors/text_editor.html#bpy-types-spacetexteditor"),
 	("bpy.ops.brush*", "sculpt_paint/brush/brush.html#bpy-ops-brush"),
 	("bpy.ops.cloth*", "physics/cloth/index.html#bpy-ops-cloth"),
 	("bpy.ops.curve*", "modeling/curves/index.html#bpy-ops-curve"),
