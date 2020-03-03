@@ -2188,7 +2188,7 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop,
 void RNA_def_property_boolean_sdna(PropertyRNA *prop,
                                    const char *structname,
                                    const char *propname,
-                                   int bit)
+                                   int64_t bit)
 {
   PropertyDefRNA *dp;
   BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
@@ -2209,7 +2209,7 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop,
 
     if (DefRNA.silent == 0) {
       /* error check to ensure floats are not wrapped as ints/bools */
-      if (dp->dnatype && *dp->dnatype && IS_DNATYPE_INT_COMPAT(dp->dnatype) == 0) {
+      if (dp->dnatype && *dp->dnatype && IS_DNATYPE_BOOLEAN_COMPAT(dp->dnatype) == 0) {
         CLOG_ERROR(&LOG,
                    "%s.%s is a '%s' but wrapped as type '%s'.",
                    srna->identifier,
@@ -2279,7 +2279,7 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop,
 void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop,
                                             const char *structname,
                                             const char *propname,
-                                            int booleanbit)
+                                            int64_t booleanbit)
 {
   PropertyDefRNA *dp;
 
@@ -2288,7 +2288,7 @@ void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop,
   dp = rna_find_struct_property_def(DefRNA.laststruct, prop);
 
   if (dp) {
-    dp->booleannegative = 1;
+    dp->booleannegative = true;
   }
 }
 

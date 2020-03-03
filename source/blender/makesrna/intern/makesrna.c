@@ -18,6 +18,7 @@
  * \ingroup RNA
  */
 
+#include <inttypes.h>
 #include <float.h>
 #include <limits.h>
 #include <stdio.h>
@@ -595,7 +596,7 @@ static void rna_float_print(FILE *f, float num)
   }
 }
 
-static void rna_int_print(FILE *f, int num)
+static void rna_int_print(FILE *f, int64_t num)
 {
   if (num == INT_MIN) {
     fprintf(f, "INT_MIN");
@@ -603,8 +604,17 @@ static void rna_int_print(FILE *f, int num)
   else if (num == INT_MAX) {
     fprintf(f, "INT_MAX");
   }
+  else if (num == INT64_MIN) {
+    fprintf(f, "INT64_MIN");
+  }
+  else if (num == INT64_MAX) {
+    fprintf(f, "INT64_MAX");
+  }
+  else if (num < INT_MIN || num > INT_MAX) {
+    fprintf(f, "%" PRId64 "LL", num);
+  }
   else {
-    fprintf(f, "%d", num);
+    fprintf(f, "%d", (int)num);
   }
 }
 
@@ -642,7 +652,19 @@ static char *rna_def_property_get_func(
           }
         }
       }
-      else if (prop->type == PROP_INT || prop->type == PROP_BOOLEAN || prop->type == PROP_ENUM) {
+      else if (prop->type == PROP_BOOLEAN) {
+        if (IS_DNATYPE_BOOLEAN_COMPAT(dp->dnatype) == 0) {
+          CLOG_ERROR(&LOG,
+                     "%s.%s is a '%s' but wrapped as type '%s'.",
+                     srna->identifier,
+                     prop->identifier,
+                     dp->dnatype,
+                     RNA_property_typename(prop->type));
+          DefRNA.error = 1;
+          return NULL;
+        }
+      }
+      else if (prop->type == PROP_INT || prop->type == PROP_ENUM) {
         if (IS_DNATYPE_INT_COMPAT(dp->dnatype) == 0) {
           CLOG_ERROR(&LOG,
                      "%s.%s is a '%s' but wrapped as type '%s'.",
@@ -784,10 +806,11 @@ static char *rna_def_property_get_func(
           if (dp->dnaarraylength == 1) {
             if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
               fprintf(f,
-                      "        values[i] = %s((data->%s & (%du << i)) != 0);\n",
+                      "        values[i] = %s((data->%s & (",
                       (dp->booleannegative) ? "!" : "",
-                      dp->dnaname,
-                      dp->booleanbit);
+                      dp->dnaname);
+              rna_int_print(f, dp->booleanbit);
+              fprintf(f, " << i)) != 0);\n");
             }
             else {
               fprintf(f,
@@ -1111,11 +1134,14 @@ static char *rna_def_property_set_func(
           if (dp->dnaarraylength == 1) {
             if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
               fprintf(f,
-                      "        if (%svalues[i]) data->%s |= (%du << i);\n",
+                      "        if (%svalues[i]) data->%s |= (",
                       (dp->booleannegative) ? "!" : "",
-                      dp->dnaname,
-                      dp->booleanbit);
-              fprintf(f, "        else data->%s &= ~(%du << i);\n", dp->dnaname, dp->booleanbit);
+                      dp->dnaname);
+              rna_int_print(f, dp->booleanbit);
+              fprintf(f, " << i);\n");
+              fprintf(f, "        else data->%s &= ~(", dp->dnaname);
+              rna_int_print(f, dp->booleanbit);
+              fprintf(f, " << i);\n");
             }
             else {
               fprintf(
