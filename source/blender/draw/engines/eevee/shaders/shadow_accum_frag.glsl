@@ -19,7 +19,7 @@ void main()
   float depth = texelFetch(depthBuffer, texel, 0).r;
   if (depth == 1.0f) {
     /* Early exit background does not receive shadows */
-    fragColor.r = 0.0;
+    fragColor.r = 1.0;
     return;
   }
 
@@ -40,7 +40,6 @@ void main()
   vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
 
   vec3 true_normal = normalize(cross(dFdx(viewPosition), dFdy(viewPosition)));
-  vec3 N = normal_view_to_world(true_normal);
 
   for (int i = 0; i < MAX_LIGHT && i < laNumLight; i++) {
     LightData ld = lights_data[i];
@@ -49,9 +48,8 @@ void main()
     l_vector.xyz = ld.l_position - worldPosition;
     l_vector.w = length(l_vector.xyz);
 
-    float light_input = smoothstep(0.2, -0.2, -dot(N, normalize(l_vector.xyz)));
     float l_vis = light_shadowing(
-        ld, worldPosition, viewPosition, tracing_depth, true_normal, rand.x, true, light_input);
+        ld, worldPosition, viewPosition, tracing_depth, true_normal, rand.x, true, 1.0);
 
     accum_light += l_vis;
   }
