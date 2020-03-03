@@ -246,13 +246,25 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx, Object
   return sod;
 }
 
+static struct LinkNode **snap_object_data_editmesh_bvh_cache_get(Object *ob, BMEditMesh *em)
+{
+  if (em->mesh_eval_final) {
+    return &em->mesh_eval_final->runtime.bvh_cache;
+  }
+  if (em->mesh_eval_cage) {
+    return &em->mesh_eval_cage->runtime.bvh_cache;
+  }
+
+  return &((Mesh *)ob->data)->runtime.bvh_cache;
+}
+
 static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
                                                      Object *ob,
                                                      BMEditMesh *em)
 {
   SnapObjectData *sod;
   void **sod_p;
-  bool init = false, init_min_max = true;
+  bool init = false, init_min_max = true, clear_cached = false;
 
   {
     /* Use object-data as the key in ghash since the editmesh
@@ -277,25 +289,16 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
       clear = true;
     }
     else if (sod->treedata_editmesh.em != em) {
-      /* Clear only cached. */
-      init_min_max = false;
-      if (sod->treedata_editmesh.cached) {
-        sod->treedata_editmesh.tree = NULL;
-        /* Only init min and max when you have a non-custom bvhtree pending. */
-        init_min_max = true;
-      }
-      for (int i = 0; i < ARRAY_SIZE(sod->bvhtree); i++) {
-        if (sod->cached[i]) {
-          sod->bvhtree[i] = NULL;
-          /* Only init min and max when you have a non-custom bvhtree pending. */
-          init_min_max = true;
-        }
-      }
+      clear_cached = true;
       init = true;
     }
     else if (sod->bvh_cache_p) {
-      if (sod->treedata_editmesh.tree && sod->treedata_editmesh.cached &&
-          !bvhcache_has_tree(*sod->bvh_cache_p, sod->treedata_editmesh.tree)) {
+      if (sod->bvh_cache_p != snap_object_data_editmesh_bvh_cache_get(ob, em)) {
+        clear_cached = true;
+        init = true;
+      }
+      else if (sod->treedata_editmesh.tree && sod->treedata_editmesh.cached &&
+               !bvhcache_has_tree(*sod->bvh_cache_p, sod->treedata_editmesh.tree)) {
         /* The tree is owned by the EditMesh and may have been freed since we last used! */
         clear = true;
       }
@@ -324,18 +327,27 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
   if (init) {
     sod->type = SNAP_EDIT_MESH;
     sod->treedata_editmesh.em = em;
+
+    if (clear_cached) {
+      /* Only init min and max when you have a non-custom bvhtree pending. */
+      init_min_max = false;
+      if (sod->treedata_editmesh.cached) {
+        sod->treedata_editmesh.tree = NULL;
+        init_min_max = true;
+      }
+      for (int i = 0; i < ARRAY_SIZE(sod->bvhtree); i++) {
+        if (sod->cached[i]) {
+          sod->bvhtree[i] = NULL;
+          init_min_max = true;
+        }
+      }
+    }
+
     if (init_min_max) {
       bm_mesh_minmax(em->bm, sod->min, sod->max);
     }
-    if (em->mesh_eval_final) {
-      sod->bvh_cache_p = &em->mesh_eval_final->runtime.bvh_cache;
-    }
-    else if (em->mesh_eval_cage) {
-      sod->bvh_cache_p = &em->mesh_eval_cage->runtime.bvh_cache;
-    }
-    else {
-      sod->bvh_cache_p = &((Mesh *)ob->data)->runtime.bvh_cache;
-    }
+
+    sod->bvh_cache_p = snap_object_data_editmesh_bvh_cache_get(ob, em);
   }
 
   return sod;
