@@ -51,14 +51,16 @@ endif()
 
 # Common configuration.
 
-link_directories(${OPENIMAGEIO_LIBPATH}
-                 ${BOOST_LIBPATH}
-                 ${PNG_LIBPATH}
-                 ${JPEG_LIBPATH}
-                 ${ZLIB_LIBPATH}
-                 ${TIFF_LIBPATH}
-                 ${OPENEXR_LIBPATH}
-                 ${OPENJPEG_LIBPATH})
+link_directories(
+  ${OPENIMAGEIO_LIBPATH}
+  ${BOOST_LIBPATH}
+  ${PNG_LIBPATH}
+  ${JPEG_LIBPATH}
+  ${ZLIB_LIBPATH}
+  ${TIFF_LIBPATH}
+  ${OPENEXR_LIBPATH}
+  ${OPENJPEG_LIBPATH}
+)
 
 if(WITH_OPENCOLORIO)
   link_directories(${OPENCOLORIO_LIBPATH})

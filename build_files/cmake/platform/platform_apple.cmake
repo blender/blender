@@ -411,11 +411,13 @@ if(WITH_OPENMP)
 
     # Copy libomp.dylib to allow executables like datatoc and tests to work.
     execute_process(
-        COMMAND mkdir -p ${CMAKE_BINARY_DIR}/Resources/lib
-        COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/Resources/lib/libomp.dylib)
+      COMMAND mkdir -p ${CMAKE_BINARY_DIR}/Resources/lib
+      COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/Resources/lib/libomp.dylib
+    )
     execute_process(
-        COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bin/Resources/lib
-        COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/bin/Resources/lib/libomp.dylib)
+      COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bin/Resources/lib
+      COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/bin/Resources/lib/libomp.dylib
+    )
   endif()
 endif()
 

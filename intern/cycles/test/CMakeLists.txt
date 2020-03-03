@@ -86,14 +86,16 @@ list(APPEND ALL_CYCLES_LIBRARIES
 
 include_directories(${INC})
 
-link_directories(${OPENIMAGEIO_LIBPATH}
-                 ${BOOST_LIBPATH}
-                 ${PNG_LIBPATH}
-                 ${JPEG_LIBPATH}
-                 ${ZLIB_LIBPATH}
-                 ${TIFF_LIBPATH}
-                 ${OPENEXR_LIBPATH}
-                 ${OPENCOLORIO_LIBPATH})
+link_directories(
+  ${OPENIMAGEIO_LIBPATH}
+  ${BOOST_LIBPATH}
+  ${PNG_LIBPATH}
+  ${JPEG_LIBPATH}
+  ${ZLIB_LIBPATH}
+  ${TIFF_LIBPATH}
+  ${OPENEXR_LIBPATH}
+  ${OPENCOLORIO_LIBPATH}
+)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")

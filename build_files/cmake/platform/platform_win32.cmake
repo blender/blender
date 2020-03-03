@@ -671,8 +671,8 @@ if(WITH_USD)
     set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/libusd_m_d.lib)
     set(USD_LIBRARY_DIR ${LIBDIR}/usd/lib/usd)
     set(USD_LIBRARIES
-        debug ${USD_DEBUG_LIB}
-        optimized ${USD_RELEASE_LIB}
+      debug ${USD_DEBUG_LIB}
+      optimized ${USD_RELEASE_LIB}
     )
   endif()
 endif()

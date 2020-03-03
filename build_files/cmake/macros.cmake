@@ -947,7 +947,7 @@ function(data_to_c_simple
   set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
 endfunction()
 
-# macro for converting pixmap directory to a png and then a c file
+# Function for converting pixmap directory to a '.png' and then a '.c' file.
 function(data_to_c_simple_icons
   path_from icon_prefix icon_names
   list_to_add
@@ -1160,12 +1160,12 @@ macro(blender_precompile_headers target cpp header)
 endmacro()
 
 macro(set_and_warn_dependency
-    _dependency _setting _val)
-    # when $_dependency is disabled, forces $_setting = $_val
-    if(NOT ${${_dependency}} AND ${${_setting}})
-      message(STATUS "'${_dependency}' is disabled: forcing 'set(${_setting} ${_val})'")
-      set(${_setting} ${_val})
-    endif()
+  _dependency _setting _val)
+  # when $_dependency is disabled, forces $_setting = $_val
+  if(NOT ${${_dependency}} AND ${${_setting}})
+    message(STATUS "'${_dependency}' is disabled: forcing 'set(${_setting} ${_val})'")
+    set(${_setting} ${_val})
+  endif()
 endmacro()
 
 macro(without_system_libs_begin)

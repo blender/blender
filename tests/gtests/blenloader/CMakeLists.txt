@@ -18,20 +18,20 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-    .
-    ..
-    ../../../source/blender/blenkernel
-    ../../../source/blender/blenlib
-    ../../../source/blender/blenloader
-    ../../../source/blender/depsgraph
-    ../../../source/blender/imbuf
-    ../../../source/blender/makesdna
-    ../../../source/blender/makesrna
-    ../../../source/blender/windowmanager
-    ../../../intern/guardedalloc
-    ${GLOG_INCLUDE_DIRS}
-    ${GFLAGS_INCLUDE_DIRS}
-    ../../../extern/gtest/include
+  .
+  ..
+  ../../../source/blender/blenkernel
+  ../../../source/blender/blenlib
+  ../../../source/blender/blenloader
+  ../../../source/blender/depsgraph
+  ../../../source/blender/imbuf
+  ../../../source/blender/makesdna
+  ../../../source/blender/makesrna
+  ../../../source/blender/windowmanager
+  ../../../intern/guardedalloc
+  ${GLOG_INCLUDE_DIRS}
+  ${GFLAGS_INCLUDE_DIRS}
+  ../../../extern/gtest/include
 )
 
 set(SRC
@@ -46,24 +46,24 @@ blender_add_lib(bf_blenloader_test "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 
 set(INC
-    .
-    ..
-    ../../../source/blender/blenlib
-    ../../../source/blender/blenloader
-    ../../../source/blender/blenkernel
-    ../../../source/blender/makesdna
-    ../../../source/blender/makesrna
-    ../../../source/blender/depsgraph
-    ../../../intern/guardedalloc
+  .
+  ..
+  ../../../source/blender/blenlib
+  ../../../source/blender/blenloader
+  ../../../source/blender/blenkernel
+  ../../../source/blender/makesdna
+  ../../../source/blender/makesrna
+  ../../../source/blender/depsgraph
+  ../../../intern/guardedalloc
 )
 
 set(LIB
-    bf_blenloader_test
-    bf_blenloader
+  bf_blenloader_test
+  bf_blenloader
 
-    # Should not be needed but gives windows linker errors if the ocio libs are linked before this:
-    bf_intern_opencolorio
-    bf_gpu
+  # Should not be needed but gives windows linker errors if the ocio libs are linked before this:
+  bf_intern_opencolorio
+  bf_gpu
 )
 
 include_directories(${INC})
@@ -73,7 +73,7 @@ get_property(BLENDER_SORTED_LIBS GLOBAL PROPERTY BLENDER_SORTED_LIBS_PROP)
 
 
 set(SRC
-    blendfile_load_test.cc
+  blendfile_load_test.cc
 )
 if(WITH_BUILDINFO)
   list(APPEND SRC
