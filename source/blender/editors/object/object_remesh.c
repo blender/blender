@@ -214,6 +214,7 @@ typedef struct QuadriFlowJob {
   bool smooth_normals;
 
   int success;
+  bool is_nonblocking_job;
 } QuadriFlowJob;
 
 static bool mesh_is_manifold_consistent(Mesh *mesh)
@@ -377,7 +378,9 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   qj->progress = progress;
   qj->success = 1;
 
-  G.is_break = false; /* XXX shared with render - replace with job 'stop' switch */
+  if (qj->is_nonblocking_job) {
+    G.is_break = false; /* XXX shared with render - replace with job 'stop' switch */
+  }
 
   Object *ob = qj->owner;
   Mesh *mesh = ob->data;
@@ -456,7 +459,9 @@ static void quadriflow_end_job(void *customdata)
 
   Object *ob = qj->owner;
 
-  WM_set_locked_interface(G_MAIN->wm.first, false);
+  if (qj->is_nonblocking_job) {
+    WM_set_locked_interface(G_MAIN->wm.first, false);
+  }
 
   switch (qj->success) {
     case 1:
@@ -513,21 +518,34 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
     job->symmetry_axes = 0;
   }
 
-  wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
-                              CTX_wm_window(C),
-                              CTX_data_scene(C),
-                              "QuadriFlow Remesh",
-                              WM_JOB_PROGRESS,
-                              WM_JOB_TYPE_QUADRIFLOW_REMESH);
+  if (op->flag == 0) {
+    /* This is called directly from the exec operator, this operation is now blocking */
+    job->is_nonblocking_job = false;
+    short stop = 0, do_update = true;
+    float progress;
+    quadriflow_start_job(job, &stop, &do_update, &progress);
+    quadriflow_end_job(job);
+    quadriflow_free_job(job);
+  }
+  else {
+    /* Non blocking call. For when the operator has been called from the gui */
+    job->is_nonblocking_job = true;
 
-  WM_jobs_customdata_set(wm_job, job, quadriflow_free_job);
-  WM_jobs_timer(wm_job, 0.1, NC_GEOM | ND_DATA, NC_GEOM | ND_DATA);
-  WM_jobs_callbacks(wm_job, quadriflow_start_job, NULL, NULL, quadriflow_end_job);
+    wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
+                                CTX_wm_window(C),
+                                CTX_data_scene(C),
+                                "QuadriFlow Remesh",
+                                WM_JOB_PROGRESS,
+                                WM_JOB_TYPE_QUADRIFLOW_REMESH);
 
-  WM_set_locked_interface(CTX_wm_manager(C), true);
+    WM_jobs_customdata_set(wm_job, job, quadriflow_free_job);
+    WM_jobs_timer(wm_job, 0.1, NC_GEOM | ND_DATA, NC_GEOM | ND_DATA);
+    WM_jobs_callbacks(wm_job, quadriflow_start_job, NULL, NULL, quadriflow_end_job);
 
-  WM_jobs_start(CTX_wm_manager(C), wm_job);
+    WM_set_locked_interface(CTX_wm_manager(C), true);
 
+    WM_jobs_start(CTX_wm_manager(C), wm_job);
+  }
   return OPERATOR_FINISHED;
 }
 
