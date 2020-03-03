@@ -279,6 +279,11 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
     else if (sod->treedata_editmesh.em != em) {
       /* Clear only cached. */
       init_min_max = false;
+      if (sod->treedata_editmesh.cached) {
+        sod->treedata_editmesh.tree = NULL;
+        /* Only init min and max when you have a non-custom bvhtree pending. */
+        init_min_max = true;
+      }
       for (int i = 0; i < ARRAY_SIZE(sod->bvhtree); i++) {
         if (sod->cached[i]) {
           sod->bvhtree[i] = NULL;
