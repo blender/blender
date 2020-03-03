@@ -34,7 +34,6 @@ extern "C" {
 #include "DNA_material_types.h"
 }
 
-struct Main;
 struct Material;
 struct Object;
 
