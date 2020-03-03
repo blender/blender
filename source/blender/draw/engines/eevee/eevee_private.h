@@ -125,9 +125,21 @@ extern struct DrawEngineType draw_engine_eevee_type;
   } \
   ((void)0)
 
-#define LOOK_DEV_OVERLAY_ENABLED(v3d) \
-  ((v3d) && (v3d->shading.type == OB_MATERIAL) && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && \
-   (v3d->overlay.flag & V3D_OVERLAY_LOOK_DEV))
+BLI_INLINE bool eevee_hdri_preview_overlay_enabled(View3D *v3d)
+{
+  /* Only show the HDRI Preview in Shading Preview in the Viewport. */
+  if (v3d == NULL || v3d->shading.type != OB_MATERIAL) {
+    return false;
+  }
+
+  /* Only show the HDRI Preview when viewing the Combined render pass */
+  if (v3d->shading.render_pass != SCE_PASS_COMBINED) {
+    return false;
+  }
+
+  return ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && (v3d->overlay.flag & V3D_OVERLAY_LOOK_DEV);
+}
+
 #define USE_SCENE_LIGHT(v3d) \
   ((!v3d) || \
    ((v3d->shading.type == OB_MATERIAL) && (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS)) || \

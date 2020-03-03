@@ -76,7 +76,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 
   effects->lookdev_view = NULL;
 
-  if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
+  if (eevee_hdri_preview_overlay_enabled(v3d)) {
     /* Viewport / Spheres size. */
     const rcti *rect;
     rcti fallback_rect;
@@ -228,7 +228,7 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
-  if (psl->lookdev_diffuse_pass && LOOK_DEV_OVERLAY_ENABLED(draw_ctx->v3d)) {
+  if (psl->lookdev_diffuse_pass && eevee_hdri_preview_overlay_enabled(draw_ctx->v3d)) {
     /* Config renderer. */
     EEVEE_CommonUniformBuffer *common = &sldata->common_data;
     common->la_num_light = 0;

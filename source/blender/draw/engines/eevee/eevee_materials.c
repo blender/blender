@@ -1266,7 +1266,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 
-  if (LOOK_DEV_OVERLAY_ENABLED(draw_ctx->v3d)) {
+  if (eevee_hdri_preview_overlay_enabled(draw_ctx->v3d)) {
     DRWShadingGroup *shgrp;
 
     struct GPUBatch *sphere = DRW_cache_sphere_get();
