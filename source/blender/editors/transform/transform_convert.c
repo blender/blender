@@ -900,6 +900,8 @@ static void posttrans_gpd_clean(bGPdata *gpd)
   }
   /* set cache flag to dirty */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, gpd);
 }
 
 static void posttrans_mask_clean(Mask *mask)
@@ -929,6 +931,8 @@ static void posttrans_mask_clean(Mask *mask)
     }
 #endif
   }
+
+  WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
 
 /* Time + Average value */
@@ -2035,15 +2039,24 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
        *                            but we made duplicates, so get rid of these
        */
       if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-        bGPdata *gpd;
+        ListBase anim_data = {NULL, NULL};
+        const int filter = ANIMFILTER_DATA_VISIBLE;
+        ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-        // XXX: BAD! this get gpencil datablocks directly from main db...
-        // but that's how this currently works :/
-        for (gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
-          if (ID_REAL_USERS(gpd)) {
-            posttrans_gpd_clean(gpd);
+        for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+          if (ale->datatype == ALE_GPFRAME) {
+            ale->id->tag |= LIB_TAG_DOIT;
           }
         }
+        for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+          if (ale->datatype == ALE_GPFRAME) {
+            if (ale->id->tag & LIB_TAG_DOIT) {
+              ale->id->tag &= ~LIB_TAG_DOIT;
+              posttrans_gpd_clean((bGPdata *)ale->id);
+            }
+          }
+        }
+        ANIM_animdata_freelist(&anim_data);
       }
     }
     else if (ac.datatype == ANIMCONT_MASK) {
@@ -2057,15 +2070,24 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
        *    User canceled the transform, but we made duplicates, so get rid of these.
        */
       if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-        Mask *mask;
+        ListBase anim_data = {NULL, NULL};
+        const int filter = ANIMFILTER_DATA_VISIBLE;
+        ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-        // XXX: BAD! this get gpencil datablocks directly from main db...
-        // but that's how this currently works :/
-        for (mask = bmain->masks.first; mask; mask = mask->id.next) {
-          if (ID_REAL_USERS(mask)) {
-            posttrans_mask_clean(mask);
+        for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+          if (ale->datatype == ALE_MASKLAY) {
+            ale->id->tag |= LIB_TAG_DOIT;
           }
         }
+        for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+          if (ale->datatype == ALE_MASKLAY) {
+            if (ale->id->tag & LIB_TAG_DOIT) {
+              ale->id->tag &= ~LIB_TAG_DOIT;
+              posttrans_mask_clean((Mask *)ale->id);
+            }
+          }
+        }
+        ANIM_animdata_freelist(&anim_data);
       }
     }
 
