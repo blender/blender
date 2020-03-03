@@ -2094,7 +2094,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     }
 
     /* make sure all F-Curves are set correctly */
-    if (!ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+    if (!ELEM(ac.datatype, ANIMCONT_GPENCIL)) {
       ANIM_editkeyframes_refresh(&ac);
     }
 
