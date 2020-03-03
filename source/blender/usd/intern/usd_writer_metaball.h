@@ -13,32 +13,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __USD_EXPORTER_CONTEXT_H__
-#define __USD_EXPORTER_CONTEXT_H__
+#ifndef __USD_WRITER_METABALL_H__
+#define __USD_WRITER_METABALL_H__
 
-#include "usd.h"
-
-#include <pxr/usd/sdf/path.h>
-#include <pxr/usd/usd/common.h>
-
-struct Depsgraph;
-struct Object;
+#include "usd_writer_mesh.h"
 
 namespace USD {
 
-class USDHierarchyIterator;
+class USDMetaballWriter : public USDGenericMeshWriter {
+ public:
+  USDMetaballWriter(const USDExporterContext &ctx);
 
-struct USDExporterContext {
-  Depsgraph *depsgraph;
-  const pxr::UsdStageRefPtr stage;
-  const pxr::SdfPath usd_path;
-  const USDHierarchyIterator *hierarchy_iterator;
-  const USDExportParams &export_params;
+ protected:
+  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
+  virtual void free_export_mesh(Mesh *mesh) override;
+  virtual bool is_supported(const HierarchyContext *context) const override;
+  virtual bool check_is_animated(const HierarchyContext &context) const override;
+
+ private:
+  bool is_basis_ball(Scene *scene, Object *ob) const;
 };
 
 }  // namespace USD
 
-#endif /* __USD_EXPORTER_CONTEXT_H__ */
+#endif /* __USD_WRITER_METABALL_H__ */
