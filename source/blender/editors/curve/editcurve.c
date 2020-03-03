@@ -1409,11 +1409,7 @@ static int separate_exec(bContext *C, wmOperator *op)
     /* Take into account user preferences for duplicating actions. */
     short dupflag = (U.dupflag & USER_DUP_ACT);
 
-    newbase = ED_object_add_duplicate(bmain,
-                                      scene,
-                                      view_layer,
-                                      oldbase,
-                                      dupflag);
+    newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, dupflag);
     DEG_relations_tag_update(bmain);
 
     newob = newbase->object;

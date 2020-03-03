@@ -789,10 +789,10 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
         if (pinfo->do_grid_update) {
           scene_orig->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_GRID;
         }
-        /* If we update grid we need to update the cubemaps too.
-         * So always refresh cubemaps. */
+        /* If we update grid we need to update the cube-maps too.
+         * So always refresh cube-maps. */
         scene_orig->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_CUBE;
-        /* Tag the lightcache to auto update. */
+        /* Tag the light-cache to auto update. */
         scene_orig->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_AUTO;
         /* Use a notifier to trigger the operator after drawing. */
         WM_event_add_notifier(draw_ctx->evil_C, NC_LIGHTPROBE, scene_orig);

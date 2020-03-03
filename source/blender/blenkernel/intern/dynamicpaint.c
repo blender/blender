@@ -6377,8 +6377,8 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
   return ret;
 }
 
-/*
- * Calculate a single frame and included subframes for surface
+/**
+ * Calculate a single frame and included sub-frames for surface.
  */
 int dynamicPaint_calculateFrame(DynamicPaintSurface *surface,
                                 struct Depsgraph *depsgraph,

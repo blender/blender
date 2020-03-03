@@ -1250,12 +1250,13 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
   }
 }
 
-/* Wave Texture node: Restore previous texture directions and offset.
+/**
+ * Wave Texture node: Restore previous texture directions and offset.
  * 1. In 2.81, Wave texture had fixed diagonal direction (Bands) or
  *    mapping along distance (Rings). Now, directions are customizable
  *    properties, with X axis being new default. To fix this we set new
  *    direction options to Diagonal and Spherical.
- * 2. Sine profile is now negatively offseted by PI/2 to better match
+ * 2. Sine profile is now negatively offset by PI/2 to better match
  *    other profiles. To fix this we set new Phase Offset input to PI/2
  *    in nodes with Sine profile.
  */

@@ -1284,9 +1284,8 @@ static void draw_axes(ArmatureDrawContext *ctx,
   final_col[3] = (ctx->const_color) ? 1.0 : (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? 0.1 : 0.65;
 
   if (pchan && pchan->custom && !(arm->flag & ARM_NO_CUSTOM)) {
-    /** Special case: Custom bones can have different scale than the bone.
-     * Recompute display matrix without the custom scalling applied. (T65640)
-     **/
+    /* Special case: Custom bones can have different scale than the bone.
+     * Recompute display matrix without the custom scaling applied. (T65640). */
     float axis_mat[4][4];
     float length = pchan->bone->length;
     copy_m4_m4(axis_mat, pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat);

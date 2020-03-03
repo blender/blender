@@ -323,7 +323,7 @@ MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
 MINLINE float dither_random_value(float s, float t)
 {
   /* Original code from https://www.shadertoy.com/view/4t2SDh */
-  /* The nois reshaping technique does not work on CPU.
+  /* The noise reshaping technique does not work on CPU.
    * We generate and merge two distribution instead */
   /* Uniform noise in [0..1[ range */
   float nrnd0 = sinf(s * 12.9898f + t * 78.233f) * 43758.5453f;
