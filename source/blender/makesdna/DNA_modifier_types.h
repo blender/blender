@@ -673,7 +673,7 @@ typedef struct WaveModifierData {
 
 /* WaveModifierData.flag */
 enum {
-  /* And what bout (1 << 0) flag? ;) */
+  MOD_WAVE_INVERT_VGROUP = (1 << 0),
   MOD_WAVE_X = (1 << 1),
   MOD_WAVE_Y = (1 << 2),
   MOD_WAVE_CYCL = (1 << 3),

@@ -154,6 +154,7 @@ static void waveModifier_do(WaveModifierData *md,
   const int wmd_axis = wmd->flag & (MOD_WAVE_X | MOD_WAVE_Y);
   const float falloff = wmd->falloff;
   float falloff_fac = 1.0f; /* when falloff == 0.0f this stays at 1.0f */
+  const bool invert_group = (wmd->flag & MOD_WAVE_INVERT_VGROUP) != 0;
 
   if ((wmd->flag & MOD_WAVE_NORM) && (mesh != NULL)) {
     mvert = mesh->mvert;
@@ -213,7 +214,8 @@ static void waveModifier_do(WaveModifierData *md,
 
       /* get weights */
       if (dvert) {
-        def_weight = defvert_find_weight(&dvert[i], defgrp_index);
+        def_weight = invert_group ? 1.0f - defvert_find_weight(&dvert[i], defgrp_index) :
+                                     defvert_find_weight(&dvert[i], defgrp_index);
 
         /* if this vert isn't in the vgroup, don't deform it */
         if (def_weight == 0.0f) {

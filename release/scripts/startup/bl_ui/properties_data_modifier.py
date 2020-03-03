@@ -1217,7 +1217,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.separator()
 
         layout.prop(md, "start_position_object")
-        layout.prop_search(md, "vertex_group", ob, "vertex_groups")
+        row = layout.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        row.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
         split = layout.split(factor=0.33)
         col = split.column()
         col.label(text="Texture")
