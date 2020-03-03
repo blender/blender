@@ -20,6 +20,8 @@
  * \ingroup bke
  */
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,12 +38,12 @@ bool BKE_copybuffer_save(struct Main *bmain_src, const char *filename, struct Re
 bool BKE_copybuffer_read(struct Main *bmain_dst,
                          const char *libname,
                          struct ReportList *reports,
-                         const unsigned int id_types_mask);
+                         const uint64_t id_types_mask);
 int BKE_copybuffer_paste(struct bContext *C,
                          const char *libname,
                          const short flag,
                          struct ReportList *reports,
-                         const unsigned int id_types_mask);
+                         const uint64_t id_types_mask);
 
 #ifdef __cplusplus
 }

@@ -676,7 +676,8 @@ typedef struct FileSelectParams {
   /** Text items name must match to be shown. */
   char filter_search[64];
   /** Same as filter, but for ID types (aka library groups). */
-  int filter_id;
+  int _pad0;
+  uint64_t filter_id;
 
   /** Active file used for keyboard navigation. */
   int active_file;

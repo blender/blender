@@ -179,7 +179,7 @@ short BKE_idcode_from_name(const char *name)
 /**
  * Convert an idcode into an idfilter (e.g. ID_OB -> FILTER_ID_OB).
  */
-int BKE_idcode_to_idfilter(const short idcode)
+uint64_t BKE_idcode_to_idfilter(const short idcode)
 {
 #define CASE_IDFILTER(_id) \
   case ID_##_id: \
@@ -227,7 +227,7 @@ int BKE_idcode_to_idfilter(const short idcode)
 /**
  * Convert an idfilter into an idcode (e.g. FILTER_ID_OB -> ID_OB).
  */
-short BKE_idcode_from_idfilter(const int idfilter)
+short BKE_idcode_from_idfilter(const uint64_t idfilter)
 {
 #define CASE_IDFILTER(_id) \
   case FILTER_ID_##_id: \

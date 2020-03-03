@@ -604,7 +604,8 @@ typedef struct UserDef_FileSpaceData {
   int sort_type;      /* FileSelectParams.sort */
   int details_flags;  /* FileSelectParams.details_flags */
   int flag;           /* FileSelectParams.flag */
-  int filter_id;      /* FileSelectParams.filter_id */
+  int _pad0;
+  uint64_t filter_id; /* FileSelectParams.filter_id */
 
   /** Info used when creating the file browser in a temporary window. */
   int temp_win_sizex;

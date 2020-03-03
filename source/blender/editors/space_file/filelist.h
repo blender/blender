@@ -62,8 +62,8 @@ void filelist_setfilter_options(struct FileList *filelist,
                                 const bool do_filter,
                                 const bool hide_dot,
                                 const bool hide_parent,
-                                const unsigned int filter,
-                                const unsigned int filter_id,
+                                const uint64_t filter,
+                                const uint64_t filter_id,
                                 const char *filter_glob,
                                 const char *filter_search);
 void filelist_filter(struct FileList *filelist);

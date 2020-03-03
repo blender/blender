@@ -11259,7 +11259,7 @@ static ID *link_named_part(
 /**
  * Simple reader for copy/paste buffers.
  */
-int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const unsigned int id_types_mask)
+int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const uint64_t id_types_mask)
 {
   FileData *fd = (FileData *)(bh);
   BHead *bhead;
