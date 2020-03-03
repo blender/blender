@@ -3412,37 +3412,77 @@ static void WM_OT_previews_ensure(wmOperatorType *ot)
 /** \name Data-Block Preview Clear Operator
  * \{ */
 
+typedef enum PreviewFilterID {
+  PREVIEW_FILTER_ALL,
+  PREVIEW_FILTER_GEOMETRY,
+  PREVIEW_FILTER_SHADING,
+  PREVIEW_FILTER_SCENE,
+  PREVIEW_FILTER_COLLECTION,
+  PREVIEW_FILTER_OBJECT,
+  PREVIEW_FILTER_MATERIAL,
+  PREVIEW_FILTER_LIGHT,
+  PREVIEW_FILTER_WORLD,
+  PREVIEW_FILTER_TEXTURE,
+  PREVIEW_FILTER_IMAGE,
+} PreviewFilterID;
+
 /* Only types supporting previews currently. */
 static const EnumPropertyItem preview_id_type_items[] = {
-    {FILTER_ID_SCE | FILTER_ID_GR | FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_LA | FILTER_ID_WO |
-         FILTER_ID_TE | FILTER_ID_IM,
-     "ALL",
-     0,
-     "All Types",
-     ""},
-    {FILTER_ID_SCE | FILTER_ID_GR | FILTER_ID_OB,
+    {PREVIEW_FILTER_ALL, "ALL", 0, "All Types", ""},
+    {PREVIEW_FILTER_GEOMETRY,
      "GEOMETRY",
      0,
      "All Geometry Types",
      "Clear previews for scenes, collections and objects"},
-    {FILTER_ID_MA | FILTER_ID_LA | FILTER_ID_WO | FILTER_ID_TE | FILTER_ID_IM,
+    {PREVIEW_FILTER_SHADING,
      "SHADING",
      0,
      "All Shading Types",
      "Clear previews for materials, lights, worlds, textures and images"},
-    {FILTER_ID_SCE, "SCENE", 0, "Scenes", ""},
-    {FILTER_ID_GR, "GROUP", 0, "Groups", ""},
-    {FILTER_ID_OB, "OBJECT", 0, "Objects", ""},
-    {FILTER_ID_MA, "MATERIAL", 0, "Materials", ""},
-    {FILTER_ID_LA, "LIGHT", 0, "Lights", ""},
-    {FILTER_ID_WO, "WORLD", 0, "Worlds", ""},
-    {FILTER_ID_TE, "TEXTURE", 0, "Textures", ""},
-    {FILTER_ID_IM, "IMAGE", 0, "Images", ""},
+    {PREVIEW_FILTER_SCENE, "SCENE", 0, "Scenes", ""},
+    {PREVIEW_FILTER_COLLECTION, "COLLECTION", 0, "Collections", ""},
+    {PREVIEW_FILTER_OBJECT, "OBJECT", 0, "Objects", ""},
+    {PREVIEW_FILTER_MATERIAL, "MATERIAL", 0, "Materials", ""},
+    {PREVIEW_FILTER_LIGHT, "LIGHT", 0, "Lights", ""},
+    {PREVIEW_FILTER_WORLD, "WORLD", 0, "Worlds", ""},
+    {PREVIEW_FILTER_TEXTURE, "TEXTURE", 0, "Textures", ""},
+    {PREVIEW_FILTER_IMAGE, "IMAGE", 0, "Images", ""},
 #if 0 /* XXX TODO */
-    {FILTER_ID_BR, "BRUSH", 0, "Brushes", ""},
+    {PREVIEW_FILTER_BRUSH, "BRUSH", 0, "Brushes", ""},
 #endif
     {0, NULL, 0, NULL, NULL},
 };
+
+static uint preview_filter_to_idfilter(enum PreviewFilterID filter)
+{
+  switch (filter) {
+    case PREVIEW_FILTER_ALL:
+      return FILTER_ID_SCE | FILTER_ID_GR | FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_LA |
+             FILTER_ID_WO | FILTER_ID_TE | FILTER_ID_IM;
+    case PREVIEW_FILTER_GEOMETRY:
+      return FILTER_ID_SCE | FILTER_ID_GR | FILTER_ID_OB;
+    case PREVIEW_FILTER_SHADING:
+      return FILTER_ID_MA | FILTER_ID_LA | FILTER_ID_WO | FILTER_ID_TE | FILTER_ID_IM;
+    case PREVIEW_FILTER_SCENE:
+      return FILTER_ID_SCE;
+    case PREVIEW_FILTER_COLLECTION:
+      return FILTER_ID_GR;
+    case PREVIEW_FILTER_OBJECT:
+      return FILTER_ID_OB;
+    case PREVIEW_FILTER_MATERIAL:
+      return FILTER_ID_MA;
+    case PREVIEW_FILTER_LIGHT:
+      return FILTER_ID_LA;
+    case PREVIEW_FILTER_WORLD:
+      return FILTER_ID_WO;
+    case PREVIEW_FILTER_TEXTURE:
+      return FILTER_ID_TE;
+    case PREVIEW_FILTER_IMAGE:
+      return FILTER_ID_IM;
+  }
+
+  return 0;
+}
 
 static int previews_clear_exec(bContext *C, wmOperator *op)
 {
@@ -3459,7 +3499,7 @@ static int previews_clear_exec(bContext *C, wmOperator *op)
   };
   int i;
 
-  const int id_filters = RNA_enum_get(op->ptr, "id_type");
+  const int id_filters = preview_filter_to_idfilter(RNA_enum_get(op->ptr, "id_type"));
 
   for (i = 0; lb[i]; i++) {
     ID *id = lb[i]->first;
@@ -3503,8 +3543,7 @@ static void WM_OT_previews_clear(wmOperatorType *ot)
   ot->prop = RNA_def_enum_flag(ot->srna,
                                "id_type",
                                preview_id_type_items,
-                               FILTER_ID_SCE | FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_MA |
-                                   FILTER_ID_LA | FILTER_ID_WO | FILTER_ID_TE | FILTER_ID_IM,
+                               PREVIEW_FILTER_ALL,
                                "Data-Block Type",
                                "Which data-block previews to clear");
 }
