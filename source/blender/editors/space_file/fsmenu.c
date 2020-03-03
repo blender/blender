@@ -148,8 +148,8 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
         BLI_str_rstrip(l_value);
         const uint l_value_len = strlen(l_value);
         if ((l_value[0] == '"') && (l_value_len > 0) && (l_value[l_value_len - 1] == '"')) {
-          l_value++;
           l_value[l_value_len - 1] = '\0';
+          l_value++;
 
           char l_value_expanded[FILE_MAX];
           char *l_value_final = l_value;
