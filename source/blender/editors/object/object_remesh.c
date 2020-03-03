@@ -397,15 +397,15 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   /* Bisect the input mesh using the paint symmetry settings */
   bisect_mesh = remesh_symmetry_bisect(qj->bmain, bisect_mesh, qj->symmetry_axes);
 
-  new_mesh = BKE_mesh_remesh_quadriflow_to_mesh_nomain(bisect_mesh,
-                                                       qj->target_faces,
-                                                       qj->seed,
-                                                       qj->use_preserve_sharp,
-                                                       qj->use_preserve_boundary ||
-                                                           qj->use_paint_symmetry,
-                                                       qj->use_mesh_curvature,
-                                                       quadriflow_update_job,
-                                                       (void *)qj);
+  new_mesh = BKE_mesh_remesh_quadriflow_to_mesh_nomain(
+      bisect_mesh,
+      qj->target_faces,
+      qj->seed,
+      qj->use_preserve_sharp,
+      qj->use_preserve_boundary || qj->use_paint_symmetry,
+      false,  // TODO unstable, can lead to uncoverable errors (sebpa) qj->use_mesh_curvature,
+      quadriflow_update_job,
+      (void *)qj);
 
   BKE_id_free(qj->bmain, bisect_mesh);
 
@@ -653,13 +653,13 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
                   false,
                   "Preserve Mesh Boundary",
                   "Try to preserve mesh boundary on the mesh");
-
+  /* TODO unstable, can lead to uncoverable errors (sebpa)
   RNA_def_boolean(ot->srna,
                   "use_mesh_curvature",
                   false,
                   "Use Mesh Curvature",
                   "Take the mesh curvature into account when remeshing");
-
+  */
   RNA_def_boolean(ot->srna,
                   "preserve_paint_mask",
                   false,
