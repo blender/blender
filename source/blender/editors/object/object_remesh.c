@@ -74,6 +74,9 @@
 
 #include "object_intern.h"  // own include
 
+/* TODO(sebpa): unstable, can lead to unrecoverable errors. */
+// #define USE_MESH_CURVATURE
+
 static bool object_remesh_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -405,8 +408,12 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
       qj->target_faces,
       qj->seed,
       qj->use_preserve_sharp,
-      qj->use_preserve_boundary || qj->use_paint_symmetry,
-      false,  // TODO unstable, can lead to uncoverable errors (sebpa) qj->use_mesh_curvature,
+      (qj->use_preserve_boundary || qj->use_paint_symmetry),
+#ifdef USE_MESH_CURVATURE
+      qj->use_mesh_curvature,
+#else
+      false,
+#endif
       quadriflow_update_job,
       (void *)qj);
 
@@ -416,7 +423,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
     *do_update = true;
     *stop = 0;
     if (qj->success == 1) {
-      /* This is not a user cancelation event */
+      /* This is not a user cancellation event. */
       qj->success = 0;
     }
     return;
@@ -497,7 +504,9 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   job->use_preserve_sharp = RNA_boolean_get(op->ptr, "use_preserve_sharp");
   job->use_preserve_boundary = RNA_boolean_get(op->ptr, "use_preserve_boundary");
 
+#ifdef USE_MESH_CURVATURE
   job->use_mesh_curvature = RNA_boolean_get(op->ptr, "use_mesh_curvature");
+#endif
 
   job->preserve_paint_mask = RNA_boolean_get(op->ptr, "preserve_paint_mask");
   job->smooth_normals = RNA_boolean_get(op->ptr, "smooth_normals");
@@ -671,13 +680,13 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
                   false,
                   "Preserve Mesh Boundary",
                   "Try to preserve mesh boundary on the mesh");
-  /* TODO unstable, can lead to uncoverable errors (sebpa)
+#ifdef USE_MESH_CURVATURE
   RNA_def_boolean(ot->srna,
                   "use_mesh_curvature",
                   false,
                   "Use Mesh Curvature",
                   "Take the mesh curvature into account when remeshing");
-  */
+#endif
   RNA_def_boolean(ot->srna,
                   "preserve_paint_mask",
                   false,
