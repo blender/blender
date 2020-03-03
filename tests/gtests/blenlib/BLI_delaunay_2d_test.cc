@@ -954,6 +954,70 @@ TEST(delaunay, TwoSquaresOverlap)
   BLI_delaunay_2d_cdt_free(out);
 }
 
+TEST(delaunay, TwoFaceEdgeOverlap)
+{
+  CDT_input in;
+  CDT_result *out;
+  int i, v_out[6], v_int;
+  int e01, e1i, ei2, e20, e24, e4i, ei0;
+  int f02i, f24i, f10i;
+  const char *spec = R"(6 0 2
+  5.657 0.0
+  -1.414 -5.831
+  0.0 0.0
+  5.657 0.0
+  -2.121 -2.915
+  0.0 0.0
+  2 1 0
+  5 4 3
+  )";
+
+  fill_input_from_string(&in, spec);
+  out = BLI_delaunay_2d_cdt_calc(&in, CDT_CONSTRAINTS);
+  EXPECT_EQ(out->verts_len, 5);
+  EXPECT_EQ(out->edges_len, 7);
+  EXPECT_EQ(out->faces_len, 3);
+  if (out->verts_len == 5 && out->edges_len == 7 && out->faces_len == 3) {
+    v_int = 4;
+    for (i = 0; i < 6; i++) {
+      v_out[i] = get_output_vert_index(out, i);
+      EXPECT_NE(v_out[i], -1);
+      EXPECT_NE(v_out[i], v_int);
+    }
+    EXPECT_EQ(v_out[0], v_out[3]);
+    EXPECT_EQ(v_out[2], v_out[5]);
+    e01 = get_edge(out, v_out[0], v_out[1]);
+    EXPECT_TRUE(out_edge_has_input_id(out, e01, 1));
+    e1i = get_edge(out, v_out[1], v_int);
+    EXPECT_TRUE(out_edge_has_input_id(out, e1i, 0));
+    ei2 = get_edge(out, v_int, v_out[2]);
+    EXPECT_TRUE(out_edge_has_input_id(out, ei2, 0));
+    e20 = get_edge(out, v_out[2], v_out[0]);
+    EXPECT_TRUE(out_edge_has_input_id(out, e20, 2));
+    EXPECT_TRUE(out_edge_has_input_id(out, e20, 5));
+    e24 = get_edge(out, v_out[2], v_out[4]);
+    EXPECT_TRUE(out_edge_has_input_id(out, e24, 3));
+    e4i = get_edge(out, v_out[4], v_int);
+    EXPECT_TRUE(out_edge_has_input_id(out, e4i, 4));
+    ei0 = get_edge(out, v_int, v_out[0]);
+    EXPECT_TRUE(out_edge_has_input_id(out, ei0, 4));
+    f02i = get_face_tri(out, v_out[0], v_out[2], v_int);
+    EXPECT_NE(f02i, -1);
+    EXPECT_TRUE(out_face_has_input_id(out, f02i, 0));
+    EXPECT_TRUE(out_face_has_input_id(out, f02i, 1));
+    f24i = get_face_tri(out, v_out[2], v_out[4], v_int);
+    EXPECT_NE(f24i, -1);
+    EXPECT_TRUE(out_face_has_input_id(out, f24i, 1));
+    EXPECT_FALSE(out_face_has_input_id(out, f24i, 0));
+    f10i = get_face_tri(out, v_out[1], v_out[0], v_int);
+    EXPECT_NE(f10i, -1);
+    EXPECT_TRUE(out_face_has_input_id(out, f10i, 0));
+    EXPECT_FALSE(out_face_has_input_id(out, f10i, 1));
+  }
+  free_spec_arrays(&in);
+  BLI_delaunay_2d_cdt_free(out);
+}
+
 TEST(delaunay, TriInTri)
 {
   CDT_input in;
