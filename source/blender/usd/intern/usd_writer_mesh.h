@@ -58,7 +58,7 @@ class USDMeshWriter : public USDGenericMeshWriter {
   USDMeshWriter(const USDExporterContext &ctx);
 
  protected:
-  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree);
+  virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
 }  // namespace USD
