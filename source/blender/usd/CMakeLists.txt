@@ -26,7 +26,7 @@ if(UNIX AND NOT APPLE)
   add_definitions(-D_GLIBCXX_PERMIT_BACKWARD_HASH)
 endif()
 if(WIN32)
-  add_definitions(-DNOMINMAX)
+  add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
 endif()
 add_definitions(-DPXR_STATIC)
 
