@@ -686,7 +686,7 @@ static int modifier_apply_obdata(
     }
 
     if (mmd && mmd->totlvl && mti->type == eModifierTypeType_OnlyDeform) {
-      if (!multiresModifier_reshapeFromDeformModifier(depsgraph, mmd, ob, md_eval)) {
+      if (!multiresModifier_reshapeFromDeformModifier(depsgraph, ob, mmd, md_eval)) {
         BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
         return 0;
       }
@@ -1375,26 +1375,25 @@ void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
 
 static int multires_subdivide_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
-  Object *ob = ED_object_active_context(C);
+  Object *object = ED_object_active_context(C);
   MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Multires);
+      op, object, eModifierType_Multires);
 
   if (!mmd) {
     return OPERATOR_CANCELLED;
   }
 
-  multiresModifier_subdivide(mmd, scene, ob, 0, mmd->simple);
+  multiresModifier_subdivide(object, mmd);
 
   ED_object_iter_other(
-      CTX_data_main(C), ob, true, ED_object_multires_update_totlevels_cb, &mmd->totlvl);
+      CTX_data_main(C), object, true, ED_object_multires_update_totlevels_cb, &mmd->totlvl);
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+  DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
 
-  if (ob->mode & OB_MODE_SCULPT) {
+  if (object->mode & OB_MODE_SCULPT) {
     /* ensure that grid paint mask layer is created */
-    BKE_sculpt_mask_layers_ensure(ob, mmd);
+    BKE_sculpt_mask_layers_ensure(object, mmd);
   }
 
   return OPERATOR_FINISHED;
@@ -1614,19 +1613,19 @@ void OBJECT_OT_multires_external_pack(wmOperatorType *ot)
 /********************* multires apply base ***********************/
 static int multires_base_apply_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
-  Object *ob = ED_object_active_context(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *object = ED_object_active_context(C);
   MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Multires);
+      op, object, eModifierType_Multires);
 
   if (!mmd) {
     return OPERATOR_CANCELLED;
   }
 
-  multiresModifier_base_apply(mmd, scene, ob);
+  multiresModifier_base_apply(depsgraph, object, mmd);
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+  DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
 
   return OPERATOR_FINISHED;
 }

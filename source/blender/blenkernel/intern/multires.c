@@ -57,6 +57,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "multires_reshape.h"
+
 #include <math.h>
 #include <string.h>
 
@@ -789,158 +791,7 @@ static DerivedMesh *subsurf_dm_create_local(Scene *scene,
   return subsurf_make_derived_from_derived(dm, &smd, scene, NULL, flags);
 }
 
-/* assumes no is normalized; return value's sign is negative if v is on
- * the other side of the plane */
-static float v3_dist_from_plane(float v[3], float center[3], float no[3])
-{
-  float s[3];
-  sub_v3_v3v3(s, v, center);
-  return dot_v3v3(s, no);
-}
-
-void multiresModifier_base_apply(MultiresModifierData *mmd, Scene *scene, Object *ob)
-{
-  DerivedMesh *cddm, *dispdm, *origdm;
-  Mesh *me;
-  const MeshElemMap *pmap;
-  float(*origco)[3];
-  int i, j, k, offset, totlvl;
-
-  multires_force_sculpt_rebuild(ob);
-
-  me = BKE_mesh_from_object(ob);
-  totlvl = mmd->totlvl;
-
-  /* nothing to do */
-  if (!totlvl) {
-    return;
-  }
-
-  /* XXX - probably not necessary to regenerate the cddm so much? */
-
-  /* generate highest level with displacements */
-  cddm = CDDM_from_mesh(me);
-  DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
-  dispdm = multires_dm_create_local(
-      scene, ob, cddm, totlvl, totlvl, 0, 0, MULTIRES_IGNORE_SIMPLIFY);
-  cddm->release(cddm);
-
-  /* copy the new locations of the base verts into the mesh */
-  offset = dispdm->getNumVerts(dispdm) - me->totvert;
-  for (i = 0; i < me->totvert; i++) {
-    dispdm->getVertCo(dispdm, offset + i, me->mvert[i].co);
-  }
-
-  /* heuristic to produce a better-fitting base mesh */
-
-  cddm = CDDM_from_mesh(me);
-  pmap = cddm->getPolyMap(ob, cddm);
-  origco = MEM_calloc_arrayN(me->totvert, 3 * sizeof(float), "multires apply base origco");
-  for (i = 0; i < me->totvert; i++) {
-    copy_v3_v3(origco[i], me->mvert[i].co);
-  }
-
-  for (i = 0; i < me->totvert; i++) {
-    float avg_no[3] = {0, 0, 0}, center[3] = {0, 0, 0}, push[3];
-    float dist;
-    int tot = 0;
-
-    /* don't adjust verts not used by at least one poly */
-    if (!pmap[i].count) {
-      continue;
-    }
-
-    /* find center */
-    for (j = 0; j < pmap[i].count; j++) {
-      const MPoly *p = &me->mpoly[pmap[i].indices[j]];
-
-      /* this double counts, not sure if that's bad or good */
-      for (k = 0; k < p->totloop; k++) {
-        int vndx = me->mloop[p->loopstart + k].v;
-        if (vndx != i) {
-          add_v3_v3(center, origco[vndx]);
-          tot++;
-        }
-      }
-    }
-    mul_v3_fl(center, 1.0f / tot);
-
-    /* find normal */
-    for (j = 0; j < pmap[i].count; j++) {
-      const MPoly *p = &me->mpoly[pmap[i].indices[j]];
-      MPoly fake_poly;
-      MLoop *fake_loops;
-      float(*fake_co)[3];
-      float no[3];
-
-      /* set up poly, loops, and coords in order to call
-       * BKE_mesh_calc_poly_normal_coords() */
-      fake_poly.totloop = p->totloop;
-      fake_poly.loopstart = 0;
-      fake_loops = MEM_malloc_arrayN(p->totloop, sizeof(MLoop), "fake_loops");
-      fake_co = MEM_malloc_arrayN(p->totloop, 3 * sizeof(float), "fake_co");
-
-      for (k = 0; k < p->totloop; k++) {
-        int vndx = me->mloop[p->loopstart + k].v;
-
-        fake_loops[k].v = k;
-
-        if (vndx == i) {
-          copy_v3_v3(fake_co[k], center);
-        }
-        else {
-          copy_v3_v3(fake_co[k], origco[vndx]);
-        }
-      }
-
-      BKE_mesh_calc_poly_normal_coords(&fake_poly, fake_loops, (const float(*)[3])fake_co, no);
-      MEM_freeN(fake_loops);
-      MEM_freeN(fake_co);
-
-      add_v3_v3(avg_no, no);
-    }
-    normalize_v3(avg_no);
-
-    /* push vertex away from the plane */
-    dist = v3_dist_from_plane(me->mvert[i].co, center, avg_no);
-    copy_v3_v3(push, avg_no);
-    mul_v3_fl(push, dist);
-    add_v3_v3(me->mvert[i].co, push);
-  }
-
-  MEM_freeN(origco);
-  cddm->release(cddm);
-
-  /* Vertices were moved around, need to update normals after all the vertices are updated
-   * Probably this is possible to do in the loop above, but this is rather tricky because
-   * we don't know all needed vertices' coordinates there yet.
-   */
-  BKE_mesh_calc_normals(me);
-
-  /* subdivide the mesh to highest level without displacements */
-  cddm = CDDM_from_mesh(me);
-  DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
-  origdm = subsurf_dm_create_local(scene,
-                                   ob,
-                                   cddm,
-                                   totlvl,
-                                   0,
-                                   0,
-                                   mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
-                                   0,
-                                   false,
-                                   SUBSURF_IGNORE_SIMPLIFY);
-  cddm->release(cddm);
-
-  /* calc disps */
-  multiresModifier_disp_run(
-      dispdm, me, NULL, CALC_DISPLACEMENTS, origdm->getGridData(origdm), totlvl);
-
-  origdm->release(origdm);
-  dispdm->release(dispdm);
-}
-
-static void multires_subdivide(
+static void multires_subdivide_legacy(
     MultiresModifierData *mmd, Scene *scene, Object *ob, int totlvl, int updateblock, int simple)
 {
   Mesh *me = ob->data;
@@ -1038,10 +889,10 @@ static void multires_subdivide(
   multires_set_tot_level(ob, mmd, totlvl);
 }
 
-void multiresModifier_subdivide(
+void multiresModifier_subdivide_legacy(
     MultiresModifierData *mmd, Scene *scene, Object *ob, int updateblock, int simple)
 {
-  multires_subdivide(mmd, scene, ob, mmd->totlvl + 1, updateblock, simple);
+  multires_subdivide_legacy(mmd, scene, ob, mmd->totlvl + 1, updateblock, simple);
 }
 
 static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *grid, float t[3])
@@ -2277,7 +2128,8 @@ void multires_load_old(Object *ob, Mesh *me)
   multires_load_old_vcols(me);
   multires_load_old_face_flags(me);
 
-  /* multiresModifier_subdivide (actually, multires_subdivide) expects polys, not tessfaces! */
+  /* multiresModifier_subdivide_legacy (actually, multires_subdivide_legacy) expects polys, not
+   * tessfaces! */
   BKE_mesh_convert_mfaces_to_mpolys(me);
 
   /* Add a multires modifier to the object */
@@ -2289,7 +2141,7 @@ void multires_load_old(Object *ob, Mesh *me)
   BLI_insertlinkbefore(&ob->modifiers, md, mmd);
 
   for (i = 0; i < me->mr->level_count - 1; i++) {
-    multiresModifier_subdivide(mmd, NULL, ob, 1, 0);
+    multiresModifier_subdivide_legacy(mmd, NULL, ob, 1, 0);
   }
 
   mmd->lvl = mmd->totlvl;
@@ -2314,8 +2166,7 @@ void multires_load_old(Object *ob, Mesh *me)
 
 /* If 'ob_src' and 'ob_dst' both have multires modifiers, synchronize them
  * such that 'ob_dst' has the same total number of levels as 'ob_src'. */
-void multiresModifier_sync_levels_ex(Scene *scene,
-                                     Object *ob_dst,
+void multiresModifier_sync_levels_ex(Object *ob_dst,
                                      MultiresModifierData *mmd_src,
                                      MultiresModifierData *mmd_dst)
 {
@@ -2324,7 +2175,7 @@ void multiresModifier_sync_levels_ex(Scene *scene,
   }
 
   if (mmd_src->totlvl > mmd_dst->totlvl) {
-    multires_subdivide(mmd_dst, scene, ob_dst, mmd_src->totlvl, false, mmd_dst->simple);
+    multiresModifier_subdivide_to_level(ob_dst, mmd_dst, mmd_src->totlvl);
   }
   else {
     multires_del_higher(mmd_dst, ob_dst, mmd_src->totlvl);
@@ -2346,7 +2197,7 @@ static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
   }
 
   if (mmd_src && mmd_dst) {
-    multiresModifier_sync_levels_ex(scene, ob_dst, mmd_src, mmd_dst);
+    multiresModifier_sync_levels_ex(ob_dst, mmd_src, mmd_dst);
   }
 }
 
