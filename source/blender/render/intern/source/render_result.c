@@ -35,6 +35,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 
 #include "BKE_appdir.h"
@@ -181,26 +182,33 @@ void render_result_views_shallowdelete(RenderResult *rr)
 
 static char *set_pass_name(char *outname, const char *name, int channel, const char *chan_id)
 {
-  BLI_strncpy(outname, name, EXR_PASS_MAXNAME);
+  const char *strings[2];
+  int strings_len = 0;
+  strings[strings_len++] = name;
+  char token[2];
   if (channel >= 0) {
-    char token[3] = {'.', chan_id[channel], '\0'};
-    strncat(outname, token, EXR_PASS_MAXNAME);
+    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
+    strings[strings_len++] = token;
   }
+  BLI_string_join_array_by_sep_char(outname, EXR_PASS_MAXNAME, '.', strings, strings_len);
   return outname;
 }
 
 static void set_pass_full_name(
     char *fullname, const char *name, int channel, const char *view, const char *chan_id)
 {
-  BLI_strncpy(fullname, name, EXR_PASS_MAXNAME);
+  const char *strings[3];
+  int strings_len = 0;
+  strings[strings_len++] = name;
   if (view && view[0]) {
-    strncat(fullname, ".", EXR_PASS_MAXNAME);
-    strncat(fullname, view, EXR_PASS_MAXNAME);
+    strings[strings_len++] = view;
   }
+  char token[2];
   if (channel >= 0) {
-    char token[3] = {'.', chan_id[channel], '\0'};
-    strncat(fullname, token, EXR_PASS_MAXNAME);
+    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
+    strings[strings_len++] = token;
   }
+  BLI_string_join_array_by_sep_char(fullname, EXR_PASS_MAXNAME, '.', strings, strings_len);
 }
 
 /********************************** New **************************************/
