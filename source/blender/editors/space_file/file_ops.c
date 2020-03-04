@@ -1722,7 +1722,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 {
   ScrArea *sa = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  ARegion *ar, *oldar = CTX_wm_region(C);
+  ARegion *ar, *ar_ctx = CTX_wm_region(C);
   const bool is_horizontal = (sfile->layout->flag & FILE_LAYOUT_HOR) != 0;
   int i;
 
@@ -1886,7 +1886,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   ED_region_tag_redraw(ar);
 
   /* and restore context */
-  CTX_wm_region_set(C, oldar);
+  CTX_wm_region_set(C, ar_ctx);
 
   return OPERATOR_FINISHED;
 }

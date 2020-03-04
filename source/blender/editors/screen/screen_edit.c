@@ -687,7 +687,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 
   ScrArea *sa = NULL;
   ARegion *ar;
-  ARegion *old_ar = scr->active_region;
+  ARegion *ar_prev = scr->active_region;
 
   ED_screen_areas_iter(win, scr, area_iter)
   {
@@ -714,7 +714,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
   }
 
   /* Check for redraw headers. */
-  if (old_ar != scr->active_region) {
+  if (ar_prev != scr->active_region) {
 
     ED_screen_areas_iter(win, scr, area_iter)
     {
@@ -723,20 +723,20 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
       for (ar = area_iter->regionbase.first; ar; ar = ar->next) {
 
         /* Call old area's deactivate if assigned. */
-        if (ar == old_ar && area_iter->type->deactivate) {
+        if (ar == ar_prev && area_iter->type->deactivate) {
           area_iter->type->deactivate(area_iter);
         }
 
-        if (ar == old_ar && ar != scr->active_region) {
-          wmGizmoMap *gzmap = old_ar->gizmo_map;
+        if (ar == ar_prev && ar != scr->active_region) {
+          wmGizmoMap *gzmap = ar_prev->gizmo_map;
           if (gzmap) {
             if (WM_gizmo_highlight_set(gzmap, NULL)) {
-              ED_region_tag_redraw_no_rebuild(old_ar);
+              ED_region_tag_redraw_no_rebuild(ar_prev);
             }
           }
         }
 
-        if (ar == old_ar || ar == scr->active_region) {
+        if (ar == ar_prev || ar == scr->active_region) {
           do_draw = true;
         }
       }
@@ -758,9 +758,9 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
   }
   else {
     /* Notifier invokes freeing the buttons... causing a bit too much redraws. */
-    region_cursor_set_ex(win, sa, scr->active_region, old_ar != scr->active_region);
+    region_cursor_set_ex(win, sa, scr->active_region, ar_prev != scr->active_region);
 
-    if (old_ar != scr->active_region) {
+    if (ar_prev != scr->active_region) {
       /* This used to be a notifier, but needs to be done immediate
        * because it can undo setting the right button as active due
        * to delayed notifier handling. */

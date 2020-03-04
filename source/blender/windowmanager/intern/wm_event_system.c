@@ -3101,9 +3101,9 @@ void wm_event_do_handlers(bContext *C)
 
           if (((is_playing_sound == 1) && (is_playing_screen == 0)) ||
               ((is_playing_sound == 0) && (is_playing_screen == 1))) {
-            wmWindow *context_old_win = CTX_wm_window(C);
-            bScreen *context_screen_win = CTX_wm_screen(C);
-            Scene *context_scene_win = CTX_data_scene(C);
+            wmWindow *win_ctx = CTX_wm_window(C);
+            bScreen *screen_stx = CTX_wm_screen(C);
+            Scene *scene_ctx = CTX_data_scene(C);
 
             CTX_wm_window_set(C, win);
             CTX_wm_screen_set(C, screen);
@@ -3111,9 +3111,9 @@ void wm_event_do_handlers(bContext *C)
 
             ED_screen_animation_play(C, -1, 1);
 
-            CTX_data_scene_set(C, context_scene_win);
-            CTX_wm_screen_set(C, context_screen_win);
-            CTX_wm_window_set(C, context_old_win);
+            CTX_data_scene_set(C, scene_ctx);
+            CTX_wm_screen_set(C, screen_stx);
+            CTX_wm_window_set(C, win_ctx);
           }
 
           if (is_playing_sound == 0) {

@@ -8432,10 +8432,10 @@ void ui_but_activate_event(bContext *C, ARegion *ar, uiBut *but)
   event.customdata = but;
   event.customdatafree = false;
 
-  ARegion *old_ar = CTX_wm_region(C);
+  ARegion *ar_ctx = CTX_wm_region(C);
   CTX_wm_region_set(C, ar);
   ui_do_button(C, but->block, but, &event);
-  CTX_wm_region_set(C, old_ar);
+  CTX_wm_region_set(C, ar_ctx);
 }
 
 /**
