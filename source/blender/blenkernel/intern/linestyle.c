@@ -190,7 +190,7 @@ void BKE_linestyle_make_local(struct Main *bmain,
                               FreestyleLineStyle *linestyle,
                               const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &linestyle->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &linestyle->id, lib_local);
 }
 
 FreestyleLineStyle *BKE_linestyle_active_from_view_layer(ViewLayer *view_layer)

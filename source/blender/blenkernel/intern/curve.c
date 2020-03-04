@@ -222,7 +222,7 @@ Curve *BKE_curve_copy(Main *bmain, const Curve *cu)
 
 void BKE_curve_make_local(Main *bmain, Curve *cu, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &cu->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &cu->id, lib_local);
 }
 
 /* Get list of nurbs from editnurbs structure */

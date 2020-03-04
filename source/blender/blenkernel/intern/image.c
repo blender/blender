@@ -464,7 +464,7 @@ Image *BKE_image_copy(Main *bmain, const Image *ima)
 
 void BKE_image_make_local(Main *bmain, Image *ima, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &ima->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &ima->id, lib_local);
 }
 
 void BKE_image_merge(Main *bmain, Image *dest, Image *source)

@@ -331,7 +331,7 @@ void BKE_lattice_free(Lattice *lt)
 
 void BKE_lattice_make_local(Main *bmain, Lattice *lt, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &lt->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &lt->id, lib_local);
 }
 
 typedef struct LatticeDeformData {

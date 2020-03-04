@@ -327,7 +327,7 @@ VFont *BKE_vfont_load_exists(struct Main *bmain, const char *filepath)
 
 void BKE_vfont_make_local(Main *bmain, VFont *vfont, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &vfont->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &vfont->id, lib_local);
 }
 
 static VFont *which_vfont(Curve *cu, CharInfo *info)

@@ -157,10 +157,11 @@ static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
  */
-static void lib_id_clear_library_data_ex(Main *bmain, ID *id, const bool id_in_mainlist)
+static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
 {
   bNodeTree *ntree = NULL;
   Key *key = NULL;
+  const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0;
 
   lib_id_library_local_paths(bmain, id->lib, id);
 
@@ -178,20 +179,18 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id, const bool id_in_m
   /* Internal bNodeTree blocks inside data-blocks also stores id->lib,
    * make sure this stays in sync. */
   if ((ntree = ntreeFromID(id))) {
-    lib_id_clear_library_data_ex(
-        bmain, &ntree->id, false); /* Datablocks' nodetree is never in Main. */
+    lib_id_clear_library_data_ex(bmain, &ntree->id);
   }
 
   /* Same goes for shapekeys. */
   if ((key = BKE_key_from_id(id))) {
-    lib_id_clear_library_data_ex(
-        bmain, &key->id, id_in_mainlist); /* sigh, why are keys in Main? */
+    lib_id_clear_library_data_ex(bmain, &key->id);
   }
 }
 
 void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
 {
-  lib_id_clear_library_data_ex(bmain, id, true);
+  lib_id_clear_library_data_ex(bmain, id);
 }
 
 void id_lib_extern(ID *id)
@@ -378,10 +377,7 @@ static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
 /**
  * Generic 'make local' function, works for most of data-block types...
  */
-void BKE_lib_id_make_local_generic(Main *bmain,
-                                   ID *id,
-                                   const bool id_in_mainlist,
-                                   const bool lib_local)
+void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const bool lib_local)
 {
   bool is_local = false, is_lib = false;
 
@@ -400,7 +396,7 @@ void BKE_lib_id_make_local_generic(Main *bmain,
 
   if (lib_local || is_local) {
     if (!is_lib) {
-      lib_id_clear_library_data_ex(bmain, id, id_in_mainlist);
+      lib_id_clear_library_data_ex(bmain, id);
       BKE_lib_id_expand_local(bmain, id);
     }
     else {
@@ -551,7 +547,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const bool lib_
       return true;
     case ID_NT:
       if (!test) {
-        ntreeMakeLocal(bmain, (bNodeTree *)id, true, lib_local);
+        ntreeMakeLocal(bmain, (bNodeTree *)id, lib_local);
       }
       return true;
     case ID_BR:
@@ -2226,7 +2222,7 @@ void BKE_library_make_local(Main *bmain,
        * currently there are some indirect usages. So instead of making a copy that we'll likely
        * get rid of later, directly make that data block local.
        * Saves a tremendous amount of time with complex scenes... */
-      lib_id_clear_library_data_ex(bmain, id, true);
+      lib_id_clear_library_data_ex(bmain, id);
       BKE_lib_id_expand_local(bmain, id);
       id->tag &= ~LIB_TAG_DOIT;
 

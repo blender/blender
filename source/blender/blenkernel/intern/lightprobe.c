@@ -103,7 +103,7 @@ LightProbe *BKE_lightprobe_copy(Main *bmain, const LightProbe *probe)
 
 void BKE_lightprobe_make_local(Main *bmain, LightProbe *probe, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &probe->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &probe->id, lib_local);
 }
 
 void BKE_lightprobe_free(LightProbe *probe)

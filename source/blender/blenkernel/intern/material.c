@@ -232,7 +232,7 @@ Material *BKE_material_localize(Material *ma)
 
 void BKE_material_make_local(Main *bmain, Material *ma, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &ma->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &ma->id, lib_local);
 }
 
 Material ***BKE_object_material_array(Object *ob)

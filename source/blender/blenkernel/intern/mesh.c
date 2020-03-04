@@ -838,7 +838,7 @@ Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(BMEditMesh *em,
 
 void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &me->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &me->id, lib_local);
 }
 
 BoundBox *BKE_mesh_boundbox_get(Object *ob)

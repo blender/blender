@@ -138,7 +138,7 @@ void BKE_armature_free(bArmature *arm)
 
 void BKE_armature_make_local(Main *bmain, bArmature *arm, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &arm->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &arm->id, lib_local);
 }
 
 static void copy_bonechildren(Bone *bone_dst,

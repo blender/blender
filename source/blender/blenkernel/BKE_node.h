@@ -399,10 +399,7 @@ struct bNodeTree **BKE_ntree_ptr_from_id(struct ID *id);
 struct bNodeTree *ntreeFromID(struct ID *id);
 struct ID *BKE_node_tree_find_owner_ID(struct Main *bmain, struct bNodeTree *ntree);
 
-void ntreeMakeLocal(struct Main *bmain,
-                    struct bNodeTree *ntree,
-                    bool id_in_mainlist,
-                    const bool lib_local);
+void ntreeMakeLocal(struct Main *bmain, struct bNodeTree *ntree, const bool lib_local);
 void ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void ntreeFreeLocalTree(struct bNodeTree *ntree);
 struct bNode *ntreeFindType(const struct bNodeTree *ntree, int type);

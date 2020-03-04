@@ -1668,7 +1668,7 @@ MovieClip *BKE_movieclip_copy(Main *bmain, const MovieClip *clip)
 
 void BKE_movieclip_make_local(Main *bmain, MovieClip *clip, const bool lib_local)
 {
-  BKE_lib_id_make_local_generic(bmain, &clip->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &clip->id, lib_local);
 }
 
 float BKE_movieclip_remap_scene_to_clip_frame(const MovieClip *clip, float framenr)

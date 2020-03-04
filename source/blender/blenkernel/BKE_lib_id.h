@@ -190,10 +190,7 @@ void id_fake_user_set(struct ID *id);
 void id_fake_user_clear(struct ID *id);
 void BKE_id_clear_newpoin(struct ID *id);
 
-void BKE_lib_id_make_local_generic(struct Main *bmain,
-                                   struct ID *id,
-                                   const bool id_in_mainlist,
-                                   const bool lib_local);
+void BKE_lib_id_make_local_generic(struct Main *bmain, struct ID *id, const bool lib_local);
 bool BKE_lib_id_make_local(struct Main *bmain,
                            struct ID *id,
                            const bool test,
