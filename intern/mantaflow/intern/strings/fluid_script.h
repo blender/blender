@@ -575,8 +575,8 @@ def bake_guiding_process_$ID$(framenr, format_guiding, path_guiding, resumable):
     \n\
     mantaMsg('Extrapolating guiding velocity')\n\
     # ensure velocities inside of guiding object, slightly add guiding vels outside of object too\n\
-    extrapolateVec3Simple(vel=guidevelC_s$ID$, phi=phiGuideIn_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
-    extrapolateVec3Simple(vel=guidevelC_s$ID$, phi=phiGuideIn_s$ID$, distance=4, inside=False)\n\
+    extrapolateVec3Simple(vel=guidevelC_s$ID$, phi=phiGuideIn_s$ID$, distance=6, inside=True)\n\
+    extrapolateVec3Simple(vel=guidevelC_s$ID$, phi=phiGuideIn_s$ID$, distance=3, inside=False)\n\
     resampleVec3ToMac(source=guidevelC_s$ID$, target=guidevel_sg$ID$)\n\
     \n\
     fluid_save_guiding_$ID$(path_guiding, framenr, format_guiding, resumable)\n\
