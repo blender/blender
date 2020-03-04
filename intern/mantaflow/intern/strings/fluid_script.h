@@ -238,6 +238,12 @@ y_force_s$ID$     = s$ID$.create(RealGrid)\n\
 z_force_s$ID$     = s$ID$.create(RealGrid)\n\
 obvel_s$ID$       = None\n\
 \n\
+# Set some initial values\n\
+phiObs_s$ID$.setConst(9999)\n\
+phiSIn_s$ID$.setConst(9999)\n\
+phiIn_s$ID$.setConst(9999)\n\
+phiOut_s$ID$.setConst(9999)\n\
+\n\
 # Keep track of important objects in dict to load them later on\n\
 fluid_data_dict_final_s$ID$  = dict(vel=vel_s$ID$)\n\
 fluid_data_dict_resume_s$ID$ = dict(phiObs=phiObs_s$ID$, phiIn=phiIn_s$ID$, phiOut=phiOut_s$ID$, flags=flags_s$ID$)\n";
@@ -252,6 +258,10 @@ obvelC_s$ID$     = s$ID$.create(Vec3Grid)\n\
 x_obvel_s$ID$    = s$ID$.create(RealGrid)\n\
 y_obvel_s$ID$    = s$ID$.create(RealGrid)\n\
 z_obvel_s$ID$    = s$ID$.create(RealGrid)\n\
+\n\
+# Set some initial values\n\
+phiObsSIn_s$ID$.setConst(9999)\n\
+phiObsIn_s$ID$.setConst(9999)\n\
 \n\
 if 'fluid_data_dict_resume_s$ID$' in globals():\n\
     fluid_data_dict_resume_s$ID$.update(phiObsIn=phiObsIn_s$ID$)\n";

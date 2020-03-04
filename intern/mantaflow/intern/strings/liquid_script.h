@@ -114,6 +114,10 @@ if using_speedvectors_s$ID$:\n\
 pindex_sm$ID$  = sm$ID$.create(ParticleIndexSystem)\n\
 gpi_sm$ID$     = sm$ID$.create(IntGrid)\n\
 \n\
+# Set some initial values\n\
+phiParts_sm$ID$.setConst(9999)\n\
+phi_sm$ID$.setConst(9999)\n\
+\n\
 # Keep track of important objects in dict to load them later on\n\
 liquid_mesh_dict_s$ID$ = dict(lMesh=mesh_sm$ID$)\n\
 \n\
@@ -137,6 +141,12 @@ neighborRatio_sp$ID$ = sp$ID$.create(RealGrid)\n\
 trappedAir_sp$ID$    = sp$ID$.create(RealGrid)\n\
 waveCrest_sp$ID$     = sp$ID$.create(RealGrid)\n\
 kineticEnergy_sp$ID$ = sp$ID$.create(RealGrid)\n\
+\n\
+# Set some initial values\n\
+phi_sp$ID$.setConst(9999)\n\
+phiIn_sp$ID$.setConst(9999)\n\
+phiObs_sp$ID$.setConst(9999)\n\
+phiObsIn_sp$ID$.setConst(9999)\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
 liquid_particles_dict_final_s$ID$  = dict(ppSnd=ppSnd_sp$ID$, pVelSnd=pVelSnd_pp$ID$, pLifeSnd=pLifeSnd_pp$ID$)\n\
