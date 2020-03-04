@@ -891,7 +891,7 @@ void IMAGE_OT_view_center_cursor(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Selected Operator
+/** \name Frame Selected Operator
  * \{ */
 
 static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))

@@ -3167,7 +3167,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View Selected";
+  ot->name = "Frame Selected";
   ot->idname = "SEQUENCER_OT_view_selected";
   ot->description = "Zoom the sequencer on the selected strips";
 

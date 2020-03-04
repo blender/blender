@@ -170,7 +170,7 @@ static int node_view_selected_exec(bContext *C, wmOperator *op)
 void NODE_OT_view_selected(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View Selected";
+  ot->name = "Frame Selected";
   ot->idname = "NODE_OT_view_selected";
   ot->description = "Resize view so you can see selected nodes";
 

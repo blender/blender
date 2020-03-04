@@ -541,7 +541,7 @@ void NLA_OT_view_all(wmOperatorType *ot)
 void NLA_OT_view_selected(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View Selected";
+  ot->name = "Frame Selected";
   ot->idname = "NLA_OT_view_selected";
   ot->description = "Reset viewable area to show selected strips range";
 

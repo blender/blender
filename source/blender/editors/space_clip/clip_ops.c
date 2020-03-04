@@ -1023,7 +1023,7 @@ void CLIP_OT_view_center_cursor(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Selected Operator
+/** \name Frame Selected Operator
  * \{ */
 
 static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1043,7 +1043,7 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_view_selected(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View Selected";
+  ot->name = "Frame Selected";
   ot->idname = "CLIP_OT_view_selected";
   ot->description = "View all selected elements";
 

@@ -351,7 +351,7 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 void GRAPH_OT_view_selected(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "View Selected";
+  ot->name = "Frame Selected";
   ot->idname = "GRAPH_OT_view_selected";
   ot->description = "Reset viewable area to show selected keyframe range";
 
