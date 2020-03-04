@@ -177,12 +177,11 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col.prop(domain, "time_scale", text="Time Scale")
             col.prop(domain, "cfl_condition", text="CFL Number")
 
-            col = flow.column()
+            col = flow.column(align=True)
             col.prop(domain, "use_adaptive_timesteps")
-            col1 = col.column(align=True)
-            col1.enabled = domain.use_adaptive_timesteps
-            col1.prop(domain, "timesteps_max", text="Timesteps Maximum")
-            col1.prop(domain, "timesteps_min", text="Minimum")
+            col.active = domain.use_adaptive_timesteps
+            col.prop(domain, "timesteps_max", text="Timesteps Maximum")
+            col.prop(domain, "timesteps_min", text="Minimum")
 
             col.separator()
 
@@ -479,9 +478,8 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "use_fractions", text="Fractional Obstacles")
-        col1 = col.column()
-        col1.enabled = domain.use_fractions
-        col1.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
+        col.active = domain.use_fractions
+        col.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
 
 
 class PHYSICS_PT_flow_source(PhysicButtonsPanel, Panel):
@@ -695,7 +693,7 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
         layout.use_property_split = True
 
         domain = context.fluid.domain_settings
-        layout.enabled = domain.use_noise
+        layout.active = domain.use_noise
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_noise = domain.has_cache_baked_noise
@@ -767,7 +765,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
         layout.use_property_split = True
 
         domain = context.fluid.domain_settings
-        layout.enabled = domain.use_mesh
+        layout.active = domain.use_mesh
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_mesh = domain.has_cache_baked_mesh
@@ -854,21 +852,20 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         flow.enabled = not is_baking_any
 
         sndparticle_combined_export = domain.sndparticle_combined_export
-        col = flow.column()
-        col.enabled = sndparticle_combined_export in {'OFF', 'FOAM + BUBBLES'}
-        col.prop(domain, "use_spray_particles", text="Spray")
-        col = flow.column()
-        col.enabled = sndparticle_combined_export in {'OFF', 'SPRAY + BUBBLES'}
-        col.prop(domain, "use_foam_particles", text="Foam")
-        col = flow.column()
-        col.enabled = sndparticle_combined_export in {'OFF', 'SPRAY + FOAM'}
-        col.prop(domain, "use_bubble_particles", text="Bubbles")
-
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not is_baking_any and not has_baked_particles and using_particles
+        row = flow.row()
+        row.enabled = sndparticle_combined_export in {'OFF', 'FOAM + BUBBLES'}
+        row.prop(domain, "use_spray_particles", text="Spray")
+        row.prop(domain, "use_foam_particles", text="Foam")
+        row.prop(domain, "use_bubble_particles", text="Bubbles")
 
         col = flow.column()
         col.prop(domain, "sndparticle_combined_export")
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        flow.enabled = not is_baking_any and not has_baked_particles
+        flow.active = using_particles
+
+        col = flow.column()
         col.prop(domain, "particle_scale", text="Upres Factor")
         col.separator()
 
@@ -1269,8 +1266,7 @@ class PHYSICS_PT_viewport_display_color(PhysicButtonsPanel, Panel):
 
         domain = context.fluid.domain_settings
         col = layout.column()
-        col.enabled = domain.use_color_ramp
-
+        col.active = domain.use_color_ramp
         col.prop(domain, "coba_field")
 
         col.use_property_split = False
@@ -1301,7 +1297,7 @@ class PHYSICS_PT_viewport_display_debug(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
 
         col = flow.column()
-        col.enabled = domain.show_velocity
+        col.active = domain.show_velocity
         col.prop(domain, "vector_display_type", text="Display As")
         col.prop(domain, "vector_scale")
 
