@@ -4334,18 +4334,14 @@ int rna_parameter_size(PropertyRNA *parm)
 
 void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropertyItem *item)
 {
-  EnumPropertyItem *newitems;
   int tot = *totitem;
 
   if (tot == 0) {
-    *items = MEM_callocN(sizeof(EnumPropertyItem) * 8, "RNA_enum_items_add");
+    *items = MEM_callocN(sizeof(EnumPropertyItem) * 8, __func__);
   }
   else if (tot >= 8 && (tot & (tot - 1)) == 0) {
     /* power of two > 8 */
-    newitems = MEM_callocN(sizeof(EnumPropertyItem) * tot * 2, "RNA_enum_items_add");
-    memcpy(newitems, *items, sizeof(EnumPropertyItem) * tot);
-    MEM_freeN(*items);
-    *items = newitems;
+    *items = MEM_recallocN_id(*items, sizeof(EnumPropertyItem) * tot * 2, __func__);
   }
 
   (*items)[tot] = *item;
