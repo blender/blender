@@ -110,7 +110,7 @@ class TestIdAddNameManagement(TestHelper, unittest.TestCase):
 
         data = self.add_to_container(name="%s.%.3d" % (self.default_name, 0))
         self.assertEqual(data.name, self.default_name + ".003")
-        
+
         self.assertEqual(len(self.data_container), 6)
         self.ensure_proper_order()
 

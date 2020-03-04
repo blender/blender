@@ -215,7 +215,7 @@ static void waveModifier_do(WaveModifierData *md,
       /* get weights */
       if (dvert) {
         def_weight = invert_group ? 1.0f - defvert_find_weight(&dvert[i], defgrp_index) :
-                                     defvert_find_weight(&dvert[i], defgrp_index);
+                                    defvert_find_weight(&dvert[i], defgrp_index);
 
         /* if this vert isn't in the vgroup, don't deform it */
         if (def_weight == 0.0f) {

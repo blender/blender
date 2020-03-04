@@ -275,7 +275,7 @@ class SpellChecker:
         "scalings",
         "selectable", "selectability",
         "shaper",
-        "smoothen", "smoothening", 
+        "smoothen", "smoothening",
         "spherize", "spherized",
         "stitchable",
         "symmetrize",

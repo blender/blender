@@ -67,7 +67,7 @@ class VIEWLAYER_PT_eevee_layer_passes_data(ViewLayerButtonsPanel, Panel):
     bl_parent_id = "VIEWLAYER_PT_eevee_layer_passes"
 
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
-    
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
