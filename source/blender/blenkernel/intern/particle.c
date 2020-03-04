@@ -3837,9 +3837,9 @@ ParticleSettings *BKE_particlesettings_copy(Main *bmain, const ParticleSettings 
   return part_copy;
 }
 
-void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const bool lib_local)
+void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &part->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &part->id, flags);
 }
 
 /************************************************/

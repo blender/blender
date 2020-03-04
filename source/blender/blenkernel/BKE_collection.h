@@ -62,7 +62,7 @@ void BKE_collection_copy_data(struct Main *bmain,
                               const int flag);
 void BKE_collection_make_local(struct Main *bmain,
                                struct Collection *collection,
-                               const bool lib_local);
+                               const int flags);
 
 struct Collection *BKE_collection_duplicate(struct Main *bmain,
                                             struct Collection *parent,

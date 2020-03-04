@@ -51,7 +51,7 @@ struct CacheFile *BKE_cachefile_copy(struct Main *bmain, const struct CacheFile 
 
 void BKE_cachefile_make_local(struct Main *bmain,
                               struct CacheFile *cache_file,
-                              const bool lib_local);
+                              const int flags);
 
 void BKE_cachefile_reload(struct Depsgraph *depsgraph, struct CacheFile *cache_file);
 

@@ -154,9 +154,9 @@ World *BKE_world_localize(World *wrld)
   return wrldn;
 }
 
-void BKE_world_make_local(Main *bmain, World *wrld, const bool lib_local)
+void BKE_world_make_local(Main *bmain, World *wrld, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &wrld->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &wrld->id, flags);
 }
 
 void BKE_world_eval(struct Depsgraph *depsgraph, World *world)

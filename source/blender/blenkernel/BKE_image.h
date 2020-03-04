@@ -142,7 +142,7 @@ struct anim *openanim_noload(const char *name,
                              int streamindex,
                              char colorspace[IMA_MAX_SPACE]);
 
-void BKE_image_make_local(struct Main *bmain, struct Image *ima, const bool lib_local);
+void BKE_image_make_local(struct Main *bmain, struct Image *ima, const int flags);
 
 void BKE_image_tag_time(struct Image *ima);
 

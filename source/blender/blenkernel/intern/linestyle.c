@@ -186,11 +186,9 @@ FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, const FreestyleLineSt
   return linestyle_copy;
 }
 
-void BKE_linestyle_make_local(struct Main *bmain,
-                              FreestyleLineStyle *linestyle,
-                              const bool lib_local)
+void BKE_linestyle_make_local(struct Main *bmain, FreestyleLineStyle *linestyle, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &linestyle->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &linestyle->id, flags);
 }
 
 FreestyleLineStyle *BKE_linestyle_active_from_view_layer(ViewLayer *view_layer)

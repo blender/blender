@@ -62,7 +62,7 @@ void BKE_material_copy_data(struct Main *bmain,
                             const int flag);
 struct Material *BKE_material_copy(struct Main *bmain, const struct Material *ma);
 struct Material *BKE_material_localize(struct Material *ma);
-void BKE_material_make_local(struct Main *bmain, struct Material *ma, const bool lib_local);
+void BKE_material_make_local(struct Main *bmain, struct Material *ma, const int flags);
 void BKE_gpencil_material_attr_init(struct Material *ma);
 
 /* UNUSED */

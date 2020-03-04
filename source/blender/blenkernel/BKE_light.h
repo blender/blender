@@ -41,7 +41,7 @@ void BKE_light_copy_data(struct Main *bmain,
                          const int flag);
 struct Light *BKE_light_copy(struct Main *bmain, const struct Light *la) ATTR_WARN_UNUSED_RESULT;
 struct Light *BKE_light_localize(struct Light *la) ATTR_WARN_UNUSED_RESULT;
-void BKE_light_make_local(struct Main *bmain, struct Light *la, const bool lib_local);
+void BKE_light_make_local(struct Main *bmain, struct Light *la, const int flags);
 void BKE_light_free(struct Light *la);
 
 #ifdef __cplusplus

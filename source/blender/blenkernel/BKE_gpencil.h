@@ -99,7 +99,7 @@ struct bGPdata *BKE_gpencil_data_duplicate(struct Main *bmain,
                                            const struct bGPdata *gpd,
                                            bool internal_copy);
 
-void BKE_gpencil_make_local(struct Main *bmain, struct bGPdata *gpd, const bool lib_local);
+void BKE_gpencil_make_local(struct Main *bmain, struct bGPdata *gpd, const int flags);
 
 void BKE_gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 

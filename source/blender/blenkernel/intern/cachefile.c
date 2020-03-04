@@ -211,9 +211,9 @@ CacheFile *BKE_cachefile_copy(Main *bmain, const CacheFile *cache_file)
   return cache_file_copy;
 }
 
-void BKE_cachefile_make_local(Main *bmain, CacheFile *cache_file, const bool lib_local)
+void BKE_cachefile_make_local(Main *bmain, CacheFile *cache_file, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &cache_file->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &cache_file->id, flags);
 }
 
 void BKE_cachefile_reload(Depsgraph *depsgraph, CacheFile *cache_file)

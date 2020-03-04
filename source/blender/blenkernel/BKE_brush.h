@@ -55,7 +55,7 @@ void BKE_brush_copy_data(struct Main *bmain,
                          const struct Brush *brush_src,
                          const int flag);
 struct Brush *BKE_brush_copy(struct Main *bmain, const struct Brush *brush);
-void BKE_brush_make_local(struct Main *bmain, struct Brush *brush, const bool lib_local);
+void BKE_brush_make_local(struct Main *bmain, struct Brush *brush, const int flags);
 void BKE_brush_free(struct Brush *brush);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);

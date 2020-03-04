@@ -140,11 +140,7 @@ void BKE_object_copy_data(struct Main *bmain,
                           const struct Object *ob_src,
                           const int flag);
 struct Object *BKE_object_copy(struct Main *bmain, const struct Object *ob);
-void BKE_object_make_local(struct Main *bmain, struct Object *ob, const bool lib_local);
-void BKE_object_make_local_ex(struct Main *bmain,
-                              struct Object *ob,
-                              const bool lib_local,
-                              const bool clear_proxy);
+void BKE_object_make_local(struct Main *bmain, struct Object *ob, const int flags);
 bool BKE_object_is_libdata(const struct Object *ob);
 bool BKE_object_obdata_is_libdata(const struct Object *ob);
 

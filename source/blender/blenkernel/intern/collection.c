@@ -369,9 +369,9 @@ Collection *BKE_collection_duplicate(Main *bmain,
   return collection_new;
 }
 
-void BKE_collection_make_local(Main *bmain, Collection *collection, const bool lib_local)
+void BKE_collection_make_local(Main *bmain, Collection *collection, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &collection->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &collection->id, flags);
 }
 
 /********************************* Naming *******************************/

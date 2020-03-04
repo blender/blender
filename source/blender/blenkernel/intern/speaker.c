@@ -74,9 +74,9 @@ Speaker *BKE_speaker_copy(Main *bmain, const Speaker *spk)
   return spk_copy;
 }
 
-void BKE_speaker_make_local(Main *bmain, Speaker *spk, const bool lib_local)
+void BKE_speaker_make_local(Main *bmain, Speaker *spk, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &spk->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &spk->id, flags);
 }
 
 void BKE_speaker_free(Speaker *spk)

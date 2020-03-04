@@ -220,9 +220,9 @@ Curve *BKE_curve_copy(Main *bmain, const Curve *cu)
   return cu_copy;
 }
 
-void BKE_curve_make_local(Main *bmain, Curve *cu, const bool lib_local)
+void BKE_curve_make_local(Main *bmain, Curve *cu, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &cu->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &cu->id, flags);
 }
 
 /* Get list of nurbs from editnurbs structure */

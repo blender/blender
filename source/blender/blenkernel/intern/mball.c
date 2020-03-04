@@ -125,9 +125,9 @@ MetaBall *BKE_mball_copy(Main *bmain, const MetaBall *mb)
   return mb_copy;
 }
 
-void BKE_mball_make_local(Main *bmain, MetaBall *mb, const bool lib_local)
+void BKE_mball_make_local(Main *bmain, MetaBall *mb, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &mb->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &mb->id, flags);
 }
 
 /* most simple meta-element adding function

@@ -230,9 +230,9 @@ Material *BKE_material_localize(Material *ma)
   return man;
 }
 
-void BKE_material_make_local(Main *bmain, Material *ma, const bool lib_local)
+void BKE_material_make_local(Main *bmain, Material *ma, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &ma->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &ma->id, flags);
 }
 
 Material ***BKE_object_material_array(Object *ob)

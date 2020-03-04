@@ -377,7 +377,7 @@ struct ParticleSettings *BKE_particlesettings_copy(struct Main *bmain,
                                                    const struct ParticleSettings *part);
 void BKE_particlesettings_make_local(struct Main *bmain,
                                      struct ParticleSettings *part,
-                                     const bool lib_local);
+                                     const int flags);
 
 void psys_reset(struct ParticleSystem *psys, int mode);
 

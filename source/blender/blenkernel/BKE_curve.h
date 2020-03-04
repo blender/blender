@@ -85,7 +85,7 @@ void BKE_curve_copy_data(struct Main *bmain,
                          const struct Curve *cu_src,
                          const int flag);
 struct Curve *BKE_curve_copy(struct Main *bmain, const struct Curve *cu);
-void BKE_curve_make_local(struct Main *bmain, struct Curve *cu, const bool lib_local);
+void BKE_curve_make_local(struct Main *bmain, struct Curve *cu, const int flags);
 short BKE_curve_type_get(struct Curve *cu);
 void BKE_curve_type_test(struct Object *ob);
 void BKE_curve_curve_dimension_update(struct Curve *cu);

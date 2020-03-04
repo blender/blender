@@ -117,7 +117,7 @@ void BKE_scene_copy_data(struct Main *bmain,
 struct Scene *BKE_scene_copy(struct Main *bmain, struct Scene *sce, int type);
 void BKE_scene_groups_relink(struct Scene *sce);
 
-void BKE_scene_make_local(struct Main *bmain, struct Scene *sce, const bool lib_local);
+void BKE_scene_make_local(struct Main *bmain, struct Scene *sce, const int flags);
 
 struct Scene *BKE_scene_find_from_collection(const struct Main *bmain,
                                              const struct Collection *collection);

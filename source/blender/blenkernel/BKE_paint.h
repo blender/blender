@@ -136,7 +136,7 @@ void BKE_palette_copy_data(struct Main *bmain,
                            const struct Palette *palette_src,
                            const int flag);
 struct Palette *BKE_palette_copy(struct Main *bmain, const struct Palette *palette);
-void BKE_palette_make_local(struct Main *bmain, struct Palette *palette, const bool lib_local);
+void BKE_palette_make_local(struct Main *bmain, struct Palette *palette, const int flags);
 struct PaletteColor *BKE_palette_color_add(struct Palette *palette);
 bool BKE_palette_is_empty(const struct Palette *palette);
 void BKE_palette_color_remove(struct Palette *palette, struct PaletteColor *color);
@@ -150,7 +150,7 @@ void BKE_paint_curve_copy_data(struct Main *bmain,
                                const struct PaintCurve *pc_src,
                                const int flag);
 struct PaintCurve *BKE_paint_curve_copy(struct Main *bmain, const struct PaintCurve *pc);
-void BKE_paint_curve_make_local(struct Main *bmain, struct PaintCurve *pc, const bool lib_local);
+void BKE_paint_curve_make_local(struct Main *bmain, struct PaintCurve *pc, const int flags);
 
 bool BKE_paint_ensure(struct ToolSettings *ts, struct Paint **r_paint);
 void BKE_paint_init(struct Main *bmain, struct Scene *sce, ePaintMode mode, const char col[3]);

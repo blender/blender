@@ -377,8 +377,9 @@ static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
 /**
  * Generic 'make local' function, works for most of data-block types...
  */
-void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const bool lib_local)
+void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
 {
+  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -436,8 +437,10 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const bool lib_local)
  *
  * \return true if the block can be made local.
  */
-bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
+bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags)
 {
+  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+
   /* We don't care whether ID is directly or indirectly linked
    * in case we are making a whole lib local... */
   if (!lib_local && (id->tag & LIB_TAG_INDIRECT)) {
@@ -447,152 +450,152 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const bool lib_
   switch ((ID_Type)GS(id->name)) {
     case ID_SCE:
       if (!test) {
-        BKE_scene_make_local(bmain, (Scene *)id, lib_local);
+        BKE_scene_make_local(bmain, (Scene *)id, flags);
       }
       return true;
     case ID_OB:
       if (!test) {
-        BKE_object_make_local(bmain, (Object *)id, lib_local);
+        BKE_object_make_local(bmain, (Object *)id, flags);
       }
       return true;
     case ID_ME:
       if (!test) {
-        BKE_mesh_make_local(bmain, (Mesh *)id, lib_local);
+        BKE_mesh_make_local(bmain, (Mesh *)id, flags);
       }
       return true;
     case ID_CU:
       if (!test) {
-        BKE_curve_make_local(bmain, (Curve *)id, lib_local);
+        BKE_curve_make_local(bmain, (Curve *)id, flags);
       }
       return true;
     case ID_MB:
       if (!test) {
-        BKE_mball_make_local(bmain, (MetaBall *)id, lib_local);
+        BKE_mball_make_local(bmain, (MetaBall *)id, flags);
       }
       return true;
     case ID_MA:
       if (!test) {
-        BKE_material_make_local(bmain, (Material *)id, lib_local);
+        BKE_material_make_local(bmain, (Material *)id, flags);
       }
       return true;
     case ID_TE:
       if (!test) {
-        BKE_texture_make_local(bmain, (Tex *)id, lib_local);
+        BKE_texture_make_local(bmain, (Tex *)id, flags);
       }
       return true;
     case ID_IM:
       if (!test) {
-        BKE_image_make_local(bmain, (Image *)id, lib_local);
+        BKE_image_make_local(bmain, (Image *)id, flags);
       }
       return true;
     case ID_LT:
       if (!test) {
-        BKE_lattice_make_local(bmain, (Lattice *)id, lib_local);
+        BKE_lattice_make_local(bmain, (Lattice *)id, flags);
       }
       return true;
     case ID_LA:
       if (!test) {
-        BKE_light_make_local(bmain, (Light *)id, lib_local);
+        BKE_light_make_local(bmain, (Light *)id, flags);
       }
       return true;
     case ID_CA:
       if (!test) {
-        BKE_camera_make_local(bmain, (Camera *)id, lib_local);
+        BKE_camera_make_local(bmain, (Camera *)id, flags);
       }
       return true;
     case ID_SPK:
       if (!test) {
-        BKE_speaker_make_local(bmain, (Speaker *)id, lib_local);
+        BKE_speaker_make_local(bmain, (Speaker *)id, flags);
       }
       return true;
     case ID_LP:
       if (!test) {
-        BKE_lightprobe_make_local(bmain, (LightProbe *)id, lib_local);
+        BKE_lightprobe_make_local(bmain, (LightProbe *)id, flags);
       }
       return true;
     case ID_WO:
       if (!test) {
-        BKE_world_make_local(bmain, (World *)id, lib_local);
+        BKE_world_make_local(bmain, (World *)id, flags);
       }
       return true;
     case ID_VF:
       if (!test) {
-        BKE_vfont_make_local(bmain, (VFont *)id, lib_local);
+        BKE_vfont_make_local(bmain, (VFont *)id, flags);
       }
       return true;
     case ID_TXT:
       if (!test) {
-        BKE_text_make_local(bmain, (Text *)id, lib_local);
+        BKE_text_make_local(bmain, (Text *)id, flags);
       }
       return true;
     case ID_SO:
       if (!test) {
-        BKE_sound_make_local(bmain, (bSound *)id, lib_local);
+        BKE_sound_make_local(bmain, (bSound *)id, flags);
       }
       return true;
     case ID_GR:
       if (!test) {
-        BKE_collection_make_local(bmain, (Collection *)id, lib_local);
+        BKE_collection_make_local(bmain, (Collection *)id, flags);
       }
       return true;
     case ID_AR:
       if (!test) {
-        BKE_armature_make_local(bmain, (bArmature *)id, lib_local);
+        BKE_armature_make_local(bmain, (bArmature *)id, flags);
       }
       return true;
     case ID_AC:
       if (!test) {
-        BKE_action_make_local(bmain, (bAction *)id, lib_local);
+        BKE_action_make_local(bmain, (bAction *)id, flags);
       }
       return true;
     case ID_NT:
       if (!test) {
-        ntreeMakeLocal(bmain, (bNodeTree *)id, lib_local);
+        ntreeMakeLocal(bmain, (bNodeTree *)id, flags);
       }
       return true;
     case ID_BR:
       if (!test) {
-        BKE_brush_make_local(bmain, (Brush *)id, lib_local);
+        BKE_brush_make_local(bmain, (Brush *)id, flags);
       }
       return true;
     case ID_PA:
       if (!test) {
-        BKE_particlesettings_make_local(bmain, (ParticleSettings *)id, lib_local);
+        BKE_particlesettings_make_local(bmain, (ParticleSettings *)id, flags);
       }
       return true;
     case ID_GD:
       if (!test) {
-        BKE_gpencil_make_local(bmain, (bGPdata *)id, lib_local);
+        BKE_gpencil_make_local(bmain, (bGPdata *)id, flags);
       }
       return true;
     case ID_MC:
       if (!test) {
-        BKE_movieclip_make_local(bmain, (MovieClip *)id, lib_local);
+        BKE_movieclip_make_local(bmain, (MovieClip *)id, flags);
       }
       return true;
     case ID_MSK:
       if (!test) {
-        BKE_mask_make_local(bmain, (Mask *)id, lib_local);
+        BKE_mask_make_local(bmain, (Mask *)id, flags);
       }
       return true;
     case ID_LS:
       if (!test) {
-        BKE_linestyle_make_local(bmain, (FreestyleLineStyle *)id, lib_local);
+        BKE_linestyle_make_local(bmain, (FreestyleLineStyle *)id, flags);
       }
       return true;
     case ID_PAL:
       if (!test) {
-        BKE_palette_make_local(bmain, (Palette *)id, lib_local);
+        BKE_palette_make_local(bmain, (Palette *)id, flags);
       }
       return true;
     case ID_PC:
       if (!test) {
-        BKE_paint_curve_make_local(bmain, (PaintCurve *)id, lib_local);
+        BKE_paint_curve_make_local(bmain, (PaintCurve *)id, flags);
       }
       return true;
     case ID_CF:
       if (!test) {
-        BKE_cachefile_make_local(bmain, (CacheFile *)id, lib_local);
+        BKE_cachefile_make_local(bmain, (CacheFile *)id, flags);
       }
       return true;
     case ID_WS:
@@ -2232,16 +2235,14 @@ void BKE_library_make_local(Main *bmain,
     }
     else {
       /* In this specific case, we do want to make ID local even if it has no local usage yet...
+       * Note that for objects, we don't want proxy pointers to be cleared yet. This will happen
+       * down the road in this function.
        */
-      if (GS(id->name) == ID_OB) {
-        /* Special case for objects because we don't want proxy pointers to be
-         * cleared yet. This will happen down the road in this function.
-         */
-        BKE_object_make_local_ex(bmain, (Object *)id, true, false);
-      }
-      else {
-        BKE_lib_id_make_local(bmain, id, false, true);
-      }
+      BKE_lib_id_make_local(bmain,
+                            id,
+                            false,
+                            LIB_ID_MAKELOCAL_FULL_LIBRARY |
+                                LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
 
       if (id->newid) {
         if (GS(id->newid->name) == ID_OB) {
@@ -2344,7 +2345,7 @@ void BKE_library_make_local(Main *bmain,
       else {
         /* we can switch the proxy'ing from the linked-in to the made-local proxy.
          * BKE_object_make_proxy() shouldn't be used here, as it allocates memory that
-         * was already allocated by BKE_object_make_local_ex() (which called BKE_object_copy). */
+         * was already allocated by BKE_object_make_local() (which called BKE_object_copy). */
         ob_new->proxy = ob->proxy;
         ob_new->proxy_group = ob->proxy_group;
         ob_new->proxy_from = ob->proxy_from;

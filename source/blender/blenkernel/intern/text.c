@@ -441,9 +441,9 @@ Text *BKE_text_copy(Main *bmain, const Text *ta)
   return ta_copy;
 }
 
-void BKE_text_make_local(Main *bmain, Text *text, const bool lib_local)
+void BKE_text_make_local(Main *bmain, Text *text, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &text->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &text->id, flags);
 }
 
 void BKE_text_clear(Text *text) /* called directly from rna */

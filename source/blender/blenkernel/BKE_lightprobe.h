@@ -40,7 +40,7 @@ void BKE_lightprobe_copy_data(struct Main *bmain,
                               const struct LightProbe *probe_src,
                               const int flag);
 struct LightProbe *BKE_lightprobe_copy(struct Main *bmain, const struct LightProbe *probe);
-void BKE_lightprobe_make_local(struct Main *bmain, struct LightProbe *probe, const bool lib_local);
+void BKE_lightprobe_make_local(struct Main *bmain, struct LightProbe *probe, const int flags);
 void BKE_lightprobe_free(struct LightProbe *probe);
 
 #ifdef __cplusplus

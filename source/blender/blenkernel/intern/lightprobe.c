@@ -101,9 +101,9 @@ LightProbe *BKE_lightprobe_copy(Main *bmain, const LightProbe *probe)
   return probe_copy;
 }
 
-void BKE_lightprobe_make_local(Main *bmain, LightProbe *probe, const bool lib_local)
+void BKE_lightprobe_make_local(Main *bmain, LightProbe *probe, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &probe->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &probe->id, flags);
 }
 
 void BKE_lightprobe_free(LightProbe *probe)

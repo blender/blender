@@ -57,7 +57,7 @@ struct bAction *BKE_action_copy(struct Main *bmain, const struct bAction *act_sr
 /* Deallocate all of the Action's data, but not the Action itself */
 void BKE_action_free(struct bAction *act);
 
-void BKE_action_make_local(struct Main *bmain, struct bAction *act, const bool lib_local);
+void BKE_action_make_local(struct Main *bmain, struct bAction *act, const int flags);
 
 /* Action API ----------------- */
 

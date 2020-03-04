@@ -111,7 +111,7 @@ void BKE_sound_copy_data(struct Main *bmain,
                          const struct bSound *sound_src,
                          const int flag);
 
-void BKE_sound_make_local(struct Main *bmain, struct bSound *sound, const bool lib_local);
+void BKE_sound_make_local(struct Main *bmain, struct bSound *sound, const int flags);
 
 #if defined(WITH_AUDASPACE)
 AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);

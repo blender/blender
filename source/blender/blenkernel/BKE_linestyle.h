@@ -52,7 +52,7 @@ FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, const FreestyleLineSt
 
 void BKE_linestyle_make_local(struct Main *bmain,
                               struct FreestyleLineStyle *linestyle,
-                              const bool lib_local);
+                              const int flags);
 
 FreestyleLineStyle *BKE_linestyle_active_from_view_layer(struct ViewLayer *view_layer);
 

@@ -1741,11 +1741,10 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
   return obn;
 }
 
-void BKE_object_make_local_ex(Main *bmain,
-                              Object *ob,
-                              const bool lib_local,
-                              const bool clear_proxy)
+void BKE_object_make_local(Main *bmain, Object *ob, const int flags)
 {
+  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+  const bool clear_proxy = (flags & LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING) == 0;
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -1787,11 +1786,6 @@ void BKE_object_make_local_ex(Main *bmain,
       }
     }
   }
-}
-
-void BKE_object_make_local(Main *bmain, Object *ob, const bool lib_local)
-{
-  BKE_object_make_local_ex(bmain, ob, lib_local, true);
 }
 
 /* Returns true if the Object is from an external blend file (libdata) */

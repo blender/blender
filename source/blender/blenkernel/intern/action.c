@@ -91,9 +91,9 @@ bAction *BKE_action_add(Main *bmain, const char name[])
 /* .................................. */
 
 // does copy_fcurve...
-void BKE_action_make_local(Main *bmain, bAction *act, const bool lib_local)
+void BKE_action_make_local(Main *bmain, bAction *act, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &act->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &act->id, flags);
 }
 
 /* .................................. */

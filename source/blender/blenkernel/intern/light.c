@@ -129,9 +129,9 @@ Light *BKE_light_localize(Light *la)
   return lan;
 }
 
-void BKE_light_make_local(Main *bmain, Light *la, const bool lib_local)
+void BKE_light_make_local(Main *bmain, Light *la, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &la->id, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &la->id, flags);
 }
 
 void BKE_light_free(Light *la)

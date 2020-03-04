@@ -49,7 +49,7 @@ void BKE_lattice_copy_data(struct Main *bmain,
                            const int flag);
 struct Lattice *BKE_lattice_copy(struct Main *bmain, const struct Lattice *lt);
 void BKE_lattice_free(struct Lattice *lt);
-void BKE_lattice_make_local(struct Main *bmain, struct Lattice *lt, const bool lib_local);
+void BKE_lattice_make_local(struct Main *bmain, struct Lattice *lt, const int flags);
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
 struct LatticeDeformData *init_latt_deform(struct Object *oblatt,

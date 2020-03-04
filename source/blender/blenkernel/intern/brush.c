@@ -766,8 +766,9 @@ void BKE_brush_free(Brush *brush)
   BKE_previewimg_free(&(brush->preview));
 }
 
-void BKE_brush_make_local(Main *bmain, Brush *brush, const bool lib_local)
+void BKE_brush_make_local(Main *bmain, Brush *brush, const int flags)
 {
+  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -781,7 +782,7 @@ void BKE_brush_make_local(Main *bmain, Brush *brush, const bool lib_local)
 
   if (brush->clone.image) {
     /* Special case: ima always local immediately. Clone image should only have one user anyway. */
-    BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, false);
+    BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, 0);
   }
 
   BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);

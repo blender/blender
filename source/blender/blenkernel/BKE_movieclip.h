@@ -43,7 +43,7 @@ void BKE_movieclip_copy_data(struct Main *bmain,
                              const struct MovieClip *clip_src,
                              const int flag);
 struct MovieClip *BKE_movieclip_copy(struct Main *bmain, const struct MovieClip *clip);
-void BKE_movieclip_make_local(struct Main *bmain, struct MovieClip *clip, const bool lib_local);
+void BKE_movieclip_make_local(struct Main *bmain, struct MovieClip *clip, const int flags);
 
 struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
 struct MovieClip *BKE_movieclip_file_add_exists_ex(struct Main *bmain,
