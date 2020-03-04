@@ -2751,7 +2751,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, 0);
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
 
   if (is_paint) {
     ED_imapaint_clear_partial_redraw();
@@ -2895,7 +2895,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
     RNA_property_int_set_array(op->ptr, prop, size);
   }
 
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, 0);
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   IMB_scaleImBuf(ibuf, size[0], size[1]);

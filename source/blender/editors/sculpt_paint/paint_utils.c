@@ -518,8 +518,10 @@ void paint_sample_color(
           if (image) {
             float uv[2];
             float u, v;
+            /* XXX get appropriate ImageUser instead */
             ImageUser iuser;
             BKE_imageuser_default(&iuser);
+            iuser.framenr = image->lastframe;
 
             imapaint_pick_uv(me_eval, scene, ob_eval, faceindex, mval, uv);
 

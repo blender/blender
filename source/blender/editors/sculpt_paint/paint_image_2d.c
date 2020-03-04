@@ -1335,11 +1335,11 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
 
       if (tile->canvas->rect_float) {
         tmpbuf.rect_float = ED_image_paint_tile_find(
-            undo_tiles, s->image, tile->canvas, tile->iuser.tile, tx, ty, &mask, false);
+            undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false);
       }
       else {
         tmpbuf.rect = ED_image_paint_tile_find(
-            undo_tiles, s->image, tile->canvas, tile->iuser.tile, tx, ty, &mask, false);
+            undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false);
       }
 
       IMB_rectblend(tile->canvas,
@@ -1448,7 +1448,7 @@ static int paint_2d_op(void *state,
   for (a = 0; a < tot; a++) {
     ED_imapaint_dirty_region(s->image,
                              canvas,
-                             tile->iuser.tile,
+                             &tile->iuser,
                              region[a].destx,
                              region[a].desty,
                              region[a].width,
@@ -1667,6 +1667,7 @@ void paint_2d_stroke(void *ps,
 void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
 {
   Scene *scene = CTX_data_scene(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
   ToolSettings *settings = scene->toolsettings;
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
 
@@ -1697,7 +1698,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   s->num_tiles = BLI_listbase_count(&s->image->tiles);
   s->tiles = MEM_callocN(sizeof(ImagePaintTile) * s->num_tiles, "ImagePaintTile");
   for (int i = 0; i < s->num_tiles; i++) {
-    BKE_imageuser_default(&s->tiles[i].iuser);
+    s->tiles[i].iuser = sima->iuser;
   }
   s->tiles[0].iuser.ok = true;
 
@@ -1941,7 +1942,7 @@ void paint_2d_bucket_fill(const bContext *C,
 
   if (!mouse_final || !br) {
     /* first case, no image UV, fill the whole image */
-    ED_imapaint_dirty_region(ima, ibuf, tile_number, 0, 0, ibuf->x, ibuf->y, false);
+    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
 
     if (do_float) {
       for (x_px = 0; x_px < ibuf->x; x_px++) {
@@ -1984,7 +1985,7 @@ void paint_2d_bucket_fill(const bContext *C,
     }
 
     /* change image invalidation method later */
-    ED_imapaint_dirty_region(ima, ibuf, tile_number, 0, 0, ibuf->x, ibuf->y, false);
+    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
 
     stack = BLI_stack_new(sizeof(size_t), __func__);
     touched = BLI_BITMAP_NEW(((size_t)ibuf->x) * ibuf->y, "bucket_fill_bitmap");
@@ -2158,7 +2159,7 @@ void paint_2d_gradient_fill(
   do_float = (ibuf->rect_float != NULL);
 
   /* this will be substituted by something else when selection is available */
-  ED_imapaint_dirty_region(ima, ibuf, tile_number, 0, 0, ibuf->x, ibuf->y, false);
+  ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
 
   if (do_float) {
     for (x_px = 0; x_px < ibuf->x; x_px++) {
