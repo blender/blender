@@ -1222,35 +1222,31 @@ class PHYSICS_PT_viewport_display(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         domain = context.fluid.domain_settings
-
-        col = flow.column()
-        col.prop(domain, "display_thickness")
-
-        col.separator()
-
-        col.prop(domain, "slice_method", text="Slicing")
-
         slice_method = domain.slice_method
         axis_slice_method = domain.axis_slice_method
 
         do_axis_slicing = (slice_method == 'AXIS_ALIGNED')
         do_full_slicing = (axis_slice_method == 'FULL')
 
-        col = col.column()
-        col.enabled = do_axis_slicing
-        col.prop(domain, "axis_slice_method")
+        col = flow.column(align=False)
+        col.prop(domain, "display_thickness")
+        col.prop(domain, "display_interpolation")
+        col.separator()
 
         col = flow.column()
-        sub = col.column()
-        sub.enabled = not do_full_slicing and do_axis_slicing
-        sub.prop(domain, "slice_axis")
-        sub.prop(domain, "slice_depth")
+        col.prop(domain, "slice_method", text="Slicing")
 
-        row = col.row()
-        row.enabled = do_full_slicing or not do_axis_slicing
-        row.prop(domain, "slice_per_voxel")
+        col = col.column()
+        col.active = do_axis_slicing
+        col.prop(domain, "axis_slice_method")
 
-        col.prop(domain, "display_interpolation")
+        if not do_full_slicing and do_axis_slicing:
+            col.prop(domain, "slice_axis")
+            col.prop(domain, "slice_depth")
+
+        col = col.column()
+        col.active = do_full_slicing or not do_axis_slicing
+        col.prop(domain, "slice_per_voxel")
 
 
 class PHYSICS_PT_viewport_display_color(PhysicButtonsPanel, Panel):
