@@ -190,10 +190,7 @@ void bilinear_interpolation_color_wrap(
     outF[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
 
     /* clamp here or else we can easily get off-range */
-    CLAMP(outF[0], 0.0f, 1.0f);
-    CLAMP(outF[1], 0.0f, 1.0f);
-    CLAMP(outF[2], 0.0f, 1.0f);
-    CLAMP(outF[3], 0.0f, 1.0f);
+    clamp_v4(outF, 0.0f, 1.0f);
   }
   if (outI) {
     /* sample including outside of edges of image */

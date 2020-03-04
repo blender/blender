@@ -39,10 +39,7 @@ class MixBaseOperation : public NodeOperation {
   inline void clampIfNeeded(float color[4])
   {
     if (m_useClamp) {
-      CLAMP(color[0], 0.0f, 1.0f);
-      CLAMP(color[1], 0.0f, 1.0f);
-      CLAMP(color[2], 0.0f, 1.0f);
-      CLAMP(color[3], 0.0f, 1.0f);
+      clamp_v4(color, 0.0f, 1.0f);
     }
   }
 

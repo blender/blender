@@ -202,10 +202,7 @@ void paint_get_tex_pixel_col(const MTex *mtex,
 
   linearrgb_to_srgb_v3_v3(rgba, rgba);
 
-  CLAMP(rgba[0], 0.0f, 1.0f);
-  CLAMP(rgba[1], 0.0f, 1.0f);
-  CLAMP(rgba[2], 0.0f, 1.0f);
-  CLAMP(rgba[3], 0.0f, 1.0f);
+  clamp_v4(rgba, 0.0f, 1.0f);
 }
 
 void paint_stroke_operator_properties(wmOperatorType *ot)

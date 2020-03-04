@@ -519,10 +519,7 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
         out[1] = t[3] * cbd3->g + t[2] * cbd2->g + t[1] * cbd1->g + t[0] * cbd0->g;
         out[2] = t[3] * cbd3->b + t[2] * cbd2->b + t[1] * cbd1->b + t[0] * cbd0->b;
         out[3] = t[3] * cbd3->a + t[2] * cbd2->a + t[1] * cbd1->a + t[0] * cbd0->a;
-        CLAMP(out[0], 0.0f, 1.0f);
-        CLAMP(out[1], 0.0f, 1.0f);
-        CLAMP(out[2], 0.0f, 1.0f);
-        CLAMP(out[3], 0.0f, 1.0f);
+        clamp_v4(out, 0.0f, 1.0f);
       }
       else {
         if (ipotype == COLBAND_INTERP_EASE) {

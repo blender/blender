@@ -824,10 +824,7 @@ static int Color_hsv_set(ColorObject *self, PyObject *value, void *UNUSED(closur
     return -1;
   }
 
-  CLAMP(hsv[0], 0.0f, 1.0f);
-  CLAMP(hsv[1], 0.0f, 1.0f);
-  CLAMP(hsv[2], 0.0f, 1.0f);
-
+  clamp_v3(hsv, 0.0f, 1.0f);
   hsv_to_rgb_v(hsv, self->col);
 
   if (BaseMath_WriteCallback(self) == -1) {

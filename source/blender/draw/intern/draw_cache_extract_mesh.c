@@ -3296,8 +3296,7 @@ static void uv_from_jitter_v2(float uv[2])
     uv[1] = 1.0f - uv[1];
   }
 
-  CLAMP(uv[0], 0.0f, 1.0f);
-  CLAMP(uv[1], 0.0f, 1.0f);
+  clamp_v2(uv, 0.0f, 1.0f);
 }
 
 BLI_INLINE float thickness_remap(float fac, float min, float max, float minmax_irange)

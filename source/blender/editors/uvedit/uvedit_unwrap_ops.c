@@ -1497,8 +1497,7 @@ static void uv_map_clip_correct_multi(const Scene *scene,
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          CLAMP(luv->uv[0], 0.0f, 1.0f);
-          CLAMP(luv->uv[1], 0.0f, 1.0f);
+          clamp_v2(luv->uv, 0.0f, 1.0f);
         }
       }
     }
