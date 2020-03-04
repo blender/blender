@@ -390,7 +390,7 @@ class AddPresetFluid(AddPresetBase, Operator):
 
     preset_values = [
         "fluid.domain_settings.viscosity_base",
-        "fluidanta.domain_settings.viscosity_exponent",
+        "fluid.domain_settings.viscosity_exponent",
         ]
 
     preset_subdir = "fluid"
