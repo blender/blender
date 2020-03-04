@@ -1786,7 +1786,7 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_LAYER:
       return alpha * flip * pressure * overlap * feather;
     case SCULPT_TOOL_CLOTH:
-      /* Ex/pand is more sensible to strength as it keeps expanding the cloth when sculpting over
+      /* Expand is more sensible to strength as it keeps expanding the cloth when sculpting over
        * the same vertices. */
       if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_EXPAND) {
         return 0.1f * alpha * flip * pressure * overlap * feather;

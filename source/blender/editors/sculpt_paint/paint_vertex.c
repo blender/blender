@@ -2332,8 +2332,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
-  /* calculate pivot for rotation around seletion if needed */
-  /* also needed for "Frame Selected" on last stroke */
+  /* Calculate pivot for rotation around selection if needed.
+   * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
   mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
   paint_last_stroke_update(scene, loc_world);
@@ -3312,8 +3312,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
         vpd->smear.color_prev, vpd->smear.color_curr, sizeof(uint) * ((Mesh *)ob->data)->totloop);
   }
 
-  /* calculate pivot for rotation around seletion if needed */
-  /* also needed for "Frame Selected" on last stroke */
+  /* Calculate pivot for rotation around selection if needed.
+   * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
   mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
   paint_last_stroke_update(scene, loc_world);

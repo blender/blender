@@ -408,9 +408,9 @@ static void cloth_brush_build_nodes_constraints(Sculpt *sd,
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  /* TODO: Multithreaded needs to be disabled for this task until implementing the optimization of
+  /* TODO: Multi-threaded needs to be disabled for this task until implementing the optimization of
    * storing the constraints per node. */
-  /* Currently all constrains are added to the same global array which can't be accesed from
+  /* Currently all constrains are added to the same global array which can't be accessed from
    * different threads. */
   PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, false, totnode);

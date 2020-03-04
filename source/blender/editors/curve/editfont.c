@@ -2272,7 +2272,7 @@ bool ED_curve_editfont_select_pick(
       }
     }
 
-    /* bias in pixels to cycle seletion */
+    /* Bias in pixels to cycle selection. */
     if (i_iter == 0) {
       dist_sq_min += active_bias_px;
     }

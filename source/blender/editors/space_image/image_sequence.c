@@ -57,8 +57,7 @@ typedef struct ImageFrame {
  * name sequence pattern. The files and directory are read from standard
  * fileselect operator properties.
  *
- * The output is a list of frame ranges, each containg a list of frames with
- * matching names.
+ * The output is a list of frame ranges, each containing a list of frames with matching names.
  */
 static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
 {

@@ -5682,7 +5682,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
     }
   }
 
-  /* calculate pivot for rotation around seletion if needed */
+  /* Calculate pivot for rotation around selection if needed. */
   if (U.uiflag & USER_ORBIT_SELECTION) {
     float w[3];
     int tri_index;

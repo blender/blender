@@ -1485,7 +1485,7 @@ static int mouse_graph_keys(bAnimContext *ac,
   if (!curves_only && ((nvi->fcu->flag & FCURVE_PROTECTED) == 0)) {
     /* only if there's keyframe */
     if (nvi->bezt) {
-      bezt = nvi->bezt; /* used to check bezt seletion is set */
+      bezt = nvi->bezt; /* Used to check `bezt` selection is set. */
       /* depends on selection mode */
       if (select_mode == SELECT_INVERT) {
         if (nvi->hpoint == NEAREST_HANDLE_KEY) {
