@@ -48,6 +48,11 @@ char *BLI_string_join_array(char *result,
                             size_t result_len,
                             const char *strings[],
                             uint strings_len) ATTR_NONNULL();
+char *BLI_string_join_array_by_sep_char(char *result,
+                                        size_t result_len,
+                                        char sep,
+                                        const char *strings[],
+                                        uint strings_len) ATTR_NONNULL();
 
 char *BLI_string_join_arrayN(const char *strings[], uint strings_len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
