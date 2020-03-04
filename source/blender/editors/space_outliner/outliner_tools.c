@@ -698,8 +698,8 @@ static void id_local_cb(bContext *C,
     Main *bmain = CTX_data_main(C);
     /* if the ID type has no special local function,
      * just clear the lib */
-    if (id_make_local(bmain, tselem->id, false, false) == false) {
-      id_clear_lib_data(bmain, tselem->id);
+    if (BKE_lib_id_make_local(bmain, tselem->id, false, false) == false) {
+      BKE_lib_id_clear_library_data(bmain, tselem->id);
     }
     else {
       BKE_main_id_clear_newpoins(bmain);

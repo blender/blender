@@ -138,11 +138,11 @@ static CLG_LogRef LOG = {.identifier = "bke.lib_id"};
 
 /* ************* general ************************ */
 
-/* this has to be called from each make_local_* func, we could call
- * from id_make_local() but then the make local functions would not be self
- * contained.
- * also note that the id _must_ have a library - campbell */
-void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
+/**
+ * This has to be called from each make_local_* func, we could call from BKE_lib_id_make_local()
+ * but then the make local functions would not be self contained.
+ * Also note that the id _must_ have a library - campbell */
+static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
 {
   const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath};
 
@@ -151,6 +151,47 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
                         BKE_bpath_relocate_visitor,
                         BKE_BPATH_TRAVERSE_SKIP_MULTIFILE,
                         (void *)bpath_user_data);
+}
+
+/**
+ * Pull an ID out of a library (make it local). Only call this for IDs that
+ * don't have other library users.
+ */
+static void lib_id_clear_library_data_ex(Main *bmain, ID *id, const bool id_in_mainlist)
+{
+  bNodeTree *ntree = NULL;
+  Key *key = NULL;
+
+  lib_id_library_local_paths(bmain, id->lib, id);
+
+  id_fake_user_clear(id);
+
+  id->lib = NULL;
+  id->tag &= ~(LIB_TAG_INDIRECT | LIB_TAG_EXTERN);
+  id->flag &= ~LIB_INDIRECT_WEAK_LINK;
+  if (id_in_mainlist) {
+    if (BKE_id_new_name_validate(which_libbase(bmain, GS(id->name)), id, NULL)) {
+      bmain->is_memfile_undo_written = false;
+    }
+  }
+
+  /* Internal bNodeTree blocks inside data-blocks also stores id->lib,
+   * make sure this stays in sync. */
+  if ((ntree = ntreeFromID(id))) {
+    lib_id_clear_library_data_ex(
+        bmain, &ntree->id, false); /* Datablocks' nodetree is never in Main. */
+  }
+
+  /* Same goes for shapekeys. */
+  if ((key = BKE_key_from_id(id))) {
+    lib_id_clear_library_data_ex(
+        bmain, &key->id, id_in_mainlist); /* sigh, why are keys in Main? */
+  }
+}
+
+void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
+{
+  lib_id_clear_library_data_ex(bmain, id, true);
 }
 
 void id_lib_extern(ID *id)
@@ -294,7 +335,7 @@ void BKE_id_clear_newpoin(ID *id)
   id->newid = NULL;
 }
 
-static int id_expand_local_callback(LibraryIDLinkCallbackData *cb_data)
+static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
 {
   ID *id_self = cb_data->id_self;
   ID **id_pointer = cb_data->id_pointer;
@@ -318,29 +359,29 @@ static int id_expand_local_callback(LibraryIDLinkCallbackData *cb_data)
  * Expand ID usages of given id as 'extern' (and no more indirect) linked data.
  * Used by ID copy/make_local functions.
  */
-void BKE_id_expand_local(Main *bmain, ID *id)
+void BKE_lib_id_expand_local(Main *bmain, ID *id)
 {
-  BKE_library_foreach_ID_link(bmain, id, id_expand_local_callback, NULL, IDWALK_READONLY);
+  BKE_library_foreach_ID_link(bmain, id, lib_id_expand_local_cb, NULL, IDWALK_READONLY);
 }
 
 /**
  * Ensure new (copied) ID is fully made local.
  */
-void BKE_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
+static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
 {
   if (ID_IS_LINKED(old_id)) {
-    BKE_id_expand_local(bmain, new_id);
-    BKE_id_lib_local_paths(bmain, old_id->lib, new_id);
+    BKE_lib_id_expand_local(bmain, new_id);
+    lib_id_library_local_paths(bmain, old_id->lib, new_id);
   }
 }
 
 /**
  * Generic 'make local' function, works for most of data-block types...
  */
-void BKE_id_make_local_generic(Main *bmain,
-                               ID *id,
-                               const bool id_in_mainlist,
-                               const bool lib_local)
+void BKE_lib_id_make_local_generic(Main *bmain,
+                                   ID *id,
+                                   const bool id_in_mainlist,
+                                   const bool lib_local)
 {
   bool is_local = false, is_lib = false;
 
@@ -359,8 +400,8 @@ void BKE_id_make_local_generic(Main *bmain,
 
   if (lib_local || is_local) {
     if (!is_lib) {
-      id_clear_lib_data_ex(bmain, id, id_in_mainlist);
-      BKE_id_expand_local(bmain, id);
+      lib_id_clear_library_data_ex(bmain, id, id_in_mainlist);
+      BKE_lib_id_expand_local(bmain, id);
     }
     else {
       ID *id_new;
@@ -399,7 +440,7 @@ void BKE_id_make_local_generic(Main *bmain,
  *
  * \return true if the block can be made local.
  */
-bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
+bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 {
   /* We don't care whether ID is directly or indirectly linked
    * in case we are making a whole lib local... */
@@ -772,7 +813,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
    * XXX TODO: is this behavior OK, or should we need own flag to control that? */
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     BLI_assert((flag & LIB_ID_COPY_KEEP_LIB) == 0);
-    BKE_id_copy_ensure_local(bmain, id, *r_newid);
+    lib_id_copy_ensure_local(bmain, id, *r_newid);
   }
   else {
     (*r_newid)->lib = id->lib;
@@ -1924,45 +1965,6 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
   return result;
 }
 
-/**
- * Pull an ID out of a library (make it local). Only call this for IDs that
- * don't have other library users.
- */
-void id_clear_lib_data_ex(Main *bmain, ID *id, const bool id_in_mainlist)
-{
-  bNodeTree *ntree = NULL;
-  Key *key = NULL;
-
-  BKE_id_lib_local_paths(bmain, id->lib, id);
-
-  id_fake_user_clear(id);
-
-  id->lib = NULL;
-  id->tag &= ~(LIB_TAG_INDIRECT | LIB_TAG_EXTERN);
-  id->flag &= ~LIB_INDIRECT_WEAK_LINK;
-  if (id_in_mainlist) {
-    if (BKE_id_new_name_validate(which_libbase(bmain, GS(id->name)), id, NULL)) {
-      bmain->is_memfile_undo_written = false;
-    }
-  }
-
-  /* Internal bNodeTree blocks inside data-blocks also stores id->lib,
-   * make sure this stays in sync. */
-  if ((ntree = ntreeFromID(id))) {
-    id_clear_lib_data_ex(bmain, &ntree->id, false); /* Datablocks' nodetree is never in Main. */
-  }
-
-  /* Same goes for shapekeys. */
-  if ((key = BKE_key_from_id(id))) {
-    id_clear_lib_data_ex(bmain, &key->id, id_in_mainlist); /* sigh, why are keys in Main? */
-  }
-}
-
-void id_clear_lib_data(Main *bmain, ID *id)
-{
-  id_clear_lib_data_ex(bmain, id, true);
-}
-
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
 void BKE_main_id_clear_newpoins(Main *bmain)
 {
@@ -2224,8 +2226,8 @@ void BKE_library_make_local(Main *bmain,
        * currently there are some indirect usages. So instead of making a copy that we'll likely
        * get rid of later, directly make that data block local.
        * Saves a tremendous amount of time with complex scenes... */
-      id_clear_lib_data_ex(bmain, id, true);
-      BKE_id_expand_local(bmain, id);
+      lib_id_clear_library_data_ex(bmain, id, true);
+      BKE_lib_id_expand_local(bmain, id);
       id->tag &= ~LIB_TAG_DOIT;
 
       if (GS(id->name) == ID_OB) {
@@ -2242,7 +2244,7 @@ void BKE_library_make_local(Main *bmain,
         BKE_object_make_local_ex(bmain, (Object *)id, true, false);
       }
       else {
-        id_make_local(bmain, id, false, true);
+        BKE_lib_id_make_local(bmain, id, false, true);
       }
 
       if (id->newid) {

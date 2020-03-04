@@ -781,15 +781,15 @@ void BKE_brush_make_local(Main *bmain, Brush *brush, const bool lib_local)
 
   if (brush->clone.image) {
     /* Special case: ima always local immediately. Clone image should only have one user anyway. */
-    id_make_local(bmain, &brush->clone.image->id, false, false);
+    BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, false);
   }
 
   BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
 
   if (lib_local || is_local) {
     if (!is_lib) {
-      id_clear_lib_data(bmain, &brush->id);
-      BKE_id_expand_local(bmain, &brush->id);
+      BKE_lib_id_clear_library_data(bmain, &brush->id);
+      BKE_lib_id_expand_local(bmain, &brush->id);
 
       /* enable fake user by default */
       id_fake_user_set(&brush->id);

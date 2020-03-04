@@ -582,12 +582,12 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
 
 static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool clear_proxy)
 {
-  /* Special case, as we can't rely on id_make_local(); it clears proxies. */
+  /* Special case, as we can't rely on BKE_lib_id_make_local(); it clears proxies. */
   if (!clear_proxy && GS(self->name) == ID_OB) {
     BKE_object_make_local_ex(bmain, (Object *)self, false, clear_proxy);
   }
   else {
-    id_make_local(bmain, self, false, false);
+    BKE_lib_id_make_local(bmain, self, false, false);
   }
 
   ID *ret_id = self->newid ? self->newid : self;

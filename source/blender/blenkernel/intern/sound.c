@@ -219,7 +219,7 @@ void BKE_sound_copy_data(Main *UNUSED(bmain),
 
 void BKE_sound_make_local(Main *bmain, bSound *sound, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &sound->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &sound->id, true, lib_local);
 }
 
 #ifdef WITH_AUDASPACE

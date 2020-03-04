@@ -371,7 +371,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
 
 void BKE_collection_make_local(Main *bmain, Collection *collection, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &collection->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &collection->id, true, lib_local);
 }
 
 /********************************* Naming *******************************/

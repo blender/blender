@@ -98,7 +98,7 @@ Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
 
 void BKE_camera_make_local(Main *bmain, Camera *cam, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &cam->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &cam->id, true, lib_local);
 }
 
 /** Free (or release) any data used by this camera (does not free the camera itself). */

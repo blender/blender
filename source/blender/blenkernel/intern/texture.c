@@ -388,7 +388,7 @@ Tex *BKE_texture_localize(Tex *tex)
 
 void BKE_texture_make_local(Main *bmain, Tex *tex, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &tex->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &tex->id, true, lib_local);
 }
 
 Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)

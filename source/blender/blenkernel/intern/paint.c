@@ -519,7 +519,7 @@ PaintCurve *BKE_paint_curve_copy(Main *bmain, const PaintCurve *pc)
 
 void BKE_paint_curve_make_local(Main *bmain, PaintCurve *pc, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &pc->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &pc->id, true, lib_local);
 }
 
 Palette *BKE_paint_palette(Paint *p)
@@ -606,7 +606,7 @@ Palette *BKE_palette_copy(Main *bmain, const Palette *palette)
 
 void BKE_palette_make_local(Main *bmain, Palette *palette, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &palette->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &palette->id, true, lib_local);
 }
 
 void BKE_palette_init(Palette *palette)

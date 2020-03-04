@@ -131,7 +131,7 @@ Light *BKE_light_localize(Light *la)
 
 void BKE_light_make_local(Main *bmain, Light *la, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &la->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &la->id, true, lib_local);
 }
 
 void BKE_light_free(Light *la)

@@ -908,7 +908,7 @@ Mask *BKE_mask_copy(Main *bmain, const Mask *mask)
 
 void BKE_mask_make_local(Main *bmain, Mask *mask, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &mask->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &mask->id, true, lib_local);
 }
 
 void BKE_mask_point_free(MaskSplinePoint *point)

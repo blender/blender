@@ -709,7 +709,7 @@ bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool in
 
 void BKE_gpencil_make_local(Main *bmain, bGPdata *gpd, const bool lib_local)
 {
-  BKE_id_make_local_generic(bmain, &gpd->id, true, lib_local);
+  BKE_lib_id_make_local_generic(bmain, &gpd->id, true, lib_local);
 }
 
 /* ************************************************** */

@@ -1763,8 +1763,8 @@ void BKE_object_make_local_ex(Main *bmain,
 
   if (lib_local || is_local) {
     if (!is_lib) {
-      id_clear_lib_data(bmain, &ob->id);
-      BKE_id_expand_local(bmain, &ob->id);
+      BKE_lib_id_clear_library_data(bmain, &ob->id);
+      BKE_lib_id_expand_local(bmain, &ob->id);
       if (clear_proxy) {
         if (ob->proxy_from != NULL) {
           ob->proxy_from->proxy = NULL;
