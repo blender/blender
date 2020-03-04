@@ -26,7 +26,7 @@ from .properties_physics_common import (
 )
 
 
-class FLUID_MT_presets(PresetPanel, Panel):
+class FLUID_PT_presets(PresetPanel, Panel):
     bl_label = "Fluid Presets"
     preset_subdir = "fluid"
     preset_operator = "script.execute_preset"
@@ -958,7 +958,7 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
         return (context.engine in cls.COMPAT_ENGINES)
 
     def draw_header_preset(self, _context):
-        FLUID_MT_presets.draw_panel_header(self.layout)
+        FLUID_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -1303,7 +1303,7 @@ class PHYSICS_PT_viewport_display_debug(PhysicButtonsPanel, Panel):
 
 
 classes = (
-    FLUID_MT_presets,
+    FLUID_PT_presets,
     PHYSICS_PT_fluid,
     PHYSICS_PT_settings,
     PHYSICS_PT_borders,
