@@ -316,8 +316,8 @@ class PHYSICS_PT_borders(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
-    bl_label = "Smoke"
-    bl_parent_id = 'PHYSICS_PT_settings'
+    bl_label = "Gas"
+    bl_parent_id = 'PHYSICS_PT_fluid'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
@@ -393,7 +393,7 @@ class PHYSICS_PT_smoke_dissolve(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_fire(PhysicButtonsPanel, Panel):
     bl_label = "Fire"
-    bl_parent_id = 'PHYSICS_PT_settings'
+    bl_parent_id = 'PHYSICS_PT_smoke'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
@@ -431,7 +431,7 @@ class PHYSICS_PT_fire(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
     bl_label = "Liquid"
-    bl_parent_id = 'PHYSICS_PT_settings'
+    bl_parent_id = 'PHYSICS_PT_fluid'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     @classmethod
@@ -620,7 +620,7 @@ class PHYSICS_PT_flow_texture(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_adaptive_domain(PhysicButtonsPanel, Panel):
     bl_label = "Adaptive Domain"
-    bl_parent_id = 'PHYSICS_PT_fluid'
+    bl_parent_id = 'PHYSICS_PT_settings'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
@@ -672,7 +672,7 @@ class PHYSICS_PT_adaptive_domain(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
     bl_label = "Noise"
-    bl_parent_id = 'PHYSICS_PT_fluid'
+    bl_parent_id = 'PHYSICS_PT_smoke'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
@@ -744,7 +744,7 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
     bl_label = "Mesh"
-    bl_parent_id = 'PHYSICS_PT_fluid'
+    bl_parent_id = 'PHYSICS_PT_liquid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
@@ -829,7 +829,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
     bl_label = "Particles"
-    bl_parent_id = 'PHYSICS_PT_fluid'
+    bl_parent_id = 'PHYSICS_PT_liquid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
@@ -948,7 +948,7 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
     bl_label = "Diffusion"
-    bl_parent_id = 'PHYSICS_PT_fluid'
+    bl_parent_id = 'PHYSICS_PT_liquid'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
@@ -1315,23 +1315,23 @@ classes = (
     PHYSICS_PT_fluid,
     PHYSICS_PT_settings,
     PHYSICS_PT_borders,
+    PHYSICS_PT_adaptive_domain,
     PHYSICS_PT_smoke,
     PHYSICS_PT_smoke_dissolve,
+    PHYSICS_PT_noise,
     PHYSICS_PT_fire,
     PHYSICS_PT_liquid,
-    PHYSICS_PT_flow_source,
-    PHYSICS_PT_flow_initial_velocity,
-    PHYSICS_PT_flow_texture,
-    PHYSICS_PT_adaptive_domain,
-    PHYSICS_PT_noise,
-    PHYSICS_PT_mesh,
-    PHYSICS_PT_particles,
     PHYSICS_PT_diffusion,
+    PHYSICS_PT_particles,
+    PHYSICS_PT_mesh,
     PHYSICS_PT_guide,
     PHYSICS_PT_collections,
     PHYSICS_PT_cache,
     PHYSICS_PT_export,
     PHYSICS_PT_field_weights,
+    PHYSICS_PT_flow_source,
+    PHYSICS_PT_flow_initial_velocity,
+    PHYSICS_PT_flow_texture,
     PHYSICS_PT_viewport_display,
     PHYSICS_PT_viewport_display_color,
     PHYSICS_PT_viewport_display_debug,
