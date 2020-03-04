@@ -246,9 +246,9 @@ struct MANTA {
   {
     return mForceZ;
   }
-  inline int *getObstacle()
+  inline int *getFlags()
   {
-    return mObstacle;
+    return mFlags;
   }
   inline float *getNumObstacle()
   {
@@ -785,7 +785,7 @@ struct MANTA {
   float *mForceX;
   float *mForceY;
   float *mForceZ;
-  int *mObstacle;
+  int *mFlags;
   float *mNumObstacle;
   float *mNumGuide;
 

@@ -112,7 +112,7 @@ void manta_smoke_export(struct MANTA *smoke,
                         float **r,
                         float **g,
                         float **b,
-                        int **obstacles,
+                        int **flags,
                         float **shadow);
 void manta_smoke_turbulence_export(struct MANTA *smoke,
                                    float **dens,
@@ -152,7 +152,7 @@ float *manta_smoke_get_shadow(struct MANTA *fluid);
 float *manta_smoke_get_color_r(struct MANTA *smoke);
 float *manta_smoke_get_color_g(struct MANTA *smoke);
 float *manta_smoke_get_color_b(struct MANTA *smoke);
-int *manta_smoke_get_obstacle(struct MANTA *smoke);
+int *manta_smoke_get_flags(struct MANTA *smoke);
 float *manta_smoke_get_density_in(struct MANTA *smoke);
 float *manta_smoke_get_heat_in(struct MANTA *smoke);
 float *manta_smoke_get_color_r_in(struct MANTA *smoke);

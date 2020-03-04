@@ -363,7 +363,7 @@ void manta_smoke_export(MANTA *smoke,
                         float **r,
                         float **g,
                         float **b,
-                        int **obstacle,
+                        int **flags,
                         float **shadow)
 {
   if (dens)
@@ -385,7 +385,7 @@ void manta_smoke_export(MANTA *smoke,
     *g = smoke->getColorG();
   if (b)
     *b = smoke->getColorB();
-  *obstacle = smoke->getObstacle();
+  *flags = smoke->getFlags();
   if (shadow)
     *shadow = smoke->getShadow();
   *dt = 1;  // dummy value, not needed for smoke
@@ -590,9 +590,9 @@ float *manta_smoke_get_color_b(MANTA *smoke)
   return smoke->getColorB();
 }
 
-int *manta_smoke_get_obstacle(MANTA *smoke)
+int *manta_smoke_get_flags(MANTA *smoke)
 {
-  return smoke->getObstacle();
+  return smoke->getFlags();
 }
 
 float *manta_smoke_get_density_in(MANTA *smoke)

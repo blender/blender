@@ -2834,7 +2834,7 @@ static void update_effectors(
     data.velocity_x = manta_get_velocity_x(mds->fluid);
     data.velocity_y = manta_get_velocity_y(mds->fluid);
     data.velocity_z = manta_get_velocity_z(mds->fluid);
-    data.flags = manta_smoke_get_obstacle(mds->fluid);
+    data.flags = manta_smoke_get_flags(mds->fluid);
     data.phi_obs_in = manta_get_phiobs_in(mds->fluid);
 
     TaskParallelSettings settings;

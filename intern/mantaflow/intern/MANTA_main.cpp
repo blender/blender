@@ -103,7 +103,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
   mColorR = nullptr;
   mColorG = nullptr;
   mColorB = nullptr;
-  mObstacle = nullptr;
+  mFlags = nullptr;
   mDensityIn = nullptr;
   mHeatIn = nullptr;
   mColorRIn = nullptr;
@@ -3005,7 +3005,7 @@ void MANTA::updatePointers()
   std::string mesh_ext2 = "_" + mesh2;
   std::string noise_ext = "_" + noise;
 
-  mObstacle = (int *)pyObjectToPointer(callPythonFunction("flags" + solver_ext, func));
+  mFlags = (int *)pyObjectToPointer(callPythonFunction("flags" + solver_ext, func));
   mPhiIn = (float *)pyObjectToPointer(callPythonFunction("phiIn" + solver_ext, func));
   mVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_vel" + solver_ext, func));
   mVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_vel" + solver_ext, func));
