@@ -2260,7 +2260,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
           }
         }
 
-        matarar = (Material ***)BKE_object_material_array_p(ob);
+        matarar = BKE_object_material_array_p(ob);
         if (matarar) {
           for (a = 0; a < ob->totcol; a++) {
             ma = (*matarar)[a];

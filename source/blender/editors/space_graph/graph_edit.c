@@ -3476,7 +3476,7 @@ static int graph_driver_vars_copy_exec(bContext *C, wmOperator *op)
   PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
 
   /* if this exists, call the copy driver vars API function */
-  FCurve *fcu = (FCurve *)ptr.data;
+  FCurve *fcu = ptr.data;
 
   if (fcu) {
     ok = ANIM_driver_vars_copy(op->reports, fcu);
@@ -3516,7 +3516,7 @@ static int graph_driver_vars_paste_exec(bContext *C, wmOperator *op)
   PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
 
   /* if this exists, call the paste driver vars API function */
-  FCurve *fcu = (FCurve *)ptr.data;
+  FCurve *fcu = ptr.data;
 
   if (fcu) {
     ok = ANIM_driver_vars_paste(op->reports, fcu, replace);

@@ -223,7 +223,7 @@ FCurve *verify_fcurve(Main *bmain,
         /* sync bone group colors if applicable */
         if (ptr && (ptr->type == &RNA_PoseBone)) {
           Object *ob = (Object *)ptr->owner_id;
-          bPoseChannel *pchan = (bPoseChannel *)ptr->data;
+          bPoseChannel *pchan = ptr->data;
           bPose *pose = ob->pose;
           bActionGroup *grp;
 
@@ -821,7 +821,7 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
    */
   if (ptr->type == &RNA_Object) {
     /* Object */
-    Object *ob = (Object *)ptr->data;
+    Object *ob = ptr->data;
     RigidBodyOb *rbo = ob->rigidbody_object;
 
     con = ob->constraints.first;
@@ -833,7 +833,7 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
   }
   else if (ptr->type == &RNA_PoseBone) {
     /* Pose Channel */
-    bPoseChannel *pchan = (bPoseChannel *)ptr->data;
+    bPoseChannel *pchan = ptr->data;
 
     con = pchan->constraints.first;
     identifier = RNA_property_identifier(prop);
@@ -983,7 +983,7 @@ static float *visualkey_get_values(
    * - assume that array_index will be sane
    */
   if (ptr->type == &RNA_Object) {
-    Object *ob = (Object *)ptr->data;
+    Object *ob = ptr->data;
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
       copy_v3_v3(buffer, ob->obmat[3]);
@@ -995,7 +995,7 @@ static float *visualkey_get_values(
     rotmode = ob->rotmode;
   }
   else if (ptr->type == &RNA_PoseBone) {
-    bPoseChannel *pchan = (bPoseChannel *)ptr->data;
+    bPoseChannel *pchan = ptr->data;
 
     BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, tmat);
     rotmode = pchan->rotmode;
@@ -2375,7 +2375,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
        * strips themselves. These are stored separately or else the properties will
        * not have any effect.
        */
-      NlaStrip *strip = (NlaStrip *)ptr.data;
+      NlaStrip *strip = ptr.data;
       FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 
       if (fcu) {
@@ -2416,7 +2416,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
          * TODO: Perhaps we can extend this behavior in future for other properties...
          */
         if (ptr.type == &RNA_PoseBone) {
-          bPoseChannel *pchan = (bPoseChannel *)ptr.data;
+          bPoseChannel *pchan = ptr.data;
           group = pchan->name;
         }
         else if ((ptr.type == &RNA_Object) &&
@@ -2467,7 +2467,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
                   RPT_WARNING,
                   "Button doesn't appear to have any property information attached (ptr.data = "
                   "%p, prop = %p)",
-                  (void *)ptr.data,
+                  ptr.data,
                   (void *)prop);
     }
   }
@@ -2535,7 +2535,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
        * not have any effect.
        */
       ID *id = ptr.owner_id;
-      NlaStrip *strip = (NlaStrip *)ptr.data;
+      NlaStrip *strip = ptr.data;
       FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), 0);
 
       if (fcu) {
@@ -2586,7 +2586,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
     }
   }
   else if (G.debug & G_DEBUG) {
-    printf("ptr.data = %p, prop = %p\n", (void *)ptr.data, (void *)prop);
+    printf("ptr.data = %p, prop = %p\n", ptr.data, (void *)prop);
   }
 
   if (success) {
@@ -2653,7 +2653,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
     }
   }
   else if (G.debug & G_DEBUG) {
-    printf("ptr.data = %p, prop = %p\n", (void *)ptr.data, (void *)prop);
+    printf("ptr.data = %p, prop = %p\n", ptr.data, (void *)prop);
   }
 
   if (success) {

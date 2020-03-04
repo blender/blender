@@ -353,7 +353,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     }
 
     if (prop) {
-      NlaStrip *strip = (NlaStrip *)ptr.data;
+      NlaStrip *strip = ptr.data;
       FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 
       result = insert_keyframe_direct(&reports, ptr, prop, fcu, cfra, keytype, NULL, options);
@@ -452,7 +452,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
 
     if (prop) {
       ID *id = ptr.owner_id;
-      NlaStrip *strip = (NlaStrip *)ptr.data;
+      NlaStrip *strip = ptr.data;
       FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 
       /* NOTE: This should be true, or else we wouldn't be able to get here. */

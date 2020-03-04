@@ -250,7 +250,7 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
          * or else the user gets decremented twice!
          */
         if (ptr.type == &RNA_SpaceDopeSheetEditor) {
-          SpaceAction *saction = (SpaceAction *)ptr.data;
+          SpaceAction *saction = ptr.data;
           saction->action = NULL;
         }
       }

@@ -1791,7 +1791,7 @@ static void tree_element_to_path(TreeElement *te,
         /* ptr->data not ptr->owner_id seems to be the one we want,
          * since ptr->data is sometimes the owner of this ID? */
         if (RNA_struct_is_ID(ptr->type)) {
-          *id = (ID *)ptr->data;
+          *id = ptr->data;
 
           /* clear path */
           if (*path) {

@@ -373,7 +373,7 @@ FCurve *rna_get_fcurve_context_ui(bContext *C,
 
   /* Special case for NLA Control Curves... */
   if (BKE_nlastrip_has_curves_for_property(ptr, prop)) {
-    NlaStrip *strip = (NlaStrip *)ptr->data;
+    NlaStrip *strip = ptr->data;
 
     /* Set the special flag, since it cannot be a normal action/driver
      * if we've been told to start looking here...

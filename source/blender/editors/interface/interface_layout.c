@@ -534,7 +534,7 @@ static void ui_item_array(uiLayout *layout,
     buth = unit;
 
     if (ptr->type == &RNA_Armature) {
-      bArmature *arm = (bArmature *)ptr->data;
+      bArmature *arm = ptr->data;
 
       layer_used = arm->layer_used;
 
