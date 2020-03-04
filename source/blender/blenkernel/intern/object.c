@@ -1711,7 +1711,7 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
     }
 
     if (dupflag & USER_DUP_MAT) {
-      matarar = BKE_object_material_array(obn);
+      matarar = BKE_object_material_array_p(obn);
       if (matarar) {
         for (a = 0; a < obn->totcol; a++) {
           id = (ID *)(*matarar)[a];

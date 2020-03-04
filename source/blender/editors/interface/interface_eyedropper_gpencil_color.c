@@ -127,7 +127,7 @@ static void eyedropper_gpencil_color_set(bContext *C, const wmEvent *event, Eyed
   }
 
   /* Look for a similar material in grease pencil slots. */
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
   for (short i = 0; i < *totcol; i++) {
     ma = BKE_object_material_get(ob, i + 1);
     if (ma == NULL) {

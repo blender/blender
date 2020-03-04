@@ -50,7 +50,7 @@ typedef struct ColorTemplate {
 /* Add color an ensure duplications (matched by name) */
 static int gp_stroke_material(Main *bmain, Object *ob, const ColorTemplate *pct, const bool fill)
 {
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
   Material *ma = NULL;
   for (short i = 0; i < *totcol; i++) {
     ma = BKE_gpencil_material(ob, i + 1);

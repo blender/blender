@@ -5086,11 +5086,11 @@ static void lib_link_object(FileData *fd, Main *bmain, Object *ob)
   /* When the object is local and the data is library its possible
    * the material list size gets out of sync. [#22663] */
   if (ob->data && ob->id.lib != ((ID *)ob->data)->lib) {
-    const short *totcol_data = BKE_object_material_num(ob);
+    const short *totcol_data = BKE_object_material_len_p(ob);
     /* Only expand so as not to loose any object materials that might be set. */
     if (totcol_data && (*totcol_data > ob->totcol)) {
       /* printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data); */
-      BKE_material_resize_object(bmain, ob, *totcol_data, false);
+      BKE_object_material_resize(bmain, ob, *totcol_data, false);
     }
   }
 

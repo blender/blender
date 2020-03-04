@@ -2368,7 +2368,7 @@ void BKE_gpencil_stats_update(bGPdata *gpd)
 /* get material index (0-based like mat_nr not actcol) */
 int BKE_gpencil_object_material_get_index(Object *ob, Material *ma)
 {
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
   Material *read_ma = NULL;
   for (short i = 0; i < *totcol; i++) {
     read_ma = BKE_object_material_get(ob, i + 1);

@@ -260,7 +260,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
             /* Using original (not evaluated) object here since we are writing to it. */
             /* XXX Pretty sure comment above is fully wrong now with CoW & co ? */
-            BKE_material_remap_object_calc(ctx->object, other, material_remap);
+            BKE_object_material_remap_calc(ctx->object, other, material_remap);
 
             BMFace *efa;
             i = 0;

@@ -1551,7 +1551,7 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
 
   Object *ob = CTX_data_active_object(C);
 
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
 
   /* sanity checks */
   if (ELEM(NULL, gpd)) {
@@ -2343,7 +2343,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         }
 
         /* add missing materials reading source materials and checking in destination object */
-        short *totcol = BKE_object_material_num(ob_src);
+        short *totcol = BKE_object_material_len_p(ob_src);
 
         for (short i = 0; i < *totcol; i++) {
           Material *tmp_ma = BKE_gpencil_material(ob_src, i + 1);
@@ -2462,7 +2462,7 @@ static bool gpencil_active_color_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob && ob->data && (ob->type == OB_GPENCIL)) {
-    short *totcolp = BKE_object_material_num(ob);
+    short *totcolp = BKE_object_material_len_p(ob);
     return *totcolp > 0;
   }
   return false;
@@ -2482,7 +2482,7 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* first lock and hide all colors */
   Material *ma = NULL;
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
   }
@@ -2569,7 +2569,7 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 
   /* Test whether to isolate or clear all flags */
   Material *ma = NULL;
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
   for (short i = 0; i < *totcol; i++) {
     ma = BKE_gpencil_material(ob, i + 1);
     /* Skip if this is the active one */
@@ -2664,7 +2664,7 @@ static int gpencil_color_hide_exec(bContext *C, wmOperator *op)
   bool unselected = RNA_boolean_get(op->ptr, "unselected");
 
   Material *ma = NULL;
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
   }
@@ -2726,7 +2726,7 @@ static int gpencil_color_reveal_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   Material *ma = NULL;
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
 
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
@@ -2779,7 +2779,7 @@ static int gpencil_color_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   Material *ma = NULL;
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
 
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
@@ -2832,7 +2832,7 @@ static int gpencil_color_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   Material *ma = NULL;
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
 
   if (totcol == 0) {
     return OPERATOR_CANCELLED;

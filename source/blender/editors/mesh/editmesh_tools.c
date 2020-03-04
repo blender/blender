@@ -3939,8 +3939,8 @@ static Base *mesh_separate_tagged(
   /* new in 2.5 */
   BKE_object_material_array_assign(bmain,
                                    base_new->object,
-                                   BKE_object_material_array(obedit),
-                                   *BKE_object_material_num(obedit));
+                                   BKE_object_material_array_p(obedit),
+                                   *BKE_object_material_len_p(obedit));
 
   ED_object_base_select(base_new, BA_SELECT);
 
@@ -4011,8 +4011,8 @@ static Base *mesh_separate_arrays(Main *bmain,
   /* new in 2.5 */
   BKE_object_material_array_assign(bmain,
                                    base_new->object,
-                                   BKE_object_material_array(obedit),
-                                   *BKE_object_material_num(obedit));
+                                   BKE_object_material_array_p(obedit),
+                                   *BKE_object_material_len_p(obedit));
 
   ED_object_base_select(base_new, BA_SELECT);
 
@@ -4056,8 +4056,8 @@ static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const 
   Material ***matarar;
   const short *totcolp;
 
-  totcolp = BKE_id_material_num(obdata);
-  matarar = BKE_id_material_array(obdata);
+  totcolp = BKE_id_material_len_p(obdata);
+  matarar = BKE_id_material_array_p(obdata);
 
   if ((totcolp && matarar) == 0) {
     BLI_assert(0);
@@ -4085,9 +4085,9 @@ static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const 
       ma_obdata = NULL;
     }
 
-    BKE_material_clear_id(bmain, obdata);
-    BKE_material_resize_object(bmain, ob, 1, true);
-    BKE_material_resize_id(bmain, obdata, 1, true);
+    BKE_id_material_clear(bmain, obdata);
+    BKE_object_material_resize(bmain, ob, 1, true);
+    BKE_id_material_resize(bmain, obdata, 1, true);
 
     ob->mat[0] = ma_ob;
     id_us_plus((ID *)ma_ob);
@@ -4096,9 +4096,9 @@ static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const 
     id_us_plus((ID *)ma_obdata);
   }
   else {
-    BKE_material_clear_id(bmain, obdata);
-    BKE_material_resize_object(bmain, ob, 0, true);
-    BKE_material_resize_id(bmain, obdata, 0, true);
+    BKE_id_material_clear(bmain, obdata);
+    BKE_object_material_resize(bmain, ob, 0, true);
+    BKE_id_material_resize(bmain, obdata, 0, true);
   }
 }
 

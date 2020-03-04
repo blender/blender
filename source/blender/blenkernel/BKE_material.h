@@ -45,13 +45,13 @@ void BKE_materials_exit(void);
 void BKE_material_free(struct Material *ma);
 void BKE_object_materials_test(struct Main *bmain, struct Object *ob, struct ID *id);
 void BKE_objects_materials_test_all(struct Main *bmain, struct ID *id);
-void BKE_material_resize_object(struct Main *bmain,
+void BKE_object_material_resize(struct Main *bmain,
                                 struct Object *ob,
                                 const short totcol,
                                 bool do_id_user);
 void BKE_material_init(struct Material *ma);
-void BKE_material_remap_object(struct Object *ob, const unsigned int *remap);
-void BKE_material_remap_object_calc(struct Object *ob_dst,
+void BKE_object_material_remap(struct Object *ob, const unsigned int *remap);
+void BKE_object_material_remap_calc(struct Object *ob_dst,
                                     struct Object *ob_src,
                                     short *remap_src_to_dst);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
@@ -70,10 +70,10 @@ void BKE_gpencil_material_attr_init(struct Material *ma);
 
 /* material slots */
 
-struct Material ***BKE_object_material_array(struct Object *ob);
-short *BKE_object_material_num(struct Object *ob);
-struct Material ***BKE_id_material_array(struct ID *id); /* same but for ID's */
-short *BKE_id_material_num(struct ID *id);
+struct Material ***BKE_object_material_array_p(struct Object *ob);
+short *BKE_object_material_len_p(struct Object *ob);
+struct Material ***BKE_id_material_array_p(struct ID *id); /* same but for ID's */
+short *BKE_id_material_len_p(struct ID *id);
 
 enum {
   /* use existing link option */
@@ -106,13 +106,13 @@ void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);
 struct bNode *BKE_texpaint_slot_material_find_node(struct Material *ma, short texpaint_slot);
 
 /* rna api */
-void BKE_material_resize_id(struct Main *bmain, struct ID *id, short totcol, bool do_id_user);
-void BKE_material_append_id(struct Main *bmain, struct ID *id, struct Material *ma);
-struct Material *BKE_material_pop_id(struct Main *bmain,
+void BKE_id_material_resize(struct Main *bmain, struct ID *id, short totcol, bool do_id_user);
+void BKE_id_material_append(struct Main *bmain, struct ID *id, struct Material *ma);
+struct Material *BKE_id_material_pop(struct Main *bmain,
                                      struct ID *id,
                                      /* index is an int because of RNA. */
                                      int index);
-void BKE_material_clear_id(struct Main *bmain, struct ID *id);
+void BKE_id_material_clear(struct Main *bmain, struct ID *id);
 /* rendering */
 
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);

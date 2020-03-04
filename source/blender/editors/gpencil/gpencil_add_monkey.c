@@ -51,7 +51,7 @@ typedef struct ColorTemplate {
 static int gpencil_monkey_color(
     Main *bmain, Object *ob, const ColorTemplate *pct, bool stroke, bool fill)
 {
-  short *totcol = BKE_object_material_num(ob);
+  short *totcol = BKE_object_material_len_p(ob);
   Material *ma = NULL;
   for (short i = 0; i < *totcol; i++) {
     ma = BKE_gpencil_material(ob, i + 1);

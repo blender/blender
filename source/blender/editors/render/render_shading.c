@@ -466,12 +466,12 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ED_object_context(C);
   Material ***matar;
 
-  if (!ob || !(matar = BKE_object_material_array(ob))) {
+  if (!ob || !(matar = BKE_object_material_array_p(ob))) {
     return OPERATOR_CANCELLED;
   }
 
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
-    if (ob != ob_iter && BKE_object_material_array(ob_iter)) {
+    if (ob != ob_iter && BKE_object_material_array_p(ob_iter)) {
       if (ob->data != ob_iter->data) {
         BKE_object_material_array_assign(bmain, ob_iter, matar, ob->totcol);
       }
@@ -538,7 +538,7 @@ static int material_slot_move_exec(bContext *C, wmOperator *op)
   slot_remap[index_pair[0]] = index_pair[1];
   slot_remap[index_pair[1]] = index_pair[0];
 
-  BKE_material_remap_object(ob, slot_remap);
+  BKE_object_material_remap(ob, slot_remap);
 
   MEM_freeN(slot_remap);
 
