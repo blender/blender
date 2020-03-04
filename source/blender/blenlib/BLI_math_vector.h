@@ -440,12 +440,12 @@ void dist_ensure_v2_v2fl(float v1[2], const float v2[2], const float dist);
 
 void axis_sort_v3(const float axis_values[3], int r_axis_order[3]);
 
-void clamp_v2(float vec[2], const float min, const float max);
-void clamp_v3(float vec[3], const float min, const float max);
-void clamp_v4(float vec[4], const float min, const float max);
-void clamp_v2_v2v2(float vec[2], const float min[2], const float max[2]);
-void clamp_v3_v3v3(float vec[3], const float min[3], const float max[3]);
-void clamp_v4_v4v4(float vec[4], const float min[4], const float max[4]);
+MINLINE void clamp_v2(float vec[2], const float min, const float max);
+MINLINE void clamp_v3(float vec[3], const float min, const float max);
+MINLINE void clamp_v4(float vec[4], const float min, const float max);
+MINLINE void clamp_v2_v2v2(float vec[2], const float min[2], const float max[2]);
+MINLINE void clamp_v3_v3v3(float vec[3], const float min[3], const float max[3]);
+MINLINE void clamp_v4_v4v4(float vec[4], const float min[4], const float max[4]);
 
 /***************************** Array Functions *******************************/
 /* follow fixed length vector function conventions. */
