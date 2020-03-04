@@ -121,7 +121,7 @@ void BKE_report(ReportList *reports, ReportType type, const char *_message)
     report->typestr = BKE_report_type_str(type);
 
     len = strlen(message);
-    message_alloc = MEM_callocN(sizeof(char) * (len + 1), "ReportMessage");
+    message_alloc = MEM_mallocN(sizeof(char) * (len + 1), "ReportMessage");
     memcpy(message_alloc, message, sizeof(char) * (len + 1));
     report->message = message_alloc;
     report->len = len;

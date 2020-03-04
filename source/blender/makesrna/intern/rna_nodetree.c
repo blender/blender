@@ -816,7 +816,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   }
 
   /* create a new node tree type */
-  nt = MEM_callocN(sizeof(bNodeTreeType), "node tree type");
+  nt = MEM_mallocN(sizeof(bNodeTreeType), "node tree type");
   memcpy(nt, &dummynt, sizeof(dummynt));
 
   nt->type = NTREE_CUSTOM;
@@ -1650,7 +1650,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   }
 
   /* create a new node type */
-  nt = MEM_callocN(sizeof(bNodeType), "node type");
+  nt = MEM_mallocN(sizeof(bNodeType), "node type");
   memcpy(nt, &dummynt, sizeof(dummynt));
   nt->free_self = (void (*)(bNodeType *))MEM_freeN;
 
@@ -2178,7 +2178,7 @@ static StructRNA *rna_NodeSocket_register(Main *UNUSED(bmain),
   st = nodeSocketTypeFind(dummyst.idname);
   if (!st) {
     /* create a new node socket type */
-    st = MEM_callocN(sizeof(bNodeSocketType), "node socket type");
+    st = MEM_mallocN(sizeof(bNodeSocketType), "node socket type");
     memcpy(st, &dummyst, sizeof(dummyst));
 
     nodeRegisterSocketType(st);
@@ -2494,7 +2494,7 @@ static StructRNA *rna_NodeSocketInterface_register(Main *UNUSED(bmain),
   }
   else {
     /* create a new node socket type */
-    st = MEM_callocN(sizeof(bNodeSocketType), "node socket type");
+    st = MEM_mallocN(sizeof(bNodeSocketType), "node socket type");
     memcpy(st, &dummyst, sizeof(dummyst));
 
     nodeRegisterSocketType(st);

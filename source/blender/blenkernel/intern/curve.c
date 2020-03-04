@@ -3031,7 +3031,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
     blnext = bl->next;
     if (bl->nr && bl->dupe_nr) {
       nr = bl->nr - bl->dupe_nr + 1; /* +1 because vectorbezier sets flag too */
-      blnew = MEM_callocN(sizeof(BevList), "makeBevelList4");
+      blnew = MEM_mallocN(sizeof(BevList), "makeBevelList4");
       memcpy(blnew, bl, sizeof(BevList));
       blnew->bevpoints = MEM_calloc_arrayN(nr, sizeof(BevPoint), "makeBevelPoints4");
       if (!blnew->bevpoints) {

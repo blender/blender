@@ -899,7 +899,7 @@ void BKE_tracking_tracks_join(MovieTracking *tracking,
 
   MEM_freeN(dst_track->markers);
 
-  dst_track->markers = MEM_callocN(i * sizeof(MovieTrackingMarker), "tracking joined tracks");
+  dst_track->markers = MEM_mallocN(i * sizeof(MovieTrackingMarker), "tracking joined tracks");
   memcpy(dst_track->markers, markers, i * sizeof(MovieTrackingMarker));
 
   dst_track->markersnr = i;

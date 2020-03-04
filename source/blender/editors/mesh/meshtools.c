@@ -430,7 +430,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
       for (dg = ob_iter->defbase.first; dg; dg = dg->next) {
         /* See if this group exists in the object (if it doesn't, add it to the end) */
         if (!defgroup_find_name(ob, dg->name)) {
-          odg = MEM_callocN(sizeof(bDeformGroup), "join deformGroup");
+          odg = MEM_mallocN(sizeof(bDeformGroup), "join deformGroup");
           memcpy(odg, dg, sizeof(bDeformGroup));
           BLI_addtail(&ob->defbase, odg);
         }
@@ -443,7 +443,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
       for (bFaceMap *fmap = ob_iter->fmaps.first; fmap; fmap = fmap->next) {
         /* See if this group exists in the object (if it doesn't, add it to the end) */
         if (BKE_object_facemap_find_name(ob, fmap->name) == NULL) {
-          bFaceMap *fmap_new = MEM_callocN(sizeof(bFaceMap), "join faceMap");
+          bFaceMap *fmap_new = MEM_mallocN(sizeof(bFaceMap), "join faceMap");
           memcpy(fmap_new, fmap, sizeof(bFaceMap));
           BLI_addtail(&ob->fmaps, fmap_new);
         }

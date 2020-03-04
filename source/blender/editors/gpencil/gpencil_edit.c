@@ -677,12 +677,12 @@ static void gp_duplicate_points(const bGPDstroke *gps,
         gpsd->tot_triangles = 0;
 
         /* now, make a new points array, and copy of the relevant parts */
-        gpsd->points = MEM_callocN(sizeof(bGPDspoint) * len, "gps stroke points copy");
+        gpsd->points = MEM_mallocN(sizeof(bGPDspoint) * len, "gps stroke points copy");
         memcpy(gpsd->points, gps->points + start_idx, sizeof(bGPDspoint) * len);
         gpsd->totpoints = len;
 
         if (gps->dvert != NULL) {
-          gpsd->dvert = MEM_callocN(sizeof(MDeformVert) * len, "gps stroke weights copy");
+          gpsd->dvert = MEM_mallocN(sizeof(MDeformVert) * len, "gps stroke weights copy");
           memcpy(gpsd->dvert, gps->dvert + start_idx, sizeof(MDeformVert) * len);
 
           /* Copy weights */

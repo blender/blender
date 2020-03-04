@@ -341,7 +341,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
   }
 
   /* create a new panel type */
-  pt = MEM_callocN(sizeof(PanelType), "python buttons panel");
+  pt = MEM_mallocN(sizeof(PanelType), "python buttons panel");
   memcpy(pt, &dummypt, sizeof(dummypt));
 
   pt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, pt->idname, &RNA_Panel);
@@ -775,7 +775,7 @@ static StructRNA *rna_Header_register(Main *bmain,
   }
 
   /* create a new header type */
-  ht = MEM_callocN(sizeof(HeaderType), "python buttons header");
+  ht = MEM_mallocN(sizeof(HeaderType), "python buttons header");
   memcpy(ht, &dummyht, sizeof(dummyht));
 
   ht->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ht->idname, &RNA_Header);

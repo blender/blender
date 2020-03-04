@@ -243,7 +243,7 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
 
   if (reconstruction->camnr) {
     int size = reconstruction->camnr * sizeof(MovieReconstructedCamera);
-    reconstruction->cameras = MEM_callocN(size, "reconstructed camera");
+    reconstruction->cameras = MEM_mallocN(size, "reconstructed camera");
     memcpy(reconstruction->cameras, reconstructed, size);
   }
 
