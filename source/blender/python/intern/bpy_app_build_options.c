@@ -60,6 +60,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
     {"alembic", NULL},
     {"usd", NULL},
     {"fluid", NULL},
+    {"xr_openxr", NULL},
     {NULL},
 };
 
@@ -270,6 +271,12 @@ static PyObject *make_builtopts_info(void)
 #endif
 
 #ifdef WITH_FLUID
+  SetObjIncref(Py_True);
+#else
+  SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_XR_OPENXR
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);

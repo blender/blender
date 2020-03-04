@@ -318,3 +318,7 @@ set(LIBGLU_HASH 151aef599b8259efe9acd599c96ea2a3)
 set(MESA_VERSION 18.3.1)
 set(MESA_URI ftp://ftp.freedesktop.org/pub/mesa//mesa-${MESA_VERSION}.tar.xz)
 set(MESA_HASH d60828056d77bfdbae0970f9b15fb1be)
+
+set(XR_OPENXR_SDK_VERSION 1.0.6)
+set(XR_OPENXR_SDK_URI https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_SDK_VERSION}.tar.gz)
+set(XR_OPENXR_SDK_HASH 21daea7c3bfec365298d779a0e19caa1)

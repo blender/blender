@@ -52,16 +52,19 @@ getopt \
 -o s:i:t:h \
 --long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-build,no-confirm,\
 with-all,with-opencollada,with-jack,with-embree,with-oidn,\
-ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,\
+ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,\
 force-all,force-python,force-numpy,force-boost,\
 force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
 force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-usd,\
+force-xr-openxr,\
 build-all,build-python,build-numpy,build-boost,\
 build-ocio,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
 build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-usd,\
+build-xr-openxr,\
 skip-python,skip-numpy,skip-boost,\
 skip-ocio,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
-skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd \
+skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd, \
+skip-xr-openxr\
 -- "$@" \
 )
 
@@ -169,6 +172,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --ver-openvdb=<ver>
         Force version of OpenVDB library.
 
+    --ver-xr-openxr=<ver>
+        Force version of OpenXR-SDK.
+
     Note about the --ver-foo options:
         It may not always work as expected (some libs are actually checked out from a git rev...), yet it might help
         to fix some build issues (like LLVM mismatch with the version used by your graphic system).
@@ -223,6 +229,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --build-usd
         Force the build of Universal Scene Description.
+
+    --build-xr-openxr
+        Force the build of OpenXR-SDK.
 
     Note about the --build-foo options:
         * They force the script to prefer building dependencies rather than using available packages.
@@ -285,6 +294,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-usd
         Force the rebuild of Universal Scene Description.
 
+    --force-xr-openxr
+        Force the rebuild of OpenXR-SDK.
+
     Note about the --force-foo options:
         * They obviously only have an effect if those libraries are built by this script
           (i.e. if there is no available and satisfactory package)!
@@ -337,7 +349,10 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Unconditionally skip FFMpeg installation/building.
 
     --skip-usd
-        Unconditionally skip Universal Scene Description installation/building.\""
+        Unconditionally skip Universal Scene Description installation/building.
+
+    --skip-xr-openxr
+        Unconditionally skip OpenXR-SDK installation/building.\""
 
 # ----------------------------------------------------------------------------
 # Main Vars
@@ -453,6 +468,11 @@ FFMPEG_FORCE_BUILD=false
 FFMPEG_FORCE_REBUILD=false
 FFMPEG_SKIP=false
 _ffmpeg_list_sep=";"
+
+XR_OPENXR_VERSION="1.0.6"
+XR_OPENXR_FORCE_BUILD=false
+XR_OPENXR_FORCE_REBUILD=false
+XR_OPENXR_SKIP=false
 
 # FFMPEG optional libs.
 VORBIS_USE=false
@@ -624,6 +644,11 @@ while true; do
       OPENVDB_VERSION_MIN=$OPENVDB_VERSION
       shift; shift; continue
     ;;
+    --ver-xr-openxr)
+      XR_OPENXR_VERSION="$2"
+      XR_OPENXR_VERSION_MIN=$XR_OPENXR_VERSION
+      shift; shift; continue
+    ;;
     --build-all)
       PYTHON_FORCE_BUILD=true
       NUMPY_FORCE_BUILD=true
@@ -641,6 +666,7 @@ while true; do
       FFMPEG_FORCE_BUILD=true
       ALEMBIC_FORCE_BUILD=true
       USD_FORCE_BUILD=true
+      XR_OPENXR_FORCE_BUILD=true
       shift; continue
     ;;
     --build-python)
@@ -695,6 +721,9 @@ while true; do
     --build-usd)
       USD_FORCE_BUILD=true; shift; continue
     ;;
+    --build-xr-openxr)
+      XR_OPENXR_FORCE_BUILD=true; shift; continue
+    ;;
     --force-all)
       PYTHON_FORCE_REBUILD=true
       NUMPY_FORCE_REBUILD=true
@@ -712,6 +741,7 @@ while true; do
       FFMPEG_FORCE_REBUILD=true
       ALEMBIC_FORCE_REBUILD=true
       USD_FORCE_REBUILD=true
+      XR_OPENXR_FORCE_REBUILD=true
       shift; continue
     ;;
     --force-python)
@@ -764,6 +794,9 @@ while true; do
     --force-usd)
       USD_FORCE_REBUILD=true; shift; continue
     ;;
+    --force-xr-openxr)
+      XR_OPENXR_FORCE_REBUILD=true; shift; continue
+    ;;
     --skip-python)
       PYTHON_SKIP=true; shift; continue
     ;;
@@ -811,6 +844,9 @@ while true; do
     ;;
     --skip-usd)
       USD_SKIP=true; shift; continue
+    ;;
+    --skip-xr-openxr)
+      XR_OPENXR_SKIP=true; shift; continue
     ;;
     --)
       # no more arguments to parse
@@ -940,6 +976,12 @@ OIDN_SOURCE=( "https://github.com/OpenImageDenoise/oidn/releases/download/v${OID
 
 FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
+XR_OPENXR_USE_REPO=false
+XR_OPENXR_SOURCE=("https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_VERSION}.tar.gz")
+#~ XR_OPENXR_SOURCE_REPO=("https://github.com/KhronosGroup/OpenXR-SDK-Source.git")
+#~ XR_OPENXR_REPO_UID="5292e57fda47561e672fba0a4b6e545c0f25dd8d"
+#~ XR_OPENXR_REPO_BRANCH="master"
+
 # C++11 is required now
 CXXFLAGS_BACK=$CXXFLAGS
 CXXFLAGS="$CXXFLAGS -std=c++11"
@@ -982,7 +1024,8 @@ You may also want to build them yourself (optional ones are [between brackets]):
     * [Embree $EMBREE_VERSION] (from $EMBREE_SOURCE).
     * [OpenImageDenoise $OIDN_VERSION] (from $OIDN_SOURCE).
     * [Alembic $ALEMBIC_VERSION] (from $ALEMBIC_SOURCE).
-    * [Universal Scene Description $USD_VERSION] (from $USD_SOURCE).\""
+    * [Universal Scene Description $USD_VERSION] (from $USD_SOURCE).
+    * [OpenXR-SDK $XR_OPENXR_VERSION] (from $XR_OPENXR_SOURCE).\""
 
 if [ "$DO_SHOW_DEPS" = true ]; then
   PRINT ""
@@ -3058,6 +3101,116 @@ compile_FFmpeg() {
   fi
 }
 
+# ----------------------------------------------------------------------------
+# Build OpenXR SDK
+
+_init_xr_openxr_sdk() {
+  _src=$SRC/XR-OpenXR-SDK-$XR_OPENXR_VERSION
+  _git=true
+  _inst=$INST/xr-openxr-sdk-$XR_OPENXR_VERSION
+  _inst_shortcut=$INST/xr-openxr-sdk
+}
+
+_update_deps_xr_openxr_sdk() {
+  :
+}
+
+clean_XR_OpenXR_SDK() {
+  _init_xr_openxr_sdk
+  _clean
+  _update_deps_xr_openxr_sdk
+}
+
+compile_XR_OpenXR_SDK() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenXR will not be compiled!"
+    return
+  fi
+
+  # To be changed each time we make edits that would modify the compiled result!
+  xr_openxr_magic=0
+  _init_xr_openxr_sdk
+
+  # Clean install if needed!
+  magic_compile_check xr-openxr-$OPENXR_VERSION $xr_openxr_magic
+  if [ $? -eq 1 -o "$XR_OPENXR_FORCE_REBUILD" = true ]; then
+    clean_XR_OpenXR_SDK
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building XR-OpenXR-SDK-$XR_OPENXR_VERSION"
+    _is_building=true
+
+    # Rebuild dependencies as well!
+    _update_deps_xr_openxr_sdk
+
+    prepare_opt
+
+    if [ ! -d $_src ]; then
+      mkdir -p $SRC
+
+      if [ "$XR_OPENXR_USE_REPO" = true ]; then
+        git clone $XR_OPENXR_SOURCE_REPO $_src
+      else
+        download XR_OPENXR_SOURCE[@] "$_src.tar.gz"
+        INFO "Unpacking XR-OpenXR-SDK-$XR_OPENXR_VERSION"
+        tar -C $SRC --transform "s,(.*/?)OpenXR-SDK-[^/]*(.*),\1XR-OpenXR-SDK-$XR_OPENXR_VERSION\2,x" \
+            -xf $_src.tar.gz
+      fi
+    fi
+
+    cd $_src
+
+    if [ "$XR_OPENXR_USE_REPO" = true ]; then
+      git pull origin $XR_OPENXR_REPO_BRANCH
+
+      # Stick to same rev as windows' libs...
+      git checkout $XR_OPENXR_REPO_UID
+      git reset --hard
+    fi
+
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi
+    mkdir build
+    cd build
+
+    # Keep flags in sync with XR_OPENXR_SDK_EXTRA_ARGS in xr_openxr.cmake!
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D BUILD_FORCE_GENERATION=OFF"
+    cmake_d="$cmake_d -D BUILD_LOADER=ON"
+    cmake_d="$cmake_d -D DYNAMIC_LOADER=OFF"
+    cmake_d="$cmake_d -D BUILD_WITH_WAYLAND_HEADERS=OFF"
+    cmake_d="$cmake_d -D BUILD_WITH_XCB_HEADERS=OFF"
+    cmake_d="$cmake_d -D BUILD_WITH_XLIB_HEADERS=ON"
+
+    cmake $cmake_d ..
+
+    make -j$THREADS && make install
+    make clean
+
+    if [ -d $_inst ]; then
+      _create_inst_shortcut
+    else
+      ERROR "XR-OpenXR-SDK-$XR_OPENXR_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set xr-openxr-$XR_OPENXR_VERSION $xr_openxr_magic
+
+    cd $CWD
+    INFO "Done compiling XR-OpenXR-SDK-$XR_OPENXR_VERSION!"
+    _is_building=false
+  else
+    INFO "Own XR-OpenXR-SDK-$XR_OPENXR_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-xr-openxr option."
+  fi
+
+  run_ldconfig "xr-openxr-sdk"
+}
+
 
 # ----------------------------------------------------------------------------
 # Install on DEB-like
@@ -3601,6 +3754,18 @@ install_DEB() {
     else
       compile_FFmpeg
     fi
+  fi
+
+  PRINT ""
+  if [ "$XR_OPENXR_SKIP" = true ]; then
+    WARNING "Skipping OpenXR-SDK installation, as requested..."
+  elif [ "$XR_OPENXR_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenXR-SDK building, as requested..."
+    compile_XR_OpenXR_SDK
+  else
+    # No package currently!
+    PRINT ""
+    compile_XR_OpenXR_SDK
   fi
 }
 
@@ -4208,6 +4373,17 @@ install_RPM() {
       compile_FFmpeg
     fi
   fi
+
+  PRINT ""
+  if [ "$XR_OPENXR_SKIP" = true ]; then
+    WARNING "Skipping OpenXR-SDK installation, as requested..."
+  elif [ "$XR_OPENXR_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenXR-SDK building, as requested..."
+    compile_XR_OpenXR_SDK
+  else
+    # No package currently!
+    compile_XR_OpenXR_SDK
+  fi
 }
 
 
@@ -4709,6 +4885,17 @@ install_ARCH() {
       compile_FFmpeg
     fi
   fi
+
+  PRINT ""
+  if [ "$XR_OPENXR_SKIP" = true ]; then
+    WARNING "Skipping OpenXR-SDK installation, as requested..."
+  elif [ "$XR_OPENXR_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenXR-SDK building, as requested..."
+    compile_XR_OpenXR_SDK
+  else
+    # No package currently!
+    compile_XR_OpenXR_SDK
+  fi
 }
 
 
@@ -4905,6 +5092,17 @@ install_OTHER() {
   elif [ "$FFMPEG_FORCE_BUILD" = true ]; then
     INFO "Forced FFMpeg building, as requested..."
     compile_FFmpeg
+  fi
+
+  PRINT ""
+  if [ "$XR_OPENXR_SKIP" = true ]; then
+    WARNING "Skipping OpenXR-SDK installation, as requested..."
+  elif [ "$XR_OPENXR_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenXR-SDK building, as requested..."
+    compile_XR_OpenXR_SDK
+  else
+    # No package currently!
+    compile_XR_OpenXR_SDK
   fi
 }
 
@@ -5169,6 +5367,17 @@ print_info() {
     _buildargs="$_buildargs $_1 $_2"
     if [ -d $INST/ffmpeg ]; then
       _1="-D FFMPEG=$INST/ffmpeg"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
+  fi
+
+  if [ "$XR_OPENXR_SKIP" = false ]; then
+    _1="-D WITH_XR_OPENXR=ON"
+    PRINT "  $_1"
+    _buildargs="$_buildargs $_1"
+    if [ -d $INST/xr-openxr-sdk ]; then
+      _1="-D XR_OPENXR_ROOT_DIR=$INST/xr-openxr-sdk"
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
