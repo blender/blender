@@ -2539,6 +2539,11 @@ static void rna_def_fluid_effector_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Is Planar", "Treat this object as a planar, unclosed mesh");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
 
+  prop = RNA_def_property(srna, "delete_in_obstacle", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_DELETE_IN_OBSTACLE);
+  RNA_def_property_ui_text(prop, "Clear In Obstacle", "Delete fluid inside obstacles");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
+
   prop = RNA_def_property(srna, "velocity_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "vel_multi");
   RNA_def_property_range(prop, -100.0, 100.0);
