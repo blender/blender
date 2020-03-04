@@ -130,6 +130,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
 
   // Fluid low res grids
   mPhiIn = nullptr;
+  mPhiStaticIn = nullptr;
   mPhiOutIn = nullptr;
   mPhi = nullptr;
 
@@ -140,6 +141,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
 
   // Fluid obstacle
   mPhiObsIn = nullptr;
+  mPhiObsStaticIn = nullptr;
   mNumObstacle = nullptr;
   mObVelocityX = nullptr;
   mObVelocityY = nullptr;
@@ -3007,6 +3009,7 @@ void MANTA::updatePointers()
 
   mFlags = (int *)pyObjectToPointer(callPythonFunction("flags" + solver_ext, func));
   mPhiIn = (float *)pyObjectToPointer(callPythonFunction("phiIn" + solver_ext, func));
+  mPhiStaticIn = (float *)pyObjectToPointer(callPythonFunction("phiSIn" + solver_ext, func));
   mVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_vel" + solver_ext, func));
   mVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_vel" + solver_ext, func));
   mVelocityZ = (float *)pyObjectToPointer(callPythonFunction("z_vel" + solver_ext, func));
@@ -3019,6 +3022,8 @@ void MANTA::updatePointers()
   }
   if (mUsingObstacle) {
     mPhiObsIn = (float *)pyObjectToPointer(callPythonFunction("phiObsIn" + solver_ext, func));
+    mPhiObsStaticIn = (float *)pyObjectToPointer(
+        callPythonFunction("phiObsSIn" + solver_ext, func));
     mObVelocityX = (float *)pyObjectToPointer(callPythonFunction("x_obvel" + solver_ext, func));
     mObVelocityY = (float *)pyObjectToPointer(callPythonFunction("y_obvel" + solver_ext, func));
     mObVelocityZ = (float *)pyObjectToPointer(callPythonFunction("z_obvel" + solver_ext, func));

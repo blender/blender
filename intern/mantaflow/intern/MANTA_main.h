@@ -376,9 +376,17 @@ struct MANTA {
   {
     return mPhiIn;
   }
+  inline float *getPhiStaticIn()
+  {
+    return mPhiStaticIn;
+  }
   inline float *getPhiObsIn()
   {
     return mPhiObsIn;
+  }
+  inline float *getPhiObsStaticIn()
+  {
+    return mPhiObsStaticIn;
   }
   inline float *getPhiGuideIn()
   {
@@ -823,7 +831,9 @@ struct MANTA {
 
   // Liquid grids
   float *mPhiIn;
+  float *mPhiStaticIn;
   float *mPhiObsIn;
+  float *mPhiObsStaticIn;
   float *mPhiGuideIn;
   float *mPhiOutIn;
   float *mPhi;

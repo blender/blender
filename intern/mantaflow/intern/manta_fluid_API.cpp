@@ -332,9 +332,17 @@ float *manta_get_phi_in(MANTA *fluid)
 {
   return fluid->getPhiIn();
 }
+float *manta_get_phistatic_in(MANTA *fluid)
+{
+  return fluid->getPhiStaticIn();
+}
 float *manta_get_phiobs_in(MANTA *fluid)
 {
   return fluid->getPhiObsIn();
+}
+float *manta_get_phiobsstatic_in(MANTA *fluid)
+{
+  return fluid->getPhiObsStaticIn();
 }
 float *manta_get_phiout_in(MANTA *fluid)
 {

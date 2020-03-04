@@ -564,6 +564,14 @@ enum {
   FLUID_EFFECTOR_GUIDE_AVERAGED = 3,
 };
 
+/* Effector flags. */
+enum {
+  /* Control when to apply inflow. */
+  FLUID_EFFECTOR_USE_EFFEC = (1 << 1),
+  /* Control how to initialize flow objects. */
+  FLUID_EFFECTOR_USE_PLANE_INIT = (1 << 2),
+};
+
 /* Collision objects (filled with smoke). */
 typedef struct FluidEffectorSettings {
 
@@ -579,8 +587,9 @@ typedef struct FluidEffectorSettings {
 
   float surface_distance; /* Thickness of mesh surface, used in obstacle sdf. */
   int flags;
+  int subframes;
   short type;
-  char _pad1[2];
+  char _pad1[6];
 
   /* Guiding options. */
   float vel_multi; /* Multiplier for object velocity. */
