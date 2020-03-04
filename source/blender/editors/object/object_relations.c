@@ -2609,6 +2609,9 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 
   if (RNA_boolean_get(op->ptr, "obdata")) {
     single_obdata_users(bmain, scene, view_layer, v3d, flag);
+
+    /* Needed since some IDs were remapped? (incl. me->texcomesh, see T73797). */
+    update_deps = true;
   }
 
   if (RNA_boolean_get(op->ptr, "material")) {
