@@ -4350,6 +4350,16 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
 
   (*items)[tot] = *item;
   *totitem = tot + 1;
+
+  /* Ensure we get crashes on missing calls to 'RNA_enum_item_end', see T74227. */
+#ifdef DEBUG
+  static const EnumPropertyItem item_error = {
+      -1, POINTER_FROM_INT(-1), -1, POINTER_FROM_INT(-1), POINTER_FROM_INT(-1)};
+  if (item != &item_error) {
+    RNA_enum_item_add(items, totitem, &item_error);
+    *totitem -= 1;
+  }
+#endif
 }
 
 void RNA_enum_item_add_separator(EnumPropertyItem **items, int *totitem)
