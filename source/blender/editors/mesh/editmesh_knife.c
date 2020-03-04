@@ -1134,7 +1134,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 
   if (kcd->totlinehit > 0) {
     KnifeLineHit *lh;
-    int i, v, vs;
+    int i, snapped_verts_count, other_verts_count;
     float fcol[4];
 
     GPU_blend(true);
@@ -1145,12 +1145,12 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
     GPU_vertbuf_data_alloc(vert, kcd->totlinehit);
 
     lh = kcd->linehits;
-    for (i = 0, v = 0, vs = kcd->totlinehit - 1; i < kcd->totlinehit; i++, lh++) {
+    for (i = 0, snapped_verts_count = 0, other_verts_count = 0; i < kcd->totlinehit; i++, lh++) {
       if (lh->v) {
-        GPU_vertbuf_attr_set(vert, pos, v++, lh->cagehit);
+        GPU_vertbuf_attr_set(vert, pos, snapped_verts_count++, lh->cagehit);
       }
       else {
-        GPU_vertbuf_attr_set(vert, pos, vs--, lh->cagehit);
+        GPU_vertbuf_attr_set(vert, pos, kcd->totlinehit - 1 - other_verts_count++, lh->cagehit);
       }
     }
 
@@ -1163,13 +1163,17 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
     GPU_batch_uniform_4fv(batch, "color", fcol);
     GPU_matrix_bind(batch->interface);
     GPU_point_size(11);
-    GPU_batch_draw_advanced(batch, 0, v - 1, 0, 0);
+    if (snapped_verts_count > 0) {
+      GPU_batch_draw_advanced(batch, 0, snapped_verts_count, 0, 0);
+    }
 
     /* now draw the rest */
     rgba_uchar_to_float(fcol, kcd->colors.curpoint_a);
     GPU_batch_uniform_4fv(batch, "color", fcol);
     GPU_point_size(7);
-    GPU_batch_draw_advanced(batch, vs + 1, kcd->totlinehit - (vs + 1), 0, 0);
+    if (other_verts_count > 0) {
+      GPU_batch_draw_advanced(batch, snapped_verts_count, other_verts_count, 0, 0);
+    }
 
     GPU_batch_program_use_end(batch);
     GPU_batch_discard(batch);
