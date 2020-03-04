@@ -19,20 +19,18 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import (
-    Panel,
-    Menu,
-)
+from bpy.types import Menu, Panel
+from bl_ui.utils import PresetPanel
 from .properties_physics_common import (
     effector_weights_ui,
 )
 
 
-class FLUID_MT_presets(Menu):
+class FLUID_MT_presets(PresetPanel, Panel):
     bl_label = "Fluid Presets"
     preset_subdir = "fluid"
     preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
+    preset_add_operator = "fluid.preset_add"
 
 
 class PhysicButtonsPanel:
@@ -962,6 +960,9 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
 
         return (context.engine in cls.COMPAT_ENGINES)
 
+    def draw_header_preset(self, _context):
+        FLUID_MT_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -974,16 +975,6 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
         flow.enabled = not is_baking_any and not has_baked_any and not has_baked_data
-
-        row = flow.row()
-
-        col = row.column()
-        col.label(text="Viscosity Presets:")
-        col.menu("FLUID_MT_presets", text=bpy.types.FLUID_MT_presets.bl_label)
-
-        col = row.column(align=True)
-        col.operator("fluid.preset_add", text="", icon='ADD')
-        col.operator("fluid.preset_add", text="", icon='REMOVE').remove_active = True
 
         col = flow.column(align=True)
         col.prop(domain, "viscosity_base", text="Base")
