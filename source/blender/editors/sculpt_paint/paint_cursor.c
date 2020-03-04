@@ -1477,7 +1477,11 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           /* Draw pose brush origins. */
           if (brush->sculpt_tool == SCULPT_TOOL_POSE) {
             immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-            if (update_previews) {
+
+            /* Just after switching to the Pose Brush, the active vertex can be the same and the
+             * cursor won't be tagged to update, so always initialize the preview chain if it is
+             * null before drawing it. */
+            if (update_previews || !ss->pose_ik_chain_preview) {
               BKE_sculpt_update_object_for_edit(depsgraph, vc.obact, true, false);
 
               /* Free the previous pose brush preview. */
