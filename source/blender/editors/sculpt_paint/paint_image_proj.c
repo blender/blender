@@ -743,9 +743,11 @@ static bool project_paint_PickColor(const ProjPaintState *ps,
   ima = project_paint_face_paint_image(ps, tri_index);
   /** we must have got the imbuf before getting here. */
   int tile_number = project_paint_face_paint_tile(ima, lt_tri_uv[0]);
+  /* XXX get appropriate ImageUser instead */
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
   iuser.tile = tile_number;
+  iuser.framenr = ima->lastframe;
   ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   if (ibuf == NULL) {
     return false;
@@ -1837,7 +1839,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
                                           pjIma->ima,
                                           pjIma->ibuf,
                                           tinf->tmpibuf,
-                                          pjIma->iuser.tile,
+                                          &pjIma->iuser,
                                           tx,
                                           ty,
                                           &pjIma->maskRect[tile_index],
@@ -1850,7 +1852,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
                                           pjIma->ima,
                                           pjIma->ibuf,
                                           tinf->tmpibuf,
-                                          pjIma->iuser.tile,
+                                          &pjIma->iuser,
                                           tx,
                                           ty,
                                           NULL,
@@ -4266,7 +4268,7 @@ static bool project_paint_winclip(const ProjPaintState *ps, const ProjPaintFaceC
 typedef struct PrepareImageEntry {
   struct PrepareImageEntry *next, *prev;
   Image *ima;
-  int tile;
+  ImageUser iuser;
 } PrepareImageEntry;
 
 static void project_paint_build_proj_ima(ProjPaintState *ps,
@@ -4281,9 +4283,7 @@ static void project_paint_build_proj_ima(ProjPaintState *ps,
   projIma = ps->projImages = BLI_memarena_alloc(arena, sizeof(ProjPaintImage) * ps->image_tot);
 
   for (entry = used_images->first, i = 0; entry; entry = entry->next, i++, projIma++) {
-    memset(&projIma->iuser, 0, sizeof(ImageUser));
-    BKE_imageuser_default(&projIma->iuser);
-    projIma->iuser.tile = entry->tile;
+    projIma->iuser = entry->iuser;
     int size;
     projIma->ima = entry->ima;
     projIma->touch = 0;
@@ -4435,19 +4435,21 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       if (tpage_last != tpage || tile_last != tile) {
         image_index = 0;
         for (PrepareImageEntry *e = used_images.first; e; e = e->next, image_index++) {
-          if (e->ima == tpage && e->tile == tile) {
+          if (e->ima == tpage && e->iuser.tile == tile) {
             break;
           }
         }
 
         if (image_index == ps->image_tot) {
+          /* XXX get appropriate ImageUser instead */
           ImageUser iuser;
           BKE_imageuser_default(&iuser);
           iuser.tile = tile;
+          iuser.framenr = tpage->lastframe;
           if (BKE_image_has_ibuf(tpage, &iuser)) {
             PrepareImageEntry *e = MEM_callocN(sizeof(PrepareImageEntry), "PrepareImageEntry");
             e->ima = tpage;
-            e->tile = tile;
+            e->iuser = iuser;
             BLI_addtail(&used_images, e);
             ps->image_tot++;
           }
