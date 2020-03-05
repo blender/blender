@@ -308,6 +308,7 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
                                                    bool recursive)
 {
   TreeStoreElem *tselem = TREESTORE(te);
+  TreeStoreElem *parent_tselem;
   Scene *sce;
   Base *base;
   Object *ob = NULL;
@@ -318,7 +319,9 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
   }
   else {
     ob = (Object *)outliner_search_back(soops, te, ID_OB);
-    if (ob == OBACT(view_layer)) {
+
+    /* Don't return when activating children of the previous active object. */
+    if (ob == OBACT(view_layer) && set == OL_SETSEL_NONE) {
       return OL_DRAWSEL_NONE;
     }
   }
@@ -352,14 +355,17 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
     }
   }
 
+  parent_tselem = TREESTORE(outliner_find_id(soops, &soops->tree, (ID *)ob));
   if (base) {
     if (set == OL_SETSEL_EXTEND) {
       /* swap select */
       if (base->flag & BASE_SELECTED) {
         ED_object_base_select(base, BA_DESELECT);
+        parent_tselem->flag &= ~TSE_SELECTED;
       }
       else {
         ED_object_base_select(base, BA_SELECT);
+        parent_tselem->flag |= TSE_SELECTED;
       }
     }
     else {
@@ -375,6 +381,7 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
         BKE_view_layer_base_deselect_all(view_layer);
       }
       ED_object_base_select(base, BA_SELECT);
+      parent_tselem->flag |= TSE_SELECTED;
     }
 
     if (recursive) {
