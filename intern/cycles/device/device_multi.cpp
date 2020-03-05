@@ -183,6 +183,14 @@ class MultiDevice : public Device {
     return true;
   }
 
+  virtual void *osl_memory()
+  {
+    if (devices.size() > 1) {
+      return NULL;
+    }
+    return devices.front().device->osl_memory();
+  }
+
   void mem_alloc(device_memory &mem)
   {
     device_ptr key = unique_key++;
