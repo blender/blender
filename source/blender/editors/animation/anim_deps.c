@@ -368,8 +368,8 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
       if (ale->update & ANIM_UPDATE_ORDER) {
         ale->update &= ~ANIM_UPDATE_ORDER;
         if (gpl) {
-          /* While correct & we could enable it: 'posttrans_gpd_clean'
-           * currently handles as well as removing doubles. */
+          /* While correct & we could enable it: 'posttrans_gpd_clean' currently
+           * both sorts and removes doubles, so this is not necessary here. */
           // gpencil_sort_frames(gpl);
         }
       }
@@ -389,8 +389,8 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
       if (ale->update & ANIM_UPDATE_ORDER) {
         ale->update &= ~ANIM_UPDATE_ORDER;
         if (masklay) {
-          /* While correct & we could enable it: 'posttrans_mask_clean'
-           * currently handles as well as removing doubles. */
+          /* While correct & we could enable it: 'posttrans_mask_clean' currently
+           * both sorts and removes doubles, so this is not necessary here. */
           // BKE_mask_layer_shape_sort(masklay);
         }
       }
