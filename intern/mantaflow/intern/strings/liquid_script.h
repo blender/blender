@@ -187,6 +187,7 @@ def liquid_adaptive_step_$ID$(framenr):\n\
         extrapolateLsSimple(phi=phiObs_s$ID$, distance=3)\n\
     \n\
     mantaMsg('Initializing fluid levelset')\n\
+    phiIn_s$ID$.join(phiSIn_s$ID$) # Join static flow map\n\
     extrapolateLsSimple(phi=phiIn_s$ID$, distance=6, inside=True)\n\
     extrapolateLsSimple(phi=phiIn_s$ID$, distance=3)\n\
     phi_s$ID$.join(phiIn_s$ID$)\n\

@@ -626,7 +626,6 @@ static void clamp_bounds_in_domain(FluidDomainSettings *mds,
 
 static bool is_static_object(Object *ob)
 {
-
   /* Check if the object has modifiers that might make the object "dynamic". */
   ModifierData *md = ob->modifiers.first;
   for (; md; md = md->next) {
