@@ -204,7 +204,7 @@ def liquid_adaptive_step_$ID$(framenr):\n\
     \n\
     # add initial velocity: set invel as source grid to ensure const vels in inflow region, sampling makes use of this\n\
     if using_invel_s$ID$:\n\
-        extrapolateVec3Simple(vel=invelC_s$ID$, phi=phiIn_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
+        extrapolateVec3Simple(vel=invelC_s$ID$, phi=phiIn_s$ID$, distance=6, inside=True)\n\
         resampleVec3ToMac(source=invelC_s$ID$, target=invel_s$ID$)\n\
         pVel_pp$ID$.setSource(invel_s$ID$, isMAC=True)\n\
     \n\
@@ -296,7 +296,7 @@ def liquid_step_$ID$():\n\
     setWallBcs(flags=flags_s$ID$, vel=vel_s$ID$, obvel=None if using_fractions_s$ID$ else obvel_s$ID$, phiObs=phiObs_s$ID$, fractions=fractions_s$ID$)\n\
     \n\
     if not using_fractions_s$ID$:\n\
-        extrapolateMACSimple(flags=flags_s$ID$, vel=vel_s$ID$, distance=(int(maxVel_s$ID$*1.25)))\n\
+        extrapolateMACSimple(flags=flags_s$ID$, vel=vel_s$ID$)\n\
     \n\
     # set source grids for resampling, used in adjustNumber!\n\
     pVel_pp$ID$.setSource(vel_s$ID$, isMAC=True)\n\

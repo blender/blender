@@ -376,7 +376,7 @@ def smoke_step_$ID$():\n\
     if using_obstacle_s$ID$:\n\
         mantaMsg('Extrapolating object velocity')\n\
         # ensure velocities inside of obs object, slightly add obvels outside of obs object\n\
-        extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
+        extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=6, inside=True)\n\
         extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=3, inside=False)\n\
         resampleVec3ToMac(source=obvelC_s$ID$, target=obvel_s$ID$)\n\
     \n\
