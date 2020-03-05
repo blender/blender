@@ -101,6 +101,11 @@ ccl_device_inline size_t round_down(size_t x, size_t multiple)
   return (x / multiple) * multiple;
 }
 
+ccl_device_inline bool is_power_of_two(size_t x)
+{
+  return (x & (x - 1)) == 0;
+}
+
 CCL_NAMESPACE_END
 
 /* Vectorized types declaration. */

@@ -81,6 +81,8 @@ class Film : public Node {
   CryptomatteType cryptomatte_passes;
   int cryptomatte_depth;
 
+  bool use_adaptive_sampling;
+
   bool need_update;
 
   Film();

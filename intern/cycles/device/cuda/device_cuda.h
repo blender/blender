@@ -82,6 +82,17 @@ class CUDADevice : public Device {
   device_vector<TextureInfo> texture_info;
   bool need_texture_info;
 
+  /* Kernels */
+  struct {
+    bool loaded;
+
+    CUfunction adaptive_stopping;
+    CUfunction adaptive_filter_x;
+    CUfunction adaptive_filter_y;
+    CUfunction adaptive_scale_samples;
+    int adaptive_num_threads_per_block;
+  } functions;
+
   static bool have_precompiled_kernels();
 
   virtual bool show_samples() const;
@@ -113,6 +124,8 @@ class CUDADevice : public Device {
                         bool force_ptx = false);
 
   virtual bool load_kernels(const DeviceRequestedFeatures &requested_features);
+
+  void load_functions();
 
   void reserve_local_memory(const DeviceRequestedFeatures &requested_features);
 
@@ -196,6 +209,15 @@ class CUDADevice : public Device {
                                  DenoisingTask *task);
 
   void denoise(RenderTile &rtile, DenoisingTask &denoising);
+
+  void adaptive_sampling_filter(uint filter_sample,
+                                WorkTile *wtile,
+                                CUdeviceptr d_wtile,
+                                CUstream stream = 0);
+  void adaptive_sampling_post(RenderTile &rtile,
+                              WorkTile *wtile,
+                              CUdeviceptr d_wtile,
+                              CUstream stream = 0);
 
   void path_trace(DeviceTask &task, RenderTile &rtile, device_vector<WorkTile> &work_tiles);
 

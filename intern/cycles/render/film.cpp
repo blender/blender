@@ -183,6 +183,13 @@ void Pass::add(PassType type, vector<Pass> &passes, const char *name)
     case PASS_CRYPTOMATTE:
       pass.components = 4;
       break;
+    case PASS_ADAPTIVE_AUX_BUFFER:
+      pass.components = 4;
+      break;
+    case PASS_SAMPLE_COUNT:
+      pass.components = 1;
+      pass.exposure = false;
+      break;
     case PASS_AOV_COLOR:
       pass.components = 4;
       break;
@@ -311,6 +318,7 @@ NODE_DEFINE(Film)
   SOCKET_BOOLEAN(denoising_clean_pass, "Generate Denoising Clean Pass", false);
   SOCKET_BOOLEAN(denoising_prefiltered_pass, "Generate Denoising Prefiltered Pass", false);
   SOCKET_INT(denoising_flags, "Denoising Flags", 0);
+  SOCKET_BOOLEAN(use_adaptive_sampling, "Use Adaptive Sampling", false);
 
   return type;
 }
@@ -481,6 +489,12 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
                                       min(kfilm->pass_cryptomatte, kfilm->pass_stride) :
                                       kfilm->pass_stride;
         have_cryptomatte = true;
+        break;
+      case PASS_ADAPTIVE_AUX_BUFFER:
+        kfilm->pass_adaptive_aux_buffer = kfilm->pass_stride;
+        break;
+      case PASS_SAMPLE_COUNT:
+        kfilm->pass_sample_count = kfilm->pass_stride;
         break;
       case PASS_AOV_COLOR:
         if (!have_aov_color) {

@@ -255,6 +255,7 @@ def list_render_passes(srl):
     if crl.pass_debug_bvh_traversed_instances: yield ("Debug BVH Traversed Instances", "X",   'VALUE')
     if crl.pass_debug_bvh_intersections:       yield ("Debug BVH Intersections",       "X",   'VALUE')
     if crl.pass_debug_ray_bounces:             yield ("Debug Ray Bounces",             "X",   'VALUE')
+    if crl.pass_debug_sample_count:            yield ("Debug Sample Count",            "X",   'VALUE')
     if crl.use_pass_volume_direct:             yield ("VolumeDir",                     "RGB", 'COLOR')
     if crl.use_pass_volume_indirect:           yield ("VolumeInd",                     "RGB", 'COLOR')
 

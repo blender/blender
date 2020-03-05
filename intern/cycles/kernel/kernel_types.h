@@ -63,6 +63,11 @@ CCL_NAMESPACE_BEGIN
 
 #define VOLUME_STACK_SIZE 32
 
+/* Adaptive sampling constants */
+#define ADAPTIVE_SAMPLE_STEP 4
+static_assert((ADAPTIVE_SAMPLE_STEP & (ADAPTIVE_SAMPLE_STEP - 1)) == 0,
+              "ADAPTIVE_SAMPLE_STEP must be power of two for bitwise operations to work");
+
 /* Split kernel constants */
 #define WORK_POOL_SIZE_GPU 64
 #define WORK_POOL_SIZE_CPU 1
@@ -374,6 +379,8 @@ typedef enum PassType {
   PASS_CRYPTOMATTE,
   PASS_AOV_COLOR,
   PASS_AOV_VALUE,
+  PASS_ADAPTIVE_AUX_BUFFER,
+  PASS_SAMPLE_COUNT,
   PASS_CATEGORY_MAIN_END = 31,
 
   PASS_MIST = 32,
@@ -1223,6 +1230,9 @@ typedef struct KernelFilm {
   int cryptomatte_depth;
   int pass_cryptomatte;
 
+  int pass_adaptive_aux_buffer;
+  int pass_sample_count;
+
   int pass_mist;
   float mist_start;
   float mist_inv_depth;
@@ -1256,6 +1266,8 @@ typedef struct KernelFilm {
   int display_divide_pass_stride;
   int use_display_exposure;
   int use_display_pass_alpha;
+
+  int pad3, pad4, pad5;
 } KernelFilm;
 static_assert_align(KernelFilm, 16);
 
@@ -1337,6 +1349,8 @@ typedef struct KernelIntegrator {
   /* sampler */
   int sampling_pattern;
   int aa_samples;
+  int adaptive_min_samples;
+  float adaptive_threshold;
 
   /* volume render */
   int use_volumes;
@@ -1348,7 +1362,7 @@ typedef struct KernelIntegrator {
 
   int max_closures;
 
-  int pad1;
+  int pad1, pad2, pad3;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 
@@ -1662,7 +1676,7 @@ typedef struct WorkTile {
   uint start_sample;
   uint num_samples;
 
-  uint offset;
+  int offset;
   uint stride;
 
   ccl_global float *buffer;

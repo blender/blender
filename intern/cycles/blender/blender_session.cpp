@@ -470,7 +470,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   b_rlay_name = b_view_layer.name();
 
   /* add passes */
-  vector<Pass> passes = sync->sync_render_passes(b_rlay, b_view_layer);
+  vector<Pass> passes = sync->sync_render_passes(
+      b_rlay, b_view_layer, session_params.adaptive_sampling);
   buffer_params.passes = passes;
 
   PointerRNA crl = RNA_pointer_get(&b_view_layer.ptr, "cycles");

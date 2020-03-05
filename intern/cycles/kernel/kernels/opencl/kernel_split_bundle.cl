@@ -28,3 +28,7 @@
 #include "kernel/kernels/opencl/kernel_next_iteration_setup.cl"
 #include "kernel/kernels/opencl/kernel_indirect_subsurface.cl"
 #include "kernel/kernels/opencl/kernel_buffer_update.cl"
+#include "kernel/kernels/opencl/kernel_adaptive_stopping.cl"
+#include "kernel/kernels/opencl/kernel_adaptive_filter_x.cl"
+#include "kernel/kernels/opencl/kernel_adaptive_filter_y.cl"
+#include "kernel/kernels/opencl/kernel_adaptive_adjust_samples.cl"

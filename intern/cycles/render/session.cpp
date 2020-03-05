@@ -1103,6 +1103,10 @@ void Session::render(bool with_denoising)
   task.need_finish_queue = params.progressive_refine;
   task.integrator_branched = scene->integrator->method == Integrator::BRANCHED_PATH;
 
+  task.adaptive_sampling.use = (scene->integrator->sampling_pattern == SAMPLING_PATTERN_PMJ) &&
+                               scene->dscene.data.film.pass_adaptive_aux_buffer;
+  task.adaptive_sampling.min_samples = scene->dscene.data.integrator.adaptive_min_samples;
+
   /* Acquire render tiles by default. */
   task.tile_types = RenderTile::PATH_TRACE;
 

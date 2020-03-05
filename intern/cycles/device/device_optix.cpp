@@ -627,7 +627,11 @@ class OptiXDevice : public CUDADevice {
 
     const int end_sample = rtile.start_sample + rtile.num_samples;
     // Keep this number reasonable to avoid running into TDRs
-    const int step_samples = (info.display_device ? 8 : 32);
+    int step_samples = (info.display_device ? 8 : 32);
+    if (task.adaptive_sampling.use) {
+      step_samples = task.adaptive_sampling.align_static_samples(step_samples);
+    }
+
     // Offset into launch params buffer so that streams use separate data
     device_ptr launch_params_ptr = launch_params.device_pointer +
                                    thread_index * launch_params.data_elements;
@@ -638,10 +642,9 @@ class OptiXDevice : public CUDADevice {
       // Copy work tile information to device
       wtile.num_samples = min(step_samples, end_sample - sample);
       wtile.start_sample = sample;
-      check_result_cuda(cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParams, tile),
-                                          &wtile,
-                                          sizeof(wtile),
-                                          cuda_stream[thread_index]));
+      device_ptr d_wtile_ptr = launch_params_ptr + offsetof(KernelParams, tile);
+      check_result_cuda(
+          cuMemcpyHtoDAsync(d_wtile_ptr, &wtile, sizeof(wtile), cuda_stream[thread_index]));
 
       OptixShaderBindingTable sbt_params = {};
       sbt_params.raygenRecord = sbt_data.device_pointer + PG_RGEN * sizeof(SbtRecord);
@@ -666,6 +669,12 @@ class OptiXDevice : public CUDADevice {
                                      wtile.h,
                                      1));
 
+      // Run the adaptive sampling kernels at selected samples aligned to step samples.
+      uint filter_sample = wtile.start_sample + wtile.num_samples - 1;
+      if (task.adaptive_sampling.use && task.adaptive_sampling.need_filter(filter_sample)) {
+        adaptive_sampling_filter(filter_sample, &wtile, d_wtile_ptr, cuda_stream[thread_index]);
+      }
+
       // Wait for launch to finish
       check_result_cuda(cuStreamSynchronize(cuda_stream[thread_index]));
 
@@ -676,6 +685,14 @@ class OptiXDevice : public CUDADevice {
 
       if (task.get_cancel() && !task.need_finish_queue)
         return;  // Cancel rendering
+    }
+
+    // Finalize adaptive sampling
+    if (task.adaptive_sampling.use) {
+      device_ptr d_wtile_ptr = launch_params_ptr + offsetof(KernelParams, tile);
+      adaptive_sampling_post(rtile, &wtile, d_wtile_ptr, cuda_stream[thread_index]);
+      check_result_cuda(cuStreamSynchronize(cuda_stream[thread_index]));
+      task.update_progress(&rtile, rtile.w * rtile.h * wtile.num_samples);
     }
   }
 

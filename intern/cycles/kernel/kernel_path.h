@@ -31,6 +31,7 @@
 #include "kernel/kernel_accumulate.h"
 #include "kernel/kernel_shader.h"
 #include "kernel/kernel_light.h"
+#include "kernel/kernel_adaptive_sampling.h"
 #include "kernel/kernel_passes.h"
 
 #if defined(__VOLUME__) || defined(__SUBSURFACE__)
@@ -655,6 +656,14 @@ ccl_device void kernel_path_trace(
   int pass_stride = kernel_data.film.pass_stride;
 
   buffer += index * pass_stride;
+
+  if (kernel_data.film.pass_adaptive_aux_buffer) {
+    ccl_global float4 *aux = (ccl_global float4 *)(buffer +
+                                                   kernel_data.film.pass_adaptive_aux_buffer);
+    if (aux->w > 0.0f) {
+      return;
+    }
+  }
 
   /* Initialize random numbers and sample ray. */
   uint rng_hash;

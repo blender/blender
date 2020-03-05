@@ -523,6 +523,14 @@ ccl_device void kernel_branched_path_trace(
 
   buffer += index * pass_stride;
 
+  if (kernel_data.film.pass_adaptive_aux_buffer) {
+    ccl_global float4 *aux = (ccl_global float4 *)(buffer +
+                                                   kernel_data.film.pass_adaptive_aux_buffer);
+    if (aux->w > 0.0f) {
+      return;
+    }
+  }
+
   /* initialize random numbers and ray */
   uint rng_hash;
   Ray ray;

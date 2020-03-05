@@ -56,7 +56,11 @@ static const string SPLIT_BUNDLE_KERNELS =
     "enqueue_inactive "
     "next_iteration_setup "
     "indirect_subsurface "
-    "buffer_update";
+    "buffer_update "
+    "adaptive_stopping "
+    "adaptive_filter_x "
+    "adaptive_filter_y "
+    "adaptive_adjust_samples";
 
 const string OpenCLDevice::get_opencl_program_name(const string &kernel_name)
 {
@@ -283,6 +287,10 @@ void OpenCLDevice::OpenCLSplitPrograms::load_kernels(
     ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(next_iteration_setup);
     ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(indirect_subsurface);
     ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(buffer_update);
+    ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(adaptive_stopping);
+    ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(adaptive_filter_x);
+    ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(adaptive_filter_y);
+    ADD_SPLIT_KERNEL_BUNDLE_PROGRAM(adaptive_adjust_samples);
     programs.push_back(&program_split);
 
 #  undef ADD_SPLIT_KERNEL_PROGRAM

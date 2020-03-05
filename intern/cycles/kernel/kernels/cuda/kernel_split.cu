@@ -43,6 +43,10 @@
 #include "kernel/split/kernel_next_iteration_setup.h"
 #include "kernel/split/kernel_indirect_subsurface.h"
 #include "kernel/split/kernel_buffer_update.h"
+#include "kernel/split/kernel_adaptive_stopping.h"
+#include "kernel/split/kernel_adaptive_filter_x.h"
+#include "kernel/split/kernel_adaptive_filter_y.h"
+#include "kernel/split/kernel_adaptive_adjust_samples.h"
 
 #include "kernel/kernel_film.h"
 
@@ -121,6 +125,10 @@ DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(enqueue_inactive, uint)
 DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(next_iteration_setup, uint)
 DEFINE_SPLIT_KERNEL_FUNCTION(indirect_subsurface)
 DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(buffer_update, uint)
+DEFINE_SPLIT_KERNEL_FUNCTION(adaptive_stopping)
+DEFINE_SPLIT_KERNEL_FUNCTION(adaptive_filter_x)
+DEFINE_SPLIT_KERNEL_FUNCTION(adaptive_filter_y)
+DEFINE_SPLIT_KERNEL_FUNCTION(adaptive_adjust_samples)
 
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)

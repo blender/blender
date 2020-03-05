@@ -75,6 +75,10 @@ class DeviceSplitKernel {
   SplitKernelFunction *kernel_next_iteration_setup;
   SplitKernelFunction *kernel_indirect_subsurface;
   SplitKernelFunction *kernel_buffer_update;
+  SplitKernelFunction *kernel_adaptive_stopping;
+  SplitKernelFunction *kernel_adaptive_filter_x;
+  SplitKernelFunction *kernel_adaptive_filter_y;
+  SplitKernelFunction *kernel_adaptive_adjust_samples;
 
   /* Global memory variables [porting]; These memory is used for
    * co-operation between different kernels; Data written by one

@@ -36,6 +36,10 @@ set(SRC_CUDA_KERNELS
 )
 
 set(SRC_OPENCL_KERNELS
+  kernels/opencl/kernel_adaptive_stopping.cl
+  kernels/opencl/kernel_adaptive_filter_x.cl
+  kernels/opencl/kernel_adaptive_filter_y.cl
+  kernels/opencl/kernel_adaptive_adjust_samples.cl
   kernels/opencl/kernel_bake.cl
   kernels/opencl/kernel_base.cl
   kernels/opencl/kernel_displace.cl
@@ -94,6 +98,7 @@ set(SRC_BVH_HEADERS
 
 set(SRC_HEADERS
   kernel_accumulate.h
+  kernel_adaptive_sampling.h
   kernel_bake.h
   kernel_camera.h
   kernel_color.h
@@ -324,6 +329,10 @@ set(SRC_UTIL_HEADERS
 )
 
 set(SRC_SPLIT_HEADERS
+  split/kernel_adaptive_adjust_samples.h
+  split/kernel_adaptive_filter_x.h
+  split/kernel_adaptive_filter_y.h
+  split/kernel_adaptive_stopping.h
   split/kernel_branched.h
   split/kernel_buffer_update.h
   split/kernel_data_init.h

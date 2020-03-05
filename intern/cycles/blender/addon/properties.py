@@ -350,6 +350,24 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=0.01,
     )
 
+    use_adaptive_sampling: BoolProperty(
+        name="Use adaptive sampling",
+        description="Automatically determine the number of samples per pixel based on a variance estimation",
+        default=False,
+    )
+    adaptive_threshold: FloatProperty(
+        name="Adaptive Sampling Threshold",
+        description="Zero for automatic setting based on AA samples",
+        min=0.0, max=1.0,
+        default=0.0,
+    )
+    adaptive_min_samples: IntProperty(
+        name="Adaptive Min Samples",
+        description="Minimum AA samples for adaptive sampling. Zero for automatic setting based on AA samples",
+        min=0, max=4096,
+        default=0,
+    )
+
     min_light_bounces: IntProperty(
             name="Min Light Bounces",
             description="Minimum number of light bounces. Setting this higher reduces noise in the first bounces, "
@@ -1298,7 +1316,12 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         default=False,
         update=update_render_passes,
     )
-
+    pass_debug_sample_count: BoolProperty(
+        name="Debug Sample Count",
+        description="Number of samples/camera rays per pixel",
+        default=False,
+        update=update_render_passes,
+    )
     use_pass_volume_direct: BoolProperty(
         name="Volume Direct",
         description="Deliver direct volumetric scattering pass",

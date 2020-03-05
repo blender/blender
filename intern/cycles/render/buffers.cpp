@@ -260,6 +260,22 @@ bool RenderBuffers::get_pass_rect(
     return false;
   }
 
+  float *sample_count = NULL;
+  if (name == "Combined") {
+    int sample_offset = 0;
+    for (size_t j = 0; j < params.passes.size(); j++) {
+      Pass &pass = params.passes[j];
+      if (pass.type != PASS_SAMPLE_COUNT) {
+        sample_offset += pass.components;
+        continue;
+      }
+      else {
+        sample_count = buffer.data() + sample_offset;
+        break;
+      }
+    }
+  }
+
   int pass_offset = 0;
 
   for (size_t j = 0; j < params.passes.size(); j++) {
@@ -420,6 +436,11 @@ bool RenderBuffers::get_pass_rect(
       }
       else {
         for (int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
+          if (sample_count && sample_count[i * pass_stride] < 0.0f) {
+            scale = (pass.filter) ? -1.0f / (sample_count[i * pass_stride]) : 1.0f;
+            scale_exposure = (pass.exposure) ? scale * exposure : scale;
+          }
+
           float4 f = make_float4(in[0], in[1], in[2], in[3]);
 
           pixels[0] = f.x * scale_exposure;

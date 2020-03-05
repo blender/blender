@@ -62,6 +62,19 @@ class DenoiseParams {
   }
 };
 
+class AdaptiveSampling {
+ public:
+  AdaptiveSampling();
+
+  int align_static_samples(int samples) const;
+  int align_dynamic_samples(int offset, int samples) const;
+  bool need_filter(int sample) const;
+
+  bool use;
+  int adaptive_step;
+  int min_samples;
+};
+
 class DeviceTask : public Task {
  public:
   typedef enum { RENDER, FILM_CONVERT, SHADER, DENOISE_BUFFER } Type;
@@ -115,6 +128,7 @@ class DeviceTask : public Task {
 
   bool need_finish_queue;
   bool integrator_branched;
+  AdaptiveSampling adaptive_sampling;
 
  protected:
   double last_update_time;

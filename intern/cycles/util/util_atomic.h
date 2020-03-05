@@ -77,6 +77,7 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float 
 #    define atomic_fetch_and_add_uint32(p, x) atomic_add((p), (x))
 #    define atomic_fetch_and_inc_uint32(p) atomic_inc((p))
 #    define atomic_fetch_and_dec_uint32(p) atomic_dec((p))
+#    define atomic_fetch_and_or_uint32(p, x) atomic_or((p), (x))
 
 #    define CCL_LOCAL_MEM_FENCE CLK_LOCAL_MEM_FENCE
 #    define ccl_barrier(flags) barrier(flags)
@@ -91,6 +92,7 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float 
 #    define atomic_fetch_and_sub_uint32(p, x) atomicSub((unsigned int *)(p), (unsigned int)(x))
 #    define atomic_fetch_and_inc_uint32(p) atomic_fetch_and_add_uint32((p), 1)
 #    define atomic_fetch_and_dec_uint32(p) atomic_fetch_and_sub_uint32((p), 1)
+#    define atomic_fetch_and_or_uint32(p, x) atomicOr((unsigned int *)(p), (unsigned int)(x))
 
 ccl_device_inline float atomic_compare_and_swap_float(volatile float *dest,
                                                       const float old_val,
