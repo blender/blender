@@ -171,6 +171,8 @@ typedef enum FSMenuCategory {
   FS_CATEGORY_SYSTEM_BOOKMARKS,
   FS_CATEGORY_BOOKMARKS,
   FS_CATEGORY_RECENT,
+  /* For internal use, a list of known paths that are used to match paths to icons and names. */
+  FS_CATEGORY_OTHER,
 } FSMenuCategory;
 
 typedef enum FSMenuInsert {

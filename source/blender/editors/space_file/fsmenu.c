@@ -70,6 +70,7 @@ typedef struct FSMenu {
   FSMenuEntry *fsmenu_system_bookmarks;
   FSMenuEntry *fsmenu_bookmarks;
   FSMenuEntry *fsmenu_recent;
+  FSMenuEntry *fsmenu_other;
 } FSMenu;
 
 static FSMenu *g_fsmenu = NULL;
@@ -98,6 +99,9 @@ struct FSMenuEntry *ED_fsmenu_get_category(struct FSMenu *fsmenu, FSMenuCategory
       break;
     case FS_CATEGORY_RECENT:
       fsm_head = fsmenu->fsmenu_recent;
+      break;
+    case FS_CATEGORY_OTHER:
+      fsm_head = fsmenu->fsmenu_other;
       break;
   }
   return fsm_head;
@@ -218,6 +222,9 @@ void ED_fsmenu_set_category(struct FSMenu *fsmenu, FSMenuCategory category, FSMe
       break;
     case FS_CATEGORY_RECENT:
       fsmenu->fsmenu_recent = fsm_head;
+      break;
+    case FS_CATEGORY_OTHER:
+      fsmenu->fsmenu_other = fsm_head;
       break;
   }
 }
@@ -430,10 +437,11 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
   fsm_iter->save = (flag & FS_INSERT_SAVE) != 0;
 
   /* If entry is also in another list, use that icon and maybe name. */
-  if (ELEM(category, FS_CATEGORY_BOOKMARKS, FS_CATEGORY_RECENT)) {
+  /* On macOS we get icons and names for System Bookmarks from the FS_CATEGORY_OTHER list. */
+  if (ELEM(category, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS, FS_CATEGORY_RECENT)) {
 
     FSMenuCategory cats[] = {
-        FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS};
+        FS_CATEGORY_OTHER, FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS};
     int i = ARRAY_SIZE(cats);
     if (category == FS_CATEGORY_BOOKMARKS) {
       i--;
@@ -703,6 +711,30 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #else
 #  ifdef __APPLE__
   {
+    /* We store some known macOS system paths and corresponding icons
+     * and names in the FS_CATEGORY_OTHER (not displayed directly) category. */
+    fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER,
+        "/Library/Fonts/", IFACE_("Fonts"), ICON_FILE_FONT, FS_INSERT_LAST);
+    fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER,
+        "/Applications/", IFACE_("Applications"), ICON_FILE_FOLDER, FS_INSERT_LAST);
+
+    const char *home = BLI_getenv("HOME");
+
+#    define FS_MACOS_PATH(path, name, icon) \
+      BLI_snprintf(line, sizeof(line), path, home); \
+      fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, line, name, icon, FS_INSERT_LAST);
+
+    FS_MACOS_PATH("%s/", NULL, ICON_HOME)
+    FS_MACOS_PATH("%s/Desktop/", IFACE_("Desktop"), ICON_DESKTOP)
+    FS_MACOS_PATH("%s/Documents/", IFACE_("Documents"), ICON_DOCUMENTS)
+    FS_MACOS_PATH("%s/Downloads/", IFACE_("Downloads"), ICON_IMPORT)
+    FS_MACOS_PATH("%s/Movies/", IFACE_("Movies"), ICON_FILE_MOVIE)
+    FS_MACOS_PATH("%s/Music/", IFACE_("Music"), ICON_FILE_SOUND)
+    FS_MACOS_PATH("%s/Pictures/", IFACE_("Pictures"), ICON_FILE_IMAGE)
+    FS_MACOS_PATH("%s/Library/Fonts/", IFACE_("Fonts"), ICON_FILE_FONT)
+
+#    undef FS_MACOS_PATH
+
     /* Get mounted volumes better method OSX 10.6 and higher, see:
      * https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html
      */
@@ -919,6 +951,22 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
   /* Quiet warnings. */
   UNUSED_VARS(fsmenu_xdg_insert_entry, fsmenu_xdg_user_dirs_parse, fsmenu_xdg_user_dirs_free);
 #endif
+
+  /* For all platforms, we add some directories from User Preferences to
+   * the FS_CATEGORY_OTHER category so that these directories
+   * have the appropriate icons when they are added to the Bookmarks. */
+#  define FS_UDIR_PATH(dir, icon) \
+    if (strlen(dir) > 2) { \
+      fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, dir, NULL, icon, FS_INSERT_LAST); \
+    }
+
+  FS_UDIR_PATH(U.fontdir, ICON_FILE_FONT)
+  FS_UDIR_PATH(U.textudir, ICON_FILE_IMAGE)
+  FS_UDIR_PATH(U.pythondir, ICON_FILE_SCRIPT)
+  FS_UDIR_PATH(U.sounddir, ICON_FILE_SOUND)
+  FS_UDIR_PATH(U.tempdir, ICON_TEMP)
+
+#  undef FS_UDIR_PATH
 }
 
 static void fsmenu_free_category(struct FSMenu *fsmenu, FSMenuCategory category)
@@ -956,6 +1004,7 @@ static void fsmenu_free_ex(FSMenu **fsmenu)
     fsmenu_free_category(*fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS);
     fsmenu_free_category(*fsmenu, FS_CATEGORY_BOOKMARKS);
     fsmenu_free_category(*fsmenu, FS_CATEGORY_RECENT);
+    fsmenu_free_category(*fsmenu, FS_CATEGORY_OTHER);
     MEM_freeN(*fsmenu);
   }
 
@@ -1000,6 +1049,7 @@ static FSMenu *fsmenu_copy(FSMenu *fsmenu)
   fsmenu_copy_category(fsmenu_copy, fsmenu_copy, FS_CATEGORY_SYSTEM_BOOKMARKS);
   fsmenu_copy_category(fsmenu_copy, fsmenu_copy, FS_CATEGORY_BOOKMARKS);
   fsmenu_copy_category(fsmenu_copy, fsmenu_copy, FS_CATEGORY_RECENT);
+  fsmenu_copy_category(fsmenu_copy, fsmenu_copy, FS_CATEGORY_OTHER);
 
   return fsmenu_copy;
 }
