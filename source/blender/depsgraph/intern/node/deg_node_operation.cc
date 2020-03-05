@@ -64,6 +64,8 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Object related. */
     case OperationCode::OBJECT_BASE_FLAGS:
       return "OBJECT_BASE_FLAGS";
+    case OperationCode::DIMENSIONS:
+      return "DIMENSIONS";
     /* Transform. */
     case OperationCode::TRANSFORM_INIT:
       return "TRANSFORM_INIT";

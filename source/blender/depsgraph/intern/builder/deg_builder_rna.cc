@@ -318,7 +318,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
         return node_identifier;
       }
       else if (STREQ(prop_identifier, "dimensions")) {
-        node_identifier.type = NodeType::GEOMETRY;
+        node_identifier.type = NodeType::PARAMETERS;
+        node_identifier.operation_code = OperationCode::DIMENSIONS;
         return node_identifier;
       }
     }

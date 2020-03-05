@@ -1588,6 +1588,15 @@ void DepsgraphRelationBuilder::build_parameters(ID *id)
   add_relation(parameters_eval_key, parameters_exit_key, "Entry -> Exit");
 }
 
+void DepsgraphRelationBuilder::build_dimensions(Object *object)
+{
+  OperationKey dimensions_key(&object->id, NodeType::PARAMETERS, OperationCode::DIMENSIONS);
+  ComponentKey geometry_key(&object->id, NodeType::GEOMETRY);
+  ComponentKey transform_key(&object->id, NodeType::TRANSFORM);
+  add_relation(geometry_key, dimensions_key, "Geometry -> Dimensions");
+  add_relation(transform_key, dimensions_key, "Transform -> Dimensions");
+}
+
 void DepsgraphRelationBuilder::build_world(World *world)
 {
   if (built_map_.checkIsBuiltAndTag(world)) {
@@ -2029,6 +2038,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
       }
     }
   }
+  build_dimensions(object);
   /* Synchronization back to original object. */
   ComponentKey final_geometry_key(&object->id, NodeType::GEOMETRY);
   OperationKey synchronize_key(

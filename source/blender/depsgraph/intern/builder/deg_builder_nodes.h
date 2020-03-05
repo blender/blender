@@ -192,6 +192,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
   virtual void build_driver_id_property(ID *id, const char *rna_path);
   virtual void build_parameters(ID *id);
+  virtual void build_dimensions(Object *object);
   virtual void build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
   virtual void build_splineik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
   virtual void build_rig(Object *object, bool is_object_visible);

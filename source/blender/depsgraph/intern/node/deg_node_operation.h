@@ -63,6 +63,7 @@ enum class OperationCode {
 
   /* Object related. ------------------------------------------------------ */
   OBJECT_BASE_FLAGS,
+  DIMENSIONS,
 
   /* Transform. ----------------------------------------------------------- */
   /* Transform entry point. */
