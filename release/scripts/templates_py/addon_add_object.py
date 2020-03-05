@@ -6,7 +6,7 @@ bl_info = {
     "location": "View3D > Add > Mesh > New Object",
     "description": "Adds a new Mesh Object",
     "warning": "",
-    "wiki_url": "",
+    "doc_url": "",
     "category": "Add Mesh",
 }
 

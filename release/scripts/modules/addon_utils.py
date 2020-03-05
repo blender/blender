@@ -505,7 +505,7 @@ def module_bl_info(mod, info_basis=None):
             "blender": (),
             "location": "",
             "description": "",
-            "wiki_url": "",
+            "doc_url": "",
             "support": 'COMMUNITY',
             "category": "",
             "warning": "",
@@ -526,6 +526,22 @@ def module_bl_info(mod, info_basis=None):
 
     if not addon_info["name"]:
         addon_info["name"] = mod.__name__
+
+    # Replace 'wiki_url' with 'doc_url'.
+    doc_url = addon_info.pop("wiki_url", None)
+    if doc_url is not None:
+        # Unlikely, but possible that both are set.
+        if not addon_info["doc_url"]:
+            addon_info["doc_url"] = doc_url
+        if _bpy.app.debug:
+            print(
+                "Warning: add-on \"{addon_name}\": 'wiki_url' in 'bl_info' "
+                "is deprecated please use 'doc_url' instead!\n"
+                "         {addon_path}".format(
+                    addon_name=addon_info['name'],
+                    addon_path=getattr(mod, "__file__", None),
+                )
+            )
 
     addon_info["_init"] = None
     return addon_info

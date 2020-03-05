@@ -6,7 +6,7 @@ bl_info = {
     "location": "SpaceBar Search -> Add-on Preferences Example",
     "description": "Example Add-on",
     "warning": "",
-    "wiki_url": "",
+    "doc_url": "",
     "tracker_url": "",
     "category": "Object",
 }

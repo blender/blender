@@ -1873,16 +1873,16 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                         split.label(text="  " + info["warning"], icon='ERROR')
 
                     user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
-                    tot_row = bool(info["wiki_url"]) + bool(user_addon)
+                    tot_row = bool(info["doc_url"]) + bool(user_addon)
 
                     if tot_row:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Internet:")
                         sub = split.row()
-                        if info["wiki_url"]:
+                        if info["doc_url"]:
                             sub.operator(
                                 "wm.url_open", text="Documentation", icon='HELP',
-                            ).url = info["wiki_url"]
+                            ).url = info["doc_url"]
                         # Only add "Report a Bug" button if tracker_url is set
                         # or the add-on is bundled (use official tracker then).
                         if info.get("tracker_url"):
