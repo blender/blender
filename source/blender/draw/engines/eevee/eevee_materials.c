@@ -1331,7 +1331,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     memset(psl->material_accum_pass, 0, sizeof(psl->material_accum_pass));
     for (int pass_index = 0; pass_index < stl->g_data->render_passes_material_count;
          pass_index++) {
-      DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ADD;
+      DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ADD_FULL;
       DRW_PASS_CREATE(psl->material_accum_pass[pass_index], state);
     }
   }
