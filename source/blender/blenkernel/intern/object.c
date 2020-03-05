@@ -85,6 +85,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_icons.h"
+#include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_light.h"
 #include "BKE_layer.h"
@@ -143,6 +144,248 @@ static CLG_LogRef LOG = {"bke.object"};
 #ifdef VPARENT_THREADING_HACK
 static ThreadMutex vparent_lock = BLI_MUTEX_INITIALIZER;
 #endif
+
+static void copy_object_pose(Object *obn, const Object *ob, const int flag);
+static void copy_object_lod(Object *obn, const Object *ob, const int flag);
+
+static void object_init_data(ID *id)
+{
+  Object *ob = (Object *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ob, id));
+
+  MEMCPY_STRUCT_AFTER(ob, DNA_struct_default_get(Object), id);
+
+  ob->type = OB_EMPTY;
+
+  ob->trackflag = OB_POSY;
+  ob->upflag = OB_POSZ;
+
+  /* Animation Visualization defaults */
+  animviz_settings_init(&ob->avs);
+}
+
+static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+{
+  Object *ob_dst = (Object *)id_dst;
+  const Object *ob_src = (const Object *)id_src;
+  ModifierData *md;
+  GpencilModifierData *gmd;
+  ShaderFxData *fx;
+
+  /* Do not copy runtime data. */
+  BKE_object_runtime_reset_on_copy(ob_dst, flag);
+
+  /* We never handle usercount here for own data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+  if (ob_src->totcol) {
+    ob_dst->mat = MEM_dupallocN(ob_src->mat);
+    ob_dst->matbits = MEM_dupallocN(ob_src->matbits);
+    ob_dst->totcol = ob_src->totcol;
+  }
+  else if (ob_dst->mat != NULL || ob_dst->matbits != NULL) {
+    /* This shall not be needed, but better be safe than sorry. */
+    BLI_assert(!"Object copy: non-NULL material pointers with zero counter, should not happen.");
+    ob_dst->mat = NULL;
+    ob_dst->matbits = NULL;
+  }
+
+  if (ob_src->iuser) {
+    ob_dst->iuser = MEM_dupallocN(ob_src->iuser);
+  }
+
+  if (ob_src->runtime.bb) {
+    ob_dst->runtime.bb = MEM_dupallocN(ob_src->runtime.bb);
+  }
+
+  BLI_listbase_clear(&ob_dst->modifiers);
+
+  for (md = ob_src->modifiers.first; md; md = md->next) {
+    ModifierData *nmd = modifier_new(md->type);
+    BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
+    modifier_copyData_ex(md, nmd, flag_subdata);
+    BLI_addtail(&ob_dst->modifiers, nmd);
+  }
+
+  BLI_listbase_clear(&ob_dst->greasepencil_modifiers);
+
+  for (gmd = ob_src->greasepencil_modifiers.first; gmd; gmd = gmd->next) {
+    GpencilModifierData *nmd = BKE_gpencil_modifier_new(gmd->type);
+    BLI_strncpy(nmd->name, gmd->name, sizeof(nmd->name));
+    BKE_gpencil_modifier_copyData_ex(gmd, nmd, flag_subdata);
+    BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
+  }
+
+  BLI_listbase_clear(&ob_dst->shader_fx);
+
+  for (fx = ob_src->shader_fx.first; fx; fx = fx->next) {
+    ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
+    BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
+    BKE_shaderfx_copyData_ex(fx, nfx, flag_subdata);
+    BLI_addtail(&ob_dst->shader_fx, nfx);
+  }
+
+  if (ob_src->pose) {
+    copy_object_pose(ob_dst, ob_src, flag_subdata);
+    /* backwards compat... non-armatures can get poses in older files? */
+    if (ob_src->type == OB_ARMATURE) {
+      const bool do_pose_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
+      BKE_pose_rebuild(bmain, ob_dst, ob_dst->data, do_pose_id_user);
+    }
+  }
+  defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
+  BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
+  BKE_constraints_copy_ex(&ob_dst->constraints, &ob_src->constraints, flag_subdata, true);
+
+  ob_dst->mode = ob_dst->type != OB_GPENCIL ? OB_MODE_OBJECT : ob_dst->mode;
+  ob_dst->sculpt = NULL;
+
+  if (ob_src->pd) {
+    ob_dst->pd = MEM_dupallocN(ob_src->pd);
+    if (ob_dst->pd->rng) {
+      ob_dst->pd->rng = MEM_dupallocN(ob_src->pd->rng);
+    }
+  }
+  BKE_object_copy_softbody(ob_dst, ob_src, flag_subdata);
+  BKE_rigidbody_object_copy(bmain, ob_dst, ob_src, flag_subdata);
+
+  BKE_object_copy_particlesystems(ob_dst, ob_src, flag_subdata);
+
+  BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
+  BLI_listbase_clear(&ob_dst->pc_ids);
+
+  ob_dst->avs = ob_src->avs;
+  ob_dst->mpath = animviz_copy_motionpath(ob_src->mpath);
+
+  copy_object_lod(ob_dst, ob_src, flag_subdata);
+
+  /* Do not copy object's preview
+   * (mostly due to the fact renderers create temp copy of objects). */
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO temp hack */
+    BKE_previewimg_id_copy(&ob_dst->id, &ob_src->id);
+  }
+  else {
+    ob_dst->preview = NULL;
+  }
+}
+
+static void object_free_data(ID *id)
+{
+  Object *ob = (Object *)id;
+  BKE_animdata_free((ID *)ob, false);
+
+  DRW_drawdata_free((ID *)ob);
+
+  /* BKE_<id>_free shall never touch to ID->us. Never ever. */
+  BKE_object_free_modifiers(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
+  BKE_object_free_shaderfx(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
+
+  MEM_SAFE_FREE(ob->mat);
+  MEM_SAFE_FREE(ob->matbits);
+  MEM_SAFE_FREE(ob->iuser);
+  MEM_SAFE_FREE(ob->runtime.bb);
+
+  BLI_freelistN(&ob->defbase);
+  BLI_freelistN(&ob->fmaps);
+  if (ob->pose) {
+    BKE_pose_free_ex(ob->pose, false);
+    ob->pose = NULL;
+  }
+  if (ob->mpath) {
+    animviz_free_motionpath(ob->mpath);
+    ob->mpath = NULL;
+  }
+
+  BKE_constraints_free_ex(&ob->constraints, false);
+
+  BKE_partdeflect_free(ob->pd);
+  BKE_rigidbody_free_object(ob, NULL);
+  BKE_rigidbody_free_constraint(ob);
+
+  sbFree(ob);
+
+  BKE_sculptsession_free(ob);
+
+  BLI_freelistN(&ob->pc_ids);
+
+  BLI_freelistN(&ob->lodlevels);
+
+  /* Free runtime curves data. */
+  if (ob->runtime.curve_cache) {
+    BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
+    if (ob->runtime.curve_cache->path) {
+      free_path(ob->runtime.curve_cache->path);
+    }
+    MEM_freeN(ob->runtime.curve_cache);
+    ob->runtime.curve_cache = NULL;
+  }
+
+  BKE_previewimg_free(&ob->preview);
+}
+
+static void object_make_local(Main *bmain, ID *id, const int flags)
+{
+  Object *ob = (Object *)id;
+  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+  const bool clear_proxy = (flags & LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING) == 0;
+  bool is_local = false, is_lib = false;
+
+  /* - only lib users: do nothing (unless force_local is set)
+   * - only local users: set flag
+   * - mixed: make copy
+   * In case we make a whole lib's content local,
+   * we always want to localize, and we skip remapping (done later).
+   */
+
+  if (!ID_IS_LINKED(ob)) {
+    return;
+  }
+
+  BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
+
+  if (lib_local || is_local) {
+    if (!is_lib) {
+      BKE_lib_id_clear_library_data(bmain, &ob->id);
+      BKE_lib_id_expand_local(bmain, &ob->id);
+      if (clear_proxy) {
+        if (ob->proxy_from != NULL) {
+          ob->proxy_from->proxy = NULL;
+          ob->proxy_from->proxy_group = NULL;
+        }
+        ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
+      }
+    }
+    else {
+      Object *ob_new = BKE_object_copy(bmain, ob);
+
+      ob_new->id.us = 0;
+      ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
+
+      /* setting newid is mandatory for complex make_lib_local logic... */
+      ID_NEW_SET(ob, ob_new);
+
+      if (!lib_local) {
+        BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+      }
+    }
+  }
+}
+
+IDTypeInfo IDType_ID_OB = {
+    .id_code = ID_OB,
+    .id_filter = FILTER_ID_OB,
+    .main_listbase_index = INDEX_ID_OB,
+    .struct_size = sizeof(Object),
+    .name = "Object",
+    .name_plural = "objects",
+    .translation_context = BLT_I18NCONTEXT_ID_OBJECT,
+    .flags = 0,
+
+    .init_data = object_init_data,
+    .copy_data = object_copy_data,
+    .free_data = object_free_data,
+    .make_local = object_make_local,
+};
 
 void BKE_object_workob_clear(Object *workob)
 {
@@ -542,55 +785,7 @@ void BKE_object_free_caches(Object *object)
 /** Free (or release) any data used by this object (does not free the object itself). */
 void BKE_object_free(Object *ob)
 {
-  BKE_animdata_free((ID *)ob, false);
-
-  DRW_drawdata_free((ID *)ob);
-
-  /* BKE_<id>_free shall never touch to ID->us. Never ever. */
-  BKE_object_free_modifiers(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
-  BKE_object_free_shaderfx(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
-
-  MEM_SAFE_FREE(ob->mat);
-  MEM_SAFE_FREE(ob->matbits);
-  MEM_SAFE_FREE(ob->iuser);
-  MEM_SAFE_FREE(ob->runtime.bb);
-
-  BLI_freelistN(&ob->defbase);
-  BLI_freelistN(&ob->fmaps);
-  if (ob->pose) {
-    BKE_pose_free_ex(ob->pose, false);
-    ob->pose = NULL;
-  }
-  if (ob->mpath) {
-    animviz_free_motionpath(ob->mpath);
-    ob->mpath = NULL;
-  }
-
-  BKE_constraints_free_ex(&ob->constraints, false);
-
-  BKE_partdeflect_free(ob->pd);
-  BKE_rigidbody_free_object(ob, NULL);
-  BKE_rigidbody_free_constraint(ob);
-
-  sbFree(ob);
-
-  BKE_sculptsession_free(ob);
-
-  BLI_freelistN(&ob->pc_ids);
-
-  BLI_freelistN(&ob->lodlevels);
-
-  /* Free runtime curves data. */
-  if (ob->runtime.curve_cache) {
-    BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
-    if (ob->runtime.curve_cache->path) {
-      free_path(ob->runtime.curve_cache->path);
-    }
-    MEM_freeN(ob->runtime.curve_cache);
-    ob->runtime.curve_cache = NULL;
-  }
-
-  BKE_previewimg_free(&ob->preview);
+  object_free_data(&ob->id);
 }
 
 /* actual check for internal data, not context or flags */
@@ -872,9 +1067,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
 
 void BKE_object_init(Object *ob, const short ob_type)
 {
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ob, id));
-
-  MEMCPY_STRUCT_AFTER(ob, DNA_struct_default_get(Object), id);
+  object_init_data(&ob->id);
 
   ob->type = ob_type;
 
@@ -886,13 +1079,6 @@ void BKE_object_init(Object *ob, const short ob_type)
     ob->trackflag = OB_NEGZ;
     ob->upflag = OB_POSY;
   }
-  else {
-    ob->trackflag = OB_POSY;
-    ob->upflag = OB_POSZ;
-  }
-
-  /* Animation Visualization defaults */
-  animviz_settings_init(&ob->avs);
 }
 
 /* more general add: creates minimum required data, but without vertices etc. */
@@ -1363,105 +1549,7 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
  */
 void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
 {
-  ModifierData *md;
-  GpencilModifierData *gmd;
-  ShaderFxData *fx;
-
-  /* Do not copy runtime data. */
-  BKE_object_runtime_reset_on_copy(ob_dst, flag);
-
-  /* We never handle usercount here for own data. */
-  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
-
-  if (ob_src->totcol) {
-    ob_dst->mat = MEM_dupallocN(ob_src->mat);
-    ob_dst->matbits = MEM_dupallocN(ob_src->matbits);
-    ob_dst->totcol = ob_src->totcol;
-  }
-  else if (ob_dst->mat != NULL || ob_dst->matbits != NULL) {
-    /* This shall not be needed, but better be safe than sorry. */
-    BLI_assert(!"Object copy: non-NULL material pointers with zero counter, should not happen.");
-    ob_dst->mat = NULL;
-    ob_dst->matbits = NULL;
-  }
-
-  if (ob_src->iuser) {
-    ob_dst->iuser = MEM_dupallocN(ob_src->iuser);
-  }
-
-  if (ob_src->runtime.bb) {
-    ob_dst->runtime.bb = MEM_dupallocN(ob_src->runtime.bb);
-  }
-
-  BLI_listbase_clear(&ob_dst->modifiers);
-
-  for (md = ob_src->modifiers.first; md; md = md->next) {
-    ModifierData *nmd = modifier_new(md->type);
-    BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
-    modifier_copyData_ex(md, nmd, flag_subdata);
-    BLI_addtail(&ob_dst->modifiers, nmd);
-  }
-
-  BLI_listbase_clear(&ob_dst->greasepencil_modifiers);
-
-  for (gmd = ob_src->greasepencil_modifiers.first; gmd; gmd = gmd->next) {
-    GpencilModifierData *nmd = BKE_gpencil_modifier_new(gmd->type);
-    BLI_strncpy(nmd->name, gmd->name, sizeof(nmd->name));
-    BKE_gpencil_modifier_copyData_ex(gmd, nmd, flag_subdata);
-    BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
-  }
-
-  BLI_listbase_clear(&ob_dst->shader_fx);
-
-  for (fx = ob_src->shader_fx.first; fx; fx = fx->next) {
-    ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
-    BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
-    BKE_shaderfx_copyData_ex(fx, nfx, flag_subdata);
-    BLI_addtail(&ob_dst->shader_fx, nfx);
-  }
-
-  if (ob_src->pose) {
-    copy_object_pose(ob_dst, ob_src, flag_subdata);
-    /* backwards compat... non-armatures can get poses in older files? */
-    if (ob_src->type == OB_ARMATURE) {
-      const bool do_pose_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
-      BKE_pose_rebuild(bmain, ob_dst, ob_dst->data, do_pose_id_user);
-    }
-  }
-  defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
-  BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
-  BKE_constraints_copy_ex(&ob_dst->constraints, &ob_src->constraints, flag_subdata, true);
-
-  ob_dst->mode = ob_dst->type != OB_GPENCIL ? OB_MODE_OBJECT : ob_dst->mode;
-  ob_dst->sculpt = NULL;
-
-  if (ob_src->pd) {
-    ob_dst->pd = MEM_dupallocN(ob_src->pd);
-    if (ob_dst->pd->rng) {
-      ob_dst->pd->rng = MEM_dupallocN(ob_src->pd->rng);
-    }
-  }
-  BKE_object_copy_softbody(ob_dst, ob_src, flag_subdata);
-  BKE_rigidbody_object_copy(bmain, ob_dst, ob_src, flag_subdata);
-
-  BKE_object_copy_particlesystems(ob_dst, ob_src, flag_subdata);
-
-  BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
-  BLI_listbase_clear(&ob_dst->pc_ids);
-
-  ob_dst->avs = ob_src->avs;
-  ob_dst->mpath = animviz_copy_motionpath(ob_src->mpath);
-
-  copy_object_lod(ob_dst, ob_src, flag_subdata);
-
-  /* Do not copy object's preview
-   * (mostly due to the fact renderers create temp copy of objects). */
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO temp hack */
-    BKE_previewimg_id_copy(&ob_dst->id, &ob_src->id);
-  }
-  else {
-    ob_dst->preview = NULL;
-  }
+  object_copy_data(bmain, &ob_dst->id, &ob_src->id, flag);
 }
 
 /* copy objects, will re-initialize cached simulation data */
@@ -1743,49 +1831,7 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
 
 void BKE_object_make_local(Main *bmain, Object *ob, const int flags)
 {
-  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
-  const bool clear_proxy = (flags & LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING) == 0;
-  bool is_local = false, is_lib = false;
-
-  /* - only lib users: do nothing (unless force_local is set)
-   * - only local users: set flag
-   * - mixed: make copy
-   * In case we make a whole lib's content local,
-   * we always want to localize, and we skip remapping (done later).
-   */
-
-  if (!ID_IS_LINKED(ob)) {
-    return;
-  }
-
-  BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
-
-  if (lib_local || is_local) {
-    if (!is_lib) {
-      BKE_lib_id_clear_library_data(bmain, &ob->id);
-      BKE_lib_id_expand_local(bmain, &ob->id);
-      if (clear_proxy) {
-        if (ob->proxy_from != NULL) {
-          ob->proxy_from->proxy = NULL;
-          ob->proxy_from->proxy_group = NULL;
-        }
-        ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
-      }
-    }
-    else {
-      Object *ob_new = BKE_object_copy(bmain, ob);
-
-      ob_new->id.us = 0;
-      ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
-
-      /* setting newid is mandatory for complex make_lib_local logic... */
-      ID_NEW_SET(ob, ob_new);
-
-      if (!lib_local) {
-        BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-      }
-    }
-  }
+  object_make_local(bmain, &ob->id, flags);
 }
 
 /* Returns true if the Object is from an external blend file (libdata) */

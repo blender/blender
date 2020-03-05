@@ -66,6 +66,7 @@
 #include "BKE_font.h"
 #include "BKE_gpencil.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
@@ -124,6 +125,15 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
 
 void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
 {
+  const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_id(id);
+
+  if (idtype_info != NULL) {
+    if (idtype_info->free_data != NULL) {
+      idtype_info->free_data(id);
+    }
+    return;
+  }
+
   const short type = GS(id->name);
   switch (type) {
     case ID_SCE:

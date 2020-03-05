@@ -91,6 +91,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_light.h"
@@ -447,6 +448,23 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
     return false;
   }
 
+  const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_id(id);
+
+  if (idtype_info != NULL) {
+    if ((idtype_info->flags & IDTYPE_FLAGS_NO_MAKELOCAL) == 0) {
+      if (!test) {
+        if (idtype_info->make_local != NULL) {
+          idtype_info->make_local(bmain, id, flags);
+        }
+        else {
+          BKE_lib_id_make_local_generic(bmain, id, flags);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   switch ((ID_Type)GS(id->name)) {
     case ID_SCE:
       if (!test) {
@@ -689,115 +707,131 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
   if (id == NULL) {
     return false;
   }
-  if (!BKE_id_copy_is_allowed(id)) {
-    return false;
+
+  const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_id(id);
+
+  if (idtype_info != NULL) {
+    if ((idtype_info->flags & IDTYPE_FLAGS_NO_COPY) != 0) {
+      return false;
+    }
+
+    BKE_libblock_copy_ex(bmain, id, r_newid, flag);
+
+    if (idtype_info->copy_data != NULL) {
+      idtype_info->copy_data(bmain, *r_newid, id, flag);
+    }
   }
+  else {
+    if (!BKE_id_copy_is_allowed(id)) {
+      return false;
+    }
 
-  BKE_libblock_copy_ex(bmain, id, r_newid, flag);
+    BKE_libblock_copy_ex(bmain, id, r_newid, flag);
 
-  switch ((ID_Type)GS(id->name)) {
-    case ID_SCE:
-      BKE_scene_copy_data(bmain, (Scene *)*r_newid, (Scene *)id, flag);
-      break;
-    case ID_OB:
-      BKE_object_copy_data(bmain, (Object *)*r_newid, (Object *)id, flag);
-      break;
-    case ID_ME:
-      BKE_mesh_copy_data(bmain, (Mesh *)*r_newid, (Mesh *)id, flag);
-      break;
-    case ID_CU:
-      BKE_curve_copy_data(bmain, (Curve *)*r_newid, (Curve *)id, flag);
-      break;
-    case ID_MB:
-      BKE_mball_copy_data(bmain, (MetaBall *)*r_newid, (MetaBall *)id, flag);
-      break;
-    case ID_MA:
-      BKE_material_copy_data(bmain, (Material *)*r_newid, (Material *)id, flag);
-      break;
-    case ID_TE:
-      BKE_texture_copy_data(bmain, (Tex *)*r_newid, (Tex *)id, flag);
-      break;
-    case ID_IM:
-      BKE_image_copy_data(bmain, (Image *)*r_newid, (Image *)id, flag);
-      break;
-    case ID_LT:
-      BKE_lattice_copy_data(bmain, (Lattice *)*r_newid, (Lattice *)id, flag);
-      break;
-    case ID_LA:
-      BKE_light_copy_data(bmain, (Light *)*r_newid, (Light *)id, flag);
-      break;
-    case ID_SPK:
-      BKE_speaker_copy_data(bmain, (Speaker *)*r_newid, (Speaker *)id, flag);
-      break;
-    case ID_LP:
-      BKE_lightprobe_copy_data(bmain, (LightProbe *)*r_newid, (LightProbe *)id, flag);
-      break;
-    case ID_CA:
-      BKE_camera_copy_data(bmain, (Camera *)*r_newid, (Camera *)id, flag);
-      break;
-    case ID_KE:
-      BKE_key_copy_data(bmain, (Key *)*r_newid, (Key *)id, flag);
-      break;
-    case ID_WO:
-      BKE_world_copy_data(bmain, (World *)*r_newid, (World *)id, flag);
-      break;
-    case ID_TXT:
-      BKE_text_copy_data(bmain, (Text *)*r_newid, (Text *)id, flag);
-      break;
-    case ID_GR:
-      BKE_collection_copy_data(bmain, (Collection *)*r_newid, (Collection *)id, flag);
-      break;
-    case ID_AR:
-      BKE_armature_copy_data(bmain, (bArmature *)*r_newid, (bArmature *)id, flag);
-      break;
-    case ID_AC:
-      BKE_action_copy_data(bmain, (bAction *)*r_newid, (bAction *)id, flag);
-      break;
-    case ID_NT:
-      BKE_node_tree_copy_data(bmain, (bNodeTree *)*r_newid, (bNodeTree *)id, flag);
-      break;
-    case ID_BR:
-      BKE_brush_copy_data(bmain, (Brush *)*r_newid, (Brush *)id, flag);
-      break;
-    case ID_PA:
-      BKE_particlesettings_copy_data(
-          bmain, (ParticleSettings *)*r_newid, (ParticleSettings *)id, flag);
-      break;
-    case ID_GD:
-      BKE_gpencil_copy_data((bGPdata *)*r_newid, (bGPdata *)id, flag);
-      break;
-    case ID_MC:
-      BKE_movieclip_copy_data(bmain, (MovieClip *)*r_newid, (MovieClip *)id, flag);
-      break;
-    case ID_MSK:
-      BKE_mask_copy_data(bmain, (Mask *)*r_newid, (Mask *)id, flag);
-      break;
-    case ID_LS:
-      BKE_linestyle_copy_data(
-          bmain, (FreestyleLineStyle *)*r_newid, (FreestyleLineStyle *)id, flag);
-      break;
-    case ID_PAL:
-      BKE_palette_copy_data(bmain, (Palette *)*r_newid, (Palette *)id, flag);
-      break;
-    case ID_PC:
-      BKE_paint_curve_copy_data(bmain, (PaintCurve *)*r_newid, (PaintCurve *)id, flag);
-      break;
-    case ID_CF:
-      BKE_cachefile_copy_data(bmain, (CacheFile *)*r_newid, (CacheFile *)id, flag);
-      break;
-    case ID_SO:
-      BKE_sound_copy_data(bmain, (bSound *)*r_newid, (bSound *)id, flag);
-      break;
-    case ID_VF:
-      BKE_vfont_copy_data(bmain, (VFont *)*r_newid, (VFont *)id, flag);
-      break;
-    case ID_LI:
-    case ID_SCR:
-    case ID_WM:
-    case ID_WS:
-    case ID_IP:
-      BLI_assert(0); /* Should have been rejected at start of function! */
-      break;
+    switch ((ID_Type)GS(id->name)) {
+      case ID_SCE:
+        BKE_scene_copy_data(bmain, (Scene *)*r_newid, (Scene *)id, flag);
+        break;
+      case ID_OB:
+        BKE_object_copy_data(bmain, (Object *)*r_newid, (Object *)id, flag);
+        break;
+      case ID_ME:
+        BKE_mesh_copy_data(bmain, (Mesh *)*r_newid, (Mesh *)id, flag);
+        break;
+      case ID_CU:
+        BKE_curve_copy_data(bmain, (Curve *)*r_newid, (Curve *)id, flag);
+        break;
+      case ID_MB:
+        BKE_mball_copy_data(bmain, (MetaBall *)*r_newid, (MetaBall *)id, flag);
+        break;
+      case ID_MA:
+        BKE_material_copy_data(bmain, (Material *)*r_newid, (Material *)id, flag);
+        break;
+      case ID_TE:
+        BKE_texture_copy_data(bmain, (Tex *)*r_newid, (Tex *)id, flag);
+        break;
+      case ID_IM:
+        BKE_image_copy_data(bmain, (Image *)*r_newid, (Image *)id, flag);
+        break;
+      case ID_LT:
+        BKE_lattice_copy_data(bmain, (Lattice *)*r_newid, (Lattice *)id, flag);
+        break;
+      case ID_LA:
+        BKE_light_copy_data(bmain, (Light *)*r_newid, (Light *)id, flag);
+        break;
+      case ID_SPK:
+        BKE_speaker_copy_data(bmain, (Speaker *)*r_newid, (Speaker *)id, flag);
+        break;
+      case ID_LP:
+        BKE_lightprobe_copy_data(bmain, (LightProbe *)*r_newid, (LightProbe *)id, flag);
+        break;
+      case ID_CA:
+        BKE_camera_copy_data(bmain, (Camera *)*r_newid, (Camera *)id, flag);
+        break;
+      case ID_KE:
+        BKE_key_copy_data(bmain, (Key *)*r_newid, (Key *)id, flag);
+        break;
+      case ID_WO:
+        BKE_world_copy_data(bmain, (World *)*r_newid, (World *)id, flag);
+        break;
+      case ID_TXT:
+        BKE_text_copy_data(bmain, (Text *)*r_newid, (Text *)id, flag);
+        break;
+      case ID_GR:
+        BKE_collection_copy_data(bmain, (Collection *)*r_newid, (Collection *)id, flag);
+        break;
+      case ID_AR:
+        BKE_armature_copy_data(bmain, (bArmature *)*r_newid, (bArmature *)id, flag);
+        break;
+      case ID_AC:
+        BKE_action_copy_data(bmain, (bAction *)*r_newid, (bAction *)id, flag);
+        break;
+      case ID_NT:
+        BKE_node_tree_copy_data(bmain, (bNodeTree *)*r_newid, (bNodeTree *)id, flag);
+        break;
+      case ID_BR:
+        BKE_brush_copy_data(bmain, (Brush *)*r_newid, (Brush *)id, flag);
+        break;
+      case ID_PA:
+        BKE_particlesettings_copy_data(
+            bmain, (ParticleSettings *)*r_newid, (ParticleSettings *)id, flag);
+        break;
+      case ID_GD:
+        BKE_gpencil_copy_data((bGPdata *)*r_newid, (bGPdata *)id, flag);
+        break;
+      case ID_MC:
+        BKE_movieclip_copy_data(bmain, (MovieClip *)*r_newid, (MovieClip *)id, flag);
+        break;
+      case ID_MSK:
+        BKE_mask_copy_data(bmain, (Mask *)*r_newid, (Mask *)id, flag);
+        break;
+      case ID_LS:
+        BKE_linestyle_copy_data(
+            bmain, (FreestyleLineStyle *)*r_newid, (FreestyleLineStyle *)id, flag);
+        break;
+      case ID_PAL:
+        BKE_palette_copy_data(bmain, (Palette *)*r_newid, (Palette *)id, flag);
+        break;
+      case ID_PC:
+        BKE_paint_curve_copy_data(bmain, (PaintCurve *)*r_newid, (PaintCurve *)id, flag);
+        break;
+      case ID_CF:
+        BKE_cachefile_copy_data(bmain, (CacheFile *)*r_newid, (CacheFile *)id, flag);
+        break;
+      case ID_SO:
+        BKE_sound_copy_data(bmain, (bSound *)*r_newid, (bSound *)id, flag);
+        break;
+      case ID_VF:
+        BKE_vfont_copy_data(bmain, (VFont *)*r_newid, (VFont *)id, flag);
+        break;
+      case ID_LI:
+      case ID_SCR:
+      case ID_WM:
+      case ID_WS:
+      case ID_IP:
+        BLI_assert(0); /* Should have been rejected at start of function! */
+        break;
+    }
   }
 
   /* Update ID refcount, remap pointers to self in new ID. */
@@ -1298,6 +1332,15 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
  */
 void BKE_libblock_init_empty(ID *id)
 {
+  const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_id(id);
+
+  if (idtype_info != NULL) {
+    if (idtype_info->init_data != NULL) {
+      idtype_info->init_data(id);
+    }
+    return;
+  }
+
   /* Note that only ID types that are not valid when filled of zero should have a callback here. */
   switch ((ID_Type)GS(id->name)) {
     case ID_SCE:

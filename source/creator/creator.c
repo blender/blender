@@ -55,6 +55,7 @@
 #include "BKE_context.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_idtype.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_gpencil_modifier.h"
@@ -366,6 +367,7 @@ int main(int argc,
 
   BKE_blender_globals_init(); /* blender.c */
 
+  BKE_idtype_init();
   IMB_init();
   BKE_cachefiles_init();
   BKE_images_init();
