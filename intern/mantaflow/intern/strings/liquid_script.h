@@ -266,14 +266,14 @@ def liquid_step_$ID$():\n\
     if using_obstacle_s$ID$:\n\
         mantaMsg('Extrapolating object velocity')\n\
         # ensure velocities inside of obs object, slightly add obvels outside of obs object\n\
-        extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=int(res_s$ID$/2), inside=True)\n\
+        extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=6, inside=True)\n\
         extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=3, inside=False)\n\
         resampleVec3ToMac(source=obvelC_s$ID$, target=obvel_s$ID$)\n\
     \n\
     extrapolateMACSimple(flags=flags_s$ID$, vel=vel_s$ID$, distance=2, intoObs=True if using_fractions_s$ID$ else False)\n\
     \n\
     # vel diffusion / viscosity!\n\
-    if viscosity_s$ID$ > 0.:\n\
+    if using_diffusion_s$ID$:\n\
         mantaMsg('Viscosity')\n\
         # diffusion param for solve = const * dt / dx^2\n\
         alphaV = viscosity_s$ID$ * s$ID$.timestep * float(res_s$ID$*res_s$ID$)\n\

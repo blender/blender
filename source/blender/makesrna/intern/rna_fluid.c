@@ -1563,6 +1563,13 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   /*  diffusion options */
 
+  prop = RNA_def_property(srna, "use_diffusion", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", FLUID_DOMAIN_USE_DIFFUSION);
+  RNA_def_property_ui_text(
+      prop, "Use Diffusion", "Enable fluid diffusion settings (e.g. viscosity, surface tension)");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_reset");
+
   prop = RNA_def_property(srna, "surface_tension", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0, 100.0);
   RNA_def_property_ui_text(

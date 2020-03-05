@@ -957,6 +957,14 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
 
         return (context.engine in cls.COMPAT_ENGINES)
 
+    def draw_header(self, context):
+        md = context.fluid.domain_settings
+        domain = context.fluid.domain_settings
+        is_baking_any = domain.is_cache_baking_any
+        has_baked_any = domain.has_cache_baked_any
+        self.layout.enabled = not is_baking_any and not has_baked_any
+        self.layout.prop(md, "use_diffusion", text="")
+
     def draw_header_preset(self, _context):
         FLUID_PT_presets.draw_panel_header(self.layout)
 

@@ -112,6 +112,7 @@ using_invel_s$ID$        = $USING_INVEL$\n\
 using_outflow_s$ID$      = $USING_OUTFLOW$\n\
 using_sndparts_s$ID$     = $USING_SNDPARTS$\n\
 using_speedvectors_s$ID$ = $USING_SPEEDVECTORS$\n\
+using_diffusion_s$ID$    = $USING_DIFFUSION$\n\
 \n\
 # Fluid time params\n\
 timeTotal_s$ID$    = $TIME_TOTAL$\n\

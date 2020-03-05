@@ -981,6 +981,8 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_FRACTIONS ? "True" : "False");
   else if (varName == "DELETE_IN_OBSTACLE")
     ss << (mmd->domain->flags & FLUID_DOMAIN_DELETE_IN_OBSTACLE ? "True" : "False");
+  else if (varName == "USING_DIFFUSION")
+    ss << (mmd->domain->flags & FLUID_DOMAIN_USE_DIFFUSION ? "True" : "False");
   else
     std::cout << "ERROR: Unknown option: " << varName << std::endl;
   return ss.str();
