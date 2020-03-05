@@ -739,7 +739,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Fonts,
                                 IFACE_("Fonts"),
-                                ICON_FONTPREVIEW,
+                                ICON_FILE_FONT,
                                 FS_INSERT_LAST);
 
       /* These items are just put in path cache for thumbnail views and if bookmarked. */

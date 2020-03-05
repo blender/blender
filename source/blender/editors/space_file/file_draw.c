@@ -313,7 +313,7 @@ static void file_draw_preview(uiBlock *block,
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-  if (icon && (icon != ICON_FILE_FONT)) {
+  if (icon && !(typeflags & FILE_TYPE_FTFONT)) {
     /* size of center icon is scaled to fit container and UI scale */
     float icon_x, icon_y;
 
