@@ -122,6 +122,16 @@ GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow *window)
   return success;
 }
 
+GHOST_IContext *GHOST_System::createOffscreenContext(GHOST_TDrawingContextType type)
+{
+  switch (type) {
+    case GHOST_kDrawingContextTypeOpenGL:
+      return createOffscreenContext();
+    default:
+      return NULL;
+  }
+}
+
 bool GHOST_System::validWindow(GHOST_IWindow *window)
 {
   return m_windowManager->getWindowFound(window);

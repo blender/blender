@@ -21,6 +21,7 @@
  * \ingroup GHOST
  */
 
+#include "GHOST_ContextD3D.h"
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
@@ -403,6 +404,47 @@ GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
   delete context;
 
   return GHOST_kSuccess;
+}
+
+/**
+ * Create a new offscreen DirectX 11 context.
+ * Never explicitly delete the window, use #disposeContext() instead.
+ * \return The new context (or 0 if creation failed).
+ */
+GHOST_IContext *GHOST_SystemWin32::createOffscreenContextD3D()
+{
+  GHOST_Context *context;
+
+  HWND wnd = CreateWindowA("STATIC",
+                           "Blender XR",
+                           WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                           0,
+                           0,
+                           64,
+                           64,
+                           NULL,
+                           NULL,
+                           GetModuleHandle(NULL),
+                           NULL);
+
+  context = new GHOST_ContextD3D(false, wnd);
+  if (context->initializeDrawingContext() == GHOST_kFailure) {
+    delete context;
+  }
+
+  return context;
+}
+
+GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_TDrawingContextType type)
+{
+  switch (type) {
+    case GHOST_kDrawingContextTypeOpenGL:
+      return createOffscreenContext();
+    case GHOST_kDrawingContextTypeD3D:
+      return createOffscreenContextD3D();
+    default:
+      return NULL;
+  }
 }
 
 bool GHOST_SystemWin32::processEvents(bool waitForEvent)

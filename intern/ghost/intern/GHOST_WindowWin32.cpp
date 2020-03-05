@@ -23,6 +23,7 @@
 
 #define _USE_MATH_DEFINES
 
+#include "GHOST_ContextD3D.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
 #include "GHOST_SystemWin32.h"
@@ -749,6 +750,19 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 #else
 #  error  // must specify either core or compat at build time
 #endif
+  }
+  else if (type == GHOST_kDrawingContextTypeD3D) {
+    GHOST_Context *context;
+
+    context = new GHOST_ContextD3D(false, m_hWnd);
+    if (context->initializeDrawingContext()) {
+      return context;
+    }
+    else {
+      delete context;
+    }
+
+    return context;
   }
 
   return NULL;

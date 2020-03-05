@@ -280,11 +280,13 @@ elseif(WIN32)
   )
 
   list(APPEND SRC
+    intern/GHOST_ContextD3D.cpp
     intern/GHOST_DisplayManagerWin32.cpp
     intern/GHOST_DropTargetWin32.cpp
     intern/GHOST_SystemWin32.cpp
     intern/GHOST_WindowWin32.cpp
 
+    intern/GHOST_ContextD3D.h
     intern/GHOST_DisplayManagerWin32.h
     intern/GHOST_DropTargetWin32.h
     intern/GHOST_SystemWin32.h

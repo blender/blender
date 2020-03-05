@@ -146,6 +146,25 @@ GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
   return system->disposeContext(context);
 }
 
+#ifdef WIN32
+GHOST_ContextHandle GHOST_CreateDirectXContext(GHOST_SystemHandle systemhandle)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+
+  return (GHOST_ContextHandle)system->createOffscreenContext(GHOST_kDrawingContextTypeD3D);
+}
+
+GHOST_TSuccess GHOST_DisposeDirectXContext(GHOST_SystemHandle systemhandle,
+                                           GHOST_ContextHandle contexthandle)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+  GHOST_IContext *context = (GHOST_IContext *)contexthandle;
+
+  return system->disposeContext(context);
+}
+
+#endif
+
 GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       const char *title,
                                       GHOST_TInt32 left,
