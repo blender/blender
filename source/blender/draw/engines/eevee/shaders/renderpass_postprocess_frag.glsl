@@ -31,7 +31,7 @@ void main()
 
   else if (renderpassType == SCE_PASS_AO) {
     float ao_accum = texelFetch(inputBuffer, texel, 0).r;
-    fragColor = vec4(vec3(min(1.0, ao_accum / currentSample)), 1.0);
+    color = vec3(min(1.0, ao_accum / currentSample));
   }
 
   else if (renderpassType == SCE_PASS_NORMAL) {
