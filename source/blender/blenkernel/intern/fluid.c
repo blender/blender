@@ -2708,6 +2708,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       int subframes = mfs->subframes;
       EmissionMap *em = &emaps[flow_index];
 
+      bool use_velocity = mfs->flags & FLUID_FLOW_INITVELOCITY;
       bool is_static = is_static_object(flowobj);
       /* Cannot use static mode with adaptive domain.
        * The adaptive domain might expand and only later in the simulations discover the static
@@ -2735,8 +2736,9 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
         continue;
       }
       /* Optimization: Static liquid flow objects don't need emission computation after first
-       * frame. */
-      if (mfs->type == FLUID_FLOW_TYPE_LIQUID && is_static && !is_first_frame) {
+       * frame.
+       * TODO (sebbas): Also do not use static mode if inital velocities are enabled. */
+      if (mfs->type == FLUID_FLOW_TYPE_LIQUID && is_static && !is_first_frame && !use_velocity) {
         continue;
       }
 
@@ -2932,6 +2934,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
     if ((mmd2->type & MOD_FLUID_TYPE_FLOW) && mmd2->flow) {
       FluidFlowSettings *mfs = mmd2->flow;
 
+      bool use_velocity = mfs->flags & FLUID_FLOW_INITVELOCITY;
       bool use_inflow = (mfs->flags & FLUID_FLOW_USE_INFLOW);
       bool is_liquid = (mfs->type == FLUID_FLOW_TYPE_LIQUID);
       bool is_inflow = (mfs->behavior == FLUID_FLOW_BEHAVIOR_INFLOW);
@@ -2953,8 +2956,9 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       /* Optimization: Liquid objects don't always need emission application after first frame. */
       if (is_liquid && !is_first_frame) {
 
-        /* Skip static liquid objects that are not on the first frame. */
-        if (is_static) {
+        /* Skip static liquid objects that are not on the first frame.
+         * TODO (sebbas): Also do not use static mode if inital velocities are enabled. */
+        if (is_static && !use_velocity) {
           continue;
         }
         /* Liquid geometry objects don't need emission application after first frame. */
