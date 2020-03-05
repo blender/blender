@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring> /* required for STREQ later on. */
-#include <deque>
 #include <unordered_set>
 
 #include "MEM_guardedalloc.h"
@@ -121,7 +120,6 @@ extern "C" {
 
 namespace DEG {
 
-using std::deque;
 using std::unordered_set;
 
 /* ***************** */

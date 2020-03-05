@@ -23,9 +23,6 @@
  * Implementation of Querying and Filtering API's
  */
 
-// TODO(sergey): Use some sort of wrapper.
-#include <deque>
-
 #include "MEM_guardedalloc.h"
 
 extern "C" {
@@ -51,7 +48,7 @@ extern "C" {
 namespace DEG {
 namespace {
 
-typedef std::deque<OperationNode *> TraversalQueue;
+typedef deque<OperationNode *> TraversalQueue;
 enum {
   DEG_NODE_VISITED = (1 << 0),
 };

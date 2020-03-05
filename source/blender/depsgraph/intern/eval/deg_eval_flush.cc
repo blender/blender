@@ -25,8 +25,6 @@
 
 #include "intern/eval/deg_eval_flush.h"
 
-// TODO(sergey): Use some sort of wrapper.
-#include <deque>
 #include <cmath>
 
 #include "BLI_utildefines.h"
@@ -50,6 +48,7 @@ extern "C" {
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_relation.h"
+#include "intern/depsgraph_type.h"
 #include "intern/depsgraph_update.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
@@ -84,7 +83,7 @@ enum {
   COMPONENT_STATE_DONE = 2,
 };
 
-typedef std::deque<OperationNode *> FlushQueue;
+typedef deque<OperationNode *> FlushQueue;
 
 namespace {
 

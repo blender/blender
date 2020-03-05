@@ -34,6 +34,7 @@
 /* TODO(sergey): Ideally we'll just use char* and statically allocated strings
  * to avoid any possible overhead caused by string (re)allocation/formatting. */
 #include <string>
+#include <deque>
 #include <vector>
 #include <algorithm>
 #include <map>
@@ -47,6 +48,7 @@ struct CustomData_MeshMasks;
 namespace DEG {
 
 /* Commonly used types. */
+using std::deque;
 using std::map;
 using std::pair;
 using std::set;
