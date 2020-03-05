@@ -1212,6 +1212,7 @@ static void sculpt_update_object(
 
   ss->deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
   ss->show_mask = (sd->flags & SCULPT_HIDE_MASK) == 0;
+  ss->show_face_sets = (sd->flags & SCULPT_HIDE_FACE_SETS) == 0;
 
   ss->building_vp_handle = false;
 
@@ -1251,6 +1252,16 @@ static void sculpt_update_object(
     ss->mloop = me->mloop;
     ss->multires = NULL;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
+
+    /* Sculpt Face Sets. */
+    if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
+      ss->face_sets = CustomData_add_layer(
+          &me->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, me->totpoly);
+      for (int i = 0; i < me->totpoly; i++) {
+        ss->face_sets[i] = 1;
+      }
+    }
+    ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
   }
 
   ss->subdiv_ccg = me_eval->runtime.subdiv_ccg;
@@ -1265,6 +1276,7 @@ static void sculpt_update_object(
   }
 
   pbvh_show_mask_set(ss->pbvh, ss->show_mask);
+  pbvh_show_face_sets_set(ss->pbvh, ss->show_face_sets);
 
   if (ss->deform_modifiers_active) {
     if (!ss->orig_cos) {
@@ -1501,6 +1513,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
                        ob->sculpt->cd_vert_node_offset,
                        ob->sculpt->cd_face_node_offset);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
+  pbvh_show_face_sets_set(pbvh, false);
   return pbvh;
 }
 
@@ -1522,10 +1535,12 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
                       me->totvert,
                       &me->vdata,
                       &me->ldata,
+                      &me->pdata,
                       looptri,
                       looptris_num);
 
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
+  pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != NULL) {
@@ -1551,6 +1566,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
                        subdiv_ccg->grid_flag_mats,
                        subdiv_ccg->grid_hidden);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
+  pbvh_show_face_sets_set(pbvh, false);
   return pbvh;
 }
 

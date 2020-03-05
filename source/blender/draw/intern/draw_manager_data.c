@@ -823,6 +823,7 @@ typedef struct DRWSculptCallbackData {
   bool use_wire;
   bool use_mats;
   bool use_mask;
+  bool use_fsets;
   bool fast_mode; /* Set by draw manager. Do not init. */
 
   int debug_node_nr;
@@ -843,11 +844,6 @@ static float sculpt_debug_colors[9][4] = {
 
 static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers)
 {
-  /* Meh... use_mask is a bit misleading here. */
-  if (scd->use_mask && !GPU_pbvh_buffers_has_mask(buffers)) {
-    return;
-  }
-
   GPUBatch *geom = GPU_pbvh_buffers_batch_get(buffers, scd->fast_mode, scd->use_wire);
   short index = 0;
 

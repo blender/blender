@@ -35,6 +35,8 @@
 
 #include "BLT_translation.h"
 
+#include "PIL_time.h"
+
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -217,6 +219,249 @@ static void sculpt_active_vertex_normal_get(SculptSession *ss, float normal[3])
 {
   sculpt_vertex_normal_get(ss, sculpt_active_vertex_get(ss), normal);
 }
+
+/* Sculpt Face Sets and Visibility*/
+
+static void sculpt_vertex_visible_set(SculptSession *ss, int index, bool visible)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      SET_FLAG_FROM_TEST(ss->mvert[index].flag, !visible, ME_HIDE);
+      ss->mvert[index].flag |= ME_VERT_PBVH_UPDATE;
+      break;
+    case PBVH_BMESH:
+      BM_elem_flag_set(BM_vert_at_index(ss->bm, index), BM_ELEM_HIDDEN, !visible);
+      break;
+    case PBVH_GRIDS:
+      break;
+  }
+}
+
+static bool sculpt_vertex_visible_get(SculptSession *ss, int index)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return !(ss->mvert[index].flag & ME_HIDE);
+    case PBVH_BMESH:
+      return !BM_elem_flag_test(BM_vert_at_index(ss->bm, index), BM_ELEM_HIDDEN);
+    case PBVH_GRIDS:
+      return true;
+  }
+  return true;
+}
+
+static void sculpt_face_set_visibility_set(SculptSession *ss, int face_set, bool visible)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      for (int i = 0; i < ss->totpoly; i++) {
+        if (abs(ss->face_sets[i]) == face_set) {
+          if (visible) {
+            ss->face_sets[i] = abs(ss->face_sets[i]);
+          }
+          else {
+            ss->face_sets[i] = -abs(ss->face_sets[i]);
+          }
+        }
+      }
+      break;
+    case PBVH_BMESH:
+      break;
+    case PBVH_GRIDS:
+      break;
+  }
+}
+
+static void sculpt_face_sets_visibility_invert(SculptSession *ss)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      for (int i = 0; i < ss->totpoly; i++) {
+        ss->face_sets[i] *= -1;
+      }
+      break;
+    case PBVH_BMESH:
+      break;
+    case PBVH_GRIDS:
+      break;
+  }
+}
+
+static void sculpt_face_sets_visibility_all_set(SculptSession *ss, bool visible)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      for (int i = 0; i < ss->totpoly; i++) {
+        if (visible) {
+          ss->face_sets[i] = abs(ss->face_sets[i]);
+        }
+        else {
+          ss->face_sets[i] = -abs(ss->face_sets[i]);
+        }
+      }
+      break;
+    case PBVH_BMESH:
+      break;
+    case PBVH_GRIDS:
+      break;
+  }
+}
+
+static bool sculpt_vertex_visibility_from_face_sets_get(SculptSession *ss, int index)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      MeshElemMap *vert_map = &ss->pmap[index];
+      for (int j = 0; j < ss->pmap[index].count; j++) {
+        if (ss->face_sets[vert_map->indices[j]] > 0) {
+          return true;
+        }
+      }
+      return false;
+    }
+    case PBVH_BMESH:
+      return true;
+    case PBVH_GRIDS:
+      return true;
+  }
+  return true;
+}
+
+static void sculpt_vertex_face_set_set(SculptSession *ss, int index, int face_set)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      MeshElemMap *vert_map = &ss->pmap[index];
+      for (int j = 0; j < ss->pmap[index].count; j++) {
+        if (ss->face_sets[vert_map->indices[j]] > 0) {
+          ss->face_sets[vert_map->indices[j]] = abs(face_set);
+        }
+        else {
+          ss->face_sets[vert_map->indices[j]] = -abs(face_set);
+        }
+      }
+    } break;
+    case PBVH_BMESH:
+      break;
+    case PBVH_GRIDS:
+      break;
+  }
+}
+
+static int sculpt_vertex_face_set_get(SculptSession *ss, int index)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      MeshElemMap *vert_map = &ss->pmap[index];
+      int face_set = 0;
+      for (int i = 0; i < ss->pmap[index].count; i++) {
+        if (ss->face_sets[vert_map->indices[i]] > face_set) {
+          face_set = abs(ss->face_sets[vert_map->indices[i]]);
+        }
+      }
+      return face_set;
+    }
+    case PBVH_BMESH:
+      return 0;
+    case PBVH_GRIDS:
+      return 0;
+  }
+  return 0;
+}
+
+static bool sculpt_vertex_has_face_set(SculptSession *ss, int index, int face_set)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      MeshElemMap *vert_map = &ss->pmap[index];
+      for (int i = 0; i < ss->pmap[index].count; i++) {
+        if (ss->face_sets[vert_map->indices[i]] == face_set) {
+          return true;
+        }
+      }
+      return false;
+    }
+    case PBVH_BMESH:
+      return true;
+    case PBVH_GRIDS:
+      return true;
+  }
+  return true;
+}
+
+static void sculpt_visibility_sync_face_sets_to_vertex(SculptSession *ss, int index)
+{
+  sculpt_vertex_visible_set(ss, index, sculpt_vertex_visibility_from_face_sets_get(ss, index));
+}
+
+void sculpt_visibility_sync_all_face_sets_to_vertices(SculptSession *ss)
+{
+  for (int i = 0; i < ss->totvert; i++) {
+    sculpt_visibility_sync_face_sets_to_vertex(ss, i);
+  }
+}
+
+static void sculpt_visibility_sync_vertex_to_face_sets(SculptSession *ss, int index)
+{
+  MeshElemMap *vert_map = &ss->pmap[index];
+  const bool visible = sculpt_vertex_visible_get(ss, index);
+  for (int i = 0; i < ss->pmap[index].count; i++) {
+    if (visible) {
+      ss->face_sets[vert_map->indices[i]] = abs(ss->face_sets[vert_map->indices[i]]);
+    }
+    else {
+      ss->face_sets[vert_map->indices[i]] = -abs(ss->face_sets[vert_map->indices[i]]);
+    }
+  }
+  ss->mvert[index].flag |= ME_VERT_PBVH_UPDATE;
+}
+
+void sculpt_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
+{
+  for (int i = 0; i < ss->totvert; i++) {
+    sculpt_visibility_sync_vertex_to_face_sets(ss, i);
+  }
+}
+
+static bool UNUSED_FUNCTION(sculpt_vertex_has_unique_face_set)(SculptSession *ss, int index)
+{
+  MeshElemMap *vert_map = &ss->pmap[index];
+  int face_set = -1;
+  for (int i = 0; i < ss->pmap[index].count; i++) {
+    if (face_set == -1) {
+      face_set = ss->face_sets[vert_map->indices[i]];
+    }
+    else {
+      if (ss->face_sets[vert_map->indices[i]] != face_set) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+static int sculpt_face_set_next_available_get(SculptSession *ss)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      int next_face_set = 0;
+      for (int i = 0; i < ss->totpoly; i++) {
+        if (abs(ss->face_sets[i]) > next_face_set) {
+          next_face_set = abs(ss->face_sets[i]);
+        }
+      }
+      next_face_set++;
+      return next_face_set;
+    }
+    case PBVH_BMESH:
+      return 0;
+    case PBVH_GRIDS:
+      return 0;
+  }
+  return 0;
+}
+
+/* Sculpt Neighbor Iterators */
 
 #define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
 
@@ -609,8 +854,12 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
 
 static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
 {
-  return ELEM(
-      sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_LAYER, SCULPT_TOOL_POSE, SCULPT_TOOL_CLOTH);
+  return ELEM(sculpt_tool,
+              SCULPT_TOOL_SMOOTH,
+              SCULPT_TOOL_LAYER,
+              SCULPT_TOOL_POSE,
+              SCULPT_TOOL_CLOTH,
+              SCULPT_TOOL_DRAW_FACE_SETS);
 }
 
 static bool sculpt_brush_use_topology_rake(const SculptSession *ss, const Brush *brush)
@@ -1219,6 +1468,9 @@ static bool sculpt_automasking_enabled(SculptSession *ss, const Brush *br)
   if (br->automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
     return true;
   }
+  if (br->automasking_flags & BRUSH_AUTOMASKING_FACE_SETS) {
+    return true;
+  }
   return false;
 }
 
@@ -1305,6 +1557,34 @@ static float *sculpt_topology_automasking_init(Sculpt *sd, Object *ob, float *au
   return automask_factor;
 }
 
+static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *automask_factor)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (!sculpt_automasking_enabled(ss, brush)) {
+    return NULL;
+  }
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
+    BLI_assert(!"Face Sets automasking: pmap missing");
+    return NULL;
+  }
+
+  int tot_vert = sculpt_vertex_count_get(ss);
+  int active_face_set = sculpt_vertex_face_set_get(ss, sculpt_active_vertex_get(ss));
+  for (int i = 0; i < tot_vert; i++) {
+    if (sculpt_vertex_has_face_set(ss, i, active_face_set)) {
+      automask_factor[i] = 1;
+    }
+    else {
+      automask_factor[i] = 0;
+    }
+  }
+
+  return automask_factor;
+}
+
 static void sculpt_automasking_init(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -1316,6 +1596,10 @@ static void sculpt_automasking_init(Sculpt *sd, Object *ob)
   if (brush->automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
     sculpt_vertex_random_access_init(ss);
     sculpt_topology_automasking_init(sd, ob, ss->cache->automask);
+  }
+  if (brush->automasking_flags & BRUSH_AUTOMASKING_FACE_SETS) {
+    sculpt_vertex_random_access_init(ss);
+    sculpt_face_sets_automasking_init(sd, ob, ss->cache->automask);
   }
 }
 
@@ -1796,6 +2080,8 @@ static float brush_strength(const Sculpt *sd,
          * brush and object. */
         return 10.0f * alpha * flip * pressure * overlap * feather;
       }
+    case SCULPT_TOOL_DRAW_FACE_SETS:
+      return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_SLIDE_RELAX:
       return alpha * pressure * overlap * feather * 2.0f;
     case SCULPT_TOOL_CLAY_STRIPS:
@@ -2967,6 +3253,74 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
   BKE_pbvh_parallel_range(0, totnode, &data, do_draw_brush_task_cb_ex, &settings);
+}
+
+static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
+                                               const int n,
+                                               const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float bstrength = ss->cache->bstrength;
+
+  PBVHVertexIter vd;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = sculpt_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      const float fade = bstrength * tex_strength(ss,
+                                                  brush,
+                                                  vd.co,
+                                                  sqrtf(test.dist),
+                                                  vd.no,
+                                                  vd.fno,
+                                                  vd.mask ? *vd.mask : 0.0f,
+                                                  vd.index,
+                                                  tls->thread_id);
+
+      if (fade > 0.05f) {
+        sculpt_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
+      }
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0 &&
+      ss->cache->radial_symmetry_pass == 0) {
+    if (ss->cache->invert) {
+      /* When inverting the brush, pick the paint face mask ID from the mesh. */
+      ss->cache->paint_face_set = sculpt_vertex_face_set_get(ss, sculpt_active_vertex_get(ss));
+    }
+    else {
+      /* By default create a new Face Sets. */
+      ss->cache->paint_face_set = sculpt_face_set_next_available_get(ss);
+    }
+  }
+
+  BKE_curvemapping_initialize(brush->curve);
+
+  /* Threaded loop over nodes. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+  };
+
+  PBVHParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+  BKE_pbvh_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
 }
 
 static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
@@ -5684,10 +6038,13 @@ static void do_brush_action_task_cb(void *__restrict userdata,
 {
   SculptThreadedTaskData *data = userdata;
 
-  sculpt_undo_push_node(data->ob,
-                        data->nodes[n],
-                        data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                       SCULPT_UNDO_COORDS);
+  /* Face Sets modifications do a single undo push */
+  if (data->brush->sculpt_tool != SCULPT_TOOL_DRAW_FACE_SETS) {
+    sculpt_undo_push_node(data->ob,
+                          data->nodes[n],
+                          data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
+                                                                         SCULPT_UNDO_COORDS);
+  }
   if (data->brush->sculpt_tool == SCULPT_TOOL_MASK) {
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
@@ -5750,6 +6107,11 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     PBVHParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
     BKE_pbvh_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
+
+    if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS && ss->cache->first_time &&
+        ss->cache->mirror_symmetry_pass == 0) {
+      sculpt_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+    }
 
     if (sculpt_brush_needs_normal(ss, brush)) {
       update_sculpt_normal(sd, ob, nodes, totnode);
@@ -5858,6 +6220,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         break;
       case SCULPT_TOOL_CLOTH:
         SCULPT_do_cloth_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_DRAW_FACE_SETS:
+        do_draw_face_sets_brush(sd, ob, nodes, totnode);
         break;
     }
 
@@ -6383,6 +6748,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Slide/Relax Brush";
     case SCULPT_TOOL_CLOTH:
       return "Cloth Brush";
+    case SCULPT_TOOL_DRAW_FACE_SETS:
+      return "Draw Face Sets";
   }
 
   return "Sculpting";
@@ -6923,7 +7290,8 @@ static bool sculpt_needs_connectivity_info(const Brush *brush, SculptSession *ss
           ((brush->sculpt_tool == SCULPT_TOOL_MASK) && (brush->mask_tool == BRUSH_MASK_SMOOTH)) ||
           (brush->sculpt_tool == SCULPT_TOOL_POSE) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
-          (brush->sculpt_tool == SCULPT_TOOL_CLOTH));
+          (brush->sculpt_tool == SCULPT_TOOL_CLOTH) ||
+          (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS));
 }
 
 static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
@@ -8931,6 +9299,9 @@ static void sculpt_filter_cache_free(SculptSession *ss)
   if (ss->filter_cache->normal_factor) {
     MEM_freeN(ss->filter_cache->normal_factor);
   }
+  if (ss->filter_cache->prev_face_set) {
+    MEM_freeN(ss->filter_cache->prev_face_set);
+  }
   MEM_freeN(ss->filter_cache);
   ss->filter_cache = NULL;
 }
@@ -8998,12 +9369,19 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       continue;
     }
 
+    if (ss->filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
+      if (!sculpt_vertex_has_face_set(ss, vd.index, ss->filter_cache->active_face_set)) {
+        continue;
+      }
+    }
+
     if (filter_type == MESH_FILTER_RELAX) {
       copy_v3_v3(orig_co, vd.co);
     }
     else {
       copy_v3_v3(orig_co, orig_data.co);
     }
+
     switch (filter_type) {
       case MESH_FILTER_SMOOTH:
         CLAMP(fade, -1.0f, 1.0f);
@@ -9144,7 +9522,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -9156,6 +9534,15 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   int deform_axis = RNA_enum_get(op->ptr, "deform_axis");
   if (deform_axis == 0) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (RNA_boolean_get(op->ptr, "use_face_sets")) {
+    /* Update the active vertex */
+    float mouse[2];
+    SculptCursorGeometryInfo sgi;
+    mouse[0] = event->mval[0];
+    mouse[1] = event->mval[1];
+    sculpt_cursor_geometry_info_update(C, &sgi, mouse, false);
   }
 
   sculpt_vertex_random_access_init(ss);
@@ -9170,6 +9557,14 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   sculpt_undo_push_begin("Mesh filter");
 
   sculpt_filter_cache_init(ob, sd);
+
+  if (RNA_boolean_get(op->ptr, "use_face_sets")) {
+    ss->filter_cache->active_face_set = sculpt_vertex_face_set_get(ss,
+                                                                   sculpt_active_vertex_get(ss));
+  }
+  else {
+    ss->filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
+  }
 
   ss->filter_cache->enabled_axis[0] = deform_axis & MESH_FILTER_DEFORM_X;
   ss->filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
@@ -9208,6 +9603,11 @@ static void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
                     MESH_FILTER_DEFORM_X | MESH_FILTER_DEFORM_Y | MESH_FILTER_DEFORM_Z,
                     "Deform axis",
                     "Apply the deformation in the selected axis");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_face_sets",
+                             false,
+                             "Use Face Sets",
+                             "Apply the filter only to the Face Mask under the cursor");
 }
 
 typedef enum eSculptMaskFilterTypes {
@@ -9617,7 +10017,7 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
-  BKE_pbvh_update_vertex_data(pbvh, SCULPT_UPDATE_MASK);
+  BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
   sculpt_undo_push_end();
 
@@ -9705,20 +10105,29 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
       }
     }
 
-    if (data->mask_expand_keep_prev_mask) {
-      final_mask = MAX2(ss->filter_cache->prev_mask[vd.index], final_mask);
-    }
-
-    if (data->mask_expand_invert_mask) {
-      final_mask = 1.0f - final_mask;
-    }
-
-    if (*vd.mask != final_mask) {
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    if (data->mask_expand_create_face_set) {
+      if (final_mask == 1.0f) {
+        sculpt_vertex_face_set_set(ss, vd.index, ss->filter_cache->new_face_set);
       }
-      *vd.mask = final_mask;
-      BKE_pbvh_node_mark_update_mask(node);
+      BKE_pbvh_node_mark_redraw(node);
+    }
+    else {
+
+      if (data->mask_expand_keep_prev_mask) {
+        final_mask = MAX2(ss->filter_cache->prev_mask[vd.index], final_mask);
+      }
+
+      if (data->mask_expand_invert_mask) {
+        final_mask = 1.0f - final_mask;
+      }
+
+      if (*vd.mask != final_mask) {
+        if (vd.mvert) {
+          vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+        }
+        *vd.mask = final_mask;
+        BKE_pbvh_node_mark_update_mask(node);
+      }
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -9730,6 +10139,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  ARegion *ar = CTX_wm_region(C);
   float prevclick_f[2];
   copy_v2_v2(prevclick_f, op->customdata);
   int prevclick[2] = {(int)prevclick_f[0], (int)prevclick_f[1]};
@@ -9738,6 +10148,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
   int mask_speed = RNA_int_get(op->ptr, "mask_speed");
   int mask_expand_update_it = len / mask_speed;
   mask_expand_update_it = mask_expand_update_it + 1;
+
+  const bool create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
 
   if (RNA_boolean_get(op->ptr, "use_cursor")) {
     SculptCursorGeometryInfo sgi;
@@ -9823,15 +10235,28 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_FINISHED;
   }
 
-  if (event->type != MOUSEMOVE) {
+  /* When pressing Ctrl, expand directly to the max number of iterations. This allows to flood fill
+   * mask and face sets by connectivity directly. */
+  if (event->ctrl) {
+    mask_expand_update_it = ss->filter_cache->mask_update_last_it - 1;
+  }
+
+  if (!ELEM(event->type, MOUSEMOVE, LEFTCTRLKEY, RIGHTCTRLKEY)) {
     return OPERATOR_RUNNING_MODAL;
   }
 
   if (mask_expand_update_it == ss->filter_cache->mask_update_current_it) {
+    ED_region_tag_redraw(ar);
     return OPERATOR_RUNNING_MODAL;
   }
 
   if (mask_expand_update_it < ss->filter_cache->mask_update_last_it) {
+
+    if (create_face_set) {
+      for (int i = 0; i < ss->totpoly; i++) {
+        ss->face_sets[i] = ss->filter_cache->prev_face_set[i];
+      }
+    }
     SculptThreadedTaskData data = {
         .sd = sd,
         .ob = ob,
@@ -9840,6 +10265,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
         .mask_expand_use_normals = RNA_boolean_get(op->ptr, "use_normals"),
         .mask_expand_invert_mask = RNA_boolean_get(op->ptr, "invert"),
         .mask_expand_keep_prev_mask = RNA_boolean_get(op->ptr, "keep_previous_mask"),
+        .mask_expand_create_face_set = RNA_boolean_get(op->ptr, "create_face_set"),
     };
     PBVHParallelSettings settings;
     BKE_pbvh_parallel_range_settings(
@@ -9903,7 +10329,8 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
 
-  bool use_normals = RNA_boolean_get(op->ptr, "use_normals");
+  const bool use_normals = RNA_boolean_get(op->ptr, "use_normals");
+  const bool create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
 
   SculptCursorGeometryInfo sgi;
   float mouse[2];
@@ -9927,9 +10354,17 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   sculpt_undo_push_begin("Mask Expand");
 
-  for (int i = 0; i < ss->filter_cache->totnode; i++) {
-    sculpt_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_MASK);
-    BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
+  if (create_face_set) {
+    sculpt_undo_push_node(ob, ss->filter_cache->nodes[0], SCULPT_UNDO_FACE_SETS);
+    for (int i = 0; i < ss->filter_cache->totnode; i++) {
+      BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
+    }
+  }
+  else {
+    for (int i = 0; i < ss->filter_cache->totnode; i++) {
+      sculpt_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_MASK);
+      BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
+    }
   }
 
   ss->filter_cache->mask_update_it = MEM_callocN(sizeof(int) * vertex_count,
@@ -9944,9 +10379,18 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
     }
   }
 
-  ss->filter_cache->prev_mask = MEM_callocN(sizeof(float) * vertex_count, "prev mask");
-  for (int i = 0; i < vertex_count; i++) {
-    ss->filter_cache->prev_mask[i] = sculpt_vertex_mask_get(ss, i);
+  if (create_face_set) {
+    ss->filter_cache->prev_face_set = MEM_callocN(sizeof(float) * ss->totpoly, "prev face mask");
+    for (int i = 0; i < ss->totpoly; i++) {
+      ss->filter_cache->prev_face_set[i] = ss->face_sets[i];
+    }
+    ss->filter_cache->new_face_set = sculpt_face_set_next_available_get(ss);
+  }
+  else {
+    ss->filter_cache->prev_mask = MEM_callocN(sizeof(float) * vertex_count, "prev mask");
+    for (int i = 0; i < vertex_count; i++) {
+      ss->filter_cache->prev_mask[i] = sculpt_vertex_mask_get(ss, i);
+    }
   }
 
   ss->filter_cache->mask_update_last_it = 1;
@@ -9992,6 +10436,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
       .mask_expand_use_normals = RNA_boolean_get(op->ptr, "use_normals"),
       .mask_expand_invert_mask = RNA_boolean_get(op->ptr, "invert"),
       .mask_expand_keep_prev_mask = RNA_boolean_get(op->ptr, "keep_previous_mask"),
+      .mask_expand_create_face_set = RNA_boolean_get(op->ptr, "create_face_set"),
   };
   PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(
@@ -10053,6 +10498,11 @@ static void SCULPT_OT_mask_expand(wmOperatorType *ot)
                          "using normals to generate the mask",
                          0,
                          2000);
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "create_face_set",
+                             false,
+                             "Expand Face Mask",
+                             "Expand a new Face Mask instead of the sculpt mask");
 }
 
 void sculpt_geometry_preview_lines_update(bContext *C, SculptSession *ss, float radius)
@@ -10437,6 +10887,356 @@ static void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
                 10000.0f);
 }
 
+typedef enum eSculptFaceGroupsCreateModes {
+  SCULPT_FACE_SET_MASKED = 0,
+  SCULPT_FACE_SET_VISIBLE = 1,
+  SCULPT_FACE_SET_ALL = 2,
+} eSculptFaceGroupsCreateModes;
+
+static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
+    {
+        SCULPT_FACE_SET_MASKED,
+        "MASKED",
+        0,
+        "Face Mask From Masked",
+        "Create a new Face Mask from the masked faces",
+    },
+    {
+        SCULPT_FACE_SET_VISIBLE,
+        "VISIBLE",
+        0,
+        "Face Mask From Visible",
+        "Create a new Face Mask from the visible vertices",
+    },
+    {
+        SCULPT_FACE_SET_ALL,
+        "ALL",
+        0,
+        "Face Mask Full Mesh",
+        "Create an unique Face Mask with all faces in the sculpt",
+    },
+    {0, NULL, 0, NULL, NULL},
+};
+
+static int sculpt_face_set_create_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  ARegion *ar = CTX_wm_region(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+
+  const int mode = RNA_enum_get(op->ptr, "mode");
+
+  /* Dyntopo and Multires not supported for now. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED);
+
+  const int tot_vert = sculpt_vertex_count_get(ss);
+  float threshold = 0.5f;
+
+  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+
+  if (!nodes) {
+    return OPERATOR_CANCELLED;
+  }
+
+  sculpt_undo_push_begin("face mask change");
+  sculpt_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+
+  const int next_face_set = sculpt_face_set_next_available_get(ss);
+
+  if (mode == SCULPT_FACE_SET_MASKED) {
+    for (int i = 0; i < tot_vert; i++) {
+      if (sculpt_vertex_mask_get(ss, i) >= threshold) {
+        sculpt_vertex_face_set_set(ss, i, next_face_set);
+      }
+    }
+  }
+
+  if (mode == SCULPT_FACE_SET_VISIBLE) {
+    for (int i = 0; i < tot_vert; i++) {
+      if (sculpt_vertex_visible_get(ss, i)) {
+        sculpt_vertex_face_set_set(ss, i, next_face_set);
+      }
+    }
+  }
+
+  if (mode == SCULPT_FACE_SET_ALL) {
+    for (int i = 0; i < tot_vert; i++) {
+      sculpt_vertex_face_set_set(ss, i, next_face_set);
+    }
+  }
+
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_redraw(nodes[i]);
+  }
+
+  MEM_SAFE_FREE(nodes);
+
+  sculpt_undo_push_end();
+
+  ED_region_tag_redraw(ar);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_face_sets_create(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Create Face Group";
+  ot->idname = "SCULPT_OT_face_sets_create";
+  ot->description = "Create a new Face Group";
+
+  /* api callbacks */
+  ot->invoke = sculpt_face_set_create_invoke;
+  ot->poll = sculpt_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(
+      ot->srna, "mode", prop_sculpt_face_set_create_types, SCULPT_FACE_SET_MASKED, "Mode", "");
+}
+
+typedef enum eSculptFaceGroupVisibilityModes {
+  SCULPT_FACE_SET_VISIBILITY_TOGGLE = 0,
+  SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE = 1,
+  SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE = 2,
+  SCULPT_FACE_SET_VISIBILITY_INVERT = 3,
+  SCULPT_FACE_SET_VISIBILITY_SHOW_ALL = 4,
+} eSculptFaceGroupVisibilityModes;
+
+static EnumPropertyItem prop_sculpt_face_sets_change_visibility_types[] = {
+    {
+        SCULPT_FACE_SET_VISIBILITY_TOGGLE,
+        "TOGGLE",
+        0,
+        "Toggle Visibility",
+        "Hide all Face Sets except for the active one",
+    },
+    {
+        SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE,
+        "SHOW_ACTIVE",
+        0,
+        "Show Active Face Mask",
+        "Show Active Face Mask",
+    },
+    {
+        SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE,
+        "HIDE_ACTIVE",
+        0,
+        "Hide Active Face Sets",
+        "Hide Active Face Sets",
+    },
+    {
+        SCULPT_FACE_SET_VISIBILITY_INVERT,
+        "INVERT",
+        0,
+        "Invert Face Mask Visibility",
+        "Invert Face Mask Visibility",
+    },
+    {
+        SCULPT_FACE_SET_VISIBILITY_SHOW_ALL,
+        "SHOW_ALL",
+        0,
+        "Show All Face Sets",
+        "Show All Face Sets",
+    },
+    {0, NULL, 0, NULL, NULL},
+};
+
+static int sculpt_face_sets_change_visibility_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *UNUSED(event))
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  ARegion *ar = CTX_wm_region(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+
+  /* Dyntopo and Multires not supported for now. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true);
+
+  const int tot_vert = sculpt_vertex_count_get(ss);
+  const int mode = RNA_enum_get(op->ptr, "mode");
+  int active_vertex_index = sculpt_active_vertex_get(ss);
+  int active_face_set = sculpt_vertex_face_set_get(ss, active_vertex_index);
+
+  sculpt_undo_push_begin("Hide area");
+
+  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVHNode **nodes;
+  int totnode;
+
+  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+
+  if (totnode == 0) {
+    MEM_SAFE_FREE(nodes);
+    return OPERATOR_CANCELLED;
+  }
+
+  sculpt_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+
+  if (mode == SCULPT_FACE_SET_VISIBILITY_TOGGLE) {
+    bool hidden_vertex = false;
+    for (int i = 0; i < tot_vert; i++) {
+      if (!sculpt_vertex_visible_get(ss, i)) {
+        hidden_vertex = true;
+        break;
+      }
+    }
+
+    for (int i = 0; i < ss->totpoly; i++) {
+      if (ss->face_sets[i] < 0) {
+        hidden_vertex = true;
+        break;
+      }
+    }
+    if (hidden_vertex) {
+      sculpt_face_sets_visibility_all_set(ss, true);
+    }
+    else {
+      sculpt_face_sets_visibility_all_set(ss, false);
+      sculpt_face_set_visibility_set(ss, active_face_set, true);
+    }
+  }
+
+  if (mode == SCULPT_FACE_SET_VISIBILITY_SHOW_ALL) {
+    sculpt_face_sets_visibility_all_set(ss, true);
+  }
+
+  if (mode == SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE) {
+    sculpt_face_sets_visibility_all_set(ss, false);
+    sculpt_face_set_visibility_set(ss, active_face_set, true);
+    for (int i = 0; i < tot_vert; i++) {
+      sculpt_vertex_visible_set(ss,
+                                i,
+                                sculpt_vertex_visible_get(ss, i) &&
+                                    sculpt_vertex_has_face_set(ss, i, active_face_set));
+    }
+  }
+
+  if (mode == SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE) {
+    sculpt_face_set_visibility_set(ss, active_face_set, false);
+  }
+
+  if (mode == SCULPT_FACE_SET_VISIBILITY_INVERT) {
+    sculpt_face_sets_visibility_invert(ss);
+  }
+
+  /* Sync face mask visibility and vertex visibility. */
+  sculpt_visibility_sync_all_face_sets_to_vertices(ss);
+
+  sculpt_undo_push_end();
+
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_update_visibility(nodes[i]);
+  }
+
+  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+
+  MEM_SAFE_FREE(nodes);
+
+  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
+    BKE_mesh_flush_hidden_from_verts(ob->data);
+  }
+
+  ED_region_tag_redraw(ar);
+
+  View3D *v3d = CTX_wm_view3d(C);
+  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Face Mask Visibility";
+  ot->idname = "SCULPT_OT_face_set_change_visibility";
+  ot->description = "Change the visibility of the Face Sets of the sculpt";
+
+  /* Api callbacks. */
+  ot->invoke = sculpt_face_sets_change_visibility_invoke;
+  ot->poll = sculpt_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna,
+               "mode",
+               prop_sculpt_face_sets_change_visibility_types,
+               SCULPT_FACE_SET_VISIBILITY_TOGGLE,
+               "Mode",
+               "");
+}
+
+static int sculpt_face_sets_randomize_colors_invoke(bContext *C,
+                                                    wmOperator *UNUSED(op),
+                                                    const wmEvent *UNUSED(event))
+{
+
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  ARegion *ar = CTX_wm_region(C);
+
+  /* Dyntopo and Multires not supported for now. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return OPERATOR_CANCELLED;
+  }
+
+  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVHNode **nodes;
+  int totnode;
+  Mesh *mesh = ob->data;
+
+  int new_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
+  mesh->face_sets_color_seed = new_seed;
+  BKE_pbvh_face_sets_color_seed_set(pbvh, new_seed);
+
+  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_redraw(nodes[i]);
+  }
+
+  MEM_SAFE_FREE(nodes);
+
+  View3D *v3d = CTX_wm_view3d(C);
+  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+  }
+
+  ED_region_tag_redraw(ar);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Randomize Face Sets Colors";
+  ot->idname = "SCULPT_OT_face_sets_randomize_colors";
+  ot->description = "Generates a new set of random colors to render the Face Sets in the viewport";
+
+  /* Api callbacks. */
+  ot->invoke = sculpt_face_sets_randomize_colors_invoke;
+  ot->poll = sculpt_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 void ED_operatortypes_sculpt(void)
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -10453,4 +11253,7 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_dirty_mask);
   WM_operatortype_append(SCULPT_OT_mask_expand);
   WM_operatortype_append(SCULPT_OT_set_pivot_position);
+  WM_operatortype_append(SCULPT_OT_face_sets_create);
+  WM_operatortype_append(SCULPT_OT_face_sets_change_visibility);
+  WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
 }

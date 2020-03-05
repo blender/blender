@@ -102,6 +102,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh,
                          int totvert,
                          struct CustomData *vdata,
                          struct CustomData *ldata,
+                         struct CustomData *pdata,
                          const struct MLoopTri *looptri,
                          int looptri_num);
 void BKE_pbvh_build_grids(PBVH *bvh,
@@ -244,10 +245,10 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *bvh,
 
 void BKE_pbvh_node_mark_update(PBVHNode *node);
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node);
+void BKE_pbvh_node_mark_update_visibility(PBVHNode *node);
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node);
 void BKE_pbvh_node_mark_redraw(PBVHNode *node);
 void BKE_pbvh_node_mark_normals_update(PBVHNode *node);
-void BKE_pbvh_node_mark_visibility_update(PBVHNode *node);
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node);
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
 void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked);
@@ -297,6 +298,8 @@ void BKE_pbvh_grids_update(PBVH *bvh,
                            void **gridfaces,
                            struct DMFlagMat *flagmats,
                            unsigned int **grid_hidden);
+
+void BKE_pbvh_face_sets_color_seed_set(PBVH *bvh, int seed);
 
 /* Layer displacement */
 
@@ -361,6 +364,7 @@ typedef struct PBVHVertexIter {
   short *no;
   float *fno;
   float *mask;
+  bool visible;
 } PBVHVertexIter;
 
 void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mode);
@@ -390,6 +394,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mo
           vi.mask = vi.key.has_mask ? CCG_elem_mask(&vi.key, vi.grid) : NULL; \
           vi.grid = CCG_elem_next(&vi.key, vi.grid); \
           vi.index++; \
+          vi.visible = true; \
           if (vi.gh) { \
             if (BLI_BITMAP_TEST(vi.gh, vi.gy * vi.gridsize + vi.gx)) \
               continue; \
@@ -397,7 +402,8 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mo
         } \
         else if (vi.mverts) { \
           vi.mvert = &vi.mverts[vi.vert_indices[vi.gx]]; \
-          if (mode == PBVH_ITER_UNIQUE && vi.mvert->flag & ME_HIDE) \
+          vi.visible = !(vi.mvert->flag & ME_HIDE); \
+          if (mode == PBVH_ITER_UNIQUE && !vi.visible) \
             continue; \
           vi.co = vi.mvert->co; \
           vi.no = vi.mvert->no; \
@@ -414,7 +420,8 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node, PBVHVertexIter *vi, int mo
             vi.bm_vert = BLI_gsetIterator_getKey(&vi.bm_other_verts); \
             BLI_gsetIterator_step(&vi.bm_other_verts); \
           } \
-          if (mode == PBVH_ITER_UNIQUE && BM_elem_flag_test(vi.bm_vert, BM_ELEM_HIDDEN)) \
+          vi.visible = !BM_elem_flag_test_bool(vi.bm_vert, BM_ELEM_HIDDEN); \
+          if (mode == PBVH_ITER_UNIQUE && !vi.visible) \
             continue; \
           vi.co = vi.bm_vert->co; \
           vi.fno = vi.bm_vert->no; \
@@ -444,6 +451,9 @@ bool BKE_pbvh_node_vert_update_check_any(PBVH *bvh, PBVHNode *node);
 
 bool pbvh_has_mask(PBVH *bvh);
 void pbvh_show_mask_set(PBVH *bvh, bool show_mask);
+
+bool pbvh_has_face_sets(PBVH *bvh);
+void pbvh_show_face_sets_set(PBVH *bvh, bool show_face_sets);
 
 /* Parallelization */
 typedef void (*PBVHParallelRangeFunc)(void *__restrict userdata,

@@ -3763,6 +3763,12 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+  prop = RNA_def_property(srna, "sculpt_mode_face_sets_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_opacity");
+  RNA_def_property_ui_text(prop, "Sculpt Face Sets Opacity", "");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   /* grease pencil paper settings */
   prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_ANNOTATION);

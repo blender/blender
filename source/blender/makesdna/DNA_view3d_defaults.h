@@ -59,6 +59,7 @@
     /* Intentionally different to vertex/paint mode, \
      * we typically want to see shading too. */ \
     .sculpt_mode_mask_opacity = 0.75f, \
+    .sculpt_mode_face_sets_opacity = 0.0f, \
  \
     .edit_flag = V3D_OVERLAY_EDIT_FACES | V3D_OVERLAY_EDIT_SEAMS | \
                              V3D_OVERLAY_EDIT_SHARP | V3D_OVERLAY_EDIT_FREESTYLE_EDGE | \

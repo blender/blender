@@ -805,6 +805,12 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowMask_update");
 
+  prop = RNA_def_property(srna, "show_face_sets", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flags", SCULPT_HIDE_FACE_SETS);
+  RNA_def_property_ui_text(prop, "Show Face Sets", "Show Face Sets as overlay on object");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowMask_update");
+
   prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
   RNA_def_property_ui_range(prop, 0.5, 40.0, 10, 2);
   RNA_def_property_ui_text(

@@ -54,6 +54,7 @@ bool sculpt_poll_view3d(struct bContext *C);
 typedef enum SculptUpdateType {
   SCULPT_UPDATE_COORDS = 1 << 0,
   SCULPT_UPDATE_MASK = 1 << 1,
+  SCULPT_UPDATE_VISIBILITY = 1 << 2,
 } SculptUpdateType;
 
 /* Stroke */
@@ -236,8 +237,16 @@ struct SculptPoseIKChain *SCULPT_pose_ik_chain_init(struct Sculpt *sd,
                                                     struct Brush *br,
                                                     const float initial_location[3],
                                                     const float radius);
-
 void SCULPT_pose_ik_chain_free(struct SculptPoseIKChain *ik_chain);
+
+/* Sculpt Visibility API */
+void sculpt_visibility_sync_all_face_sets_to_vertices(struct SculptSession *ss);
+void sculpt_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
+
+/* Dynamic topology */
+void sculpt_pbvh_clear(Object *ob);
+void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
+void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
 
 /* Undo */
 
@@ -249,6 +258,7 @@ typedef enum {
   SCULPT_UNDO_DYNTOPO_END,
   SCULPT_UNDO_DYNTOPO_SYMMETRIZE,
   SCULPT_UNDO_GEOMETRY,
+  SCULPT_UNDO_FACE_SETS,
 } SculptUndoType;
 
 typedef struct SculptUndoNode {
@@ -297,6 +307,9 @@ typedef struct SculptUndoNode {
   /* pivot */
   float pivot_pos[3];
   float pivot_rot[4];
+
+  /* Sculpt Face Sets */
+  int *face_sets;
 
   size_t undo_size;
 } SculptUndoNode;
@@ -386,6 +399,7 @@ typedef struct SculptThreadedTaskData {
   bool mask_expand_invert_mask;
   bool mask_expand_use_normals;
   bool mask_expand_keep_prev_mask;
+  bool mask_expand_create_face_set;
 
   float transform_mats[8][4][4];
 
@@ -394,6 +408,8 @@ typedef struct SculptThreadedTaskData {
   float dirty_mask_min;
   float dirty_mask_max;
   bool dirty_mask_dirty_only;
+
+  int face_set;
 
   ThreadMutex mutex;
 
@@ -528,6 +544,9 @@ typedef struct StrokeCache {
   bool is_rake_rotation_valid;
   struct SculptRakeData rake_data;
 
+  /* Face Sets */
+  int paint_face_set;
+
   /* Symmetry index between 0 and 7 bit combo 0 is Brush only;
    * 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   int symmetry;
@@ -612,6 +631,11 @@ typedef struct FilterCache {
   float *edge_factor;
   float *prev_mask;
   float mask_expand_initial_co[3];
+
+  int new_face_set;
+  int *prev_face_set;
+
+  int active_face_set;
 } FilterCache;
 
 void sculpt_cache_calc_brushdata_symm(StrokeCache *cache,

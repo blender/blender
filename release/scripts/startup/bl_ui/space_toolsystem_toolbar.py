@@ -1030,6 +1030,7 @@ class _defs_sculpt:
             layout.prop(props, "type", expand=False)
             layout.prop(props, "strength")
             layout.prop(props, "deform_axis")
+            layout.prop(props, "use_face_sets")
 
         return dict(
             idname="builtin.mesh_filter",

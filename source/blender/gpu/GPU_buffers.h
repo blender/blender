@@ -54,6 +54,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
                                               const struct MLoopTri *looptri,
                                               const struct MVert *verts,
                                               const int *face_indices,
+                                              const int *sculpt_facemap,
                                               const int face_indices_len,
                                               const struct Mesh *mesh);
 
@@ -70,7 +71,8 @@ void GPU_pbvh_grid_buffers_update_free(GPU_PBVH_Buffers *buffers,
 /* Update mesh buffers without topology changes. Threaded. */
 enum {
   GPU_PBVH_BUFFERS_SHOW_MASK = (1 << 1),
-  GPU_PBVH_BUFFERS_SHOW_VCOL = (1 << 1),
+  GPU_PBVH_BUFFERS_SHOW_VCOL = (1 << 2),
+  GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS = (1 << 3),
 };
 
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
@@ -79,6 +81,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   int totvert,
                                   const float *vmask,
                                   const struct MLoopCol *vcol,
+                                  const int *sculpt_face_sets,
+                                  const int face_sets_color_seed,
                                   const int (*face_vert_indices)[3],
                                   const int update_flags);
 

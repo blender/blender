@@ -356,6 +356,55 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
   free_bvhtree_from_mesh(&bvhtree);
 }
 
+void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
+{
+  BVHTreeFromMesh bvhtree = {
+      .nearest_callback = NULL,
+  };
+
+  const MPoly *target_polys = CustomData_get_layer(&target->pdata, CD_MPOLY);
+  const MVert *target_verts = CustomData_get_layer(&target->vdata, CD_MVERT);
+  const MLoop *target_loops = CustomData_get_layer(&target->ldata, CD_MLOOP);
+
+  int *target_face_sets;
+  if (CustomData_has_layer(&target->pdata, CD_SCULPT_FACE_SETS)) {
+    target_face_sets = CustomData_get_layer(&target->pdata, CD_SCULPT_FACE_SETS);
+  }
+  else {
+    target_face_sets = CustomData_add_layer(
+        &target->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, target->totpoly);
+  }
+
+  int *source_face_sets;
+  if (CustomData_has_layer(&source->pdata, CD_SCULPT_FACE_SETS)) {
+    source_face_sets = CustomData_get_layer(&source->pdata, CD_SCULPT_FACE_SETS);
+  }
+  else {
+    source_face_sets = CustomData_add_layer(
+        &source->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, source->totpoly);
+  }
+
+  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
+  BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_LOOPTRI, 2);
+
+  for (int i = 0; i < target->totpoly; i++) {
+    float from_co[3];
+    BVHTreeNearest nearest;
+    nearest.index = -1;
+    nearest.dist_sq = FLT_MAX;
+    const MPoly *mpoly = &target_polys[i];
+    BKE_mesh_calc_poly_center(mpoly, &target_loops[mpoly->loopstart], target_verts, from_co);
+    BLI_bvhtree_find_nearest(bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
+    if (nearest.index != -1) {
+      target_face_sets[i] = source_face_sets[looptri[nearest.index].poly];
+    }
+    else {
+      target_face_sets[i] = 1;
+    }
+  }
+  free_bvhtree_from_mesh(&bvhtree);
+}
+
 struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
 {
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);

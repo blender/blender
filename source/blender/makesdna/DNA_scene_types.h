@@ -2211,6 +2211,9 @@ typedef enum eSculptFlags {
 
   /* Don't display mask in viewport, but still use it for strokes. */
   SCULPT_HIDE_MASK = (1 << 15),
+
+  /* Don't display face sets in viewport. */
+  SCULPT_HIDE_FACE_SETS = (1 << 16),
 } eSculptFlags;
 
 /* ImagePaintSettings.mode */

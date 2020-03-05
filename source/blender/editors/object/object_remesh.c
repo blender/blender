@@ -138,14 +138,21 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     BKE_mesh_calc_normals(new_mesh);
   }
 
-  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
+  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME || mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK ||
+      mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS) {
     BKE_mesh_runtime_clear_geometry(mesh);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
     BKE_shrinkwrap_remesh_target_project(new_mesh, mesh, ob);
   }
 
   if (mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK) {
-    BKE_mesh_runtime_clear_geometry(mesh);
     BKE_mesh_remesh_reproject_paint_mask(new_mesh, mesh);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS) {
+    BKE_remesh_reproject_sculpt_face_sets(new_mesh, mesh);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);

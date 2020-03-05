@@ -210,9 +210,9 @@ typedef struct View3DOverlay {
   float vertex_paint_mode_opacity;
   float weight_paint_mode_opacity;
   float sculpt_mode_mask_opacity;
+  float sculpt_mode_face_sets_opacity;
 
   /** Armature edit/pose mode settings. */
-  int _pad3;
   float xray_alpha_bone;
 
   /** Other settings. */

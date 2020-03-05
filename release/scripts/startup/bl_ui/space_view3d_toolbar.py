@@ -846,6 +846,7 @@ class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
         col.prop(mesh, "use_remesh_smooth_normals")
         col.prop(mesh, "use_remesh_preserve_volume")
         col.prop(mesh, "use_remesh_preserve_paint_mask")
+        col.prop(mesh, "use_remesh_preserve_sculpt_face_sets")
         col.operator("object.voxel_remesh", text="Remesh")
 
 

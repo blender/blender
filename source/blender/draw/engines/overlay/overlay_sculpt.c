@@ -34,12 +34,14 @@ void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   DRWShadingGroup *grp;
 
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA;
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_MUL;
   DRW_PASS_CREATE(psl->sculpt_mask_ps, state | pd->clipping_state);
 
   GPUShader *sh = OVERLAY_shader_sculpt_mask();
   pd->sculpt_mask_grp = grp = DRW_shgroup_create(sh, psl->sculpt_mask_ps);
   DRW_shgroup_uniform_float_copy(grp, "maskOpacity", pd->overlay.sculpt_mode_mask_opacity);
+  DRW_shgroup_uniform_float_copy(
+      grp, "faceSetsOpacity", pd->overlay.sculpt_mode_face_sets_opacity);
 }
 
 void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
@@ -51,7 +53,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool use_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
 
   if (use_pbvh || !ob->sculpt->deform_modifiers_active || ob->sculpt->shapekey_active) {
-    if (!use_pbvh || pbvh_has_mask(pbvh)) {
+    if (!use_pbvh || pbvh_has_mask(pbvh) || pbvh_has_face_sets(pbvh)) {
       DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, false);
     }
   }
@@ -60,10 +62,10 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_sculpt_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
-  OVERLAY_FramebufferList *fbl = vedata->fbl;
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   if (DRW_state_is_fbo()) {
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
+    GPU_framebuffer_bind(dfbl->default_fb);
   }
 
   DRW_draw_pass(psl->sculpt_mask_ps);

@@ -218,6 +218,8 @@ void BKE_paint_toolslots_brush_update(struct Paint *paint);
 void BKE_paint_toolslots_brush_validate(struct Main *bmain, struct Paint *paint);
 struct Brush *BKE_paint_toolslots_brush_get(struct Paint *paint, int slot_index);
 
+#define SCULPT_FACE_SET_NONE 0
+
 /* Used for both vertex color and weight paint */
 struct SculptVertexPaintGeomMap {
   int *vert_map_mem;
@@ -290,6 +292,9 @@ typedef struct SculptSession {
   struct MeshElemMap *pmap;
   int *pmap_mem;
 
+  /* Mesh Face Sets */
+  int *face_sets;
+
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
   int cd_vert_node_offset;
@@ -304,6 +309,7 @@ typedef struct SculptSession {
   /* PBVH acceleration structure */
   struct PBVH *pbvh;
   bool show_mask;
+  bool show_face_sets;
 
   /* Painting on deformed mesh */
   bool deform_modifiers_active; /* object is deformed with some modifiers */

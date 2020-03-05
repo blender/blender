@@ -227,6 +227,7 @@ typedef enum eBrushClothForceFalloffType {
 
 typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),
+  BRUSH_AUTOMASKING_FACE_SETS = (1 << 1),
 } eAutomasking_flag;
 
 typedef struct Brush {
@@ -540,6 +541,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_SLIDE_RELAX = 24,
   SCULPT_TOOL_CLAY_THUMB = 25,
   SCULPT_TOOL_CLOTH = 26,
+  SCULPT_TOOL_DRAW_FACE_SETS = 27,
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */
@@ -582,6 +584,7 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_POSE, \
+        SCULPT_TOOL_DRAW_FACE_SETS, \
 \
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \

@@ -1621,6 +1621,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(short[4][3]), "", 0, NULL, NULL, NULL, NULL, layerSwap_flnor, NULL},
     /* 41: CD_CUSTOMLOOPNORMAL */
     {sizeof(short[2]), "vec2s", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* 42: CD_SCULPT_FACE_SETS */
+    {sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -1668,6 +1670,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     /* 39-41 */ "CDMLoopTangent",
     "CDTessLoopNormal",
     "CDCustomLoopNormal",
+    "CDSculptFaceGroups",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
@@ -1692,7 +1695,7 @@ const CustomData_MeshMasks CD_MASK_MESH = {
     .lmask = (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL |
               CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_GENERIC_DATA),
     .pmask = (CD_MASK_MPOLY | CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE |
-              CD_MASK_GENERIC_DATA),
+              CD_MASK_GENERIC_DATA | CD_MASK_SCULPT_FACE_SETS),
 };
 const CustomData_MeshMasks CD_MASK_EDITMESH = {
     .vmask = (CD_MASK_MDEFORMVERT | CD_MASK_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
@@ -1701,7 +1704,7 @@ const CustomData_MeshMasks CD_MASK_EDITMESH = {
     .fmask = 0,
     .lmask = (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
               CD_MASK_GRID_PAINT_MASK | CD_MASK_GENERIC_DATA),
-    .pmask = (CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_GENERIC_DATA),
+    .pmask = (CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_GENERIC_DATA | CD_MASK_SCULPT_FACE_SETS),
 };
 const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     .vmask = (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
@@ -1712,7 +1715,7 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
               CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
               CD_MASK_GENERIC_DATA), /* XXX MISSING CD_MASK_MLOOPTANGENT ? */
     .pmask = (CD_MASK_ORIGINDEX | CD_MASK_RECAST | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP |
-              CD_MASK_GENERIC_DATA),
+              CD_MASK_GENERIC_DATA | CD_MASK_SCULPT_FACE_SETS),
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
     .vmask = (CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
@@ -1721,7 +1724,8 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
     .fmask = 0,
     .lmask = (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
               CD_MASK_GRID_PAINT_MASK | CD_MASK_GENERIC_DATA),
-    .pmask = (CD_MASK_RECAST | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_GENERIC_DATA),
+    .pmask = (CD_MASK_RECAST | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_GENERIC_DATA |
+              CD_MASK_SCULPT_FACE_SETS),
 };
 /**
  * cover values copied by #BKE_mesh_loops_to_tessdata
@@ -1750,7 +1754,8 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
               CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
               CD_MASK_GRID_PAINT_MASK | CD_MASK_GENERIC_DATA),
     .pmask = (CD_MASK_MPOLY | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_NORMAL |
-              CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_GENERIC_DATA),
+              CD_MASK_RECAST | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_GENERIC_DATA |
+              CD_MASK_SCULPT_FACE_SETS),
 };
 
 static const LayerTypeInfo *layerType_getInfo(int type)
@@ -4221,7 +4226,7 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
     /* 0 structnum is used in writing code to tag layer types that should not be written. */
     else if (typeInfo->structnum == 0 &&
              /* XXX Not sure why those three are exception, maybe that should be fixed? */
-             !ELEM(layer->type, CD_PAINT_MASK, CD_FACEMAP, CD_MTEXPOLY)) {
+             !ELEM(layer->type, CD_PAINT_MASK, CD_FACEMAP, CD_MTEXPOLY, CD_SCULPT_FACE_SETS)) {
       keeplayer = false;
       CLOG_WARN(&LOG, ".blend file read: removing a data layer that should not have been written");
     }

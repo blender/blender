@@ -4514,5 +4514,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "View3DOverlay", "float", "sculpt_mode_face_sets_opacity")) {
+      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+        for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+          for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+            if (sl->spacetype == SPACE_VIEW3D) {
+              View3D *v3d = (View3D *)sl;
+              v3d->overlay.sculpt_mode_face_sets_opacity = 0.0f;
+            }
+          }
+        }
+      }
+    }
   }
 }

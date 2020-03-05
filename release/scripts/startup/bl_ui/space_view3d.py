@@ -878,6 +878,7 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.menu("VIEW3D_MT_%s" % mode_string.lower())
             if mode_string == 'SCULPT':
                 layout.menu("VIEW3D_MT_mask")
+                layout.menu("VIEW3D_MT_face_sets")
 
         else:
             layout.menu("VIEW3D_MT_object")
@@ -2996,12 +2997,14 @@ class VIEW3D_MT_mask(Menu):
         props.keep_previous_mask = False
         props.invert = True
         props.smooth_iterations = 2
+        props.create_face_set = False
 
         props = layout.operator("sculpt.mask_expand", text="Expand Mask By Curvature")
         props.use_normals = True
         props.keep_previous_mask = True
         props.invert = False
         props.smooth_iterations = 0
+        props.create_face_set = False
 
         layout.separator()
 
@@ -3019,6 +3022,31 @@ class VIEW3D_MT_mask(Menu):
         layout.separator()
 
         props = layout.operator("sculpt.dirty_mask", text='Dirty Mask')
+
+class VIEW3D_MT_face_sets(Menu):
+    bl_label = "Face Sets"
+
+    def draw(self, _context):
+        layout = self.layout
+
+
+        op = layout.operator("sculpt.face_sets_create", text='Face Set From Masked')
+        op.mode = 'MASKED'
+
+        op = layout.operator("sculpt.face_sets_create", text='Face Set From Visible')
+        op.mode = 'VISIBLE'
+
+        layout.separator()
+
+        op = layout.operator("sculpt.face_set_change_visibility", text='Invert Visible Face Sets')
+        op.mode = 'INVERT'
+
+        op = layout.operator("sculpt.face_set_change_visibility", text='Show All Face Sets')
+        op.mode = 'SHOW_ALL'
+
+        layout.separator()
+
+        op = layout.operator("sculpt.face_sets_randomize_colors", text='Randomize Colors')
 
 
 class VIEW3D_MT_sculpt_set_pivot(Menu):
@@ -5037,6 +5065,24 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op.filter_type = 'CONTRAST_DECREASE'
         op.auto_iteration_count = False
 
+class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
+    bl_label = "Face Sets Edit"
+
+    def draw(self, _context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        op = pie.operator("sculpt.face_sets_create", text='Face Set From Masked')
+        op.mode = 'MASKED'
+
+        op = pie.operator("sculpt.face_sets_create", text='Face Set From Visible')
+        op.mode = 'VISIBLE'
+
+        op = pie.operator("sculpt.face_set_change_visibility", text='Invert Visible')
+        op.mode = 'INVERT'
+
+        op = pie.operator("sculpt.face_set_change_visibility", text='Show All')
+        op.mode = 'SHOW_ALL'
 
 class VIEW3D_MT_wpaint_vgroup_lock_pie(Menu):
     bl_label = "Vertex Group Locks"
@@ -6121,6 +6167,12 @@ class VIEW3D_PT_overlay_sculpt(Panel):
         sub.active = sculpt.show_mask
         sub.prop(overlay, "sculpt_mode_mask_opacity", text="Mask")
 
+        row = layout.row(align=True)
+        row.prop(sculpt, "show_face_sets", text="")
+        sub = row.row()
+        sub.active = sculpt.show_face_sets
+        row.prop(overlay, "sculpt_mode_face_sets_opacity", text="Face Sets")
+
 
 class VIEW3D_PT_overlay_pose(Panel):
     bl_space_type = 'VIEW_3D'
@@ -7064,6 +7116,7 @@ classes = (
     VIEW3D_MT_sculpt,
     VIEW3D_MT_sculpt_set_pivot,
     VIEW3D_MT_mask,
+    VIEW3D_MT_face_sets,
     VIEW3D_MT_particle,
     VIEW3D_MT_particle_context_menu,
     VIEW3D_MT_particle_showhide,
@@ -7148,6 +7201,7 @@ classes = (
     VIEW3D_MT_proportional_editing_falloff_pie,
     VIEW3D_MT_sculpt_mask_edit_pie,
     VIEW3D_MT_wpaint_vgroup_lock_pie,
+    VIEW3D_MT_sculpt_face_sets_edit_pie,
     VIEW3D_PT_active_tool,
     VIEW3D_PT_active_tool_duplicate,
     VIEW3D_PT_view3d_properties,

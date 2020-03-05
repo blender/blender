@@ -807,6 +807,9 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         # topology automasking
         layout.prop(brush, "use_automasking_topology")
 
+        # face masks automasking
+        layout.prop(brush, "use_automasking_face_sets")
+
         # sculpt plane settings
         if capabilities.has_sculpt_plane:
             layout.prop(brush, "sculpt_plane")

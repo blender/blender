@@ -2093,6 +2093,10 @@ static void write_customdata(WriteData *wd,
       const float *layer_data = layer->data;
       writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
     }
+    else if (layer->type == CD_SCULPT_FACE_SETS) {
+      const float *layer_data = layer->data;
+      writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
+    }
     else if (layer->type == CD_GRID_PAINT_MASK) {
       write_grid_paint_mask(wd, count, layer->data);
     }

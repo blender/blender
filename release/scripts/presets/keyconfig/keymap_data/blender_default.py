@@ -3901,12 +3901,14 @@ def km_sculpt(params):
         ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'SMOOTH')]}),
         # Partial Visibility Show/hide
-        ("paint.hide_show", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("action", 'SHOW'), ("area", 'INSIDE')]}),
-        ("paint.hide_show", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("action", 'HIDE'), ("area", 'INSIDE')]}),
-        ("paint.hide_show", {"type": 'H', "value": 'PRESS', "alt": True},
-         {"properties": [("action", 'SHOW'), ("area", 'ALL')]}),
+        ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS'},
+         {"properties": [("mode", 'TOGGLE')]}),
+        ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "shift": True},
+         {"properties": [("mode", 'HIDE_ACTIVE')]}),
+        ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "alt": True},
+         {"properties": [("mode", 'SHOW_ALL')]}),
+        ("sculpt.mask_expand", {"type": 'W', "value": 'PRESS', "shift": True},
+         {"properties": [("use_normals", False), ("keep_previous_mask", False), ("invert", False), ("smooth_iterations", 0), ("create_face_set", True)]}),
         # Subdivision levels
         *_template_items_object_subdivision_set(),
         ("object.subdivision_set", {"type": 'PAGE_UP', "value": 'PRESS'},
@@ -3922,9 +3924,9 @@ def km_sculpt(params):
         ("wm.context_toggle", {"type": 'M', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'scene.tool_settings.sculpt.show_mask')]}),
         ("sculpt.mask_expand", {"type": 'A', "value": 'PRESS', "shift": True},
-         {"properties": [("use_normals", False), ("keep_previous_mask", False), ("invert", True), ("smooth_iterations", 2)]}),
+         {"properties": [("use_normals", False), ("keep_previous_mask", False), ("invert", True), ("smooth_iterations", 2), ("create_face_set", False)]}),
         ("sculpt.mask_expand", {"type": 'A', "value": 'PRESS', "shift": True, 'alt': True},
-         {"properties": [("use_normals", True), ("keep_previous_mask", True), ("invert", False), ("smooth_iterations", 0)]}),
+         {"properties": [("use_normals", True), ("keep_previous_mask", True), ("invert", False), ("smooth_iterations", 0), ("create_face_set", False)]}),
         # Dynamic topology
         ("sculpt.dynamic_topology_toggle", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         ("sculpt.set_detail_size", {"type": 'D', "value": 'PRESS', "shift": True}, None),
@@ -3980,6 +3982,7 @@ def km_sculpt(params):
          {"properties": [("data_path", 'tool_settings.sculpt.brush.use_smooth_stroke')]}),
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_sculpt_mask_edit_pie", {"type" : 'A', "value": 'PRESS'}),
+        op_menu_pie("VIEW3D_MT_sculpt_face_sets_edit_pie", {"type" : 'W', "value": 'PRESS'}),
         *_template_items_context_panel("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),
     ])
 

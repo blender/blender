@@ -31,6 +31,8 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_bitmap.h"
+#include "BLI_ghash.h"
+#include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
@@ -50,6 +52,8 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_editmesh.h"
+
+#include "PIL_time.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -542,6 +546,8 @@ void BKE_mesh_init(Mesh *me)
   CustomData_reset(&me->ldata);
 
   BKE_mesh_runtime_reset(me);
+
+  me->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
 }
 
 Mesh *BKE_mesh_add(Main *bmain, const char *name)
@@ -670,6 +676,8 @@ void BKE_mesh_copy_settings(Mesh *me_dst, const Mesh *me_src)
   me_dst->remesh_voxel_size = me_src->remesh_voxel_size;
   me_dst->remesh_voxel_adaptivity = me_src->remesh_voxel_adaptivity;
   me_dst->remesh_mode = me_src->remesh_mode;
+
+  me_dst->face_sets_color_seed = me_src->face_sets_color_seed;
 
   /* Copy texture space. */
   me_dst->texflag = me_src->texflag;
