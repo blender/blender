@@ -617,6 +617,7 @@ void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
 #ifdef WIN32
 /* Add a Windows known folder path to the System list. */
 static void fsmenu_add_windows_folder(struct FSMenu *fsmenu,
+                                      FSMenuCategory category,
                                       REFKNOWNFOLDERID rfid,
                                       const char *name,
                                       const int icon,
@@ -627,7 +628,7 @@ static void fsmenu_add_windows_folder(struct FSMenu *fsmenu,
   if (SHGetKnownFolderPath(rfid, 0, NULL, &pPath) == S_OK) {
     BLI_strncpy_wchar_as_utf8(line, pPath, FILE_MAXDIR);
     CoTaskMemFree(pPath);
-    fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, name, icon, flag);
+    fsmenu_insert_entry(fsmenu, category, line, name, icon, flag);
   }
 }
 #endif
@@ -690,22 +691,68 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
     /* Get Special Folder Locations. */
     if (read_bookmarks) {
+
+      /* These items are shown in System List. */
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_Profile,
+                                IFACE_("Home"),
+                                ICON_HOME,
+                                FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_Desktop,
+                                IFACE_("Desktop"),
+                                ICON_DESKTOP,
+                                FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_Documents,
+                                IFACE_("Documents"),
+                                ICON_DOCUMENTS,
+                                FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_Downloads,
+                                IFACE_("Downloads"),
+                                ICON_IMPORT,
+                                FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_Music,
+                                IFACE_("Music"),
+                                ICON_FILE_SOUND,
+                                FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_Pictures,
+                                IFACE_("Pictures"),
+                                ICON_FILE_IMAGE,
+                                FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_Videos,
+                                IFACE_("Videos"),
+                                ICON_FILE_MOVIE,
+                                FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_Fonts,
+                                IFACE_("Fonts"),
+                                ICON_FONTPREVIEW,
+                                FS_INSERT_LAST);
+
+      /* These items are just put in path cache for thumbnail views and if bookmarked. */
+
       fsmenu_add_windows_folder(
-          fsmenu, &FOLDERID_Profile, IFACE_("Home"), ICON_HOME, FS_INSERT_LAST);
+          fsmenu, FS_CATEGORY_OTHER, &FOLDERID_UserProfiles, NULL, ICON_COMMUNITY, FS_INSERT_LAST);
+
       fsmenu_add_windows_folder(
-          fsmenu, &FOLDERID_Desktop, IFACE_("Desktop"), ICON_DESKTOP, FS_INSERT_LAST);
+          fsmenu, FS_CATEGORY_OTHER, &FOLDERID_Objects3D, NULL, ICON_FILE_3D, FS_INSERT_LAST);
+
       fsmenu_add_windows_folder(
-          fsmenu, &FOLDERID_Documents, IFACE_("Documents"), ICON_DOCUMENTS, FS_INSERT_LAST);
-      fsmenu_add_windows_folder(
-          fsmenu, &FOLDERID_Downloads, IFACE_("Downloads"), ICON_IMPORT, FS_INSERT_LAST);
-      fsmenu_add_windows_folder(
-          fsmenu, &FOLDERID_Music, IFACE_("Music"), ICON_FILE_SOUND, FS_INSERT_LAST);
-      fsmenu_add_windows_folder(
-          fsmenu, &FOLDERID_Pictures, IFACE_("Pictures"), ICON_FILE_IMAGE, FS_INSERT_LAST);
-      fsmenu_add_windows_folder(
-          fsmenu, &FOLDERID_Videos, IFACE_("Videos"), ICON_FILE_MOVIE, FS_INSERT_LAST);
-      fsmenu_add_windows_folder(
-          fsmenu, &FOLDERID_Fonts, IFACE_("Fonts"), ICON_FONTPREVIEW, FS_INSERT_LAST);
+          fsmenu, FS_CATEGORY_OTHER, &FOLDERID_SkyDrive, NULL, ICON_URL, FS_INSERT_LAST);
+
     }
   }
 #else

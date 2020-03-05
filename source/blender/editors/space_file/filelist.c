@@ -996,16 +996,24 @@ static int filelist_geticon_ex(FileDirEntry *file,
       return (file->attributes & FILE_ATTR_ANY_LINK) ? ICON_FOLDER_REDIRECT : ICON_FILE_FOLDER;
     }
     else {
-      /* If this path is in System list then use that icon. */
+
+      /* If this path is in System list or path cache then use that icon. */
       struct FSMenu *fsmenu = ED_fsmenu_get();
-      FSMenuEntry *tfsm = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS);
-      char fullpath[FILE_MAX_LIBEXTRA];
-      BLI_join_dirfile(fullpath, sizeof(fullpath), root, file->relpath);
-      BLI_add_slash(fullpath);
-      for (; tfsm; tfsm = tfsm->next) {
-        if (STREQ(tfsm->path, fullpath)) {
-          /* Never want a little folder inside a large one. */
-          return (tfsm->icon == ICON_FILE_FOLDER) ? ICON_NONE : tfsm->icon;
+      FSMenuCategory categories[] = {
+          FS_CATEGORY_SYSTEM_BOOKMARKS,
+          FS_CATEGORY_OTHER,
+      };
+
+      for (int i = 0; i < ARRAY_SIZE(categories); i++) {
+        FSMenuEntry *tfsm = ED_fsmenu_get_category(fsmenu, categories[i]);
+        char fullpath[FILE_MAX_LIBEXTRA];
+        BLI_join_dirfile(fullpath, sizeof(fullpath), root, file->relpath);
+        BLI_add_slash(fullpath);
+        for (; tfsm; tfsm = tfsm->next) {
+          if (STREQ(tfsm->path, fullpath)) {
+            /* Never want a little folder inside a large one. */
+            return (tfsm->icon == ICON_FILE_FOLDER) ? ICON_NONE : tfsm->icon;
+          }
         }
       }
     }
