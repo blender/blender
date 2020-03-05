@@ -496,6 +496,15 @@ def disable_all():
             disable(mod_name)
 
 
+def _blender_manual_url_prefix():
+    if _bpy.app.version_cycle in {"rc", "release"}:
+        manual_version = "%d.%d" % _bpy.app.version[:2]
+    else:
+        manual_version = "dev"
+
+    return f"https://docs.blender.org/manual/en/{manual_version}"
+
+
 def module_bl_info(mod, info_basis=None):
     if info_basis is None:
         info_basis = {
@@ -541,6 +550,15 @@ def module_bl_info(mod, info_basis=None):
                     addon_name=addon_info['name'],
                     addon_path=getattr(mod, "__file__", None),
                 )
+            )
+
+    doc_url = addon_info["doc_url"]
+    if doc_url:
+        doc_url_prefix = "{BLENDER_MANUAL_URL}"
+        if doc_url_prefix in doc_url:
+            addon_info["doc_url"] = doc_url.replace(
+                doc_url_prefix,
+                _blender_manual_url_prefix(),
             )
 
     addon_info["_init"] = None
