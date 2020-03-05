@@ -64,7 +64,7 @@ void main()
   }
   else if (postProcessType == PASS_POST_AO) {
     float ao_accum = texelFetch(inputBuffer, texel, 0).r;
-    fragColor = vec4(vec3(min(1.0, ao_accum / currentSample)), 1.0);
+    color = vec3(min(1.0, ao_accum / currentSample));
   }
   else if (postProcessType == PASS_POST_NORMAL) {
     float depth = texelFetch(depthBuffer, texel, 0).r;
