@@ -26,6 +26,7 @@
 #include "DNA_ID.h"
 
 #include "BKE_idcode.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_main_idmap.h" /* own include */
 
@@ -65,16 +66,20 @@ struct IDNameLib_TypeMap {
  */
 struct IDNameLib_Map {
   struct IDNameLib_TypeMap type_maps[MAX_LIBARRAY];
+  struct GHash *uuid_map;
   struct Main *bmain;
   struct GSet *valid_id_pointers;
+  int idmap_types;
 };
 
 static struct IDNameLib_TypeMap *main_idmap_from_idcode(struct IDNameLib_Map *id_map,
                                                         short id_type)
 {
-  for (int i = 0; i < MAX_LIBARRAY; i++) {
-    if (id_map->type_maps[i].id_type == id_type) {
-      return &id_map->type_maps[i];
+  if (id_map->idmap_types & MAIN_IDMAP_TYPE_NAME) {
+    for (int i = 0; i < MAX_LIBARRAY; i++) {
+      if (id_map->type_maps[i].id_type == id_type) {
+        return &id_map->type_maps[i];
+      }
     }
   }
   return NULL;
@@ -94,9 +99,12 @@ static struct IDNameLib_TypeMap *main_idmap_from_idcode(struct IDNameLib_Map *id
  */
 struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
                                             const bool create_valid_ids_set,
-                                            struct Main *old_bmain)
+                                            struct Main *old_bmain,
+                                            const int idmap_types)
 {
   struct IDNameLib_Map *id_map = MEM_mallocN(sizeof(*id_map), __func__);
+  id_map->bmain = bmain;
+  id_map->idmap_types = idmap_types;
 
   int index = 0;
   while (index < MAX_LIBARRAY) {
@@ -107,7 +115,22 @@ struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
   }
   BLI_assert(index == MAX_LIBARRAY);
 
-  id_map->bmain = bmain;
+  if (idmap_types & MAIN_IDMAP_TYPE_UUID) {
+    ID *id;
+    id_map->uuid_map = BLI_ghash_int_new(__func__);
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      BLI_assert(id->session_uuid != MAIN_ID_SESSION_UUID_UNSET);
+      void **id_ptr_v;
+      const bool existing_key = BLI_ghash_ensure_p(
+          id_map->uuid_map, POINTER_FROM_UINT(id->session_uuid), &id_ptr_v);
+      BLI_assert(existing_key == false);
+      *id_ptr_v = id;
+    }
+    FOREACH_MAIN_ID_END;
+  }
+  else {
+    id_map->uuid_map = NULL;
+  }
 
   if (create_valid_ids_set) {
     id_map->valid_id_pointers = BKE_main_gset_create(bmain, NULL);
@@ -144,10 +167,10 @@ static bool idkey_cmp(const void *a, const void *b)
   return strcmp(idkey_a->name, idkey_b->name) || (idkey_a->lib != idkey_b->lib);
 }
 
-ID *BKE_main_idmap_lookup(struct IDNameLib_Map *id_map,
-                          short id_type,
-                          const char *name,
-                          const Library *lib)
+ID *BKE_main_idmap_lookup_name(struct IDNameLib_Map *id_map,
+                               short id_type,
+                               const char *name,
+                               const Library *lib)
 {
   struct IDNameLib_TypeMap *type_map = main_idmap_from_idcode(id_map, id_type);
 
@@ -188,20 +211,33 @@ ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_map, const ID *id)
    * when trying to get ID name).
    */
   if (id_map->valid_id_pointers == NULL || BLI_gset_haskey(id_map->valid_id_pointers, id)) {
-    return BKE_main_idmap_lookup(id_map, GS(id->name), id->name + 2, id->lib);
+    return BKE_main_idmap_lookup_name(id_map, GS(id->name), id->name + 2, id->lib);
+  }
+  return NULL;
+}
+
+ID *BKE_main_idmap_lookup_uuid(struct IDNameLib_Map *id_map, const uint session_uuid)
+{
+  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UUID) {
+    return BLI_ghash_lookup(id_map->uuid_map, POINTER_FROM_UINT(session_uuid));
   }
   return NULL;
 }
 
 void BKE_main_idmap_destroy(struct IDNameLib_Map *id_map)
 {
-  struct IDNameLib_TypeMap *type_map = id_map->type_maps;
-  for (int i = 0; i < MAX_LIBARRAY; i++, type_map++) {
-    if (type_map->map) {
-      BLI_ghash_free(type_map->map, NULL, NULL);
-      type_map->map = NULL;
-      MEM_freeN(type_map->keys);
+  if (id_map->idmap_types & MAIN_IDMAP_TYPE_NAME) {
+    struct IDNameLib_TypeMap *type_map = id_map->type_maps;
+    for (int i = 0; i < MAX_LIBARRAY; i++, type_map++) {
+      if (type_map->map) {
+        BLI_ghash_free(type_map->map, NULL, NULL);
+        type_map->map = NULL;
+        MEM_freeN(type_map->keys);
+      }
     }
+  }
+  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UUID) {
+    BLI_ghash_free(id_map->uuid_map, NULL, NULL);
   }
 
   if (id_map->valid_id_pointers != NULL) {

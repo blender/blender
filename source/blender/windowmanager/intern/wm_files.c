@@ -77,6 +77,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
@@ -611,6 +612,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   UI_view2d_zoom_cache_reset();
 
+  /* Reset session-wise ID UUID counter. */
+  BKE_lib_libblock_session_uuid_reset();
+
   /* first try to append data from exotic file formats... */
   /* it throws error box when file doesn't exist and returns -1 */
   /* note; it should set some error message somewhere... (ton) */
@@ -916,6 +920,9 @@ void wm_homefile_read(bContext *C,
       update_defaults = true;
     }
   }
+
+  /* Reset session-wise ID UUID counter. */
+  BKE_lib_libblock_session_uuid_reset();
 
   if (!use_factory_settings || (filepath_startup[0] != '\0')) {
     if (BLI_access(filepath_startup, R_OK) == 0) {

@@ -1027,6 +1027,8 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
   id->tag &= ~(LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT);
   bmain->is_memfile_undo_written = false;
   BKE_main_unlock(bmain);
+
+  BKE_lib_libblock_session_uuid_ensure(id);
 }
 
 /** Remove a data-block from given main (set it to 'NO_MAIN' status). */
@@ -1313,6 +1315,8 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
 
+      BKE_lib_libblock_session_uuid_ensure(id);
+
       /* TODO to be removed from here! */
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
         DEG_id_type_tag(bmain, type);
@@ -1453,6 +1457,33 @@ void BKE_libblock_init_empty(ID *id)
       break;
     default:
       BLI_assert(0); /* Should never reach this point... */
+  }
+}
+
+/* ********** ID session-wise UUID management. ********** */
+static uint global_session_uuid = 0;
+
+/** Reset the session-wise uuid counter (used when reading a new file e.g.). */
+void BKE_lib_libblock_session_uuid_reset()
+{
+  global_session_uuid = 0;
+}
+
+/**
+ * Generate a session-wise uuid for the given \a id.
+ *
+ * \note "session-wise" here means while editing a given .blend file. Once a new .blend file is
+ * loaded or created, undo history is cleared/reset, and so is the uuid counter.
+ */
+void BKE_lib_libblock_session_uuid_ensure(ID *id)
+{
+  if (id->session_uuid == MAIN_ID_SESSION_UUID_UNSET) {
+    id->session_uuid = atomic_add_and_fetch_uint32(&global_session_uuid, 1);
+    /* In case overflow happens, still assign a valid ID. This way opening files many times works
+     * correctly. */
+    if (UNLIKELY(id->session_uuid == MAIN_ID_SESSION_UUID_UNSET)) {
+      id->session_uuid = atomic_add_and_fetch_uint32(&global_session_uuid, 1);
+    }
   }
 }
 

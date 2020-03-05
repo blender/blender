@@ -446,6 +446,8 @@ static void versions_gpencil_add_main(ListBase *lb, ID *id, const char *name)
   BKE_id_new_name_validate(lb, id, name);
   /* alphabetic insertion: is in BKE_id_new_name_validate */
 
+  BKE_lib_libblock_session_uuid_ensure(id);
+
   if (G.debug & G_DEBUG) {
     printf("Converted GPencil to ID: %s\n", id->name + 2);
   }
