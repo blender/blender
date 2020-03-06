@@ -188,6 +188,22 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
 /** \name Mesh PBVH
  * \{ */
 
+/* Returns the Face Set random color for rendering in the overlay given its ID and a color seed. */
+static void face_set_overlay_color_get(const int face_set, const int seed, uchar *r_color)
+{
+  float rgba[4];
+  const float random_mod_hue = BLI_hash_int_01(abs(face_set) + seed);
+  const float random_mod_sat = BLI_hash_int_01(abs(face_set) + seed + 1);
+  const float random_mod_val = BLI_hash_int_01(abs(face_set) + seed + 2);
+  hsv_to_rgb(random_mod_hue,
+             0.45f + (random_mod_sat * 0.35f),
+             1.0f - (random_mod_val * 0.45f),
+             &rgba[0],
+             &rgba[1],
+             &rgba[2]);
+  rgba_float_to_uchar(r_color, rgba);
+}
+
 /* Threaded - do not call any functions that use OpenGL calls! */
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const MVert *mvert,
@@ -251,14 +267,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
         for (uint i = 0; i < buffers->face_indices_len; i++) {
           if (show_face_sets) {
             const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-            float rgba[4];
-            hsv_to_rgb(BLI_hash_int_01(abs(sculpt_face_sets[lt->poly]) + face_sets_color_seed),
-                       0.65f,
-                       1.0f,
-                       &rgba[0],
-                       &rgba[1],
-                       &rgba[2]);
-            rgba_float_to_uchar(face_set_color, rgba);
+            face_set_overlay_color_get(
+                sculpt_face_sets[lt->poly], face_sets_color_seed, face_set_color);
           }
           for (int j = 0; j < 3; j++) {
             const int vidx = face_vert_indices[i][j];
@@ -315,14 +325,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
           uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
           if (show_face_sets) {
-            float rgba[4];
-            hsv_to_rgb(BLI_hash_int_01(abs(sculpt_face_sets[lt->poly]) + face_sets_color_seed),
-                       0.65f,
-                       1.0f,
-                       &rgba[0],
-                       &rgba[1],
-                       &rgba[2]);
-            rgba_float_to_uchar(face_set_color, rgba);
+            face_set_overlay_color_get(
+                sculpt_face_sets[lt->poly], face_sets_color_seed, face_set_color);
           }
 
           float fmask = 0.0f;
