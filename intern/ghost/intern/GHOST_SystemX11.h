@@ -366,6 +366,8 @@ class GHOST_SystemX11 : public GHOST_System {
   unsigned int m_last_release_keycode;
   Time m_last_release_time;
 
+  uint m_keycode_last_repeat_key;
+
   /**
    * Return the ghost window associated with the
    * X11 window xwind

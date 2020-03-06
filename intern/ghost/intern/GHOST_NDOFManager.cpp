@@ -318,7 +318,7 @@ void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key,
                                      GHOST_IWindow *window)
 {
   GHOST_TEventType type = press ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
-  GHOST_EventKey *event = new GHOST_EventKey(time, type, window, key);
+  GHOST_EventKey *event = new GHOST_EventKey(time, type, window, key, false);
 
 #ifdef DEBUG_NDOF_BUTTONS
   printf("keyboard %s\n", press ? "down" : "up");

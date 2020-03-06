@@ -1047,6 +1047,20 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   if (key != GHOST_kKeyUnknown) {
     char utf8_char[6] = {0};
     char ascii = 0;
+    bool is_repeat = false;
+
+    /* Unlike on Linux, not all keys can send repeat events. E.g. modifier keys don't. */
+    if (keyDown) {
+      if (system->m_keycode_last_repeat_key == vk) {
+          is_repeat = true;
+      }
+      system->m_keycode_last_repeat_key = vk;
+    }
+    else {
+      if (system->m_keycode_last_repeat_key == vk) {
+        system->m_keycode_last_repeat_key = 0;
+      }
+    }
 
     wchar_t utf16[3] = {0};
     BYTE state[256] = {0};
@@ -1083,7 +1097,8 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
                                window,
                                key,
                                ascii,
-                               utf8_char);
+                               utf8_char,
+                               is_repeat);
 
     // GHOST_PRINTF("%c\n", ascii); // we already get this info via EventPrinter
   }
@@ -1520,6 +1535,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
             modifiers.clear();
             system->storeModifierKeys(modifiers);
             system->m_wheelDeltaAccum = 0;
+            system->m_keycode_last_repeat_key = 0;
             event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate :
                                                         GHOST_kEventWindowDeactivate,
                                        window);

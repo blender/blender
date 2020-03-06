@@ -93,6 +93,11 @@
  * instead of active one. See T47228 and D1746 */
 #define USE_NON_LATIN_KB_WORKAROUND
 
+static uchar bit_is_on(const uchar *ptr, int bit)
+{
+  return ptr[bit >> 3] & (1 << (bit & 7));
+}
+
 static GHOST_TKey ghost_key_from_keysym(const KeySym key);
 static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode);
 static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym key,
@@ -196,6 +201,7 @@ GHOST_SystemX11::GHOST_SystemX11() : GHOST_System(), m_xkb_descr(NULL), m_start_
     m_xkb_descr = XkbGetMap(m_display, 0, XkbUseCoreKbd);
     if (m_xkb_descr) {
       XkbGetNames(m_display, XkbKeyNamesMask, m_xkb_descr);
+      XkbGetControls(m_display, XkbPerKeyRepeatMask | XkbRepeatKeysMask, m_xkb_descr);
     }
   }
 
@@ -747,7 +753,8 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
                                                window,
                                                ghost_key_from_keysym(modifiers[i]),
                                                '\0',
-                                               NULL));
+                                               NULL,
+                                               false));
                 }
               }
             }
@@ -821,6 +828,64 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 {
   GHOST_WindowX11 *window = findGhostWindow(xe->xany.window);
   GHOST_Event *g_event = NULL;
+
+  /* Detect auto-repeat. */
+  bool is_repeat = false;
+  if (xe->type == KeyPress || xe->type == KeyRelease) {
+    XKeyEvent *xke = &(xe->xkey);
+
+    /* Set to true if this key will repeat. */
+    bool is_repeat_keycode = false;
+
+    if (m_xkb_descr != NULL) {
+      /* Use XKB support. */
+      is_repeat_keycode = (
+          /* Should always be true, check just in case. */
+          (xke->keycode < (XkbPerKeyBitArraySize << 3)) &&
+          bit_is_on(m_xkb_descr->ctrls->per_key_repeat, xke->keycode));
+    }
+    else {
+      /* No XKB support (filter by modifier). */
+      switch (XLookupKeysym(xke, 0)) {
+        case XK_Shift_L:
+        case XK_Shift_R:
+        case XK_Control_L:
+        case XK_Control_R:
+        case XK_Alt_L:
+        case XK_Alt_R:
+        case XK_Super_L:
+        case XK_Super_R:
+        case XK_Hyper_L:
+        case XK_Hyper_R:
+        case XK_Caps_Lock:
+        case XK_Scroll_Lock:
+        case XK_Num_Lock: {
+          break;
+        }
+        default: {
+          is_repeat_keycode = true;
+        }
+      }
+    }
+
+    if (is_repeat_keycode) {
+      if (xe->type == KeyPress) {
+        if (m_keycode_last_repeat_key == xke->keycode) {
+          is_repeat = true;
+        }
+        m_keycode_last_repeat_key = xke->keycode;
+      }
+      else {
+        if (m_keycode_last_repeat_key == xke->keycode) {
+          m_keycode_last_repeat_key = (uint)-1;
+        }
+      }
+    }
+  }
+  else if (xe->type == EnterNotify) {
+    /* We can't tell how the key state changed, clear it to avoid stuck keys. */
+    m_keycode_last_repeat_key = (uint)-1;
+  }
 
 #ifdef USE_XINPUT_HOTPLUG
   /* Hot-Plug support */
@@ -1129,7 +1194,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       }
 #endif
 
-      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, ascii, utf8_buf);
+      g_event = new GHOST_EventKey(
+          getMilliSeconds(), type, window, gkey, ascii, utf8_buf, is_repeat);
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       /* when using IM for some languages such as Japanese,
@@ -1153,7 +1219,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           /* enqueue previous character */
           pushEvent(g_event);
 
-          g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, '\0', &utf8_buf[i]);
+          g_event = new GHOST_EventKey(
+              getMilliSeconds(), type, window, gkey, '\0', &utf8_buf[i], is_repeat);
         }
       }
 

@@ -1772,6 +1772,12 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
     return false;
   }
 
+  if (winevent->is_repeat) {
+    if (kmi->flag & KMI_REPEAT_IGNORE) {
+      return false;
+    }
+  }
+
   const int kmitype = WM_userdef_event_map(kmi->type);
 
   /* the matching rules */
@@ -4254,6 +4260,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
   /* initialize and copy state (only mouse x y and modifiers) */
   event = *evt;
+  event.is_repeat = false;
 
   switch (type) {
     /* mouse move, also to inactive window (X11 does this) */
@@ -4407,6 +4414,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.ascii = kd->ascii;
       memcpy(
           event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf)); /* might be not null terminated*/
+      event.is_repeat = kd->is_repeat;
       event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 
       wm_eventemulation(&event, false);
@@ -4418,6 +4426,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* copy to event state */
       evt->val = event.val;
       evt->type = event.type;
+      evt->is_repeat = event.is_repeat;
 
       /* exclude arrow keys, esc, etc from text input */
       if (type == GHOST_kEventKeyUp) {
