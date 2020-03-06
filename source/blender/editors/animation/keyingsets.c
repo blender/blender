@@ -109,7 +109,8 @@ static bool keyingset_poll_activePath_edit(bContext *C)
 static int add_default_keyingset_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  short flag = 0, keyingflag = 0;
+  eKS_Settings flag = 0;
+  eInsertKeyFlags keyingflag = 0;
 
   /* validate flags
    * - absolute KeyingSets should be created by default
@@ -117,7 +118,7 @@ static int add_default_keyingset_exec(bContext *C, wmOperator *UNUSED(op))
   flag |= KEYINGSET_ABSOLUTE;
 
   /* 2nd arg is 0 to indicate that we don't want to include autokeying mode related settings */
-  keyingflag = ANIM_get_keyframing_flags(scene, 0);
+  keyingflag = ANIM_get_keyframing_flags(scene, false);
 
   /* call the API func, and set the active keyingset index */
   BKE_keyingset_add(&scene->keyingsets, NULL, NULL, flag, keyingflag);
@@ -289,7 +290,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop = NULL;
   PointerRNA ptr = {NULL};
   char *path = NULL;
-  short success = 0;
+  bool changed = false;
   int index = 0, pflag = 0;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
@@ -304,14 +305,15 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
    * - add a new one if it doesn't exist
    */
   if (scene->active_keyingset == 0) {
-    short flag = 0, keyingflag = 0;
+    eKS_Settings flag = 0;
+    eInsertKeyFlags keyingflag = 0;
 
     /* validate flags
      * - absolute KeyingSets should be created by default
      */
     flag |= KEYINGSET_ABSOLUTE;
 
-    keyingflag |= ANIM_get_keyframing_flags(scene, 0);
+    keyingflag |= ANIM_get_keyframing_flags(scene, false);
 
     if (IS_AUTOKEY_FLAG(scene, XYZ2RGB)) {
       keyingflag |= INSERTKEY_XYZ2RGB;
@@ -350,14 +352,14 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
       /* add path to this setting */
       BKE_keyingset_add_path(ks, ptr.owner_id, NULL, path, index, pflag, KSP_GROUP_KSNAME);
       ks->active_path = BLI_listbase_count(&ks->paths);
-      success = 1;
+      changed = true;
 
       /* free the temp path created */
       MEM_freeN(path);
     }
   }
 
-  if (success) {
+  if (changed) {
     /* send updates */
     WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
 
@@ -365,7 +367,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
     BKE_reportf(op->reports, RPT_INFO, "Property added to Keying Set: '%s'", ks->name);
   }
 
-  return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
@@ -395,7 +397,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop = NULL;
   PointerRNA ptr = {NULL};
   char *path = NULL;
-  short success = 0;
+  bool changed = false;
   int index = 0;
 
   /* try to add to keyingset using property retrieved from UI */
@@ -431,7 +433,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 
       if (ksp) {
         BKE_keyingset_free_path(ks, ksp);
-        success = 1;
+        changed = true;
       }
 
       /* free temp path used */
@@ -439,7 +441,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (success) {
+  if (changed) {
     /* send updates */
     WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
 
@@ -447,7 +449,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_INFO, "Property removed from Keying Set");
   }
 
-  return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
@@ -931,14 +933,15 @@ void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *s
 
 /* KeyingSet Operations (Insert/Delete Keyframes) ------------ */
 
-/* Given a KeyingSet and context info, validate Keying Set's paths.
+/**
+ * Given a KeyingSet and context info, validate Keying Set's paths.
  * This is only really necessary with relative/built-in KeyingSets
  * where their list of paths is dynamically generated based on the
  * current context info.
  *
  * Returns 0 if succeeded, otherwise an error code: eModifyKey_Returns
  */
-short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
+eModifyKey_Returns ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 {
   /* sanity check */
   if (ks == NULL) {
@@ -990,12 +993,12 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 }
 
 /* Determine which keying flags apply based on the override flags */
-static short keyingset_apply_keying_flags(const short base_flags,
-                                          const short overrides,
-                                          const short own_flags)
+static eInsertKeyFlags keyingset_apply_keying_flags(const eInsertKeyFlags base_flags,
+                                                    const eInsertKeyFlags overrides,
+                                                    const eInsertKeyFlags own_flags)
 {
   /* Pass through all flags by default (i.e. even not explicitly listed ones). */
-  short result = base_flags;
+  eInsertKeyFlags result = base_flags;
 
   /* The logic for whether a keying flag applies is as follows:
    * - If the flag in question is set in "overrides", that means that the
@@ -1025,7 +1028,9 @@ static short keyingset_apply_keying_flags(const short base_flags,
  * Given a KeyingSet and context info (if required),
  * modify keyframes for the channels specified by the KeyingSet.
  * This takes into account many of the different combinations of using KeyingSets.
- * Returns the number of channels that keyframes were added to
+ *
+ * \returns the number of channels that key-frames were added or
+ * #eModifyKey_Returns (a negative number).
  */
 int ANIM_apply_keyingset(
     bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
@@ -1035,9 +1040,10 @@ int ANIM_apply_keyingset(
   ReportList *reports = CTX_wm_reports(C);
   KS_Path *ksp;
   ListBase nla_cache = {NULL, NULL};
-  const short base_kflags = ANIM_get_keyframing_flags(scene, 1);
+  const eInsertKeyFlags base_kflags = ANIM_get_keyframing_flags(scene, true);
   const char *groupname = NULL;
-  short kflag = 0, success = 0;
+  eInsertKeyFlags kflag = 0;
+  int success = 0;
   char keytype = scene->toolsettings->keyframe_type;
 
   /* sanity checks */
@@ -1055,17 +1061,19 @@ int ANIM_apply_keyingset(
   }
 
   /* if relative Keying Sets, poll and build up the paths */
-  success = ANIM_validate_keyingset(C, dsources, ks);
-
-  if (success != 0) {
-    /* return error code if failed */
-    return success;
+  {
+    const eModifyKey_Returns error = ANIM_validate_keyingset(C, dsources, ks);
+    if (error != 0) {
+      BLI_assert(error < 0);
+      /* return error code if failed */
+      return error;
+    }
   }
 
   /* apply the paths as specified in the KeyingSet now */
   for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
     int arraylen, i;
-    short kflag2;
+    eInsertKeyFlags kflag2;
 
     /* skip path if no ID pointer is specified */
     if (ksp->id == NULL) {

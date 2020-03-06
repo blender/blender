@@ -4357,7 +4357,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   ListBase nla_cache = {NULL, NULL};
   PointerRNA id_ptr, ptr;
   PropertyRNA *prop;
-  short flag = 0;
+  eInsertKeyFlags flag = 0;
   bool done = false;
   float cfra;
 
@@ -4371,8 +4371,8 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   /* get current frame and apply NLA-mapping to it (if applicable) */
   cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 
-  /* get flags for keyframing */
-  flag = ANIM_get_keyframing_flags(scene, 1);
+  /* Get flags for keyframing. */
+  flag = ANIM_get_keyframing_flags(scene, true);
 
   /* try to resolve the path stored in the F-Curve */
   if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
@@ -4411,7 +4411,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   ListBase nla_cache = {NULL, NULL};
   PointerRNA id_ptr, ptr;
   PropertyRNA *prop;
-  short flag = 0;
+  eInsertKeyFlags flag = 0;
   bool done = false;
   float cfra;
 
@@ -4426,7 +4426,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   cfra = BKE_nla_tweakedit_remap(key->adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 
   /* get flags for keyframing */
-  flag = ANIM_get_keyframing_flags(scene, 1);
+  flag = ANIM_get_keyframing_flags(scene, true);
 
   /* try to resolve the path stored in the F-Curve */
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
@@ -4472,7 +4472,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
   ReportList *reports = CTX_wm_reports(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  short flag = 0;
+  eInsertKeyFlags flag = 0;
   bool done = false;
   float cfra;
 
@@ -4480,7 +4480,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
   cfra = (float)CFRA;
 
   /* get flags for keyframing */
-  flag = ANIM_get_keyframing_flags(scene, 1);
+  flag = ANIM_get_keyframing_flags(scene, true);
 
   /* Get pointer and property from the slider -
    * this should all match up with the NlaStrip required. */

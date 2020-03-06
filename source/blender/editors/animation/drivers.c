@@ -421,7 +421,8 @@ int ANIM_add_driver_with_target(ReportList *reports,
 
 /* --------------------------------- */
 
-/* Main Driver Management API calls:
+/**
+ * Main Driver Management API calls:
  * Add a new driver for the specified property on the given ID block
  */
 int ANIM_add_driver(
@@ -1098,15 +1099,15 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
     /* 1) Create a new "empty" driver for this property */
     char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
     short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
-    short success = 0;
+    bool changed = false;
 
     if (path) {
-      success += ANIM_add_driver(
-          op->reports, ptr.owner_id, path, index, flags, DRIVER_TYPE_PYTHON);
+      changed |= (ANIM_add_driver(
+                      op->reports, ptr.owner_id, path, index, flags, DRIVER_TYPE_PYTHON) != 0);
       MEM_freeN(path);
     }
 
-    if (success) {
+    if (changed) {
       /* send updates */
       UI_context_update_anim_flag(C);
       DEG_id_tag_update(ptr.owner_id, ID_RECALC_COPY_ON_WRITE);
@@ -1144,7 +1145,7 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
 {
   PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
-  short success = 0;
+  bool changed = false;
   int index;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
@@ -1159,20 +1160,20 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
     char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
 
     if (path) {
-      success = ANIM_remove_driver(op->reports, ptr.owner_id, path, index, 0);
+      changed = ANIM_remove_driver(op->reports, ptr.owner_id, path, index, 0);
 
       MEM_freeN(path);
     }
   }
 
-  if (success) {
+  if (changed) {
     /* send updates */
     UI_context_update_anim_flag(C);
     DEG_relations_tag_update(CTX_data_main(C));
     WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
   }
 
-  return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ANIM_OT_driver_button_remove(wmOperatorType *ot)
@@ -1234,7 +1235,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
 {
   PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
-  short success = 0;
+  bool changed = false;
   int index;
 
   /* try to create driver using property retrieved from UI */
@@ -1245,7 +1246,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
 
     if (path) {
       /* only copy the driver for the button that this was involved for */
-      success = ANIM_copy_driver(op->reports, ptr.owner_id, path, index, 0);
+      changed = ANIM_copy_driver(op->reports, ptr.owner_id, path, index, 0);
 
       UI_context_update_anim_flag(C);
 
@@ -1254,7 +1255,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
   }
 
   /* since we're just copying, we don't really need to do anything else...*/
-  return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ANIM_OT_copy_driver_button(wmOperatorType *ot)
@@ -1278,7 +1279,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
 {
   PointerRNA ptr = {NULL};
   PropertyRNA *prop = NULL;
-  short success = 0;
+  bool changed = false;
   int index;
 
   /* try to create driver using property retrieved from UI */
@@ -1289,7 +1290,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
 
     if (path) {
       /* only copy the driver for the button that this was involved for */
-      success = ANIM_paste_driver(op->reports, ptr.owner_id, path, index, 0);
+      changed = ANIM_paste_driver(op->reports, ptr.owner_id, path, index, 0);
 
       UI_context_update_anim_flag(C);
 
@@ -1304,7 +1305,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
   }
 
   /* since we're just copying, we don't really need to do anything else...*/
-  return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ANIM_OT_paste_driver_button(wmOperatorType *ot)

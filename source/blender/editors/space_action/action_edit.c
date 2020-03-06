@@ -707,7 +707,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
   ReportList *reports = ac->reports;
   Scene *scene = ac->scene;
   ToolSettings *ts = scene->toolsettings;
-  short flag = 0;
+  eInsertKeyFlags flag;
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -721,8 +721,8 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* init keyframing flag */
-  flag = ANIM_get_keyframing_flags(scene, 1);
+  /* Init keyframing flag. */
+  flag = ANIM_get_keyframing_flags(scene, true);
 
   /* insert keyframes */
   for (ale = anim_data.first; ale; ale = ale->next) {

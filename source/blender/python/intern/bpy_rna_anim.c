@@ -338,7 +338,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
      * not have any effect.
      */
     ReportList reports;
-    short result = 0;
+    bool result = false;
 
     PointerRNA ptr = self->ptr;
     PropertyRNA *prop = NULL;
@@ -372,13 +372,22 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
   else {
     ID *id = self->ptr.owner_id;
     ReportList reports;
-    short result;
+    bool result;
 
     BKE_reports_init(&reports, RPT_STORE);
 
     BLI_assert(BKE_id_is_in_global_main(id));
-    result = insert_keyframe(
-        G_MAIN, &reports, id, NULL, group_name, path_full, index, cfra, keytype, NULL, options);
+    result = (insert_keyframe(G_MAIN,
+                              &reports,
+                              id,
+                              NULL,
+                              group_name,
+                              path_full,
+                              index,
+                              cfra,
+                              keytype,
+                              NULL,
+                              options) != 0);
     MEM_freeN((void *)path_full);
 
     if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
@@ -436,7 +445,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
      * not have any effect.
      */
     ReportList reports;
-    short result = 0;
+    bool result = false;
 
     PointerRNA ptr = self->ptr;
     PropertyRNA *prop = NULL;
@@ -496,12 +505,13 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
     return PyBool_FromLong(result);
   }
   else {
-    short result;
+    bool result;
     ReportList reports;
 
     BKE_reports_init(&reports, RPT_STORE);
 
-    result = delete_keyframe(G.main, &reports, self->ptr.owner_id, NULL, path_full, index, cfra);
+    result = (delete_keyframe(
+                  G.main, &reports, self->ptr.owner_id, NULL, path_full, index, cfra) != 0);
     MEM_freeN((void *)path_full);
 
     if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {

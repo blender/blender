@@ -1424,10 +1424,10 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
     KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
     ListBase dsources = {NULL, NULL};
     float cfra = (float)CFRA;  // xxx this will do for now
-    short flag = 0;
+    eInsertKeyFlags flag = 0;
 
-    /* get flags used for inserting keyframes */
-    flag = ANIM_get_keyframing_flags(scene, 1);
+    /* Get flags used for inserting keyframes. */
+    flag = ANIM_get_keyframing_flags(scene, true);
 
     /* add datasource override for the object */
     ANIM_relative_keyingset_add_source(&dsources, id, NULL, NULL);
@@ -1566,14 +1566,14 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
     KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
     ListBase nla_cache = {NULL, NULL};
     float cfra = (float)CFRA;
-    short flag = 0;
+    eInsertKeyFlags flag = 0;
 
     /* flag is initialized from UserPref keyframing settings
      * - special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
      *   visual keyframes even if flag not set, as it's not that useful otherwise
      *   (for quick animation recording)
      */
-    flag = ANIM_get_keyframing_flags(scene, 1);
+    flag = ANIM_get_keyframing_flags(scene, true);
 
     if (targetless_ik) {
       flag |= INSERTKEY_MATRIX;

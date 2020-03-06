@@ -56,9 +56,9 @@ struct NlaKeyframingContext;
 /* ************ Keyframing Management **************** */
 
 /* Get the active settings for keyframing settings from context (specifically the given scene)
- * - incl_mode: include settings from keyframing mode in the result (i.e. replace only)
+ * - use_autokey_mode: include settings from keyframing mode in the result (i.e. replace only).
  */
-short ANIM_get_keyframing_flags(struct Scene *scene, short incl_mode);
+eInsertKeyFlags ANIM_get_keyframing_flags(struct Scene *scene, const bool use_autokey_mode);
 
 /* -------- */
 
@@ -129,28 +129,28 @@ bool insert_keyframe_direct(struct ReportList *reports,
  * Use this to create any necessary animation data, and then insert a keyframe
  * using the current value being keyframed, in the relevant place. Returns success.
  */
-short insert_keyframe(struct Main *bmain,
-                      struct ReportList *reports,
-                      struct ID *id,
-                      struct bAction *act,
-                      const char group[],
-                      const char rna_path[],
-                      int array_index,
-                      float cfra,
-                      eBezTriple_KeyframeType keytype,
-                      struct ListBase *nla_cache,
-                      eInsertKeyFlags flag);
+int insert_keyframe(struct Main *bmain,
+                    struct ReportList *reports,
+                    struct ID *id,
+                    struct bAction *act,
+                    const char group[],
+                    const char rna_path[],
+                    int array_index,
+                    float cfra,
+                    eBezTriple_KeyframeType keytype,
+                    struct ListBase *nla_cache,
+                    eInsertKeyFlags flag);
 
 /* Main Keyframing API call:
  * Use this to delete keyframe on current frame for relevant channel.
  * Will perform checks just in case. */
-short delete_keyframe(struct Main *bmain,
-                      struct ReportList *reports,
-                      struct ID *id,
-                      struct bAction *act,
-                      const char rna_path[],
-                      int array_index,
-                      float cfra);
+int delete_keyframe(struct Main *bmain,
+                    struct ReportList *reports,
+                    struct ID *id,
+                    struct bAction *act,
+                    const char rna_path[],
+                    int array_index,
+                    float cfra);
 
 /* ************ Keying Sets ********************** */
 
@@ -225,7 +225,9 @@ typedef enum eModifyKey_Returns {
 
 /* poll the current KeyingSet, updating it's set of paths
  * (if "builtin"/"relative") for context changes */
-short ANIM_validate_keyingset(struct bContext *C, ListBase *dsources, struct KeyingSet *ks);
+eModifyKey_Returns ANIM_validate_keyingset(struct bContext *C,
+                                           ListBase *dsources,
+                                           struct KeyingSet *ks);
 
 /* use the specified KeyingSet to add/remove various Keyframes on the specified frame */
 int ANIM_apply_keyingset(struct bContext *C,
