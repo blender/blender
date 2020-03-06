@@ -115,7 +115,7 @@ double BLI_dir_free_space(const char *dir)
 
   tmp[0] = '\\';
   tmp[1] = 0; /* Just a failsafe */
-  if (dir[0] == '/' || dir[0] == '\\') {
+  if (ELEM(dir[0] == '/', '\\')) {
     tmp[0] = '\\';
     tmp[1] = 0;
   }
@@ -277,7 +277,7 @@ int BLI_exists(const char *name)
   len = wcslen(tmp_16);
   /* in Windows #stat doesn't recognize dir ending on a slash
    * so we remove it here */
-  if (len > 3 && (tmp_16[len - 1] == L'\\' || tmp_16[len - 1] == L'/')) {
+  if ((len > 3) && ELEM(tmp_16[len - 1], L'\\', L'/')) {
     tmp_16[len - 1] = '\0';
   }
   /* two special cases where the trailing slash is needed:

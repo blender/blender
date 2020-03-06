@@ -443,7 +443,7 @@ static int BLI_path_unc_prefix_len(const char *path)
  */
 static bool BLI_path_is_abs(const char *name)
 {
-  return (name[1] == ':' && (name[2] == '\\' || name[2] == '/')) || BLI_path_is_unc(name);
+  return (name[1] == ':' && ELEM(name[2], '\\', '/')) || BLI_path_is_unc(name);
 }
 
 static wchar_t *next_slash(wchar_t *path)
@@ -478,14 +478,13 @@ static void BLI_path_unc_to_short(wchar_t *unc)
    *    \\?\C:\ to C:\ and \\?\C:\folder\... to C:\folder\...
    */
   if ((len > 3) && (unc[0] == L'\\') && (unc[1] == L'\\') && (unc[2] == L'?') &&
-      ((unc[3] == L'\\') || (unc[3] == L'/'))) {
+      ELEM((unc[3], L'\\', L'/'))) {
     if ((len > 5) && (unc[5] == L':')) {
       wcsncpy(tmp, unc + 4, len - 4);
       tmp[len - 4] = L'\0';
       wcscpy(unc, tmp);
     }
-    else if ((len > 7) && (wcsncmp(&unc[4], L"UNC", 3) == 0) &&
-             ((unc[7] == L'\\') || (unc[7] == L'/'))) {
+    else if ((len > 7) && (wcsncmp(&unc[4], L"UNC", 3) == 0) && ELEM(unc[7], L'\\', L'/')) {
       tmp[0] = L'\\';
       tmp[1] = L'\\';
       wcsncpy(tmp + 2, unc + 8, len - 8);
@@ -745,7 +744,7 @@ static bool stringframe_chars(const char *path, int *char_start, int *char_end)
   /* Insert current frame: file### -> file001 */
   ch_sta = ch_end = 0;
   for (i = 0; path[i] != '\0'; i++) {
-    if (path[i] == '\\' || path[i] == '/') {
+    if (ELEM(path[i], '\\', '/')) {
       ch_end = 0; /* this is a directory name, don't use any hashes we found */
     }
     else if (path[i] == '#') {
@@ -1032,7 +1031,7 @@ bool BLI_path_abs(char *path, const char *basepath)
     char *p = path;
     get_default_root(tmp);
     // get rid of the slashes at the beginning of the path
-    while (*p == '\\' || *p == '/') {
+    while (ELEM(*p, '\\', '/')) {
       p++;
     }
     strcat(tmp, p);
@@ -1050,8 +1049,8 @@ bool BLI_path_abs(char *path, const char *basepath)
    * Add a '/' prefix and lowercase the drive-letter, remove the ':'.
    * C:\foo.JPG -> /c/foo.JPG */
 
-  if (isalpha(tmp[0]) && tmp[1] == ':' && (tmp[2] == '\\' || tmp[2] == '/')) {
-    tmp[1] = tolower(tmp[0]); /* replace ':' with driveletter */
+  if (isalpha(tmp[0]) && (tmp[1] == ':') && ELEM(tmp[2], '\\', '/')) {
+    tmp[1] = tolower(tmp[0]); /* Replace ':' with drive-letter. */
     tmp[0] = '/';
     /* '\' the slash will be converted later */
   }
@@ -1392,7 +1391,7 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
       }
 
       /* ignore leading slashes */
-      while (*dir == '/' || *dir == '\\') {
+      while (ELEM(*dir, '/', '\\')) {
         dir++;
       }
     }
@@ -1404,14 +1403,14 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
   /* Make sure string ends in one (and only one) slash */
   /* first trim all slashes from the end of the string */
   sl = strlen(string);
-  while (sl > 0 && (string[sl - 1] == '/' || string[sl - 1] == '\\')) {
+  while ((sl > 0) && ELEM(string[sl - 1], '/', '\\')) {
     string[sl - 1] = '\0';
     sl--;
   }
   /* since we've now removed all slashes, put back one slash at the end. */
   strcat(string, "/");
 
-  while (*file && (*file == '/' || *file == '\\')) {
+  while (ELEM(*file, '/', '\\')) {
     /* Trim slashes from the front of file */
     file++;
   }
