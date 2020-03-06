@@ -740,11 +740,7 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
 
       allocsize = BMO_OPSLOT_TYPEINFO[bmo_opdefines[op->type]->slot_types[slot_code].type] *
                   slot->size;
-
-      tmp = slot->data.buf;
-      slot->data.buf = MEM_callocN(allocsize, "opslot dynamic array");
-      memcpy(slot->data.buf, tmp, allocsize);
-      MEM_freeN(tmp);
+      slot->data.buf = MEM_recallocN_id(slot->data.buf, allocsize, "opslot dynamic array");
     }
 
     slot->len += totadd;

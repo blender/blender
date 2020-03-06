@@ -233,11 +233,7 @@ static void console_line_verify_length(ConsoleLine *ci, int len)
 #else
     int new_len = (len + 1) * 2;
 #endif
-    char *new_line = MEM_callocN(new_len, "console line");
-    memcpy(new_line, ci->line, ci->len);
-    MEM_freeN(ci->line);
-
-    ci->line = new_line;
+    ci->line = MEM_recallocN_id(ci->line, new_len, "console line");
     ci->len_alloc = new_len;
   }
 }
