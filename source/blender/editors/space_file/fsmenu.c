@@ -1014,7 +1014,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
    * the FS_CATEGORY_OTHER category so that these directories
    * have the appropriate icons when they are added to the Bookmarks. */
 #define FS_UDIR_PATH(dir, icon) \
-  if (strlen(dir) > 2) { \
+  if (BLI_strnlen(dir, 3) > 2) { \
     fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, dir, NULL, icon, FS_INSERT_LAST); \
   }
 
