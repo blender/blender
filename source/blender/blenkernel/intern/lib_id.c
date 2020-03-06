@@ -470,9 +470,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_OB:
-      if (!test) {
-        BKE_object_make_local(bmain, (Object *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_ME:
       if (!test) {
@@ -731,7 +729,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_OB:
-        BKE_object_copy_data(bmain, (Object *)*r_newid, (Object *)id, flag);
+        BLI_assert(0);
         break;
       case ID_ME:
         BKE_mesh_copy_data(bmain, (Mesh *)*r_newid, (Mesh *)id, flag);
@@ -1351,11 +1349,9 @@ void BKE_libblock_init_empty(ID *id)
     case ID_LI:
       /* Nothing to do. */
       break;
-    case ID_OB: {
-      Object *ob = (Object *)id;
-      BKE_object_init(ob, OB_EMPTY);
+    case ID_OB:
+      BLI_assert(0);
       break;
-    }
     case ID_ME:
       BKE_mesh_init((Mesh *)id);
       break;
@@ -2417,7 +2413,7 @@ void BKE_library_make_local(Main *bmain,
       else {
         /* we can switch the proxy'ing from the linked-in to the made-local proxy.
          * BKE_object_make_proxy() shouldn't be used here, as it allocates memory that
-         * was already allocated by BKE_object_make_local() (which called BKE_object_copy). */
+         * was already allocated by object_make_local() (which called BKE_object_copy). */
         ob_new->proxy = ob->proxy;
         ob_new->proxy_group = ob->proxy_group;
         ob_new->proxy_from = ob->proxy_from;

@@ -782,12 +782,6 @@ void BKE_object_free_caches(Object *object)
   }
 }
 
-/** Free (or release) any data used by this object (does not free the object itself). */
-void BKE_object_free(Object *ob)
-{
-  object_free_data(&ob->id);
-}
-
 /* actual check for internal data, not context or flags */
 bool BKE_object_is_in_editmode(const Object *ob)
 {
@@ -1026,6 +1020,22 @@ static const char *get_obdata_defname(int type)
   }
 }
 
+static void object_init(Object *ob, const short ob_type)
+{
+  object_init_data(&ob->id);
+
+  ob->type = ob_type;
+
+  if (ob->type != OB_EMPTY) {
+    zero_v2(ob->ima_ofs);
+  }
+
+  if (ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
+    ob->trackflag = OB_NEGZ;
+    ob->upflag = OB_POSY;
+  }
+}
+
 void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
 {
   if (name == NULL) {
@@ -1065,22 +1075,6 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
   }
 }
 
-void BKE_object_init(Object *ob, const short ob_type)
-{
-  object_init_data(&ob->id);
-
-  ob->type = ob_type;
-
-  if (ob->type != OB_EMPTY) {
-    zero_v2(ob->ima_ofs);
-  }
-
-  if (ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
-    ob->trackflag = OB_NEGZ;
-    ob->upflag = OB_POSY;
-  }
-}
-
 /* more general add: creates minimum required data, but without vertices etc. */
 Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 {
@@ -1096,7 +1090,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
   id_us_min(&ob->id);
 
   /* default object vars */
-  BKE_object_init(ob, type);
+  object_init(ob, type);
 
   return ob;
 }
@@ -1537,21 +1531,6 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
   copy_v3_v3(ob_tar->scale, ob_src->scale);
 }
 
-/**
- * Only copy internal data of Object ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
-{
-  object_copy_data(bmain, &ob_dst->id, &ob_src->id, flag);
-}
-
 /* copy objects, will re-initialize cached simulation data */
 Object *BKE_object_copy(Main *bmain, const Object *ob)
 {
@@ -1827,11 +1806,6 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
   }
 
   return obn;
-}
-
-void BKE_object_make_local(Main *bmain, Object *ob, const int flags)
-{
-  object_make_local(bmain, &ob->id, flags);
 }
 
 /* Returns true if the Object is from an external blend file (libdata) */
