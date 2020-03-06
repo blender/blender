@@ -723,42 +723,24 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
   {
     /* Create RenderPass UBO */
     if (sldata->renderpass_ubo[0] == NULL) {
-      sldata->renderpass_data[0].renderPassDiffuse = true;
-      sldata->renderpass_data[0].renderPassDiffuseLight = true;
-      sldata->renderpass_data[0].renderPassGlossy = true;
-      sldata->renderpass_data[0].renderPassGlossyLight = true;
-      sldata->renderpass_data[0].renderPassEmit = true;
-      sldata->renderpass_data[0].renderPassSSSColor = false;
-      sldata->renderpass_data[1].renderPassDiffuse = true;
-      sldata->renderpass_data[1].renderPassDiffuseLight = false;
-      sldata->renderpass_data[1].renderPassGlossy = false;
-      sldata->renderpass_data[1].renderPassGlossyLight = false;
-      sldata->renderpass_data[1].renderPassEmit = false;
-      sldata->renderpass_data[1].renderPassSSSColor = true;
-      sldata->renderpass_data[2].renderPassDiffuse = true;
-      sldata->renderpass_data[2].renderPassDiffuseLight = true;
-      sldata->renderpass_data[2].renderPassGlossy = false;
-      sldata->renderpass_data[2].renderPassGlossyLight = false;
-      sldata->renderpass_data[2].renderPassEmit = false;
-      sldata->renderpass_data[2].renderPassSSSColor = false;
-      sldata->renderpass_data[3].renderPassDiffuse = false;
-      sldata->renderpass_data[3].renderPassDiffuseLight = false;
-      sldata->renderpass_data[3].renderPassGlossy = true;
-      sldata->renderpass_data[3].renderPassGlossyLight = false;
-      sldata->renderpass_data[3].renderPassEmit = false;
-      sldata->renderpass_data[3].renderPassSSSColor = false;
-      sldata->renderpass_data[4].renderPassDiffuse = false;
-      sldata->renderpass_data[4].renderPassDiffuseLight = false;
-      sldata->renderpass_data[4].renderPassGlossy = true;
-      sldata->renderpass_data[4].renderPassGlossyLight = true;
-      sldata->renderpass_data[4].renderPassEmit = false;
-      sldata->renderpass_data[4].renderPassSSSColor = false;
-      sldata->renderpass_data[5].renderPassDiffuse = false;
-      sldata->renderpass_data[5].renderPassDiffuseLight = false;
-      sldata->renderpass_data[5].renderPassGlossy = false;
-      sldata->renderpass_data[5].renderPassGlossyLight = false;
-      sldata->renderpass_data[5].renderPassEmit = true;
-      sldata->renderpass_data[5].renderPassSSSColor = false;
+      /* EEVEE_RENDER_PASS_COMBINED */
+      sldata->renderpass_data[0] = (const EEVEE_RenderPassData){
+          true, true, true, true, true, false};
+      /* EEVEE_RENDER_PASS_DIFFUSE_COLOR */
+      sldata->renderpass_data[1] = (const EEVEE_RenderPassData){
+          true, false, false, false, false, true};
+      /* EEVEE_RENDER_PASS_DIFFUSE_LIGHT */
+      sldata->renderpass_data[2] = (const EEVEE_RenderPassData){
+          true, true, false, false, false, false};
+      /* EEVEE_RENDER_PASS_SPECULAR_COLOR */
+      sldata->renderpass_data[3] = (const EEVEE_RenderPassData){
+          false, false, true, false, false, false};
+      /* EEVEE_RENDER_PASS_SPECULAR_LIGHT */
+      sldata->renderpass_data[4] = (const EEVEE_RenderPassData){
+          false, false, true, true, false, false};
+      /* EEVEE_RENDER_PASS_EMIT */
+      sldata->renderpass_data[5] = (const EEVEE_RenderPassData){
+          false, false, false, false, true, false};
 
       for (int i = 0; i < MAX_MATERIAL_RENDER_PASSES_UBO; i++) {
         sldata->renderpass_ubo[i] = DRW_uniformbuffer_create(sizeof(EEVEE_RenderPassData),
