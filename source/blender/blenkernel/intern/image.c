@@ -2985,7 +2985,7 @@ struct anim *openanim(const char *name, int flags, int streamindex, char colorsp
 
 /* forces existence of 1 Image for renderout or nodes, returns Image */
 /* name is only for default, when making new one */
-Image *BKE_image_verify_viewer(Main *bmain, int type, const char *name)
+Image *BKE_image_ensure_viewer(Main *bmain, int type, const char *name)
 {
   Image *ima;
 
@@ -3026,7 +3026,7 @@ static void image_viewer_create_views(const RenderData *rd, Image *ima)
 }
 
 /* Reset the image cache and views when the Viewer Nodes views don't match the scene views */
-void BKE_image_verify_viewer_views(const RenderData *rd, Image *ima, ImageUser *iuser)
+void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *iuser)
 {
   bool do_reset;
   const bool is_multiview = (rd->scemode & R_MULTIVIEW) != 0;

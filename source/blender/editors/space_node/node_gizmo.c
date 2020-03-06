@@ -143,7 +143,7 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmGizmoGroup *
   const float origin[3] = {ar->winx / 2, ar->winy / 2};
 
   void *lock;
-  Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
   if (ibuf) {
@@ -367,7 +367,7 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
   wmGizmo *gz = crop_group->border;
 
   void *lock;
-  Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
   if (ibuf) {
@@ -483,7 +483,7 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
   wmGizmo *gz = sbeam_group->gizmo;
 
   void *lock;
-  Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
   if (ibuf) {
@@ -594,7 +594,7 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
   struct NodeCornerPinWidgetGroup *cpin_group = gzgroup->customdata;
 
   void *lock;
-  Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
   if (ibuf) {

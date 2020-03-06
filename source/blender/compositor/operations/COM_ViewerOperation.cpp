@@ -129,7 +129,7 @@ void ViewerOperation::initImage()
 
   /* make sure the image has the correct number of views */
   if (ima && BKE_scene_multiview_is_render_view_first(this->m_rd, this->m_viewName)) {
-    BKE_image_verify_viewer_views(this->m_rd, ima, this->m_imageUser);
+    BKE_image_ensure_viewer_views(this->m_rd, ima, this->m_imageUser);
   }
 
   BLI_thread_lock(LOCK_DRAW_IMAGE);

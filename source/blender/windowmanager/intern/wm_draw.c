@@ -151,7 +151,7 @@ static bool wm_draw_region_stereo_set(Main *bmain, ScrArea *sa, ARegion *ar, eSt
       if (ar->regiontype == RGN_TYPE_WINDOW) {
         SpaceNode *snode = sa->spacedata.first;
         if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
-          Image *ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+          Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
           ima->eye = sview;
           return true;
         }

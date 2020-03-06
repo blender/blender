@@ -3485,7 +3485,7 @@ void draw_nodespace_back_pix(const bContext *C,
     return;
   }
 
-  ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+  ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
   if (ibuf) {
     float x, y;

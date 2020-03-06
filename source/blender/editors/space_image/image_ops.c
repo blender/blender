@@ -3931,7 +3931,7 @@ static int image_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceImage *sima = CTX_wm_space_image(C);
   Image *ima;
 
-  ima = BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
+  ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
   if (sima->image == NULL) {
     ED_space_image_set(bmain, sima, NULL, ima, false);
   }

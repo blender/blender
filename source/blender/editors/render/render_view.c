@@ -230,7 +230,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
   sima->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
 
   /* get the correct image, and scale it */
-  sima->image = BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
+  sima->image = BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
 
   /* If we're rendering to full screen, set appropriate hints on image editor
    * so it can restore properly on pressing escape. */

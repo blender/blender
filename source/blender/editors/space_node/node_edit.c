@@ -320,7 +320,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 #endif
 
   BKE_image_backup_render(
-      scene, BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result"), false);
+      scene, BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result"), false);
 
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
@@ -727,7 +727,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
         }
 
         /* addnode() doesn't link this yet... */
-        node->id = (ID *)BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+        node->id = (ID *)BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
       }
       else if (node->type == CMP_NODE_COMPOSITE) {
         if (was_output == 0) {
@@ -2624,7 +2624,7 @@ static int viewer_border_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-  ima = BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+  ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
   if (ibuf) {
