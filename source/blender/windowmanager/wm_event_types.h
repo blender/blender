@@ -40,7 +40,12 @@ enum {
   EVT_TABLET_ERASER = 2,
 };
 
-/* ********** wmEvent.type ********** */
+/**
+ * #wmEvent.type
+ *
+ * \note Also used for #wmKeyMapItem.type which is saved in key-map files,
+ * do not change the values of existing values which can be used in key-maps.
+ */
 enum {
   /* non-event, for example disabled timer */
   EVENT_NONE = 0x0000,
@@ -88,61 +93,103 @@ enum {
 
   /* *** Start of keyboard codes. *** */
 
-  /* standard keyboard.
-   * XXX from 0x0020 to 0x00ff, and 0x012c to 0x013f for function keys! */
+  /* Standard keyboard.
+   * From 0x0020 to 0x00ff, and 0x012c to 0x0143 for function keys! */
 
-  /* NOTE: these values are saved in keymap files, do not change them but just add new ones */
-  AKEY = 0x0061, /* 'a' */
-  BKEY = 0x0062, /* 'b' */
-  CKEY = 0x0063, /* 'c' */
-  DKEY = 0x0064, /* 'd' */
-  EKEY = 0x0065, /* 'e' */
-  FKEY = 0x0066, /* 'f' */
-  GKEY = 0x0067, /* 'g' */
+  ZEROKEY = 0x0030,  /* '0' (48). */
+  ONEKEY = 0x0031,   /* '1' (49). */
+  TWOKEY = 0x0032,   /* '2' (50). */
+  THREEKEY = 0x0033, /* '3' (51). */
+  FOURKEY = 0x0034,  /* '4' (52). */
+  FIVEKEY = 0x0035,  /* '5' (53). */
+  SIXKEY = 0x0036,   /* '6' (54). */
+  SEVENKEY = 0x0037, /* '7' (55). */
+  EIGHTKEY = 0x0038, /* '8' (56). */
+  NINEKEY = 0x0039,  /* '9' (57). */
+
+  AKEY = 0x0061, /* 'a' (97). */
+  BKEY = 0x0062, /* 'b' (98). */
+  CKEY = 0x0063, /* 'c' (99). */
+  DKEY = 0x0064, /* 'd' (100). */
+  EKEY = 0x0065, /* 'e' (101). */
+  FKEY = 0x0066, /* 'f' (102). */
+  GKEY = 0x0067, /* 'g' (103). */
 #ifndef WIN32
-  HKEY = 0x0068, /* 'h' */
+  HKEY = 0x0068, /* 'h' (104). */
 #else
 #  define HKEY 0x0068
 #endif
-  IKEY = 0x0069, /* 'i' */
-  JKEY = 0x006a, /* 'j' */
-  KKEY = 0x006b, /* 'k' */
-  LKEY = 0x006c, /* 'l' */
-  MKEY = 0x006d, /* 'm' */
-  NKEY = 0x006e, /* 'n' */
-  OKEY = 0x006f, /* 'o' */
-  PKEY = 0x0070, /* 'p' */
-  QKEY = 0x0071, /* 'q' */
-  RKEY = 0x0072, /* 'r' */
-  SKEY = 0x0073, /* 's' */
-  TKEY = 0x0074, /* 't' */
-  UKEY = 0x0075, /* 'u' */
-  VKEY = 0x0076, /* 'v' */
-  WKEY = 0x0077, /* 'w' */
-  XKEY = 0x0078, /* 'x' */
-  YKEY = 0x0079, /* 'y' */
-  ZKEY = 0x007a, /* 'z' */
+  IKEY = 0x0069, /* 'i' (105). */
+  JKEY = 0x006a, /* 'j' (106). */
+  KKEY = 0x006b, /* 'k' (107). */
+  LKEY = 0x006c, /* 'l' (108). */
+  MKEY = 0x006d, /* 'm' (109). */
+  NKEY = 0x006e, /* 'n' (110). */
+  OKEY = 0x006f, /* 'o' (111). */
+  PKEY = 0x0070, /* 'p' (112). */
+  QKEY = 0x0071, /* 'q' (113). */
+  RKEY = 0x0072, /* 'r' (114). */
+  SKEY = 0x0073, /* 's' (115). */
+  TKEY = 0x0074, /* 't' (116). */
+  UKEY = 0x0075, /* 'u' (117). */
+  VKEY = 0x0076, /* 'v' (118). */
+  WKEY = 0x0077, /* 'w' (119). */
+  XKEY = 0x0078, /* 'x' (120). */
+  YKEY = 0x0079, /* 'y' (121). */
+  ZKEY = 0x007a, /* 'z' (122). */
 
-  ZEROKEY = 0x0030,  /* '0' */
-  ONEKEY = 0x0031,   /* '1' */
-  TWOKEY = 0x0032,   /* '2' */
-  THREEKEY = 0x0033, /* '3' */
-  FOURKEY = 0x0034,  /* '4' */
-  FIVEKEY = 0x0035,  /* '5' */
-  SIXKEY = 0x0036,   /* '6' */
-  SEVENKEY = 0x0037, /* '7' */
-  EIGHTKEY = 0x0038, /* '8' */
-  NINEKEY = 0x0039,  /* '9' */
+  LEFTARROWKEY = 0x0089,  /* 137 */
+  DOWNARROWKEY = 0x008a,  /* 138 */
+  RIGHTARROWKEY = 0x008b, /* 139 */
+  UPARROWKEY = 0x008c,    /* 140 */
+
+  PAD0 = 0x0096, /* 150 */
+  PAD1 = 0x0097, /* 151 */
+  PAD2 = 0x0098, /* 152 */
+  PAD3 = 0x0099, /* 153 */
+  PAD4 = 0x009a, /* 154 */
+  PAD5 = 0x009b, /* 155 */
+  PAD6 = 0x009c, /* 156 */
+  PAD7 = 0x009d, /* 157 */
+  PAD8 = 0x009e, /* 158 */
+  PAD9 = 0x009f, /* 159 */
+  /* Key-pad keys. */
+  PADASTERKEY = 0x00a0, /* 160 */
+  PADSLASHKEY = 0x00a1, /* 161 */
+  PADMINUS = 0x00a2,    /* 162 */
+  PADENTER = 0x00a3,    /* 163 */
+  PADPLUSKEY = 0x00a4,  /* 164 */
+
+  PAUSEKEY = 0x00a5,    /* 165 */
+  INSERTKEY = 0x00a6,   /* 166 */
+  HOMEKEY = 0x00a7,     /* 167 */
+  PAGEUPKEY = 0x00a8,   /* 168 */
+  PAGEDOWNKEY = 0x00a9, /* 169 */
+  ENDKEY = 0x00aa,      /* 170 */
+  /* Note that 'PADPERIOD' is defined out-of-order. */
+  UNKNOWNKEY = 0x00ab, /* 171 */
+  OSKEY = 0x00ac,      /* 172 */
+  GRLESSKEY = 0x00ad,  /* 173 */
+  /* Media keys. */
+  MEDIAPLAY = 0x00ae,  /* 174 */
+  MEDIASTOP = 0x00af,  /* 175 */
+  MEDIAFIRST = 0x00b0, /* 176 */
+  MEDIALAST = 0x00b1,  /* 177 */
+  /* Menu/App key. */
+  APPKEY = 0x00b2, /* 178 */
+
+  PADPERIOD = 0x00c7, /* 199 */
 
   CAPSLOCKKEY = 0x00d3, /* 211 */
 
+  /* Modifier keys. */
   LEFTCTRLKEY = 0x00d4,   /* 212 */
   LEFTALTKEY = 0x00d5,    /* 213 */
   RIGHTALTKEY = 0x00d6,   /* 214 */
   RIGHTCTRLKEY = 0x00d7,  /* 215 */
   RIGHTSHIFTKEY = 0x00d8, /* 216 */
   LEFTSHIFTKEY = 0x00d9,  /* 217 */
-
+  /* Special characters. */
   ESCKEY = 0x00da,          /* 218 */
   TABKEY = 0x00db,          /* 219 */
   RETKEY = 0x00dc,          /* 220 */
@@ -162,48 +209,6 @@ enum {
   EQUALKEY = 0x00ea,        /* 234 */
   LEFTBRACKETKEY = 0x00eb,  /* 235 */
   RIGHTBRACKETKEY = 0x00ec, /* 236 */
-
-  LEFTARROWKEY = 0x0089,  /* 137 */
-  DOWNARROWKEY = 0x008a,  /* 138 */
-  RIGHTARROWKEY = 0x008b, /* 139 */
-  UPARROWKEY = 0x008c,    /* 140 */
-
-  PAD0 = 0x0096, /* 150 */
-  PAD1 = 0x0097, /* 151 */
-  PAD2 = 0x0098, /* 152 */
-  PAD3 = 0x0099, /* 153 */
-  PAD4 = 0x009a, /* 154 */
-  PAD5 = 0x009b, /* 155 */
-  PAD6 = 0x009c, /* 156 */
-  PAD7 = 0x009d, /* 157 */
-  PAD8 = 0x009e, /* 158 */
-  PAD9 = 0x009f, /* 159 */
-
-  PADPERIOD = 0x00c7,   /* 199 */
-  PADASTERKEY = 0x00a0, /* 160 */
-  PADSLASHKEY = 0x00a1, /* 161 */
-  PADMINUS = 0x00a2,    /* 162 */
-  PADENTER = 0x00a3,    /* 163 */
-  PADPLUSKEY = 0x00a4,  /* 164 */
-
-  PAUSEKEY = 0x00a5,    /* 165 */
-  INSERTKEY = 0x00a6,   /* 166 */
-  HOMEKEY = 0x00a7,     /* 167 */
-  PAGEUPKEY = 0x00a8,   /* 168 */
-  PAGEDOWNKEY = 0x00a9, /* 169 */
-  ENDKEY = 0x00aa,      /* 170 */
-
-  UNKNOWNKEY = 0x00ab, /* 171 */
-  OSKEY = 0x00ac,      /* 172 */
-  GRLESSKEY = 0x00ad,  /* 173 */
-
-  /* XXX: are these codes ok? */
-  MEDIAPLAY = 0x00ae,  /* 174 */
-  MEDIASTOP = 0x00af,  /* 175 */
-  MEDIAFIRST = 0x00b0, /* 176 */
-  MEDIALAST = 0x00b1,  /* 177 */
-
-  APPKEY = 0x00b2, /* 178 */
 
   F1KEY = 0x012c,  /* 300 */
   F2KEY = 0x012d,  /* 301 */
@@ -235,7 +240,7 @@ enum {
   /* NDOF (from SpaceNavigator & friends)
    * These should be kept in sync with GHOST_NDOFManager.h
    * Ordering matters, exact values do not. */
-  NDOF_MOTION = 0x0190,
+  NDOF_MOTION = 0x0190, /* 400 */
   /* used internally, never sent */
   NDOF_BUTTON_NONE = NDOF_MOTION,
   /* these two are available from any 3Dconnexion device */
@@ -293,25 +298,25 @@ enum {
 
   /* XXX Those are mixed inside keyboard 'area'! */
   /* System: 0x010x */
-  INPUTCHANGE = 0x0103,   /* input connected or disconnected */
-  WINDEACTIVATE = 0x0104, /* window is deactivated, focus lost */
+  INPUTCHANGE = 0x0103,   /* Input connected or disconnected, (259). */
+  WINDEACTIVATE = 0x0104, /* Window is deactivated, focus lost, (260). */
   /* Timer: 0x011x */
-  TIMER = 0x0110,         /* timer event, passed on to all queues */
-  TIMER0 = 0x0111,        /* timer event, slot for internal use */
-  TIMER1 = 0x0112,        /* timer event, slot for internal use */
-  TIMER2 = 0x0113,        /* timer event, slot for internal use */
-  TIMERJOBS = 0x0114,     /* timer event, jobs system */
-  TIMERAUTOSAVE = 0x0115, /* timer event, autosave */
-  TIMERREPORT = 0x0116,   /* timer event, reports */
-  TIMERREGION = 0x0117,   /* timer event, region slide in/out */
-  TIMERNOTIFIER = 0x0118, /* timer event, notifier sender */
-  TIMERF = 0x011F,        /* last timer */
+  TIMER = 0x0110,         /* Timer event, passed on to all queues (272). */
+  TIMER0 = 0x0111,        /* Timer event, slot for internal use (273). */
+  TIMER1 = 0x0112,        /* Timer event, slot for internal use (274). */
+  TIMER2 = 0x0113,        /* Timer event, slot for internal use (275). */
+  TIMERJOBS = 0x0114,     /* Timer event, jobs system (276). */
+  TIMERAUTOSAVE = 0x0115, /* Timer event, autosave (277). */
+  TIMERREPORT = 0x0116,   /* Timer event, reports (278). */
+  TIMERREGION = 0x0117,   /* Timer event, region slide in/out (279). */
+  TIMERNOTIFIER = 0x0118, /* Timer event, notifier sender (280). */
+  TIMERF = 0x011F,        /* Last timer (287). */
 
   /* Actionzones, tweak, gestures: 0x500x, 0x501x */
   /* Keep in sync with IS_EVENT_ACTIONZONE(...). */
-  EVT_ACTIONZONE_AREA = 0x5000,
-  EVT_ACTIONZONE_REGION = 0x5001,
-  EVT_ACTIONZONE_FULLSCREEN = 0x5011,
+  EVT_ACTIONZONE_AREA = 0x5000,       /* 20480 */
+  EVT_ACTIONZONE_REGION = 0x5001,     /* 20481 */
+  EVT_ACTIONZONE_FULLSCREEN = 0x5011, /* 20497 */
 
   /* NOTE: these values are saved in keymap files, do not change them but just add new ones */
 
@@ -320,22 +325,22 @@ enum {
    * from where the initial click was placed. */
 
   /* tweak events for L M R mousebuttons */
-  EVT_TWEAK_L = 0x5002,
-  EVT_TWEAK_M = 0x5003,
-  EVT_TWEAK_R = 0x5004,
+  EVT_TWEAK_L = 0x5002, /* 20482 */
+  EVT_TWEAK_M = 0x5003, /* 20483 */
+  EVT_TWEAK_R = 0x5004, /* 20484 */
   /* 0x5010 (and lower) should be left to add other tweak types in the future. */
 
   /* 0x5011 is taken, see EVT_ACTIONZONE_FULLSCREEN */
 
   /* Misc Blender internals: 0x502x */
-  EVT_FILESELECT = 0x5020,
-  EVT_BUT_OPEN = 0x5021,
-  EVT_MODAL_MAP = 0x5022,
-  EVT_DROP = 0x5023,
-  EVT_BUT_CANCEL = 0x5024,
+  EVT_FILESELECT = 0x5020, /* 20512 */
+  EVT_BUT_OPEN = 0x5021,   /* 20513 */
+  EVT_MODAL_MAP = 0x5022,  /* 20514 */
+  EVT_DROP = 0x5023,       /* 20515 */
+  EVT_BUT_CANCEL = 0x5024, /* 20516 */
 
   /* could become gizmo callback */
-  EVT_GIZMO_UPDATE = 0x5025,
+  EVT_GIZMO_UPDATE = 0x5025, /* 20517 */
   /* ********** End of Blender internal events. ********** */
 };
 
