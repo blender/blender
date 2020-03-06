@@ -177,12 +177,12 @@ void BKE_defvert_copy_index(MDeformVert *dvert_dst,
   dw_src = BKE_defvert_find_index(dvert_src, defgroup_src);
 
   if (dw_src) {
-    /* source is valid, verify destination */
+    /* Source is valid, ensure destination is created. */
     dw_dst = BKE_defvert_ensure_index(dvert_dst, defgroup_dst);
     dw_dst->weight = dw_src->weight;
   }
   else {
-    /* source was NULL, assign zero, could also remove */
+    /* Source was NULL, assign zero (could also remove). */
     dw_dst = BKE_defvert_find_index(dvert_dst, defgroup_dst);
 
     if (dw_dst) {
@@ -195,14 +195,14 @@ void BKE_defvert_copy_index(MDeformVert *dvert_dst,
  * Only sync over matching weights, don't add or remove groups
  * warning, loop within loop.
  */
-void BKE_defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, const bool use_verify)
+void BKE_defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, const bool use_ensure)
 {
   if (dvert_src->totweight && dvert_dst->totweight) {
     int i;
     MDeformWeight *dw_src;
     for (i = 0, dw_src = dvert_src->dw; i < dvert_src->totweight; i++, dw_src++) {
       MDeformWeight *dw_dst;
-      if (use_verify) {
+      if (use_ensure) {
         dw_dst = BKE_defvert_ensure_index(dvert_dst, dw_src->def_nr);
       }
       else {
@@ -223,7 +223,7 @@ void BKE_defvert_sync_mapped(MDeformVert *dvert_dst,
                              const MDeformVert *dvert_src,
                              const int *flip_map,
                              const int flip_map_len,
-                             const bool use_verify)
+                             const bool use_ensure)
 {
   if (dvert_src->totweight && dvert_dst->totweight) {
     int i;
@@ -231,7 +231,7 @@ void BKE_defvert_sync_mapped(MDeformVert *dvert_dst,
     for (i = 0, dw_src = dvert_src->dw; i < dvert_src->totweight; i++, dw_src++) {
       if (dw_src->def_nr < flip_map_len) {
         MDeformWeight *dw_dst;
-        if (use_verify) {
+        if (use_ensure) {
           dw_dst = BKE_defvert_ensure_index(dvert_dst, flip_map[dw_src->def_nr]);
         }
         else {

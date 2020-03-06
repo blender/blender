@@ -90,12 +90,12 @@ void BKE_defvert_copy_index(struct MDeformVert *dvert_dst,
                             const int defgroup_src);
 void BKE_defvert_sync(struct MDeformVert *dvert_dst,
                       const struct MDeformVert *dvert_src,
-                      const bool use_verify);
+                      const bool use_ensure);
 void BKE_defvert_sync_mapped(struct MDeformVert *dvert_dst,
                              const struct MDeformVert *dvert_src,
                              const int *flip_map,
                              const int flip_map_len,
-                             const bool use_verify);
+                             const bool use_ensure);
 void BKE_defvert_remap(struct MDeformVert *dvert, int *map, const int map_len);
 void BKE_defvert_flip(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void BKE_defvert_flip_merged(struct MDeformVert *dvert,
