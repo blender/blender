@@ -1845,11 +1845,11 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   }
 
   /* report failure or do updates? */
-  if (num_channels == MODIFYKEY_INVALID_CONTEXT) {
+  if (num_channels < 0) {
     BKE_report(op->reports, RPT_ERROR, "No suitable context info for active keying set");
     return OPERATOR_CANCELLED;
   }
-  else if (num_channels) {
+  else if (num_channels > 0) {
     /* if the appropriate properties have been set, make a note that we've inserted something */
     if (RNA_boolean_get(op->ptr, "confirm_success")) {
       BKE_reportf(op->reports,
@@ -2061,11 +2061,11 @@ static int delete_key_exec(bContext *C, wmOperator *op)
   }
 
   /* report failure or do updates? */
-  if (num_channels == MODIFYKEY_INVALID_CONTEXT) {
+  if (num_channels < 0) {
     BKE_report(op->reports, RPT_ERROR, "No suitable context info for active keying set");
     return OPERATOR_CANCELLED;
   }
-  else if (num_channels) {
+  else if (num_channels > 0) {
     /* if the appropriate properties have been set, make a note that we've inserted something */
     if (RNA_boolean_get(op->ptr, "confirm_success")) {
       BKE_reportf(op->reports,
