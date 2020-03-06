@@ -42,16 +42,10 @@ struct TexResult;
 /*  in ColorBand struct */
 #define MAXCOLORBAND 32
 
-void BKE_texture_free(struct Tex *tex);
 void BKE_texture_default(struct Tex *tex);
-void BKE_texture_copy_data(struct Main *bmain,
-                           struct Tex *tex_dst,
-                           const struct Tex *tex_src,
-                           const int flag);
 struct Tex *BKE_texture_copy(struct Main *bmain, const struct Tex *tex);
 struct Tex *BKE_texture_add(struct Main *bmain, const char *name);
 struct Tex *BKE_texture_localize(struct Tex *tex);
-void BKE_texture_make_local(struct Main *bmain, struct Tex *tex, const int flags);
 void BKE_texture_type_set(struct Tex *tex, int type);
 
 void BKE_texture_mtex_default(struct MTex *mtex);

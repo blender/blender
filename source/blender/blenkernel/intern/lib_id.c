@@ -485,9 +485,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_TE:
-      if (!test) {
-        BKE_texture_make_local(bmain, (Tex *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_IM:
       if (!test) {
@@ -716,7 +714,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_TE:
-        BKE_texture_copy_data(bmain, (Tex *)*r_newid, (Tex *)id, flag);
+        BLI_assert(0);
         break;
       case ID_IM:
         BKE_image_copy_data(bmain, (Image *)*r_newid, (Image *)id, flag);
@@ -1337,7 +1335,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_TE:
-      BKE_texture_default((Tex *)id);
+      BLI_assert(0);
       break;
     case ID_IM:
       BKE_image_init((Image *)id);

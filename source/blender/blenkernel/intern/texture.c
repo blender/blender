@@ -33,6 +33,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_color.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
@@ -48,6 +50,7 @@
 #include "BKE_main.h"
 
 #include "BKE_colorband.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
@@ -60,6 +63,82 @@
 #include "BKE_scene.h"
 
 #include "RE_shader_ext.h"
+
+static void texture_init_data(ID *id)
+{
+  Tex *texture = (Tex *)id;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(texture, id));
+
+  MEMCPY_STRUCT_AFTER(texture, DNA_struct_default_get(Tex), id);
+
+  BKE_imageuser_default(&texture->iuser);
+}
+
+static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+{
+  Tex *texture_dst = (Tex *)id_dst;
+  const Tex *texture_src = (const Tex *)id_src;
+
+  /* We always need allocation of our private ID data. */
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
+
+  if (!BKE_texture_is_image_user(texture_src)) {
+    texture_dst->ima = NULL;
+  }
+
+  if (texture_dst->coba) {
+    texture_dst->coba = MEM_dupallocN(texture_dst->coba);
+  }
+  if (texture_src->nodetree) {
+    if (texture_src->nodetree->execdata) {
+      ntreeTexEndExecTree(texture_src->nodetree->execdata);
+    }
+    BKE_id_copy_ex(
+        bmain, (ID *)texture_src->nodetree, (ID **)&texture_dst->nodetree, flag_private_id_data);
+  }
+
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+    BKE_previewimg_id_copy(&texture_dst->id, &texture_src->id);
+  }
+  else {
+    texture_dst->preview = NULL;
+  }
+}
+
+static void texture_free_data(ID *id)
+{
+  Tex *texture = (Tex *)id;
+  BKE_animdata_free((ID *)texture, false);
+
+  /* is no lib link block, but texture extension */
+  if (texture->nodetree) {
+    ntreeFreeNestedTree(texture->nodetree);
+    MEM_freeN(texture->nodetree);
+    texture->nodetree = NULL;
+  }
+
+  MEM_SAFE_FREE(texture->coba);
+
+  BKE_icon_id_delete((ID *)texture);
+  BKE_previewimg_free(&texture->preview);
+}
+
+IDTypeInfo IDType_ID_TE = {
+    .id_code = ID_TE,
+    .id_filter = FILTER_ID_TE,
+    .main_listbase_index = INDEX_ID_TE,
+    .struct_size = sizeof(Tex),
+    .name = "texture",
+    .name_plural = "textures",
+    .translation_context = BLT_I18NCONTEXT_ID_TEXTURE,
+    .flags = 0,
+
+    .init_data = texture_init_data,
+    .copy_data = texture_copy_data,
+    .free_data = texture_free_data,
+    .make_local = NULL,
+};
 
 /* ****************** Mapping ******************* */
 
@@ -193,33 +272,11 @@ void BKE_texture_colormapping_default(ColorMapping *colormap)
 
 /* ******************* TEX ************************ */
 
-/** Free (or release) any data used by this texture (does not free the texure itself). */
-void BKE_texture_free(Tex *tex)
-{
-  BKE_animdata_free((ID *)tex, false);
-
-  /* is no lib link block, but texture extension */
-  if (tex->nodetree) {
-    ntreeFreeNestedTree(tex->nodetree);
-    MEM_freeN(tex->nodetree);
-    tex->nodetree = NULL;
-  }
-
-  MEM_SAFE_FREE(tex->coba);
-
-  BKE_icon_id_delete((ID *)tex);
-  BKE_previewimg_free(&tex->preview);
-}
-
 /* ------------------------------------------------------------------------- */
 
 void BKE_texture_default(Tex *tex)
 {
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tex, id));
-
-  MEMCPY_STRUCT_AFTER(tex, DNA_struct_default_get(Tex), id);
-
-  BKE_imageuser_default(&tex->iuser);
+  texture_init_data(&tex->id);
 }
 
 void BKE_texture_type_set(Tex *tex, int type)
@@ -235,7 +292,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 
   tex = BKE_libblock_alloc(bmain, ID_TE, name, 0);
 
-  BKE_texture_default(tex);
+  texture_init_data(&tex->id);
 
   return tex;
 }
@@ -305,44 +362,6 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
 /* ------------------------------------------------------------------------- */
 
-/**
- * Only copy internal data of Texture ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const int flag)
-{
-  /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
-
-  if (!BKE_texture_is_image_user(tex_src)) {
-    tex_dst->ima = NULL;
-  }
-
-  if (tex_dst->coba) {
-    tex_dst->coba = MEM_dupallocN(tex_dst->coba);
-  }
-  if (tex_src->nodetree) {
-    if (tex_src->nodetree->execdata) {
-      ntreeTexEndExecTree(tex_src->nodetree->execdata);
-    }
-    BKE_id_copy_ex(
-        bmain, (ID *)tex_src->nodetree, (ID **)&tex_dst->nodetree, flag_private_id_data);
-  }
-
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
-    BKE_previewimg_id_copy(&tex_dst->id, &tex_src->id);
-  }
-  else {
-    tex_dst->preview = NULL;
-  }
-}
-
 Tex *BKE_texture_copy(Main *bmain, const Tex *tex)
 {
   Tex *tex_copy;
@@ -367,7 +386,7 @@ Tex *BKE_texture_localize(Tex *tex)
 
   texn = BKE_libblock_copy_for_localize(&tex->id);
 
-  /* image texture: BKE_texture_free also doesn't decrease */
+  /* image texture: texture_free_data also doesn't decrease */
 
   if (texn->coba) {
     texn->coba = MEM_dupallocN(texn->coba);
@@ -385,11 +404,6 @@ Tex *BKE_texture_localize(Tex *tex)
 }
 
 /* ------------------------------------------------------------------------- */
-
-void BKE_texture_make_local(Main *bmain, Tex *tex, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &tex->id, flags);
-}
 
 Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
 {
