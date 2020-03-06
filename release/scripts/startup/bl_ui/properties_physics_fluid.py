@@ -262,12 +262,16 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             row = layout.row()
             row.prop(effector_settings, "effector_type")
 
-            flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+            grid = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-            col = flow.column()
-
-            col.prop(effector_settings, "use_plane_init", text="Is Planar")
+            col = grid.column()
+            col.prop(effector_settings, "subframes", text="Sampling Substeps")
             col.prop(effector_settings, "surface_distance", text="Surface Thickness")
+
+            col = grid.column()
+
+            col.prop(effector_settings, "use_effector", text="Use Effector")
+            col.prop(effector_settings, "use_plane_init", text="Is Planar")
             col.prop(effector_settings, "delete_in_obstacle", text="Delete In Obstacle")
 
             if effector_settings.effector_type == 'GUIDE':
