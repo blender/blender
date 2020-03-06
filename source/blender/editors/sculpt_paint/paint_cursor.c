@@ -1223,70 +1223,6 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession
   }
 }
 
-static void sculpt_multiplane_scrape_preview_draw(const uint gpuattr,
-                                                  SculptSession *ss,
-                                                  const float outline_col[3],
-                                                  const float outline_alpha)
-{
-  float local_mat_inv[4][4];
-  invert_m4_m4(local_mat_inv, ss->cache->stroke_local_mat);
-  GPU_matrix_mul(local_mat_inv);
-  float angle = ss->cache->multiplane_scrape_angle;
-  if (ss->cache->pen_flip || ss->cache->invert) {
-    angle = -angle;
-  }
-
-  float offset = ss->cache->radius * 0.25f;
-
-  float p[3] = {0.0f, 0.0f, ss->cache->radius};
-  float y_axis[3] = {0.0f, 1.0f, 0.0f};
-  float p_l[3];
-  float p_r[3];
-  float area_center[3] = {0.0f, 0.0f, 0.0f};
-  rotate_v3_v3v3fl(p_r, p, y_axis, DEG2RADF((angle + 180) * 0.5f));
-  rotate_v3_v3v3fl(p_l, p, y_axis, DEG2RADF(-(angle + 180) * 0.5f));
-
-  immBegin(GPU_PRIM_LINES, 14);
-  immVertex3f(gpuattr, area_center[0], area_center[1] + offset, area_center[2]);
-  immVertex3f(gpuattr, p_r[0], p_r[1] + offset, p_r[2]);
-  immVertex3f(gpuattr, area_center[0], area_center[1] + offset, area_center[2]);
-  immVertex3f(gpuattr, p_l[0], p_l[1] + offset, p_l[2]);
-
-  immVertex3f(gpuattr, area_center[0], area_center[1] - offset, area_center[2]);
-  immVertex3f(gpuattr, p_r[0], p_r[1] - offset, p_r[2]);
-  immVertex3f(gpuattr, area_center[0], area_center[1] - offset, area_center[2]);
-  immVertex3f(gpuattr, p_l[0], p_l[1] - offset, p_l[2]);
-
-  immVertex3f(gpuattr, area_center[0], area_center[1] - offset, area_center[2]);
-  immVertex3f(gpuattr, area_center[0], area_center[1] + offset, area_center[2]);
-
-  immVertex3f(gpuattr, p_r[0], p_r[1] - offset, p_r[2]);
-  immVertex3f(gpuattr, p_r[0], p_r[1] + offset, p_r[2]);
-
-  immVertex3f(gpuattr, p_l[0], p_l[1] - offset, p_l[2]);
-  immVertex3f(gpuattr, p_l[0], p_l[1] + offset, p_l[2]);
-
-  immEnd();
-
-  immUniformColor3fvAlpha(outline_col, outline_alpha * 0.1f);
-  immBegin(GPU_PRIM_TRIS, 12);
-  immVertex3f(gpuattr, area_center[0], area_center[1] + offset, area_center[2]);
-  immVertex3f(gpuattr, p_r[0], p_r[1] + offset, p_r[2]);
-  immVertex3f(gpuattr, p_r[0], p_r[1] - offset, p_r[2]);
-  immVertex3f(gpuattr, area_center[0], area_center[1] + offset, area_center[2]);
-  immVertex3f(gpuattr, area_center[0], area_center[1] - offset, area_center[2]);
-  immVertex3f(gpuattr, p_r[0], p_r[1] - offset, p_r[2]);
-
-  immVertex3f(gpuattr, area_center[0], area_center[1] + offset, area_center[2]);
-  immVertex3f(gpuattr, p_l[0], p_l[1] + offset, p_l[2]);
-  immVertex3f(gpuattr, p_l[0], p_l[1] - offset, p_l[2]);
-  immVertex3f(gpuattr, area_center[0], area_center[1] + offset, area_center[2]);
-  immVertex3f(gpuattr, area_center[0], area_center[1] - offset, area_center[2]);
-  immVertex3f(gpuattr, p_l[0], p_l[1] - offset, p_l[2]);
-
-  immEnd();
-}
-
 static bool paint_use_2d_cursor(ePaintMode mode)
 {
   if (mode >= PAINT_MODE_TEXTURE_3D) {
@@ -1629,7 +1565,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
                                       NULL);
             GPU_matrix_push();
             GPU_matrix_mul(vc.obact->obmat);
-            sculpt_multiplane_scrape_preview_draw(pos, ss, outline_col, outline_alpha);
+            SCULPT_multiplane_scrape_preview_draw(pos, ss, outline_col, outline_alpha);
             GPU_matrix_pop();
             GPU_matrix_pop_projection();
           }

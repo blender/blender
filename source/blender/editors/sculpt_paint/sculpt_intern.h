@@ -155,11 +155,22 @@ void SCULPT_calc_brush_plane(struct Sculpt *sd,
                              int totnode,
                              float r_area_no[3],
                              float r_area_co[3]);
+
+void SCULPT_calc_area_normal(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3]);
+
 int SCULPT_nearest_vertex_get(struct Sculpt *sd,
                               struct Object *ob,
                               const float co[3],
                               float max_distance,
                               bool use_original);
+
+int SCULPT_plane_point_side(const float co[3], const float plane[4]);
+int SCULPT_plane_trim(const struct StrokeCache *cache,
+                      const struct Brush *brush,
+                      const float val[3]);
+
+float SCULPT_brush_plane_offset_get(Sculpt *sd, SculptSession *ss);
 
 ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3]);
 bool SCULPT_check_vertex_pivot_symmetry(const float vco[3], const float pco[3], const char symm);
@@ -238,6 +249,13 @@ struct SculptPoseIKChain *SCULPT_pose_ik_chain_init(struct Sculpt *sd,
                                                     const float initial_location[3],
                                                     const float radius);
 void SCULPT_pose_ik_chain_free(struct SculptPoseIKChain *ik_chain);
+
+/* Multiplane Scrape Brush. */
+void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
+                                           SculptSession *ss,
+                                           const float outline_col[3],
+                                           const float outline_alpha);
 
 /* Sculpt Visibility API */
 void SCULPT_visibility_sync_all_face_sets_to_vertices(struct SculptSession *ss);
