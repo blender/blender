@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <vector>
 
 #include "MEM_guardedalloc.h"
 #include "BLI_math_color.h"
@@ -56,7 +57,7 @@ struct FallbackTransform {
   {
   }
 
-  ~FallbackTransform()
+  virtual ~FallbackTransform()
   {
     delete linear_transform;
     delete display_transform;
@@ -159,7 +160,17 @@ struct FallbackTransform {
   float matrix[16];
   float offset[4];
 
-  MEM_CXX_CLASS_ALLOC_FUNCS("FallbackProcessor");
+  MEM_CXX_CLASS_ALLOC_FUNCS("FallbackTransform");
+};
+
+struct FallbackGroupTransform : FallbackTransform {
+  ~FallbackGroupTransform()
+  {
+    for (auto transform : list) {
+      delete transform;
+    }
+  }
+  std::vector<FallbackTransform *> list;
 };
 
 struct FallbackProcessor {
@@ -565,9 +576,8 @@ void FallbackImpl::displayTransformSetLooksOverrideEnabled(OCIO_DisplayTransform
 {
 }
 
-void FallbackImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr *dt)
+void FallbackImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr * /*dt*/)
 {
-  MEM_freeN(dt);
 }
 
 OCIO_PackedImageDesc *FallbackImpl::createOCIO_PackedImageDesc(float *data,
@@ -597,7 +607,7 @@ void FallbackImpl::OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id)
 
 OCIO_GroupTransformRcPtr *FallbackImpl::createGroupTransform(void)
 {
-  FallbackTransform *transform = new FallbackTransform();
+  FallbackTransform *transform = new FallbackGroupTransform();
   transform->type = TRANSFORM_UNKNOWN;
   return (OCIO_GroupTransformRcPtr *)transform;
 }
@@ -607,9 +617,11 @@ void FallbackImpl::groupTransformSetDirection(OCIO_GroupTransformRcPtr * /*gt*/,
 {
 }
 
-void FallbackImpl::groupTransformPushBack(OCIO_GroupTransformRcPtr * /*gt*/,
-                                          OCIO_ConstTransformRcPtr * /*transform*/)
+void FallbackImpl::groupTransformPushBack(OCIO_GroupTransformRcPtr *gt,
+                                          OCIO_ConstTransformRcPtr *transform)
 {
+  FallbackGroupTransform *group = (FallbackGroupTransform *)gt;
+  group->list.push_back((FallbackTransform *)transform);
 }
 
 void FallbackImpl::groupTransformRelease(OCIO_GroupTransformRcPtr * /*gt*/)
