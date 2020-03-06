@@ -37,7 +37,7 @@ extern "C" {
 typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct Scene *scene,
                                            struct View3DShading *shading_override,
-                                           eObjectDrawType drawtype,
+                                           eDrawType drawtype,
                                            struct Object *camera,
                                            int width,
                                            int height,

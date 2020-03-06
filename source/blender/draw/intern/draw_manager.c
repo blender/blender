@@ -1130,7 +1130,7 @@ static void drw_engines_enable_external(void)
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
 static void drw_engines_enable_from_engine(RenderEngineType *engine_type,
-                                           int drawtype,
+                                           eDrawType drawtype,
                                            bool use_xray)
 {
   switch (drawtype) {
@@ -1179,7 +1179,7 @@ static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
                                bool gpencil_engine_needed)
 {
   View3D *v3d = DST.draw_ctx.v3d;
-  const int drawtype = v3d->shading.type;
+  const eDrawType drawtype = v3d->shading.type;
   const bool use_xray = XRAY_ENABLED(v3d);
 
   drw_engines_enable_from_engine(engine_type, drawtype, use_xray);

@@ -83,7 +83,7 @@ short select_id_get_object_select_mode(Scene *scene, Object *ob)
   return r_select_mode;
 }
 
-static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, char dt)
+static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, eDrawType dt)
 {
   if (select_mode & SCE_SELECT_FACE) {
     if ((dt < OB_SOLID) || XRAY_FLAG_ENABLED(v3d)) {

@@ -39,15 +39,15 @@ typedef enum eObjectMode {
   OB_MODE_WEIGHT_GPENCIL = 1 << 10,
 } eObjectMode;
 
-/** #Object.dt */
-typedef enum eObjectDrawType {
+/** #Object.dt, #View3DShading.type */
+typedef enum eDrawType {
   OB_BOUNDBOX = 1,
   OB_WIRE = 2,
   OB_SOLID = 3,
   OB_MATERIAL = 4,
   OB_TEXTURE = 5,
   OB_RENDER = 6,
-} eObjectDrawType;
+} eDrawType;
 
 /** Any mode where the brush system is used. */
 #define OB_MODE_ALL_PAINT \
