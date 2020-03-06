@@ -10031,7 +10031,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   ss->filter_cache->mask_update_last_it = 1;
   ss->filter_cache->mask_update_current_it = 1;
-  ss->filter_cache->mask_update_it[SCULPT_active_vertex_get(ss)] = 1;
+  ss->filter_cache->mask_update_it[SCULPT_active_vertex_get(ss)] = 0;
 
   copy_v3_v3(ss->filter_cache->mask_expand_initial_co, SCULPT_active_vertex_co_get(ss));
 
