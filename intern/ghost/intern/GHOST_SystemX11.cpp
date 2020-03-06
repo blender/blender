@@ -696,8 +696,8 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
         continue;
       }
 #endif
-      /* when using autorepeat, some keypress events can actually come *after* the
-       * last keyrelease. The next code takes care of that */
+      /* When using auto-repeat, some key-press events can actually come *after* the
+       * last key-release. The next code takes care of that. */
       if (xevent.type == KeyRelease) {
         m_last_release_keycode = xevent.xkey.keycode;
         m_last_release_time = xevent.xkey.time;

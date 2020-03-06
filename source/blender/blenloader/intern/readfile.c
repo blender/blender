@@ -3653,7 +3653,7 @@ static void lib_link_constraint_cb(bConstraint *UNUSED(con),
 {
   tConstraintLinkData *cld = (tConstraintLinkData *)userdata;
 
-  /* for reference types, we need to increment the usercounts on load... */
+  /* for reference types, we need to increment the user-counts on load... */
   if (is_reference) {
     /* reference type - with usercount */
     *idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
@@ -7751,7 +7751,7 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
 
   /* Note: Handling of usercount here is really bad, defining its own system...
    * Will have to be refactored at some point, but that is not top priority task for now.
-   * And all usercounts are properly recomputed at the end of the undo management code anyway. */
+   * And all user-counts are properly recomputed at the end of the undo management code anyway. */
   *id_pointer = restore_pointer_by_name(
       id_map, *id_pointer, (cb_flag & IDWALK_CB_USER_ONE) ? USER_REAL : USER_IGNORE);
 
@@ -9757,13 +9757,13 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     /* Skip in undo case. */
     if (fd->memfile == NULL) {
-      /* Note that we cannot recompute usercounts at this point in undo case, we play too much with
+      /* Note that we can't recompute user-counts at this point in undo case, we play too much with
        * IDs from different memory realms, and Main database is not in a fully valid state yet.
        */
-      /* Some versioning code does expect some proper userrefcounting, e.g. in conversion from
-       * groups to collections... We could optimize out that first call when we are reading a
-       * current version file, but again this is really not a bottle neck currently. so not worth
-       * it. */
+      /* Some versioning code does expect some proper user-reference-counting, e.g. in conversion
+       * from groups to collections... We could optimize out that first call when we are reading a
+       * current version file, but again this is really not a bottle neck currently.
+       * So not worth it. */
       BKE_main_id_refcount_recompute(bfd->main, false);
 
       /* Yep, second splitting... but this is a very cheap operation, so no big deal. */
@@ -9774,9 +9774,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       }
       blo_join_main(&mainlist);
 
-      /* And we have to compute those userrefcounts again, as `do_versions_after_linking()` does
-       * not always properly handle user counts, and/or that function does not take into account
-       * old, deprecated data. */
+      /* And we have to compute those user-reference-counts again, as `do_versions_after_linking()`
+       * does not always properly handle user counts, and/or that function does not take into
+       * account old, deprecated data. */
       BKE_main_id_refcount_recompute(bfd->main, false);
 
       /* After all data has been read and versioned, uses LIB_TAG_NEW. */
