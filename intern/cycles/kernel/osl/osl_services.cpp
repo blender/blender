@@ -39,6 +39,7 @@
 #include "util/util_logging.h"
 #include "util/util_string.h"
 
+// clang-format off
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/split/kernel_split_data_types.h"
 #include "kernel/kernel_globals.h"
@@ -56,6 +57,7 @@
 #include "kernel/kernel_projection.h"
 #include "kernel/kernel_accumulate.h"
 #include "kernel/kernel_shader.h"
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

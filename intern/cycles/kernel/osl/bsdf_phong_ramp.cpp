@@ -37,9 +37,11 @@
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/osl/osl_closures.h"
 
+// clang-format off
 #include "kernel/kernel_types.h"
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_phong_ramp.h"
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

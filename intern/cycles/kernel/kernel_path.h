@@ -18,6 +18,7 @@
 #  include "kernel/osl/osl_shader.h"
 #endif
 
+// clang-format off
 #include "kernel/kernel_random.h"
 #include "kernel/kernel_projection.h"
 #include "kernel/kernel_montecarlo.h"
@@ -49,6 +50,7 @@
 #include "kernel/kernel_path_surface.h"
 #include "kernel/kernel_path_volume.h"
 #include "kernel/kernel_path_subsurface.h"
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

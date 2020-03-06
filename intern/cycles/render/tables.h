@@ -18,6 +18,7 @@
 #define __TABLES_H__
 
 #include "util/util_list.h"
+#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

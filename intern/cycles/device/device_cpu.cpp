@@ -29,6 +29,7 @@
 #include "device/device_intern.h"
 #include "device/device_split_kernel.h"
 
+// clang-format off
 #include "kernel/kernel.h"
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/kernel_types.h"
@@ -40,6 +41,7 @@
 
 #include "kernel/osl/osl_shader.h"
 #include "kernel/osl/osl_globals.h"
+// clang-format on
 
 #include "render/buffers.h"
 #include "render/coverage.h"

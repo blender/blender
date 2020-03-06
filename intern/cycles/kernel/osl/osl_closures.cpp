@@ -39,6 +39,7 @@
 #include "util/util_math.h"
 #include "util/util_param.h"
 
+// clang-format off
 #include "kernel/kernel_types.h"
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/split/kernel_split_data_types.h"
@@ -63,6 +64,7 @@
 #include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bsdf_principled_sheen.h"
 #include "kernel/closure/volume.h"
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

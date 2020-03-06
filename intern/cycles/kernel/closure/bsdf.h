@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// clang-format off
 #include "kernel/closure/bsdf_ashikhmin_velvet.h"
 #include "kernel/closure/bsdf_diffuse.h"
 #include "kernel/closure/bsdf_oren_nayar.h"
@@ -32,6 +33,7 @@
 #include "kernel/closure/bsdf_principled_sheen.h"
 #include "kernel/closure/bssrdf.h"
 #include "kernel/closure/volume.h"
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

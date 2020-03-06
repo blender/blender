@@ -23,10 +23,12 @@
  * Release.
  */
 
+// clang-format off
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_util.h"
 #include "kernel/closure/bsdf.h"
 #include "kernel/closure/emissive.h"
+// clang-format on
 
 #include "kernel/svm/svm.h"
 

@@ -17,6 +17,7 @@
 #ifndef __KERNEL_SPLIT_H__
 #define __KERNEL_SPLIT_H__
 
+// clang-format off
 #include "kernel/kernel_math.h"
 #include "kernel/kernel_types.h"
 
@@ -52,6 +53,7 @@
 #ifdef __BRANCHED_PATH__
 #  include "kernel/split/kernel_branched.h"
 #endif
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

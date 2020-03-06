@@ -20,6 +20,7 @@
  * simply includes this file without worry of copying actual implementation over.
  */
 
+// clang-format off
 #include "kernel/kernel_compat_cpu.h"
 
 #ifndef KERNEL_STUB
@@ -71,6 +72,7 @@
 #    include "kernel/split/kernel_data_init.h"
 #  endif /* __SPLIT_KERNEL__ */
 #endif   /* KERNEL_STUB */
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

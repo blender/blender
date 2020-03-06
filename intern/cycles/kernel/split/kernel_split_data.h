@@ -18,6 +18,7 @@
 #define __KERNEL_SPLIT_DATA_H__
 
 #include "kernel/split/kernel_split_data_types.h"
+
 #include "kernel/kernel_globals.h"
 
 CCL_NAMESPACE_BEGIN

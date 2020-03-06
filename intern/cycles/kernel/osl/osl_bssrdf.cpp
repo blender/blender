@@ -35,6 +35,7 @@
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/osl/osl_closures.h"
 
+// clang-format off
 #include "kernel/kernel_types.h"
 #include "kernel/kernel_montecarlo.h"
 
@@ -43,6 +44,7 @@
 #include "kernel/closure/bsdf_diffuse.h"
 #include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bssrdf.h"
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

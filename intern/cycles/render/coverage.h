@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-#include "render/buffers.h"
-#include "kernel/kernel_compat_cpu.h"
-#include "kernel/split/kernel_split_data.h"
-#include "kernel/kernel_globals.h"
+#ifndef __COVERAGE_H__
+#define __COVERAGE_H__
+
 #include "util/util_map.h"
 #include "util/util_vector.h"
 
-#ifndef __COVERAGE_H__
-#  define __COVERAGE_H__
-
 CCL_NAMESPACE_BEGIN
+
+struct KernelGlobals;
+class RenderTile;
+
+typedef unordered_map<float, float> CoverageMap;
 
 class Coverage {
  public:

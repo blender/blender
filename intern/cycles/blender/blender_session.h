@@ -17,15 +17,19 @@
 #ifndef __BLENDER_SESSION_H__
 #define __BLENDER_SESSION_H__
 
+#include "RNA_blender_cpp.h"
+
 #include "device/device.h"
+
+#include "render/bake.h"
 #include "render/scene.h"
 #include "render/session.h"
-#include "render/bake.h"
 
 #include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
+class BlenderSync;
 class ImageMetaData;
 class Scene;
 class Session;

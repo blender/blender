@@ -15,13 +15,16 @@
  */
 
 #include "render/coverage.h"
+#include "render/buffers.h"
+
 #include "kernel/kernel_compat_cpu.h"
+#include "kernel/kernel_types.h"
 #include "kernel/split/kernel_split_data.h"
+
 #include "kernel/kernel_globals.h"
 #include "kernel/kernel_id_passes.h"
-#include "kernel/kernel_types.h"
+
 #include "util/util_map.h"
-#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

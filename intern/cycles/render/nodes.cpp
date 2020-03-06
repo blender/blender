@@ -23,17 +23,18 @@
 #include "render/nodes.h"
 #include "render/scene.h"
 #include "render/svm.h"
-#include "kernel/svm/svm_color_util.h"
-#include "kernel/svm/svm_ramp_util.h"
-#include "kernel/svm/svm_math_util.h"
-#include "kernel/svm/svm_mapping_util.h"
 #include "render/osl.h"
 #include "render/constant_fold.h"
 
-#include "util/util_sky_model.h"
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
+#include "util/util_sky_model.h"
 #include "util/util_transform.h"
+
+#include "kernel/svm/svm_color_util.h"
+#include "kernel/svm/svm_mapping_util.h"
+#include "kernel/svm/svm_math_util.h"
+#include "kernel/svm/svm_ramp_util.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -18,6 +18,8 @@
 #ifndef __UTIL_SSEF_H__
 #define __UTIL_SSEF_H__
 
+#include "util_ssei.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_SSE2__

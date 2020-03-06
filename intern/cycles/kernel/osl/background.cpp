@@ -36,9 +36,11 @@
 
 #include "kernel/osl/osl_closures.h"
 
+// clang-format off
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/emissive.h"
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

@@ -17,9 +17,15 @@
 #ifndef __DEVICE_INTERN_H__
 #define __DEVICE_INTERN_H__
 
+#include "util/util_string.h"
+#include "util/util_vector.h"
+
 CCL_NAMESPACE_BEGIN
 
 class Device;
+class DeviceInfo;
+class Profiler;
+class Stats;
 
 Device *device_cpu_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background);
 bool device_opencl_init();

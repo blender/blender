@@ -17,9 +17,12 @@
 #include <embree3/rtcore_ray.h>
 #include <embree3/rtcore_scene.h>
 
+// clang-format off
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/split/kernel_split_data_types.h"
 #include "kernel/kernel_globals.h"
+// clang-format on
+
 #include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN

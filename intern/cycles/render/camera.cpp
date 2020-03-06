@@ -29,6 +29,7 @@
 #include "util/util_vector.h"
 
 /* needed for calculating differentials */
+// clang-format off
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/split/kernel_split_data.h"
 #include "kernel/kernel_globals.h"
@@ -36,6 +37,7 @@
 #include "kernel/kernel_differential.h"
 #include "kernel/kernel_montecarlo.h"
 #include "kernel/kernel_camera.h"
+// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

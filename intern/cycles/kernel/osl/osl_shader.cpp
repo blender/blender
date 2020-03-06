@@ -16,6 +16,7 @@
 
 #include <OSL/oslexec.h>
 
+// clang-format off
 #include "kernel/kernel_compat_cpu.h"
 #include "kernel/kernel_montecarlo.h"
 #include "kernel/kernel_types.h"
@@ -28,6 +29,7 @@
 #include "kernel/osl/osl_globals.h"
 #include "kernel/osl/osl_services.h"
 #include "kernel/osl/osl_shader.h"
+// clang-format on
 
 #include "util/util_foreach.h"
 
