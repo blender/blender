@@ -30,6 +30,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_icons.h"
+#include "BKE_idtype.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -69,6 +70,79 @@ static CollectionChild *collection_find_child(Collection *parent, Collection *co
 static CollectionParent *collection_find_parent(Collection *child, Collection *collection);
 
 static bool collection_find_child_recursive(Collection *parent, Collection *collection);
+
+/****************************** Collection Datablock ************************/
+
+/**
+ * Only copy internal data of Collection ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ */
+static void collection_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+{
+  Collection *collection_dst = (Collection *)id_dst;
+  const Collection *collection_src = (const Collection *)id_src;
+
+  BLI_assert(((collection_src->flag & COLLECTION_IS_MASTER) != 0) ==
+             ((collection_src->id.flag & LIB_PRIVATE_DATA) != 0));
+
+  /* Do not copy collection's preview (same behavior as for objects). */
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO temp hack */
+    BKE_previewimg_id_copy(&collection_dst->id, &collection_src->id);
+  }
+  else {
+    collection_dst->preview = NULL;
+  }
+
+  collection_dst->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+  BLI_listbase_clear(&collection_dst->object_cache);
+
+  BLI_listbase_clear(&collection_dst->gobject);
+  BLI_listbase_clear(&collection_dst->children);
+  BLI_listbase_clear(&collection_dst->parents);
+
+  for (CollectionChild *child = collection_src->children.first; child; child = child->next) {
+    collection_child_add(collection_dst, child->collection, flag, false);
+  }
+  for (CollectionObject *cob = collection_src->gobject.first; cob; cob = cob->next) {
+    collection_object_add(bmain, collection_dst, cob->ob, flag, false);
+  }
+}
+
+static void collection_free_data(ID *id)
+{
+  Collection *collection = (Collection *)id;
+
+  /* No animdata here. */
+  BKE_previewimg_free(&collection->preview);
+
+  BLI_freelistN(&collection->gobject);
+  BLI_freelistN(&collection->children);
+  BLI_freelistN(&collection->parents);
+
+  BKE_collection_object_cache_free(collection);
+}
+
+IDTypeInfo IDType_ID_GR = {
+    .id_code = ID_GR,
+    .id_filter = FILTER_ID_GR,
+    .main_listbase_index = INDEX_ID_GR,
+    .struct_size = sizeof(Collection),
+    .name = "Collection",
+    .name_plural = "collections",
+    .translation_context = BLT_I18NCONTEXT_ID_COLLECTION,
+    .flags = 0,
+
+    .init_data = NULL,
+    .copy_data = collection_copy_data,
+    .free_data = collection_free_data,
+    .make_local = NULL,
+};
 
 /***************************** Add Collection *******************************/
 
@@ -117,14 +191,7 @@ Collection *BKE_collection_add(Main *bmain, Collection *collection_parent, const
 /** Free (or release) any data used by this collection (does not free the collection itself). */
 void BKE_collection_free(Collection *collection)
 {
-  /* No animdata here. */
-  BKE_previewimg_free(&collection->preview);
-
-  BLI_freelistN(&collection->gobject);
-  BLI_freelistN(&collection->children);
-  BLI_freelistN(&collection->parents);
-
-  BKE_collection_object_cache_free(collection);
+  collection_free_data(&collection->id);
 }
 
 /**
@@ -187,48 +254,6 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
 }
 
 /***************************** Collection Copy *******************************/
-
-/**
- * Only copy internal data of Collection ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_collection_copy_data(Main *bmain,
-                              Collection *collection_dst,
-                              const Collection *collection_src,
-                              const int flag)
-{
-  BLI_assert(((collection_src->flag & COLLECTION_IS_MASTER) != 0) ==
-             ((collection_src->id.flag & LIB_PRIVATE_DATA) != 0));
-
-  /* Do not copy collection's preview (same behavior as for objects). */
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO temp hack */
-    BKE_previewimg_id_copy(&collection_dst->id, &collection_src->id);
-  }
-  else {
-    collection_dst->preview = NULL;
-  }
-
-  collection_dst->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
-  BLI_listbase_clear(&collection_dst->object_cache);
-
-  BLI_listbase_clear(&collection_dst->gobject);
-  BLI_listbase_clear(&collection_dst->children);
-  BLI_listbase_clear(&collection_dst->parents);
-
-  for (CollectionChild *child = collection_src->children.first; child; child = child->next) {
-    collection_child_add(collection_dst, child->collection, flag, false);
-  }
-  for (CollectionObject *cob = collection_src->gobject.first; cob; cob = cob->next) {
-    collection_object_add(bmain, collection_dst, cob->ob, flag, false);
-  }
-}
-
 static Collection *collection_duplicate_recursive(Main *bmain,
                                                   Collection *parent,
                                                   Collection *collection_old,
@@ -367,11 +392,6 @@ Collection *BKE_collection_duplicate(Main *bmain,
   BKE_main_collection_sync(bmain);
 
   return collection_new;
-}
-
-void BKE_collection_make_local(Main *bmain, Collection *collection, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &collection->id, flags);
 }
 
 /********************************* Naming *******************************/

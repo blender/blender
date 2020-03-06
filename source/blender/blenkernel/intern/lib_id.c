@@ -540,9 +540,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_GR:
-      if (!test) {
-        BKE_collection_make_local(bmain, (Collection *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_AR:
       if (!test) {
@@ -762,7 +760,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_text_copy_data(bmain, (Text *)*r_newid, (Text *)id, flag);
         break;
       case ID_GR:
-        BKE_collection_copy_data(bmain, (Collection *)*r_newid, (Collection *)id, flag);
+        BLI_assert(0);
         break;
       case ID_AR:
         BKE_armature_copy_data(bmain, (bArmature *)*r_newid, (bArmature *)id, flag);

@@ -56,11 +56,6 @@ bool BKE_collection_delete(struct Main *bmain, struct Collection *collection, bo
 struct Collection *BKE_collection_copy(struct Main *bmain,
                                        struct Collection *parent,
                                        struct Collection *collection);
-void BKE_collection_copy_data(struct Main *bmain,
-                              struct Collection *collection_dst,
-                              const struct Collection *collection_src,
-                              const int flag);
-void BKE_collection_make_local(struct Main *bmain, struct Collection *collection, const int flags);
 
 struct Collection *BKE_collection_duplicate(struct Main *bmain,
                                             struct Collection *parent,

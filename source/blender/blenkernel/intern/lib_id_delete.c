@@ -200,7 +200,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_sound_free((bSound *)id);
       break;
     case ID_GR:
-      BKE_collection_free((Collection *)id);
+      BLI_assert(0);
       break;
     case ID_AR:
       BKE_armature_free((bArmature *)id);
