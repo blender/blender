@@ -706,6 +706,15 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     }
   }
   else {
+    /* Add an offset to draw the popover arrow. */
+    if ((block->flag & UI_BLOCK_POPOVER) && ELEM(block->direction, UI_DIR_UP, UI_DIR_DOWN)) {
+      /* Keep sync with 'ui_draw_popover_back_impl'. */
+      const float unit_size = U.widget_unit / block->aspect;
+      const float unit_half = unit_size * (block->direction == UI_DIR_DOWN ? 0.5 : -0.5);
+
+      UI_block_translate(block, 0, -unit_half);
+    }
+
     /* clip block with window boundary */
     ui_popup_block_clip(window, block);
 
