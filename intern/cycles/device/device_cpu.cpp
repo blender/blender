@@ -830,7 +830,7 @@ class CPUDevice : public Device {
     return true;
   }
 
-  bool adaptive_sampling_filter(KernelGlobals *kg, RenderTile &tile, int sample)
+  bool adaptive_sampling_filter(KernelGlobals *kg, RenderTile &tile)
   {
     WorkTile wtile;
     wtile.x = tile.x;
@@ -848,11 +848,10 @@ class CPUDevice : public Device {
     for (int x = tile.x; x < tile.x + tile.w; ++x) {
       any |= kernel_do_adaptive_filter_y(kg, x, &wtile);
     }
-
     return (!any);
   }
 
-  void adaptive_sampling_post(const DeviceTask &task, const RenderTile &tile, KernelGlobals *kg)
+  void adaptive_sampling_post(const RenderTile &tile, KernelGlobals *kg)
   {
     float *render_buffer = (float *)tile.buffer;
     for (int y = tile.y; y < tile.y + tile.h; y++) {
@@ -911,7 +910,7 @@ class CPUDevice : public Device {
       task.update_progress(&tile, tile.w * tile.h);
 
       if (task.adaptive_sampling.use && task.adaptive_sampling.need_filter(sample)) {
-        const bool stop = adaptive_sampling_filter(kg, tile, sample);
+        const bool stop = adaptive_sampling_filter(kg, tile);
         if (stop) {
           tile.sample = end_sample;
           break;
@@ -923,7 +922,7 @@ class CPUDevice : public Device {
     }
 
     if (task.adaptive_sampling.use) {
-      adaptive_sampling_post(task, tile, kg);
+      adaptive_sampling_post(tile, kg);
     }
   }
 
