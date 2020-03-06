@@ -752,9 +752,6 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
           fsmenu, FS_CATEGORY_OTHER, &FOLDERID_UserProfiles, NULL, ICON_COMMUNITY, FS_INSERT_LAST);
 
       fsmenu_add_windows_folder(
-          fsmenu, FS_CATEGORY_OTHER, &FOLDERID_Objects3D, NULL, ICON_FILE_3D, FS_INSERT_LAST);
-
-      fsmenu_add_windows_folder(
           fsmenu, FS_CATEGORY_OTHER, &FOLDERID_SkyDrive, NULL, ICON_URL, FS_INSERT_LAST);
     }
   }
