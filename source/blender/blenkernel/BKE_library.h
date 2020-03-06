@@ -34,8 +34,6 @@ extern "C" {
 struct Library;
 struct Main;
 
-void BKE_library_free(struct Library *lib);
-
 void BKE_library_filepath_set(struct Main *bmain, struct Library *lib, const char *filepath);
 
 #ifdef __cplusplus

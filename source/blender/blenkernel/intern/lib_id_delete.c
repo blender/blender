@@ -140,7 +140,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_LI:
-      BKE_library_free((Library *)id);
+      BLI_assert(0);
       break;
     case ID_OB:
       BLI_assert(0);

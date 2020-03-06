@@ -52,6 +52,7 @@ static void id_type_init(void)
   (void)0
 
   INIT_TYPE(ID_SCE);
+  INIT_TYPE(ID_LI);
   INIT_TYPE(ID_OB);
 
 #undef INIT_TYPE
