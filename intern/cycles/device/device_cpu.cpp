@@ -907,15 +907,17 @@ class CPUDevice : public Device {
       }
       tile.sample = sample + 1;
 
-      task.update_progress(&tile, tile.w * tile.h);
-
       if (task.adaptive_sampling.use && task.adaptive_sampling.need_filter(sample)) {
         const bool stop = adaptive_sampling_filter(kg, tile);
         if (stop) {
+          const int num_progress_samples = end_sample - sample;
           tile.sample = end_sample;
+          task.update_progress(&tile, tile.w * tile.h * num_progress_samples);
           break;
         }
       }
+
+      task.update_progress(&tile, tile.w * tile.h);
     }
     if (use_coverage) {
       coverage.finalize();
