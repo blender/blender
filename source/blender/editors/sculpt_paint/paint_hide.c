@@ -97,7 +97,7 @@ static void partialvis_update_mesh(Object *ob,
   BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
   paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
-  sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
+  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
   for (i = 0; i < totvert; i++) {
     MVert *v = &mvert[vert_indices[i]];
@@ -145,7 +145,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
   grid_hidden = BKE_pbvh_grid_hidden(pbvh);
   CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
 
-  sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
+  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
   for (int i = 0; i < totgrid; i++) {
     int any_hidden = 0;
@@ -274,7 +274,7 @@ static void partialvis_update_bmesh(Object *ob,
   other = BKE_pbvh_bmesh_node_other_verts(node);
   faces = BKE_pbvh_bmesh_node_faces(node);
 
-  sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
+  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
   partialvis_update_bmesh_verts(bm, unique, action, area, planes, &any_changed, &any_visible);
 
@@ -369,10 +369,10 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   /* Start undo. */
   switch (action) {
     case PARTIALVIS_HIDE:
-      sculpt_undo_push_begin("Hide area");
+      SCULPT_undo_push_begin("Hide area");
       break;
     case PARTIALVIS_SHOW:
-      sculpt_undo_push_begin("Show area");
+      SCULPT_undo_push_begin("Show area");
       break;
   }
 
@@ -395,7 +395,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   }
 
   /* End undo. */
-  sculpt_undo_push_end();
+  SCULPT_undo_push_end();
 
   /* Ensure that edges and faces get hidden as well (not used by
    * sculpt but it looks wrong when entering editmode otherwise). */
@@ -450,7 +450,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->exec = hide_show_exec;
   /* Sculpt-only for now. */
-  ot->poll = sculpt_mode_poll_view3d;
+  ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 

@@ -560,7 +560,7 @@ static void paint_brush_stroke_add_step(bContext *C,
   stroke->last_pressure = pressure;
 
   if (paint_stroke_use_scene_spacing(brush, mode)) {
-    sculpt_stroke_get_location(C, stroke->last_world_space_position, stroke->last_mouse_position);
+    SCULPT_stroke_get_location(C, stroke->last_world_space_position, stroke->last_mouse_position);
     mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
   }
 
@@ -817,7 +817,7 @@ static int paint_space_stroke(bContext *C,
 
   if (use_scene_spacing) {
     float world_space_position[3];
-    bool hit = sculpt_stroke_get_location(C, world_space_position, final_mouse);
+    bool hit = SCULPT_stroke_get_location(C, world_space_position, final_mouse);
     mul_m4_v3(stroke->vc.obact->obmat, world_space_position);
     if (hit && stroke->stroke_over_mesh) {
       sub_v3_v3v3(d_world_space_position, world_space_position, stroke->last_world_space_position);
@@ -1403,7 +1403,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
     stroke->last_pressure = sample_average.pressure;
     copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
     if (paint_stroke_use_scene_spacing(br, mode)) {
-      stroke->stroke_over_mesh = sculpt_stroke_get_location(
+      stroke->stroke_over_mesh = SCULPT_stroke_get_location(
           C, stroke->last_world_space_position, sample_average.mouse);
       mul_m4_v3(stroke->vc.obact->obmat, stroke->last_world_space_position);
     }

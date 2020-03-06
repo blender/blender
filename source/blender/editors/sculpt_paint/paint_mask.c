@@ -115,7 +115,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
   PBVHVertexIter vi;
 
-  sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+  SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
 
   BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE)
   {
@@ -157,7 +157,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
-  sculpt_undo_push_begin("Mask flood fill");
+  SCULPT_undo_push_begin("Mask flood fill");
 
   MaskTaskData data = {
       .ob = ob,
@@ -178,7 +178,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  sculpt_undo_push_end();
+  SCULPT_undo_push_end();
 
   if (nodes) {
     MEM_freeN(nodes);
@@ -200,7 +200,7 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = mask_flood_fill_exec;
-  ot->poll = sculpt_mode_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
 
@@ -272,7 +272,7 @@ static void mask_box_select_task_cb(void *__restrict userdata,
       if (!any_masked) {
         any_masked = true;
 
-        sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+        SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
 
         if (data->multires) {
           BKE_pbvh_node_mark_normals_update(node);
@@ -317,7 +317,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-  sculpt_undo_push_begin("Mask box fill");
+  SCULPT_undo_push_begin("Mask box fill");
 
   for (int symmpass = 0; symmpass <= symm; symmpass++) {
     if (symmpass == 0 || (symm & symmpass && (symm != 5 || symmpass != 3) &&
@@ -359,7 +359,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  sculpt_undo_push_end();
+  SCULPT_undo_push_end();
 
   ED_region_tag_redraw(ar);
 
@@ -440,7 +440,7 @@ static void mask_gesture_lasso_task_cb(void *__restrict userdata,
       if (!any_masked) {
         any_masked = true;
 
-        sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+        SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
 
         BKE_pbvh_node_mark_redraw(node);
         if (data->multires) {
@@ -504,7 +504,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     pbvh = ob->sculpt->pbvh;
     multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-    sculpt_undo_push_begin("Mask lasso fill");
+    SCULPT_undo_push_begin("Mask lasso fill");
 
     for (int symmpass = 0; symmpass <= symm; symmpass++) {
       if ((symmpass == 0) || (symm & symmpass && (symm != 5 || symmpass != 3) &&
@@ -548,7 +548,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
     BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-    sculpt_undo_push_end();
+    SCULPT_undo_push_end();
 
     ED_region_tag_redraw(vc.ar);
     MEM_freeN((void *)mcords);
@@ -571,7 +571,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = paint_mask_gesture_lasso_exec;
 
-  ot->poll = sculpt_mode_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
 

@@ -580,7 +580,7 @@ static bool sculpt_get_brush_geometry(bContext *C,
 
   if (vc->obact->sculpt && vc->obact->sculpt->pbvh) {
     if (!ups->stroke_active) {
-      hit = sculpt_stroke_get_location(C, location, mouse);
+      hit = SCULPT_stroke_get_location(C, location, mouse);
     }
     else {
       hit = ups->last_hit;
@@ -1212,7 +1212,7 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession
   if (ss->preview_vert_index_count > 0) {
     immBegin(GPU_PRIM_LINES, ss->preview_vert_index_count);
     for (int i = 0; i < ss->preview_vert_index_count; i++) {
-      immVertex3fv(gpuattr, sculpt_vertex_co_get(ss, ss->preview_vert_index_list[i]));
+      immVertex3fv(gpuattr, SCULPT_vertex_co_get(ss, ss->preview_vert_index_list[i]));
     }
     immEnd();
   }
@@ -1439,7 +1439,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     /* Update the active vertex. */
     if ((mode == PAINT_MODE_SCULPT) && ss && !ups->stroke_active) {
       prev_active_vertex_index = ss->active_vertex_index;
-      is_cursor_over_mesh = sculpt_cursor_geometry_info_update(
+      is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
           C, &gi, mouse, (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
     }
     /* Use special paint crosshair cursor in all paint modes. */
@@ -1551,7 +1551,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
           if (brush->sculpt_tool == SCULPT_TOOL_GRAB && (brush->flag & BRUSH_GRAB_ACTIVE_VERTEX) &&
               !is_multires) {
             if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->deform_modifiers_active) {
-              sculpt_geometry_preview_lines_update(C, ss, rds);
+              SCULPT_geometry_preview_lines_update(C, ss, rds);
               sculpt_geometry_preview_lines_draw(pos, ss);
             }
           }

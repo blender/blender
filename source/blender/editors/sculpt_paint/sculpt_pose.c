@@ -275,11 +275,11 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
 
   bool grow_next_iteration = true;
   float prev_len = FLT_MAX;
-  data.prev_mask = MEM_mallocN(sculpt_vertex_count_get(ss) * sizeof(float), "prev mask");
+  data.prev_mask = MEM_mallocN(SCULPT_vertex_count_get(ss) * sizeof(float), "prev mask");
   while (grow_next_iteration) {
     zero_v3(gftd.pos_avg);
     gftd.pos_count = 0;
-    memcpy(data.prev_mask, pose_factor, sculpt_vertex_count_get(ss) * sizeof(float));
+    memcpy(data.prev_mask, pose_factor, SCULPT_vertex_count_get(ss) * sizeof(float));
     BKE_pbvh_parallel_range(0, totnode, &data, pose_brush_grow_factor_task_cb_ex, &settings);
 
     if (gftd.pos_count != 0) {
@@ -295,7 +295,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
         }
         else {
           grow_next_iteration = false;
-          memcpy(pose_factor, data.prev_mask, sculpt_vertex_count_get(ss) * sizeof(float));
+          memcpy(pose_factor, data.prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
         }
       }
       else {
@@ -311,7 +311,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
           if (r_pose_origin) {
             copy_v3_v3(r_pose_origin, gftd.pos_avg);
           }
-          memcpy(pose_factor, data.prev_mask, sculpt_vertex_count_get(ss) * sizeof(float));
+          memcpy(pose_factor, data.prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
         }
       }
     }
@@ -363,7 +363,7 @@ static bool pose_floodfill_cb(
     data->pose_factor[to_v] = 1.0f;
   }
 
-  const float *co = sculpt_vertex_co_get(ss, to_v);
+  const float *co = SCULPT_vertex_co_get(ss, to_v);
   if (sculpt_pose_brush_is_vertex_inside_brush_radius(
           co, data->pose_initial_co, data->radius, data->symm)) {
     return true;
@@ -393,7 +393,7 @@ void SCULPT_pose_calc_pose_data(Sculpt *sd,
                                 float *r_pose_origin,
                                 float *r_pose_factor)
 {
-  sculpt_vertex_random_access_init(ss);
+  SCULPT_vertex_random_access_init(ss);
 
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
   SculptFloodFill flood;
@@ -467,7 +467,7 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
   const float chain_segment_len = radius * (1.0f + br->pose_offset);
   float next_chain_segment_target[3];
 
-  int totvert = sculpt_vertex_count_get(ss);
+  int totvert = SCULPT_vertex_count_get(ss);
   int nearest_vertex_index = SCULPT_nearest_vertex_get(sd, ob, initial_location, FLT_MAX, true);
 
   /* Init the buffers used to keep track of the changes in the pose factors as more segments are

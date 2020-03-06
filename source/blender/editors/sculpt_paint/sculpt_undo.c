@@ -198,7 +198,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       }
 
       /* Propagate new coords to keyblock. */
-      sculpt_vertcos_to_key(ob, ss->shapekey_active, vertCos);
+      SCULPT_vertcos_to_key(ob, ss->shapekey_active, vertCos);
 
       /* PBVH uses it's own mvert array, so coords should be */
       /* propagated to PBVH here. */
@@ -550,7 +550,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
       BKE_sculpt_update_object_for_edit(depsgraph, ob, true, need_mask);
 
-      sculpt_visibility_sync_all_face_sets_to_vertices(ss);
+      SCULPT_visibility_sync_all_face_sets_to_vertices(ss);
       BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
 
       if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
@@ -659,7 +659,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
 
     if (update_visibility) {
-      sculpt_visibility_sync_all_vertex_to_face_sets(ss);
+      SCULPT_visibility_sync_all_vertex_to_face_sets(ss);
       BKE_pbvh_update_visibility(ss->pbvh);
     }
 
@@ -691,7 +691,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
     else {
-      sculpt_update_object_bounding_box(ob);
+      SCULPT_update_object_bounding_box(ob);
     }
   }
 
@@ -783,7 +783,7 @@ static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
 }
 #endif
 
-SculptUndoNode *sculpt_undo_get_node(PBVHNode *node)
+SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
@@ -1092,7 +1092,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   return unode;
 }
 
-SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type)
+SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   SculptSession *ss = ob->sculpt;
   SculptUndoNode *unode;
@@ -1119,7 +1119,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  else if ((unode = sculpt_undo_get_node(node))) {
+  else if ((unode = SCULPT_undo_get_node(node))) {
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
@@ -1180,7 +1180,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
   return unode;
 }
 
-void sculpt_undo_push_begin(const char *name)
+void SCULPT_undo_push_begin(const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
 
@@ -1190,7 +1190,7 @@ void sculpt_undo_push_begin(const char *name)
   BKE_undosys_step_push_init_with_type(ustack, C, name, BKE_UNDOSYS_TYPE_SCULPT);
 }
 
-void sculpt_undo_push_end(void)
+void SCULPT_undo_push_end(void)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptUndoNode *unode;
@@ -1363,14 +1363,14 @@ static void sculpt_undosys_step_free(UndoStep *us_p)
 
 void ED_sculpt_undo_geometry_begin(struct Object *ob, const char *name)
 {
-  sculpt_undo_push_begin(name);
-  sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+  SCULPT_undo_push_begin(name);
+  SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
 }
 
 void ED_sculpt_undo_geometry_end(struct Object *ob)
 {
-  sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
-  sculpt_undo_push_end();
+  SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+  SCULPT_undo_push_end();
 }
 
 /* Export for ED_undo_sys. */
