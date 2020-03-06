@@ -37,6 +37,8 @@
 #include "BLI_listbase.h"
 #include "BLI_fileops.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -47,6 +49,7 @@
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
 
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_text.h"
@@ -86,11 +89,124 @@
 
 /***/
 
+/****************************** Prototypes ************************/
+
 static void txt_pop_first(Text *text);
 static void txt_pop_last(Text *text);
 static void txt_delete_line(Text *text, TextLine *line);
 static void txt_delete_sel(Text *text);
 static void txt_make_dirty(Text *text);
+
+/****************************** Text Datablock ************************/
+
+static void text_init_data(ID *id)
+{
+  Text *text = (Text *)id;
+  TextLine *tmp;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(text, id));
+
+  text->name = NULL;
+
+  text->nlines = 1;
+  text->flags = TXT_ISDIRTY | TXT_ISMEM;
+  if ((U.flag & USER_TXT_TABSTOSPACES_DISABLE) == 0) {
+    text->flags |= TXT_TABSTOSPACES;
+  }
+
+  BLI_listbase_clear(&text->lines);
+
+  tmp = (TextLine *)MEM_mallocN(sizeof(TextLine), "textline");
+  tmp->line = (char *)MEM_mallocN(1, "textline_string");
+  tmp->format = NULL;
+
+  tmp->line[0] = 0;
+  tmp->len = 0;
+
+  tmp->next = NULL;
+  tmp->prev = NULL;
+
+  BLI_addhead(&text->lines, tmp);
+
+  text->curl = text->lines.first;
+  text->curc = 0;
+  text->sell = text->lines.first;
+  text->selc = 0;
+}
+
+/**
+ * Only copy internal data of Text ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ */
+static void text_copy_data(Main *UNUSED(bmain),
+                           ID *id_dst,
+                           const ID *id_src,
+                           const int UNUSED(flag))
+{
+  Text *text_dst = (Text *)id_dst;
+  const Text *text_src = (Text *)id_src;
+
+  /* File name can be NULL. */
+  if (text_src->name) {
+    text_dst->name = BLI_strdup(text_src->name);
+  }
+
+  text_dst->flags |= TXT_ISDIRTY;
+
+  BLI_listbase_clear(&text_dst->lines);
+  text_dst->curl = text_dst->sell = NULL;
+  text_dst->compiled = NULL;
+
+  /* Walk down, reconstructing. */
+  for (TextLine *line_src = text_src->lines.first; line_src; line_src = line_src->next) {
+    TextLine *line_dst = MEM_mallocN(sizeof(*line_dst), __func__);
+
+    line_dst->line = BLI_strdup(line_src->line);
+    line_dst->format = NULL;
+    line_dst->len = line_src->len;
+
+    BLI_addtail(&text_dst->lines, line_dst);
+  }
+
+  text_dst->curl = text_dst->sell = text_dst->lines.first;
+  text_dst->curc = text_dst->selc = 0;
+}
+
+/** Free (or release) any data used by this text (does not free the text itself). */
+static void text_free_data(ID *id)
+{
+  /* No animdata here. */
+  Text *text = (Text *)id;
+
+  BKE_text_free_lines(text);
+
+  MEM_SAFE_FREE(text->name);
+#ifdef WITH_PYTHON
+  BPY_text_free_code(text);
+#endif
+}
+
+IDTypeInfo IDType_ID_TXT = {
+    .id_code = ID_TXT,
+    .id_filter = FILTER_ID_TXT,
+    .main_listbase_index = INDEX_ID_TXT,
+    .struct_size = sizeof(Text),
+    .name = "Text",
+    .name_plural = "texts",
+    .translation_context = BLT_I18NCONTEXT_ID_TEXT,
+    .flags = 0,
+
+    .init_data = text_init_data,
+    .copy_data = text_copy_data,
+    .free_data = text_free_data,
+    .make_local = NULL,
+};
 
 /***/
 
@@ -113,53 +229,6 @@ void BKE_text_free_lines(Text *text)
   text->curl = text->sell = NULL;
 }
 
-/** Free (or release) any data used by this text (does not free the text itself). */
-void BKE_text_free(Text *text)
-{
-  /* No animdata here. */
-
-  BKE_text_free_lines(text);
-
-  MEM_SAFE_FREE(text->name);
-#ifdef WITH_PYTHON
-  BPY_text_free_code(text);
-#endif
-}
-
-void BKE_text_init(Text *ta)
-{
-  TextLine *tmp;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ta, id));
-
-  ta->name = NULL;
-
-  ta->nlines = 1;
-  ta->flags = TXT_ISDIRTY | TXT_ISMEM;
-  if ((U.flag & USER_TXT_TABSTOSPACES_DISABLE) == 0) {
-    ta->flags |= TXT_TABSTOSPACES;
-  }
-
-  BLI_listbase_clear(&ta->lines);
-
-  tmp = (TextLine *)MEM_mallocN(sizeof(TextLine), "textline");
-  tmp->line = (char *)MEM_mallocN(1, "textline_string");
-  tmp->format = NULL;
-
-  tmp->line[0] = 0;
-  tmp->len = 0;
-
-  tmp->next = NULL;
-  tmp->prev = NULL;
-
-  BLI_addhead(&ta->lines, tmp);
-
-  ta->curl = ta->lines.first;
-  ta->curc = 0;
-  ta->sell = ta->lines.first;
-  ta->selc = 0;
-}
-
 Text *BKE_text_add(Main *bmain, const char *name)
 {
   Text *ta;
@@ -168,7 +237,7 @@ Text *BKE_text_add(Main *bmain, const char *name)
   /* Texts always have 'real' user (see also read code). */
   id_us_ensure_real(&ta->id);
 
-  BKE_text_init(ta);
+  text_init_data(&ta->id);
 
   return ta;
 }
@@ -393,57 +462,11 @@ Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
   return BKE_text_load_ex(bmain, file, relpath, false);
 }
 
-/**
- * Only copy internal data of Text ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_text_copy_data(Main *UNUSED(bmain),
-                        Text *ta_dst,
-                        const Text *ta_src,
-                        const int UNUSED(flag))
-{
-  /* file name can be NULL */
-  if (ta_src->name) {
-    ta_dst->name = BLI_strdup(ta_src->name);
-  }
-
-  ta_dst->flags |= TXT_ISDIRTY;
-
-  BLI_listbase_clear(&ta_dst->lines);
-  ta_dst->curl = ta_dst->sell = NULL;
-  ta_dst->compiled = NULL;
-
-  /* Walk down, reconstructing */
-  for (TextLine *line_src = ta_src->lines.first; line_src; line_src = line_src->next) {
-    TextLine *line_dst = MEM_mallocN(sizeof(*line_dst), __func__);
-
-    line_dst->line = BLI_strdup(line_src->line);
-    line_dst->format = NULL;
-    line_dst->len = line_src->len;
-
-    BLI_addtail(&ta_dst->lines, line_dst);
-  }
-
-  ta_dst->curl = ta_dst->sell = ta_dst->lines.first;
-  ta_dst->curc = ta_dst->selc = 0;
-}
-
 Text *BKE_text_copy(Main *bmain, const Text *ta)
 {
   Text *ta_copy;
   BKE_id_copy(bmain, &ta->id, (ID **)&ta_copy);
   return ta_copy;
-}
-
-void BKE_text_make_local(Main *bmain, Text *text, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &text->id, flags);
 }
 
 void BKE_text_clear(Text *text) /* called directly from rna */

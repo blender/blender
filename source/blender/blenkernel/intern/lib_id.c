@@ -516,9 +516,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_TXT:
-      if (!test) {
-        BKE_text_make_local(bmain, (Text *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_SO:
       if (!test) {
@@ -739,7 +737,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_TXT:
-        BKE_text_copy_data(bmain, (Text *)*r_newid, (Text *)id, flag);
+        BLI_assert(0);
         break;
       case ID_GR:
         BLI_assert(0);
@@ -1363,7 +1361,7 @@ void BKE_libblock_init_empty(ID *id)
       BKE_vfont_init((VFont *)id);
       break;
     case ID_TXT:
-      BKE_text_init((Text *)id);
+      BLI_assert(0);
       break;
     case ID_SO:
       /* Another fuzzy case, think NULLified content is OK here... */

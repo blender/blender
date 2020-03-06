@@ -187,7 +187,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_vfont_free((VFont *)id);
       break;
     case ID_TXT:
-      BKE_text_free((Text *)id);
+      BLI_assert(0);
       break;
     case ID_SPK:
       BKE_speaker_free((Speaker *)id);

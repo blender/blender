@@ -32,8 +32,6 @@ struct Text;
 struct TextLine;
 
 void BKE_text_free_lines(struct Text *text);
-void BKE_text_free(struct Text *text);
-void BKE_text_init(struct Text *ta);
 struct Text *BKE_text_add(struct Main *bmain, const char *name);
 int txt_extended_ascii_as_utf8(char **str);
 bool BKE_text_reload(struct Text *text);
@@ -42,12 +40,7 @@ struct Text *BKE_text_load_ex(struct Main *bmain,
                               const char *relpath,
                               const bool is_internal);
 struct Text *BKE_text_load(struct Main *bmain, const char *file, const char *relpath);
-void BKE_text_copy_data(struct Main *bmain,
-                        struct Text *ta_dst,
-                        const struct Text *ta_src,
-                        const int flag);
 struct Text *BKE_text_copy(struct Main *bmain, const struct Text *ta);
-void BKE_text_make_local(struct Main *bmain, struct Text *text, const int flags);
 void BKE_text_clear(struct Text *text);
 void BKE_text_write(struct Text *text, const char *str);
 int BKE_text_file_modified_check(struct Text *text);
