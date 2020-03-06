@@ -537,9 +537,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_AR:
-      if (!test) {
-        BKE_armature_make_local(bmain, (bArmature *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_AC:
       if (!test) {
@@ -757,7 +755,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_AR:
-        BKE_armature_copy_data(bmain, (bArmature *)*r_newid, (bArmature *)id, flag);
+        BLI_assert(0);
         break;
       case ID_AC:
         BKE_action_copy_data(bmain, (bAction *)*r_newid, (bAction *)id, flag);

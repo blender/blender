@@ -37,6 +37,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -58,6 +59,7 @@
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
@@ -73,6 +75,98 @@
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"bke.armature"};
+
+/*************************** Prototypes ***************************/
+
+static void copy_bonechildren(Bone *bone_dst,
+                              const Bone *bone_src,
+                              const Bone *bone_src_act,
+                              Bone **r_bone_dst_act,
+                              const int flag);
+
+static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst);
+
+/*********************** Armature Datablock ***********************/
+
+/**
+ * Only copy internal data of Armature ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ */
+static void armature_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+{
+  bArmature *armature_dst = (bArmature *)id_dst;
+  const bArmature *armature_src = (const bArmature *)id_src;
+
+  Bone *bone_src, *bone_dst;
+  Bone *bone_dst_act = NULL;
+
+  /* We never handle usercount here for own data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+  armature_dst->bonehash = NULL;
+
+  BLI_duplicatelist(&armature_dst->bonebase, &armature_src->bonebase);
+
+  /* Duplicate the childrens' lists */
+  bone_dst = armature_dst->bonebase.first;
+  for (bone_src = armature_src->bonebase.first; bone_src; bone_src = bone_src->next) {
+    bone_dst->parent = NULL;
+    copy_bonechildren(bone_dst, bone_src, armature_src->act_bone, &bone_dst_act, flag_subdata);
+    bone_dst = bone_dst->next;
+  }
+
+  armature_dst->act_bone = bone_dst_act;
+
+  BKE_armature_bone_hash_make(armature_dst);
+
+  /* Fix custom handle references. */
+  for (bone_dst = armature_dst->bonebase.first; bone_dst; bone_dst = bone_dst->next) {
+    copy_bonechildren_custom_handles(bone_dst, armature_dst);
+  }
+
+  armature_dst->edbo = NULL;
+  armature_dst->act_edbone = NULL;
+}
+
+/** Free (or release) any data used by this armature (does not free the armature itself). */
+static void armature_free_data(struct ID *id)
+{
+  bArmature *armature = (bArmature *)id;
+  BKE_animdata_free(&armature->id, false);
+
+  BKE_armature_bone_hash_free(armature);
+  BKE_armature_bonelist_free(&armature->bonebase);
+
+  /* free editmode data */
+  if (armature->edbo) {
+    BLI_freelistN(armature->edbo);
+
+    MEM_freeN(armature->edbo);
+    armature->edbo = NULL;
+  }
+}
+
+IDTypeInfo IDType_ID_AR = {
+    .id_code = ID_AR,
+    .id_filter = FILTER_ID_AR,
+    .main_listbase_index = INDEX_ID_AR,
+    .struct_size = sizeof(bArmature),
+    .name = "Armature",
+    .name_plural = "armature",
+    .translation_context = BLT_I18NCONTEXT_ID_ARMATURE,
+    .flags = 0,
+
+    .init_data = NULL,
+    .copy_data = armature_copy_data,
+    .free_data = armature_free_data,
+    .make_local = NULL,
+};
 
 /* **************** Generic Functions, data level *************** */
 
@@ -119,28 +213,6 @@ void BKE_armature_bonelist_free(ListBase *lb)
   BLI_freelistN(lb);
 }
 
-/** Free (or release) any data used by this armature (does not free the armature itself). */
-void BKE_armature_free(bArmature *arm)
-{
-  BKE_animdata_free(&arm->id, false);
-
-  BKE_armature_bone_hash_free(arm);
-  BKE_armature_bonelist_free(&arm->bonebase);
-
-  /* free editmode data */
-  if (arm->edbo) {
-    BLI_freelistN(arm->edbo);
-
-    MEM_freeN(arm->edbo);
-    arm->edbo = NULL;
-  }
-}
-
-void BKE_armature_make_local(Main *bmain, bArmature *arm, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &arm->id, flags);
-}
-
 static void copy_bonechildren(Bone *bone_dst,
                               const Bone *bone_src,
                               const Bone *bone_src_act,
@@ -184,52 +256,6 @@ static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst)
        bone_dst_child = bone_dst_child->next) {
     copy_bonechildren_custom_handles(bone_dst_child, arm_dst);
   }
-}
-
-/**
- * Only copy internal data of Armature ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_armature_copy_data(Main *UNUSED(bmain),
-                            bArmature *arm_dst,
-                            const bArmature *arm_src,
-                            const int flag)
-{
-  Bone *bone_src, *bone_dst;
-  Bone *bone_dst_act = NULL;
-
-  /* We never handle usercount here for own data. */
-  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
-
-  arm_dst->bonehash = NULL;
-
-  BLI_duplicatelist(&arm_dst->bonebase, &arm_src->bonebase);
-
-  /* Duplicate the childrens' lists */
-  bone_dst = arm_dst->bonebase.first;
-  for (bone_src = arm_src->bonebase.first; bone_src; bone_src = bone_src->next) {
-    bone_dst->parent = NULL;
-    copy_bonechildren(bone_dst, bone_src, arm_src->act_bone, &bone_dst_act, flag_subdata);
-    bone_dst = bone_dst->next;
-  }
-
-  arm_dst->act_bone = bone_dst_act;
-
-  BKE_armature_bone_hash_make(arm_dst);
-
-  /* Fix custom handle references. */
-  for (bone_dst = arm_dst->bonebase.first; bone_dst; bone_dst = bone_dst->next) {
-    copy_bonechildren_custom_handles(bone_dst, arm_dst);
-  }
-
-  arm_dst->edbo = NULL;
-  arm_dst->act_edbone = NULL;
 }
 
 bArmature *BKE_armature_copy(Main *bmain, const bArmature *arm)

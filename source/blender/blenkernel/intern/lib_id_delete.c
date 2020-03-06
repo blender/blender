@@ -203,7 +203,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_AR:
-      BKE_armature_free((bArmature *)id);
+      BLI_assert(0);
       break;
     case ID_AC:
       BKE_action_free((bAction *)id);
