@@ -128,7 +128,7 @@ extern IDTypeInfo IDType_ID_SCE;
 extern IDTypeInfo IDType_ID_LI;
 extern IDTypeInfo IDType_ID_OB;
 extern IDTypeInfo IDType_ID_ME;
-// extern IDTypeInfo IDType_ID_CU;
+extern IDTypeInfo IDType_ID_CU;
 // extern IDTypeInfo IDType_ID_MB;
 // extern IDTypeInfo IDType_ID_MA;
 // extern IDTypeInfo IDType_ID_TE;

@@ -76,16 +76,10 @@ typedef struct CVKeyIndex {
   ((((cu)->flag & CU_3D) == 0) && (((cu)->flag & (CU_FRONT | CU_BACK)) != 0))
 
 /* ** Curve ** */
-void BKE_curve_free(struct Curve *cu);
 void BKE_curve_editfont_free(struct Curve *cu);
 void BKE_curve_init(struct Curve *cu, const short curve_type);
 struct Curve *BKE_curve_add(struct Main *bmain, const char *name, int type);
-void BKE_curve_copy_data(struct Main *bmain,
-                         struct Curve *cu_dst,
-                         const struct Curve *cu_src,
-                         const int flag);
 struct Curve *BKE_curve_copy(struct Main *bmain, const struct Curve *cu);
-void BKE_curve_make_local(struct Main *bmain, struct Curve *cu, const int flags);
 short BKE_curve_type_get(struct Curve *cu);
 void BKE_curve_type_test(struct Object *ob);
 void BKE_curve_curve_dimension_update(struct Curve *cu);

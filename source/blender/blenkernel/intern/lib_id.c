@@ -476,9 +476,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_CU:
-      if (!test) {
-        BKE_curve_make_local(bmain, (Curve *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_MB:
       if (!test) {
@@ -719,7 +717,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_CU:
-        BKE_curve_copy_data(bmain, (Curve *)*r_newid, (Curve *)id, flag);
+        BLI_assert(0);
         break;
       case ID_MB:
         BKE_mball_copy_data(bmain, (MetaBall *)*r_newid, (MetaBall *)id, flag);
@@ -1340,7 +1338,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_CU:
-      BKE_curve_init((Curve *)id, 0);
+      BLI_assert(0);
       break;
     case ID_MB:
       BKE_mball_init((MetaBall *)id);
