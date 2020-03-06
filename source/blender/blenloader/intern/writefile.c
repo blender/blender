@@ -4096,9 +4096,9 @@ bool BLO_write_file(Main *mainvar,
     BLI_split_dir_part(mainvar->name, dir_src, sizeof(dir_src));
     BLI_split_dir_part(filepath, dir_dst, sizeof(dir_dst));
 
-    /* just in case there is some subtle difference */
-    BLI_cleanup_dir(mainvar->name, dir_dst);
-    BLI_cleanup_dir(mainvar->name, dir_src);
+    /* Just in case there is some subtle difference. */
+    BLI_cleanup_path(mainvar->name, dir_dst);
+    BLI_cleanup_path(mainvar->name, dir_src);
 
     if (G.relbase_valid && (BLI_path_cmp(dir_dst, dir_src) == 0)) {
       /* Saved to same path. Nothing to do. */

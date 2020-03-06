@@ -811,7 +811,7 @@ bool BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pa
   BLI_strncpy(filepath, path_src, FILE_MAX);
   if (BLI_path_abs(filepath, base_old)) {
     /* Path was relative and is now absolute. Remap.
-     * Important BLI_cleanup_dir runs before the path is made relative
+     * Important BLI_cleanup_path runs before the path is made relative
      * because it wont work for paths that start with "//../" */
     BLI_cleanup_path(base_new, filepath);
     BLI_path_rel(filepath, base_new);
