@@ -594,8 +594,7 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
   char *newmatbits;
 
   if (do_id_user && totcol < ob->totcol) {
-    short i;
-    for (i = totcol; i < ob->totcol; i++) {
+    for (int i = totcol; i < ob->totcol; i++) {
       id_us_min((ID *)ob->mat[i]);
     }
   }
@@ -965,7 +964,6 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 {
   Material *mao, ***matarar;
   short *totcolp;
-  short a, actcol;
 
   if (ob == NULL || ob->totcol == 0) {
     return false;
@@ -1002,7 +1000,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
     id_us_min(&mao->id);
   }
 
-  for (a = ob->actcol; a < ob->totcol; a++) {
+  for (int a = ob->actcol; a < ob->totcol; a++) {
     (*matarar)[a - 1] = (*matarar)[a];
   }
   (*totcolp)--;
@@ -1012,7 +1010,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
     *matarar = NULL;
   }
 
-  actcol = ob->actcol;
+  const int actcol = ob->actcol;
 
   for (Object *obt = bmain->objects.first; obt; obt = obt->id.next) {
     if (obt->data == ob->data) {
@@ -1026,7 +1024,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
         id_us_min(&mao->id);
       }
 
-      for (a = actcol; a < obt->totcol; a++) {
+      for (int a = actcol; a < obt->totcol; a++) {
         obt->mat[a - 1] = obt->mat[a];
         obt->matbits[a - 1] = obt->matbits[a];
       }
