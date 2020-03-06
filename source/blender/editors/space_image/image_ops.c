@@ -235,7 +235,7 @@ static bool image_from_context_has_data_poll(bContext *C)
 /**
  * Use this when the image buffer is accessed without the image user.
  */
-static bool image_from_contect_has_data_poll_no_image_user(bContext *C)
+static bool image_from_context_has_data_poll_no_image_user(bContext *C)
 {
   Image *ima = image_from_context(C);
 
@@ -2827,7 +2827,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_invert_exec;
-  ot->poll = image_from_contect_has_data_poll_no_image_user;
+  ot->poll = image_from_context_has_data_poll_no_image_user;
 
   /* properties */
   prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert Red Channel");
@@ -2916,7 +2916,7 @@ void IMAGE_OT_resize(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = image_scale_invoke;
   ot->exec = image_scale_exec;
-  ot->poll = image_from_contect_has_data_poll_no_image_user;
+  ot->poll = image_from_context_has_data_poll_no_image_user;
 
   /* properties */
   RNA_def_int_vector(ot->srna, "size", 2, NULL, 1, INT_MAX, "Size", "", 1, SHRT_MAX);
