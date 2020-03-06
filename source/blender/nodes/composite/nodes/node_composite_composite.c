@@ -25,10 +25,10 @@
 
 /* **************** COMPOSITE ******************** */
 static bNodeSocketTemplate cmp_node_composite_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Z"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Z"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, ""},
 };
 
 void register_node_type_cmp_composite(void)

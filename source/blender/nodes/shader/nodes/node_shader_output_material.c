@@ -24,10 +24,9 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_output_material_in[] = {
-    {SOCK_SHADER, 1, N_("Surface")},
-    {SOCK_SHADER, 1, N_("Volume")},
+    {SOCK_SHADER, N_("Surface")},
+    {SOCK_SHADER, N_("Volume")},
     {SOCK_VECTOR,
-     1,
      N_("Displacement"),
      0.0f,
      0.0f,
@@ -37,7 +36,7 @@ static bNodeSocketTemplate sh_node_output_material_in[] = {
      1.0f,
      PROP_NONE,
      SOCK_HIDE_VALUE},
-    {-1, 0, ""},
+    {-1, ""},
 };
 
 static int node_shader_gpu_output_material(GPUMaterial *mat,

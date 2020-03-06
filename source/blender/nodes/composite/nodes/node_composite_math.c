@@ -25,12 +25,12 @@
 
 /* **************** SCALAR MATH ******************** */
 static bNodeSocketTemplate cmp_node_math_in[] = {
-    {SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Value"), 0.0f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Value"), 0.0f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {-1, ""}};
 
-static bNodeSocketTemplate cmp_node_math_out[] = {{SOCK_FLOAT, 0, N_("Value")}, {-1, 0, ""}};
+static bNodeSocketTemplate cmp_node_math_out[] = {{SOCK_FLOAT, N_("Value")}, {-1, ""}};
 
 void register_node_type_cmp_math(void)
 {

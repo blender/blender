@@ -588,6 +588,8 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
   bNodeLink *tlink, *tlink_next;
   int to_count = node_count_links(ntree, to);
   int from_count = node_count_links(ntree, from);
+  int to_link_limit = nodeSocketLinkLimit(to);
+  int from_link_limit = nodeSocketLinkLimit(from);
 
   for (tlink = ntree->links.first; tlink; tlink = tlink_next) {
     tlink_next = tlink->next;
@@ -596,7 +598,7 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
     }
 
     if (tlink && tlink->fromsock == from) {
-      if (from_count > from->limit) {
+      if (from_count > from_link_limit) {
         nodeRemLink(ntree, tlink);
         tlink = NULL;
         from_count--;
@@ -604,7 +606,7 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
     }
 
     if (tlink && tlink->tosock == to) {
-      if (to_count > to->limit) {
+      if (to_count > to_link_limit) {
         nodeRemLink(ntree, tlink);
         tlink = NULL;
         to_count--;
@@ -793,7 +795,8 @@ static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor
     nldrag = MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
 
     num_links = nodeCountSocketLinks(snode->edittree, sock);
-    if (num_links > 0 && (num_links >= sock->limit || detach)) {
+    int link_limit = nodeSocketLinkLimit(sock);
+    if (num_links > 0 && (num_links >= link_limit || detach)) {
       /* dragged links are fixed on input side */
       nldrag->in_out = SOCK_IN;
       /* detach current links and store them in the operator data */
@@ -844,7 +847,8 @@ static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor
     nldrag = MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
 
     num_links = nodeCountSocketLinks(snode->edittree, sock);
-    if (num_links > 0 && (num_links >= sock->limit || detach)) {
+    int link_limit = nodeSocketLinkLimit(sock);
+    if (num_links > 0 && (num_links >= link_limit || detach)) {
       /* dragged links are fixed on output side */
       nldrag->in_out = SOCK_OUT;
       /* detach current links and store them in the operator data */

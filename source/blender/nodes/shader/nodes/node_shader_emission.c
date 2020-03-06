@@ -22,14 +22,14 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_emission_in[] = {
-    {SOCK_RGBA, 1, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_emission_out[] = {
-    {SOCK_SHADER, 0, N_("Emission")},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("Emission")},
+    {-1, ""},
 };
 
 static int node_shader_gpu_emission(GPUMaterial *mat,

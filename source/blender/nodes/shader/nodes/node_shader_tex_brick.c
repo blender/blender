@@ -23,7 +23,6 @@
 
 static bNodeSocketTemplate sh_node_tex_brick_in[] = {
     {SOCK_VECTOR,
-     1,
      N_("Vector"),
      0.0f,
      0.0f,
@@ -33,10 +32,9 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
      1.0f,
      PROP_NONE,
      SOCK_HIDE_VALUE | SOCK_NO_INTERNAL_LINK},
-    {SOCK_RGBA, 1, N_("Color1"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, 1, N_("Color2"), 0.2f, 0.2f, 0.2f, 1.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, N_("Color1"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, N_("Color2"), 0.2f, 0.2f, 0.2f, 1.0f, 0.0f, 1.0f},
     {SOCK_RGBA,
-     1,
      N_("Mortar"),
      0.0f,
      0.0f,
@@ -47,7 +45,6 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
-     1,
      N_("Scale"),
      5.0f,
      0.0f,
@@ -58,7 +55,6 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
-     1,
      N_("Mortar Size"),
      0.02f,
      0.0f,
@@ -69,7 +65,6 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
-     1,
      N_("Mortar Smooth"),
      0.0f,
      0.0f,
@@ -80,7 +75,6 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
-     1,
      N_("Bias"),
      0.0f,
      0.0f,
@@ -91,7 +85,6 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
-     1,
      N_("Brick Width"),
      0.5f,
      0.0f,
@@ -102,7 +95,6 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
-     1,
      N_("Row Height"),
      0.25f,
      0.0f,
@@ -112,13 +104,12 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
      100.0f,
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
-    {-1, 0, ""},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_tex_brick_out[] = {
-    {SOCK_RGBA, 0, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_FLOAT,
-     0,
      N_("Fac"),
      0.0f,
      0.0f,
@@ -128,7 +119,7 @@ static bNodeSocketTemplate sh_node_tex_brick_out[] = {
      1.0f,
      PROP_FACTOR,
      SOCK_NO_INTERNAL_LINK},
-    {-1, 0, ""},
+    {-1, ""},
 };
 
 static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)

@@ -21,18 +21,18 @@
 #include "RE_shader_ext.h"
 
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_FLOAT, 0, "Index"},
-    {SOCK_FLOAT, 0, "Random"},
-    {SOCK_FLOAT, 0, "Age"},
-    {SOCK_FLOAT, 0, "Lifetime"},
-    {SOCK_VECTOR, 0, "Location"},
+    {SOCK_FLOAT, "Index"},
+    {SOCK_FLOAT, "Random"},
+    {SOCK_FLOAT, "Age"},
+    {SOCK_FLOAT, "Lifetime"},
+    {SOCK_VECTOR, "Location"},
 #if 0 /* quaternion sockets not yet supported */
-    {SOCK_QUATERNION, 0, "Rotation"},
+    {SOCK_QUATERNION, "Rotation"},
 #endif
-    {SOCK_FLOAT, 0, "Size"},
-    {SOCK_VECTOR, 0, "Velocity"},
-    {SOCK_VECTOR, 0, "Angular Velocity"},
-    {-1, 0, ""},
+    {SOCK_FLOAT, "Size"},
+    {SOCK_VECTOR, "Velocity"},
+    {SOCK_VECTOR, "Angular Velocity"},
+    {-1, ""},
 };
 static void node_shader_exec_particle_info(void *UNUSED(data),
                                            int UNUSED(thread),

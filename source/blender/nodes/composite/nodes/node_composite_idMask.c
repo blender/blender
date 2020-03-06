@@ -26,12 +26,12 @@
 /* **************** ID Mask  ******************** */
 
 static bNodeSocketTemplate cmp_node_idmask_in[] = {
-    {SOCK_FLOAT, 1, N_("ID value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("ID value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_idmask_out[] = {
-    {SOCK_FLOAT, 0, N_("Alpha")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Alpha")},
+    {-1, ""},
 };
 
 void register_node_type_cmp_idmask(void)

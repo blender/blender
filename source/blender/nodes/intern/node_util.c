@@ -280,7 +280,7 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNo
     if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
       int link_count = node_count_links(ntree, sock);
       /* take +1 into account since we would add a new link */
-      if (link_count + 1 <= sock->limit) {
+      if (link_count + 1 <= nodeSocketLinkLimit(sock)) {
         return sock; /* found a valid free socket we can swap to */
       }
     }

@@ -22,14 +22,14 @@
 /* **************** IES Light ******************** */
 
 static bNodeSocketTemplate sh_node_tex_ies_in[] = {
-    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, 1, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_FLOAT, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f, PROP_NONE},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_tex_ies_out[] = {
-    {SOCK_FLOAT, 0, N_("Fac")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Fac")},
+    {-1, ""},
 };
 
 static void node_shader_init_tex_ies(bNodeTree *UNUSED(ntree), bNode *node)

@@ -89,7 +89,7 @@ struct uiLayout;
  * in RNA types automatically.
  */
 typedef struct bNodeSocketTemplate {
-  int type, limit;
+  int type;
   char name[64];                /* MAX_NAME */
   float val1, val2, val3, val4; /* default alloc value for inputs */
   float min, max;
@@ -145,6 +145,11 @@ typedef struct bNodeSocketType {
 
   /* for standard socket types in C */
   int type, subtype;
+
+  /* When set, bNodeSocket->limit does not have any effect anymore. */
+  bool use_link_limits_of_type;
+  int input_link_limit;
+  int output_link_limit;
 
   /* Callback to free the socket type. */
   void (*free_self)(struct bNodeSocketType *stype);
@@ -632,6 +637,8 @@ void nodeUpdateInternalLinks(struct bNodeTree *ntree, struct bNode *node);
 int nodeSocketIsHidden(struct bNodeSocket *sock);
 void ntreeTagUsedSockets(struct bNodeTree *ntree);
 void nodeSetSocketAvailability(struct bNodeSocket *sock, bool is_available);
+
+int nodeSocketLinkLimit(struct bNodeSocket *sock);
 
 /* Node Clipboard */
 void BKE_node_clipboard_init(struct bNodeTree *ntree);

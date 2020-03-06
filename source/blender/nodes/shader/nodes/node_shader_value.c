@@ -25,8 +25,8 @@
 
 /* **************** VALUE ******************** */
 static bNodeSocketTemplate sh_node_value_out[] = {
-    {SOCK_FLOAT, 0, N_("Value"), 0.5f, 0, 0, 0, -FLT_MAX, FLT_MAX, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Value"), 0.5f, 0, 0, 0, -FLT_MAX, FLT_MAX, PROP_NONE},
+    {-1, ""},
 };
 
 static int gpu_shader_value(GPUMaterial *mat,

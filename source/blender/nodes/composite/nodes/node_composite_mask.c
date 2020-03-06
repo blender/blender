@@ -27,7 +27,7 @@
 
 /* **************** Translate  ******************** */
 
-static bNodeSocketTemplate cmp_node_mask_out[] = {{SOCK_FLOAT, 0, "Mask"}, {-1, 0, ""}};
+static bNodeSocketTemplate cmp_node_mask_out[] = {{SOCK_FLOAT, "Mask"}, {-1, ""}};
 
 static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node)
 {

@@ -27,13 +27,13 @@
 #include "BKE_lib_id.h"
 
 static bNodeSocketTemplate cmp_node_movieclip_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {SOCK_FLOAT, 0, N_("Alpha")},
-    {SOCK_FLOAT, 1, N_("Offset X")},
-    {SOCK_FLOAT, 1, N_("Offset Y")},
-    {SOCK_FLOAT, 1, N_("Scale")},
-    {SOCK_FLOAT, 1, N_("Angle")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {SOCK_FLOAT, N_("Alpha")},
+    {SOCK_FLOAT, N_("Offset X")},
+    {SOCK_FLOAT, N_("Offset Y")},
+    {SOCK_FLOAT, N_("Scale")},
+    {SOCK_FLOAT, N_("Angle")},
+    {-1, ""},
 };
 
 static void init(const bContext *C, PointerRNA *ptr)

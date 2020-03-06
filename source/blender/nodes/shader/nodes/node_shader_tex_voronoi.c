@@ -22,18 +22,17 @@
 /* **************** VORONOI ******************** */
 
 static bNodeSocketTemplate sh_node_tex_voronoi_in[] = {
-    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, 1, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, 1, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, 1, N_("Smoothness"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, 1, N_("Exponent"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 32.0f},
-    {SOCK_FLOAT, 1, N_("Randomness"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_FLOAT, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+    {SOCK_FLOAT, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+    {SOCK_FLOAT, N_("Smoothness"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_FLOAT, N_("Exponent"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 32.0f},
+    {SOCK_FLOAT, N_("Randomness"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_tex_voronoi_out[] = {
     {SOCK_FLOAT,
-     0,
      N_("Distance"),
      0.0f,
      0.0f,
@@ -43,19 +42,8 @@ static bNodeSocketTemplate sh_node_tex_voronoi_out[] = {
      1.0f,
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
-    {SOCK_RGBA,
-     0,
-     N_("Color"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
     {SOCK_VECTOR,
-     0,
      N_("Position"),
      0.0f,
      0.0f,
@@ -65,9 +53,8 @@ static bNodeSocketTemplate sh_node_tex_voronoi_out[] = {
      1.0f,
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT, 0, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
+    {SOCK_FLOAT, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
     {SOCK_FLOAT,
-     0,
      N_("Radius"),
      0.0f,
      0.0f,
@@ -77,7 +64,7 @@ static bNodeSocketTemplate sh_node_tex_voronoi_out[] = {
      1.0f,
      PROP_NONE,
      SOCK_NO_INTERNAL_LINK},
-    {-1, 0, ""},
+    {-1, ""},
 };
 
 static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)

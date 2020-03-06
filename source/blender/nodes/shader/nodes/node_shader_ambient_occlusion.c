@@ -22,26 +22,16 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_ambient_occlusion_in[] = {
-    {SOCK_RGBA, 1, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Distance"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_VECTOR,
-     1,
-     N_("Normal"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     -1.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_HIDE_VALUE},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Distance"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_ambient_occlusion_out[] = {
-    {SOCK_RGBA, 0, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 0, N_("AO"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("AO"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,

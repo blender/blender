@@ -25,15 +25,14 @@
 
 /* **************** Vector Rotate ******************** */
 static bNodeSocketTemplate sh_node_vector_rotate_in[] = {
-    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_VECTOR, 1, N_("Center"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Axis"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_NONE, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Angle"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_ANGLE, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Rotation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
-    {-1, 0, ""}};
+    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_VECTOR, N_("Center"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_NONE},
+    {SOCK_VECTOR, N_("Axis"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_NONE, PROP_NONE},
+    {SOCK_FLOAT, N_("Angle"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_ANGLE, PROP_NONE},
+    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
+    {-1, ""}};
 
-static bNodeSocketTemplate sh_node_vector_rotate_out[] = {{SOCK_VECTOR, 0, N_("Vector")},
-                                                          {-1, 0, ""}};
+static bNodeSocketTemplate sh_node_vector_rotate_out[] = {{SOCK_VECTOR, N_("Vector")}, {-1, ""}};
 
 static int gpu_shader_vector_rotate(GPUMaterial *mat,
                                     bNode *node,

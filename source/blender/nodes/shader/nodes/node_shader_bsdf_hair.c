@@ -22,27 +22,17 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_bsdf_hair_in[] = {
-    {SOCK_RGBA, 1, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -M_PI_2, M_PI_2, PROP_ANGLE},
-    {SOCK_FLOAT, 1, N_("RoughnessU"), 0.1f, 0.1f, 0.1f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, 1, N_("RoughnessV"), 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_VECTOR,
-     1,
-     N_("Tangent"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     -1.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_HIDE_VALUE},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -M_PI_2, M_PI_2, PROP_ANGLE},
+    {SOCK_FLOAT, N_("RoughnessU"), 0.1f, 0.1f, 0.1f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_FLOAT, N_("RoughnessV"), 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_VECTOR, N_("Tangent"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_bsdf_hair_out[] = {
-    {SOCK_SHADER, 0, N_("BSDF")},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("BSDF")},
+    {-1, ""},
 };
 
 static int node_shader_gpu_bsdf_hair(GPUMaterial *mat,

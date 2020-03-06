@@ -25,14 +25,14 @@
 
 /* **************** ALPHAOVER ******************** */
 static bNodeSocketTemplate cmp_node_alphaover_in[] = {
-    {SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_alphaover_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
 static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode *node)

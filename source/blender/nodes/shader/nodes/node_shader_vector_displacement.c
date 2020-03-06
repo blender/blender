@@ -22,25 +22,15 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_vector_displacement_in[] = {
-    {SOCK_RGBA,
-     1,
-     N_("Vector"),
-     0.00f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1000.0f,
-     PROP_NONE,
-     SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, 1, N_("Midlevel"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT, 1, N_("Scale"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Vector"), 0.00f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_FLOAT, N_("Midlevel"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {SOCK_FLOAT, N_("Scale"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_vector_displacement_out[] = {
-    {SOCK_VECTOR, 0, N_("Displacement"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Displacement"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static void node_shader_init_vector_displacement(bNodeTree *UNUSED(ntree), bNode *node)

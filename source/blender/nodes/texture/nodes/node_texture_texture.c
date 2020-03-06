@@ -27,14 +27,14 @@
 #include "RE_shader_ext.h"
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, 1, N_("Color1"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_RGBA, 1, N_("Color2"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color1"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_RGBA, N_("Color2"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {-1, ""},
 };
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)

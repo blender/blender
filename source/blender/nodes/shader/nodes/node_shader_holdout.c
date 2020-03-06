@@ -22,12 +22,12 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_holdout_in[] = {
-    {-1, 0, ""},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_holdout_out[] = {
-    {SOCK_SHADER, 0, N_("Holdout")},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("Holdout")},
+    {-1, ""},
 };
 
 static int gpu_shader_rgb(GPUMaterial *mat,

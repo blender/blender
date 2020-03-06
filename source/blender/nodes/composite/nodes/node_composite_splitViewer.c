@@ -28,9 +28,9 @@
 
 /* **************** SPLIT VIEWER ******************** */
 static bNodeSocketTemplate cmp_node_splitviewer_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, 1, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node)

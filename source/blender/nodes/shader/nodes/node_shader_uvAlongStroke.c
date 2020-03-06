@@ -22,8 +22,8 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_uvalongstroke_out[] = {
-    {SOCK_VECTOR, 0, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 /* node type definition */

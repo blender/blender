@@ -24,12 +24,12 @@
 #include "node_composite_util.h"
 
 static bNodeSocketTemplate cmp_node_glare_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_glare_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
 static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)

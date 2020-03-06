@@ -24,8 +24,8 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_uvmap_out[] = {
-    {SOCK_VECTOR, 0, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static void node_shader_init_uvmap(bNodeTree *UNUSED(ntree), bNode *node)

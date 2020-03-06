@@ -25,13 +25,13 @@
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate cmp_node_valtorgb_in[] = {
-    {SOCK_FLOAT, 1, N_("Fac"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Fac"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_valtorgb_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {SOCK_FLOAT, 0, N_("Alpha")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {SOCK_FLOAT, N_("Alpha")},
+    {-1, ""},
 };
 
 static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
@@ -54,12 +54,12 @@ void register_node_type_cmp_valtorgb(void)
 
 /* **************** RGBTOBW ******************** */
 static bNodeSocketTemplate cmp_node_rgbtobw_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_rgbtobw_out[] = {
-    {SOCK_FLOAT, 0, N_("Val"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Val"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 void register_node_type_cmp_rgbtobw(void)

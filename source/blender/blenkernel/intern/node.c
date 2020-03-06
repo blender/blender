@@ -2913,6 +2913,18 @@ void nodeSetSocketAvailability(bNodeSocket *sock, bool is_available)
   }
 }
 
+int nodeSocketLinkLimit(struct bNodeSocket *sock)
+{
+  bNodeSocketType *stype = sock->typeinfo;
+  if (stype != NULL && stype->use_link_limits_of_type) {
+    int limit = (sock->in_out == SOCK_IN) ? stype->input_link_limit : stype->output_link_limit;
+    return limit;
+  }
+  else {
+    return sock->limit;
+  }
+}
+
 /* ************** Node Clipboard *********** */
 
 #define USE_NODE_CB_VALIDATE
@@ -3847,6 +3859,10 @@ static void register_undefined_types(void)
   /* extra type info for standard socket types */
   NodeSocketTypeUndefined.type = SOCK_CUSTOM;
   NodeSocketTypeUndefined.subtype = PROP_NONE;
+
+  NodeSocketTypeUndefined.use_link_limits_of_type = true;
+  NodeSocketTypeUndefined.input_link_limit = 0xFFF;
+  NodeSocketTypeUndefined.output_link_limit = 0xFFF;
 }
 
 static void registerCompositNodes(void)

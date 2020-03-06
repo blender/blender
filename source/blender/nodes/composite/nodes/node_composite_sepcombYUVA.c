@@ -25,13 +25,13 @@
 
 /* **************** SEPARATE YUVA ******************** */
 static bNodeSocketTemplate cmp_node_sepyuva_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f}, {-1, 0, ""}};
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f}, {-1, ""}};
 static bNodeSocketTemplate cmp_node_sepyuva_out[] = {
-    {SOCK_FLOAT, 0, N_("Y")},
-    {SOCK_FLOAT, 0, N_("U")},
-    {SOCK_FLOAT, 0, N_("V")},
-    {SOCK_FLOAT, 0, N_("A")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Y")},
+    {SOCK_FLOAT, N_("U")},
+    {SOCK_FLOAT, N_("V")},
+    {SOCK_FLOAT, N_("A")},
+    {-1, ""},
 };
 
 void register_node_type_cmp_sepyuva(void)
@@ -46,15 +46,15 @@ void register_node_type_cmp_sepyuva(void)
 
 /* **************** COMBINE YUVA ******************** */
 static bNodeSocketTemplate cmp_node_combyuva_in[] = {
-    {SOCK_FLOAT, 1, N_("Y"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("U"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("V"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("A"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Y"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("U"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("V"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("A"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_combyuva_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
 void register_node_type_cmp_combyuva(void)

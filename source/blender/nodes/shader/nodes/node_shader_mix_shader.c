@@ -22,15 +22,15 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_mix_shader_in[] = {
-    {SOCK_FLOAT, 1, N_("Fac"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_SHADER, 1, N_("Shader")},
-    {SOCK_SHADER, 1, N_("Shader")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Fac"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_SHADER, N_("Shader")},
+    {SOCK_SHADER, N_("Shader")},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_mix_shader_out[] = {
-    {SOCK_SHADER, 0, N_("Shader")},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("Shader")},
+    {-1, ""},
 };
 
 static int node_shader_gpu_mix_shader(GPUMaterial *mat,

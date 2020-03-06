@@ -301,11 +301,11 @@ static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node, i
   }
 
   /* determine socket type from unambiguous input/output connection if possible */
-  if (input->limit == 1 && input->link) {
+  if (nodeSocketLinkLimit(input) == 1 && input->link) {
     type = input->link->fromsock->type;
     type_idname = nodeStaticSocketType(type, PROP_NONE);
   }
-  else if (output->limit == 1 && output->link) {
+  else if (nodeSocketLinkLimit(output) == 1 && output->link) {
     type = output->link->tosock->type;
     type_idname = nodeStaticSocketType(type, PROP_NONE);
   }

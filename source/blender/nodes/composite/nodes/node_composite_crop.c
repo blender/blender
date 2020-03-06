@@ -26,12 +26,12 @@
 /* **************** Crop  ******************** */
 
 static bNodeSocketTemplate cmp_node_crop_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_crop_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
 static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode *node)

@@ -25,14 +25,14 @@
 
 /* **************** NORMAL  ******************** */
 static bNodeSocketTemplate sh_node_normal_in[] = {
-    {SOCK_VECTOR, 1, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_normal_out[] = {
-    {SOCK_VECTOR, 0, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
-    {SOCK_FLOAT, 0, N_("Dot")},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
+    {SOCK_FLOAT, N_("Dot")},
+    {-1, ""},
 };
 
 /* generates normal, does dot product */

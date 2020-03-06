@@ -22,14 +22,14 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_add_shader_in[] = {
-    {SOCK_SHADER, 1, N_("Shader")},
-    {SOCK_SHADER, 1, N_("Shader")},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("Shader")},
+    {SOCK_SHADER, N_("Shader")},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_add_shader_out[] = {
-    {SOCK_SHADER, 0, N_("Shader")},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("Shader")},
+    {-1, ""},
 };
 
 static int node_shader_gpu_add_shader(GPUMaterial *mat,

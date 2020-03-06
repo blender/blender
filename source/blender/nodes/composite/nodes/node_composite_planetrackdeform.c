@@ -24,12 +24,12 @@
 #include "node_composite_util.h"
 
 static bNodeSocketTemplate cmp_node_planetrackdeform_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE}, {-1, 0, ""}};
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE}, {-1, ""}};
 
 static bNodeSocketTemplate cmp_node_planetrackdeform_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {SOCK_FLOAT, 0, N_("Plane")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {SOCK_FLOAT, N_("Plane")},
+    {-1, ""},
 };
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)

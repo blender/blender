@@ -20,11 +20,11 @@
 #include "../node_shader_util.h"
 
 static bNodeSocketTemplate sh_node_volume_info_out[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {SOCK_FLOAT, 0, N_("Density")},
-    {SOCK_FLOAT, 0, N_("Flame")},
-    {SOCK_FLOAT, 0, N_("Temperature")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {SOCK_FLOAT, N_("Density")},
+    {SOCK_FLOAT, N_("Flame")},
+    {SOCK_FLOAT, N_("Temperature")},
+    {-1, ""},
 };
 
 static int node_shader_gpu_volume_info(GPUMaterial *mat,

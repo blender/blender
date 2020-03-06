@@ -26,14 +26,14 @@
 
 /* **************** BLUR ******************** */
 static bNodeSocketTemplate cmp_node_bokehblur_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, 1, N_("Bokeh"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Size"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
-    {SOCK_FLOAT, 1, N_("Bounding box"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {-1, 0, ""}};
+    {SOCK_RGBA, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, N_("Bokeh"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Size"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
+    {SOCK_FLOAT, N_("Bounding box"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {-1, ""}};
 
 static bNodeSocketTemplate cmp_node_bokehblur_out[] = {
-    {SOCK_RGBA, 0, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}, {-1, 0, ""}};
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}, {-1, ""}};
 
 static void node_composit_init_bokehblur(bNodeTree *UNUSED(ntree), bNode *node)
 {

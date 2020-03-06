@@ -20,9 +20,9 @@
 #include "../node_shader_util.h"
 
 static bNodeSocketTemplate sh_node_vertex_color_out[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {SOCK_FLOAT, 0, N_("Alpha")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {SOCK_FLOAT, N_("Alpha")},
+    {-1, ""},
 };
 
 static void node_shader_init_vertex_color(bNodeTree *UNUSED(ntree), bNode *node)

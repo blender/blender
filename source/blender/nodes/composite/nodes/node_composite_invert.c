@@ -25,11 +25,11 @@
 
 /* **************** INVERT ******************** */
 static bNodeSocketTemplate cmp_node_invert_in[] = {
-    {SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, 1, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, ""}};
 
-static bNodeSocketTemplate cmp_node_invert_out[] = {{SOCK_RGBA, 0, N_("Color")}, {-1, 0, ""}};
+static bNodeSocketTemplate cmp_node_invert_out[] = {{SOCK_RGBA, N_("Color")}, {-1, ""}};
 
 static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node)
 {

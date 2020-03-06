@@ -31,8 +31,8 @@
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_keyingscreen_out[] = {
-    {SOCK_RGBA, 0, "Screen"},
-    {-1, 0, ""},
+    {SOCK_RGBA, "Screen"},
+    {-1, ""},
 };
 
 static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *node)

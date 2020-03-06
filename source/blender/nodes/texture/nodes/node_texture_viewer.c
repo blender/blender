@@ -26,11 +26,11 @@
 #include <math.h>
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, 1, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate outputs[] = {
-    {-1, 0, ""},
+    {-1, ""},
 };
 
 static void exec(void *data,

@@ -22,8 +22,8 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_output_light_in[] = {
-    {SOCK_SHADER, 1, N_("Surface"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("Surface"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 /* node type definition */

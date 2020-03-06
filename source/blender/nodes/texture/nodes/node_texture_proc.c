@@ -31,17 +31,17 @@
  */
 
 static bNodeSocketTemplate outputs_both[] = {
-    {SOCK_RGBA, 0, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, 0, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_DIRECTION},
-    {-1, 0, ""}};
-static bNodeSocketTemplate outputs_color_only[] = {{SOCK_RGBA, 0, N_("Color")}, {-1, 0, ""}};
+    {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_DIRECTION},
+    {-1, ""}};
+static bNodeSocketTemplate outputs_color_only[] = {{SOCK_RGBA, N_("Color")}, {-1, ""}};
 
 /* Inputs common to all, #defined because nodes will need their own inputs too */
 #define I 2 /* count */
 #define COMMON_INPUTS \
-  {SOCK_RGBA, 1, "Color 1", 0.0f, 0.0f, 0.0f, 1.0f}, \
+  {SOCK_RGBA, "Color 1", 0.0f, 0.0f, 0.0f, 1.0f}, \
   { \
-    SOCK_RGBA, 1, "Color 2", 1.0f, 1.0f, 1.0f, 1.0f \
+    SOCK_RGBA, "Color 2", 1.0f, 1.0f, 1.0f, 1.0f \
   }
 
 /* Calls multitex and copies the result to the outputs.
@@ -146,15 +146,15 @@ static int count_outputs(bNode *node)
 /* --- VORONOI -- */
 static bNodeSocketTemplate voronoi_inputs[] = {
     COMMON_INPUTS,
-    {SOCK_FLOAT, 1, N_("W1"), 1.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("W2"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("W3"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("W4"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("W1"), 1.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("W2"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("W3"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("W4"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_NONE},
 
-    {SOCK_FLOAT, 1, N_("iScale"), 1.0f, 0.0f, 0.0f, 0.0f, 0.01f, 10.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 4.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("iScale"), 1.0f, 0.0f, 0.0f, 0.0f, 0.01f, 10.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 4.0f, PROP_UNSIGNED},
 
-    {-1, 0, ""}};
+    {-1, ""}};
 static void voronoi_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->vn_w1 = tex_input_value(in[I + 0], p, thread);
@@ -168,15 +168,15 @@ static void voronoi_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short th
 ProcDef(voronoi);
 
 /* --- BLEND -- */
-static bNodeSocketTemplate blend_inputs[] = {COMMON_INPUTS, {-1, 0, ""}};
+static bNodeSocketTemplate blend_inputs[] = {COMMON_INPUTS, {-1, ""}};
 ProcNoInputs(blend);
 ProcDef(blend);
 
 /* -- MAGIC -- */
 static bNodeSocketTemplate magic_inputs[] = {
     COMMON_INPUTS,
-    {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
+    {-1, ""}};
 static void magic_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->turbul = tex_input_value(in[I + 0], p, thread);
@@ -186,9 +186,9 @@ ProcDef(magic);
 /* --- MARBLE --- */
 static bNodeSocketTemplate marble_inputs[] = {
     COMMON_INPUTS,
-    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
+    {-1, ""}};
 static void marble_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
@@ -199,8 +199,8 @@ ProcDef(marble);
 /* --- CLOUDS --- */
 static bNodeSocketTemplate clouds_inputs[] = {
     COMMON_INPUTS,
-    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {-1, ""}};
 static void clouds_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
@@ -210,9 +210,9 @@ ProcDef(clouds);
 /* --- DISTORTED NOISE --- */
 static bNodeSocketTemplate distnoise_inputs[] = {
     COMMON_INPUTS,
-    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("Distortion"), 1.00f, 0.0f, 0.0f, 0.0f, 0.0000f, 10.0f, PROP_UNSIGNED},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Distortion"), 1.00f, 0.0f, 0.0f, 0.0f, 0.0000f, 10.0f, PROP_UNSIGNED},
+    {-1, ""}};
 static void distnoise_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
@@ -223,9 +223,9 @@ ProcDef(distnoise);
 /* --- WOOD --- */
 static bNodeSocketTemplate wood_inputs[] = {
     COMMON_INPUTS,
-    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
+    {-1, ""}};
 static void wood_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);
@@ -236,13 +236,13 @@ ProcDef(wood);
 /* --- MUSGRAVE --- */
 static bNodeSocketTemplate musgrave_inputs[] = {
     COMMON_INPUTS,
-    {SOCK_FLOAT, 1, N_("H"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("Lacunarity"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("Octaves"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("H"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Lacunarity"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Octaves"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, PROP_UNSIGNED},
 
-    {SOCK_FLOAT, 1, N_("iScale"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("iScale"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {-1, ""}};
 static void musgrave_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->mg_H = tex_input_value(in[I + 0], p, thread);
@@ -254,16 +254,16 @@ static void musgrave_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short t
 ProcDef(musgrave);
 
 /* --- NOISE --- */
-static bNodeSocketTemplate noise_inputs[] = {COMMON_INPUTS, {-1, 0, ""}};
+static bNodeSocketTemplate noise_inputs[] = {COMMON_INPUTS, {-1, ""}};
 ProcNoInputs(noise);
 ProcDef(noise);
 
 /* --- STUCCI --- */
 static bNodeSocketTemplate stucci_inputs[] = {
     COMMON_INPUTS,
-    {SOCK_FLOAT, 1, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
-    {-1, 0, ""}};
+    {SOCK_FLOAT, N_("Size"), 0.25f, 0.0f, 0.0f, 0.0f, 0.0001f, 2.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("Turbulence"), 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 200.0f, PROP_UNSIGNED},
+    {-1, ""}};
 static void stucci_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
   tex->noisesize = tex_input_value(in[I + 0], p, thread);

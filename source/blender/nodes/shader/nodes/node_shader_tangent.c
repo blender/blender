@@ -22,8 +22,8 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tangent_out[] = {
-    {SOCK_VECTOR, 0, N_("Tangent"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Tangent"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)

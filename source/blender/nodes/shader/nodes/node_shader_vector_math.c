@@ -25,14 +25,14 @@
 
 /* **************** VECTOR MATH ******************** */
 static bNodeSocketTemplate sh_node_vector_math_in[] = {
-    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Scale"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {-1, 0, ""}};
+    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Scale"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {-1, ""}};
 
 static bNodeSocketTemplate sh_node_vector_math_out[] = {
-    {SOCK_VECTOR, 0, N_("Vector")}, {SOCK_FLOAT, 0, N_("Value")}, {-1, 0, ""}};
+    {SOCK_VECTOR, N_("Vector")}, {SOCK_FLOAT, N_("Value")}, {-1, ""}};
 
 static int gpu_shader_vector_math(GPUMaterial *mat,
                                   bNode *node,

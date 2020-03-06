@@ -26,17 +26,17 @@
 /* **************** BUMP ******************** */
 /* clang-format off */
 static bNodeSocketTemplate sh_node_bump_in[] = {
-    {SOCK_FLOAT, 1, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, 1, N_("Distance"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT, 1, N_("Height"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, 1, N_("Height_dx"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_UNAVAIL},
-    {SOCK_FLOAT, 1, N_("Height_dy"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_UNAVAIL},
-    {SOCK_VECTOR, 1, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, 0, ""}
+    {SOCK_FLOAT, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_FLOAT, N_("Distance"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {SOCK_FLOAT, N_("Height"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_FLOAT, N_("Height_dx"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_UNAVAIL},
+    {SOCK_FLOAT, N_("Height_dy"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_UNAVAIL},
+    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {-1, ""}
 };
 /* clang-format on */
 
-static bNodeSocketTemplate sh_node_bump_out[] = {{SOCK_VECTOR, 0, "Normal"}, {-1, 0, ""}};
+static bNodeSocketTemplate sh_node_bump_out[] = {{SOCK_VECTOR, "Normal"}, {-1, ""}};
 
 static int gpu_shader_bump(GPUMaterial *mat,
                            bNode *node,

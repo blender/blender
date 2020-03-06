@@ -22,18 +22,18 @@
 /* **************** INPUT ********************* */
 
 static bNodeSocketTemplate sh_node_light_falloff_in[] = {
-    {SOCK_FLOAT, 1, N_("Strength"), 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
-    {SOCK_FLOAT, 1, N_("Smooth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Strength"), 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
+    {SOCK_FLOAT, N_("Smooth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {-1, ""},
 };
 
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_light_falloff_out[] = {
-    {SOCK_FLOAT, 0, N_("Quadratic"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 0, N_("Linear"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 0, N_("Constant"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Quadratic"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Linear"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Constant"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static int node_shader_gpu_light_falloff(GPUMaterial *mat,

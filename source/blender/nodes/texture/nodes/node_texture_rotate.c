@@ -27,15 +27,15 @@
 #include "NOD_texture.h"
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Turns"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Axis"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Turns"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE},
+    {SOCK_VECTOR, N_("Axis"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_DIRECTION},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {-1, ""},
 };
 
 static void rotate(float new_co[3], float a, float ax[3], const float co[3])

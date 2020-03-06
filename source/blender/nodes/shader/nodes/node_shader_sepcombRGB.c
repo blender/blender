@@ -25,14 +25,14 @@
 
 /* **************** SEPARATE RGBA ******************** */
 static bNodeSocketTemplate sh_node_seprgb_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate sh_node_seprgb_out[] = {
-    {SOCK_FLOAT, 0, N_("R")},
-    {SOCK_FLOAT, 0, N_("G")},
-    {SOCK_FLOAT, 0, N_("B")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("R")},
+    {SOCK_FLOAT, N_("G")},
+    {SOCK_FLOAT, N_("B")},
+    {-1, ""},
 };
 
 static void node_shader_exec_seprgb(void *UNUSED(data),
@@ -73,14 +73,14 @@ void register_node_type_sh_seprgb(void)
 
 /* **************** COMBINE RGB ******************** */
 static bNodeSocketTemplate sh_node_combrgb_in[] = {
-    {SOCK_FLOAT, 1, N_("R"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("G"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, 1, N_("B"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("R"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("G"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {SOCK_FLOAT, N_("B"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+    {-1, ""},
 };
 static bNodeSocketTemplate sh_node_combrgb_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
 static void node_shader_exec_combrgb(void *UNUSED(data),

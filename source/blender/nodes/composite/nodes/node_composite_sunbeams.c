@@ -24,12 +24,12 @@
 #include "node_composite_util.h"
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)

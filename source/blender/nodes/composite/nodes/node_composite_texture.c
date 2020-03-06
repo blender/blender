@@ -25,14 +25,14 @@
 
 /* **************** TEXTURE ******************** */
 static bNodeSocketTemplate cmp_node_texture_in[] = {
-    {SOCK_VECTOR, 1, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_TRANSLATION},
-    {SOCK_VECTOR, 1, N_("Scale"), 1.0f, 1.0f, 1.0f, 1.0f, -10.0f, 10.0f, PROP_XYZ},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_TRANSLATION},
+    {SOCK_VECTOR, N_("Scale"), 1.0f, 1.0f, 1.0f, 1.0f, -10.0f, 10.0f, PROP_XYZ},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_texture_out[] = {
-    {SOCK_FLOAT, 0, N_("Value")},
-    {SOCK_RGBA, 0, N_("Color")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Value")},
+    {SOCK_RGBA, N_("Color")},
+    {-1, ""},
 };
 
 void register_node_type_cmp_texture(void)

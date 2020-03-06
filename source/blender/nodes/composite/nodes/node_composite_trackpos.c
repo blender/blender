@@ -24,10 +24,10 @@
 #include "node_composite_util.h"
 
 static bNodeSocketTemplate cmp_node_trackpos_out[] = {
-    {SOCK_FLOAT, 0, N_("X")},
-    {SOCK_FLOAT, 0, N_("Y")},
-    {SOCK_VECTOR, 0, N_("Speed"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_VELOCITY},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("X")},
+    {SOCK_FLOAT, N_("Y")},
+    {SOCK_VECTOR, N_("Speed"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_VELOCITY},
+    {-1, ""},
 };
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)

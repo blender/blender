@@ -25,12 +25,12 @@
 
 /* **************** MAP VALUE ******************** */
 static bNodeSocketTemplate cmp_node_map_value_in[] = {
-    {SOCK_FLOAT, 1, N_("Value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_map_value_out[] = {
-    {SOCK_FLOAT, 0, N_("Value")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Value")},
+    {-1, ""},
 };
 
 static void node_composit_init_map_value(bNodeTree *UNUSED(ntree), bNode *node)

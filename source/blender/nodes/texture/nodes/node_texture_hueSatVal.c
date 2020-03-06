@@ -25,16 +25,16 @@
 #include "NOD_texture.h"
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_FLOAT, 1, N_("Hue"), 0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.5f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Saturation"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Value"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Factor"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_RGBA, 1, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Hue"), 0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.5f, PROP_NONE},
+    {SOCK_FLOAT, N_("Saturation"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Value"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Factor"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {-1, ""},
 };
 
 static void do_hue_sat_fac(

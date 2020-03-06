@@ -26,15 +26,15 @@
 #include <math.h>
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_FLOAT, 0, N_("Red")},
-    {SOCK_FLOAT, 0, N_("Green")},
-    {SOCK_FLOAT, 0, N_("Blue")},
-    {SOCK_FLOAT, 0, N_("Alpha")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Red")},
+    {SOCK_FLOAT, N_("Green")},
+    {SOCK_FLOAT, N_("Blue")},
+    {SOCK_FLOAT, N_("Alpha")},
+    {-1, ""},
 };
 
 static void valuefn_r(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)

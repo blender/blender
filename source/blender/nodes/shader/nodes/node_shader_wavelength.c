@@ -21,13 +21,13 @@
 
 /* **************** Wavelength ******************** */
 static bNodeSocketTemplate sh_node_wavelength_in[] = {
-    {SOCK_FLOAT, 1, N_("Wavelength"), 500.0f, 0.0f, 0.0f, 0.0f, 380.0f, 780.0f},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Wavelength"), 500.0f, 0.0f, 0.0f, 0.0f, 380.0f, 780.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_wavelength_out[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {-1, ""},
 };
 
 /* node type definition */

@@ -25,8 +25,8 @@
 
 /* **************** RGB ******************** */
 static bNodeSocketTemplate cmp_node_rgb_out[] = {
-    {SOCK_RGBA, 0, N_("RGBA"), 0.5f, 0.5f, 0.5f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("RGBA"), 0.5f, 0.5f, 0.5f, 1.0f},
+    {-1, ""},
 };
 
 void register_node_type_cmp_rgb(void)

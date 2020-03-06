@@ -25,14 +25,14 @@
 #include "node_texture_util.h"
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, 1, N_("Scale"), 1.0f, 1.0f, 1.0f, 0.0f, -10.0f, 10.0f, PROP_XYZ},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, N_("Scale"), 1.0f, 1.0f, 1.0f, 0.0f, -10.0f, 10.0f, PROP_XYZ},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {-1, ""},
 };
 
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)

@@ -22,26 +22,15 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_eevee_specular_in[] = {
-    {SOCK_RGBA, 1, N_("Base Color"), 0.8f, 0.8f, 0.8f, 1.0f},
-    {SOCK_RGBA, 1, N_("Specular"), 0.03f, 0.03f, 0.03f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Roughness"), 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, 1, N_("Emissive Color"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Transparency"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, N_("Base Color"), 0.8f, 0.8f, 0.8f, 1.0f},
+    {SOCK_RGBA, N_("Specular"), 0.03f, 0.03f, 0.03f, 1.0f},
+    {SOCK_FLOAT, N_("Roughness"), 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, N_("Emissive Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Transparency"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+    {SOCK_FLOAT, N_("Clear Coat"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_FLOAT, N_("Clear Coat Roughness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_VECTOR,
-     1,
-     N_("Normal"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     -1.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, 1, N_("Clear Coat"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, 1, N_("Clear Coat Roughness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_VECTOR,
-     1,
      N_("Clear Coat Normal"),
      0.0f,
      0.0f,
@@ -52,7 +41,6 @@ static bNodeSocketTemplate sh_node_eevee_specular_in[] = {
      PROP_NONE,
      SOCK_HIDE_VALUE},
     {SOCK_FLOAT,
-     1,
      N_("Ambient Occlusion"),
      1.0f,
      0.0f,
@@ -62,12 +50,12 @@ static bNodeSocketTemplate sh_node_eevee_specular_in[] = {
      1.0f,
      PROP_NONE,
      SOCK_HIDE_VALUE},
-    {-1, 0, ""},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_eevee_specular_out[] = {
-    {SOCK_SHADER, 0, N_("BSDF")},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("BSDF")},
+    {-1, ""},
 };
 
 static int node_shader_gpu_eevee_specular(GPUMaterial *mat,

@@ -22,9 +22,9 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_output_aov_in[] = {
-    {SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static void node_shader_init_output_aov(bNodeTree *UNUSED(ntree), bNode *node)

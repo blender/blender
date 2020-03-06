@@ -25,14 +25,14 @@
 
 /* **************** Clamp ******************** */
 static bNodeSocketTemplate sh_node_clamp_in[] = {
-    {SOCK_FLOAT, 1, N_("Value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Min"), 0.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("Max"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Min"), 0.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("Max"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+    {-1, ""},
 };
 static bNodeSocketTemplate sh_node_clamp_out[] = {
-    {SOCK_FLOAT, 0, N_("Result")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Result")},
+    {-1, ""},
 };
 
 static void node_shader_init_clamp(bNodeTree *UNUSED(ntree), bNode *node)

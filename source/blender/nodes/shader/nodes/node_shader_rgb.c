@@ -25,8 +25,8 @@
 
 /* **************** RGB ******************** */
 static bNodeSocketTemplate sh_node_rgb_out[] = {
-    {SOCK_RGBA, 0, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f},
+    {-1, ""},
 };
 
 static int gpu_shader_rgb(GPUMaterial *mat,

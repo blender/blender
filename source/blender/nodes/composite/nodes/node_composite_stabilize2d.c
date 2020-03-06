@@ -29,13 +29,13 @@
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_stabilize2d_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate cmp_node_stabilize2d_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
 static void init(const bContext *C, PointerRNA *ptr)

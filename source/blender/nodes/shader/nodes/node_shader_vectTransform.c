@@ -25,12 +25,11 @@
 
 /* **************** Vector Transform ******************** */
 static bNodeSocketTemplate sh_node_vect_transform_in[] = {
-    {SOCK_VECTOR, 1, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {-1, 0, ""}};
+    {SOCK_VECTOR, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, {-1, ""}};
 
 static bNodeSocketTemplate sh_node_vect_transform_out[] = {
-    {SOCK_VECTOR, 0, N_("Vector")},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Vector")},
+    {-1, ""},
 };
 
 static void node_shader_init_vect_transform(bNodeTree *UNUSED(ntree), bNode *node)

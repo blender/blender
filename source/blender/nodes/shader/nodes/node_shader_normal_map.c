@@ -22,14 +22,14 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_normal_map_in[] = {
-    {SOCK_FLOAT, 1, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
-    {SOCK_RGBA, 1, N_("Color"), 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
+    {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_normal_map_out[] = {
-    {SOCK_VECTOR, 0, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)

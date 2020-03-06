@@ -22,24 +22,24 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_volume_principled_in[] = {
-    {SOCK_RGBA, 1, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
-    {SOCK_STRING, 1, N_("Color Attribute"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Density"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_STRING, 1, N_("Density Attribute"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Anisotropy"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, 1, N_("Absorption Color"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Emission Strength"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1000.0f},
-    {SOCK_RGBA, 1, N_("Emission Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Blackbody Intensity"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, 1, N_("Blackbody Tint"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, 1, N_("Temperature"), 1000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6500.0f},
-    {SOCK_STRING, 1, N_("Temperature Attribute"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
+    {SOCK_STRING, N_("Color Attribute"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Density"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+    {SOCK_STRING, N_("Density Attribute"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Anisotropy"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, N_("Absorption Color"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Emission Strength"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1000.0f},
+    {SOCK_RGBA, N_("Emission Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Blackbody Intensity"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, N_("Blackbody Tint"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Temperature"), 1000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6500.0f},
+    {SOCK_STRING, N_("Temperature Attribute"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_volume_principled_out[] = {
-    {SOCK_SHADER, 0, N_("Volume")},
-    {-1, 0, ""},
+    {SOCK_SHADER, N_("Volume")},
+    {-1, ""},
 };
 
 static void node_shader_init_volume_principled(bNodeTree *UNUSED(ntree), bNode *node)

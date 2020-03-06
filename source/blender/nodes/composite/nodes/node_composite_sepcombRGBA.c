@@ -25,15 +25,15 @@
 
 /* **************** SEPARATE RGBA ******************** */
 static bNodeSocketTemplate cmp_node_seprgba_in[] = {
-    {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_seprgba_out[] = {
-    {SOCK_FLOAT, 0, N_("R")},
-    {SOCK_FLOAT, 0, N_("G")},
-    {SOCK_FLOAT, 0, N_("B")},
-    {SOCK_FLOAT, 0, N_("A")},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("R")},
+    {SOCK_FLOAT, N_("G")},
+    {SOCK_FLOAT, N_("B")},
+    {SOCK_FLOAT, N_("A")},
+    {-1, ""},
 };
 
 void register_node_type_cmp_seprgba(void)
@@ -48,15 +48,15 @@ void register_node_type_cmp_seprgba(void)
 
 /* **************** COMBINE RGBA ******************** */
 static bNodeSocketTemplate cmp_node_combrgba_in[] = {
-    {SOCK_FLOAT, 1, N_("R"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("G"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("B"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, 1, N_("A"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("R"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("G"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("B"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_FLOAT, N_("A"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, ""},
 };
 static bNodeSocketTemplate cmp_node_combrgba_out[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
 void register_node_type_cmp_combrgba(void)

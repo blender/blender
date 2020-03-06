@@ -24,18 +24,18 @@
 #include "node_composite_util.h"
 
 static bNodeSocketTemplate inputs[] = {
-    {SOCK_RGBA, 1, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Upper Left"), 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Upper Right"), 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Lower Left"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_VECTOR, 1, N_("Lower Right"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_VECTOR, N_("Upper Left"), 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_VECTOR, N_("Upper Right"), 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_VECTOR, N_("Lower Left"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {SOCK_VECTOR, N_("Lower Right"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate outputs[] = {
-    {SOCK_RGBA, 0, N_("Image")},
-    {SOCK_FLOAT, 0, N_("Plane")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Image")},
+    {SOCK_FLOAT, N_("Plane")},
+    {-1, ""},
 };
 
 void register_node_type_cmp_cornerpin(void)

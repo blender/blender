@@ -94,7 +94,8 @@ typedef struct bNodeSocket {
   void *storage;
 
   short type, flag;
-  /** Max. number of links. */
+  /** Max. number of links. Read via nodeSocketLinkLimit, because the limit might be defined on the
+   * socket type. */
   short limit;
   /** Input/output type. */
   short in_out;
