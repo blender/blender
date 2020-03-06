@@ -1533,7 +1533,7 @@ static void armature_vert_task(void *__restrict userdata,
   }
 
   if (armature_def_nr != -1 && dvert) {
-    armature_weight = defvert_find_weight(dvert, armature_def_nr);
+    armature_weight = BKE_defvert_find_weight(dvert, armature_def_nr);
 
     if (data->invert_vgroup) {
       armature_weight = 1.0f - armature_weight;
@@ -1681,7 +1681,7 @@ void armature_deform_verts(Object *armOb,
   }
 
   /* get the def_nr for the overall armature vertex group if present */
-  armature_def_nr = defgroup_name_index(target, defgrp_name);
+  armature_def_nr = BKE_object_defgroup_name_index(target, defgrp_name);
 
   if (ELEM(target->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
     defbase_tot = BLI_listbase_count(&target->defbase);

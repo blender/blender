@@ -1444,7 +1444,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   if (vgroup_name) {
     mdef = CustomData_get_layer(&me_dst->vdata, CD_MDEFORMVERT);
     if (mdef) {
-      vg_idx = defgroup_name_index(ob_dst, vgroup_name);
+      vg_idx = BKE_object_defgroup_name_index(ob_dst, vgroup_name);
     }
   }
 

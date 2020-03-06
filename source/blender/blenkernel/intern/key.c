@@ -1206,7 +1206,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
   }
 
   /* find the group (weak loop-in-loop) */
-  defgrp_index = defgroup_name_index(ob, vgroup);
+  defgrp_index = BKE_object_defgroup_name_index(ob, vgroup);
   if (defgrp_index != -1) {
     float *weights;
     int i;
@@ -1230,12 +1230,12 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
       BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-        weights[i] = defvert_find_weight(dvert, defgrp_index);
+        weights[i] = BKE_defvert_find_weight(dvert, defgrp_index);
       }
     }
     else {
       for (i = 0; i < totvert; i++, dvert++) {
-        weights[i] = defvert_find_weight(dvert, defgrp_index);
+        weights[i] = BKE_defvert_find_weight(dvert, defgrp_index);
       }
     }
 

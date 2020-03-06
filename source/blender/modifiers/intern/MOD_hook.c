@@ -238,8 +238,8 @@ static void hook_co_apply(struct HookData_cb *hd, const int j)
 
   if (fac) {
     if (hd->dvert) {
-      fac *= hd->invert_vgroup ? 1.0f - defvert_find_weight(&hd->dvert[j], hd->defgrp_index) :
-                                 defvert_find_weight(&hd->dvert[j], hd->defgrp_index);
+      fac *= hd->invert_vgroup ? 1.0f - BKE_defvert_find_weight(&hd->dvert[j], hd->defgrp_index) :
+                                 BKE_defvert_find_weight(&hd->dvert[j], hd->defgrp_index);
     }
 
     if (fac) {

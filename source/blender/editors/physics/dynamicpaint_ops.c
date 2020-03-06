@@ -259,7 +259,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
         DEG_relations_tag_update(CTX_data_main(C));
       }
       else {
-        bDeformGroup *defgroup = defgroup_find_name(ob, name);
+        bDeformGroup *defgroup = BKE_object_defgroup_find_name(ob, name);
         if (defgroup) {
           BKE_object_defgroup_remove(ob, defgroup);
           DEG_relations_tag_update(CTX_data_main(C));

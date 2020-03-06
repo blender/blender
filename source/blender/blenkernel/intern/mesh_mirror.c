@@ -384,16 +384,16 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
                          maxVerts;
     int *flip_map = NULL, flip_map_len = 0;
 
-    flip_map = defgroup_flip_map(ob, &flip_map_len, false);
+    flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, false);
 
     if (flip_map) {
       for (i = 0; i < maxVerts; dvert++, i++) {
         /* merged vertices get both groups, others get flipped */
         if (do_vtargetmap && (vtargetmap[i] != -1)) {
-          defvert_flip_merged(dvert, flip_map, flip_map_len);
+          BKE_defvert_flip_merged(dvert, flip_map, flip_map_len);
         }
         else {
-          defvert_flip(dvert, flip_map, flip_map_len);
+          BKE_defvert_flip(dvert, flip_map, flip_map_len);
         }
       }
 

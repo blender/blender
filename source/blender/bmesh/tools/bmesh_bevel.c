@@ -5876,7 +5876,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
   if (bp->vertex_only) {
     /* If weighted, modify offset by weight. */
     if (bp->dvert != NULL && bp->vertex_group != -1) {
-      weight = defvert_find_weight(bp->dvert + BM_elem_index_get(v), bp->vertex_group);
+      weight = BKE_defvert_find_weight(bp->dvert + BM_elem_index_get(v), bp->vertex_group);
       bv->offset *= weight;
     }
     else if (bp->use_weights) {

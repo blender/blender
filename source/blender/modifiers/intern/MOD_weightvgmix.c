@@ -235,14 +235,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   }
 
   /* Get vgroup idx from its name. */
-  const int defgrp_index = defgroup_name_index(ctx->object, wmd->defgrp_name_a);
+  const int defgrp_index = BKE_object_defgroup_name_index(ctx->object, wmd->defgrp_name_a);
   if (defgrp_index == -1) {
     return mesh;
   }
   /* Get second vgroup idx from its name, if given. */
   int defgrp_index_other = -1;
   if (wmd->defgrp_name_b[0] != '\0') {
-    defgrp_index_other = defgroup_name_index(ctx->object, wmd->defgrp_name_b);
+    defgrp_index_other = BKE_object_defgroup_name_index(ctx->object, wmd->defgrp_name_b);
     if (defgrp_index_other == -1) {
       return mesh;
     }
@@ -278,11 +278,11 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     case MOD_WVG_SET_A:
       /* All vertices in first vgroup. */
       for (i = 0; i < numVerts; i++) {
-        MDeformWeight *dw = defvert_find_index(&dvert[i], defgrp_index);
+        MDeformWeight *dw = BKE_defvert_find_index(&dvert[i], defgrp_index);
         if (dw) {
           tdw1[numIdx] = dw;
           tdw2[numIdx] = (defgrp_index_other >= 0) ?
-                             defvert_find_index(&dvert[i], defgrp_index_other) :
+                             BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
                              NULL;
           tidx[numIdx++] = i;
         }
@@ -292,10 +292,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       /* All vertices in second vgroup. */
       for (i = 0; i < numVerts; i++) {
         MDeformWeight *dw = (defgrp_index_other >= 0) ?
-                                defvert_find_index(&dvert[i], defgrp_index_other) :
+                                BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
                                 NULL;
         if (dw) {
-          tdw1[numIdx] = defvert_find_index(&dvert[i], defgrp_index);
+          tdw1[numIdx] = BKE_defvert_find_index(&dvert[i], defgrp_index);
           tdw2[numIdx] = dw;
           tidx[numIdx++] = i;
         }
@@ -304,9 +304,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     case MOD_WVG_SET_OR:
       /* All vertices in one vgroup or the other. */
       for (i = 0; i < numVerts; i++) {
-        MDeformWeight *adw = defvert_find_index(&dvert[i], defgrp_index);
+        MDeformWeight *adw = BKE_defvert_find_index(&dvert[i], defgrp_index);
         MDeformWeight *bdw = (defgrp_index_other >= 0) ?
-                                 defvert_find_index(&dvert[i], defgrp_index_other) :
+                                 BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
                                  NULL;
         if (adw || bdw) {
           tdw1[numIdx] = adw;
@@ -318,9 +318,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     case MOD_WVG_SET_AND:
       /* All vertices in both vgroups. */
       for (i = 0; i < numVerts; i++) {
-        MDeformWeight *adw = defvert_find_index(&dvert[i], defgrp_index);
+        MDeformWeight *adw = BKE_defvert_find_index(&dvert[i], defgrp_index);
         MDeformWeight *bdw = (defgrp_index_other >= 0) ?
-                                 defvert_find_index(&dvert[i], defgrp_index_other) :
+                                 BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
                                  NULL;
         if (adw && bdw) {
           tdw1[numIdx] = adw;
@@ -333,9 +333,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     default:
       /* Use all vertices. */
       for (i = 0; i < numVerts; i++) {
-        tdw1[i] = defvert_find_index(&dvert[i], defgrp_index);
-        tdw2[i] = (defgrp_index_other >= 0) ? defvert_find_index(&dvert[i], defgrp_index_other) :
-                                              NULL;
+        tdw1[i] = BKE_defvert_find_index(&dvert[i], defgrp_index);
+        tdw2[i] = (defgrp_index_other >= 0) ?
+                      BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
+                      NULL;
       }
       numIdx = -1;
       break;

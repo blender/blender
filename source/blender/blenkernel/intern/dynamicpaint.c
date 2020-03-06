@@ -355,7 +355,7 @@ bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object 
       return (CustomData_get_named_layer_index(&me->ldata, CD_MLOOPCOL, name) != -1);
     }
     else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-      return (defgroup_name_index(ob, name) != -1);
+      return (BKE_object_defgroup_name_index(ob, name) != -1);
     }
   }
 
@@ -2015,7 +2015,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
           }
           /* vertex group paint */
           else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-            int defgrp_index = defgroup_name_index(ob, surface->output_name);
+            int defgrp_index = BKE_object_defgroup_name_index(ob, surface->output_name);
             MDeformVert *dvert = CustomData_get_layer(&result->vdata, CD_MDEFORMVERT);
             float *weight = (float *)sData->type_data;
 
@@ -2030,13 +2030,13 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
               int i;
               for (i = 0; i < sData->total_points; i++) {
                 MDeformVert *dv = &dvert[i];
-                MDeformWeight *def_weight = defvert_find_index(dv, defgrp_index);
+                MDeformWeight *def_weight = BKE_defvert_find_index(dv, defgrp_index);
 
                 /* skip if weight value is 0 and no existing weight is found */
                 if ((def_weight != NULL) || (weight[i] != 0.0f)) {
                   /* if not found, add a weight for it */
                   if (def_weight == NULL) {
-                    def_weight = defvert_verify_index(dv, defgrp_index);
+                    def_weight = BKE_defvert_ensure_index(dv, defgrp_index);
                   }
 
                   /* set weight value */

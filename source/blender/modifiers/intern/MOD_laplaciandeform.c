@@ -543,8 +543,8 @@ static void initSystem(
     BLI_assert(dvert != NULL);
     dv = dvert;
     for (i = 0; i < numVerts; i++) {
-      wpaint = invert_vgroup ? 1.0f - defvert_find_weight(dv, defgrp_index) :
-                               defvert_find_weight(dv, defgrp_index);
+      wpaint = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dv, defgrp_index) :
+                               BKE_defvert_find_weight(dv, defgrp_index);
       dv++;
       if (wpaint > 0.0f) {
         STACK_PUSH(index_anchors, i);
@@ -615,8 +615,8 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
   }
   dv = dvert;
   for (i = 0; i < numVerts; i++) {
-    wpaint = invert_vgroup ? 1.0f - defvert_find_weight(dv, defgrp_index) :
-                             defvert_find_weight(dv, defgrp_index);
+    wpaint = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dv, defgrp_index) :
+                             BKE_defvert_find_weight(dv, defgrp_index);
     dv++;
     if (wpaint > 0.0f) {
       total_anchors++;

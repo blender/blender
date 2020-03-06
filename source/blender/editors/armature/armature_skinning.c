@@ -121,7 +121,7 @@ static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
    * If such a vertex group already exist the routine exits.
    */
   if (!(bone->flag & BONE_NO_DEFORM)) {
-    if (!defgroup_find_name(ob, bone->name)) {
+    if (!BKE_object_defgroup_find_name(ob, bone->name)) {
       BKE_object_defgroup_add_name(ob, bone->name);
       return 1;
     }
@@ -175,7 +175,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
       }
 
       if (!data->is_weight_paint || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))) {
-        if (!(defgroup = defgroup_find_name(ob, bone->name))) {
+        if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
           defgroup = BKE_object_defgroup_add_name(ob, bone->name);
         }
         else if (defgroup->flag & DG_LOCK_WEIGHT) {
@@ -401,7 +401,7 @@ static void add_verts_to_dgroups(ReportList *reports,
       char name_flip[MAXBONENAME];
 
       BLI_string_flip_side_name(name_flip, dgroup->name, false, sizeof(name_flip));
-      dgroupflip[j] = defgroup_find_name(ob, name_flip);
+      dgroupflip[j] = BKE_object_defgroup_find_name(ob, name_flip);
     }
   }
 

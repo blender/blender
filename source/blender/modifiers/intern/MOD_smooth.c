@@ -141,8 +141,8 @@ static void smoothModifier_do(
         float *vco_new = accumulated_vecs[i];
 
         const float f_new = invert_vgroup ?
-                                (1.0f - defvert_find_weight(dv, defgrp_index)) * fac_new :
-                                defvert_find_weight(dv, defgrp_index) * fac_new;
+                                (1.0f - BKE_defvert_find_weight(dv, defgrp_index)) * fac_new :
+                                BKE_defvert_find_weight(dv, defgrp_index) * fac_new;
         if (f_new <= 0.0f) {
           continue;
         }

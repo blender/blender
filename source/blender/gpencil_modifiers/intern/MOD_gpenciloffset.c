@@ -69,7 +69,7 @@ static void deformStroke(GpencilModifierData *md,
                          bGPDstroke *gps)
 {
   OffsetGpencilModifierData *mmd = (OffsetGpencilModifierData *)md;
-  const int def_nr = defgroup_name_index(ob, mmd->vgname);
+  const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
 
   float mat[4][4];
   float loc[3], rot[3], scale[3];

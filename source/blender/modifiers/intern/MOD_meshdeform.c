@@ -284,7 +284,7 @@ static void meshdeform_vert_task(void *__restrict userdata,
   }
 
   if (dvert) {
-    fac = defvert_find_weight(&dvert[iter], defgrp_index);
+    fac = BKE_defvert_find_weight(&dvert[iter], defgrp_index);
 
     if (mmd->flag & MOD_MDEF_INVERT_VGROUP) {
       fac = 1.0f - fac;

@@ -123,7 +123,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
     BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
       dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
-      if (defvert_find_weight(dvert, defgrp_index) > 0.0f) {
+      if (BKE_defvert_find_weight(dvert, defgrp_index) > 0.0f) {
         add_v3_v3(r_cent, eve->co);
         totvert++;
       }

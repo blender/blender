@@ -112,8 +112,8 @@ static void uv_warp_compute(void *__restrict userdata,
     for (l = 0; l < mp->totloop; l++, ml++, mluv++) {
       float uv[2];
       const float weight = data->invert_vgroup ?
-                               1.0f - defvert_find_weight(&dvert[ml->v], defgrp_index) :
-                               defvert_find_weight(&dvert[ml->v], defgrp_index);
+                               1.0f - BKE_defvert_find_weight(&dvert[ml->v], defgrp_index) :
+                               BKE_defvert_find_weight(&dvert[ml->v], defgrp_index);
 
       uv_warp_from_mat4_pair(uv, mluv->uv, warp_mat);
       interp_v2_v2v2(mluv->uv, mluv->uv, uv, weight);

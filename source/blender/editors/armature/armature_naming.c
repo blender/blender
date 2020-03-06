@@ -256,7 +256,7 @@ void ED_armature_bone_rename(Main *bmain,
       }
 
       if (modifiers_usesArmature(ob, arm)) {
-        bDeformGroup *dg = defgroup_find_name(ob, oldname);
+        bDeformGroup *dg = BKE_object_defgroup_find_name(ob, oldname);
         if (dg) {
           BLI_strncpy(dg->name, newname, MAXBONENAME);
         }
@@ -313,7 +313,7 @@ void ED_armature_bone_rename(Main *bmain,
             case eGpencilModifierType_Armature: {
               ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)gp_md;
               if (mmd->object && mmd->object->data == arm) {
-                bDeformGroup *dg = defgroup_find_name(ob, oldname);
+                bDeformGroup *dg = BKE_object_defgroup_find_name(ob, oldname);
                 if (dg) {
                   BLI_strncpy(dg->name, newname, MAXBONENAME);
                 }

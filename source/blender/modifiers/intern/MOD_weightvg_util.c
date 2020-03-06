@@ -212,7 +212,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
 
     MEM_freeN(tex_co);
   }
-  else if ((ref_didx = defgroup_name_index(ob, defgrp_name)) != -1) {
+  else if ((ref_didx = BKE_object_defgroup_name_index(ob, defgrp_name)) != -1) {
     MDeformVert *dvert = NULL;
 
     /* Check whether we want to set vgroup weights from a constant weight factor or a vertex
@@ -232,8 +232,8 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     for (i = 0; i < num; i++) {
       int idx = indices ? indices[i] : i;
       const float f = invert_vgroup_mask ?
-                          1.0f - defvert_find_weight(&dvert[idx], ref_didx) * fact :
-                          defvert_find_weight(&dvert[idx], ref_didx) * fact;
+                          1.0f - BKE_defvert_find_weight(&dvert[idx], ref_didx) * fact :
+                          BKE_defvert_find_weight(&dvert[idx], ref_didx) * fact;
       org_w[i] = (new_w[i] * f) + (org_w[i] * (1.0f - f));
       /* If that vertex is not in ref vgroup, assume null factor, and hence do nothing! */
     }
@@ -271,7 +271,7 @@ void weightvg_update_vg(MDeformVert *dvert,
     float w = weights[i];
     MDeformVert *dv = &dvert[indices ? indices[i] : i];
     MDeformWeight *dw = dws ? dws[i] :
-                              ((defgrp_idx >= 0) ? defvert_find_index(dv, defgrp_idx) : NULL);
+                              ((defgrp_idx >= 0) ? BKE_defvert_find_index(dv, defgrp_idx) : NULL);
 
     /* Never allow weights out of [0.0, 1.0] range. */
     CLAMP(w, 0.0f, 1.0f);
@@ -279,7 +279,7 @@ void weightvg_update_vg(MDeformVert *dvert,
     /* If the vertex is in this vgroup, remove it if needed, or just update it. */
     if (dw != NULL) {
       if (do_rem && w < rem_thresh) {
-        defvert_remove_group(dv, dw);
+        BKE_defvert_remove_group(dv, dw);
       }
       else {
         dw->weight = w;
@@ -287,7 +287,7 @@ void weightvg_update_vg(MDeformVert *dvert,
     }
     /* Else, add it if needed! */
     else if (do_add && w > add_thresh) {
-      defvert_add_index_notest(dv, defgrp_idx, w);
+      BKE_defvert_add_index_notest(dv, defgrp_idx, w);
     }
   }
 }

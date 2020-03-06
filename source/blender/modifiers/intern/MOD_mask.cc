@@ -124,7 +124,7 @@ static void compute_vertex_mask__vertex_group_mode(MDeformVert *dvert,
                                                    MutableArrayRef<bool> r_vertex_mask)
 {
   for (int i : r_vertex_mask.index_range()) {
-    const bool found = defvert_find_weight(&dvert[i], defgrp_index) > threshold;
+    const bool found = BKE_defvert_find_weight(&dvert[i], defgrp_index) > threshold;
     r_vertex_mask[i] = found;
   }
 }
@@ -324,7 +324,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     compute_vertex_mask__armature_mode(dvert, ob, armature_ob, mmd->threshold, vertex_mask);
   }
   else {
-    int defgrp_index = defgroup_name_index(ob, mmd->vgroup);
+    int defgrp_index = BKE_object_defgroup_name_index(ob, mmd->vgroup);
 
     /* Return input mesh if the vertex group does not exist. */
     if (defgrp_index == -1) {

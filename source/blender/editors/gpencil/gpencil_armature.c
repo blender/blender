@@ -168,7 +168,7 @@ static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
    * If such a vertex group already exist the routine exits.
    */
   if (!(bone->flag & BONE_NO_DEFORM)) {
-    if (!defgroup_find_name(ob, bone->name)) {
+    if (!BKE_object_defgroup_find_name(ob, bone->name)) {
       BKE_object_defgroup_add_name(ob, bone->name);
       return 1;
     }
@@ -221,7 +221,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
       }
 
       if (arm->layer & bone->layer) {
-        if (!(defgroup = defgroup_find_name(ob, bone->name))) {
+        if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
           defgroup = BKE_object_defgroup_add_name(ob, bone->name);
         }
         else if (defgroup->flag & DG_LOCK_WEIGHT) {
@@ -418,7 +418,7 @@ static void gpencil_add_verts_to_dgroups(
               }
 
               /* assign weight */
-              MDeformWeight *dw = defvert_verify_index(dvert, def_nr);
+              MDeformWeight *dw = BKE_defvert_ensure_index(dvert, def_nr);
               if (dw) {
                 dw->weight = weight;
               }

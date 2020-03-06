@@ -211,7 +211,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
       ToolSettings *ts = vc.scene->toolsettings;
       Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
       const int vgroup_active = vc.obact->actdef - 1;
-      float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
+      float vgroup_weight = BKE_defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
 
       /* use combined weight in multipaint mode,
        * since that's what is displayed to the user in the colors */
@@ -462,9 +462,9 @@ static bool weight_paint_set(Object *ob, float paintweight)
           continue;
         }
 
-        dw = defvert_verify_index(&me->dvert[vidx], vgroup_active);
+        dw = BKE_defvert_ensure_index(&me->dvert[vidx], vgroup_active);
         if (dw) {
-          dw_prev = defvert_verify_index(wpp.wpaint_prev + vidx, vgroup_active);
+          dw_prev = BKE_defvert_ensure_index(wpp.wpaint_prev + vidx, vgroup_active);
           dw_prev->weight = dw->weight; /* set the undo weight */
           dw->weight = paintweight;
 
@@ -473,12 +473,12 @@ static bool weight_paint_set(Object *ob, float paintweight)
             if (j >= 0) {
               /* copy, not paint again */
               if (vgroup_mirror != -1) {
-                dw = defvert_verify_index(me->dvert + j, vgroup_mirror);
-                dw_prev = defvert_verify_index(wpp.wpaint_prev + j, vgroup_mirror);
+                dw = BKE_defvert_ensure_index(me->dvert + j, vgroup_mirror);
+                dw_prev = BKE_defvert_ensure_index(wpp.wpaint_prev + j, vgroup_mirror);
               }
               else {
-                dw = defvert_verify_index(me->dvert + j, vgroup_active);
-                dw_prev = defvert_verify_index(wpp.wpaint_prev + j, vgroup_active);
+                dw = BKE_defvert_ensure_index(me->dvert + j, vgroup_active);
+                dw_prev = BKE_defvert_ensure_index(wpp.wpaint_prev + j, vgroup_active);
               }
               dw_prev->weight = dw->weight; /* set the undo weight */
               dw->weight = paintweight;
@@ -602,7 +602,7 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
 
   if (alpha != 0.0f) {
     MDeformVert *dv = &me->dvert[index];
-    MDeformWeight *dw = defvert_verify_index(dv, grad_data->def_nr);
+    MDeformWeight *dw = BKE_defvert_ensure_index(dv, grad_data->def_nr);
     // dw->weight = alpha; // testing
     int tool = grad_data->brush->blend;
     float testw;
@@ -617,14 +617,14 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
     MDeformVert *dv = &me->dvert[index];
     if (vs->flag & VGRAD_STORE_DW_EXIST) {
       /* normally we NULL check, but in this case we know it exists */
-      MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
+      MDeformWeight *dw = BKE_defvert_find_index(dv, grad_data->def_nr);
       dw->weight = vs->weight_orig;
     }
     else {
       /* wasn't originally existing, remove */
-      MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
+      MDeformWeight *dw = BKE_defvert_find_index(dv, grad_data->def_nr);
       if (dw) {
-        defvert_remove_group(dv, dw);
+        BKE_defvert_remove_group(dv, dw);
       }
     }
   }
@@ -678,7 +678,7 @@ static void gradientVertInit__mapFunc(void *userData,
   }
 
   MDeformVert *dv = &me->dvert[index];
-  const MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
+  const MDeformWeight *dw = BKE_defvert_find_index(dv, grad_data->def_nr);
   if (dw) {
     vs->weight_orig = dw->weight;
     vs->flag = VGRAD_STORE_DW_EXIST;

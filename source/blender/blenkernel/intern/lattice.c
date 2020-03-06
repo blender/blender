@@ -431,7 +431,7 @@ void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float
   }
 
   if (lt->vgroup[0] && dvert) {
-    defgrp_index = defgroup_name_index(ob, lt->vgroup);
+    defgrp_index = BKE_object_defgroup_name_index(ob, lt->vgroup);
     copy_v3_v3(co_prev, co);
   }
 
@@ -527,7 +527,7 @@ void calc_latt_deform(LatticeDeformData *lattice_deform_data, float co[3], float
               madd_v3_v3fl(co, &latticedata[idx_u * 3], u);
 
               if (defgrp_index != -1) {
-                weight_blend += (u * defvert_find_weight(dvert + idx_u, defgrp_index));
+                weight_blend += (u * BKE_defvert_find_weight(dvert + idx_u, defgrp_index));
               }
             }
           }
@@ -784,8 +784,9 @@ void curve_deform_verts(Object *cuOb,
 
     if (cu->flag & CU_DEFORM_BOUNDS_OFF) {
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        const float weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
-                                             defvert_find_weight(dvert_iter, defgrp_index);
+        const float weight = invert_vgroup ?
+                                 1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
+                                 BKE_defvert_find_weight(dvert_iter, defgrp_index);
 
         if (weight > 0.0f) {
           mul_m4_v3(cd.curvespace, vert_coords[a]);
@@ -801,8 +802,9 @@ void curve_deform_verts(Object *cuOb,
       INIT_MINMAX(cd.dmin, cd.dmax);
 
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        const float weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
-                                             defvert_find_weight(dvert_iter, defgrp_index);
+        const float weight = invert_vgroup ?
+                                 1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
+                                 BKE_defvert_find_weight(dvert_iter, defgrp_index);
         if (weight > 0.0f) {
           mul_m4_v3(cd.curvespace, vert_coords[a]);
           minmax_v3v3_v3(cd.dmin, cd.dmax, vert_coords[a]);
@@ -810,8 +812,9 @@ void curve_deform_verts(Object *cuOb,
       }
 
       for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-        const float weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert_iter, defgrp_index) :
-                                             defvert_find_weight(dvert_iter, defgrp_index);
+        const float weight = invert_vgroup ?
+                                 1.0f - BKE_defvert_find_weight(dvert_iter, defgrp_index) :
+                                 BKE_defvert_find_weight(dvert_iter, defgrp_index);
 
         if (weight > 0.0f) {
           /* already in 'cd.curvespace', prev for loop */
@@ -901,8 +904,9 @@ static void lattice_deform_vert_task(void *__restrict userdata,
 
   if (data->dvert != NULL) {
     const float weight = data->invert_vgroup ?
-                             1.0f - defvert_find_weight(data->dvert + index, data->defgrp_index) :
-                             defvert_find_weight(data->dvert + index, data->defgrp_index);
+                             1.0f -
+                                 BKE_defvert_find_weight(data->dvert + index, data->defgrp_index) :
+                             BKE_defvert_find_weight(data->dvert + index, data->defgrp_index);
     if (weight > 0.0f) {
       calc_latt_deform(data->lattice_deform_data, data->vert_coords[index], weight * data->fac);
     }
@@ -935,7 +939,7 @@ void lattice_deform_verts(Object *laOb,
    * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
    */
   if (vgroup && vgroup[0] && target && ELEM(target->type, OB_MESH, OB_LATTICE)) {
-    defgrp_index = defgroup_name_index(target, vgroup);
+    defgrp_index = BKE_object_defgroup_name_index(target, vgroup);
 
     if (defgrp_index != -1) {
       /* if there's derived data without deformverts, don't use vgroups */

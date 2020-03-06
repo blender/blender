@@ -710,7 +710,7 @@ static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
   Object *ob = (Object *)ptr->owner_id;
   bDeformGroup *dg = (bDeformGroup *)ptr->data;
   BLI_strncpy_utf8(dg->name, value, sizeof(dg->name));
-  defgroup_unique_name(dg, ob);
+  BKE_object_defgroup_unique_name(dg, ob);
 }
 
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
@@ -775,13 +775,13 @@ int rna_object_vgroup_name_index_length(PointerRNA *ptr, int index)
 void rna_object_vgroup_name_index_set(PointerRNA *ptr, const char *value, short *index)
 {
   Object *ob = (Object *)ptr->owner_id;
-  *index = defgroup_name_index(ob, value) + 1;
+  *index = BKE_object_defgroup_name_index(ob, value) + 1;
 }
 
 void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
 {
   Object *ob = (Object *)ptr->owner_id;
-  bDeformGroup *dg = defgroup_find_name(ob, value);
+  bDeformGroup *dg = BKE_object_defgroup_find_name(ob, value);
   if (dg) {
     /* No need for BLI_strncpy_utf8, since this matches an existing group. */
     BLI_strncpy(result, value, maxlen);

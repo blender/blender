@@ -5250,7 +5250,7 @@ static int edbm_decimate_exec(bContext *C, wmOperator *op)
         if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
           if (use_vertex_group) {
             const MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
-            weight = defvert_find_weight(dv, defbase_act);
+            weight = BKE_defvert_find_weight(dv, defbase_act);
             if (invert_vertex_group) {
               weight = 1.0f - weight;
             }

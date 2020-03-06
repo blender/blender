@@ -88,7 +88,7 @@ bool ED_wpaint_ensure_data(bContext *C,
         bPoseChannel *pchan = BKE_pose_channel_find_name(modob->pose, actbone->name);
 
         if (pchan) {
-          bDeformGroup *dg = defgroup_find_name(ob, pchan->name);
+          bDeformGroup *dg = BKE_object_defgroup_find_name(ob, pchan->name);
           if (dg == NULL) {
             dg = BKE_object_defgroup_add_name(ob, pchan->name); /* sets actdef */
             DEG_relations_tag_update(CTX_data_main(C));
@@ -140,9 +140,9 @@ int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
     char name_flip[MAXBONENAME];
 
     BLI_string_flip_side_name(name_flip, defgroup->name, false, sizeof(name_flip));
-    mirrdef = defgroup_name_index(ob, name_flip);
+    mirrdef = BKE_object_defgroup_name_index(ob, name_flip);
     if (mirrdef == -1) {
-      if (BKE_defgroup_new(ob, name_flip)) {
+      if (BKE_object_defgroup_new(ob, name_flip)) {
         mirrdef = BLI_listbase_count(&ob->defbase) - 1;
       }
     }

@@ -120,7 +120,7 @@ bDeformGroup *BKE_object_defgroup_add_name(Object *ob, const char *name)
     return NULL;
   }
 
-  defgroup = BKE_defgroup_new(ob, name);
+  defgroup = BKE_object_defgroup_new(ob, name);
 
   ob->actdef = BLI_listbase_count(&ob->defbase);
 
@@ -186,8 +186,8 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
           dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
           if (dv && dv->dw && (!use_selection || BM_elem_flag_test(eve, BM_ELEM_SELECT))) {
-            MDeformWeight *dw = defvert_find_index(dv, def_nr);
-            defvert_remove_group(dv, dw); /* dw can be NULL */
+            MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
+            BKE_defvert_remove_group(dv, dw); /* dw can be NULL */
             changed = true;
           }
         }
@@ -203,8 +203,8 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
 
         for (i = 0; i < me->totvert; i++, mv++, dv++) {
           if (dv->dw && (!use_selection || (mv->flag & SELECT))) {
-            MDeformWeight *dw = defvert_find_index(dv, def_nr);
-            defvert_remove_group(dv, dw); /* dw can be NULL */
+            MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
+            BKE_defvert_remove_group(dv, dw); /* dw can be NULL */
             changed = true;
           }
         }
@@ -224,8 +224,8 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
 
           dv = &lt->dvert[i];
 
-          dw = defvert_find_index(dv, def_nr);
-          defvert_remove_group(dv, dw); /* dw can be NULL */
+          dw = BKE_defvert_find_index(dv, def_nr);
+          BKE_defvert_remove_group(dv, dw); /* dw can be NULL */
           changed = true;
         }
       }
@@ -324,8 +324,8 @@ static void object_defgroup_remove_object_mode(Object *ob, bDeformGroup *dg)
     for (i = 0, dv = dvert_array; i < dvert_tot; i++, dv++) {
       MDeformWeight *dw;
 
-      dw = defvert_find_index(dv, def_nr);
-      defvert_remove_group(dv, dw); /* dw can be NULL */
+      dw = BKE_defvert_find_index(dv, def_nr);
+      BKE_defvert_remove_group(dv, dw); /* dw can be NULL */
 
       /* inline, make into a function if anything else needs to do this */
       for (j = 0; j < dv->totweight; j++) {
@@ -488,7 +488,7 @@ int *BKE_object_defgroup_index_map_create(Object *ob_src, Object *ob_dst, int *r
   int i;
 
   for (dg_src = ob_src->defbase.first, i = 0; dg_src; dg_src = dg_src->next, i++) {
-    vgroup_index_map[i] = defgroup_name_index(ob_dst, dg_src->name);
+    vgroup_index_map[i] = BKE_object_defgroup_name_index(ob_dst, dg_src->name);
     is_vgroup_remap_needed = is_vgroup_remap_needed || (vgroup_index_map[i] != i);
   }
 
@@ -714,7 +714,8 @@ void BKE_object_defgroup_mirror_selection(struct Object *ob,
       char name_flip[MAXBONENAME];
 
       BLI_string_flip_side_name(name_flip, defgroup->name, false, sizeof(name_flip));
-      i_mirr = STREQ(name_flip, defgroup->name) ? i : defgroup_name_index(ob, name_flip);
+      i_mirr = STREQ(name_flip, defgroup->name) ? i :
+                                                  BKE_object_defgroup_name_index(ob, name_flip);
 
       if ((i_mirr >= 0 && i_mirr < defbase_tot) && (dg_flags_sel[i_mirr] == false)) {
         dg_flags_sel[i_mirr] = true;

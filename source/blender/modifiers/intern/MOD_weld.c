@@ -1629,7 +1629,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   totvert = mesh->totvert;
 
   /* Vertex Group. */
-  const int defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
+  const int defgrp_index = BKE_object_defgroup_name_index(ob, wmd->defgrp_name);
   if (defgrp_index != -1) {
     MDeformVert *dvert, *dv;
     dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
@@ -1638,7 +1638,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
       dv = &dvert[0];
       v_mask = BLI_BITMAP_NEW(totvert, __func__);
       for (i = 0; i < totvert; i++, dv++) {
-        const bool found = defvert_find_weight(dv, defgrp_index) > 0.0f;
+        const bool found = BKE_defvert_find_weight(dv, defgrp_index) > 0.0f;
         if (found != invert_vgroup) {
           BLI_BITMAP_ENABLE(v_mask, i);
           v_mask_act++;

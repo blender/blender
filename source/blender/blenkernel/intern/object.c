@@ -233,7 +233,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
       BKE_pose_rebuild(bmain, ob_dst, ob_dst->data, do_pose_id_user);
     }
   }
-  defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
+  BKE_defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
   BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
   BKE_constraints_copy_ex(&ob_dst->constraints, &ob_src->constraints, flag_subdata, true);
 
@@ -1960,7 +1960,7 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
   id_us_plus((ID *)ob->data); /* ensures lib data becomes LIB_TAG_EXTERN */
 
   /* copy vertex groups */
-  defgroup_copy_list(&ob->defbase, &target->defbase);
+  BKE_defgroup_copy_list(&ob->defbase, &target->defbase);
 
   /* copy material and index information */
   ob->actcol = ob->totcol = 0;

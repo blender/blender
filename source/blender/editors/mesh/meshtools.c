@@ -429,7 +429,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
       /* Join this object's vertex groups to the base one's */
       for (dg = ob_iter->defbase.first; dg; dg = dg->next) {
         /* See if this group exists in the object (if it doesn't, add it to the end) */
-        if (!defgroup_find_name(ob, dg->name)) {
+        if (!BKE_object_defgroup_find_name(ob, dg->name)) {
           odg = MEM_mallocN(sizeof(bDeformGroup), "join deformGroup");
           memcpy(odg, dg, sizeof(bDeformGroup));
           BLI_addtail(&ob->defbase, odg);

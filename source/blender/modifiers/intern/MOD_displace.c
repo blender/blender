@@ -193,8 +193,8 @@ static void displaceModifier_do_task(void *__restrict userdata,
   float local_vec[3];
 
   if (dvert) {
-    weight = invert_vgroup ? 1.0f - defvert_find_weight(dvert + iter, defgrp_index) :
-                             defvert_find_weight(dvert + iter, defgrp_index);
+    weight = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dvert + iter, defgrp_index) :
+                             BKE_defvert_find_weight(dvert + iter, defgrp_index);
     if (weight == 0.0f) {
       return;
     }

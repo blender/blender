@@ -270,7 +270,7 @@ void BM_mesh_wireframe(BMesh *bm,
 
         if (cd_dvert_offset != -1) {
           MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(v_src, cd_dvert_offset);
-          float defgrp_fac = defvert_find_weight(dvert, defgrp_index);
+          float defgrp_fac = BKE_defvert_find_weight(dvert, defgrp_index);
 
           if (defgrp_invert) {
             defgrp_fac = 1.0f - defgrp_fac;

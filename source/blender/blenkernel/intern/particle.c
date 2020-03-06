@@ -2223,12 +2223,12 @@ float *psys_cache_vgroup(Mesh *mesh, ParticleSystem *psys, int vgroup)
       vg = MEM_callocN(sizeof(float) * totvert, "vg_cache");
       if (psys->vg_neg & (1 << vgroup)) {
         for (i = 0; i < totvert; i++) {
-          vg[i] = 1.0f - defvert_find_weight(&dvert[i], psys->vgroup[vgroup] - 1);
+          vg[i] = 1.0f - BKE_defvert_find_weight(&dvert[i], psys->vgroup[vgroup] - 1);
         }
       }
       else {
         for (i = 0; i < totvert; i++) {
-          vg[i] = defvert_find_weight(&dvert[i], psys->vgroup[vgroup] - 1);
+          vg[i] = BKE_defvert_find_weight(&dvert[i], psys->vgroup[vgroup] - 1);
         }
       }
     }

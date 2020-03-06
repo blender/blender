@@ -988,7 +988,7 @@ static bool gp_brush_weight_apply(tGP_BrushEditData *gso,
     }
   }
   /* get current weight */
-  MDeformWeight *dw = defvert_verify_index(dvert, gso->vrgroup);
+  MDeformWeight *dw = BKE_defvert_ensure_index(dvert, gso->vrgroup);
   float curweight = dw ? dw->weight : 0.0f;
 
   if (gp_brush_invert_check(gso)) {

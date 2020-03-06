@@ -88,7 +88,7 @@ static void deformStroke(GpencilModifierData *md,
   float vec1[3], vec2[3];
   int sc_frame = 0;
   int stroke_seed = 0;
-  const int def_nr = defgroup_name_index(ob, mmd->vgname);
+  const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
   const float unit_v3[3] = {1.0f, 1.0f, 1.0f};
 
   if (!is_stroke_affected_by_modifier(ob,

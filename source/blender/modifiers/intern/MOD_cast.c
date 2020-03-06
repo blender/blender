@@ -199,8 +199,9 @@ static void sphere_do(CastModifierData *cmd,
     }
 
     if (dvert) {
-      const float weight = invert_vgroup ? 1.0f - defvert_find_weight(&dvert[i], defgrp_index) :
-                                           defvert_find_weight(&dvert[i], defgrp_index);
+      const float weight = invert_vgroup ?
+                               1.0f - BKE_defvert_find_weight(&dvert[i], defgrp_index) :
+                               BKE_defvert_find_weight(&dvert[i], defgrp_index);
 
       if (weight == 0.0f) {
         continue;
@@ -370,8 +371,9 @@ static void cuboid_do(CastModifierData *cmd,
     }
 
     if (dvert) {
-      const float weight = invert_vgroup ? 1.0f - defvert_find_weight(&dvert[i], defgrp_index) :
-                                           defvert_find_weight(&dvert[i], defgrp_index);
+      const float weight = invert_vgroup ?
+                               1.0f - BKE_defvert_find_weight(&dvert[i], defgrp_index) :
+                               BKE_defvert_find_weight(&dvert[i], defgrp_index);
 
       if (weight == 0.0f) {
         continue;

@@ -421,8 +421,8 @@ static void laplaciansmoothModifier_do(
       EIG_linear_solver_right_hand_side_add(sys->context, 2, i, vertexCos[i][2]);
       if (iter == 0) {
         if (dv) {
-          wpaint = invert_vgroup ? 1.0f - defvert_find_weight(dv, defgrp_index) :
-                                   defvert_find_weight(dv, defgrp_index);
+          wpaint = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dv, defgrp_index) :
+                                   BKE_defvert_find_weight(dv, defgrp_index);
           dv++;
         }
         else {

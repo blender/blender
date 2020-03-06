@@ -439,7 +439,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   }
 
   /* Get vgroup idx from its name. */
-  defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
+  defgrp_index = BKE_object_defgroup_name_index(ob, wmd->defgrp_name);
   if (defgrp_index == -1) {
     return mesh;
   }
@@ -463,7 +463,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   tw = MEM_malloc_arrayN(numVerts, sizeof(float), "WeightVGProximity Modifier, tw");
   tdw = MEM_malloc_arrayN(numVerts, sizeof(MDeformWeight *), "WeightVGProximity Modifier, tdw");
   for (i = 0; i < numVerts; i++) {
-    MDeformWeight *_dw = defvert_find_index(&dvert[i], defgrp_index);
+    MDeformWeight *_dw = BKE_defvert_find_index(&dvert[i], defgrp_index);
     if (_dw) {
       tidx[numIdx] = i;
       tw[numIdx] = _dw->weight;

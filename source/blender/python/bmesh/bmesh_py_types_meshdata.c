@@ -381,8 +381,8 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
  * hiding the #MDeformWeight on access, since the mapping is very close, eg:
  *
  * \code{.c}
- * weight = defvert_find_weight(dv, group_nr);
- * defvert_remove_group(dv, dw)
+ * weight = BKE_defvert_find_weight(dv, group_nr);
+ * BKE_defvert_remove_group(dv, dw)
  * \endcode
  *
  * \code{.py}
@@ -423,7 +423,7 @@ static PyObject *bpy_bmdeformvert_subscript(BPy_BMDeformVert *self, PyObject *ke
       return NULL;
     }
     else {
-      MDeformWeight *dw = defvert_find_index(self->data, i);
+      MDeformWeight *dw = BKE_defvert_find_index(self->data, i);
 
       if (dw == NULL) {
         PyErr_SetString(PyExc_KeyError,
@@ -462,7 +462,7 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
         return -1;
       }
       else {
-        MDeformWeight *dw = defvert_verify_index(self->data, i);
+        MDeformWeight *dw = BKE_defvert_ensure_index(self->data, i);
         const float f = PyFloat_AsDouble(value);
         if (f == -1 && PyErr_Occurred()) {  // parsed key not a number
           PyErr_SetString(PyExc_TypeError,
@@ -476,14 +476,14 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
     }
     else {
       /* del dvert[group_index] */
-      MDeformWeight *dw = defvert_find_index(self->data, i);
+      MDeformWeight *dw = BKE_defvert_find_index(self->data, i);
 
       if (dw == NULL) {
         PyErr_SetString(PyExc_KeyError,
                         "del BMDeformVert[key]: "
                         "key not found");
       }
-      defvert_remove_group(self->data, dw);
+      BKE_defvert_remove_group(self->data, dw);
     }
 
     return 0;
@@ -504,7 +504,7 @@ static int bpy_bmdeformvert_contains(BPy_BMDeformVert *self, PyObject *value)
     return -1;
   }
 
-  return (defvert_find_index(self->data, key) != NULL) ? 1 : 0;
+  return (BKE_defvert_find_index(self->data, key) != NULL) ? 1 : 0;
 }
 
 /* only defined for __contains__ */
@@ -623,7 +623,7 @@ static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
     return NULL;
   }
   else {
-    MDeformWeight *dw = defvert_find_index(self->data, key);
+    MDeformWeight *dw = BKE_defvert_find_index(self->data, key);
 
     if (dw) {
       return PyFloat_FromDouble(dw->weight);
@@ -640,7 +640,7 @@ PyDoc_STRVAR(bpy_bmdeformvert_clear_doc,
              "   Clears all weights.\n");
 static PyObject *bpy_bmdeformvert_clear(BPy_BMDeformVert *self)
 {
-  defvert_clear(self->data);
+  BKE_defvert_clear(self->data);
 
   Py_RETURN_NONE;
 }
@@ -684,7 +684,7 @@ int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value)
   else {
     MDeformVert *dvert_src = ((BPy_BMDeformVert *)value)->data;
     if (LIKELY(dvert != dvert_src)) {
-      defvert_copy(dvert, dvert_src);
+      BKE_defvert_copy(dvert, dvert_src);
     }
     return 0;
   }

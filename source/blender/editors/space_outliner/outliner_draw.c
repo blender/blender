@@ -741,7 +741,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
     else {
       switch (tselem->type) {
         case TSE_DEFGROUP:
-          defgroup_unique_name(te->directdata, (Object *)tselem->id);  //  id = object
+          BKE_object_defgroup_unique_name(te->directdata, (Object *)tselem->id);  //  id = object
           break;
         case TSE_NLA_ACTION:
           BLI_libblock_ensure_unique_name(bmain, tselem->id->name);

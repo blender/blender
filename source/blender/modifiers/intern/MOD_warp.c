@@ -235,8 +235,8 @@ static void warpModifier_do(WarpModifierData *wmd,
       /* skip if no vert group found */
       if (defgrp_index != -1) {
         dv = &dvert[i];
-        weight = invert_vgroup ? 1.0f - defvert_find_weight(dv, defgrp_index) * strength :
-                                 defvert_find_weight(dv, defgrp_index) * strength;
+        weight = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dv, defgrp_index) * strength :
+                                 BKE_defvert_find_weight(dv, defgrp_index) * strength;
         if (weight <= 0.0f) {
           continue;
         }

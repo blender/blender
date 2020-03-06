@@ -235,7 +235,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
 void MOD_get_vgroup(
     Object *ob, struct Mesh *mesh, const char *name, MDeformVert **dvert, int *defgrp_index)
 {
-  *defgrp_index = defgroup_name_index(ob, name);
+  *defgrp_index = BKE_object_defgroup_name_index(ob, name);
   *dvert = NULL;
 
   if (*defgrp_index != -1) {

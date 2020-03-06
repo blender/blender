@@ -1334,7 +1334,7 @@ static void gpencil_primitive_interaction_end(bContext *C,
     BKE_gpencil_dvert_ensure(gps);
     for (int i = 0; i < gps->totpoints; i++) {
       MDeformVert *ve = &gps->dvert[i];
-      MDeformWeight *dw = defvert_verify_index(ve, def_nr);
+      MDeformWeight *dw = BKE_defvert_ensure_index(ve, def_nr);
       if (dw) {
         dw->weight = ts->vgroup_weight;
       }

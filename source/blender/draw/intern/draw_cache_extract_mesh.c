@@ -2420,7 +2420,7 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
   }
   else {
     /* default, non tricky behavior */
-    input = defvert_find_weight(dvert, wstate->defgroup_active);
+    input = BKE_defvert_find_weight(dvert, wstate->defgroup_active);
 
     if (input == 0.0f) {
       switch (wstate->alert_mode) {
@@ -2428,7 +2428,7 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
           return -1.0f;
           break;
         case OB_DRAW_GROUPUSER_ALL:
-          if (defvert_is_weight_zero(dvert, wstate->defgroup_len)) {
+          if (BKE_defvert_is_weight_zero(dvert, wstate->defgroup_len)) {
             return -1.0f;
           }
           break;

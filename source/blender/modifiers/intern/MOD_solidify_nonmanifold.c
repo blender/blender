@@ -1595,10 +1595,10 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
             if (dvert) {
               MDeformVert *dv = &dvert[i];
               if (defgrp_invert) {
-                scalar_vgroup = 1.0f - defvert_find_weight(dv, defgrp_index);
+                scalar_vgroup = 1.0f - BKE_defvert_find_weight(dv, defgrp_index);
               }
               else {
-                scalar_vgroup = defvert_find_weight(dv, defgrp_index);
+                scalar_vgroup = BKE_defvert_find_weight(dv, defgrp_index);
               }
               scalar_vgroup = offset_fac_vg + (scalar_vgroup * offset_fac_vg_inv);
             }

@@ -372,7 +372,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   float plane[3];
   float imat[3][3], tmat[3][3];
-  const int defgroup = defgroup_name_index(ob, substring);
+  const int defgroup = BKE_object_defgroup_name_index(ob, substring);
 
   /* initialize target matrix using target matrix */
   copy_m4_m4(mat, ob->obmat);
@@ -396,7 +396,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 
       /* get the average of all verts with that are in the vertex-group */
       for (int i = 0; i < numVerts; i++, dv++, mv++) {
-        MDeformWeight *dw = defvert_find_index(dv, defgroup);
+        MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {
           float nor[3];
@@ -415,7 +415,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 
       BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
         MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, v->head.data, CD_MDEFORMVERT);
-        MDeformWeight *dw = defvert_find_index(dv, defgroup);
+        MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {
           madd_v3_v3fl(vec, v->co, dw->weight);
@@ -481,7 +481,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
   float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
   int grouped = 0;
   int i, n;
-  const int defgroup = defgroup_name_index(ob, substring);
+  const int defgroup = BKE_object_defgroup_name_index(ob, substring);
 
   /* initialize target matrix using target matrix */
   copy_m4_m4(mat, ob->obmat);
@@ -499,7 +499,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
    */
   for (i = 0; i < tot_verts; i++, dv++) {
     for (n = 0; n < dv->totweight; n++) {
-      MDeformWeight *dw = defvert_find_index(dv, defgroup);
+      MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
       if (dw && dw->weight > 0.0f) {
         /* copy coordinates of point to temporary vector, then add to find average */
         memcpy(tvec, co ? co : bp->vec, 3 * sizeof(float));

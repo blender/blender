@@ -199,7 +199,7 @@ static void deformStroke(GpencilModifierData *md,
     return;
   }
 
-  const int def_nr = defgroup_name_index(ob, mmd->vgname);
+  const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
 
   bPoseChannel *pchan = BKE_pose_channel_find_name(mmd->object->pose, mmd->subtarget);
   float dmat[4][4];

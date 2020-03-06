@@ -1846,12 +1846,12 @@ static int gpencil_vertex_group_invert_exec(bContext *C, wmOperator *op)
 
     for (int i = 0; i < gps->totpoints; i++) {
       dvert = &gps->dvert[i];
-      MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+      MDeformWeight *dw = BKE_defvert_find_index(dvert, def_nr);
       if (dw == NULL) {
-        defvert_add_index_notest(dvert, def_nr, 1.0f);
+        BKE_defvert_add_index_notest(dvert, def_nr, 1.0f);
       }
       else if (dw->weight == 1.0f) {
-        defvert_remove_group(dvert, dw);
+        BKE_defvert_remove_group(dvert, dw);
       }
       else {
         dw->weight = 1.0f - dw->weight;
@@ -1938,8 +1938,8 @@ static int gpencil_vertex_group_smooth_exec(bContext *C, wmOperator *op)
           ptc = &gps->points[i];
         }
 
-        float wa = defvert_find_weight(dverta, def_nr);
-        float wb = defvert_find_weight(dvertb, def_nr);
+        float wa = BKE_defvert_find_weight(dverta, def_nr);
+        float wb = BKE_defvert_find_weight(dvertb, def_nr);
 
         /* the optimal value is the corresponding to the interpolation of the weight
          * at the distance of point b
@@ -1947,7 +1947,7 @@ static int gpencil_vertex_group_smooth_exec(bContext *C, wmOperator *op)
         const float opfac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
         const float optimal = interpf(wa, wb, opfac);
         /* Based on influence factor, blend between original and optimal */
-        MDeformWeight *dw = defvert_verify_index(dvertb, def_nr);
+        MDeformWeight *dw = BKE_defvert_ensure_index(dvertb, def_nr);
         if (dw) {
           dw->weight = interpf(wb, optimal, fac);
           CLAMP(dw->weight, 0.0, 1.0f);
@@ -2016,7 +2016,7 @@ static int gpencil_vertex_group_normalize_exec(bContext *C, wmOperator *op)
     float maxvalue = 0.0f;
     for (int i = 0; i < gps->totpoints; i++) {
       dvert = &gps->dvert[i];
-      dw = defvert_find_index(dvert, def_nr);
+      dw = BKE_defvert_find_index(dvert, def_nr);
       if ((dw != NULL) && (dw->weight > maxvalue)) {
         maxvalue = dw->weight;
       }
@@ -2026,7 +2026,7 @@ static int gpencil_vertex_group_normalize_exec(bContext *C, wmOperator *op)
     if (maxvalue > 0.0f) {
       for (int i = 0; i < gps->totpoints; i++) {
         dvert = &gps->dvert[i];
-        dw = defvert_find_index(dvert, def_nr);
+        dw = BKE_defvert_find_index(dvert, def_nr);
         if (dw != NULL) {
           dw->weight = dw->weight / maxvalue;
         }
@@ -2102,7 +2102,7 @@ static int gpencil_vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        dw = defvert_find_index(dvert, v);
+        dw = BKE_defvert_find_index(dvert, v);
         if (dw != NULL) {
           tot_values[i] += dw->weight;
         }
@@ -2128,7 +2128,7 @@ static int gpencil_vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        dw = defvert_find_index(dvert, v);
+        dw = BKE_defvert_find_index(dvert, v);
         if (dw != NULL) {
           dw->weight = dw->weight / tot_values[i];
         }
@@ -2320,7 +2320,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         for (bDeformGroup *dg = ob_iter->defbase.first; dg; dg = dg->next) {
           bDeformGroup *vgroup = MEM_dupallocN(dg);
           int idx = BLI_listbase_count(&ob_active->defbase);
-          defgroup_unique_name(vgroup, ob_active);
+          BKE_object_defgroup_unique_name(vgroup, ob_active);
           BLI_addtail(&ob_active->defbase, vgroup);
           /* update vertex groups in strokes in original data */
           for (bGPDlayer *gpl_src = gpd->layers.first; gpl_src; gpl_src = gpl_src->next) {

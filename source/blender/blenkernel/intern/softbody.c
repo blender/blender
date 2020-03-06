@@ -2700,8 +2700,9 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
   bp = sb->bpoint;
 
   defgroup_index = me->dvert ? (sb->vertgroup - 1) : -1;
-  defgroup_index_mass = me->dvert ? defgroup_name_index(ob, sb->namedVG_Mass) : -1;
-  defgroup_index_spring = me->dvert ? defgroup_name_index(ob, sb->namedVG_Spring_K) : -1;
+  defgroup_index_mass = me->dvert ? BKE_object_defgroup_name_index(ob, sb->namedVG_Mass) : -1;
+  defgroup_index_spring = me->dvert ? BKE_object_defgroup_name_index(ob, sb->namedVG_Spring_K) :
+                                      -1;
 
   for (a = 0; a < me->totvert; a++, bp++) {
     /* get scalar values needed  *per vertex* from vertex group functions,
@@ -2714,7 +2715,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
       BLI_assert(bp->goal == sb->defgoal);
     }
     if ((ob->softflag & OB_SB_GOAL) && (defgroup_index != -1)) {
-      bp->goal *= defvert_find_weight(&me->dvert[a], defgroup_index);
+      bp->goal *= BKE_defvert_find_weight(&me->dvert[a], defgroup_index);
     }
 
     /* to proof the concept
@@ -2722,11 +2723,11 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
      */
 
     if (defgroup_index_mass != -1) {
-      bp->mass *= defvert_find_weight(&me->dvert[a], defgroup_index_mass);
+      bp->mass *= BKE_defvert_find_weight(&me->dvert[a], defgroup_index_mass);
     }
 
     if (defgroup_index_spring != -1) {
-      bp->springweight *= defvert_find_weight(&me->dvert[a], defgroup_index_spring);
+      bp->springweight *= BKE_defvert_find_weight(&me->dvert[a], defgroup_index_spring);
     }
   }
 
@@ -2929,8 +2930,9 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
   bp = sb->bpoint;
 
   defgroup_index = lt->dvert ? (sb->vertgroup - 1) : -1;
-  defgroup_index_mass = lt->dvert ? defgroup_name_index(ob, sb->namedVG_Mass) : -1;
-  defgroup_index_spring = lt->dvert ? defgroup_name_index(ob, sb->namedVG_Spring_K) : -1;
+  defgroup_index_mass = lt->dvert ? BKE_object_defgroup_name_index(ob, sb->namedVG_Mass) : -1;
+  defgroup_index_spring = lt->dvert ? BKE_object_defgroup_name_index(ob, sb->namedVG_Spring_K) :
+                                      -1;
 
   /* same code used as for mesh vertices */
   for (a = 0; a < totvert; a++, bp++, bpnt++) {
@@ -2940,18 +2942,18 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
     }
 
     if ((ob->softflag & OB_SB_GOAL) && (defgroup_index != -1)) {
-      bp->goal *= defvert_find_weight(&lt->dvert[a], defgroup_index);
+      bp->goal *= BKE_defvert_find_weight(&lt->dvert[a], defgroup_index);
     }
     else {
       bp->goal *= bpnt->weight;
     }
 
     if (defgroup_index_mass != -1) {
-      bp->mass *= defvert_find_weight(&lt->dvert[a], defgroup_index_mass);
+      bp->mass *= BKE_defvert_find_weight(&lt->dvert[a], defgroup_index_mass);
     }
 
     if (defgroup_index_spring != -1) {
-      bp->springweight *= defvert_find_weight(&lt->dvert[a], defgroup_index_spring);
+      bp->springweight *= BKE_defvert_find_weight(&lt->dvert[a], defgroup_index_spring);
     }
   }
 

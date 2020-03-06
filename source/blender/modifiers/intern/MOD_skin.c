@@ -943,7 +943,7 @@ static Mesh *subdivide_base(Mesh *orig)
         weight = interpf(vg->w2, vg->w1, t);
 
         if (weight > 0) {
-          defvert_add_index_notest(&outdvert[v], vg->def_nr, weight);
+          BKE_defvert_add_index_notest(&outdvert[v], vg->def_nr, weight);
         }
       }
 
@@ -1058,7 +1058,7 @@ static void output_frames(BMesh *bm, SkinNode *sn, const MDeformVert *input_dver
           dv = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_MDEFORMVERT);
 
           BLI_assert(dv->totweight == 0);
-          defvert_copy(dv, input_dvert);
+          BKE_defvert_copy(dv, input_dvert);
         }
       }
     }

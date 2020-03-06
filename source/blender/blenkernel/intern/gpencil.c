@@ -1427,14 +1427,14 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
           if (gps->dvert != NULL) {
             for (int i = 0; i < gps->totpoints; i++) {
               dvert = &gps->dvert[i];
-              MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+              MDeformWeight *dw = BKE_defvert_find_index(dvert, def_nr);
               if (dw != NULL) {
-                defvert_remove_group(dvert, dw);
+                BKE_defvert_remove_group(dvert, dw);
               }
               else {
                 /* Reorganize weights for other groups after deleted one. */
                 for (int g = 0; g < totgrp; g++) {
-                  dw = defvert_find_index(dvert, g);
+                  dw = BKE_defvert_find_index(dvert, g);
                   if ((dw != NULL) && (dw->def_nr > def_nr)) {
                     dw->def_nr--;
                   }
@@ -1524,8 +1524,8 @@ static void stroke_interpolate_deform_weights(
   int i;
 
   for (i = 0; i < vert->totweight; i++) {
-    float wl = defvert_find_weight(vl, vert->dw[i].def_nr);
-    float wr = defvert_find_weight(vr, vert->dw[i].def_nr);
+    float wl = BKE_defvert_find_weight(vl, vert->dw[i].def_nr);
+    float wr = BKE_defvert_find_weight(vr, vert->dw[i].def_nr);
     vert->dw[i].weight = interpf(wr, wl, ratio);
   }
 }
@@ -2835,16 +2835,16 @@ bool BKE_gpencil_close_stroke(bGPDstroke *gps)
     /* Set weights. */
     if (gps->dvert != NULL) {
       MDeformVert *dvert1 = &gps->dvert[old_tot - 1];
-      MDeformWeight *dw1 = defvert_verify_index(dvert1, 0);
+      MDeformWeight *dw1 = BKE_defvert_ensure_index(dvert1, 0);
       float weight_1 = dw1 ? dw1->weight : 0.0f;
 
       MDeformVert *dvert2 = &gps->dvert[0];
-      MDeformWeight *dw2 = defvert_verify_index(dvert2, 0);
+      MDeformWeight *dw2 = BKE_defvert_ensure_index(dvert2, 0);
       float weight_2 = dw2 ? dw2->weight : 0.0f;
 
       MDeformVert *dvert_final = &gps->dvert[old_tot + i - 1];
       dvert_final->totweight = 0;
-      MDeformWeight *dw = defvert_verify_index(dvert_final, 0);
+      MDeformWeight *dw = BKE_defvert_ensure_index(dvert_final, 0);
       if (dvert_final->dw) {
         dw->weight = interpf(weight_2, weight_1, step);
       }

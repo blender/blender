@@ -72,7 +72,7 @@ static void deformStroke(GpencilModifierData *md,
                          bGPDstroke *gps)
 {
   OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
-  const int def_nr = defgroup_name_index(ob, mmd->vgname);
+  const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,

@@ -316,7 +316,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
       axis_map_table[(smd->mode != MOD_SIMPLEDEFORM_MODE_BEND) ? deform_axis : 2];
 
   for (i = 0; i < numVerts; i++) {
-    float weight = defvert_array_find_weight_safe(dvert, i, vgroup);
+    float weight = BKE_defvert_array_find_weight_safe(dvert, i, vgroup);
 
     if (invert_vgroup) {
       weight = 1.0f - weight;

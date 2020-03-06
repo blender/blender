@@ -1184,7 +1184,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
     for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
       bool locked = (dg->flag & DG_LOCK_WEIGHT) != 0;
       if (vgroup_validmap[i]) {
-        MDeformWeight *dw = defvert_find_index(dv, i);
+        MDeformWeight *dw = BKE_defvert_find_index(dv, i);
         if (dw) {
           int x, xco = 0;
           int icon;

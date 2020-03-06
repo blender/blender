@@ -148,8 +148,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       }
       else if (vgroup != -1) {
         weight = invert_vgroup ?
-                     1.0f - defvert_array_find_weight_safe(dvert, BM_elem_index_get(v), vgroup) :
-                     defvert_array_find_weight_safe(dvert, BM_elem_index_get(v), vgroup);
+                     1.0f -
+                         BKE_defvert_array_find_weight_safe(dvert, BM_elem_index_get(v), vgroup) :
+                     BKE_defvert_array_find_weight_safe(dvert, BM_elem_index_get(v), vgroup);
         /* Check is against 0.5 rather than != 0.0 because cascaded bevel modifiers will
          * interpolate weights for newly created vertices, and may cause unexpected "selection" */
         if (weight < 0.5f) {
@@ -184,13 +185,13 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         }
         else if (vgroup != -1) {
           weight = invert_vgroup ?
-                       1.0f - defvert_array_find_weight_safe(
+                       1.0f - BKE_defvert_array_find_weight_safe(
                                   dvert, BM_elem_index_get(e->v1), vgroup) :
-                       defvert_array_find_weight_safe(dvert, BM_elem_index_get(e->v1), vgroup);
-          weight2 = invert_vgroup ?
-                        1.0f - defvert_array_find_weight_safe(
-                                   dvert, BM_elem_index_get(e->v2), vgroup) :
-                        defvert_array_find_weight_safe(dvert, BM_elem_index_get(e->v2), vgroup);
+                       BKE_defvert_array_find_weight_safe(dvert, BM_elem_index_get(e->v1), vgroup);
+          weight2 = invert_vgroup ? 1.0f - BKE_defvert_array_find_weight_safe(
+                                               dvert, BM_elem_index_get(e->v2), vgroup) :
+                                    BKE_defvert_array_find_weight_safe(
+                                        dvert, BM_elem_index_get(e->v2), vgroup);
           if (weight < 0.5f || weight2 < 0.5f) {
             continue;
           }

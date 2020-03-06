@@ -1938,9 +1938,9 @@ static void sample_mesh(FluidFlowSettings *mfs,
 
       /* Apply vertex group influence if it is being used. */
       if (defgrp_index != -1 && dvert) {
-        float weight_mask = defvert_find_weight(&dvert[v1], defgrp_index) * weights[0] +
-                            defvert_find_weight(&dvert[v2], defgrp_index) * weights[1] +
-                            defvert_find_weight(&dvert[v3], defgrp_index) * weights[2];
+        float weight_mask = BKE_defvert_find_weight(&dvert[v1], defgrp_index) * weights[0] +
+                            BKE_defvert_find_weight(&dvert[v2], defgrp_index) * weights[1] +
+                            BKE_defvert_find_weight(&dvert[v3], defgrp_index) * weights[2];
         emission_strength *= weight_mask;
       }
 

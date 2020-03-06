@@ -893,7 +893,7 @@ bool ArmatureImporter::write_skin_controller_data(const COLLADAFW::SkinControlle
    * there's no info to which object this should be long so we associate it with
    * skin controller data UID. */
 
-  /* don't forget to call defgroup_unique_name before we copy */
+  /* don't forget to call BKE_object_defgroup_unique_name before we copy */
 
   /* controller data uid -> [armature] -> joint data,
    * [mesh object] */

@@ -772,8 +772,9 @@ void gpencil_get_edit_geom(struct GpencilBatchCacheElem *be,
   for (int i = 0; i < gps->totpoints; i++, pt++) {
     /* weight paint */
     if (is_weight_paint) {
-      float weight = (dvert && dvert->dw && (vgindex > -1)) ? defvert_find_weight(dvert, vgindex) :
-                                                              0.0f;
+      float weight = (dvert && dvert->dw && (vgindex > -1)) ?
+                         BKE_defvert_find_weight(dvert, vgindex) :
+                         0.0f;
       float hue = 2.0f * (1.0f - weight) / 3.0f;
       hsv_to_rgb(hue, 1.0f, 1.0f, &selectColor[0], &selectColor[1], &selectColor[2]);
       selectColor[3] = 1.0f;
@@ -858,8 +859,9 @@ void gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be,
   for (int i = 0; i < gps->totpoints; i++, pt++) {
     /* weight paint */
     if (is_weight_paint) {
-      float weight = (dvert && dvert->dw && (vgindex > -1)) ? defvert_find_weight(dvert, vgindex) :
-                                                              0.0f;
+      float weight = (dvert && dvert->dw && (vgindex > -1)) ?
+                         BKE_defvert_find_weight(dvert, vgindex) :
+                         0.0f;
       float hue = 2.0f * (1.0f - weight) / 3.0f;
       hsv_to_rgb(hue, 1.0f, 1.0f, &selectColor[0], &selectColor[1], &selectColor[2]);
       selectColor[3] = 1.0f;

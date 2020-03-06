@@ -124,7 +124,7 @@ static void mesh_get_weights(MDeformVert *dvert,
   uint i;
 
   for (i = 0; i < numVerts; i++, dvert++) {
-    const float w = defvert_find_weight(dvert, defgrp_index);
+    const float w = BKE_defvert_find_weight(dvert, defgrp_index);
 
     if (use_invert_vgroup == false) {
       smooth_weights[i] = w;

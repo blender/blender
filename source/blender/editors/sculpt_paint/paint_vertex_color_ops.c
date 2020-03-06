@@ -160,7 +160,7 @@ static bool vertex_paint_from_weight(Object *ob)
     uint j = 0;
     do {
       uint vidx = me->mloop[mp->loopstart + j].v;
-      const float weight = defvert_find_weight(&me->dvert[vidx], vgroup_active);
+      const float weight = BKE_defvert_find_weight(&me->dvert[vidx], vgroup_active);
       const uchar grayscale = weight * 255;
       lcol->r = grayscale;
       lcol->b = grayscale;
