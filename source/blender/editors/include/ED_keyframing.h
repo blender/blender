@@ -150,8 +150,7 @@ short delete_keyframe(struct Main *bmain,
                       struct bAction *act,
                       const char rna_path[],
                       int array_index,
-                      float cfra,
-                      eInsertKeyFlags flag);
+                      float cfra);
 
 /* ************ Keying Sets ********************** */
 

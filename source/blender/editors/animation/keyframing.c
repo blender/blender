@@ -1576,8 +1576,7 @@ short delete_keyframe(Main *bmain,
                       bAction *act,
                       const char rna_path[],
                       int array_index,
-                      float cfra,
-                      eInsertKeyFlags UNUSED(flag))
+                      float cfra)
 {
   AnimData *adt = BKE_animdata_from_id(id);
   PointerRNA id_ptr, ptr;
@@ -2589,7 +2588,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
           index = -1;
         }
 
-        success = delete_keyframe(bmain, op->reports, ptr.owner_id, NULL, path, index, cfra, 0);
+        success = delete_keyframe(bmain, op->reports, ptr.owner_id, NULL, path, index, cfra);
         MEM_freeN(path);
       }
       else if (G.debug & G_DEBUG) {
