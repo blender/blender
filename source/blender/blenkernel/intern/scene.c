@@ -1970,19 +1970,19 @@ const char *BKE_scene_multiview_view_id_suffix_get(const RenderData *rd, const i
 
 void BKE_scene_multiview_view_prefix_get(Scene *scene,
                                          const char *name,
-                                         char *rprefix,
-                                         const char **rext)
+                                         char *r_prefix,
+                                         const char **r_ext)
 {
   SceneRenderView *srv;
   size_t index_act;
   const char *suf_act;
   const char delims[] = {'.', '\0'};
 
-  rprefix[0] = '\0';
+  r_prefix[0] = '\0';
 
   /* begin of extension */
-  index_act = BLI_str_rpartition(name, delims, rext, &suf_act);
-  if (*rext == NULL) {
+  index_act = BLI_str_rpartition(name, delims, r_ext, &suf_act);
+  if (*r_ext == NULL) {
     return;
   }
   BLI_assert(index_act > 0);
@@ -1990,9 +1990,10 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
 
   for (srv = scene->r.views.first; srv; srv = srv->next) {
     if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
-      size_t len = strlen(srv->suffix);
-      if (strlen(*rext) >= len && STREQLEN(*rext - len, srv->suffix, len)) {
-        BLI_strncpy(rprefix, name, strlen(name) - strlen(*rext) - len + 1);
+      const size_t len = strlen(srv->suffix);
+      const size_t ext_len = strlen(*r_ext);
+      if (ext_len >= len && STREQLEN(*r_ext - len, srv->suffix, len)) {
+        BLI_strncpy(r_prefix, name, strlen(name) - ext_len - len + 1);
         break;
       }
     }
