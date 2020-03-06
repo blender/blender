@@ -440,8 +440,12 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
   /* On macOS we get icons and names for System Bookmarks from the FS_CATEGORY_OTHER list. */
   if (ELEM(category, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS, FS_CATEGORY_RECENT)) {
 
-    FSMenuCategory cats[] = {
-        FS_CATEGORY_OTHER, FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS};
+    const FSMenuCategory cats[] = {
+        FS_CATEGORY_OTHER,
+        FS_CATEGORY_SYSTEM,
+        FS_CATEGORY_SYSTEM_BOOKMARKS,
+        FS_CATEGORY_BOOKMARKS,
+    };
     int i = ARRAY_SIZE(cats);
     if (category == FS_CATEGORY_BOOKMARKS) {
       i--;
@@ -752,7 +756,6 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
       fsmenu_add_windows_folder(
           fsmenu, FS_CATEGORY_OTHER, &FOLDERID_SkyDrive, NULL, ICON_URL, FS_INSERT_LAST);
-
     }
   }
 #else
@@ -760,10 +763,18 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
   {
     /* We store some known macOS system paths and corresponding icons
      * and names in the FS_CATEGORY_OTHER (not displayed directly) category. */
-    fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER,
-        "/Library/Fonts/", IFACE_("Fonts"), ICON_FILE_FONT, FS_INSERT_LAST);
-    fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER,
-        "/Applications/", IFACE_("Applications"), ICON_FILE_FOLDER, FS_INSERT_LAST);
+    fsmenu_insert_entry(fsmenu,
+                        FS_CATEGORY_OTHER,
+                        "/Library/Fonts/",
+                        IFACE_("Fonts"),
+                        ICON_FILE_FONT,
+                        FS_INSERT_LAST);
+    fsmenu_insert_entry(fsmenu,
+                        FS_CATEGORY_OTHER,
+                        "/Applications/",
+                        IFACE_("Applications"),
+                        ICON_FILE_FOLDER,
+                        FS_INSERT_LAST);
 
     const char *home = BLI_getenv("HOME");
 
@@ -1002,10 +1013,10 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
   /* For all platforms, we add some directories from User Preferences to
    * the FS_CATEGORY_OTHER category so that these directories
    * have the appropriate icons when they are added to the Bookmarks. */
-#  define FS_UDIR_PATH(dir, icon) \
-    if (strlen(dir) > 2) { \
-      fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, dir, NULL, icon, FS_INSERT_LAST); \
-    }
+#define FS_UDIR_PATH(dir, icon) \
+  if (strlen(dir) > 2) { \
+    fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, dir, NULL, icon, FS_INSERT_LAST); \
+  }
 
   FS_UDIR_PATH(U.fontdir, ICON_FILE_FONT)
   FS_UDIR_PATH(U.textudir, ICON_FILE_IMAGE)
@@ -1013,7 +1024,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
   FS_UDIR_PATH(U.sounddir, ICON_FILE_SOUND)
   FS_UDIR_PATH(U.tempdir, ICON_TEMP)
 
-#  undef FS_UDIR_PATH
+#undef FS_UDIR_PATH
 }
 
 static void fsmenu_free_category(struct FSMenu *fsmenu, FSMenuCategory category)
