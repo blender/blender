@@ -921,6 +921,11 @@ static void bm_face_array_visit(BMFace **faces,
 /* signed user id */
 typedef intptr_t SUID_Int;
 
+BLI_INLINE intptr_t abs_intptr(intptr_t a)
+{
+  return (a < 0) ? -a : a;
+}
+
 static bool bm_edge_is_region_boundary(BMEdge *e)
 {
   if (e->l->radial_next != e->l) {
@@ -984,7 +989,7 @@ static SUID_Int bm_face_region_vert_boundary_id(BMVert *v)
 
   id ^= (tot * PRIME_VERT_MID_B);
 
-  return id ? ABS(id) : 1;
+  return id ? abs_intptr(id) : 1;
 
 #  undef PRIME_VERT_SMALL_A
 #  undef PRIME_VERT_SMALL_B
@@ -1039,7 +1044,7 @@ static SUID_Int bm_face_region_vert_pass_id(GHash *gh, BMVert *v)
   /* disallow 0 & min (since it can't be flipped) */
   id = (UNLIKELY(id == 0) ? 1 : UNLIKELY(id < id_min) ? id_min : id);
 
-  return ABS(id);
+  return abs_intptr(id);
 
 #  undef PRIME_VERT_MID_A
 #  undef PRIME_VERT_MID_B

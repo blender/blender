@@ -485,7 +485,8 @@ bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step)
   BLI_assert(BLI_findindex(listbase, link) != -1);
 
   /* find link to insert before/after */
-  for (int i = 0; i < ABS(step); i++) {
+  const int abs_step = abs(step);
+  for (int i = 0; i < abs_step; i++) {
     hook = is_up ? hook->prev : hook->next;
     if (!hook) {
       return false;

@@ -161,7 +161,7 @@ void *ED_image_paint_tile_find(ListBase *paint_tiles,
         if (r_mask) {
           /* allocate mask if requested. */
           if (!ptile->mask) {
-            ptile->mask = MEM_callocN(sizeof(ushort) * SQUARE(ED_IMAGE_UNDO_TILE_SIZE),
+            ptile->mask = MEM_callocN(sizeof(ushort) * square_i(ED_IMAGE_UNDO_TILE_SIZE),
                                       "UndoImageTile.mask");
           }
           *r_mask = ptile->mask;
@@ -216,12 +216,12 @@ void *ED_image_paint_tile_push(ListBase *paint_tiles,
 
   /* add mask explicitly here */
   if (r_mask) {
-    *r_mask = ptile->mask = MEM_callocN(sizeof(ushort) * SQUARE(ED_IMAGE_UNDO_TILE_SIZE),
+    *r_mask = ptile->mask = MEM_callocN(sizeof(ushort) * square_i(ED_IMAGE_UNDO_TILE_SIZE),
                                         "PaintTile.mask");
   }
 
   ptile->rect.pt = MEM_mapallocN((ibuf->rect_float ? sizeof(float[4]) : sizeof(char[4])) *
-                                     SQUARE(ED_IMAGE_UNDO_TILE_SIZE),
+                                     square_i(ED_IMAGE_UNDO_TILE_SIZE),
                                  "PaintTile.rect");
 
   ptile->use_float = has_float;
@@ -333,10 +333,10 @@ static UndoImageTile *utile_alloc(bool has_float)
 {
   UndoImageTile *utile = MEM_callocN(sizeof(*utile), "ImageUndoTile");
   if (has_float) {
-    utile->rect.fp = MEM_mallocN(sizeof(float[4]) * SQUARE(ED_IMAGE_UNDO_TILE_SIZE), __func__);
+    utile->rect.fp = MEM_mallocN(sizeof(float[4]) * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__);
   }
   else {
-    utile->rect.uint = MEM_mallocN(sizeof(uint) * SQUARE(ED_IMAGE_UNDO_TILE_SIZE), __func__);
+    utile->rect.uint = MEM_mallocN(sizeof(uint) * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__);
   }
   return utile;
 }

@@ -655,7 +655,7 @@ float dist_squared_ray_to_seg_v3(const float ray_origin[3],
     *r_depth = depth;
   }
 
-  return len_squared_v3(dvec) - SQUARE(depth);
+  return len_squared_v3(dvec) - square_f(depth);
 }
 
 /* Returns the coordinates of the nearest vertex and
@@ -1311,7 +1311,7 @@ int isect_seg_seg_v2_point_ex(const float v0[2],
       float u_a, u_b;
 
       if (equals_v2v2(v0, v1)) {
-        if (len_squared_v2v2(v2, v3) > SQUARE(eps)) {
+        if (len_squared_v2v2(v2, v3) > square_f(eps)) {
           /* use non-point segment as basis */
           SWAP(const float *, v0, v2);
           SWAP(const float *, v1, v3);

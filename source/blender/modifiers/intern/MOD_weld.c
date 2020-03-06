@@ -1663,7 +1663,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
 
   struct WeldOverlapData data;
   data.mvert = mvert;
-  data.merge_dist_sq = SQUARE(wmd->merge_dist);
+  data.merge_dist_sq = square_f(wmd->merge_dist);
 
   uint overlap_len;
   BVHTreeOverlap *overlap = BLI_bvhtree_overlap_ex(bvhtree,

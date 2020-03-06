@@ -615,7 +615,7 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 
   if (rv && rv->rectf) {
 
-    if (ABS(rres.rectx - newx) < 2 && ABS(rres.recty - newy) < 2) {
+    if (abs(rres.rectx - newx) < 2 && abs(rres.recty - newy) < 2) {
 
       newrect->xmax = max_ii(newrect->xmax, rect->xmin + rres.rectx + offx);
       newrect->ymax = max_ii(newrect->ymax, rect->ymin + rres.recty);
@@ -694,7 +694,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
      * or if the job is running and the size of preview changed */
     if ((sbuts != NULL && sbuts->preview) ||
         (!ok && !WM_jobs_test(wm, sa, WM_JOB_TYPE_RENDER_PREVIEW)) ||
-        (sp && (ABS(sp->sizex - newx) >= 2 || ABS(sp->sizey - newy) > 2))) {
+        (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2))) {
       if (sbuts != NULL) {
         sbuts->preview = 0;
       }

@@ -281,7 +281,7 @@ static void deformVerts_do(HookModifierData *hmd,
 
   hd.falloff_type = hmd->falloff_type;
   hd.falloff = (hmd->falloff_type == eHook_Falloff_None) ? 0.0f : hmd->falloff;
-  hd.falloff_sq = SQUARE(hd.falloff);
+  hd.falloff_sq = square_f(hd.falloff);
   hd.fac_orig = hmd->force;
 
   hd.use_falloff = (hd.falloff_sq != 0.0f);

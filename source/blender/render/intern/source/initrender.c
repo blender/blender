@@ -129,7 +129,7 @@ float RE_filter_value(int type, float x)
 {
   float gaussfac = 1.6f;
 
-  x = ABS(x);
+  x = fabsf(x);
 
   switch (type) {
     case R_FILTER_BOX:

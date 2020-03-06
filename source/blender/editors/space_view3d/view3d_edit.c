@@ -211,11 +211,11 @@ static void calctrackballvec(const rcti *rect, const int event_xy[2], float r_di
   const float d = len_v2(r_dir);
   if (d < t) {
     /* Inside sphere. */
-    r_dir[2] = sqrtf(SQUARE(radius) - SQUARE(d));
+    r_dir[2] = sqrtf(square_f(radius) - square_f(d));
   }
   else {
     /* On hyperbola. */
-    r_dir[2] = SQUARE(t) / d;
+    r_dir[2] = square_f(t) / d;
   }
 }
 

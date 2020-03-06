@@ -411,7 +411,7 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
   BMEdge *e, **etable;
   uint i;
   int *edge_symmetry_map;
-  const float limit_sq = SQUARE(limit);
+  const float limit_sq = square_f(limit);
   KDTree_3d *tree;
 
   tree = BLI_kdtree_3d_new(bm->totedge);

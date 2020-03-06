@@ -77,8 +77,9 @@ static void square_to_circle(float x, float y, float *r, float *T)
   }
 }
 
-#define KERNEL_RAD 3
-#define SAMP_LEN SQUARE(KERNEL_RAD * 2 + 1)
+#define SQUARE_UNSAFE(a) ((a) * (a))
+#define KERNEL_RAD (3)
+#define SAMP_LEN SQUARE_UNSAFE(KERNEL_RAD * 2 + 1)
 
 static void workbench_dof_setup_samples(struct GPUUniformBuffer **ubo,
                                         float **data,

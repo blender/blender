@@ -121,7 +121,7 @@ static BLI_bitmap *multires_mdisps_upsample_hidden(BLI_bitmap *lo_hidden,
     return MEM_dupallocN(lo_hidden);
   }
 
-  subd = BLI_BITMAP_NEW(SQUARE(hi_gridsize), "MDisps.hidden upsample");
+  subd = BLI_BITMAP_NEW(square_i(hi_gridsize), "MDisps.hidden upsample");
 
   factor = BKE_ccg_factor(lo_level, hi_level);
   offset = 1 << (hi_level - lo_level - 1);
@@ -179,7 +179,7 @@ static BLI_bitmap *multires_mdisps_downsample_hidden(BLI_bitmap *old_hidden,
 
   BLI_assert(new_level <= old_level);
   factor = BKE_ccg_factor(new_level, old_level);
-  new_hidden = BLI_BITMAP_NEW(SQUARE(new_gridsize), "downsample hidden");
+  new_hidden = BLI_BITMAP_NEW(square_i(new_gridsize), "downsample hidden");
 
   for (y = 0; y < new_gridsize; y++) {
     for (x = 0; x < new_gridsize; x++) {
@@ -238,7 +238,7 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 {
   MDisps *mdisps = CustomData_add_layer(&me->ldata, CD_MDISPS, CD_CALLOC, NULL, me->totloop);
   int gridsize = BKE_ccg_gridsize(level);
-  int gridarea = SQUARE(gridsize);
+  int gridarea = square_i(gridsize);
   int i, j;
 
   for (i = 0; i < me->totpoly; i++) {
@@ -622,7 +622,7 @@ static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, int level)
   if (level < gpm->level) {
     int gridsize = BKE_ccg_gridsize(level);
     float *data = MEM_calloc_arrayN(
-        SQUARE(gridsize), sizeof(float), "multires_grid_paint_mask_downsample");
+        square_i(gridsize), sizeof(float), "multires_grid_paint_mask_downsample");
     int x, y;
 
     for (y = 0; y < gridsize; y++) {

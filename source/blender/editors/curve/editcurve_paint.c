@@ -481,7 +481,7 @@ static void curve_draw_event_add(wmOperator *op, const wmEvent *event)
   if (cdd->sample.use_substeps && cdd->prev.selem) {
     const struct StrokeElem selem_target = *selem;
     struct StrokeElem *selem_new_last = selem;
-    if (len_sq >= SQUARE(STROKE_SAMPLE_DIST_MAX_PX)) {
+    if (len_sq >= square_f(STROKE_SAMPLE_DIST_MAX_PX)) {
       int n = (int)ceil(sqrt((double)len_sq)) / STROKE_SAMPLE_DIST_MAX_PX;
 
       for (int i = 1; i < n; i++) {
@@ -685,7 +685,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
       }
 
       if (len_squared_v2v2(selem_first->mval, selem_last->mval) <=
-          SQUARE(STROKE_CYCLIC_DIST_PX * U.pixelsize)) {
+          square_f(STROKE_CYCLIC_DIST_PX * U.pixelsize)) {
         use_cyclic = true;
       }
     }
@@ -1167,7 +1167,7 @@ static int curve_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     if (cdd->state == CURVE_DRAW_PAINTING) {
       const float mval_fl[2] = {UNPACK2(event->mval)};
-      if (len_squared_v2v2(mval_fl, cdd->prev.mouse) > SQUARE(STROKE_SAMPLE_DIST_MIN_PX)) {
+      if (len_squared_v2v2(mval_fl, cdd->prev.mouse) > square_f(STROKE_SAMPLE_DIST_MIN_PX)) {
         curve_draw_event_add(op, event);
       }
     }

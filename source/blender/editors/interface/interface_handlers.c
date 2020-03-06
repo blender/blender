@@ -479,7 +479,7 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
   else {
     lastdy += dy;
 
-    if (ABS(lastdy) > (int)UI_UNIT_Y) {
+    if (abs(lastdy) > (int)UI_UNIT_Y) {
       if (U.uiflag2 & USER_TRACKPAD_NATURAL) {
         dy = -dy;
       }
@@ -568,7 +568,7 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data, int mx)
   }
 
   if (data->draglock) {
-    if (ABS(mx - data->dragstartx) <= BUTTON_DRAGLOCK_THRESH) {
+    if (abs(mx - data->dragstartx) <= BUTTON_DRAGLOCK_THRESH) {
       return false;
     }
 #ifdef USE_DRAG_MULTINUM
@@ -1855,7 +1855,7 @@ static bool ui_but_drag_init(bContext *C,
       WM_event_drag_threshold(event),
       (int)((UI_UNIT_Y / 2) * ui_block_to_window_scale(data->region, but->block)));
 
-  if (ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > drag_threshold) {
+  if (abs(data->dragstartx - event->x) + abs(data->dragstarty - event->y) > drag_threshold) {
     button_activate_state(C, but, BUTTON_STATE_EXIT);
     data->cancel = true;
 #ifdef USE_DRAG_TOGGLE
@@ -6554,7 +6554,7 @@ static int ui_do_but_COLORBAND(
         /* activate new key when mouse is close */
         for (a = 0, cbd = coba->data; a < coba->tot; a++, cbd++) {
           xco = but->rect.xmin + (cbd->pos * BLI_rctf_size_x(&but->rect));
-          xco = ABS(xco - mx);
+          xco = abs(xco - mx);
           if (a == coba->cur) {
             /* Selected one disadvantage. */
             xco += 5;
@@ -6739,7 +6739,7 @@ static int ui_do_but_CURVE(
       CurveMap *cuma = cumap->cm + cumap->cur;
       CurveMapPoint *cmp;
       const float m_xy[2] = {mx, my};
-      float dist_min_sq = SQUARE(U.dpi_fac * 14.0f); /* 14 pixels radius */
+      float dist_min_sq = square_f(U.dpi_fac * 14.0f); /* 14 pixels radius */
       int sel = -1;
 
       if (event->ctrl) {
@@ -6774,7 +6774,7 @@ static int ui_do_but_CURVE(
         BLI_rctf_transform_pt_v(&but->rect, &cumap->curr, f_xy, &cmp[0].x);
 
         /* with 160px height 8px should translate to the old 0.05 coefficient at no zoom */
-        dist_min_sq = SQUARE(U.dpi_fac * 8.0f);
+        dist_min_sq = square_f(U.dpi_fac * 8.0f);
 
         /* loop through the curve segment table and find what's near the mouse. */
         for (i = 1; i <= CM_TABLE; i++) {
@@ -7046,7 +7046,7 @@ static int ui_do_but_CURVEPROFILE(
       }
 
       /* Check for selecting of a point by finding closest point in radius. */
-      dist_min_sq = SQUARE(U.dpi_fac * 14.0f); /* 14 pixels radius for selecting points. */
+      dist_min_sq = square_f(U.dpi_fac * 14.0f); /* 14 pixels radius for selecting points. */
       pts = profile->path;
       for (i = 0; i < profile->path_len; i++) {
         float f_xy[2];
@@ -7064,7 +7064,7 @@ static int ui_do_but_CURVEPROFILE(
         pts = profile->table;
         BLI_rctf_transform_pt_v(&but->rect, &profile->view_rect, f_xy, &pts[0].x);
 
-        dist_min_sq = SQUARE(U.dpi_fac * 8.0f); /* 8 pixel radius from each table point. */
+        dist_min_sq = square_f(U.dpi_fac * 8.0f); /* 8 pixel radius from each table point. */
 
         /* Loop through the path's high resolution table and find what's near the click. */
         for (i = 1; i <= PROF_N_TABLE(profile->path_len); i++) {

@@ -905,7 +905,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       }
 
       /* exponential value */
-      const float exfactor = SQUARE(brush->gpencil_settings->draw_jitter + 2.0f);
+      const float exfactor = square_f(brush->gpencil_settings->draw_jitter + 2.0f);
       const float fac = p2d->rnd[0] * exfactor * jitter;
 
       /* vector */

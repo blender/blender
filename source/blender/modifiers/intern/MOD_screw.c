@@ -112,7 +112,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
                                          const float axis_offset[3],
                                          const float merge_threshold)
 {
-  const float merge_threshold_sq = SQUARE(merge_threshold);
+  const float merge_threshold_sq = square_f(merge_threshold);
   const bool use_offset = axis_offset != NULL;
   uint tot_doubles = 0;
   for (uint i = 0; i < totvert; i += 1) {

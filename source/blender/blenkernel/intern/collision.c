@@ -625,7 +625,7 @@ static void collision_compute_barycentric(const float pv[3],
 
   d = (a * c - b * b);
 
-  if (ABS(d) < (double)ALMOST_ZERO) {
+  if (fabs(d) < (double)ALMOST_ZERO) {
     *w1 = *w2 = *w3 = 1.0 / 3.0;
     return;
   }
@@ -856,18 +856,18 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
 
       for (int j = 0; j < 3; j++) {
         if (cloth1->verts[collpair->ap1].impulse_count > 0 &&
-            ABS(cloth1->verts[collpair->ap1].impulse[j]) < ABS(i1[j])) {
+            fabsf(cloth1->verts[collpair->ap1].impulse[j]) < fabsf(i1[j])) {
           cloth1->verts[collpair->ap1].impulse[j] = i1[j];
         }
 
         if (cloth1->verts[collpair->ap2].impulse_count > 0 &&
-            ABS(cloth1->verts[collpair->ap2].impulse[j]) < ABS(i2[j])) {
+            fabsf(cloth1->verts[collpair->ap2].impulse[j]) < fabsf(i2[j])) {
           cloth1->verts[collpair->ap2].impulse[j] = i2[j];
         }
 
         if (!is_hair) {
           if (cloth1->verts[collpair->ap3].impulse_count > 0 &&
-              ABS(cloth1->verts[collpair->ap3].impulse[j]) < ABS(i3[j])) {
+              fabsf(cloth1->verts[collpair->ap3].impulse[j]) < fabsf(i3[j])) {
             cloth1->verts[collpair->ap3].impulse[j] = i3[j];
           }
         }
@@ -888,15 +888,15 @@ static void cloth_selfcollision_impulse_vert(const float clamp_sq,
     return;
   }
 
-  if (ABS(vert->impulse[0]) < ABS(impulse[0])) {
+  if (fabsf(vert->impulse[0]) < fabsf(impulse[0])) {
     vert->impulse[0] = impulse[0];
   }
 
-  if (ABS(vert->impulse[1]) < ABS(impulse[1])) {
+  if (fabsf(vert->impulse[1]) < fabsf(impulse[1])) {
     vert->impulse[1] = impulse[1];
   }
 
-  if (ABS(vert->impulse[2]) < ABS(impulse[2])) {
+  if (fabsf(vert->impulse[2]) < fabsf(impulse[2])) {
     vert->impulse[2] = impulse[2];
   }
 

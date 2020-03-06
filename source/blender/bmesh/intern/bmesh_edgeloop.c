@@ -82,7 +82,7 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, 
   BMVert *v_next;
   BMVert *v_first = v;
 
-  BLI_assert(ABS(dir) == 1);
+  BLI_assert(abs(dir) == 1);
 
   if (!BM_elem_flag_test(v, BM_ELEM_INTERNAL_TAG)) {
     return true;
@@ -224,7 +224,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool,
 {
   ListBase lb_tmp = {NULL, NULL};
   struct VertStep *vs, *vs_next;
-  BLI_assert(ABS(dir) == 1);
+  BLI_assert(abs(dir) == 1);
 
   for (vs = lb->first; vs; vs = vs_next) {
     BMIter iter;

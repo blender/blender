@@ -704,7 +704,8 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   for (eBone = arm->edbo->first; eBone; eBone = neBone) {
     float len_sq = len_squared_v3v3(eBone->head, eBone->tail);
     neBone = eBone->next;
-    if (len_sq <= SQUARE(0.000001f)) { /* FLT_EPSILON is too large? */
+    /* TODO(sergey): How to ensure this is a constexpr? */
+    if (len_sq <= square_f(0.000001f)) { /* FLT_EPSILON is too large? */
       EditBone *fBone;
 
       /* Find any bones that refer to this bone */

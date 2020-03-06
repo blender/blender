@@ -272,7 +272,7 @@ static bool bm_edgexvert_isect_impl(BMVert *v,
   }
 
   if (v != e_v) {
-    float dist_sq_vert = SQUARE(dist_sq_vert_factor) * len_squared_v3(dir);
+    float dist_sq_vert = square_f(dist_sq_vert_factor) * len_squared_v3(dir);
     if (dist_sq_vert < data_dist_sq) {
       /* Vert x Vert is already handled elsewhere. */
       return false;
@@ -380,8 +380,8 @@ static bool bm_edgexedge_isect_impl(struct EDBMSplitData *data,
       return false;
     }
 
-    float dist_sq_va = SQUARE(dist_sq_va_factor) * len_squared_v3(dir_a);
-    float dist_sq_vb = SQUARE(dist_sq_vb_factor) * len_squared_v3(dir_b);
+    float dist_sq_va = square_f(dist_sq_va_factor) * len_squared_v3(dir_a);
+    float dist_sq_vb = square_f(dist_sq_vb_factor) * len_squared_v3(dir_b);
 
     if (dist_sq_va < data->dist_sq || dist_sq_vb < data->dist_sq) {
       /* Vert x Edge is already handled elsewhere. */
@@ -503,7 +503,7 @@ bool BM_mesh_intersect_edges(
   BLI_Stack **pair_stack_vertxvert = pair_stack;
   BLI_Stack **pair_stack_edgexelem = &pair_stack[KDOP_TREE_TYPE];
 
-  const float dist_sq = SQUARE(dist);
+  const float dist_sq = square_f(dist);
   const float dist_half = dist / 2;
 
   struct EDBMSplitData data = {
@@ -511,7 +511,7 @@ bool BM_mesh_intersect_edges(
       .pair_stack = pair_stack,
       .cut_edges_len = 0,
       .dist_sq = dist_sq,
-      .dist_sq_sq = SQUARE(dist_sq),
+      .dist_sq_sq = square_f(dist_sq),
   };
 
   BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE);

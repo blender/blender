@@ -341,8 +341,8 @@ static int customdata_compare(
       int ltot = m1->totloop;
 
       for (j = 0; j < ltot; j++, lp1++, lp2++) {
-        if (ABS(lp1->r - lp2->r) > thresh || ABS(lp1->g - lp2->g) > thresh ||
-            ABS(lp1->b - lp2->b) > thresh || ABS(lp1->a - lp2->a) > thresh) {
+        if (abs(lp1->r - lp2->r) > thresh || abs(lp1->g - lp2->g) > thresh ||
+            abs(lp1->b - lp2->b) > thresh || abs(lp1->a - lp2->a) > thresh) {
           return MESHCMP_LOOPCOLMISMATCH;
         }
       }

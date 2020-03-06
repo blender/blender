@@ -2533,7 +2533,7 @@ void ED_region_panels_layout_ex(const bContext *C,
         region->sizey = size_dyn[1];
         sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
       }
-      y = ABS(region->sizey * UI_DPI_FAC - 1);
+      y = fabsf(region->sizey * UI_DPI_FAC - 1);
     }
   }
   else if (vertical) {
@@ -3390,21 +3390,21 @@ static void region_visible_rect_calc(ARegion *region, rcti *rect)
 
         if (ELEM(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
           /* Overlap left, also check 1 pixel offset (2 regions on one side). */
-          if (ABS(rect->xmin - arn->winrct.xmin) < 2) {
+          if (abs(rect->xmin - arn->winrct.xmin) < 2) {
             rect->xmin = arn->winrct.xmax;
           }
 
           /* Overlap right. */
-          if (ABS(rect->xmax - arn->winrct.xmax) < 2) {
+          if (abs(rect->xmax - arn->winrct.xmax) < 2) {
             rect->xmax = arn->winrct.xmin;
           }
         }
         else if (ELEM(alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
           /* Same logic as above for vertical regions. */
-          if (ABS(rect->ymin - arn->winrct.ymin) < 2) {
+          if (abs(rect->ymin - arn->winrct.ymin) < 2) {
             rect->ymin = arn->winrct.ymax;
           }
-          if (ABS(rect->ymax - arn->winrct.ymax) < 2) {
+          if (abs(rect->ymax - arn->winrct.ymax) < 2) {
             rect->ymax = arn->winrct.ymin;
           }
         }

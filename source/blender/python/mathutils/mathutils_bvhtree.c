@@ -493,7 +493,7 @@ static PyObject *py_bvhtree_find_nearest_range(PyBVHTree *self, PyObject *args)
     struct PyBVH_RangeData data = {
         .self = self,
         .result = ret,
-        .dist_sq = SQUARE(max_dist),
+        .dist_sq = square_f(max_dist),
     };
 
     BLI_bvhtree_range_query(self->tree, co, max_dist, py_bvhtree_nearest_point_range_cb, &data);

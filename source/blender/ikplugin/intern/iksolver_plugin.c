@@ -394,7 +394,7 @@ static void execute_posetree(struct Depsgraph *depsgraph,
     IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
 
     if (tree->stretch && (pchan->ikstretch > 0.0f)) {
-      const float ikstretch_sq = SQUARE(pchan->ikstretch);
+      const float ikstretch_sq = square_f(pchan->ikstretch);
       /* this function does its own clamping */
       IK_SetStiffness(seg, IK_TRANS_Y, 1.0f - ikstretch_sq);
       IK_SetLimit(seg, IK_TRANS_Y, IK_STRETCH_STIFF_MIN, IK_STRETCH_STIFF_MAX);

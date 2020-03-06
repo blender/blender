@@ -1118,7 +1118,7 @@ static int sb_detect_face_pointCached(float face_v1[3],
             /* origin to face_v2*/
             sub_v3_v3(nv1, face_v2);
             facedist = dot_v3v3(nv1, d_nvect);
-            if (ABS(facedist) < outerfacethickness) {
+            if (fabsf(facedist) < outerfacethickness) {
               if (isect_point_tri_prism_v3(nv1, face_v1, face_v2, face_v3)) {
                 float df;
                 if (facedist > 0) {
@@ -2020,7 +2020,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
         sub_v3_v3v3(def, bp->pos, obp->pos);
         /* rather check the AABBoxes before ever calculating the real distance */
         /* mathematically it is completely nuts, but performance is pretty much (3) times faster */
-        if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) {
+        if ((fabsf(def[0]) > compare) || (fabsf(def[1]) > compare) || (fabsf(def[2]) > compare)) {
           continue;
         }
         distance = normalize_v3(def);
@@ -3414,7 +3414,7 @@ static void softbody_step(
     }
 
     forcetime = forcetimemax; /* hope for integrating in one step */
-    while ((ABS(timedone) < ABS(dtime)) && (loops < 2000)) {
+    while ((fabsf(timedone) < fabsf(dtime)) && (loops < 2000)) {
       /* set goals in time */
       interpolate_exciter(ob, 200, (int)(200.0f * (timedone / dtime)));
 

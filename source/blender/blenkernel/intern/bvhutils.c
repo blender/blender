@@ -375,7 +375,7 @@ static void mesh_edges_spherecast(void *userdata,
   const MVert *vert = data->vert;
   const MEdge *edge = &data->edge[index];
 
-  const float radius_sq = SQUARE(ray->radius);
+  const float radius_sq = square_f(ray->radius);
   float dist;
   const float *v1, *v2, *r1;
   float r2[3], i1[3], i2[3];

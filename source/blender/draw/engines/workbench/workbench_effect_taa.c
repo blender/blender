@@ -43,7 +43,7 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
   float closest_squared_distance = 1.0f;
 
   for (int index = 0; index < num; index++) {
-    const float squared_dist = SQUARE(table[index][0]) + SQUARE(table[index][1]);
+    const float squared_dist = square_f(table[index][0]) + square_f(table[index][1]);
     if (squared_dist < closest_squared_distance) {
       closest_squared_distance = squared_dist;
       closest_index = index;
@@ -66,8 +66,8 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
     float f_squared_dist = 0.0;
     int f_index = i;
     for (int j = i + 1; j < num; j++) {
-      const float squared_dist = SQUARE(table[i][0] - table[j][0]) +
-                                 SQUARE(table[i][1] - table[j][1]);
+      const float squared_dist = square_f(table[i][0] - table[j][0]) +
+                                 square_f(table[i][1] - table[j][1]);
       if (squared_dist > f_squared_dist) {
         f_squared_dist = squared_dist;
         f_index = j;

@@ -140,7 +140,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
 
 BLI_INLINE int octahedral_size_from_cubesize(int cube_size)
 {
-  int cube_pixel_count = SQUARE(cube_size) * 6.0f;
+  int cube_pixel_count = square_i(cube_size) * 6;
   int octa_size = (int)ceilf(sqrtf(cube_pixel_count));
   int lod_count = log2_floor_u(octa_size) - MIN_CUBE_LOD_LEVEL;
   /* Find lowest lod size and grow back to avoid having non matching mipsizes that would

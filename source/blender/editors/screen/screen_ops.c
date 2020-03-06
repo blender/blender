@@ -774,10 +774,10 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
             az->alpha = 1.0f;
           }
           else {
-            const int mouse_sq = SQUARE(xy[0] - az->x2) + SQUARE(xy[1] - az->y2);
-            const int spot_sq = SQUARE(AZONESPOTW);
-            const int fadein_sq = SQUARE(AZONEFADEIN);
-            const int fadeout_sq = SQUARE(AZONEFADEOUT);
+            const int mouse_sq = square_i(xy[0] - az->x2) + square_i(xy[1] - az->y2);
+            const int spot_sq = square_i(AZONESPOTW);
+            const int fadein_sq = square_i(AZONEFADEIN);
+            const int fadeout_sq = square_i(AZONEFADEOUT);
 
             if (mouse_sq < spot_sq) {
               az->alpha = 1.0f;
@@ -1014,7 +1014,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
       const int delta_y = (event->y - sad->y);
 
       /* Movement in dominant direction. */
-      const int delta_max = max_ii(ABS(delta_x), ABS(delta_y));
+      const int delta_max = max_ii(abs(delta_x), abs(delta_y));
 
       /* Movement in dominant direction before action taken. */
       const int join_threshold = (0.6 * U.widget_unit);
@@ -1022,13 +1022,13 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
       const int area_threshold = (0.1 * U.widget_unit);
 
       /* Calculate gesture cardinal direction. */
-      if (delta_y > ABS(delta_x)) {
+      if (delta_y > abs(delta_x)) {
         sad->gesture_dir = 'n';
       }
-      else if (delta_x >= ABS(delta_y)) {
+      else if (delta_x >= abs(delta_y)) {
         sad->gesture_dir = 'e';
       }
-      else if (delta_y < -ABS(delta_x)) {
+      else if (delta_y < -abs(delta_x)) {
         sad->gesture_dir = 's';
       }
       else {
@@ -2677,7 +2677,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         if (rmd->region->type->snap_size) {
           short sizex_test = rmd->region->type->snap_size(rmd->region, rmd->region->sizex, 0);
-          if (ABS(rmd->region->sizex - sizex_test) < snap_size_threshold) {
+          if (abs(rmd->region->sizex - sizex_test) < snap_size_threshold) {
             rmd->region->sizex = sizex_test;
           }
         }
@@ -2710,7 +2710,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         if (rmd->region->type->snap_size) {
           short sizey_test = rmd->region->type->snap_size(rmd->region, rmd->region->sizey, 1);
-          if (ABS(rmd->region->sizey - sizey_test) < snap_size_threshold) {
+          if (abs(rmd->region->sizey - sizey_test) < snap_size_threshold) {
             rmd->region->sizey = sizey_test;
           }
         }

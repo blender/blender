@@ -1350,7 +1350,7 @@ static void uv_image_outset(const ProjPaintState *ps,
 
       if (tri_ang > 0.0f) {
         const float dist = ps->seam_bleed_px * tanf(tri_ang);
-        seam_data->corner_dist_sq[i] = SQUARE(dist);
+        seam_data->corner_dist_sq[i] = square_f(dist);
       }
       else {
         seam_data->corner_dist_sq[i] = 0.0f;
@@ -5886,7 +5886,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
   /* pixel num to bleed */
   ps->seam_bleed_px = settings->imapaint.seam_bleed;
-  ps->seam_bleed_px_sq = SQUARE(settings->imapaint.seam_bleed);
+  ps->seam_bleed_px_sq = square_s(settings->imapaint.seam_bleed);
 #endif
 
   if (ps->do_mask_normal) {

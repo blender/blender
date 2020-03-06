@@ -765,7 +765,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
   sldata->common_data.prb_lod_cube_max = (float)light_cache->mips_len - 1.0f;
   sldata->common_data.prb_lod_planar_max = (float)MAX_PLANAR_LOD_LEVEL;
   sldata->common_data.prb_irradiance_vis_size = light_cache->vis_res;
-  sldata->common_data.prb_irradiance_smooth = SQUARE(scene_eval->eevee.gi_irradiance_smoothing);
+  sldata->common_data.prb_irradiance_smooth = square_f(scene_eval->eevee.gi_irradiance_smoothing);
   sldata->common_data.prb_num_render_cube = max_ii(1, light_cache->cube_len);
   sldata->common_data.prb_num_render_grid = max_ii(1, light_cache->grid_len);
   sldata->common_data.prb_num_planar = pinfo->num_planar;

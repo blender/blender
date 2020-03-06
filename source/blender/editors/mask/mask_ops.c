@@ -614,7 +614,7 @@ static bool spline_under_mouse_get(const bContext *C,
       }
     }
   }
-  if (closest_dist_squared < SQUARE(threshold) && closest_spline != NULL) {
+  if (closest_dist_squared < square_f(threshold) && closest_spline != NULL) {
     float diff_score;
     if (ED_mask_find_nearest_diff_point(C,
                                         mask,
@@ -629,7 +629,7 @@ static bool spline_under_mouse_get(const bContext *C,
                                         NULL,
                                         NULL,
                                         &diff_score)) {
-      if (SQUARE(diff_score) < closest_dist_squared) {
+      if (square_f(diff_score) < closest_dist_squared) {
         return false;
       }
     }

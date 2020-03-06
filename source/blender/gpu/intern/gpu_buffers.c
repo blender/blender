@@ -569,7 +569,7 @@ static void gpu_pbvh_grid_fill_index_buffers(
   }
   else {
     uint offset = 0;
-    const uint grid_vert_len = SQUARE(gridsize - 1) * 4;
+    const uint grid_vert_len = square_uint(gridsize - 1) * 4;
     for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
       bool grid_visible = false;
 
@@ -668,7 +668,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
 
   buffers->smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 
-  uint vert_per_grid = (buffers->smooth) ? key->grid_area : (SQUARE(key->grid_size - 1) * 4);
+  uint vert_per_grid = (buffers->smooth) ? key->grid_area : (square_i(key->grid_size - 1) * 4);
   uint vert_count = totgrid * vert_per_grid;
 
   if (buffers->index_buf == NULL) {
@@ -784,7 +784,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
             vbo_index += 4;
           }
         }
-        vbo_index_offset += SQUARE(key->grid_size - 1) * 4;
+        vbo_index_offset += square_i(key->grid_size - 1) * 4;
       }
     }
 

@@ -304,11 +304,11 @@ MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
                               const int limit)
 {
   const int r = (int)col_a[0] - (int)col_b[0];
-  if (ABS(r) < limit) {
+  if (abs(r) < limit) {
     const int g = (int)col_a[1] - (int)col_b[1];
-    if (ABS(g) < limit) {
+    if (abs(g) < limit) {
       const int b = (int)col_a[2] - (int)col_b[2];
-      if (ABS(b) < limit) {
+      if (abs(b) < limit) {
         return 1;
       }
     }

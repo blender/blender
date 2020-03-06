@@ -651,7 +651,7 @@ static void node_draw_reroute(const bContext *C,
 static int node_tweak_area_reroute(bNode *node, int x, int y)
 {
   /* square of tweak radius */
-  const float tweak_radius_sq = SQUARE(24);
+  const float tweak_radius_sq = square_f(24.0f);
 
   bNodeSocket *sock = node->inputs.first;
   float dx = sock->locx - x;
@@ -3656,7 +3656,7 @@ static bool node_link_bezier_handles(View2D *v2d,
   deltay = vec[3][1] - vec[0][1];
   /* check direction later, for top sockets */
   if (fromreroute) {
-    if (ABS(deltax) > ABS(deltay)) {
+    if (fabsf(deltax) > fabsf(deltay)) {
       vec[1][1] = vec[0][1];
       vec[1][0] = vec[0][0] + (deltax > 0 ? dist : -dist);
     }
@@ -3670,7 +3670,7 @@ static bool node_link_bezier_handles(View2D *v2d,
     vec[1][1] = vec[0][1];
   }
   if (toreroute) {
-    if (ABS(deltax) > ABS(deltay)) {
+    if (fabsf(deltax) > fabsf(deltay)) {
       vec[2][1] = vec[3][1];
       vec[2][0] = vec[3][0] + (deltax > 0 ? -dist : dist);
     }

@@ -375,6 +375,72 @@ MINLINE float wrapf(float value, float max, float min)
   return (range != 0.0f) ? value - (range * floorf((value - min) / range)) : min;
 }
 
+// Square.
+
+MINLINE int square_s(short a)
+{
+  return a * a;
+}
+
+MINLINE int square_i(int a)
+{
+  return a * a;
+}
+
+MINLINE unsigned int square_uint(unsigned int a)
+{
+  return a * a;
+}
+
+MINLINE int square_uchar(unsigned char a)
+{
+  return a * a;
+}
+
+MINLINE float square_f(float a)
+{
+  return a * a;
+}
+
+MINLINE double square_d(double a)
+{
+  return a * a;
+}
+
+// Cube.
+
+MINLINE int cube_s(short a)
+{
+  return a * a * a;
+}
+
+MINLINE int cube_i(int a)
+{
+  return a * a * a;
+}
+
+MINLINE unsigned int cube_uint(unsigned int a)
+{
+  return a * a * a;
+}
+
+MINLINE int cube_uchar(unsigned char a)
+{
+  return a * a * a;
+}
+
+MINLINE float cube_f(float a)
+{
+  return a * a * a;
+}
+
+MINLINE double cube_d(double a)
+{
+  return a * a * a;
+}
+
+// Min/max
+
 MINLINE float min_ff(float a, float b)
 {
   return (a < b) ? a : b;

@@ -44,7 +44,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
   const int faces_num = BMO_slot_buffer_count(op->slots_in, "faces");
 
   const float eps = 0.00001f;
-  const float eps_sq = SQUARE(eps);
+  const float eps_sq = square_f(eps);
 
   BMOIter oiter;
   BMFace *f;

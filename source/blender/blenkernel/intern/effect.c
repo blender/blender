@@ -570,7 +570,7 @@ float effector_falloff(EffectorCache *eff,
         break;
 
       case PFIELD_FALL_TUBE:
-        falloff *= falloff_func_dist(eff->pd, ABS(fac));
+        falloff *= falloff_func_dist(eff->pd, fabsf(fac));
         if (falloff == 0.0f) {
           break;
         }
@@ -580,7 +580,7 @@ float effector_falloff(EffectorCache *eff,
         falloff *= falloff_func_rad(eff->pd, r_fac);
         break;
       case PFIELD_FALL_CONE:
-        falloff *= falloff_func_dist(eff->pd, ABS(fac));
+        falloff *= falloff_func_dist(eff->pd, fabsf(fac));
         if (falloff == 0.0f) {
           break;
         }

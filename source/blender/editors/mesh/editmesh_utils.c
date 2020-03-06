@@ -1079,7 +1079,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
   BMVert *v;
   int cd_vmirr_offset = 0;
   int i;
-  const float maxdist_sq = SQUARE(maxdist);
+  const float maxdist_sq = square_f(maxdist);
 
   /* one or the other is used depending if topo is enabled */
   KDTree_3d *tree = NULL;

@@ -2364,7 +2364,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
     SculptSearchSphereData data = {
         .ss = ss,
         .sd = sd,
-        .radius_squared = SQUARE(ss->cache->radius * radius_scale),
+        .radius_squared = square_f(ss->cache->radius * radius_scale),
         .original = use_original,
         .ignore_fully_masked = brush->sculpt_tool != SCULPT_TOOL_MASK,
         .center = NULL,
@@ -2378,7 +2378,8 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
     SculptSearchCircleData data = {
         .ss = ss,
         .sd = sd,
-        .radius_squared = ss->cache ? SQUARE(ss->cache->radius * radius_scale) : ss->cursor_radius,
+        .radius_squared = ss->cache ? square_f(ss->cache->radius * radius_scale) :
+                                      ss->cursor_radius,
         .original = use_original,
         .dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc,
         .ignore_fully_masked = brush->sculpt_tool != SCULPT_TOOL_MASK,
@@ -5710,7 +5711,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     SculptSearchSphereData data = {
         .ss = ss,
         .sd = sd,
-        .radius_squared = SQUARE(ss->cache->radius * (1.0 + brush->cloth_sim_limit)),
+        .radius_squared = square_f(ss->cache->radius * (1.0 + brush->cloth_sim_limit)),
         .original = false,
         .ignore_fully_masked = false,
         .center = ss->cache->initial_location,
@@ -6795,7 +6796,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
         if ((normalize_v3(v2) > eps) && (normalize_v3(v1) > eps) &&
             (len_squared_v3v3(v1, v2) > eps)) {
           const float rake_dist_sq = len_squared_v3v3(cache->rake_data.follow_co, grab_location);
-          const float rake_fade = (rake_dist_sq > SQUARE(cache->rake_data.follow_dist)) ?
+          const float rake_fade = (rake_dist_sq > square_f(cache->rake_data.follow_dist)) ?
                                       1.0f :
                                       sqrtf(rake_dist_sq) / cache->rake_data.follow_dist;
 
@@ -9780,7 +9781,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
   copy_v2_v2(prevclick_f, op->customdata);
   int prevclick[2] = {(int)prevclick_f[0], (int)prevclick_f[1]};
   int len = (int)len_v2v2_int(prevclick, event->mval);
-  len = ABS(len);
+  len = abs(len);
   int mask_speed = RNA_int_get(op->ptr, "mask_speed");
   int mask_expand_update_it = len / mask_speed;
   mask_expand_update_it = mask_expand_update_it + 1;

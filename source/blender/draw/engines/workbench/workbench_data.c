@@ -177,8 +177,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   copy_v3_v3(wd->object_outline_color, wpd->shading.object_outline_color);
   wd->object_outline_color[3] = 1.0f;
 
-  wd->curvature_ridge = 0.5f / max_ff(SQUARE(wpd->shading.curvature_ridge_factor), 1e-4f);
-  wd->curvature_valley = 0.7f / max_ff(SQUARE(wpd->shading.curvature_valley_factor), 1e-4f);
+  wd->curvature_ridge = 0.5f / max_ff(square_f(wpd->shading.curvature_ridge_factor), 1e-4f);
+  wd->curvature_valley = 0.7f / max_ff(square_f(wpd->shading.curvature_valley_factor), 1e-4f);
 
   /* Will be NULL when rendering. */
   if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {

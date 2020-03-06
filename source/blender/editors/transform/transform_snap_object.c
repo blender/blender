@@ -1509,7 +1509,7 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
 
   BVHTreeNearest nearest = {
       .index = -1,
-      .dist_sq = SQUARE(*dist_px),
+      .dist_sq = square_f(*dist_px),
   };
 
   SnapObjectData *sod = snap_object_data_lookup(sctx, ob);
@@ -1674,7 +1674,7 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
 
   BVHTreeNearest nearest = {
       .index = -1,
-      .dist_sq = SQUARE(original_dist_px),
+      .dist_sq = square_f(original_dist_px),
   };
 
   float lambda;
@@ -1807,7 +1807,7 @@ static short snapArmature(SnapData *snapdata,
     return retval;
   }
 
-  float lpmat[4][4], dist_px_sq = SQUARE(*dist_px);
+  float lpmat[4][4], dist_px_sq = square_f(*dist_px);
   mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
 
   struct DistProjectedAABBPrecalc neasrest_precalc;
@@ -1954,7 +1954,7 @@ static short snapCurve(SnapData *snapdata,
   }
 
   Curve *cu = ob->data;
-  float dist_px_sq = SQUARE(*dist_px);
+  float dist_px_sq = square_f(*dist_px);
 
   float lpmat[4][4];
   mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
@@ -2115,7 +2115,7 @@ static short snapEmpty(SnapData *snapdata,
     }
 
     bool is_persp = snapdata->view_proj == VIEW_PROJ_PERSP;
-    float dist_px_sq = SQUARE(*dist_px);
+    float dist_px_sq = square_f(*dist_px);
     float co[3];
     copy_v3_v3(co, obmat[3]);
     if (test_projected_vert_dist(&neasrest_precalc,
@@ -2157,7 +2157,7 @@ static short snapCamera(const SnapObjectContext *sctx,
   Scene *scene = sctx->scene;
 
   bool is_persp = snapdata->view_proj == VIEW_PROJ_PERSP;
-  float dist_px_sq = SQUARE(*dist_px);
+  float dist_px_sq = square_f(*dist_px);
 
   float orig_camera_mat[4][4], orig_camera_imat[4][4], imat[4][4];
   MovieClip *clip = BKE_object_movieclip_get(scene, object, false);
@@ -2268,7 +2268,7 @@ static short snapMesh(SnapObjectContext *sctx,
   float lpmat[4][4];
   mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
 
-  float dist_px_sq = SQUARE(*dist_px);
+  float dist_px_sq = square_f(*dist_px);
 
   /* Test BoundBox */
   BoundBox *bb = BKE_mesh_boundbox_get(ob);
@@ -2506,7 +2506,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
   float lpmat[4][4];
   mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
 
-  float dist_px_sq = SQUARE(*dist_px);
+  float dist_px_sq = square_f(*dist_px);
 
   SnapObjectData *sod = snap_object_data_editmesh_get(sctx, ob, em);
 

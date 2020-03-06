@@ -169,7 +169,7 @@ static void warpModifier_do(WarpModifierData *wmd,
 
   float tmat[4][4];
 
-  const float falloff_radius_sq = SQUARE(wmd->falloff_radius);
+  const float falloff_radius_sq = square_f(wmd->falloff_radius);
   float strength = wmd->strength;
   float fac = 1.0f, weight;
   int i;

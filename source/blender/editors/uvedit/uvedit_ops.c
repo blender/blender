@@ -971,7 +971,7 @@ bool uv_find_nearest_vert(Scene *scene,
         MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
         if (penalty_dist != 0.0f && uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
           dist_test_sq = len_v2v2(co, luv->uv) + penalty_dist;
-          dist_test_sq = SQUARE(dist_test_sq);
+          dist_test_sq = square_f(dist_test_sq);
         }
         else {
           dist_test_sq = len_squared_v2v2(co, luv->uv);

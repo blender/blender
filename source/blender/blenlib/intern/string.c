@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <math.h>
 #include <inttypes.h>
 
 #include "MEM_guardedalloc.h"
@@ -1119,7 +1120,7 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
 
   BLI_STATIC_ASSERT(ARRAY_SIZE(units_base_2) == ARRAY_SIZE(units_base_10), "array size mismatch");
 
-  while ((ABS(bytes_converted) >= base) && ((order + 1) < tot_units)) {
+  while ((fabs(bytes_converted) >= base) && ((order + 1) < tot_units)) {
     bytes_converted /= base;
     order++;
   }

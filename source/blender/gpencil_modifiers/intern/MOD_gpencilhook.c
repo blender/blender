@@ -224,7 +224,7 @@ static void deformStroke(GpencilModifierData *md,
   tData.curfalloff = mmd->curfalloff;
   tData.falloff_type = mmd->falloff_type;
   tData.falloff = (mmd->falloff_type == eHook_Falloff_None) ? 0.0f : mmd->falloff;
-  tData.falloff_sq = SQUARE(tData.falloff);
+  tData.falloff_sq = square_f(tData.falloff);
   tData.fac_orig = mmd->force;
   tData.use_falloff = (tData.falloff_sq != 0.0f);
   tData.use_uniform = (mmd->flag & GP_HOOK_UNIFORM_SPACE) != 0;

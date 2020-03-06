@@ -293,33 +293,6 @@ extern "C" {
 /** \name Simple Math Macros
  * \{ */
 
-/* avoid multiple access for supported compilers */
-#if defined(__GNUC__) || defined(__clang__)
-
-#  define ABS(a) \
-    ({ \
-      typeof(a) a_ = (a); \
-      ((a_) < 0 ? (-(a_)) : (a_)); \
-    })
-#  define SQUARE(a) \
-    ({ \
-      typeof(a) a_ = (a); \
-      ((a_) * (a_)); \
-    })
-#  define CUBE(a) \
-    ({ \
-      typeof(a) a_ = (a); \
-      ((a_) * (a_) * (a_)); \
-    })
-
-#else
-
-#  define ABS(a) ((a) < 0 ? (-(a)) : (a))
-#  define SQUARE(a) ((a) * (a))
-#  define CUBE(a) ((a) * (a) * (a))
-
-#endif
-
 /* Float equality checks. */
 
 #define IS_EQ(a, b) \
