@@ -35,6 +35,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_ID.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -46,6 +47,7 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
+#include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
@@ -55,6 +57,58 @@
 #include "BKE_scene.h"
 
 #include "RNA_access.h"
+
+static void shapekey_copy_data(Main *UNUSED(bmain),
+                               ID *id_dst,
+                               const ID *id_src,
+                               const int UNUSED(flag))
+{
+  Key *key_dst = (Key *)id_dst;
+  const Key *key_src = (const Key *)id_src;
+  BLI_duplicatelist(&key_dst->block, &key_src->block);
+
+  KeyBlock *kb_dst, *kb_src;
+  for (kb_src = key_src->block.first, kb_dst = key_dst->block.first; kb_dst;
+       kb_src = kb_src->next, kb_dst = kb_dst->next) {
+    if (kb_dst->data) {
+      kb_dst->data = MEM_dupallocN(kb_dst->data);
+    }
+    if (kb_src == key_src->refkey) {
+      key_dst->refkey = kb_dst;
+    }
+  }
+}
+
+static void shapekey_free_data(ID *id)
+{
+  Key *key = (Key *)id;
+  KeyBlock *kb;
+
+  BKE_animdata_free((ID *)key, false);
+
+  while ((kb = BLI_pophead(&key->block))) {
+    if (kb->data) {
+      MEM_freeN(kb->data);
+    }
+    MEM_freeN(kb);
+  }
+}
+
+IDTypeInfo IDType_ID_KE = {
+    .id_code = ID_KE,
+    .id_filter = 0,
+    .main_listbase_index = INDEX_ID_KE,
+    .struct_size = sizeof(Key),
+    .name = "Key",
+    .name_plural = "shape_keys",
+    .translation_context = BLT_I18NCONTEXT_ID_SHAPEKEY,
+    .flags = IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_MAKELOCAL,
+
+    .init_data = NULL,
+    .copy_data = shapekey_copy_data,
+    .free_data = shapekey_free_data,
+    .make_local = NULL,
+};
 
 #define KEY_MODE_DUMMY 0 /* use where mode isn't checked for */
 #define KEY_MODE_BPOINT 1
@@ -74,16 +128,7 @@ typedef struct WeightsArrayCache {
 /** Free (or release) any data used by this shapekey (does not free the key itself). */
 void BKE_key_free(Key *key)
 {
-  KeyBlock *kb;
-
-  BKE_animdata_free((ID *)key, false);
-
-  while ((kb = BLI_pophead(&key->block))) {
-    if (kb->data) {
-      MEM_freeN(kb->data);
-    }
-    MEM_freeN(kb);
-  }
+  shapekey_free_data(&key->id);
 }
 
 void BKE_key_free_nolib(Key *key)
@@ -148,35 +193,6 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
   }
 
   return key;
-}
-
-/**
- * Only copy internal data of ShapeKey ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_key_copy_data(Main *UNUSED(bmain),
-                       Key *key_dst,
-                       const Key *key_src,
-                       const int UNUSED(flag))
-{
-  BLI_duplicatelist(&key_dst->block, &key_src->block);
-
-  KeyBlock *kb_dst, *kb_src;
-  for (kb_src = key_src->block.first, kb_dst = key_dst->block.first; kb_dst;
-       kb_src = kb_src->next, kb_dst = kb_dst->next) {
-    if (kb_dst->data) {
-      kb_dst->data = MEM_dupallocN(kb_dst->data);
-    }
-    if (kb_src == key_src->refkey) {
-      key_dst->refkey = kb_dst;
-    }
-  }
 }
 
 Key *BKE_key_copy(Main *bmain, const Key *key)

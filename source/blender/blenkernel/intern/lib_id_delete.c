@@ -176,7 +176,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_ipo_free((Ipo *)id);
       break;
     case ID_KE:
-      BKE_key_free((Key *)id);
+      BLI_assert(0);
       break;
     case ID_WO:
       BLI_assert(0);

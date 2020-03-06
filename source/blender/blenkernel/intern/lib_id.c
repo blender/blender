@@ -757,7 +757,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_KE:
-        BKE_key_copy_data(bmain, (Key *)*r_newid, (Key *)id, flag);
+        BLI_assert(0);
         break;
       case ID_WO:
         BLI_assert(0);
