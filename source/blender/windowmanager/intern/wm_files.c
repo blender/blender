@@ -1499,7 +1499,7 @@ void WM_autosave_init(wmWindowManager *wm)
   }
 }
 
-void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(wt))
+void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
 {
   char filepath[FILE_MAX];
 
@@ -1532,7 +1532,6 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
   }
   else {
     /*  save as regular blend file */
-    Main *bmain = CTX_data_main(C);
     int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
 
     ED_editors_flush_edits(bmain);
@@ -2009,7 +2008,8 @@ static void wm_free_operator_properties_callback(void *user_data)
 
 static int wm_homefile_read_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (U.uiflag & USER_SAVE_PROMPT && wm_file_or_image_is_modified(C)) {
+  if (U.uiflag & USER_SAVE_PROMPT &&
+      wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C))) {
     wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
     callback->exec = wm_homefile_read_after_dialog_callback;
     callback->user_data = IDP_CopyProperty(op->properties);
@@ -2172,7 +2172,8 @@ static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
     set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
   }
 
-  if (U.uiflag & USER_SAVE_PROMPT && wm_file_or_image_is_modified(C)) {
+  if (U.uiflag & USER_SAVE_PROMPT &&
+      wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C))) {
     wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
     callback->exec = wm_open_mainfile_after_dialog_callback;
     callback->user_data = IDP_CopyProperty(op->properties);
@@ -2986,15 +2987,16 @@ static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_
 
 static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_data)
 {
+  const Main *bmain = CTX_data_main(C);
   wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
   bool execute_callback = true;
 
   wmWindow *win = CTX_wm_window(C);
   UI_popup_block_close(C, win, arg_block);
 
-  int modified_images_count = ED_image_save_all_modified_info(C, NULL);
+  int modified_images_count = ED_image_save_all_modified_info(CTX_data_main(C), NULL);
   if (modified_images_count > 0 && save_images_when_file_is_closed) {
-    if (ED_image_should_save_modified(C)) {
+    if (ED_image_should_save_modified(bmain)) {
       ReportList *reports = CTX_wm_reports(C);
       ED_image_save_all_modified(C, reports);
       WM_report_banner_show();
@@ -3004,7 +3006,6 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
     }
   }
 
-  Main *bmain = CTX_data_main(C);
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
 
   if (file_has_been_saved_before) {
@@ -3098,7 +3099,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
   /* Image Saving */
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
-  uint modified_images_count = ED_image_save_all_modified_info(C, &reports);
+  uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
 
   LISTBASE_FOREACH (Report *, report, &reports.list) {
     uiItemL_ex(layout, report->message, ICON_CANCEL, false, true);
@@ -3189,7 +3190,7 @@ static void free_post_file_close_action(void *arg)
 
 void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
 {
-  if (!UI_popup_block_name_exists(C, close_file_dialog_name)) {
+  if (!UI_popup_block_name_exists(CTX_wm_screen(C), close_file_dialog_name)) {
     UI_popup_block_invoke(
         C, block_create__close_file_dialog, post_action, free_post_file_close_action);
   }
@@ -3198,10 +3199,9 @@ void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
   }
 }
 
-bool wm_file_or_image_is_modified(const bContext *C)
+bool wm_file_or_image_is_modified(const Main *bmain, const wmWindowManager *wm)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
-  return !wm->file_saved || ED_image_should_save_modified(C);
+  return !wm->file_saved || ED_image_should_save_modified(bmain);
 }
 
 /** \} */

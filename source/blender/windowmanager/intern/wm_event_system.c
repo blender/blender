@@ -190,11 +190,9 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event)
 /** \name Notifiers & Listeners
  * \{ */
 
-static bool wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, void *reference)
+static bool wm_test_duplicate_notifier(const wmWindowManager *wm, uint type, void *reference)
 {
-  wmNotifier *note;
-
-  for (note = wm->queue.first; note; note = note->next) {
+  for (wmNotifier *note = wm->queue.first; note; note = note->next) {
     if ((note->category | note->data | note->subtype | note->action) == type &&
         note->reference == reference) {
       return 1;
@@ -204,10 +202,8 @@ static bool wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, v
   return 0;
 }
 
-/* XXX: in future, which notifiers to send to other windows? */
-void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference)
+void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint type, void *reference)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   wmNotifier *note;
 
   if (wm_test_duplicate_notifier(wm, type, reference)) {
@@ -216,10 +212,9 @@ void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference
 
   note = MEM_callocN(sizeof(wmNotifier), "notifier");
 
-  note->wm = wm;
-  BLI_addtail(&note->wm->queue, note);
+  BLI_addtail(&wm->queue, note);
 
-  note->window = CTX_wm_window(C);
+  note->window = win;
 
   note->category = type & NOTE_CATEGORY;
   note->data = type & NOTE_DATA;
@@ -227,6 +222,12 @@ void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference
   note->action = type & NOTE_ACTION;
 
   note->reference = reference;
+}
+
+/* XXX: in future, which notifiers to send to other windows? */
+void WM_event_add_notifier(const bContext *C, uint type, void *reference)
+{
+  WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), type, reference);
 }
 
 void WM_main_add_notifier(unsigned int type, void *reference)
@@ -241,8 +242,7 @@ void WM_main_add_notifier(unsigned int type, void *reference)
 
   note = MEM_callocN(sizeof(wmNotifier), "notifier");
 
-  note->wm = wm;
-  BLI_addtail(&note->wm->queue, note);
+  BLI_addtail(&wm->queue, note);
 
   note->category = type & NOTE_CATEGORY;
   note->data = type & NOTE_DATA;
@@ -3856,11 +3856,9 @@ static void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
 }
 #endif
 
-void WM_event_add_mousemove(const bContext *C)
+void WM_event_add_mousemove(wmWindow *win)
 {
-  wmWindow *window = CTX_wm_window(C);
-
-  window->addmousemove = 1;
+  win->addmousemove = 1;
 }
 
 /** \} */

@@ -1971,6 +1971,7 @@ void ED_area_data_swap(ScrArea *sa_dst, ScrArea *sa_src)
 void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 {
   ScrArea *tmp = MEM_callocN(sizeof(ScrArea), "addscrarea");
+  wmWindow *win = CTX_wm_window(C);
 
   ED_area_exit(C, sa1);
   ED_area_exit(C, sa2);
@@ -1978,14 +1979,14 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
   ED_area_data_copy(tmp, sa1, false);
   ED_area_data_copy(sa1, sa2, true);
   ED_area_data_copy(sa2, tmp, true);
-  ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa1);
-  ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa2);
+  ED_area_initialize(CTX_wm_manager(C), win, sa1);
+  ED_area_initialize(CTX_wm_manager(C), win, sa2);
 
   BKE_screen_area_free(tmp);
   MEM_freeN(tmp);
 
   /* tell WM to refresh, cursor types etc */
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(win);
 
   ED_area_tag_redraw(sa1);
   ED_area_tag_refresh(sa1);
@@ -2119,7 +2120,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
     ED_area_initialize(CTX_wm_manager(C), win, sa);
 
     /* tell WM to refresh, cursor types etc */
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(win);
 
     /* send space change notifier */
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, sa);

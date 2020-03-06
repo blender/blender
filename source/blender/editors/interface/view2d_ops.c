@@ -188,7 +188,7 @@ static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float 
   ED_region_tag_redraw_no_rebuild(vpd->ar);
 
   /* request updates to be done... */
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(CTX_wm_window(C));
 
   UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
 }
@@ -1592,6 +1592,7 @@ void UI_view2d_smooth_view(bContext *C, ARegion *ar, const rctf *cur, const int 
 /* only meant for timer usage */
 static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
+  wmWindow *win = CTX_wm_window(C);
   ARegion *ar = CTX_wm_region(C);
   View2D *v2d = &ar->v2d;
   struct SmoothView2DStore *sms = v2d->sms;
@@ -1616,11 +1617,11 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
     MEM_freeN(v2d->sms);
     v2d->sms = NULL;
 
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), v2d->smooth_timer);
+    WM_event_remove_timer(CTX_wm_manager(C), win, v2d->smooth_timer);
     v2d->smooth_timer = NULL;
 
     /* Event handling won't know if a UI item has been moved under the pointer. */
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(win);
   }
   else {
     /* ease in/out */

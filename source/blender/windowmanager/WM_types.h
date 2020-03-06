@@ -256,8 +256,7 @@ typedef enum eOperatorPropTags {
 typedef struct wmNotifier {
   struct wmNotifier *next, *prev;
 
-  struct wmWindowManager *wm;
-  struct wmWindow *window;
+  const struct wmWindow *window;
 
   unsigned int category, data, subtype, action;
 

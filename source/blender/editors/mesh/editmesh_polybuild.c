@@ -162,7 +162,7 @@ static int edbm_polybuild_transform_at_cursor_invoke(bContext *C,
     }
   }
   BM_select_history_store(bm, ele_act);
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(vc.win);
   return OPERATOR_FINISHED;
 }
 
@@ -244,7 +244,7 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
         ED_object_base_activate(C, basact);
       }
     }
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(vc.win);
     return OPERATOR_FINISHED;
   }
   else {
@@ -411,7 +411,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
       }
     }
 
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(vc.win);
 
     return OPERATOR_FINISHED;
   }
@@ -495,7 +495,7 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
     EDBM_mesh_normals_update(em);
     EDBM_update_generic(vc.obedit->data, true, true);
 
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(vc.win);
 
     if (vc.view_layer->basact != basact) {
       ED_object_base_activate(C, basact);
@@ -592,7 +592,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
       ED_object_base_activate(C, basact);
     }
 
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(vc.win);
 
     return OPERATOR_FINISHED;
   }

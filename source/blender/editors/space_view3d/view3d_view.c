@@ -381,7 +381,7 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *ar, bool 
     }
 
     /* Event handling won't know if a UI item has been moved under the pointer. */
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(CTX_wm_window(C));
   }
 
   if (sync_boxview && (rv3d->viewlock & RV3D_BOXVIEW)) {

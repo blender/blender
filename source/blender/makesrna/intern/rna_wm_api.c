@@ -83,9 +83,14 @@ static wmKeyMap *rna_keymap_active(wmKeyMap *km, bContext *C)
   return WM_keymap_active(wm, km);
 }
 
+static void rna_keymap_restore_to_default(wmKeyMap *km, bContext *C)
+{
+  WM_keymap_restore_to_default(km, CTX_wm_manager(C));
+}
+
 static void rna_keymap_restore_item_to_default(wmKeyMap *km, bContext *C, wmKeyMapItem *kmi)
 {
-  WM_keymap_item_restore_to_default(C, km, kmi);
+  WM_keymap_item_restore_to_default(CTX_wm_manager(C), km, kmi);
 }
 
 static void rna_Operator_report(wmOperator *op, int type, const char *msg)
@@ -1050,7 +1055,7 @@ void RNA_api_keymap(StructRNA *srna)
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Active key map");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "restore_to_default", "WM_keymap_restore_to_default");
+  func = RNA_def_function(srna, "restore_to_default", "rna_keymap_restore_to_default");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
   func = RNA_def_function(srna, "restore_item_to_default", "rna_keymap_restore_item_to_default");

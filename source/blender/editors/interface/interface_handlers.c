@@ -1552,7 +1552,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
                                false);
     ui_handler_region_drag_toggle_remove(C, drag_info);
 
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(win);
     return WM_UI_HANDLER_BREAK;
   }
   else {
@@ -1843,7 +1843,7 @@ static bool ui_but_drag_init(bContext *C,
                              const wmEvent *event)
 {
   /* prevent other WM gestures to start while we try to drag */
-  WM_gestures_remove(C);
+  WM_gestures_remove(CTX_wm_window(C));
 
   /* Clamp the maximum to half the UI unit size so a high user preference
    * doesn't require the user to drag more then half the default button height. */
@@ -3280,7 +3280,7 @@ wmIMEData *ui_but_ime_data_get(uiBut *but)
 
 static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-  wmWindow *win = CTX_wm_window(C);
+  wmWindow *win = data->window;
   int len;
   const bool is_num_but = ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER);
   bool no_zero_strip = false;
@@ -3370,7 +3370,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-  wmWindow *win = CTX_wm_window(C);
+  wmWindow *win = data->window;
 
   if (but) {
     if (UI_but_is_utf8(but)) {
@@ -3945,7 +3945,7 @@ static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtra
   /* Force recreation of extra operator icons (pseudo update). */
   ui_but_extra_operator_icons_free(but);
 
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(CTX_wm_window(C));
 }
 
 /** \} */
@@ -4020,8 +4020,7 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 
 #ifdef USE_ALLSELECT
   {
-    wmWindow *win = CTX_wm_window(C);
-    if (IS_ALLSELECT_EVENT(win->eventstate)) {
+    if (IS_ALLSELECT_EVENT(data->window->eventstate)) {
       data->select_others.is_enabled = true;
     }
   }
@@ -5570,7 +5569,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
          * The active state of the button could be maintained some other way
          * and remove this mousemove event.
          */
-        WM_event_add_mousemove(C);
+        WM_event_add_mousemove(data->window);
 
         return WM_UI_HANDLER_BREAK;
       }
@@ -8039,11 +8038,12 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 static void button_activate_exit(
     bContext *C, uiBut *but, uiHandleButtonData *data, const bool mousemove, const bool onfree)
 {
+  wmWindow *win = data->window;
   uiBlock *block = but->block;
   uiBut *bt;
 
   if (but->type == UI_BTYPE_GRIP) {
-    WM_cursor_modal_restore(data->window);
+    WM_cursor_modal_restore(win);
   }
 
   /* ensure we are in the exit state */
@@ -8160,7 +8160,7 @@ static void button_activate_exit(
    * still over a button. We cannot just check for this ourselves because
    * at this point the mouse may be over a button in another region */
   if (mousemove) {
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(CTX_wm_window(C));
   }
 }
 
@@ -8818,7 +8818,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
       button_activate_init(C, ar, post_but, post_type);
     }
     else {
-      /* XXX issue is because WM_event_add_mousemove(C) is a bad hack and not reliable,
+      /* XXX issue is because WM_event_add_mousemove(wm) is a bad hack and not reliable,
        * if that gets coded better this bypass can go away too.
        *
        * This is needed to make sure if a button was active,
@@ -9592,7 +9592,7 @@ static int ui_handle_menu_event(bContext *C,
                   but->active->cancel = true;
                   button_activate_exit(C, but, but->active, false, false);
                 }
-                WM_event_add_mousemove(C);
+                WM_event_add_mousemove(but->active->window);
               }
             }
             break;
@@ -10776,7 +10776,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
       temp.cancel_func(C, temp.popup_arg);
     }
 
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(win);
   }
   else {
     /* re-enable tooltips */

@@ -624,7 +624,7 @@ void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 }
 
 /* hardcoded to event TIMERJOBS */
-void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
+void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 {
   wmJob *wm_job, *wm_jobnext;
 
@@ -645,11 +645,11 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
             wm_job->update(wm_job->run_customdata);
           }
           if (wm_job->note) {
-            WM_event_add_notifier(C, wm_job->note, NULL);
+            WM_event_add_notifier_ex(wm, wm_job->win, wm_job->note, NULL);
           }
 
           if (wm_job->flag & WM_JOB_PROGRESS) {
-            WM_event_add_notifier(C, NC_WM | ND_JOB, NULL);
+            WM_event_add_notifier_ex(wm, wm_job->win, NC_WM | ND_JOB, NULL);
           }
           wm_job->do_update = false;
         }
@@ -680,10 +680,10 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
           WM_job_main_thread_lock_acquire(wm_job);
 
           if (wm_job->endnote) {
-            WM_event_add_notifier(C, wm_job->endnote, NULL);
+            WM_event_add_notifier_ex(wm, wm_job->win, wm_job->endnote, NULL);
           }
 
-          WM_event_add_notifier(C, NC_WM | ND_JOB, NULL);
+          WM_event_add_notifier_ex(wm, wm_job->win, NC_WM | ND_JOB, NULL);
 
           /* new job added for wm_job? */
           if (wm_job->customdata) {

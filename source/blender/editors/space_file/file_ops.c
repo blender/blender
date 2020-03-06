@@ -536,7 +536,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
   }
 
-  WM_event_add_mousemove(C); /* for directory changes */
+  WM_event_add_mousemove(CTX_wm_window(C)); /* for directory changes */
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   return OPERATOR_FINISHED;
@@ -578,7 +578,8 @@ void FILE_OT_select(wmOperatorType *ot)
 /**
  * \returns true if selection has changed
  */
-static bool file_walk_select_selection_set(bContext *C,
+static bool file_walk_select_selection_set(wmWindow *win,
+                                           ARegion *ar,
                                            SpaceFile *sfile,
                                            const int direction,
                                            const int numfiles,
@@ -656,7 +657,7 @@ static bool file_walk_select_selection_set(bContext *C,
 
     /* highlight file under mouse pos */
     params->highlight_file = -1;
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(win);
   }
 
   /* do the actual selection */
@@ -686,7 +687,7 @@ static bool file_walk_select_selection_set(bContext *C,
   fileselect_file_set(sfile, params->active_file);
 
   /* ensure newly selected file is inside viewbounds */
-  file_ensure_inside_viewbounds(CTX_wm_region(C), sfile, params->active_file);
+  file_ensure_inside_viewbounds(ar, sfile, params->active_file);
 
   /* selection changed */
   return true;
@@ -702,6 +703,8 @@ static bool file_walk_select_do(bContext *C,
                                 const bool extend,
                                 const bool fill)
 {
+  wmWindow *win = CTX_wm_window(C);
+  ARegion *ar = CTX_wm_region(C);
   struct FileList *files = sfile->files;
   const int numfiles = filelist_files_ensure(files);
   const bool has_selection = file_is_any_selected(files);
@@ -717,7 +720,6 @@ static bool file_walk_select_do(bContext *C,
   }
 
   if (has_selection) {
-    ARegion *ar = CTX_wm_region(C);
     FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
     const int idx_shift = (layout->flag & FILE_LAYOUT_HOR) ? layout->rows : layout->flow_columns;
 
@@ -763,7 +765,8 @@ static bool file_walk_select_do(bContext *C,
     }
   }
 
-  return file_walk_select_selection_set(C,
+  return file_walk_select_selection_set(win,
+                                        ar,
                                         sfile,
                                         direction,
                                         numfiles,
@@ -867,7 +870,7 @@ static int file_select_all_exec(bContext *C, wmOperator *op)
   }
 
   file_draw_check(C);
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(CTX_wm_window(C));
   ED_area_tag_redraw(sa);
 
   return OPERATOR_FINISHED;

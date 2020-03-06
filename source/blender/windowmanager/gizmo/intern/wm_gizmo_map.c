@@ -950,7 +950,7 @@ bool WM_gizmomap_select_all(bContext *C, wmGizmoMap *gzmap, const int action)
   }
 
   if (changed) {
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(CTX_wm_window(C));
   }
 
   return changed;
@@ -1136,7 +1136,7 @@ void wm_gizmomap_modal_set(
         }
       }
       ED_region_tag_redraw_editor_overlays(CTX_wm_region(C));
-      WM_event_add_mousemove(C);
+      WM_event_add_mousemove(win);
     }
 
     gzmap->gzmap_context.event_xy[0] = INT_MAX;

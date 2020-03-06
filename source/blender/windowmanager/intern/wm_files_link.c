@@ -623,13 +623,14 @@ void WM_OT_append(wmOperatorType *ot)
  *
  * \{ */
 
-ID *WM_file_append_datablock(bContext *C,
+ID *WM_file_append_datablock(Main *bmain,
+                             Scene *scene,
+                             ViewLayer *view_layer,
+                             View3D *v3d,
                              const char *filepath,
                              const short id_code,
                              const char *id_name)
 {
-  Main *bmain = CTX_data_main(C);
-
   /* Tag everything so we can make local only the new datablock. */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
@@ -641,9 +642,6 @@ ID *WM_file_append_datablock(bContext *C,
   BLI_BITMAP_ENABLE(item->libraries, 0);
 
   /* Link datablock. */
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = CTX_wm_view3d(C);
   wm_link_do(lapp_data, NULL, bmain, scene, view_layer, v3d);
 
   /* Get linked datablock and free working data. */

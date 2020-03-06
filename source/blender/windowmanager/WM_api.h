@@ -51,6 +51,7 @@ struct MenuType;
 struct PointerRNA;
 struct PropertyRNA;
 struct ScrArea;
+struct View3D;
 struct ViewLayer;
 struct bContext;
 struct rcti;
@@ -176,7 +177,10 @@ void WM_autosave_init(struct wmWindowManager *wm);
 void WM_recover_last_session(struct bContext *C, struct ReportList *reports);
 void WM_file_tag_modified(void);
 
-struct ID *WM_file_append_datablock(struct bContext *C,
+struct ID *WM_file_append_datablock(struct Main *bmain,
+                                    struct Scene *scene,
+                                    struct ViewLayer *view_layer,
+                                    struct View3D *v3d,
                                     const char *filepath,
                                     const short id_code,
                                     const char *id_name);
@@ -293,13 +297,17 @@ struct wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers,
                                                             ListBase *dropboxes);
 
 /* mouse */
-void WM_event_add_mousemove(const struct bContext *C);
+void WM_event_add_mousemove(wmWindow *win);
 
 #ifdef WITH_INPUT_NDOF
 /* 3D mouse */
 void WM_ndof_deadzone_set(float deadzone);
 #endif
 /* notifiers */
+void WM_event_add_notifier_ex(struct wmWindowManager *wm,
+                              const struct wmWindow *win,
+                              unsigned int type,
+                              void *reference);
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
 void WM_main_add_notifier(unsigned int type, void *reference);
 void WM_main_remove_notifier_reference(const void *reference);
@@ -619,9 +627,12 @@ int WM_gesture_straightline_modal(struct bContext *C,
 void WM_gesture_straightline_cancel(struct bContext *C, struct wmOperator *op);
 
 /* Gesture manager API */
-struct wmGesture *WM_gesture_new(struct bContext *C, const struct wmEvent *event, int type);
-void WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
-void WM_gestures_remove(struct bContext *C);
+struct wmGesture *WM_gesture_new(struct wmWindow *window,
+                                 const struct ARegion *ar,
+                                 const struct wmEvent *event,
+                                 int type);
+void WM_gesture_end(struct wmWindow *win, struct wmGesture *gesture);
+void WM_gestures_remove(struct wmWindow *win);
 void WM_gestures_free_all(struct wmWindow *win);
 bool WM_gesture_is_modal_first(const struct wmGesture *gesture);
 

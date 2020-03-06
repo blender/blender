@@ -284,7 +284,7 @@ uiPopupBlockHandle *ui_popover_panel_create(
    * add a modal handler and pass on events. */
   if (!but) {
     UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
-    WM_event_add_mousemove(C);
+    WM_event_add_mousemove(window);
     handle->popup = true;
   }
 
@@ -403,7 +403,7 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
 
   /* Add handlers. */
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(window);
   handle->popup = true;
 
   /* Re-add so it gets priority. */

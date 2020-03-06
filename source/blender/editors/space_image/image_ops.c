@@ -2315,12 +2315,12 @@ static bool image_has_valid_path(Image *ima)
   return strchr(ima->name, '\\') || strchr(ima->name, '/');
 }
 
-bool ED_image_should_save_modified(const bContext *C)
+bool ED_image_should_save_modified(const Main *bmain)
 {
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
 
-  uint modified_images_count = ED_image_save_all_modified_info(C, &reports);
+  uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
   bool should_save = modified_images_count || !BLI_listbase_is_empty(&reports.list);
 
   BKE_reports_clear(&reports);
@@ -2328,9 +2328,8 @@ bool ED_image_should_save_modified(const bContext *C)
   return should_save;
 }
 
-int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
+int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
 {
-  Main *bmain = CTX_data_main(C);
   GSet *unique_paths = BLI_gset_str_new(__func__);
 
   int num_saveable_images = 0;
@@ -2387,9 +2386,10 @@ int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
 
 bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
 {
-  ED_image_save_all_modified_info(C, reports);
-
   Main *bmain = CTX_data_main(C);
+
+  ED_image_save_all_modified_info(bmain, reports);
+
   bool ok = true;
 
   for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
@@ -2417,7 +2417,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
 
 static bool image_save_all_modified_poll(bContext *C)
 {
-  int num_files = ED_image_save_all_modified_info(C, NULL);
+  int num_files = ED_image_save_all_modified_info(CTX_data_main(C), NULL);
   return num_files > 0;
 }
 

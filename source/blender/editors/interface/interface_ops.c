@@ -1649,7 +1649,7 @@ static int ui_button_press_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   but->optype = but_optype;
 
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(CTX_wm_window(C));
 
   return OPERATOR_FINISHED;
 }

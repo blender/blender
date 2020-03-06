@@ -62,17 +62,17 @@ void wm_operatortypes_register(void);
 /* wm_gesture.c */
 void wm_gesture_draw(struct wmWindow *win);
 int wm_gesture_evaluate(wmGesture *gesture, const struct wmEvent *event);
-void wm_gesture_tag_redraw(bContext *C);
+void wm_gesture_tag_redraw(struct wmWindow *win);
 
 /* wm_gesture_ops.c */
 void wm_tweakevent_test(bContext *C, const wmEvent *event, int action);
 
 /* wm_jobs.c */
-void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt);
+void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt);
 void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt);
 
 /* wm_files.c */
-void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt);
+void wm_autosave_timer(struct Main *bmain, wmWindowManager *wm, wmTimer *wt);
 void wm_autosave_timer_ended(wmWindowManager *wm);
 void wm_autosave_delete(void);
 void wm_autosave_read(bContext *C, struct ReportList *reports);

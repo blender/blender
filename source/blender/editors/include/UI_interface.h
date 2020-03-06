@@ -632,7 +632,7 @@ void uiPupBlockOperator(struct bContext *C,
 
 void UI_popup_block_close(struct bContext *C, struct wmWindow *win, uiBlock *block);
 
-bool UI_popup_block_name_exists(struct bContext *C, const char *name);
+bool UI_popup_block_name_exists(const struct bScreen *screen, const char *name);
 
 /* Blocks
  *

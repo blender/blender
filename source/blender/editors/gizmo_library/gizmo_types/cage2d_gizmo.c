@@ -1087,7 +1087,7 @@ static int gizmo_cage2d_modal(bContext *C,
 
   /* tag the region for redraw */
   ED_region_tag_redraw_editor_overlays(CTX_wm_region(C));
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(CTX_wm_window(C));
 
   return OPERATOR_RUNNING_MODAL;
 }

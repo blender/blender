@@ -150,11 +150,9 @@ static void wm_init_reports(bContext *C)
 
   BKE_reports_init(reports, RPT_STORE);
 }
-static void wm_free_reports(bContext *C)
+static void wm_free_reports(wmWindowManager *wm)
 {
-  ReportList *reports = CTX_wm_reports(C);
-
-  BKE_reports_clear(reports);
+  BKE_reports_clear(&wm->reports);
 }
 
 static bool wm_start_with_console = false;
@@ -470,7 +468,7 @@ void wm_exit_schedule_delayed(const bContext *C)
   /* Use modal UI handler for now.
    * Could add separate WM handlers or so, but probably not worth it. */
   WM_event_add_ui_handler(C, &win->modalhandlers, wm_exit_handler, NULL, NULL, 0);
-  WM_event_add_mousemove(C); /* ensure handler actually gets called */
+  WM_event_add_mousemove(win); /* ensure handler actually gets called */
 }
 
 /**
@@ -558,9 +556,9 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
   ED_preview_free_dbase(); /* frees a Main dbase, before BKE_blender_free! */
 
-  if (C && wm) {
+  if (wm) {
     /* Before BKE_blender_free! - since the ListBases get freed there. */
-    wm_free_reports(C);
+    wm_free_reports(wm);
   }
 
   BKE_sequencer_free_clipboard(); /* sequencer.c */

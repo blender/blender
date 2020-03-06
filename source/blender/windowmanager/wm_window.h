@@ -33,8 +33,9 @@ void wm_ghost_exit(void);
 void wm_get_screensize(int *r_width, int *r_height);
 void wm_get_desktopsize(int *r_width, int *r_height);
 
-wmWindow *wm_window_new(bContext *C, wmWindow *parent);
-wmWindow *wm_window_copy(bContext *C,
+wmWindow *wm_window_new(const struct Main *bmain, wmWindowManager *wm, wmWindow *parent);
+wmWindow *wm_window_copy(struct Main *bmain,
+                         wmWindowManager *wm,
                          wmWindow *win_src,
                          const bool duplicate_layout,
                          const bool child);

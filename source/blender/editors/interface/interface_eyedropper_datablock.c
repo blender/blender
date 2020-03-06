@@ -125,7 +125,9 @@ static int datadropper_init(bContext *C, wmOperator *op)
 
 static void datadropper_exit(bContext *C, wmOperator *op)
 {
-  WM_cursor_modal_restore(CTX_wm_window(C));
+  wmWindow *win = CTX_wm_window(C);
+
+  WM_cursor_modal_restore(win);
 
   if (op->customdata) {
     DataDropper *ddr = (DataDropper *)op->customdata;
@@ -139,7 +141,7 @@ static void datadropper_exit(bContext *C, wmOperator *op)
     op->customdata = NULL;
   }
 
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(win);
 }
 
 /* *** datadropper id helper functions *** */

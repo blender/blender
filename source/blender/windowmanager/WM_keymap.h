@@ -74,11 +74,11 @@ wmKeyMap *WM_keymap_ensure(struct wmKeyConfig *keyconf,
                            const char *idname,
                            int spaceid,
                            int regionid);
-wmKeyMap *WM_keymap_find_all(const struct bContext *C,
+wmKeyMap *WM_keymap_find_all(struct wmWindowManager *wm,
                              const char *idname,
                              int spaceid,
                              int regionid);
-wmKeyMap *WM_keymap_find_all_spaceid_or_empty(const struct bContext *C,
+wmKeyMap *WM_keymap_find_all_spaceid_or_empty(struct wmWindowManager *wm,
                                               const char *idname,
                                               int spaceid,
                                               int regionid);
@@ -148,9 +148,9 @@ void WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
 
 /* Keymap Editor */
 
-void WM_keymap_restore_to_default(struct wmKeyMap *keymap, struct bContext *C);
+void WM_keymap_restore_to_default(struct wmKeyMap *keymap, struct wmWindowManager *wm);
 void WM_keymap_item_properties_reset(struct wmKeyMapItem *kmi, struct IDProperty *properties);
-void WM_keymap_item_restore_to_default(struct bContext *C,
+void WM_keymap_item_restore_to_default(wmWindowManager *wm,
                                        struct wmKeyMap *keymap,
                                        struct wmKeyMapItem *kmi);
 int WM_keymap_item_map_type_get(const struct wmKeyMapItem *kmi);

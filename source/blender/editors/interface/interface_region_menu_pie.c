@@ -213,7 +213,7 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
   menu->towardstime = PIL_check_seconds_timer();
 
   UI_popup_handlers_add(C, &window->modalhandlers, menu, WM_HANDLER_ACCEPT_DBL_CLICK);
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(window);
 
   MEM_freeN(pie);
 }

@@ -1013,7 +1013,7 @@ void screen_change_update(bContext *C, wmWindow *win, bScreen *sc)
   WM_event_add_notifier(C, NC_SCREEN | ND_LAYOUTSET, layout);
 
   /* makes button hilites work */
-  WM_event_add_mousemove(C);
+  WM_event_add_mousemove(win);
 }
 
 /**
