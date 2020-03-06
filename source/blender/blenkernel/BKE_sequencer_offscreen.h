@@ -24,15 +24,15 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "DNA_object_enums.h"
 
 #include "DNA_view3d_types.h"
 
 #include "IMB_imbuf_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct Scene *scene,
