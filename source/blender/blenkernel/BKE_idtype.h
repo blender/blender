@@ -132,7 +132,7 @@ extern IDTypeInfo IDType_ID_CU;
 extern IDTypeInfo IDType_ID_MB;
 extern IDTypeInfo IDType_ID_MA;
 extern IDTypeInfo IDType_ID_TE;
-// extern IDTypeInfo IDType_ID_IM;
+extern IDTypeInfo IDType_ID_IM;
 extern IDTypeInfo IDType_ID_LT;
 extern IDTypeInfo IDType_ID_LA;
 extern IDTypeInfo IDType_ID_CA;

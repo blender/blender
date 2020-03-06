@@ -158,10 +158,9 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_TE:
-      BLI_assert(0);
       break;
     case ID_IM:
-      BKE_image_free((Image *)id);
+      BLI_assert(0);
       break;
     case ID_LT:
       BLI_assert(0);

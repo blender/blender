@@ -67,9 +67,12 @@
 #include "BLI_timecode.h" /* for stamp timecode format */
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
+#include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -102,6 +105,99 @@
 
 static CLG_LogRef LOG = {"bke.image"};
 static ThreadMutex *image_mutex;
+
+static void image_init(Image *ima, short source, short type);
+static void image_free_packedfiles(Image *ima);
+static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src);
+
+static void image_init_data(ID *id)
+{
+  Image *image = (Image *)id;
+
+  if (image != NULL) {
+    image_init(image, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
+  }
+}
+
+static void image_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+{
+  Image *image_dst = (Image *)id_dst;
+  const Image *image_src = (const Image *)id_src;
+
+  BKE_color_managed_colorspace_settings_copy(&image_dst->colorspace_settings,
+                                             &image_src->colorspace_settings);
+
+  copy_image_packedfiles(&image_dst->packedfiles, &image_src->packedfiles);
+
+  image_dst->stereo3d_format = MEM_dupallocN(image_src->stereo3d_format);
+  BLI_duplicatelist(&image_dst->views, &image_src->views);
+
+  /* Cleanup stuff that cannot be copied. */
+  image_dst->cache = NULL;
+  image_dst->rr = NULL;
+
+  BLI_duplicatelist(&image_dst->renderslots, &image_src->renderslots);
+  LISTBASE_FOREACH (RenderSlot *, slot, &image_dst->renderslots) {
+    slot->render = NULL;
+  }
+
+  BLI_listbase_clear(&image_dst->anims);
+
+  BLI_duplicatelist(&image_dst->tiles, &image_src->tiles);
+
+  for (int i = 0; i < TEXTARGET_COUNT; i++) {
+    image_dst->gputexture[i] = NULL;
+  }
+
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+    BKE_previewimg_id_copy(&image_dst->id, &image_src->id);
+  }
+  else {
+    image_dst->preview = NULL;
+  }
+}
+
+static void image_free_data(ID *id)
+{
+  Image *image = (Image *)id;
+
+  /* Also frees animdata. */
+  BKE_image_free_buffers(image);
+
+  image_free_packedfiles(image);
+
+  LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
+    if (slot->render) {
+      RE_FreeRenderResult(slot->render);
+      slot->render = NULL;
+    }
+  }
+  BLI_freelistN(&image->renderslots);
+
+  BKE_image_free_views(image);
+  MEM_SAFE_FREE(image->stereo3d_format);
+
+  BKE_icon_id_delete(&image->id);
+  BKE_previewimg_free(&image->preview);
+
+  BLI_freelistN(&image->tiles);
+}
+
+IDTypeInfo IDType_ID_IM = {
+    .id_code = ID_IM,
+    .id_filter = FILTER_ID_IM,
+    .main_listbase_index = INDEX_ID_IM,
+    .struct_size = sizeof(Image),
+    .name = "Image",
+    .name_plural = "images",
+    .translation_context = BLT_I18NCONTEXT_ID_IMAGE,
+    .flags = 0,
+
+    .init_data = image_init_data,
+    .copy_data = image_copy_data,
+    .free_data = image_free_data,
+    .make_local = NULL,
+};
 
 /* prototypes */
 static int image_num_files(struct Image *ima);
@@ -286,26 +382,7 @@ void BKE_image_free_buffers(Image *ima)
 /** Free (or release) any data used by this image (does not free the image itself). */
 void BKE_image_free(Image *ima)
 {
-  /* Also frees animdata. */
-  BKE_image_free_buffers(ima);
-
-  image_free_packedfiles(ima);
-
-  LISTBASE_FOREACH (RenderSlot *, slot, &ima->renderslots) {
-    if (slot->render) {
-      RE_FreeRenderResult(slot->render);
-      slot->render = NULL;
-    }
-  }
-  BLI_freelistN(&ima->renderslots);
-
-  BKE_image_free_views(ima);
-  MEM_SAFE_FREE(ima->stereo3d_format);
-
-  BKE_icon_id_delete(&ima->id);
-  BKE_previewimg_free(&ima->preview);
-
-  BLI_freelistN(&ima->tiles);
+  image_free_data(&ima->id);
 }
 
 /* only image block itself */
@@ -335,13 +412,6 @@ static void image_init(Image *ima, short source, short type)
 
   BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
   ima->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Image Stereo Format");
-}
-
-void BKE_image_init(struct Image *image)
-{
-  if (image) {
-    image_init(image, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
-  }
 }
 
 static Image *image_alloc(Main *bmain, const char *name, short source, short type)
@@ -409,62 +479,12 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
   }
 }
 
-/**
- * Only copy internal data of Image ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_image_copy_data(Main *UNUSED(bmain), Image *ima_dst, const Image *ima_src, const int flag)
-{
-  BKE_color_managed_colorspace_settings_copy(&ima_dst->colorspace_settings,
-                                             &ima_src->colorspace_settings);
-
-  copy_image_packedfiles(&ima_dst->packedfiles, &ima_src->packedfiles);
-
-  ima_dst->stereo3d_format = MEM_dupallocN(ima_src->stereo3d_format);
-  BLI_duplicatelist(&ima_dst->views, &ima_src->views);
-
-  /* Cleanup stuff that cannot be copied. */
-  ima_dst->cache = NULL;
-  ima_dst->rr = NULL;
-
-  BLI_duplicatelist(&ima_dst->renderslots, &ima_src->renderslots);
-  LISTBASE_FOREACH (RenderSlot *, slot, &ima_dst->renderslots) {
-    slot->render = NULL;
-  }
-
-  BLI_listbase_clear(&ima_dst->anims);
-
-  BLI_duplicatelist(&ima_dst->tiles, &ima_src->tiles);
-
-  for (int i = 0; i < TEXTARGET_COUNT; i++) {
-    ima_dst->gputexture[i] = NULL;
-  }
-
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
-    BKE_previewimg_id_copy(&ima_dst->id, &ima_src->id);
-  }
-  else {
-    ima_dst->preview = NULL;
-  }
-}
-
 /* empty image block, of similar type and filename */
 Image *BKE_image_copy(Main *bmain, const Image *ima)
 {
   Image *ima_copy;
   BKE_id_copy(bmain, &ima->id, (ID **)&ima_copy);
   return ima_copy;
-}
-
-void BKE_image_make_local(Main *bmain, Image *ima, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &ima->id, flags);
 }
 
 void BKE_image_merge(Main *bmain, Image *dest, Image *source)

@@ -56,8 +56,6 @@ void BKE_image_free_buffers_ex(struct Image *image, bool do_lock);
 /* call from library */
 void BKE_image_free(struct Image *image);
 
-void BKE_image_init(struct Image *image);
-
 typedef void(StampCallback)(void *data, const char *propname, char *propvalue, int len);
 
 void BKE_render_result_stamp_info(struct Scene *scene,
@@ -141,8 +139,6 @@ struct anim *openanim_noload(const char *name,
                              int flags,
                              int streamindex,
                              char colorspace[IMA_MAX_SPACE]);
-
-void BKE_image_make_local(struct Main *bmain, struct Image *ima, const int flags);
 
 void BKE_image_tag_time(struct Image *ima);
 
@@ -287,10 +283,6 @@ void BKE_image_packfiles_from_mem(struct ReportList *reports,
 void BKE_image_print_memlist(struct Main *bmain);
 
 /* empty image block, of similar type and filename */
-void BKE_image_copy_data(struct Main *bmain,
-                         struct Image *ima_dst,
-                         const struct Image *ima_src,
-                         const int flag);
 struct Image *BKE_image_copy(struct Main *bmain, const struct Image *ima);
 
 /* merge source into dest, and free source */

@@ -1297,6 +1297,9 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
     if (tgpf->ima) {
       for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
         if (ima == tgpf->ima) {
+          /* XXX This is super, super suspicious!
+           * There should NEVER be any need to handle datablocks in Main in such custom code.
+           * Please change to using BKE_id_free() or similar! */
           BLI_remlink(&bmain->images, ima);
           BKE_image_free(tgpf->ima);
           MEM_SAFE_FREE(tgpf->ima);

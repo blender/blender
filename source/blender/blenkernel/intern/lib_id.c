@@ -488,9 +488,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_IM:
-      if (!test) {
-        BKE_image_make_local(bmain, (Image *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_LT:
       BLI_assert(0);
@@ -717,7 +715,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_IM:
-        BKE_image_copy_data(bmain, (Image *)*r_newid, (Image *)id, flag);
+        BLI_assert(0);
         break;
       case ID_LT:
         BLI_assert(0);
@@ -1338,7 +1336,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_IM:
-      BKE_image_init((Image *)id);
+      BLI_assert(0);
       break;
     case ID_LT:
       BLI_assert(0);
