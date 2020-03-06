@@ -255,9 +255,9 @@ Examples:
    >>> bpy.ops.object.scale_apply()
    {'FINISHED'}
 
-.. note::
+.. tip::
 
-   The menu item: :menuselection:`Help --> Operator Cheat Sheet`
+   The :ref:`Operator Cheat Sheet <blender_manual:bpy.ops.wm.operator_cheat_sheet>`.
    gives a list of all operators and their default values in Python syntax, along with the generated docs.
    This is a good way to get an overview of all Blender's operators.
 
