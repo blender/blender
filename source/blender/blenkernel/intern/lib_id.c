@@ -482,9 +482,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_MA:
-      if (!test) {
-        BKE_material_make_local(bmain, (Material *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_TE:
       if (!test) {
@@ -497,9 +495,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_LT:
-      if (!test) {
-        BKE_lattice_make_local(bmain, (Lattice *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_LA:
       BLI_assert(0);
@@ -717,7 +713,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_MA:
-        BKE_material_copy_data(bmain, (Material *)*r_newid, (Material *)id, flag);
+        BLI_assert(0);
         break;
       case ID_TE:
         BKE_texture_copy_data(bmain, (Tex *)*r_newid, (Tex *)id, flag);
@@ -1338,7 +1334,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_MA:
-      BKE_material_init((Material *)id);
+      BLI_assert(0);
       break;
     case ID_TE:
       BKE_texture_default((Tex *)id);

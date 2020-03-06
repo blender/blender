@@ -344,11 +344,6 @@ Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
   return lt_copy;
 }
 
-void BKE_lattice_make_local(Main *bmain, Lattice *lt, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &lt->id, flags);
-}
-
 typedef struct LatticeDeformData {
   Object *object;
   float *latticedata;

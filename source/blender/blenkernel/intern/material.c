@@ -49,11 +49,14 @@
 #include "BLI_utildefines.h"
 #include "BLI_array_utils.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_displist.h"
 #include "BKE_gpencil.h"
 #include "BKE_icons.h"
+#include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -74,28 +77,87 @@
 
 static CLG_LogRef LOG = {"bke.material"};
 
-/** Free (or release) any data used by this material (does not free the material itself). */
-void BKE_material_free(Material *ma)
+static void material_init_data(ID *id)
 {
-  BKE_animdata_free((ID *)ma, false);
+  Material *material = (Material *)id;
 
-  /* Free gpu material before the ntree */
-  GPU_material_free(&ma->gpumaterial);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(material, id));
 
-  /* is no lib link block, but material extension */
-  if (ma->nodetree) {
-    ntreeFreeNestedTree(ma->nodetree);
-    MEM_freeN(ma->nodetree);
-    ma->nodetree = NULL;
+  MEMCPY_STRUCT_AFTER(material, DNA_struct_default_get(Material), id);
+}
+
+static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+{
+  Material *material_dst = (Material *)id_dst;
+  const Material *material_src = (const Material *)id_src;
+
+  /* We always need allocation of our private ID data. */
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
+
+  if (material_src->nodetree) {
+    BKE_id_copy_ex(
+        bmain, (ID *)material_src->nodetree, (ID **)&material_dst->nodetree, flag_private_id_data);
   }
 
-  MEM_SAFE_FREE(ma->texpaintslot);
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+    BKE_previewimg_id_copy(&material_dst->id, &material_src->id);
+  }
+  else {
+    material_dst->preview = NULL;
+  }
 
-  MEM_SAFE_FREE(ma->gp_style);
+  if (material_src->texpaintslot != NULL) {
+    material_dst->texpaintslot = MEM_dupallocN(material_src->texpaintslot);
+  }
 
-  BKE_icon_id_delete((ID *)ma);
-  BKE_previewimg_free(&ma->preview);
+  if (material_src->gp_style != NULL) {
+    material_dst->gp_style = MEM_dupallocN(material_src->gp_style);
+  }
+
+  BLI_listbase_clear(&material_dst->gpumaterial);
+
+  /* TODO Duplicate Engine Settings and set runtime to NULL */
 }
+
+static void material_free_data(ID *id)
+{
+  Material *material = (Material *)id;
+
+  BKE_animdata_free((ID *)material, false);
+
+  /* Free gpu material before the ntree */
+  GPU_material_free(&material->gpumaterial);
+
+  /* is no lib link block, but material extension */
+  if (material->nodetree) {
+    ntreeFreeNestedTree(material->nodetree);
+    MEM_freeN(material->nodetree);
+    material->nodetree = NULL;
+  }
+
+  MEM_SAFE_FREE(material->texpaintslot);
+
+  MEM_SAFE_FREE(material->gp_style);
+
+  BKE_icon_id_delete((ID *)material);
+  BKE_previewimg_free(&material->preview);
+}
+
+IDTypeInfo IDType_ID_MA = {
+    .id_code = ID_MA,
+    .id_filter = FILTER_ID_MA,
+    .main_listbase_index = INDEX_ID_MA,
+    .struct_size = sizeof(Material),
+    .name = "Material",
+    .name_plural = "materials",
+    .translation_context = BLT_I18NCONTEXT_ID_MATERIAL,
+    .flags = 0,
+
+    .init_data = material_init_data,
+    .copy_data = material_copy_data,
+    .free_data = material_free_data,
+    .make_local = NULL,
+};
 
 void BKE_gpencil_material_attr_init(Material *ma)
 {
@@ -118,20 +180,13 @@ void BKE_gpencil_material_attr_init(Material *ma)
   }
 }
 
-void BKE_material_init(Material *ma)
-{
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ma, id));
-
-  MEMCPY_STRUCT_AFTER(ma, DNA_struct_default_get(Material), id);
-}
-
 Material *BKE_material_add(Main *bmain, const char *name)
 {
   Material *ma;
 
   ma = BKE_libblock_alloc(bmain, ID_MA, name, 0);
 
-  BKE_material_init(ma);
+  material_init_data(&ma->id);
 
   return ma;
 }
@@ -147,45 +202,6 @@ Material *BKE_gpencil_material_add(Main *bmain, const char *name)
     BKE_gpencil_material_attr_init(ma);
   }
   return ma;
-}
-
-/**
- * Only copy internal data of Material ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_material_copy_data(Main *bmain, Material *ma_dst, const Material *ma_src, const int flag)
-{
-  /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
-
-  if (ma_src->nodetree) {
-    BKE_id_copy_ex(bmain, (ID *)ma_src->nodetree, (ID **)&ma_dst->nodetree, flag_private_id_data);
-  }
-
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
-    BKE_previewimg_id_copy(&ma_dst->id, &ma_src->id);
-  }
-  else {
-    ma_dst->preview = NULL;
-  }
-
-  if (ma_src->texpaintslot != NULL) {
-    ma_dst->texpaintslot = MEM_dupallocN(ma_src->texpaintslot);
-  }
-
-  if (ma_src->gp_style != NULL) {
-    ma_dst->gp_style = MEM_dupallocN(ma_src->gp_style);
-  }
-
-  BLI_listbase_clear(&ma_dst->gpumaterial);
-
-  /* TODO Duplicate Engine Settings and set runtime to NULL */
 }
 
 Material *BKE_material_copy(Main *bmain, const Material *ma)
@@ -228,11 +244,6 @@ Material *BKE_material_localize(Material *ma)
   man->id.tag |= LIB_TAG_LOCALIZED;
 
   return man;
-}
-
-void BKE_material_make_local(Main *bmain, Material *ma, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &ma->id, flags);
 }
 
 Material ***BKE_object_material_array_p(Object *ob)
@@ -1686,7 +1697,7 @@ void BKE_material_defaults_free_gpu(void)
 void BKE_materials_init(void)
 {
   for (int i = 0; default_materials[i]; i++) {
-    BKE_material_init(default_materials[i]);
+    material_init_data(&default_materials[i]->id);
   }
 
   material_default_surface_init(&default_material_surface);
@@ -1697,6 +1708,6 @@ void BKE_materials_init(void)
 void BKE_materials_exit(void)
 {
   for (int i = 0; default_materials[i]; i++) {
-    BKE_material_free(default_materials[i]);
+    material_free_data(&default_materials[i]->id);
   }
 }

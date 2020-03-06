@@ -42,27 +42,20 @@ void BKE_materials_exit(void);
 
 /* Materials */
 
-void BKE_material_free(struct Material *ma);
 void BKE_object_materials_test(struct Main *bmain, struct Object *ob, struct ID *id);
 void BKE_objects_materials_test_all(struct Main *bmain, struct ID *id);
 void BKE_object_material_resize(struct Main *bmain,
                                 struct Object *ob,
                                 const short totcol,
                                 bool do_id_user);
-void BKE_material_init(struct Material *ma);
 void BKE_object_material_remap(struct Object *ob, const unsigned int *remap);
 void BKE_object_material_remap_calc(struct Object *ob_dst,
                                     struct Object *ob_src,
                                     short *remap_src_to_dst);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_gpencil_material_add(struct Main *bmain, const char *name);
-void BKE_material_copy_data(struct Main *bmain,
-                            struct Material *ma_dst,
-                            const struct Material *ma_src,
-                            const int flag);
 struct Material *BKE_material_copy(struct Main *bmain, const struct Material *ma);
 struct Material *BKE_material_localize(struct Material *ma);
-void BKE_material_make_local(struct Main *bmain, struct Material *ma, const int flags);
 void BKE_gpencil_material_attr_init(struct Material *ma);
 
 /* UNUSED */
