@@ -9687,22 +9687,32 @@ static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
+  const bool create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
 
   MEM_freeN(op->customdata);
 
   for (int n = 0; n < ss->filter_cache->totnode; n++) {
     PBVHNode *node = ss->filter_cache->nodes[n];
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-    {
-      *vd.mask = ss->filter_cache->prev_mask[vd.index];
+    if (create_face_set) {
+      for (int i = 0; i < ss->totpoly; i++) {
+        ss->face_sets[i] = ss->filter_cache->prev_face_set[i];
+      }
     }
-    BKE_pbvh_vertex_iter_end;
+    else {
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+      {
+        *vd.mask = ss->filter_cache->prev_mask[vd.index];
+      }
+      BKE_pbvh_vertex_iter_end;
+    }
 
     BKE_pbvh_node_mark_redraw(node);
   }
 
-  sculpt_flush_update_step(C, SCULPT_UPDATE_MASK);
+  if (!create_face_set) {
+    sculpt_flush_update_step(C, SCULPT_UPDATE_MASK);
+  }
   sculpt_filter_cache_free(ss);
   SCULPT_undo_push_end();
   sculpt_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
