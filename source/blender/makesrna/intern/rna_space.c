@@ -2521,6 +2521,9 @@ static int rna_FileBrowser_FSMenu_active_get(PointerRNA *ptr, const FSMenuCatego
     case FS_CATEGORY_RECENT:
       actnr = sf->recentnr;
       break;
+    case FS_CATEGORY_OTHER:
+      /* pass. */
+      break;
   }
 
   return actnr;
@@ -2547,6 +2550,9 @@ static void rna_FileBrowser_FSMenu_active_set(PointerRNA *ptr,
         break;
       case FS_CATEGORY_RECENT:
         sf->recentnr = value;
+        break;
+      case FS_CATEGORY_OTHER:
+        /* pass. */
         break;
     }
 
