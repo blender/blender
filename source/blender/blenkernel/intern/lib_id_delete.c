@@ -152,7 +152,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_MB:
-      BKE_mball_free((MetaBall *)id);
+      BLI_assert(0);
       break;
     case ID_MA:
       BKE_material_free((Material *)id);

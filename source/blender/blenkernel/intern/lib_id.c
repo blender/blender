@@ -479,9 +479,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_MB:
-      if (!test) {
-        BKE_mball_make_local(bmain, (MetaBall *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_MA:
       if (!test) {
@@ -720,7 +718,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_MB:
-        BKE_mball_copy_data(bmain, (MetaBall *)*r_newid, (MetaBall *)id, flag);
+        BLI_assert(0);
         break;
       case ID_MA:
         BKE_material_copy_data(bmain, (Material *)*r_newid, (Material *)id, flag);
@@ -1341,7 +1339,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_MB:
-      BKE_mball_init((MetaBall *)id);
+      BLI_assert(0);
       break;
     case ID_MA:
       BKE_material_init((Material *)id);
