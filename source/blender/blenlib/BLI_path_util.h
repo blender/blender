@@ -81,12 +81,9 @@ int BLI_stringdec(const char *string, char *head, char *start, unsigned short *n
 void BLI_stringenc(
     char *string, const char *head, const char *tail, unsigned short numlen, int pic);
 
-/* removes trailing slash */
-void BLI_cleanup_file(const char *relabase, char *path) ATTR_NONNULL(2);
-/* same as above but adds a trailing slash */
-void BLI_cleanup_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
-/* doesn't touch trailing slash */
 void BLI_cleanup_path(const char *relabase, char *path) ATTR_NONNULL(2);
+/* Same as above but adds a trailing slash. */
+void BLI_cleanup_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
 
 bool BLI_filename_make_safe(char *fname) ATTR_NONNULL(1);
 bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);

@@ -270,15 +270,6 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 }
 
 /**
- * Cleanup filepath ensuring no trailing slash.
- */
-void BLI_cleanup_file(const char *relabase, char *path)
-{
-  BLI_cleanup_path(relabase, path);
-  BLI_del_slash(path);
-}
-
-/**
  * Make given name safe to be used in paths.
  *
  * \return true if \a fname was changed, false otherwise.
