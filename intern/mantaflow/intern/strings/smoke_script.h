@@ -273,7 +273,7 @@ def smoke_adaptive_step_$ID$(framenr):\n\
     \n\
     fluid_pre_step_$ID$()\n\
     \n\
-    flags_s$ID$.initDomain(boundaryWidth=1, phiWalls=phiObs_s$ID$, outflow=boundConditions_s$ID$)\n\
+    flags_s$ID$.initDomain(boundaryWidth=0, phiWalls=phiObs_s$ID$, outflow=boundConditions_s$ID$)\n\
     \n\
     if using_obstacle_s$ID$:\n\
         mantaMsg('Initializing obstacle levelset')\n\
@@ -297,8 +297,7 @@ def smoke_adaptive_step_$ID$(framenr):\n\
     if using_outflow_s$ID$:\n\
         phiOut_s$ID$.join(phiOutIn_s$ID$)\n\
     \n\
-    # Use bwidth=2 for better smoke outflow at borders\n\
-    setObstacleFlags(flags=flags_s$ID$, phiObs=phiObs_s$ID$, phiOut=phiOut_s$ID$, phiIn=phiIn_s$ID$, boundaryWidth=2)\n\
+    setObstacleFlags(flags=flags_s$ID$, phiObs=phiObs_s$ID$, phiOut=phiOut_s$ID$, phiIn=phiIn_s$ID$, boundaryWidth=1)\n\
     flags_s$ID$.fillGrid()\n\
     \n\
     applyEmission(flags=flags_s$ID$, target=density_s$ID$, source=densityIn_s$ID$, emissionTexture=emissionIn_s$ID$, type=FlagInflow|FlagOutflow)\n\
@@ -416,7 +415,7 @@ def smoke_step_noise_$ID$(framenr):\n\
     copyRealToVec3(sourceX=texture_u_s$ID$, sourceY=texture_v_s$ID$, sourceZ=texture_w_s$ID$, target=uvGrid0_s$ID$)\n\
     copyRealToVec3(sourceX=texture_u2_s$ID$, sourceY=texture_v2_s$ID$, sourceZ=texture_w2_s$ID$, target=uvGrid1_s$ID$)\n\
     \n\
-    flags_sn$ID$.initDomain(boundaryWidth=1, phiWalls=phiObs_sn$ID$, outflow=boundConditions_s$ID$)\n\
+    flags_sn$ID$.initDomain(boundaryWidth=0, phiWalls=phiObs_sn$ID$, outflow=boundConditions_s$ID$)\n\
     \n\
     mantaMsg('Interpolating grids')\n\
     # Join big obstacle levelset after initDomain() call as it overwrites everything in phiObs\n\
@@ -428,7 +427,7 @@ def smoke_step_noise_$ID$(framenr):\n\
     interpolateGrid(target=phiIn_sn$ID$, source=phiIn_s$ID$)\n\
     interpolateMACGrid(target=vel_sn$ID$, source=vel_s$ID$)\n\
     \n\
-    setObstacleFlags(flags=flags_sn$ID$, phiObs=phiObs_sn$ID$, phiOut=phiOut_sn$ID$, phiIn=phiIn_sn$ID$, boundaryWidth=2)\n\
+    setObstacleFlags(flags=flags_sn$ID$, phiObs=phiObs_sn$ID$, phiOut=phiOut_sn$ID$, phiIn=phiIn_sn$ID$, boundaryWidth=1)\n\
     flags_sn$ID$.fillGrid()\n\
     \n\
     # Interpolate emission grids and apply them to big noise grids\n\
