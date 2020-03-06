@@ -1814,7 +1814,7 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   bool ob_edit_mode = false;
 
   float cfra = (float)CFRA;  // XXX for now, don't bother about all the yucky offset crap
-  int success;
+  int num_channels;
 
   KeyingSet *ks = keyingset_get_from_op_with_error(op, op->type->prop, scene);
   if (ks == NULL) {
@@ -1830,13 +1830,13 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   }
 
   /* try to insert keyframes for the channels specified by KeyingSet */
-  success = ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+  num_channels = ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
   if (G.debug & G_DEBUG) {
     BKE_reportf(op->reports,
                 RPT_INFO,
                 "Keying set '%s' - successfully added %d keyframes",
                 ks->name,
-                success);
+                num_channels);
   }
 
   /* restore the edit mode if necessary */
@@ -1845,17 +1845,17 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   }
 
   /* report failure or do updates? */
-  if (success == MODIFYKEY_INVALID_CONTEXT) {
+  if (num_channels == MODIFYKEY_INVALID_CONTEXT) {
     BKE_report(op->reports, RPT_ERROR, "No suitable context info for active keying set");
     return OPERATOR_CANCELLED;
   }
-  else if (success) {
+  else if (num_channels) {
     /* if the appropriate properties have been set, make a note that we've inserted something */
     if (RNA_boolean_get(op->ptr, "confirm_success")) {
       BKE_reportf(op->reports,
                   RPT_INFO,
                   "Successfully added %d keyframes for keying set '%s'",
-                  success,
+                  num_channels,
                   ks->name);
     }
 
@@ -2018,7 +2018,7 @@ static int delete_key_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   float cfra = (float)CFRA;  // XXX for now, don't bother about all the yucky offset crap
-  int success;
+  int num_channels;
 
   KeyingSet *ks = keyingset_get_from_op_with_error(op, op->type->prop, scene);
   if (ks == NULL) {
@@ -2055,23 +2055,23 @@ static int delete_key_exec(bContext *C, wmOperator *op)
   }
 
   /* try to delete keyframes for the channels specified by KeyingSet */
-  success = ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
+  num_channels = ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
   if (G.debug & G_DEBUG) {
-    printf("KeyingSet '%s' - Successfully removed %d Keyframes\n", ks->name, success);
+    printf("KeyingSet '%s' - Successfully removed %d Keyframes\n", ks->name, num_channels);
   }
 
   /* report failure or do updates? */
-  if (success == MODIFYKEY_INVALID_CONTEXT) {
+  if (num_channels == MODIFYKEY_INVALID_CONTEXT) {
     BKE_report(op->reports, RPT_ERROR, "No suitable context info for active keying set");
     return OPERATOR_CANCELLED;
   }
-  else if (success) {
+  else if (num_channels) {
     /* if the appropriate properties have been set, make a note that we've inserted something */
     if (RNA_boolean_get(op->ptr, "confirm_success")) {
       BKE_reportf(op->reports,
                   RPT_INFO,
                   "Successfully removed %d keyframes for keying set '%s'",
-                  success,
+                  num_channels,
                   ks->name);
     }
 

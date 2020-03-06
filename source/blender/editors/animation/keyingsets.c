@@ -1030,7 +1030,7 @@ static eInsertKeyFlags keyingset_apply_keying_flags(const eInsertKeyFlags base_f
  * This takes into account many of the different combinations of using KeyingSets.
  *
  * \returns the number of channels that key-frames were added or
- * #eModifyKey_Returns (a negative number).
+ * an #eModifyKey_Returns value (always a negative number).
  */
 int ANIM_apply_keyingset(
     bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
@@ -1043,7 +1043,7 @@ int ANIM_apply_keyingset(
   const eInsertKeyFlags base_kflags = ANIM_get_keyframing_flags(scene, true);
   const char *groupname = NULL;
   eInsertKeyFlags kflag = 0;
-  int success = 0;
+  int num_channels = 0;
   char keytype = scene->toolsettings->keyframe_type;
 
   /* sanity checks */
@@ -1131,20 +1131,20 @@ int ANIM_apply_keyingset(
     for (; i < arraylen; i++) {
       /* action to take depends on mode */
       if (mode == MODIFYKEY_MODE_INSERT) {
-        success += insert_keyframe(bmain,
-                                   reports,
-                                   ksp->id,
-                                   act,
-                                   groupname,
-                                   ksp->rna_path,
-                                   i,
-                                   cfra,
-                                   keytype,
-                                   &nla_cache,
-                                   kflag2);
+        num_channels += insert_keyframe(bmain,
+                                        reports,
+                                        ksp->id,
+                                        act,
+                                        groupname,
+                                        ksp->rna_path,
+                                        i,
+                                        cfra,
+                                        keytype,
+                                        &nla_cache,
+                                        kflag2);
       }
       else if (mode == MODIFYKEY_MODE_DELETE) {
-        success += delete_keyframe(bmain, reports, ksp->id, act, ksp->rna_path, i, cfra);
+        num_channels += delete_keyframe(bmain, reports, ksp->id, act, ksp->rna_path, i, cfra);
       }
     }
 
@@ -1170,7 +1170,8 @@ int ANIM_apply_keyingset(
   BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   /* return the number of channels successfully affected */
-  return success;
+  BLI_assert(num_channels >= 0);
+  return num_channels;
 }
 
 /* ************************************************** */
