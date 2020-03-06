@@ -103,13 +103,8 @@ void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh,
                                      int r_edges[3]);
 
 void BKE_mesh_free(struct Mesh *me);
-void BKE_mesh_init(struct Mesh *me);
 void BKE_mesh_clear_geometry(struct Mesh *me);
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
-void BKE_mesh_copy_data(struct Main *bmain,
-                        struct Mesh *me_dst,
-                        const struct Mesh *me_src,
-                        const int flag);
 struct Mesh *BKE_mesh_copy(struct Main *bmain, const struct Mesh *me);
 void BKE_mesh_copy_settings(struct Mesh *me_dst, const struct Mesh *me_src);
 void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_tess_cd);
@@ -145,7 +140,6 @@ struct Mesh *BKE_mesh_new_nomain_from_curve_displist(struct Object *ob, struct L
 bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me);
 bool BKE_mesh_clear_facemap_customdata(struct Mesh *me);
 
-void BKE_mesh_make_local(struct Main *bmain, struct Mesh *me, const int flags);
 float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
 void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
 int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);

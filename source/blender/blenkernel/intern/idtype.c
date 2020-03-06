@@ -54,7 +54,7 @@ static void id_type_init(void)
   INIT_TYPE(ID_SCE);
   INIT_TYPE(ID_LI);
   INIT_TYPE(ID_OB);
-  // INIT_TYPE(ID_ME);
+  INIT_TYPE(ID_ME);
   // INIT_TYPE(ID_CU);
   // INIT_TYPE(ID_MB);
   // INIT_TYPE(ID_MA);

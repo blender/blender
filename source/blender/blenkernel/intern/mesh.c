@@ -39,10 +39,13 @@
 #include "BLI_edgehash.h"
 #include "BLI_string.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_idcode.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
+#include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
@@ -57,6 +60,101 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
+
+static void mesh_init_data(ID *id)
+{
+  Mesh *mesh = (Mesh *)id;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mesh, id));
+
+  MEMCPY_STRUCT_AFTER(mesh, DNA_struct_default_get(Mesh), id);
+
+  CustomData_reset(&mesh->vdata);
+  CustomData_reset(&mesh->edata);
+  CustomData_reset(&mesh->fdata);
+  CustomData_reset(&mesh->pdata);
+  CustomData_reset(&mesh->ldata);
+
+  BKE_mesh_runtime_reset(mesh);
+
+  mesh->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
+}
+
+static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+{
+  Mesh *mesh_dst = (Mesh *)id_dst;
+  const Mesh *mesh_src = (const Mesh *)id_src;
+
+  BKE_mesh_runtime_reset_on_copy(mesh_dst, flag);
+  if ((mesh_src->id.tag & LIB_TAG_NO_MAIN) == 0) {
+    /* This is a direct copy of a main mesh, so for now it has the same topology. */
+    mesh_dst->runtime.deformed_only = true;
+  }
+  /* XXX WHAT? Why? Comment, please! And pretty sure this is not valid for regular Mesh copying? */
+  mesh_dst->runtime.is_original = false;
+
+  /* Only do tessface if we have no polys. */
+  const bool do_tessface = ((mesh_src->totface != 0) && (mesh_src->totpoly == 0));
+
+  CustomData_MeshMasks mask = CD_MASK_MESH;
+
+  if (mesh_src->id.tag & LIB_TAG_NO_MAIN) {
+    /* For copies in depsgraph, keep data like origindex and orco. */
+    CustomData_MeshMasks_update(&mask, &CD_MASK_DERIVEDMESH);
+  }
+
+  mesh_dst->mat = MEM_dupallocN(mesh_src->mat);
+
+  const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
+  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, alloc_type, mesh_dst->totvert);
+  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, alloc_type, mesh_dst->totedge);
+  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, alloc_type, mesh_dst->totloop);
+  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, alloc_type, mesh_dst->totpoly);
+  if (do_tessface) {
+    CustomData_copy(&mesh_src->fdata, &mesh_dst->fdata, mask.fmask, alloc_type, mesh_dst->totface);
+  }
+  else {
+    mesh_tessface_clear_intern(mesh_dst, false);
+  }
+
+  BKE_mesh_update_customdata_pointers(mesh_dst, do_tessface);
+
+  mesh_dst->edit_mesh = NULL;
+
+  mesh_dst->mselect = MEM_dupallocN(mesh_dst->mselect);
+
+  /* TODO Do we want to add flag to prevent this? */
+  if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
+    BKE_id_copy_ex(bmain, &mesh_src->key->id, (ID **)&mesh_dst->key, flag);
+    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
+    mesh_dst->key->from = &mesh_dst->id;
+  }
+}
+
+static void mesh_free_data(ID *id)
+{
+  Mesh *mesh = (Mesh *)id;
+  BKE_mesh_clear_geometry(mesh);
+  MEM_SAFE_FREE(mesh->mat);
+}
+
+IDTypeInfo IDType_ID_ME = {
+    .id_code = ID_ME,
+    .id_filter = FILTER_ID_ME,
+    .main_listbase_index = INDEX_ID_ME,
+    .struct_size = sizeof(Mesh),
+    .name = "mesh",
+    .name_plural = "meshes",
+    .translation_context = BLT_I18NCONTEXT_ID_MESH,
+    .flags = 0,
+
+    .init_data = mesh_init_data,
+    .copy_data = mesh_copy_data,
+    .free_data = mesh_free_data,
+    .make_local = NULL,
+};
 
 enum {
   MESHCMP_DVERT_WEIGHTMISMATCH = 1,
@@ -485,8 +583,7 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *me)
 /** Free (or release) any data used by this mesh (does not free the mesh itself). */
 void BKE_mesh_free(Mesh *me)
 {
-  BKE_mesh_clear_geometry(me);
-  MEM_SAFE_FREE(me->mat);
+  mesh_free_data(&me->id);
 }
 
 void BKE_mesh_clear_geometry(Mesh *mesh)
@@ -533,90 +630,15 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
   mesh->totface = 0;
 }
 
-void BKE_mesh_init(Mesh *me)
-{
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(me, id));
-
-  MEMCPY_STRUCT_AFTER(me, DNA_struct_default_get(Mesh), id);
-
-  CustomData_reset(&me->vdata);
-  CustomData_reset(&me->edata);
-  CustomData_reset(&me->fdata);
-  CustomData_reset(&me->pdata);
-  CustomData_reset(&me->ldata);
-
-  BKE_mesh_runtime_reset(me);
-
-  me->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
-}
-
 Mesh *BKE_mesh_add(Main *bmain, const char *name)
 {
   Mesh *me;
 
   me = BKE_libblock_alloc(bmain, ID_ME, name, 0);
 
-  BKE_mesh_init(me);
+  mesh_init_data(&me->id);
 
   return me;
-}
-
-/**
- * Only copy internal data of Mesh ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int flag)
-{
-  BKE_mesh_runtime_reset_on_copy(me_dst, flag);
-  if ((me_src->id.tag & LIB_TAG_NO_MAIN) == 0) {
-    /* This is a direct copy of a main mesh, so for now it has the same topology. */
-    me_dst->runtime.deformed_only = true;
-  }
-  /* XXX WHAT? Why? Comment, please! And pretty sure this is not valid for regular Mesh copying? */
-  me_dst->runtime.is_original = false;
-
-  /* Only do tessface if we have no polys. */
-  const bool do_tessface = ((me_src->totface != 0) && (me_src->totpoly == 0));
-
-  CustomData_MeshMasks mask = CD_MASK_MESH;
-
-  if (me_src->id.tag & LIB_TAG_NO_MAIN) {
-    /* For copies in depsgraph, keep data like origindex and orco. */
-    CustomData_MeshMasks_update(&mask, &CD_MASK_DERIVEDMESH);
-  }
-
-  me_dst->mat = MEM_dupallocN(me_src->mat);
-
-  const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-  CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, alloc_type, me_dst->totvert);
-  CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, alloc_type, me_dst->totedge);
-  CustomData_copy(&me_src->ldata, &me_dst->ldata, mask.lmask, alloc_type, me_dst->totloop);
-  CustomData_copy(&me_src->pdata, &me_dst->pdata, mask.pmask, alloc_type, me_dst->totpoly);
-  if (do_tessface) {
-    CustomData_copy(&me_src->fdata, &me_dst->fdata, mask.fmask, alloc_type, me_dst->totface);
-  }
-  else {
-    mesh_tessface_clear_intern(me_dst, false);
-  }
-
-  BKE_mesh_update_customdata_pointers(me_dst, do_tessface);
-
-  me_dst->edit_mesh = NULL;
-
-  me_dst->mselect = MEM_dupallocN(me_dst->mselect);
-
-  /* TODO Do we want to add flag to prevent this? */
-  if (me_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
-    BKE_id_copy_ex(bmain, &me_src->key->id, (ID **)&me_dst->key, flag);
-    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
-    me_dst->key->from = &me_dst->id;
-  }
 }
 
 /* Custom data layer functions; those assume that totXXX are set correctly. */
@@ -842,11 +864,6 @@ Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(BMEditMesh *em,
     me->runtime.is_original = false;
   }
   return me;
-}
-
-void BKE_mesh_make_local(Main *bmain, Mesh *me, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &me->id, flags);
 }
 
 BoundBox *BKE_mesh_boundbox_get(Object *ob)
