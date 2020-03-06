@@ -34,6 +34,8 @@
 #include "BLI_math.h"
 #include "BLI_task.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
@@ -47,6 +49,7 @@
 #include "BKE_anim.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
@@ -57,6 +60,85 @@
 #include "BKE_deform.h"
 
 #include "DEG_depsgraph_query.h"
+
+static void lattice_init_data(ID *id)
+{
+  Lattice *lattice = (Lattice *)id;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(lattice, id));
+
+  MEMCPY_STRUCT_AFTER(lattice, DNA_struct_default_get(Lattice), id);
+
+  lattice->def = MEM_callocN(sizeof(BPoint), "lattvert"); /* temporary */
+  BKE_lattice_resize(lattice, 2, 2, 2, NULL);             /* creates a uniform lattice */
+}
+
+static void lattice_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+{
+  Lattice *lattice_dst = (Lattice *)id_dst;
+  const Lattice *lattice_src = (const Lattice *)id_src;
+
+  lattice_dst->def = MEM_dupallocN(lattice_src->def);
+
+  if (lattice_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
+    BKE_id_copy_ex(bmain, &lattice_src->key->id, (ID **)&lattice_dst->key, flag);
+    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
+    lattice_dst->key->from = &lattice_dst->id;
+  }
+
+  if (lattice_src->dvert) {
+    int tot = lattice_src->pntsu * lattice_src->pntsv * lattice_src->pntsw;
+    lattice_dst->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
+    BKE_defvert_array_copy(lattice_dst->dvert, lattice_src->dvert, tot);
+  }
+
+  lattice_dst->editlatt = NULL;
+}
+
+static void lattice_free_data(ID *id)
+{
+  Lattice *lattice = (Lattice *)id;
+
+  BKE_animdata_free(&lattice->id, false);
+
+  BKE_lattice_batch_cache_free(lattice);
+
+  MEM_SAFE_FREE(lattice->def);
+  if (lattice->dvert) {
+    BKE_defvert_array_free(lattice->dvert, lattice->pntsu * lattice->pntsv * lattice->pntsw);
+    lattice->dvert = NULL;
+  }
+  if (lattice->editlatt) {
+    Lattice *editlt = lattice->editlatt->latt;
+
+    if (editlt->def) {
+      MEM_freeN(editlt->def);
+    }
+    if (editlt->dvert) {
+      BKE_defvert_array_free(editlt->dvert, lattice->pntsu * lattice->pntsv * lattice->pntsw);
+    }
+
+    MEM_freeN(editlt);
+    MEM_freeN(lattice->editlatt);
+    lattice->editlatt = NULL;
+  }
+}
+
+IDTypeInfo IDType_ID_LT = {
+    .id_code = ID_LT,
+    .id_filter = FILTER_ID_LT,
+    .main_listbase_index = INDEX_ID_LT,
+    .struct_size = sizeof(Lattice),
+    .name = "Lattice",
+    .name_plural = "lattices",
+    .translation_context = BLT_I18NCONTEXT_ID_LATTICE,
+    .flags = 0,
+
+    .init_data = lattice_init_data,
+    .copy_data = lattice_copy_data,
+    .free_data = lattice_free_data,
+    .make_local = NULL,
+};
 
 int BKE_lattice_index_from_uvw(Lattice *lt, const int u, const int v, const int w)
 {
@@ -244,54 +326,15 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
   MEM_freeN(vert_coords);
 }
 
-void BKE_lattice_init(Lattice *lt)
-{
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(lt, id));
-
-  MEMCPY_STRUCT_AFTER(lt, DNA_struct_default_get(Lattice), id);
-
-  lt->def = MEM_callocN(sizeof(BPoint), "lattvert"); /* temporary */
-  BKE_lattice_resize(lt, 2, 2, 2, NULL);             /* creates a uniform lattice */
-}
-
 Lattice *BKE_lattice_add(Main *bmain, const char *name)
 {
   Lattice *lt;
 
   lt = BKE_libblock_alloc(bmain, ID_LT, name, 0);
 
-  BKE_lattice_init(lt);
+  lattice_init_data(&lt->id);
 
   return lt;
-}
-
-/**
- * Only copy internal data of Lattice ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_lattice_copy_data(Main *bmain, Lattice *lt_dst, const Lattice *lt_src, const int flag)
-{
-  lt_dst->def = MEM_dupallocN(lt_src->def);
-
-  if (lt_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
-    BKE_id_copy_ex(bmain, &lt_src->key->id, (ID **)&lt_dst->key, flag);
-    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
-    lt_dst->key->from = &lt_dst->id;
-  }
-
-  if (lt_src->dvert) {
-    int tot = lt_src->pntsu * lt_src->pntsv * lt_src->pntsw;
-    lt_dst->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
-    BKE_defvert_array_copy(lt_dst->dvert, lt_src->dvert, tot);
-  }
-
-  lt_dst->editlatt = NULL;
 }
 
 Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
@@ -299,34 +342,6 @@ Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
   Lattice *lt_copy;
   BKE_id_copy(bmain, &lt->id, (ID **)&lt_copy);
   return lt_copy;
-}
-
-/** Free (or release) any data used by this lattice (does not free the lattice itself). */
-void BKE_lattice_free(Lattice *lt)
-{
-  BKE_animdata_free(&lt->id, false);
-
-  BKE_lattice_batch_cache_free(lt);
-
-  MEM_SAFE_FREE(lt->def);
-  if (lt->dvert) {
-    BKE_defvert_array_free(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
-    lt->dvert = NULL;
-  }
-  if (lt->editlatt) {
-    Lattice *editlt = lt->editlatt->latt;
-
-    if (editlt->def) {
-      MEM_freeN(editlt->def);
-    }
-    if (editlt->dvert) {
-      BKE_defvert_array_free(editlt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
-    }
-
-    MEM_freeN(editlt);
-    MEM_freeN(lt->editlatt);
-    lt->editlatt = NULL;
-  }
 }
 
 void BKE_lattice_make_local(Main *bmain, Lattice *lt, const int flags)

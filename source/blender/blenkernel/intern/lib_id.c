@@ -730,7 +730,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_image_copy_data(bmain, (Image *)*r_newid, (Image *)id, flag);
         break;
       case ID_LT:
-        BKE_lattice_copy_data(bmain, (Lattice *)*r_newid, (Lattice *)id, flag);
+        BLI_assert(0);
         break;
       case ID_LA:
         BLI_assert(0);
@@ -1351,7 +1351,7 @@ void BKE_libblock_init_empty(ID *id)
       BKE_image_init((Image *)id);
       break;
     case ID_LT:
-      BKE_lattice_init((Lattice *)id);
+      BLI_assert(0);
       break;
     case ID_LA:
       BLI_assert(0);

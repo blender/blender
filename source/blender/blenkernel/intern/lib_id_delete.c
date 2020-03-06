@@ -164,7 +164,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_image_free((Image *)id);
       break;
     case ID_LT:
-      BKE_lattice_free((Lattice *)id);
+      BLI_assert(0);
       break;
     case ID_LA:
       BLI_assert(0);

@@ -60,7 +60,7 @@ static void id_type_init(void)
   // INIT_TYPE(ID_MA);
   // INIT_TYPE(ID_TE);
   // INIT_TYPE(ID_IM);
-  // INIT_TYPE(ID_LT);
+  INIT_TYPE(ID_LT);
   INIT_TYPE(ID_LA);
   INIT_TYPE(ID_CA);
   // INIT_TYPE(ID_IP);
