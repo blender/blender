@@ -1047,7 +1047,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         continue;
       }
       else {
-        modifier_setError(md, "Hide, Mask and optimized display disabled");
+        modifier_setError(md, "Sculpt: Hide, Mask and optimized display disabled");
       }
     }
 
