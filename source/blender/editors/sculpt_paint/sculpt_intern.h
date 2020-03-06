@@ -111,7 +111,7 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
 /* Iterate over neighboring and duplicate vertices (for PBVH_GRIDS). Duplicates come
  * first since they are nearest for floodfill. */
 #define sculpt_vertex_duplicates_and_neighbors_iter_begin(ss, v_index, neighbor_iterator) \
-  sculpt_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
+  SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
   for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
        neighbor_iterator.i--) { \
     neighbor_iterator.index = ni.neighbors[ni.i]; \
