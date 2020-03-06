@@ -87,6 +87,7 @@
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
+#include "ED_view3d_offscreen.h"
 
 #include "GPU_extensions.h"
 #include "GPU_init_exit.h"

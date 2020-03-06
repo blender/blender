@@ -67,6 +67,7 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_view3d_offscreen.h"
 #include "ED_gpencil.h"
 
 #include "RE_pipeline.h"
@@ -368,7 +369,8 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     char err_out[256] = "unknown";
     ImBuf *ibuf_view;
     const int alpha_mode = (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL;
-    int output_flags = oglrender->color_depth <= R_IMF_CHAN_DEPTH_8 ? IB_rect : IB_rectfloat;
+    eImBufFlags imbuf_flags = oglrender->color_depth <= R_IMF_CHAN_DEPTH_8 ? IB_rect :
+                                                                             IB_rectfloat;
 
     if (view_context) {
       ibuf_view = ED_view3d_draw_offscreen_imbuf(depsgraph,
@@ -378,7 +380,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                  ar,
                                                  sizex,
                                                  sizey,
-                                                 output_flags,
+                                                 imbuf_flags,
                                                  alpha_mode,
                                                  viewname,
                                                  oglrender->ofs,
@@ -397,7 +399,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                         scene->camera,
                                                         oglrender->sizex,
                                                         oglrender->sizey,
-                                                        output_flags,
+                                                        imbuf_flags,
                                                         V3D_OFSDRAW_SHOW_ANNOTATION,
                                                         alpha_mode,
                                                         viewname,
@@ -1382,6 +1384,3 @@ void RENDER_OT_opengl(wmOperatorType *ot)
                          "Use the current 3D view for rendering, else use scene settings");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
-
-/* function for getting an opengl buffer from a View3D, used by sequencer */
-// extern void *sequencer_view3d_cb;

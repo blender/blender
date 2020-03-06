@@ -45,7 +45,6 @@ struct EditBone;
 struct GPUOffScreen;
 struct GPUViewport;
 struct ID;
-struct ImBuf;
 struct MVert;
 struct Main;
 struct MetaElem;
@@ -100,6 +99,24 @@ typedef struct ViewDepths {
 
   bool damaged;
 } ViewDepths;
+
+typedef struct ViewDrawOffscreenContext {
+  struct Depsgraph *depsgraph;
+  struct Scene *scene;
+  int drawtype;
+  struct View3D *v3d;
+  struct ARegion *ar;
+  int winx;
+  int winy;
+  float viewmat[4][4];
+  float winmat[4][4];
+  bool do_sky;
+  bool is_persp;
+  const char *viewname;
+  const bool do_color_management;
+  struct GPUOffScreen *ofs;
+  struct GPUViewport *viewport;
+} ViewDrawOffscreenContext;
 
 /* Rotate 3D cursor on placement. */
 enum eV3DCursorOrient {
@@ -564,21 +581,6 @@ void ED_draw_object_facemap(struct Depsgraph *depsgraph,
 struct RenderEngineType *ED_view3d_engine_type(struct Scene *scene, int drawtype);
 
 bool ED_view3d_context_activate(struct bContext *C);
-void ED_view3d_draw_offscreen(struct Depsgraph *depsgraph,
-                              struct Scene *scene,
-                              int drawtype,
-                              struct View3D *v3d,
-                              struct ARegion *ar,
-                              int winx,
-                              int winy,
-                              float viewmat[4][4],
-                              float winmat[4][4],
-                              bool do_sky,
-                              bool is_persp,
-                              const char *viewname,
-                              const bool do_color_management,
-                              struct GPUOffScreen *ofs,
-                              struct GPUViewport *viewport);
 void ED_view3d_draw_setup_view(struct wmWindow *win,
                                struct Depsgraph *depsgraph,
                                struct Scene *scene,
@@ -587,32 +589,6 @@ void ED_view3d_draw_setup_view(struct wmWindow *win,
                                float viewmat[4][4],
                                float winmat[4][4],
                                const struct rcti *rect);
-
-struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Depsgraph *depsgraph,
-                                             struct Scene *scene,
-                                             int drawtype,
-                                             struct View3D *v3d,
-                                             struct ARegion *ar,
-                                             int sizex,
-                                             int sizey,
-                                             unsigned int flag,
-                                             int alpha_mode,
-                                             const char *viewname,
-                                             struct GPUOffScreen *ofs,
-                                             char err_out[256]);
-struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Depsgraph *depsgraph,
-                                                    struct Scene *scene,
-                                                    struct View3DShading *shading_override,
-                                                    int drawtype,
-                                                    struct Object *camera,
-                                                    int width,
-                                                    int height,
-                                                    unsigned int flag,
-                                                    unsigned int draw_flags,
-                                                    int alpha_mode,
-                                                    const char *viewname,
-                                                    struct GPUOffScreen *ofs,
-                                                    char err_out[256]);
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
 struct Object *ED_view3d_give_object_under_cursor(struct bContext *C, const int mval[2]);

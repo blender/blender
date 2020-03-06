@@ -64,6 +64,7 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
+#include "BKE_sequencer_offscreen.h"
 #include "BKE_movieclip.h"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"

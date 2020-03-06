@@ -19,7 +19,9 @@ set(INC
   .
   ../../blenkernel
   ../../blenlib
+  ../../editors/include
   ../../gpu
+  ../../imbuf
   ../../makesdna
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc

@@ -43,7 +43,8 @@
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
 
-#include "../editors/include/ED_view3d.h"
+#include "ED_view3d.h"
+#include "ED_view3d_offscreen.h"
 
 #include "../mathutils/mathutils.h"
 

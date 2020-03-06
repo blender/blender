@@ -38,10 +38,12 @@
 #include "BKE_lib_id.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_sequencer_offscreen.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
-#include "ED_view3d.h" /* only for sequencer view3d drawing callback */
+#include "ED_view3d.h"
+#include "ED_view3d_offscreen.h" /* only for sequencer view3d drawing callback */
 
 #include "WM_api.h"
 #include "WM_types.h"

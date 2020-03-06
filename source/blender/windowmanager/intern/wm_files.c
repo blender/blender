@@ -105,6 +105,7 @@
 #include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_view3d_offscreen.h"
 #include "ED_util.h"
 #include "ED_undo.h"
 

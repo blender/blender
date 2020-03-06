@@ -521,21 +521,6 @@ struct Sequence *BKE_sequencer_add_movie_strip(struct bContext *C,
                                                ListBase *seqbasep,
                                                struct SeqLoadInfo *seq_load);
 
-typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
-                                           struct Scene *scene,
-                                           struct View3DShading *shading_override,
-                                           int drawtype,
-                                           struct Object *camera,
-                                           int width,
-                                           int height,
-                                           unsigned int flag,
-                                           unsigned int draw_flags,
-                                           int alpha_mode,
-                                           const char *viewname,
-                                           struct GPUOffScreen *ofs,
-                                           char err_out[256]);
-extern SequencerDrawView sequencer_view3d_cb;
-
 /* copy/paste */
 extern ListBase seqbase_clipboard;
 extern int seqbase_clipboard_frame;

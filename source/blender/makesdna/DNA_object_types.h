@@ -527,16 +527,6 @@ enum {
   OB_NEGZ = 5,
 };
 
-/* dt: no flags */
-enum {
-  OB_BOUNDBOX = 1,
-  OB_WIRE = 2,
-  OB_SOLID = 3,
-  OB_MATERIAL = 4,
-  OB_TEXTURE = 5,
-  OB_RENDER = 6,
-};
-
 /* dtx: flags (short) */
 enum {
   OB_DRAWBOUNDOX = 1 << 0,

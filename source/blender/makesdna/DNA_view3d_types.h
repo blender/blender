@@ -608,11 +608,11 @@ enum {
 };
 
 /** Settings for offscreen rendering */
-enum {
+typedef enum eV3DOffscreenDrawFlag {
   V3D_OFSDRAW_NONE = (0),
   V3D_OFSDRAW_SHOW_ANNOTATION = (1 << 0),
   V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS = (1 << 1),
-};
+} eV3DOffscreenDrawFlag;
 
 #define RV3D_CAMZOOM_MIN -30
 #define RV3D_CAMZOOM_MAX 600

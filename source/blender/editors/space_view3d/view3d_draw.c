@@ -67,6 +67,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_transform.h"
+#include "ED_view3d_offscreen.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -1630,7 +1631,7 @@ static void view3d_stereo3d_setup_offscreen(Depsgraph *depsgraph,
 
 void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               Scene *scene,
-                              int drawtype,
+                              eObjectDrawType drawtype,
                               View3D *v3d,
                               ARegion *ar,
                               int winx,
@@ -1710,12 +1711,12 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       Scene *scene,
-                                      int drawtype,
+                                      eObjectDrawType drawtype,
                                       View3D *v3d,
                                       ARegion *ar,
                                       int sizex,
                                       int sizey,
-                                      uint flag,
+                                      eImBufFlags imbuf_flag,
                                       int alpha_mode,
                                       const char *viewname,
                                       /* output vars */
@@ -1755,7 +1756,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   GPU_offscreen_bind(ofs, true);
 
   /* read in pixels & stamp */
-  ImBuf *ibuf = IMB_allocImBuf(sizex, sizey, 32, flag);
+  ImBuf *ibuf = IMB_allocImBuf(sizex, sizey, 32, imbuf_flag);
 
   /* render 3d view */
   if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
@@ -1856,12 +1857,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                              Scene *scene,
                                              View3DShading *shading_override,
-                                             int drawtype,
+                                             eObjectDrawType drawtype,
                                              Object *camera,
                                              int width,
                                              int height,
-                                             uint flag,
-                                             uint draw_flags,
+                                             eImBufFlags imbuf_flag,
+                                             eV3DOffscreenDrawFlag draw_flags,
                                              int alpha_mode,
                                              const char *viewname,
                                              GPUOffScreen *ofs,
@@ -1934,7 +1935,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                         &ar,
                                         width,
                                         height,
-                                        flag,
+                                        imbuf_flag,
                                         alpha_mode,
                                         viewname,
                                         ofs,
