@@ -467,9 +467,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
 
   switch ((ID_Type)GS(id->name)) {
     case ID_SCE:
-      if (!test) {
-        BKE_scene_make_local(bmain, (Scene *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_OB:
       if (!test) {
@@ -730,7 +728,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
 
     switch ((ID_Type)GS(id->name)) {
       case ID_SCE:
-        BKE_scene_copy_data(bmain, (Scene *)*r_newid, (Scene *)id, flag);
+        BLI_assert(0);
         break;
       case ID_OB:
         BKE_object_copy_data(bmain, (Object *)*r_newid, (Object *)id, flag);
@@ -1348,7 +1346,7 @@ void BKE_libblock_init_empty(ID *id)
   /* Note that only ID types that are not valid when filled of zero should have a callback here. */
   switch ((ID_Type)GS(id->name)) {
     case ID_SCE:
-      BKE_scene_init((Scene *)id);
+      BLI_assert(0);
       break;
     case ID_LI:
       /* Nothing to do. */

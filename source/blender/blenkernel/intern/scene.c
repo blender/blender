@@ -71,6 +71,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -106,6 +107,393 @@
 #include "IMB_imbuf.h"
 
 #include "bmesh.h"
+
+static void scene_init_data(ID *id)
+{
+  Scene *scene = (Scene *)id;
+  const char *colorspace_name;
+  SceneRenderView *srv;
+  CurveMapping *mblur_shutter_curve;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(scene, id));
+
+  MEMCPY_STRUCT_AFTER(scene, DNA_struct_default_get(Scene), id);
+
+  BLI_strncpy(scene->r.bake.filepath, U.renderdir, sizeof(scene->r.bake.filepath));
+
+  mblur_shutter_curve = &scene->r.mblur_shutter_curve;
+  BKE_curvemapping_set_defaults(mblur_shutter_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemapping_initialize(mblur_shutter_curve);
+  BKE_curvemap_reset(mblur_shutter_curve->cm,
+                     &mblur_shutter_curve->clipr,
+                     CURVE_PRESET_MAX,
+                     CURVEMAP_SLOPE_POS_NEG);
+
+  scene->toolsettings = DNA_struct_default_alloc(ToolSettings);
+
+  scene->toolsettings->autokey_mode = (uchar)U.autokey_mode;
+
+  /* grease pencil multiframe falloff curve */
+  scene->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  CurveMapping *gp_falloff_curve = scene->toolsettings->gp_sculpt.cur_falloff;
+  BKE_curvemapping_initialize(gp_falloff_curve);
+  BKE_curvemap_reset(
+      gp_falloff_curve->cm, &gp_falloff_curve->clipr, CURVE_PRESET_GAUSS, CURVEMAP_SLOPE_POSITIVE);
+
+  scene->toolsettings->gp_sculpt.cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  CurveMapping *gp_primitive_curve = scene->toolsettings->gp_sculpt.cur_primitive;
+  BKE_curvemapping_initialize(gp_primitive_curve);
+  BKE_curvemap_reset(gp_primitive_curve->cm,
+                     &gp_primitive_curve->clipr,
+                     CURVE_PRESET_BELL,
+                     CURVEMAP_SLOPE_POSITIVE);
+
+  scene->unit.system = USER_UNIT_METRIC;
+  scene->unit.scale_length = 1.0f;
+  scene->unit.length_unit = (uchar)bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_LENGTH);
+  scene->unit.mass_unit = (uchar)bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_MASS);
+  scene->unit.time_unit = (uchar)bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_TIME);
+
+  {
+    ParticleEditSettings *pset;
+    pset = &scene->toolsettings->particle;
+    for (size_t i = 1; i < ARRAY_SIZE(pset->brush); i++) {
+      pset->brush[i] = pset->brush[0];
+    }
+    pset->brush[PE_BRUSH_CUT].strength = 1.0f;
+  }
+
+  BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+
+  BLI_strncpy(scene->r.pic, U.renderdir, sizeof(scene->r.pic));
+
+  /* Note; in header_info.c the scene copy happens...,
+   * if you add more to renderdata it has to be checked there. */
+
+  /* multiview - stereo */
+  BKE_scene_add_render_view(scene, STEREO_LEFT_NAME);
+  srv = scene->r.views.first;
+  BLI_strncpy(srv->suffix, STEREO_LEFT_SUFFIX, sizeof(srv->suffix));
+
+  BKE_scene_add_render_view(scene, STEREO_RIGHT_NAME);
+  srv = scene->r.views.last;
+  BLI_strncpy(srv->suffix, STEREO_RIGHT_SUFFIX, sizeof(srv->suffix));
+
+  BKE_sound_reset_scene_runtime(scene);
+
+  /* color management */
+  colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
+
+  BKE_color_managed_display_settings_init(&scene->display_settings);
+  BKE_color_managed_view_settings_init_render(
+      &scene->view_settings, &scene->display_settings, "Filmic");
+  BLI_strncpy(scene->sequencer_colorspace_settings.name,
+              colorspace_name,
+              sizeof(scene->sequencer_colorspace_settings.name));
+
+  /* Those next two sets (render and baking settings) are not currently in use,
+   * but are exposed to RNA API and hence must have valid data. */
+  BKE_color_managed_display_settings_init(&scene->r.im_format.display_settings);
+  BKE_color_managed_view_settings_init_render(
+      &scene->r.im_format.view_settings, &scene->r.im_format.display_settings, "Filmic");
+
+  BKE_color_managed_display_settings_init(&scene->r.bake.im_format.display_settings);
+  BKE_color_managed_view_settings_init_render(
+      &scene->r.bake.im_format.view_settings, &scene->r.bake.im_format.display_settings, "Filmic");
+
+  /* GP Sculpt brushes */
+  {
+    GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
+    GP_Sculpt_Data *gp_brush;
+    float curcolor_add[3], curcolor_sub[3];
+    ARRAY_SET_ITEMS(curcolor_add, 1.0f, 0.6f, 0.6f);
+    ARRAY_SET_ITEMS(curcolor_sub, 0.6f, 0.6f, 1.0f);
+
+    gp_brush = &gset->brush[GP_SCULPT_TYPE_SMOOTH];
+    gp_brush->size = 25;
+    gp_brush->strength = 0.3f;
+    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_SMOOTH_PRESSURE |
+                     GP_SCULPT_FLAG_ENABLE_CURSOR;
+    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+
+    gp_brush = &gset->brush[GP_SCULPT_TYPE_THICKNESS];
+    gp_brush->size = 25;
+    gp_brush->strength = 0.5f;
+    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
+    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+
+    gp_brush = &gset->brush[GP_SCULPT_TYPE_STRENGTH];
+    gp_brush->size = 25;
+    gp_brush->strength = 0.5f;
+    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
+    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+
+    gp_brush = &gset->brush[GP_SCULPT_TYPE_GRAB];
+    gp_brush->size = 50;
+    gp_brush->strength = 0.3f;
+    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
+    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+
+    gp_brush = &gset->brush[GP_SCULPT_TYPE_PUSH];
+    gp_brush->size = 25;
+    gp_brush->strength = 0.3f;
+    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
+    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+
+    gp_brush = &gset->brush[GP_SCULPT_TYPE_TWIST];
+    gp_brush->size = 50;
+    gp_brush->strength = 0.3f;
+    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
+    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+
+    gp_brush = &gset->brush[GP_SCULPT_TYPE_PINCH];
+    gp_brush->size = 50;
+    gp_brush->strength = 0.5f;
+    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
+    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+
+    gp_brush = &gset->brush[GP_SCULPT_TYPE_RANDOMIZE];
+    gp_brush->size = 25;
+    gp_brush->strength = 0.5f;
+    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
+    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+  }
+
+  /* Curve Profile */
+  scene->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
+
+  for (size_t i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
+    scene->orientation_slots[i].index_custom = -1;
+  }
+
+  /* Master Collection */
+  scene->master_collection = BKE_collection_master_add();
+
+  BKE_view_layer_add(scene, "View Layer");
+}
+
+static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+{
+  Scene *scene_dst = (Scene *)id_dst;
+  const Scene *scene_src = (const Scene *)id_src;
+  /* We never handle usercount here for own data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+  /* We always need allocation of our private ID data. */
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
+
+  scene_dst->ed = NULL;
+  scene_dst->depsgraph_hash = NULL;
+  scene_dst->fps_info = NULL;
+
+  /* Master Collection */
+  if (scene_src->master_collection) {
+    BKE_id_copy_ex(bmain,
+                   (ID *)scene_src->master_collection,
+                   (ID **)&scene_dst->master_collection,
+                   flag_private_id_data);
+  }
+
+  /* View Layers */
+  BLI_duplicatelist(&scene_dst->view_layers, &scene_src->view_layers);
+  for (ViewLayer *view_layer_src = scene_src->view_layers.first,
+                 *view_layer_dst = scene_dst->view_layers.first;
+       view_layer_src;
+       view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next) {
+    BKE_view_layer_copy_data(scene_dst, scene_src, view_layer_dst, view_layer_src, flag_subdata);
+  }
+
+  BLI_duplicatelist(&(scene_dst->markers), &(scene_src->markers));
+  BLI_duplicatelist(&(scene_dst->transform_spaces), &(scene_src->transform_spaces));
+  BLI_duplicatelist(&(scene_dst->r.views), &(scene_src->r.views));
+  BKE_keyingsets_copy(&(scene_dst->keyingsets), &(scene_src->keyingsets));
+
+  if (scene_src->nodetree) {
+    BKE_id_copy_ex(
+        bmain, (ID *)scene_src->nodetree, (ID **)&scene_dst->nodetree, flag_private_id_data);
+    BKE_libblock_relink_ex(bmain,
+                           scene_dst->nodetree,
+                           (void *)(&scene_src->id),
+                           &scene_dst->id,
+                           ID_REMAP_SKIP_NEVER_NULL_USAGE);
+  }
+
+  if (scene_src->rigidbody_world) {
+    scene_dst->rigidbody_world = BKE_rigidbody_world_copy(scene_src->rigidbody_world,
+                                                          flag_subdata);
+  }
+
+  /* copy color management settings */
+  BKE_color_managed_display_settings_copy(&scene_dst->display_settings,
+                                          &scene_src->display_settings);
+  BKE_color_managed_view_settings_copy(&scene_dst->view_settings, &scene_src->view_settings);
+  BKE_color_managed_colorspace_settings_copy(&scene_dst->sequencer_colorspace_settings,
+                                             &scene_src->sequencer_colorspace_settings);
+
+  BKE_color_managed_display_settings_copy(&scene_dst->r.im_format.display_settings,
+                                          &scene_src->r.im_format.display_settings);
+  BKE_color_managed_view_settings_copy(&scene_dst->r.im_format.view_settings,
+                                       &scene_src->r.im_format.view_settings);
+
+  BKE_color_managed_display_settings_copy(&scene_dst->r.bake.im_format.display_settings,
+                                          &scene_src->r.bake.im_format.display_settings);
+  BKE_color_managed_view_settings_copy(&scene_dst->r.bake.im_format.view_settings,
+                                       &scene_src->r.bake.im_format.view_settings);
+
+  BKE_curvemapping_copy_data(&scene_dst->r.mblur_shutter_curve, &scene_src->r.mblur_shutter_curve);
+
+  /* tool settings */
+  scene_dst->toolsettings = BKE_toolsettings_copy(scene_dst->toolsettings, flag_subdata);
+
+  /* make a private copy of the avicodecdata */
+  if (scene_src->r.avicodecdata) {
+    scene_dst->r.avicodecdata = MEM_dupallocN(scene_src->r.avicodecdata);
+    scene_dst->r.avicodecdata->lpFormat = MEM_dupallocN(scene_dst->r.avicodecdata->lpFormat);
+    scene_dst->r.avicodecdata->lpParms = MEM_dupallocN(scene_dst->r.avicodecdata->lpParms);
+  }
+
+  if (scene_src->r.ffcodecdata.properties) {
+    /* intentionally check sce_dst not sce_src. */ /* XXX ??? comment outdated... */
+    scene_dst->r.ffcodecdata.properties = IDP_CopyProperty_ex(scene_src->r.ffcodecdata.properties,
+                                                              flag_subdata);
+  }
+
+  if (scene_src->display.shading.prop) {
+    scene_dst->display.shading.prop = IDP_CopyProperty(scene_src->display.shading.prop);
+  }
+
+  BKE_sound_reset_scene_runtime(scene_dst);
+
+  /* Copy sequencer, this is local data! */
+  if (scene_src->ed) {
+    scene_dst->ed = MEM_callocN(sizeof(*scene_dst->ed), __func__);
+    scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
+    BKE_sequence_base_dupli_recursive(scene_src,
+                                      scene_dst,
+                                      &scene_dst->ed->seqbase,
+                                      &scene_src->ed->seqbase,
+                                      SEQ_DUPE_ALL,
+                                      flag_subdata);
+  }
+
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+    BKE_previewimg_id_copy(&scene_dst->id, &scene_src->id);
+  }
+  else {
+    scene_dst->preview = NULL;
+  }
+
+  BKE_scene_copy_data_eevee(scene_dst, scene_src);
+}
+
+static void scene_free_data(ID *id)
+{
+
+  Scene *scene = (Scene *)id;
+  const bool do_id_user = false;
+
+  BKE_animdata_free((ID *)scene, false);
+
+  BKE_sequencer_editing_free(scene, do_id_user);
+
+  BKE_keyingsets_free(&scene->keyingsets);
+
+  /* is no lib link block, but scene extension */
+  if (scene->nodetree) {
+    ntreeFreeNestedTree(scene->nodetree);
+    MEM_freeN(scene->nodetree);
+    scene->nodetree = NULL;
+  }
+
+  if (scene->rigidbody_world) {
+    BKE_rigidbody_free_world(scene);
+  }
+
+  if (scene->r.avicodecdata) {
+    free_avicodecdata(scene->r.avicodecdata);
+    MEM_freeN(scene->r.avicodecdata);
+    scene->r.avicodecdata = NULL;
+  }
+  if (scene->r.ffcodecdata.properties) {
+    IDP_FreeProperty(scene->r.ffcodecdata.properties);
+    scene->r.ffcodecdata.properties = NULL;
+  }
+
+  BLI_freelistN(&scene->markers);
+  BLI_freelistN(&scene->transform_spaces);
+  BLI_freelistN(&scene->r.views);
+
+  BKE_toolsettings_free(scene->toolsettings);
+  scene->toolsettings = NULL;
+
+  BKE_scene_free_depsgraph_hash(scene);
+
+  MEM_SAFE_FREE(scene->fps_info);
+
+  BKE_sound_destroy_scene(scene);
+
+  BKE_color_managed_view_settings_free(&scene->view_settings);
+
+  BKE_previewimg_free(&scene->preview);
+  BKE_curvemapping_free_data(&scene->r.mblur_shutter_curve);
+
+  for (ViewLayer *view_layer = scene->view_layers.first, *view_layer_next; view_layer;
+       view_layer = view_layer_next) {
+    view_layer_next = view_layer->next;
+
+    BLI_remlink(&scene->view_layers, view_layer);
+    BKE_view_layer_free_ex(view_layer, do_id_user);
+  }
+
+  /* Master Collection */
+  // TODO: what to do with do_id_user? it's also true when just
+  // closing the file which seems wrong? should decrement users
+  // for objects directly in the master collection? then other
+  // collections in the scene need to do it too?
+  if (scene->master_collection) {
+    BKE_collection_free(scene->master_collection);
+    MEM_freeN(scene->master_collection);
+    scene->master_collection = NULL;
+  }
+
+  if (scene->eevee.light_cache) {
+    EEVEE_lightcache_free(scene->eevee.light_cache);
+    scene->eevee.light_cache = NULL;
+  }
+
+  if (scene->display.shading.prop) {
+    IDP_FreeProperty(scene->display.shading.prop);
+    scene->display.shading.prop = NULL;
+  }
+
+  /* These are freed on doversion. */
+  BLI_assert(scene->layer_properties == NULL);
+}
+
+IDTypeInfo IDType_ID_SCE = {
+    .id_code = ID_SCE,
+    .id_filter = FILTER_ID_SCE,
+    .main_listbase_index = INDEX_ID_SCE,
+    .struct_size = sizeof(Scene),
+    .name = "Scene",
+    .name_plural = "scenes",
+    .translation_context = BLT_I18NCONTEXT_ID_SCENE,
+    .flags = 0,
+
+    .init_data = scene_init_data,
+    .copy_data = scene_copy_data,
+    .free_data = scene_free_data,
+    /* For now default `BKE_lib_id_make_local_generic()` should work, may need more work though to
+     * support all possible corner cases. */
+    .make_local = NULL,
+};
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
@@ -233,125 +621,6 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
   }
 
   MEM_freeN(toolsettings);
-}
-
-/**
- * Only copy internal data of Scene ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, const int flag)
-{
-  /* We never handle usercount here for own data. */
-  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
-  /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
-
-  sce_dst->ed = NULL;
-  sce_dst->depsgraph_hash = NULL;
-  sce_dst->fps_info = NULL;
-
-  /* Master Collection */
-  if (sce_src->master_collection) {
-    BKE_id_copy_ex(bmain,
-                   (ID *)sce_src->master_collection,
-                   (ID **)&sce_dst->master_collection,
-                   flag_private_id_data);
-  }
-
-  /* View Layers */
-  BLI_duplicatelist(&sce_dst->view_layers, &sce_src->view_layers);
-  for (ViewLayer *view_layer_src = sce_src->view_layers.first,
-                 *view_layer_dst = sce_dst->view_layers.first;
-       view_layer_src;
-       view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next) {
-    BKE_view_layer_copy_data(sce_dst, sce_src, view_layer_dst, view_layer_src, flag_subdata);
-  }
-
-  BLI_duplicatelist(&(sce_dst->markers), &(sce_src->markers));
-  BLI_duplicatelist(&(sce_dst->transform_spaces), &(sce_src->transform_spaces));
-  BLI_duplicatelist(&(sce_dst->r.views), &(sce_src->r.views));
-  BKE_keyingsets_copy(&(sce_dst->keyingsets), &(sce_src->keyingsets));
-
-  if (sce_src->nodetree) {
-    BKE_id_copy_ex(
-        bmain, (ID *)sce_src->nodetree, (ID **)&sce_dst->nodetree, flag_private_id_data);
-    BKE_libblock_relink_ex(bmain,
-                           sce_dst->nodetree,
-                           (void *)(&sce_src->id),
-                           &sce_dst->id,
-                           ID_REMAP_SKIP_NEVER_NULL_USAGE);
-  }
-
-  if (sce_src->rigidbody_world) {
-    sce_dst->rigidbody_world = BKE_rigidbody_world_copy(sce_src->rigidbody_world, flag_subdata);
-  }
-
-  /* copy color management settings */
-  BKE_color_managed_display_settings_copy(&sce_dst->display_settings, &sce_src->display_settings);
-  BKE_color_managed_view_settings_copy(&sce_dst->view_settings, &sce_src->view_settings);
-  BKE_color_managed_colorspace_settings_copy(&sce_dst->sequencer_colorspace_settings,
-                                             &sce_src->sequencer_colorspace_settings);
-
-  BKE_color_managed_display_settings_copy(&sce_dst->r.im_format.display_settings,
-                                          &sce_src->r.im_format.display_settings);
-  BKE_color_managed_view_settings_copy(&sce_dst->r.im_format.view_settings,
-                                       &sce_src->r.im_format.view_settings);
-
-  BKE_color_managed_display_settings_copy(&sce_dst->r.bake.im_format.display_settings,
-                                          &sce_src->r.bake.im_format.display_settings);
-  BKE_color_managed_view_settings_copy(&sce_dst->r.bake.im_format.view_settings,
-                                       &sce_src->r.bake.im_format.view_settings);
-
-  BKE_curvemapping_copy_data(&sce_dst->r.mblur_shutter_curve, &sce_src->r.mblur_shutter_curve);
-
-  /* tool settings */
-  sce_dst->toolsettings = BKE_toolsettings_copy(sce_dst->toolsettings, flag_subdata);
-
-  /* make a private copy of the avicodecdata */
-  if (sce_src->r.avicodecdata) {
-    sce_dst->r.avicodecdata = MEM_dupallocN(sce_src->r.avicodecdata);
-    sce_dst->r.avicodecdata->lpFormat = MEM_dupallocN(sce_dst->r.avicodecdata->lpFormat);
-    sce_dst->r.avicodecdata->lpParms = MEM_dupallocN(sce_dst->r.avicodecdata->lpParms);
-  }
-
-  if (sce_src->r.ffcodecdata.properties) {
-    /* intentionally check sce_dst not sce_src. */ /* XXX ??? comment outdated... */
-    sce_dst->r.ffcodecdata.properties = IDP_CopyProperty_ex(sce_src->r.ffcodecdata.properties,
-                                                            flag_subdata);
-  }
-
-  if (sce_src->display.shading.prop) {
-    sce_dst->display.shading.prop = IDP_CopyProperty(sce_src->display.shading.prop);
-  }
-
-  BKE_sound_reset_scene_runtime(sce_dst);
-
-  /* Copy sequencer, this is local data! */
-  if (sce_src->ed) {
-    sce_dst->ed = MEM_callocN(sizeof(*sce_dst->ed), __func__);
-    sce_dst->ed->seqbasep = &sce_dst->ed->seqbase;
-    BKE_sequence_base_dupli_recursive(sce_src,
-                                      sce_dst,
-                                      &sce_dst->ed->seqbase,
-                                      &sce_src->ed->seqbase,
-                                      SEQ_DUPE_ALL,
-                                      flag_subdata);
-  }
-
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
-    BKE_previewimg_id_copy(&sce_dst->id, &sce_src->id);
-  }
-  else {
-    sce_dst->preview = NULL;
-  }
-
-  BKE_scene_copy_data_eevee(sce_dst, sce_src);
 }
 
 void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
@@ -488,273 +757,6 @@ void BKE_scene_groups_relink(Scene *sce)
   }
 }
 
-void BKE_scene_make_local(Main *bmain, Scene *sce, const int flags)
-{
-  /* For now should work, may need more work though to support all possible corner cases
-   * (also scene_copy probably needs some love). */
-  BKE_lib_id_make_local_generic(bmain, &sce->id, flags);
-}
-
-/** Free (or release) any data used by this scene (does not free the scene itself). */
-void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
-{
-  BKE_animdata_free((ID *)sce, false);
-
-  BKE_sequencer_editing_free(sce, do_id_user);
-
-  BKE_keyingsets_free(&sce->keyingsets);
-
-  /* is no lib link block, but scene extension */
-  if (sce->nodetree) {
-    ntreeFreeNestedTree(sce->nodetree);
-    MEM_freeN(sce->nodetree);
-    sce->nodetree = NULL;
-  }
-
-  if (sce->rigidbody_world) {
-    BKE_rigidbody_free_world(sce);
-  }
-
-  if (sce->r.avicodecdata) {
-    free_avicodecdata(sce->r.avicodecdata);
-    MEM_freeN(sce->r.avicodecdata);
-    sce->r.avicodecdata = NULL;
-  }
-  if (sce->r.ffcodecdata.properties) {
-    IDP_FreeProperty(sce->r.ffcodecdata.properties);
-    sce->r.ffcodecdata.properties = NULL;
-  }
-
-  BLI_freelistN(&sce->markers);
-  BLI_freelistN(&sce->transform_spaces);
-  BLI_freelistN(&sce->r.views);
-
-  BKE_toolsettings_free(sce->toolsettings);
-  sce->toolsettings = NULL;
-
-  BKE_scene_free_depsgraph_hash(sce);
-
-  MEM_SAFE_FREE(sce->fps_info);
-
-  BKE_sound_destroy_scene(sce);
-
-  BKE_color_managed_view_settings_free(&sce->view_settings);
-
-  BKE_previewimg_free(&sce->preview);
-  BKE_curvemapping_free_data(&sce->r.mblur_shutter_curve);
-
-  for (ViewLayer *view_layer = sce->view_layers.first, *view_layer_next; view_layer;
-       view_layer = view_layer_next) {
-    view_layer_next = view_layer->next;
-
-    BLI_remlink(&sce->view_layers, view_layer);
-    BKE_view_layer_free_ex(view_layer, do_id_user);
-  }
-
-  /* Master Collection */
-  // TODO: what to do with do_id_user? it's also true when just
-  // closing the file which seems wrong? should decrement users
-  // for objects directly in the master collection? then other
-  // collections in the scene need to do it too?
-  if (sce->master_collection) {
-    BKE_collection_free(sce->master_collection);
-    MEM_freeN(sce->master_collection);
-    sce->master_collection = NULL;
-  }
-
-  if (sce->eevee.light_cache) {
-    EEVEE_lightcache_free(sce->eevee.light_cache);
-    sce->eevee.light_cache = NULL;
-  }
-
-  if (sce->display.shading.prop) {
-    IDP_FreeProperty(sce->display.shading.prop);
-    sce->display.shading.prop = NULL;
-  }
-
-  /* These are freed on doversion. */
-  BLI_assert(sce->layer_properties == NULL);
-}
-
-void BKE_scene_free(Scene *sce)
-{
-  BKE_scene_free_ex(sce, true);
-}
-
-/**
- * \note Use DNA_scene_defaults.h where possible.
- */
-void BKE_scene_init(Scene *sce)
-{
-  const char *colorspace_name;
-  SceneRenderView *srv;
-  CurveMapping *mblur_shutter_curve;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(sce, id));
-
-  MEMCPY_STRUCT_AFTER(sce, DNA_struct_default_get(Scene), id);
-
-  BLI_strncpy(sce->r.bake.filepath, U.renderdir, sizeof(sce->r.bake.filepath));
-
-  mblur_shutter_curve = &sce->r.mblur_shutter_curve;
-  BKE_curvemapping_set_defaults(mblur_shutter_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
-  BKE_curvemapping_initialize(mblur_shutter_curve);
-  BKE_curvemap_reset(mblur_shutter_curve->cm,
-                     &mblur_shutter_curve->clipr,
-                     CURVE_PRESET_MAX,
-                     CURVEMAP_SLOPE_POS_NEG);
-
-  sce->toolsettings = DNA_struct_default_alloc(ToolSettings);
-
-  sce->toolsettings->autokey_mode = U.autokey_mode;
-
-  /* grease pencil multiframe falloff curve */
-  sce->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-  CurveMapping *gp_falloff_curve = sce->toolsettings->gp_sculpt.cur_falloff;
-  BKE_curvemapping_initialize(gp_falloff_curve);
-  BKE_curvemap_reset(
-      gp_falloff_curve->cm, &gp_falloff_curve->clipr, CURVE_PRESET_GAUSS, CURVEMAP_SLOPE_POSITIVE);
-
-  sce->toolsettings->gp_sculpt.cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-  CurveMapping *gp_primitive_curve = sce->toolsettings->gp_sculpt.cur_primitive;
-  BKE_curvemapping_initialize(gp_primitive_curve);
-  BKE_curvemap_reset(gp_primitive_curve->cm,
-                     &gp_primitive_curve->clipr,
-                     CURVE_PRESET_BELL,
-                     CURVEMAP_SLOPE_POSITIVE);
-
-  sce->unit.system = USER_UNIT_METRIC;
-  sce->unit.scale_length = 1.0f;
-  sce->unit.length_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_LENGTH);
-  sce->unit.mass_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_MASS);
-  sce->unit.time_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_TIME);
-
-  {
-    ParticleEditSettings *pset;
-    pset = &sce->toolsettings->particle;
-    for (int i = 1; i < ARRAY_SIZE(pset->brush); i++) {
-      pset->brush[i] = pset->brush[0];
-    }
-    pset->brush[PE_BRUSH_CUT].strength = 1.0f;
-  }
-
-  BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(sce->r.engine));
-
-  BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
-
-  /* Note; in header_info.c the scene copy happens...,
-   * if you add more to renderdata it has to be checked there. */
-
-  /* multiview - stereo */
-  BKE_scene_add_render_view(sce, STEREO_LEFT_NAME);
-  srv = sce->r.views.first;
-  BLI_strncpy(srv->suffix, STEREO_LEFT_SUFFIX, sizeof(srv->suffix));
-
-  BKE_scene_add_render_view(sce, STEREO_RIGHT_NAME);
-  srv = sce->r.views.last;
-  BLI_strncpy(srv->suffix, STEREO_RIGHT_SUFFIX, sizeof(srv->suffix));
-
-  BKE_sound_reset_scene_runtime(sce);
-
-  /* color management */
-  colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
-
-  BKE_color_managed_display_settings_init(&sce->display_settings);
-  BKE_color_managed_view_settings_init_render(
-      &sce->view_settings, &sce->display_settings, "Filmic");
-  BLI_strncpy(sce->sequencer_colorspace_settings.name,
-              colorspace_name,
-              sizeof(sce->sequencer_colorspace_settings.name));
-
-  /* Those next two sets (render and baking settings) are not currently in use,
-   * but are exposed to RNA API and hence must have valid data. */
-  BKE_color_managed_display_settings_init(&sce->r.im_format.display_settings);
-  BKE_color_managed_view_settings_init_render(
-      &sce->r.im_format.view_settings, &sce->r.im_format.display_settings, "Filmic");
-
-  BKE_color_managed_display_settings_init(&sce->r.bake.im_format.display_settings);
-  BKE_color_managed_view_settings_init_render(
-      &sce->r.bake.im_format.view_settings, &sce->r.bake.im_format.display_settings, "Filmic");
-
-  /* GP Sculpt brushes */
-  {
-    GP_Sculpt_Settings *gset = &sce->toolsettings->gp_sculpt;
-    GP_Sculpt_Data *gp_brush;
-    float curcolor_add[3], curcolor_sub[3];
-    ARRAY_SET_ITEMS(curcolor_add, 1.0f, 0.6f, 0.6f);
-    ARRAY_SET_ITEMS(curcolor_sub, 0.6f, 0.6f, 1.0f);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_SMOOTH];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.3f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_SMOOTH_PRESSURE |
-                     GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_THICKNESS];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.5f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_STRENGTH];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.5f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_GRAB];
-    gp_brush->size = 50;
-    gp_brush->strength = 0.3f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_PUSH];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.3f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_TWIST];
-    gp_brush->size = 50;
-    gp_brush->strength = 0.3f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_PINCH];
-    gp_brush->size = 50;
-    gp_brush->strength = 0.5f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_RANDOMIZE];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.5f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-  }
-
-  /* Curve Profile */
-  sce->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
-
-  for (int i = 0; i < ARRAY_SIZE(sce->orientation_slots); i++) {
-    sce->orientation_slots[i].index_custom = -1;
-  }
-
-  /* Master Collection */
-  sce->master_collection = BKE_collection_master_add();
-
-  BKE_view_layer_add(sce, "View Layer");
-}
-
 Scene *BKE_scene_add(Main *bmain, const char *name)
 {
   Scene *sce;
@@ -763,7 +765,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
   id_us_min(&sce->id);
   id_us_ensure_real(&sce->id);
 
-  BKE_scene_init(sce);
+  scene_init_data(&sce->id);
 
   return sce;
 }
