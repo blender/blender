@@ -50,6 +50,7 @@ set(SRC
   intern/builder/deg_builder_relations_rig.cc
   intern/builder/deg_builder_relations_scene.cc
   intern/builder/deg_builder_relations_view_layer.cc
+  intern/builder/deg_builder_remove_noop.cc
   intern/builder/deg_builder_rna.cc
   intern/builder/deg_builder_transitive.cc
   intern/debug/deg_debug.cc
@@ -103,6 +104,7 @@ set(SRC
   intern/builder/deg_builder_pchanmap.h
   intern/builder/deg_builder_relations.h
   intern/builder/deg_builder_relations_impl.h
+  intern/builder/deg_builder_remove_noop.h
   intern/builder/deg_builder_rna.h
   intern/builder/deg_builder_transitive.h
   intern/debug/deg_debug.h
