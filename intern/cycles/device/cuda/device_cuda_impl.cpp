@@ -1708,8 +1708,8 @@ void CUDADevice::adaptive_sampling_filter(uint filter_sample,
 {
   const int num_threads_per_block = functions.adaptive_num_threads_per_block;
 
-  /* These are a series of tiny kernels because there is no grid synchronisation
-   * from within a kernel, so multiple kernel launches it is.*/
+  /* These are a series of tiny kernels because there is no grid synchronization
+   * from within a kernel, so multiple kernel launches it is. */
   uint total_work_size = wtile->h * wtile->w;
   void *args2[] = {&d_wtile, &filter_sample, &total_work_size};
   uint num_blocks = divide_up(total_work_size, num_threads_per_block);

@@ -629,7 +629,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
     bArmature *arm = ob->data;
     ok = 1;
     ED_armature_to_edit(arm);
-    /* to ensure all goes in restposition and without striding */
+    /* To ensure all goes in rest-position and without striding. */
 
     arm->needs_flush_to_id = 0;
 

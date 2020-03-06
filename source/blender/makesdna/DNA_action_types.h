@@ -208,10 +208,11 @@ typedef struct bPoseChannel_Runtime {
 
 /* PoseChannel ------------------------------------ */
 
-/* PoseChannel
+/**
+ * PoseChannel
  *
- * A PoseChannel stores the results of Actions and transform information
- * with respect to the restposition of Armature bones
+ * A #bPoseChannel stores the results of Actions and transform information
+ * with respect to the rest-position of #bArmature bones.
  */
 typedef struct bPoseChannel {
   struct bPoseChannel *next, *prev;
@@ -297,7 +298,7 @@ typedef struct bPoseChannel {
   float disp_tail_mat[4][4];
   /**
    * Inverse result of constraints.
-   * doesn't include effect of restposition, parent, and local transform.
+   * doesn't include effect of rest-position, parent, and local transform.
    */
   float constinv[4][4];
 

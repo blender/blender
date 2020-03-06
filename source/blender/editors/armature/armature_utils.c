@@ -677,7 +677,7 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
 
         curBone->roll = -atan2f(difmat[2][0], difmat[2][2]);
 
-        /* and set restposition again */
+        /* And set rest-position again. */
         BKE_armature_where_is_bone(curBone, curBone->parent, false);
         break;
       }
