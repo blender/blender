@@ -672,7 +672,7 @@ class OptiXDevice : public CUDADevice {
       // Run the adaptive sampling kernels at selected samples aligned to step samples.
       uint filter_sample = wtile.start_sample + wtile.num_samples - 1;
       if (task.adaptive_sampling.use && task.adaptive_sampling.need_filter(filter_sample)) {
-        adaptive_sampling_filter(&wtile, d_wtile_ptr, cuda_stream[thread_index]);
+        adaptive_sampling_filter(filter_sample, &wtile, d_wtile_ptr, cuda_stream[thread_index]);
       }
 
       // Wait for launch to finish
