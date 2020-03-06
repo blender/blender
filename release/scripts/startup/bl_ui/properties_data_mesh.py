@@ -487,7 +487,7 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
             col.prop(mesh, "use_remesh_smooth_normals")
             col.prop(mesh, "use_remesh_preserve_volume")
             col.prop(mesh, "use_remesh_preserve_paint_mask")
-            col.prop(mesh, "remesh_preserve_sculpt_face_sets")
+            col.prop(mesh, "use_remesh_preserve_sculpt_face_sets")
             col.operator("object.voxel_remesh", text="Voxel Remesh")
         else:
             col.operator("object.quadriflow_remesh", text="QuadriFlow Remesh")
