@@ -508,14 +508,10 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_LA:
-      if (!test) {
-        BKE_light_make_local(bmain, (Light *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_CA:
-      if (!test) {
-        BKE_camera_make_local(bmain, (Camera *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_SPK:
       if (!test) {
@@ -523,14 +519,10 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_LP:
-      if (!test) {
-        BKE_lightprobe_make_local(bmain, (LightProbe *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_WO:
-      if (!test) {
-        BKE_world_make_local(bmain, (World *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_VF:
       if (!test) {
@@ -753,22 +745,22 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_lattice_copy_data(bmain, (Lattice *)*r_newid, (Lattice *)id, flag);
         break;
       case ID_LA:
-        BKE_light_copy_data(bmain, (Light *)*r_newid, (Light *)id, flag);
+        BLI_assert(0);
         break;
       case ID_SPK:
         BKE_speaker_copy_data(bmain, (Speaker *)*r_newid, (Speaker *)id, flag);
         break;
       case ID_LP:
-        BKE_lightprobe_copy_data(bmain, (LightProbe *)*r_newid, (LightProbe *)id, flag);
+        BLI_assert(0);
         break;
       case ID_CA:
-        BKE_camera_copy_data(bmain, (Camera *)*r_newid, (Camera *)id, flag);
+        BLI_assert(0);
         break;
       case ID_KE:
         BKE_key_copy_data(bmain, (Key *)*r_newid, (Key *)id, flag);
         break;
       case ID_WO:
-        BKE_world_copy_data(bmain, (World *)*r_newid, (World *)id, flag);
+        BLI_assert(0);
         break;
       case ID_TXT:
         BKE_text_copy_data(bmain, (Text *)*r_newid, (Text *)id, flag);
@@ -1374,19 +1366,19 @@ void BKE_libblock_init_empty(ID *id)
       BKE_lattice_init((Lattice *)id);
       break;
     case ID_LA:
-      BKE_light_init((Light *)id);
+      BLI_assert(0);
       break;
     case ID_SPK:
       BKE_speaker_init((Speaker *)id);
       break;
     case ID_LP:
-      BKE_lightprobe_init((LightProbe *)id);
+      BLI_assert(0);
       break;
     case ID_CA:
-      BKE_camera_init((Camera *)id);
+      BLI_assert(0);
       break;
     case ID_WO:
-      BKE_world_init((World *)id);
+      BLI_assert(0);
       break;
     case ID_SCR:
       /* Nothing to do. */

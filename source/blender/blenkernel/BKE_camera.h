@@ -40,15 +40,8 @@ struct rctf;
 
 /* Camera Datablock */
 
-void BKE_camera_init(struct Camera *cam);
 void *BKE_camera_add(struct Main *bmain, const char *name);
-void BKE_camera_copy_data(struct Main *bmain,
-                          struct Camera *cam_dst,
-                          const struct Camera *cam_src,
-                          const int flag);
 struct Camera *BKE_camera_copy(struct Main *bmain, const struct Camera *cam);
-void BKE_camera_make_local(struct Main *bmain, struct Camera *cam, const int flags);
-void BKE_camera_free(struct Camera *ca);
 
 /* Camera Usage */
 

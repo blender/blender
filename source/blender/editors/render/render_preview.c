@@ -958,23 +958,7 @@ static void preview_id_copy_free(ID *id)
     IDP_FreePropertyContent_ex(properties, false);
     MEM_freeN(properties);
   }
-  switch (GS(id->name)) {
-    case ID_MA:
-      BKE_material_free((Material *)id);
-      break;
-    case ID_TE:
-      BKE_texture_free((Tex *)id);
-      break;
-    case ID_LA:
-      BKE_light_free((Light *)id);
-      break;
-    case ID_WO:
-      BKE_world_free((World *)id);
-      break;
-    default:
-      BLI_assert(!"ID type preview not supported.");
-      break;
-  }
+  BKE_libblock_free_datablock(id, 0);
   MEM_freeN(id);
 }
 

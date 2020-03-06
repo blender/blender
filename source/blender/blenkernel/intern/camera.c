@@ -40,6 +40,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
+#include "BKE_idtype.h"
 #include "BKE_object.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -47,14 +48,17 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
 
 /****************************** Camera Datablock *****************************/
 
-void BKE_camera_init(Camera *cam)
+static void camera_init_data(ID *id)
 {
+  Camera *cam = (Camera *)id;
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cam, id));
 
   MEMCPY_STRUCT_AFTER(cam, DNA_struct_default_get(Camera), id);
@@ -66,7 +70,7 @@ void *BKE_camera_add(Main *bmain, const char *name)
 
   cam = BKE_libblock_alloc(bmain, ID_CA, name, 0);
 
-  BKE_camera_init(cam);
+  camera_init_data(&cam->id);
 
   return cam;
 }
@@ -81,11 +85,13 @@ void *BKE_camera_add(Main *bmain, const char *name)
  *
  * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_camera_copy_data(Main *UNUSED(bmain),
-                          Camera *cam_dst,
-                          const Camera *cam_src,
-                          const int UNUSED(flag))
+static void camera_copy_data(Main *UNUSED(bmain),
+                             ID *id_dst,
+                             const ID *id_src,
+                             const int UNUSED(flag))
 {
+  Camera *cam_dst = (Camera *)id_dst;
+  const Camera *cam_src = (const Camera *)id_src;
   BLI_duplicatelist(&cam_dst->bg_images, &cam_src->bg_images);
 }
 
@@ -96,18 +102,35 @@ Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
   return cam_copy;
 }
 
-void BKE_camera_make_local(Main *bmain, Camera *cam, const int flags)
+static void camera_make_local(Main *bmain, ID *id, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &cam->id, flags);
+  BKE_lib_id_make_local_generic(bmain, id, flags);
 }
 
 /** Free (or release) any data used by this camera (does not free the camera itself). */
-void BKE_camera_free(Camera *ca)
+static void camera_free_data(ID *id)
 {
-  BLI_freelistN(&ca->bg_images);
+  Camera *cam = (Camera *)id;
+  BLI_freelistN(&cam->bg_images);
 
-  BKE_animdata_free((ID *)ca, false);
+  BKE_animdata_free(id, false);
 }
+
+IDTypeInfo IDType_ID_CA = {
+    .id_code = ID_CA,
+    .id_filter = FILTER_ID_CA,
+    .main_listbase_index = INDEX_ID_CA,
+    .struct_size = sizeof(Camera),
+    .name = "Camera",
+    .name_plural = "cameras",
+    .translation_context = BLT_I18NCONTEXT_ID_CAMERA,
+    .flags = 0,
+
+    .init_data = camera_init_data,
+    .copy_data = camera_copy_data,
+    .free_data = camera_free_data,
+    .make_local = camera_make_local,
+};
 
 /******************************** Camera Usage *******************************/
 

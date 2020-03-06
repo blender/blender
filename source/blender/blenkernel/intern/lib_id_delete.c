@@ -167,10 +167,10 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_lattice_free((Lattice *)id);
       break;
     case ID_LA:
-      BKE_light_free((Light *)id);
+      BLI_assert(0);
       break;
     case ID_CA:
-      BKE_camera_free((Camera *)id);
+      BLI_assert(0);
       break;
     case ID_IP: /* Deprecated. */
       BKE_ipo_free((Ipo *)id);
@@ -179,7 +179,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_key_free((Key *)id);
       break;
     case ID_WO:
-      BKE_world_free((World *)id);
+      BLI_assert(0);
       break;
     case ID_SCR:
       BKE_screen_free((bScreen *)id);
@@ -194,7 +194,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_speaker_free((Speaker *)id);
       break;
     case ID_LP:
-      BKE_lightprobe_free((LightProbe *)id);
+      BLI_assert(0);
       break;
     case ID_SO:
       BKE_sound_free((bSound *)id);

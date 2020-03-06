@@ -40,13 +40,17 @@
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_icons.h"
+#include "BKE_idtype.h"
 #include "BKE_light.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
-void BKE_light_init(Light *la)
+#include "BLT_translation.h"
+
+static void light_init_data(ID *id)
 {
+  Light *la = (Light *)id;
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(la, id));
 
   MEMCPY_STRUCT_AFTER(la, DNA_struct_default_get(Light), id);
@@ -61,7 +65,7 @@ Light *BKE_light_add(Main *bmain, const char *name)
 
   la = BKE_libblock_alloc(bmain, ID_LA, name, 0);
 
-  BKE_light_init(la);
+  light_init_data(&la->id);
 
   return la;
 }
@@ -76,8 +80,10 @@ Light *BKE_light_add(Main *bmain, const char *name)
  *
  * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_light_copy_data(Main *bmain, Light *la_dst, const Light *la_src, const int flag)
+static void light_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {
+  Light *la_dst = (Light *)id_dst;
+  const Light *la_src = (const Light *)id_src;
   /* We always need allocation of our private ID data. */
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
@@ -129,14 +135,15 @@ Light *BKE_light_localize(Light *la)
   return lan;
 }
 
-void BKE_light_make_local(Main *bmain, Light *la, const int flags)
+static void light_make_local(Main *bmain, ID *id, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &la->id, flags);
+  BKE_lib_id_make_local_generic(bmain, id, flags);
 }
 
-void BKE_light_free(Light *la)
+static void light_free_data(ID *id)
 {
-  BKE_animdata_free((ID *)la, false);
+  Light *la = (Light *)id;
+  BKE_animdata_free(&la->id, false);
 
   BKE_curvemapping_free(la->curfalloff);
 
@@ -151,3 +158,19 @@ void BKE_light_free(Light *la)
   BKE_icon_id_delete(&la->id);
   la->id.icon_id = 0;
 }
+
+IDTypeInfo IDType_ID_LA = {
+    .id_code = ID_LA,
+    .id_filter = FILTER_ID_LA,
+    .main_listbase_index = INDEX_ID_LA,
+    .struct_size = sizeof(Light),
+    .name = "Light",
+    .name_plural = "lights",
+    .translation_context = BLT_I18NCONTEXT_ID_LIGHT,
+    .flags = 0,
+
+    .init_data = light_init_data,
+    .copy_data = light_copy_data,
+    .free_data = light_free_data,
+    .make_local = light_make_local,
+};

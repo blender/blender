@@ -37,10 +37,13 @@
 
 #include "BKE_animsys.h"
 #include "BKE_icons.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_world.h"
+
+#include "BLT_translation.h"
 
 #include "DRW_engine.h"
 
@@ -49,11 +52,12 @@
 #include "GPU_material.h"
 
 /** Free (or release) any data used by this world (does not free the world itself). */
-void BKE_world_free(World *wrld)
+static void world_free_data(ID *id)
 {
-  BKE_animdata_free((ID *)wrld, false);
+  World *wrld = (World *)id;
+  BKE_animdata_free(id, false);
 
-  DRW_drawdata_free((ID *)wrld);
+  DRW_drawdata_free(id);
 
   /* is no lib link block, but world extension */
   if (wrld->nodetree) {
@@ -68,8 +72,9 @@ void BKE_world_free(World *wrld)
   BKE_previewimg_free(&wrld->preview);
 }
 
-void BKE_world_init(World *wrld)
+static void world_init_data(ID *id)
 {
+  World *wrld = (World *)id;
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wrld, id));
 
   MEMCPY_STRUCT_AFTER(wrld, DNA_struct_default_get(World), id);
@@ -81,7 +86,7 @@ World *BKE_world_add(Main *bmain, const char *name)
 
   wrld = BKE_libblock_alloc(bmain, ID_WO, name, 0);
 
-  BKE_world_init(wrld);
+  world_init_data(&wrld->id);
 
   return wrld;
 }
@@ -96,8 +101,10 @@ World *BKE_world_add(Main *bmain, const char *name)
  *
  * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_world_copy_data(Main *bmain, World *wrld_dst, const World *wrld_src, const int flag)
+static void world_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {
+  World *wrld_dst = (World *)id_dst;
+  const World *wrld_src = (const World *)id_src;
   /* We always need allocation of our private ID data. */
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
@@ -154,10 +161,26 @@ World *BKE_world_localize(World *wrld)
   return wrldn;
 }
 
-void BKE_world_make_local(Main *bmain, World *wrld, const int flags)
+static void world_make_local(Main *bmain, ID *id, const int flags)
 {
-  BKE_lib_id_make_local_generic(bmain, &wrld->id, flags);
+  BKE_lib_id_make_local_generic(bmain, id, flags);
 }
+
+IDTypeInfo IDType_ID_WO = {
+    .id_code = ID_WO,
+    .id_filter = FILTER_ID_WO,
+    .main_listbase_index = INDEX_ID_WO,
+    .struct_size = sizeof(World),
+    .name = "World",
+    .name_plural = "worlds",
+    .translation_context = BLT_I18NCONTEXT_ID_WORLD,
+    .flags = 0,
+
+    .init_data = world_init_data,
+    .copy_data = world_copy_data,
+    .free_data = world_free_data,
+    .make_local = world_make_local,
+};
 
 void BKE_world_eval(struct Depsgraph *depsgraph, World *world)
 {
