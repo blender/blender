@@ -1187,10 +1187,22 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   /* else do non-mapped events */
   else if (event->val == KM_PRESS) {
     switch (event->type) {
+      case ESCKEY:
       case RIGHTMOUSE:
         t->state = TRANS_CANCEL;
         handled = true;
         break;
+
+      case SPACEKEY:
+      case PADENTER:
+      case RETKEY:
+        if (event->is_repeat) {
+          break;
+        }
+        t->state = TRANS_CONFIRM;
+        handled = true;
+        break;
+
       /* enforce redraw of transform when modifiers are used */
       case LEFTSHIFTKEY:
       case RIGHTSHIFTKEY:
@@ -1198,12 +1210,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         t->redraw |= TREDRAW_HARD;
         handled = true;
         break;
-
-      case SPACEKEY:
-        t->state = TRANS_CONFIRM;
-        handled = true;
-        break;
-
       case MIDDLEMOUSE:
         if ((t->flag & T_NO_CONSTRAINT) == 0) {
           /* exception for switching to dolly, or trackball, in camera view */
@@ -1240,16 +1246,10 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case ESCKEY:
-        t->state = TRANS_CANCEL;
-        handled = true;
-        break;
-      case PADENTER:
-      case RETKEY:
-        t->state = TRANS_CONFIRM;
-        handled = true;
-        break;
       case GKEY:
+        if (event->is_repeat) {
+          break;
+        }
         /* only switch when... */
         if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
           restoreTransObjects(t);
@@ -1262,6 +1262,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case SKEY:
+        if (event->is_repeat) {
+          break;
+        }
         /* only switch when... */
         if (ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL)) {
           restoreTransObjects(t);
@@ -1274,6 +1277,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case RKEY:
+        if (event->is_repeat) {
+          break;
+        }
         /* only switch when... */
         if (!(t->options & CTX_TEXTURE)) {
           if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION)) {
@@ -1294,6 +1300,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case CKEY:
+        if (event->is_repeat) {
+          break;
+        }
         if (event->alt) {
           if (!(t->options & CTX_NO_PET)) {
             t->flag ^= T_PROP_CONNECTED;
@@ -1305,6 +1314,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case OKEY:
+        if (event->is_repeat) {
+          break;
+        }
         if (t->flag & T_PROP_EDIT && event->shift) {
           t->prop_mode = (t->prop_mode + 1) % PROP_MODE_MAX;
           calculatePropRatio(t);
@@ -1362,6 +1374,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case NKEY:
+        if (event->is_repeat) {
+          break;
+        }
         if (ELEM(t->mode, TFM_ROTATION)) {
           if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
             restoreTransObjects(t);
