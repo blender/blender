@@ -478,7 +478,7 @@ static void BLI_path_unc_to_short(wchar_t *unc)
    *    \\?\C:\ to C:\ and \\?\C:\folder\... to C:\folder\...
    */
   if ((len > 3) && (unc[0] == L'\\') && (unc[1] == L'\\') && (unc[2] == L'?') &&
-      ELEM((unc[3], L'\\', L'/'))) {
+      ELEM(unc[3], L'\\', L'/')) {
     if ((len > 5) && (unc[5] == L':')) {
       wcsncpy(tmp, unc + 4, len - 4);
       tmp[len - 4] = L'\0';
