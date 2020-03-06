@@ -65,18 +65,21 @@ short ANIM_get_keyframing_flags(struct Scene *scene, short incl_mode);
 /* Get (or add relevant data to be able to do so) the Active Action for the given
  * Animation Data block, given an ID block where the Animation Data should reside.
  */
-struct bAction *verify_adt_action(struct Main *bmain, struct ID *id, short add);
+struct bAction *ED_id_action_ensure(struct Main *bmain, struct ID *id);
 
 /* Get (or add relevant data to be able to do so) F-Curve from the given Action.
  * This assumes that all the destinations are valid.
  */
-struct FCurve *verify_fcurve(struct Main *bmain,
-                             struct bAction *act,
-                             const char group[],
-                             struct PointerRNA *ptr,
-                             const char rna_path[],
-                             const int array_index,
-                             short add);
+struct FCurve *ED_action_fcurve_ensure(struct Main *bmain,
+                                       struct bAction *act,
+                                       const char group[],
+                                       struct PointerRNA *ptr,
+                                       const char rna_path[],
+                                       const int array_index);
+
+struct FCurve *ED_action_fcurve_find(struct bAction *act,
+                                     const char rna_path[],
+                                     const int array_index);
 
 /* -------- */
 
@@ -145,7 +148,6 @@ short delete_keyframe(struct Main *bmain,
                       struct ReportList *reports,
                       struct ID *id,
                       struct bAction *act,
-                      const char group[],
                       const char rna_path[],
                       int array_index,
                       float cfra,

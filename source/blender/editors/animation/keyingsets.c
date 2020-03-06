@@ -1136,8 +1136,7 @@ int ANIM_apply_keyingset(
                                    kflag2);
       }
       else if (mode == MODIFYKEY_MODE_DELETE) {
-        success += delete_keyframe(
-            bmain, reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+        success += delete_keyframe(bmain, reports, ksp->id, act, ksp->rna_path, i, cfra, kflag2);
       }
     }
 

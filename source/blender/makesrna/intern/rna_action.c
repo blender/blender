@@ -123,8 +123,8 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
     return NULL;
   }
 
-  /* annoying, check if this exists */
-  if (verify_fcurve(bmain, act, group, NULL, data_path, index, 0)) {
+  /* Annoying, check if this exists. */
+  if (ED_action_fcurve_find(act, data_path, index)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "F-Curve '%s[%d]' already exists in action '%s'",
@@ -133,7 +133,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
                 act->id.name + 2);
     return NULL;
   }
-  return verify_fcurve(bmain, act, group, NULL, data_path, index, 1);
+  return ED_action_fcurve_ensure(bmain, act, group, NULL, data_path, index);
 }
 
 static FCurve *rna_Action_fcurve_find(bAction *act,

@@ -131,13 +131,13 @@ short ANIM_get_keyframing_flags(Scene *scene, short incl_mode)
 /* Get (or add relevant data to be able to do so) the Active Action for the given
  * Animation Data block, given an ID block where the Animation Data should reside.
  */
-bAction *verify_adt_action(Main *bmain, ID *id, short add)
+bAction *ED_id_action_ensure(Main *bmain, ID *id)
 {
   AnimData *adt;
 
   /* init animdata if none available yet */
   adt = BKE_animdata_from_id(id);
-  if ((adt == NULL) && (add)) {
+  if (adt == NULL) {
     adt = BKE_animdata_add_id(id);
   }
   if (adt == NULL) {
@@ -148,7 +148,7 @@ bAction *verify_adt_action(Main *bmain, ID *id, short add)
 
   /* init action if none available yet */
   /* TODO: need some wizardry to handle NLA stuff correct */
-  if ((adt->action == NULL) && (add)) {
+  if (adt->action == NULL) {
     /* init action name from name of ID block */
     char actname[sizeof(id->name) - 2];
     BLI_snprintf(actname, sizeof(actname), "%sAction", id->name + 2);
@@ -172,21 +172,34 @@ bAction *verify_adt_action(Main *bmain, ID *id, short add)
   return adt->action;
 }
 
-/* Get (or add relevant data to be able to do so) F-Curve from the Active Action,
+/**
+ * Find the F-Curve from the Active Action,
  * for the given Animation Data block. This assumes that all the destinations are valid.
  */
-FCurve *verify_fcurve(Main *bmain,
-                      bAction *act,
-                      const char group[],
-                      PointerRNA *ptr,
-                      const char rna_path[],
-                      const int array_index,
-                      short add)
+FCurve *ED_action_fcurve_find(struct bAction *act, const char rna_path[], const int array_index)
+{
+  /* Sanity checks. */
+  if (ELEM(NULL, act, rna_path)) {
+    return NULL;
+  }
+  return list_find_fcurve(&act->curves, rna_path, array_index);
+}
+
+/**
+ * Get (or add relevant data to be able to do so) F-Curve from the Active Action,
+ * for the given Animation Data block. This assumes that all the destinations are valid.
+ */
+FCurve *ED_action_fcurve_ensure(struct Main *bmain,
+                                struct bAction *act,
+                                const char group[],
+                                struct PointerRNA *ptr,
+                                const char rna_path[],
+                                const int array_index)
 {
   bActionGroup *agrp;
   FCurve *fcu;
 
-  /* sanity checks */
+  /* Sanity checks. */
   if (ELEM(NULL, act, rna_path)) {
     return NULL;
   }
@@ -197,7 +210,7 @@ FCurve *verify_fcurve(Main *bmain,
    */
   fcu = list_find_fcurve(&act->curves, rna_path, array_index);
 
-  if ((fcu == NULL) && (add)) {
+  if (fcu == NULL) {
     /* use default settings to make a F-Curve */
     fcu = MEM_callocN(sizeof(FCurve), "FCurve");
 
@@ -1284,7 +1297,9 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
    *   but still try to get the F-Curve if it exists...
    */
   bool can_create_curve = (flag & (INSERTKEY_REPLACE | INSERTKEY_AVAILABLE)) == 0;
-  FCurve *fcu = verify_fcurve(bmain, act, group, ptr, rna_path, array_index, can_create_curve);
+  FCurve *fcu = can_create_curve ?
+                    ED_action_fcurve_ensure(bmain, act, group, ptr, rna_path, array_index) :
+                    ED_action_fcurve_find(act, rna_path, array_index);
 
   /* we may not have a F-Curve when we're replacing only... */
   if (fcu) {
@@ -1361,7 +1376,7 @@ short insert_keyframe(Main *bmain,
   /* if no action is provided, keyframe to the default one attached to this ID-block */
   if (act == NULL) {
     /* get action to add F-Curve+keyframe to */
-    act = verify_adt_action(bmain, id, 1);
+    act = ED_id_action_ensure(bmain, id);
 
     if (act == NULL) {
       BKE_reportf(reports,
@@ -1559,7 +1574,6 @@ short delete_keyframe(Main *bmain,
                       ReportList *reports,
                       ID *id,
                       bAction *act,
-                      const char group[],
                       const char rna_path[],
                       int array_index,
                       float cfra,
@@ -1625,7 +1639,7 @@ short delete_keyframe(Main *bmain,
 
   /* will only loop once unless the array index was -1 */
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = verify_fcurve(bmain, act, group, &ptr, rna_path, array_index, 0);
+    FCurve *fcu = ED_action_fcurve_find(act, rna_path, array_index);
 
     /* check if F-Curve exists and/or whether it can be edited */
     if (fcu == NULL) {
@@ -1665,7 +1679,6 @@ static short clear_keyframe(Main *bmain,
                             ReportList *reports,
                             ID *id,
                             bAction *act,
-                            const char group[],
                             const char rna_path[],
                             int array_index,
                             eInsertKeyFlags UNUSED(flag))
@@ -1727,7 +1740,7 @@ static short clear_keyframe(Main *bmain,
 
   /* will only loop once unless the array index was -1 */
   for (; array_index < array_index_max; array_index++) {
-    FCurve *fcu = verify_fcurve(bmain, act, group, &ptr, rna_path, array_index, 0);
+    FCurve *fcu = ED_action_fcurve_find(act, rna_path, array_index);
 
     /* check if F-Curve exists and/or whether it can be edited */
     if (fcu == NULL) {
@@ -2576,8 +2589,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
           index = -1;
         }
 
-        success = delete_keyframe(
-            bmain, op->reports, ptr.owner_id, NULL, NULL, path, index, cfra, 0);
+        success = delete_keyframe(bmain, op->reports, ptr.owner_id, NULL, path, index, cfra, 0);
         MEM_freeN(path);
       }
       else if (G.debug & G_DEBUG) {
@@ -2645,7 +2657,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
         index = -1;
       }
 
-      success += clear_keyframe(bmain, op->reports, ptr.owner_id, NULL, NULL, path, index, 0);
+      success += clear_keyframe(bmain, op->reports, ptr.owner_id, NULL, path, index, 0);
       MEM_freeN(path);
     }
     else if (G.debug & G_DEBUG) {

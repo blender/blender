@@ -197,7 +197,7 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
   bAction *act;
 
   if (!ob->adt || !ob->adt->action) {
-    act = verify_adt_action(bmain, (ID *)&ob->id, 1);
+    act = ED_id_action_ensure(bmain, (ID *)&ob->id);
   }
   else {
     act = ob->adt->action;
@@ -941,7 +941,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
     }
   }
   Main *bmain = CTX_data_main(mContext);
-  verify_adt_action(bmain, (ID *)&ob->id, 1);
+  ED_id_action_ensure(bmain, (ID *)&ob->id);
 
   ListBase *curves = &ob->adt->action->curves;
 
@@ -1006,7 +1006,7 @@ static ListBase &get_animation_curves(Main *bmain, Material *ma)
 {
   bAction *act;
   if (!ma->adt || !ma->adt->action) {
-    act = verify_adt_action(bmain, (ID *)&ma->id, 1);
+    act = ED_id_action_ensure(bmain, (ID *)&ma->id);
   }
   else {
     act = ma->adt->action;
@@ -1052,7 +1052,7 @@ void AnimationImporter::translate_Animations(
     }
 
     if (!ob->adt || !ob->adt->action) {
-      act = verify_adt_action(bmain, (ID *)&ob->id, 1);
+      act = ED_id_action_ensure(bmain, (ID *)&ob->id);
     }
     else {
       act = ob->adt->action;
@@ -1115,7 +1115,7 @@ void AnimationImporter::translate_Animations(
   if ((animType->light) != 0) {
     Light *lamp = (Light *)ob->data;
     if (!lamp->adt || !lamp->adt->action) {
-      act = verify_adt_action(bmain, (ID *)&lamp->id, 1);
+      act = ED_id_action_ensure(bmain, (ID *)&lamp->id);
     }
     else {
       act = lamp->adt->action;
@@ -1153,7 +1153,7 @@ void AnimationImporter::translate_Animations(
 
     Camera *cam = (Camera *)ob->data;
     if (!cam->adt || !cam->adt->action) {
-      act = verify_adt_action(bmain, (ID *)&cam->id, 1);
+      act = ED_id_action_ensure(bmain, (ID *)&cam->id);
     }
     else {
       act = cam->adt->action;
@@ -1209,7 +1209,7 @@ void AnimationImporter::translate_Animations(
 
     Material *ma = BKE_object_material_get(ob, 1);
     if (!ma->adt || !ma->adt->action) {
-      act = verify_adt_action(bmain, (ID *)&ma->id, 1);
+      act = ED_id_action_ensure(bmain, (ID *)&ma->id);
     }
     else {
       act = ma->adt->action;
@@ -1390,7 +1390,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     }
   }
   Main *bmain = CTX_data_main(mContext);
-  verify_adt_action(bmain, (ID *)&ob->id, 1);
+  ED_id_action_ensure(bmain, (ID *)&ob->id);
 
   /* add curves */
   for (int i = 0; i < totcu; i++) {
@@ -1823,7 +1823,7 @@ Object *AnimationImporter::translate_animation_OLD(
 #endif
   }
   Main *bmain = CTX_data_main(mContext);
-  verify_adt_action(bmain, (ID *)&ob->id, 1);
+  ED_id_action_ensure(bmain, (ID *)&ob->id);
 
   ListBase *curves = &ob->adt->action->curves;
 
@@ -2129,7 +2129,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root,
     mul_v3_fl(job->scale, 0.5f);
     DEG_id_tag_update(&job->id, ID_RECALC_TRANSFORM);
 
-    verify_adt_action((ID *)&job->id, 1);
+    ED_id_action_ensure((ID *)&job->id);
 
     job->rotmode = ROT_MODE_QUAT;
 
