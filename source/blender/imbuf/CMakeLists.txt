@@ -143,7 +143,7 @@ endif()
 
 if(WITH_CODEC_AVI)
   list(APPEND INC
-    ../avi
+    ../io/avi
   )
   list(APPEND LIB
     bf_avi

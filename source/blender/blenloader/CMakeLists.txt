@@ -87,7 +87,7 @@ endif()
 
 if(WITH_ALEMBIC)
   list(APPEND INC
-    ../alembic
+    ../io/alembic
   )
   add_definitions(-DWITH_ALEMBIC)
 endif()

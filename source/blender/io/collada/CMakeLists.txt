@@ -33,19 +33,19 @@ endif()
 
 set(INC
   .
-  ../blenkernel
-  ../blenlib
-  ../blentranslation
-  ../depsgraph
-  ../editors/include
-  ../imbuf
-  ../makesdna
-  ../makesrna
-  ../windowmanager
-  ../../../intern/guardedalloc
-  ../ikplugin
-  ../../../intern/iksolver/extern
-  ../bmesh
+  ../../blenkernel
+  ../../blenlib
+  ../../blentranslation
+  ../../depsgraph
+  ../../editors/include
+  ../../imbuf
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../ikplugin
+  ../../../../intern/iksolver/extern
+  ../../bmesh
 )
 
 set(INC_SYS

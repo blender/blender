@@ -23,7 +23,7 @@ set(INC
   ..
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel
-  ../../../source/blender/alembic
+  ../../../source/blender/io/alembic
   ../../../source/blender/makesdna
   ../../../source/blender/depsgraph
   ${ALEMBIC_INCLUDE_DIRS}

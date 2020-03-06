@@ -42,7 +42,7 @@
 #  include "WM_types.h"
 
 #  ifdef WITH_ALEMBIC
-#    include "../../../alembic/ABC_alembic.h"
+#    include "ABC_alembic.h"
 #  endif
 
 static void rna_CacheFile_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

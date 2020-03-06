@@ -20,9 +20,9 @@
 
 set(INC
   .
-  ../blenlib
-  ../imbuf
-  ../../../intern/guardedalloc
+  ../../blenlib
+  ../../imbuf
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS

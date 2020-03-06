@@ -32,17 +32,17 @@ add_definitions(-DPXR_STATIC)
 
 set(INC
   .
-  ../blenkernel
-  ../blenlib
-  ../blenloader
-  ../bmesh
-  ../depsgraph
-  ../editors/include
-  ../makesdna
-  ../makesrna
-  ../windowmanager
-  ../../../intern/guardedalloc
-  ../../../intern/utfconv
+  ../../blenkernel
+  ../../blenlib
+  ../../blenloader
+  ../../bmesh
+  ../../depsgraph
+  ../../editors/include
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+  ../../../../intern/utfconv
 )
 
 set(INC_SYS

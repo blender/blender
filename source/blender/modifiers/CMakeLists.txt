@@ -116,7 +116,7 @@ set(LIB
 if(WITH_ALEMBIC)
   add_definitions(-DWITH_ALEMBIC)
   list(APPEND INC
-    ../alembic
+    ../io/alembic
   )
   list(APPEND LIB
     bf_alembic

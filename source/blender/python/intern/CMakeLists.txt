@@ -305,14 +305,14 @@ endif()
 if(WITH_ALEMBIC)
   add_definitions(-DWITH_ALEMBIC)
   list(APPEND INC
-    ../../alembic
+    ../../io/alembic
   )
 endif()
 
 if(WITH_USD)
   add_definitions(-DWITH_USD)
   list(APPEND INC
-    ../../usd
+    ../../io/usd
   )
 endif()
 

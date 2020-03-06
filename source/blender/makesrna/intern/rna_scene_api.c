@@ -38,7 +38,7 @@
 #include "rna_internal.h" /* own include */
 
 #ifdef WITH_ALEMBIC
-#  include "../../alembic/ABC_alembic.h"
+#  include "ABC_alembic.h"
 #endif
 
 const EnumPropertyItem rna_enum_abc_compression_items[] = {

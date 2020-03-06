@@ -35,7 +35,7 @@ set(INC
   ..
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel
-  ../../../source/blender/usd
+  ../../../source/blender/io/usd
   ../../../source/blender/makesdna
   ../../../source/blender/depsgraph
   ${USD_INCLUDE_DIRS}

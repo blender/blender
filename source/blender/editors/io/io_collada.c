@@ -48,7 +48,7 @@
 #  include "WM_api.h"
 #  include "WM_types.h"
 
-#  include "../../collada/collada.h"
+#  include "collada.h"
 
 #  include "io_collada.h"
 
