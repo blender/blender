@@ -540,9 +540,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_AC:
-      if (!test) {
-        BKE_action_make_local(bmain, (bAction *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_NT:
       BLI_assert(0);
@@ -758,7 +756,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_AC:
-        BKE_action_copy_data(bmain, (bAction *)*r_newid, (bAction *)id, flag);
+        BLI_assert(0);
         break;
       case ID_NT:
         BLI_assert(0);

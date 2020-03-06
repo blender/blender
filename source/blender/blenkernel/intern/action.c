@@ -50,6 +50,7 @@
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -77,6 +78,98 @@ static CLG_LogRef LOG = {"bke.action"};
  *
  * ****************************** (ton) ************************************ */
 
+/**************************** Action Datablock ******************************/
+
+/*********************** Armature Datablock ***********************/
+
+/**
+ * Only copy internal data of Action ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ */
+static void action_copy_data(Main *UNUSED(bmain),
+                             ID *id_dst,
+                             const ID *id_src,
+                             const int UNUSED(flag))
+{
+  bAction *action_dst = (bAction *)id_dst;
+  const bAction *action_src = (const bAction *)id_src;
+
+  bActionGroup *group_dst, *group_src;
+  FCurve *fcurve_dst, *fcurve_src;
+
+  /* Duplicate the lists of groups and markers. */
+  BLI_duplicatelist(&action_dst->groups, &action_src->groups);
+  BLI_duplicatelist(&action_dst->markers, &action_src->markers);
+
+  /* Copy F-Curves, fixing up the links as we go. */
+  BLI_listbase_clear(&action_dst->curves);
+
+  for (fcurve_src = action_src->curves.first; fcurve_src; fcurve_src = fcurve_src->next) {
+    /* Duplicate F-Curve. */
+
+    /* XXX TODO pass subdata flag?
+     * But surprisingly does not seem to be doing any ID refcounting... */
+    fcurve_dst = copy_fcurve(fcurve_src);
+
+    BLI_addtail(&action_dst->curves, fcurve_dst);
+
+    /* Fix group links (kindof bad list-in-list search, but this is the most reliable way). */
+    for (group_dst = action_dst->groups.first, group_src = action_src->groups.first;
+         group_dst && group_src;
+         group_dst = group_dst->next, group_src = group_src->next) {
+      if (fcurve_src->grp == group_src) {
+        fcurve_dst->grp = group_dst;
+
+        if (group_dst->channels.first == fcurve_src) {
+          group_dst->channels.first = fcurve_dst;
+        }
+        if (group_dst->channels.last == fcurve_src) {
+          group_dst->channels.last = fcurve_dst;
+        }
+        break;
+      }
+    }
+  }
+}
+
+/** Free (or release) any data used by this action (does not free the action itself). */
+static void action_free_data(struct ID *id)
+{
+  bAction *action = (bAction *)id;
+  /* No animdata here. */
+
+  /* Free F-Curves. */
+  free_fcurves(&action->curves);
+
+  /* Free groups. */
+  BLI_freelistN(&action->groups);
+
+  /* Free pose-references (aka local markers). */
+  BLI_freelistN(&action->markers);
+}
+
+IDTypeInfo IDType_ID_AC = {
+    .id_code = ID_AC,
+    .id_filter = FILTER_ID_AC,
+    .main_listbase_index = INDEX_ID_AC,
+    .struct_size = sizeof(bAction),
+    .name = "Action",
+    .name_plural = "actions",
+    .translation_context = BLT_I18NCONTEXT_ID_ACTION,
+    .flags = 0,
+
+    .init_data = NULL,
+    .copy_data = action_copy_data,
+    .free_data = action_free_data,
+    .make_local = NULL,
+};
+
 /* ***************** Library data level operations on action ************** */
 
 bAction *BKE_action_add(Main *bmain, const char name[])
@@ -89,83 +182,6 @@ bAction *BKE_action_add(Main *bmain, const char name[])
 }
 
 /* .................................. */
-
-// does copy_fcurve...
-void BKE_action_make_local(Main *bmain, bAction *act, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &act->id, flags);
-}
-
-/* .................................. */
-
-/** Free (or release) any data used by this action (does not free the action itself). */
-void BKE_action_free(bAction *act)
-{
-  /* No animdata here. */
-
-  /* Free F-Curves */
-  free_fcurves(&act->curves);
-
-  /* Free groups */
-  BLI_freelistN(&act->groups);
-
-  /* Free pose-references (aka local markers) */
-  BLI_freelistN(&act->markers);
-}
-
-/* .................................. */
-
-/**
- * Only copy internal data of Action ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_action_copy_data(Main *UNUSED(bmain),
-                          bAction *act_dst,
-                          const bAction *act_src,
-                          const int UNUSED(flag))
-{
-  bActionGroup *grp_dst, *grp_src;
-  FCurve *fcu_dst, *fcu_src;
-
-  /* duplicate the lists of groups and markers */
-  BLI_duplicatelist(&act_dst->groups, &act_src->groups);
-  BLI_duplicatelist(&act_dst->markers, &act_src->markers);
-
-  /* copy F-Curves, fixing up the links as we go */
-  BLI_listbase_clear(&act_dst->curves);
-
-  for (fcu_src = act_src->curves.first; fcu_src; fcu_src = fcu_src->next) {
-    /* duplicate F-Curve */
-
-    /* XXX TODO pass subdata flag?
-     * But surprisingly does not seem to be doing any ID refcounting... */
-    fcu_dst = copy_fcurve(fcu_src);
-
-    BLI_addtail(&act_dst->curves, fcu_dst);
-
-    /* fix group links (kindof bad list-in-list search, but this is the most reliable way) */
-    for (grp_dst = act_dst->groups.first, grp_src = act_src->groups.first; grp_dst && grp_src;
-         grp_dst = grp_dst->next, grp_src = grp_src->next) {
-      if (fcu_src->grp == grp_src) {
-        fcu_dst->grp = grp_dst;
-
-        if (grp_dst->channels.first == fcu_src) {
-          grp_dst->channels.first = fcu_dst;
-        }
-        if (grp_dst->channels.last == fcu_src) {
-          grp_dst->channels.last = fcu_dst;
-        }
-        break;
-      }
-    }
-  }
-}
 
 bAction *BKE_action_copy(Main *bmain, const bAction *act_src)
 {

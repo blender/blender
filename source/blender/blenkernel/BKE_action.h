@@ -47,17 +47,8 @@ struct bPoseChannel_Runtime;
 /* Allocate a new bAction with the given name */
 struct bAction *BKE_action_add(struct Main *bmain, const char name[]);
 
-void BKE_action_copy_data(struct Main *bmain,
-                          struct bAction *act_dst,
-                          const struct bAction *act_src,
-                          const int flag);
 /* Allocate a copy of the given Action and all its data */
 struct bAction *BKE_action_copy(struct Main *bmain, const struct bAction *act_src);
-
-/* Deallocate all of the Action's data, but not the Action itself */
-void BKE_action_free(struct bAction *act);
-
-void BKE_action_make_local(struct Main *bmain, struct bAction *act, const int flags);
 
 /* Action API ----------------- */
 
