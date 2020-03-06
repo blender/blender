@@ -1756,6 +1756,7 @@ def write_rst_contents(basepath):
     app_modules = (
         "bpy.context",  # note: not actually a module
         "bpy.data",     # note: not actually a module
+        "bpy.msgbus",   # note: not actually a module
         "bpy.ops",
         "bpy.types",
 
@@ -1844,6 +1845,29 @@ def write_rst_ops_index(basepath):
         fw("   :glob:\n\n")
         fw("   bpy.ops.*\n\n")
         file.close()
+
+
+def write_rst_msgbus(basepath):
+    """
+    Write the rst files of bpy.msgbus module
+    """
+    if 'bpy.msgbus' in EXCLUDE_MODULES:
+        return
+
+    # Write the index.
+    filepath = os.path.join(basepath, "bpy.msgbus.rst")
+    file = open(filepath, "w", encoding="utf-8")
+    fw = file.write
+    fw(title_string("Message Bus (bpy.msgbus)", "="))
+    write_example_ref("", fw, "bpy.msgbus")
+    fw(".. toctree::\n")
+    fw("   :glob:\n\n")
+    fw("   bpy.msgbus.*\n\n")
+    file.close()
+
+    # Write the contents.
+    pymodule2sphinx(basepath, 'bpy.msgbus', bpy.msgbus, 'Message Bus')
+    EXAMPLE_SET_USED.add("bpy.msgbus")
 
 
 def write_rst_data(basepath):
@@ -2000,6 +2024,7 @@ def rna2sphinx(basepath):
     write_rst_bpy(basepath)                 # bpy, disabled by default
     write_rst_types_index(basepath)         # bpy.types
     write_rst_ops_index(basepath)           # bpy.ops
+    write_rst_msgbus(basepath)              # bpy.msgbus
     pyrna2sphinx(basepath)                  # bpy.types.* and bpy.ops.*
     write_rst_data(basepath)                # bpy.data
     write_rst_importable_modules(basepath)
