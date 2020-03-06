@@ -20,6 +20,7 @@
  * to.
  */
 
+/* clang-format off */
 #include <sstream>
 
 #include "Silhouette.h"
@@ -37,6 +38,7 @@ extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 }
+/* clang-format on */
 
 namespace Freestyle {
 

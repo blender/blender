@@ -21,6 +21,7 @@
  * \ingroup freestyle
  */
 
+/* clang-format off */
 #include <string.h>
 #include <float.h>
 
@@ -63,6 +64,7 @@ extern "C" {
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
+/* clang-format on */
 
 namespace Freestyle {
 

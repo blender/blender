@@ -18,6 +18,7 @@
  * \ingroup freestyle
  */
 
+/* clang-format off */
 #include <iostream>
 
 #include "Controller.h"
@@ -45,6 +46,7 @@ extern "C" {
 
 #include "FRS_freestyle.h"
 }
+/* clang-format on */
 
 namespace Freestyle {
 

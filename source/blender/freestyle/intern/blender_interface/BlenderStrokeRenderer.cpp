@@ -18,6 +18,7 @@
  * \ingroup freestyle
  */
 
+/* clang-format off */
 #include "BlenderStrokeRenderer.h"
 
 #include "../application/AppConfig.h"
@@ -67,6 +68,7 @@ extern "C" {
 }
 
 #include <limits.h>
+/* clang-format on */
 
 namespace Freestyle {
 

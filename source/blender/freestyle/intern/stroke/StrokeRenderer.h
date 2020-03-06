@@ -22,6 +22,7 @@
  * \brief Classes to render a stroke with OpenGL
  */
 
+/* clang-format off */
 #include <map>
 #include <string.h>
 #include <algorithm>
@@ -36,6 +37,7 @@
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
+/* clang-format on */
 
 namespace Freestyle {
 

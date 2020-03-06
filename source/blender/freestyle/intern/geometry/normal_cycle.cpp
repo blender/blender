@@ -29,8 +29,10 @@
  * \ingroup freestyle
  */
 
+/* clang-format off */
 #include "matrix_util.h"
 #include "normal_cycle.h"
+/* clang-format on */
 
 namespace Freestyle {
 

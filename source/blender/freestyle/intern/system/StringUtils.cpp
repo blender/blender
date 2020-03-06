@@ -19,10 +19,12 @@
  * \brief String utilities
  */
 
+/* clang-format off */
 // soc #include <qfileinfo.h>
 
 #include "FreestyleConfig.h"
 #include "StringUtils.h"
+/* clang-format on */
 
 namespace Freestyle {
 

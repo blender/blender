@@ -22,6 +22,7 @@
  * \brief Class gathering stroke creation algorithms
  */
 
+/* clang-format off */
 #include <string>
 
 #include "AdvancedFunctions1D.h"
@@ -34,6 +35,7 @@
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
+/* clang-format on */
 
 namespace Freestyle {
 

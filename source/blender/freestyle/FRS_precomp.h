@@ -1,4 +1,6 @@
 /* Pre-compiled headers, see: D2606. */
+
+/* clang-format off */
 #include <Python.h>
 #include <pthread.h>
 #include <string>
@@ -45,3 +47,5 @@
 #include "intern/python/BPy_ViewMap.h"
 #include "intern/python/BPy_ViewShape.h"
 #include "intern/python/Director.h"
+
+/* clang-format on */

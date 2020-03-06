@@ -19,6 +19,7 @@
  * \brief Class to define a cleaner of geometry providing a set of useful tools
  */
 
+/* clang-format off */
 #if 0
 #  if defined(__GNUC__) && (__GNUC__ >= 3)
 // hash_map is not part of the C++ standard anymore;
@@ -38,6 +39,7 @@
 #include "../system/TimeUtils.h"
 
 #include "BKE_global.h"
+/* clang-format on */
 
 using namespace std;
 

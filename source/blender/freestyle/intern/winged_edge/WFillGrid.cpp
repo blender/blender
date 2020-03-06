@@ -19,8 +19,10 @@
  * \brief Class to fill in a grid from a SceneGraph (uses only the WingedEdge structures)
  */
 
+/* clang-format off */
 #include "WEdge.h"
 #include "WFillGrid.h"
+/* clang-format on */
 
 namespace Freestyle {
 

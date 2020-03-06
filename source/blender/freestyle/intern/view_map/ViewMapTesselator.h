@@ -22,6 +22,7 @@
  * \brief Class to build a Node Tree designed to be displayed from a Silhouette View Map structure.
  */
 
+/* clang-format off */
 #include "Silhouette.h"
 #include "ViewMap.h"
 
@@ -36,6 +37,7 @@
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
+/* clang-format on */
 
 namespace Freestyle {
 

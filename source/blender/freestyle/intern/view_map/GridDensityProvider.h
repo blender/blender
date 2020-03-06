@@ -22,6 +22,7 @@
  * \brief Class to define a cell grid surrounding the projected image of a scene
  */
 
+/* clang-format off */
 #include <stdexcept>
 #include <algorithm>
 #include <memory>
@@ -36,6 +37,7 @@
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
+/* clang-format on */
 
 namespace Freestyle {
 

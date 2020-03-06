@@ -19,6 +19,7 @@
  * \brief Class to define a canvas designed to draw style modules
  */
 
+/* clang-format off */
 #include <sstream>
 #include <vector>
 
@@ -45,6 +46,7 @@ extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 }
+/* clang-format on */
 
 using namespace std;
 

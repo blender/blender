@@ -22,6 +22,7 @@
  * \brief Python Interpreter
  */
 
+/* clang-format off */
 #include <iostream>
 
 extern "C" {
@@ -48,6 +49,7 @@ extern "C" {
 
 #include "bpy_capi_utils.h"
 }
+/* clang-format on */
 
 namespace Freestyle {
 

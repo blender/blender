@@ -18,6 +18,7 @@
  * \ingroup freestyle
  */
 
+/* clang-format off */
 #include "Controller.h"
 #include "AppView.h"
 #include "../image/Image.h"
@@ -28,7 +29,7 @@
 #include "../stroke/StyleModule.h"
 
 #include "../system/StringUtils.h"
-
+/* clang-format on */
 namespace Freestyle {
 
 AppCanvas::AppCanvas() : Canvas()

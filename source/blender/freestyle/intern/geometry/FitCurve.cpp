@@ -20,11 +20,13 @@
  * \brief from "Graphics Gems", Academic Press, 1990
  */
 
+/* clang-format off */
 #include <cstdlib>  // for malloc and free
 #include <stdio.h>
 #include <math.h>
 
 #include "FitCurve.h"
+/* clang-format on */
 
 using namespace std;
 

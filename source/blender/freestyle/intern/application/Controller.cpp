@@ -18,6 +18,7 @@
  * \ingroup freestyle
  */
 
+/* clang-format off */
 extern "C" {
 #include <Python.h>
 }
@@ -69,6 +70,7 @@ extern "C" {
 #include "DNA_freestyle_types.h"
 
 #include "FRS_freestyle.h"
+/* clang-format off */
 
 namespace Freestyle {
 

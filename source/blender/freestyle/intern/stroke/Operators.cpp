@@ -19,6 +19,7 @@
  * \brief Class gathering stroke creation algorithms
  */
 
+/* clang-format off */
 #include <algorithm>
 #include <stdexcept>
 
@@ -29,6 +30,7 @@
 #include "CurveIterators.h"
 
 #include "BKE_global.h"
+/* clang-format on */
 
 namespace Freestyle {
 

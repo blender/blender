@@ -19,6 +19,7 @@
  * \brief Class to build silhouette edges from a Winged-Edge structure
  */
 
+/* clang-format off */
 #include <algorithm>
 #include <memory>
 #include <stdexcept>
@@ -39,6 +40,7 @@
 #include "../winged_edge/WFillGrid.h"
 
 #include "BKE_global.h"
+/* clang-format on */
 
 namespace Freestyle {
 

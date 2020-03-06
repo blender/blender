@@ -21,6 +21,7 @@
  * \ingroup freestyle
  */
 
+/* clang-format off */
 #include "AppConfig.h"
 #include "../geometry/Geom.h"
 #include "../geometry/BBox.h"
@@ -32,6 +33,7 @@
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
+/* clang-format on */
 
 namespace Freestyle {
 

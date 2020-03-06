@@ -19,6 +19,7 @@
  * \brief Class to define a container for curves
  */
 
+/* clang-format off */
 #include <stdio.h> /* printf */
 
 #include "Curve.h"
@@ -27,6 +28,7 @@
 
 #include "BKE_global.h"
 #include "BLI_utildefines.h"
+/* clang-format on */
 
 namespace Freestyle {
 

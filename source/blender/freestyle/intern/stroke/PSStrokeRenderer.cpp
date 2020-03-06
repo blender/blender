@@ -19,8 +19,10 @@
  * \brief Class to define the Postscript rendering of a stroke
  */
 
+/* clang-format off */
 #include "Canvas.h"
 #include "PSStrokeRenderer.h"
+/* clang-format on */
 
 namespace Freestyle {
 
