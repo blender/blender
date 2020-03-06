@@ -209,7 +209,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_action_free((bAction *)id);
       break;
     case ID_NT:
-      ntreeFreeTree((bNodeTree *)id);
+      BLI_assert(0);
       break;
     case ID_BR:
       BLI_assert(0);

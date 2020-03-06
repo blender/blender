@@ -381,17 +381,12 @@ struct GHashIterator *ntreeTypeGetIterator(void);
 
 void ntreeSetTypes(const struct bContext *C, struct bNodeTree *ntree);
 
-void ntreeInitDefault(struct bNodeTree *ntree);
 struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char *idname);
 
 /* copy/free funcs, need to manage ID users */
 void ntreeFreeTree(struct bNodeTree *ntree);
 /* Free tree which is owned byt another datablock. */
 void ntreeFreeNestedTree(struct bNodeTree *ntree);
-void BKE_node_tree_copy_data(struct Main *bmain,
-                             struct bNodeTree *ntree_dst,
-                             const struct bNodeTree *ntree_src,
-                             const int flag);
 struct bNodeTree *ntreeCopyTree_ex(const struct bNodeTree *ntree,
                                    struct Main *bmain,
                                    const bool do_id_user);
@@ -404,7 +399,6 @@ struct bNodeTree **BKE_ntree_ptr_from_id(struct ID *id);
 struct bNodeTree *ntreeFromID(struct ID *id);
 struct ID *BKE_node_tree_find_owner_ID(struct Main *bmain, struct bNodeTree *ntree);
 
-void ntreeMakeLocal(struct Main *bmain, struct bNodeTree *ntree, const int flags);
 void ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void ntreeFreeLocalTree(struct bNodeTree *ntree);
 struct bNode *ntreeFindType(const struct bNodeTree *ntree, int type);

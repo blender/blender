@@ -555,9 +555,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_NT:
-      if (!test) {
-        ntreeMakeLocal(bmain, (bNodeTree *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_BR:
       BLI_assert(0);
@@ -773,7 +771,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_action_copy_data(bmain, (bAction *)*r_newid, (bAction *)id, flag);
         break;
       case ID_NT:
-        BKE_node_tree_copy_data(bmain, (bNodeTree *)*r_newid, (bNodeTree *)id, flag);
+        BLI_assert(0);
         break;
       case ID_BR:
         BLI_assert(0);
@@ -1400,7 +1398,7 @@ void BKE_libblock_init_empty(ID *id)
       /* Nothing to do. */
       break;
     case ID_NT:
-      ntreeInitDefault((bNodeTree *)id);
+      BLI_assert(0);
       break;
     case ID_BR:
       BLI_assert(0);
