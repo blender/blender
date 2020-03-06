@@ -1248,8 +1248,8 @@ static int transform_from_gizmo_invoke(bContext *C,
 {
   bToolRef *tref = WM_toolsystem_ref_from_context(C);
   if (tref) {
-    ARegion *ar = CTX_wm_region(C);
-    wmGizmoMap *gzmap = ar->gizmo_map;
+    ARegion *region = CTX_wm_region(C);
+    wmGizmoMap *gzmap = region->gizmo_map;
     wmGizmoGroup *gzgroup = gzmap ? WM_gizmomap_group_find(gzmap, "VIEW3D_GGT_xform_gizmo") : NULL;
     if (gzgroup != NULL) {
       PointerRNA gzg_ptr;

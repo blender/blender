@@ -158,7 +158,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
         float vert_p_co[3], vert_co[3];
         float mval_f[2] = {UNPACK2(vc.mval)};
         mul_v3_m4v3(vert_co, gz_ele->bases[base_index_vert]->object->obmat, vert->co);
-        ED_view3d_project(vc.ar, vert_co, vert_p_co);
+        ED_view3d_project(vc.region, vert_co, vert_p_co);
         float len = len_v2v2(vert_p_co, mval_f);
         if (len < 35) {
           best.ele = (BMElem *)eve_test;
@@ -226,8 +226,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
   RNA_int_set(gz->ptr, "face_index", gz_ele->face_index);
 
   if (best.ele) {
-    ARegion *ar = CTX_wm_region(C);
-    ED_region_tag_redraw_editor_overlays(ar);
+    ARegion *region = CTX_wm_region(C);
+    ED_region_tag_redraw_editor_overlays(region);
   }
 
   // return best.eed ? 0 : -1;
@@ -382,8 +382,8 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
     RNA_int_set(gz->ptr, "object_index", gz_ring->base_index);
     RNA_int_set(gz->ptr, "edge_index", gz_ring->edge_index);
 
-    ARegion *ar = CTX_wm_region(C);
-    ED_region_tag_redraw_editor_overlays(ar);
+    ARegion *region = CTX_wm_region(C);
+    ED_region_tag_redraw_editor_overlays(region);
   }
 
   // return best.eed ? 0 : -1;

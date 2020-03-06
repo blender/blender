@@ -44,10 +44,10 @@ struct wmWindow;
 
 /* wm_draw.c */
 void wm_draw_update(struct bContext *C);
-void wm_draw_region_clear(struct wmWindow *win, struct ARegion *ar);
-void wm_draw_region_blend(struct ARegion *ar, int view, bool blend);
-void wm_draw_region_test(struct bContext *C, struct ScrArea *sa, struct ARegion *ar);
+void wm_draw_region_clear(struct wmWindow *win, struct ARegion *region);
+void wm_draw_region_blend(struct ARegion *region, int view, bool blend);
+void wm_draw_region_test(struct bContext *C, struct ScrArea *sa, struct ARegion *region);
 
-struct GPUTexture *wm_draw_region_texture(struct ARegion *ar, int view);
+struct GPUTexture *wm_draw_region_texture(struct ARegion *region, int view);
 
 #endif /* __WM_DRAW_H__ */

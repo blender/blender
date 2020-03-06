@@ -403,7 +403,7 @@ static void ANIM_OT_end_frame_set(wmOperatorType *ot)
 static int previewrange_define_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float sfra, efra;
   rcti rect;
 
@@ -411,8 +411,8 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rcti(op, &rect);
 
   /* convert min/max values to frames (i.e. region to 'tot' rect) */
-  sfra = UI_view2d_region_to_view_x(&ar->v2d, rect.xmin);
-  efra = UI_view2d_region_to_view_x(&ar->v2d, rect.xmax);
+  sfra = UI_view2d_region_to_view_x(&region->v2d, rect.xmin);
+  efra = UI_view2d_region_to_view_x(&region->v2d, rect.xmax);
 
   /* set start/end frames for preview-range
    * - must clamp within allowable limits

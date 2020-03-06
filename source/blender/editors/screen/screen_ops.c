@@ -701,23 +701,25 @@ static void fullscreen_click_rcti_init(
 
 static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
 {
-  const ARegion *ar = az->ar;
+  const ARegion *region = az->region;
   *r_rect_clip = az->rect;
   if (az->type == AZONE_REGION) {
-    if (ar->overlap && (ar->v2d.keeptot != V2D_KEEPTOT_STRICT) &&
+    if (region->overlap && (region->v2d.keeptot != V2D_KEEPTOT_STRICT) &&
         /* Only when this isn't hidden (where it's displayed as an button that expands). */
-        ((az->ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) == 0)) {
+        ((az->region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) == 0)) {
       /* A floating region to be resized, clip by the visible region. */
       switch (az->edge) {
         case AE_TOP_TO_BOTTOMRIGHT:
         case AE_BOTTOM_TO_TOPLEFT: {
           r_rect_clip->xmin = max_ii(
               r_rect_clip->xmin,
-              (ar->winrct.xmin + UI_view2d_view_to_region_x(&ar->v2d, ar->v2d.tot.xmin)) -
+              (region->winrct.xmin +
+               UI_view2d_view_to_region_x(&region->v2d, region->v2d.tot.xmin)) -
                   UI_REGION_OVERLAP_MARGIN);
           r_rect_clip->xmax = min_ii(
               r_rect_clip->xmax,
-              (ar->winrct.xmin + UI_view2d_view_to_region_x(&ar->v2d, ar->v2d.tot.xmax)) +
+              (region->winrct.xmin +
+               UI_view2d_view_to_region_x(&region->v2d, region->v2d.tot.xmax)) +
                   UI_REGION_OVERLAP_MARGIN);
           return true;
         }
@@ -725,11 +727,13 @@ static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
         case AE_RIGHT_TO_TOPLEFT: {
           r_rect_clip->ymin = max_ii(
               r_rect_clip->ymin,
-              (ar->winrct.ymin + UI_view2d_view_to_region_y(&ar->v2d, ar->v2d.tot.ymin)) -
+              (region->winrct.ymin +
+               UI_view2d_view_to_region_y(&region->v2d, region->v2d.tot.ymin)) -
                   UI_REGION_OVERLAP_MARGIN);
           r_rect_clip->ymax = min_ii(
               r_rect_clip->ymax,
-              (ar->winrct.ymin + UI_view2d_view_to_region_y(&ar->v2d, ar->v2d.tot.ymax)) +
+              (region->winrct.ymin +
+               UI_view2d_view_to_region_y(&region->v2d, region->v2d.tot.ymax)) +
                   UI_REGION_OVERLAP_MARGIN);
           return true;
         }
@@ -799,11 +803,11 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
         }
       }
       else if (az->type == AZONE_REGION_SCROLL) {
-        ARegion *ar = az->ar;
-        View2D *v2d = &ar->v2d;
+        ARegion *region = az->region;
+        View2D *v2d = &region->v2d;
         int scroll_flag = 0;
         const int isect_value = UI_view2d_mouse_in_scrollers_ex(
-            ar, v2d, xy[0], xy[1], &scroll_flag);
+            region, v2d, xy[0], xy[1], &scroll_flag);
 
         /* Check if we even have scroll bars. */
         if (((az->direction == AZ_SCROLL_HOR) && !(scroll_flag & V2D_SCROLL_HORIZONTAL)) ||
@@ -833,7 +837,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
             }
           }
           else {
-            const int local_xy[2] = {xy[0] - ar->winrct.xmin, xy[1] - ar->winrct.ymin};
+            const int local_xy[2] = {xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin};
             float dist_fac = 0.0f, alpha = 0.0f;
 
             if (az->direction == AZ_SCROLL_HOR) {
@@ -855,7 +859,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
           }
 
           if (redraw) {
-            ED_region_tag_redraw_no_rebuild(ar);
+            ED_region_tag_redraw_no_rebuild(region);
           }
           /* Don't return! */
         }
@@ -869,14 +873,14 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
       }
       else if (az->type == AZONE_REGION_SCROLL) {
         if (az->direction == AZ_SCROLL_VERT) {
-          az->alpha = az->ar->v2d.alpha_vert = 0;
+          az->alpha = az->region->v2d.alpha_vert = 0;
           sa->flag &= ~AREA_FLAG_ACTIONZONES_UPDATE;
-          ED_region_tag_redraw_no_rebuild(az->ar);
+          ED_region_tag_redraw_no_rebuild(az->region);
         }
         else if (az->direction == AZ_SCROLL_HOR) {
-          az->alpha = az->ar->v2d.alpha_hor = 0;
+          az->alpha = az->region->v2d.alpha_hor = 0;
           sa->flag &= ~AREA_FLAG_ACTIONZONES_UPDATE;
-          ED_region_tag_redraw_no_rebuild(az->ar);
+          ED_region_tag_redraw_no_rebuild(az->region);
         }
         else {
           BLI_assert(0);
@@ -2460,7 +2464,7 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 
 typedef struct RegionMoveData {
   AZone *az;
-  ARegion *ar;
+  ARegion *region;
   ScrArea *sa;
   int bigger, smaller, origval;
   int origx, origy;
@@ -2478,12 +2482,12 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
     const int align = RGN_ALIGN_ENUM_FROM_MASK(scalear->alignment);
 
     if (ELEM(align, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
-      ARegion *ar = scalear->prev;
-      dist = ar->winy + scalear->winy - U.pixelsize;
+      ARegion *region = scalear->prev;
+      dist = region->winy + scalear->winy - U.pixelsize;
     }
     else /* if (ELEM(align, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) */ {
-      ARegion *ar = scalear->prev;
-      dist = ar->winx + scalear->winx - U.pixelsize;
+      ARegion *region = scalear->prev;
+      dist = region->winx + scalear->winx - U.pixelsize;
     }
   }
   else {
@@ -2496,26 +2500,28 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 
     /* subtractwidth of regions on opposite side
      * prevents dragging regions into other opposite regions */
-    for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-      if (ar == scalear) {
+    for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+      if (region == scalear) {
         continue;
       }
 
-      if (scalear->alignment == RGN_ALIGN_LEFT && ar->alignment == RGN_ALIGN_RIGHT) {
-        dist -= ar->winx;
+      if (scalear->alignment == RGN_ALIGN_LEFT && region->alignment == RGN_ALIGN_RIGHT) {
+        dist -= region->winx;
       }
-      else if (scalear->alignment == RGN_ALIGN_RIGHT && ar->alignment == RGN_ALIGN_LEFT) {
-        dist -= ar->winx;
+      else if (scalear->alignment == RGN_ALIGN_RIGHT && region->alignment == RGN_ALIGN_LEFT) {
+        dist -= region->winx;
       }
       else if (scalear->alignment == RGN_ALIGN_TOP &&
-               (ar->alignment == RGN_ALIGN_BOTTOM ||
-                ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
-        dist -= ar->winy;
+               (region->alignment == RGN_ALIGN_BOTTOM ||
+                ELEM(
+                    region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
+        dist -= region->winy;
       }
       else if (scalear->alignment == RGN_ALIGN_BOTTOM &&
-               (ar->alignment == RGN_ALIGN_TOP ||
-                ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
-        dist -= ar->winy;
+               (region->alignment == RGN_ALIGN_TOP ||
+                ELEM(
+                    region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
+        dist -= region->winy;
       }
     }
   }
@@ -2552,7 +2558,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
   az = sad->az;
 
-  if (az->ar) {
+  if (az->region) {
     RegionMoveData *rmd = MEM_callocN(sizeof(RegionMoveData), "RegionMoveData");
 
     op->customdata = rmd;
@@ -2561,33 +2567,33 @@ static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event
     /* special case for region within region - this allows the scale of
      * the parent region if the azone edge is not the edge splitting
      * both regions */
-    if ((az->ar->alignment & RGN_SPLIT_PREV) && az->ar->prev &&
-        !is_split_edge(RGN_ALIGN_ENUM_FROM_MASK(az->ar->alignment), az->edge)) {
-      rmd->ar = az->ar->prev;
+    if ((az->region->alignment & RGN_SPLIT_PREV) && az->region->prev &&
+        !is_split_edge(RGN_ALIGN_ENUM_FROM_MASK(az->region->alignment), az->edge)) {
+      rmd->region = az->region->prev;
     }
     else {
-      rmd->ar = az->ar;
+      rmd->region = az->region;
     }
     rmd->sa = sad->sa1;
     rmd->edge = az->edge;
     rmd->origx = event->x;
     rmd->origy = event->y;
-    rmd->maxsize = area_max_regionsize(rmd->sa, rmd->ar, rmd->edge);
+    rmd->maxsize = area_max_regionsize(rmd->sa, rmd->region, rmd->edge);
 
     /* if not set we do now, otherwise it uses type */
-    if (rmd->ar->sizex == 0) {
-      rmd->ar->sizex = rmd->ar->winx;
+    if (rmd->region->sizex == 0) {
+      rmd->region->sizex = rmd->region->winx;
     }
-    if (rmd->ar->sizey == 0) {
-      rmd->ar->sizey = rmd->ar->winy;
+    if (rmd->region->sizey == 0) {
+      rmd->region->sizey = rmd->region->winy;
     }
 
     /* now copy to regionmovedata */
     if (rmd->edge == AE_LEFT_TO_TOPRIGHT || rmd->edge == AE_RIGHT_TO_TOPLEFT) {
-      rmd->origval = rmd->ar->sizex;
+      rmd->origval = rmd->region->sizex;
     }
     else {
-      rmd->origval = rmd->ar->sizey;
+      rmd->origval = rmd->region->sizey;
     }
 
     CLAMP(rmd->maxsize, 0, 1000);
@@ -2604,14 +2610,14 @@ static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 static void region_scale_validate_size(RegionMoveData *rmd)
 {
-  if ((rmd->ar->flag & RGN_FLAG_HIDDEN) == 0) {
+  if ((rmd->region->flag & RGN_FLAG_HIDDEN) == 0) {
     short *size, maxsize = -1;
 
     if (rmd->edge == AE_LEFT_TO_TOPRIGHT || rmd->edge == AE_RIGHT_TO_TOPLEFT) {
-      size = &rmd->ar->sizex;
+      size = &rmd->region->sizex;
     }
     else {
-      size = &rmd->ar->sizey;
+      size = &rmd->region->sizey;
     }
 
     maxsize = rmd->maxsize - (UI_UNIT_Y / UI_DPI_FAC);
@@ -2626,15 +2632,15 @@ static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
 {
   /* hidden areas may have bad 'View2D.cur' value,
    * correct before displaying. see T45156 */
-  if (rmd->ar->flag & RGN_FLAG_HIDDEN) {
-    UI_view2d_curRect_validate(&rmd->ar->v2d);
+  if (rmd->region->flag & RGN_FLAG_HIDDEN) {
+    UI_view2d_curRect_validate(&rmd->region->v2d);
   }
 
-  region_toggle_hidden(C, rmd->ar, 0);
+  region_toggle_hidden(C, rmd->region, 0);
   region_scale_validate_size(rmd);
 
-  if ((rmd->ar->flag & RGN_FLAG_HIDDEN) == 0) {
-    if (rmd->ar->regiontype == RGN_TYPE_HEADER) {
+  if ((rmd->region->flag & RGN_FLAG_HIDDEN) == 0) {
+    if (rmd->region->regiontype == RGN_TYPE_HEADER) {
       ARegion *ar_tool_header = BKE_area_find_region_type(rmd->sa, RGN_TYPE_TOOL_HEADER);
       if (ar_tool_header != NULL) {
         if ((ar_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER) == 0 &&
@@ -2654,8 +2660,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* execute the events */
   switch (event->type) {
     case MOUSEMOVE: {
-      const float aspect = BLI_rctf_size_x(&rmd->ar->v2d.cur) /
-                           (BLI_rcti_size_x(&rmd->ar->v2d.mask) + 1);
+      const float aspect = BLI_rctf_size_x(&rmd->region->v2d.cur) /
+                           (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1);
       const int snap_size_threshold = (U.widget_unit * 2) / aspect;
       if (rmd->edge == AE_LEFT_TO_TOPRIGHT || rmd->edge == AE_RIGHT_TO_TOPLEFT) {
         delta = event->x - rmd->origx;
@@ -2667,27 +2673,27 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         delta /= UI_DPI_FAC;
 
         const int size_no_snap = rmd->origval + delta;
-        rmd->ar->sizex = size_no_snap;
+        rmd->region->sizex = size_no_snap;
 
-        if (rmd->ar->type->snap_size) {
-          short sizex_test = rmd->ar->type->snap_size(rmd->ar, rmd->ar->sizex, 0);
-          if (ABS(rmd->ar->sizex - sizex_test) < snap_size_threshold) {
-            rmd->ar->sizex = sizex_test;
+        if (rmd->region->type->snap_size) {
+          short sizex_test = rmd->region->type->snap_size(rmd->region, rmd->region->sizex, 0);
+          if (ABS(rmd->region->sizex - sizex_test) < snap_size_threshold) {
+            rmd->region->sizex = sizex_test;
           }
         }
-        CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
+        CLAMP(rmd->region->sizex, 0, rmd->maxsize);
 
         if (size_no_snap < UI_UNIT_X / aspect) {
-          rmd->ar->sizex = rmd->origval;
-          if (!(rmd->ar->flag & RGN_FLAG_HIDDEN)) {
+          rmd->region->sizex = rmd->origval;
+          if (!(rmd->region->flag & RGN_FLAG_HIDDEN)) {
             region_scale_toggle_hidden(C, rmd);
           }
         }
-        else if (rmd->ar->flag & RGN_FLAG_HIDDEN) {
+        else if (rmd->region->flag & RGN_FLAG_HIDDEN) {
           region_scale_toggle_hidden(C, rmd);
         }
-        else if (rmd->ar->flag & RGN_FLAG_DYNAMIC_SIZE) {
-          rmd->ar->sizex = rmd->origval;
+        else if (rmd->region->flag & RGN_FLAG_DYNAMIC_SIZE) {
+          rmd->region->sizex = rmd->origval;
         }
       }
       else {
@@ -2700,30 +2706,30 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         delta /= UI_DPI_FAC;
 
         const int size_no_snap = rmd->origval + delta;
-        rmd->ar->sizey = size_no_snap;
+        rmd->region->sizey = size_no_snap;
 
-        if (rmd->ar->type->snap_size) {
-          short sizey_test = rmd->ar->type->snap_size(rmd->ar, rmd->ar->sizey, 1);
-          if (ABS(rmd->ar->sizey - sizey_test) < snap_size_threshold) {
-            rmd->ar->sizey = sizey_test;
+        if (rmd->region->type->snap_size) {
+          short sizey_test = rmd->region->type->snap_size(rmd->region, rmd->region->sizey, 1);
+          if (ABS(rmd->region->sizey - sizey_test) < snap_size_threshold) {
+            rmd->region->sizey = sizey_test;
           }
         }
-        CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
+        CLAMP(rmd->region->sizey, 0, rmd->maxsize);
 
         /* note, 'UI_UNIT_Y/4' means you need to drag the footer and execute region
          * almost all the way down for it to become hidden, this is done
          * otherwise its too easy to do this by accident */
         if (size_no_snap < (UI_UNIT_Y / 4) / aspect) {
-          rmd->ar->sizey = rmd->origval;
-          if (!(rmd->ar->flag & RGN_FLAG_HIDDEN)) {
+          rmd->region->sizey = rmd->origval;
+          if (!(rmd->region->flag & RGN_FLAG_HIDDEN)) {
             region_scale_toggle_hidden(C, rmd);
           }
         }
-        else if (rmd->ar->flag & RGN_FLAG_HIDDEN) {
+        else if (rmd->region->flag & RGN_FLAG_HIDDEN) {
           region_scale_toggle_hidden(C, rmd);
         }
-        else if (rmd->ar->flag & RGN_FLAG_DYNAMIC_SIZE) {
-          rmd->ar->sizey = rmd->origval;
+        else if (rmd->region->flag & RGN_FLAG_DYNAMIC_SIZE) {
+          rmd->region->sizey = rmd->origval;
         }
       }
       ED_area_tag_redraw(rmd->sa);
@@ -2734,10 +2740,10 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case LEFTMOUSE:
       if (event->val == KM_RELEASE) {
         if (len_manhattan_v2v2_int(&event->x, &rmd->origx) <= WM_EVENT_CURSOR_MOTION_THRESHOLD) {
-          if (rmd->ar->flag & RGN_FLAG_HIDDEN) {
+          if (rmd->region->flag & RGN_FLAG_HIDDEN) {
             region_scale_toggle_hidden(C, rmd);
           }
-          else if (rmd->ar->flag & RGN_FLAG_TOO_SMALL) {
+          else if (rmd->region->flag & RGN_FLAG_TOO_SMALL) {
             region_scale_validate_size(rmd);
           }
 
@@ -2795,28 +2801,29 @@ static void areas_do_frame_follow(bContext *C, bool middle)
     const bScreen *screen = WM_window_get_active_screen(window);
 
     for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+      for (ARegion *region = sa->regionbase.first; region; region = region->next) {
         /* do follow here if editor type supports it */
         if ((scr->redraws_flag & TIME_FOLLOW)) {
-          if ((ar->regiontype == RGN_TYPE_WINDOW &&
+          if ((region->regiontype == RGN_TYPE_WINDOW &&
                ELEM(sa->spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
-              (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW)) {
-            float w = BLI_rctf_size_x(&ar->v2d.cur);
+              (sa->spacetype == SPACE_CLIP && region->regiontype == RGN_TYPE_PREVIEW)) {
+            float w = BLI_rctf_size_x(&region->v2d.cur);
 
             if (middle) {
-              if ((scene->r.cfra < ar->v2d.cur.xmin) || (scene->r.cfra > ar->v2d.cur.xmax)) {
-                ar->v2d.cur.xmax = scene->r.cfra + (w / 2);
-                ar->v2d.cur.xmin = scene->r.cfra - (w / 2);
+              if ((scene->r.cfra < region->v2d.cur.xmin) ||
+                  (scene->r.cfra > region->v2d.cur.xmax)) {
+                region->v2d.cur.xmax = scene->r.cfra + (w / 2);
+                region->v2d.cur.xmin = scene->r.cfra - (w / 2);
               }
             }
             else {
-              if (scene->r.cfra < ar->v2d.cur.xmin) {
-                ar->v2d.cur.xmax = scene->r.cfra;
-                ar->v2d.cur.xmin = ar->v2d.cur.xmax - w;
+              if (scene->r.cfra < region->v2d.cur.xmin) {
+                region->v2d.cur.xmax = scene->r.cfra;
+                region->v2d.cur.xmin = region->v2d.cur.xmax - w;
               }
-              else if (scene->r.cfra > ar->v2d.cur.xmax) {
-                ar->v2d.cur.xmin = scene->r.cfra;
-                ar->v2d.cur.xmax = ar->v2d.cur.xmin + w;
+              else if (scene->r.cfra > region->v2d.cur.xmax) {
+                region->v2d.cur.xmin = scene->r.cfra;
+                region->v2d.cur.xmax = region->v2d.cur.xmin + w;
               }
             }
           }
@@ -3802,9 +3809,9 @@ static void view3d_localview_update_rv3d(struct RegionView3D *rv3d)
 }
 
 static void region_quadview_init_rv3d(
-    ScrArea *sa, ARegion *ar, const char viewlock, const char view, const char persp)
+    ScrArea *sa, ARegion *region, const char viewlock, const char view, const char persp)
 {
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
 
   if (persp == RV3D_CAMOB) {
     ED_view3d_lastview_store(rv3d);
@@ -3818,30 +3825,30 @@ static void region_quadview_init_rv3d(
   ED_view3d_lock(rv3d);
   view3d_localview_update_rv3d(rv3d);
   if ((viewlock & RV3D_BOXCLIP) && (persp == RV3D_ORTHO)) {
-    ED_view3d_quadview_update(sa, ar, true);
+    ED_view3d_quadview_update(sa, region, true);
   }
 }
 
 /* insert a region in the area region list */
 static int region_quadview_exec(bContext *C, wmOperator *op)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   /* some rules... */
-  if (ar->regiontype != RGN_TYPE_WINDOW) {
+  if (region->regiontype != RGN_TYPE_WINDOW) {
     BKE_report(op->reports, RPT_ERROR, "Only window region can be 4-split");
   }
-  else if (ar->alignment == RGN_ALIGN_QSPLIT) {
+  else if (region->alignment == RGN_ALIGN_QSPLIT) {
     /* Exit quad-view */
     ScrArea *sa = CTX_wm_area(C);
     ARegion *arn;
 
     /* keep current region */
-    ar->alignment = 0;
+    region->alignment = 0;
 
     if (sa->spacetype == SPACE_VIEW3D) {
       ARegion *ar_iter;
-      RegionView3D *rv3d = ar->regiondata;
+      RegionView3D *rv3d = region->regiondata;
 
       /* if this is a locked view, use settings from 'User' view */
       if (rv3d->viewlock) {
@@ -3849,9 +3856,9 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
         ARegion *ar_user;
 
         if (ED_view3d_context_user_region(C, &v3d_user, &ar_user)) {
-          if (ar != ar_user) {
-            SWAP(void *, ar->regiondata, ar_user->regiondata);
-            rv3d = ar->regiondata;
+          if (region != ar_user) {
+            SWAP(void *, region->regiondata, ar_user->regiondata);
+            rv3d = region->regiondata;
           }
         }
       }
@@ -3869,16 +3876,16 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
       }
     }
 
-    for (ar = sa->regionbase.first; ar; ar = arn) {
-      arn = ar->next;
-      if (ar->alignment == RGN_ALIGN_QSPLIT) {
-        ED_region_remove(C, sa, ar);
+    for (region = sa->regionbase.first; region; region = arn) {
+      arn = region->next;
+      if (region->alignment == RGN_ALIGN_QSPLIT) {
+        ED_region_remove(C, sa, region);
       }
     }
     ED_area_tag_redraw(sa);
     WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
   }
-  else if (ar->next) {
+  else if (region->next) {
     BKE_report(op->reports, RPT_ERROR, "Only last region can be 4-split");
   }
   else {
@@ -3887,10 +3894,10 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
     ARegion *newar;
     int count;
 
-    ar->alignment = RGN_ALIGN_QSPLIT;
+    region->alignment = RGN_ALIGN_QSPLIT;
 
     for (count = 0; count < 3; count++) {
-      newar = BKE_area_region_copy(sa->type, ar);
+      newar = BKE_area_region_copy(sa->type, region);
       BLI_addtail(&sa->regionbase, newar);
     }
 
@@ -3905,30 +3912,30 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
        *
        * We could avoid manipulating rv3d->localvd here if exiting
        * localview with a 4-split would assign these view locks */
-      RegionView3D *rv3d = ar->regiondata;
+      RegionView3D *rv3d = region->regiondata;
       const char viewlock = (rv3d->viewlock_quad & RV3D_VIEWLOCK_INIT) ?
                                 (rv3d->viewlock_quad & ~RV3D_VIEWLOCK_INIT) :
                                 RV3D_LOCKED;
 
       region_quadview_init_rv3d(
-          sa, ar, viewlock, ED_view3d_lock_view_from_index(index_qsplit++), RV3D_ORTHO);
+          sa, region, viewlock, ED_view3d_lock_view_from_index(index_qsplit++), RV3D_ORTHO);
       region_quadview_init_rv3d(sa,
-                                (ar = ar->next),
+                                (region = region->next),
                                 viewlock,
                                 ED_view3d_lock_view_from_index(index_qsplit++),
                                 RV3D_ORTHO);
       region_quadview_init_rv3d(sa,
-                                (ar = ar->next),
+                                (region = region->next),
                                 viewlock,
                                 ED_view3d_lock_view_from_index(index_qsplit++),
                                 RV3D_ORTHO);
       /* forcing camera is distracting */
 #if 0
       if (v3d->camera) {
-        region_quadview_init_rv3d(sa, (ar = ar->next), 0, RV3D_VIEW_CAMERA, RV3D_CAMOB);
+        region_quadview_init_rv3d(sa, (region = region->next), 0, RV3D_VIEW_CAMERA, RV3D_CAMOB);
       }
       else {
-        region_quadview_init_rv3d(sa, (ar = ar->next), 0, RV3D_VIEW_USER, RV3D_PERSP);
+        region_quadview_init_rv3d(sa, (region = region->next), 0, RV3D_VIEW_USER, RV3D_PERSP);
       }
 #else
       (void)v3d;
@@ -4022,23 +4029,23 @@ static void SCREEN_OT_region_toggle(wmOperatorType *ot)
 /* flip a region alignment */
 static int region_flip_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-  if (!ar) {
+  if (!region) {
     return OPERATOR_CANCELLED;
   }
 
-  if (ar->alignment == RGN_ALIGN_TOP) {
-    ar->alignment = RGN_ALIGN_BOTTOM;
+  if (region->alignment == RGN_ALIGN_TOP) {
+    region->alignment = RGN_ALIGN_BOTTOM;
   }
-  else if (ar->alignment == RGN_ALIGN_BOTTOM) {
-    ar->alignment = RGN_ALIGN_TOP;
+  else if (region->alignment == RGN_ALIGN_BOTTOM) {
+    region->alignment = RGN_ALIGN_TOP;
   }
-  else if (ar->alignment == RGN_ALIGN_LEFT) {
-    ar->alignment = RGN_ALIGN_RIGHT;
+  else if (region->alignment == RGN_ALIGN_LEFT) {
+    region->alignment = RGN_ALIGN_RIGHT;
   }
-  else if (ar->alignment == RGN_ALIGN_RIGHT) {
-    ar->alignment = RGN_ALIGN_LEFT;
+  else if (region->alignment == RGN_ALIGN_RIGHT) {
+    region->alignment = RGN_ALIGN_LEFT;
   }
 
   ED_area_tag_redraw(CTX_wm_area(C));
@@ -4121,8 +4128,8 @@ static bool screen_region_context_menu_poll(bContext *C)
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
-  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) == RGN_ALIGN_TOP) ?
+  ARegion *region = CTX_wm_region(C);
+  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
                                  IFACE_("Flip to Bottom") :
                                  IFACE_("Flip to Top");
   {
@@ -4168,8 +4175,8 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
-  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) == RGN_ALIGN_TOP) ?
+  ARegion *region = CTX_wm_region(C);
+  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
                                  IFACE_("Flip to Bottom") :
                                  IFACE_("Flip to Top");
   {
@@ -4195,8 +4202,8 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 
 void ED_screens_navigation_bar_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
-  const ARegion *ar = CTX_wm_region(C);
-  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(ar->alignment) == RGN_ALIGN_LEFT) ?
+  const ARegion *region = CTX_wm_region(C);
+  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_LEFT) ?
                                  IFACE_("Flip to Right") :
                                  IFACE_("Flip to Left");
 
@@ -4212,21 +4219,21 @@ static int screen_context_menu_invoke(bContext *C,
 {
   uiPopupMenu *pup;
   uiLayout *layout;
-  const ARegion *ar = CTX_wm_region(C);
+  const ARegion *region = CTX_wm_region(C);
 
-  if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+  if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
     pup = UI_popup_menu_begin(C, IFACE_("Header"), ICON_NONE);
     layout = UI_popup_menu_layout(pup);
     ED_screens_header_tools_menu_create(C, layout, NULL);
     UI_popup_menu_end(C, pup);
   }
-  else if (ar->regiontype == RGN_TYPE_FOOTER) {
+  else if (region->regiontype == RGN_TYPE_FOOTER) {
     pup = UI_popup_menu_begin(C, IFACE_("Footer"), ICON_NONE);
     layout = UI_popup_menu_layout(pup);
     ED_screens_footer_tools_menu_create(C, layout, NULL);
     UI_popup_menu_end(C, pup);
   }
-  else if (ar->regiontype == RGN_TYPE_NAV_BAR) {
+  else if (region->regiontype == RGN_TYPE_NAV_BAR) {
     pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
     layout = UI_popup_menu_layout(pup);
     ED_screens_navigation_bar_tools_menu_create(C, layout, NULL);
@@ -4507,32 +4514,32 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
       const bScreen *win_screen = WM_window_get_active_screen(window);
 
       for (sa = win_screen->areabase.first; sa; sa = sa->next) {
-        ARegion *ar;
-        for (ar = sa->regionbase.first; ar; ar = ar->next) {
+        ARegion *region;
+        for (region = sa->regionbase.first; region; region = region->next) {
           bool redraw = false;
-          if (ar == sad->ar) {
+          if (region == sad->region) {
             redraw = true;
           }
           else if (match_region_with_redraws(
-                       sa->spacetype, ar->regiontype, sad->redraws, sad->from_anim_edit)) {
+                       sa->spacetype, region->regiontype, sad->redraws, sad->from_anim_edit)) {
             redraw = true;
           }
 
           if (redraw) {
-            ED_region_tag_redraw(ar);
+            ED_region_tag_redraw(region);
             /* do follow here if editor type supports it */
             if ((sad->redraws & TIME_FOLLOW)) {
-              if ((ar->regiontype == RGN_TYPE_WINDOW &&
+              if ((region->regiontype == RGN_TYPE_WINDOW &&
                    ELEM(sa->spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
-                  (sa->spacetype == SPACE_CLIP && ar->regiontype == RGN_TYPE_PREVIEW)) {
-                float w = BLI_rctf_size_x(&ar->v2d.cur);
-                if (scene->r.cfra < ar->v2d.cur.xmin) {
-                  ar->v2d.cur.xmax = scene->r.cfra;
-                  ar->v2d.cur.xmin = ar->v2d.cur.xmax - w;
+                  (sa->spacetype == SPACE_CLIP && region->regiontype == RGN_TYPE_PREVIEW)) {
+                float w = BLI_rctf_size_x(&region->v2d.cur);
+                if (scene->r.cfra < region->v2d.cur.xmin) {
+                  region->v2d.cur.xmax = scene->r.cfra;
+                  region->v2d.cur.xmin = region->v2d.cur.xmax - w;
                 }
-                else if (scene->r.cfra > ar->v2d.cur.xmax) {
-                  ar->v2d.cur.xmin = scene->r.cfra;
-                  ar->v2d.cur.xmax = ar->v2d.cur.xmin + w;
+                else if (scene->r.cfra > region->v2d.cur.xmax) {
+                  region->v2d.cur.xmin = scene->r.cfra;
+                  region->v2d.cur.xmax = region->v2d.cur.xmin + w;
                 }
               }
             }
@@ -4633,7 +4640,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
       wmTimer *wt = screen->animtimer;
       ScreenAnimData *sad = wt->customdata;
 
-      sad->ar = CTX_wm_region(C);
+      sad->region = CTX_wm_region(C);
     }
   }
 
@@ -5062,25 +5069,25 @@ static void SCREEN_OT_delete(wmOperatorType *ot)
 
 typedef struct RegionAlphaInfo {
   ScrArea *sa;
-  ARegion *ar, *child_ar; /* other region */
+  ARegion *region, *child_ar; /* other region */
   int hidden;
 } RegionAlphaInfo;
 
 #define TIMEOUT 0.1f
 #define TIMESTEP (1.0f / 60.0f)
 
-float ED_region_blend_alpha(ARegion *ar)
+float ED_region_blend_alpha(ARegion *region)
 {
   /* check parent too */
-  if (ar->regiontimer == NULL && (ar->alignment & RGN_SPLIT_PREV) && ar->prev) {
-    ar = ar->prev;
+  if (region->regiontimer == NULL && (region->alignment & RGN_SPLIT_PREV) && region->prev) {
+    region = region->prev;
   }
 
-  if (ar->regiontimer) {
-    RegionAlphaInfo *rgi = ar->regiontimer->customdata;
+  if (region->regiontimer) {
+    RegionAlphaInfo *rgi = region->regiontimer->customdata;
     float alpha;
 
-    alpha = (float)ar->regiontimer->duration / TIMEOUT;
+    alpha = (float)region->regiontimer->duration / TIMEOUT;
     /* makes sure the blend out works 100% - without area redraws */
     if (rgi->hidden) {
       alpha = 0.9f - TIMESTEP - alpha;
@@ -5093,12 +5100,12 @@ float ED_region_blend_alpha(ARegion *ar)
 }
 
 /* assumes region has running region-blend timer */
-static void region_blend_end(bContext *C, ARegion *ar, const bool is_running)
+static void region_blend_end(bContext *C, ARegion *region, const bool is_running)
 {
-  RegionAlphaInfo *rgi = ar->regiontimer->customdata;
+  RegionAlphaInfo *rgi = region->regiontimer->customdata;
 
   /* always send redraw */
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
   if (rgi->child_ar) {
     ED_region_tag_redraw(rgi->child_ar);
   }
@@ -5106,58 +5113,58 @@ static void region_blend_end(bContext *C, ARegion *ar, const bool is_running)
   /* if running timer was hiding, the flag toggle went wrong */
   if (is_running) {
     if (rgi->hidden) {
-      rgi->ar->flag &= ~RGN_FLAG_HIDDEN;
+      rgi->region->flag &= ~RGN_FLAG_HIDDEN;
     }
   }
   else {
     if (rgi->hidden) {
-      rgi->ar->flag |= rgi->hidden;
+      rgi->region->flag |= rgi->hidden;
       ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), rgi->sa);
     }
     /* area decoration needs redraw in end */
     ED_area_tag_redraw(rgi->sa);
   }
-  WM_event_remove_timer(CTX_wm_manager(C), NULL, ar->regiontimer); /* frees rgi */
-  ar->regiontimer = NULL;
+  WM_event_remove_timer(CTX_wm_manager(C), NULL, region->regiontimer); /* frees rgi */
+  region->regiontimer = NULL;
 }
 /**
- * \note Assumes that \a ar itself is not a split version from previous region.
+ * \note Assumes that \a region itself is not a split version from previous region.
  */
-void ED_region_visibility_change_update_animated(bContext *C, ScrArea *sa, ARegion *ar)
+void ED_region_visibility_change_update_animated(bContext *C, ScrArea *sa, ARegion *region)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   RegionAlphaInfo *rgi;
 
   /* end running timer */
-  if (ar->regiontimer) {
+  if (region->regiontimer) {
 
-    region_blend_end(C, ar, true);
+    region_blend_end(C, region, true);
   }
   rgi = MEM_callocN(sizeof(RegionAlphaInfo), "RegionAlphaInfo");
 
-  rgi->hidden = ar->flag & RGN_FLAG_HIDDEN;
+  rgi->hidden = region->flag & RGN_FLAG_HIDDEN;
   rgi->sa = sa;
-  rgi->ar = ar;
-  ar->flag &= ~RGN_FLAG_HIDDEN;
+  rgi->region = region;
+  region->flag &= ~RGN_FLAG_HIDDEN;
 
   /* blend in, reinitialize regions because it got unhidden */
   if (rgi->hidden == 0) {
     ED_area_initialize(wm, win, sa);
   }
   else {
-    WM_event_remove_handlers(C, &ar->handlers);
+    WM_event_remove_handlers(C, &region->handlers);
   }
 
-  if (ar->next) {
-    if (ar->next->alignment & RGN_SPLIT_PREV) {
-      rgi->child_ar = ar->next;
+  if (region->next) {
+    if (region->next->alignment & RGN_SPLIT_PREV) {
+      rgi->child_ar = region->next;
     }
   }
 
   /* new timer */
-  ar->regiontimer = WM_event_add_timer(wm, win, TIMERREGION, TIMESTEP);
-  ar->regiontimer->customdata = rgi;
+  region->regiontimer = WM_event_add_timer(wm, win, TIMERREGION, TIMESTEP);
+  region->regiontimer->customdata = rgi;
 }
 
 /* timer runs in win->handlers, so it cannot use context to find area/region */
@@ -5174,14 +5181,14 @@ static int region_blend_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
   rgi = timer->customdata;
 
   /* always send redraws */
-  ED_region_tag_redraw(rgi->ar);
+  ED_region_tag_redraw(rgi->region);
   if (rgi->child_ar) {
     ED_region_tag_redraw(rgi->child_ar);
   }
 
   /* end timer? */
-  if (rgi->ar->regiontimer->duration > (double)TIMEOUT) {
-    region_blend_end(C, rgi->ar, false);
+  if (rgi->region->regiontimer->duration > (double)TIMEOUT) {
+    region_blend_end(C, rgi->region, false);
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
 

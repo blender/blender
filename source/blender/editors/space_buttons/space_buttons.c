@@ -54,7 +54,7 @@
 
 static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceProperties *sbuts;
 
   sbuts = MEM_callocN(sizeof(SpaceProperties), "initbuts");
@@ -63,32 +63,32 @@ static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   sbuts->mainb = sbuts->mainbuser = BCONTEXT_OBJECT;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for buts");
+  region = MEM_callocN(sizeof(ARegion), "header for buts");
 
-  BLI_addtail(&sbuts->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&sbuts->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* navigation bar */
-  ar = MEM_callocN(sizeof(ARegion), "navigation bar for buts");
+  region = MEM_callocN(sizeof(ARegion), "navigation bar for buts");
 
-  BLI_addtail(&sbuts->regionbase, ar);
-  ar->regiontype = RGN_TYPE_NAV_BAR;
-  ar->alignment = RGN_ALIGN_LEFT;
+  BLI_addtail(&sbuts->regionbase, region);
+  region->regiontype = RGN_TYPE_NAV_BAR;
+  region->alignment = RGN_ALIGN_LEFT;
 
 #if 0
   /* context region */
-  ar = MEM_callocN(sizeof(ARegion), "context region for buts");
-  BLI_addtail(&sbuts->regionbase, ar);
-  ar->regiontype = RGN_TYPE_CHANNELS;
-  ar->alignment = RGN_ALIGN_TOP;
+  region = MEM_callocN(sizeof(ARegion), "context region for buts");
+  BLI_addtail(&sbuts->regionbase, region);
+  region->regiontype = RGN_TYPE_CHANNELS;
+  region->alignment = RGN_ALIGN_TOP;
 #endif
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for buts");
+  region = MEM_callocN(sizeof(ARegion), "main region for buts");
 
-  BLI_addtail(&sbuts->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&sbuts->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
   return (SpaceLink *)sbuts;
 }
@@ -126,19 +126,19 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void buttons_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ED_region_panels_init(wm, ar);
+  ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
 static void buttons_main_region_layout_properties(const bContext *C,
                                                   SpaceProperties *sbuts,
-                                                  ARegion *ar)
+                                                  ARegion *region)
 {
   buttons_context_compute(C, sbuts);
 
@@ -199,19 +199,20 @@ static void buttons_main_region_layout_properties(const bContext *C,
   }
 
   const bool vertical = true;
-  ED_region_panels_layout_ex(C, ar, &ar->type->paneltypes, contexts, sbuts->mainb, vertical, NULL);
+  ED_region_panels_layout_ex(
+      C, region, &region->type->paneltypes, contexts, sbuts->mainb, vertical, NULL);
 }
 
-static void buttons_main_region_layout(const bContext *C, ARegion *ar)
+static void buttons_main_region_layout(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
 
   if (sbuts->mainb == BCONTEXT_TOOL) {
-    ED_view3d_buttons_region_layout_ex(C, ar, "Tool");
+    ED_view3d_buttons_region_layout_ex(C, region, "Tool");
   }
   else {
-    buttons_main_region_layout_properties(C, sbuts, ar);
+    buttons_main_region_layout_properties(C, sbuts, region);
   }
 
   sbuts->mainbo = sbuts->mainb;
@@ -219,7 +220,7 @@ static void buttons_main_region_layout(const bContext *C, ARegion *ar)
 
 static void buttons_main_region_listener(wmWindow *UNUSED(win),
                                          ScrArea *UNUSED(sa),
-                                         ARegion *ar,
+                                         ARegion *region,
                                          wmNotifier *wmn,
                                          const Scene *UNUSED(scene))
 {
@@ -227,7 +228,7 @@ static void buttons_main_region_listener(wmWindow *UNUSED(win),
   switch (wmn->category) {
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_LAYER)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -246,27 +247,27 @@ static void buttons_keymap(struct wmKeyConfig *keyconf)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void buttons_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void buttons_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
 #ifdef USE_HEADER_CONTEXT_PATH
   /* Reinsert context buttons header-type at the end of the list so it's drawn last. */
   HeaderType *context_ht = BLI_findstring(
-      &ar->type->headertypes, "BUTTONS_HT_context", offsetof(HeaderType, idname));
-  BLI_remlink(&ar->type->headertypes, context_ht);
-  BLI_addtail(&ar->type->headertypes, context_ht);
+      &region->type->headertypes, "BUTTONS_HT_context", offsetof(HeaderType, idname));
+  BLI_remlink(&region->type->headertypes, context_ht);
+  BLI_addtail(&region->type->headertypes, context_ht);
 #endif
 
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void buttons_header_region_draw(const bContext *C, ARegion *ar)
+static void buttons_header_region_draw(const bContext *C, ARegion *region)
 {
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
 
   /* Needed for RNA to get the good values! */
   buttons_context_compute(C, sbuts);
 
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
 static void buttons_header_region_message_subscribe(const bContext *UNUSED(C),
@@ -274,13 +275,13 @@ static void buttons_header_region_message_subscribe(const bContext *UNUSED(C),
                                                     Scene *UNUSED(scene),
                                                     bScreen *UNUSED(screen),
                                                     ScrArea *sa,
-                                                    ARegion *ar,
+                                                    ARegion *region,
                                                     struct wmMsgBus *mbus)
 {
   SpaceProperties *sbuts = sa->spacedata.first;
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = ar,
-      .user_data = ar,
+      .owner = region,
+      .user_data = region,
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
 
@@ -301,24 +302,24 @@ static void buttons_header_region_message_subscribe(const bContext *UNUSED(C),
 #endif
 }
 
-static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *ar)
+static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *region)
 {
-  ar->flag |= RGN_FLAG_PREFSIZE_OR_HIDDEN;
+  region->flag |= RGN_FLAG_PREFSIZE_OR_HIDDEN;
 
-  ED_region_panels_init(wm, ar);
-  ar->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
+  ED_region_panels_init(wm, region);
+  region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 }
 
-static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *ar)
+static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *region)
 {
-  for (PanelType *pt = ar->type->paneltypes.first; pt; pt = pt->next) {
+  for (PanelType *pt = region->type->paneltypes.first; pt; pt = pt->next) {
     pt->flag |= PNL_LAYOUT_VERT_BAR;
   }
 
-  ED_region_panels_layout(C, ar);
+  ED_region_panels_layout(C, region);
   /* ED_region_panels_layout adds vertical scrollbars, we don't want them. */
-  ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL;
-  ED_region_panels_draw(C, ar);
+  region->v2d.scroll &= ~V2D_SCROLL_VERTICAL;
+  ED_region_panels_draw(C, region);
 }
 
 static void buttons_navigation_bar_region_message_subscribe(const bContext *UNUSED(C),
@@ -326,12 +327,12 @@ static void buttons_navigation_bar_region_message_subscribe(const bContext *UNUS
                                                             Scene *UNUSED(scene),
                                                             bScreen *UNUSED(screen),
                                                             ScrArea *UNUSED(sa),
-                                                            ARegion *ar,
+                                                            ARegion *region,
                                                             struct wmMsgBus *mbus)
 {
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = ar,
-      .user_data = ar,
+      .owner = region,
+      .user_data = region,
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
 

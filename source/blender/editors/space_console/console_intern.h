@@ -28,10 +28,10 @@ struct bContext;
 struct wmOperatorType;
 
 /* console_draw.c */
-void console_textview_main(struct SpaceConsole *sc, const struct ARegion *ar);
+void console_textview_main(struct SpaceConsole *sc, const struct ARegion *region);
 /* needed to calculate the scrollbar */
-int console_textview_height(struct SpaceConsole *sc, const struct ARegion *ar);
-int console_char_pick(struct SpaceConsole *sc, const struct ARegion *ar, const int mval[2]);
+int console_textview_height(struct SpaceConsole *sc, const struct ARegion *region);
+int console_char_pick(struct SpaceConsole *sc, const struct ARegion *region, const int mval[2]);
 
 void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
 void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
@@ -44,7 +44,7 @@ ConsoleLine *console_scrollback_add_str(struct SpaceConsole *sc, char *str, bool
 
 ConsoleLine *console_history_verify(const struct bContext *C);
 
-void console_textview_update_rect(SpaceConsole *sc, ARegion *ar);
+void console_textview_update_rect(SpaceConsole *sc, ARegion *region);
 
 void CONSOLE_OT_move(struct wmOperatorType *ot);
 void CONSOLE_OT_delete(struct wmOperatorType *ot);

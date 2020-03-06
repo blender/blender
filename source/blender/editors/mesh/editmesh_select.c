@@ -286,7 +286,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
   uint base_index = 0;
 
   if (!XRAY_FLAG_ENABLED(vc->v3d)) {
-    uint dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
+    uint dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region, *r_dist);
     uint index;
     BMVert *eve;
 
@@ -295,7 +295,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
       DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_VERTEX);
 
       index = DRW_select_buffer_find_nearest_to_point(
-          vc->depsgraph, vc->ar, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px);
+          vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px);
 
       if (index) {
         eve = (BMVert *)edbm_select_id_bm_elem_get(bases, index, &base_index);
@@ -509,7 +509,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
   uint base_index = 0;
 
   if (!XRAY_FLAG_ENABLED(vc->v3d)) {
-    uint dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->ar, *r_dist);
+    uint dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region, *r_dist);
     uint index;
     BMEdge *eed;
 
@@ -518,7 +518,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
       DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_EDGE);
 
       index = DRW_select_buffer_find_nearest_to_point(
-          vc->depsgraph, vc->ar, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px);
+          vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px);
 
       if (index) {
         eed = (BMEdge *)edbm_select_id_bm_elem_get(bases, index, &base_index);
@@ -724,7 +724,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     {
       DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_FACE);
 
-      index = DRW_select_buffer_sample_point(vc->depsgraph, vc->ar, vc->v3d, vc->mval);
+      index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, vc->mval);
 
       if (index) {
         efa = (BMFace *)edbm_select_id_bm_elem_get(bases, index, &base_index);
@@ -1042,7 +1042,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
   } best_face = {0, NULL};
 
   if (ED_view3d_win_to_ray_clipped(
-          vc->depsgraph, vc->ar, vc->v3d, mval_fl, ray_origin, ray_direction, true)) {
+          vc->depsgraph, vc->region, vc->v3d, mval_fl, ray_origin, ray_direction, true)) {
     float dist_sq_best = FLT_MAX;
     float dist_sq_best_vert = FLT_MAX;
     float dist_sq_best_edge = FLT_MAX;
@@ -1733,12 +1733,12 @@ static bool mouse_mesh_loop(
       /* We can't be sure this has already been set... */
       ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
-      if (ED_view3d_project_float_object(vc.ar, eed->v1->co, v1_co, V3D_PROJ_TEST_CLIP_NEAR) ==
+      if (ED_view3d_project_float_object(vc.region, eed->v1->co, v1_co, V3D_PROJ_TEST_CLIP_NEAR) ==
           V3D_PROJ_RET_OK) {
         length_1 = len_squared_v2v2(mvalf, v1_co);
       }
 
-      if (ED_view3d_project_float_object(vc.ar, eed->v2->co, v2_co, V3D_PROJ_TEST_CLIP_NEAR) ==
+      if (ED_view3d_project_float_object(vc.region, eed->v2->co, v2_co, V3D_PROJ_TEST_CLIP_NEAR) ==
           V3D_PROJ_RET_OK) {
         length_2 = len_squared_v2v2(mvalf, v2_co);
       }
@@ -1768,7 +1768,7 @@ static bool mouse_mesh_loop(
           float co[2], tdist;
 
           BM_face_calc_center_median(f, cent);
-          if (ED_view3d_project_float_object(vc.ar, cent, co, V3D_PROJ_TEST_CLIP_NEAR) ==
+          if (ED_view3d_project_float_object(vc.region, cent, co, V3D_PROJ_TEST_CLIP_NEAR) ==
               V3D_PROJ_RET_OK) {
             tdist = len_squared_v2v2(mvalf, co);
             if (tdist < best_dist) {

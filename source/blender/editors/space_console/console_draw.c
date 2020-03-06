@@ -184,25 +184,25 @@ static void console_textview_const_colors(TextViewContext *UNUSED(tvc), uchar bg
   UI_GetThemeColor4ubv(TH_CONSOLE_SELECT, bg_sel);
 }
 
-static void console_textview_draw_rect_calc(const ARegion *ar,
+static void console_textview_draw_rect_calc(const ARegion *region,
                                             rcti *r_draw_rect,
                                             rcti *r_draw_rect_outer)
 {
   const int margin = 4 * UI_DPI_FAC;
   r_draw_rect->xmin = margin;
-  r_draw_rect->xmax = ar->winx - V2D_SCROLL_WIDTH;
+  r_draw_rect->xmax = region->winx - V2D_SCROLL_WIDTH;
   r_draw_rect->ymin = margin;
   /* No margin at the top (allow text to scroll off the window). */
-  r_draw_rect->ymax = ar->winy;
+  r_draw_rect->ymax = region->winy;
 
   r_draw_rect_outer->xmin = 0;
-  r_draw_rect_outer->xmax = ar->winx;
+  r_draw_rect_outer->xmax = region->winx;
   r_draw_rect_outer->ymin = 0;
-  r_draw_rect_outer->ymax = ar->winy;
+  r_draw_rect_outer->ymax = region->winy;
 }
 
 static int console_textview_main__internal(struct SpaceConsole *sc,
-                                           const ARegion *ar,
+                                           const ARegion *region,
                                            const bool do_draw,
                                            const int mval[2],
                                            void **r_mval_pick_item,
@@ -211,7 +211,7 @@ static int console_textview_main__internal(struct SpaceConsole *sc,
   ConsoleLine cl_dummy = {NULL};
   int ret = 0;
 
-  const View2D *v2d = &ar->v2d;
+  const View2D *v2d = &region->v2d;
 
   TextViewContext tvc = {0};
 
@@ -234,7 +234,7 @@ static int console_textview_main__internal(struct SpaceConsole *sc,
   tvc.scroll_ymin = v2d->cur.ymin;
   tvc.scroll_ymax = v2d->cur.ymax;
 
-  console_textview_draw_rect_calc(ar, &tvc.draw_rect, &tvc.draw_rect_outer);
+  console_textview_draw_rect_calc(region, &tvc.draw_rect, &tvc.draw_rect_outer);
 
   console_scrollback_prompt_begin(sc, &cl_dummy);
   ret = textview_draw(&tvc, do_draw, mval, r_mval_pick_item, r_mval_pick_offset);
@@ -243,23 +243,23 @@ static int console_textview_main__internal(struct SpaceConsole *sc,
   return ret;
 }
 
-void console_textview_main(struct SpaceConsole *sc, const ARegion *ar)
+void console_textview_main(struct SpaceConsole *sc, const ARegion *region)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
-  console_textview_main__internal(sc, ar, true, mval, NULL, NULL);
+  console_textview_main__internal(sc, region, true, mval, NULL, NULL);
 }
 
-int console_textview_height(struct SpaceConsole *sc, const ARegion *ar)
+int console_textview_height(struct SpaceConsole *sc, const ARegion *region)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
-  return console_textview_main__internal(sc, ar, false, mval, NULL, NULL);
+  return console_textview_main__internal(sc, region, false, mval, NULL, NULL);
 }
 
-int console_char_pick(struct SpaceConsole *sc, const ARegion *ar, const int mval[2])
+int console_char_pick(struct SpaceConsole *sc, const ARegion *region, const int mval[2])
 {
   int r_mval_pick_offset = 0;
   void *mval_pick_item = NULL;
 
-  console_textview_main__internal(sc, ar, false, mval, &mval_pick_item, &r_mval_pick_offset);
+  console_textview_main__internal(sc, region, false, mval, &mval_pick_item, &r_mval_pick_offset);
   return r_mval_pick_offset;
 }

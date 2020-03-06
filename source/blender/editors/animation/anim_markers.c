@@ -575,7 +575,7 @@ void ED_markers_draw(const bContext *C, int flag)
     return;
   }
 
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   View2D *v2d = UI_view2d_fromcontext(C);
   int cfra = CTX_data_scene(C)->r.cfra;
 
@@ -599,14 +599,14 @@ void ED_markers_draw(const bContext *C, int flag)
   for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
     if ((marker->flag & SELECT) == 0) {
       if (marker_is_in_frame_range(marker, clip_frame_range)) {
-        draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, ar->winy);
+        draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, region->winy);
       }
     }
   }
   for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
     if (marker->flag & SELECT) {
       if (marker_is_in_frame_range(marker, clip_frame_range)) {
-        draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, ar->winy);
+        draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, region->winy);
       }
     }
   }
@@ -870,10 +870,10 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 {
   bool tweak = RNA_boolean_get(op->ptr, "tweak");
   if (tweak) {
-    ARegion *ar = CTX_wm_region(C);
-    View2D *v2d = &ar->v2d;
+    ARegion *region = CTX_wm_region(C);
+    View2D *v2d = &region->v2d;
     ListBase *markers = ED_context_get_markers(C);
-    if (!region_position_is_over_marker(v2d, markers, event->x - ar->winrct.xmin)) {
+    if (!region_position_is_over_marker(v2d, markers, event->x - region->winrct.xmin)) {
       return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
     }
   }
@@ -1337,11 +1337,11 @@ static void MARKER_OT_select(wmOperatorType *ot)
 
 static int ed_marker_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
-  View2D *v2d = &ar->v2d;
+  ARegion *region = CTX_wm_region(C);
+  View2D *v2d = &region->v2d;
 
   ListBase *markers = ED_context_get_markers(C);
-  bool over_marker = region_position_is_over_marker(v2d, markers, event->x - ar->winrct.xmin);
+  bool over_marker = region_position_is_over_marker(v2d, markers, event->x - region->winrct.xmin);
 
   bool tweak = RNA_boolean_get(op->ptr, "tweak");
   if (tweak && over_marker) {

@@ -444,12 +444,12 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
 
           if (wrap) {
-            ARegion *ar = CTX_wm_region(C);
-            if (ar) {
-              bounds[0] = ar->winrct.xmin;
-              bounds[1] = ar->winrct.ymax;
-              bounds[2] = ar->winrct.xmax;
-              bounds[3] = ar->winrct.ymin;
+            ARegion *region = CTX_wm_region(C);
+            if (region) {
+              bounds[0] = region->winrct.xmin;
+              bounds[1] = region->winrct.ymax;
+              bounds[2] = region->winrct.xmax;
+              bounds[3] = region->winrct.ymin;
             }
           }
 

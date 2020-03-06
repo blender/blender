@@ -68,14 +68,14 @@ typedef struct ImageSampleInfo {
   int color_manage;
 } ImageSampleInfo;
 
-static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
+static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
 {
   Scene *scene = CTX_data_scene(C);
   ImageSampleInfo *info = arg_info;
 
   if (info->draw) {
     ED_image_draw_info(scene,
-                       ar,
+                       region,
                        info->color_manage,
                        false,
                        info->channels,
@@ -95,7 +95,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
   struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   SpaceSeq *sseq = (SpaceSeq *)CTX_wm_space_data(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ImBuf *ibuf = sequencer_ibuf_get(bmain, depsgraph, scene, sseq, CFRA, 0, NULL);
   ImageSampleInfo *info = op->customdata;
   float fx, fy;
@@ -106,7 +106,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
     return;
   }
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fx, &fy);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
   fx /= scene->r.xasp / scene->r.yasp;
 
@@ -184,7 +184,7 @@ static void sample_exit(bContext *C, wmOperator *op)
 
 static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   ImageSampleInfo *info;
 
@@ -193,9 +193,9 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
-  info->art = ar->type;
+  info->art = region->type;
   info->draw_handle = ED_region_draw_cb_activate(
-      ar->type, sample_draw, info, REGION_DRAW_POST_PIXEL);
+      region->type, sample_draw, info, REGION_DRAW_POST_PIXEL);
   op->customdata = info;
 
   sample_apply(C, op, event);

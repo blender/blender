@@ -216,8 +216,8 @@ static bool vertex_paint_poll_ex(bContext *C, bool check_tool)
   if (vertex_paint_mode_poll(C) && BKE_paint_brush(&CTX_data_tool_settings(C)->vpaint->paint)) {
     ScrArea *sa = CTX_wm_area(C);
     if (sa && sa->spacetype == SPACE_VIEW3D) {
-      ARegion *ar = CTX_wm_region(C);
-      if (ar->regiontype == RGN_TYPE_WINDOW) {
+      ARegion *region = CTX_wm_region(C);
+      if (region->regiontype == RGN_TYPE_WINDOW) {
         if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
           return 1;
         }
@@ -252,8 +252,8 @@ static bool weight_paint_poll_ex(bContext *C, bool check_tool)
   if ((ob != NULL) && (ob->mode & OB_MODE_WEIGHT_PAINT) &&
       (BKE_paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != NULL) &&
       (sa = CTX_wm_area(C)) && (sa->spacetype == SPACE_VIEW3D)) {
-    ARegion *ar = CTX_wm_region(C);
-    if (ELEM(ar->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_HUD)) {
+    ARegion *region = CTX_wm_region(C);
+    if (ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_HUD)) {
       if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
         return 1;
       }
@@ -349,7 +349,7 @@ static void tex_color_alpha(VPaint *vp, const ViewContext *vc, const float co[3]
   else {
     float co_ss[2]; /* screenspace */
     if (ED_view3d_project_float_object(
-            vc->ar, co, co_ss, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) ==
+            vc->region, co, co_ss, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) ==
         V3D_PROJ_RET_OK) {
       const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f}; /* we need a 3rd empty value */
       BKE_brush_sample_tex_3d(vc->scene, brush, co_ss_3d, r_rgba, 0, NULL);
@@ -2345,7 +2345,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
   rcti r;
-  if (SCULPT_get_redraw_rect(vc->ar, CTX_wm_region_view3d(C), ob, &r)) {
+  if (SCULPT_get_redraw_rect(vc->region, CTX_wm_region_view3d(C), ob, &r)) {
     if (ss->cache) {
       ss->cache->current_r = r;
     }
@@ -2358,12 +2358,12 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
       }
     }
 
-    r.xmin += vc->ar->winrct.xmin - 2;
-    r.xmax += vc->ar->winrct.xmin + 2;
-    r.ymin += vc->ar->winrct.ymin - 2;
-    r.ymax += vc->ar->winrct.ymin + 2;
+    r.xmin += vc->region->winrct.xmin - 2;
+    r.xmax += vc->region->winrct.xmin + 2;
+    r.ymin += vc->region->winrct.ymin - 2;
+    r.ymax += vc->region->winrct.ymin + 2;
   }
-  ED_region_tag_redraw_partial(vc->ar, &r, true);
+  ED_region_tag_redraw_partial(vc->region, &r, true);
 }
 
 static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
@@ -3318,7 +3318,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
   paint_last_stroke_update(scene, loc_world);
 
-  ED_region_tag_redraw(vc->ar);
+  ED_region_tag_redraw(vc->region);
 
   if (vpd->use_fast_update == false) {
     /* recalculate modifier stack to get new colors, slow,

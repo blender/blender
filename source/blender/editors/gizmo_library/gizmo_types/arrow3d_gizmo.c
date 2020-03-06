@@ -274,8 +274,8 @@ static int gizmo_arrow_modal(bContext *C,
   }
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
   GizmoInteraction *inter = gz->interaction_data;
-  ARegion *ar = CTX_wm_region(C);
-  RegionView3D *rv3d = ar->regiondata;
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = region->regiondata;
 
   float offset[3];
   float facdir = 1.0f;
@@ -298,7 +298,7 @@ static int gizmo_arrow_modal(bContext *C,
   int ok = 0;
 
   for (int j = 0; j < 2; j++) {
-    ED_view3d_win_to_ray(ar, proj[j].mval, proj[j].ray_origin, proj[j].ray_direction);
+    ED_view3d_win_to_ray(region, proj[j].mval, proj[j].ray_origin, proj[j].ray_direction);
     /* Force Y axis if we're view aligned */
     if (j == 0) {
       if (RAD2DEGF(acosf(dot_v3v3(proj[j].ray_direction, arrow->gizmo.matrix_basis[2]))) < 5.0f) {
@@ -353,7 +353,7 @@ static int gizmo_arrow_modal(bContext *C,
   }
 
   /* tag the region for redraw */
-  ED_region_tag_redraw_editor_overlays(ar);
+  ED_region_tag_redraw_editor_overlays(region);
   WM_event_add_mousemove(CTX_wm_window(C));
 
   return OPERATOR_RUNNING_MODAL;

@@ -63,7 +63,7 @@ int node_get_colorid(struct bNode *node);
 int node_get_resize_cursor(int directions);
 void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius, float alpha);
 void node_draw_default(const struct bContext *C,
-                       struct ARegion *ar,
+                       struct ARegion *region,
                        struct SpaceNode *snode,
                        struct bNodeTree *ntree,
                        struct bNode *node,
@@ -79,11 +79,11 @@ int node_select_area_default(struct bNode *node, int x, int y);
 int node_tweak_area_default(struct bNode *node, int x, int y);
 void node_update_nodetree(const struct bContext *C, struct bNodeTree *ntree);
 void node_draw_nodetree(const struct bContext *C,
-                        struct ARegion *ar,
+                        struct ARegion *region,
                         struct SpaceNode *snode,
                         struct bNodeTree *ntree,
                         bNodeInstanceKey parent_key);
-void drawnodespace(const bContext *C, ARegion *ar);
+void drawnodespace(const bContext *C, ARegion *region);
 
 void node_set_cursor(struct wmWindow *win, struct SpaceNode *snode, float cursor[2]);
 /* DPI scaled coords */
@@ -123,7 +123,7 @@ void NODE_OT_find_node(struct wmOperatorType *ot);
 /* node_view.c */
 int space_node_view_flag(struct bContext *C,
                          SpaceNode *snode,
-                         ARegion *ar,
+                         ARegion *region,
                          const int node_flag,
                          const int smooth_viewtx);
 
@@ -162,7 +162,7 @@ void node_draw_link_straight(View2D *v2d,
                              int th_col3);
 #endif
 void draw_nodespace_back_pix(const struct bContext *C,
-                             struct ARegion *ar,
+                             struct ARegion *region,
                              struct SpaceNode *snode,
                              bNodeInstanceKey parent_key);
 

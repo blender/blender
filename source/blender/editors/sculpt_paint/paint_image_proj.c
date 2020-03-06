@@ -244,7 +244,7 @@ typedef struct LoopSeamData {
 typedef struct ProjPaintState {
   View3D *v3d;
   RegionView3D *rv3d;
-  ARegion *ar;
+  ARegion *region;
   Depsgraph *depsgraph;
   Scene *scene;
   /* PROJ_SRC_**** */
@@ -3719,8 +3719,8 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
 
   if (ELEM(ps->source, PROJ_SRC_VIEW, PROJ_SRC_VIEW_FILL)) {
     /* normal drawing */
-    ps->winx = ps->ar->winx;
-    ps->winy = ps->ar->winy;
+    ps->winx = ps->region->winx;
+    ps->winy = ps->region->winy;
 
     copy_m4_m4(viewmat, ps->rv3d->viewmat);
     copy_m4_m4(viewinv, ps->rv3d->viewinv);
@@ -5782,18 +5782,18 @@ void paint_proj_stroke(const bContext *C,
     Scene *scene = ps_handle->scene;
     struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     View3D *v3d = CTX_wm_view3d(C);
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
     float *cursor = scene->cursor.location;
     int mval_i[2] = {(int)pos[0], (int)pos[1]};
 
     view3d_operator_needs_opengl(C);
 
-    if (!ED_view3d_autodist(depsgraph, ar, v3d, mval_i, cursor, false, NULL)) {
+    if (!ED_view3d_autodist(depsgraph, region, v3d, mval_i, cursor, false, NULL)) {
       return;
     }
 
     DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
 
     return;
   }
@@ -5847,7 +5847,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
   /* these can be NULL */
   ps->v3d = CTX_wm_view3d(C);
   ps->rv3d = CTX_wm_region_view3d(C);
-  ps->ar = CTX_wm_region(C);
+  ps->region = CTX_wm_region(C);
 
   ps->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ps->scene = scene;
@@ -6230,12 +6230,12 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ARegion *ar = BKE_area_find_region_active_win(sa);
-  if (!ar) {
+  ARegion *region = BKE_area_find_region_active_win(sa);
+  if (!region) {
     BKE_report(op->reports, RPT_ERROR, "No 3D viewport found to create image from");
     return OPERATOR_CANCELLED;
   }
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
 
   RNA_string_get(op->ptr, "filepath", filename);
 
@@ -6267,7 +6267,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
                                         scene,
                                         v3d_copy.shading.type,
                                         &v3d_copy,
-                                        ar,
+                                        region,
                                         w,
                                         h,
                                         IB_rect,

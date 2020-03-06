@@ -320,7 +320,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 {
   TransDataEdgeSlideVert *sv;
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  ARegion *ar = t->ar;
+  ARegion *region = t->region;
   View3D *v3d = NULL;
   RegionView3D *rv3d = NULL;
   float projectMat[4][4];
@@ -335,7 +335,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
   if (t->spacetype == SPACE_VIEW3D) {
     /* background mode support */
     v3d = t->sa ? t->sa->spacedata.first : NULL;
-    rv3d = t->ar ? t->ar->regiondata : NULL;
+    rv3d = t->region ? t->region->regiondata : NULL;
   }
 
   if (!rv3d) {
@@ -387,26 +387,26 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
       /* This test is only relevant if object is not wire-drawn! See [#32068]. */
       bool is_visible = !use_occlude_geometry ||
-                        BMBVH_EdgeVisible(bmbvh, e, t->depsgraph, ar, v3d, tc->obedit);
+                        BMBVH_EdgeVisible(bmbvh, e, t->depsgraph, region, v3d, tc->obedit);
 
       if (!is_visible && !use_calc_direction) {
         continue;
       }
 
       if (sv->v_side[1]) {
-        ED_view3d_project_float_v3_m4(ar, sv->v_side[1]->co, sco_b, projectMat);
+        ED_view3d_project_float_v3_m4(region, sv->v_side[1]->co, sco_b, projectMat);
       }
       else {
         add_v3_v3v3(sco_b, v->co, sv->dir_side[1]);
-        ED_view3d_project_float_v3_m4(ar, sco_b, sco_b, projectMat);
+        ED_view3d_project_float_v3_m4(region, sco_b, sco_b, projectMat);
       }
 
       if (sv->v_side[0]) {
-        ED_view3d_project_float_v3_m4(ar, sv->v_side[0]->co, sco_a, projectMat);
+        ED_view3d_project_float_v3_m4(region, sv->v_side[0]->co, sco_a, projectMat);
       }
       else {
         add_v3_v3v3(sco_a, v->co, sv->dir_side[0]);
-        ED_view3d_project_float_v3_m4(ar, sco_a, sco_a, projectMat);
+        ED_view3d_project_float_v3_m4(region, sco_a, sco_a, projectMat);
       }
 
       /* global direction */
@@ -479,7 +479,7 @@ static void calcEdgeSlide_even(TransInfo *t,
   TransDataEdgeSlideVert *sv = sld->sv;
 
   if (sld->totsv > 0) {
-    ARegion *ar = t->ar;
+    ARegion *region = t->region;
     RegionView3D *rv3d = NULL;
     float projectMat[4][4];
 
@@ -491,7 +491,7 @@ static void calcEdgeSlide_even(TransInfo *t,
 
     if (t->spacetype == SPACE_VIEW3D) {
       /* background mode support */
-      rv3d = t->ar ? t->ar->regiondata : NULL;
+      rv3d = t->region ? t->region->regiondata : NULL;
     }
 
     if (!rv3d) {
@@ -506,7 +506,7 @@ static void calcEdgeSlide_even(TransInfo *t,
       /* Set length */
       sv->edge_len = len_v3v3(sv->dir_side[0], sv->dir_side[1]);
 
-      ED_view3d_project_float_v2_m4(ar, sv->v->co, v_proj, projectMat);
+      ED_view3d_project_float_v2_m4(region, sv->v->co, v_proj, projectMat);
       dist_sq = len_squared_v2v2(mval, v_proj);
       if (dist_sq < dist_min_sq) {
         dist_min_sq = dist_sq;
@@ -859,7 +859,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, TransDataContainer *t
   /* use for visibility checks */
   if (t->spacetype == SPACE_VIEW3D) {
     v3d = t->sa ? t->sa->spacedata.first : NULL;
-    rv3d = t->ar ? t->ar->regiondata : NULL;
+    rv3d = t->region ? t->region->regiondata : NULL;
     use_occlude_geometry = (v3d && TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->dt > OB_WIRE &&
                             !XRAY_ENABLED(v3d));
   }
@@ -900,7 +900,7 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, TransDataContainer *t
   if (t->spacetype == SPACE_VIEW3D) {
     /* background mode support */
     v3d = t->sa ? t->sa->spacedata.first : NULL;
-    rv3d = t->ar ? t->ar->regiondata : NULL;
+    rv3d = t->region ? t->region->regiondata : NULL;
   }
 
   sld->curr_sv_index = 0;
@@ -1044,7 +1044,7 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, TransDataContainer *t
   /* use for visibility checks */
   if (t->spacetype == SPACE_VIEW3D) {
     v3d = t->sa ? t->sa->spacedata.first : NULL;
-    rv3d = t->ar ? t->ar->regiondata : NULL;
+    rv3d = t->region ? t->region->regiondata : NULL;
     use_occlude_geometry = (v3d && TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->dt > OB_WIRE &&
                             !XRAY_ENABLED(v3d));
   }

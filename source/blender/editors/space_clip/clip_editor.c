@@ -147,14 +147,16 @@ void ED_space_clip_get_size_fl(SpaceClip *sc, float size[2])
   size[1] = size_i[1];
 }
 
-void ED_space_clip_get_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)
+void ED_space_clip_get_zoom(SpaceClip *sc, ARegion *region, float *zoomx, float *zoomy)
 {
   int width, height;
 
   ED_space_clip_get_size(sc, &width, &height);
 
-  *zoomx = (float)(BLI_rcti_size_x(&ar->winrct) + 1) / (BLI_rctf_size_x(&ar->v2d.cur) * width);
-  *zoomy = (float)(BLI_rcti_size_y(&ar->winrct) + 1) / (BLI_rctf_size_y(&ar->v2d.cur) * height);
+  *zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
+           (BLI_rctf_size_x(&region->v2d.cur) * width);
+  *zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) /
+           (BLI_rctf_size_y(&region->v2d.cur) * height);
 }
 
 void ED_space_clip_get_aspect(SpaceClip *sc, float *aspx, float *aspy)
@@ -261,7 +263,7 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
 }
 
 /* Returns color in linear space, matching ED_space_image_color_sample(). */
-bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *ar, int mval[2], float r_col[3])
+bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *region, int mval[2], float r_col[3])
 {
   ImBuf *ibuf;
   float fx, fy, co[2];
@@ -273,7 +275,7 @@ bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *ar, int mval[2], float r
   }
 
   /* map the mouse coords to the backdrop image space */
-  ED_clip_mouse_pos(sc, ar, mval, co);
+  ED_clip_mouse_pos(sc, region, mval, co);
 
   fx = co[0];
   fy = co[1];
@@ -395,7 +397,7 @@ static bool selected_boundbox(const bContext *C, float min[2], float max[2])
   }
 }
 
-bool ED_clip_view_selection(const bContext *C, ARegion *ar, bool fit)
+bool ED_clip_view_selection(const bContext *C, ARegion *region, bool fit)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   int w, h, frame_width, frame_height;
@@ -425,8 +427,8 @@ bool ED_clip_view_selection(const bContext *C, ARegion *ar, bool fit)
 
     ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-    width = BLI_rcti_size_x(&ar->winrct) + 1;
-    height = BLI_rcti_size_y(&ar->winrct) + 1;
+    width = BLI_rcti_size_x(&region->winrct) + 1;
+    height = BLI_rcti_size_y(&region->winrct) + 1;
 
     zoomx = (float)width / w / aspx;
     zoomy = (float)height / h / aspy;
@@ -550,15 +552,16 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[
   }
 }
 
-void ED_clip_point_stable_pos(SpaceClip *sc, ARegion *ar, float x, float y, float *xr, float *yr)
+void ED_clip_point_stable_pos(
+    SpaceClip *sc, ARegion *region, float x, float y, float *xr, float *yr)
 {
   int sx, sy, width, height;
   float zoomx, zoomy, pos[3], imat[4][4];
 
-  ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+  ED_space_clip_get_zoom(sc, region, &zoomx, &zoomy);
   ED_space_clip_get_size(sc, &width, &height);
 
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
   pos[0] = (x - sx) / zoomx;
   pos[1] = (y - sy) / zoomy;
@@ -588,7 +591,7 @@ void ED_clip_point_stable_pos(SpaceClip *sc, ARegion *ar, float x, float y, floa
  * better name here? view_to_track / track_to_view or so?
  */
 void ED_clip_point_stable_pos__reverse(SpaceClip *sc,
-                                       ARegion *ar,
+                                       ARegion *region,
                                        const float co[2],
                                        float r_co[2])
 {
@@ -597,9 +600,9 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc,
   int width, height;
   int sx, sy;
 
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
   ED_space_clip_get_size(sc, &width, &height);
-  ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+  ED_space_clip_get_zoom(sc, region, &zoomx, &zoomy);
 
   ED_clip_point_undistorted_pos(sc, co, pos);
   pos[2] = 0.0f;
@@ -612,9 +615,9 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc,
 }
 
 /* takes event->mval */
-void ED_clip_mouse_pos(SpaceClip *sc, ARegion *ar, const int mval[2], float co[2])
+void ED_clip_mouse_pos(SpaceClip *sc, ARegion *region, const int mval[2], float co[2])
 {
-  ED_clip_point_stable_pos(sc, ar, mval[0], mval[1], &co[0], &co[1]);
+  ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &co[0], &co[1]);
 }
 
 bool ED_space_clip_check_show_trackedit(SpaceClip *sc)

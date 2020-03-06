@@ -179,7 +179,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
   int filter;
 
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
   short mapping_flag = 0;
 
   /* get curves to search through
@@ -521,7 +521,7 @@ static void box_select_graphkeys(bAnimContext *ac,
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
   KeyframeEditData ked;
   KeyframeEditFunc ok_cb, select_cb;
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
   rctf rectf, scaled_rectf;
 
   /* Convert mouse coordinates to frame ranges and
@@ -1370,8 +1370,8 @@ static int graphkeys_select_leftright_invoke(bContext *C, wmOperator *op, const 
   /* handle mode-based testing */
   if (leftright == GRAPHKEYS_LRSEL_TEST) {
     Scene *scene = ac.scene;
-    ARegion *ar = ac.ar;
-    View2D *v2d = &ar->v2d;
+    ARegion *region = ac.region;
+    View2D *v2d = &region->v2d;
     float x;
 
     /* determine which side of the current frame mouse is on */

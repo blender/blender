@@ -71,7 +71,7 @@ static bAnimListElem *actkeys_find_list_element_at_position(bAnimContext *ac,
                                                             float region_x,
                                                             float region_y)
 {
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
 
   float view_x, view_y;
   int channel_index;
@@ -158,7 +158,7 @@ static void actkeys_find_key_in_list_element(bAnimContext *ac,
 {
   *r_found = false;
 
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
 
   DLRBT_Tree anim_keys;
   BLI_dlrbTree_init(&anim_keys);
@@ -458,7 +458,7 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   int filter;
 
   BoxSelectData sel_data = {.ac = ac, .selectmode = selectmode};
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
   rctf rectf;
 
   /* Convert mouse coordinates to frame ranges and channel
@@ -697,7 +697,7 @@ static void region_select_action_keys(
   int filter;
 
   RegionSelectData sel_data = {.ac = ac, .mode = mode, .selectmode = selectmode};
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
   rctf rectf, scaled_rectf;
 
   /* Convert mouse coordinates to frame ranges and channel
@@ -1470,8 +1470,8 @@ static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, const wm
   /* handle mode-based testing */
   if (leftright == ACTKEYS_LRSEL_TEST) {
     Scene *scene = ac.scene;
-    ARegion *ar = ac.ar;
-    View2D *v2d = &ar->v2d;
+    ARegion *region = ac.region;
+    View2D *v2d = &region->v2d;
     float x;
 
     /* determine which side of the current frame mouse is on */
@@ -1825,7 +1825,7 @@ static int actkeys_clickselect_exec(bContext *C, wmOperator *op)
   }
 
   /* get useful pointers from animation context data */
-  /* ar = ac.ar; */ /* UNUSED */
+  /* region = ac.region; */ /* UNUSED */
 
   /* select mode is either replace (deselect all, then add) or add/extend */
   const short selectmode = RNA_boolean_get(op->ptr, "extend") ? SELECT_INVERT : SELECT_REPLACE;

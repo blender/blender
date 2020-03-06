@@ -518,7 +518,7 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
 
 void createTransTrackingData(bContext *C, TransInfo *t)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   int width, height;
@@ -537,7 +537,7 @@ void createTransTrackingData(bContext *C, TransInfo *t)
     return;
   }
 
-  if (ar->regiontype == RGN_TYPE_PREVIEW) {
+  if (region->regiontype == RGN_TYPE_PREVIEW) {
     /* transformation was called from graph editor */
     createTransTrackingCurvesData(C, t);
   }

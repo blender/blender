@@ -105,7 +105,7 @@ typedef struct OGLRender {
 
   View3D *v3d;
   RegionView3D *rv3d;
-  ARegion *ar;
+  ARegion *region;
 
   ScrArea *prevsa;
   ARegion *prevar;
@@ -287,7 +287,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = oglrender->scene;
-  ARegion *ar = oglrender->ar;
+  ARegion *region = oglrender->region;
   View3D *v3d = oglrender->v3d;
   RegionView3D *rv3d = oglrender->rv3d;
   Object *camera = NULL;
@@ -377,7 +377,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                  scene,
                                                  v3d->shading.type,
                                                  v3d,
-                                                 ar,
+                                                 region,
                                                  sizex,
                                                  sizey,
                                                  imbuf_flags,
@@ -806,9 +806,9 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
   if (is_view_context) {
     /* so quad view renders camera */
-    ED_view3d_context_user_region(C, &oglrender->v3d, &oglrender->ar);
+    ED_view3d_context_user_region(C, &oglrender->v3d, &oglrender->region);
 
-    oglrender->rv3d = oglrender->ar->regiondata;
+    oglrender->rv3d = oglrender->region->regiondata;
 
     /* MUST be cleared on exit */
     memset(&oglrender->scene->customdata_mask_modal,

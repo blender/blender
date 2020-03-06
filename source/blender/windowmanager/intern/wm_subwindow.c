@@ -118,9 +118,9 @@ static void wmOrtho2_offset(const float x, const float y, const float ofs)
 }
 
 /* Default pixel alignment for regions. */
-void wmOrtho2_region_pixelspace(const ARegion *ar)
+void wmOrtho2_region_pixelspace(const ARegion *region)
 {
-  wmOrtho2_offset(ar->winx, ar->winy, -0.01f);
+  wmOrtho2_offset(region->winx, region->winy, -0.01f);
 }
 
 void wmOrtho2_pixelspace(const float x, const float y)

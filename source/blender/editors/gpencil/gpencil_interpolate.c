@@ -335,7 +335,7 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 
 /* Drawing callback for modal operator in screen mode */
 static void gpencil_interpolate_draw_screen(const struct bContext *C,
-                                            ARegion *UNUSED(ar),
+                                            ARegion *UNUSED(region),
                                             void *arg)
 {
   tGPDinterpolate *tgpi = (tGPDinterpolate *)arg;
@@ -343,7 +343,7 @@ static void gpencil_interpolate_draw_screen(const struct bContext *C,
 }
 
 /* Drawing callback for modal operator in 3d mode */
-static void gpencil_interpolate_draw_3d(const bContext *C, ARegion *UNUSED(ar), void *arg)
+static void gpencil_interpolate_draw_3d(const bContext *C, ARegion *UNUSED(region), void *arg)
 {
   tGPDinterpolate *tgpi = (tGPDinterpolate *)arg;
   ED_gp_draw_interpolation(C, tgpi, REGION_DRAW_POST_VIEW);
@@ -356,8 +356,8 @@ static void gpencil_interpolate_draw_3d(const bContext *C, ARegion *UNUSED(ar), 
  */
 static void gpencil_mouse_update_shift(tGPDinterpolate *tgpi, wmOperator *op, const wmEvent *event)
 {
-  float mid = (float)(tgpi->ar->winx - tgpi->ar->winrct.xmin) / 2.0f;
-  float mpos = event->x - tgpi->ar->winrct.xmin;
+  float mid = (float)(tgpi->region->winx - tgpi->region->winrct.xmin) / 2.0f;
+  float mpos = event->x - tgpi->region->winrct.xmin;
 
   if (mpos >= mid) {
     tgpi->shift = ((mpos - mid) * tgpi->high_limit) / mid;
@@ -422,10 +422,10 @@ static void gpencil_interpolate_exit(bContext *C, wmOperator *op)
   if (tgpi) {
     /* remove drawing handler */
     if (tgpi->draw_handle_screen) {
-      ED_region_draw_cb_exit(tgpi->ar->type, tgpi->draw_handle_screen);
+      ED_region_draw_cb_exit(tgpi->region->type, tgpi->draw_handle_screen);
     }
     if (tgpi->draw_handle_3d) {
-      ED_region_draw_cb_exit(tgpi->ar->type, tgpi->draw_handle_3d);
+      ED_region_draw_cb_exit(tgpi->region->type, tgpi->draw_handle_3d);
     }
 
     /* clear status message area */
@@ -457,7 +457,7 @@ static bool gp_interpolate_set_init_values(bContext *C, wmOperator *op, tGPDinte
   /* set current scene and window */
   tgpi->scene = CTX_data_scene(C);
   tgpi->sa = CTX_wm_area(C);
-  tgpi->ar = CTX_wm_region(C);
+  tgpi->region = CTX_wm_region(C);
   tgpi->flag = ts->gp_interpolate.flag;
 
   /* set current frame number */
@@ -555,9 +555,9 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
    * and each handler use different coord system
    */
   tgpi->draw_handle_screen = ED_region_draw_cb_activate(
-      tgpi->ar->type, gpencil_interpolate_draw_screen, tgpi, REGION_DRAW_POST_PIXEL);
+      tgpi->region->type, gpencil_interpolate_draw_screen, tgpi, REGION_DRAW_POST_PIXEL);
   tgpi->draw_handle_3d = ED_region_draw_cb_activate(
-      tgpi->ar->type, gpencil_interpolate_draw_3d, tgpi, REGION_DRAW_POST_VIEW);
+      tgpi->region->type, gpencil_interpolate_draw_3d, tgpi, REGION_DRAW_POST_VIEW);
 
   /* set cursor to indicate modal */
   WM_cursor_modal_set(win, WM_CURSOR_EW_SCROLL);

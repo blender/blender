@@ -215,7 +215,7 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C,
 static int add_reroute_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   bNodeTree *ntree = snode->edittree;
   float mcoords[256][2];
   int i = 0;
@@ -226,7 +226,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 
     RNA_float_get_array(&itemptr, "loc", loc);
     UI_view2d_region_to_view(
-        &ar->v2d, (short)loc[0], (short)loc[1], &mcoords[i][0], &mcoords[i][1]);
+        &region->v2d, (short)loc[0], (short)loc[1], &mcoords[i][0], &mcoords[i][1]);
     i++;
     if (i >= 256) {
       break;
@@ -368,12 +368,12 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* convert mouse coordinates to v2d space */
   UI_view2d_region_to_view(
-      &ar->v2d, event->mval[0], event->mval[1], &snode->cursor[0], &snode->cursor[1]);
+      &region->v2d, event->mval[0], event->mval[1], &snode->cursor[0], &snode->cursor[1]);
 
   snode->cursor[0] /= UI_DPI_FAC;
   snode->cursor[1] /= UI_DPI_FAC;

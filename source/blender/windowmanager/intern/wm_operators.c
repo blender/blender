@@ -1000,7 +1000,7 @@ struct EnumSearchMenu {
 };
 
 /** Generic enum search invoke popup. */
-static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg)
+static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
 {
   struct EnumSearchMenu *search_menu = arg;
   wmWindow *win = CTX_wm_window(C);
@@ -1015,7 +1015,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg)
   uiBlock *block;
   uiBut *but;
 
-  block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+  block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -1314,7 +1314,7 @@ static void wm_block_redo_cancel_cb(bContext *C, void *arg_op)
   }
 }
 
-static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
+static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
 {
   wmOperator *op = arg_op;
   uiBlock *block;
@@ -1322,7 +1322,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
   uiStyle *style = UI_style_get_dpi();
   int width = 15 * UI_UNIT_X;
 
-  block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+  block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
@@ -1395,7 +1395,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 }
 
 /* Dialogs are popups that require user verification (click OK) before exec */
-static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
+static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userData)
 {
   wmOpPopUp *data = userData;
   wmOperator *op = data->op;
@@ -1403,7 +1403,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
   uiLayout *layout;
   uiStyle *style = UI_style_get_dpi();
 
-  block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+  block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
@@ -1439,12 +1439,12 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
   UI_block_bounds_set_popup(
       block, 6 * U.dpi_fac, (const int[2]){data->width / -2, data->height / 2});
 
-  UI_block_active_only_flagged_buttons(C, ar, block);
+  UI_block_active_only_flagged_buttons(C, region, block);
 
   return block;
 }
 
-static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
+static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userData)
 {
   wmOpPopUp *data = userData;
   wmOperator *op = data->op;
@@ -1452,7 +1452,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
   uiLayout *layout;
   uiStyle *style = UI_style_get_dpi();
 
-  block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+  block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
@@ -1693,14 +1693,14 @@ struct SearchPopupInit_Data {
   int size[2];
 };
 
-static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *userdata)
+static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdata)
 {
   const struct SearchPopupInit_Data *init_data = userdata;
   static char search[256] = "";
   uiBlock *block;
   uiBut *but;
 
-  block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+  block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -3141,19 +3141,19 @@ static void redraw_timer_step(bContext *C,
                               struct Depsgraph *depsgraph,
                               wmWindow *win,
                               ScrArea *sa,
-                              ARegion *ar,
+                              ARegion *region,
                               const int type,
                               const int cfra)
 {
   if (type == eRTDrawRegion) {
-    if (ar) {
-      wm_draw_region_test(C, sa, ar);
+    if (region) {
+      wm_draw_region_test(C, sa, region);
     }
   }
   else if (type == eRTDrawRegionSwap) {
     CTX_wm_menu_set(C, NULL);
 
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
     wm_draw_update(C);
 
     CTX_wm_window_set(C, win); /* XXX context manipulation warning! */
@@ -3179,7 +3179,7 @@ static void redraw_timer_step(bContext *C,
     CTX_wm_window_set(C, win); /* XXX context manipulation warning! */
 
     CTX_wm_area_set(C, sa);
-    CTX_wm_region_set(C, ar);
+    CTX_wm_region_set(C, region);
   }
   else if (type == eRTDrawWindowSwap) {
     redraw_timer_window_swap(C);
@@ -3215,7 +3215,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   wmWindow *win = CTX_wm_window(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   double time_start, time_delta;
   const int type = RNA_enum_get(op->ptr, "type");
@@ -3236,7 +3236,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   wm_window_make_drawable(wm, win);
 
   for (a = 0; a < iter; a++) {
-    redraw_timer_step(C, bmain, scene, depsgraph, win, sa, ar, type, cfra);
+    redraw_timer_step(C, bmain, scene, depsgraph, win, sa, region, type, cfra);
     iter_steps += 1;
 
     if (time_limit != 0.0) {

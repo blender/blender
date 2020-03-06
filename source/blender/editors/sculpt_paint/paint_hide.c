@@ -307,7 +307,7 @@ static void clip_planes_from_rect(bContext *C,
 
   view3d_operator_needs_opengl(C);
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
-  ED_view3d_clipping_calc(&bb, clip_planes, vc.ar, vc.obact, rect);
+  ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, rect);
 }
 
 /* If mode is inside, get all PBVH nodes that lie at least partially
@@ -338,7 +338,7 @@ static void get_pbvh_nodes(
 
 static int hide_show_exec(bContext *C, wmOperator *op)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Mesh *me = ob->data;
@@ -403,7 +403,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
     BKE_mesh_flush_hidden_from_verts(me);
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }

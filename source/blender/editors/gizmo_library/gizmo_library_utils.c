@@ -196,12 +196,12 @@ bool gizmo_window_project_2d(bContext *C,
   /* rotate mouse in relation to the center and relocate it */
   if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
     /* For 3d views, transform 2D mouse pos onto plane. */
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
 
     float plane[4], co[3];
     plane_from_point_normal_v3(plane, mat[3], mat[2]);
-    bool clip_ray = ((RegionView3D *)ar->regiondata)->is_persp;
-    if (ED_view3d_win_to_3d_on_plane(ar, plane, mval, clip_ray, co)) {
+    bool clip_ray = ((RegionView3D *)region->regiondata)->is_persp;
+    if (ED_view3d_win_to_3d_on_plane(region, plane, mval, clip_ray, co)) {
       float imat[4][4];
       invert_m4_m4(imat, mat);
       mul_m4_v3(imat, co);
@@ -237,10 +237,10 @@ bool gizmo_window_project_3d(
 
   if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
     View3D *v3d = CTX_wm_view3d(C);
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
     /* Note: we might want a custom reference point passed in,
      * instead of the gizmo center. */
-    ED_view3d_win_to_3d(v3d, ar, mat[3], mval, r_co);
+    ED_view3d_win_to_3d(v3d, region, mat[3], mval, r_co);
     invert_m4(mat);
     mul_m4_v3(mat, r_co);
     return true;

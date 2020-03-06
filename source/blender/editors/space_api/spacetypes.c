@@ -263,13 +263,13 @@ void ED_region_draw_cb_exit(ARegionType *art, void *handle)
   }
 }
 
-void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
+void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
 {
   RegionDrawCB *rdc;
 
-  for (rdc = ar->type->drawcalls.first; rdc; rdc = rdc->next) {
+  for (rdc = region->type->drawcalls.first; rdc; rdc = rdc->next) {
     if (rdc->type == type) {
-      rdc->draw(C, ar, rdc->customdata);
+      rdc->draw(C, region, rdc->customdata);
     }
   }
 }

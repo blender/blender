@@ -602,7 +602,7 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
   float mvalf[2] = {event->mval[0], event->mval[1]};
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   StencilControlData *scd;
   int mask = RNA_enum_get(op->ptr, "texmode");
 
@@ -627,8 +627,8 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   scd->mode = RNA_enum_get(op->ptr, "mode");
   scd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
-  scd->area_size[0] = ar->winx;
-  scd->area_size[1] = ar->winy;
+  scd->area_size[0] = region->winx;
+  scd->area_size[1] = region->winy;
 
   op->customdata = scd;
   WM_event_add_modal_handler(C, op);

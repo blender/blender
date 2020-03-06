@@ -161,10 +161,10 @@ int UI_search_items_find_index(uiSearchItems *items, const char *name)
   return -1;
 }
 
-/* ar is the search box itself */
-static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
+/* region is the search box itself */
+static void ui_searchbox_select(bContext *C, ARegion *region, uiBut *but, int step)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
 
   /* apply step */
   data->active += step;
@@ -176,7 +176,7 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
     if (data->items.more) {
       data->items.offset++;
       data->active = data->items.totitem - 1;
-      ui_searchbox_update(C, ar, but, false);
+      ui_searchbox_update(C, region, but, false);
     }
     else {
       data->active = data->items.totitem - 1;
@@ -186,7 +186,7 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
     if (data->items.offset) {
       data->items.offset--;
       data->active = 0;
-      ui_searchbox_update(C, ar, but, false);
+      ui_searchbox_update(C, region, but, false);
     }
     else {
       /* only let users step into an 'unset' state for unlink buttons */
@@ -194,7 +194,7 @@ static void ui_searchbox_select(bContext *C, ARegion *ar, uiBut *but, int step)
     }
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 }
 
 static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr)
@@ -229,24 +229,24 @@ static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr
   }
 }
 
-int ui_searchbox_find_index(ARegion *ar, const char *name)
+int ui_searchbox_find_index(ARegion *region, const char *name)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
   return UI_search_items_find_index(&data->items, name);
 }
 
 /* x and y in screencoords */
-bool ui_searchbox_inside(ARegion *ar, int x, int y)
+bool ui_searchbox_inside(ARegion *region, int x, int y)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
 
-  return BLI_rcti_isect_pt(&data->bbox, x - ar->winrct.xmin, y - ar->winrct.ymin);
+  return BLI_rcti_isect_pt(&data->bbox, x - region->winrct.xmin, y - region->winrct.ymin);
 }
 
 /* string validated to be of correct length (but->hardmax) */
-bool ui_searchbox_apply(uiBut *but, ARegion *ar)
+bool ui_searchbox_apply(uiBut *but, ARegion *region)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
 
   but->func_arg2 = NULL;
 
@@ -272,9 +272,9 @@ bool ui_searchbox_apply(uiBut *but, ARegion *ar)
   }
 }
 
-void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, const wmEvent *event)
+void ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent *event)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
   int type = event->type, val = event->val;
 
   if (type == MOUSEPAN) {
@@ -284,23 +284,24 @@ void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, const wmEvent *eve
   switch (type) {
     case WHEELUPMOUSE:
     case UPARROWKEY:
-      ui_searchbox_select(C, ar, but, -1);
+      ui_searchbox_select(C, region, but, -1);
       break;
     case WHEELDOWNMOUSE:
     case DOWNARROWKEY:
-      ui_searchbox_select(C, ar, but, 1);
+      ui_searchbox_select(C, region, but, 1);
       break;
     case MOUSEMOVE:
-      if (BLI_rcti_isect_pt(&ar->winrct, event->x, event->y)) {
+      if (BLI_rcti_isect_pt(&region->winrct, event->x, event->y)) {
         rcti rect;
         int a;
 
         for (a = 0; a < data->items.totitem; a++) {
           ui_searchbox_butrect(&rect, data, a);
-          if (BLI_rcti_isect_pt(&rect, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
+          if (BLI_rcti_isect_pt(
+                  &rect, event->x - region->winrct.xmin, event->y - region->winrct.ymin)) {
             if (data->active != a) {
               data->active = a;
-              ui_searchbox_select(C, ar, but, 0);
+              ui_searchbox_select(C, region, but, 0);
               break;
             }
           }
@@ -310,10 +311,10 @@ void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, const wmEvent *eve
   }
 }
 
-/* ar is the search box itself */
-void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
+/* region is the search box itself */
+void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool reset)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
 
   /* reset vars */
   data->items.totitem = 0;
@@ -379,14 +380,14 @@ void ui_searchbox_update(bContext *C, ARegion *ar, uiBut *but, const bool reset)
   }
 
   /* validate selected item */
-  ui_searchbox_select(C, ar, but, 0);
+  ui_searchbox_select(C, region, but, 0);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 }
 
-int ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
+int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *str)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
   int match = AUTOCOMPLETE_NO_MATCH;
 
   if (str[0]) {
@@ -401,12 +402,12 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
   return match;
 }
 
-static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *ar)
+static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
 
   /* pixel space */
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
 
   if (data->noback == false) {
     ui_draw_widget_menu_back(&data->bbox, true);
@@ -477,9 +478,9 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *ar)
   }
 }
 
-static void ui_searchbox_region_free_cb(ARegion *ar)
+static void ui_searchbox_region_free_cb(ARegion *region)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
   int a;
 
   /* free search data */
@@ -491,7 +492,7 @@ static void ui_searchbox_region_free_cb(ARegion *ar)
   MEM_freeN(data->items.icons);
 
   MEM_freeN(data);
-  ar->regiondata = NULL;
+  region->regiondata = NULL;
 }
 
 ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but)
@@ -499,7 +500,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
   wmWindow *win = CTX_wm_window(C);
   uiStyle *style = UI_style_get();
   static ARegionType type;
-  ARegion *ar;
+  ARegion *region;
   uiSearchboxData *data;
   float aspect = but->block->aspect;
   rctf rect_fl;
@@ -509,13 +510,13 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
   int i;
 
   /* create area region */
-  ar = ui_region_temp_add(CTX_wm_screen(C));
+  region = ui_region_temp_add(CTX_wm_screen(C));
 
   memset(&type, 0, sizeof(ARegionType));
   type.draw = ui_searchbox_region_draw_cb;
   type.free = ui_searchbox_region_free_cb;
   type.regionid = RGN_TYPE_TEMPORARY;
-  ar->type = &type;
+  region->type = &type;
 
   /* create searchbox data */
   data = MEM_callocN(sizeof(uiSearchboxData), "uiSearchboxData");
@@ -525,7 +526,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
   ui_fontscale(&data->fstyle.points, aspect);
   UI_fontstyle_set(&data->fstyle);
 
-  ar->regiondata = data;
+  region->regiondata = data;
 
   /* special case, hardcoded feature, not draw backdrop when called from menus,
    * assume for design that popup already added it */
@@ -553,13 +554,13 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
     /* this case is search menu inside other menu */
     /* we copy region size */
 
-    ar->winrct = butregion->winrct;
+    region->winrct = butregion->winrct;
 
     /* widget rect, in region coords */
     data->bbox.xmin = margin;
-    data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - margin;
+    data->bbox.xmax = BLI_rcti_size_x(&region->winrct) - margin;
     data->bbox.ymin = margin;
-    data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - margin;
+    data->bbox.ymax = BLI_rcti_size_y(&region->winrct) - margin;
 
     /* check if button is lower half */
     if (but->rect.ymax < BLI_rctf_cent_y(&but->block->rect)) {
@@ -632,17 +633,17 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
     data->bbox.ymax = BLI_rcti_size_y(&rect_i) + margin;
 
     /* region bigger for shadow */
-    ar->winrct.xmin = rect_i.xmin - margin;
-    ar->winrct.xmax = rect_i.xmax + margin;
-    ar->winrct.ymin = rect_i.ymin - margin;
-    ar->winrct.ymax = rect_i.ymax;
+    region->winrct.xmin = rect_i.xmin - margin;
+    region->winrct.xmax = rect_i.xmax + margin;
+    region->winrct.ymin = rect_i.ymin - margin;
+    region->winrct.ymax = rect_i.ymax;
   }
 
   /* adds subwindow */
-  ED_region_floating_initialize(ar);
+  ED_region_floating_initialize(region);
 
   /* notify change and redraw */
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   /* prepare search data */
   if (data->preview) {
@@ -660,7 +661,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
     data->items.names[i] = MEM_callocN(but->hardmax + 1, "search pointers");
   }
 
-  return ar;
+  return region;
 }
 
 /**
@@ -688,12 +689,12 @@ static void str_tolower_titlecaps_ascii(char *str, const size_t len)
   }
 }
 
-static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARegion *ar)
+static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARegion *region)
 {
-  uiSearchboxData *data = ar->regiondata;
+  uiSearchboxData *data = region->regiondata;
 
   /* pixel space */
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
 
   if (data->noback == false) {
     ui_draw_widget_menu_back(&data->bbox, true);
@@ -764,19 +765,19 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
 
 ARegion *ui_searchbox_create_operator(bContext *C, ARegion *butregion, uiBut *but)
 {
-  ARegion *ar;
+  ARegion *region;
 
   UI_but_drawflag_enable(but, UI_BUT_HAS_SHORTCUT);
-  ar = ui_searchbox_create_generic(C, butregion, but);
+  region = ui_searchbox_create_generic(C, butregion, but);
 
-  ar->type->draw = ui_searchbox_region_draw_cb__operator;
+  region->type->draw = ui_searchbox_region_draw_cb__operator;
 
-  return ar;
+  return region;
 }
 
-void ui_searchbox_free(bContext *C, ARegion *ar)
+void ui_searchbox_free(bContext *C, ARegion *region)
 {
-  ui_region_temp_remove(C, CTX_wm_screen(C), ar);
+  ui_region_temp_remove(C, CTX_wm_screen(C), region);
 }
 
 /* sets red alert if button holds a string it can't find */

@@ -287,15 +287,15 @@ static void dial_ghostarc_draw(const float angle_ofs,
 
 static void dial_ghostarc_get_angles(const wmGizmo *gz,
                                      const wmEvent *event,
-                                     const ARegion *ar,
+                                     const ARegion *region,
                                      const float mat[4][4],
                                      const float co_outer[3],
                                      float *r_start,
                                      float *r_delta)
 {
   DialInteraction *inter = gz->interaction_data;
-  const RegionView3D *rv3d = ar->regiondata;
-  const float mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
+  const RegionView3D *rv3d = region->regiondata;
+  const float mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
 
   /* We might need to invert the direction of the angles. */
   float view_vec[3], axis_vec[3];
@@ -312,12 +312,13 @@ static void dial_ghostarc_get_angles(const wmGizmo *gz,
 
   plane_from_point_normal_v3(dial_plane, gz->matrix_basis[3], axis_vec);
 
-  if (!ED_view3d_win_to_3d_on_plane(ar, dial_plane, inter->init.mval, false, proj_mval_init_rel)) {
+  if (!ED_view3d_win_to_3d_on_plane(
+          region, dial_plane, inter->init.mval, false, proj_mval_init_rel)) {
     goto fail;
   }
   sub_v3_v3(proj_mval_init_rel, gz->matrix_basis[3]);
 
-  if (!ED_view3d_win_to_3d_on_plane(ar, dial_plane, mval, false, proj_mval_new_rel)) {
+  if (!ED_view3d_win_to_3d_on_plane(region, dial_plane, mval, false, proj_mval_new_rel)) {
     goto fail;
   }
   sub_v3_v3(proj_mval_new_rel, gz->matrix_basis[3]);
@@ -440,8 +441,8 @@ static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id
   float *clip_plane = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP) ? clip_plane_buf : NULL;
 
   if (clip_plane) {
-    ARegion *ar = CTX_wm_region(C);
-    RegionView3D *rv3d = ar->regiondata;
+    ARegion *region = CTX_wm_region(C);
+    RegionView3D *rv3d = region->regiondata;
 
     copy_v3_v3(clip_plane, rv3d->viewinv[2]);
     clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[3]);
@@ -467,8 +468,8 @@ static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
                           NULL;
 
   if (clip_plane) {
-    ARegion *ar = CTX_wm_region(C);
-    RegionView3D *rv3d = ar->regiondata;
+    ARegion *region = CTX_wm_region(C);
+    RegionView3D *rv3d = region->regiondata;
 
     copy_v3_v3(clip_plane, rv3d->viewinv[2]);
     clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[3]);

@@ -121,7 +121,7 @@ struct SnapObjectContext {
   bool use_v3d;
   struct {
     const struct View3D *v3d;
-    const struct ARegion *ar;
+    const struct ARegion *region;
   } v3d_data;
 
   /* Object -> SnapObjectData map */
@@ -2872,13 +2872,13 @@ SnapObjectContext *ED_transform_snap_object_context_create_view3d(Main *bmain,
                                                                   Depsgraph *depsgraph,
                                                                   int flag,
                                                                   /* extra args for view3d */
-                                                                  const ARegion *ar,
+                                                                  const ARegion *region,
                                                                   const View3D *v3d)
 {
   SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, depsgraph, flag);
 
   sctx->use_v3d = true;
-  sctx->v3d_data.ar = ar;
+  sctx->v3d_data.region = region;
   sctx->v3d_data.v3d = v3d;
 
   return sctx;
@@ -3034,15 +3034,15 @@ static short transform_snap_context_project_view3d_mixed_impl(
   float loc[3], no[3], obmat[4][4];
   int index = -1;
 
-  const ARegion *ar = sctx->v3d_data.ar;
-  const RegionView3D *rv3d = ar->regiondata;
+  const ARegion *region = sctx->v3d_data.region;
+  const RegionView3D *rv3d = region->regiondata;
 
   bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(sctx->v3d_data.v3d);
 
   if (snap_to_flag & SCE_SNAP_MODE_FACE || use_occlusion_test) {
     float ray_start[3], ray_normal[3];
     if (!ED_view3d_win_to_ray_clipped_ex(sctx->depsgraph,
-                                         sctx->v3d_data.ar,
+                                         sctx->v3d_data.region,
                                          sctx->v3d_data.v3d,
                                          mval,
                                          NULL,
@@ -3083,8 +3083,8 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
     SnapData snapdata;
     copy_m4_m4(snapdata.pmat, rv3d->persmat);
-    snapdata.win_size[0] = ar->winx;
-    snapdata.win_size[1] = ar->winy;
+    snapdata.win_size[0] = region->winx;
+    snapdata.win_size[1] = region->winy;
     copy_v2_v2(snapdata.mval, mval);
     snapdata.view_proj = rv3d->is_persp ? VIEW_PROJ_PERSP : VIEW_PROJ_ORTHO;
 
@@ -3230,7 +3230,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
   float ray_start[3], ray_normal[3];
 
   if (!ED_view3d_win_to_ray_clipped_ex(sctx->depsgraph,
-                                       sctx->v3d_data.ar,
+                                       sctx->v3d_data.region,
                                        sctx->v3d_data.v3d,
                                        mval,
                                        NULL,

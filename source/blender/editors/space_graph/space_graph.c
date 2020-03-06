@@ -66,7 +66,7 @@
 
 static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceGraph *sipo;
 
   /* Graph Editor - general stuff */
@@ -84,52 +84,52 @@ static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
   sipo->flag |= SIPO_SELVHANDLESONLY | SIPO_SHOW_MARKERS;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for graphedit");
+  region = MEM_callocN(sizeof(ARegion), "header for graphedit");
 
-  BLI_addtail(&sipo->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&sipo->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* channels */
-  ar = MEM_callocN(sizeof(ARegion), "channels region for graphedit");
+  region = MEM_callocN(sizeof(ARegion), "channels region for graphedit");
 
-  BLI_addtail(&sipo->regionbase, ar);
-  ar->regiontype = RGN_TYPE_CHANNELS;
-  ar->alignment = RGN_ALIGN_LEFT;
+  BLI_addtail(&sipo->regionbase, region);
+  region->regiontype = RGN_TYPE_CHANNELS;
+  region->alignment = RGN_ALIGN_LEFT;
 
-  ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+  region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
 
   /* ui buttons */
-  ar = MEM_callocN(sizeof(ARegion), "buttons region for graphedit");
+  region = MEM_callocN(sizeof(ARegion), "buttons region for graphedit");
 
-  BLI_addtail(&sipo->regionbase, ar);
-  ar->regiontype = RGN_TYPE_UI;
-  ar->alignment = RGN_ALIGN_RIGHT;
-  ar->flag = RGN_FLAG_HIDDEN;
+  BLI_addtail(&sipo->regionbase, region);
+  region->regiontype = RGN_TYPE_UI;
+  region->alignment = RGN_ALIGN_RIGHT;
+  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for graphedit");
+  region = MEM_callocN(sizeof(ARegion), "main region for graphedit");
 
-  BLI_addtail(&sipo->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&sipo->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
-  ar->v2d.tot.xmin = 0.0f;
-  ar->v2d.tot.ymin = (float)scene->r.sfra - 10.0f;
-  ar->v2d.tot.xmax = (float)scene->r.efra;
-  ar->v2d.tot.ymax = 10.0f;
+  region->v2d.tot.xmin = 0.0f;
+  region->v2d.tot.ymin = (float)scene->r.sfra - 10.0f;
+  region->v2d.tot.xmax = (float)scene->r.efra;
+  region->v2d.tot.ymax = 10.0f;
 
-  ar->v2d.cur = ar->v2d.tot;
+  region->v2d.cur = region->v2d.tot;
 
-  ar->v2d.min[0] = FLT_MIN;
-  ar->v2d.min[1] = FLT_MIN;
+  region->v2d.min[0] = FLT_MIN;
+  region->v2d.min[1] = FLT_MIN;
 
-  ar->v2d.max[0] = MAXFRAMEF;
-  ar->v2d.max[1] = FLT_MAX;
+  region->v2d.max[0] = MAXFRAMEF;
+  region->v2d.max[1] = FLT_MAX;
 
-  ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-  ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HANDLES);
+  region->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+  region->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HANDLES);
 
-  ar->v2d.keeptot = 0;
+  region->v2d.keeptot = 0;
 
   return (SpaceLink *)sipo;
 }
@@ -180,26 +180,26 @@ static SpaceLink *graph_duplicate(SpaceLink *sl)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void graph_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void graph_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor", SPACE_GRAPH, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void graph_main_region_draw(const bContext *C, ARegion *ar)
+static void graph_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceGraph *sipo = CTX_wm_space_graph(C);
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   View2DScrollers *scrollers;
   float col[3];
   short cfra_flag = 0;
@@ -216,7 +216,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
   UI_view2d_draw_lines_y__values(v2d);
 
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   /* start and end frame (in F-Curve mode only) */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
@@ -226,11 +226,11 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
   /* draw data */
   if (ANIM_animdata_get_context(C, &ac)) {
     /* draw ghost curves */
-    graph_draw_ghost_curves(&ac, sipo, ar);
+    graph_draw_ghost_curves(&ac, sipo, region);
 
     /* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
-    graph_draw_curves(&ac, sipo, ar, 0);
-    graph_draw_curves(&ac, sipo, ar, 1);
+    graph_draw_curves(&ac, sipo, region, 0);
+    graph_draw_curves(&ac, sipo, region, 1);
 
     /* XXX the slow way to set tot rect... but for nice sliders needed (ton) */
     get_graph_keyframe_extents(
@@ -294,7 +294,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
   /* markers */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
-    UI_view2d_view_orthoSpecial(ar, v2d, 1);
+    UI_view2d_view_orthoSpecial(region, v2d, 1);
     int marker_draw_flag = DRAW_MARKERS_MARGIN;
     if (sipo->flag & SIPO_SHOW_MARKERS) {
       ED_markers_draw(C, marker_draw_flag);
@@ -309,13 +309,13 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
   /* callback */
   UI_view2d_view_ortho(v2d);
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
   /* time-scrubbing */
-  ED_time_scrub_draw(ar, scene, display_seconds, false);
+  ED_time_scrub_draw(region, scene, display_seconds, false);
 
   /* scrollers */
   // FIXME: args for scrollers depend on the type of data being shown...
@@ -326,37 +326,38 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
   /* scale numbers */
   {
     rcti rect;
-    BLI_rcti_init(&rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, ar->winy - UI_TIME_SCRUB_MARGIN_Y);
-    UI_view2d_draw_scale_y__values(ar, v2d, &rect, TH_SCROLL_TEXT);
+    BLI_rcti_init(
+        &rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
+    UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT);
   }
 }
 
-static void graph_channel_region_init(wmWindowManager *wm, ARegion *ar)
+static void graph_channel_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
   /* make sure we keep the hide flags */
-  ar->v2d.scroll |= V2D_SCROLL_RIGHT;
+  region->v2d.scroll |= V2D_SCROLL_RIGHT;
 
   /* prevent any noise of past */
-  ar->v2d.scroll &= ~(V2D_SCROLL_LEFT | V2D_SCROLL_TOP | V2D_SCROLL_BOTTOM);
+  region->v2d.scroll &= ~(V2D_SCROLL_LEFT | V2D_SCROLL_TOP | V2D_SCROLL_BOTTOM);
 
-  ar->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-  ar->v2d.scroll |= V2D_SCROLL_VERTICAL_HIDE;
+  region->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+  region->v2d.scroll |= V2D_SCROLL_VERTICAL_HIDE;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void graph_channel_region_draw(const bContext *C, ARegion *ar)
+static void graph_channel_region_draw(const bContext *C, ARegion *region)
 {
   bAnimContext ac;
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   View2DScrollers *scrollers;
   float col[3];
 
@@ -369,11 +370,11 @@ static void graph_channel_region_draw(const bContext *C, ARegion *ar)
 
   /* draw channels */
   if (ANIM_animdata_get_context(C, &ac)) {
-    graph_draw_channel_names((bContext *)C, &ac, ar);
+    graph_draw_channel_names((bContext *)C, &ac, region);
   }
 
   /* channel filter next to scrubbing area */
-  ED_time_scrub_channel_search_draw(C, ar, ac.ads);
+  ED_time_scrub_channel_search_draw(C, region, ac.ads);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
@@ -385,42 +386,42 @@ static void graph_channel_region_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void graph_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void graph_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void graph_header_region_draw(const bContext *C, ARegion *ar)
+static void graph_header_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void graph_buttons_region_init(wmWindowManager *wm, ARegion *ar)
+static void graph_buttons_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ED_region_panels_init(wm, ar);
+  ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void graph_buttons_region_draw(const bContext *C, ARegion *ar)
+static void graph_buttons_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 
 static void graph_region_listener(wmWindow *UNUSED(win),
                                   ScrArea *UNUSED(sa),
-                                  ARegion *ar,
+                                  ARegion *region,
                                   wmNotifier *wmn,
                                   const Scene *UNUSED(scene))
 {
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       break;
     case NC_SCENE:
       switch (wmn->data) {
@@ -429,11 +430,11 @@ static void graph_region_listener(wmWindow *UNUSED(win),
         case ND_FRAME:
         case ND_FRAME_RANGE:
         case ND_MARKERS:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
         case ND_SEQUENCER:
           if (wmn->action == NA_SELECTED) {
-            ED_region_tag_redraw(ar);
+            ED_region_tag_redraw(region);
           }
           break;
       }
@@ -443,11 +444,11 @@ static void graph_region_listener(wmWindow *UNUSED(win),
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
         case ND_KEYS:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
         case ND_MODIFIER:
           if (wmn->action == NA_RENAME) {
-            ED_region_tag_redraw(ar);
+            ED_region_tag_redraw(region);
           }
           break;
       }
@@ -456,23 +457,23 @@ static void graph_region_listener(wmWindow *UNUSED(win),
       switch (wmn->action) {
         case NA_EDITED:
         case NA_SELECTED:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_LAYER)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     default:
       if (wmn->data == ND_KEYS) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -483,15 +484,15 @@ static void graph_region_message_subscribe(const struct bContext *UNUSED(C),
                                            struct Scene *scene,
                                            struct bScreen *screen,
                                            struct ScrArea *sa,
-                                           struct ARegion *ar,
+                                           struct ARegion *region,
                                            struct wmMsgBus *mbus)
 {
   PointerRNA ptr;
   RNA_pointer_create(&screen->id, &RNA_SpaceGraphEditor, sa->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = ar,
-      .user_data = ar,
+      .owner = region,
+      .user_data = region,
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
 

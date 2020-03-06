@@ -200,9 +200,9 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   struct NavigateWidgetGroup *navgroup = gzgroup->customdata;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-  const rcti *rect_visible = ED_region_visible_rect(ar);
+  const rcti *rect_visible = ED_region_visible_rect(region);
 
   if ((navgroup->state.rect_visible.xmax == rect_visible->xmax) &&
       (navgroup->state.rect_visible.ymax == rect_visible->ymax)) {

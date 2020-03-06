@@ -277,15 +277,15 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
     /* for a header menu we set the direction automatic */
     if (!pup->slideout && flip) {
       ScrArea *sa = CTX_wm_area(C);
-      ARegion *ar = CTX_wm_region(C);
-      if (sa && ar) {
-        if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+      ARegion *region = CTX_wm_region(C);
+      if (sa && region) {
+        if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
           if (RGN_ALIGN_ENUM_FROM_MASK(ED_area_header_alignment(sa)) == RGN_ALIGN_BOTTOM) {
             UI_block_direction_set(block, UI_DIR_UP);
             UI_block_order_flip(block);
           }
         }
-        if (ar->regiontype == RGN_TYPE_FOOTER) {
+        if (region->regiontype == RGN_TYPE_FOOTER) {
           if (RGN_ALIGN_ENUM_FROM_MASK(ED_area_footer_alignment(sa)) == RGN_ALIGN_BOTTOM) {
             UI_block_direction_set(block, UI_DIR_UP);
             UI_block_order_flip(block);
@@ -669,8 +669,8 @@ void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
 
       /* In the case we have nested popups,
        * closing one may need to redraw another, see: T48874 */
-      for (ARegion *ar = screen->regionbase.first; ar; ar = ar->next) {
-        ED_region_tag_refresh_ui(ar);
+      for (ARegion *region = screen->regionbase.first; region; region = region->next) {
+        ED_region_tag_refresh_ui(region);
       }
     }
   }
@@ -678,8 +678,8 @@ void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
 
 bool UI_popup_block_name_exists(const bScreen *screen, const char *name)
 {
-  for (const ARegion *ar = screen->regionbase.first; ar; ar = ar->next) {
-    for (const uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+  for (const ARegion *region = screen->regionbase.first; region; region = region->next) {
+    for (const uiBlock *block = region->uiblocks.first; block; block = block->next) {
       if (STREQ(block->name, name)) {
         return true;
       }

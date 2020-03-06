@@ -201,12 +201,12 @@ static void file_draw_string(int sx,
                     });
 }
 
-void file_calc_previews(const bContext *C, ARegion *ar)
+void file_calc_previews(const bContext *C, ARegion *region)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
 
-  ED_fileselect_init_layout(sfile, ar);
+  ED_fileselect_init_layout(sfile, region);
   UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
 }
 
@@ -384,7 +384,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
   BLI_make_file_string(blendfile_path, orgname, sfile->params->dir, oldname);
@@ -415,7 +415,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
       ED_fileselect_clear(wm, sa, sfile);
     }
 
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
   }
 }
 
@@ -669,17 +669,17 @@ static void draw_details_columns(const FileSelectParams *params,
   }
 }
 
-void file_draw_list(const bContext *C, ARegion *ar)
+void file_draw_list(const bContext *C, ARegion *region)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_params(sfile);
-  FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
-  View2D *v2d = &ar->v2d;
+  FileLayout *layout = ED_fileselect_get_layout(sfile, region);
+  View2D *v2d = &region->v2d;
   struct FileList *files = sfile->files;
   struct FileDirEntry *file;
   const char *root = filelist_dir(files);
   ImBuf *imb;
-  uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   int numfiles;
   int numfiles_layout;
   int sx, sy;
@@ -700,12 +700,13 @@ void file_draw_list(const bContext *C, ARegion *ar)
     draw_dividers(layout, v2d);
   }
 
-  offset = ED_fileselect_layout_offset(layout, (int)ar->v2d.cur.xmin, (int)-ar->v2d.cur.ymax);
+  offset = ED_fileselect_layout_offset(
+      layout, (int)region->v2d.cur.xmin, (int)-region->v2d.cur.ymax);
   if (offset < 0) {
     offset = 0;
   }
 
-  numfiles_layout = ED_fileselect_layout_numfiles(layout, ar);
+  numfiles_layout = ED_fileselect_layout_numfiles(layout, region);
 
   /* adjust, so the next row is already drawn when scrolling */
   if (layout->flag & FILE_LAYOUT_HOR) {
@@ -851,7 +852,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
       UI_but_func_rename_set(but, renamebutton_cb, file);
       UI_but_flag_enable(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
       UI_but_flag_disable(but, UI_BUT_UNDO);
-      if (false == UI_but_active_only(C, ar, block, but)) {
+      if (false == UI_but_active_only(C, region, block, but)) {
         file_selflag = filelist_entry_select_set(
             sfile->files, file, FILE_SEL_REMOVE, FILE_SEL_EDITING, CHECK_ALL);
       }

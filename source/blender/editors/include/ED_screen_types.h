@@ -32,7 +32,7 @@ extern "C" {
 
 /* for animplayer */
 typedef struct ScreenAnimData {
-  ARegion *ar; /* do not read from this, only for comparing if region exists */
+  ARegion *region; /* do not read from this, only for comparing if region exists */
   short redraws;
   short flag;           /* flags for playback */
   int sfra;             /* frame that playback was started from */
@@ -95,7 +95,7 @@ typedef enum {
 /* for editing areas/regions */
 typedef struct AZone {
   struct AZone *next, *prev;
-  ARegion *ar;
+  ARegion *region;
   int type;
 
   union {

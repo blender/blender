@@ -634,7 +634,7 @@ bool DRW_state_draw_background(void);
 /* Avoid too many lookups while drawing */
 typedef struct DRWContextState {
 
-  struct ARegion *ar;        /* 'CTX_wm_region(C)' */
+  struct ARegion *region;    /* 'CTX_wm_region(C)' */
   struct RegionView3D *rv3d; /* 'CTX_wm_region_view3d(C)' */
   struct View3D *v3d;        /* 'CTX_wm_view3d(C)' */
 

@@ -692,7 +692,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   immUnbindProgram();
 }
 
-void ui_draw_but_IMAGE(ARegion *UNUSED(ar),
+void ui_draw_but_IMAGE(ARegion *UNUSED(region),
                        uiBut *but,
                        const uiWidgetColors *UNUSED(wcol),
                        const rcti *rect)
@@ -872,7 +872,7 @@ static void histogram_draw_one(float r,
 
 #define HISTOGRAM_TOT_GRID_LINES 4
 
-void ui_draw_but_HISTOGRAM(ARegion *UNUSED(ar),
+void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
                            uiBut *but,
                            const uiWidgetColors *UNUSED(wcol),
                            const rcti *recti)
@@ -985,7 +985,7 @@ static void waveform_draw_one(float *waveform, int nbr, const float col[3])
   GPU_batch_discard(batch);
 }
 
-void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar),
+void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
                           uiBut *but,
                           const uiWidgetColors *UNUSED(wcol),
                           const rcti *recti)
@@ -1330,7 +1330,7 @@ static void vectorscope_draw_target(
   immEnd();
 }
 
-void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar),
+void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(region),
                              uiBut *but,
                              const uiWidgetColors *UNUSED(wcol),
                              const rcti *recti)
@@ -1848,7 +1848,7 @@ static void gl_shaded_color(const uchar *color, int shade)
   immUniformColor3ubv(color_shaded);
 }
 
-void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
+void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
 {
   CurveMapping *cumap;
 
@@ -1889,7 +1889,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
       .xmax = rect->xmax,
       .ymax = rect->ymax,
   };
-  rcti scissor_region = {0, ar->winx, 0, ar->winy};
+  rcti scissor_region = {0, region->winx, 0, region->winy};
   BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
   GPU_scissor(scissor_new.xmin,
               scissor_new.ymin,
@@ -2124,7 +2124,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 }
 
 /** Used to draw a curve profile widget. Somewhat similar to ui_draw_but_CURVE */
-void ui_draw_but_CURVEPROFILE(ARegion *ar,
+void ui_draw_but_CURVEPROFILE(ARegion *region,
                               uiBut *but,
                               const uiWidgetColors *wcol,
                               const rcti *rect)
@@ -2159,7 +2159,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *ar,
       .xmax = rect->xmax,
       .ymax = rect->ymax,
   };
-  rcti scissor_region = {0, ar->winx, 0, ar->winy};
+  rcti scissor_region = {0, region->winx, 0, region->winy};
   BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
   GPU_scissor(scissor_new.xmin,
               scissor_new.ymin,
@@ -2348,7 +2348,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *ar,
   immUnbindProgram();
 }
 
-void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar),
+void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
                               uiBut *but,
                               const uiWidgetColors *UNUSED(wcol),
                               const rcti *recti)

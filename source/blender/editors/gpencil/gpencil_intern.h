@@ -116,7 +116,7 @@ typedef struct tGPDinterpolate {
   /** area where painting originated */
   struct ScrArea *sa;
   /** region where painting originated */
-  struct ARegion *ar;
+  struct ARegion *region;
   /** current GP datablock */
   struct bGPdata *gpd;
   /** current material */
@@ -162,7 +162,7 @@ typedef struct tGPDprimitive {
   /** view3d where painting originated */
   struct View3D *v3d;
   /** region where painting originated */
-  struct ARegion *ar;
+  struct ARegion *region;
   /** current GP datablock */
   struct bGPdata *gpd;
   /** current material */
@@ -252,7 +252,7 @@ typedef struct GP_SpaceConversion {
   struct bGPDlayer *gpl;
 
   struct ScrArea *sa;
-  struct ARegion *ar;
+  struct ARegion *region;
   struct View2D *v2d;
 
   rctf *subrect; /* for using the camera rect within the 3d view */
@@ -308,7 +308,7 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
 
 /* helper to convert 2d to 3d */
 void gp_stroke_convertcoords_tpoint(struct Scene *scene,
-                                    struct ARegion *ar,
+                                    struct ARegion *region,
                                     struct Object *ob,
                                     bGPDlayer *gpl,
                                     const struct tGPspoint *point2D,

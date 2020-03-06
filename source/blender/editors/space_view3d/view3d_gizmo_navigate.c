@@ -239,14 +239,14 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   struct NavigateWidgetGroup *navgroup = gzgroup->customdata;
-  ARegion *ar = CTX_wm_region(C);
-  const RegionView3D *rv3d = ar->regiondata;
+  ARegion *region = CTX_wm_region(C);
+  const RegionView3D *rv3d = region->regiondata;
 
   for (int i = 0; i < 3; i++) {
     copy_v3_v3(navgroup->gz_array[GZ_INDEX_ROTATE]->matrix_offset[i], rv3d->viewmat[i]);
   }
 
-  const rcti *rect_visible = ED_region_visible_rect(ar);
+  const rcti *rect_visible = ED_region_visible_rect(region);
 
   if ((navgroup->state.rect_visible.xmax == rect_visible->xmax) &&
       (navgroup->state.rect_visible.ymax == rect_visible->ymax) &&

@@ -88,7 +88,7 @@ static void sclip_zoom_set(const bContext *C,
                            const bool zoom_to_pos)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float oldzoom = sc->zoom;
   int width, height;
@@ -105,10 +105,10 @@ static void sclip_zoom_set(const bContext *C,
     if ((width < 4) && (height < 4) && sc->zoom < oldzoom) {
       sc->zoom = oldzoom;
     }
-    else if (BLI_rcti_size_x(&ar->winrct) <= sc->zoom) {
+    else if (BLI_rcti_size_x(&region->winrct) <= sc->zoom) {
       sc->zoom = oldzoom;
     }
-    else if (BLI_rcti_size_y(&ar->winrct) <= sc->zoom) {
+    else if (BLI_rcti_size_y(&region->winrct) <= sc->zoom) {
       sc->zoom = oldzoom;
     }
   }
@@ -148,20 +148,20 @@ static void sclip_zoom_set_factor(const bContext *C,
 
 static void sclip_zoom_set_factor_exec(bContext *C, const wmEvent *event, float factor)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float location[2], *mpos = NULL;
 
   if (event) {
     SpaceClip *sc = CTX_wm_space_clip(C);
 
-    ED_clip_mouse_pos(sc, ar, event->mval, location);
+    ED_clip_mouse_pos(sc, region, event->mval, location);
     mpos = location;
   }
 
   sclip_zoom_set_factor(C, factor, mpos, mpos ? (U.uiflag & USER_ZOOM_TO_MOUSEPOS) : false);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 }
 
 /** \} */
@@ -559,7 +559,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ViewZoomData *vpd;
 
   op->customdata = vpd = MEM_callocN(sizeof(ViewZoomData), "ClipViewZoomData");
@@ -581,7 +581,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
   vpd->zoom = sc->zoom;
   vpd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
-  ED_clip_mouse_pos(sc, ar, event->mval, vpd->location);
+  ED_clip_mouse_pos(sc, region, event->mval, vpd->location);
 
   WM_event_add_modal_handler(C, op);
 }
@@ -769,11 +769,11 @@ static int view_zoom_in_exec(bContext *C, wmOperator *op)
 static int view_zoom_in_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float location[2];
 
-  ED_clip_mouse_pos(sc, ar, event->mval, location);
+  ED_clip_mouse_pos(sc, region, event->mval, location);
   RNA_float_set_array(op->ptr, "location", location);
 
   return view_zoom_in_exec(C, op);
@@ -826,11 +826,11 @@ static int view_zoom_out_exec(bContext *C, wmOperator *op)
 static int view_zoom_out_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float location[2];
 
-  ED_clip_mouse_pos(sc, ar, event->mval, location);
+  ED_clip_mouse_pos(sc, region, event->mval, location);
   RNA_float_set_array(op->ptr, "location", location);
 
   return view_zoom_out_exec(C, op);
@@ -922,7 +922,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 static int view_all_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc;
-  ARegion *ar;
+  ARegion *region;
   int w, h, width, height;
   float aspx, aspy;
   bool fit_view = RNA_boolean_get(op->ptr, "fit_view");
@@ -930,7 +930,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 
   /* retrieve state */
   sc = CTX_wm_space_clip(C);
-  ar = CTX_wm_region(C);
+  region = CTX_wm_region(C);
 
   ED_space_clip_get_size(sc, &w, &h);
   ED_space_clip_get_aspect(sc, &aspx, &aspy);
@@ -939,8 +939,8 @@ static int view_all_exec(bContext *C, wmOperator *op)
   h = h * aspy;
 
   /* check if the image will fit in the image with zoom == 1 */
-  width = BLI_rcti_size_x(&ar->winrct) + 1;
-  height = BLI_rcti_size_y(&ar->winrct) + 1;
+  width = BLI_rcti_size_x(&region->winrct) + 1;
+  height = BLI_rcti_size_y(&region->winrct) + 1;
 
   if (fit_view) {
     const int margin = 5; /* margin from border */
@@ -965,7 +965,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 
   sc->xof = sc->yof = 0.0f;
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -999,11 +999,11 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 static int view_center_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   clip_view_center_to_point(sc, sc->cursor[0], sc->cursor[1]);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -1029,13 +1029,13 @@ void CLIP_OT_view_center_cursor(wmOperatorType *ot)
 static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   sc->xlockof = 0.0f;
   sc->ylockof = 0.0f;
 
-  ED_clip_view_selection(C, ar, 1);
-  ED_region_tag_redraw(ar);
+  ED_clip_view_selection(C, region, 1);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -1093,19 +1093,19 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 
 static int frame_from_event(bContext *C, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   int framenr = 0;
 
-  if (ar->regiontype == RGN_TYPE_WINDOW) {
-    float sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
+  if (region->regiontype == RGN_TYPE_WINDOW) {
+    float sfra = SFRA, efra = EFRA, framelen = region->winx / (efra - sfra + 1);
 
     framenr = sfra + event->mval[0] / framelen;
   }
   else {
     float viewx, viewy;
 
-    UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
+    UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
     framenr = round_fl_to_int(viewx);
   }
@@ -1115,9 +1115,9 @@ static int frame_from_event(bContext *C, const wmEvent *event)
 
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-  if (ar->regiontype == RGN_TYPE_WINDOW) {
+  if (region->regiontype == RGN_TYPE_WINDOW) {
     if (event->mval[1] > 16 * UI_DPI_FAC) {
       return OPERATOR_PASS_THROUGH;
     }
@@ -1649,7 +1649,7 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
   }
   else {
     SpaceClip *sc = CTX_wm_space_clip(C);
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
     float pan_vec[3];
 
     const wmNDOFMotionData *ndof = event->customdata;
@@ -1664,7 +1664,7 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
     sc->xof += pan_vec[0];
     sc->yof += pan_vec[1];
 
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
 
     return OPERATOR_FINISHED;
   }
@@ -1797,11 +1797,11 @@ static int clip_set_2d_cursor_exec(bContext *C, wmOperator *op)
 
 static int clip_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceClip *sclip = CTX_wm_space_clip(C);
   float location[2];
 
-  ED_clip_mouse_pos(sclip, ar, event->mval, location);
+  ED_clip_mouse_pos(sclip, region, event->mval, location);
   RNA_float_set_array(op->ptr, "location", location);
 
   return clip_set_2d_cursor_exec(C, op);

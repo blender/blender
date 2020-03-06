@@ -97,7 +97,7 @@ typedef struct tGPDfill {
   /** view3 where painting originated */
   struct View3D *v3d;
   /** region where painting originated */
-  struct ARegion *ar;
+  struct ARegion *region;
   /** current GP datablock */
   struct bGPdata *gpd;
   /** current material */
@@ -237,8 +237,8 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
   tgpw.gpd = gpd;
   tgpw.offsx = 0;
   tgpw.offsy = 0;
-  tgpw.winx = tgpf->ar->winx;
-  tgpw.winy = tgpf->ar->winy;
+  tgpw.winx = tgpf->region->winx;
+  tgpw.winy = tgpf->region->winy;
   tgpw.dflag = 0;
   tgpw.disable_fill = 1;
   tgpw.dflag |= (GP_DRAWFILLS_ONLY3D | GP_DRAWFILLS_NOSTATUS);
@@ -328,26 +328,26 @@ static bool gp_render_offscreen(tGPDfill *tgpf)
   }
 
   /* set temporary new size */
-  tgpf->bwinx = tgpf->ar->winx;
-  tgpf->bwiny = tgpf->ar->winy;
-  tgpf->brect = tgpf->ar->winrct;
+  tgpf->bwinx = tgpf->region->winx;
+  tgpf->bwiny = tgpf->region->winy;
+  tgpf->brect = tgpf->region->winrct;
 
-  /* resize ar */
-  tgpf->ar->winrct.xmin = 0;
-  tgpf->ar->winrct.ymin = 0;
-  tgpf->ar->winrct.xmax = (int)tgpf->ar->winx * tgpf->fill_factor;
-  tgpf->ar->winrct.ymax = (int)tgpf->ar->winy * tgpf->fill_factor;
-  tgpf->ar->winx = (short)abs(tgpf->ar->winrct.xmax - tgpf->ar->winrct.xmin);
-  tgpf->ar->winy = (short)abs(tgpf->ar->winrct.ymax - tgpf->ar->winrct.ymin);
+  /* resize region */
+  tgpf->region->winrct.xmin = 0;
+  tgpf->region->winrct.ymin = 0;
+  tgpf->region->winrct.xmax = (int)tgpf->region->winx * tgpf->fill_factor;
+  tgpf->region->winrct.ymax = (int)tgpf->region->winy * tgpf->fill_factor;
+  tgpf->region->winx = (short)abs(tgpf->region->winrct.xmax - tgpf->region->winrct.xmin);
+  tgpf->region->winy = (short)abs(tgpf->region->winrct.ymax - tgpf->region->winrct.ymin);
 
   /* save new size */
-  tgpf->sizex = (int)tgpf->ar->winx;
-  tgpf->sizey = (int)tgpf->ar->winy;
+  tgpf->sizex = (int)tgpf->region->winx;
+  tgpf->sizey = (int)tgpf->region->winy;
 
   /* adjust center */
   float center[2];
-  center[0] = (float)tgpf->center[0] * ((float)tgpf->ar->winx / (float)tgpf->bwinx);
-  center[1] = (float)tgpf->center[1] * ((float)tgpf->ar->winy / (float)tgpf->bwiny);
+  center[0] = (float)tgpf->center[0] * ((float)tgpf->region->winx / (float)tgpf->bwinx);
+  center[1] = (float)tgpf->center[1] * ((float)tgpf->region->winy / (float)tgpf->bwiny);
   round_v2i_v2fl(tgpf->center, center);
 
   char err_out[256] = "unknown";
@@ -402,7 +402,7 @@ static bool gp_render_offscreen(tGPDfill *tgpf)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   ED_view3d_update_viewmat(
-      tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->ar, NULL, winmat, NULL, true);
+      tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->region, NULL, winmat, NULL, true);
   /* set for opengl */
   GPU_matrix_projection_set(tgpf->rv3d->winmat);
   GPU_matrix_set(tgpf->rv3d->viewmat);
@@ -930,8 +930,8 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
    */
   if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) {
     /* need to restore the original projection settings before packing up */
-    view3d_region_operator_needs_opengl(tgpf->win, tgpf->ar);
-    ED_view3d_autodist_init(tgpf->depsgraph, tgpf->ar, tgpf->v3d, 0);
+    view3d_region_operator_needs_opengl(tgpf->win, tgpf->region);
+    ED_view3d_autodist_init(tgpf->depsgraph, tgpf->region, tgpf->v3d, 0);
 
     /* Since strokes are so fine, when using their depth we need a margin
      * otherwise they might get missed. */
@@ -949,9 +949,11 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
       int mval_i[2];
       round_v2i_v2fl(mval_i, &ptc->x);
 
-      if ((ED_view3d_autodist_depth(tgpf->ar, mval_i, depth_margin, tgpf->depth_arr + i) == 0) &&
-          (i && (ED_view3d_autodist_depth_seg(
-                     tgpf->ar, mval_i, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0))) {
+      if ((ED_view3d_autodist_depth(tgpf->region, mval_i, depth_margin, tgpf->depth_arr + i) ==
+           0) &&
+          (i &&
+           (ED_view3d_autodist_depth_seg(
+                tgpf->region, mval_i, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0))) {
         interp_depth = true;
       }
       else {
@@ -1080,7 +1082,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   for (int i = 0; i < tgpf->sbuffer_used && point2D; i++, point2D++, pt++) {
     /* convert screen-coordinates to 3D coordinates */
     gp_stroke_convertcoords_tpoint(tgpf->scene,
-                                   tgpf->ar,
+                                   tgpf->region,
                                    tgpf->ob,
                                    tgpf->gpl,
                                    point2D,
@@ -1164,12 +1166,12 @@ static void gpencil_draw_boundary_lines(const bContext *UNUSED(C), tGPDfill *tgp
 }
 
 /* Drawing callback for modal operator in 3d mode */
-static void gpencil_fill_draw_3d(const bContext *C, ARegion *UNUSED(ar), void *arg)
+static void gpencil_fill_draw_3d(const bContext *C, ARegion *UNUSED(region), void *arg)
 {
   tGPDfill *tgpf = (tGPDfill *)arg;
   /* draw only in the region that originated operator. This is required for multiwindow */
-  ARegion *ar = CTX_wm_region(C);
-  if (ar != tgpf->ar) {
+  ARegion *region = CTX_wm_region(C);
+  if (region != tgpf->region) {
     return;
   }
 
@@ -1218,8 +1220,8 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
   tgpf->scene = CTX_data_scene(C);
   tgpf->ob = CTX_data_active_object(C);
   tgpf->sa = CTX_wm_area(C);
-  tgpf->ar = CTX_wm_region(C);
-  tgpf->rv3d = tgpf->ar->regiondata;
+  tgpf->region = CTX_wm_region(C);
+  tgpf->rv3d = tgpf->region->regiondata;
   tgpf->v3d = tgpf->sa->spacedata.first;
   tgpf->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   tgpf->win = CTX_wm_window(C);
@@ -1290,7 +1292,7 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
 
     /* remove drawing handler */
     if (tgpf->draw_handle_3d) {
-      ED_region_draw_cb_exit(tgpf->ar->type, tgpf->draw_handle_3d);
+      ED_region_draw_cb_exit(tgpf->region->type, tgpf->draw_handle_3d);
     }
 
     /* delete temp image */
@@ -1394,7 +1396,7 @@ static int gpencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   /* Enable custom drawing handlers to show help lines */
   if (tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) {
     tgpf->draw_handle_3d = ED_region_draw_cb_activate(
-        tgpf->ar->type, gpencil_fill_draw_3d, tgpf, REGION_DRAW_POST_VIEW);
+        tgpf->region->type, gpencil_fill_draw_3d, tgpf, REGION_DRAW_POST_VIEW);
   }
 
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_PAINT_BRUSH);
@@ -1426,14 +1428,15 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
       tgpf->on_back = RNA_boolean_get(op->ptr, "on_back");
       /* first time the event is not enabled to show help lines */
       if ((tgpf->oldkey != -1) || ((tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) == 0)) {
-        ARegion *ar = BKE_area_find_region_xy(CTX_wm_area(C), RGN_TYPE_ANY, event->x, event->y);
-        if (ar) {
+        ARegion *region = BKE_area_find_region_xy(
+            CTX_wm_area(C), RGN_TYPE_ANY, event->x, event->y);
+        if (region) {
           bool in_bounds = false;
 
           /* Perform bounds check */
-          in_bounds = BLI_rcti_isect_pt(&ar->winrct, event->x, event->y);
+          in_bounds = BLI_rcti_isect_pt(&region->winrct, event->x, event->y);
 
-          if ((in_bounds) && (ar->regiontype == RGN_TYPE_WINDOW)) {
+          if ((in_bounds) && (region->regiontype == RGN_TYPE_WINDOW)) {
             /* TODO GPXX: Verify the mouse click is right for any window size */
             tgpf->center[0] = event->mval[0];
             tgpf->center[1] = event->mval[1];
@@ -1461,9 +1464,9 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             }
 
             /* restore size */
-            tgpf->ar->winx = (short)tgpf->bwinx;
-            tgpf->ar->winy = (short)tgpf->bwiny;
-            tgpf->ar->winrct = tgpf->brect;
+            tgpf->region->winx = (short)tgpf->bwinx;
+            tgpf->region->winy = (short)tgpf->bwiny;
+            tgpf->region->winrct = tgpf->brect;
 
             /* free temp stack data */
             if (tgpf->stack) {

@@ -1450,7 +1450,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   wmKeyMapItem *found = NULL;
 
   /* look into multiple handler lists to find the item */
@@ -1471,40 +1471,40 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
   if (found == NULL) {
     if (ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
       if (sa) {
-        if (!(ar && ar->regiontype == RGN_TYPE_WINDOW)) {
-          ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+        if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+          region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
         }
 
-        if (ar) {
+        if (region) {
           found = wm_keymap_item_find_handlers(
-              C, &ar->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+              C, &region->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
         }
       }
     }
     else if (ELEM(opcontext, WM_OP_EXEC_REGION_CHANNELS, WM_OP_INVOKE_REGION_CHANNELS)) {
-      if (!(ar && ar->regiontype == RGN_TYPE_CHANNELS)) {
-        ar = BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
+      if (!(region && region->regiontype == RGN_TYPE_CHANNELS)) {
+        region = BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
       }
 
-      if (ar) {
+      if (region) {
         found = wm_keymap_item_find_handlers(
-            C, &ar->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+            C, &region->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
       }
     }
     else if (ELEM(opcontext, WM_OP_EXEC_REGION_PREVIEW, WM_OP_INVOKE_REGION_PREVIEW)) {
-      if (!(ar && ar->regiontype == RGN_TYPE_PREVIEW)) {
-        ar = BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
+      if (!(region && region->regiontype == RGN_TYPE_PREVIEW)) {
+        region = BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
       }
 
-      if (ar) {
+      if (region) {
         found = wm_keymap_item_find_handlers(
-            C, &ar->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+            C, &region->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
       }
     }
     else {
-      if (ar) {
+      if (region) {
         found = wm_keymap_item_find_handlers(
-            C, &ar->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+            C, &region->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
       }
     }
   }

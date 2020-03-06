@@ -48,7 +48,7 @@
 
 static SpaceLink *console_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceConsole *sconsole;
 
   sconsole = MEM_callocN(sizeof(SpaceConsole), "initconsole");
@@ -57,28 +57,28 @@ static SpaceLink *console_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   sconsole->lheight = 14;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for console");
+  region = MEM_callocN(sizeof(ARegion), "header for console");
 
-  BLI_addtail(&sconsole->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&sconsole->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for text");
+  region = MEM_callocN(sizeof(ARegion), "main region for text");
 
-  BLI_addtail(&sconsole->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&sconsole->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
   /* keep in sync with info */
-  ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-  ar->v2d.align |= V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y; /* align bottom left */
-  ar->v2d.keepofs |= V2D_LOCKOFS_X;
-  ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
-  ar->v2d.keeptot = V2D_KEEPTOT_BOUNDS;
-  ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
+  region->v2d.scroll |= (V2D_SCROLL_RIGHT);
+  region->v2d.align |= V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y; /* align bottom left */
+  region->v2d.keepofs |= V2D_LOCKOFS_X;
+  region->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+  region->v2d.keeptot = V2D_KEEPTOT_BOUNDS;
+  region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
 
   /* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-  // ar->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
+  // region->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
 
   return (SpaceLink *)sconsole;
 }
@@ -116,41 +116,41 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void console_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void console_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
   ListBase *lb;
 
-  const float prev_y_min = ar->v2d.cur.ymin; /* so re-sizing keeps the cursor visible */
+  const float prev_y_min = region->v2d.cur.ymin; /* so re-sizing keeps the cursor visible */
 
   /* force it on init, for old files, until it becomes config */
-  ar->v2d.scroll = (V2D_SCROLL_RIGHT);
+  region->v2d.scroll = (V2D_SCROLL_RIGHT);
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* always keep the bottom part of the view aligned, less annoying */
-  if (prev_y_min != ar->v2d.cur.ymin) {
-    const float cur_y_range = BLI_rctf_size_y(&ar->v2d.cur);
-    ar->v2d.cur.ymin = prev_y_min;
-    ar->v2d.cur.ymax = prev_y_min + cur_y_range;
+  if (prev_y_min != region->v2d.cur.ymin) {
+    const float cur_y_range = BLI_rctf_size_y(&region->v2d.cur);
+    region->v2d.cur.ymin = prev_y_min;
+    region->v2d.cur.ymax = prev_y_min + cur_y_range;
   }
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* add drop boxes */
   lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 
-  WM_event_add_dropbox_handler(&ar->handlers, lb);
+  WM_event_add_dropbox_handler(&region->handlers, lb);
 }
 
 /* same as 'text_cursor' */
-static void console_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *ar)
+static void console_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *region)
 {
   int wmcursor = WM_CURSOR_TEXT_EDIT;
   const wmEvent *event = win->eventstate;
-  if (UI_view2d_mouse_in_scrollers(ar, &ar->v2d, event->x, event->y)) {
+  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->x, event->y)) {
     wmcursor = WM_CURSOR_DEFAULT;
   }
 
@@ -203,11 +203,11 @@ static void console_dropboxes(void)
 
 /* ************* end drop *********** */
 
-static void console_main_region_draw(const bContext *C, ARegion *ar)
+static void console_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceConsole *sc = CTX_wm_space_console(C);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   View2DScrollers *scrollers;
 
   if (BLI_listbase_is_empty(&sc->scrollback)) {
@@ -224,7 +224,7 @@ static void console_main_region_draw(const bContext *C, ARegion *ar)
   /* data... */
 
   console_history_verify(C); /* make sure we have some command line */
-  console_textview_main(sc, ar);
+  console_textview_main(sc, region);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
@@ -267,18 +267,21 @@ static void console_keymap(struct wmKeyConfig *keyconf)
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void console_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void console_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void console_header_region_draw(const bContext *C, ARegion *ar)
+static void console_header_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
-static void console_main_region_listener(
-    wmWindow *UNUSED(win), ScrArea *sa, ARegion *ar, wmNotifier *wmn, const Scene *UNUSED(scene))
+static void console_main_region_listener(wmWindow *UNUSED(win),
+                                         ScrArea *sa,
+                                         ARegion *region,
+                                         wmNotifier *wmn,
+                                         const Scene *UNUSED(scene))
 {
   // SpaceInfo *sinfo = sa->spacedata.first;
 
@@ -289,13 +292,13 @@ static void console_main_region_listener(
         if (wmn->action == NA_EDITED) {
           if ((wmn->reference && sa) && (wmn->reference == sa->spacedata.first)) {
             /* we've modified the geometry (font size), re-calculate rect */
-            console_textview_update_rect(wmn->reference, ar);
-            ED_region_tag_redraw(ar);
+            console_textview_update_rect(wmn->reference, region);
+            ED_region_tag_redraw(region);
           }
         }
         else {
           /* generic redraw request */
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
         }
       }
       break;

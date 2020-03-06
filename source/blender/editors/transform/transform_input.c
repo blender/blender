@@ -93,7 +93,7 @@ static void InputHorizontalRatio(TransInfo *t,
                                  const double mval[2],
                                  float output[3])
 {
-  const int winx = t->ar ? t->ar->winx : 1;
+  const int winx = t->region ? t->region->winx : 1;
 
   output[0] = ((mval[0] - mi->imval[0]) / winx) * 2.0f;
 }
@@ -113,7 +113,7 @@ static void InputHorizontalAbsolute(TransInfo *t,
 
 static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
-  const int winy = t->ar ? t->ar->winy : 1;
+  const int winy = t->region ? t->region->winy : 1;
 
   /* Flip so dragging up increases (matching viewport zoom). */
   output[0] = ((mval[1] - mi->imval[1]) / winy) * -2.0f;
@@ -153,10 +153,10 @@ void setCustomPoints(TransInfo *UNUSED(t),
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2])
 {
   BLI_ASSERT_UNIT_V2(dir);
-  const int win_axis = t->ar ?
-                           ((abs((int)(t->ar->winx * dir[0])) + abs((int)(t->ar->winy * dir[1]))) /
-                            2) :
-                           1;
+  const int win_axis = t->region ? ((abs((int)(t->region->winx * dir[0])) +
+                                     abs((int)(t->region->winy * dir[1]))) /
+                                    2) :
+                                   1;
   const int mval_start[2] = {
       mi->imval[0] + dir[0] * win_axis,
       mi->imval[1] + dir[1] * win_axis,

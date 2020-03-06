@@ -87,10 +87,10 @@ static void gizmo2d_pivot_point_message_subscribe(struct wmGizmoGroup *gzgroup,
                                                   /* Additional args. */
                                                   bScreen *screen,
                                                   ScrArea *sa,
-                                                  ARegion *ar)
+                                                  ARegion *region)
 {
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
-      .owner = ar,
+      .owner = region,
       .user_data = gzgroup->parent_gzmap,
       .notify = WM_gizmo_do_msg_notify_tag_refresh,
   };
@@ -256,9 +256,9 @@ static bool gizmo2d_calc_center(const bContext *C, float r_center[2])
 /**
  * Convert origin (or any other point) from view to region space.
  */
-BLI_INLINE void gizmo2d_origin_to_region(ARegion *ar, float *r_origin)
+BLI_INLINE void gizmo2d_origin_to_region(ARegion *region, float *r_origin)
 {
-  UI_view2d_view_to_region_fl(&ar->v2d, r_origin[0], r_origin[1], &r_origin[0], &r_origin[1]);
+  UI_view2d_view_to_region_fl(&region->v2d, r_origin[0], r_origin[1], &r_origin[0], &r_origin[1]);
 }
 
 /**
@@ -269,14 +269,14 @@ static int gizmo2d_modal(bContext *C,
                          const wmEvent *UNUSED(event),
                          eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float origin[3];
 
   gizmo2d_calc_center(C, origin);
-  gizmo2d_origin_to_region(ar, origin);
+  gizmo2d_origin_to_region(region, origin);
   WM_gizmo_set_matrix_location(widget, origin);
 
-  ED_region_tag_redraw_editor_overlays(ar);
+  ED_region_tag_redraw_editor_overlays(region);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -480,19 +480,19 @@ static void gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   GizmoGroup2D *ggd = gzgroup->customdata;
   float origin[3] = {UNPACK2(ggd->origin), 0.0f};
   float origin_aa[3] = {UNPACK2(ggd->origin), 0.0f};
 
-  gizmo2d_origin_to_region(ar, origin);
+  gizmo2d_origin_to_region(region, origin);
 
   for (int i = 0; i < ARRAY_SIZE(ggd->translate_xy); i++) {
     wmGizmo *gz = ggd->translate_xy[i];
     WM_gizmo_set_matrix_location(gz, origin);
   }
 
-  UI_view2d_view_to_region_m4(&ar->v2d, ggd->cage->matrix_space);
+  UI_view2d_view_to_region_m4(&region->v2d, ggd->cage->matrix_space);
   WM_gizmo_set_matrix_offset_location(ggd->cage, origin_aa);
   ggd->cage->matrix_offset[0][0] = (ggd->max[0] - ggd->min[0]);
   ggd->cage->matrix_offset[1][1] = (ggd->max[1] - ggd->min[1]);
@@ -504,8 +504,8 @@ static void gizmo2d_xform_no_cage_message_subscribe(const struct bContext *C,
 {
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, ar);
+  ARegion *region = CTX_wm_region(C);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, region);
 }
 
 void ED_widgetgroup_gizmo2d_xform_callbacks_set(wmGizmoGroupType *gzgt)
@@ -575,7 +575,7 @@ static void gizmo2d_resize_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 static void gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   GizmoGroup_Resize2D *ggd = gzgroup->customdata;
   float origin[3] = {UNPACK2(ggd->origin), 0.0f};
 
@@ -589,7 +589,7 @@ static void gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
     }
   }
 
-  gizmo2d_origin_to_region(ar, origin);
+  gizmo2d_origin_to_region(region, origin);
 
   for (int i = 0; i < ARRAY_SIZE(ggd->gizmo_xy); i++) {
     wmGizmo *gz = ggd->gizmo_xy[i];
@@ -660,8 +660,8 @@ static void gizmo2d_resize_message_subscribe(const struct bContext *C,
 {
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, ar);
+  ARegion *region = CTX_wm_region(C);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, region);
 }
 
 void ED_widgetgroup_gizmo2d_resize_callbacks_set(wmGizmoGroupType *gzgt)
@@ -718,7 +718,7 @@ static void gizmo2d_rotate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 static void gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   GizmoGroup_Rotate2D *ggd = gzgroup->customdata;
   float origin[3] = {UNPACK2(ggd->origin), 0.0f};
 
@@ -732,7 +732,7 @@ static void gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
     }
   }
 
-  gizmo2d_origin_to_region(ar, origin);
+  gizmo2d_origin_to_region(region, origin);
 
   wmGizmo *gz = ggd->gizmo;
   WM_gizmo_set_matrix_location(gz, origin);
@@ -776,8 +776,8 @@ static void gizmo2d_rotate_message_subscribe(const struct bContext *C,
 {
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, ar);
+  ARegion *region = CTX_wm_region(C);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, region);
 }
 
 void ED_widgetgroup_gizmo2d_rotate_callbacks_set(wmGizmoGroupType *gzgt)

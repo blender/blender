@@ -750,17 +750,17 @@ static void node_link_find_socket(bContext *C, wmOperator *op, float cursor[2])
 static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bNodeLinkDrag *nldrag = op->customdata;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float cursor[2];
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
 
   switch (event->type) {
     case MOUSEMOVE:
       node_link_find_socket(C, op, cursor);
 
       node_link_update_header(C, nldrag);
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       break;
 
     case LEFTMOUSE:
@@ -770,7 +770,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
         node_link_exit(C, op, true);
 
         ED_workspace_status_text(C, NULL);
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
         return OPERATOR_FINISHED;
       }
       break;
@@ -900,13 +900,13 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   bNodeLinkDrag *nldrag;
   float cursor[2];
 
   bool detach = RNA_boolean_get(op->ptr, "detach");
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -1023,7 +1023,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float mcoords[256][2];
   int i = 0;
   bool do_tag_update = false;
@@ -1032,7 +1032,8 @@ static int cut_links_exec(bContext *C, wmOperator *op)
     float loc[2];
 
     RNA_float_get_array(&itemptr, "loc", loc);
-    UI_view2d_region_to_view(&ar->v2d, (int)loc[0], (int)loc[1], &mcoords[i][0], &mcoords[i][1]);
+    UI_view2d_region_to_view(
+        &region->v2d, (int)loc[0], (int)loc[1], &mcoords[i][0], &mcoords[i][1]);
     i++;
     if (i >= 256) {
       break;
@@ -1286,13 +1287,15 @@ void NODE_OT_join(wmOperatorType *ot)
 
 /* ****************** Attach ******************* */
 
-static bNode *node_find_frame_to_attach(ARegion *ar, const bNodeTree *ntree, const int mouse_xy[2])
+static bNode *node_find_frame_to_attach(ARegion *region,
+                                        const bNodeTree *ntree,
+                                        const int mouse_xy[2])
 {
   bNode *frame;
   float cursor[2];
 
   /* convert mouse coordinates to v2d space */
-  UI_view2d_region_to_view(&ar->v2d, UNPACK2(mouse_xy), &cursor[0], &cursor[1]);
+  UI_view2d_region_to_view(&region->v2d, UNPACK2(mouse_xy), &cursor[0], &cursor[1]);
 
   /* check nodes front to back */
   for (frame = ntree->nodes.last; frame; frame = frame->prev) {
@@ -1310,10 +1313,10 @@ static bNode *node_find_frame_to_attach(ARegion *ar, const bNodeTree *ntree, con
 
 static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
-  bNode *frame = node_find_frame_to_attach(ar, ntree, event->mval);
+  bNode *frame = node_find_frame_to_attach(region, ntree, event->mval);
 
   if (frame) {
     bNode *node, *parent;
@@ -1704,7 +1707,7 @@ static bool node_link_insert_offset_chain_cb(bNode *fromnode,
 }
 
 static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
-                                          ARegion *ar,
+                                          ARegion *region,
                                           const int mouse_xy[2],
                                           const bool right_alignment)
 {
@@ -1730,7 +1733,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 
   /* frame attachment wasn't handled yet
    * so we search the frame that the node will be attached to later */
-  insert->parent = node_find_frame_to_attach(ar, ntree, mouse_xy);
+  insert->parent = node_find_frame_to_attach(region, ntree, mouse_xy);
 
   /* this makes sure nodes are also correctly offset when inserting a node on top of a frame
    * without actually making it a part of the frame (because mouse isn't intersecting it)

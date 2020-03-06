@@ -1085,7 +1085,7 @@ void node_draw_sockets(View2D *v2d,
 }
 
 static void node_draw_basis(const bContext *C,
-                            ARegion *ar,
+                            ARegion *region,
                             SpaceNode *snode,
                             bNodeTree *ntree,
                             bNode *node,
@@ -1099,7 +1099,7 @@ static void node_draw_basis(const bContext *C,
   int color_id = node_get_colorid(node);
   float color[4];
   char showname[128]; /* 128 used below */
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
 
   /* skip if out of view */
   if (BLI_rctf_isect(&node->totr, &v2d->cur, NULL) == false) {
@@ -1296,7 +1296,7 @@ static void node_draw_basis(const bContext *C,
 }
 
 static void node_draw_hidden(const bContext *C,
-                             ARegion *ar,
+                             ARegion *region,
                              SpaceNode *snode,
                              bNodeTree *ntree,
                              bNode *node,
@@ -1308,7 +1308,7 @@ static void node_draw_hidden(const bContext *C,
   int color_id = node_get_colorid(node);
   float color[4];
   char showname[128]; /* 128 is used below */
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   float scale;
 
   UI_view2d_scale_get(v2d, &scale, NULL);
@@ -1392,7 +1392,7 @@ static void node_draw_hidden(const bContext *C,
 
   /* disable lines */
   if (node->flag & NODE_MUTED) {
-    node_draw_mute_line(&ar->v2d, snode, node);
+    node_draw_mute_line(&region->v2d, snode, node);
   }
 
   nodeLabel(ntree, node, showname, sizeof(showname));
@@ -1499,17 +1499,17 @@ void node_set_cursor(wmWindow *win, SpaceNode *snode, float cursor[2])
 }
 
 void node_draw_default(const bContext *C,
-                       ARegion *ar,
+                       ARegion *region,
                        SpaceNode *snode,
                        bNodeTree *ntree,
                        bNode *node,
                        bNodeInstanceKey key)
 {
   if (node->flag & NODE_HIDDEN) {
-    node_draw_hidden(C, ar, snode, ntree, node, key);
+    node_draw_hidden(C, region, snode, ntree, node, key);
   }
   else {
-    node_draw_basis(C, ar, snode, ntree, node, key);
+    node_draw_basis(C, region, snode, ntree, node, key);
   }
 }
 
@@ -1534,21 +1534,21 @@ void node_update_nodetree(const bContext *C, bNodeTree *ntree)
 }
 
 static void node_draw(const bContext *C,
-                      ARegion *ar,
+                      ARegion *region,
                       SpaceNode *snode,
                       bNodeTree *ntree,
                       bNode *node,
                       bNodeInstanceKey key)
 {
   if (node->typeinfo->draw_nodetype) {
-    node->typeinfo->draw_nodetype(C, ar, snode, ntree, node, key);
+    node->typeinfo->draw_nodetype(C, region, snode, ntree, node, key);
   }
 }
 
 #define USE_DRAW_TOT_UPDATE
 
 void node_draw_nodetree(const bContext *C,
-                        ARegion *ar,
+                        ARegion *region,
                         SpaceNode *snode,
                         bNodeTree *ntree,
                         bNodeInstanceKey parent_key)
@@ -1563,7 +1563,7 @@ void node_draw_nodetree(const bContext *C,
 
 #ifdef USE_DRAW_TOT_UPDATE
   if (ntree->nodes.first) {
-    BLI_rctf_init_minmax(&ar->v2d.tot);
+    BLI_rctf_init_minmax(&region->v2d.tot);
   }
 #endif
 
@@ -1574,7 +1574,7 @@ void node_draw_nodetree(const bContext *C,
 #ifdef USE_DRAW_TOT_UPDATE
     /* unrelated to background nodes, update the v2d->tot,
      * can be anywhere before we draw the scroll bars */
-    BLI_rctf_union(&ar->v2d.tot, &node->totr);
+    BLI_rctf_union(&region->v2d.tot, &node->totr);
 #endif
 
     if (!(node->flag & NODE_BACKGROUND)) {
@@ -1583,7 +1583,7 @@ void node_draw_nodetree(const bContext *C,
 
     key = BKE_node_instance_key(parent_key, ntree, node);
     node->nr = a; /* index of node in list, used for exec event code */
-    node_draw(C, ar, snode, ntree, node, key);
+    node_draw(C, region, snode, ntree, node, key);
   }
 
   /* node lines */
@@ -1591,7 +1591,7 @@ void node_draw_nodetree(const bContext *C,
   nodelink_batch_start(snode);
   for (link = ntree->links.first; link; link = link->next) {
     if (!nodeLinkIsHidden(link)) {
-      node_draw_link(&ar->v2d, snode, link);
+      node_draw_link(&region->v2d, snode, link);
     }
   }
   nodelink_batch_end(snode);
@@ -1606,7 +1606,7 @@ void node_draw_nodetree(const bContext *C,
 
     key = BKE_node_instance_key(parent_key, ntree, node);
     node->nr = a; /* index of node in list, used for exec event code */
-    node_draw(C, ar, snode, ntree, node, key);
+    node_draw(C, region, snode, ntree, node, key);
   }
 }
 
@@ -1621,21 +1621,21 @@ static void draw_tree_path(SpaceNode *snode)
   BLF_draw_default(1.5f * UI_UNIT_X, 1.5f * UI_UNIT_Y, 0.0f, info, sizeof(info));
 }
 
-static void snode_setup_v2d(SpaceNode *snode, ARegion *ar, const float center[2])
+static void snode_setup_v2d(SpaceNode *snode, ARegion *region, const float center[2])
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
 
   /* shift view to node tree center */
   UI_view2d_center_set(v2d, center[0], center[1]);
   UI_view2d_view_ortho(v2d);
 
   /* aspect+font, set each time */
-  snode->aspect = BLI_rctf_size_x(&v2d->cur) / (float)ar->winx;
+  snode->aspect = BLI_rctf_size_x(&v2d->cur) / (float)region->winx;
   // XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 }
 
 static void draw_nodetree(const bContext *C,
-                          ARegion *ar,
+                          ARegion *region,
                           bNodeTree *ntree,
                           bNodeInstanceKey parent_key)
 {
@@ -1644,13 +1644,13 @@ static void draw_nodetree(const bContext *C,
   node_uiblocks_init(C, ntree);
 
   node_update_nodetree(C, ntree);
-  node_draw_nodetree(C, ar, snode, ntree, parent_key);
+  node_draw_nodetree(C, region, snode, ntree, parent_key);
 }
 
 /* shade the parent node group and add a uiBlock to clip mouse events */
-static void draw_group_overlay(const bContext *C, ARegion *ar)
+static void draw_group_overlay(const bContext *C, ARegion *region)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   rctf rect = v2d->cur;
   uiBlock *block;
   float color[4];
@@ -1664,18 +1664,18 @@ static void draw_group_overlay(const bContext *C, ARegion *ar)
   GPU_blend(false);
 
   /* set the block bounds to clip mouse events from underlying nodes */
-  block = UI_block_begin(C, ar, "node tree bounds block", UI_EMBOSS);
+  block = UI_block_begin(C, region, "node tree bounds block", UI_EMBOSS);
   UI_block_bounds_set_explicit(block, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
   UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
   UI_block_end(C, block);
 }
 
-void drawnodespace(const bContext *C, ARegion *ar)
+void drawnodespace(const bContext *C, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
   View2DScrollers *scrollers;
   SpaceNode *snode = CTX_wm_space_node(C);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
 
   UI_ThemeClearColor(TH_BACK);
   GPU_clear(GPU_COLOR_BIT);
@@ -1683,9 +1683,9 @@ void drawnodespace(const bContext *C, ARegion *ar)
   UI_view2d_view_ortho(v2d);
 
   /* XXX snode->cursor set in coordspace for placing new nodes, used for drawing noodles too */
-  UI_view2d_region_to_view(&ar->v2d,
-                           win->eventstate->x - ar->winrct.xmin,
-                           win->eventstate->y - ar->winrct.ymin,
+  UI_view2d_region_to_view(&region->v2d,
+                           win->eventstate->x - region->winrct.xmin,
+                           win->eventstate->y - region->winrct.ymin,
                            &snode->cursor[0],
                            &snode->cursor[1]);
   snode->cursor[0] /= UI_DPI_FAC;
@@ -1693,7 +1693,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
 
   int grid_levels = UI_GetThemeValueType(TH_NODE_GRID_LEVELS, SPACE_NODE);
 
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   /* only set once */
   GPU_blend_set_func_separate(
@@ -1741,18 +1741,18 @@ void drawnodespace(const bContext *C, ARegion *ar)
     for (curdepth = depth; curdepth > 0; path = path->next, curdepth--) {
       ntree = path->nodetree;
       if (ntree) {
-        snode_setup_v2d(snode, ar, path->view_center);
+        snode_setup_v2d(snode, region, path->view_center);
 
-        draw_nodetree(C, ar, ntree, path->parent_key);
+        draw_nodetree(C, region, ntree, path->parent_key);
 
-        draw_group_overlay(C, ar);
+        draw_group_overlay(C, region);
       }
     }
 
     /* top-level edit tree */
     ntree = path->nodetree;
     if (ntree) {
-      snode_setup_v2d(snode, ar, center);
+      snode_setup_v2d(snode, region, center);
 
       /* grid, uses theme color based on node path depth */
       UI_view2d_multi_grid_draw(v2d,
@@ -1762,7 +1762,7 @@ void drawnodespace(const bContext *C, ARegion *ar)
                                 grid_levels);
 
       /* backdrop */
-      draw_nodespace_back_pix(C, ar, snode, path->parent_key);
+      draw_nodespace_back_pix(C, region, snode, path->parent_key);
 
       {
         float original_proj[4][4];
@@ -1771,15 +1771,15 @@ void drawnodespace(const bContext *C, ARegion *ar)
         GPU_matrix_push();
         GPU_matrix_identity_set();
 
-        wmOrtho2_pixelspace(ar->winx, ar->winy);
+        wmOrtho2_pixelspace(region->winx, region->winy);
 
-        WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+        WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 
         GPU_matrix_pop();
         GPU_matrix_projection_set(original_proj);
       }
 
-      draw_nodetree(C, ar, ntree, path->parent_key);
+      draw_nodetree(C, region, ntree, path->parent_key);
     }
 
     /* temporary links */
@@ -1803,10 +1803,10 @@ void drawnodespace(const bContext *C, ARegion *ar)
     UI_view2d_multi_grid_draw(v2d, TH_BACK, ED_node_grid_size(), NODE_GRID_STEPS, grid_levels);
 
     /* backdrop */
-    draw_nodespace_back_pix(C, ar, snode, NODE_INSTANCE_KEY_NONE);
+    draw_nodespace_back_pix(C, region, snode, NODE_INSTANCE_KEY_NONE);
   }
 
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);

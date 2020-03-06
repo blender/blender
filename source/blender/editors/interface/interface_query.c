@@ -206,15 +206,15 @@ bool ui_but_contains_rect(const uiBut *but, const rctf *rect)
   return BLI_rctf_isect(&but->rect, rect, NULL);
 }
 
-bool ui_but_contains_point_px(const uiBut *but, const ARegion *ar, int x, int y)
+bool ui_but_contains_point_px(const uiBut *but, const ARegion *region, int x, int y)
 {
   uiBlock *block = but->block;
-  if (!ui_region_contains_point_px(ar, x, y)) {
+  if (!ui_region_contains_point_px(region, x, y)) {
     return false;
   }
 
   float mx = x, my = y;
-  ui_window_to_block_fl(ar, block, &mx, &my);
+  ui_window_to_block_fl(region, block, &mx, &my);
 
   if (but->pie_dir != UI_RADIAL_NONE) {
     if (!ui_but_isect_pie_seg(block, but)) {
@@ -228,12 +228,12 @@ bool ui_but_contains_point_px(const uiBut *but, const ARegion *ar, int x, int y)
   return true;
 }
 
-bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *ar, const wmEvent *event)
+bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *region, const wmEvent *event)
 {
   rcti rect;
   int x = event->x, y = event->y;
 
-  ui_window_to_block(ar, but->block, &x, &y);
+  ui_window_to_block(region, but->block, &x, &y);
 
   BLI_rcti_rctf_copy(&rect, &but->rect);
 
@@ -253,16 +253,16 @@ bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *ar, const wmEvent 
 }
 
 /* x and y are only used in case event is NULL... */
-uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, const bool labeledit)
+uiBut *ui_but_find_mouse_over_ex(ARegion *region, const int x, const int y, const bool labeledit)
 {
   uiBut *butover = NULL;
 
-  if (!ui_region_contains_point_px(ar, x, y)) {
+  if (!ui_region_contains_point_px(region, x, y)) {
     return NULL;
   }
-  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
     float mx = x, my = y;
-    ui_window_to_block_fl(ar, block, &mx, &my);
+    ui_window_to_block_fl(region, block, &mx, &my);
 
     for (uiBut *but = block->buttons.last; but; but = but->prev) {
       if (ui_but_is_interactive(but, labeledit)) {
@@ -291,14 +291,14 @@ uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, const bo
   return butover;
 }
 
-uiBut *ui_but_find_mouse_over(ARegion *ar, const wmEvent *event)
+uiBut *ui_but_find_mouse_over(ARegion *region, const wmEvent *event)
 {
-  return ui_but_find_mouse_over_ex(ar, event->x, event->y, event->ctrl != 0);
+  return ui_but_find_mouse_over_ex(region, event->x, event->y, event->ctrl != 0);
 }
 
-uiBut *ui_but_find_rect_over(const struct ARegion *ar, const rcti *rect_px)
+uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
 {
-  if (!ui_region_contains_rect_px(ar, rect_px)) {
+  if (!ui_region_contains_rect_px(region, rect_px)) {
     return NULL;
   }
 
@@ -308,9 +308,9 @@ uiBut *ui_but_find_rect_over(const struct ARegion *ar, const rcti *rect_px)
   BLI_rctf_rcti_copy(&rect_px_fl, rect_px);
   uiBut *butover = NULL;
 
-  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
     rctf rect_block;
-    ui_window_to_block_rctf(ar, block, &rect_block, &rect_px_fl);
+    ui_window_to_block_rctf(region, block, &rect_block, &rect_px_fl);
 
     for (uiBut *but = block->buttons.last; but; but = but->prev) {
       if (ui_but_is_interactive(but, labeledit)) {
@@ -334,14 +334,14 @@ uiBut *ui_but_find_rect_over(const struct ARegion *ar, const rcti *rect_px)
   return butover;
 }
 
-uiBut *ui_list_find_mouse_over_ex(ARegion *ar, int x, int y)
+uiBut *ui_list_find_mouse_over_ex(ARegion *region, int x, int y)
 {
-  if (!ui_region_contains_point_px(ar, x, y)) {
+  if (!ui_region_contains_point_px(region, x, y)) {
     return NULL;
   }
-  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
     float mx = x, my = y;
-    ui_window_to_block_fl(ar, block, &mx, &my);
+    ui_window_to_block_fl(region, block, &mx, &my);
     for (uiBut *but = block->buttons.last; but; but = but->prev) {
       if (but->type == UI_BTYPE_LISTBOX && ui_but_contains_pt(but, mx, my)) {
         return but;
@@ -352,9 +352,9 @@ uiBut *ui_list_find_mouse_over_ex(ARegion *ar, int x, int y)
   return NULL;
 }
 
-uiBut *ui_list_find_mouse_over(ARegion *ar, const wmEvent *event)
+uiBut *ui_list_find_mouse_over(ARegion *region, const wmEvent *event)
 {
-  return ui_list_find_mouse_over_ex(ar, event->x, event->y);
+  return ui_list_find_mouse_over_ex(region, event->x, event->y);
 }
 
 /** \} */
@@ -508,9 +508,9 @@ bool UI_block_can_add_separator(const uiBlock *block)
 /** \name Region (#ARegion) State
  * \{ */
 
-uiBut *ui_region_find_active_but(ARegion *ar)
+uiBut *ui_region_find_active_but(ARegion *region)
 {
-  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
     for (uiBut *but = block->buttons.first; but; but = but->next) {
       if (but->active) {
         return but;
@@ -521,9 +521,9 @@ uiBut *ui_region_find_active_but(ARegion *ar)
   return NULL;
 }
 
-uiBut *ui_region_find_first_but_test_flag(ARegion *ar, int flag_include, int flag_exclude)
+uiBut *ui_region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude)
 {
-  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
     for (uiBut *but = block->buttons.first; but; but = but->next) {
       if (((but->flag & flag_include) == flag_include) && ((but->flag & flag_exclude) == 0)) {
         return but;
@@ -540,10 +540,10 @@ uiBut *ui_region_find_first_but_test_flag(ARegion *ar, int flag_include, int fla
 /** \name Region (#ARegion) Spatial
  * \{ */
 
-bool ui_region_contains_point_px(const ARegion *ar, int x, int y)
+bool ui_region_contains_point_px(const ARegion *region, int x, int y)
 {
   rcti winrct;
-  ui_region_winrct_get_no_margin(ar, &winrct);
+  ui_region_winrct_get_no_margin(region, &winrct);
   if (!BLI_rcti_isect_pt(&winrct, x, y)) {
     return false;
   }
@@ -553,13 +553,13 @@ bool ui_region_contains_point_px(const ARegion *ar, int x, int y)
    * even when they are not visible, so we need to make a copy of the mask to
    * use to check
    */
-  if (ar->v2d.mask.xmin != ar->v2d.mask.xmax) {
-    const View2D *v2d = &ar->v2d;
+  if (region->v2d.mask.xmin != region->v2d.mask.xmax) {
+    const View2D *v2d = &region->v2d;
     int mx = x, my = y;
 
-    ui_window_to_region(ar, &mx, &my);
+    ui_window_to_region(region, &mx, &my);
     if (!BLI_rcti_isect_pt(&v2d->mask, mx, my) ||
-        UI_view2d_mouse_in_scrollers(ar, &ar->v2d, x, y)) {
+        UI_view2d_mouse_in_scrollers(region, &region->v2d, x, y)) {
       return false;
     }
   }
@@ -567,21 +567,21 @@ bool ui_region_contains_point_px(const ARegion *ar, int x, int y)
   return true;
 }
 
-bool ui_region_contains_rect_px(const ARegion *ar, const rcti *rect_px)
+bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px)
 {
   rcti winrct;
-  ui_region_winrct_get_no_margin(ar, &winrct);
+  ui_region_winrct_get_no_margin(region, &winrct);
   if (!BLI_rcti_isect(&winrct, rect_px, NULL)) {
     return false;
   }
 
   /* See comment in 'ui_region_contains_point_px' */
-  if (ar->v2d.mask.xmin != ar->v2d.mask.xmax) {
-    const View2D *v2d = &ar->v2d;
+  if (region->v2d.mask.xmin != region->v2d.mask.xmax) {
+    const View2D *v2d = &region->v2d;
     rcti rect_region;
-    ui_window_to_region_rcti(ar, &rect_region, rect_px);
+    ui_window_to_region_rcti(region, &rect_region, rect_px);
     if (!BLI_rcti_isect(&v2d->mask, &rect_region, NULL) ||
-        UI_view2d_rect_in_scrollers(ar, &ar->v2d, rect_px)) {
+        UI_view2d_rect_in_scrollers(region, &region->v2d, rect_px)) {
       return false;
     }
   }
@@ -598,13 +598,13 @@ bool ui_region_contains_rect_px(const ARegion *ar, const rcti *rect_px)
 /** Check if the cursor is over any popups. */
 ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, int x, int y)
 {
-  for (ARegion *ar = screen->regionbase.first; ar; ar = ar->next) {
+  for (ARegion *region = screen->regionbase.first; region; region = region->next) {
     rcti winrct;
 
-    ui_region_winrct_get_no_margin(ar, &winrct);
+    ui_region_winrct_get_no_margin(region, &winrct);
 
     if (BLI_rcti_isect_pt(&winrct, x, y)) {
-      return ar;
+      return region;
     }
   }
   return NULL;

@@ -133,19 +133,19 @@ typedef struct ARegionType {
   int regionid; /* unique identifier within this space, defines RGN_TYPE_xxxx */
 
   /* add handlers, stuff you only do once or on area/region type/size changes */
-  void (*init)(struct wmWindowManager *wm, struct ARegion *ar);
+  void (*init)(struct wmWindowManager *wm, struct ARegion *region);
   /* exit is called when the region is hidden or removed */
-  void (*exit)(struct wmWindowManager *wm, struct ARegion *ar);
+  void (*exit)(struct wmWindowManager *wm, struct ARegion *region);
   /* draw entirely, view changes should be handled here */
-  void (*draw)(const struct bContext *C, struct ARegion *ar);
+  void (*draw)(const struct bContext *C, struct ARegion *region);
   /* optional, compute button layout before drawing for dynamic size */
-  void (*layout)(const struct bContext *C, struct ARegion *ar);
+  void (*layout)(const struct bContext *C, struct ARegion *region);
   /* snap the size of the region (can be NULL for no snapping). */
-  int (*snap_size)(const struct ARegion *ar, int size, int axis);
+  int (*snap_size)(const struct ARegion *region, int size, int axis);
   /* contextual changes should be handled here */
   void (*listener)(struct wmWindow *win,
                    struct ScrArea *sa,
-                   struct ARegion *ar,
+                   struct ARegion *region,
                    struct wmNotifier *wmn,
                    const struct Scene *scene);
   /* Optional callback to generate subscriptions. */
@@ -154,7 +154,7 @@ typedef struct ARegionType {
                             struct Scene *scene,
                             struct bScreen *sc,
                             struct ScrArea *sa,
-                            struct ARegion *ar,
+                            struct ARegion *region,
                             struct wmMsgBus *mbus);
 
   void (*free)(struct ARegion *);
@@ -167,7 +167,7 @@ typedef struct ARegionType {
   /* add own items to keymap */
   void (*keymap)(struct wmKeyConfig *keyconf);
   /* allows default cursor per region */
-  void (*cursor)(struct wmWindow *win, struct ScrArea *sa, struct ARegion *ar);
+  void (*cursor)(struct wmWindow *win, struct ScrArea *sa, struct ARegion *region);
 
   /* return context data */
   int (*context)(const struct bContext *C, const char *member, struct bContextDataResult *result);
@@ -340,8 +340,8 @@ void BKE_spacedata_callback_id_remap_set(
 void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID *id);
 
 /* area/regions */
-struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
-void BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
+struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *region);
+void BKE_area_region_free(struct SpaceType *st, struct ARegion *region);
 void BKE_area_region_panels_free(struct ListBase *panels);
 void BKE_screen_area_free(struct ScrArea *sa);
 /* Gizmo-maps of a region need to be freed with the region.

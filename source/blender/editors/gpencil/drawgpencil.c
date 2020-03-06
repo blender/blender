@@ -1120,8 +1120,8 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 void ED_gp_draw_interpolation(const bContext *C, tGPDinterpolate *tgpi, const int type)
 {
   tGPDdraw tgpw;
-  ARegion *ar = CTX_wm_region(C);
-  RegionView3D *rv3d = ar->regiondata;
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = region->regiondata;
   tGPDinterpolate_layer *tgpil;
   Object *obact = CTX_data_active_object(C);
   /* Drawing code is expected to run with fully evaluated depsgraph. */
@@ -1143,8 +1143,8 @@ void ED_gp_draw_interpolation(const bContext *C, tGPDinterpolate *tgpi, const in
   tgpw.gpd = tgpi->gpd;
   tgpw.offsx = 0;
   tgpw.offsy = 0;
-  tgpw.winx = tgpi->ar->winx;
-  tgpw.winy = tgpi->ar->winy;
+  tgpw.winx = tgpi->region->winx;
+  tgpw.winy = tgpi->region->winy;
   tgpw.dflag = dflag;
 
   /* turn on alpha-blending */
@@ -1180,7 +1180,7 @@ void ED_gp_draw_fill(tGPDdraw *tgpw)
 }
 
 /* draw a short status message in the top-right corner */
-static void UNUSED_FUNCTION(gp_draw_status_text)(const bGPdata *gpd, ARegion *ar)
+static void UNUSED_FUNCTION(gp_draw_status_text)(const bGPdata *gpd, ARegion *region)
 {
 
   /* Cannot draw any status text when drawing OpenGL Renders */
@@ -1189,7 +1189,7 @@ static void UNUSED_FUNCTION(gp_draw_status_text)(const bGPdata *gpd, ARegion *ar
   }
 
   /* Get bounds of region - Necessary to avoid problems with region overlap. */
-  const rcti *rect = ED_region_visible_rect(ar);
+  const rcti *rect = ED_region_visible_rect(region);
 
   /* for now, this should only be used to indicate when we are in stroke editmode */
   if (gpd->flag & GP_DATA_STROKE_EDITMODE) {

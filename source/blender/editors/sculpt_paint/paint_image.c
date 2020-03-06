@@ -289,9 +289,9 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
     SpaceImage *sima = CTX_wm_space_image(C);
 
     if (sima) {
-      ARegion *ar = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region(C);
 
-      if ((sima->mode == SI_MODE_PAINT) && ar->regiontype == RGN_TYPE_WINDOW) {
+      if ((sima->mode == SI_MODE_PAINT) && region->regiontype == RGN_TYPE_WINDOW) {
         return 1;
       }
     }
@@ -440,7 +440,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 
-    ARegion *ar = pop->vc.ar;
+    ARegion *region = pop->vc.region;
 
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -449,7 +449,8 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2i(pos, x, y);
-    immVertex2i(pos, pop->startmouse[0] + ar->winrct.xmin, pop->startmouse[1] + ar->winrct.ymin);
+    immVertex2i(
+        pos, pop->startmouse[0] + region->winrct.xmin, pop->startmouse[1] + region->winrct.ymin);
     immEnd();
 
     GPU_line_width(2.0);
@@ -457,7 +458,8 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2i(pos, x, y);
-    immVertex2i(pos, pop->startmouse[0] + ar->winrct.xmin, pop->startmouse[1] + ar->winrct.ymin);
+    immVertex2i(
+        pos, pop->startmouse[0] + region->winrct.xmin, pop->startmouse[1] + region->winrct.ymin);
     immEnd();
 
     immUnbindProgram();
@@ -766,8 +768,8 @@ bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
   if (sa && sa->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = sa->spacedata.first;
     if (sima->mode == SI_MODE_PAINT) {
-      ARegion *ar = CTX_wm_region(C);
-      ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
+      ARegion *region = CTX_wm_region(C);
+      ED_space_image_get_zoom(sima, region, zoomx, zoomy);
       return 1;
     }
   }
@@ -871,10 +873,10 @@ static int grab_clone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Brush *brush = image_paint_brush(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   GrabClone *cmv = op->customdata;
   float startfx, startfy, fx, fy, delta[2];
-  int xmin = ar->winrct.xmin, ymin = ar->winrct.ymin;
+  int xmin = region->winrct.xmin, ymin = region->winrct.ymin;
 
   switch (event->type) {
     case LEFTMOUSE:
@@ -885,8 +887,8 @@ static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case MOUSEMOVE:
       /* mouse moved, so move the clone image */
       UI_view2d_region_to_view(
-          &ar->v2d, cmv->startx - xmin, cmv->starty - ymin, &startfx, &startfy);
-      UI_view2d_region_to_view(&ar->v2d, event->x - xmin, event->y - ymin, &fx, &fy);
+          &region->v2d, cmv->startx - xmin, cmv->starty - ymin, &startfx, &startfy);
+      UI_view2d_region_to_view(&region->v2d, event->x - xmin, event->y - ymin, &fx, &fy);
 
       delta[0] = fx - startfx;
       delta[1] = fy - startfy;
@@ -965,14 +967,14 @@ static int sample_color_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   wmWindow *win = CTX_wm_window(C);
   const bool show_cursor = ((paint->flags & PAINT_SHOW_BRUSH) != 0);
   int location[2];
   paint->flags &= ~PAINT_SHOW_BRUSH;
 
   /* force redraw without cursor */
-  WM_paint_cursor_tag_redraw(win, ar);
+  WM_paint_cursor_tag_redraw(win, region);
   WM_redraw_windows(C);
 
   RNA_int_get_array(op->ptr, "location", location);
@@ -980,7 +982,7 @@ static int sample_color_exec(bContext *C, wmOperator *op)
   const bool use_sample_texture = (mode == PAINT_MODE_TEXTURE_3D) &&
                                   !RNA_boolean_get(op->ptr, "merged");
 
-  paint_sample_color(C, ar, location[0], location[1], use_sample_texture, use_palette);
+  paint_sample_color(C, region, location[0], location[1], use_sample_texture, use_palette);
 
   if (show_cursor) {
     paint->flags |= PAINT_SHOW_BRUSH;
@@ -997,7 +999,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   SampleColorData *data = MEM_mallocN(sizeof(SampleColorData), "sample color custom data");
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   wmWindow *win = CTX_wm_window(C);
 
   data->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
@@ -1012,7 +1014,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
   WM_event_add_modal_handler(C, op);
 
   /* force redraw without cursor */
-  WM_paint_cursor_tag_redraw(win, ar);
+  WM_paint_cursor_tag_redraw(win, region);
   WM_redraw_windows(C);
 
   RNA_int_set_array(op->ptr, "location", event->mval);
@@ -1021,7 +1023,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
   const bool use_sample_texture = (mode == PAINT_MODE_TEXTURE_3D) &&
                                   !RNA_boolean_get(op->ptr, "merged");
 
-  paint_sample_color(C, ar, event->mval[0], event->mval[1], use_sample_texture, false);
+  paint_sample_color(C, region, event->mval[0], event->mval[1], use_sample_texture, false);
   WM_cursor_modal_set(win, WM_CURSOR_EYEDROPPER);
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
@@ -1058,18 +1060,18 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   switch (event->type) {
     case MOUSEMOVE: {
-      ARegion *ar = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region(C);
       RNA_int_set_array(op->ptr, "location", event->mval);
-      paint_sample_color(C, ar, event->mval[0], event->mval[1], use_sample_texture, false);
+      paint_sample_color(C, region, event->mval[0], event->mval[1], use_sample_texture, false);
       WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
       break;
     }
 
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        ARegion *ar = CTX_wm_region(C);
+        ARegion *region = CTX_wm_region(C);
         RNA_int_set_array(op->ptr, "location", event->mval);
-        paint_sample_color(C, ar, event->mval[0], event->mval[1], use_sample_texture, true);
+        paint_sample_color(C, region, event->mval[0], event->mval[1], use_sample_texture, true);
         if (!data->sample_palette) {
           data->sample_palette = true;
           sample_color_update_header(data, C);

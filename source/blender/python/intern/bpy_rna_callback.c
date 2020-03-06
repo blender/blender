@@ -58,7 +58,7 @@ static const EnumPropertyItem region_draw_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static void cb_region_draw(const bContext *C, ARegion *UNUSED(ar), void *customdata)
+static void cb_region_draw(const bContext *C, ARegion *UNUSED(region), void *customdata)
 {
   PyObject *cb_func, *cb_args, *result;
   PyGILState_STATE gilstate;

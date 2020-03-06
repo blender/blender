@@ -352,9 +352,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
   BezTriple *bezt, *prevbezt;
 
   uiLayout *layout = pa->layout;
-  const ARegion *ar = CTX_wm_region(C);
+  const ARegion *region = CTX_wm_region(C);
   /* Just a width big enough so buttons use entire layout width (will be clamped by it then). */
-  const int but_max_width = ar->winx;
+  const int but_max_width = region->winx;
   uiLayout *col;
   uiBlock *block;
 

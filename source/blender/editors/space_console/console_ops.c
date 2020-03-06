@@ -49,18 +49,18 @@
 #include "console_intern.h"
 
 /* so when we type - the view scrolls to the bottom */
-static void console_scroll_bottom(ARegion *ar)
+static void console_scroll_bottom(ARegion *region)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   v2d->cur.ymin = 0.0;
   v2d->cur.ymax = (float)v2d->winy;
 }
 
-void console_textview_update_rect(SpaceConsole *sc, ARegion *ar)
+void console_textview_update_rect(SpaceConsole *sc, ARegion *region)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
 
-  UI_view2d_totRect_set(v2d, ar->winx - 1, console_textview_height(sc, ar));
+  UI_view2d_totRect_set(v2d, region->winx - 1, console_textview_height(sc, region));
 }
 
 static void console_select_offset(SpaceConsole *sc, const int offset)
@@ -354,10 +354,10 @@ static int console_move_exec(bContext *C, wmOperator *op)
 
   if (done) {
     ScrArea *sa = CTX_wm_area(C);
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
 
     ED_area_tag_redraw(sa);
-    console_scroll_bottom(ar);
+    console_scroll_bottom(region);
   }
 
   return OPERATOR_FINISHED;
@@ -383,7 +383,7 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 static int console_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
   char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
   int len;
@@ -407,10 +407,10 @@ static int console_insert_exec(bContext *C, wmOperator *op)
     console_select_offset(sc, len);
   }
 
-  console_textview_update_rect(sc, ar);
+  console_textview_update_rect(sc, region);
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  console_scroll_bottom(ar);
+  console_scroll_bottom(region);
 
   return OPERATOR_FINISHED;
 }
@@ -506,7 +506,7 @@ void CONSOLE_OT_indent_or_autocomplete(wmOperatorType *ot)
 static int console_indent_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
   int spaces;
   int len;
@@ -528,10 +528,10 @@ static int console_indent_exec(bContext *C, wmOperator *UNUSED(op))
   console_line_cursor_set(ci, ci->cursor + len);
   console_select_offset(sc, len);
 
-  console_textview_update_rect(sc, ar);
+  console_textview_update_rect(sc, region);
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  console_scroll_bottom(ar);
+  console_scroll_bottom(region);
 
   return OPERATOR_FINISHED;
 }
@@ -553,7 +553,7 @@ void CONSOLE_OT_indent(wmOperatorType *ot)
 static int console_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
   int spaces;
   int len;
@@ -582,10 +582,10 @@ static int console_unindent_exec(bContext *C, wmOperator *UNUSED(op))
   console_line_cursor_set(ci, ci->cursor - len);
   console_select_offset(sc, -len);
 
-  console_textview_update_rect(sc, ar);
+  console_textview_update_rect(sc, region);
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  console_scroll_bottom(ar);
+  console_scroll_bottom(region);
 
   return OPERATOR_FINISHED;
 }
@@ -613,7 +613,7 @@ static const EnumPropertyItem console_delete_type_items[] = {
 static int console_delete_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
   int pos;
   int stride;
@@ -678,10 +678,10 @@ static int console_delete_exec(bContext *C, wmOperator *op)
     console_select_offset(sc, -stride);
   }
 
-  console_textview_update_rect(sc, ar);
+  console_textview_update_rect(sc, region);
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  console_scroll_bottom(ar);
+  console_scroll_bottom(region);
 
   return OPERATOR_FINISHED;
 }
@@ -709,7 +709,7 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 static int console_clear_line_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
 
   if (ci->len == 0) {
@@ -720,11 +720,11 @@ static int console_clear_line_exec(bContext *C, wmOperator *UNUSED(op))
   console_history_add(sc, NULL);
   console_select_offset(sc, -ci->len);
 
-  console_textview_update_rect(sc, ar);
+  console_textview_update_rect(sc, region);
 
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  console_scroll_bottom(ar);
+  console_scroll_bottom(region);
 
   return OPERATOR_FINISHED;
 }
@@ -745,7 +745,7 @@ void CONSOLE_OT_clear_line(wmOperatorType *ot)
 static int console_clear_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   const bool scrollback = RNA_boolean_get(op->ptr, "scrollback");
   const bool history = RNA_boolean_get(op->ptr, "history");
@@ -765,7 +765,7 @@ static int console_clear_exec(bContext *C, wmOperator *op)
     console_history_verify(C);
   }
 
-  console_textview_update_rect(sc, ar);
+  console_textview_update_rect(sc, region);
   ED_area_tag_redraw(CTX_wm_area(C));
 
   return OPERATOR_FINISHED;
@@ -791,7 +791,7 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 static int console_history_cycle_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   /* TODO - stupid, just prevents crashes when no command line */
   ConsoleLine *ci = console_history_verify(C);
@@ -832,10 +832,10 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
   console_select_offset(sc, ci->len - prev_len);
 
   /* could be wrapped so update scroll rect */
-  console_textview_update_rect(sc, ar);
+  console_textview_update_rect(sc, region);
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  console_scroll_bottom(ar);
+  console_scroll_bottom(region);
 
   return OPERATOR_FINISHED;
 }
@@ -859,7 +859,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 static int console_history_append_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ScrArea *sa = CTX_wm_area(C);
   ConsoleLine *ci = console_history_verify(C);
   /* own this text in the new line, don't free */
@@ -889,8 +889,8 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 
   /* when calling render modally this can be NULL when calling:
    * bpy.ops.render.render('INVOKE_DEFAULT') */
-  if (ar) {
-    console_scroll_bottom(ar);
+  if (region) {
+    console_scroll_bottom(region);
   }
 
   return OPERATOR_FINISHED;
@@ -922,7 +922,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 static int console_scrollback_append_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci;
 
   /* own this text in the new line, don't free */
@@ -936,10 +936,10 @@ static int console_scrollback_append_exec(bContext *C, wmOperator *op)
 
   console_scrollback_limit(sc);
 
-  /* 'ar' can be null depending on the operator that runs
+  /* 'region' can be null depending on the operator that runs
    * rendering with invoke default for eg causes this */
-  if (ar) {
-    console_textview_update_rect(sc, ar);
+  if (region) {
+    console_textview_update_rect(sc, region);
   }
 
   ED_area_tag_redraw(CTX_wm_area(C));
@@ -1055,7 +1055,7 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 static int console_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
   int buf_len;
 
@@ -1085,10 +1085,10 @@ static int console_paste_exec(bContext *C, wmOperator *UNUSED(op))
 
   MEM_freeN(buf_str);
 
-  console_textview_update_rect(sc, ar);
+  console_textview_update_rect(sc, region);
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  console_scroll_bottom(ar);
+  console_scroll_bottom(region);
 
   return OPERATOR_FINISHED;
 }
@@ -1114,10 +1114,10 @@ typedef struct SetConsoleCursor {
 
 // TODO, cursor placement without selection
 static void console_cursor_set_to_pos(
-    SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, const int mval[2], int UNUSED(sel))
+    SpaceConsole *sc, ARegion *region, SetConsoleCursor *scu, const int mval[2], int UNUSED(sel))
 {
   int pos;
-  pos = console_char_pick(sc, ar, mval);
+  pos = console_char_pick(sc, region, mval);
 
   if (scu->sel_init == INT_MAX) {
     scu->sel_init = pos;
@@ -1141,7 +1141,7 @@ static void console_cursor_set_to_pos(
 static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SetConsoleCursor *scu = op->customdata;
   int mval[2];
   int sel_prev[2];
@@ -1152,7 +1152,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEven
   sel_prev[0] = sc->sel_start;
   sel_prev[1] = sc->sel_end;
 
-  console_cursor_set_to_pos(sc, ar, scu, mval, true);
+  console_cursor_set_to_pos(sc, region, scu, mval, true);
 
   /* only redraw if the selection changed */
   if (sel_prev[0] != sc->sel_start || sel_prev[1] != sc->sel_end) {
@@ -1179,7 +1179,7 @@ static void console_cursor_set_exit(bContext *UNUSED(C), wmOperator *op)
 static int console_modal_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  //  ARegion *ar = CTX_wm_region(C);
+  //  ARegion *region = CTX_wm_region(C);
   SetConsoleCursor *scu;
 
   op->customdata = MEM_callocN(sizeof(SetConsoleCursor), "SetConsoleCursor");
@@ -1238,14 +1238,14 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
 static int console_selectword_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   ConsoleLine cl_dummy = {NULL};
   ConsoleLine *cl;
   int ret = OPERATOR_CANCELLED;
   int pos, offset, n;
 
-  pos = console_char_pick(sc, ar, event->mval);
+  pos = console_char_pick(sc, region, event->mval);
 
   console_scrollback_prompt_begin(sc, &cl_dummy);
 

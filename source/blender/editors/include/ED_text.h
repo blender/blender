@@ -36,7 +36,7 @@ struct UndoType;
 struct bContext;
 
 bool ED_text_region_location_from_cursor(struct SpaceText *st,
-                                         struct ARegion *ar,
+                                         struct ARegion *region,
                                          const int cursor_co[2],
                                          int r_pixel_co[2]);
 

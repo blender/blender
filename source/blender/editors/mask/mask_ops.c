@@ -75,7 +75,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
                                             float *score)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MaskLayer *point_mask_layer = NULL;
   MaskSpline *point_spline = NULL;
@@ -90,7 +90,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
 
   ED_mask_get_size(sa, &width, &height);
-  ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
+  ED_mask_pixelspace_factor(sa, region, &scalex, &scaley);
 
   co[0] = normal_co[0] * scalex;
   co[1] = normal_co[1] * scaley;
@@ -230,7 +230,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
                                   float *score)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MaskLayer *point_mask_layer = NULL;
   MaskSpline *point_spline = NULL;
@@ -245,7 +245,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
 
   ED_mask_get_size(sa, &width, &height);
-  ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
+  ED_mask_pixelspace_factor(sa, region, &scalex, &scaley);
 
   co[0] = normal_co[0] * scalex;
   co[1] = normal_co[1] * scaley;
@@ -714,7 +714,7 @@ static void check_sliding_handle_type(MaskSplinePoint *point, eMaskWhichHandle w
 static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   Mask *mask = CTX_data_edit_mask(C);
   SlidePointData *customdata = NULL;
@@ -728,7 +728,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
   const float threshold = 19;
   eMaskWhichHandle which_handle;
 
-  ED_mask_mouse_pos(sa, ar, event->mval, co);
+  ED_mask_mouse_pos(sa, region, event->mval, co);
   ED_mask_get_size(sa, &width, &height);
 
   cv_point = ED_mask_point_find_nearest(
@@ -827,7 +827,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
     }
     customdata->which_handle = which_handle;
 
-    ED_mask_mouse_pos(sa, ar, event->mval, customdata->prev_mouse_coord);
+    ED_mask_mouse_pos(sa, region, event->mval, customdata->prev_mouse_coord);
   }
 
   return customdata;
@@ -952,10 +952,10 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
       ATTR_FALLTHROUGH; /* update CV position */
     case MOUSEMOVE: {
       ScrArea *sa = CTX_wm_area(C);
-      ARegion *ar = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region(C);
       float delta[2];
 
-      ED_mask_mouse_pos(sa, ar, event->mval, co);
+      ED_mask_mouse_pos(sa, region, event->mval, co);
       sub_v2_v2v2(delta, co, data->prev_mouse_coord);
       if (data->is_accurate) {
         mul_v2_fl(delta, 0.2f);

@@ -108,12 +108,12 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 static int add_marker_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   if (!RNA_struct_property_is_set(op->ptr, "location")) {
     /* If location is not set, use mouse positio nas default. */
     float co[2];
-    ED_clip_mouse_pos(sc, ar, event->mval, co);
+    ED_clip_mouse_pos(sc, region, event->mval, co);
     RNA_float_set_array(op->ptr, "location", co);
   }
 
@@ -169,13 +169,17 @@ static int add_marker_at_click_modal(bContext *C, wmOperator *UNUSED(op), const 
     case LEFTMOUSE: {
       SpaceClip *sc = CTX_wm_space_clip(C);
       MovieClip *clip = ED_space_clip_get_clip(sc);
-      ARegion *ar = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region(C);
       float pos[2];
 
       ED_workspace_status_text(C, NULL);
 
-      ED_clip_point_stable_pos(
-          sc, ar, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, &pos[0], &pos[1]);
+      ED_clip_point_stable_pos(sc,
+                               region,
+                               event->x - region->winrct.xmin,
+                               event->y - region->winrct.ymin,
+                               &pos[0],
+                               &pos[1]);
 
       if (!add_marker(C, pos[0], pos[1])) {
         return OPERATOR_CANCELLED;
@@ -544,7 +548,7 @@ MovieTrackingTrack *tracking_marker_check_slide(
 {
   const float distance_clip_squared = 12.0f * 12.0f;
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTrackingTrack *track;
@@ -566,7 +570,7 @@ MovieTrackingTrack *tracking_marker_check_slide(
     return NULL;
   }
 
-  ED_clip_mouse_pos(sc, ar, event->mval, co);
+  ED_clip_mouse_pos(sc, region, event->mval, co);
 
   track = tracksbase->first;
   while (track) {
@@ -670,7 +674,7 @@ MovieTrackingTrack *tracking_marker_check_slide(
 static void *slide_marker_customdata(bContext *C, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MovieTrackingTrack *track;
   int width, height;
@@ -685,7 +689,7 @@ static void *slide_marker_customdata(bContext *C, const wmEvent *event)
     return NULL;
   }
 
-  ED_clip_mouse_pos(sc, ar, event->mval, co);
+  ED_clip_mouse_pos(sc, region, event->mval, co);
 
   track = tracking_marker_check_slide(C, event, &area, &action, &corner);
   if (track != NULL) {
@@ -770,7 +774,7 @@ static void free_slide_data(SlideMarkerData *data)
 static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   SlideMarkerData *data = (SlideMarkerData *)op->customdata;
   float dx, dy, mdelta[2];
@@ -826,7 +830,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
           float start[2], end[2];
           float scale;
 
-          ED_clip_point_stable_pos(sc, ar, data->mval[0], data->mval[1], &start[0], &start[1]);
+          ED_clip_point_stable_pos(sc, region, data->mval[0], data->mval[1], &start[0], &start[1]);
 
           sub_v2_v2(start, data->old_pos);
 
@@ -842,7 +846,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
               mval[1] = event->mval[1];
             }
 
-            ED_clip_point_stable_pos(sc, ar, mval[0], mval[1], &end[0], &end[1]);
+            ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &end[0], &end[1]);
 
             sub_v2_v2(end, data->old_pos);
             scale = len_v2(end) / len_v2(start);
@@ -896,7 +900,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
           sub_v2_v2v2(start, data->spos, data->old_pos);
 
-          ED_clip_point_stable_pos(sc, ar, mval[0], mval[1], &end[0], &end[1]);
+          ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &end[0], &end[1]);
           sub_v2_v2(end, data->old_pos);
 
           if (len_squared_v2(start) != 0.0f) {

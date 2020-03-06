@@ -53,24 +53,24 @@
 
 static SpaceLink *script_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceScript *sscript;
 
   sscript = MEM_callocN(sizeof(SpaceScript), "initscript");
   sscript->spacetype = SPACE_SCRIPT;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for script");
+  region = MEM_callocN(sizeof(ARegion), "header for script");
 
-  BLI_addtail(&sscript->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&sscript->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for script");
+  region = MEM_callocN(sizeof(ARegion), "main region for script");
 
-  BLI_addtail(&sscript->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&sscript->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
   /* channel list region XXX */
 
@@ -108,22 +108,22 @@ static SpaceLink *script_duplicate(SpaceLink *sl)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void script_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void script_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Script", SPACE_SCRIPT, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void script_main_region_draw(const bContext *C, ARegion *ar)
+static void script_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceScript *sscript = (SpaceScript *)CTX_wm_space_data(C);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
@@ -149,19 +149,19 @@ static void script_main_region_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void script_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void script_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void script_header_region_draw(const bContext *C, ARegion *ar)
+static void script_header_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
 static void script_main_region_listener(wmWindow *UNUSED(win),
                                         ScrArea *UNUSED(sa),
-                                        ARegion *UNUSED(ar),
+                                        ARegion *UNUSED(region),
                                         wmNotifier *UNUSED(wmn),
                                         const Scene *UNUSED(scene))
 {

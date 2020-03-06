@@ -45,7 +45,7 @@ enum eWM_EventHandlerType {
   WM_HANDLER_TYPE_KEYMAP,
 };
 
-typedef bool (*EventHandlerPoll)(const ARegion *ar, const wmEvent *event);
+typedef bool (*EventHandlerPoll)(const ARegion *region, const wmEvent *event);
 
 typedef struct wmEventHandler {
   struct wmEventHandler *next, *prev;

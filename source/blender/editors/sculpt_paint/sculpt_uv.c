@@ -313,7 +313,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
 {
   float co[2], radius, radius_root;
   Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   unsigned int tool;
   UvSculptData *sculptdata = (UvSculptData *)op->customdata;
@@ -327,11 +327,11 @@ static void uv_sculpt_stroke_apply(bContext *C,
   tool = sculptdata->tool;
   invert = sculptdata->invert ? -1 : 1;
   alpha = BKE_brush_alpha_get(scene, brush);
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
   sima = CTX_wm_space_image(C);
   ED_space_image_get_size(sima, &width, &height);
-  ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+  ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
   radius = BKE_brush_size_get(scene, brush) / (width * zoomx);
   aspectRatio = width / (float)height;
@@ -496,7 +496,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
   if (data) {
     int counter = 0, i;
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
     float co[2];
     BMFace *efa;
     MLoopUV *luv;
@@ -542,7 +542,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     }
 
     /* Mouse coordinates, useful for some functions like grab and sculpt all islands */
-    UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+    UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
     /* we need to find the active island here */
     if (do_island_optimization) {
@@ -704,7 +704,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       radius = BKE_brush_size_get(scene, brush);
       sima = CTX_wm_space_image(C);
       ED_space_image_get_size(sima, &width, &height);
-      ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+      ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
       aspectRatio = width / (float)height;
       radius /= (width * zoomx);

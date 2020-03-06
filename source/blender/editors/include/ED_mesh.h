@@ -135,7 +135,7 @@ void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
                        struct BMEdge *e,
                        struct Depsgraph *depsgraph,
-                       struct ARegion *ar,
+                       struct ARegion *region,
                        struct View3D *v3d,
                        struct Object *obedit);
 
@@ -296,7 +296,7 @@ void ED_keymap_mesh(struct wmKeyConfig *keyconf);
 /* editmesh_tools.c (could be moved) */
 void EDBM_project_snap_verts(struct bContext *C,
                              struct Depsgraph *depsgraph,
-                             struct ARegion *ar,
+                             struct ARegion *region,
                              struct Object *obedit,
                              struct BMEditMesh *em);
 

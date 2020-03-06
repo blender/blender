@@ -50,11 +50,11 @@
 void DRW_draw_region_info(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  ARegion *ar = draw_ctx->ar;
+  ARegion *region = draw_ctx->region;
 
   DRW_draw_cursor();
 
-  view3d_draw_region_info(draw_ctx->evil_C, ar);
+  view3d_draw_region_info(draw_ctx->evil_C, region);
 }
 
 /* **************************** 3D Cursor ******************************** */
@@ -99,7 +99,7 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
 void DRW_draw_cursor(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  ARegion *ar = draw_ctx->ar;
+  ARegion *region = draw_ctx->region;
   Scene *scene = draw_ctx->scene;
   ViewLayer *view_layer = draw_ctx->view_layer;
 
@@ -114,9 +114,9 @@ void DRW_draw_cursor(void)
     const View3DCursor *cursor = &scene->cursor;
 
     if (ED_view3d_project_int_global(
-            ar, cursor->location, co, V3D_PROJ_TEST_NOP | V3D_PROJ_TEST_CLIP_NEAR) ==
+            region, cursor->location, co, V3D_PROJ_TEST_NOP | V3D_PROJ_TEST_CLIP_NEAR) ==
         V3D_PROJ_RET_OK) {
-      RegionView3D *rv3d = ar->regiondata;
+      RegionView3D *rv3d = region->regiondata;
 
       float cursor_quat[4];
       BKE_scene_cursor_rot_to_quat(cursor, cursor_quat);
@@ -178,7 +178,7 @@ void DRW_draw_cursor(void)
       float original_proj[4][4];
       GPU_matrix_projection_get(original_proj);
       GPU_matrix_push();
-      ED_region_pixelspace(ar);
+      ED_region_pixelspace(region);
       GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
       GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
 
@@ -202,20 +202,20 @@ void DRW_draw_cursor(void)
 void DRW_draw_gizmo_3d(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  ARegion *ar = draw_ctx->ar;
+  ARegion *region = draw_ctx->region;
 
   /* draw depth culled gizmos - gizmos need to be updated *after* view matrix was set up */
   /* TODO depth culling gizmos is not yet supported, just drawing _3D here, should
    * later become _IN_SCENE (and draw _3D separate) */
-  WM_gizmomap_draw(ar->gizmo_map, draw_ctx->evil_C, WM_GIZMOMAP_DRAWSTEP_3D);
+  WM_gizmomap_draw(region->gizmo_map, draw_ctx->evil_C, WM_GIZMOMAP_DRAWSTEP_3D);
 }
 
 void DRW_draw_gizmo_2d(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  ARegion *ar = draw_ctx->ar;
+  ARegion *region = draw_ctx->region;
 
-  WM_gizmomap_draw(ar->gizmo_map, draw_ctx->evil_C, WM_GIZMOMAP_DRAWSTEP_2D);
+  WM_gizmomap_draw(region->gizmo_map, draw_ctx->evil_C, WM_GIZMOMAP_DRAWSTEP_2D);
 
   glDepthMask(GL_TRUE);
 }

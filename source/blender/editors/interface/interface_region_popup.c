@@ -57,18 +57,18 @@
 /**
  * Translate any popup regions (so we can drag them).
  */
-void ui_popup_translate(ARegion *ar, const int mdiff[2])
+void ui_popup_translate(ARegion *region, const int mdiff[2])
 {
   uiBlock *block;
 
-  BLI_rcti_translate(&ar->winrct, UNPACK2(mdiff));
+  BLI_rcti_translate(&region->winrct, UNPACK2(mdiff));
 
-  ED_region_update_rect(ar);
+  ED_region_update_rect(region);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   /* update blocks */
-  for (block = ar->uiblocks.first; block; block = block->next) {
+  for (block = region->uiblocks.first; block; block = block->next) {
     uiPopupBlockHandle *handle = block->handle;
     /* Make empty, will be initialized on next use, see T60608. */
     BLI_rctf_init(&handle->prev_block_rect, 0, 0, 0, 0);
@@ -369,19 +369,19 @@ static void ui_popup_block_position(wmWindow *window,
 /** \name Menu Block Creation
  * \{ */
 
-static void ui_block_region_refresh(const bContext *C, ARegion *ar)
+static void ui_block_region_refresh(const bContext *C, ARegion *region)
 {
   ScrArea *ctx_area = CTX_wm_area(C);
   ARegion *ctx_region = CTX_wm_region(C);
   uiBlock *block;
 
-  if (ar->do_draw & RGN_REFRESH_UI) {
+  if (region->do_draw & RGN_REFRESH_UI) {
     ScrArea *handle_ctx_area;
     ARegion *handle_ctx_region;
     uiBlock *block_next;
 
-    ar->do_draw &= ~RGN_REFRESH_UI;
-    for (block = ar->uiblocks.first; block; block = block_next) {
+    region->do_draw &= ~RGN_REFRESH_UI;
+    for (block = region->uiblocks.first; block; block = block_next) {
       block_next = block->next;
       uiPopupBlockHandle *handle = block->handle;
 
@@ -407,11 +407,11 @@ static void ui_block_region_refresh(const bContext *C, ARegion *ar)
   CTX_wm_region_set((bContext *)C, ctx_region);
 }
 
-static void ui_block_region_draw(const bContext *C, ARegion *ar)
+static void ui_block_region_draw(const bContext *C, ARegion *region)
 {
   uiBlock *block;
 
-  for (block = ar->uiblocks.first; block; block = block->next) {
+  for (block = region->uiblocks.first; block; block = block->next) {
     UI_block_draw(C, block);
   }
 }
@@ -421,7 +421,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
  */
 static void ui_block_region_popup_window_listener(wmWindow *UNUSED(win),
                                                   ScrArea *UNUSED(sa),
-                                                  ARegion *ar,
+                                                  ARegion *region,
                                                   wmNotifier *wmn,
                                                   const Scene *UNUSED(scene))
 {
@@ -430,7 +430,7 @@ static void ui_block_region_popup_window_listener(wmWindow *UNUSED(win),
       switch (wmn->action) {
         case NA_EDITED: {
           /* window resize */
-          ED_region_tag_refresh_ui(ar);
+          ED_region_tag_refresh_ui(region);
           break;
         }
       }
@@ -573,13 +573,13 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 {
   const int margin = UI_POPUP_MARGIN;
   wmWindow *window = CTX_wm_window(C);
-  ARegion *ar = handle->region;
+  ARegion *region = handle->region;
 
   uiBlockCreateFunc create_func = handle->popup_create_vars.create_func;
   uiBlockHandleCreateFunc handle_create_func = handle->popup_create_vars.handle_create_func;
   void *arg = handle->popup_create_vars.arg;
 
-  uiBlock *block_old = ar->uiblocks.first;
+  uiBlock *block_old = region->uiblocks.first;
   uiBlock *block;
 
   handle->refresh = (block_old != NULL);
@@ -592,7 +592,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
   /* create ui block */
   if (create_func) {
-    block = create_func(C, ar, arg);
+    block = create_func(C, region, arg);
   }
   else {
     block = handle_create_func(C, handle, arg);
@@ -615,7 +615,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     block->handle = handle;
   }
 
-  ar->regiondata = handle;
+  region->regiondata = handle;
 
   /* set UI_BLOCK_NUMSELECT before UI_block_end() so we get alphanumeric keys assigned */
   if (but == NULL) {
@@ -689,10 +689,10 @@ uiBlock *ui_popup_block_refresh(bContext *C,
       }
     }
 
-    ar->winrct.xmin = 0;
-    ar->winrct.xmax = winx;
-    ar->winrct.ymin = 0;
-    ar->winrct.ymax = winy;
+    region->winrct.xmin = 0;
+    region->winrct.xmax = winx;
+    region->winrct.ymin = 0;
+    region->winrct.ymax = winy;
 
     ui_block_calc_pie_segment(block, block->pie_data.pie_center_init);
 
@@ -733,12 +733,12 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     /* the block and buttons were positioned in window space as in 2.4x, now
      * these menu blocks are regions so we bring it back to region space.
      * additionally we add some padding for the menu shadow or rounded menus */
-    ar->winrct.xmin = block->rect.xmin - margin;
-    ar->winrct.xmax = block->rect.xmax + margin;
-    ar->winrct.ymin = block->rect.ymin - margin;
-    ar->winrct.ymax = block->rect.ymax + UI_POPUP_MENU_TOP;
+    region->winrct.xmin = block->rect.xmin - margin;
+    region->winrct.xmax = block->rect.xmax + margin;
+    region->winrct.ymin = block->rect.ymin - margin;
+    region->winrct.ymax = block->rect.ymax + UI_POPUP_MENU_TOP;
 
-    UI_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);
+    UI_block_translate(block, -region->winrct.xmin, -region->winrct.ymin);
 
     /* apply scroll offset */
     if (handle->scrolloffset != 0.0f) {
@@ -752,22 +752,22 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   if (block_old) {
     block->oldblock = block_old;
     UI_block_update_from_old(C, block);
-    UI_blocklist_free_inactive(C, &ar->uiblocks);
+    UI_blocklist_free_inactive(C, &region->uiblocks);
   }
 
   /* checks which buttons are visible, sets flags to prevent draw (do after region init) */
   ui_popup_block_scrolltest(block);
 
   /* adds subwindow */
-  ED_region_floating_initialize(ar);
+  ED_region_floating_initialize(region);
 
   /* get winmat now that we actually have the subwindow */
-  wmGetProjectionMatrix(block->winmat, &ar->winrct);
+  wmGetProjectionMatrix(block->winmat, &region->winrct);
 
   /* notify change and redraw */
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
-  ED_region_update_rect(ar);
+  ED_region_update_rect(region);
 
 #ifdef DEBUG
   window->eventstate = event_back;
@@ -787,7 +787,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   wmWindow *window = CTX_wm_window(C);
   uiBut *activebut = UI_context_active_but_get(C);
   static ARegionType type;
-  ARegion *ar;
+  ARegion *region;
   uiBlock *block;
   uiPopupBlockHandle *handle;
 
@@ -818,16 +818,16 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   handle->can_refresh = false;
 
   /* create area region */
-  ar = ui_region_temp_add(CTX_wm_screen(C));
-  handle->region = ar;
+  region = ui_region_temp_add(CTX_wm_screen(C));
+  handle->region = region;
 
   memset(&type, 0, sizeof(ARegionType));
   type.draw = ui_block_region_draw;
   type.layout = ui_block_region_refresh;
   type.regionid = RGN_TYPE_TEMPORARY;
-  ar->type = &type;
+  region->type = &type;
 
-  UI_region_handlers_add(&ar->handlers);
+  UI_region_handlers_add(&region->handlers);
 
   block = ui_popup_block_refresh(C, handle, butregion, but);
   handle = block->handle;
@@ -844,9 +844,9 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
   /* If this popup is created from a popover which does NOT have keep-open flag set,
    * then close the popover too. We could extend this to other popup types too. */
-  ARegion *ar = handle->popup_create_vars.butregion;
-  if (ar != NULL) {
-    for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+  ARegion *region = handle->popup_create_vars.butregion;
+  if (region != NULL) {
+    for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
       if (block->handle && (block->flag & UI_BLOCK_POPOVER) &&
           (block->flag & UI_BLOCK_KEEP_OPEN) == 0) {
         uiPopupBlockHandle *menu = block->handle;

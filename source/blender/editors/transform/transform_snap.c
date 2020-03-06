@@ -283,7 +283,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
   }
   else if (t->spacetype == SPACE_NODE) {
     if (validSnap(t)) {
-      ARegion *ar = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region(C);
       TransSnapPoint *p;
       float size;
 
@@ -304,13 +304,13 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
           immUniformColor4ubv(col);
         }
 
-        ED_node_draw_snap(&ar->v2d, p->co, size, 0, pos);
+        ED_node_draw_snap(&region->v2d, p->co, size, 0, pos);
       }
 
       if (t->tsnap.status & POINT_INIT) {
         immUniformColor4ubv(activeCol);
 
-        ED_node_draw_snap(&ar->v2d, t->tsnap.snapPoint, size, t->tsnap.snapNodeBorder, pos);
+        ED_node_draw_snap(&region->v2d, t->tsnap.snapPoint, size, t->tsnap.snapNodeBorder, pos);
       }
 
       immUnbindProgram();
@@ -373,7 +373,7 @@ void applyProject(TransInfo *t)
           copy_v3_v3(iloc, td->ob->obmat[3]);
         }
 
-        if (ED_view3d_project_float_global(t->ar, iloc, mval_fl, V3D_PROJ_TEST_NOP) ==
+        if (ED_view3d_project_float_global(t->region, iloc, mval_fl, V3D_PROJ_TEST_NOP) ==
             V3D_PROJ_RET_OK) {
           if (ED_transform_snap_object_project_view3d(
                   t->tsnap.object_context,
@@ -686,7 +686,7 @@ static void initSnappingMode(TransInfo *t)
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->tsnap.object_context == NULL) {
       t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-          bmain, t->scene, t->depsgraph, 0, t->ar, t->view);
+          bmain, t->scene, t->depsgraph, 0, t->region, t->view);
 
       ED_transform_snap_object_context_set_editmesh_callbacks(
           t->tsnap.object_context,
@@ -847,7 +847,7 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
     for (p = t->tsnap.points.first; p; p = p->next) {
       float dist_sq;
 
-      if (ED_view3d_project_float_global(t->ar, p->co, screen_loc, V3D_PROJ_TEST_NOP) !=
+      if (ED_view3d_project_float_global(t->region, p->co, screen_loc, V3D_PROJ_TEST_NOP) !=
           V3D_PROJ_RET_OK) {
         continue;
       }
@@ -936,7 +936,7 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
   else {
     if (t->spacetype == SPACE_VIEW3D) {
       if (t->options & CTX_PAINT_CURVE) {
-        if (ED_view3d_project_float_global(t->ar, point, point, V3D_PROJ_TEST_NOP) !=
+        if (ED_view3d_project_float_global(t->region, point, point, V3D_PROJ_TEST_NOP) !=
             V3D_PROJ_RET_OK) {
           zero_v3(point); /* no good answer here... */
         }
@@ -1108,7 +1108,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
       Image *ima = ED_space_image(t->sa->spacedata.first);
       float co[2];
 
-      UI_view2d_region_to_view(&t->ar->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
+      UI_view2d_region_to_view(&t->region->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
 
       uint objects_len = 0;
       Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -1504,14 +1504,14 @@ static NodeBorder snapNodeBorder(int snap_node_mode)
 
 static bool snapNode(ToolSettings *ts,
                      SpaceNode *UNUSED(snode),
-                     ARegion *ar,
+                     ARegion *region,
                      bNode *node,
                      const int mval[2],
                      float r_loc[2],
                      float *r_dist_px,
                      char *r_node_border)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   NodeBorder border = snapNodeBorder(ts->snap_node_mode);
   bool retval = false;
   rcti totr;
@@ -1564,7 +1564,7 @@ static bool snapNode(ToolSettings *ts,
 
 static bool snapNodes(ToolSettings *ts,
                       SpaceNode *snode,
-                      ARegion *ar,
+                      ARegion *region,
                       const int mval[2],
                       eSnapSelect snap_select,
                       float r_loc[2],
@@ -1578,8 +1578,8 @@ static bool snapNodes(ToolSettings *ts,
   *r_node_border = 0;
 
   for (node = ntree->nodes.first; node; node = node->next) {
-    if (snapNodeTest(&ar->v2d, node, snap_select)) {
-      retval |= snapNode(ts, snode, ar, node, mval, r_loc, r_dist_px, r_node_border);
+    if (snapNodeTest(&region->v2d, node, snap_select)) {
+      retval |= snapNode(ts, snode, region, node, mval, r_loc, r_dist_px, r_node_border);
     }
   }
 
@@ -1591,7 +1591,7 @@ bool snapNodesTransform(
 {
   return snapNodes(t->settings,
                    t->sa->spacedata.first,
-                   t->ar,
+                   t->region,
                    mval,
                    t->tsnap.modeSelect,
                    r_loc,
@@ -1691,7 +1691,7 @@ void snapSequenceBounds(TransInfo *t, const int mval[2])
   }
 
   /* convert to frame range */
-  UI_view2d_region_to_view(&t->ar->v2d, mval[0], mval[1], &xmouse, &ymouse);
+  UI_view2d_region_to_view(&t->region->v2d, mval[0], mval[1], &xmouse, &ymouse);
   mframe = round_fl_to_int(xmouse);
   /* now find the closest sequence */
   frame = BKE_sequencer_find_next_prev_edit(t->scene, mframe, SEQ_SIDE_BOTH, true, false, true);
@@ -1723,7 +1723,7 @@ static void applyGridIncrement(
   if (use_aspect) {
     /* custom aspect for fcurve */
     if (t->spacetype == SPACE_GRAPH) {
-      View2D *v2d = &t->ar->v2d;
+      View2D *v2d = &t->region->v2d;
       Scene *scene = t->scene;
       SpaceGraph *sipo = t->sa->spacedata.first;
       asp_local[0] = UI_view2d_grid_resolution_x__frames_or_seconds(

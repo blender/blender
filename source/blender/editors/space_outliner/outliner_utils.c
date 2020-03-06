@@ -409,38 +409,38 @@ bool outliner_item_is_co_within_close_toggle(const TreeElement *te, float view_c
 }
 
 /* Scroll view vertically while keeping within total bounds */
-void outliner_scroll_view(ARegion *ar, int delta_y)
+void outliner_scroll_view(ARegion *region, int delta_y)
 {
-  int y_min = MIN2(ar->v2d.cur.ymin, ar->v2d.tot.ymin);
+  int y_min = MIN2(region->v2d.cur.ymin, region->v2d.tot.ymin);
 
-  ar->v2d.cur.ymax += delta_y;
-  ar->v2d.cur.ymin += delta_y;
+  region->v2d.cur.ymax += delta_y;
+  region->v2d.cur.ymin += delta_y;
 
   /* Adjust view if delta placed view outside total area */
   int offset;
-  if (ar->v2d.cur.ymax > -UI_UNIT_Y) {
-    offset = ar->v2d.cur.ymax;
-    ar->v2d.cur.ymax -= offset;
-    ar->v2d.cur.ymin -= offset;
+  if (region->v2d.cur.ymax > -UI_UNIT_Y) {
+    offset = region->v2d.cur.ymax;
+    region->v2d.cur.ymax -= offset;
+    region->v2d.cur.ymin -= offset;
   }
-  else if (ar->v2d.cur.ymin < y_min) {
-    offset = y_min - ar->v2d.cur.ymin;
-    ar->v2d.cur.ymax += offset;
-    ar->v2d.cur.ymin += offset;
+  else if (region->v2d.cur.ymin < y_min) {
+    offset = y_min - region->v2d.cur.ymin;
+    region->v2d.cur.ymax += offset;
+    region->v2d.cur.ymin += offset;
   }
 }
 
 /* Get base of object under cursor. Used for eyedropper tool */
 Base *ED_outliner_give_base_under_cursor(bContext *C, const int mval[2])
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   TreeElement *te;
   Base *base = NULL;
   float view_mval[2];
 
-  UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   te = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
   if (te) {

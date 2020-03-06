@@ -32,12 +32,12 @@
 
 #include "file_intern.h"
 
-void file_tile_boundbox(const ARegion *ar, FileLayout *layout, const int file, rcti *r_bounds)
+void file_tile_boundbox(const ARegion *region, FileLayout *layout, const int file, rcti *r_bounds)
 {
   int xmin, ymax;
 
   ED_fileselect_layout_tilepos(layout, file, &xmin, &ymax);
-  ymax = (int)ar->v2d.tot.ymax - ymax; /* real, view space ymax */
+  ymax = (int)region->v2d.tot.ymax - ymax; /* real, view space ymax */
   BLI_rcti_init(r_bounds,
                 xmin,
                 xmin + layout->tile_w + layout->tile_border_x,

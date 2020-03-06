@@ -920,7 +920,7 @@ static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
 static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   bNode *node = nodeGetActive(snode->edittree);
   NodeSizeWidget *nsw = op->customdata;
   float mx, my, dx, dy;
@@ -928,7 +928,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
   switch (event->type) {
     case MOUSEMOVE:
 
-      UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mx, &my);
+      UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &mx, &my);
       dx = (mx - nsw->mxstart) / UI_DPI_FAC;
       dy = (my - nsw->mystart) / UI_DPI_FAC;
 
@@ -994,7 +994,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
 
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
 
       break;
 
@@ -1009,7 +1009,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       else if (event->val == KM_PRESS) {
         node_resize_exit(C, op, true);
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
 
         return OPERATOR_CANCELLED;
       }
@@ -1022,7 +1022,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   bNode *node = nodeGetActive(snode->edittree);
   int dir;
 
@@ -1030,7 +1030,7 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     float cursor[2];
 
     /* convert mouse coordinates to v2d space */
-    UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
+    UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
     dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
     if (dir != 0) {
       node_resize_init(C, op, event, node, dir);
@@ -2598,7 +2598,7 @@ void NODE_OT_shader_script_update(wmOperatorType *ot)
 /* ********************** Viewer border ******************/
 
 static void viewer_border_corner_to_backdrop(SpaceNode *snode,
-                                             ARegion *ar,
+                                             ARegion *region,
                                              int x,
                                              int y,
                                              int backdrop_width,
@@ -2611,8 +2611,8 @@ static void viewer_border_corner_to_backdrop(SpaceNode *snode,
   bufx = backdrop_width * snode->zoom;
   bufy = backdrop_height * snode->zoom;
 
-  *fx = (bufx > 0.0f ? ((float)x - 0.5f * ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
-  *fy = (bufy > 0.0f ? ((float)y - 0.5f * ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
+  *fx = (bufx > 0.0f ? ((float)x - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
+  *fy = (bufy > 0.0f ? ((float)y - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
 }
 
 static int viewer_border_exec(bContext *C, wmOperator *op)
@@ -2628,7 +2628,7 @@ static int viewer_border_exec(bContext *C, wmOperator *op)
   ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
   if (ibuf) {
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
     SpaceNode *snode = CTX_wm_space_node(C);
     bNodeTree *btree = snode->nodetree;
     rcti rect;
@@ -2639,10 +2639,10 @@ static int viewer_border_exec(bContext *C, wmOperator *op)
 
     /* convert border to unified space within backdrop image */
     viewer_border_corner_to_backdrop(
-        snode, ar, rect.xmin, rect.ymin, ibuf->x, ibuf->y, &rectf.xmin, &rectf.ymin);
+        snode, region, rect.xmin, rect.ymin, ibuf->x, ibuf->y, &rectf.xmin, &rectf.ymin);
 
     viewer_border_corner_to_backdrop(
-        snode, ar, rect.xmax, rect.ymax, ibuf->x, ibuf->y, &rectf.xmax, &rectf.ymax);
+        snode, region, rect.xmax, rect.ymax, ibuf->x, ibuf->y, &rectf.xmax, &rectf.ymax);
 
     /* clamp coordinates */
     rectf.xmin = max_ff(rectf.xmin, 0.0f);

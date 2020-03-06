@@ -199,7 +199,7 @@ void ED_uvedit_live_unwrap(const struct Scene *scene, struct Object **objects, i
 void ED_uvedit_add_simple_uvs(struct Main *bmain, const struct Scene *scene, struct Object *ob);
 
 /* uvedit_draw.c */
-void ED_image_draw_cursor(struct ARegion *ar, const float cursor[2]);
+void ED_image_draw_cursor(struct ARegion *region, const float cursor[2]);
 void ED_uvedit_draw_main(struct SpaceImage *sima,
                          const struct Scene *scene,
                          struct ViewLayer *view_layer,

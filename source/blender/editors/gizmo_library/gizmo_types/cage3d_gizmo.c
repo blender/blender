@@ -402,15 +402,15 @@ static void gizmo_cage3d_draw_intern(
  */
 static void gizmo_cage3d_draw_select(const bContext *C, wmGizmo *gz, int select_id)
 {
-  ARegion *ar = CTX_wm_region(C);
-  RegionView3D *rv3d = ar->regiondata;
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = region->regiondata;
   gizmo_cage3d_draw_intern(rv3d, gz, true, false, select_id);
 }
 
 static void gizmo_cage3d_draw(const bContext *C, wmGizmo *gz)
 {
-  ARegion *ar = CTX_wm_region(C);
-  RegionView3D *rv3d = ar->regiondata;
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = region->regiondata;
   const bool is_highlight = (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
   gizmo_cage3d_draw_intern(rv3d, gz, false, is_highlight, -1);
 }

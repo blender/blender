@@ -150,7 +150,7 @@ void ED_annotation_draw_view2d(const struct bContext *C, bool onlyv2d);
 void ED_annotation_draw_view3d(struct Scene *scene,
                                struct Depsgraph *depsgraph,
                                struct View3D *v3d,
-                               struct ARegion *ar,
+                               struct ARegion *region,
                                bool only3d);
 void ED_annotation_draw_ex(struct Scene *scene,
                            struct bGPdata *gpd,
@@ -273,7 +273,7 @@ void ED_gpencil_vgroup_deselect(struct bContext *C, struct Object *ob);
 int ED_gpencil_join_objects_exec(struct bContext *C, struct wmOperator *op);
 
 /* texture coordinate utilities */
-void ED_gpencil_tpoint_to_point(struct ARegion *ar,
+void ED_gpencil_tpoint_to_point(struct ARegion *region,
                                 float origin[3],
                                 const struct tGPspoint *tpt,
                                 struct bGPDspoint *pt);

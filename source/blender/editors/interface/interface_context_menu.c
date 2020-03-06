@@ -160,7 +160,7 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
   shortcut_free_operator_property(prop);
 }
 
-static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
+static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiBlock *block;
@@ -186,7 +186,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 
   RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
 
-  block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+  block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_func_handle_set(block, but_shortcut_name_func, but);
   UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
   UI_block_direction_set(block, UI_DIR_CENTER_Y);
@@ -216,7 +216,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 static int g_kmi_id_hack;
 #endif
 
-static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
+static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiBlock *block;
@@ -248,7 +248,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 
   RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
 
-  block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+  block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_func_handle_set(block, but_shortcut_name_func, but);
   UI_block_direction_set(block, UI_DIR_CENTER_Y);
 
@@ -1194,22 +1194,22 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
   /* Show header tools for header buttons. */
   if (ui_block_is_popup_any(but->block) == false) {
-    const ARegion *ar = CTX_wm_region(C);
+    const ARegion *region = CTX_wm_region(C);
 
-    if (!ar) {
+    if (!region) {
       /* skip */
     }
-    else if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+    else if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
       uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
     }
-    else if (ar->regiontype == RGN_TYPE_NAV_BAR) {
+    else if (region->regiontype == RGN_TYPE_NAV_BAR) {
       uiItemMenuF(layout,
                   IFACE_("Navigation Bar"),
                   ICON_NONE,
                   ED_screens_navigation_bar_tools_menu_create,
                   NULL);
     }
-    else if (ar->regiontype == RGN_TYPE_FOOTER) {
+    else if (region->regiontype == RGN_TYPE_FOOTER) {
       uiItemMenuF(layout, IFACE_("Footer"), ICON_NONE, ED_screens_footer_tools_menu_create, NULL);
     }
   }
@@ -1231,10 +1231,10 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 /**
  * menu to show when right clicking on the panel header
  */
-void ui_popup_context_menu_for_panel(bContext *C, ARegion *ar, Panel *pa)
+void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *pa)
 {
   bScreen *sc = CTX_wm_screen(C);
-  const bool has_panel_category = UI_panel_category_is_visible(ar);
+  const bool has_panel_category = UI_panel_category_is_visible(region);
   const bool any_item_visible = has_panel_category;
   PointerRNA ptr;
   uiPopupMenu *pup;

@@ -86,7 +86,7 @@ SnapObjectContext *ED_transform_snap_object_context_create_view3d(struct Main *b
                                                                   struct Depsgraph *depsgraph,
                                                                   int flag,
                                                                   /* extra args for view3d */
-                                                                  const struct ARegion *ar,
+                                                                  const struct ARegion *region,
                                                                   const struct View3D *v3d);
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx);
 

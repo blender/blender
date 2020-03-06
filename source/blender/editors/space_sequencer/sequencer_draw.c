@@ -690,11 +690,14 @@ static void draw_seq_text(View2D *v2d,
   UI_view2d_text_cache_add_rectf(v2d, &rect, str, str_len, col);
 }
 
-static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq, unsigned int pos)
+static void draw_sequence_extensions(Scene *scene,
+                                     ARegion *region,
+                                     Sequence *seq,
+                                     unsigned int pos)
 {
   float x1, x2, y1, y2, pixely;
   unsigned char col[4], blendcol[3];
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
 
   x1 = seq->startdisp;
   x2 = seq->enddisp;
@@ -800,12 +803,12 @@ static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq, u
 static void draw_seq_strip(const bContext *C,
                            SpaceSeq *sseq,
                            Scene *scene,
-                           ARegion *ar,
+                           ARegion *region,
                            Sequence *seq,
                            int outline_tint,
                            float pixelx)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   float x1, x2, y1, y2;
   unsigned char col[4], background_col[4], is_single_image;
   const float handsize_clamped = sequence_handle_size_get_clamped(seq, pixelx);
@@ -862,7 +865,7 @@ static void draw_seq_strip(const bContext *C,
 
   if (!is_single_image) {
     if ((sseq->draw_flag & SEQ_DRAW_OFFSET_EXT) || (seq == special_seq_update)) {
-      draw_sequence_extensions(scene, ar, seq, pos);
+      draw_sequence_extensions(scene, region, seq, pos);
     }
   }
 
@@ -877,8 +880,16 @@ static void draw_seq_strip(const bContext *C,
   /* draw sound wave */
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
     if (!(sseq->flag & SEQ_NO_WAVEFORMS)) {
-      drawseqwave(
-          v2d, C, sseq, scene, seq, x1, y1, x2, y2, BLI_rctf_size_x(&ar->v2d.cur) / ar->winx);
+      drawseqwave(v2d,
+                  C,
+                  sseq,
+                  scene,
+                  seq,
+                  x1,
+                  y1,
+                  x2,
+                  y2,
+                  BLI_rctf_size_x(&region->v2d.cur) / region->winx);
     }
   }
 
@@ -1002,10 +1013,10 @@ Sequence *ED_sequencer_special_preview_get(void)
 void ED_sequencer_special_preview_set(bContext *C, const int mval[2])
 {
   Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   int hand;
   Sequence *seq;
-  seq = find_nearest_seq(scene, &ar->v2d, &hand, mval);
+  seq = find_nearest_seq(scene, &region->v2d, &hand, mval);
   sequencer_special_update_set(seq);
 }
 
@@ -1185,7 +1196,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 }
 
 #if 0
-void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq)
+void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, SpaceSeq *sseq)
 {
   /* NOTE: sequencer mask editing isnt finished, the draw code is working but editing not,
    * for now just disable drawing since the strip frame will likely be offset */
@@ -1204,7 +1215,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *ar, Space
       height = (scene->r.size * scene->r.ysch) / 100;
 
       ED_mask_draw_region(mask,
-                          ar,
+                          region,
                           0,
                           0,
                           0, /* TODO */
@@ -1326,12 +1337,12 @@ static void sequencer_preview_clear(void)
 
 static void sequencer_preview_get_rect(rctf *preview,
                                        Scene *scene,
-                                       ARegion *ar,
+                                       ARegion *region,
                                        SpaceSeq *sseq,
                                        bool draw_overlay,
                                        bool draw_backdrop)
 {
-  struct View2D *v2d = &ar->v2d;
+  struct View2D *v2d = &region->v2d;
   float viewrect[2];
 
   sequencer_display_size(scene, viewrect);
@@ -1348,7 +1359,7 @@ static void sequencer_preview_get_rect(rctf *preview,
                     (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymin);
   }
   else if (draw_backdrop) {
-    float aspect = BLI_rcti_size_x(&ar->winrct) / (float)BLI_rcti_size_y(&ar->winrct);
+    float aspect = BLI_rcti_size_x(&region->winrct) / (float)BLI_rcti_size_y(&region->winrct);
     float image_aspect = viewrect[0] / viewrect[1];
 
     if (aspect >= image_aspect) {
@@ -1367,7 +1378,7 @@ static void sequencer_preview_get_rect(rctf *preview,
 
 static void sequencer_draw_display_buffer(const bContext *C,
                                           Scene *scene,
-                                          ARegion *ar,
+                                          ARegion *region,
                                           SpaceSeq *sseq,
                                           ImBuf *ibuf,
                                           ImBuf *scope,
@@ -1438,7 +1449,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
 
   rctf preview;
   rctf canvas;
-  sequencer_preview_get_rect(&preview, scene, ar, sseq, draw_overlay, draw_backdrop);
+  sequencer_preview_get_rect(&preview, scene, region, sseq, draw_overlay, draw_backdrop);
 
   if (draw_overlay && sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
     canvas = scene->ed->over_border;
@@ -1543,7 +1554,7 @@ static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
 
 void sequencer_draw_preview(const bContext *C,
                             Scene *scene,
-                            ARegion *ar,
+                            ARegion *region,
                             SpaceSeq *sseq,
                             int cfra,
                             int frame_ofs,
@@ -1552,7 +1563,7 @@ void sequencer_draw_preview(const bContext *C,
 {
   struct Main *bmain = CTX_data_main(C);
   struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-  struct View2D *v2d = &ar->v2d;
+  struct View2D *v2d = &region->v2d;
   struct ImBuf *ibuf = NULL;
   struct ImBuf *scope = NULL;
   float viewrect[2];
@@ -1592,7 +1603,8 @@ void sequencer_draw_preview(const bContext *C,
     scope = sequencer_get_scope(scene, sseq, ibuf, draw_backdrop);
 
     /* Draw image */
-    sequencer_draw_display_buffer(C, scene, ar, sseq, ibuf, scope, draw_overlay, draw_backdrop);
+    sequencer_draw_display_buffer(
+        C, scene, region, sseq, ibuf, scope, draw_overlay, draw_backdrop);
 
     /* Draw over image */
     if (sseq->flag & SEQ_SHOW_METADATA) {
@@ -1609,7 +1621,7 @@ void sequencer_draw_preview(const bContext *C,
   }
 
   /* TODO */
-  /* sequencer_draw_maskedit(C, scene, ar, sseq); */
+  /* sequencer_draw_maskedit(C, scene, region, sseq); */
 
   /* Scope is freed in sequencer_check_scopes when ibuf changes and
    * scope image is to be replaced. */
@@ -1664,10 +1676,10 @@ static void draw_seq_backdrop(View2D *v2d)
 }
 
 /* draw the contents of the sequencer strips view */
-static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
+static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
 {
   Scene *scene = CTX_data_scene(C);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   Sequence *last_seq = BKE_sequencer_active_get(scene);
   int sel = 0, j;
@@ -1702,7 +1714,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
       }
 
       /* strip passed all tests unscathed... so draw it now */
-      draw_seq_strip(C, sseq, scene, ar, seq, outline_tint, pixelx);
+      draw_seq_strip(C, sseq, scene, region, seq, outline_tint, pixelx);
     }
 
     /* draw selected next time round */
@@ -1712,7 +1724,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
   /* draw the last selected last (i.e. 'active' in other parts of Blender),
    * removes some overlapping error */
   if (last_seq) {
-    draw_seq_strip(C, sseq, scene, ar, last_seq, 120, pixelx);
+    draw_seq_strip(C, sseq, scene, region, last_seq, 120, pixelx);
   }
 
   /* draw highlight when previewing a single strip */
@@ -1892,8 +1904,8 @@ static void draw_cache_view_batch(
 static void draw_cache_view(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
-  struct View2D *v2d = &ar->v2d;
+  ARegion *region = CTX_wm_region(C);
+  struct View2D *v2d = &region->v2d;
 
   if ((scene->ed->cache_flag & SEQ_CACHE_VIEW_ENABLE) == 0) {
     return;
@@ -2000,12 +2012,12 @@ static void draw_cache_view(const bContext *C)
 }
 
 /* Draw Timeline/Strip Editor Mode for Sequencer */
-void draw_timeline_seq(const bContext *C, ARegion *ar)
+void draw_timeline_seq(const bContext *C, ARegion *region)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   View2DScrollers *scrollers;
   short cfra_flag = 0;
   float col[3];
@@ -2037,20 +2049,20 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 
   /* Only draw backdrop in pure sequence view. */
   if (sseq->view == SEQ_VIEW_SEQUENCE && sseq->draw_flag & SEQ_DRAW_BACKDROP) {
-    sequencer_draw_preview(C, scene, ar, sseq, scene->r.cfra, 0, false, true);
+    sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, true);
     UI_view2d_view_ortho(v2d);
   }
 
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   seq_draw_sfra_efra(scene, v2d);
 
   /* sequence strips (if there is data available to be drawn) */
   if (ed) {
     /* draw the data */
-    draw_seq_strips(C, ed, ar);
+    draw_seq_strips(C, ed, region);
     /* text draw cached (for sequence names), in pixelspace now */
-    UI_view2d_text_cache_draw(ar);
+    UI_view2d_text_cache_draw(region);
   }
 
   /* current frame */
@@ -2061,7 +2073,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   ANIM_draw_cfra(C, v2d, cfra_flag);
 
   /* markers */
-  UI_view2d_view_orthoSpecial(ar, v2d, 1);
+  UI_view2d_view_orthoSpecial(region, v2d, 1);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
   if (sseq->flag & SEQ_SHOW_MARKERS) {
     ED_markers_draw(C, marker_draw_flag);
@@ -2099,13 +2111,13 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   }
 
   /* callback */
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
   /* scrubbing region */
-  ED_time_scrub_draw(ar, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
+  ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
 
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
@@ -2115,7 +2127,8 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   /* channel numbers */
   {
     rcti rect;
-    BLI_rcti_init(&rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, ar->winy - UI_TIME_SCRUB_MARGIN_Y);
-    UI_view2d_draw_scale_y__block(ar, v2d, &rect, TH_SCROLL_TEXT);
+    BLI_rcti_init(
+        &rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
+    UI_view2d_draw_scale_y__block(region, v2d, &rect, TH_SCROLL_TEXT);
   }
 }

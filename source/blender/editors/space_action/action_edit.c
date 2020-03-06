@@ -372,7 +372,7 @@ static int actkeys_viewall(bContext *C, const bool only_sel)
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
-  v2d = &ac.ar->v2d;
+  v2d = &ac.region->v2d;
 
   /* set the horizontal range, with an extra offset so that the extreme keys will be in view */
   found = get_keyframe_extents(&ac, &min, &max, only_sel);

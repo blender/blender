@@ -111,7 +111,7 @@ typedef struct RulerInfo {
   /* wm state */
   wmWindow *win;
   ScrArea *sa;
-  ARegion *ar; /* re-assigned every modal update */
+  ARegion *region; /* re-assigned every modal update */
 
   /* Track changes in state. */
   struct {
@@ -201,7 +201,7 @@ static bool view3d_ruler_pick(wmGizmoGroup *gzgroup,
                               int *r_co_index)
 {
   RulerInfo *ruler_info = gzgroup->customdata;
-  ARegion *ar = ruler_info->ar;
+  ARegion *region = ruler_info->region;
   bool found = false;
 
   float dist_best = RULER_PICK_DIST_SQ;
@@ -214,7 +214,7 @@ static bool view3d_ruler_pick(wmGizmoGroup *gzgroup,
 
     /* should these be checked? - ok for now not to */
     for (j = 0; j < 3; j++) {
-      ED_view3d_project_float_global(ar, ruler_item->co[j], co_ss[j], V3D_PROJ_TEST_NOP);
+      ED_view3d_project_float_global(region, ruler_item->co[j], co_ss[j], V3D_PROJ_TEST_NOP);
     }
 
     if (ruler_item->flag & RULERITEM_USE_ANGLE) {
@@ -292,7 +292,7 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
         CTX_data_scene(C),
         CTX_data_ensure_evaluated_depsgraph(C),
         0,
-        ruler_info->ar,
+        ruler_info->region,
         CTX_wm_view3d(C));
   }
   else {
@@ -304,7 +304,7 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
 
 static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3], const int xy[2])
 {
-  ED_view3d_win_to_3d_int(ruler_info->sa->spacedata.first, ruler_info->ar, r_co, xy, r_co);
+  ED_view3d_win_to_3d_int(ruler_info->sa->spacedata.first, ruler_info->region, r_co, xy, r_co);
 }
 
 /* use for mousemove events */
@@ -543,8 +543,8 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   UnitSettings *unit = &scene->unit;
   RulerInfo *ruler_info = gz->parent_gzgroup->customdata;
   RulerItem *ruler_item = (RulerItem *)gz;
-  ARegion *ar = ruler_info->ar;
-  RegionView3D *rv3d = ar->regiondata;
+  ARegion *region = ruler_info->region;
+  RegionView3D *rv3d = region->regiondata;
   const float cap_size = 4.0f;
   const float bg_margin = 4.0f * U.pixelsize;
   const float arc_size = 64.0f * U.pixelsize;
@@ -579,7 +579,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
   /* should these be checked? - ok for now not to */
   for (j = 0; j < 3; j++) {
-    ED_view3d_project_float_global(ar, ruler_item->co[j], co_ss[j], V3D_PROJ_TEST_NOP);
+    ED_view3d_project_float_global(region, ruler_item->co[j], co_ss[j], V3D_PROJ_TEST_NOP);
   }
 
   GPU_blend(true);
@@ -649,7 +649,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
       for (j = 0; j <= arc_steps; j++) {
         madd_v3_v3v3fl(co_tmp, ruler_item->co[1], dir_tmp, px_scale);
-        ED_view3d_project_float_global(ar, co_tmp, arc_ss_coord, V3D_PROJ_TEST_NOP);
+        ED_view3d_project_float_global(region, co_tmp, arc_ss_coord, V3D_PROJ_TEST_NOP);
         mul_qt_v3(quat, dir_tmp);
 
         immVertex2fv(shdr_pos, arc_ss_coord);
@@ -859,7 +859,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     const float size = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
     float co_ss_snap[3];
     ED_view3d_project_float_global(
-        ar, ruler_item->co[inter->co_index], co_ss_snap, V3D_PROJ_TEST_NOP);
+        region, ruler_item->co[inter->co_index], co_ss_snap, V3D_PROJ_TEST_NOP);
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
@@ -901,10 +901,10 @@ static int gizmo_ruler_modal(bContext *C,
   int exit_code = OPERATOR_RUNNING_MODAL;
   RulerInfo *ruler_info = gz->parent_gzgroup->customdata;
   RulerItem *ruler_item = (RulerItem *)gz;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   bool do_cursor_update = false;
 
-  ruler_info->ar = ar;
+  ruler_info->region = region;
 
   switch (event->type) {
     case MOUSEMOVE: {
@@ -933,7 +933,7 @@ static int gizmo_ruler_modal(bContext *C,
   ruler_info->drag_state_prev.do_thickness = do_thickness;
 
   if (do_draw) {
-    ED_region_tag_redraw_editor_overlays(ar);
+    ED_region_tag_redraw_editor_overlays(region);
   }
   return exit_code;
 }
@@ -946,7 +946,7 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   RulerInteraction *inter = MEM_callocN(sizeof(RulerInteraction), __func__);
   gz->interaction_data = inter;
 
-  ARegion *ar = ruler_info->ar;
+  ARegion *region = ruler_info->region;
 
   const float mval_fl[2] = {UNPACK2(event->mval)};
 
@@ -963,8 +963,10 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
         float co_ss[2][2];
         float fac;
 
-        ED_view3d_project_float_global(ar, ruler_item_pick->co[0], co_ss[0], V3D_PROJ_TEST_NOP);
-        ED_view3d_project_float_global(ar, ruler_item_pick->co[2], co_ss[1], V3D_PROJ_TEST_NOP);
+        ED_view3d_project_float_global(
+            region, ruler_item_pick->co[0], co_ss[0], V3D_PROJ_TEST_NOP);
+        ED_view3d_project_float_global(
+            region, ruler_item_pick->co[2], co_ss[1], V3D_PROJ_TEST_NOP);
 
         fac = line_point_factor_v2(mval_fl, co_ss[0], co_ss[1]);
         CLAMP(fac, 0.0f, 1.0f);
@@ -1060,10 +1062,10 @@ static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   wmWindow *win = CTX_wm_window(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ruler_info->win = win;
   ruler_info->sa = sa;
-  ruler_info->ar = ar;
+  ruler_info->region = region;
 
   gzgroup->customdata = ruler_info;
 }
@@ -1100,16 +1102,16 @@ static bool view3d_ruler_poll(bContext *C)
 
 static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
 
   if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
     BKE_report(op->reports, RPT_WARNING, "Gizmos hidden in this view");
     return OPERATOR_CANCELLED;
   }
 
-  wmGizmoMap *gzmap = ar->gizmo_map;
+  wmGizmoMap *gzmap = region->gizmo_map;
   wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
   const bool use_depth = (v3d->shading.type >= OB_SOLID);
 
@@ -1162,7 +1164,7 @@ void VIEW3D_OT_ruler_add(wmOperatorType *ot)
 
 static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
@@ -1170,7 +1172,7 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  wmGizmoMap *gzmap = ar->gizmo_map;
+  wmGizmoMap *gzmap = region->gizmo_map;
   wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
   if (gzgroup) {
     RulerInfo *ruler_info = gzgroup->customdata;
@@ -1187,7 +1189,7 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
       /* Update the annotation layer. */
       view3d_ruler_to_gpencil(C, gzgroup);
 
-      ED_region_tag_redraw_editor_overlays(ar);
+      ED_region_tag_redraw_editor_overlays(region);
       return OPERATOR_FINISHED;
     }
   }

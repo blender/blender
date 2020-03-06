@@ -1161,7 +1161,7 @@ static void sculpt_extend_redraw_rect_previous(Object *ob, rcti *rect)
 }
 
 /* Get a screen-space rectangle of the modified area. */
-bool SCULPT_get_redraw_rect(ARegion *ar, RegionView3D *rv3d, Object *ob, rcti *rect)
+bool SCULPT_get_redraw_rect(ARegion *region, RegionView3D *rv3d, Object *ob, rcti *rect)
 {
   PBVH *pbvh = ob->sculpt->pbvh;
   float bb_min[3], bb_max[3];
@@ -1173,14 +1173,14 @@ bool SCULPT_get_redraw_rect(ARegion *ar, RegionView3D *rv3d, Object *ob, rcti *r
   BKE_pbvh_redraw_BB(pbvh, bb_min, bb_max);
 
   /* Convert 3D bounding box to screen space. */
-  if (!paint_convert_bb_to_rect(rect, bb_min, bb_max, ar, rv3d, ob)) {
+  if (!paint_convert_bb_to_rect(rect, bb_min, bb_max, region, rv3d, ob)) {
     return false;
   }
 
   return true;
 }
 
-void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *ar, Object *ob)
+void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *region, Object *ob)
 {
   PBVH *pbvh = ob->sculpt->pbvh;
   /* Copy here, original will be used below. */
@@ -1188,7 +1188,7 @@ void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *ar, Object *ob)
 
   sculpt_extend_redraw_rect_previous(ob, &rect);
 
-  paint_calc_redraw_planes(planes, ar, ob, &rect);
+  paint_calc_redraw_planes(planes, region, ob, &rect);
 
   /* We will draw this rect, so now we can set it as the previous partial rect.
    * Note that we don't update with the union of previous/current (rect), only with
@@ -2186,7 +2186,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
       mul_m4_v3(cache->symm_rot_mat_inv, symm_point);
     }
 
-    ED_view3d_project_float_v2_m4(cache->vc->ar, symm_point, point_2d, cache->projection_mat);
+    ED_view3d_project_float_v2_m4(cache->vc->region, symm_point, point_2d, cache->projection_mat);
 
     /* Still no symmetry supported for other paint modes.
      * Sculpt does it DIY. */
@@ -2457,7 +2457,7 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
   mul_v3_m4v3(loc, ob->imat, center);
   zfac = ED_view3d_calc_zfac(vc->rv3d, loc, NULL);
 
-  ED_view3d_win_to_delta(vc->ar, mval_f, y, zfac);
+  ED_view3d_win_to_delta(vc->region, mval_f, y, zfac);
   normalize_v3(y);
 
   add_v3_v3(y, ob->loc);
@@ -6691,7 +6691,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 
     /* Compute 3d coordinate at same z from original location + mouse. */
     mul_v3_m4v3(loc, ob->obmat, cache->orig_grab_location);
-    ED_view3d_win_to_3d(cache->vc->v3d, cache->vc->ar, loc, mouse, grab_location);
+    ED_view3d_win_to_3d(cache->vc->v3d, cache->vc->region, loc, mouse, grab_location);
 
     /* Compute delta to move verts by. */
     if (!cache->first_time) {
@@ -7033,12 +7033,12 @@ static float sculpt_raycast_init(ViewContext *vc,
   float obimat[4][4];
   float dist;
   Object *ob = vc->obact;
-  RegionView3D *rv3d = vc->ar->regiondata;
+  RegionView3D *rv3d = vc->region->regiondata;
   View3D *v3d = vc->v3d;
 
   /* TODO: what if the segment is totally clipped? (return == 0). */
   ED_view3d_win_to_segment_clipped(
-      vc->depsgraph, vc->ar, vc->v3d, mouse, ray_start, ray_end, true);
+      vc->depsgraph, vc->region, vc->v3d, mouse, ray_start, ray_end, true);
 
   invert_m4_m4(obimat, ob->obmat);
   mul_m4_v3(obimat, ray_start);
@@ -7328,7 +7328,7 @@ static void sculpt_flush_update_step(bContext *C, SculptUpdateType update_flags)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   MultiresModifierData *mmd = ss->multires;
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -7350,7 +7350,7 @@ static void sculpt_flush_update_step(bContext *C, SculptUpdateType update_flags)
     /* Slow update with full dependency graph update and all that comes with it.
      * Needed when there are modifiers or full shading in the 3D viewport. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
   }
   else {
     /* Fast path where we just update the BVH nodes that changed, and redraw
@@ -7365,7 +7365,7 @@ static void sculpt_flush_update_step(bContext *C, SculptUpdateType update_flags)
       SCULPT_update_object_bounding_box(ob);
     }
 
-    if (SCULPT_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
+    if (SCULPT_get_redraw_rect(region, CTX_wm_region_view3d(C), ob, &r)) {
       if (ss->cache) {
         ss->cache->current_r = r;
       }
@@ -7374,11 +7374,11 @@ static void sculpt_flush_update_step(bContext *C, SculptUpdateType update_flags)
        * the partial rect will always grow */
       sculpt_extend_redraw_rect_previous(ob, &r);
 
-      r.xmin += ar->winrct.xmin - 2;
-      r.xmax += ar->winrct.xmin + 2;
-      r.ymin += ar->winrct.ymin - 2;
-      r.ymax += ar->winrct.ymin + 2;
-      ED_region_tag_redraw_partial(ar, &r, true);
+      r.xmin += region->winrct.xmin - 2;
+      r.xmax += region->winrct.xmin + 2;
+      r.ymin += region->winrct.ymin - 2;
+      r.ymax += region->winrct.ymin + 2;
+      ED_region_tag_redraw_partial(region, &r, true);
     }
   }
 }
@@ -7413,9 +7413,9 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob, SculptUpdate
         /* Tag all 3D viewports for redraw now that we are done. Others
          * viewports did not get a full redraw, and anti-aliasing for the
          * current viewport was deactivated. */
-        for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-          if (ar->regiontype == RGN_TYPE_WINDOW) {
-            ED_region_tag_redraw(ar);
+        for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+          if (region->regiontype == RGN_TYPE_WINDOW) {
+            ED_region_tag_redraw(region);
           }
         }
       }
@@ -8650,7 +8650,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, int mx, int my)
   }
 }
 
-static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *ar, int mx, int my)
+static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *region, int mx, int my)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = vc->obact;
@@ -8658,7 +8658,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *ar, int
 
   sculpt_stroke_modifiers_check(C, ob, brush);
 
-  float mouse[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
+  float mouse[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
   float ray_start[3], ray_end[3], ray_normal[3];
   float depth = sculpt_raycast_init(vc, mouse, ray_start, ray_end, ray_normal, false);
 
@@ -8682,8 +8682,8 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
   /* Find 3D view to pick from. */
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, mx, my);
-  ARegion *ar = (sa) ? BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my) : NULL;
-  if (ar == NULL) {
+  ARegion *region = (sa) ? BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my) : NULL;
+  if (region == NULL) {
     return OPERATOR_CANCELLED;
   }
 
@@ -8691,7 +8691,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
   ScrArea *prev_sa = CTX_wm_area(C);
   ARegion *prev_ar = CTX_wm_region(C);
   CTX_wm_area_set(C, sa);
-  CTX_wm_region_set(C, ar);
+  CTX_wm_region_set(C, region);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
@@ -8712,7 +8712,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
         CTX_wm_region_set(C, prev_ar);
         return OPERATOR_CANCELLED;
       }
-      sample_detail_dyntopo(C, &vc, ar, mx, my);
+      sample_detail_dyntopo(C, &vc, region, mx, my);
       break;
     case SAMPLE_DETAIL_VOXEL:
       if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
@@ -9389,7 +9389,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
 
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -9456,7 +9456,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
   return OPERATOR_FINISHED;
 }
@@ -9604,7 +9604,7 @@ static void dirty_mask_apply_task_cb(void *__restrict userdata,
 
 static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -9657,7 +9657,7 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
@@ -9775,7 +9775,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float prevclick_f[2];
   copy_v2_v2(prevclick_f, op->customdata);
   int prevclick[2] = {(int)prevclick_f[0], (int)prevclick_f[1]};
@@ -9882,7 +9882,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
   }
 
   if (mask_expand_update_it == ss->filter_cache->mask_update_current_it) {
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
     return OPERATOR_RUNNING_MODAL;
   }
 
@@ -10390,7 +10390,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
@@ -10470,7 +10470,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
     MEM_SAFE_FREE(nodes);
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
   return OPERATOR_FINISHED;
@@ -10558,7 +10558,7 @@ static int sculpt_face_set_create_invoke(bContext *C, wmOperator *op, const wmEv
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -10617,7 +10617,7 @@ static int sculpt_face_set_create_invoke(bContext *C, wmOperator *op, const wmEv
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   return OPERATOR_FINISHED;
@@ -10693,7 +10693,7 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   /* Dyntopo and Multires not supported for now. */
@@ -10787,7 +10787,7 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
     BKE_mesh_flush_hidden_from_verts(ob->data);
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   View3D *v3d = CTX_wm_view3d(C);
   if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
@@ -10825,7 +10825,7 @@ static int sculpt_face_sets_randomize_colors_invoke(bContext *C,
 
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   /* Dyntopo and Multires not supported for now. */
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
@@ -10853,7 +10853,7 @@ static int sculpt_face_sets_randomize_colors_invoke(bContext *C,
     DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
   return OPERATOR_FINISHED;

@@ -1198,15 +1198,15 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_CLIP) {
             SpaceClip *sclip = (SpaceClip *)sl;
-            ARegion *ar;
+            ARegion *region;
             bool hide = false;
 
-            for (ar = sa->regionbase.first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_PREVIEW) {
-                if (ar->alignment != RGN_ALIGN_NONE) {
-                  ar->flag |= RGN_FLAG_HIDDEN;
-                  ar->v2d.flag &= ~V2D_IS_INITIALISED;
-                  ar->alignment = RGN_ALIGN_NONE;
+            for (region = sa->regionbase.first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_PREVIEW) {
+                if (region->alignment != RGN_ALIGN_NONE) {
+                  region->flag |= RGN_FLAG_HIDDEN;
+                  region->v2d.flag &= ~V2D_IS_INITIALISED;
+                  region->alignment = RGN_ALIGN_NONE;
 
                   hide = true;
                 }
@@ -2263,26 +2263,26 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* add missing (+) expander in node editor */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
       for (sa = sc->areabase.first; sa; sa = sa->next) {
-        ARegion *ar, *arnew;
+        ARegion *region, *arnew;
 
         if (sa->spacetype == SPACE_NODE) {
-          ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+          region = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
 
-          if (ar) {
+          if (region) {
             continue;
           }
 
           /* add subdiv level; after header */
-          ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+          region = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
           /* is error! */
-          if (ar == NULL) {
+          if (region == NULL) {
             continue;
           }
 
           arnew = MEM_callocN(sizeof(ARegion), "node tools");
 
-          BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+          BLI_insertlinkafter(&sa->regionbase, region, arnew);
           arnew->regiontype = RGN_TYPE_TOOLS;
           arnew->alignment = RGN_ALIGN_LEFT;
 
@@ -2551,7 +2551,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
         for (space_link = sa->spacedata.first; space_link; space_link = space_link->next) {
           if (space_link->spacetype == SPACE_IMAGE) {
-            ARegion *ar;
+            ARegion *region;
             ListBase *lb;
 
             if (space_link == sa->spacedata.first) {
@@ -2561,13 +2561,13 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
               lb = &space_link->regionbase;
             }
 
-            for (ar = lb->first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_PREVIEW) {
-                ar->regiontype = RGN_TYPE_TOOLS;
-                ar->alignment = RGN_ALIGN_LEFT;
+            for (region = lb->first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_PREVIEW) {
+                region->regiontype = RGN_TYPE_TOOLS;
+                region->alignment = RGN_ALIGN_LEFT;
               }
-              else if (ar->regiontype == RGN_TYPE_UI) {
-                ar->alignment = RGN_ALIGN_RIGHT;
+              else if (region->regiontype == RGN_TYPE_UI) {
+                region->alignment = RGN_ALIGN_RIGHT;
               }
             }
           }

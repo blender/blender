@@ -575,7 +575,7 @@ bool ED_gpencil_stroke_color_use(Object *ob, const bGPDlayer *gpl, const bGPDstr
 void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   /* zero out the storage (just in case) */
   memset(r_gsc, 0, sizeof(GP_SpaceConversion));
@@ -586,8 +586,8 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
   r_gsc->ob = CTX_data_active_object(C);
 
   r_gsc->sa = sa;
-  r_gsc->ar = ar;
-  r_gsc->v2d = &ar->v2d;
+  r_gsc->region = region;
+  r_gsc->v2d = &region->v2d;
 
   /* init region-specific stuff */
   if (sa->spacetype == SPACE_VIEW3D) {
@@ -595,17 +595,18 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
     Scene *scene = CTX_data_scene(C);
     struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     View3D *v3d = (View3D *)CTX_wm_space_data(C);
-    RegionView3D *rv3d = ar->regiondata;
+    RegionView3D *rv3d = region->regiondata;
 
     /* init 3d depth buffers */
     view3d_operator_needs_opengl(C);
 
-    view3d_region_operator_needs_opengl(win, ar);
-    ED_view3d_autodist_init(depsgraph, ar, v3d, 0);
+    view3d_region_operator_needs_opengl(win, region);
+    ED_view3d_autodist_init(depsgraph, region, v3d, 0);
 
     /* for camera view set the subrect */
     if (rv3d->persp == RV3D_CAMOB) {
-      ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &r_gsc->subrect_data, true);
+      ED_view3d_calc_camera_border(
+          scene, depsgraph, region, v3d, rv3d, &r_gsc->subrect_data, true);
       r_gsc->subrect = &r_gsc->subrect_data;
     }
   }
@@ -680,7 +681,7 @@ void gp_apply_parent_point(
 void gp_point_to_xy(
     const GP_SpaceConversion *gsc, const bGPDstroke *gps, const bGPDspoint *pt, int *r_x, int *r_y)
 {
-  const ARegion *ar = gsc->ar;
+  const ARegion *region = gsc->region;
   const View2D *v2d = gsc->v2d;
   const rctf *subrect = gsc->subrect;
   int xyval[2];
@@ -690,7 +691,8 @@ void gp_point_to_xy(
   BLI_assert(!(gps->flag & GP_STROKE_2DSPACE) || (gsc->sa->spacetype != SPACE_VIEW3D));
 
   if (gps->flag & GP_STROKE_3DSPACE) {
-    if (ED_view3d_project_int_global(ar, &pt->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+    if (ED_view3d_project_int_global(region, &pt->x, xyval, V3D_PROJ_TEST_NOP) ==
+        V3D_PROJ_RET_OK) {
       *r_x = xyval[0];
       *r_y = xyval[1];
     }
@@ -707,8 +709,8 @@ void gp_point_to_xy(
   else {
     if (subrect == NULL) {
       /* normal 3D view (or view space) */
-      *r_x = (int)(pt->x / 100 * ar->winx);
-      *r_y = (int)(pt->y / 100 * ar->winy);
+      *r_x = (int)(pt->x / 100 * region->winx);
+      *r_y = (int)(pt->y / 100 * region->winy);
     }
     else {
       /* camera view, use subrect */
@@ -737,7 +739,7 @@ void gp_point_to_xy_fl(const GP_SpaceConversion *gsc,
                        float *r_x,
                        float *r_y)
 {
-  const ARegion *ar = gsc->ar;
+  const ARegion *region = gsc->region;
   const View2D *v2d = gsc->v2d;
   const rctf *subrect = gsc->subrect;
   float xyval[2];
@@ -747,7 +749,8 @@ void gp_point_to_xy_fl(const GP_SpaceConversion *gsc,
   BLI_assert(!(gps->flag & GP_STROKE_2DSPACE) || (gsc->sa->spacetype != SPACE_VIEW3D));
 
   if (gps->flag & GP_STROKE_3DSPACE) {
-    if (ED_view3d_project_float_global(ar, &pt->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+    if (ED_view3d_project_float_global(region, &pt->x, xyval, V3D_PROJ_TEST_NOP) ==
+        V3D_PROJ_RET_OK) {
       *r_x = xyval[0];
       *r_y = xyval[1];
     }
@@ -776,8 +779,8 @@ void gp_point_to_xy_fl(const GP_SpaceConversion *gsc,
   else {
     if (subrect == NULL) {
       /* normal 3D view (or view space) */
-      *r_x = (pt->x / 100.0f * ar->winx);
-      *r_y = (pt->y / 100.0f * ar->winy);
+      *r_x = (pt->x / 100.0f * region->winx);
+      *r_y = (pt->y / 100.0f * region->winy);
     }
     else {
       /* camera view, use subrect */
@@ -795,7 +798,7 @@ void gp_point_3d_to_xy(const GP_SpaceConversion *gsc,
                        const float pt[3],
                        float xy[2])
 {
-  const ARegion *ar = gsc->ar;
+  const ARegion *region = gsc->region;
   const View2D *v2d = gsc->v2d;
   const rctf *subrect = gsc->subrect;
   float xyval[2];
@@ -804,7 +807,7 @@ void gp_point_3d_to_xy(const GP_SpaceConversion *gsc,
   BLI_assert((gsc->sa->spacetype == SPACE_VIEW3D));
 
   if (flag & GP_STROKE_3DSPACE) {
-    if (ED_view3d_project_float_global(ar, pt, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+    if (ED_view3d_project_float_global(region, pt, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
       xy[0] = xyval[0];
       xy[1] = xyval[1];
     }
@@ -833,8 +836,8 @@ void gp_point_3d_to_xy(const GP_SpaceConversion *gsc,
   else {
     if (subrect == NULL) {
       /* normal 3D view (or view space) */
-      xy[0] = (pt[0] / 100.0f * ar->winx);
-      xy[1] = (pt[1] / 100.0f * ar->winy);
+      xy[0] = (pt[0] / 100.0f * region->winx);
+      xy[1] = (pt[1] / 100.0f * region->winy);
     }
     else {
       /* camera view, use subrect */
@@ -864,7 +867,7 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
                        const float screen_co[2],
                        float r_out[3])
 {
-  const RegionView3D *rv3d = gsc->ar->regiondata;
+  const RegionView3D *rv3d = gsc->region->regiondata;
   float rvec[3];
 
   ED_gp_get_drawing_reference(
@@ -877,10 +880,10 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
 
   copy_v2_v2(mval_f, screen_co);
 
-  if (ED_view3d_project_float_global(gsc->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
+  if (ED_view3d_project_float_global(gsc->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
       V3D_PROJ_RET_OK) {
     sub_v2_v2v2(mval_f, mval_prj, mval_f);
-    ED_view3d_win_to_delta(gsc->ar, mval_f, dvec, zfac);
+    ED_view3d_win_to_delta(gsc->region, mval_f, dvec, zfac);
     sub_v3_v3v3(r_out, rvec, dvec);
 
     return true;
@@ -901,7 +904,7 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
  * \param[out] r_out: The resulting 2D point data.
  */
 void gp_stroke_convertcoords_tpoint(Scene *scene,
-                                    ARegion *ar,
+                                    ARegion *region,
                                     Object *ob,
                                     bGPDlayer *gpl,
                                     const tGPspoint *point2D,
@@ -913,7 +916,7 @@ void gp_stroke_convertcoords_tpoint(Scene *scene,
   int mval_i[2];
   round_v2i_v2fl(mval_i, &point2D->x);
 
-  if ((depth != NULL) && (ED_view3d_autodist_simple(ar, mval_i, r_out, 0, depth))) {
+  if ((depth != NULL) && (ED_view3d_autodist_simple(region, mval_i, r_out, 0, depth))) {
     /* projecting onto 3D-Geometry
      * - nothing more needs to be done here, since view_autodist_simple() has already done it
      */
@@ -928,11 +931,12 @@ void gp_stroke_convertcoords_tpoint(Scene *scene,
      * 3D-coordinates using the 3D-cursor as reference.
      */
     ED_gp_get_drawing_reference(scene, ob, gpl, ts->gpencil_v3d_align, rvec);
-    zfac = ED_view3d_calc_zfac(ar->regiondata, rvec, NULL);
+    zfac = ED_view3d_calc_zfac(region->regiondata, rvec, NULL);
 
-    if (ED_view3d_project_float_global(ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+    if (ED_view3d_project_float_global(region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
+        V3D_PROJ_RET_OK) {
       sub_v2_v2v2(mval_f, mval_prj, mval_f);
-      ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
+      ED_view3d_win_to_delta(region, mval_f, dvec, zfac);
       sub_v3_v3v3(r_out, rvec, dvec);
     }
     else {
@@ -1668,7 +1672,7 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
 /* check if cursor is in drawing region */
 static bool gp_check_cursor_region(bContext *C, int mval_i[2])
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ScrArea *sa = CTX_wm_area(C);
   Object *ob = CTX_data_active_object(C);
 
@@ -1681,11 +1685,11 @@ static bool gp_check_cursor_region(bContext *C, int mval_i[2])
   if (!ELEM(sa->spacetype, SPACE_VIEW3D)) {
     return false;
   }
-  if ((ar) && (ar->regiontype != RGN_TYPE_WINDOW)) {
+  if ((region) && (region->regiontype != RGN_TYPE_WINDOW)) {
     return false;
   }
-  else if (ar) {
-    return BLI_rcti_isect_pt_v(&ar->winrct, mval_i);
+  else if (region) {
+    return BLI_rcti_isect_pt_v(&region->winrct, mval_i);
   }
   else {
     return false;
@@ -1748,7 +1752,7 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
   bGPdata *gpd = ED_gpencil_data_get_active(C);
@@ -1879,8 +1883,9 @@ static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2f(pos, x, y);
-    immVertex2f(
-        pos, last_mouse_position[0] + ar->winrct.xmin, last_mouse_position[1] + ar->winrct.ymin);
+    immVertex2f(pos,
+                last_mouse_position[0] + region->winrct.xmin,
+                last_mouse_position[1] + region->winrct.ymin);
     immEnd();
 
     GPU_blend(false);
@@ -1992,7 +1997,7 @@ void ED_gpencil_setup_modes(bContext *C, bGPdata *gpd, int newmode)
 }
 
 /* helper to convert 2d to 3d for simple drawing buffer */
-static void gpencil_stroke_convertcoords(ARegion *ar,
+static void gpencil_stroke_convertcoords(ARegion *region,
                                          const tGPspoint *point2D,
                                          const float origin[3],
                                          float out[3])
@@ -2004,11 +2009,12 @@ static void gpencil_stroke_convertcoords(ARegion *ar,
 
   copy_v3_v3(rvec, origin);
 
-  zfac = ED_view3d_calc_zfac(ar->regiondata, rvec, NULL);
+  zfac = ED_view3d_calc_zfac(region->regiondata, rvec, NULL);
 
-  if (ED_view3d_project_float_global(ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+  if (ED_view3d_project_float_global(region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
+      V3D_PROJ_RET_OK) {
     sub_v2_v2v2(mval_f, mval_prj, mval_f);
-    ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
+    ED_view3d_win_to_delta(region, mval_f, dvec, zfac);
     sub_v3_v3v3(out, rvec, dvec);
   }
   else {
@@ -2017,11 +2023,14 @@ static void gpencil_stroke_convertcoords(ARegion *ar,
 }
 
 /* convert 2d tGPspoint to 3d bGPDspoint */
-void ED_gpencil_tpoint_to_point(ARegion *ar, float origin[3], const tGPspoint *tpt, bGPDspoint *pt)
+void ED_gpencil_tpoint_to_point(ARegion *region,
+                                float origin[3],
+                                const tGPspoint *tpt,
+                                bGPDspoint *pt)
 {
   float p3d[3];
   /* conversion to 3d format */
-  gpencil_stroke_convertcoords(ar, tpt, origin, p3d);
+  gpencil_stroke_convertcoords(region, tpt, origin, p3d);
   copy_v3_v3(&pt->x, p3d);
 
   pt->pressure = tpt->pressure;

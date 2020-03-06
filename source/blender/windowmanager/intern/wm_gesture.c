@@ -51,7 +51,7 @@
 #include "BIF_glutil.h"
 
 /* context checked on having screen, window and area */
-wmGesture *WM_gesture_new(wmWindow *window, const ARegion *ar, const wmEvent *event, int type)
+wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent *event, int type)
 {
   wmGesture *gesture = MEM_callocN(sizeof(wmGesture), "new gesture");
 
@@ -59,7 +59,7 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *ar, const wmEvent *ev
 
   gesture->type = type;
   gesture->event_type = event->type;
-  gesture->winrct = ar->winrct;
+  gesture->winrct = region->winrct;
   gesture->user_data.use_free = true; /* Free if userdata is set. */
   gesture->modal_state = GESTURE_MODAL_NOP;
 

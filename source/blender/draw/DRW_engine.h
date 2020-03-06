@@ -63,7 +63,7 @@ typedef struct DRWUpdateContext {
   struct Depsgraph *depsgraph;
   struct Scene *scene;
   struct ViewLayer *view_layer;
-  struct ARegion *ar;
+  struct ARegion *region;
   struct View3D *v3d;
   struct RenderEngineType *engine_type;
 } DRWUpdateContext;
@@ -81,24 +81,24 @@ void DRW_draw_region_engine_info(int xoffset, int yoffset);
 
 void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
                              struct RenderEngineType *engine_type,
-                             struct ARegion *ar,
+                             struct ARegion *region,
                              struct View3D *v3d,
                              struct GPUViewport *viewport,
                              const struct bContext *evil_C);
 void DRW_draw_render_loop(struct Depsgraph *depsgraph,
-                          struct ARegion *ar,
+                          struct ARegion *region,
                           struct View3D *v3d,
                           struct GPUViewport *viewport);
 void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     struct RenderEngineType *engine_type,
-                                    struct ARegion *ar,
+                                    struct ARegion *region,
                                     struct View3D *v3d,
                                     const bool draw_background,
                                     const bool do_color_management,
                                     struct GPUOffScreen *ofs,
                                     struct GPUViewport *viewport);
 void DRW_draw_select_loop(struct Depsgraph *depsgraph,
-                          struct ARegion *ar,
+                          struct ARegion *region,
                           struct View3D *v3d,
                           bool use_obedit_skip,
                           bool draw_surface,
@@ -109,20 +109,20 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
                           DRW_ObjectFilterFn object_filter_fn,
                           void *object_filter_user_data);
 void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
-                         struct ARegion *ar,
+                         struct ARegion *region,
                          struct View3D *v3d,
                          struct GPUViewport *viewport,
                          bool use_opengl_context);
 void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
-                                 struct ARegion *ar,
+                                 struct ARegion *region,
                                  struct View3D *v3d,
                                  struct GPUViewport *viewport);
-void DRW_draw_depth_object(struct ARegion *ar,
+void DRW_draw_depth_object(struct ARegion *region,
                            struct View3D *v3d,
                            struct GPUViewport *viewport,
                            struct Object *object);
 void DRW_draw_select_id(struct Depsgraph *depsgraph,
-                        struct ARegion *ar,
+                        struct ARegion *region,
                         struct View3D *v3d,
                         const struct rcti *rect);
 

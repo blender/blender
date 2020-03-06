@@ -79,9 +79,9 @@ static void draw_keyframe_shape(
   immVertex2f(pos_id, x, y);
 }
 
-static void clip_draw_dopesheet_background(ARegion *ar, MovieClip *clip, unsigned int pos_id)
+static void clip_draw_dopesheet_background(ARegion *region, MovieClip *clip, unsigned int pos_id)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
   MovieTrackingDopesheetCoverageSegment *coverage_segment;
@@ -105,10 +105,10 @@ static void clip_draw_dopesheet_background(ARegion *ar, MovieClip *clip, unsigne
   }
 }
 
-void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
+void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
 
   /* frame range */
   clip_draw_sfra_efra(v2d, scene);
@@ -142,7 +142,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
     GPU_blend(true);
 
-    clip_draw_dopesheet_background(ar, clip, pos_id);
+    clip_draw_dopesheet_background(region, clip, pos_id);
 
     for (channel = dopesheet->channels.first; channel; channel = channel->next) {
       float yminc = (float)(y - CHANNEL_HEIGHT_HALF);
@@ -290,11 +290,11 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
   }
 }
 
-void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
+void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 {
   ScrArea *sa = CTX_wm_area(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   MovieClip *clip = ED_space_clip_get_clip(sc);
   uiStyle *style = UI_style_get();
   int fontid = style->widget.uifont_id;
@@ -380,7 +380,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
   }
 
   /* third pass: widgets */
-  uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   y = (float)CHANNEL_FIRST;
 
   /* get RNA properties (once) */

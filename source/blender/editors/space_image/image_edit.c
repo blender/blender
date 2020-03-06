@@ -240,16 +240,16 @@ void ED_space_image_get_aspect(SpaceImage *sima, float *aspx, float *aspy)
   }
 }
 
-void ED_space_image_get_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoomy)
+void ED_space_image_get_zoom(SpaceImage *sima, ARegion *region, float *zoomx, float *zoomy)
 {
   int width, height;
 
   ED_space_image_get_size(sima, &width, &height);
 
-  *zoomx = (float)(BLI_rcti_size_x(&ar->winrct) + 1) /
-           (float)(BLI_rctf_size_x(&ar->v2d.cur) * width);
-  *zoomy = (float)(BLI_rcti_size_y(&ar->winrct) + 1) /
-           (float)(BLI_rctf_size_y(&ar->v2d.cur) * height);
+  *zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
+           (float)(BLI_rctf_size_x(&region->v2d.cur) * width);
+  *zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) /
+           (float)(BLI_rctf_size_y(&region->v2d.cur) * height);
 }
 
 void ED_space_image_get_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
@@ -290,15 +290,15 @@ void ED_image_get_uv_aspect(Image *ima, ImageUser *iuser, float *aspx, float *as
 }
 
 /* takes event->mval */
-void ED_image_mouse_pos(SpaceImage *sima, ARegion *ar, const int mval[2], float co[2])
+void ED_image_mouse_pos(SpaceImage *sima, ARegion *region, const int mval[2], float co[2])
 {
   int sx, sy, width, height;
   float zoomx, zoomy;
 
-  ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+  ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
   ED_space_image_get_size(sima, &width, &height);
 
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
   co[0] = ((mval[0] - sx) / zoomx) / width;
   co[1] = ((mval[1] - sy) / zoomy) / height;
@@ -316,29 +316,32 @@ void ED_image_view_center_to_point(SpaceImage *sima, float x, float y)
   sima->yof = (y - 0.5f) * height * aspy;
 }
 
-void ED_image_point_pos(SpaceImage *sima, ARegion *ar, float x, float y, float *xr, float *yr)
+void ED_image_point_pos(SpaceImage *sima, ARegion *region, float x, float y, float *xr, float *yr)
 {
   int sx, sy, width, height;
   float zoomx, zoomy;
 
-  ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+  ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
   ED_space_image_get_size(sima, &width, &height);
 
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
   *xr = ((x - sx) / zoomx) / width;
   *yr = ((y - sy) / zoomy) / height;
 }
 
-void ED_image_point_pos__reverse(SpaceImage *sima, ARegion *ar, const float co[2], float r_co[2])
+void ED_image_point_pos__reverse(SpaceImage *sima,
+                                 ARegion *region,
+                                 const float co[2],
+                                 float r_co[2])
 {
   float zoomx, zoomy;
   int width, height;
   int sx, sy;
 
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
   ED_space_image_get_size(sima, &width, &height);
-  ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+  ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
   r_co[0] = (co[0] * width * zoomx) + (float)sx;
   r_co[1] = (co[1] * height * zoomy) + (float)sy;

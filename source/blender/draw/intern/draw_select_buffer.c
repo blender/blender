@@ -48,7 +48,7 @@
 
 /* Main function to read a block of pixels from the select frame buffer. */
 uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
-                             struct ARegion *ar,
+                             struct ARegion *region,
                              struct View3D *v3d,
                              const rcti *rect,
                              uint *r_buf_len)
@@ -59,9 +59,9 @@ uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
   /* Clamp rect. */
   rcti r = {
       .xmin = 0,
-      .xmax = ar->winx,
+      .xmax = region->winx,
       .ymin = 0,
-      .ymax = ar->winy,
+      .ymax = region->winy,
   };
 
   /* Make sure that the rect is within the bounds of the viewport.
@@ -72,11 +72,11 @@ uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
 
     DRW_opengl_context_enable();
     /* Update the drawing. */
-    DRW_draw_select_id(depsgraph, ar, v3d, rect);
+    DRW_draw_select_id(depsgraph, region, v3d, rect);
 
     if (select_ctx->index_drawn_len > 1) {
-      BLI_assert(ar->winx == GPU_texture_width(DRW_engine_select_texture_get()) &&
-                 ar->winy == GPU_texture_height(DRW_engine_select_texture_get()));
+      BLI_assert(region->winx == GPU_texture_width(DRW_engine_select_texture_get()) &&
+                 region->winy == GPU_texture_height(DRW_engine_select_texture_get()));
 
       /* Read the UI32 pixels. */
       buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
@@ -126,7 +126,7 @@ uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
  * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
  */
 uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
-                                         struct ARegion *ar,
+                                         struct ARegion *region,
                                          struct View3D *v3d,
                                          const rcti *rect,
                                          uint *r_bitmap_len)
@@ -138,7 +138,7 @@ uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
   rect_px.ymax += 1;
 
   uint buf_len;
-  uint *buf = DRW_select_buffer_read(depsgraph, ar, v3d, &rect_px, &buf_len);
+  uint *buf = DRW_select_buffer_read(depsgraph, region, v3d, &rect_px, &buf_len);
   if (buf == NULL) {
     return NULL;
   }
@@ -171,7 +171,7 @@ uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
  * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
  */
 uint *DRW_select_buffer_bitmap_from_circle(struct Depsgraph *depsgraph,
-                                           struct ARegion *ar,
+                                           struct ARegion *region,
                                            struct View3D *v3d,
                                            const int center[2],
                                            const int radius,
@@ -186,7 +186,7 @@ uint *DRW_select_buffer_bitmap_from_circle(struct Depsgraph *depsgraph,
       .ymax = center[1] + radius + 1,
   };
 
-  const uint *buf = DRW_select_buffer_read(depsgraph, ar, v3d, &rect, NULL);
+  const uint *buf = DRW_select_buffer_read(depsgraph, region, v3d, &rect, NULL);
 
   if (buf == NULL) {
     return NULL;
@@ -241,7 +241,7 @@ static void drw_select_mask_px_cb(int x, int x_end, int y, void *user_data)
  * \returns a #BLI_bitmap.
  */
 uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
-                                         struct ARegion *ar,
+                                         struct ARegion *region,
                                          struct View3D *v3d,
                                          const int poly[][2],
                                          const int poly_len,
@@ -255,7 +255,7 @@ uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
   rect_px.ymax += 1;
 
   uint buf_len;
-  uint *buf = DRW_select_buffer_read(depsgraph, ar, v3d, &rect_px, &buf_len);
+  uint *buf = DRW_select_buffer_read(depsgraph, region, v3d, &rect_px, &buf_len);
   if (buf == NULL) {
     return NULL;
   }
@@ -312,7 +312,7 @@ uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
  * Samples a single pixel.
  */
 uint DRW_select_buffer_sample_point(struct Depsgraph *depsgraph,
-                                    struct ARegion *ar,
+                                    struct ARegion *region,
                                     struct View3D *v3d,
                                     const int center[2])
 {
@@ -326,7 +326,7 @@ uint DRW_select_buffer_sample_point(struct Depsgraph *depsgraph,
   };
 
   uint buf_len;
-  uint *buf = DRW_select_buffer_read(depsgraph, ar, v3d, &rect, &buf_len);
+  uint *buf = DRW_select_buffer_read(depsgraph, region, v3d, &rect, &buf_len);
   if (buf) {
     BLI_assert(0 != buf_len);
     ret = buf[0];
@@ -342,7 +342,7 @@ uint DRW_select_buffer_sample_point(struct Depsgraph *depsgraph,
  * when found, this value is set to the distance of the selection that's returned.
  */
 uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
-                                             struct ARegion *ar,
+                                             struct ARegion *region,
                                              struct View3D *v3d,
                                              const int center[2],
                                              const uint id_min,
@@ -369,7 +369,7 @@ uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
   /* Read from selection framebuffer. */
 
   uint buf_len;
-  const uint *buf = DRW_select_buffer_read(depsgraph, ar, v3d, &rect, &buf_len);
+  const uint *buf = DRW_select_buffer_read(depsgraph, region, v3d, &rect, &buf_len);
 
   if (buf == NULL) {
     return index;

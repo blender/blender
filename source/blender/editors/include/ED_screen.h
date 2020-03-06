@@ -64,75 +64,75 @@ struct wmWindowManager;
 /* regions */
 void ED_region_do_listen(struct wmWindow *win,
                          struct ScrArea *sa,
-                         struct ARegion *ar,
+                         struct ARegion *region,
                          struct wmNotifier *note,
                          const Scene *scene);
-void ED_region_do_layout(struct bContext *C, struct ARegion *ar);
-void ED_region_do_draw(struct bContext *C, struct ARegion *ar);
-void ED_region_exit(struct bContext *C, struct ARegion *ar);
-void ED_region_remove(struct bContext *C, struct ScrArea *sa, struct ARegion *ar);
-void ED_region_pixelspace(struct ARegion *ar);
-void ED_region_update_rect(struct ARegion *ar);
-void ED_region_floating_initialize(struct ARegion *ar);
-void ED_region_tag_redraw(struct ARegion *ar);
-void ED_region_tag_redraw_partial(struct ARegion *ar, const struct rcti *rct, bool rebuild);
-void ED_region_tag_redraw_cursor(struct ARegion *ar);
-void ED_region_tag_redraw_no_rebuild(struct ARegion *ar);
-void ED_region_tag_refresh_ui(struct ARegion *ar);
-void ED_region_tag_redraw_editor_overlays(struct ARegion *ar);
+void ED_region_do_layout(struct bContext *C, struct ARegion *region);
+void ED_region_do_draw(struct bContext *C, struct ARegion *region);
+void ED_region_exit(struct bContext *C, struct ARegion *region);
+void ED_region_remove(struct bContext *C, struct ScrArea *sa, struct ARegion *region);
+void ED_region_pixelspace(struct ARegion *region);
+void ED_region_update_rect(struct ARegion *region);
+void ED_region_floating_initialize(struct ARegion *region);
+void ED_region_tag_redraw(struct ARegion *region);
+void ED_region_tag_redraw_partial(struct ARegion *region, const struct rcti *rct, bool rebuild);
+void ED_region_tag_redraw_cursor(struct ARegion *region);
+void ED_region_tag_redraw_no_rebuild(struct ARegion *region);
+void ED_region_tag_refresh_ui(struct ARegion *region);
+void ED_region_tag_redraw_editor_overlays(struct ARegion *region);
 
-void ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
+void ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *region);
 void ED_region_panels_ex(const struct bContext *C,
-                         struct ARegion *ar,
+                         struct ARegion *region,
                          const char *contexts[],
                          int contextnr,
                          const bool vertical);
-void ED_region_panels(const struct bContext *C, struct ARegion *ar);
+void ED_region_panels(const struct bContext *C, struct ARegion *region);
 void ED_region_panels_layout_ex(const struct bContext *C,
-                                struct ARegion *ar,
+                                struct ARegion *region,
                                 struct ListBase *paneltypes,
                                 const char *contexts[],
                                 int contextnr,
                                 const bool vertical,
                                 const char *category_override);
 
-void ED_region_panels_layout(const struct bContext *C, struct ARegion *ar);
-void ED_region_panels_draw(const struct bContext *C, struct ARegion *ar);
+void ED_region_panels_layout(const struct bContext *C, struct ARegion *region);
+void ED_region_panels_draw(const struct bContext *C, struct ARegion *region);
 
-void ED_region_header_init(struct ARegion *ar);
-void ED_region_header(const struct bContext *C, struct ARegion *ar);
-void ED_region_header_layout(const struct bContext *C, struct ARegion *ar);
-void ED_region_header_draw(const struct bContext *C, struct ARegion *ar);
+void ED_region_header_init(struct ARegion *region);
+void ED_region_header(const struct bContext *C, struct ARegion *region);
+void ED_region_header_layout(const struct bContext *C, struct ARegion *region);
+void ED_region_header_draw(const struct bContext *C, struct ARegion *region);
 
-void ED_region_cursor_set(struct wmWindow *win, struct ScrArea *sa, struct ARegion *ar);
-void ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
+void ED_region_cursor_set(struct wmWindow *win, struct ScrArea *sa, struct ARegion *region);
+void ED_region_toggle_hidden(struct bContext *C, struct ARegion *region);
 void ED_region_visibility_change_update(struct bContext *C,
                                         struct ScrArea *sa,
-                                        struct ARegion *ar);
+                                        struct ARegion *region);
 /* screen_ops.c */
 void ED_region_visibility_change_update_animated(struct bContext *C,
                                                  struct ScrArea *sa,
-                                                 struct ARegion *ar);
+                                                 struct ARegion *region);
 
-void ED_region_info_draw(struct ARegion *ar,
+void ED_region_info_draw(struct ARegion *region,
                          const char *text,
                          float fill_color[4],
                          const bool full_redraw);
-void ED_region_info_draw_multiline(ARegion *ar,
+void ED_region_info_draw_multiline(ARegion *region,
                                    const char *text_array[],
                                    float fill_color[4],
                                    const bool full_redraw);
 void ED_region_image_metadata_draw(
     int x, int y, struct ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
 void ED_region_image_metadata_panel_draw(struct ImBuf *ibuf, struct uiLayout *layout);
-void ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy, float x0, float y0);
-float ED_region_blend_alpha(struct ARegion *ar);
-void ED_region_visible_rect_calc(struct ARegion *ar, struct rcti *rect);
-const rcti *ED_region_visible_rect(ARegion *ar);
+void ED_region_grid_draw(struct ARegion *region, float zoomx, float zoomy, float x0, float y0);
+float ED_region_blend_alpha(struct ARegion *region);
+void ED_region_visible_rect_calc(struct ARegion *region, struct rcti *rect);
+const rcti *ED_region_visible_rect(ARegion *region);
 bool ED_region_is_overlap(int spacetype, int regiontype);
 
-int ED_region_snap_size_test(const struct ARegion *ar);
-bool ED_region_snap_size_apply(struct ARegion *ar, int snap_flag);
+int ED_region_snap_size_test(const struct ARegion *region);
+bool ED_region_snap_size_apply(struct ARegion *region, int snap_flag);
 
 /* message_bus callbacks */
 void ED_region_do_msg_notify_tag_redraw(struct bContext *C,
@@ -147,14 +147,14 @@ void ED_area_do_mgs_subscribe_for_tool_header(const struct bContext *C,
                                               struct Scene *scene,
                                               struct bScreen *screen,
                                               struct ScrArea *sa,
-                                              struct ARegion *ar,
+                                              struct ARegion *region,
                                               struct wmMsgBus *mbus);
 void ED_area_do_mgs_subscribe_for_tool_ui(const struct bContext *C,
                                           struct WorkSpace *workspace,
                                           struct Scene *scene,
                                           struct bScreen *screen,
                                           struct ScrArea *sa,
-                                          struct ARegion *ar,
+                                          struct ARegion *region,
                                           struct wmMsgBus *mbus);
 
 /* message bus */
@@ -163,7 +163,7 @@ void ED_region_message_subscribe(struct bContext *C,
                                  struct Scene *scene,
                                  struct bScreen *screen,
                                  struct ScrArea *sa,
-                                 struct ARegion *ar,
+                                 struct ARegion *region,
                                  struct wmMsgBus *mbus);
 
 /* spaces */
@@ -409,10 +409,13 @@ void ED_screen_user_menu_register(void);
 
 /* Cache display helpers */
 
-void ED_region_cache_draw_background(struct ARegion *ar);
+void ED_region_cache_draw_background(struct ARegion *region);
 void ED_region_cache_draw_curfra_label(const int framenr, const float x, const float y);
-void ED_region_cache_draw_cached_segments(
-    struct ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra);
+void ED_region_cache_draw_cached_segments(struct ARegion *region,
+                                          const int num_segments,
+                                          const int *points,
+                                          const int sfra,
+                                          const int efra);
 
 /* area_utils.c */
 void ED_region_generic_tools_region_message_subscribe(const struct bContext *C,
@@ -420,24 +423,28 @@ void ED_region_generic_tools_region_message_subscribe(const struct bContext *C,
                                                       struct Scene *scene,
                                                       struct bScreen *screen,
                                                       struct ScrArea *sa,
-                                                      struct ARegion *ar,
+                                                      struct ARegion *region,
                                                       struct wmMsgBus *mbus);
-int ED_region_generic_tools_region_snap_size(const struct ARegion *ar, int size, int axis);
+int ED_region_generic_tools_region_snap_size(const struct ARegion *region, int size, int axis);
 
 /* area_query.c */
-bool ED_region_overlap_isect_x(const ARegion *ar, const int event_x);
-bool ED_region_overlap_isect_y(const ARegion *ar, const int event_y);
-bool ED_region_overlap_isect_xy(const ARegion *ar, const int event_xy[2]);
-bool ED_region_overlap_isect_x_with_margin(const ARegion *ar, const int event_x, const int margin);
-bool ED_region_overlap_isect_y_with_margin(const ARegion *ar, const int event_y, const int margin);
-bool ED_region_overlap_isect_xy_with_margin(const ARegion *ar,
+bool ED_region_overlap_isect_x(const ARegion *region, const int event_x);
+bool ED_region_overlap_isect_y(const ARegion *region, const int event_y);
+bool ED_region_overlap_isect_xy(const ARegion *region, const int event_xy[2]);
+bool ED_region_overlap_isect_x_with_margin(const ARegion *region,
+                                           const int event_x,
+                                           const int margin);
+bool ED_region_overlap_isect_y_with_margin(const ARegion *region,
+                                           const int event_y,
+                                           const int margin);
+bool ED_region_overlap_isect_xy_with_margin(const ARegion *region,
                                             const int event_xy[2],
                                             const int margin);
 
-bool ED_region_panel_category_gutter_calc_rect(const ARegion *ar, rcti *r_ar_gutter);
-bool ED_region_panel_category_gutter_isect_xy(const ARegion *ar, const int event_xy[2]);
+bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_ar_gutter);
+bool ED_region_panel_category_gutter_isect_xy(const ARegion *region, const int event_xy[2]);
 
-bool ED_region_contains_xy(const struct ARegion *ar, const int event_xy[2]);
+bool ED_region_contains_xy(const struct ARegion *region, const int event_xy[2]);
 
 /* interface_region_hud.c */
 struct ARegionType *ED_area_type_hud(int space_type);

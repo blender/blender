@@ -677,7 +677,7 @@ static float *mask_rasterize(Mask *mask, const int width, const int height)
 void ED_mask_draw_region(
     Depsgraph *depsgraph,
     Mask *mask_,
-    ARegion *ar,
+    ARegion *region,
     const char draw_flag,
     const char draw_type,
     const char overlay_mode,
@@ -693,7 +693,7 @@ void ED_mask_draw_region(
     /* optional - only used when do_post_draw is set or called from clip editor */
     const bContext *C)
 {
-  struct View2D *v2d = &ar->v2d;
+  struct View2D *v2d = &region->v2d;
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_->id);
 
   /* aspect always scales vertically in movie and image spaces */
@@ -708,13 +708,13 @@ void ED_mask_draw_region(
   float xofs, yofs;
 
   /* find window pixel coordinates of origin */
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   /* w = BLI_rctf_size_x(&v2d->tot); */
   /* h = BLI_rctf_size_y(&v2d->tot); */
 
-  zoomx = (float)(BLI_rcti_size_x(&ar->winrct) + 1) / BLI_rctf_size_x(&ar->v2d.cur);
-  zoomy = (float)(BLI_rcti_size_y(&ar->winrct) + 1) / BLI_rctf_size_y(&ar->v2d.cur);
+  zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) / BLI_rctf_size_x(&region->v2d.cur);
+  zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) / BLI_rctf_size_y(&region->v2d.cur);
 
   if (do_scale_applied) {
     zoomx /= width;
@@ -780,22 +780,23 @@ void ED_mask_draw_region(
   GPU_matrix_scale_2f(maxdim, maxdim);
 
   if (do_draw_cb) {
-    ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+    ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
   }
 
   /* draw! */
   draw_mask_layers(C, mask_eval, draw_flag, draw_type, width, height);
 
   if (do_draw_cb) {
-    ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+    ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
   }
 
   GPU_matrix_pop();
 }
 
-void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra, const int efra)
+void ED_mask_draw_frames(
+    Mask *mask, ARegion *region, const int cfra, const int sfra, const int efra)
 {
-  const float framelen = ar->winx / (float)(efra - sfra + 1);
+  const float framelen = region->winx / (float)(efra - sfra + 1);
 
   MaskLayer *mask_layer = BKE_mask_layer_active(mask);
   if (mask_layer == NULL) {
@@ -808,7 +809,7 @@ void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra
   }
 
   /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
-  const rcti *rect_visible = ED_region_visible_rect(ar);
+  const rcti *rect_visible = ED_region_visible_rect(region);
   const int region_bottom = rect_visible->ymin;
 
   uint pos = GPU_vertformat_attr_add(

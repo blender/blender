@@ -434,13 +434,13 @@ void unpack_menu(bContext *C,
 /**
  * Callback that draws a line between the mouse and a position given as the initial argument.
  */
-void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info)
+void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_info)
 {
   wmWindow *win = CTX_wm_window(C);
   const float *mval_src = (float *)arg_info;
   const float mval_dst[2] = {
-      win->eventstate->x - ar->winrct.xmin,
-      win->eventstate->y - ar->winrct.ymin,
+      win->eventstate->x - region->winrct.xmin,
+      win->eventstate->y - region->winrct.ymin,
   };
 
   const uint shdr_pos = GPU_vertformat_attr_add(

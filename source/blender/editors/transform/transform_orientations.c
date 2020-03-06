@@ -471,8 +471,8 @@ void initTransformOrientation(bContext *C, TransInfo *t)
       break;
 
     case V3D_ORIENT_VIEW:
-      if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
-        RegionView3D *rv3d = t->ar->regiondata;
+      if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+        RegionView3D *rv3d = t->region->regiondata;
         float mat[3][3];
 
         BLI_strncpy(t->spacename, TIP_("view"), sizeof(t->spacename));

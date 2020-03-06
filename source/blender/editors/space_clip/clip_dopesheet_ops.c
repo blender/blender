@@ -51,9 +51,9 @@ static bool space_clip_dopesheet_poll(bContext *C)
     SpaceClip *sc = CTX_wm_space_clip(C);
 
     if (sc->view == SC_VIEW_DOPESHEET) {
-      ARegion *ar = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region(C);
 
-      return ar->regiontype == RGN_TYPE_PREVIEW;
+      return region->regiontype == RGN_TYPE_PREVIEW;
     }
   }
 
@@ -123,10 +123,11 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 
 static int dopesheet_select_channel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float location[2];
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
   RNA_float_set_array(op->ptr, "location", location);
 
   return dopesheet_select_channel_exec(C, op);
@@ -170,8 +171,8 @@ void CLIP_OT_dopesheet_select_channel(wmOperatorType *ot)
 static int dopesheet_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
-  View2D *v2d = &ar->v2d;
+  ARegion *region = CTX_wm_region(C);
+  View2D *v2d = &region->v2d;
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
@@ -194,7 +195,7 @@ static int dopesheet_view_all_exec(bContext *C, wmOperator *UNUSED(op))
     v2d->cur.xmin -= extra;
     v2d->cur.xmax += extra;
 
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
   }
 
   return OPERATOR_FINISHED;

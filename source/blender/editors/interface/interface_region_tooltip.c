@@ -148,10 +148,10 @@ static void rgb_tint(float col[3], float h, float h_strength, float v, float v_s
   hsv_to_rgb_v(col_hsv_to, col);
 }
 
-static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
+static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region)
 {
   const float pad_px = UI_TIP_PADDING;
-  uiTooltipData *data = ar->regiondata;
+  uiTooltipData *data = region->regiondata;
   const uiWidgetColors *theme = ui_tooltip_get_theme();
   rcti bbox = data->bbox;
   float tip_colors[UI_TIP_LC_MAX][3];
@@ -168,7 +168,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
   float tone_bg;
   int i;
 
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
 
   /* draw background */
   ui_draw_tooltip_background(UI_style_get(), NULL, &bbox);
@@ -271,11 +271,11 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
   BLF_disable(blf_mono_font, BLF_WORD_WRAP);
 }
 
-static void ui_tooltip_region_free_cb(ARegion *ar)
+static void ui_tooltip_region_free_cb(ARegion *region)
 {
   uiTooltipData *data;
 
-  data = ar->regiondata;
+  data = region->regiondata;
 
   for (int i = 0; i < data->fields_len; i++) {
     const uiTooltipField *field = &data->fields[i];
@@ -286,7 +286,7 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
   }
   MEM_freeN(data->fields);
   MEM_freeN(data);
-  ar->regiondata = NULL;
+  region->regiondata = NULL;
 }
 
 /** \} */
@@ -1160,20 +1160,20 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   const int winy = WM_window_pixels_y(win);
   uiStyle *style = UI_style_get();
   static ARegionType type;
-  ARegion *ar;
+  ARegion *region;
   int fonth, fontw;
   int h, i;
   rcti rect_i;
   int font_flag = 0;
 
   /* create area region */
-  ar = ui_region_temp_add(CTX_wm_screen(C));
+  region = ui_region_temp_add(CTX_wm_screen(C));
 
   memset(&type, 0, sizeof(ARegionType));
   type.draw = ui_tooltip_region_draw_cb;
   type.free = ui_tooltip_region_free_cb;
   type.regionid = RGN_TYPE_TEMPORARY;
-  ar->type = &type;
+  region->type = &type;
 
   /* set font, get bb */
   data->fstyle = style->widget; /* copy struct */
@@ -1237,7 +1237,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   BLF_disable(data->fstyle.uifont_id, font_flag);
   BLF_disable(blf_mono_font, font_flag);
 
-  ar->regiondata = data;
+  region->regiondata = data;
 
   data->toth = fonth;
   data->lineh = h;
@@ -1384,19 +1384,19 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     data->bbox.ymax = BLI_rcti_size_y(&rect_i);
 
     /* region bigger for shadow */
-    ar->winrct.xmin = rect_i.xmin - margin;
-    ar->winrct.xmax = rect_i.xmax + margin;
-    ar->winrct.ymin = rect_i.ymin - margin;
-    ar->winrct.ymax = rect_i.ymax + margin;
+    region->winrct.xmin = rect_i.xmin - margin;
+    region->winrct.xmax = rect_i.xmax + margin;
+    region->winrct.ymin = rect_i.ymin - margin;
+    region->winrct.ymax = rect_i.ymax + margin;
   }
 
   /* adds subwindow */
-  ED_region_floating_initialize(ar);
+  ED_region_floating_initialize(region);
 
   /* notify change and redraw */
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
-  return ar;
+  return region;
 }
 
 /** \} */
@@ -1457,10 +1457,10 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
     }
   }
 
-  ARegion *ar = ui_tooltip_create_with_data(
+  ARegion *region = ui_tooltip_create_with_data(
       C, data, init_position, is_no_overlap ? &init_rect : NULL, aspect);
 
-  return ar;
+  return region;
 }
 
 ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
@@ -1480,9 +1480,9 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
   return ui_tooltip_create_with_data(C, data, init_position, NULL, aspect);
 }
 
-void UI_tooltip_free(bContext *C, bScreen *sc, ARegion *ar)
+void UI_tooltip_free(bContext *C, bScreen *sc, ARegion *region)
 {
-  ui_region_temp_remove(C, sc, ar);
+  ui_region_temp_remove(C, sc, region);
 }
 
 /** \} */

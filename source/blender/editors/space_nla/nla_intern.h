@@ -42,8 +42,8 @@ void nla_buttons_register(ARegionType *art);
 /* **************************************** */
 /* nla_draw.c */
 
-void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar);
-void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar);
+void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region);
+void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region);
 
 /* **************************************** */
 /* nla_select.c */

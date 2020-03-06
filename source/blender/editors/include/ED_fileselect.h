@@ -110,11 +110,11 @@ void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);
 
-void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar);
+void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *region);
 
-FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
+FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *region);
 
-int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *ar);
+int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *region);
 int ED_fileselect_layout_offset(FileLayout *layout, int x, int y);
 FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const struct rcti *rect);
 

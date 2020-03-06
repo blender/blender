@@ -81,7 +81,7 @@ static int mouse_nla_channels(
   bAnimListElem *ale;
   int filter;
 
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
   int notifierFlags = 0;
 
   /* get the channel that was clicked on */
@@ -361,7 +361,7 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEv
 {
   bAnimContext ac;
   SpaceNla *snla;
-  ARegion *ar;
+  ARegion *region;
   View2D *v2d;
   int channel_index;
   int notifierFlags = 0;
@@ -375,8 +375,8 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEv
 
   /* get useful pointers from animation context data */
   snla = (SpaceNla *)ac.sl;
-  ar = ac.ar;
-  v2d = &ar->v2d;
+  region = ac.region;
+  v2d = &region->v2d;
 
   /* select mode is either replace (deselect all, then add) or add/extend */
   if (RNA_boolean_get(op->ptr, "extend")) {

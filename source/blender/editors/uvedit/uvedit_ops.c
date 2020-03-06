@@ -2836,10 +2836,10 @@ static int uv_select_exec(bContext *C, wmOperator *op)
 
 static int uv_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   return uv_select_exec(C, op);
@@ -2905,10 +2905,10 @@ static int uv_select_loop_exec(bContext *C, wmOperator *op)
 
 static int uv_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   return uv_select_loop_exec(C, op);
@@ -2988,9 +2988,9 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
     if (event) {
       /* invoke */
-      ARegion *ar = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region(C);
 
-      UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+      UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
       RNA_float_set_array(op->ptr, "location", co);
     }
     else {
@@ -3497,7 +3497,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
   const ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Image *ima = CTX_data_edit_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
@@ -3510,7 +3510,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rectf);
-  UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
+  UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
 
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
@@ -3654,7 +3654,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const ToolSettings *ts = scene->toolsettings;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
@@ -3674,12 +3674,12 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
   /* compute ellipse size and location, not a circle since we deal
    * with non square image. ellipse is normalized, r = 1.0. */
   ED_space_image_get_size(sima, &width, &height);
-  ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+  ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
   ellipse[0] = width * zoomx / radius;
   ellipse[1] = height * zoomy / radius;
 
-  UI_view2d_region_to_view(&ar->v2d, x, y, &offset[0], &offset[1]);
+  UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
 
   bool changed_multi = false;
 
@@ -3791,7 +3791,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   SpaceImage *sima = CTX_wm_space_image(C);
   Image *ima = CTX_data_edit_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3838,7 +3838,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
           uv_poly_center(efa, cent, cd_loop_uv_offset);
 
           if (UI_view2d_view_to_region_clip(
-                  &ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]) &&
+                  &region->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]) &&
               BLI_rcti_isect_pt_v(&rect, screen_uv) &&
               BLI_lasso_is_point_inside(
                   mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED)) {
@@ -3862,7 +3862,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
             if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
               MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
               if (UI_view2d_view_to_region_clip(
-                      &ar->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]) &&
+                      &region->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]) &&
                   BLI_rcti_isect_pt_v(&rect, screen_uv) &&
                   BLI_lasso_is_point_inside(
                       mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED)) {
@@ -4954,10 +4954,10 @@ static int uv_set_2d_cursor_exec(bContext *C, wmOperator *op)
 
 static int uv_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float location[2];
 
-  if (ar->regiontype == RGN_TYPE_WINDOW) {
+  if (region->regiontype == RGN_TYPE_WINDOW) {
     if (event->mval[1] <= 16) {
       SpaceImage *sima = CTX_wm_space_image(C);
       if (sima && ED_space_image_show_cache(sima)) {
@@ -4966,7 +4966,8 @@ static int uv_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *e
     }
   }
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
   RNA_float_set_array(op->ptr, "location", location);
 
   return uv_set_2d_cursor_exec(C, op);

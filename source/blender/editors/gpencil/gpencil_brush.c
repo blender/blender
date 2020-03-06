@@ -89,7 +89,7 @@ typedef struct tGP_BrushEditData {
   Object *object;
 
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
 
   /* Current GPencil datablock */
   bGPdata *gpd;
@@ -537,7 +537,7 @@ static void gp_brush_grab_calc_dvec(tGP_BrushEditData *gso)
   // TODO: incorporate pressure into this?
   // XXX: screen-space strokes in 3D space will suffer!
   if (gso->sa->spacetype == SPACE_VIEW3D) {
-    RegionView3D *rv3d = gso->ar->regiondata;
+    RegionView3D *rv3d = gso->region->regiondata;
     float *rvec = gso->object->loc;
     float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
@@ -557,7 +557,7 @@ static void gp_brush_grab_calc_dvec(tGP_BrushEditData *gso)
       copy_v2_v2(mval_f, r);
     }
 
-    ED_view3d_win_to_delta(gso->ar, mval_f, gso->dvec, zfac);
+    ED_view3d_win_to_delta(gso->region, mval_f, gso->dvec, zfac);
   }
   else {
     /* 2D - just copy */
@@ -662,7 +662,7 @@ static void gp_brush_calc_midpoint(tGP_BrushEditData *gso)
     /* Convert mouse position to 3D space
      * See: gpencil_paint.c :: gp_stroke_convertcoords()
      */
-    RegionView3D *rv3d = gso->ar->regiondata;
+    RegionView3D *rv3d = gso->region->regiondata;
     const float *rvec = gso->object->loc;
     float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
@@ -671,10 +671,10 @@ static void gp_brush_calc_midpoint(tGP_BrushEditData *gso)
     float mval_prj[2];
     float dvec[3];
 
-    if (ED_view3d_project_float_global(gso->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
+    if (ED_view3d_project_float_global(gso->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
         V3D_PROJ_RET_OK) {
       sub_v2_v2v2(mval_f, mval_prj, mval_f);
-      ED_view3d_win_to_delta(gso->ar, mval_f, dvec, zfac);
+      ED_view3d_win_to_delta(gso->region, mval_f, dvec, zfac);
       sub_v3_v3v3(gso->dvec, rvec, dvec);
     }
     else {
@@ -774,7 +774,7 @@ static bool gp_brush_twist_apply(tGP_BrushEditData *gso,
   /* Rotate in 2D or 3D space? */
   if (gps->flag & GP_STROKE_3DSPACE) {
     /* Perform rotation in 3D space... */
-    RegionView3D *rv3d = gso->ar->regiondata;
+    RegionView3D *rv3d = gso->region->regiondata;
     float rmat[3][3];
     float axis[3];
     float vec[3];
@@ -888,11 +888,11 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso,
       /* 3D: Project to 3D space */
       if (gso->sa->spacetype == SPACE_VIEW3D) {
         bool flip;
-        RegionView3D *rv3d = gso->ar->regiondata;
+        RegionView3D *rv3d = gso->region->regiondata;
         float zfac = ED_view3d_calc_zfac(rv3d, &pt->x, &flip);
         if (flip == false) {
           float dvec[3];
-          ED_view3d_win_to_delta(gso->gsc.ar, svec, dvec, zfac);
+          ED_view3d_win_to_delta(gso->gsc.region, svec, dvec, zfac);
           add_v3_v3(&pt->x, dvec);
           /* compute lock axis */
           gpsculpt_compute_lock_axis(gso, pt, save_pt);
@@ -1343,7 +1343,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
   }
 
   gso->sa = CTX_wm_area(C);
-  gso->ar = CTX_wm_region(C);
+  gso->region = CTX_wm_region(C);
 
   /* save mask */
   gso->mask = ts->gpencil_selectmode_sculpt;
@@ -2094,7 +2094,7 @@ static int gpsculpt_brush_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
   /* start drawing immediately? */
   if (is_modal == false) {
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
 
     /* ensure that we'll have a new frame to draw on */
     gpsculpt_brush_init_stroke(C, gso);
@@ -2104,7 +2104,7 @@ static int gpsculpt_brush_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     gpsculpt_brush_apply_event(C, op, event);
 
     /* redraw view with feedback */
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -2297,8 +2297,8 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Redraw region? */
   if (redraw_region) {
-    ARegion *ar = CTX_wm_region(C);
-    ED_region_tag_redraw(ar);
+    ARegion *region = CTX_wm_region(C);
+    ED_region_tag_redraw(region);
   }
 
   /* Redraw toolsettings (brush settings)? */

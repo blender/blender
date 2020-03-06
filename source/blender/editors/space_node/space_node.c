@@ -246,7 +246,7 @@ void snode_group_offset(SpaceNode *snode, float *x, float *y)
 
 static SpaceLink *node_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceNode *snode;
 
   snode = MEM_callocN(sizeof(SpaceNode), "initnode");
@@ -265,53 +265,53 @@ static SpaceLink *node_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
   NODE_TREE_TYPES_END;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for node");
+  region = MEM_callocN(sizeof(ARegion), "header for node");
 
-  BLI_addtail(&snode->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&snode->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* buttons/list view */
-  ar = MEM_callocN(sizeof(ARegion), "buttons for node");
+  region = MEM_callocN(sizeof(ARegion), "buttons for node");
 
-  BLI_addtail(&snode->regionbase, ar);
-  ar->regiontype = RGN_TYPE_UI;
-  ar->alignment = RGN_ALIGN_RIGHT;
+  BLI_addtail(&snode->regionbase, region);
+  region->regiontype = RGN_TYPE_UI;
+  region->alignment = RGN_ALIGN_RIGHT;
 
   /* toolbar */
-  ar = MEM_callocN(sizeof(ARegion), "node tools");
+  region = MEM_callocN(sizeof(ARegion), "node tools");
 
-  BLI_addtail(&snode->regionbase, ar);
-  ar->regiontype = RGN_TYPE_TOOLS;
-  ar->alignment = RGN_ALIGN_LEFT;
+  BLI_addtail(&snode->regionbase, region);
+  region->regiontype = RGN_TYPE_TOOLS;
+  region->alignment = RGN_ALIGN_LEFT;
 
-  ar->flag = RGN_FLAG_HIDDEN;
+  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for node");
+  region = MEM_callocN(sizeof(ARegion), "main region for node");
 
-  BLI_addtail(&snode->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&snode->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
-  ar->v2d.tot.xmin = -12.8f * U.widget_unit;
-  ar->v2d.tot.ymin = -12.8f * U.widget_unit;
-  ar->v2d.tot.xmax = 38.4f * U.widget_unit;
-  ar->v2d.tot.ymax = 38.4f * U.widget_unit;
+  region->v2d.tot.xmin = -12.8f * U.widget_unit;
+  region->v2d.tot.ymin = -12.8f * U.widget_unit;
+  region->v2d.tot.xmax = 38.4f * U.widget_unit;
+  region->v2d.tot.ymax = 38.4f * U.widget_unit;
 
-  ar->v2d.cur = ar->v2d.tot;
+  region->v2d.cur = region->v2d.tot;
 
-  ar->v2d.min[0] = 1.0f;
-  ar->v2d.min[1] = 1.0f;
+  region->v2d.min[0] = 1.0f;
+  region->v2d.min[1] = 1.0f;
 
-  ar->v2d.max[0] = 32000.0f;
-  ar->v2d.max[1] = 32000.0f;
+  region->v2d.max[0] = 32000.0f;
+  region->v2d.max[1] = 32000.0f;
 
-  ar->v2d.minzoom = 0.09f;
-  ar->v2d.maxzoom = 2.31f;
+  region->v2d.minzoom = 0.09f;
+  region->v2d.maxzoom = 2.31f;
 
-  ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-  ar->v2d.keepzoom = V2D_LIMITZOOM | V2D_KEEPASPECT;
-  ar->v2d.keeptot = 0;
+  region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+  region->v2d.keepzoom = V2D_LIMITZOOM | V2D_KEEPASPECT;
+  region->v2d.keeptot = 0;
 
   return (SpaceLink *)snode;
 }
@@ -347,11 +347,11 @@ static void node_area_listener(wmWindow *UNUSED(win),
     case NC_SCENE:
       switch (wmn->data) {
         case ND_NODES: {
-          ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+          ARegion *region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
           bNodeTreePath *path = snode->treepath.last;
           /* shift view to node tree center */
-          if (ar && path) {
-            UI_view2d_center_set(&ar->v2d, path->view_center[0], path->view_center[1]);
+          if (region && path) {
+            UI_view2d_center_set(&region->v2d, path->view_center[0], path->view_center[1]);
           }
 
           ED_area_tag_refresh(sa);
@@ -554,45 +554,45 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_buttons_region_init(wmWindowManager *wm, ARegion *ar)
+static void node_buttons_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ED_region_panels_init(wm, ar);
+  ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void node_buttons_region_draw(const bContext *C, ARegion *ar)
+static void node_buttons_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_toolbar_region_init(wmWindowManager *wm, ARegion *ar)
+static void node_toolbar_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ED_region_panels_init(wm, ar);
+  ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void node_toolbar_region_draw(const bContext *C, ARegion *ar)
+static void node_toolbar_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 
-static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *region)
 {
   SpaceNode *snode = sa->spacedata.first;
 
   /* convert mouse coordinates to v2d space */
-  UI_view2d_region_to_view(&ar->v2d,
-                           win->eventstate->x - ar->winrct.xmin,
-                           win->eventstate->y - ar->winrct.ymin,
+  UI_view2d_region_to_view(&region->v2d,
+                           win->eventstate->x - region->winrct.xmin,
+                           win->eventstate->y - region->winrct.ymin,
                            &snode->cursor[0],
                            &snode->cursor[1]);
 
@@ -605,29 +605,29 @@ static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 }
 
 /* Initialize main region, setting handlers. */
-static void node_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void node_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
   ListBase *lb;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Node Editor", SPACE_NODE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* add drop boxes */
   lb = WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
 
-  WM_event_add_dropbox_handler(&ar->handlers, lb);
+  WM_event_add_dropbox_handler(&region->handlers, lb);
 }
 
-static void node_main_region_draw(const bContext *C, ARegion *ar)
+static void node_main_region_draw(const bContext *C, ARegion *region)
 {
-  drawnodespace(C, ar);
+  drawnodespace(C, region);
 }
 
 /* ************* dropboxes ************* */
@@ -687,34 +687,34 @@ static void node_dropboxes(void)
 /* ************* end drop *********** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void node_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void node_header_region_draw(const bContext *C, ARegion *ar)
+static void node_header_region_draw(const bContext *C, ARegion *region)
 {
   /* find and set the context */
   snode_set_context(C);
 
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
 /* used for header + main region */
 static void node_region_listener(wmWindow *UNUSED(win),
                                  ScrArea *UNUSED(sa),
-                                 ARegion *ar,
+                                 ARegion *region,
                                  wmNotifier *wmn,
                                  const Scene *UNUSED(scene))
 {
-  wmGizmoMap *gzmap = ar->gizmo_map;
+  wmGizmoMap *gzmap = region->gizmo_map;
 
   /* context changes */
   switch (wmn->category) {
     case NC_SPACE:
       switch (wmn->data) {
         case ND_SPACE_NODE:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
         case ND_SPACE_NODE_VIEW:
           WM_gizmomap_tag_refresh(gzmap);
@@ -728,23 +728,23 @@ static void node_region_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_ANIMPLAY:
         case ND_LAYER:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_WM:
       if (wmn->data == ND_JOB) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SCENE:
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       if (wmn->data == ND_RENDER_RESULT) {
         WM_gizmomap_tag_refresh(gzmap);
       }
       break;
     case NC_NODE:
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
         WM_gizmomap_tag_refresh(gzmap);
       }
@@ -753,24 +753,24 @@ static void node_region_listener(wmWindow *UNUSED(win),
     case NC_TEXTURE:
     case NC_WORLD:
     case NC_LINESTYLE:
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       break;
     case NC_OBJECT:
       if (wmn->data == ND_OB_SHADING) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_GPENCIL:
       if (wmn->action == NA_EDITED) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       else if (wmn->data & ND_GPENCIL_EDITMODE) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }

@@ -136,7 +136,7 @@ static void select_engine_init(void *vedata)
     DRW_view_viewmat_get(view_default, viewmat, false);
     DRW_view_winmat_get(view_default, winmat, false);
     projmat_from_subregion(winmat,
-                           (int[2]){draw_ctx->ar->winx, draw_ctx->ar->winy},
+                           (int[2]){draw_ctx->region->winx, draw_ctx->region->winy},
                            e_data.context.last_rect.xmin,
                            e_data.context.last_rect.xmax,
                            e_data.context.last_rect.ymin,

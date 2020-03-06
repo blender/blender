@@ -55,7 +55,7 @@
 
 static SpaceLink *text_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceText *stext;
 
   stext = MEM_callocN(sizeof(SpaceText), "inittext");
@@ -68,31 +68,31 @@ static SpaceLink *text_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
   stext->showlinenrs = true;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for text");
+  region = MEM_callocN(sizeof(ARegion), "header for text");
 
-  BLI_addtail(&stext->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&stext->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* footer */
-  ar = MEM_callocN(sizeof(ARegion), "footer for text");
-  BLI_addtail(&stext->regionbase, ar);
-  ar->regiontype = RGN_TYPE_FOOTER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+  region = MEM_callocN(sizeof(ARegion), "footer for text");
+  BLI_addtail(&stext->regionbase, region);
+  region->regiontype = RGN_TYPE_FOOTER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
 
   /* properties region */
-  ar = MEM_callocN(sizeof(ARegion), "properties region for text");
+  region = MEM_callocN(sizeof(ARegion), "properties region for text");
 
-  BLI_addtail(&stext->regionbase, ar);
-  ar->regiontype = RGN_TYPE_UI;
-  ar->alignment = RGN_ALIGN_RIGHT;
-  ar->flag = RGN_FLAG_HIDDEN;
+  BLI_addtail(&stext->regionbase, region);
+  region->regiontype = RGN_TYPE_UI;
+  region->alignment = RGN_ALIGN_RIGHT;
+  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for text");
+  region = MEM_callocN(sizeof(ARegion), "main region for text");
 
-  BLI_addtail(&stext->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&stext->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
   return (SpaceLink *)stext;
 }
@@ -269,30 +269,30 @@ static int text_context(const bContext *C, const char *member, bContextDataResul
 /********************* main region ********************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void text_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
   ListBase *lb;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "Text", SPACE_TEXT, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* add drop boxes */
   lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 
-  WM_event_add_dropbox_handler(&ar->handlers, lb);
+  WM_event_add_dropbox_handler(&region->handlers, lb);
 }
 
-static void text_main_region_draw(const bContext *C, ARegion *ar)
+static void text_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceText *st = CTX_wm_space_text(C);
-  // View2D *v2d = &ar->v2d;
+  // View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
@@ -301,7 +301,7 @@ static void text_main_region_draw(const bContext *C, ARegion *ar)
   // UI_view2d_view_ortho(v2d);
 
   /* data... */
-  draw_text_main(st, ar);
+  draw_text_main(st, region);
 
   /* reset view matrix */
   // UI_view2d_view_restore(C);
@@ -309,13 +309,13 @@ static void text_main_region_draw(const bContext *C, ARegion *ar)
   /* scrollers? */
 }
 
-static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *region)
 {
   SpaceText *st = sa->spacedata.first;
   int wmcursor = WM_CURSOR_TEXT_EDIT;
 
   if (st->text && BLI_rcti_isect_pt(&st->runtime.scroll_region_handle,
-                                    win->eventstate->x - ar->winrct.xmin,
+                                    win->eventstate->x - region->winrct.xmin,
                                     st->runtime.scroll_region_handle.ymin)) {
     wmcursor = WM_CURSOR_DEFAULT;
   }
@@ -378,40 +378,40 @@ static void text_dropboxes(void)
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void text_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void text_header_region_draw(const bContext *C, ARegion *ar)
+static void text_header_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
 /****************** properties region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_properties_region_init(wmWindowManager *wm, ARegion *ar)
+static void text_properties_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ar->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
-  ED_region_panels_init(wm, ar);
+  region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+  ED_region_panels_init(wm, region);
 
   /* own keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void text_properties_region_draw(const bContext *C, ARegion *ar)
+static void text_properties_region_draw(const bContext *C, ARegion *region)
 {
   SpaceText *st = CTX_wm_space_text(C);
 
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 
   /* this flag trick is make sure buttons have been added already */
   if (st->flags & ST_FIND_ACTIVATE) {
-    if (UI_textbutton_activate_rna(C, ar, st, "find_text")) {
+    if (UI_textbutton_activate_rna(C, region, st, "find_text")) {
       /* if the panel was already open we need to do another redraw */
       ScrArea *sa = CTX_wm_area(C);
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_TEXT, sa);

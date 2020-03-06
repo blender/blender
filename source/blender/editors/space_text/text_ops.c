@@ -60,7 +60,7 @@
 #include "text_intern.h"
 #include "text_format.h"
 
-static void txt_screen_clamp(SpaceText *st, ARegion *ar);
+static void txt_screen_clamp(SpaceText *st, ARegion *region);
 
 /* -------------------------------------------------------------------- */
 /** \name Util
@@ -195,13 +195,13 @@ static bool text_region_edit_poll(bContext *C)
 {
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   if (!st || !text) {
     return 0;
   }
 
-  if (!ar || ar->regiontype != RGN_TYPE_WINDOW) {
+  if (!region || region->regiontype != RGN_TYPE_WINDOW) {
     return 0;
   }
 
@@ -421,7 +421,7 @@ static int text_reload_exec(bContext *C, wmOperator *op)
 {
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   /* store view & cursor state */
   const int orig_top = st->top;
@@ -448,7 +448,7 @@ static int text_reload_exec(bContext *C, wmOperator *op)
 
   /* return to scroll position */
   st->top = orig_top;
-  txt_screen_clamp(st, ar);
+  txt_screen_clamp(st, region);
   /* return cursor */
   txt_move_to(text, orig_curl, orig_curc, false);
 
@@ -1633,12 +1633,13 @@ static const EnumPropertyItem move_type_items[] = {
 };
 
 /* get cursor position in line by relative wrapped line and column positions */
-static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int rell, int relc)
+static int text_get_cursor_rel(
+    SpaceText *st, ARegion *region, TextLine *linein, int rell, int relc)
 {
   int i, j, start, end, max, chop, curs, loop, endj, found, selc;
   char ch;
 
-  max = wrap_width(st, ar);
+  max = wrap_width(st, region);
 
   selc = start = endj = curs = found = 0;
   end = max;
@@ -1726,17 +1727,17 @@ static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int
 }
 
 static int cursor_skip_find_line(
-    SpaceText *st, ARegion *ar, int lines, TextLine **linep, int *charp, int *rell, int *relc)
+    SpaceText *st, ARegion *region, int lines, TextLine **linep, int *charp, int *rell, int *relc)
 {
   int offl, offc, visible_lines;
 
-  wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
+  wrap_offset_in_line(st, region, *linep, *charp, &offl, &offc);
   *relc = text_get_char_pos(st, (*linep)->line, *charp) + offc;
   *rell = lines;
 
   /* handle current line */
   if (lines > 0) {
-    visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
+    visible_lines = text_get_visible_lines(st, region, (*linep)->line);
 
     if (*rell - visible_lines + offl >= 0) {
       if (!(*linep)->next) {
@@ -1780,7 +1781,7 @@ static int cursor_skip_find_line(
 
   /* skip lines and find destination line and offsets */
   while (*linep) {
-    visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
+    visible_lines = text_get_visible_lines(st, region, (*linep)->line);
 
     if (lines < 0) { /* moving top */
       if (*rell + visible_lines >= 0) {
@@ -1814,7 +1815,7 @@ static int cursor_skip_find_line(
   return 1;
 }
 
-static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, const bool sel)
+static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
 {
   Text *text = st->text;
   TextLine **linep;
@@ -1835,7 +1836,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, const bool sel)
 
   oldc = *charp;
 
-  max = wrap_width(st, ar);
+  max = wrap_width(st, region);
 
   start = endj = 0;
   end = max;
@@ -1898,7 +1899,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, const bool sel)
   }
 }
 
-static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, const bool sel)
+static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
 {
   Text *text = st->text;
   TextLine **linep;
@@ -1919,7 +1920,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, const bool sel)
 
   oldc = *charp;
 
-  max = wrap_width(st, ar);
+  max = wrap_width(st, region);
 
   start = endj = 0;
   end = max;
@@ -1982,7 +1983,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, const bool sel)
   }
 }
 
-static void txt_wrap_move_up(SpaceText *st, ARegion *ar, const bool sel)
+static void txt_wrap_move_up(SpaceText *st, ARegion *region, const bool sel)
 {
   Text *text = st->text;
   TextLine **linep;
@@ -2000,18 +2001,18 @@ static void txt_wrap_move_up(SpaceText *st, ARegion *ar, const bool sel)
     charp = &text->curc;
   }
 
-  wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
+  wrap_offset_in_line(st, region, *linep, *charp, &offl, &offc);
   col = text_get_char_pos(st, (*linep)->line, *charp) + offc;
   if (offl) {
-    *charp = text_get_cursor_rel(st, ar, *linep, offl - 1, col);
+    *charp = text_get_cursor_rel(st, region, *linep, offl - 1, col);
   }
   else {
     if ((*linep)->prev) {
       int visible_lines;
 
       *linep = (*linep)->prev;
-      visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
-      *charp = text_get_cursor_rel(st, ar, *linep, visible_lines - 1, col);
+      visible_lines = text_get_visible_lines(st, region, (*linep)->line);
+      *charp = text_get_cursor_rel(st, region, *linep, visible_lines - 1, col);
     }
     else {
       *charp = 0;
@@ -2023,7 +2024,7 @@ static void txt_wrap_move_up(SpaceText *st, ARegion *ar, const bool sel)
   }
 }
 
-static void txt_wrap_move_down(SpaceText *st, ARegion *ar, const bool sel)
+static void txt_wrap_move_down(SpaceText *st, ARegion *region, const bool sel)
 {
   Text *text = st->text;
   TextLine **linep;
@@ -2041,16 +2042,16 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, const bool sel)
     charp = &text->curc;
   }
 
-  wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
+  wrap_offset_in_line(st, region, *linep, *charp, &offl, &offc);
   col = text_get_char_pos(st, (*linep)->line, *charp) + offc;
-  visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
+  visible_lines = text_get_visible_lines(st, region, (*linep)->line);
   if (offl < visible_lines - 1) {
-    *charp = text_get_cursor_rel(st, ar, *linep, offl + 1, col);
+    *charp = text_get_cursor_rel(st, region, *linep, offl + 1, col);
   }
   else {
     if ((*linep)->next) {
       *linep = (*linep)->next;
-      *charp = text_get_cursor_rel(st, ar, *linep, 0, col);
+      *charp = text_get_cursor_rel(st, region, *linep, 0, col);
     }
     else {
       *charp = (*linep)->len;
@@ -2068,7 +2069,7 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, const bool sel)
  *
  * This is to replace screen_skip for PageUp/Down operations.
  */
-static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, const bool sel)
+static void cursor_skip(SpaceText *st, ARegion *region, Text *text, int lines, const bool sel)
 {
   TextLine **linep;
   int *charp;
@@ -2082,12 +2083,12 @@ static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, const
     charp = &text->curc;
   }
 
-  if (st && ar && st->wordwrap) {
+  if (st && region && st->wordwrap) {
     int rell, relc;
 
     /* find line and offsets inside it needed to set cursor position */
-    if (cursor_skip_find_line(st, ar, lines, linep, charp, &rell, &relc)) {
-      *charp = text_get_cursor_rel(st, ar, *linep, rell, relc);
+    if (cursor_skip_find_line(st, region, lines, linep, charp, &rell, &relc)) {
+      *charp = text_get_cursor_rel(st, region, *linep, rell, relc);
     }
   }
   else {
@@ -2114,11 +2115,11 @@ static int text_move_cursor(bContext *C, int type, bool select)
 {
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   /* ensure we have the right region, it's optional */
-  if (ar && ar->regiontype != RGN_TYPE_WINDOW) {
-    ar = NULL;
+  if (region && region->regiontype != RGN_TYPE_WINDOW) {
+    region = NULL;
   }
 
   switch (type) {
@@ -2126,8 +2127,8 @@ static int text_move_cursor(bContext *C, int type, bool select)
       if (!select) {
         txt_sel_clear(text);
       }
-      if (st && st->wordwrap && ar) {
-        txt_wrap_move_bol(st, ar, select);
+      if (st && st->wordwrap && region) {
+        txt_wrap_move_bol(st, region, select);
       }
       else {
         txt_move_bol(text, select);
@@ -2138,8 +2139,8 @@ static int text_move_cursor(bContext *C, int type, bool select)
       if (!select) {
         txt_sel_clear(text);
       }
-      if (st && st->wordwrap && ar) {
-        txt_wrap_move_eol(st, ar, select);
+      if (st && st->wordwrap && region) {
+        txt_wrap_move_eol(st, region, select);
       }
       else {
         txt_move_eol(text, select);
@@ -2189,8 +2190,8 @@ static int text_move_cursor(bContext *C, int type, bool select)
       break;
 
     case PREV_LINE:
-      if (st && st->wordwrap && ar) {
-        txt_wrap_move_up(st, ar, select);
+      if (st && st->wordwrap && region) {
+        txt_wrap_move_up(st, region, select);
       }
       else {
         txt_move_up(text, select);
@@ -2198,8 +2199,8 @@ static int text_move_cursor(bContext *C, int type, bool select)
       break;
 
     case NEXT_LINE:
-      if (st && st->wordwrap && ar) {
-        txt_wrap_move_down(st, ar, select);
+      if (st && st->wordwrap && region) {
+        txt_wrap_move_down(st, region, select);
       }
       else {
         txt_move_down(text, select);
@@ -2208,7 +2209,7 @@ static int text_move_cursor(bContext *C, int type, bool select)
 
     case PREV_PAGE:
       if (st) {
-        cursor_skip(st, ar, st->text, -st->runtime.viewlines, select);
+        cursor_skip(st, region, st->text, -st->runtime.viewlines, select);
       }
       else {
         cursor_skip(NULL, NULL, text, -10, select);
@@ -2217,7 +2218,7 @@ static int text_move_cursor(bContext *C, int type, bool select)
 
     case NEXT_PAGE:
       if (st) {
-        cursor_skip(st, ar, st->text, st->runtime.viewlines, select);
+        cursor_skip(st, region, st->text, st->runtime.viewlines, select);
       }
       else {
         cursor_skip(NULL, NULL, text, 10, select);
@@ -2491,14 +2492,14 @@ void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 /** \name Scroll Operator
  * \{ */
 
-static void txt_screen_clamp(SpaceText *st, ARegion *ar)
+static void txt_screen_clamp(SpaceText *st, ARegion *region)
 {
   if (st->top <= 0) {
     st->top = 0;
   }
   else {
     int last;
-    last = text_get_total_lines(st, ar);
+    last = text_get_total_lines(st, region);
     last = last - (st->runtime.viewlines / 2);
     if (last > 0 && st->top > last) {
       st->top = last;
@@ -2507,10 +2508,10 @@ static void txt_screen_clamp(SpaceText *st, ARegion *ar)
 }
 
 /* Moves the view vertically by the specified number of lines */
-static void txt_screen_skip(SpaceText *st, ARegion *ar, int lines)
+static void txt_screen_skip(SpaceText *st, ARegion *region, int lines)
 {
   st->top += lines;
-  txt_screen_clamp(st, ar);
+  txt_screen_clamp(st, region);
 }
 
 /* quick enum for tsc->zone (scroller handles) */
@@ -2540,13 +2541,14 @@ typedef struct TextScroll {
   int ofs_delta_px[2];
 } TextScroll;
 
-static void text_scroll_state_init(TextScroll *tsc, SpaceText *st, ARegion *ar)
+static void text_scroll_state_init(TextScroll *tsc, SpaceText *st, ARegion *region)
 {
   tsc->state.ofs_init[0] = st->left;
   tsc->state.ofs_init[1] = st->top;
 
   tsc->state.ofs_max[0] = INT_MAX;
-  tsc->state.ofs_max[1] = max_ii(0, text_get_total_lines(st, ar) - (st->runtime.viewlines / 2));
+  tsc->state.ofs_max[1] = max_ii(0,
+                                 text_get_total_lines(st, region) - (st->runtime.viewlines / 2));
 
   tsc->state.size_px[0] = st->runtime.cwidth_px;
   tsc->state.size_px[1] = TXT_LINE_HEIGHT(st);
@@ -2562,7 +2564,7 @@ static bool text_scroll_poll(bContext *C)
 static int text_scroll_exec(bContext *C, wmOperator *op)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   int lines = RNA_int_get(op->ptr, "lines");
 
@@ -2570,7 +2572,7 @@ static int text_scroll_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  txt_screen_skip(st, ar, lines * U.wheellinescroll);
+  txt_screen_skip(st, region, lines * U.wheellinescroll);
 
   ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -2689,7 +2691,7 @@ static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   TextScroll *tsc = op->customdata;
   SpaceText *st = CTX_wm_space_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   switch (event->type) {
     case MOUSEMOVE:
@@ -2702,8 +2704,10 @@ static int text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case MIDDLEMOUSE:
       if (event->val == KM_RELEASE) {
         if (ELEM(tsc->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
-          txt_screen_skip(
-              st, ar, st->runtime.viewlines * (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1));
+          txt_screen_skip(st,
+                          region,
+                          st->runtime.viewlines *
+                              (tsc->zone == SCROLLHANDLE_MIN_OUTSIDE ? 1 : -1));
 
           ED_area_tag_redraw(CTX_wm_area(C));
         }
@@ -2723,7 +2727,7 @@ static void text_scroll_cancel(bContext *C, wmOperator *op)
 static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   TextScroll *tsc;
 
@@ -2735,7 +2739,7 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   tsc->is_first = true;
   tsc->zone = SCROLLHANDLE_BAR;
 
-  text_scroll_state_init(tsc, st, ar);
+  text_scroll_state_init(tsc, st, region);
 
   op->customdata = tsc;
 
@@ -2796,13 +2800,13 @@ static bool text_region_scroll_poll(bContext *C)
   /* same as text_region_edit_poll except it works on libdata too */
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   if (!st || !text) {
     return 0;
   }
 
-  if (!ar || ar->regiontype != RGN_TYPE_WINDOW) {
+  if (!region || region->regiontype != RGN_TYPE_WINDOW) {
     return 0;
   }
 
@@ -2812,7 +2816,7 @@ static bool text_region_scroll_poll(bContext *C)
 static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   TextScroll *tsc;
   const int *mval = event->mval;
   enum eScrollZone zone = SCROLLHANDLE_INVALID_OUTSIDE;
@@ -2829,7 +2833,7 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *ev
       /* mouse inside scroll handle */
       zone = SCROLLHANDLE_BAR;
     }
-    else if (mval[1] > TXT_SCROLL_SPACE && mval[1] < ar->winy - TXT_SCROLL_SPACE) {
+    else if (mval[1] > TXT_SCROLL_SPACE && mval[1] < region->winy - TXT_SCROLL_SPACE) {
       if (mval[1] < st->runtime.scroll_region_handle.ymin) {
         zone = SCROLLHANDLE_MIN_OUTSIDE;
       }
@@ -2851,12 +2855,12 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   op->customdata = tsc;
   st->flags |= ST_SCROLL_SELECT;
 
-  text_scroll_state_init(tsc, st, ar);
+  text_scroll_state_init(tsc, st, region);
 
   /* jump scroll, works in v2d but needs to be added here too :S */
   if (event->type == MIDDLEMOUSE) {
-    tsc->mval_prev[0] = ar->winrct.xmin + BLI_rcti_cent_x(&st->runtime.scroll_region_handle);
-    tsc->mval_prev[1] = ar->winrct.ymin + BLI_rcti_cent_y(&st->runtime.scroll_region_handle);
+    tsc->mval_prev[0] = region->winrct.xmin + BLI_rcti_cent_x(&st->runtime.scroll_region_handle);
+    tsc->mval_prev[1] = region->winrct.ymin + BLI_rcti_cent_y(&st->runtime.scroll_region_handle);
 
     tsc->is_first = false;
     tsc->zone = SCROLLHANDLE_BAR;
@@ -2943,7 +2947,7 @@ static int flatten_column_to_offset(SpaceText *st, const char *str, int index)
   return j;
 }
 
-static TextLine *get_line_pos_wrapped(SpaceText *st, ARegion *ar, int *y)
+static TextLine *get_line_pos_wrapped(SpaceText *st, ARegion *region, int *y)
 {
   TextLine *linep = st->text->lines.first;
   int i, lines;
@@ -2953,7 +2957,7 @@ static TextLine *get_line_pos_wrapped(SpaceText *st, ARegion *ar, int *y)
   }
 
   for (i = -st->top; i <= *y && linep; linep = linep->next, i += lines) {
-    lines = text_get_visible_lines(st, ar, linep->line);
+    lines = text_get_visible_lines(st, region, linep->line);
 
     if (i + lines > *y) {
       /* We found the line matching given vertical 'coordinate',
@@ -2966,15 +2970,15 @@ static TextLine *get_line_pos_wrapped(SpaceText *st, ARegion *ar, int *y)
 }
 
 static void text_cursor_set_to_pos_wrapped(
-    SpaceText *st, ARegion *ar, int x, int y, const bool sel)
+    SpaceText *st, ARegion *region, int x, int y, const bool sel)
 {
   Text *text = st->text;
-  int max = wrap_width(st, ar); /* column */
-  int charp = -1;               /* mem */
-  bool found = false;           /* flags */
+  int max = wrap_width(st, region); /* column */
+  int charp = -1;                   /* mem */
+  bool found = false;               /* flags */
 
   /* Point to line matching given y position, if any. */
-  TextLine *linep = get_line_pos_wrapped(st, ar, &y);
+  TextLine *linep = get_line_pos_wrapped(st, region, &y);
 
   if (linep) {
     int i = 0, start = 0, end = max; /* column */
@@ -3090,11 +3094,11 @@ static void text_cursor_set_to_pos_wrapped(
   }
 }
 
-static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, const bool sel)
+static void text_cursor_set_to_pos(SpaceText *st, ARegion *region, int x, int y, const bool sel)
 {
   Text *text = st->text;
   text_update_character_width(st);
-  y = (ar->winy - 2 - y) / TXT_LINE_HEIGHT(st);
+  y = (region->winy - 2 - y) / TXT_LINE_HEIGHT(st);
 
   x -= TXT_BODY_LEFT(st);
   if (x < 0) {
@@ -3103,7 +3107,7 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, con
   x = text_pixel_x_to_column(st, x) + st->left;
 
   if (st->wordwrap) {
-    text_cursor_set_to_pos_wrapped(st, ar, x, y, sel);
+    text_cursor_set_to_pos_wrapped(st, region, x, y, sel);
   }
   else {
     TextLine **linep;
@@ -3173,24 +3177,25 @@ static void text_cursor_timer_remove(bContext *C, SetSelection *ssel)
 static void text_cursor_set_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SetSelection *ssel = op->customdata;
 
-  if (event->mval[1] < 0 || event->mval[1] > ar->winy) {
+  if (event->mval[1] < 0 || event->mval[1] > region->winy) {
     text_cursor_timer_ensure(C, ssel);
 
     if (event->type == TIMER) {
-      text_cursor_set_to_pos(st, ar, event->mval[0], event->mval[1], 1);
-      text_scroll_to_cursor(st, ar, false);
+      text_cursor_set_to_pos(st, region, event->mval[0], event->mval[1], 1);
+      text_scroll_to_cursor(st, region, false);
       WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
     }
   }
-  else if (!st->wordwrap && (event->mval[0] < 0 || event->mval[0] > ar->winx)) {
+  else if (!st->wordwrap && (event->mval[0] < 0 || event->mval[0] > region->winx)) {
     text_cursor_timer_ensure(C, ssel);
 
     if (event->type == TIMER) {
-      text_cursor_set_to_pos(st, ar, CLAMPIS(event->mval[0], 0, ar->winx), event->mval[1], 1);
-      text_scroll_to_cursor(st, ar, false);
+      text_cursor_set_to_pos(
+          st, region, CLAMPIS(event->mval[0], 0, region->winx), event->mval[1], 1);
+      text_scroll_to_cursor(st, region, false);
       WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
     }
   }
@@ -3198,8 +3203,8 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, const wmEvent *ev
     text_cursor_timer_remove(C, ssel);
 
     if (event->type != TIMER) {
-      text_cursor_set_to_pos(st, ar, event->mval[0], event->mval[1], 1);
-      text_scroll_to_cursor(st, ar, false);
+      text_cursor_set_to_pos(st, region, event->mval[0], event->mval[1], 1);
+      text_scroll_to_cursor(st, region, false);
       WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 
       ssel->mval_prev[0] = event->mval[0];
@@ -3298,11 +3303,11 @@ void TEXT_OT_selection_set(wmOperatorType *ot)
 static int text_cursor_set_exec(bContext *C, wmOperator *op)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   int x = RNA_int_get(op->ptr, "x");
   int y = RNA_int_get(op->ptr, "y");
 
-  text_cursor_set_to_pos(st, ar, x, y, 0);
+  text_cursor_set_to_pos(st, region, x, y, 0);
 
   text_update_cursor_moved(C);
   WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
@@ -3351,7 +3356,7 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 {
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   const int *mval = event->mval;
   double time;
   static int jump_to = 0;
@@ -3365,7 +3370,7 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 
   if (!(mval[0] > 2 &&
         mval[0] < (TXT_NUMCOL_WIDTH(st) + (TXT_BODY_LPAD * st->runtime.cwidth_px)) &&
-        mval[1] > 2 && mval[1] < ar->winy - 2)) {
+        mval[1] > 2 && mval[1] < region->winy - 2)) {
     return OPERATOR_PASS_THROUGH;
   }
 

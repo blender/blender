@@ -58,7 +58,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
                                                LinkNode *polys)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   struct Mesh *me_eval;
   bool me_eval_needs_free;
 
@@ -87,7 +87,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
     BKE_mesh_to_curve_nurblist(me_eval, &nurbslist, 0); /* wire */
     BKE_mesh_to_curve_nurblist(me_eval, &nurbslist, 1); /* boundary */
 
-    ED_view3d_ob_project_mat_get(ar->regiondata, ob, projmat);
+    ED_view3d_ob_project_mat_get(region->regiondata, ob, projmat);
 
     if (nurbslist.first) {
       Nurb *nu;
@@ -99,7 +99,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
           float(*mval)[2] = MEM_mallocN(sizeof(*mval) * (nu->pntsu + is_cyclic), __func__);
 
           for (bp = nu->bp, a = 0; a < nu->pntsu; a++, bp++) {
-            ED_view3d_project_float_v2_m4(ar, bp->vec, mval[a], projmat);
+            ED_view3d_project_float_v2_m4(region, bp->vec, mval[a], projmat);
           }
           if (is_cyclic) {
             copy_v2_v2(mval[a], mval[0]);

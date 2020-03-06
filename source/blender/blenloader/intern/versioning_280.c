@@ -595,27 +595,27 @@ static void do_versions_fix_annotations(bGPdata *gpd)
   }
 }
 
-static void do_versions_remove_region(ListBase *regionbase, ARegion *ar)
+static void do_versions_remove_region(ListBase *regionbase, ARegion *region)
 {
-  BLI_freelinkN(regionbase, ar);
+  BLI_freelinkN(regionbase, region);
 }
 
 static void do_versions_remove_regions_by_type(ListBase *regionbase, int regiontype)
 {
-  ARegion *ar, *ar_next;
-  for (ar = regionbase->first; ar; ar = ar_next) {
-    ar_next = ar->next;
-    if (ar->regiontype == regiontype) {
-      do_versions_remove_region(regionbase, ar);
+  ARegion *region, *ar_next;
+  for (region = regionbase->first; region; region = ar_next) {
+    ar_next = region->next;
+    if (region->regiontype == regiontype) {
+      do_versions_remove_region(regionbase, region);
     }
   }
 }
 
 static ARegion *do_versions_find_region_or_null(ListBase *regionbase, int regiontype)
 {
-  for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
-    if (ar->regiontype == regiontype) {
-      return ar;
+  for (ARegion *region = regionbase->first; region; region = region->next) {
+    if (region->regiontype == regiontype) {
+      return region;
     }
   }
   return NULL;
@@ -623,18 +623,18 @@ static ARegion *do_versions_find_region_or_null(ListBase *regionbase, int region
 
 static ARegion *do_versions_find_region(ListBase *regionbase, int regiontype)
 {
-  ARegion *ar = do_versions_find_region_or_null(regionbase, regiontype);
-  if (ar == NULL) {
+  ARegion *region = do_versions_find_region_or_null(regionbase, regiontype);
+  if (region == NULL) {
     BLI_assert(!"Did not find expected region in versioning");
   }
-  return ar;
+  return region;
 }
 
 static ARegion *do_versions_add_region(int regiontype, const char *name)
 {
-  ARegion *ar = MEM_callocN(sizeof(ARegion), name);
-  ar->regiontype = regiontype;
-  return ar;
+  ARegion *region = MEM_callocN(sizeof(ARegion), name);
+  region->regiontype = regiontype;
+  return region;
 }
 
 static void do_versions_area_ensure_tool_region(Main *bmain,
@@ -646,13 +646,13 @@ static void do_versions_area_ensure_tool_region(Main *bmain,
       for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
         if (sl->spacetype == space_type) {
           ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-          ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
-          if (!ar) {
+          ARegion *region = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+          if (!region) {
             ARegion *header = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
-            ar = do_versions_add_region(RGN_TYPE_TOOLS, "tools region");
-            BLI_insertlinkafter(regionbase, header, ar);
-            ar->alignment = RGN_ALIGN_LEFT;
-            ar->flag = region_flag;
+            region = do_versions_add_region(RGN_TYPE_TOOLS, "tools region");
+            BLI_insertlinkafter(regionbase, header, region);
+            region->alignment = RGN_ALIGN_LEFT;
+            region->flag = region_flag;
           }
         }
       }
@@ -2899,9 +2899,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
                * fine to always insert headers first. */
               BLI_assert(!do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER));
 
-              ARegion *ar = do_versions_add_region(RGN_TYPE_HEADER, "header 2.83.1 versioning");
-              ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
-              BLI_addhead(regionbase, ar);
+              ARegion *region = do_versions_add_region(RGN_TYPE_HEADER,
+                                                       "header 2.83.1 versioning");
+              region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM :
+                                                                    RGN_ALIGN_TOP;
+              BLI_addhead(regionbase, region);
             }
           }
         }
@@ -2913,7 +2915,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_PROPERTIES) {
             ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-            ARegion *ar = MEM_callocN(sizeof(ARegion), "navigation bar for properties");
+            ARegion *region = MEM_callocN(sizeof(ARegion), "navigation bar for properties");
             ARegion *ar_header = NULL;
 
             for (ar_header = regionbase->first; ar_header; ar_header = ar_header->next) {
@@ -2923,10 +2925,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
             BLI_assert(ar_header);
 
-            BLI_insertlinkafter(regionbase, ar_header, ar);
+            BLI_insertlinkafter(regionbase, ar_header, region);
 
-            ar->regiontype = RGN_TYPE_NAV_BAR;
-            ar->alignment = RGN_ALIGN_LEFT;
+            region->regiontype = RGN_TYPE_NAV_BAR;
+            region->alignment = RGN_ALIGN_LEFT;
           }
         }
       }
@@ -3698,11 +3700,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             do_versions_remove_regions_by_type(regionbase, RGN_TYPE_FOOTER);
 
             /* Add footer. */
-            ARegion *ar = do_versions_add_region(RGN_TYPE_FOOTER, "footer for text");
-            ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+            ARegion *region = do_versions_add_region(RGN_TYPE_FOOTER, "footer for text");
+            region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
 
             ARegion *ar_header = do_versions_find_region(regionbase, RGN_TYPE_HEADER);
-            BLI_insertlinkafter(regionbase, ar_header, ar);
+            BLI_insertlinkafter(regionbase, ar_header, region);
           }
         }
       }
@@ -3788,20 +3790,22 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
           ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
           /* All spaces that use tools must be eventually added. */
-          ARegion *ar = NULL;
+          ARegion *region = NULL;
           if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_SEQ) &&
-              ((ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER)) == NULL)) {
+              ((region = do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER)) ==
+               NULL)) {
             /* Add tool header. */
-            ar = do_versions_add_region(RGN_TYPE_TOOL_HEADER, "tool header");
-            ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+            region = do_versions_add_region(RGN_TYPE_TOOL_HEADER, "tool header");
+            region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
             ARegion *ar_header = do_versions_find_region(regionbase, RGN_TYPE_HEADER);
-            BLI_insertlinkbefore(regionbase, ar_header, ar);
+            BLI_insertlinkbefore(regionbase, ar_header, region);
             /* Hide by default, enable for painting workspaces (startup only). */
-            ar->flag |= RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
+            region->flag |= RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
           }
-          if (ar != NULL) {
-            SET_FLAG_FROM_TEST(ar->flag, ar->flag & RGN_FLAG_HIDDEN_BY_USER, RGN_FLAG_HIDDEN);
+          if (region != NULL) {
+            SET_FLAG_FROM_TEST(
+                region->flag, region->flag & RGN_FLAG_HIDDEN_BY_USER, RGN_FLAG_HIDDEN);
           }
         }
       }
@@ -3898,19 +3902,19 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (ELEM(sl->spacetype, SPACE_CLIP, SPACE_GRAPH, SPACE_SEQ)) {
             ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 
-            ARegion *ar = NULL;
+            ARegion *region = NULL;
             if (sl->spacetype == SPACE_CLIP) {
               if (((SpaceClip *)sl)->view == SC_VIEW_GRAPH) {
-                ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_PREVIEW);
+                region = do_versions_find_region_or_null(regionbase, RGN_TYPE_PREVIEW);
               }
             }
             else {
-              ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_WINDOW);
+              region = do_versions_find_region_or_null(regionbase, RGN_TYPE_WINDOW);
             }
 
-            if (ar != NULL) {
-              ar->v2d.scroll &= ~V2D_SCROLL_LEFT;
-              ar->v2d.scroll |= V2D_SCROLL_RIGHT;
+            if (region != NULL) {
+              region->v2d.scroll &= ~V2D_SCROLL_LEFT;
+              region->v2d.scroll |= V2D_SCROLL_RIGHT;
             }
           }
         }
@@ -4049,9 +4053,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_TEXT) {
             ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-            ARegion *ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_UI);
-            if (ar) {
-              ar->alignment = RGN_ALIGN_RIGHT;
+            ARegion *region = do_versions_find_region_or_null(regionbase, RGN_TYPE_UI);
+            if (region) {
+              region->alignment = RGN_ALIGN_RIGHT;
             }
           }
           /* Mark outliners as dirty for syncing and enable synced selection */

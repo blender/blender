@@ -413,7 +413,7 @@ void fileselect_file_set(SpaceFile *sfile, const int index)
   }
 }
 
-int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *ar)
+int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *region)
 {
   int numfiles;
 
@@ -429,14 +429,14 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *ar)
    */
   if (layout->flag & FILE_LAYOUT_HOR) {
     const int x_item = layout->tile_w + (2 * layout->tile_border_x);
-    const int x_view = (int)(BLI_rctf_size_x(&ar->v2d.cur));
+    const int x_view = (int)(BLI_rctf_size_x(&region->v2d.cur));
     const int x_over = x_item - (x_view % x_item);
     numfiles = (int)((float)(x_view + x_over) / (float)(x_item));
     return numfiles * layout->rows;
   }
   else {
     const int y_item = layout->tile_h + (2 * layout->tile_border_y);
-    const int y_view = (int)(BLI_rctf_size_y(&ar->v2d.cur)) - layout->offset_top;
+    const int y_view = (int)(BLI_rctf_size_y(&region->v2d.cur)) - layout->offset_top;
     const int y_over = y_item - (y_view % y_item);
     numfiles = (int)((float)(y_view + y_over) / (float)(y_item));
     return numfiles * layout->flow_columns;
@@ -720,11 +720,11 @@ static void file_attribute_columns_init(const FileSelectParams *params, FileLayo
   layout->attribute_columns[COLUMN_SIZE].text_align = UI_STYLE_TEXT_RIGHT;
 }
 
-void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
+void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
 {
   FileSelectParams *params = ED_fileselect_get_params(sfile);
   FileLayout *layout = NULL;
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   int numfiles;
   int textheight;
 
@@ -817,10 +817,10 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
   layout->dirty = false;
 }
 
-FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *ar)
+FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *region)
 {
   if (!sfile->layout) {
-    ED_fileselect_init_layout(sfile, ar);
+    ED_fileselect_init_layout(sfile, region);
   }
   return sfile->layout;
 }

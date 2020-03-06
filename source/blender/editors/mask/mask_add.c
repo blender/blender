@@ -62,7 +62,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
                                      float *score_r)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MaskLayer *point_mask_layer;
   MaskSpline *point_spline;
@@ -76,7 +76,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
 
   ED_mask_get_size(sa, &width, &height);
-  ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
+  ED_mask_pixelspace_factor(sa, region, &scalex, &scaley);
 
   co[0] = normal_co[0] * scalex;
   co[1] = normal_co[1] * scaley;
@@ -598,10 +598,10 @@ static void mask_point_make_pixel_space(bContext *C,
                                         float point_pixel[2])
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float scalex, scaley;
-  ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
+  ED_mask_pixelspace_factor(sa, region, &scalex, &scaley);
 
   point_pixel[0] = point_normalized[0] * scalex;
   point_pixel[1] = point_normalized[1] * scaley;
@@ -710,11 +710,11 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float co[2];
 
-  ED_mask_mouse_pos(sa, ar, event->mval, co);
+  ED_mask_mouse_pos(sa, region, event->mval, co);
 
   RNA_float_set_array(op->ptr, "location", co);
 
@@ -802,11 +802,11 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 static int add_feather_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float co[2];
 
-  ED_mask_mouse_pos(sa, ar, event->mval, co);
+  ED_mask_mouse_pos(sa, region, event->mval, co);
 
   RNA_float_set_array(op->ptr, "location", co);
 

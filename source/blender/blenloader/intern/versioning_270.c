@@ -233,18 +233,18 @@ static void do_version_constraints_stretch_to_limits(ListBase *lb)
 
 static void do_version_action_editor_properties_region(ListBase *regionbase)
 {
-  ARegion *ar;
+  ARegion *region;
 
-  for (ar = regionbase->first; ar; ar = ar->next) {
-    if (ar->regiontype == RGN_TYPE_UI) {
+  for (region = regionbase->first; region; region = region->next) {
+    if (region->regiontype == RGN_TYPE_UI) {
       /* already exists */
       return;
     }
-    else if (ar->regiontype == RGN_TYPE_WINDOW) {
+    else if (region->regiontype == RGN_TYPE_WINDOW) {
       /* add new region here */
       ARegion *arnew = MEM_callocN(sizeof(ARegion), "buttons for action");
 
-      BLI_insertlinkbefore(regionbase, ar, arnew);
+      BLI_insertlinkbefore(regionbase, region, arnew);
 
       arnew->regiontype = RGN_TYPE_UI;
       arnew->alignment = RGN_ALIGN_RIGHT;
@@ -527,11 +527,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         SpaceLink *sl;
 
         for (sl = sa->spacedata.first; sl; sl = sl->next) {
-          ARegion *ar;
+          ARegion *region;
           ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 
-          for (ar = lb->first; ar; ar = ar->next) {
-            BLI_listbase_clear(&ar->ui_previews);
+          for (region = lb->first; region; region = region->next) {
+            BLI_listbase_clear(&region->ui_previews);
           }
         }
       }
@@ -855,18 +855,18 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     bScreen *scr;
     ScrArea *sa;
     SpaceLink *sl;
-    ARegion *ar;
+    ARegion *region;
 
     /* Make sure sequencer preview area limits zoom */
     for (scr = bmain->screens.first; scr; scr = scr->id.next) {
       for (sa = scr->areabase.first; sa; sa = sa->next) {
         for (sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_SEQ) {
-            for (ar = sl->regionbase.first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_PREVIEW) {
-                ar->v2d.keepzoom |= V2D_LIMITZOOM;
-                ar->v2d.minzoom = 0.001f;
-                ar->v2d.maxzoom = 1000.0f;
+            for (region = sl->regionbase.first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_PREVIEW) {
+                region->v2d.keepzoom |= V2D_LIMITZOOM;
+                region->v2d.minzoom = 0.001f;
+                region->v2d.maxzoom = 1000.0f;
                 break;
               }
             }
@@ -1069,12 +1069,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
           SpaceLink *sl;
           for (sl = sa->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
-              ARegion *ar;
+              ARegion *region;
               ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-              for (ar = lb->first; ar; ar = ar->next) {
-                if (ar->regiontype == RGN_TYPE_WINDOW) {
-                  if (ar->regiondata) {
-                    RegionView3D *rv3d = ar->regiondata;
+              for (region = lb->first; region; region = region->next) {
+                if (region->regiontype == RGN_TYPE_WINDOW) {
+                  if (region->regiondata) {
+                    RegionView3D *rv3d = region->regiondata;
                     if (rv3d->view == RV3D_VIEW_PERSPORTHO) {
                       rv3d->view = RV3D_VIEW_USER;
                     }
@@ -1256,11 +1256,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (sl->spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
             if (sseq->view == SEQ_VIEW_SEQUENCE) {
-              for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
+              for (ARegion *region = regionbase->first; region; region = region->next) {
                 /* remove preview region for sequencer-only view! */
-                if (ar->regiontype == RGN_TYPE_PREVIEW) {
-                  ar->flag |= RGN_FLAG_HIDDEN;
-                  ar->alignment = RGN_ALIGN_NONE;
+                if (region->regiontype == RGN_TYPE_PREVIEW) {
+                  region->flag |= RGN_FLAG_HIDDEN;
+                  region->alignment = RGN_ALIGN_NONE;
                   break;
                 }
               }
@@ -1268,11 +1268,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
           /* Remove old deprecated region from filebrowsers */
           else if (sl->spacetype == SPACE_FILE) {
-            for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_CHANNELS) {
+            for (ARegion *region = regionbase->first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_CHANNELS) {
                 /* Free old deprecated 'channel' region... */
-                BKE_area_region_free(NULL, ar);
-                BLI_freelinkN(regionbase, ar);
+                BKE_area_region_free(NULL, region);
+                BLI_freelinkN(regionbase, region);
                 break;
               }
             }

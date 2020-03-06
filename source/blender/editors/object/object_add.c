@@ -1327,8 +1327,8 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
 
     if (0 == RNA_struct_property_is_set(op->ptr, "location")) {
       const wmEvent *event = CTX_wm_window(C)->eventstate;
-      ARegion *ar = CTX_wm_region(C);
-      const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
+      ARegion *region = CTX_wm_region(C);
+      const int mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
       ED_object_location_from_view(C, loc);
       ED_view3d_cursor3d_position(C, mval, false, loc);
       RNA_float_set_array(op->ptr, "location", loc);
@@ -2762,8 +2762,8 @@ static int add_named_exec(bContext *C, wmOperator *op)
   basen->object->restrictflag &= ~OB_RESTRICT_VIEWPORT;
 
   if (event) {
-    ARegion *ar = CTX_wm_region(C);
-    const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
+    ARegion *region = CTX_wm_region(C);
+    const int mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
     ED_object_location_from_view(C, basen->object->loc);
     ED_view3d_cursor3d_position(C, mval, false, basen->object->loc);
   }

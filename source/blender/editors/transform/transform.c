@@ -71,7 +71,7 @@
  * and being able to set it to zero is handy. */
 // #define USE_NUM_NO_ZERO
 
-static void drawTransformApply(const struct bContext *C, ARegion *ar, void *arg);
+static void drawTransformApply(const struct bContext *C, ARegion *region, void *arg);
 
 static void initSnapSpatial(TransInfo *t, float r_snap[3]);
 
@@ -84,8 +84,8 @@ bool transdata_check_local_islands(TransInfo *t, short around)
 
 void setTransformViewMatrices(TransInfo *t)
 {
-  if (t->spacetype == SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
-    RegionView3D *rv3d = t->ar->regiondata;
+  if (t->spacetype == SPACE_VIEW3D && t->region && t->region->regiontype == RGN_TYPE_WINDOW) {
+    RegionView3D *rv3d = t->region->regiondata;
 
     copy_m4_m4(t->viewmat, rv3d->viewmat);
     copy_m4_m4(t->viewinv, rv3d->viewinv);
@@ -174,14 +174,14 @@ static void convertViewVec2D_mask(View2D *v2d, float r_vec[3], int dx, int dy)
 
 void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy)
 {
-  if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
     if (t->options & CTX_PAINT_CURVE) {
       r_vec[0] = dx;
       r_vec[1] = dy;
     }
     else {
       const float mval_f[2] = {(float)dx, (float)dy};
-      ED_view3d_win_to_delta(t->ar, mval_f, r_vec, t->zfac);
+      ED_view3d_win_to_delta(t->region, mval_f, r_vec, t->zfac);
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
@@ -203,7 +203,7 @@ void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy)
     convertViewVec2D(t->view, r_vec, dx, dy);
   }
   else if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
-    convertViewVec2D(&t->ar->v2d, r_vec, dx, dy);
+    convertViewVec2D(&t->region->v2d, r_vec, dx, dy);
   }
   else if (t->spacetype == SPACE_CLIP) {
     if (t->options & CTX_MASK) {
@@ -225,8 +225,8 @@ void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy)
 void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag)
 {
   if (t->spacetype == SPACE_VIEW3D) {
-    if (t->ar->regiontype == RGN_TYPE_WINDOW) {
-      if (ED_view3d_project_int_global(t->ar, vec, adr, flag) != V3D_PROJ_RET_OK) {
+    if (t->region->regiontype == RGN_TYPE_WINDOW) {
+      if (ED_view3d_project_int_global(t->region, vec, adr, flag) != V3D_PROJ_RET_OK) {
         /* this is what was done in 2.64, perhaps we can be smarter? */
         adr[0] = (int)2140000000.0f;
         adr[1] = (int)2140000000.0f;
@@ -244,7 +244,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 
       BKE_mask_coord_to_image(sima->image, &sima->iuser, v, v);
 
-      ED_image_point_pos__reverse(sima, t->ar, v, v);
+      ED_image_point_pos__reverse(sima, t->region, v, v);
 
       adr[0] = v[0];
       adr[1] = v[1];
@@ -309,7 +309,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 
         BKE_mask_coord_to_movieclip(sc->clip, &sc->user, v, v);
 
-        ED_clip_point_stable_pos__reverse(sc, t->ar, v, v);
+        ED_clip_point_stable_pos__reverse(sc, t->region, v, v);
 
         adr[0] = v[0];
         adr[1] = v[1];
@@ -348,12 +348,12 @@ void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV
         adr[0] = vec[0];
         adr[1] = vec[1];
       }
-      else if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+      else if (t->region->regiontype == RGN_TYPE_WINDOW) {
         /* allow points behind the view [#33643] */
-        if (ED_view3d_project_float_global(t->ar, vec, adr, flag) != V3D_PROJ_RET_OK) {
+        if (ED_view3d_project_float_global(t->region, vec, adr, flag) != V3D_PROJ_RET_OK) {
           /* XXX, 2.64 and prior did this, weak! */
-          adr[0] = t->ar->winx / 2.0f;
-          adr[1] = t->ar->winy / 2.0f;
+          adr[0] = t->region->winx / 2.0f;
+          adr[1] = t->region->winy / 2.0f;
         }
         return;
       }
@@ -434,7 +434,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
   else if (t->spacetype == SPACE_VIEW3D) {
     if (t->options & CTX_PAINT_CURVE) {
       wmWindow *window = CTX_wm_window(C);
-      WM_paint_cursor_tag_redraw(window, t->ar);
+      WM_paint_cursor_tag_redraw(window, t->region);
     }
     else {
       /* Do we need more refined tags? */
@@ -480,7 +480,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
     }
     else if (t->options & CTX_PAINT_CURVE) {
       wmWindow *window = CTX_wm_window(C);
-      WM_paint_cursor_tag_redraw(window, t->ar);
+      WM_paint_cursor_tag_redraw(window, t->region);
     }
     else if (t->flag & T_CURSOR) {
       ED_area_tag_redraw(t->sa);
@@ -1513,11 +1513,11 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
   return success;
 }
 
-static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegion *ar)
+static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegion *region)
 {
   /* Don't show overlays when not the active view and when overlay is disabled: T57139 */
   bool ok = false;
-  if (ar == t->ar) {
+  if (region == t->region) {
     ok = true;
   }
   else {
@@ -1532,11 +1532,11 @@ static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegi
   return ok;
 }
 
-static void drawTransformView(const struct bContext *C, ARegion *ar, void *arg)
+static void drawTransformView(const struct bContext *C, ARegion *region, void *arg)
 {
   TransInfo *t = arg;
 
-  if (!transinfo_show_overlay(C, t, ar)) {
+  if (!transinfo_show_overlay(C, t, region)) {
     return;
   }
 
@@ -1546,7 +1546,7 @@ static void drawTransformView(const struct bContext *C, ARegion *ar, void *arg)
   drawPropCircle(C, t);
   drawSnapping(C, t);
 
-  if (ar == t->ar) {
+  if (region == t->region) {
     /* edge slide, vert slide */
     drawEdgeSlide(t);
     drawVertSlide(t);
@@ -1558,13 +1558,13 @@ static void drawTransformView(const struct bContext *C, ARegion *ar, void *arg)
 
 /* just draw a little warning message in the top-right corner of the viewport
  * to warn that autokeying is enabled */
-static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
+static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *region)
 {
   const char *printable = IFACE_("Auto Keying On");
   float printable_size[2];
   int xco, yco;
 
-  const rcti *rect = ED_region_visible_rect(ar);
+  const rcti *rect = ED_region_visible_rect(region);
 
   const int font_id = BLF_default();
   BLF_width_and_height(
@@ -1598,15 +1598,15 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
   GPU_blend(false);
 }
 
-static void drawTransformPixel(const struct bContext *C, ARegion *ar, void *arg)
+static void drawTransformPixel(const struct bContext *C, ARegion *region, void *arg)
 {
   TransInfo *t = arg;
 
-  if (!transinfo_show_overlay(C, t, ar)) {
+  if (!transinfo_show_overlay(C, t, region)) {
     return;
   }
 
-  if (ar == t->ar) {
+  if (region == t->region) {
     Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
     Object *ob = OBACT(view_layer);
@@ -1617,10 +1617,10 @@ static void drawTransformPixel(const struct bContext *C, ARegion *ar, void *arg)
      *   AND only for the active region (as showing all is too overwhelming)
      */
     if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
-      if (ar == t->ar) {
+      if (region == t->region) {
         if (t->flag & (T_OBJECT | T_POSE)) {
           if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
-            drawAutoKeyWarning(t, ar);
+            drawAutoKeyWarning(t, region);
           }
         }
       }
@@ -1867,7 +1867,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 static void initSnapSpatial(TransInfo *t, float r_snap[3])
 {
   if (t->spacetype == SPACE_VIEW3D) {
-    RegionView3D *rv3d = t->ar->regiondata;
+    RegionView3D *rv3d = t->region->regiondata;
 
     if (rv3d) {
       View3D *v3d = t->sa->spacedata.first;
@@ -1967,11 +1967,11 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   if (t->spacetype == SPACE_VIEW3D) {
     t->draw_handle_apply = ED_region_draw_cb_activate(
-        t->ar->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);
+        t->region->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);
     t->draw_handle_view = ED_region_draw_cb_activate(
-        t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+        t->region->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_pixel = ED_region_draw_cb_activate(
-        t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+        t->region->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
     t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
                                                      SPACE_TYPE_ANY,
                                                      RGN_TYPE_ANY,
@@ -1981,7 +1981,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_IMAGE) {
     t->draw_handle_view = ED_region_draw_cb_activate(
-        t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+        t->region->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
                                                      SPACE_TYPE_ANY,
                                                      RGN_TYPE_ANY,
@@ -1991,7 +1991,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_CLIP) {
     t->draw_handle_view = ED_region_draw_cb_activate(
-        t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+        t->region->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
                                                      SPACE_TYPE_ANY,
                                                      RGN_TYPE_ANY,
@@ -2001,7 +2001,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_NODE) {
     t->draw_handle_view = ED_region_draw_cb_activate(
-        t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+        t->region->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
                                                      SPACE_TYPE_ANY,
                                                      RGN_TYPE_ANY,
@@ -2011,7 +2011,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_GRAPH) {
     t->draw_handle_view = ED_region_draw_cb_activate(
-        t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+        t->region->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
                                                      SPACE_TYPE_ANY,
                                                      RGN_TYPE_ANY,
@@ -2021,7 +2021,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_ACTION) {
     t->draw_handle_view = ED_region_draw_cb_activate(
-        t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
+        t->region->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C),
                                                      SPACE_TYPE_ANY,
                                                      RGN_TYPE_ANY,
@@ -2250,7 +2250,7 @@ void transformApply(bContext *C, TransInfo *t)
   t->context = NULL;
 }
 
-static void drawTransformApply(const bContext *C, ARegion *UNUSED(ar), void *arg)
+static void drawTransformApply(const bContext *C, ARegion *UNUSED(region), void *arg)
 {
   TransInfo *t = arg;
 

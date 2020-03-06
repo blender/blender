@@ -182,8 +182,8 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  ARegion *ar = CTX_wm_region(C);
-  View2D *v2d = &ar->v2d;
+  ARegion *region = CTX_wm_region(C);
+  View2D *v2d = &region->v2d;
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
   static const int delta = 6;
@@ -316,10 +316,10 @@ static int select_exec(bContext *C, wmOperator *op)
 
 static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   return select_exec(C, op);
@@ -403,7 +403,7 @@ static void box_select_cb(void *userdata,
 static int box_select_graph_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
@@ -417,7 +417,7 @@ static int box_select_graph_exec(bContext *C, wmOperator *op)
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rect);
-  UI_view2d_region_to_view_rctf(&ar->v2d, &rect, &userdata.rect);
+  UI_view2d_region_to_view_rctf(&region->v2d, &rect, &userdata.rect);
 
   userdata.changed = false;
   userdata.select = !RNA_boolean_get(op->ptr, "deselect");
@@ -624,9 +624,9 @@ static void view_all_cb(void *userdata,
 static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   ViewAllUserData userdata;
   float extra;
 
@@ -663,7 +663,7 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
   v2d->cur.ymin -= extra;
   v2d->cur.ymax += extra;
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -682,9 +682,9 @@ void CLIP_OT_graph_view_all(wmOperatorType *ot)
 
 /******************** jump to current frame operator ********************/
 
-void ED_clip_graph_center_current_frame(Scene *scene, ARegion *ar)
+void ED_clip_graph_center_current_frame(Scene *scene, ARegion *region)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   float extra = BLI_rctf_size_x(&v2d->cur) / 2.0f;
 
   /* set extents of view to start/end frames */
@@ -695,11 +695,11 @@ void ED_clip_graph_center_current_frame(Scene *scene, ARegion *ar)
 static int center_current_frame_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-  ED_clip_graph_center_current_frame(scene, ar);
+  ED_clip_graph_center_current_frame(scene, region);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }

@@ -65,7 +65,7 @@ struct VertProjUpdate {
   struct VertProjHandle *vp_handle;
 
   /* runtime */
-  ARegion *ar;
+  ARegion *region;
   const float *mval_fl;
 };
 
@@ -130,7 +130,7 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(
     float co_ss[2]; /* screenspace */
 
     if (ED_view3d_project_float_object(
-            vp_update->ar, co, co_ss, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) ==
+            vp_update->region, co, co_ss, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) ==
         V3D_PROJ_RET_OK) {
       const float dist_sq = len_squared_v2v2(vp_update->mval_fl, co_ss);
       if (dist_sq > vp_handle->dists_sq[index]) {
@@ -158,10 +158,10 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(
 
 static void vpaint_proj_dm_map_cosnos_update(struct Depsgraph *depsgraph,
                                              struct VertProjHandle *vp_handle,
-                                             ARegion *ar,
+                                             ARegion *region,
                                              const float mval_fl[2])
 {
-  struct VertProjUpdate vp_update = {vp_handle, ar, mval_fl};
+  struct VertProjUpdate vp_update = {vp_handle, region, mval_fl};
 
   Object *ob = vp_handle->ob;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
@@ -216,11 +216,11 @@ struct VertProjHandle *ED_vpaint_proj_handle_create(struct Depsgraph *depsgraph,
 
 void ED_vpaint_proj_handle_update(struct Depsgraph *depsgraph,
                                   struct VertProjHandle *vp_handle,
-                                  ARegion *ar,
+                                  ARegion *region,
                                   const float mval_fl[2])
 {
   if (vp_handle->use_update) {
-    vpaint_proj_dm_map_cosnos_update(depsgraph, vp_handle, ar, mval_fl);
+    vpaint_proj_dm_map_cosnos_update(depsgraph, vp_handle, region, mval_fl);
   }
 }
 

@@ -4597,7 +4597,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
  * \{ */
 
 /* conversion from old to new buttons, so still messy */
-void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
+void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but, rcti *rect)
 {
   bTheme *btheme = UI_GetTheme();
   const ThemeUI *tui = &btheme->tui;
@@ -4790,30 +4790,30 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
         break;
 
       case UI_BTYPE_IMAGE:
-        ui_draw_but_IMAGE(ar, but, &tui->wcol_regular, rect);
+        ui_draw_but_IMAGE(region, but, &tui->wcol_regular, rect);
         break;
 
       case UI_BTYPE_HISTOGRAM:
-        ui_draw_but_HISTOGRAM(ar, but, &tui->wcol_regular, rect);
+        ui_draw_but_HISTOGRAM(region, but, &tui->wcol_regular, rect);
         break;
 
       case UI_BTYPE_WAVEFORM:
-        ui_draw_but_WAVEFORM(ar, but, &tui->wcol_regular, rect);
+        ui_draw_but_WAVEFORM(region, but, &tui->wcol_regular, rect);
         break;
 
       case UI_BTYPE_VECTORSCOPE:
-        ui_draw_but_VECTORSCOPE(ar, but, &tui->wcol_regular, rect);
+        ui_draw_but_VECTORSCOPE(region, but, &tui->wcol_regular, rect);
         break;
 
       case UI_BTYPE_CURVE:
         /* do not draw right to edge of rect */
         rect->xmin += (0.2f * UI_UNIT_X);
         rect->xmax -= (0.2f * UI_UNIT_X);
-        ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
+        ui_draw_but_CURVE(region, but, &tui->wcol_regular, rect);
         break;
 
       case UI_BTYPE_CURVEPROFILE:
-        ui_draw_but_CURVEPROFILE(ar, but, &tui->wcol_regular, rect);
+        ui_draw_but_CURVEPROFILE(region, but, &tui->wcol_regular, rect);
         break;
 
       case UI_BTYPE_PROGRESS_BAR:
@@ -4830,7 +4830,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
         break;
 
       case UI_BTYPE_TRACK_PREVIEW:
-        ui_draw_but_TRACKPREVIEW(ar, but, &tui->wcol_regular, rect);
+        ui_draw_but_TRACKPREVIEW(region, but, &tui->wcol_regular, rect);
         break;
 
       case UI_BTYPE_NODE_SOCKET:
@@ -5012,13 +5012,13 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
   GPU_blend(false);
 }
 
-void ui_draw_popover_back(ARegion *ar, uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
+void ui_draw_popover_back(ARegion *region, uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
   if (block) {
     float mval_origin[2] = {UNPACK2(block->bounds_offset)};
-    ui_window_to_block_fl(ar, block, &mval_origin[0], &mval_origin[1]);
+    ui_window_to_block_fl(region, block, &mval_origin[0], &mval_origin[1]);
     ui_draw_popover_back_impl(
         wt->wcol_theme, rect, block->direction, U.widget_unit / block->aspect, mval_origin);
   }

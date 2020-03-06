@@ -447,7 +447,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 }
 
 static void node_draw_frame(const bContext *C,
-                            ARegion *ar,
+                            ARegion *region,
                             SpaceNode *snode,
                             bNodeTree *ntree,
                             bNode *node,
@@ -459,7 +459,7 @@ static void node_draw_frame(const bContext *C,
   float alpha;
 
   /* skip if out of view */
-  if (BLI_rctf_isect(&node->totr, &ar->v2d.cur, NULL) == false) {
+  if (BLI_rctf_isect(&node->totr, &region->v2d.cur, NULL) == false) {
     UI_block_end(C, node->block);
     node->block = NULL;
     return;
@@ -569,7 +569,7 @@ static void node_draw_reroute_prepare(const bContext *UNUSED(C),
 }
 
 static void node_draw_reroute(const bContext *C,
-                              ARegion *ar,
+                              ARegion *region,
                               SpaceNode *UNUSED(snode),
                               bNodeTree *ntree,
                               bNode *node,
@@ -579,8 +579,8 @@ static void node_draw_reroute(const bContext *C,
   rctf *rct = &node->totr;
 
   /* skip if out of view */
-  if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
-      node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
+  if (node->totr.xmax < region->v2d.cur.xmin || node->totr.xmin > region->v2d.cur.xmax ||
+      node->totr.ymax < region->v2d.cur.ymin || node->totr.ymin > region->v2d.cur.ymax) {
     UI_block_end(C, node->block);
     node->block = NULL;
     return;
@@ -638,7 +638,7 @@ static void node_draw_reroute(const bContext *C,
   /* only draw input socket. as they all are placed on the same position.
    * highlight also if node itself is selected, since we don't display the node body separately!
    */
-  node_draw_sockets(&ar->v2d, C, ntree, node, false, node->flag & SELECT);
+  node_draw_sockets(&region->v2d, C, ntree, node, false, node->flag & SELECT);
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
@@ -3457,7 +3457,7 @@ void ED_init_node_socket_type_virtual(bNodeSocketType *stype)
 /* ************** Generic drawing ************** */
 
 void draw_nodespace_back_pix(const bContext *C,
-                             ARegion *ar,
+                             ARegion *region,
                              SpaceNode *snode,
                              bNodeInstanceKey parent_key)
 {
@@ -3471,9 +3471,9 @@ void draw_nodespace_back_pix(const bContext *C,
 
   GPU_matrix_push_projection();
   GPU_matrix_push();
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
   GPU_matrix_identity_set();
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_BACKDROP);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_BACKDROP);
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
 
@@ -3494,10 +3494,10 @@ void draw_nodespace_back_pix(const bContext *C,
     GPU_matrix_push();
 
     /* somehow the offset has to be calculated inverse */
-    wmOrtho2_region_pixelspace(ar);
+    wmOrtho2_region_pixelspace(region);
 
-    x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
-    y = (ar->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
+    x = (region->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
+    y = (region->winy - snode->zoom * ibuf->y) / 2 + snode->yof;
 
     if (ibuf->rect || ibuf->rect_float) {
       uchar *display_buffer = NULL;

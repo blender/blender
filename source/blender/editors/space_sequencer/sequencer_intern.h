@@ -42,10 +42,10 @@ struct rctf;
 struct wmOperator;
 
 /* sequencer_draw.c */
-void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
+void draw_timeline_seq(const struct bContext *C, struct ARegion *region);
 void sequencer_draw_preview(const struct bContext *C,
                             struct Scene *scene,
-                            struct ARegion *ar,
+                            struct ARegion *region,
                             struct SpaceSeq *sseq,
                             int cfra,
                             int offset,

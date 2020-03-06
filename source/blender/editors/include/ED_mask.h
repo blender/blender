@@ -37,19 +37,19 @@ struct wmKeyConfig;
 
 /* mask_edit.c */
 void ED_mask_get_size(struct ScrArea *sa, int *width, int *height);
-void ED_mask_zoom(struct ScrArea *sa, struct ARegion *ar, float *zoomx, float *zoomy);
-void ED_mask_get_aspect(struct ScrArea *sa, struct ARegion *ar, float *aspx, float *aspy);
+void ED_mask_zoom(struct ScrArea *sa, struct ARegion *region, float *zoomx, float *zoomy);
+void ED_mask_get_aspect(struct ScrArea *sa, struct ARegion *region, float *aspx, float *aspy);
 
 void ED_mask_pixelspace_factor(struct ScrArea *sa,
-                               struct ARegion *ar,
+                               struct ARegion *region,
                                float *scalex,
                                float *scaley);
-void ED_mask_mouse_pos(struct ScrArea *sa, struct ARegion *ar, const int mval[2], float co[2]);
+void ED_mask_mouse_pos(struct ScrArea *sa, struct ARegion *region, const int mval[2], float co[2]);
 
 void ED_mask_point_pos(
-    struct ScrArea *sa, struct ARegion *ar, float x, float y, float *xr, float *yr);
+    struct ScrArea *sa, struct ARegion *region, float x, float y, float *xr, float *yr);
 void ED_mask_point_pos__reverse(
-    struct ScrArea *sa, struct ARegion *ar, float x, float y, float *xr, float *yr);
+    struct ScrArea *sa, struct ARegion *region, float x, float y, float *xr, float *yr);
 
 void ED_mask_cursor_location_get(struct ScrArea *sa, float cursor[2]);
 bool ED_mask_selected_minmax(const struct bContext *C, float min[2], float max[2]);
@@ -64,7 +64,7 @@ void ED_operatormacros_mask(void);
 void ED_mask_draw(const struct bContext *C, const char draw_flag, const char draw_type);
 void ED_mask_draw_region(struct Depsgraph *depsgraph,
                          struct Mask *mask,
-                         struct ARegion *ar,
+                         struct ARegion *region,
                          const char draw_flag,
                          const char draw_type,
                          const char overlay_mode,
@@ -78,7 +78,7 @@ void ED_mask_draw_region(struct Depsgraph *depsgraph,
                          const struct bContext *C);
 
 void ED_mask_draw_frames(
-    struct Mask *mask, struct ARegion *ar, const int cfra, const int sfra, const int efra);
+    struct Mask *mask, struct ARegion *region, const int cfra, const int sfra, const int efra);
 
 /* mask_shapekey.c */
 void ED_mask_layer_shape_auto_key(struct MaskLayer *mask_layer, const int frame);

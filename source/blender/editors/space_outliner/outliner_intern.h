@@ -221,7 +221,7 @@ void outliner_build_tree(struct Main *mainvar,
                          struct Scene *scene,
                          struct ViewLayer *view_layer,
                          struct SpaceOutliner *soops,
-                         struct ARegion *ar);
+                         struct ARegion *region);
 
 typedef struct IDsSelectedData {
   struct ListBase selected_array;
@@ -361,7 +361,7 @@ void item_object_mode_exit_cb(struct bContext *C,
                               struct TreeStoreElem *tselem,
                               void *user_data);
 
-void outliner_set_coordinates(struct ARegion *ar, struct SpaceOutliner *soops);
+void outliner_set_coordinates(struct ARegion *region, struct SpaceOutliner *soops);
 
 void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all);
 
@@ -494,7 +494,7 @@ bool outliner_tree_traverse(const SpaceOutliner *soops,
 float outliner_restrict_columns_width(const struct SpaceOutliner *soops);
 TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
 bool outliner_is_element_visible(const TreeElement *te);
-void outliner_scroll_view(struct ARegion *ar, int delta_y);
+void outliner_scroll_view(struct ARegion *region, int delta_y);
 
 /* outliner_sync.c ---------------------------------------------- */
 

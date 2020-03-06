@@ -315,11 +315,12 @@ void WM_gizmo_do_msg_notify_tag_refresh(bContext *UNUSED(C),
                                         wmMsgSubscribeKey *UNUSED(msg_key),
                                         wmMsgSubscribeValue *msg_val)
 {
-  ARegion *ar = msg_val->owner;
+  ARegion *region = msg_val->owner;
   wmGizmoMap *gzmap = msg_val->user_data;
 
-  ED_region_tag_redraw(ar); /* Could possibly avoid a full redraw and only tag for editor overlays
-                               redraw in some cases, see ED_region_tag_redraw_editor_overlays(). */
+  ED_region_tag_redraw(
+      region); /* Could possibly avoid a full redraw and only tag for editor overlays
+              redraw in some cases, see ED_region_tag_redraw_editor_overlays(). */
   WM_gizmomap_tag_refresh(gzmap);
 }
 
@@ -327,7 +328,7 @@ void WM_gizmo_do_msg_notify_tag_refresh(bContext *UNUSED(C),
  * Runs on the "prepare draw" pass,
  * drawing the region clears.
  */
-void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, ARegion *ar)
+void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, ARegion *region)
 {
   if (gz->type->target_property_defs_len) {
     wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
@@ -339,8 +340,8 @@ void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, 
                                &gz_prop->ptr,
                                gz_prop->prop,
                                &(const wmMsgSubscribeValue){
-                                   .owner = ar,
-                                   .user_data = ar,
+                                   .owner = region,
+                                   .user_data = region,
                                    .notify = ED_region_do_msg_notify_tag_redraw,
                                },
                                __func__);
@@ -348,7 +349,7 @@ void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, 
                                &gz_prop->ptr,
                                gz_prop->prop,
                                &(const wmMsgSubscribeValue){
-                                   .owner = ar,
+                                   .owner = region,
                                    .user_data = gz->parent_gzgroup->parent_gzmap,
                                    .notify = WM_gizmo_do_msg_notify_tag_refresh,
                                },

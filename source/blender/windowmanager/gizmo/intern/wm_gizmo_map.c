@@ -577,7 +577,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
                                             const int hotspot)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   View3D *v3d = sa->spacedata.first;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   rcti rect;
@@ -588,7 +588,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
   BLI_rcti_init_pt_radius(&rect, co, hotspot);
 
   ED_view3d_draw_setup_view(
-      CTX_wm_window(C), depsgraph, CTX_data_scene(C), ar, v3d, NULL, NULL, &rect);
+      CTX_wm_window(C), depsgraph, CTX_data_scene(C), region, v3d, NULL, NULL, &rect);
 
   bool use_select_bias = false;
 
@@ -608,15 +608,15 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
   }
 
   ED_view3d_draw_setup_view(
-      CTX_wm_window(C), depsgraph, CTX_data_scene(C), ar, v3d, NULL, NULL, NULL);
+      CTX_wm_window(C), depsgraph, CTX_data_scene(C), region, v3d, NULL, NULL, NULL);
 
   if (use_select_bias && (hits > 1)) {
     float co_direction[3];
     float co_screen[3] = {co[0], co[1], 0.0f};
-    ED_view3d_win_to_vector(ar, (float[2]){UNPACK2(co)}, co_direction);
+    ED_view3d_win_to_vector(region, (float[2]){UNPACK2(co)}, co_direction);
 
-    RegionView3D *rv3d = ar->regiondata;
-    const int viewport[4] = {0, 0, ar->winx, ar->winy};
+    RegionView3D *rv3d = region->regiondata;
+    const int viewport[4] = {0, 0, region->winx, region->winy};
     float co_3d_origin[3];
 
     /* Avoid multiple calculations. */
@@ -802,9 +802,9 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
   return gz;
 }
 
-void WM_gizmomap_add_handlers(ARegion *ar, wmGizmoMap *gzmap)
+void WM_gizmomap_add_handlers(ARegion *region, wmGizmoMap *gzmap)
 {
-  LISTBASE_FOREACH (wmEventHandler *, handler_base, &ar->handlers) {
+  LISTBASE_FOREACH (wmEventHandler *, handler_base, &region->handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_GIZMO) {
       wmEventHandler_Gizmo *handler = (wmEventHandler_Gizmo *)handler_base;
       if (handler->gizmo_map == gzmap) {
@@ -815,9 +815,9 @@ void WM_gizmomap_add_handlers(ARegion *ar, wmGizmoMap *gzmap)
 
   wmEventHandler_Gizmo *handler = MEM_callocN(sizeof(*handler), __func__);
   handler->head.type = WM_HANDLER_TYPE_GIZMO;
-  BLI_assert(gzmap == ar->gizmo_map);
+  BLI_assert(gzmap == region->gizmo_map);
   handler->gizmo_map = gzmap;
-  BLI_addtail(&ar->handlers, handler);
+  BLI_addtail(&region->handlers, handler);
 }
 
 void wm_gizmomaps_handled_modal_update(bContext *C, wmEvent *event, wmEventHandler_Op *handler)
@@ -978,16 +978,16 @@ void wm_gizmomap_handler_context_op(bContext *C, wmEventHandler_Op *handler)
       printf("internal error: modal gizmo-map handler has invalid area\n");
     }
     else {
-      ARegion *ar;
+      ARegion *region;
       CTX_wm_area_set(C, sa);
-      for (ar = sa->regionbase.first; ar; ar = ar->next) {
-        if (ar == handler->context.region) {
+      for (region = sa->regionbase.first; region; region = region->next) {
+        if (region == handler->context.region) {
           break;
         }
       }
       /* XXX no warning print here, after full-area and back regions are remade */
-      if (ar) {
-        CTX_wm_region_set(C, ar);
+      if (region) {
+        CTX_wm_region_set(C, region);
       }
     }
   }
@@ -1046,8 +1046,8 @@ bool wm_gizmomap_highlight_set(wmGizmoMap *gzmap, const bContext *C, wmGizmo *gz
 
     /* tag the region for redraw */
     if (C) {
-      ARegion *ar = CTX_wm_region(C);
-      ED_region_tag_redraw_editor_overlays(ar);
+      ARegion *region = CTX_wm_region(C);
+      ED_region_tag_redraw_editor_overlays(region);
     }
 
     return true;
@@ -1161,7 +1161,7 @@ ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap)
 
 void WM_gizmomap_message_subscribe(bContext *C,
                                    wmGizmoMap *gzmap,
-                                   ARegion *ar,
+                                   ARegion *region,
                                    struct wmMsgBus *mbus)
 {
   for (wmGizmoGroup *gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
@@ -1173,7 +1173,7 @@ void WM_gizmomap_message_subscribe(bContext *C,
       if (gz->flag & WM_GIZMO_HIDDEN) {
         continue;
       }
-      WM_gizmo_target_property_subscribe_all(gz, mbus, ar);
+      WM_gizmo_target_property_subscribe_all(gz, mbus, region);
     }
     if (gzgroup->type->message_subscribe != NULL) {
       gzgroup->type->message_subscribe(C, gzgroup, mbus);
@@ -1189,12 +1189,12 @@ void WM_gizmomap_message_subscribe(bContext *C,
  * \{ */
 
 struct ARegion *WM_gizmomap_tooltip_init(struct bContext *C,
-                                         struct ARegion *ar,
+                                         struct ARegion *region,
                                          int *UNUSED(r_pass),
                                          double *UNUSED(pass_delay),
                                          bool *r_exit_on_event)
 {
-  wmGizmoMap *gzmap = ar->gizmo_map;
+  wmGizmoMap *gzmap = region->gizmo_map;
   *r_exit_on_event = false;
   if (gzmap) {
     wmGizmo *gz = gzmap->gzmap_context.highlight;
@@ -1375,8 +1375,8 @@ void WM_gizmoconfig_update(struct Main *bmain)
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
           ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-          for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
-            wmGizmoMap *gzmap = ar->gizmo_map;
+          for (ARegion *region = regionbase->first; region; region = region->next) {
+            wmGizmoMap *gzmap = region->gizmo_map;
             if (gzmap != NULL && gzmap->tag_remove_group) {
               gzmap->tag_remove_group = false;
 
@@ -1385,7 +1385,7 @@ void WM_gizmoconfig_update(struct Main *bmain)
                 gzgroup_next = gzgroup->next;
                 if (gzgroup->tag_remove) {
                   wm_gizmogroup_free(NULL, gzgroup);
-                  ED_region_tag_redraw_editor_overlays(ar);
+                  ED_region_tag_redraw_editor_overlays(region);
                 }
               }
             }
@@ -1412,8 +1412,8 @@ void WM_reinit_gizmomap_all(Main *bmain)
     for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
       for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
         ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-        for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
-          wmGizmoMap *gzmap = ar->gizmo_map;
+        for (ARegion *region = regionbase->first; region; region = region->next) {
+          wmGizmoMap *gzmap = region->gizmo_map;
           if ((gzmap != NULL) && (gzmap->is_init == false)) {
             WM_gizmomap_reinit(gzmap);
           }

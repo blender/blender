@@ -411,21 +411,21 @@ void MESH_OT_unsubdivide(wmOperatorType *ot)
 }
 
 void EDBM_project_snap_verts(
-    bContext *C, Depsgraph *depsgraph, ARegion *ar, Object *obedit, BMEditMesh *em)
+    bContext *C, Depsgraph *depsgraph, ARegion *region, Object *obedit, BMEditMesh *em)
 {
   Main *bmain = CTX_data_main(C);
   BMIter iter;
   BMVert *eve;
 
-  ED_view3d_init_mats_rv3d(obedit, ar->regiondata);
+  ED_view3d_init_mats_rv3d(obedit, region->regiondata);
 
   struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-      bmain, CTX_data_scene(C), depsgraph, 0, ar, CTX_wm_view3d(C));
+      bmain, CTX_data_scene(C), depsgraph, 0, region, CTX_wm_view3d(C));
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
       float mval[2], co_proj[3];
-      if (ED_view3d_project_float_object(ar, eve->co, mval, V3D_PROJ_TEST_NOP) ==
+      if (ED_view3d_project_float_object(region, eve->co, mval, V3D_PROJ_TEST_NOP) ==
           V3D_PROJ_RET_OK) {
         if (ED_transform_snap_object_project_view3d(snap_context,
                                                     SCE_SNAP_MODE_FACE,
@@ -3750,7 +3750,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   BMVert *bv;
   BMIter iter;
   BMEdge *be;
@@ -3764,8 +3764,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   /* allocd vars */
   float(*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
 
-  /* edit-object needed for matrix, and ar->regiondata for projections to work */
-  if (ELEM(NULL, obedit, ar, ar->regiondata)) {
+  /* edit-object needed for matrix, and region->regiondata for projections to work */
+  if (ELEM(NULL, obedit, region, region->regiondata)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3790,7 +3790,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   RNA_END;
 
   /* for ED_view3d_project_float_object */
-  ED_view3d_init_mats_rv3d(obedit, ar->regiondata);
+  ED_view3d_init_mats_rv3d(obedit, region->regiondata);
 
   /* TODO, investigate using index lookup for screen_vert_coords() rather then a hash table */
 
@@ -3799,7 +3799,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   screen_vert_coords = sco = MEM_mallocN(bm->totvert * sizeof(float) * 2, __func__);
 
   BM_ITER_MESH_INDEX (bv, &iter, bm, BM_VERTS_OF_MESH, i) {
-    if (ED_view3d_project_float_object(ar, bv->co, *sco, V3D_PROJ_TEST_CLIP_NEAR) !=
+    if (ED_view3d_project_float_object(region, bv->co, *sco, V3D_PROJ_TEST_CLIP_NEAR) !=
         V3D_PROJ_RET_OK) {
       copy_v2_fl(*sco, FLT_MAX); /* set error value */
     }
@@ -8020,12 +8020,12 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
   /* Only handle mousemove event in case we are in mouse mode. */
   if (event->type == MOUSEMOVE || force_mousemove) {
     if (mode == EDBM_CLNOR_POINTTO_MODE_MOUSE) {
-      ARegion *ar = CTX_wm_region(C);
+      ARegion *region = CTX_wm_region(C);
       float center[3];
 
       bmesh_selected_verts_center_calc(bm, center);
 
-      ED_view3d_win_to_3d_int(v3d, ar, center, event->mval, target);
+      ED_view3d_win_to_3d_int(v3d, region, center, event->mval, target);
 
       ret = OPERATOR_RUNNING_MODAL;
     }

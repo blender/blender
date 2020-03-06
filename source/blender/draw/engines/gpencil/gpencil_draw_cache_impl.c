@@ -379,7 +379,7 @@ GPUBatch *gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
-  ARegion *ar = draw_ctx->ar;
+  ARegion *region = draw_ctx->region;
   RegionView3D *rv3d = draw_ctx->rv3d;
   ToolSettings *ts = scene->toolsettings;
   Object *ob = draw_ctx->obact;
@@ -413,13 +413,13 @@ GPUBatch *gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
   ED_gp_get_drawing_reference(scene, ob, gpl, ts->gpencil_v3d_align, origin);
 
   for (int i = 0; i < totpoints; i++, tpt++) {
-    ED_gpencil_tpoint_to_point(ar, origin, tpt, &pt);
+    ED_gpencil_tpoint_to_point(region, origin, tpt, &pt);
     ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt);
 
     /* first point for adjacency (not drawn) */
     if (i == 0) {
       if (gpd->runtime.sbuffer_sflag & GP_STROKE_CYCLIC && totpoints > 2) {
-        ED_gpencil_tpoint_to_point(ar, origin, &points[totpoints - 1], &pt2);
+        ED_gpencil_tpoint_to_point(region, origin, &points[totpoints - 1], &pt2);
         gpencil_set_stroke_point(vbo,
                                  &pt2,
                                  idx,
@@ -432,7 +432,7 @@ GPUBatch *gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
         idx++;
       }
       else {
-        ED_gpencil_tpoint_to_point(ar, origin, &points[1], &pt2);
+        ED_gpencil_tpoint_to_point(region, origin, &points[1], &pt2);
         gpencil_set_stroke_point(vbo,
                                  &pt2,
                                  idx,
@@ -455,19 +455,19 @@ GPUBatch *gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
   /* last adjacency point (not drawn) */
   if (gpd->runtime.sbuffer_sflag & GP_STROKE_CYCLIC && totpoints > 2) {
     /* draw line to first point to complete the cycle */
-    ED_gpencil_tpoint_to_point(ar, origin, &points[0], &pt2);
+    ED_gpencil_tpoint_to_point(region, origin, &points[0], &pt2);
     gpencil_set_stroke_point(
         vbo, &pt2, idx, pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
     idx++;
     /* now add adjacency point (not drawn) */
-    ED_gpencil_tpoint_to_point(ar, origin, &points[1], &pt3);
+    ED_gpencil_tpoint_to_point(region, origin, &points[1], &pt3);
     gpencil_set_stroke_point(
         vbo, &pt3, idx, pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
     idx++;
   }
   /* last adjacency point (not drawn) */
   else {
-    ED_gpencil_tpoint_to_point(ar, origin, &points[totpoints - 2], &pt2);
+    ED_gpencil_tpoint_to_point(region, origin, &points[totpoints - 2], &pt2);
     gpencil_set_stroke_point(
         vbo, &pt2, idx, pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
     idx++;
@@ -481,7 +481,7 @@ GPUBatch *gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
-  ARegion *ar = draw_ctx->ar;
+  ARegion *region = draw_ctx->region;
   RegionView3D *rv3d = draw_ctx->rv3d;
   ToolSettings *ts = scene->toolsettings;
   Object *ob = draw_ctx->obact;
@@ -513,7 +513,7 @@ GPUBatch *gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
   ED_gp_get_drawing_reference(scene, ob, gpl, ts->gpencil_v3d_align, origin);
 
   for (int i = 0; i < totpoints; i++, tpt++) {
-    ED_gpencil_tpoint_to_point(ar, origin, tpt, &pt);
+    ED_gpencil_tpoint_to_point(region, origin, tpt, &pt);
     ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt);
 
     /* use previous point to determine stroke direction (drawing path) */
@@ -524,7 +524,7 @@ GPUBatch *gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
       if (totpoints > 1) {
         /* extrapolate a point before first point */
         tGPspoint *tpt2 = &points[1];
-        ED_gpencil_tpoint_to_point(ar, origin, tpt2, &pt2);
+        ED_gpencil_tpoint_to_point(region, origin, tpt2, &pt2);
         ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt2);
 
         interp_v3_v3v3(ref_pt, &pt2.x, &pt.x, 1.5f);
@@ -535,7 +535,7 @@ GPUBatch *gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
     }
     else {
       tGPspoint *tpt2 = &points[i - 1];
-      ED_gpencil_tpoint_to_point(ar, origin, tpt2, &pt2);
+      ED_gpencil_tpoint_to_point(region, origin, tpt2, &pt2);
       ED_gp_project_point_to_plane(scene, ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt2);
 
       copy_v3_v3(ref_pt, &pt2.x);
@@ -638,7 +638,7 @@ GPUBatch *gpencil_get_buffer_fill_geom(bGPdata *gpd)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
-  ARegion *ar = draw_ctx->ar;
+  ARegion *region = draw_ctx->region;
   ToolSettings *ts = scene->toolsettings;
   Object *ob = draw_ctx->obact;
 
@@ -684,7 +684,7 @@ GPUBatch *gpencil_get_buffer_fill_geom(bGPdata *gpd)
     for (int i = 0; i < tot_triangles; i++) {
       for (int j = 0; j < 3; j++) {
         tpt = &points[tmp_triangles[i][j]];
-        ED_gpencil_tpoint_to_point(ar, origin, tpt, &pt);
+        ED_gpencil_tpoint_to_point(region, origin, tpt, &pt);
         GPU_vertbuf_attr_set(vbo, pos_id, idx, &pt.x);
         GPU_vertbuf_attr_set(vbo, color_id, idx, gpd->runtime.sfill);
         idx++;

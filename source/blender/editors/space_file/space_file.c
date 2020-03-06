@@ -57,79 +57,79 @@
 
 static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *ar_prev)
 {
-  ARegion *ar;
+  ARegion *region;
 
-  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE)) != NULL) {
-    return ar;
+  if ((region = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE)) != NULL) {
+    return region;
   }
 
-  ar = MEM_callocN(sizeof(ARegion), "execute region for file");
-  BLI_insertlinkafter(&sa->regionbase, ar_prev, ar);
-  ar->regiontype = RGN_TYPE_EXECUTE;
-  ar->alignment = RGN_ALIGN_BOTTOM;
-  ar->flag = RGN_FLAG_DYNAMIC_SIZE;
+  region = MEM_callocN(sizeof(ARegion), "execute region for file");
+  BLI_insertlinkafter(&sa->regionbase, ar_prev, region);
+  region->regiontype = RGN_TYPE_EXECUTE;
+  region->alignment = RGN_ALIGN_BOTTOM;
+  region->flag = RGN_FLAG_DYNAMIC_SIZE;
 
-  return ar;
+  return region;
 }
 
 static ARegion *file_tool_props_region_ensure(ScrArea *sa, ARegion *ar_prev)
 {
-  ARegion *ar;
+  ARegion *region;
 
-  if ((ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS)) != NULL) {
-    return ar;
+  if ((region = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS)) != NULL) {
+    return region;
   }
 
   /* add subdiv level; after execute region */
-  ar = MEM_callocN(sizeof(ARegion), "tool props for file");
-  BLI_insertlinkafter(&sa->regionbase, ar_prev, ar);
-  ar->regiontype = RGN_TYPE_TOOL_PROPS;
-  ar->alignment = RGN_ALIGN_RIGHT;
+  region = MEM_callocN(sizeof(ARegion), "tool props for file");
+  BLI_insertlinkafter(&sa->regionbase, ar_prev, region);
+  region->regiontype = RGN_TYPE_TOOL_PROPS;
+  region->alignment = RGN_ALIGN_RIGHT;
 
-  return ar;
+  return region;
 }
 
 /* ******************** default callbacks for file space ***************** */
 
 static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceFile *sfile;
 
   sfile = MEM_callocN(sizeof(SpaceFile), "initfile");
   sfile->spacetype = SPACE_FILE;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
+  region = MEM_callocN(sizeof(ARegion), "header for file");
+  BLI_addtail(&sfile->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
   /* Ignore user preference "USER_HEADER_BOTTOM" here (always show top for new types). */
-  ar->alignment = RGN_ALIGN_TOP;
+  region->alignment = RGN_ALIGN_TOP;
 
   /* Tools region */
-  ar = MEM_callocN(sizeof(ARegion), "tools region for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_TOOLS;
-  ar->alignment = RGN_ALIGN_LEFT;
+  region = MEM_callocN(sizeof(ARegion), "tools region for file");
+  BLI_addtail(&sfile->regionbase, region);
+  region->regiontype = RGN_TYPE_TOOLS;
+  region->alignment = RGN_ALIGN_LEFT;
 
   /* ui list region */
-  ar = MEM_callocN(sizeof(ARegion), "ui region for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_UI;
-  ar->alignment = RGN_ALIGN_TOP;
-  ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
+  region = MEM_callocN(sizeof(ARegion), "ui region for file");
+  BLI_addtail(&sfile->regionbase, region);
+  region->regiontype = RGN_TYPE_UI;
+  region->alignment = RGN_ALIGN_TOP;
+  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
   /* Tool props and execute region are added as needed, see file_refresh(). */
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for file");
-  BLI_addtail(&sfile->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
-  ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-  ar->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
-  ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
-  ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
-  ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
+  region = MEM_callocN(sizeof(ARegion), "main region for file");
+  BLI_addtail(&sfile->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
+  region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+  region->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+  region->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+  region->v2d.keeptot = V2D_KEEPTOT_STRICT;
+  region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
 
   return (SpaceLink *)sfile;
 }
@@ -369,23 +369,23 @@ static void file_listener(wmWindow *UNUSED(win),
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void file_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void file_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Main", SPACE_FILE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
 static void file_main_region_listener(wmWindow *UNUSED(win),
                                       ScrArea *UNUSED(sa),
-                                      ARegion *ar,
+                                      ARegion *region,
                                       wmNotifier *wmn,
                                       const Scene *UNUSED(scene))
 {
@@ -394,10 +394,10 @@ static void file_main_region_listener(wmWindow *UNUSED(win),
     case NC_SPACE:
       switch (wmn->data) {
         case ND_SPACE_FILE_LIST:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
         case ND_SPACE_FILE_PARAMS:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
@@ -409,7 +409,7 @@ static void file_main_region_message_subscribe(const struct bContext *UNUSED(C),
                                                struct Scene *UNUSED(scene),
                                                struct bScreen *screen,
                                                struct ScrArea *sa,
-                                               struct ARegion *ar,
+                                               struct ARegion *region,
                                                struct wmMsgBus *mbus)
 {
   SpaceFile *sfile = sa->spacedata.first;
@@ -418,7 +418,7 @@ static void file_main_region_message_subscribe(const struct bContext *UNUSED(C),
    * keep for now since all subscribers for WM are regions.
    * May be worth re-visiting later. */
   wmMsgSubscribeValue msg_sub_value_area_tag_refresh = {
-      .owner = ar,
+      .owner = region,
       .user_data = sa,
       .notify = ED_area_do_msg_notify_tag_refresh,
   };
@@ -442,13 +442,13 @@ static void file_main_region_message_subscribe(const struct bContext *UNUSED(C),
   }
 }
 
-static void file_main_region_draw(const bContext *C, ARegion *ar)
+static void file_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_params(sfile);
 
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   View2DScrollers *scrollers;
   float col[3];
 
@@ -487,10 +487,10 @@ static void file_main_region_draw(const bContext *C, ARegion *ar)
     }
   }
   /* v2d has initialized flag, so this call will only set the mask correct */
-  UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+  UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* sets tile/border settings in sfile */
-  file_calc_previews(C, ar);
+  file_calc_previews(C, region);
 
   /* set view */
   UI_view2d_view_ortho(v2d);
@@ -498,10 +498,10 @@ static void file_main_region_draw(const bContext *C, ARegion *ar)
   /* on first read, find active file */
   if (params->highlight_file == -1) {
     wmEvent *event = CTX_wm_window(C)->eventstate;
-    file_highlight_set(sfile, ar, event->x, event->y);
+    file_highlight_set(sfile, region, event->x, event->y);
   }
 
-  file_draw_list(C, ar);
+  file_draw_list(C, region);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
@@ -557,26 +557,26 @@ static void file_keymap(struct wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "File Browser Buttons", SPACE_FILE, 0);
 }
 
-static void file_tools_region_init(wmWindowManager *wm, ARegion *ar)
+static void file_tools_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ar->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
-  ED_region_panels_init(wm, ar);
+  region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+  ED_region_panels_init(wm, region);
 
   /* own keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void file_tools_region_draw(const bContext *C, ARegion *ar)
+static void file_tools_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 
 static void file_tools_region_listener(wmWindow *UNUSED(win),
                                        ScrArea *UNUSED(sa),
-                                       ARegion *UNUSED(ar),
+                                       ARegion *UNUSED(region),
                                        wmNotifier *UNUSED(wmn),
                                        const Scene *UNUSED(scene))
 {
@@ -589,62 +589,62 @@ static void file_tools_region_listener(wmWindow *UNUSED(win),
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void file_header_region_init(wmWindowManager *wm, ARegion *ar)
+static void file_header_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void file_header_region_draw(const bContext *C, ARegion *ar)
+static void file_header_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void file_ui_region_init(wmWindowManager *wm, ARegion *ar)
+static void file_ui_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ED_region_panels_init(wm, ar);
-  ar->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
+  ED_region_panels_init(wm, region);
+  region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Buttons", SPACE_FILE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void file_ui_region_draw(const bContext *C, ARegion *ar)
+static void file_ui_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 
-static void file_execution_region_init(wmWindowManager *wm, ARegion *ar)
+static void file_execution_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ED_region_panels_init(wm, ar);
-  ar->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
+  ED_region_panels_init(wm, region);
+  region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void file_execution_region_draw(const bContext *C, ARegion *ar)
+static void file_execution_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 
 static void file_ui_region_listener(wmWindow *UNUSED(win),
                                     ScrArea *UNUSED(sa),
-                                    ARegion *ar,
+                                    ARegion *region,
                                     wmNotifier *wmn,
                                     const Scene *UNUSED(scene))
 {
@@ -653,7 +653,7 @@ static void file_ui_region_listener(wmWindow *UNUSED(win),
     case NC_SPACE:
       switch (wmn->data) {
         case ND_SPACE_FILE_LIST:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;

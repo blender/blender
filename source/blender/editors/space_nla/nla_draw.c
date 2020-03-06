@@ -673,9 +673,9 @@ static void nla_draw_strip_frames_text(
 
 /* ---------------------- */
 
-void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   const float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
   const float text_margin_x = (8 * UI_DPI_FAC) * pixelx;
 
@@ -803,14 +803,14 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 /* *********************************************** */
 /* Channel List */
 
-void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
+void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
   int filter;
 
   SpaceNla *snla = (SpaceNla *)ac->sl;
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   size_t items;
 
   /* build list of channels to draw */
@@ -848,7 +848,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
     }
   }
   { /* second pass: UI widgets */
-    uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+    uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
     size_t channel_index = 0;
     float ymax = NLACHANNEL_FIRST_TOP(ac);
 

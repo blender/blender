@@ -47,7 +47,7 @@
 
 static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
@@ -86,7 +86,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 
       if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
         float v_sco[2];
-        ED_view3d_project_float_v2_m4(ar, v->co, v_sco, projectMat);
+        ED_view3d_project_float_v2_m4(region, v->co, v_sco, projectMat);
 
         add_v2_v2(cent_sco, v_sco);
         cent_tot += 1;
@@ -108,8 +108,8 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
           float cent_sco_test[2];
           float dist_sq_test;
 
-          ED_view3d_project_float_v2_m4(ar, e->v1->co, e_sco[0], projectMat);
-          ED_view3d_project_float_v2_m4(ar, e->v2->co, e_sco[1], projectMat);
+          ED_view3d_project_float_v2_m4(region, e->v1->co, e_sco[0], projectMat);
+          ED_view3d_project_float_v2_m4(region, e->v2->co, e_sco[1], projectMat);
 
           closest_to_line_segment_v2(cent_sco_test, mval_fl, e_sco[0], e_sco[1]);
           dist_sq_test = len_squared_v2v2(cent_sco_test, mval_fl);
@@ -167,7 +167,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
           goto found_edge;
         }
 #endif
-        ED_view3d_project_float_v2_m4(ar, v->co, v_sco, projectMat);
+        ED_view3d_project_float_v2_m4(region, v->co, v_sco, projectMat);
 
         BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
           if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
@@ -175,7 +175,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
             float v_other_sco[2];
             float angle_test;
 
-            ED_view3d_project_float_v2_m4(ar, v_other->co, v_other_sco, projectMat);
+            ED_view3d_project_float_v2_m4(region, v_other->co, v_other_sco, projectMat);
 
             /* avoid comparing with view-axis aligned edges (less than a pixel) */
             if (len_squared_v2v2(v_sco, v_other_sco) > 1.0f) {

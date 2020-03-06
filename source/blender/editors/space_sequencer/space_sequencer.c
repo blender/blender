@@ -72,22 +72,22 @@ static void sequencer_scopes_tag_refresh(ScrArea *sa)
 
 static ARegion *sequencer_find_region(ScrArea *sa, short type)
 {
-  ARegion *ar = NULL;
+  ARegion *region = NULL;
 
-  for (ar = sa->regionbase.first; ar; ar = ar->next) {
-    if (ar->regiontype == type) {
-      return ar;
+  for (region = sa->regionbase.first; region; region = region->next) {
+    if (region->regiontype == type) {
+      return region;
     }
   }
 
-  return ar;
+  return region;
 }
 
 /* ******************** default callbacks for sequencer space ***************** */
 
 static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceSeq *sseq;
 
   sseq = MEM_callocN(sizeof(SpaceSeq), "initsequencer");
@@ -98,88 +98,88 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
   sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS;
 
   /* tool header */
-  ar = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
+  region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
 
-  BLI_addtail(&sseq->regionbase, ar);
-  ar->regiontype = RGN_TYPE_TOOL_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
-  ar->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_TOOL_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for sequencer");
+  region = MEM_callocN(sizeof(ARegion), "header for sequencer");
 
-  BLI_addtail(&sseq->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* buttons/list view */
-  ar = MEM_callocN(sizeof(ARegion), "buttons for sequencer");
+  region = MEM_callocN(sizeof(ARegion), "buttons for sequencer");
 
-  BLI_addtail(&sseq->regionbase, ar);
-  ar->regiontype = RGN_TYPE_UI;
-  ar->alignment = RGN_ALIGN_RIGHT;
-  ar->flag = RGN_FLAG_HIDDEN;
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_UI;
+  region->alignment = RGN_ALIGN_RIGHT;
+  region->flag = RGN_FLAG_HIDDEN;
 
   /* toolbar */
-  ar = MEM_callocN(sizeof(ARegion), "tools for sequencer");
+  region = MEM_callocN(sizeof(ARegion), "tools for sequencer");
 
-  BLI_addtail(&sseq->regionbase, ar);
-  ar->regiontype = RGN_TYPE_TOOLS;
-  ar->alignment = RGN_ALIGN_LEFT;
-  ar->flag = RGN_FLAG_HIDDEN;
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_TOOLS;
+  region->alignment = RGN_ALIGN_LEFT;
+  region->flag = RGN_FLAG_HIDDEN;
 
   /* preview region */
   /* NOTE: if you change values here, also change them in sequencer_init_preview_region */
-  ar = MEM_callocN(sizeof(ARegion), "preview region for sequencer");
-  BLI_addtail(&sseq->regionbase, ar);
-  ar->regiontype = RGN_TYPE_PREVIEW;
-  ar->alignment = RGN_ALIGN_TOP;
-  ar->flag |= RGN_FLAG_HIDDEN;
+  region = MEM_callocN(sizeof(ARegion), "preview region for sequencer");
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_PREVIEW;
+  region->alignment = RGN_ALIGN_TOP;
+  region->flag |= RGN_FLAG_HIDDEN;
   /* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-  ar->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM | V2D_LIMITZOOM;
-  ar->v2d.minzoom = 0.001f;
-  ar->v2d.maxzoom = 1000.0f;
-  ar->v2d.tot.xmin = -960.0f; /* 1920 width centered */
-  ar->v2d.tot.ymin = -540.0f; /* 1080 height centered */
-  ar->v2d.tot.xmax = 960.0f;
-  ar->v2d.tot.ymax = 540.0f;
-  ar->v2d.min[0] = 0.0f;
-  ar->v2d.min[1] = 0.0f;
-  ar->v2d.max[0] = 12000.0f;
-  ar->v2d.max[1] = 12000.0f;
-  ar->v2d.cur = ar->v2d.tot;
-  ar->v2d.align = V2D_ALIGN_FREE;
-  ar->v2d.keeptot = V2D_KEEPTOT_FREE;
+  region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM | V2D_LIMITZOOM;
+  region->v2d.minzoom = 0.001f;
+  region->v2d.maxzoom = 1000.0f;
+  region->v2d.tot.xmin = -960.0f; /* 1920 width centered */
+  region->v2d.tot.ymin = -540.0f; /* 1080 height centered */
+  region->v2d.tot.xmax = 960.0f;
+  region->v2d.tot.ymax = 540.0f;
+  region->v2d.min[0] = 0.0f;
+  region->v2d.min[1] = 0.0f;
+  region->v2d.max[0] = 12000.0f;
+  region->v2d.max[1] = 12000.0f;
+  region->v2d.cur = region->v2d.tot;
+  region->v2d.align = V2D_ALIGN_FREE;
+  region->v2d.keeptot = V2D_KEEPTOT_FREE;
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for sequencer");
+  region = MEM_callocN(sizeof(ARegion), "main region for sequencer");
 
-  BLI_addtail(&sseq->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
   /* seq space goes from (0,8) to (0, efra) */
 
-  ar->v2d.tot.xmin = 0.0f;
-  ar->v2d.tot.ymin = 0.0f;
-  ar->v2d.tot.xmax = scene->r.efra;
-  ar->v2d.tot.ymax = 8.0f;
+  region->v2d.tot.xmin = 0.0f;
+  region->v2d.tot.ymin = 0.0f;
+  region->v2d.tot.xmax = scene->r.efra;
+  region->v2d.tot.ymax = 8.0f;
 
-  ar->v2d.cur = ar->v2d.tot;
+  region->v2d.cur = region->v2d.tot;
 
-  ar->v2d.min[0] = 10.0f;
-  ar->v2d.min[1] = 0.5f;
+  region->v2d.min[0] = 10.0f;
+  region->v2d.min[1] = 0.5f;
 
-  ar->v2d.max[0] = MAXFRAMEF;
-  ar->v2d.max[1] = MAXSEQ;
+  region->v2d.max[0] = MAXFRAMEF;
+  region->v2d.max[1] = MAXSEQ;
 
-  ar->v2d.minzoom = 0.01f;
-  ar->v2d.maxzoom = 100.0f;
+  region->v2d.minzoom = 0.01f;
+  region->v2d.maxzoom = 100.0f;
 
-  ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-  ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HANDLES);
-  ar->v2d.keepzoom = 0;
-  ar->v2d.keeptot = 0;
-  ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
+  region->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+  region->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HANDLES);
+  region->v2d.keepzoom = 0;
+  region->v2d.keeptot = 0;
+  region->v2d.align = V2D_ALIGN_NO_NEG_Y;
 
   return (SpaceLink *)sseq;
 }
@@ -365,13 +365,13 @@ static bool image_drop_poll(bContext *C,
                             const wmEvent *event,
                             const char **UNUSED(tooltip))
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   int hand;
 
   if (drag->type == WM_DRAG_PATH) {
     if (ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK)) { /* rule might not work? */
-      if (find_nearest_seq(scene, &ar->v2d, &hand, event->mval) == NULL) {
+      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
         return 1;
       }
     }
@@ -385,13 +385,13 @@ static bool movie_drop_poll(bContext *C,
                             const wmEvent *event,
                             const char **UNUSED(tooltip))
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   int hand;
 
   if (drag->type == WM_DRAG_PATH) {
     if (ELEM(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK)) { /* rule might not work? */
-      if (find_nearest_seq(scene, &ar->v2d, &hand, event->mval) == NULL) {
+      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
         return 1;
       }
     }
@@ -404,13 +404,13 @@ static bool sound_drop_poll(bContext *C,
                             const wmEvent *event,
                             const char **UNUSED(tooltip))
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   int hand;
 
   if (drag->type == WM_DRAG_PATH) {
     if (ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK)) { /* rule might not work? */
-      if (find_nearest_seq(scene, &ar->v2d, &hand, event->mval) == NULL) {
+      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
         return 1;
       }
     }
@@ -490,40 +490,40 @@ static void sequencer_gizmos(void)
 
 /* *********************** sequencer (main) region ************************ */
 /* add handlers, stuff you only do once or on area/region changes */
-static void sequencer_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
   ListBase *lb;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
 #if 0
   keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 #endif
 
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer", SPACE_SEQ, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* add drop boxes */
   lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
 
-  WM_event_add_dropbox_handler(&ar->handlers, lb);
+  WM_event_add_dropbox_handler(&region->handlers, lb);
 }
 
-static void sequencer_main_region_draw(const bContext *C, ARegion *ar)
+static void sequencer_main_region_draw(const bContext *C, ARegion *region)
 {
   /* NLE - strip editing timeline interface */
-  draw_timeline_seq(C, ar);
+  draw_timeline_seq(C, region);
 }
 
 static void sequencer_main_region_listener(wmWindow *UNUSED(win),
                                            ScrArea *UNUSED(sa),
-                                           ARegion *ar,
+                                           ARegion *region,
                                            wmNotifier *wmn,
                                            const Scene *UNUSED(scene))
 {
@@ -537,30 +537,30 @@ static void sequencer_main_region_listener(wmWindow *UNUSED(win),
         case ND_RENDER_OPTIONS: /* for FPS and FPS Base */
         case ND_SEQUENCER:
         case ND_RENDER_RESULT:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_ANIMATION:
       switch (wmn->data) {
         case ND_KEYFRAME:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_SEQUENCER) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_ANIMPLAY)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -571,12 +571,12 @@ static void sequencer_main_region_message_subscribe(const struct bContext *UNUSE
                                                     struct Scene *scene,
                                                     struct bScreen *UNUSED(screen),
                                                     struct ScrArea *UNUSED(sa),
-                                                    struct ARegion *ar,
+                                                    struct ARegion *region,
                                                     struct wmMsgBus *mbus)
 {
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = ar,
-      .user_data = ar,
+      .owner = region,
+      .user_data = region,
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
 
@@ -626,54 +626,54 @@ static void sequencer_main_region_message_subscribe(const struct bContext *UNUSE
 
 /* *********************** header region ************************ */
 /* add handlers, stuff you only do once or on area/region changes */
-static void sequencer_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void sequencer_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void sequencer_header_region_draw(const bContext *C, ARegion *ar)
+static void sequencer_header_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
 /* *********************** toolbar region ************************ */
 /* add handlers, stuff you only do once or on area/region changes */
-static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *ar)
+static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ar->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
-  ED_region_panels_init(wm, ar);
+  region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+  ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void sequencer_tools_region_draw(const bContext *C, ARegion *ar)
+static void sequencer_tools_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 /* *********************** preview region ************************ */
-static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *ar)
+static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
 #if 0
   keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 #endif
 
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
+static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 {
   ScrArea *sa = CTX_wm_area(C);
   SpaceSeq *sseq = sa->spacedata.first;
@@ -688,7 +688,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
   }
 
   if (!show_split || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE) {
-    sequencer_draw_preview(C, scene, ar, sseq, scene->r.cfra, 0, false, false);
+    sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, false);
   }
 
   if (show_split && sseq->overlay_type != SEQ_DRAW_OVERLAY_CURRENT) {
@@ -703,14 +703,14 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
 
     if (over_cfra != scene->r.cfra || sseq->overlay_type != SEQ_DRAW_OVERLAY_RECT) {
       sequencer_draw_preview(
-          C, scene, ar, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true, false);
+          C, scene, region, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true, false);
     }
   }
 
-  WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+  WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 
   if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
-    const rcti *rect = ED_region_visible_rect(ar);
+    const rcti *rect = ED_region_visible_rect(region);
     int xoffset = rect->xmin + U.widget_unit;
     int yoffset = rect->ymax;
     ED_scene_draw_fps(scene, xoffset, &yoffset);
@@ -719,7 +719,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
 
 static void sequencer_preview_region_listener(wmWindow *UNUSED(win),
                                               ScrArea *UNUSED(sa),
-                                              ARegion *ar,
+                                              ARegion *region,
                                               wmNotifier *wmn,
                                               const Scene *UNUSED(scene))
 {
@@ -727,7 +727,7 @@ static void sequencer_preview_region_listener(wmWindow *UNUSED(win),
   switch (wmn->category) {
     case NC_GPENCIL:
       if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SCENE:
@@ -737,32 +737,32 @@ static void sequencer_preview_region_listener(wmWindow *UNUSED(win),
         case ND_SEQUENCER:
         case ND_RENDER_OPTIONS:
         case ND_DRAW_RENDER_VIEWPORT:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_ANIMATION:
       switch (wmn->data) {
         case ND_KEYFRAME:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_SEQUENCER) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_ID:
       switch (wmn->data) {
         case NA_RENAME:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_MASK:
       if (wmn->action == NA_EDITED) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -771,25 +771,25 @@ static void sequencer_preview_region_listener(wmWindow *UNUSED(win),
 /* *********************** buttons region ************************ */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void sequencer_buttons_region_init(wmWindowManager *wm, ARegion *ar)
+static void sequencer_buttons_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  UI_panel_category_active_set_default(ar, "Strip");
-  ED_region_panels_init(wm, ar);
+  UI_panel_category_active_set_default(region, "Strip");
+  ED_region_panels_init(wm, region);
 }
 
-static void sequencer_buttons_region_draw(const bContext *C, ARegion *ar)
+static void sequencer_buttons_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 
 static void sequencer_buttons_region_listener(wmWindow *UNUSED(win),
                                               ScrArea *UNUSED(sa),
-                                              ARegion *ar,
+                                              ARegion *region,
                                               wmNotifier *wmn,
                                               const Scene *UNUSED(scene))
 {
@@ -797,25 +797,25 @@ static void sequencer_buttons_region_listener(wmWindow *UNUSED(win),
   switch (wmn->category) {
     case NC_GPENCIL:
       if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SCENE:
       switch (wmn->data) {
         case ND_FRAME:
         case ND_SEQUENCER:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_SEQUENCER) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }

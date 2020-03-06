@@ -50,7 +50,10 @@ bool ED_space_clip_maskedit_mask_poll(struct bContext *C);
 
 void ED_space_clip_get_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_get_size_fl(struct SpaceClip *sc, float size[2]);
-void ED_space_clip_get_zoom(struct SpaceClip *sc, struct ARegion *ar, float *zoomx, float *zoomy);
+void ED_space_clip_get_zoom(struct SpaceClip *sc,
+                            struct ARegion *region,
+                            float *zoomx,
+                            float *zoomy);
 void ED_space_clip_get_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 void ED_space_clip_get_aspect_dimension_aware(struct SpaceClip *sc, float *aspx, float *aspy);
 
@@ -63,24 +66,27 @@ struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc,
                                               float *angle);
 
 bool ED_space_clip_color_sample(struct SpaceClip *sc,
-                                struct ARegion *ar,
+                                struct ARegion *region,
                                 int mval[2],
                                 float r_col[3]);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
-bool ED_clip_view_selection(const struct bContext *C, struct ARegion *ar, bool fit);
+bool ED_clip_view_selection(const struct bContext *C, struct ARegion *region, bool fit);
 
 void ED_clip_select_all(struct SpaceClip *sc, int action, bool *r_has_selection);
 bool ED_clip_can_select(struct bContext *C);
 
 void ED_clip_point_undistorted_pos(struct SpaceClip *sc, const float co[2], float r_co[2]);
 void ED_clip_point_stable_pos(
-    struct SpaceClip *sc, struct ARegion *ar, float x, float y, float *xr, float *yr);
+    struct SpaceClip *sc, struct ARegion *region, float x, float y, float *xr, float *yr);
 void ED_clip_point_stable_pos__reverse(struct SpaceClip *sc,
-                                       struct ARegion *ar,
+                                       struct ARegion *region,
                                        const float co[2],
                                        float r_co[2]);
-void ED_clip_mouse_pos(struct SpaceClip *sc, struct ARegion *ar, const int mval[2], float co[2]);
+void ED_clip_mouse_pos(struct SpaceClip *sc,
+                       struct ARegion *region,
+                       const int mval[2],
+                       float co[2]);
 
 bool ED_space_clip_check_show_trackedit(struct SpaceClip *sc);
 bool ED_space_clip_check_show_maskedit(struct SpaceClip *sc);

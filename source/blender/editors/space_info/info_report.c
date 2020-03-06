@@ -172,11 +172,11 @@ static int select_report_pick_exec(bContext *C, wmOperator *op)
 static int select_report_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceInfo *sinfo = CTX_wm_space_info(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ReportList *reports = CTX_wm_reports(C);
   Report *report;
 
-  report = info_text_pick(sinfo, ar, reports, event->mval[1]);
+  report = info_text_pick(sinfo, region, reports, event->mval[1]);
 
   RNA_int_set(op->ptr, "report_index", BLI_findindex(&reports->list, report));
 
@@ -239,7 +239,7 @@ void INFO_OT_select_all(wmOperatorType *ot)
 static int box_select_exec(bContext *C, wmOperator *op)
 {
   SpaceInfo *sinfo = CTX_wm_space_info(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ReportList *reports = CTX_wm_reports(C);
   int report_mask = info_report_mask(sinfo);
   Report *report_min, *report_max;
@@ -258,8 +258,8 @@ static int box_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  report_min = info_text_pick(sinfo, ar, reports, rect.ymax);
-  report_max = info_text_pick(sinfo, ar, reports, rect.ymin);
+  report_min = info_text_pick(sinfo, region, reports, rect.ymax);
+  report_max = info_text_pick(sinfo, region, reports, rect.ymin);
 
   /* get the first report if none found */
   if (report_min == NULL) {

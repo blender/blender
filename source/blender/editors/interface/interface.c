@@ -83,7 +83,7 @@
 
 /* prototypes. */
 static void ui_but_to_pixelrect(struct rcti *rect,
-                                const struct ARegion *ar,
+                                const struct ARegion *region,
                                 struct uiBlock *block,
                                 struct uiBut *but);
 static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p);
@@ -124,15 +124,15 @@ static bool ui_but_is_unit_radians(const uiBut *but)
 
 /* ************* window matrix ************** */
 
-void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y)
+void ui_block_to_window_fl(const ARegion *region, uiBlock *block, float *x, float *y)
 {
   float gx, gy;
   int sx, sy, getsizex, getsizey;
 
-  getsizex = BLI_rcti_size_x(&ar->winrct) + 1;
-  getsizey = BLI_rcti_size_y(&ar->winrct) + 1;
-  sx = ar->winrct.xmin;
-  sy = ar->winrct.ymin;
+  getsizex = BLI_rcti_size_x(&region->winrct) + 1;
+  getsizey = BLI_rcti_size_y(&region->winrct) + 1;
+  sx = region->winrct.xmin;
+  sy = region->winrct.ymin;
 
   gx = *x;
   gy = *y;
@@ -150,48 +150,51 @@ void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y
                                            block->winmat[3][1]));
 }
 
-void ui_block_to_window(const ARegion *ar, uiBlock *block, int *x, int *y)
+void ui_block_to_window(const ARegion *region, uiBlock *block, int *x, int *y)
 {
   float fx, fy;
 
   fx = *x;
   fy = *y;
 
-  ui_block_to_window_fl(ar, block, &fx, &fy);
+  ui_block_to_window_fl(region, block, &fx, &fy);
 
   *x = (int)(fx + 0.5f);
   *y = (int)(fy + 0.5f);
 }
 
-void ui_block_to_window_rctf(const ARegion *ar, uiBlock *block, rctf *rct_dst, const rctf *rct_src)
+void ui_block_to_window_rctf(const ARegion *region,
+                             uiBlock *block,
+                             rctf *rct_dst,
+                             const rctf *rct_src)
 {
   *rct_dst = *rct_src;
-  ui_block_to_window_fl(ar, block, &rct_dst->xmin, &rct_dst->ymin);
-  ui_block_to_window_fl(ar, block, &rct_dst->xmax, &rct_dst->ymax);
+  ui_block_to_window_fl(region, block, &rct_dst->xmin, &rct_dst->ymin);
+  ui_block_to_window_fl(region, block, &rct_dst->xmax, &rct_dst->ymax);
 }
 
-float ui_block_to_window_scale(const ARegion *ar, uiBlock *block)
+float ui_block_to_window_scale(const ARegion *region, uiBlock *block)
 {
   /* We could have function for this to avoid dummy arg. */
   float dummy_x;
   float min_y = 0, max_y = 1;
   dummy_x = 0.0f;
-  ui_block_to_window_fl(ar, block, &dummy_x, &min_y);
+  ui_block_to_window_fl(region, block, &dummy_x, &min_y);
   dummy_x = 0.0f;
-  ui_block_to_window_fl(ar, block, &dummy_x, &max_y);
+  ui_block_to_window_fl(region, block, &dummy_x, &max_y);
   return max_y - min_y;
 }
 
 /* for mouse cursor */
-void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y)
+void ui_window_to_block_fl(const ARegion *region, uiBlock *block, float *x, float *y)
 {
   float a, b, c, d, e, f, px, py;
   int sx, sy, getsizex, getsizey;
 
-  getsizex = BLI_rcti_size_x(&ar->winrct) + 1;
-  getsizey = BLI_rcti_size_y(&ar->winrct) + 1;
-  sx = ar->winrct.xmin;
-  sy = ar->winrct.ymin;
+  getsizex = BLI_rcti_size_x(&region->winrct) + 1;
+  getsizey = BLI_rcti_size_y(&region->winrct) + 1;
+  sx = region->winrct.xmin;
+  sy = region->winrct.ymin;
 
   a = 0.5f * ((float)getsizex) * block->winmat[0][0];
   b = 0.5f * ((float)getsizex) * block->winmat[1][0];
@@ -213,47 +216,47 @@ void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y
   }
 }
 
-void ui_window_to_block_rctf(const struct ARegion *ar,
+void ui_window_to_block_rctf(const struct ARegion *region,
                              uiBlock *block,
                              rctf *rct_dst,
                              const rctf *rct_src)
 {
   *rct_dst = *rct_src;
-  ui_window_to_block_fl(ar, block, &rct_dst->xmin, &rct_dst->ymin);
-  ui_window_to_block_fl(ar, block, &rct_dst->xmax, &rct_dst->ymax);
+  ui_window_to_block_fl(region, block, &rct_dst->xmin, &rct_dst->ymin);
+  ui_window_to_block_fl(region, block, &rct_dst->xmax, &rct_dst->ymax);
 }
 
-void ui_window_to_block(const ARegion *ar, uiBlock *block, int *x, int *y)
+void ui_window_to_block(const ARegion *region, uiBlock *block, int *x, int *y)
 {
   float fx, fy;
 
   fx = *x;
   fy = *y;
 
-  ui_window_to_block_fl(ar, block, &fx, &fy);
+  ui_window_to_block_fl(region, block, &fx, &fy);
 
   *x = (int)(fx + 0.5f);
   *y = (int)(fy + 0.5f);
 }
 
-void ui_window_to_region(const ARegion *ar, int *x, int *y)
+void ui_window_to_region(const ARegion *region, int *x, int *y)
 {
-  *x -= ar->winrct.xmin;
-  *y -= ar->winrct.ymin;
+  *x -= region->winrct.xmin;
+  *y -= region->winrct.ymin;
 }
 
-void ui_window_to_region_rcti(const ARegion *ar, rcti *rect_dst, const rcti *rct_src)
+void ui_window_to_region_rcti(const ARegion *region, rcti *rect_dst, const rcti *rct_src)
 {
-  rect_dst->xmin = rct_src->xmin - ar->winrct.xmin;
-  rect_dst->xmax = rct_src->xmax - ar->winrct.xmin;
-  rect_dst->ymin = rct_src->ymin - ar->winrct.ymin;
-  rect_dst->ymax = rct_src->ymax - ar->winrct.ymin;
+  rect_dst->xmin = rct_src->xmin - region->winrct.xmin;
+  rect_dst->xmax = rct_src->xmax - region->winrct.xmin;
+  rect_dst->ymin = rct_src->ymin - region->winrct.ymin;
+  rect_dst->ymax = rct_src->ymax - region->winrct.ymin;
 }
 
-void ui_region_to_window(const ARegion *ar, int *x, int *y)
+void ui_region_to_window(const ARegion *region, int *x, int *y)
 {
-  *x += ar->winrct.xmin;
-  *y += ar->winrct.ymin;
+  *x += region->winrct.xmin;
+  *y += region->winrct.ymin;
 }
 
 static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
@@ -336,15 +339,15 @@ static void ui_update_window_matrix(const wmWindow *window, const ARegion *regio
  * Popups will add a margin to #ARegion.winrct for shadow,
  * for interactivity (point-inside tests for eg), we want the winrct without the margin added.
  */
-void ui_region_winrct_get_no_margin(const struct ARegion *ar, struct rcti *r_rect)
+void ui_region_winrct_get_no_margin(const struct ARegion *region, struct rcti *r_rect)
 {
-  uiBlock *block = ar->uiblocks.first;
+  uiBlock *block = region->uiblocks.first;
   if (block && (block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_RADIAL) == 0) {
     BLI_rcti_rctf_copy_floor(r_rect, &block->rect);
-    BLI_rcti_translate(r_rect, ar->winrct.xmin, ar->winrct.ymin);
+    BLI_rcti_translate(r_rect, region->winrct.xmin, region->winrct.ymin);
   }
   else {
-    *r_rect = ar->winrct;
+    *r_rect = region->winrct;
   }
 }
 
@@ -850,7 +853,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
  * they should keep calling uiDefButs to keep them alive */
 /* returns 0 when button removed */
 bool UI_but_active_only_ex(
-    const bContext *C, ARegion *ar, uiBlock *block, uiBut *but, const bool remove_on_failure)
+    const bContext *C, ARegion *region, uiBlock *block, uiBut *but, const bool remove_on_failure)
 {
   uiBlock *oldblock;
   uiBut *oldbut;
@@ -871,7 +874,7 @@ bool UI_but_active_only_ex(
     }
   }
   if ((activate == true) || (found == false)) {
-    ui_but_activate_event((bContext *)C, ar, but);
+    ui_but_activate_event((bContext *)C, region, but);
   }
   else if ((found == true) && (isactive == false)) {
     if (remove_on_failure) {
@@ -884,23 +887,23 @@ bool UI_but_active_only_ex(
   return true;
 }
 
-bool UI_but_active_only(const bContext *C, ARegion *ar, uiBlock *block, uiBut *but)
+bool UI_but_active_only(const bContext *C, ARegion *region, uiBlock *block, uiBut *but)
 {
-  return UI_but_active_only_ex(C, ar, block, but, true);
+  return UI_but_active_only_ex(C, region, block, but, true);
 }
 
 /**
  * \warning This must run after other handlers have been added,
  * otherwise the handler wont be removed, see: T71112.
  */
-bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *ar, uiBlock *block)
+bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, uiBlock *block)
 {
   bool done = false;
   for (uiBut *but = block->buttons.first; but; but = but->next) {
     if (but->flag & UI_BUT_ACTIVATE_ON_INIT) {
       but->flag &= ~UI_BUT_ACTIVATE_ON_INIT;
       if (ui_but_is_editable(but)) {
-        if (UI_but_active_only_ex(C, ar, block, but, false)) {
+        if (UI_but_active_only_ex(C, region, block, but, false)) {
           done = true;
           break;
         }
@@ -920,12 +923,12 @@ bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *ar, uiBloc
 }
 
 /* simulate button click */
-void UI_but_execute(const bContext *C, ARegion *ar, uiBut *but)
+void UI_but_execute(const bContext *C, ARegion *region, uiBut *but)
 {
   void *active_back;
-  ui_but_execute_begin((bContext *)C, ar, but, &active_back);
+  ui_but_execute_begin((bContext *)C, region, but, &active_back);
   /* Value is applied in begin. No further action required. */
-  ui_but_execute_end((bContext *)C, ar, but, active_back);
+  ui_but_execute_end((bContext *)C, region, but, active_back);
 }
 
 /* use to check if we need to disable undo, but don't make any changes
@@ -1827,27 +1830,27 @@ void ui_fontscale(short *points, float aspect)
 }
 
 /* project button or block (but==NULL) to pixels in regionspace */
-static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, uiBut *but)
+static void ui_but_to_pixelrect(rcti *rect, const ARegion *region, uiBlock *block, uiBut *but)
 {
   rctf rectf;
 
-  ui_block_to_window_rctf(ar, block, &rectf, (but) ? &but->rect : &block->rect);
+  ui_block_to_window_rctf(region, block, &rectf, (but) ? &but->rect : &block->rect);
   BLI_rcti_rctf_copy_round(rect, &rectf);
-  BLI_rcti_translate(rect, -ar->winrct.xmin, -ar->winrct.ymin);
+  BLI_rcti_translate(rect, -region->winrct.xmin, -region->winrct.ymin);
 }
 
 /* uses local copy of style, to scale things down, and allow widgets to change stuff */
 void UI_block_draw(const bContext *C, uiBlock *block)
 {
   uiStyle style = *UI_style_get_dpi(); /* XXX pass on as arg */
-  ARegion *ar;
+  ARegion *region;
   uiBut *but;
   rcti rect;
 
   /* get menu region or area region */
-  ar = CTX_wm_menu(C);
-  if (!ar) {
-    ar = CTX_wm_region(C);
+  region = CTX_wm_menu(C);
+  if (!region) {
+    region = CTX_wm_region(C);
   }
 
   if (!block->endblock) {
@@ -1865,40 +1868,41 @@ void UI_block_draw(const bContext *C, uiBlock *block)
   ui_fontscale(&style.widget.points, block->aspect);
 
   /* scale block min/max to rect */
-  ui_but_to_pixelrect(&rect, ar, block, NULL);
+  ui_but_to_pixelrect(&rect, region, block, NULL);
 
   /* pixel space for AA widgets */
   GPU_matrix_push_projection();
   GPU_matrix_push();
   GPU_matrix_identity_set();
 
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
 
   /* back */
   if (block->flag & UI_BLOCK_RADIAL) {
     ui_draw_pie_center(block);
   }
   else if (block->flag & UI_BLOCK_POPOVER) {
-    ui_draw_popover_back(ar, &style, block, &rect);
+    ui_draw_popover_back(region, &style, block, &rect);
   }
   else if (block->flag & UI_BLOCK_LOOP) {
     ui_draw_menu_back(&style, block, &rect);
   }
   else if (block->panel) {
-    bool show_background = ar->alignment != RGN_ALIGN_FLOAT;
+    bool show_background = region->alignment != RGN_ALIGN_FLOAT;
     if (show_background) {
       if (block->panel->type && (block->panel->type->flag & PNL_NO_HEADER)) {
-        if (ar->regiontype == RGN_TYPE_TOOLS) {
+        if (region->regiontype == RGN_TYPE_TOOLS) {
           /* We never want a background around active tools. */
           show_background = false;
         }
         else {
           /* Without a header there is no background except for region overlap. */
-          show_background = ar->overlap != 0;
+          show_background = region->overlap != 0;
         }
       }
     }
-    ui_draw_aligned_panel(&style, block, &rect, UI_panel_category_is_visible(ar), show_background);
+    ui_draw_aligned_panel(
+        &style, block, &rect, UI_panel_category_is_visible(region), show_background);
   }
 
   BLF_batch_draw_begin();
@@ -1908,12 +1912,12 @@ void UI_block_draw(const bContext *C, uiBlock *block)
   /* widgets */
   for (but = block->buttons.first; but; but = but->next) {
     if (!(but->flag & (UI_HIDDEN | UI_SCROLLED))) {
-      ui_but_to_pixelrect(&rect, ar, block, but);
+      ui_but_to_pixelrect(&rect, region, block, but);
 
       /* XXX: figure out why invalid coordinates happen when closing render window */
       /* and material preview is redrawn in main window (temp fix for bug #23848) */
       if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
-        ui_draw_but(C, ar, &style, but, &rect);
+        ui_draw_but(C, region, &style, but, &rect);
       }
     }
   }
@@ -1927,7 +1931,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
   GPU_matrix_pop();
 }
 
-static void ui_block_message_subscribe(ARegion *ar, struct wmMsgBus *mbus, uiBlock *block)
+static void ui_block_message_subscribe(ARegion *region, struct wmMsgBus *mbus, uiBlock *block)
 {
   uiBut *but_prev = NULL;
   /* possibly we should keep the region this block is contained in? */
@@ -1943,8 +1947,8 @@ static void ui_block_message_subscribe(ARegion *ar, struct wmMsgBus *mbus, uiBlo
                              &but->rnapoin,
                              but->rnaprop,
                              &(const wmMsgSubscribeValue){
-                                 .owner = ar,
-                                 .user_data = ar,
+                                 .owner = region,
+                                 .user_data = region,
                                  .notify = ED_region_do_msg_notify_tag_redraw,
                              },
                              __func__);
@@ -1954,10 +1958,10 @@ static void ui_block_message_subscribe(ARegion *ar, struct wmMsgBus *mbus, uiBlo
   }
 }
 
-void UI_region_message_subscribe(ARegion *ar, struct wmMsgBus *mbus)
+void UI_region_message_subscribe(ARegion *region, struct wmMsgBus *mbus)
 {
-  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
-    ui_block_message_subscribe(ar, mbus, block);
+  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
+    ui_block_message_subscribe(region, mbus, block);
   }
 }
 

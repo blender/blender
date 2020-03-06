@@ -1809,7 +1809,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Camera *camera = ED_view3d_camera_data_get(v3d, rv3d);
@@ -1901,7 +1901,8 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          BLI_uvproject_from_view(luv->uv, l->v->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
+          BLI_uvproject_from_view(
+              luv->uv, l->v->co, rv3d->persmat, rotmat, region->winx, region->winy);
         }
         changed = true;
       }

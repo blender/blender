@@ -615,9 +615,9 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
 
 void ANIM_center_frame(struct bContext *C, int smooth_viewtx)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
-  float w = BLI_rctf_size_x(&ar->v2d.cur);
+  float w = BLI_rctf_size_x(&region->v2d.cur);
   rctf newrct;
   int nextfra, prevfra;
 
@@ -626,8 +626,8 @@ void ANIM_center_frame(struct bContext *C, int smooth_viewtx)
       const float fps = FPS;
       newrct.xmax = scene->r.cfra + U.view_frame_seconds * fps + 1;
       newrct.xmin = scene->r.cfra - U.view_frame_seconds * fps - 1;
-      newrct.ymax = ar->v2d.cur.ymax;
-      newrct.ymin = ar->v2d.cur.ymin;
+      newrct.ymax = region->v2d.cur.ymax;
+      newrct.ymin = region->v2d.cur.ymin;
       break;
     }
 
@@ -636,8 +636,8 @@ void ANIM_center_frame(struct bContext *C, int smooth_viewtx)
       if (find_prev_next_keyframes(C, &nextfra, &prevfra)) {
         newrct.xmax = nextfra;
         newrct.xmin = prevfra;
-        newrct.ymax = ar->v2d.cur.ymax;
-        newrct.ymin = ar->v2d.cur.ymin;
+        newrct.ymax = region->v2d.cur.ymax;
+        newrct.ymin = region->v2d.cur.ymin;
         break;
       }
       /* else drop through, keep range instead */
@@ -647,11 +647,11 @@ void ANIM_center_frame(struct bContext *C, int smooth_viewtx)
     default:
       newrct.xmax = scene->r.cfra + (w / 2);
       newrct.xmin = scene->r.cfra - (w / 2);
-      newrct.ymax = ar->v2d.cur.ymax;
-      newrct.ymin = ar->v2d.cur.ymin;
+      newrct.ymax = region->v2d.cur.ymax;
+      newrct.ymin = region->v2d.cur.ymin;
       break;
   }
 
-  UI_view2d_smooth_view(C, ar, &newrct, smooth_viewtx);
+  UI_view2d_smooth_view(C, region, &newrct, smooth_viewtx);
 }
 /* *************************************************** */

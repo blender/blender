@@ -91,8 +91,8 @@ void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_xray(struct wmOperatorType *ot);
 
-void view3d_boxview_copy(struct ScrArea *sa, struct ARegion *ar);
-void view3d_boxview_sync(struct ScrArea *sa, struct ARegion *ar);
+void view3d_boxview_copy(struct ScrArea *sa, struct ARegion *region);
+void view3d_boxview_sync(struct ScrArea *sa, struct ARegion *region);
 
 void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
                                 const float ofs_old[3],
@@ -120,18 +120,18 @@ void VIEW3D_OT_fly(struct wmOperatorType *ot);
 void VIEW3D_OT_walk(struct wmOperatorType *ot);
 
 /* view3d_draw.c */
-void view3d_main_region_draw(const struct bContext *C, struct ARegion *ar);
-void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar);
+void view3d_main_region_draw(const struct bContext *C, struct ARegion *region);
+void view3d_draw_region_info(const struct bContext *C, struct ARegion *region);
 
 void ED_view3d_draw_depth(struct Depsgraph *depsgraph,
-                          struct ARegion *ar,
+                          struct ARegion *region,
                           View3D *v3d,
                           bool alphaoverride);
 
 /* view3d_draw_legacy.c */
 void ED_view3d_draw_depth_gpencil(struct Depsgraph *depsgraph,
                                   Scene *scene,
-                                  struct ARegion *ar,
+                                  struct ARegion *region,
                                   View3D *v3d);
 
 void ED_view3d_draw_select_loop(struct Depsgraph *depsgraph,
@@ -139,16 +139,16 @@ void ED_view3d_draw_select_loop(struct Depsgraph *depsgraph,
                                 Scene *scene,
                                 struct ViewLayer *view_layer,
                                 View3D *v3d,
-                                struct ARegion *ar,
+                                struct ARegion *region,
                                 bool use_obedit_skip,
                                 bool use_nearest);
 
 void ED_view3d_draw_depth_loop(struct Depsgraph *depsgraph,
                                Scene *scene,
-                               struct ARegion *ar,
+                               struct ARegion *region,
                                View3D *v3d);
 
-void view3d_update_depths_rect(struct ARegion *ar, struct ViewDepths *d, struct rcti *rect);
+void view3d_update_depths_rect(struct ARegion *region, struct ViewDepths *d, struct rcti *rect);
 float view3d_depth_near(struct ViewDepths *d);
 
 /* view3d_select.c */
@@ -183,22 +183,22 @@ void ED_view3d_smooth_view_ex(const struct Depsgraph *depsgraph,
                               struct wmWindow *win,
                               struct ScrArea *sa,
                               struct View3D *v3d,
-                              struct ARegion *ar,
+                              struct ARegion *region,
                               const int smooth_viewtx,
                               const V3D_SmoothParams *sview);
 
 void ED_view3d_smooth_view(struct bContext *C,
                            struct View3D *v3d,
-                           struct ARegion *ar,
+                           struct ARegion *region,
                            const int smooth_viewtx,
                            const V3D_SmoothParams *sview);
 
 void ED_view3d_smooth_view_force_finish(struct bContext *C,
                                         struct View3D *v3d,
-                                        struct ARegion *ar);
+                                        struct ARegion *region);
 
 void view3d_winmatrix_set(struct Depsgraph *depsgraph,
-                          struct ARegion *ar,
+                          struct ARegion *region,
                           const View3D *v3d,
                           const rcti *rect);
 void view3d_viewmatrix_set(struct Depsgraph *depsgraph,

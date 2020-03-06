@@ -203,25 +203,25 @@ static int report_textview_line_get(struct TextViewContext *tvc, const char **li
   return 1;
 }
 
-static void info_textview_draw_rect_calc(const ARegion *ar,
+static void info_textview_draw_rect_calc(const ARegion *region,
                                          rcti *r_draw_rect,
                                          rcti *r_draw_rect_outer)
 {
   const int margin = 0.45f * U.widget_unit;
   r_draw_rect->xmin = margin + UI_UNIT_X;
-  r_draw_rect->xmax = ar->winx - V2D_SCROLL_WIDTH;
+  r_draw_rect->xmax = region->winx - V2D_SCROLL_WIDTH;
   r_draw_rect->ymin = margin;
-  r_draw_rect->ymax = ar->winy;
+  r_draw_rect->ymax = region->winy;
   /* No margin at the top (allow text to scroll off the window). */
 
   r_draw_rect_outer->xmin = 0;
-  r_draw_rect_outer->xmax = ar->winx;
+  r_draw_rect_outer->xmax = region->winx;
   r_draw_rect_outer->ymin = 0;
-  r_draw_rect_outer->ymax = ar->winy;
+  r_draw_rect_outer->ymax = region->winy;
 }
 
 static int info_textview_main__internal(struct SpaceInfo *sinfo,
-                                        const ARegion *ar,
+                                        const ARegion *region,
                                         ReportList *reports,
                                         const bool do_draw,
                                         const int mval[2],
@@ -230,7 +230,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo,
 {
   int ret = 0;
 
-  const View2D *v2d = &ar->v2d;
+  const View2D *v2d = &region->v2d;
 
   TextViewContext tvc = {0};
   tvc.begin = report_textview_begin;
@@ -252,30 +252,33 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo,
   tvc.scroll_ymin = v2d->cur.ymin;
   tvc.scroll_ymax = v2d->cur.ymax;
 
-  info_textview_draw_rect_calc(ar, &tvc.draw_rect, &tvc.draw_rect_outer);
+  info_textview_draw_rect_calc(region, &tvc.draw_rect, &tvc.draw_rect_outer);
 
   ret = textview_draw(&tvc, do_draw, mval, r_mval_pick_item, r_mval_pick_offset);
 
   return ret;
 }
 
-void *info_text_pick(struct SpaceInfo *sinfo, const ARegion *ar, ReportList *reports, int mval_y)
+void *info_text_pick(struct SpaceInfo *sinfo,
+                     const ARegion *region,
+                     ReportList *reports,
+                     int mval_y)
 {
   void *mval_pick_item = NULL;
   const int mval[2] = {0, mval_y};
 
-  info_textview_main__internal(sinfo, ar, reports, false, mval, &mval_pick_item, NULL);
+  info_textview_main__internal(sinfo, region, reports, false, mval, &mval_pick_item, NULL);
   return (void *)mval_pick_item;
 }
 
-int info_textview_height(struct SpaceInfo *sinfo, const ARegion *ar, ReportList *reports)
+int info_textview_height(struct SpaceInfo *sinfo, const ARegion *region, ReportList *reports)
 {
   int mval[2] = {INT_MAX, INT_MAX};
-  return info_textview_main__internal(sinfo, ar, reports, false, mval, NULL, NULL);
+  return info_textview_main__internal(sinfo, region, reports, false, mval, NULL, NULL);
 }
 
-void info_textview_main(struct SpaceInfo *sinfo, const ARegion *ar, ReportList *reports)
+void info_textview_main(struct SpaceInfo *sinfo, const ARegion *region, ReportList *reports)
 {
   int mval[2] = {INT_MAX, INT_MAX};
-  info_textview_main__internal(sinfo, ar, reports, true, mval, NULL, NULL);
+  info_textview_main__internal(sinfo, region, reports, true, mval, NULL, NULL);
 }

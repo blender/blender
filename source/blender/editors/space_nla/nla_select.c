@@ -231,7 +231,7 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
   int filter;
 
   SpaceNla *snla = (SpaceNla *)ac->sl;
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
   rctf rectf;
 
   /* convert border-region to view coordinates */
@@ -285,7 +285,7 @@ static void nlaedit_strip_at_region_position(
   *r_strip = NULL;
 
   SpaceNla *snla = (SpaceNla *)ac->sl;
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
 
   float view_x, view_y;
   int channel_index;
@@ -550,8 +550,8 @@ static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, const wm
   /* handle mode-based testing */
   if (leftright == NLAEDIT_LRSEL_TEST) {
     Scene *scene = ac.scene;
-    ARegion *ar = ac.ar;
-    View2D *v2d = &ar->v2d;
+    ARegion *region = ac.region;
+    View2D *v2d = &region->v2d;
     float x;
 
     /* determine which side of the current frame mouse is on */

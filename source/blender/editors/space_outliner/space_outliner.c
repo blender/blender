@@ -54,36 +54,36 @@
 #include "outliner_intern.h"
 #include "GPU_framebuffer.h"
 
-static void outliner_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   ListBase *lb;
   wmKeyMap *keymap;
 
   /* make sure we keep the hide flags */
-  ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-  ar->v2d.scroll &= ~(V2D_SCROLL_LEFT | V2D_SCROLL_TOP); /* prevent any noise of past */
-  ar->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-  ar->v2d.scroll |= V2D_SCROLL_VERTICAL_HIDE;
+  region->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+  region->v2d.scroll &= ~(V2D_SCROLL_LEFT | V2D_SCROLL_TOP); /* prevent any noise of past */
+  region->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+  region->v2d.scroll |= V2D_SCROLL_VERTICAL_HIDE;
 
-  ar->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
-  ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
-  ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
-  ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
+  region->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+  region->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+  region->v2d.keeptot = V2D_KEEPTOT_STRICT;
+  region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Add dropboxes */
   lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
-  WM_event_add_dropbox_handler(&ar->handlers, lb);
+  WM_event_add_dropbox_handler(&region->handlers, lb);
 }
 
-static void outliner_main_region_draw(const bContext *C, ARegion *ar)
+static void outliner_main_region_draw(const bContext *C, ARegion *region)
 {
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   View2DScrollers *scrollers;
 
   /* clear */
@@ -101,13 +101,13 @@ static void outliner_main_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_scrollers_free(scrollers);
 }
 
-static void outliner_main_region_free(ARegion *UNUSED(ar))
+static void outliner_main_region_free(ARegion *UNUSED(region))
 {
 }
 
 static void outliner_main_region_listener(wmWindow *UNUSED(win),
                                           ScrArea *UNUSED(sa),
-                                          ARegion *ar,
+                                          ARegion *region,
                                           wmNotifier *wmn,
                                           const Scene *UNUSED(scene))
 {
@@ -128,11 +128,11 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
         case ND_LAYER_CONTENT:
         case ND_WORLD:
         case ND_SCENEBROWSE:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       if (wmn->action & NA_EDITED) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_OBJECT:
@@ -145,46 +145,46 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
         case ND_DRAW:
         case ND_PARENT:
         case ND_OB_SHADING:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
         case ND_CONSTRAINT:
           /* all constraint actions now, for reordering */
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
         case ND_MODIFIER:
           /* all modifier actions now */
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
         default:
           /* Trigger update for NC_OBJECT itself */
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_GROUP:
       /* all actions now, todo: check outliner view mode? */
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       break;
     case NC_LAMP:
       /* For updating light icons, when changing light type */
       if (wmn->data == ND_LIGHTING_DRAW) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_OUTLINER) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_MATERIAL:
       switch (wmn->data) {
         case ND_SHADING_LINKS:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
@@ -192,7 +192,7 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_VERTEX_GROUP:
         case ND_DATA:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
@@ -200,38 +200,38 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_NLA_ACTCHANGE:
         case ND_KEYFRAME:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
         case ND_ANIMCHAN:
           if (wmn->action == NA_SELECTED) {
-            ED_region_tag_redraw(ar);
+            ED_region_tag_redraw(region);
           }
           break;
       }
       break;
     case NC_GPENCIL:
       if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_LAYER)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_MASK:
       if (ELEM(wmn->action, NA_ADDED)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_PAINTCURVE:
       if (ELEM(wmn->action, NA_ADDED)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_TEXT:
       if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -242,13 +242,13 @@ static void outliner_main_region_message_subscribe(const struct bContext *UNUSED
                                                    struct Scene *UNUSED(scene),
                                                    struct bScreen *UNUSED(screen),
                                                    struct ScrArea *sa,
-                                                   struct ARegion *ar,
+                                                   struct ARegion *region,
                                                    struct wmMsgBus *mbus)
 {
   SpaceOutliner *soops = sa->spacedata.first;
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = ar,
-      .user_data = ar,
+      .owner = region,
+      .user_data = region,
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
 
@@ -260,23 +260,23 @@ static void outliner_main_region_message_subscribe(const struct bContext *UNUSED
 /* ************************ header outliner area region *********************** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void outliner_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void outliner_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void outliner_header_region_draw(const bContext *C, ARegion *ar)
+static void outliner_header_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
-static void outliner_header_region_free(ARegion *UNUSED(ar))
+static void outliner_header_region_free(ARegion *UNUSED(region))
 {
 }
 
 static void outliner_header_region_listener(wmWindow *UNUSED(win),
                                             ScrArea *UNUSED(sa),
-                                            ARegion *ar,
+                                            ARegion *region,
                                             wmNotifier *wmn,
                                             const Scene *UNUSED(scene))
 {
@@ -284,12 +284,12 @@ static void outliner_header_region_listener(wmWindow *UNUSED(win),
   switch (wmn->category) {
     case NC_SCENE:
       if (wmn->data == ND_KEYINGSET) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_OUTLINER) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -299,7 +299,7 @@ static void outliner_header_region_listener(wmWindow *UNUSED(win),
 
 static SpaceLink *outliner_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceOutliner *soutliner;
 
   soutliner = MEM_callocN(sizeof(SpaceOutliner), "initoutliner");
@@ -311,17 +311,17 @@ static SpaceLink *outliner_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
   soutliner->flag |= SO_SYNC_SELECT;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for outliner");
+  region = MEM_callocN(sizeof(ARegion), "header for outliner");
 
-  BLI_addtail(&soutliner->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&soutliner->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for outliner");
+  region = MEM_callocN(sizeof(ARegion), "main region for outliner");
 
-  BLI_addtail(&soutliner->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&soutliner->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
   return (SpaceLink *)soutliner;
 }

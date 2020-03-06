@@ -74,10 +74,10 @@ typedef struct DataDropper {
   char name[200];
 } DataDropper;
 
-static void datadropper_draw_cb(const struct bContext *C, ARegion *ar, void *arg)
+static void datadropper_draw_cb(const struct bContext *C, ARegion *region, void *arg)
 {
   DataDropper *ddr = arg;
-  eyedropper_draw_cursor_text(C, ar, ddr->name);
+  eyedropper_draw_cursor_text(C, region, ddr->name);
 }
 
 static int datadropper_init(bContext *C, wmOperator *op)
@@ -161,16 +161,16 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
 
   if (sa) {
     if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_OUTLINER)) {
-      ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
-      if (ar) {
-        const int mval[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
+      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+      if (region) {
+        const int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
         Base *base;
 
         CTX_wm_area_set(C, sa);
-        CTX_wm_region_set(C, ar);
+        CTX_wm_region_set(C, region);
 
         /* grr, always draw else we leave stale text */
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
 
         if (sa->spacetype == SPACE_VIEW3D) {
           base = ED_view3d_give_base_under_cursor(C, mval);
@@ -259,8 +259,8 @@ static void datadropper_set_draw_callback_region(bContext *C,
       ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
 
       /* Redraw old area */
-      ARegion *ar = BKE_area_find_region_type(ddr->cursor_area, RGN_TYPE_WINDOW);
-      ED_region_tag_redraw(ar);
+      ARegion *region = BKE_area_find_region_type(ddr->cursor_area, RGN_TYPE_WINDOW);
+      ED_region_tag_redraw(region);
 
       /* Set draw callback in new region */
       ARegionType *art = BKE_regiontype_from_id(sa->type, RGN_TYPE_WINDOW);

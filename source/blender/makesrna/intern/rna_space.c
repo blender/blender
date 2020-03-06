@@ -579,16 +579,16 @@ static void area_region_from_regiondata(bScreen *sc,
                                         ARegion **r_ar)
 {
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
 
   *r_sa = NULL;
   *r_ar = NULL;
 
   for (sa = sc->areabase.first; sa; sa = sa->next) {
-    for (ar = sa->regionbase.first; ar; ar = ar->next) {
-      if (ar->regiondata == regiondata) {
+    for (region = sa->regionbase.first; region; region = region->next) {
+      if (region->regiondata == regiondata) {
         *r_sa = sa;
-        *r_ar = ar;
+        *r_ar = region;
         return;
       }
     }
@@ -612,9 +612,9 @@ static bool rna_Space_bool_from_region_flag_get_by_type(PointerRNA *ptr,
                                                         const int region_flag)
 {
   ScrArea *sa = rna_area_from_space(ptr);
-  ARegion *ar = BKE_area_find_region_type(sa, region_type);
-  if (ar) {
-    return (ar->flag & region_flag);
+  ARegion *region = BKE_area_find_region_type(sa, region_type);
+  if (region) {
+    return (region->flag & region_flag);
   }
   return false;
 }
@@ -625,11 +625,11 @@ static void rna_Space_bool_from_region_flag_set_by_type(PointerRNA *ptr,
                                                         bool value)
 {
   ScrArea *sa = rna_area_from_space(ptr);
-  ARegion *ar = BKE_area_find_region_type(sa, region_type);
-  if (ar && (ar->alignment != RGN_ALIGN_NONE)) {
-    SET_FLAG_FROM_TEST(ar->flag, value, region_flag);
+  ARegion *region = BKE_area_find_region_type(sa, region_type);
+  if (region && (region->alignment != RGN_ALIGN_NONE)) {
+    SET_FLAG_FROM_TEST(region->flag, value, region_flag);
   }
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 }
 
 static void rna_Space_bool_from_region_flag_update_by_type(bContext *C,
@@ -638,22 +638,22 @@ static void rna_Space_bool_from_region_flag_update_by_type(bContext *C,
                                                            const int region_flag)
 {
   ScrArea *sa = rna_area_from_space(ptr);
-  ARegion *ar = BKE_area_find_region_type(sa, region_type);
-  if (ar) {
+  ARegion *region = BKE_area_find_region_type(sa, region_type);
+  if (region) {
     if (region_flag == RGN_FLAG_HIDDEN) {
       /* Only support animation when the area is in the current context. */
-      if (ar->overlap && (sa == CTX_wm_area(C))) {
-        ED_region_visibility_change_update_animated(C, sa, ar);
+      if (region->overlap && (sa == CTX_wm_area(C))) {
+        ED_region_visibility_change_update_animated(C, sa, region);
       }
       else {
-        ED_region_visibility_change_update(C, sa, ar);
+        ED_region_visibility_change_update(C, sa, region);
       }
     }
     else if (region_flag == RGN_FLAG_HIDDEN_BY_USER) {
-      if (!(ar->flag & RGN_FLAG_HIDDEN_BY_USER) != !(ar->flag & RGN_FLAG_HIDDEN)) {
-        ED_region_toggle_hidden(C, ar);
+      if (!(region->flag & RGN_FLAG_HIDDEN_BY_USER) != !(region->flag & RGN_FLAG_HIDDEN)) {
+        ED_region_toggle_hidden(C, region);
 
-        if ((ar->flag & RGN_FLAG_HIDDEN_BY_USER) == 0) {
+        if ((region->flag & RGN_FLAG_HIDDEN_BY_USER) == 0) {
           ED_area_type_hud_ensure(C, sa);
         }
       }
@@ -774,12 +774,12 @@ static void rna_Space_show_region_hud_update(bContext *C, PointerRNA *ptr)
 static bool rna_Space_view2d_sync_get(PointerRNA *ptr)
 {
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
 
   sa = rna_area_from_space(ptr); /* can be NULL */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-  if (ar) {
-    View2D *v2d = &ar->v2d;
+  region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  if (region) {
+    View2D *v2d = &region->v2d;
     return (v2d->flag & V2D_VIEWSYNC_SCREEN_TIME) != 0;
   }
 
@@ -789,12 +789,12 @@ static bool rna_Space_view2d_sync_get(PointerRNA *ptr)
 static void rna_Space_view2d_sync_set(PointerRNA *ptr, bool value)
 {
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
 
   sa = rna_area_from_space(ptr); /* can be NULL */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-  if (ar) {
-    View2D *v2d = &ar->v2d;
+  region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  if (region) {
+    View2D *v2d = &region->v2d;
     if (value) {
       v2d->flag |= V2D_VIEWSYNC_SCREEN_TIME;
     }
@@ -809,14 +809,14 @@ static void rna_Space_view2d_sync_update(Main *UNUSED(bmain),
                                          PointerRNA *ptr)
 {
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
 
   sa = rna_area_from_space(ptr); /* can be NULL */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
-  if (ar) {
+  if (region) {
     bScreen *sc = (bScreen *)ptr->owner_id;
-    View2D *v2d = &ar->v2d;
+    View2D *v2d = &region->v2d;
 
     UI_view2d_sync(sc, sa, v2d, V2D_LOCK_SET);
   }
@@ -879,8 +879,8 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
   void *regiondata = NULL;
   if (sa) {
     ListBase *regionbase = (sa->spacedata.first == v3d) ? &sa->regionbase : &v3d->regionbase;
-    ARegion *ar = regionbase->last; /* always last in list, weak .. */
-    regiondata = ar->regiondata;
+    ARegion *region = regionbase->last; /* always last in list, weak .. */
+    regiondata = region->regiondata;
   }
 
   return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, regiondata);
@@ -893,16 +893,17 @@ static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *i
   ScrArea *sa = rna_area_from_space(ptr);
   int i = 3;
 
-  ARegion *ar = ((sa && sa->spacedata.first == v3d) ? &sa->regionbase : &v3d->regionbase)->last;
+  ARegion *region =
+      ((sa && sa->spacedata.first == v3d) ? &sa->regionbase : &v3d->regionbase)->last;
   ListBase lb = {NULL, NULL};
 
-  if (ar && ar->alignment == RGN_ALIGN_QSPLIT) {
-    while (i-- && ar) {
-      ar = ar->prev;
+  if (region && region->alignment == RGN_ALIGN_QSPLIT) {
+    while (i-- && region) {
+      region = region->prev;
     }
 
     if (i < 0) {
-      lb.first = ar;
+      lb.first = region;
     }
   }
 
@@ -921,11 +922,11 @@ static void rna_RegionView3D_quadview_update(Main *UNUSED(main),
                                              PointerRNA *ptr)
 {
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
 
-  rna_area_region_from_regiondata(ptr, &sa, &ar);
-  if (sa && ar && ar->alignment == RGN_ALIGN_QSPLIT) {
-    ED_view3d_quadview_update(sa, ar, false);
+  rna_area_region_from_regiondata(ptr, &sa, &region);
+  if (sa && region && region->alignment == RGN_ALIGN_QSPLIT) {
+    ED_view3d_quadview_update(sa, region, false);
   }
 }
 
@@ -935,11 +936,11 @@ static void rna_RegionView3D_quadview_clip_update(Main *UNUSED(main),
                                                   PointerRNA *ptr)
 {
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
 
-  rna_area_region_from_regiondata(ptr, &sa, &ar);
-  if (sa && ar && ar->alignment == RGN_ALIGN_QSPLIT) {
-    ED_view3d_quadview_update(sa, ar, true);
+  rna_area_region_from_regiondata(ptr, &sa, &region);
+  if (sa && region && region->alignment == RGN_ALIGN_QSPLIT) {
+    ED_view3d_quadview_update(sa, region, true);
   }
 }
 
@@ -1508,15 +1509,15 @@ static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
 {
   SpaceImage *sima = (SpaceImage *)ptr->data;
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
 
   values[0] = values[1] = 1;
 
   /* find aregion */
   sa = rna_area_from_space(ptr); /* can be NULL */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-  if (ar) {
-    ED_space_image_get_zoom(sima, ar, &values[0], &values[1]);
+  region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  if (region) {
+    ED_space_image_get_zoom(sima, region, &values[0], &values[1]);
   }
 }
 
@@ -2209,9 +2210,9 @@ static void rna_SpaceNodeEditor_cursor_location_from_region(SpaceNode *snode,
                                                             int x,
                                                             int y)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-  UI_view2d_region_to_view(&ar->v2d, x, y, &snode->cursor[0], &snode->cursor[1]);
+  UI_view2d_region_to_view(&region->v2d, x, y, &snode->cursor[0], &snode->cursor[1]);
   snode->cursor[0] /= UI_DPI_FAC;
   snode->cursor[1] /= UI_DPI_FAC;
 }

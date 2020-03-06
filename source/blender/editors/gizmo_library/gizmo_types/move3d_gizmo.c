@@ -148,7 +148,7 @@ static void move_geom_draw(const wmGizmo *gz,
 
 static void move3d_get_translate(const wmGizmo *gz,
                                  const wmEvent *event,
-                                 const ARegion *ar,
+                                 const ARegion *region,
                                  float co_delta[3])
 {
   MoveInteraction *inter = gz->interaction_data;
@@ -157,12 +157,12 @@ static void move3d_get_translate(const wmGizmo *gz,
       event->mval[1] - inter->init.mval[1],
   };
 
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
   float co_ref[3];
   mul_v3_mat3_m4v3(co_ref, gz->matrix_space, inter->init.prop_co);
   const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
 
-  ED_view3d_win_to_delta(ar, mval_delta, co_delta, zfac);
+  ED_view3d_win_to_delta(region, mval_delta, co_delta, zfac);
 
   float matrix_space_inv[3][3];
   copy_m3_m4(matrix_space_inv, gz->matrix_space);
@@ -246,11 +246,11 @@ static int gizmo_move_modal(bContext *C,
     return OPERATOR_RUNNING_MODAL;
   }
   MoveGizmo3D *move = (MoveGizmo3D *)gz;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float prop_delta[3];
   if (CTX_wm_area(C)->spacetype == SPACE_VIEW3D) {
-    move3d_get_translate(gz, event, ar, prop_delta);
+    move3d_get_translate(gz, event, region, prop_delta);
   }
   else {
     float mval_proj_init[2], mval_proj_curr[2];
@@ -303,7 +303,7 @@ static int gizmo_move_modal(bContext *C,
     zero_v3(move->prop_co);
   }
 
-  ED_region_tag_redraw_editor_overlays(ar);
+  ED_region_tag_redraw_editor_overlays(region);
 
   inter->prev.tweak_flag = tweak_flag;
 

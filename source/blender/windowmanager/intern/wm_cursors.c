@@ -183,9 +183,9 @@ void WM_cursor_set(wmWindow *win, int curs)
   }
 }
 
-bool WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *sa, const ARegion *ar)
+bool WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *sa, const ARegion *region)
 {
-  if (ar && (ar->regiontype != RGN_TYPE_WINDOW)) {
+  if (region && (region->regiontype != RGN_TYPE_WINDOW)) {
     return false;
   }
 

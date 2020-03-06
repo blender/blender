@@ -175,14 +175,14 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
 int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
-  const ARegion *ar = CTX_wm_region(C);
+  const ARegion *region = CTX_wm_region(C);
   const bool wait_for_input = !ISTWEAK(event->type) && RNA_boolean_get(op->ptr, "wait_for_input");
 
   if (wait_for_input) {
-    op->customdata = WM_gesture_new(win, ar, event, WM_GESTURE_CROSS_RECT);
+    op->customdata = WM_gesture_new(win, region, event, WM_GESTURE_CROSS_RECT);
   }
   else {
-    op->customdata = WM_gesture_new(win, ar, event, WM_GESTURE_RECT);
+    op->customdata = WM_gesture_new(win, region, event, WM_GESTURE_RECT);
   }
 
   {
@@ -538,10 +538,10 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
 
     /* This isn't very nice but needed to redraw gizmos which are hidden while tweaking,
      * See #WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK for details. */
-    ARegion *ar = CTX_wm_region(C);
-    if ((ar != NULL) && (ar->gizmo_map != NULL)) {
-      if (WM_gizmomap_tag_delay_refresh_for_tweak_check(ar->gizmo_map)) {
-        ED_region_tag_redraw(ar);
+    ARegion *region = CTX_wm_region(C);
+    if ((region != NULL) && (region->gizmo_map != NULL)) {
+      if (WM_gizmomap_tag_delay_refresh_for_tweak_check(region->gizmo_map)) {
+        ED_region_tag_redraw(region);
       }
     }
   }
@@ -553,12 +553,12 @@ void wm_tweakevent_test(bContext *C, const wmEvent *event, int action)
   wmWindow *win = CTX_wm_window(C);
 
   if (win->tweak == NULL) {
-    const ARegion *ar = CTX_wm_region(C);
+    const ARegion *region = CTX_wm_region(C);
 
-    if (ar) {
+    if (region) {
       if (event->val == KM_PRESS) {
         if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
-          win->tweak = WM_gesture_new(win, ar, event, WM_GESTURE_TWEAK);
+          win->tweak = WM_gesture_new(win, region, event, WM_GESTURE_TWEAK);
         }
       }
     }

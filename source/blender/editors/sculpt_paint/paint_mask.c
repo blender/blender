@@ -137,7 +137,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PaintMaskFloodMode mode;
@@ -184,7 +184,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
     MEM_freeN(nodes);
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
@@ -298,7 +298,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   BoundBox bb;
   float clip_planes[4][4];
   float clip_planes_final[4][4];
-  ARegion *ar = vc->ar;
+  ARegion *region = vc->region;
   Object *ob = vc->obact;
   PaintMaskFloodMode mode;
   bool multires;
@@ -311,7 +311,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   float value = select ? 1.0f : 0.0f;
 
   /* Transform the clip planes in object space. */
-  ED_view3d_clipping_calc(&bb, clip_planes, vc->ar, vc->obact, rect);
+  ED_view3d_clipping_calc(&bb, clip_planes, vc->region, vc->obact, rect);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
   pbvh = ob->sculpt->pbvh;
@@ -361,7 +361,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
@@ -392,7 +392,7 @@ static bool is_effected_lasso(LassoMaskData *data, float co[3])
 
   flip_v3_v3(co_final, co, data->symmpass);
   /* First project point to 2d space. */
-  ED_view3d_project_float_v2_m4(data->vc->ar, co_final, scr_co_f, data->projviewobjmat);
+  ED_view3d_project_float_v2_m4(data->vc->region, co_final, scr_co_f, data->projviewobjmat);
 
   scr_co_s[0] = scr_co_f[0];
   scr_co_s[1] = scr_co_f[1];
@@ -498,7 +498,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
                                   mask_lasso_px_cb,
                                   &data);
 
-    ED_view3d_clipping_calc(&bb, clip_planes, vc.ar, vc.obact, &data.rect);
+    ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, &data.rect);
 
     BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
     pbvh = ob->sculpt->pbvh;
@@ -550,7 +550,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
     SCULPT_undo_push_end();
 
-    ED_region_tag_redraw(vc.ar);
+    ED_region_tag_redraw(vc.region);
     MEM_freeN((void *)mcords);
     MEM_freeN(data.px);
 

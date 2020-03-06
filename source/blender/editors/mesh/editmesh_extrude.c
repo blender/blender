@@ -746,9 +746,9 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
         if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
           float co1[2], co2[2];
 
-          if ((ED_view3d_project_float_object(vc.ar, eed->v1->co, co1, V3D_PROJ_TEST_NOP) ==
+          if ((ED_view3d_project_float_object(vc.region, eed->v1->co, co1, V3D_PROJ_TEST_NOP) ==
                V3D_PROJ_RET_OK) &&
-              (ED_view3d_project_float_object(vc.ar, eed->v2->co, co2, V3D_PROJ_TEST_NOP) ==
+              (ED_view3d_project_float_object(vc.region, eed->v2->co, co2, V3D_PROJ_TEST_NOP) ==
                V3D_PROJ_RET_OK)) {
             /* 2D rotate by 90d while adding.
              *  (x, y) = (y, -x)
@@ -786,7 +786,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       copy_v3_v3(ofs, local_center);
 
       mul_m4_v3(vc.obedit->obmat, ofs); /* view space */
-      ED_view3d_win_to_3d_int(vc.v3d, vc.ar, ofs, event->mval, ofs);
+      ED_view3d_win_to_3d_int(vc.v3d, vc.region, ofs, event->mval, ofs);
       mul_m4_v3(vc.obedit->imat, ofs);  // back in object space
 
       sub_v3_v3(ofs, local_center);
@@ -820,7 +820,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
         /* also project the source, for retopo workflow */
         if (use_proj) {
-          EDBM_project_snap_verts(C, depsgraph, vc.ar, vc.obedit, vc.em);
+          EDBM_project_snap_verts(C, depsgraph, vc.region, vc.obedit, vc.em);
         }
       }
 
@@ -836,7 +836,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       BMOIter oiter;
 
       copy_v3_v3(local_center, cursor);
-      ED_view3d_win_to_3d_int(vc.v3d, vc.ar, local_center, event->mval, local_center);
+      ED_view3d_win_to_3d_int(vc.v3d, vc.region, local_center, event->mval, local_center);
 
       mul_m4_v3(vc.obedit->imat, local_center);  // back in object space
 
@@ -853,7 +853,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
     }
 
     if (use_proj) {
-      EDBM_project_snap_verts(C, depsgraph, vc.ar, vc.obedit, vc.em);
+      EDBM_project_snap_verts(C, depsgraph, vc.region, vc.obedit, vc.em);
     }
 
     /* This normally happens when pushing undo but modal operators

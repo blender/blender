@@ -138,8 +138,8 @@ static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
     for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
       for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
         ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-        for (ARegion *ar = lb->first; ar; ar = ar->next) {
-          wmGizmoMap *gzmap = ar->gizmo_map;
+        for (ARegion *region = lb->first; region; region = region->next) {
+          wmGizmoMap *gzmap = region->gizmo_map;
           if (gzmap) {
             wmGizmoGroup *gzgroup;
             for (gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
@@ -148,7 +148,7 @@ static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
                 BLI_assert(gzgroup->parent_gzmap == gzmap);
                 if (gz->type == gzt) {
                   WM_gizmo_unlink(&gzgroup->gizmos, gzgroup->parent_gzmap, gz, C);
-                  ED_region_tag_redraw_editor_overlays(ar);
+                  ED_region_tag_redraw_editor_overlays(region);
                 }
               }
             }

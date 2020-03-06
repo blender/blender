@@ -25,7 +25,7 @@
 
 /* interface_eyedropper.c */
 void eyedropper_draw_cursor_text(const struct bContext *C,
-                                 const struct ARegion *ar,
+                                 const struct ARegion *region,
                                  const char *name);
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event);
 

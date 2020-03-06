@@ -259,7 +259,7 @@ static void view2d_draw_lines(const View2D *v2d,
 typedef void (*PositionToString)(
     void *user_data, float v2d_pos, float v2d_step, uint max_len, char *r_str);
 
-static void draw_horizontal_scale_indicators(const ARegion *ar,
+static void draw_horizontal_scale_indicators(const ARegion *region,
                                              const View2D *v2d,
                                              float distance,
                                              const rcti *rect,
@@ -272,7 +272,7 @@ static void draw_horizontal_scale_indicators(const ARegion *ar,
   }
 
   GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
 
   float start;
   uint steps;
@@ -313,7 +313,7 @@ static void draw_horizontal_scale_indicators(const ARegion *ar,
   GPU_matrix_pop_projection();
 }
 
-static void draw_vertical_scale_indicators(const ARegion *ar,
+static void draw_vertical_scale_indicators(const ARegion *region,
                                            const View2D *v2d,
                                            float distance,
                                            float display_offset,
@@ -327,7 +327,7 @@ static void draw_vertical_scale_indicators(const ARegion *ar,
   }
 
   GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
 
   float start;
   uint steps;
@@ -479,51 +479,53 @@ void UI_view2d_draw_lines_x__frames_or_seconds(const View2D *v2d,
 /* Scale indicator text drawing API
  **************************************************/
 
-static void UI_view2d_draw_scale_x__discrete_values(const ARegion *ar,
+static void UI_view2d_draw_scale_x__discrete_values(const ARegion *region,
                                                     const View2D *v2d,
                                                     const rcti *rect,
                                                     int colorid)
 {
   float number_step = view2d_major_step_x__discrete(v2d);
   draw_horizontal_scale_indicators(
-      ar, v2d, number_step, rect, view_to_string__frame_number, NULL, colorid);
+      region, v2d, number_step, rect, view_to_string__frame_number, NULL, colorid);
 }
 
 static void UI_view2d_draw_scale_x__discrete_time(
-    const ARegion *ar, const View2D *v2d, const rcti *rect, const Scene *scene, int colorid)
+    const ARegion *region, const View2D *v2d, const rcti *rect, const Scene *scene, int colorid)
 {
   float step = view2d_major_step_x__time(v2d, scene);
   draw_horizontal_scale_indicators(
-      ar, v2d, step, rect, view_to_string__time, (void *)scene, colorid);
+      region, v2d, step, rect, view_to_string__time, (void *)scene, colorid);
 }
 
-static void UI_view2d_draw_scale_x__values(const ARegion *ar,
+static void UI_view2d_draw_scale_x__values(const ARegion *region,
                                            const View2D *v2d,
                                            const rcti *rect,
                                            int colorid)
 {
   float step = view2d_major_step_x__continuous(v2d);
-  draw_horizontal_scale_indicators(ar, v2d, step, rect, view_to_string__value, NULL, colorid);
+  draw_horizontal_scale_indicators(region, v2d, step, rect, view_to_string__value, NULL, colorid);
 }
 
-void UI_view2d_draw_scale_y__values(const ARegion *ar,
+void UI_view2d_draw_scale_y__values(const ARegion *region,
                                     const View2D *v2d,
                                     const rcti *rect,
                                     int colorid)
 {
   float step = view2d_major_step_y__continuous(v2d);
-  draw_vertical_scale_indicators(ar, v2d, step, 0.0f, rect, view_to_string__value, NULL, colorid);
+  draw_vertical_scale_indicators(
+      region, v2d, step, 0.0f, rect, view_to_string__value, NULL, colorid);
 }
 
-void UI_view2d_draw_scale_y__block(const ARegion *ar,
+void UI_view2d_draw_scale_y__block(const ARegion *region,
                                    const View2D *v2d,
                                    const rcti *rect,
                                    int colorid)
 {
-  draw_vertical_scale_indicators(ar, v2d, 1.0f, 0.5f, rect, view_to_string__value, NULL, colorid);
+  draw_vertical_scale_indicators(
+      region, v2d, 1.0f, 0.5f, rect, view_to_string__value, NULL, colorid);
 }
 
-void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *ar,
+void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *region,
                                                         const struct View2D *v2d,
                                                         const struct rcti *rect,
                                                         const struct Scene *scene,
@@ -531,14 +533,14 @@ void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *ar
                                                         int colorid)
 {
   if (display_seconds) {
-    UI_view2d_draw_scale_x__discrete_time(ar, v2d, rect, scene, colorid);
+    UI_view2d_draw_scale_x__discrete_time(region, v2d, rect, scene, colorid);
   }
   else {
-    UI_view2d_draw_scale_x__discrete_values(ar, v2d, rect, colorid);
+    UI_view2d_draw_scale_x__discrete_values(region, v2d, rect, colorid);
   }
 }
 
-void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *ar,
+void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
                                                const struct View2D *v2d,
                                                const struct rcti *rect,
                                                const struct Scene *scene,
@@ -546,9 +548,9 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *ar,
                                                int colorid)
 {
   if (display_seconds) {
-    UI_view2d_draw_scale_x__discrete_time(ar, v2d, rect, scene, colorid);
+    UI_view2d_draw_scale_x__discrete_time(region, v2d, rect, scene, colorid);
   }
   else {
-    UI_view2d_draw_scale_x__values(ar, v2d, rect, colorid);
+    UI_view2d_draw_scale_x__values(region, v2d, rect, colorid);
   }
 }

@@ -107,10 +107,10 @@ static TreeElement *outliner_dropzone_find(const SpaceOutliner *soops,
 
 static TreeElement *outliner_drop_find(bContext *C, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   float fmval[2];
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
   return outliner_dropzone_find(soops, fmval, true);
 }
@@ -134,11 +134,12 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
                                               TreeElementInsertType *r_insert_type)
 {
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   TreeElement *te_hovered;
   float view_mval[2];
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
   te_hovered = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
 
   if (te_hovered) {
@@ -719,7 +720,7 @@ static bool collection_drop_poll(bContext *C,
                                  const char **tooltip)
 {
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   bool changed = outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED | TSE_DRAG_ANY, false);
 
   CollectionDrop data;
@@ -761,13 +762,13 @@ static bool collection_drop_poll(bContext *C,
       }
     }
     if (changed) {
-      ED_region_tag_redraw_no_rebuild(ar);
+      ED_region_tag_redraw_no_rebuild(region);
     }
     return true;
   }
   else {
     if (changed) {
-      ED_region_tag_redraw_no_rebuild(ar);
+      ED_region_tag_redraw_no_rebuild(region);
     }
     return false;
   }
@@ -867,12 +868,12 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
 /* ********************* Outliner Drag Operator ******************** */
 
 static TreeElement *outliner_item_drag_element_find(SpaceOutliner *soops,
-                                                    ARegion *ar,
+                                                    ARegion *region,
                                                     const wmEvent *event)
 {
   /* note: using EVT_TWEAK_ events to trigger dragging is fine,
    * it sends coordinates from where dragging was started */
-  const float my = UI_view2d_region_to_view_y(&ar->v2d, event->mval[1]);
+  const float my = UI_view2d_region_to_view_y(&region->v2d, event->mval[1]);
   return outliner_find_item_at_y(soops, &soops->tree, my);
 }
 
@@ -880,9 +881,9 @@ static int outliner_item_drag_drop_invoke(bContext *C,
                                           wmOperator *UNUSED(op),
                                           const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  TreeElement *te = outliner_item_drag_element_find(soops, ar, event);
+  TreeElement *te = outliner_item_drag_element_find(soops, region, event);
 
   if (!te) {
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
@@ -894,7 +895,8 @@ static int outliner_item_drag_drop_invoke(bContext *C,
   }
 
   float view_mval[2];
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
   if (outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }

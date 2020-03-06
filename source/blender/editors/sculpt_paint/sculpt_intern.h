@@ -666,6 +666,9 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3]);
 
 void SCULPT_update_object_bounding_box(struct Object *ob);
 
-bool SCULPT_get_redraw_rect(struct ARegion *ar, struct RegionView3D *rv3d, Object *ob, rcti *rect);
+bool SCULPT_get_redraw_rect(struct ARegion *region,
+                            struct RegionView3D *rv3d,
+                            Object *ob,
+                            rcti *rect);
 
 #endif

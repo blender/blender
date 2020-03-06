@@ -136,10 +136,10 @@ bool PE_hair_poll(bContext *C)
 bool PE_poll_view3d(bContext *C)
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   return (PE_poll(C) && (sa && sa->spacetype == SPACE_VIEW3D) &&
-          (ar && ar->regiontype == RGN_TYPE_WINDOW));
+          (region && region->regiontype == RGN_TYPE_WINDOW));
 }
 
 void PE_free_ptcache_edit(PTCacheEdit *edit)
@@ -481,7 +481,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
       /* we may need to force an update here by setting the rv3d as dirty
        * for now it seems ok, but take care!:
        * rv3d->depths->dirty = 1; */
-      ED_view3d_depth_update(data->vc.ar);
+      ED_view3d_depth_update(data->vc.region);
     }
   }
 }
@@ -536,7 +536,7 @@ static bool key_test_depth(const PEData *data, const float co[3], const int scre
 
   /* used to calculate here but all callers have  the screen_co already, so pass as arg */
 #if 0
-  if (ED_view3d_project_int_global(data->vc.ar,
+  if (ED_view3d_project_int_global(data->vc.region,
                                    co,
                                    screen_co,
                                    V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN |
@@ -556,7 +556,7 @@ static bool key_test_depth(const PEData *data, const float co[3], const int scre
   }
 
   float win[3];
-  ED_view3d_project(data->vc.ar, co, win);
+  ED_view3d_project(data->vc.region, co, win);
 
   if (win[2] - 0.00001f > depth) {
     return 0;
@@ -572,7 +572,7 @@ static bool key_inside_circle(const PEData *data, float rad, const float co[3], 
   int screen_co[2];
 
   /* TODO, should this check V3D_PROJ_TEST_CLIP_BB too? */
-  if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
+  if (ED_view3d_project_int_global(data->vc.region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
       V3D_PROJ_RET_OK) {
     return 0;
   }
@@ -600,7 +600,7 @@ static bool key_inside_rect(PEData *data, const float co[3])
 {
   int screen_co[2];
 
-  if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
+  if (ED_view3d_project_int_global(data->vc.region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
       V3D_PROJ_RET_OK) {
     return 0;
   }
@@ -2261,7 +2261,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ParticleEditSettings *pset = PE_settings(scene);
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit->psys;
@@ -2298,7 +2298,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
         mul_m4_v3(mat, co);
         const bool is_select = key->flag & PEK_SELECT;
         const bool is_inside =
-            ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
+            ((ED_view3d_project_int_global(region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
               V3D_PROJ_RET_OK) &&
              BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
              key_test_depth(&data, co, screen_co));
@@ -2317,7 +2317,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
         mul_m4_v3(mat, co);
         const bool is_select = key->flag & PEK_SELECT;
         const bool is_inside =
-            ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
+            ((ED_view3d_project_int_global(region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
               V3D_PROJ_RET_OK) &&
              BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
              key_test_depth(&data, co, screen_co));
@@ -3551,7 +3551,7 @@ static void brush_comb(PEData *data,
 static void brush_cut(PEData *data, int pa_index)
 {
   PTCacheEdit *edit = data->edit;
-  ARegion *ar = data->vc.ar;
+  ARegion *region = data->vc.region;
   Object *ob = data->ob;
   ParticleEditSettings *pset = PE_settings(data->scene);
   ParticleCacheKey *key = edit->pathcache[pa_index];
@@ -3571,7 +3571,7 @@ static void brush_cut(PEData *data, int pa_index)
     return;
   }
 
-  if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_CLIP_NEAR) !=
+  if (ED_view3d_project_int_global(region, key->co, screen_co, V3D_PROJ_TEST_CLIP_NEAR) !=
       V3D_PROJ_RET_OK) {
     return;
   }
@@ -3598,7 +3598,7 @@ static void brush_cut(PEData *data, int pa_index)
     /* calculate path time closest to root that was inside the circle */
     for (k = 1, key++; k <= keys; k++, key++) {
 
-      if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_CLIP_NEAR) !=
+      if ((ED_view3d_project_int_global(region, key->co, screen_co, V3D_PROJ_TEST_CLIP_NEAR) !=
            V3D_PROJ_RET_OK) ||
           key_test_depth(data, key->co, screen_co) == 0) {
         x0 = (float)screen_co[0];
@@ -4131,7 +4131,7 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
   mco[1] = data->mval[1] + dmy;
 
   float co1[3], co2[3];
-  ED_view3d_win_to_segment_clipped(depsgraph, data->vc.ar, data->vc.v3d, mco, co1, co2, true);
+  ED_view3d_win_to_segment_clipped(depsgraph, data->vc.region, data->vc.v3d, mco, co1, co2, true);
 
   mul_m4_v3(iter_data->imat, co1);
   mul_m4_v3(iter_data->imat, co2);
@@ -4487,7 +4487,7 @@ static int brush_edit_init(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = CTX_data_active_object(C);
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   BrushEdit *bedit;
   float min[3], max[3];
 
@@ -4509,7 +4509,7 @@ static int brush_edit_init(bContext *C, wmOperator *op)
   bedit->ob = ob;
   bedit->edit = edit;
 
-  bedit->zfac = ED_view3d_calc_zfac(ar->regiondata, min, NULL);
+  bedit->zfac = ED_view3d_calc_zfac(region->regiondata, min, NULL);
 
   /* cache view depths and settings for re-use */
   PE_set_view3d_data(C, &bedit->data);
@@ -4528,7 +4528,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
   ParticleEditSettings *pset = PE_settings(scene);
   ParticleSystemModifierData *psmd_eval = edit->psmd_eval;
   ParticleBrushData *brush = &pset->brush[pset->brushtype];
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float vec[3], mousef[2];
   int mval[2];
   int flip, mouse[2], removed = 0, added = 0, selected = 0, tot_steps = 1, step = 1;
@@ -4596,7 +4596,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
           invert_m4_m4(ob->imat, ob->obmat);
 
-          ED_view3d_win_to_delta(ar, mval_f, vec, bedit->zfac);
+          ED_view3d_win_to_delta(region, mval_f, vec, bedit->zfac);
           data.dvec = vec;
 
           foreach_mouse_hit_key(&data, brush_comb, selected);

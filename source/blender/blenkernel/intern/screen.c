@@ -54,12 +54,12 @@
 static void screen_free_data(ID *id)
 {
   bScreen *screen = (bScreen *)id;
-  ARegion *ar;
+  ARegion *region;
 
   /* No animdata here. */
 
-  for (ar = screen->regionbase.first; ar; ar = ar->next) {
-    BKE_area_region_free(NULL, ar);
+  for (region = screen->regionbase.first; region; region = region->next) {
+    BKE_area_region_free(NULL, region);
   }
 
   BLI_freelistN(&screen->regionbase);
@@ -204,14 +204,14 @@ bool BKE_spacetype_exists(int spaceid)
 void BKE_spacedata_freelist(ListBase *lb)
 {
   SpaceLink *sl;
-  ARegion *ar;
+  ARegion *region;
 
   for (sl = lb->first; sl; sl = sl->next) {
     SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
 
     /* free regions for pushed spaces */
-    for (ar = sl->regionbase.first; ar; ar = ar->next) {
-      BKE_area_region_free(st, ar);
+    for (region = sl->regionbase.first; region; region = region->next) {
+      BKE_area_region_free(st, region);
     }
 
     BLI_freelistN(&sl->regionbase);
@@ -238,9 +238,9 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
   }
 }
 
-ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
+ARegion *BKE_area_region_copy(SpaceType *st, ARegion *region)
 {
-  ARegion *newar = MEM_dupallocN(ar);
+  ARegion *newar = MEM_dupallocN(region);
 
   newar->prev = newar->next = NULL;
   BLI_listbase_clear(&newar->handlers);
@@ -255,28 +255,28 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
   newar->draw_buffer = NULL;
 
   /* use optional regiondata callback */
-  if (ar->regiondata) {
-    ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
+  if (region->regiondata) {
+    ARegionType *art = BKE_regiontype_from_id(st, region->regiontype);
 
     if (art && art->duplicate) {
-      newar->regiondata = art->duplicate(ar->regiondata);
+      newar->regiondata = art->duplicate(region->regiondata);
     }
-    else if (ar->flag & RGN_FLAG_TEMP_REGIONDATA) {
+    else if (region->flag & RGN_FLAG_TEMP_REGIONDATA) {
       newar->regiondata = NULL;
     }
     else {
-      newar->regiondata = MEM_dupallocN(ar->regiondata);
+      newar->regiondata = MEM_dupallocN(region->regiondata);
     }
   }
 
-  if (ar->v2d.tab_offset) {
-    newar->v2d.tab_offset = MEM_dupallocN(ar->v2d.tab_offset);
+  if (region->v2d.tab_offset) {
+    newar->v2d.tab_offset = MEM_dupallocN(region->v2d.tab_offset);
   }
 
-  panel_list_copy(&newar->panels, &ar->panels);
+  panel_list_copy(&newar->panels, &region->panels);
 
   BLI_listbase_clear(&newar->ui_previews);
-  BLI_duplicatelist(&newar->ui_previews, &ar->ui_previews);
+  BLI_duplicatelist(&newar->ui_previews, &region->ui_previews);
 
   return newar;
 }
@@ -284,13 +284,13 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 /* from lb2 to lb1, lb1 is supposed to be freed */
 static void region_copylist(SpaceType *st, ListBase *lb1, ListBase *lb2)
 {
-  ARegion *ar;
+  ARegion *region;
 
   /* to be sure */
   BLI_listbase_clear(lb1);
 
-  for (ar = lb2->first; ar; ar = ar->next) {
-    ARegion *arnew = BKE_area_region_copy(st, ar);
+  for (region = lb2->first; region; region = region->next) {
+    ARegion *arnew = BKE_area_region_copy(st, region);
     BLI_addtail(lb1, arnew);
   }
 }
@@ -344,19 +344,19 @@ ARegion *BKE_spacedata_find_region_type(const SpaceLink *slink, const ScrArea *s
 {
   const bool is_slink_active = slink == sa->spacedata.first;
   const ListBase *regionbase = (is_slink_active) ? &sa->regionbase : &slink->regionbase;
-  ARegion *ar = NULL;
+  ARegion *region = NULL;
 
   BLI_assert(BLI_findindex(&sa->spacedata, slink) != -1);
-  for (ar = regionbase->first; ar; ar = ar->next) {
-    if (ar->regiontype == region_type) {
+  for (region = regionbase->first; region; region = region->next) {
+    if (region->regiontype == region_type) {
       break;
     }
   }
 
   /* Should really unit test this instead. */
-  BLI_assert(!is_slink_active || ar == BKE_area_find_region_type(sa, region_type));
+  BLI_assert(!is_slink_active || region == BKE_area_find_region_type(sa, region_type));
 
-  return ar;
+  return region;
 }
 
 static void (*spacedata_id_remap_cb)(struct ScrArea *sa,
@@ -394,11 +394,11 @@ void BKE_screen_gizmo_tag_refresh(struct bScreen *sc)
   }
 
   ScrArea *sa;
-  ARegion *ar;
+  ARegion *region;
   for (sa = sc->areabase.first; sa; sa = sa->next) {
-    for (ar = sa->regionbase.first; ar; ar = ar->next) {
-      if (ar->gizmo_map != NULL) {
-        region_refresh_tag_gizmomap_callback(ar->gizmo_map);
+    for (region = sa->regionbase.first; region; region = region->next) {
+      if (region->gizmo_map != NULL) {
+        region_refresh_tag_gizmomap_callback(region->gizmo_map);
       }
     }
   }
@@ -429,33 +429,33 @@ void BKE_area_region_panels_free(ListBase *lb)
 }
 
 /* not region itself */
-void BKE_area_region_free(SpaceType *st, ARegion *ar)
+void BKE_area_region_free(SpaceType *st, ARegion *region)
 {
   uiList *uilst;
 
   if (st) {
-    ARegionType *art = BKE_regiontype_from_id(st, ar->regiontype);
+    ARegionType *art = BKE_regiontype_from_id(st, region->regiontype);
 
     if (art && art->free) {
-      art->free(ar);
+      art->free(region);
     }
 
-    if (ar->regiondata) {
+    if (region->regiondata) {
       printf("regiondata free error\n");
     }
   }
-  else if (ar->type && ar->type->free) {
-    ar->type->free(ar);
+  else if (region->type && region->type->free) {
+    region->type->free(region);
   }
 
-  if (ar->v2d.tab_offset) {
-    MEM_freeN(ar->v2d.tab_offset);
-    ar->v2d.tab_offset = NULL;
+  if (region->v2d.tab_offset) {
+    MEM_freeN(region->v2d.tab_offset);
+    region->v2d.tab_offset = NULL;
   }
 
-  BKE_area_region_panels_free(&ar->panels);
+  BKE_area_region_panels_free(&region->panels);
 
-  for (uilst = ar->ui_lists.first; uilst; uilst = uilst->next) {
+  for (uilst = region->ui_lists.first; uilst; uilst = uilst->next) {
     if (uilst->dyn_data) {
       uiListDyn *dyn_data = uilst->dyn_data;
       if (dyn_data->items_filter_flags) {
@@ -471,24 +471,24 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
     }
   }
 
-  if (ar->gizmo_map != NULL) {
-    region_free_gizmomap_callback(ar->gizmo_map);
+  if (region->gizmo_map != NULL) {
+    region_free_gizmomap_callback(region->gizmo_map);
   }
 
-  BLI_freelistN(&ar->ui_lists);
-  BLI_freelistN(&ar->ui_previews);
-  BLI_freelistN(&ar->panels_category);
-  BLI_freelistN(&ar->panels_category_active);
+  BLI_freelistN(&region->ui_lists);
+  BLI_freelistN(&region->ui_previews);
+  BLI_freelistN(&region->panels_category);
+  BLI_freelistN(&region->panels_category_active);
 }
 
 /* not area itself */
 void BKE_screen_area_free(ScrArea *sa)
 {
   SpaceType *st = BKE_spacetype_from_id(sa->spacetype);
-  ARegion *ar;
+  ARegion *region;
 
-  for (ar = sa->regionbase.first; ar; ar = ar->next) {
-    BKE_area_region_free(st, ar);
+  for (region = sa->regionbase.first; region; region = region->next) {
+    BKE_area_region_free(st, region);
   }
 
   MEM_SAFE_FREE(sa->global);
@@ -722,9 +722,9 @@ void BKE_screen_remove_unused_scrverts(bScreen *sc)
 ARegion *BKE_area_find_region_type(const ScrArea *sa, int region_type)
 {
   if (sa) {
-    for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-      if (ar->regiontype == region_type) {
-        return ar;
+    for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+      if (region->regiontype == region_type) {
+        return region;
       }
     }
   }
@@ -735,9 +735,9 @@ ARegion *BKE_area_find_region_type(const ScrArea *sa, int region_type)
 ARegion *BKE_area_find_region_active_win(ScrArea *sa)
 {
   if (sa) {
-    ARegion *ar = BLI_findlink(&sa->regionbase, sa->region_active_win);
-    if (ar && (ar->regiontype == RGN_TYPE_WINDOW)) {
-      return ar;
+    ARegion *region = BLI_findlink(&sa->regionbase, sa->region_active_win);
+    if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
+      return region;
     }
 
     /* fallback to any */
@@ -750,11 +750,11 @@ ARegion *BKE_area_find_region_xy(ScrArea *sa, const int regiontype, int x, int y
 {
   ARegion *ar_found = NULL;
   if (sa) {
-    ARegion *ar;
-    for (ar = sa->regionbase.first; ar; ar = ar->next) {
-      if ((regiontype == RGN_TYPE_ANY) || (ar->regiontype == regiontype)) {
-        if (BLI_rcti_isect_pt(&ar->winrct, x, y)) {
-          ar_found = ar;
+    ARegion *region;
+    for (region = sa->regionbase.first; region; region = region->next) {
+      if ((regiontype == RGN_TYPE_ANY) || (region->regiontype == regiontype)) {
+        if (BLI_rcti_isect_pt(&region->winrct, x, y)) {
+          ar_found = region;
           break;
         }
       }
@@ -769,10 +769,10 @@ ARegion *BKE_area_find_region_xy(ScrArea *sa, const int regiontype, int x, int y
 ARegion *BKE_screen_find_region_xy(bScreen *sc, const int regiontype, int x, int y)
 {
   ARegion *ar_found = NULL;
-  for (ARegion *ar = sc->regionbase.first; ar; ar = ar->next) {
-    if ((regiontype == RGN_TYPE_ANY) || (ar->regiontype == regiontype)) {
-      if (BLI_rcti_isect_pt(&ar->winrct, x, y)) {
-        ar_found = ar;
+  for (ARegion *region = sc->regionbase.first; region; region = region->next) {
+    if ((regiontype == RGN_TYPE_ANY) || (region->regiontype == regiontype)) {
+      if (BLI_rcti_isect_pt(&region->winrct, x, y)) {
+        ar_found = region;
         break;
       }
     }
@@ -847,11 +847,11 @@ void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
     v3d->camera = scene->camera;
 
     if (v3d->camera == NULL) {
-      ARegion *ar;
+      ARegion *region;
 
-      for (ar = v3d->regionbase.first; ar; ar = ar->next) {
-        if (ar->regiontype == RGN_TYPE_WINDOW) {
-          RegionView3D *rv3d = ar->regiondata;
+      for (region = v3d->regionbase.first; region; region = region->next) {
+        if (region->regiontype == RGN_TYPE_WINDOW) {
+          RegionView3D *rv3d = region->regiondata;
           if (rv3d->persp == RV3D_CAMOB) {
             rv3d->persp = RV3D_PERSP;
           }
@@ -914,20 +914,20 @@ void BKE_screen_header_alignment_reset(bScreen *screen)
 {
   int alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-    for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-      if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+    for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+      if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
         if (ELEM(sa->spacetype, SPACE_FILE, SPACE_USERPREF, SPACE_OUTLINER, SPACE_PROPERTIES)) {
-          ar->alignment = RGN_ALIGN_TOP;
+          region->alignment = RGN_ALIGN_TOP;
           continue;
         }
-        ar->alignment = alignment;
+        region->alignment = alignment;
       }
-      if (ar->regiontype == RGN_TYPE_FOOTER) {
+      if (region->regiontype == RGN_TYPE_FOOTER) {
         if (ELEM(sa->spacetype, SPACE_FILE, SPACE_USERPREF, SPACE_OUTLINER, SPACE_PROPERTIES)) {
-          ar->alignment = RGN_ALIGN_BOTTOM;
+          region->alignment = RGN_ALIGN_BOTTOM;
           continue;
         }
-        ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+        region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
       }
     }
   }

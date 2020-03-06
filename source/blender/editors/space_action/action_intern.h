@@ -42,8 +42,10 @@ void action_buttons_register(struct ARegionType *art);
 
 /* ***************************************** */
 /* action_draw.c */
-void draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *ar);
-void draw_channel_strips(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar);
+void draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *region);
+void draw_channel_strips(struct bAnimContext *ac,
+                         struct SpaceAction *saction,
+                         struct ARegion *region);
 
 void timeline_draw_cache(struct SpaceAction *saction, struct Object *ob, struct Scene *scene);
 

@@ -119,9 +119,9 @@ void DRW_text_cache_add(DRWTextStore *dt,
   }
 }
 
-void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar, struct View3D *v3d)
+void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, struct View3D *v3d)
 {
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
   ViewCachedString *vos;
   int tot = 0;
 
@@ -130,7 +130,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar, struct View3D *v3d)
   BLI_memiter_iter_init(dt->cache_strings, &it);
   while ((vos = BLI_memiter_iter_step(&it))) {
     if (ED_view3d_project_short_ex(
-            ar,
+            region,
             (vos->flag & DRW_TEXT_CACHE_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
             (vos->flag & DRW_TEXT_CACHE_LOCALCLIP) != 0,
             vos->vec,
@@ -153,7 +153,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar, struct View3D *v3d)
 
     float original_proj[4][4];
     GPU_matrix_projection_get(original_proj);
-    wmOrtho2_region_pixelspace(ar);
+    wmOrtho2_region_pixelspace(region);
 
     GPU_matrix_push();
     GPU_matrix_identity_set();
@@ -192,7 +192,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar, struct View3D *v3d)
 }
 
 /* Copied from drawobject.c */
-void DRW_text_edit_mesh_measure_stats(ARegion *ar,
+void DRW_text_edit_mesh_measure_stats(ARegion *region,
                                       View3D *v3d,
                                       Object *ob,
                                       const UnitSettings *unit)
@@ -251,9 +251,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *ar,
   if (v3d->overlay.edit_flag &
       (V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_EDGE_ANG | V3D_OVERLAY_EDIT_INDICES)) {
     BoundBox bb;
-    const rcti rect = {0, ar->winx, 0, ar->winy};
+    const rcti rect = {0, region->winx, 0, region->winy};
 
-    ED_view3d_clipping_calc(&bb, clip_planes, ar, ob, &rect);
+    ED_view3d_clipping_calc(&bb, clip_planes, region, ob, &rect);
   }
 
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {

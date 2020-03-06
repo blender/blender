@@ -59,7 +59,7 @@
 
 static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
 {
-  ARegion *ar;
+  ARegion *region;
   SpaceNla *snla;
 
   snla = MEM_callocN(sizeof(SpaceNla), "initnla");
@@ -74,57 +74,57 @@ static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
   snla->flag = SNLA_SHOW_MARKERS;
 
   /* header */
-  ar = MEM_callocN(sizeof(ARegion), "header for nla");
+  region = MEM_callocN(sizeof(ARegion), "header for nla");
 
-  BLI_addtail(&snla->regionbase, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
-  ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  BLI_addtail(&snla->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* channel list region */
-  ar = MEM_callocN(sizeof(ARegion), "channel list for nla");
-  BLI_addtail(&snla->regionbase, ar);
-  ar->regiontype = RGN_TYPE_CHANNELS;
-  ar->alignment = RGN_ALIGN_LEFT;
+  region = MEM_callocN(sizeof(ARegion), "channel list for nla");
+  BLI_addtail(&snla->regionbase, region);
+  region->regiontype = RGN_TYPE_CHANNELS;
+  region->alignment = RGN_ALIGN_LEFT;
 
   /* only need to set these settings since this will use the 'stack' configuration */
-  ar->v2d.scroll = V2D_SCROLL_BOTTOM;
-  ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+  region->v2d.scroll = V2D_SCROLL_BOTTOM;
+  region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
   /* ui buttons */
-  ar = MEM_callocN(sizeof(ARegion), "buttons region for nla");
+  region = MEM_callocN(sizeof(ARegion), "buttons region for nla");
 
-  BLI_addtail(&snla->regionbase, ar);
-  ar->regiontype = RGN_TYPE_UI;
-  ar->alignment = RGN_ALIGN_RIGHT;
-  ar->flag = RGN_FLAG_HIDDEN;
+  BLI_addtail(&snla->regionbase, region);
+  region->regiontype = RGN_TYPE_UI;
+  region->alignment = RGN_ALIGN_RIGHT;
+  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "main region for nla");
+  region = MEM_callocN(sizeof(ARegion), "main region for nla");
 
-  BLI_addtail(&snla->regionbase, ar);
-  ar->regiontype = RGN_TYPE_WINDOW;
+  BLI_addtail(&snla->regionbase, region);
+  region->regiontype = RGN_TYPE_WINDOW;
 
-  ar->v2d.tot.xmin = (float)(SFRA - 10);
-  ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
-  ar->v2d.tot.xmax = (float)(EFRA + 10);
-  ar->v2d.tot.ymax = 0.0f;
+  region->v2d.tot.xmin = (float)(SFRA - 10);
+  region->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
+  region->v2d.tot.xmax = (float)(EFRA + 10);
+  region->v2d.tot.ymax = 0.0f;
 
-  ar->v2d.cur = ar->v2d.tot;
+  region->v2d.cur = region->v2d.tot;
 
-  ar->v2d.min[0] = 0.0f;
-  ar->v2d.min[1] = 0.0f;
+  region->v2d.min[0] = 0.0f;
+  region->v2d.min[1] = 0.0f;
 
-  ar->v2d.max[0] = MAXFRAMEF;
-  ar->v2d.max[1] = 10000.0f;
+  region->v2d.max[0] = MAXFRAMEF;
+  region->v2d.max[1] = 10000.0f;
 
-  ar->v2d.minzoom = 0.01f;
-  ar->v2d.maxzoom = 50;
-  ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-  ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-  ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
-  ar->v2d.keepofs = V2D_KEEPOFS_Y;
-  ar->v2d.align = V2D_ALIGN_NO_POS_Y;
-  ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+  region->v2d.minzoom = 0.01f;
+  region->v2d.maxzoom = 50;
+  region->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+  region->v2d.scroll |= (V2D_SCROLL_RIGHT);
+  region->v2d.keepzoom = V2D_LOCKZOOM_Y;
+  region->v2d.keepofs = V2D_KEEPOFS_Y;
+  region->v2d.align = V2D_ALIGN_NO_POS_Y;
+  region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
   return (SpaceLink *)snla;
 }
@@ -165,32 +165,32 @@ static SpaceLink *nla_duplicate(SpaceLink *sl)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void nla_channel_region_init(wmWindowManager *wm, ARegion *ar)
+static void nla_channel_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
   /* ensure the 2d view sync works - main region has bottom scroller */
-  ar->v2d.scroll = V2D_SCROLL_BOTTOM;
+  region->v2d.scroll = V2D_SCROLL_BOTTOM;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   /* own channels map first to override some channel keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
   /* now generic channels map for everything else that can apply */
   keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
 /* draw entirely, view changes should be handled here */
-static void nla_channel_region_draw(const bContext *C, ARegion *ar)
+static void nla_channel_region_draw(const bContext *C, ARegion *region)
 {
   bAnimContext ac;
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   View2DScrollers *scrollers;
 
   /* clear and setup matrix */
@@ -201,11 +201,11 @@ static void nla_channel_region_draw(const bContext *C, ARegion *ar)
 
   /* data */
   if (ANIM_animdata_get_context(C, &ac)) {
-    draw_nla_channel_list(C, &ac, ar);
+    draw_nla_channel_list(C, &ac, region);
   }
 
   /* channel filter next to scrubbing area */
-  ED_time_scrub_channel_search_draw(C, ar, ac.ads);
+  ED_time_scrub_channel_search_draw(C, region, ac.ads);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
@@ -217,26 +217,26 @@ static void nla_channel_region_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void nla_main_region_init(wmWindowManager *wm, ARegion *ar)
+static void nla_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void nla_main_region_draw(const bContext *C, ARegion *ar)
+static void nla_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceNla *snla = CTX_wm_space_nla(C);
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
-  View2D *v2d = &ar->v2d;
+  View2D *v2d = &region->v2d;
   View2DScrollers *scrollers;
   short cfra_flag = 0;
 
@@ -249,7 +249,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
   /* time grid */
   UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, snla->flag & SNLA_DRAWTIME);
 
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   /* start and end frame */
   ANIM_draw_framerange(scene, v2d);
@@ -257,10 +257,10 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
   /* data */
   if (ANIM_animdata_get_context(C, &ac)) {
     /* strips and backdrops */
-    draw_nla_main_data(&ac, snla, ar);
+    draw_nla_main_data(&ac, snla, region);
 
     /* text draw cached, in pixelspace now */
-    UI_view2d_text_cache_draw(ar);
+    UI_view2d_text_cache_draw(region);
   }
 
   UI_view2d_view_ortho(v2d);
@@ -272,7 +272,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
   ANIM_draw_cfra(C, v2d, cfra_flag);
 
   /* markers */
-  UI_view2d_view_orthoSpecial(ar, v2d, 1);
+  UI_view2d_view_orthoSpecial(region, v2d, 1);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
   if (snla->flag & SNLA_SHOW_MARKERS) {
     ED_markers_draw(C, marker_draw_flag);
@@ -284,12 +284,12 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 
   /* callback */
   UI_view2d_view_ortho(v2d);
-  ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
-  ED_time_scrub_draw(ar, scene, snla->flag & SNLA_DRAWTIME, true);
+  ED_time_scrub_draw(region, scene, snla->flag & SNLA_DRAWTIME, true);
 
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
@@ -298,42 +298,42 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void nla_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void nla_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
-  ED_region_header_init(ar);
+  ED_region_header_init(region);
 }
 
-static void nla_header_region_draw(const bContext *C, ARegion *ar)
+static void nla_header_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_header(C, ar);
+  ED_region_header(C, region);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void nla_buttons_region_init(wmWindowManager *wm, ARegion *ar)
+static void nla_buttons_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  ED_region_panels_init(wm, ar);
+  ED_region_panels_init(wm, region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
-  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void nla_buttons_region_draw(const bContext *C, ARegion *ar)
+static void nla_buttons_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, ar);
+  ED_region_panels(C, region);
 }
 
 static void nla_region_listener(wmWindow *UNUSED(win),
                                 ScrArea *UNUSED(sa),
-                                ARegion *ar,
+                                ARegion *region,
                                 wmNotifier *wmn,
                                 const Scene *UNUSED(scene))
 {
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       break;
     case NC_SCENE:
       switch (wmn->data) {
@@ -342,7 +342,7 @@ static void nla_region_listener(wmWindow *UNUSED(win),
         case ND_MARKERS:
         case ND_LAYER_CONTENT:
         case ND_OB_SELECT:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
@@ -352,13 +352,13 @@ static void nla_region_listener(wmWindow *UNUSED(win),
         case ND_BONE_SELECT:
         case ND_KEYS:
         case ND_DRAW:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     default:
       if (wmn->data == ND_KEYS) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -366,14 +366,14 @@ static void nla_region_listener(wmWindow *UNUSED(win),
 
 static void nla_main_region_listener(wmWindow *UNUSED(win),
                                      ScrArea *UNUSED(sa),
-                                     ARegion *ar,
+                                     ARegion *region,
                                      wmNotifier *wmn,
                                      const Scene *UNUSED(scene))
 {
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       break;
     case NC_SCENE:
       switch (wmn->data) {
@@ -384,7 +384,7 @@ static void nla_main_region_listener(wmWindow *UNUSED(win),
         case ND_MARKERS:
         case ND_LAYER_CONTENT:
         case ND_OB_SELECT:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
@@ -394,30 +394,30 @@ static void nla_main_region_listener(wmWindow *UNUSED(win),
         case ND_BONE_SELECT:
         case ND_KEYS:
         case ND_TRANSFORM:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_NODE:
       switch (wmn->action) {
         case NA_EDITED:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_LAYER)) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     default:
       if (wmn->data == ND_KEYS) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -428,15 +428,15 @@ static void nla_main_region_message_subscribe(const struct bContext *UNUSED(C),
                                               struct Scene *scene,
                                               struct bScreen *screen,
                                               struct ScrArea *sa,
-                                              struct ARegion *ar,
+                                              struct ARegion *region,
                                               struct wmMsgBus *mbus)
 {
   PointerRNA ptr;
   RNA_pointer_create(&screen->id, &RNA_SpaceNLA, sa->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = ar,
-      .user_data = ar,
+      .owner = region,
+      .user_data = region,
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
 
@@ -467,21 +467,21 @@ static void nla_main_region_message_subscribe(const struct bContext *UNUSED(C),
 
 static void nla_channel_region_listener(wmWindow *UNUSED(win),
                                         ScrArea *UNUSED(sa),
-                                        ARegion *ar,
+                                        ARegion *region,
                                         wmNotifier *wmn,
                                         const Scene *UNUSED(scene))
 {
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
       break;
     case NC_SCENE:
       switch (wmn->data) {
         case ND_OB_ACTIVE:
         case ND_LAYER_CONTENT:
         case ND_OB_SELECT:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
@@ -491,18 +491,18 @@ static void nla_channel_region_listener(wmWindow *UNUSED(win),
         case ND_BONE_SELECT:
         case ND_KEYS:
         case ND_DRAW:
-          ED_region_tag_redraw(ar);
+          ED_region_tag_redraw(region);
           break;
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
     default:
       if (wmn->data == ND_KEYS) {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw(region);
       }
       break;
   }
@@ -513,15 +513,15 @@ static void nla_channel_region_message_subscribe(const struct bContext *UNUSED(C
                                                  struct Scene *UNUSED(scene),
                                                  struct bScreen *screen,
                                                  struct ScrArea *sa,
-                                                 struct ARegion *ar,
+                                                 struct ARegion *region,
                                                  struct wmMsgBus *mbus)
 {
   PointerRNA ptr;
   RNA_pointer_create(&screen->id, &RNA_SpaceNLA, sa->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = ar,
-      .user_data = ar,
+      .owner = region,
+      .user_data = region,
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
 

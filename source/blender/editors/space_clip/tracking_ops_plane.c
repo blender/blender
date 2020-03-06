@@ -126,7 +126,7 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
 {
   const float distance_clip_squared = 12.0f * 12.0f;
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   int width, height;
@@ -139,7 +139,7 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
     return NULL;
   }
 
-  ED_clip_mouse_pos(sc, ar, event->mval, co);
+  ED_clip_mouse_pos(sc, region, event->mval, co);
 
   float min_distance_squared = FLT_MAX;
   int min_corner = -1;
@@ -174,7 +174,7 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
 static void *slide_plane_marker_customdata(bContext *C, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   MovieTrackingPlaneTrack *plane_track;
   int width, height;
   float co[2];
@@ -187,7 +187,7 @@ static void *slide_plane_marker_customdata(bContext *C, const wmEvent *event)
     return NULL;
   }
 
-  ED_clip_mouse_pos(sc, ar, event->mval, co);
+  ED_clip_mouse_pos(sc, region, event->mval, co);
 
   plane_track = tracking_plane_marker_check_slide(C, event, &corner);
   if (plane_track) {

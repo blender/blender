@@ -44,24 +44,24 @@
 
 static ARegion *text_has_properties_region(ScrArea *sa)
 {
-  ARegion *ar, *arnew;
+  ARegion *region, *arnew;
 
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-  if (ar) {
-    return ar;
+  region = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+  if (region) {
+    return region;
   }
 
   /* add subdiv level; after header */
-  ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+  region = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
   /* is error! */
-  if (ar == NULL) {
+  if (region == NULL) {
     return NULL;
   }
 
   arnew = MEM_callocN(sizeof(ARegion), "properties region");
 
-  BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+  BLI_insertlinkafter(&sa->regionbase, region, arnew);
   arnew->regiontype = RGN_TYPE_UI;
   arnew->alignment = RGN_ALIGN_LEFT;
 
@@ -78,21 +78,21 @@ static bool text_properties_poll(bContext *C)
 static int text_text_search_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = text_has_properties_region(sa);
+  ARegion *region = text_has_properties_region(sa);
   SpaceText *st = CTX_wm_space_text(C);
 
-  if (ar) {
-    if (ar->flag & RGN_FLAG_HIDDEN) {
-      ED_region_toggle_hidden(C, ar);
+  if (region) {
+    if (region->flag & RGN_FLAG_HIDDEN) {
+      ED_region_toggle_hidden(C, region);
     }
 
-    UI_panel_category_active_set(ar, "Text");
+    UI_panel_category_active_set(region, "Text");
 
     /* cannot send a button activate yet for case when region wasn't visible yet */
     /* flag gets checked and cleared in main draw callback */
     st->flags |= ST_FIND_ACTIVATE;
 
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
   }
   return OPERATOR_FINISHED;
 }

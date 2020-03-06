@@ -1061,7 +1061,7 @@ static void drw_engines_draw_text(void)
     PROFILE_START(stime);
 
     if (data->text_draw_cache) {
-      DRW_text_cache_draw(data->text_draw_cache, DST.draw_ctx.ar, DST.draw_ctx.v3d);
+      DRW_text_cache_draw(data->text_draw_cache, DST.draw_ctx.region, DST.draw_ctx.v3d);
     }
 
     PROFILE_END_UPDATE(data->render_time, stime);
@@ -1226,9 +1226,9 @@ static bool drw_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d)
 void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 {
   RenderEngineType *engine_type = update_ctx->engine_type;
-  ARegion *ar = update_ctx->ar;
+  ARegion *region = update_ctx->region;
   View3D *v3d = update_ctx->v3d;
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
   Depsgraph *depsgraph = update_ctx->depsgraph;
   Scene *scene = update_ctx->scene;
   ViewLayer *view_layer = update_ctx->view_layer;
@@ -1237,7 +1237,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 
   /* Separate update for each stereo view. */
   for (int view = 0; view < 2; view++) {
-    GPUViewport *viewport = WM_draw_region_get_viewport(ar, view);
+    GPUViewport *viewport = WM_draw_region_get_viewport(region, view);
     if (!viewport) {
       continue;
     }
@@ -1252,7 +1252,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 
     DST.viewport = viewport;
     DST.draw_ctx = (DRWContextState){
-        .ar = ar,
+        .region = region,
         .rv3d = rv3d,
         .v3d = v3d,
         .scene = scene,
@@ -1297,7 +1297,7 @@ void DRW_draw_callbacks_pre_scene(void)
   GPU_matrix_set(rv3d->viewmat);
 
   if (DST.draw_ctx.evil_C) {
-    ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.ar, REGION_DRAW_PRE_VIEW);
+    ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_PRE_VIEW);
     DRW_state_reset();
   }
 }
@@ -1305,7 +1305,7 @@ void DRW_draw_callbacks_pre_scene(void)
 void DRW_draw_callbacks_post_scene(void)
 {
   RegionView3D *rv3d = DST.draw_ctx.rv3d;
-  ARegion *ar = DST.draw_ctx.ar;
+  ARegion *region = DST.draw_ctx.region;
   View3D *v3d = DST.draw_ctx.v3d;
   Depsgraph *depsgraph = DST.draw_ctx.depsgraph;
 
@@ -1330,14 +1330,14 @@ void DRW_draw_callbacks_post_scene(void)
     if (do_annotations) {
       GPU_depth_test(false);
       /* XXX: as scene->gpd is not copied for COW yet */
-      ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, true);
+      ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
       GPU_depth_test(true);
     }
 
     drw_debug_draw();
 
     GPU_depth_test(false);
-    ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
+    ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
 
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
@@ -1359,7 +1359,7 @@ void DRW_draw_callbacks_post_scene(void)
     if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && (do_annotations)) {
       GPU_depth_test(false);
       /* XXX: as scene->gpd is not copied for COW yet */
-      ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, false);
+      ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, false);
     }
 
     if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
@@ -1372,7 +1372,7 @@ void DRW_draw_callbacks_post_scene(void)
     if (G.debug_value > 20 && G.debug_value < 30) {
       GPU_depth_test(false);
       /* local coordinate visible rect inside region, to accommodate overlapping ui */
-      const rcti *rect = ED_region_visible_rect(DST.draw_ctx.ar);
+      const rcti *rect = ED_region_visible_rect(DST.draw_ctx.region);
       DRW_stats_draw(rect);
     }
 
@@ -1401,11 +1401,11 @@ struct DRWTextStore *DRW_text_cache_ensure(void)
 void DRW_draw_view(const bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
-  GPUViewport *viewport = WM_draw_region_get_bound_viewport(ar);
+  GPUViewport *viewport = WM_draw_region_get_bound_viewport(region);
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
@@ -1414,7 +1414,7 @@ void DRW_draw_view(const bContext *C)
   DST.options.draw_background = (scene->r.alphamode == R_ADDSKY) ||
                                 (v3d->shading.type != OB_RENDER);
   DST.options.do_color_management = true;
-  DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, C);
+  DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, viewport, C);
 }
 
 /**
@@ -1423,7 +1423,7 @@ void DRW_draw_view(const bContext *C)
  */
 void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
                              RenderEngineType *engine_type,
-                             ARegion *ar,
+                             ARegion *region,
                              View3D *v3d,
                              GPUViewport *viewport,
                              const bContext *evil_C)
@@ -1431,14 +1431,14 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
 
   DST.draw_ctx.evil_C = evil_C;
   DST.viewport = viewport;
 
   /* Setup viewport */
   DST.draw_ctx = (DRWContextState){
-      .ar = ar,
+      .region = region,
       .rv3d = rv3d,
       .v3d = v3d,
       .scene = scene,
@@ -1535,7 +1535,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   DRW_draw_callbacks_post_scene();
 
-  if (WM_draw_region_get_bound_viewport(ar)) {
+  if (WM_draw_region_get_bound_viewport(region)) {
     /* Don't unbind the framebuffer yet in this case and let
      * GPU_viewport_unbind do it, so that we can still do further
      * drawing of action zones on top. */
@@ -1556,7 +1556,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 }
 
 void DRW_draw_render_loop(struct Depsgraph *depsgraph,
-                          ARegion *ar,
+                          ARegion *region,
                           View3D *v3d,
                           GPUViewport *viewport)
 {
@@ -1566,7 +1566,7 @@ void DRW_draw_render_loop(struct Depsgraph *depsgraph,
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
 
-  DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, NULL);
+  DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, viewport, NULL);
 }
 
 /**
@@ -1574,7 +1574,7 @@ void DRW_draw_render_loop(struct Depsgraph *depsgraph,
  */
 void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     RenderEngineType *engine_type,
-                                    ARegion *ar,
+                                    ARegion *region,
                                     View3D *v3d,
                                     const bool draw_background,
                                     const bool do_color_management,
@@ -1594,7 +1594,7 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
   DST.options.is_image_render = true;
   DST.options.do_color_management = do_color_management;
   DST.options.draw_background = draw_background;
-  DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, render_viewport, NULL);
+  DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, render_viewport, NULL);
 
   if (draw_background) {
     /* HACK(fclem): In this case we need to make sure the final alpha is 1.
@@ -2005,7 +2005,7 @@ void DRW_render_instance_buffer_finish(void)
  * object mode select-loop, see: ED_view3d_draw_select_loop (legacy drawing).
  */
 void DRW_draw_select_loop(struct Depsgraph *depsgraph,
-                          ARegion *ar,
+                          ARegion *region,
                           View3D *v3d,
                           bool UNUSED(use_obedit_skip),
                           bool draw_surface,
@@ -2022,9 +2022,9 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   Object *obact = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(obact);
 #ifndef USE_GPU_SELECT
-  UNUSED_VARS(scene, view_layer, v3d, ar, rect);
+  UNUSED_VARS(scene, view_layer, v3d, region, rect);
 #else
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
@@ -2102,7 +2102,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 
   /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
   DST.draw_ctx = (DRWContextState){
-      .ar = ar,
+      .region = region,
       .rv3d = rv3d,
       .v3d = v3d,
       .scene = scene,
@@ -2242,7 +2242,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
  * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
  */
 static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
-                                    ARegion *ar,
+                                    ARegion *region,
                                     View3D *v3d,
                                     GPUViewport *viewport,
                                     const bool use_opengl_context)
@@ -2250,7 +2250,7 @@ static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
 
   if (use_opengl_context) {
     DRW_opengl_context_enable();
@@ -2261,7 +2261,7 @@ static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
 
   /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
   DST.draw_ctx = (DRWContextState){
-      .ar = ar,
+      .region = region,
       .rv3d = rv3d,
       .v3d = v3d,
       .scene = scene,
@@ -2347,7 +2347,7 @@ static void drw_draw_depth_loop_imp(struct Depsgraph *depsgraph,
  * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
  */
 void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
-                         ARegion *ar,
+                         ARegion *region,
                          View3D *v3d,
                          GPUViewport *viewport,
                          bool use_opengl_context)
@@ -2366,14 +2366,14 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
     }
   }
 
-  drw_draw_depth_loop_imp(depsgraph, ar, v3d, viewport, use_opengl_context);
+  drw_draw_depth_loop_imp(depsgraph, region, v3d, viewport, use_opengl_context);
 }
 
 /**
  * Converted from ED_view3d_draw_depth_gpencil (legacy drawing).
  */
 void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
-                                 ARegion *ar,
+                                 ARegion *region,
                                  View3D *v3d,
                                  GPUViewport *viewport)
 {
@@ -2382,10 +2382,10 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 
   use_drw_engine(&draw_engine_gpencil_type);
 
-  drw_draw_depth_loop_imp(depsgraph, ar, v3d, viewport, true);
+  drw_draw_depth_loop_imp(depsgraph, region, v3d, viewport, true);
 }
 
-void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, const rcti *rect)
+void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, const rcti *rect)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
@@ -2395,8 +2395,8 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, const rc
 
   /* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
   DST.draw_ctx = (DRWContextState){
-      .ar = ar,
-      .rv3d = ar->regiondata,
+      .region = region,
+      .rv3d = region->regiondata,
       .v3d = v3d,
       .scene = scene,
       .view_layer = view_layer,
@@ -2407,7 +2407,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, const rc
   drw_context_state_init();
 
   /* Setup viewport */
-  DST.viewport = WM_draw_region_get_viewport(ar, 0);
+  DST.viewport = WM_draw_region_get_viewport(region, 0);
   drw_viewport_var_init();
 
   /* Update ubos */
@@ -2463,9 +2463,9 @@ static void draw_world_clip_planes_from_rv3d(GPUBatch *batch, const float world_
 /**
  * Clears the Depth Buffer and draws only the specified object.
  */
-void DRW_draw_depth_object(ARegion *ar, View3D *v3d, GPUViewport *viewport, Object *object)
+void DRW_draw_depth_object(ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object)
 {
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
 
   DRW_opengl_context_enable();
   GPU_matrix_projection_set(rv3d->winmat);

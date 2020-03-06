@@ -253,13 +253,13 @@ static void WIDGETGROUP_camera_message_subscribe(const bContext *C,
                                                  wmGizmoGroup *gzgroup,
                                                  struct wmMsgBus *mbus)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
   Camera *ca = ob->data;
 
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
-      .owner = ar,
+      .owner = region,
       .user_data = gzgroup->parent_gzmap,
       .notify = WM_gizmo_do_msg_notify_tag_refresh,
   };
@@ -403,8 +403,8 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UN
     return false;
   }
 
-  ARegion *ar = CTX_wm_region(C);
-  RegionView3D *rv3d = ar->regiondata;
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = region->regiondata;
   if (rv3d->persp == RV3D_CAMOB) {
     if (scene->r.mode & R_BORDER) {
       /* TODO: support overrides. */
@@ -441,22 +441,22 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
 {
   struct CameraViewWidgetGroup *viewgroup = gzgroup->customdata;
 
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   /* Drawing code should happen with fully evaluated graph. */
   struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-  RegionView3D *rv3d = ar->regiondata;
+  RegionView3D *rv3d = region->regiondata;
   if (rv3d->persp == RV3D_CAMOB) {
     Scene *scene = CTX_data_scene(C);
     View3D *v3d = CTX_wm_view3d(C);
     ED_view3d_calc_camera_border(
-        scene, depsgraph, ar, v3d, rv3d, &viewgroup->state.view_border, false);
+        scene, depsgraph, region, v3d, rv3d, &viewgroup->state.view_border, false);
   }
   else {
     viewgroup->state.view_border = (rctf){
         .xmin = 0,
         .ymin = 0,
-        .xmax = ar->winx,
-        .ymax = ar->winy,
+        .xmax = region->winx,
+        .ymax = region->winy,
     };
   }
 
@@ -473,8 +473,8 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *gzg
   struct CameraViewWidgetGroup *viewgroup = gzgroup->customdata;
 
   View3D *v3d = CTX_wm_view3d(C);
-  ARegion *ar = CTX_wm_region(C);
-  RegionView3D *rv3d = ar->regiondata;
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = region->regiondata;
   Scene *scene = CTX_data_scene(C);
 
   viewgroup->scene = scene;

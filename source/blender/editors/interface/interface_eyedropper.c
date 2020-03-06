@@ -106,7 +106,7 @@ wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
 /** \name Generic Shared Functions
  * \{ */
 
-void eyedropper_draw_cursor_text(const struct bContext *C, const ARegion *ar, const char *name)
+void eyedropper_draw_cursor_text(const struct bContext *C, const ARegion *region, const char *name)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   wmWindow *win = CTX_wm_window(C);
@@ -115,12 +115,12 @@ void eyedropper_draw_cursor_text(const struct bContext *C, const ARegion *ar, co
   const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
 
-  if ((name[0] == '\0') || (BLI_rcti_isect_pt(&ar->winrct, x, y) == false)) {
+  if ((name[0] == '\0') || (BLI_rcti_isect_pt(&region->winrct, x, y) == false)) {
     return;
   }
 
-  x = x - ar->winrct.xmin;
-  y = y - ar->winrct.ymin;
+  x = x - region->winrct.xmin;
+  y = y - region->winrct.ymin;
 
   y += U.widget_unit;
 
@@ -140,9 +140,9 @@ uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *ev
 {
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
-  ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_ANY, event->x, event->y);
+  ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_ANY, event->x, event->y);
 
-  uiBut *but = ui_but_find_mouse_over(ar, event);
+  uiBut *but = ui_but_find_mouse_over(region, event);
 
   if (ELEM(NULL, but, but->rnapoin.data, but->rnaprop)) {
     return NULL;

@@ -90,119 +90,119 @@
 /* 2.50 patch */
 static void area_add_header_region(ScrArea *sa, ListBase *lb)
 {
-  ARegion *ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+  ARegion *region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
 
-  BLI_addtail(lb, ar);
-  ar->regiontype = RGN_TYPE_HEADER;
+  BLI_addtail(lb, region);
+  region->regiontype = RGN_TYPE_HEADER;
   if (sa->headertype == 1) {
-    ar->alignment = RGN_ALIGN_BOTTOM;
+    region->alignment = RGN_ALIGN_BOTTOM;
   }
   else {
-    ar->alignment = RGN_ALIGN_TOP;
+    region->alignment = RGN_ALIGN_TOP;
   }
 
   /* initialize view2d data for header region, to allow panning */
   /* is copy from ui_view2d.c */
-  ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
-  ar->v2d.keepofs = V2D_LOCKOFS_Y;
-  ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
-  ar->v2d.align = V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y;
-  ar->v2d.flag = (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
+  region->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+  region->v2d.keepofs = V2D_LOCKOFS_Y;
+  region->v2d.keeptot = V2D_KEEPTOT_STRICT;
+  region->v2d.align = V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y;
+  region->v2d.flag = (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
 }
 
-static void sequencer_init_preview_region(ARegion *ar)
+static void sequencer_init_preview_region(ARegion *region)
 {
   // XXX a bit ugly still, copied from space_sequencer
   /* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
-  ar->regiontype = RGN_TYPE_PREVIEW;
-  ar->alignment = RGN_ALIGN_TOP;
-  ar->flag |= RGN_FLAG_HIDDEN;
-  ar->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM;
-  ar->v2d.minzoom = 0.00001f;
-  ar->v2d.maxzoom = 100000.0f;
-  ar->v2d.tot.xmin = -960.0f; /* 1920 width centered */
-  ar->v2d.tot.ymin = -540.0f; /* 1080 height centered */
-  ar->v2d.tot.xmax = 960.0f;
-  ar->v2d.tot.ymax = 540.0f;
-  ar->v2d.min[0] = 0.0f;
-  ar->v2d.min[1] = 0.0f;
-  ar->v2d.max[0] = 12000.0f;
-  ar->v2d.max[1] = 12000.0f;
-  ar->v2d.cur = ar->v2d.tot;
-  ar->v2d.align = V2D_ALIGN_FREE;  // (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
-  ar->v2d.keeptot = V2D_KEEPTOT_FREE;
+  region->regiontype = RGN_TYPE_PREVIEW;
+  region->alignment = RGN_ALIGN_TOP;
+  region->flag |= RGN_FLAG_HIDDEN;
+  region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM;
+  region->v2d.minzoom = 0.00001f;
+  region->v2d.maxzoom = 100000.0f;
+  region->v2d.tot.xmin = -960.0f; /* 1920 width centered */
+  region->v2d.tot.ymin = -540.0f; /* 1080 height centered */
+  region->v2d.tot.xmax = 960.0f;
+  region->v2d.tot.ymax = 540.0f;
+  region->v2d.min[0] = 0.0f;
+  region->v2d.min[1] = 0.0f;
+  region->v2d.max[0] = 12000.0f;
+  region->v2d.max[1] = 12000.0f;
+  region->v2d.cur = region->v2d.tot;
+  region->v2d.align = V2D_ALIGN_FREE;  // (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+  region->v2d.keeptot = V2D_KEEPTOT_FREE;
 }
 
 static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 {
-  ARegion *ar;
+  ARegion *region;
   ARegion *ar_main;
 
   if (sl) {
     /* first channels for ipo action nla... */
     switch (sl->spacetype) {
       case SPACE_GRAPH:
-        ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_CHANNELS;
-        ar->alignment = RGN_ALIGN_LEFT;
-        ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_CHANNELS;
+        region->alignment = RGN_ALIGN_LEFT;
+        region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
 
         /* for some reason, this doesn't seem to go auto like for NLA... */
-        ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_UI;
-        ar->alignment = RGN_ALIGN_RIGHT;
-        ar->v2d.scroll = V2D_SCROLL_RIGHT;
-        ar->v2d.flag = RGN_FLAG_HIDDEN;
+        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_UI;
+        region->alignment = RGN_ALIGN_RIGHT;
+        region->v2d.scroll = V2D_SCROLL_RIGHT;
+        region->v2d.flag = RGN_FLAG_HIDDEN;
         break;
 
       case SPACE_ACTION:
-        ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_CHANNELS;
-        ar->alignment = RGN_ALIGN_LEFT;
-        ar->v2d.scroll = V2D_SCROLL_BOTTOM;
-        ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_CHANNELS;
+        region->alignment = RGN_ALIGN_LEFT;
+        region->v2d.scroll = V2D_SCROLL_BOTTOM;
+        region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
         break;
 
       case SPACE_NLA:
-        ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_CHANNELS;
-        ar->alignment = RGN_ALIGN_LEFT;
-        ar->v2d.scroll = V2D_SCROLL_BOTTOM;
-        ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_CHANNELS;
+        region->alignment = RGN_ALIGN_LEFT;
+        region->v2d.scroll = V2D_SCROLL_BOTTOM;
+        region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
         /* for some reason, some files still don't get this auto */
-        ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_UI;
-        ar->alignment = RGN_ALIGN_RIGHT;
-        ar->v2d.scroll = V2D_SCROLL_RIGHT;
-        ar->v2d.flag = RGN_FLAG_HIDDEN;
+        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_UI;
+        region->alignment = RGN_ALIGN_RIGHT;
+        region->v2d.scroll = V2D_SCROLL_RIGHT;
+        region->v2d.flag = RGN_FLAG_HIDDEN;
         break;
 
       case SPACE_NODE:
-        ar = MEM_callocN(sizeof(ARegion), "nodetree area for node");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_UI;
-        ar->alignment = RGN_ALIGN_LEFT;
-        ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-        ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+        region = MEM_callocN(sizeof(ARegion), "nodetree area for node");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_UI;
+        region->alignment = RGN_ALIGN_LEFT;
+        region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+        region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
         /* temporarily hide it */
-        ar->flag = RGN_FLAG_HIDDEN;
+        region->flag = RGN_FLAG_HIDDEN;
         break;
       case SPACE_FILE:
-        ar = MEM_callocN(sizeof(ARegion), "nodetree area for node");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_CHANNELS;
-        ar->alignment = RGN_ALIGN_LEFT;
+        region = MEM_callocN(sizeof(ARegion), "nodetree area for node");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_CHANNELS;
+        region->alignment = RGN_ALIGN_LEFT;
 
-        ar = MEM_callocN(sizeof(ARegion), "ui area for file");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_UI;
-        ar->alignment = RGN_ALIGN_TOP;
+        region = MEM_callocN(sizeof(ARegion), "ui area for file");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_UI;
+        region->alignment = RGN_ALIGN_TOP;
         break;
       case SPACE_SEQ:
         ar_main = (ARegion *)lb->first;
@@ -211,41 +211,41 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
             break;
           }
         }
-        ar = MEM_callocN(sizeof(ARegion), "preview area for sequencer");
-        BLI_insertlinkbefore(lb, ar_main, ar);
-        sequencer_init_preview_region(ar);
+        region = MEM_callocN(sizeof(ARegion), "preview area for sequencer");
+        BLI_insertlinkbefore(lb, ar_main, region);
+        sequencer_init_preview_region(region);
         break;
       case SPACE_VIEW3D:
         /* toolbar */
-        ar = MEM_callocN(sizeof(ARegion), "toolbar for view3d");
+        region = MEM_callocN(sizeof(ARegion), "toolbar for view3d");
 
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_TOOLS;
-        ar->alignment = RGN_ALIGN_LEFT;
-        ar->flag = RGN_FLAG_HIDDEN;
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_TOOLS;
+        region->alignment = RGN_ALIGN_LEFT;
+        region->flag = RGN_FLAG_HIDDEN;
 
         /* tool properties */
-        ar = MEM_callocN(sizeof(ARegion), "tool properties for view3d");
+        region = MEM_callocN(sizeof(ARegion), "tool properties for view3d");
 
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_TOOL_PROPS;
-        ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-        ar->flag = RGN_FLAG_HIDDEN;
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_TOOL_PROPS;
+        region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+        region->flag = RGN_FLAG_HIDDEN;
 
         /* buttons/list view */
-        ar = MEM_callocN(sizeof(ARegion), "buttons for view3d");
+        region = MEM_callocN(sizeof(ARegion), "buttons for view3d");
 
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_UI;
-        ar->alignment = RGN_ALIGN_RIGHT;
-        ar->flag = RGN_FLAG_HIDDEN;
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_UI;
+        region->alignment = RGN_ALIGN_RIGHT;
+        region->flag = RGN_FLAG_HIDDEN;
 #if 0
       case SPACE_PROPERTIES:
         /* context UI region */
-        ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
-        BLI_addtail(lb, ar);
-        ar->regiontype = RGN_TYPE_UI;
-        ar->alignment = RGN_ALIGN_RIGHT;
+        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        BLI_addtail(lb, region);
+        region->regiontype = RGN_TYPE_UI;
+        region->alignment = RGN_ALIGN_RIGHT;
 
         break;
 #endif
@@ -253,12 +253,12 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
   }
 
   /* main region */
-  ar = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+  region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
 
-  BLI_addtail(lb, ar);
-  ar->winrct = sa->totrct;
+  BLI_addtail(lb, region);
+  region->winrct = sa->totrct;
 
-  ar->regiontype = RGN_TYPE_WINDOW;
+  region->regiontype = RGN_TYPE_WINDOW;
 
   if (sl) {
     /* if active spacetype has view2d data, copy that over to main region */
@@ -271,45 +271,45 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
       case SPACE_OUTLINER: {
         SpaceOutliner *soops = (SpaceOutliner *)sl;
 
-        memcpy(&ar->v2d, &soops->v2d, sizeof(View2D));
+        memcpy(&region->v2d, &soops->v2d, sizeof(View2D));
 
-        ar->v2d.scroll &= ~V2D_SCROLL_LEFT;
-        ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-        ar->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
-        ar->v2d.keepzoom |= (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_KEEPASPECT);
-        ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
-        ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
-        // ar->v2d.flag |= V2D_IS_INITIALISED;
+        region->v2d.scroll &= ~V2D_SCROLL_LEFT;
+        region->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+        region->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+        region->v2d.keepzoom |= (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_KEEPASPECT);
+        region->v2d.keeptot = V2D_KEEPTOT_STRICT;
+        region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
+        // region->v2d.flag |= V2D_IS_INITIALISED;
         break;
       }
       case SPACE_GRAPH: {
         SpaceGraph *sipo = (SpaceGraph *)sl;
-        memcpy(&ar->v2d, &sipo->v2d, sizeof(View2D));
+        memcpy(&region->v2d, &sipo->v2d, sizeof(View2D));
 
         /* init mainarea view2d */
-        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-        ar->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_VERTICAL_HANDLES);
+        region->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+        region->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_VERTICAL_HANDLES);
 
-        ar->v2d.min[0] = FLT_MIN;
-        ar->v2d.min[1] = FLT_MIN;
+        region->v2d.min[0] = FLT_MIN;
+        region->v2d.min[1] = FLT_MIN;
 
-        ar->v2d.max[0] = MAXFRAMEF;
-        ar->v2d.max[1] = FLT_MAX;
+        region->v2d.max[0] = MAXFRAMEF;
+        region->v2d.max[1] = FLT_MAX;
 
-        // ar->v2d.flag |= V2D_IS_INITIALISED;
+        // region->v2d.flag |= V2D_IS_INITIALISED;
         break;
       }
       case SPACE_NLA: {
         SpaceNla *snla = (SpaceNla *)sl;
-        memcpy(&ar->v2d, &snla->v2d, sizeof(View2D));
+        memcpy(&region->v2d, &snla->v2d, sizeof(View2D));
 
-        ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
-        ar->v2d.tot.ymax = 0.0f;
+        region->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
+        region->v2d.tot.ymax = 0.0f;
 
-        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-        ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-        ar->v2d.align = V2D_ALIGN_NO_POS_Y;
-        ar->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
+        region->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+        region->v2d.scroll |= (V2D_SCROLL_RIGHT);
+        region->v2d.align = V2D_ALIGN_NO_POS_Y;
+        region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
         break;
       }
       case SPACE_ACTION: {
@@ -317,26 +317,26 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 
         /* We totally reinit the view for the Action Editor,
          * as some old instances had some weird cruft set. */
-        ar->v2d.tot.xmin = -20.0f;
-        ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
-        ar->v2d.tot.xmax = (float)((sa->winx > 120) ? (sa->winx) : 120);
-        ar->v2d.tot.ymax = 0.0f;
+        region->v2d.tot.xmin = -20.0f;
+        region->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
+        region->v2d.tot.xmax = (float)((sa->winx > 120) ? (sa->winx) : 120);
+        region->v2d.tot.ymax = 0.0f;
 
-        ar->v2d.cur = ar->v2d.tot;
+        region->v2d.cur = region->v2d.tot;
 
-        ar->v2d.min[0] = 0.0f;
-        ar->v2d.min[1] = 0.0f;
+        region->v2d.min[0] = 0.0f;
+        region->v2d.min[1] = 0.0f;
 
-        ar->v2d.max[0] = MAXFRAMEF;
-        ar->v2d.max[1] = FLT_MAX;
+        region->v2d.max[0] = MAXFRAMEF;
+        region->v2d.max[1] = FLT_MAX;
 
-        ar->v2d.minzoom = 0.01f;
-        ar->v2d.maxzoom = 50;
-        ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-        ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-        ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
-        ar->v2d.align = V2D_ALIGN_NO_POS_Y;
-        ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+        region->v2d.minzoom = 0.01f;
+        region->v2d.maxzoom = 50;
+        region->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+        region->v2d.scroll |= (V2D_SCROLL_RIGHT);
+        region->v2d.keepzoom = V2D_LOCKZOOM_Y;
+        region->v2d.align = V2D_ALIGN_NO_POS_Y;
+        region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
         /* for old files with ShapeKey editors open + an action set, clear the action as
          * it doesn't make sense in the new system (i.e. violates concept that ShapeKey edit
@@ -349,39 +349,39 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
       }
       case SPACE_SEQ: {
         SpaceSeq *sseq = (SpaceSeq *)sl;
-        memcpy(&ar->v2d, &sseq->v2d, sizeof(View2D));
+        memcpy(&region->v2d, &sseq->v2d, sizeof(View2D));
 
-        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-        ar->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_VERTICAL_HANDLES);
-        ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
-        ar->v2d.flag |= V2D_IS_INITIALISED;
+        region->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+        region->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_VERTICAL_HANDLES);
+        region->v2d.align = V2D_ALIGN_NO_NEG_Y;
+        region->v2d.flag |= V2D_IS_INITIALISED;
         break;
       }
       case SPACE_NODE: {
         SpaceNode *snode = (SpaceNode *)sl;
-        memcpy(&ar->v2d, &snode->v2d, sizeof(View2D));
+        memcpy(&region->v2d, &snode->v2d, sizeof(View2D));
 
-        ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-        ar->v2d.keepzoom = V2D_LIMITZOOM | V2D_KEEPASPECT;
+        region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+        region->v2d.keepzoom = V2D_LIMITZOOM | V2D_KEEPASPECT;
         break;
       }
       case SPACE_PROPERTIES: {
         SpaceProperties *sbuts = (SpaceProperties *)sl;
-        memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
+        memcpy(&region->v2d, &sbuts->v2d, sizeof(View2D));
 
-        ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+        region->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
         break;
       }
       case SPACE_FILE: {
         // SpaceFile *sfile = (SpaceFile *)sl;
-        ar->v2d.tot.xmin = ar->v2d.tot.ymin = 0;
-        ar->v2d.tot.xmax = ar->winx;
-        ar->v2d.tot.ymax = ar->winy;
-        ar->v2d.cur = ar->v2d.tot;
-        ar->regiontype = RGN_TYPE_WINDOW;
-        ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-        ar->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
-        ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+        region->v2d.tot.xmin = region->v2d.tot.ymin = 0;
+        region->v2d.tot.xmax = region->winx;
+        region->v2d.tot.ymax = region->winy;
+        region->v2d.cur = region->v2d.tot;
+        region->regiontype = RGN_TYPE_WINDOW;
+        region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+        region->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+        region->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
         break;
       }
       case SPACE_TEXT: {
@@ -389,7 +389,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
         st->flags |= ST_FIND_WRAP;
       }
         // case SPACE_XXX: // FIXME... add other ones
-        //  memcpy(&ar->v2d, &((SpaceXxx *)sl)->v2d, sizeof(View2D));
+        //  memcpy(&region->v2d, &((SpaceXxx *)sl)->v2d, sizeof(View2D));
         //  break;
     }
   }
@@ -1196,7 +1196,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       for (sa = screen->areabase.first; sa; sa = sa->next) {
         for (sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype != SPACE_SEQ) {
-            ARegion *ar;
+            ARegion *region;
             ListBase *regionbase;
 
             if (sl == sa->spacedata.first) {
@@ -1206,16 +1206,16 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
               regionbase = &sl->regionbase;
             }
 
-            for (ar = regionbase->first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_PREVIEW) {
+            for (region = regionbase->first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_PREVIEW) {
                 break;
               }
             }
 
-            if (ar && (ar->regiontype == RGN_TYPE_PREVIEW)) {
+            if (region && (region->regiontype == RGN_TYPE_PREVIEW)) {
               SpaceType *st = BKE_spacetype_from_id(SPACE_SEQ);
-              BKE_area_region_free(st, ar);
-              BLI_freelinkN(regionbase, ar);
+              BKE_area_region_free(st, region);
+              BLI_freelinkN(regionbase, region);
             }
           }
         }
@@ -1234,7 +1234,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         for (sa = screen->areabase.first; sa; sa = sa->next) {
           for (sl = sa->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_SEQ) {
-              ARegion *ar;
+              ARegion *region;
               ARegion *ar_main;
               ListBase *regionbase;
               SpaceSeq *sseq = (SpaceSeq *)sl;
@@ -1259,9 +1259,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
                   break;
                 }
               }
-              ar = MEM_callocN(sizeof(ARegion), "preview area for sequencer");
-              BLI_insertlinkbefore(regionbase, ar_main, ar);
-              sequencer_init_preview_region(ar);
+              region = MEM_callocN(sizeof(ARegion), "preview area for sequencer");
+              BLI_insertlinkbefore(regionbase, ar_main, region);
+              sequencer_init_preview_region(region);
             }
           }
         }
@@ -1367,7 +1367,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       for (sa = screen->areabase.first; sa; sa = sa->next) {
         for (sl = sa->spacedata.first; sl; sl = sl->next) {
           ListBase *regionbase;
-          ARegion *ar;
+          ARegion *region;
 
           if (sl == sa->spacedata.first) {
             regionbase = &sa->regionbase;
@@ -1377,10 +1377,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
           }
 
           if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_NLA)) {
-            for (ar = (ARegion *)regionbase->first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_WINDOW) {
-                ar->v2d.cur.ymax = ar->v2d.tot.ymax = 0.0f;
-                ar->v2d.cur.ymin = ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
+            for (region = (ARegion *)regionbase->first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                region->v2d.cur.ymax = region->v2d.tot.ymax = 0.0f;
+                region->v2d.cur.ymin = region->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
               }
             }
           }
@@ -1582,7 +1582,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
           if (sl->spacetype == SPACE_NODE) {
             SpaceNode *snode = (SpaceNode *)sl;
             ListBase *regionbase;
-            ARegion *ar;
+            ARegion *region;
 
             if (sl == sa->spacedata.first) {
               regionbase = &sa->regionbase;
@@ -1598,13 +1598,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
               snode->v2d.maxzoom = 2.31f;
             }
 
-            for (ar = regionbase->first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_WINDOW) {
-                if (ar->v2d.minzoom > 0.09f) {
-                  ar->v2d.minzoom = 0.09f;
+            for (region = regionbase->first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                if (region->v2d.minzoom > 0.09f) {
+                  region->v2d.minzoom = 0.09f;
                 }
-                if (ar->v2d.maxzoom < 2.31f) {
-                  ar->v2d.maxzoom = 2.31f;
+                if (region->v2d.maxzoom < 2.31f) {
+                  region->v2d.maxzoom = 2.31f;
                 }
               }
             }
@@ -1857,19 +1857,20 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         for (sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_INFO) {
             SpaceInfo *sinfo = (SpaceInfo *)sl;
-            ARegion *ar;
+            ARegion *region;
 
             sinfo->rpt_mask = INFO_RPT_OP;
 
-            for (ar = sa->regionbase.first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_WINDOW) {
-                ar->v2d.scroll = (V2D_SCROLL_RIGHT);
-                ar->v2d.align = V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y; /* align bottom left */
-                ar->v2d.keepofs = V2D_LOCKOFS_X;
-                ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM |
-                                    V2D_KEEPASPECT);
-                ar->v2d.keeptot = V2D_KEEPTOT_BOUNDS;
-                ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
+            for (region = sa->regionbase.first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                region->v2d.scroll = (V2D_SCROLL_RIGHT);
+                region->v2d.align = V2D_ALIGN_NO_NEG_X |
+                                    V2D_ALIGN_NO_NEG_Y; /* align bottom left */
+                region->v2d.keepofs = V2D_LOCKOFS_X;
+                region->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM |
+                                        V2D_KEEPASPECT);
+                region->v2d.keeptot = V2D_KEEPTOT_BOUNDS;
+                region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
               }
             }
           }
@@ -2121,10 +2122,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       for (sa = screen->areabase.first; sa; sa = sa->next) {
         SpaceLink *sl = sa->spacedata.first;
         if (sl->spacetype == SPACE_IMAGE) {
-          ARegion *ar;
-          for (ar = sa->regionbase.first; ar; ar = ar->next) {
-            if (ar->regiontype == RGN_TYPE_WINDOW) {
-              View2D *v2d = &ar->v2d;
+          ARegion *region;
+          for (region = sa->regionbase.first; region; region = region->next) {
+            if (region->regiontype == RGN_TYPE_WINDOW) {
+              View2D *v2d = &region->v2d;
               v2d->minzoom = v2d->maxzoom = v2d->scroll = v2d->keeptot = v2d->keepzoom =
                   v2d->keepofs = v2d->align = 0;
             }
@@ -2133,10 +2134,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
         for (sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_IMAGE) {
-            ARegion *ar;
-            for (ar = sl->regionbase.first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_WINDOW) {
-                View2D *v2d = &ar->v2d;
+            ARegion *region;
+            for (region = sl->regionbase.first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                View2D *v2d = &region->v2d;
                 v2d->minzoom = v2d->maxzoom = v2d->scroll = v2d->keeptot = v2d->keepzoom =
                     v2d->keepofs = v2d->align = 0;
               }
@@ -2179,22 +2180,22 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         for (sa = screen->areabase.first; sa; sa = sa->next) {
           SpaceLink *sl = sa->spacedata.first;
           if (sl->spacetype == SPACE_SEQ) {
-            ARegion *ar;
-            for (ar = sa->regionbase.first; ar; ar = ar->next) {
-              if (ar->regiontype == RGN_TYPE_WINDOW) {
-                if (ar->v2d.min[1] == 4.0f) {
-                  ar->v2d.min[1] = 0.5f;
+            ARegion *region;
+            for (region = sa->regionbase.first; region; region = region->next) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                if (region->v2d.min[1] == 4.0f) {
+                  region->v2d.min[1] = 0.5f;
                 }
               }
             }
           }
           for (sl = sa->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_SEQ) {
-              ARegion *ar;
-              for (ar = sl->regionbase.first; ar; ar = ar->next) {
-                if (ar->regiontype == RGN_TYPE_WINDOW) {
-                  if (ar->v2d.min[1] == 4.0f) {
-                    ar->v2d.min[1] = 0.5f;
+              ARegion *region;
+              for (region = sl->regionbase.first; region; region = region->next) {
+                if (region->regiontype == RGN_TYPE_WINDOW) {
+                  if (region->v2d.min[1] == 4.0f) {
+                    region->v2d.min[1] = 0.5f;
                   }
                 }
               }

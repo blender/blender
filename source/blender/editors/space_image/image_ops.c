@@ -111,7 +111,7 @@
  * \{ */
 
 static void sima_zoom_set(
-    SpaceImage *sima, ARegion *ar, float zoom, const float location[2], const bool zoom_to_pos)
+    SpaceImage *sima, ARegion *region, float zoom, const float location[2], const bool zoom_to_pos)
 {
   float oldzoom = sima->zoom;
   int width, height;
@@ -128,10 +128,10 @@ static void sima_zoom_set(
     if ((width < 4) && (height < 4) && sima->zoom < oldzoom) {
       sima->zoom = oldzoom;
     }
-    else if (BLI_rcti_size_x(&ar->winrct) <= sima->zoom) {
+    else if (BLI_rcti_size_x(&region->winrct) <= sima->zoom) {
       sima->zoom = oldzoom;
     }
-    else if (BLI_rcti_size_y(&ar->winrct) <= sima->zoom) {
+    else if (BLI_rcti_size_y(&region->winrct) <= sima->zoom) {
       sima->zoom = oldzoom;
     }
   }
@@ -150,16 +150,19 @@ static void sima_zoom_set(
   }
 }
 
-static void sima_zoom_set_factor(
-    SpaceImage *sima, ARegion *ar, float zoomfac, const float location[2], const bool zoom_to_pos)
+static void sima_zoom_set_factor(SpaceImage *sima,
+                                 ARegion *region,
+                                 float zoomfac,
+                                 const float location[2],
+                                 const bool zoom_to_pos)
 {
-  sima_zoom_set(sima, ar, sima->zoom * zoomfac, location, zoom_to_pos);
+  sima_zoom_set(sima, region, sima->zoom * zoomfac, location, zoom_to_pos);
 }
 
 /**
  * Fits the view to the bounds exactly, caller should add margin if needed.
  */
-static void sima_zoom_set_from_bounds(SpaceImage *sima, ARegion *ar, const rctf *bounds)
+static void sima_zoom_set_from_bounds(SpaceImage *sima, ARegion *region, const rctf *bounds)
 {
   int image_size[2];
   float aspx, aspy;
@@ -175,13 +178,13 @@ static void sima_zoom_set_from_bounds(SpaceImage *sima, ARegion *ar, const rctf 
   sima->yof = roundf((BLI_rctf_cent_y(bounds) - 0.5f) * image_size[1]);
 
   float size_xy[2], size;
-  size_xy[0] = BLI_rcti_size_x(&ar->winrct) / (BLI_rctf_size_x(bounds) * image_size[0]);
-  size_xy[1] = BLI_rcti_size_y(&ar->winrct) / (BLI_rctf_size_y(bounds) * image_size[1]);
+  size_xy[0] = BLI_rcti_size_x(&region->winrct) / (BLI_rctf_size_x(bounds) * image_size[0]);
+  size_xy[1] = BLI_rcti_size_y(&region->winrct) / (BLI_rctf_size_y(bounds) * image_size[1]);
 
   size = min_ff(size_xy[0], size_xy[1]);
   CLAMP_MAX(size, 100.0f);
 
-  sima_zoom_set(sima, ar, size, NULL, false);
+  sima_zoom_set(sima, region, size, NULL, false);
 }
 
 static Image *image_from_context(const bContext *C)
@@ -252,10 +255,10 @@ static bool image_not_packed_poll(bContext *C)
 bool space_image_main_region_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  /* XXX ARegion *ar = CTX_wm_region(C); */
+  /* XXX ARegion *region = CTX_wm_region(C); */
 
   if (sima) {
-    return true; /* XXX (ar && ar->type->regionid == RGN_TYPE_WINDOW); */
+    return true; /* XXX (region && region->type->regionid == RGN_TYPE_WINDOW); */
   }
   return false;
 }
@@ -462,14 +465,14 @@ typedef struct ViewZoomData {
 
   /* */
   SpaceImage *sima;
-  ARegion *ar;
+  ARegion *region;
 } ViewZoomData;
 
 static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ViewZoomData *vpd;
 
   op->customdata = vpd = MEM_callocN(sizeof(ViewZoomData), "ImageViewZoomData");
@@ -486,7 +489,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   vpd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   UI_view2d_region_to_view(
-      &ar->v2d, event->mval[0], event->mval[1], &vpd->location[0], &vpd->location[1]);
+      &region->v2d, event->mval[0], event->mval[1], &vpd->location[0], &vpd->location[1]);
 
   if (U.viewzoom == USER_ZOOM_CONT) {
     /* needs a timer to continue redrawing */
@@ -495,7 +498,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   vpd->sima = sima;
-  vpd->ar = ar;
+  vpd->region = region;
 
   WM_event_add_modal_handler(C, op);
 }
@@ -523,11 +526,11 @@ static void image_view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
 static int image_view_zoom_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-  sima_zoom_set_factor(sima, ar, RNA_float_get(op->ptr, "factor"), NULL, false);
+  sima_zoom_set_factor(sima, region, RNA_float_get(op->ptr, "factor"), NULL, false);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -542,10 +545,11 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
   if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
     SpaceImage *sima = CTX_wm_space_image(C);
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
     float delta, factor, location[2];
 
-    UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
+    UI_view2d_region_to_view(
+        &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
 
     delta = event->prevx - event->x + event->prevy - event->y;
 
@@ -557,11 +561,11 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     RNA_float_set(op->ptr, "factor", factor);
     const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
     sima_zoom_set(sima,
-                  ar,
+                  region,
                   sima->zoom * factor,
                   location,
                   (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
 
     return OPERATOR_FINISHED;
   }
@@ -616,8 +620,8 @@ static void image_zoom_apply(ViewZoomData *vpd,
   }
 
   RNA_float_set(op->ptr, "factor", factor);
-  sima_zoom_set(vpd->sima, vpd->ar, vpd->zoom * factor, vpd->location, zoom_to_pos);
-  ED_region_tag_redraw(vpd->ar);
+  sima_zoom_set(vpd->sima, vpd->region, vpd->zoom * factor, vpd->location, zoom_to_pos);
+  ED_region_tag_redraw(vpd->region);
 }
 
 static int image_view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -715,7 +719,7 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
   }
   else {
     SpaceImage *sima = CTX_wm_space_image(C);
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
     float pan_vec[3];
 
     const wmNDOFMotionData *ndof = event->customdata;
@@ -726,11 +730,11 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
     mul_v2_fl(pan_vec, (speed * ndof->dt) / sima->zoom);
     pan_vec[2] *= -ndof->dt;
 
-    sima_zoom_set_factor(sima, ar, 1.0f + pan_vec[2], NULL, false);
+    sima_zoom_set_factor(sima, region, 1.0f + pan_vec[2], NULL, false);
     sima->xof += pan_vec[0];
     sima->yof += pan_vec[1];
 
-    ED_region_tag_redraw(ar);
+    ED_region_tag_redraw(region);
 
     return OPERATOR_FINISHED;
   }
@@ -766,14 +770,14 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
 static int image_view_all_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima;
-  ARegion *ar;
+  ARegion *region;
   float aspx, aspy, zoomx, zoomy, w, h;
   int width, height;
   const bool fit_view = RNA_boolean_get(op->ptr, "fit_view");
 
   /* retrieve state */
   sima = CTX_wm_space_image(C);
-  ar = CTX_wm_region(C);
+  region = CTX_wm_region(C);
 
   ED_space_image_get_size(sima, &width, &height);
   ED_space_image_get_aspect(sima, &aspx, &aspy);
@@ -805,8 +809,8 @@ static int image_view_all_exec(bContext *C, wmOperator *op)
   }
 
   /* check if the image will fit in the image with (zoom == 1) */
-  width = BLI_rcti_size_x(&ar->winrct) + 1;
-  height = BLI_rcti_size_y(&ar->winrct) + 1;
+  width = BLI_rcti_size_x(&region->winrct) + 1;
+  height = BLI_rcti_size_y(&region->winrct) + 1;
 
   if (fit_view) {
     const int margin = 5; /* margin from border */
@@ -814,7 +818,7 @@ static int image_view_all_exec(bContext *C, wmOperator *op)
     zoomx = (float)width / (w + 2 * margin);
     zoomy = (float)height / (h + 2 * margin);
 
-    sima_zoom_set(sima, ar, min_ff(zoomx, zoomy), NULL, false);
+    sima_zoom_set(sima, region, min_ff(zoomx, zoomy), NULL, false);
   }
   else {
     if ((w >= width || h >= height) && (width > 0 && height > 0)) {
@@ -822,17 +826,17 @@ static int image_view_all_exec(bContext *C, wmOperator *op)
       zoomy = (float)height / h;
 
       /* find the zoom value that will fit the image in the image space */
-      sima_zoom_set(sima, ar, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL, false);
+      sima_zoom_set(sima, region, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL, false);
     }
     else {
-      sima_zoom_set(sima, ar, 1.0f, NULL, false);
+      sima_zoom_set(sima, region, 1.0f, NULL, false);
     }
   }
 
   sima->xof = xof;
   sima->yof = yof;
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -867,11 +871,11 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 static int view_center_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   ED_image_view_center_to_point(sima, sima->cursor[0], sima->cursor[1]);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -897,7 +901,7 @@ void IMAGE_OT_view_center_cursor(wmOperatorType *ot)
 static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceImage *sima;
-  ARegion *ar;
+  ARegion *region;
   Scene *scene;
   ViewLayer *view_layer;
   Object *obedit;
@@ -905,7 +909,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* retrieve state */
   sima = CTX_wm_space_image(C);
-  ar = CTX_wm_region(C);
+  region = CTX_wm_region(C);
   scene = CTX_data_scene(C);
   view_layer = CTX_data_view_layer(C);
   obedit = CTX_data_edit_object(C);
@@ -934,9 +938,9 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
   /* add some margin */
   BLI_rctf_scale(&bounds, 1.4f);
 
-  sima_zoom_set_from_bounds(sima, ar, &bounds);
+  sima_zoom_set_from_bounds(sima, region, &bounds);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -967,25 +971,26 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 static int image_view_zoom_in_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float location[2];
 
   RNA_float_get_array(op->ptr, "location", location);
 
   sima_zoom_set_factor(
-      sima, ar, powf(2.0f, 1.0f / 3.0f), location, U.uiflag & USER_ZOOM_TO_MOUSEPOS);
+      sima, region, powf(2.0f, 1.0f / 3.0f), location, U.uiflag & USER_ZOOM_TO_MOUSEPOS);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
 
 static int image_view_zoom_in_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float location[2];
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
   RNA_float_set_array(op->ptr, "location", location);
 
   return image_view_zoom_in_exec(C, op);
@@ -1025,25 +1030,26 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 static int image_view_zoom_out_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float location[2];
 
   RNA_float_get_array(op->ptr, "location", location);
 
   sima_zoom_set_factor(
-      sima, ar, powf(0.5f, 1.0f / 3.0f), location, U.uiflag & USER_ZOOM_TO_MOUSEPOS);
+      sima, region, powf(0.5f, 1.0f / 3.0f), location, U.uiflag & USER_ZOOM_TO_MOUSEPOS);
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
 
 static int image_view_zoom_out_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float location[2];
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
   RNA_float_set_array(op->ptr, "location", location);
 
   return image_view_zoom_out_exec(C, op);
@@ -1089,15 +1095,15 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
 static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-  sima_zoom_set(sima, ar, RNA_float_get(op->ptr, "ratio"), NULL, false);
+  sima_zoom_set(sima, region, RNA_float_get(op->ptr, "ratio"), NULL, false);
 
   /* ensure pixel exact locations for draw */
   sima->xof = (int)sima->xof;
   sima->yof = (int)sima->yof;
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -1137,13 +1143,13 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 static int image_view_zoom_border_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   rctf bounds;
   const bool zoom_in = !RNA_boolean_get(op->ptr, "zoom_out");
 
   WM_operator_properties_border_to_rctf(op, &bounds);
 
-  UI_view2d_region_to_view_rctf(&ar->v2d, &bounds, &bounds);
+  UI_view2d_region_to_view_rctf(&region->v2d, &bounds, &bounds);
 
   const struct {
     float xof;
@@ -1155,7 +1161,7 @@ static int image_view_zoom_border_exec(bContext *C, wmOperator *op)
       .zoom = sima->zoom,
   };
 
-  sima_zoom_set_from_bounds(sima, ar, &bounds);
+  sima_zoom_set_from_bounds(sima, region, &bounds);
 
   /* zoom out */
   if (!zoom_in) {
@@ -1164,7 +1170,7 @@ static int image_view_zoom_border_exec(bContext *C, wmOperator *op)
     sima->zoom = sima_view_prev.zoom * (sima_view_prev.zoom / sima->zoom);
   }
 
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
@@ -3120,7 +3126,7 @@ typedef struct ImageSampleInfo {
   int use_default_view;
 } ImageSampleInfo;
 
-static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
+static void image_sample_draw(const bContext *C, ARegion *region, void *arg_info)
 {
   ImageSampleInfo *info = arg_info;
   if (!info->draw) {
@@ -3129,7 +3135,7 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 
   Scene *scene = CTX_data_scene(C);
   ED_image_draw_info(scene,
-                     ar,
+                     region,
                      info->color_manage,
                      info->use_default_view,
                      info->channels,
@@ -3155,9 +3161,10 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 
     /* TODO(campbell): lock to pixels. */
     rctf sample_rect_fl;
-    BLI_rctf_init_pt_radius(&sample_rect_fl,
-                            (float[2]){event->x - ar->winrct.xmin, event->y - ar->winrct.ymin},
-                            (float)(info->sample_size / 2.0f) * sima->zoom);
+    BLI_rctf_init_pt_radius(
+        &sample_rect_fl,
+        (float[2]){event->x - region->winrct.xmin, event->y - region->winrct.ymin},
+        (float)(info->sample_size / 2.0f) * sima->zoom);
 
     glEnable(GL_COLOR_LOGIC_OP);
     glLogicOp(GL_XOR);
@@ -3174,13 +3181,13 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 }
 
 /* Returns color in linear space, matching ED_space_node_color_sample(). */
-bool ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], float r_col[3])
+bool ED_space_image_color_sample(SpaceImage *sima, ARegion *region, int mval[2], float r_col[3])
 {
   if (sima->image == NULL) {
     return false;
   }
   float uv[2];
-  UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &uv[0], &uv[1]);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &uv[0], &uv[1]);
   int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, NULL);
 
   void *lock;
@@ -3295,11 +3302,11 @@ static void image_sample_rect_color_float(ImBuf *ibuf, const rcti *rect, float r
 static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Image *image = ED_space_image(sima);
 
   float uv[2];
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &uv[0], &uv[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &uv[0], &uv[1]);
   int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, NULL);
 
   void *lock;
@@ -3439,10 +3446,10 @@ static void image_sample_exit(bContext *C, wmOperator *op)
 static int image_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   ImageSampleInfo *info;
 
-  if (ar->regiontype == RGN_TYPE_WINDOW) {
+  if (region->regiontype == RGN_TYPE_WINDOW) {
     if (event->mval[1] <= 16 && ED_space_image_show_cache(sima)) {
       return OPERATOR_PASS_THROUGH;
     }
@@ -3454,9 +3461,9 @@ static int image_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
   info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
 
-  info->art = ar->type;
+  info->art = region->type;
   info->draw_handle = ED_region_draw_cb_activate(
-      ar->type, image_sample_draw, info, REGION_DRAW_POST_PIXEL);
+      region->type, image_sample_draw, info, REGION_DRAW_POST_PIXEL);
   info->sample_size = RNA_int_get(op->ptr, "size");
   op->customdata = info;
 
@@ -3521,7 +3528,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 static int image_sample_line_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   Image *ima = ED_space_image(sima);
 
@@ -3531,8 +3538,8 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
   int y_end = RNA_int_get(op->ptr, "yend");
 
   float uv1[2], uv2[2], ofs[2];
-  UI_view2d_region_to_view(&ar->v2d, x_start, y_start, &uv1[0], &uv1[1]);
-  UI_view2d_region_to_view(&ar->v2d, x_end, y_end, &uv2[0], &uv2[1]);
+  UI_view2d_region_to_view(&region->v2d, x_start, y_start, &uv1[0], &uv1[1]);
+  UI_view2d_region_to_view(&region->v2d, x_end, y_end, &uv2[0], &uv2[1]);
 
   /* If the image has tiles, shift the positions accordingly. */
   int tile = BKE_image_get_tile_from_pos(ima, uv1, uv1, ofs);
@@ -3834,19 +3841,19 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 
 static int frame_from_event(bContext *C, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   int framenr = 0;
 
-  if (ar->regiontype == RGN_TYPE_WINDOW) {
-    float sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
+  if (region->regiontype == RGN_TYPE_WINDOW) {
+    float sfra = SFRA, efra = EFRA, framelen = region->winx / (efra - sfra + 1);
 
     framenr = sfra + event->mval[0] / framelen;
   }
   else {
     float viewx, viewy;
 
-    UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
+    UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
     framenr = round_fl_to_int(viewx);
   }
@@ -3856,13 +3863,13 @@ static int frame_from_event(bContext *C, const wmEvent *event)
 
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
-  if (ar->regiontype == RGN_TYPE_WINDOW) {
+  if (region->regiontype == RGN_TYPE_WINDOW) {
     SpaceImage *sima = CTX_wm_space_image(C);
 
     /* Local coordinate visible rect inside region, to accommodate overlapping ui. */
-    const rcti *rect_visible = ED_region_visible_rect(ar);
+    const rcti *rect_visible = ED_region_visible_rect(region);
     const int region_bottom = rect_visible->ymin;
 
     if (event->mval[1] > (region_bottom + 16 * UI_DPI_FAC) || !ED_space_image_show_cache(sima)) {
@@ -3963,7 +3970,7 @@ void IMAGE_OT_read_viewlayers(wmOperatorType *ot)
 
 static int render_border_exec(bContext *C, wmOperator *op)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   Render *re = RE_GetSceneRender(scene);
   RenderData *rd;
@@ -3982,7 +3989,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &border);
-  UI_view2d_region_to_view_rctf(&ar->v2d, &border, &border);
+  UI_view2d_region_to_view_rctf(&region->v2d, &border, &border);
 
   /* actually set border */
   CLAMP(border.xmin, 0.0f, 1.0f);

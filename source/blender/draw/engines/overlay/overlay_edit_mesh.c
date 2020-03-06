@@ -333,7 +333,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   if (DRW_state_show_text() && (pd->edit_mesh.flag & OVERLAY_EDIT_TEXT)) {
     const DRWContextState *draw_ctx = DRW_context_state_get();
-    DRW_text_edit_mesh_measure_stats(draw_ctx->ar, draw_ctx->v3d, ob, &draw_ctx->scene->unit);
+    DRW_text_edit_mesh_measure_stats(draw_ctx->region, draw_ctx->v3d, ob, &draw_ctx->scene->unit);
   }
 }
 

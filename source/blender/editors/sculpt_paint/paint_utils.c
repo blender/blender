@@ -84,7 +84,7 @@
 bool paint_convert_bb_to_rect(rcti *rect,
                               const float bb_min[3],
                               const float bb_max[3],
-                              const ARegion *ar,
+                              const ARegion *region,
                               RegionView3D *rv3d,
                               Object *ob)
 {
@@ -109,7 +109,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
         vec[1] = j ? bb_min[1] : bb_max[1];
         vec[2] = k ? bb_min[2] : bb_max[2];
         /* convert corner to screen space */
-        ED_view3d_project_float_v2_m4(ar, vec, proj, projection_mat);
+        ED_view3d_project_float_v2_m4(region, vec, proj, projection_mat);
         /* expand 2D rectangle */
 
         /* we could project directly to int? */
@@ -129,7 +129,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
  * screen_rect from screen into object-space (essentially converting a
  * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
-                              const ARegion *ar,
+                              const ARegion *region,
                               Object *ob,
                               const rcti *screen_rect)
 {
@@ -143,7 +143,7 @@ void paint_calc_redraw_planes(float planes[4][4],
   rect.ymin -= 2;
   rect.ymax += 2;
 
-  ED_view3d_clipping_calc(&bb, planes, ar, ob, &rect);
+  ED_view3d_clipping_calc(&bb, planes, region, ob, &rect);
 }
 
 float paint_calc_object_space_radius(ViewContext *vc, const float center[3], float pixel_radius)
@@ -156,7 +156,7 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3], flo
   mul_v3_m4v3(loc, ob->obmat, center);
 
   zfac = ED_view3d_calc_zfac(vc->rv3d, loc, NULL);
-  ED_view3d_win_to_delta(vc->ar, mval_f, delta, zfac);
+  ED_view3d_win_to_delta(vc->region, mval_f, delta, zfac);
 
   scale = fabsf(mat4_to_scale(ob->obmat));
   scale = (scale == 0.0f) ? 1.0f : scale;
@@ -387,7 +387,7 @@ static int imapaint_pick_face(ViewContext *vc,
 
   /* sample only on the exact position */
   ED_view3d_select_id_validate(vc);
-  *r_index = DRW_select_buffer_sample_point(vc->depsgraph, vc->ar, vc->v3d, mval);
+  *r_index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, mval);
 
   if ((*r_index) == 0 || (*r_index) > (unsigned int)totpoly) {
     return 0;
@@ -456,7 +456,7 @@ void flip_qt_qt(float out[4], const float in[4], const ePaintSymmetryFlags symm)
 
 /* used for both 3d view and image window */
 void paint_sample_color(
-    bContext *C, ARegion *ar, int x, int y, bool texpaint_proj, bool use_palette)
+    bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool use_palette)
 {
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -467,8 +467,8 @@ void paint_sample_color(
   unsigned int col;
   const unsigned char *cp;
 
-  CLAMP(x, 0, ar->winx);
-  CLAMP(y, 0, ar->winy);
+  CLAMP(x, 0, region->winx);
+  CLAMP(y, 0, region->winy);
 
   if (use_palette) {
     if (!palette) {
@@ -583,7 +583,7 @@ void paint_sample_color(
     if (!sample_success) {
       glReadBuffer(GL_FRONT);
       glReadPixels(
-          x + ar->winrct.xmin, y + ar->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
+          x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
       glReadBuffer(GL_BACK);
     }
     else {
@@ -592,7 +592,8 @@ void paint_sample_color(
   }
   else {
     glReadBuffer(GL_FRONT);
-    glReadPixels(x + ar->winrct.xmin, y + ar->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
+    glReadPixels(
+        x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
     glReadBuffer(GL_BACK);
   }
   cp = (unsigned char *)&col;

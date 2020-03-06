@@ -56,7 +56,7 @@
  * point and would result in the same distance.
  */
 #define INSET_DEFAULT 0.00001f
-static float edbm_rip_edgedist_squared(ARegion *ar,
+static float edbm_rip_edgedist_squared(ARegion *region,
                                        float mat[4][4],
                                        const float co1[3],
                                        const float co2[3],
@@ -65,8 +65,8 @@ static float edbm_rip_edgedist_squared(ARegion *ar,
 {
   float vec1[2], vec2[2], dist_sq;
 
-  ED_view3d_project_float_v2_m4(ar, co1, vec1, mat);
-  ED_view3d_project_float_v2_m4(ar, co2, vec2, mat);
+  ED_view3d_project_float_v2_m4(region, co1, vec1, mat);
+  ED_view3d_project_float_v2_m4(region, co2, vec2, mat);
 
   if (inset != 0.0f) {
     const float dist_2d = len_v2v2(vec1, vec2);
@@ -86,12 +86,12 @@ static float edbm_rip_edgedist_squared(ARegion *ar,
 
 #if 0
 static float edbm_rip_linedist(
-    ARegion *ar, float mat[4][4], const float co1[3], const float co2[3], const float mvalf[2])
+    ARegion *region, float mat[4][4], const float co1[3], const float co2[3], const float mvalf[2])
 {
   float vec1[2], vec2[2];
 
-  ED_view3d_project_float_v2_m4(ar, co1, vec1, mat);
-  ED_view3d_project_float_v2_m4(ar, co2, vec2, mat);
+  ED_view3d_project_float_v2_m4(region, co1, vec1, mat);
+  ED_view3d_project_float_v2_m4(region, co2, vec2, mat);
 
   return dist_to_line_v2(mvalf, vec1, vec2);
 }
@@ -110,7 +110,7 @@ static void edbm_calc_loop_co(BMLoop *l, float l_mid_co[3])
 }
 
 static float edbm_rip_edge_side_measure(
-    BMEdge *e, BMLoop *e_l, ARegion *ar, float projectMat[4][4], const float fmval[2])
+    BMEdge *e, BMLoop *e_l, ARegion *region, float projectMat[4][4], const float fmval[2])
 {
   float cent[3] = {0, 0, 0}, mid[3];
 
@@ -137,11 +137,11 @@ static float edbm_rip_edge_side_measure(
   mid_v3_v3v3(cent, v1_other->co, v2_other->co);
   mid_v3_v3v3(mid, e->v1->co, e->v2->co);
 
-  ED_view3d_project_float_v2_m4(ar, cent, cent, projectMat);
-  ED_view3d_project_float_v2_m4(ar, mid, mid, projectMat);
+  ED_view3d_project_float_v2_m4(region, cent, cent, projectMat);
+  ED_view3d_project_float_v2_m4(region, mid, mid, projectMat);
 
-  ED_view3d_project_float_v2_m4(ar, e->v1->co, e_v1_co, projectMat);
-  ED_view3d_project_float_v2_m4(ar, e->v2->co, e_v2_co, projectMat);
+  ED_view3d_project_float_v2_m4(region, e->v1->co, e_v1_co, projectMat);
+  ED_view3d_project_float_v2_m4(region, e->v2->co, e_v2_co, projectMat);
 
   sub_v2_v2v2(vec, cent, mid);
   normalize_v2_length(vec, 0.01f);
@@ -346,7 +346,7 @@ static BMVert *edbm_ripsel_edloop_pair_start_vert(BMEdge *e)
 }
 
 static void edbm_ripsel_deselect_helper(
-    BMesh *bm, EdgeLoopPair *eloop_pairs, ARegion *ar, float projectMat[4][4], float fmval[2])
+    BMesh *bm, EdgeLoopPair *eloop_pairs, ARegion *region, float projectMat[4][4], float fmval[2])
 {
   EdgeLoopPair *lp;
 
@@ -360,12 +360,12 @@ static void edbm_ripsel_deselect_helper(
     e = lp->l_a->e;
     v_prev = edbm_ripsel_edloop_pair_start_vert(e);
     for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
-      score_a += edbm_rip_edge_side_measure(e, e->l, ar, projectMat, fmval);
+      score_a += edbm_rip_edge_side_measure(e, e->l, region, projectMat, fmval);
     }
     e = lp->l_b->e;
     v_prev = edbm_ripsel_edloop_pair_start_vert(e);
     for (; e; e = edbm_ripsel_edge_uid_step(e, &v_prev)) {
-      score_b += edbm_rip_edge_side_measure(e, e->l, ar, projectMat, fmval);
+      score_b += edbm_rip_edge_side_measure(e, e->l, region, projectMat, fmval);
     }
 
     e = (score_a > score_b) ? lp->l_a->e : lp->l_b->e;
@@ -514,7 +514,7 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obedit, bool do_fill)
 {
   UnorderedLoopPair *fill_uloop_pairs = NULL;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -568,7 +568,7 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
       if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
         if ((is_manifold_region == false) || BM_edge_is_manifold(e)) {
           d = edbm_rip_edgedist_squared(
-              ar, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
+              region, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
           if ((e_best == NULL) || (d < dist_sq)) {
             dist_sq = d;
             e_best = e;
@@ -619,7 +619,7 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
       float l_mid_co[3];
       l = l_all[i1];
       edbm_calc_loop_co(l, l_mid_co);
-      d = edbm_rip_edgedist_squared(ar, projectMat, l->v->co, l_mid_co, fmval, INSET_DEFAULT);
+      d = edbm_rip_edgedist_squared(region, projectMat, l->v->co, l_mid_co, fmval, INSET_DEFAULT);
       if ((e_best == NULL) || (d < dist_sq)) {
         dist_sq = d;
 
@@ -678,7 +678,8 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
               float l_mid_co[3];
 
               edbm_calc_loop_co(l, l_mid_co);
-              d = edbm_rip_edgedist_squared(ar, projectMat, v->co, l_mid_co, fmval, INSET_DEFAULT);
+              d = edbm_rip_edgedist_squared(
+                  region, projectMat, v->co, l_mid_co, fmval, INSET_DEFAULT);
 
               if (d < dist_sq) {
                 dist_sq = d;
@@ -695,7 +696,8 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
               float e_mid_co[3];
 
               mid_v3_v3v3(e_mid_co, e->v1->co, e->v2->co);
-              d = edbm_rip_edgedist_squared(ar, projectMat, v->co, e_mid_co, fmval, INSET_DEFAULT);
+              d = edbm_rip_edgedist_squared(
+                  region, projectMat, v->co, e_mid_co, fmval, INSET_DEFAULT);
 
               if (d < dist_sq) {
                 dist_sq = d;
@@ -837,7 +839,7 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
           /* check if v_best is null in the _rare_ case there are numeric issues */
           edbm_calc_loop_co(l, l_corner_co);
           d = edbm_rip_edgedist_squared(
-              ar, projectMat, l->v->co, l_corner_co, fmval, INSET_DEFAULT);
+              region, projectMat, l->v->co, l_corner_co, fmval, INSET_DEFAULT);
           if ((v_best == NULL) || (d < dist_sq)) {
             v_best = v;
             dist_sq = d;
@@ -872,7 +874,7 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
 static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obedit, bool do_fill)
 {
   UnorderedLoopPair *fill_uloop_pairs = NULL;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -933,8 +935,8 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
 
         /* find the best face to follow, this way the edge won't point away from
          * the mouse when there are more than 4 (takes the shortest face fan around) */
-        l = (edbm_rip_edge_side_measure(e_best, l_a, ar, projectMat, fmval) <
-             edbm_rip_edge_side_measure(e_best, l_b, ar, projectMat, fmval)) ?
+        l = (edbm_rip_edge_side_measure(e_best, l_a, region, projectMat, fmval) <
+             edbm_rip_edge_side_measure(e_best, l_b, region, projectMat, fmval)) ?
                 l_a :
                 l_b;
 
@@ -977,7 +979,7 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
    * edge did not split even though it was tagged which would not work
    * as expected (but not crash), however there are checks to ensure
    * tagged edges will split. So far its not been an issue. */
-  edbm_ripsel_deselect_helper(bm, eloop_pairs, ar, projectMat, fmval);
+  edbm_ripsel_deselect_helper(bm, eloop_pairs, region, projectMat, fmval);
   MEM_freeN(eloop_pairs);
 
   /* deselect loose verts */

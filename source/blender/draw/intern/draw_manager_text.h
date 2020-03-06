@@ -41,9 +41,9 @@ void DRW_text_cache_add(struct DRWTextStore *dt,
                         short flag,
                         const uchar col[4]);
 
-void DRW_text_cache_draw(struct DRWTextStore *dt, struct ARegion *ar, struct View3D *v3d);
+void DRW_text_cache_draw(struct DRWTextStore *dt, struct ARegion *region, struct View3D *v3d);
 
-void DRW_text_edit_mesh_measure_stats(struct ARegion *ar,
+void DRW_text_edit_mesh_measure_stats(struct ARegion *region,
                                       struct View3D *v3d,
                                       struct Object *ob,
                                       const struct UnitSettings *unit);

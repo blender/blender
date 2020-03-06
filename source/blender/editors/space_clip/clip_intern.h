@@ -54,26 +54,26 @@ struct wmOperatorType;
 void ED_clip_buttons_register(struct ARegionType *art);
 
 /* clip_dopesheet_draw.c */
-void clip_draw_dopesheet_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
-void clip_draw_dopesheet_channels(const struct bContext *C, struct ARegion *ar);
+void clip_draw_dopesheet_main(struct SpaceClip *sc, struct ARegion *region, struct Scene *scene);
+void clip_draw_dopesheet_channels(const struct bContext *C, struct ARegion *region);
 
 /* clip_dopesheet_ops.c */
 void CLIP_OT_dopesheet_select_channel(struct wmOperatorType *ot);
 void CLIP_OT_dopesheet_view_all(struct wmOperatorType *ot);
 
 /* clip_draw.c */
-void clip_draw_main(const struct bContext *C, struct SpaceClip *sc, struct ARegion *ar);
+void clip_draw_main(const struct bContext *C, struct SpaceClip *sc, struct ARegion *region);
 void clip_draw_grease_pencil(struct bContext *C, int onlyv2d);
-void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *ar);
+void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *region);
 
 /* clip_editor.c */
 void clip_start_prefetch_job(const struct bContext *C);
 
 /* clip_graph_draw.c */
-void clip_draw_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+void clip_draw_graph(struct SpaceClip *sc, struct ARegion *region, struct Scene *scene);
 
 /* clip_graph_ops.c */
-void ED_clip_graph_center_current_frame(struct Scene *scene, struct ARegion *ar);
+void ED_clip_graph_center_current_frame(struct Scene *scene, struct ARegion *region);
 
 void CLIP_OT_graph_select(struct wmOperatorType *ot);
 void CLIP_OT_graph_select_box(struct wmOperatorType *ot);

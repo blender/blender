@@ -164,10 +164,10 @@ static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
                                                 wmGizmoGroup *gzgroup,
                                                 struct wmMsgBus *mbus)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
-      .owner = ar,
+      .owner = region,
       .user_data = gzgroup->parent_gzmap,
       .notify = WM_gizmo_do_msg_notify_tag_refresh,
   };

@@ -258,7 +258,7 @@ static void view3d_preselect_update_preview_triangle_from_vert(struct EditMesh_P
 
   if (e_pair[1] != NULL) {
     mul_v3_m4v3(center, vc->obedit->obmat, v_act->co);
-    ED_view3d_win_to_3d_int(vc->v3d, vc->ar, center, mval, center);
+    ED_view3d_win_to_3d_int(vc->v3d, vc->region, center, mval, center);
     mul_m4_v3(vc->obedit->imat, center);
 
     psel->preview_tris = MEM_mallocN(sizeof(*psel->preview_tris) * 2, __func__);
@@ -326,7 +326,7 @@ static void view3d_preselect_update_preview_triangle_from_edge(struct EditMesh_P
   psel->preview_lines = MEM_mallocN(sizeof(*psel->preview_lines) * 3, __func__);
   mid_v3_v3v3(center, eed->v1->co, eed->v2->co);
   mul_m4_v3(vc->obedit->obmat, center);
-  ED_view3d_win_to_3d_int(vc->v3d, vc->ar, center, mval, center);
+  ED_view3d_win_to_3d_int(vc->v3d, vc->region, center, mval, center);
   mul_m4_v3(vc->obedit->imat, center);
 
   copy_v3_v3(psel->preview_tris[0][0], eed->v1->co);

@@ -161,7 +161,7 @@ static void gp_strokepoint_convertcoords(bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   /* TODO(sergey): This function might be called from a loop, but no tagging is happening in it,
    * so it's not that expensive to ensure evaluated depsgraph  here. However, ideally all the
    * parameters are to wrapped into a context style struct and queried from Context once.*/
@@ -188,7 +188,7 @@ static void gp_strokepoint_convertcoords(bContext *C,
 
     /* get screen coordinate */
     if (gps->flag & GP_STROKE_2DSPACE) {
-      View2D *v2d = &ar->v2d;
+      View2D *v2d = &region->v2d;
       UI_view2d_view_to_region_fl(v2d, pt->x, pt->y, &mvalf[0], &mvalf[1]);
     }
     else {
@@ -197,12 +197,12 @@ static void gp_strokepoint_convertcoords(bContext *C,
         mvalf[1] = (((float)pt->y / 100.0f) * BLI_rctf_size_y(subrect)) + subrect->ymin;
       }
       else {
-        mvalf[0] = (float)pt->x / 100.0f * ar->winx;
-        mvalf[1] = (float)pt->y / 100.0f * ar->winy;
+        mvalf[0] = (float)pt->x / 100.0f * region->winx;
+        mvalf[1] = (float)pt->y / 100.0f * region->winy;
       }
     }
 
-    ED_view3d_win_to_3d(v3d, ar, fp, mvalf, p3d);
+    ED_view3d_win_to_3d(v3d, region, fp, mvalf, p3d);
   }
 }
 
@@ -1236,16 +1236,16 @@ static void gp_stroke_norm_curve_weights(Curve *cu, const float minmax_weights[2
 static int gp_camera_view_subrect(bContext *C, rctf *subrect)
 {
   View3D *v3d = CTX_wm_view3d(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   if (v3d) {
-    RegionView3D *rv3d = ar->regiondata;
+    RegionView3D *rv3d = region->regiondata;
 
     /* for camera view set the subrect */
     if (rv3d->persp == RV3D_CAMOB) {
       Scene *scene = CTX_data_scene(C);
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, subrect, true);
+      ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, subrect, true);
       return 1;
     }
   }

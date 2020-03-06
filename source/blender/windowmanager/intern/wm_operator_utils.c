@@ -63,7 +63,7 @@ typedef struct ValueInteraction {
 
   struct {
     ScrArea *sa;
-    ARegion *ar;
+    ARegion *region;
   } context_vars;
 } ValueInteraction;
 
@@ -75,7 +75,7 @@ static void interactive_value_init(bContext *C,
 {
 
   inter->context_vars.sa = CTX_wm_area(C);
-  inter->context_vars.ar = CTX_wm_region(C);
+  inter->context_vars.region = CTX_wm_region(C);
 
   inter->init.mval[0] = event->mval[0];
   inter->init.mval[1] = event->mval[1];
@@ -111,7 +111,7 @@ static bool interactive_value_update(ValueInteraction *inter,
   const int mval_curr = event->mval[mval_axis];
   const int mval_init = inter->init.mval[mval_axis];
   float value_delta = (inter->init.prop_value +
-                       (((float)(mval_curr - mval_init) / inter->context_vars.ar->winx) *
+                       (((float)(mval_curr - mval_init) / inter->context_vars.region->winx) *
                         value_range)) *
                       value_scale;
   if (event->ctrl) {

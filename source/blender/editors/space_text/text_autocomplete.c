@@ -49,7 +49,7 @@
 /** \name Public API
  * \{ */
 
-int text_do_suggest_select(SpaceText *st, ARegion *ar)
+int text_do_suggest_select(SpaceText *st, ARegion *region)
 {
   SuggItem *item, *first, *last /* , *sel */ /* UNUSED */;
   TextLine *tmp;
@@ -84,7 +84,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
   text_update_character_width(st);
 
   x = TXT_BODY_LEFT(st) + (st->runtime.cwidth_px * (st->text->curc - st->left));
-  y = ar->winy - st->runtime.lheight_px * l - 2;
+  y = region->winy - st->runtime.lheight_px * l - 2;
 
   w = SUGG_LIST_WIDTH * st->runtime.cwidth_px + U.widget_unit;
   h = SUGG_LIST_SIZE * st->runtime.lheight_px + 0.4f * U.widget_unit;
@@ -336,7 +336,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 {
   SpaceText *st = CTX_wm_space_text(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  ARegion *region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
   int draw = 0, tools = 0, swallow = 0, scroll = 1;
   Text *text = CTX_data_edit_text(C);
@@ -356,7 +356,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
   switch (event->type) {
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        if (text_do_suggest_select(st, ar)) {
+        if (text_do_suggest_select(st, region)) {
           swallow = 1;
         }
         else {
@@ -374,7 +374,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
       break;
     case MIDDLEMOUSE:
       if (event->val == KM_PRESS) {
-        if (text_do_suggest_select(st, ar)) {
+        if (text_do_suggest_select(st, region)) {
           ED_text_undo_push_init(C);
           confirm_suggestion(st->text);
           text_update_line_edited(st->text->curl);

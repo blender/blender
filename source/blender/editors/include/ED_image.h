@@ -57,7 +57,7 @@ struct Mask *ED_space_image_get_mask(struct SpaceImage *sima);
 void ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);
 
 bool ED_space_image_color_sample(struct SpaceImage *sima,
-                                 struct ARegion *ar,
+                                 struct ARegion *region,
                                  int mval[2],
                                  float r_col[3]);
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock, int tile);
@@ -68,7 +68,7 @@ void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height);
 void ED_space_image_get_size_fl(struct SpaceImage *sima, float size[2]);
 void ED_space_image_get_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 void ED_space_image_get_zoom(struct SpaceImage *sima,
-                             struct ARegion *ar,
+                             struct ARegion *region,
                              float *zoomx,
                              float *zoomy);
 void ED_space_image_get_uv_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
@@ -84,14 +84,14 @@ void ED_space_image_paint_update(struct Main *bmain,
 
 void ED_image_get_uv_aspect(struct Image *ima, struct ImageUser *iuser, float *aspx, float *aspy);
 void ED_image_mouse_pos(struct SpaceImage *sima,
-                        struct ARegion *ar,
+                        struct ARegion *region,
                         const int mval[2],
                         float co[2]);
 void ED_image_view_center_to_point(struct SpaceImage *sima, float x, float y);
 void ED_image_point_pos(
-    struct SpaceImage *sima, struct ARegion *ar, float x, float y, float *xr, float *yr);
+    struct SpaceImage *sima, struct ARegion *region, float x, float y, float *xr, float *yr);
 void ED_image_point_pos__reverse(struct SpaceImage *sima,
-                                 struct ARegion *ar,
+                                 struct ARegion *region,
                                  const float co[2],
                                  float r_co[2]);
 bool ED_image_slot_cycle(struct Image *image, int direction);
@@ -108,7 +108,7 @@ bool ED_space_image_maskedit_mask_poll(struct bContext *C);
 bool ED_space_image_cursor_poll(struct bContext *C);
 
 void ED_image_draw_info(struct Scene *scene,
-                        struct ARegion *ar,
+                        struct ARegion *region,
                         bool color_manage,
                         bool use_default_view,
                         int channels,

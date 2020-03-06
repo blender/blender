@@ -142,7 +142,7 @@ typedef struct FlyInfo {
   /* context stuff */
   RegionView3D *rv3d;
   View3D *v3d;
-  ARegion *ar;
+  ARegion *region;
   struct Depsgraph *depsgraph;
   Scene *scene;
 
@@ -211,7 +211,7 @@ static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm);
 #endif /* WITH_INPUT_NDOF */
 static int flyApply(bContext *C, struct FlyInfo *fly, bool force_autokey);
 
-static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
+static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
 {
   FlyInfo *fly = arg;
   rctf viewborder;
@@ -220,7 +220,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
     ED_view3d_calc_camera_border(
-        fly->scene, fly->depsgraph, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
+        fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, &viewborder, false);
     xoff = viewborder.xmin;
     yoff = viewborder.ymin;
   }
@@ -296,7 +296,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 
   fly->rv3d = CTX_wm_region_view3d(C);
   fly->v3d = CTX_wm_view3d(C);
-  fly->ar = CTX_wm_region(C);
+  fly->region = CTX_wm_region(C);
   fly->depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   fly->scene = CTX_data_scene(C);
 
@@ -353,7 +353,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   fly->time_lastdraw = fly->time_lastwheel = PIL_check_seconds_timer();
 
   fly->draw_handle_pixel = ED_region_draw_cb_activate(
-      fly->ar->type, drawFlyPixel, fly, REGION_DRAW_POST_PIXEL);
+      fly->region->type, drawFlyPixel, fly, REGION_DRAW_POST_PIXEL);
 
   fly->rv3d->rflag |= RV3D_NAVIGATING;
 
@@ -371,7 +371,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   /* calculate center */
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
     ED_view3d_calc_camera_border(
-        fly->scene, fly->depsgraph, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
+        fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, &viewborder, false);
 
     fly->width = BLI_rctf_size_x(&viewborder);
     fly->height = BLI_rctf_size_y(&viewborder);
@@ -380,16 +380,17 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
     fly->center_mval[1] = viewborder.ymin + fly->height / 2;
   }
   else {
-    fly->width = fly->ar->winx;
-    fly->height = fly->ar->winy;
+    fly->width = fly->region->winx;
+    fly->height = fly->region->winy;
 
     fly->center_mval[0] = fly->width / 2;
     fly->center_mval[1] = fly->height / 2;
   }
 
   /* center the mouse, probably the UI mafia are against this but without its quite annoying */
-  WM_cursor_warp(
-      win, fly->ar->winrct.xmin + fly->center_mval[0], fly->ar->winrct.ymin + fly->center_mval[1]);
+  WM_cursor_warp(win,
+                 fly->region->winrct.xmin + fly->center_mval[0],
+                 fly->region->winrct.ymin + fly->center_mval[1]);
 
   return 1;
 }
@@ -424,7 +425,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
   WM_event_remove_timer(CTX_wm_manager(C), win, fly->timer);
 
-  ED_region_draw_cb_exit(fly->ar->type, fly->draw_handle_pixel);
+  ED_region_draw_cb_exit(fly->region->type, fly->draw_handle_pixel);
 
   ED_view3d_cameracontrol_release(fly->v3d_camera_control, fly->state == FLY_CANCEL);
 
@@ -786,7 +787,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
     }
 
     /* scale the mouse movement by this value - scales mouse movement to the view size
-     * moffset[0] / (ar->winx-xmargin * 2) - window size minus margin (same for y)
+     * moffset[0] / (region->winx-xmargin * 2) - window size minus margin (same for y)
      *
      * the mouse moves isn't linear */
 

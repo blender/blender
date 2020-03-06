@@ -407,7 +407,7 @@ static int select_exec(bContext *C, wmOperator *op)
 static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   float co[2];
   const bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -427,7 +427,7 @@ static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  ED_clip_mouse_pos(sc, ar, event->mval, co);
+  ED_clip_mouse_pos(sc, region, event->mval, co);
   RNA_float_set_array(op->ptr, "location", co);
 
   return select_exec(C, op);
@@ -486,7 +486,7 @@ bool ED_clip_can_select(bContext *C)
 static int box_select_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
@@ -502,8 +502,8 @@ static int box_select_exec(bContext *C, wmOperator *op)
   /* get rectangle from operator */
   WM_operator_properties_border_to_rcti(op, &rect);
 
-  ED_clip_point_stable_pos(sc, ar, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
-  ED_clip_point_stable_pos(sc, ar, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
+  ED_clip_point_stable_pos(sc, region, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+  ED_clip_point_stable_pos(sc, region, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
@@ -594,7 +594,7 @@ static int do_lasso_select_marker(bContext *C,
                                   bool select)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
@@ -619,7 +619,7 @@ static int do_lasso_select_marker(bContext *C,
         float screen_co[2];
 
         /* marker in screen coords */
-        ED_clip_point_stable_pos__reverse(sc, ar, marker->pos, screen_co);
+        ED_clip_point_stable_pos__reverse(sc, region, marker->pos, screen_co);
 
         if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
             BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
@@ -647,7 +647,7 @@ static int do_lasso_select_marker(bContext *C,
         float screen_co[2];
 
         /* marker in screen coords */
-        ED_clip_point_stable_pos__reverse(sc, ar, plane_marker->corners[i], screen_co);
+        ED_clip_point_stable_pos__reverse(sc, region, plane_marker->corners[i], screen_co);
 
         if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
             BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
@@ -739,7 +739,7 @@ static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], f
 static int circle_select_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
@@ -767,12 +767,12 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
   /* compute ellipse and position in unified coordinates */
   ED_space_clip_get_size(sc, &width, &height);
-  ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+  ED_space_clip_get_zoom(sc, region, &zoomx, &zoomy);
 
   ellipse[0] = width * zoomx / radius;
   ellipse[1] = height * zoomy / radius;
 
-  ED_clip_point_stable_pos(sc, ar, x, y, &offset[0], &offset[1]);
+  ED_clip_point_stable_pos(sc, region, x, y, &offset[0], &offset[1]);
 
   /* do selection */
   track = tracksbase->first;

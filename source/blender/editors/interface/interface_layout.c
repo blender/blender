@@ -1067,7 +1067,7 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
                                                 PropertyRNA **r_prop,
                                                 bool *r_is_undo)
 {
-  ARegion *ar = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
+  ARegion *region = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
   uiBlock *block;
   uiBut *but, *prevbut = NULL;
 
@@ -1075,11 +1075,11 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
   *r_prop = NULL;
   *r_is_undo = false;
 
-  if (!ar) {
+  if (!region) {
     return;
   }
 
-  for (block = ar->uiblocks.first; block; block = block->next) {
+  for (block = region->uiblocks.first; block; block = block->next) {
     for (but = block->buttons.first; but; but = but->next) {
       if (but && but->rnapoin.data) {
         if (RNA_property_type(but->rnaprop) == PROP_STRING) {

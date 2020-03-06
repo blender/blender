@@ -739,7 +739,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 
     bGPdata *gpd_orig = (bGPdata *)DEG_get_original_id(&gpd->id);
     if ((draw_ctx->obact == ob) &&
-        ((gpd_orig->runtime.ar == NULL) || (gpd_orig->runtime.ar == draw_ctx->ar))) {
+        ((gpd_orig->runtime.ar == NULL) || (gpd_orig->runtime.ar == draw_ctx->region))) {
       gpencil_populate_buffer_strokes(&e_data, vedata, ts, ob);
     }
 

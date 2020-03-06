@@ -88,7 +88,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       rect = &fallback_rect;
     }
     else {
-      rect = ED_region_visible_rect(draw_ctx->ar);
+      rect = ED_region_visible_rect(draw_ctx->region);
     }
 
     /* Make the viewport width scale the lookdev spheres a bit.

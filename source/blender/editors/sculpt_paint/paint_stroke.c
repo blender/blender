@@ -145,7 +145,7 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
     GPU_line_smooth(true);
     GPU_blend(true);
 
-    ARegion *ar = stroke->vc.ar;
+    ARegion *region = stroke->vc.region;
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -154,8 +154,8 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2f(pos, x, y);
     immVertex2f(pos,
-                stroke->last_mouse_position[0] + ar->winrct.xmin,
-                stroke->last_mouse_position[1] + ar->winrct.ymin);
+                stroke->last_mouse_position[0] + region->winrct.xmin,
+                stroke->last_mouse_position[1] + region->winrct.ymin);
 
     immEnd();
 
@@ -191,21 +191,21 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
   immBegin(GPU_PRIM_LINES, 2);
 
-  ARegion *ar = stroke->vc.ar;
+  ARegion *region = stroke->vc.region;
 
   if (stroke->constrain_line) {
     immVertex2f(shdr_pos,
-                stroke->last_mouse_position[0] + ar->winrct.xmin,
-                stroke->last_mouse_position[1] + ar->winrct.ymin);
+                stroke->last_mouse_position[0] + region->winrct.xmin,
+                stroke->last_mouse_position[1] + region->winrct.ymin);
 
     immVertex2f(shdr_pos,
-                stroke->constrained_pos[0] + ar->winrct.xmin,
-                stroke->constrained_pos[1] + ar->winrct.ymin);
+                stroke->constrained_pos[0] + region->winrct.xmin,
+                stroke->constrained_pos[1] + region->winrct.ymin);
   }
   else {
     immVertex2f(shdr_pos,
-                stroke->last_mouse_position[0] + ar->winrct.xmin,
-                stroke->last_mouse_position[1] + ar->winrct.ymin);
+                stroke->last_mouse_position[0] + region->winrct.xmin,
+                stroke->last_mouse_position[1] + region->winrct.ymin);
 
     immVertex2f(shdr_pos, x, y);
   }
@@ -796,7 +796,7 @@ static int paint_space_stroke(bContext *C,
                               float final_pressure)
 {
   const Scene *scene = CTX_data_scene(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   PaintStroke *stroke = op->customdata;
   UnifiedPaintSettings *ups = stroke->ups;
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -847,7 +847,7 @@ static int paint_space_stroke(bContext *C,
         add_v3_v3v3(final_world_space_position,
                     stroke->last_world_space_position,
                     final_world_space_position);
-        ED_view3d_project(ar, final_world_space_position, mouse);
+        ED_view3d_project(region, final_world_space_position, mouse);
       }
       else {
         mouse[0] = stroke->last_mouse_position[0] + dmouse[0] * spacing;
@@ -1511,11 +1511,11 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
    * coming, so postpone potentially slow redraw updates until all are done */
   if (event->type != INBETWEEN_MOUSEMOVE) {
     wmWindow *window = CTX_wm_window(C);
-    ARegion *ar = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
 
     /* At the very least, invalidate the cursor */
-    if (ar && (p->flags & PAINT_SHOW_BRUSH)) {
-      WM_paint_cursor_tag_redraw(window, ar);
+    if (region && (p->flags & PAINT_SHOW_BRUSH)) {
+      WM_paint_cursor_tag_redraw(window, region);
     }
 
     if (redraw && stroke->redraw) {
@@ -1598,10 +1598,10 @@ bool paint_poll(bContext *C)
   Paint *p = BKE_paint_get_active_from_context(C);
   Object *ob = CTX_data_active_object(C);
   ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   if (p && ob && BKE_paint_brush(p) && (sa && ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
-      (ar && ar->regiontype == RGN_TYPE_WINDOW)) {
+      (region && region->regiontype == RGN_TYPE_WINDOW)) {
     /* Check the current tool is a brush. */
     bToolRef *tref = sa->runtime.tool;
     if (tref && tref->runtime && tref->runtime->data_block[0]) {

@@ -198,7 +198,7 @@ typedef struct bNodeType {
 
   /* Main draw function for the node */
   void (*draw_nodetype)(const struct bContext *C,
-                        struct ARegion *ar,
+                        struct ARegion *region,
                         struct SpaceNode *snode,
                         struct bNodeTree *ntree,
                         struct bNode *node,

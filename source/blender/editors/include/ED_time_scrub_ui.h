@@ -32,15 +32,15 @@ struct bContext;
 struct bDopeSheet;
 struct wmEvent;
 
-void ED_time_scrub_draw(const struct ARegion *ar,
+void ED_time_scrub_draw(const struct ARegion *region,
                         const struct Scene *scene,
                         bool display_seconds,
                         bool discrete_frames);
 
-bool ED_time_scrub_event_in_region(const struct ARegion *ar, const struct wmEvent *event);
+bool ED_time_scrub_event_in_region(const struct ARegion *region, const struct wmEvent *event);
 
 void ED_time_scrub_channel_search_draw(const struct bContext *C,
-                                       struct ARegion *ar,
+                                       struct ARegion *region,
                                        struct bDopeSheet *dopesheet);
 
 #ifdef __cplusplus

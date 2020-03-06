@@ -46,11 +46,11 @@
 
 #include "RNA_access.h"
 
-static void get_time_scrub_region_rect(const ARegion *ar, rcti *rect)
+static void get_time_scrub_region_rect(const ARegion *region, rcti *rect)
 {
   rect->xmin = 0;
-  rect->xmax = ar->winx;
-  rect->ymax = ar->winy;
+  rect->xmax = region->winx;
+  rect->ymax = region->winy;
   rect->ymin = rect->ymax - UI_TIME_SCRUB_MARGIN_Y;
 }
 
@@ -134,18 +134,18 @@ static void draw_current_frame(const Scene *scene,
                            color);
 }
 
-void ED_time_scrub_draw(const ARegion *ar,
+void ED_time_scrub_draw(const ARegion *region,
                         const Scene *scene,
                         bool display_seconds,
                         bool discrete_frames)
 {
-  const View2D *v2d = &ar->v2d;
+  const View2D *v2d = &region->v2d;
 
   GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
 
   rcti scrub_region_rect;
-  get_time_scrub_region_rect(ar, &scrub_region_rect);
+  get_time_scrub_region_rect(region, &scrub_region_rect);
 
   draw_background(&scrub_region_rect);
 
@@ -153,11 +153,11 @@ void ED_time_scrub_draw(const ARegion *ar,
   numbers_rect.ymin = get_centered_text_y(&scrub_region_rect) - 4 * UI_DPI_FAC;
   if (discrete_frames) {
     UI_view2d_draw_scale_x__discrete_frames_or_seconds(
-        ar, v2d, &numbers_rect, scene, display_seconds, TH_TEXT);
+        region, v2d, &numbers_rect, scene, display_seconds, TH_TEXT);
   }
   else {
     UI_view2d_draw_scale_x__frames_or_seconds(
-        ar, v2d, &numbers_rect, scene, display_seconds, TH_TEXT);
+        region, v2d, &numbers_rect, scene, display_seconds, TH_TEXT);
   }
 
   draw_current_frame(scene, display_seconds, v2d, &scrub_region_rect, scene->r.cfra);
@@ -165,23 +165,23 @@ void ED_time_scrub_draw(const ARegion *ar,
   GPU_matrix_pop_projection();
 }
 
-bool ED_time_scrub_event_in_region(const ARegion *ar, const wmEvent *event)
+bool ED_time_scrub_event_in_region(const ARegion *region, const wmEvent *event)
 {
-  rcti rect = ar->winrct;
+  rcti rect = region->winrct;
   rect.ymin = rect.ymax - UI_TIME_SCRUB_MARGIN_Y;
   return BLI_rcti_isect_pt(&rect, event->x, event->y);
 }
 
-void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *ar, bDopeSheet *dopesheet)
+void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDopeSheet *dopesheet)
 {
   GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(ar);
+  wmOrtho2_region_pixelspace(region);
 
   rcti rect;
   rect.xmin = 0;
-  rect.xmax = ar->winx;
-  rect.ymin = ar->winy - UI_TIME_SCRUB_MARGIN_Y;
-  rect.ymax = ar->winy;
+  rect.xmax = region->winx;
+  rect.ymin = region->winy - UI_TIME_SCRUB_MARGIN_Y;
+  rect.ymax = region->winy;
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -189,7 +189,7 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *ar, bDopeShee
   immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
   immUnbindProgram();
 
-  uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
 
   PointerRNA ptr;
   RNA_pointer_create(&CTX_wm_screen(C)->id, &RNA_DopeSheet, dopesheet, &ptr);

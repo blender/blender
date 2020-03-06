@@ -47,12 +47,12 @@ void ED_region_generic_tools_region_message_subscribe(const struct bContext *UNU
                                                       struct Scene *UNUSED(scene),
                                                       struct bScreen *UNUSED(screen),
                                                       struct ScrArea *UNUSED(sa),
-                                                      struct ARegion *ar,
+                                                      struct ARegion *region,
                                                       struct wmMsgBus *mbus)
 {
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = ar,
-      .user_data = ar,
+      .owner = region,
+      .user_data = region,
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
   WM_msg_subscribe_rna_anon_prop(mbus, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
@@ -61,11 +61,12 @@ void ED_region_generic_tools_region_message_subscribe(const struct bContext *UNU
 /**
  * Callback for #ARegionType.snap_size
  */
-int ED_region_generic_tools_region_snap_size(const ARegion *ar, int size, int axis)
+int ED_region_generic_tools_region_snap_size(const ARegion *region, int size, int axis)
 {
   if (axis == 0) {
     /* Using Y axis avoids slight feedback loop when adjusting X. */
-    const float aspect = BLI_rctf_size_y(&ar->v2d.cur) / (BLI_rcti_size_y(&ar->v2d.mask) + 1);
+    const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                         (BLI_rcti_size_y(&region->v2d.mask) + 1);
     const float icon_size = ICON_DEFAULT_HEIGHT_TOOLBAR / aspect;
     const float column = 1.25f * icon_size;
     const float margin = 0.5f * icon_size;

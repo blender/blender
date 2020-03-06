@@ -1753,7 +1753,7 @@ static void stitch_draw_vbo(GPUVertBuf *vbo, GPUPrimType prim_type, const float 
 }
 
 /* TODO make things pretier : store batches inside StitchPreviewer instead of the bare verts pos */
-static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
+static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
 {
 
   StitchStateContainer *ssc = (StitchStateContainer *)arg;
@@ -2254,8 +2254,8 @@ static bool goto_next_island(StitchStateContainer *ssc)
 
 static int stitch_init_all(bContext *C, wmOperator *op)
 {
-  ARegion *ar = CTX_wm_region(C);
-  if (!ar) {
+  ARegion *region = CTX_wm_region(C);
+  if (!region) {
     return 0;
   }
 
@@ -2399,7 +2399,8 @@ static int stitch_init_all(bContext *C, wmOperator *op)
 
   stitch_update_header(ssc, C);
 
-  ssc->draw_handle = ED_region_draw_cb_activate(ar->type, stitch_draw, ssc, REGION_DRAW_POST_VIEW);
+  ssc->draw_handle = ED_region_draw_cb_activate(
+      region->type, stitch_draw, ssc, REGION_DRAW_POST_VIEW);
 
   return 1;
 }
@@ -2548,10 +2549,10 @@ static StitchState *stitch_select(bContext *C,
   /* add uv under mouse to processed uv's */
   float co[2];
   UvNearestHit hit = UV_NEAREST_HIT_INIT;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Image *ima = CTX_data_edit_image(C);
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
   if (ssc->mode == STITCH_VERT) {
     if (uv_find_nearest_vert_multi(scene, ima, ssc->objects, ssc->objects_len, co, 0.0f, &hit)) {

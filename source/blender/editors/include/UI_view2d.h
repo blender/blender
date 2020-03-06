@@ -133,7 +133,7 @@ void UI_view2d_zoom_cache_reset(void);
 
 /* view matrix operations */
 void UI_view2d_view_ortho(const struct View2D *v2d);
-void UI_view2d_view_orthoSpecial(struct ARegion *ar, struct View2D *v2d, const bool xaxis);
+void UI_view2d_view_orthoSpecial(struct ARegion *region, struct View2D *v2d, const bool xaxis);
 void UI_view2d_view_restore(const struct bContext *C);
 
 /* grid drawing */
@@ -158,21 +158,21 @@ float UI_view2d_grid_resolution_x__frames_or_seconds(const struct View2D *v2d,
 float UI_view2d_grid_resolution_y__values(const struct View2D *v2d);
 
 /* scale indicator text drawing */
-void UI_view2d_draw_scale_y__values(const struct ARegion *ar,
+void UI_view2d_draw_scale_y__values(const struct ARegion *region,
                                     const struct View2D *v2d,
                                     const struct rcti *rect,
                                     int colorid);
-void UI_view2d_draw_scale_y__block(const struct ARegion *ar,
+void UI_view2d_draw_scale_y__block(const struct ARegion *region,
                                    const struct View2D *v2d,
                                    const struct rcti *rect,
                                    int colorid);
-void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *ar,
+void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *region,
                                                         const struct View2D *v2d,
                                                         const struct rcti *rect,
                                                         const struct Scene *scene,
                                                         bool display_seconds,
                                                         int colorid);
-void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *ar,
+void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
                                                const struct View2D *v2d,
                                                const struct rcti *rect,
                                                const struct Scene *scene,
@@ -236,16 +236,16 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y);
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
 
 char UI_view2d_mouse_in_scrollers_ex(
-    const struct ARegion *ar, const struct View2D *v2d, int x, int y, int *r_scroll);
-char UI_view2d_mouse_in_scrollers(const struct ARegion *ar,
+    const struct ARegion *region, const struct View2D *v2d, int x, int y, int *r_scroll);
+char UI_view2d_mouse_in_scrollers(const struct ARegion *region,
                                   const struct View2D *v2d,
                                   int x,
                                   int y);
-char UI_view2d_rect_in_scrollers_ex(const struct ARegion *ar,
+char UI_view2d_rect_in_scrollers_ex(const struct ARegion *region,
                                     const struct View2D *v2d,
                                     const struct rcti *rect,
                                     int *r_scroll);
-char UI_view2d_rect_in_scrollers(const struct ARegion *ar,
+char UI_view2d_rect_in_scrollers(const struct ARegion *region,
                                  const struct View2D *v2d,
                                  const struct rcti *rect);
 
@@ -257,14 +257,14 @@ void UI_view2d_text_cache_add_rectf(struct View2D *v2d,
                                     const char *str,
                                     size_t str_len,
                                     const char col[4]);
-void UI_view2d_text_cache_draw(struct ARegion *ar);
+void UI_view2d_text_cache_draw(struct ARegion *region);
 
 /* operators */
 void ED_operatortypes_view2d(void);
 void ED_keymap_view2d(struct wmKeyConfig *keyconf);
 
 void UI_view2d_smooth_view(struct bContext *C,
-                           struct ARegion *ar,
+                           struct ARegion *region,
                            const struct rctf *cur,
                            const int smooth_viewtx);
 

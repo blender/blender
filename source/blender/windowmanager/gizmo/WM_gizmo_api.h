@@ -234,7 +234,7 @@ void WM_gizmo_do_msg_notify_tag_refresh(struct bContext *C,
                                         struct wmMsgSubscribeValue *msg_val);
 void WM_gizmo_target_property_subscribe_all(struct wmGizmo *gz,
                                             struct wmMsgBus *mbus,
-                                            struct ARegion *ar);
+                                            struct ARegion *region);
 
 void WM_gizmo_target_property_anim_autokey(struct bContext *C,
                                            const struct wmGizmo *gz,
@@ -295,12 +295,12 @@ bool WM_gizmomap_tag_delay_refresh_for_tweak_check(struct wmGizmoMap *gzmap);
 void WM_gizmomap_draw(struct wmGizmoMap *gzmap,
                       const struct bContext *C,
                       const eWM_GizmoFlagMapDrawStep drawstep);
-void WM_gizmomap_add_handlers(struct ARegion *ar, struct wmGizmoMap *gzmap);
+void WM_gizmomap_add_handlers(struct ARegion *region, struct wmGizmoMap *gzmap);
 bool WM_gizmomap_select_all(struct bContext *C, struct wmGizmoMap *gzmap, const int action);
 bool WM_gizmomap_cursor_set(const struct wmGizmoMap *gzmap, struct wmWindow *win);
 void WM_gizmomap_message_subscribe(struct bContext *C,
                                    struct wmGizmoMap *gzmap,
-                                   struct ARegion *ar,
+                                   struct ARegion *region,
                                    struct wmMsgBus *mbus);
 bool WM_gizmomap_is_any_selected(const struct wmGizmoMap *gzmap);
 bool WM_gizmomap_minmax(const struct wmGizmoMap *gzmap,
@@ -309,8 +309,11 @@ bool WM_gizmomap_minmax(const struct wmGizmoMap *gzmap,
                         float r_min[3],
                         float r_max[3]);
 
-struct ARegion *WM_gizmomap_tooltip_init(
-    struct bContext *C, struct ARegion *ar, int *pass, double *pass_delay, bool *r_exit_on_event);
+struct ARegion *WM_gizmomap_tooltip_init(struct bContext *C,
+                                         struct ARegion *region,
+                                         int *pass,
+                                         double *pass_delay,
+                                         bool *r_exit_on_event);
 
 /* -------------------------------------------------------------------- */
 /* wmGizmoMapType */
@@ -334,7 +337,7 @@ void WM_gizmomaptype_group_init_runtime(const struct Main *bmain,
                                         struct wmGizmoGroupType *gzgt);
 wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(struct wmGizmoMapType *gzmap_type,
                                                              struct wmGizmoGroupType *gzgt,
-                                                             struct ARegion *ar);
+                                                             struct ARegion *region);
 void WM_gizmomaptype_group_unlink(struct bContext *C,
                                   struct Main *bmain,
                                   struct wmGizmoMapType *gzmap_type,

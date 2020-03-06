@@ -226,8 +226,8 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
 {
   SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
   Scene *scene = t->scene;
-  ARegion *ar = t->ar;
-  View2D *v2d = &ar->v2d;
+  ARegion *region = t->region;
+  View2D *v2d = &region->v2d;
 
   TransData *td = NULL;
   TransData2D *td2d = NULL;

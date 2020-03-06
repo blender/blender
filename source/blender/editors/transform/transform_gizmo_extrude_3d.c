@@ -469,11 +469,11 @@ static void gizmo_mesh_extrude_message_subscribe(const bContext *C,
                                                  struct wmMsgBus *mbus)
 {
   GizmoExtrudeGroup *ggd = gzgroup->customdata;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   /* Subscribe to view properties */
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
-      .owner = ar,
+      .owner = region,
       .user_data = gzgroup->parent_gzmap,
       .notify = WM_gizmo_do_msg_notify_tag_refresh,
   };

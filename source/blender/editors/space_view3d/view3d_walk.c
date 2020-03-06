@@ -187,7 +187,7 @@ typedef struct WalkInfo {
   /* context stuff */
   RegionView3D *rv3d;
   View3D *v3d;
-  ARegion *ar;
+  ARegion *region;
   struct Depsgraph *depsgraph;
   Scene *scene;
 
@@ -290,7 +290,7 @@ static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm);
 static int walkApply(bContext *C, struct WalkInfo *walk, bool force_autokey);
 static float getVelocityZeroTime(const float gravity, const float velocity);
 
-static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *arg)
+static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *region, void *arg)
 {
   /* draws an aim/cross in the center */
   WalkInfo *walk = arg;
@@ -302,13 +302,13 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 
   if (ED_view3d_cameracontrol_object_get(walk->v3d_camera_control)) {
     ED_view3d_calc_camera_border(
-        walk->scene, walk->depsgraph, ar, walk->v3d, walk->rv3d, &viewborder, false);
+        walk->scene, walk->depsgraph, region, walk->v3d, walk->rv3d, &viewborder, false);
     xoff = viewborder.xmin + BLI_rctf_size_x(&viewborder) * 0.5f;
     yoff = viewborder.ymin + BLI_rctf_size_y(&viewborder) * 0.5f;
   }
   else {
-    xoff = walk->ar->winx / 2;
-    yoff = walk->ar->winy / 2;
+    xoff = walk->region->winx / 2;
+    yoff = walk->region->winy / 2;
   }
 
   GPUVertFormat *format = immVertexFormat();
@@ -452,7 +452,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 
   walk->rv3d = CTX_wm_region_view3d(C);
   walk->v3d = CTX_wm_view3d(C);
-  walk->ar = CTX_wm_region(C);
+  walk->region = CTX_wm_region(C);
   walk->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   walk->scene = CTX_data_scene(C);
 
@@ -546,12 +546,12 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->time_lastdraw = PIL_check_seconds_timer();
 
   walk->draw_handle_pixel = ED_region_draw_cb_activate(
-      walk->ar->type, drawWalkPixel, walk, REGION_DRAW_POST_PIXEL);
+      walk->region->type, drawWalkPixel, walk, REGION_DRAW_POST_PIXEL);
 
   walk->rv3d->rflag |= RV3D_NAVIGATING;
 
   walk->snap_context = ED_transform_snap_object_context_create_view3d(
-      bmain, walk->scene, CTX_data_ensure_evaluated_depsgraph(C), 0, walk->ar, walk->v3d);
+      bmain, walk->scene, CTX_data_ensure_evaluated_depsgraph(C), 0, walk->region, walk->v3d);
 
   walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(
       walk->depsgraph,
@@ -561,24 +561,24 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
       (U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0);
 
   /* center the mouse */
-  walk->center_mval[0] = walk->ar->winx * 0.5f;
-  walk->center_mval[1] = walk->ar->winy * 0.5f;
+  walk->center_mval[0] = walk->region->winx * 0.5f;
+  walk->center_mval[1] = walk->region->winy * 0.5f;
 
 #ifdef USE_PIXELSIZE_NATIVE_SUPPORT
-  walk->center_mval[0] += walk->ar->winrct.xmin;
-  walk->center_mval[1] += walk->ar->winrct.ymin;
+  walk->center_mval[0] += walk->region->winrct.xmin;
+  walk->center_mval[1] += walk->region->winrct.ymin;
 
   WM_cursor_compatible_xy(win, &walk->center_mval[0], &walk->center_mval[1]);
 
-  walk->center_mval[0] -= walk->ar->winrct.xmin;
-  walk->center_mval[1] -= walk->ar->winrct.ymin;
+  walk->center_mval[0] -= walk->region->winrct.xmin;
+  walk->center_mval[1] -= walk->region->winrct.ymin;
 #endif
 
   copy_v2_v2_int(walk->prev_mval, walk->center_mval);
 
   WM_cursor_warp(win,
-                 walk->ar->winrct.xmin + walk->center_mval[0],
-                 walk->ar->winrct.ymin + walk->center_mval[1]);
+                 walk->region->winrct.xmin + walk->center_mval[0],
+                 walk->region->winrct.ymin + walk->center_mval[1]);
 
   /* remove the mouse cursor temporarily */
   WM_cursor_modal_set(win, WM_CURSOR_NONE);
@@ -616,7 +616,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
 
   WM_event_remove_timer(CTX_wm_manager(C), win, walk->timer);
 
-  ED_region_draw_cb_exit(walk->ar->type, walk->draw_handle_pixel);
+  ED_region_draw_cb_exit(walk->region->type, walk->draw_handle_pixel);
 
   ED_transform_snap_object_context_destroy(walk->snap_context);
 
@@ -639,8 +639,8 @@ static int walkEnd(bContext *C, WalkInfo *walk)
   {
     /* center the mouse */
     WM_cursor_warp(win,
-                   walk->ar->winrct.xmin + walk->center_mval[0],
-                   walk->ar->winrct.ymin + walk->center_mval[1]);
+                   walk->region->winrct.xmin + walk->center_mval[0],
+                   walk->region->winrct.ymin + walk->center_mval[1]);
   }
 
   if (walk->state == WALK_CONFIRM) {
@@ -670,8 +670,8 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
          * ideally we shouldn't have to worry about this, see: T45361 */
         wmWindow *win = CTX_wm_window(C);
         WM_cursor_warp(win,
-                       walk->ar->winrct.xmin + walk->center_mval[0],
-                       walk->ar->winrct.ymin + walk->center_mval[1]);
+                       walk->region->winrct.xmin + walk->center_mval[0],
+                       walk->region->winrct.ymin + walk->center_mval[1]);
       }
       return;
     }
@@ -708,8 +708,8 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
 #endif
         {
           WM_cursor_warp(win,
-                         walk->ar->winrct.xmin + walk->center_mval[0],
-                         walk->ar->winrct.ymin + walk->center_mval[1]);
+                         walk->region->winrct.xmin + walk->center_mval[0],
+                         walk->region->winrct.ymin + walk->center_mval[1]);
           copy_v2_v2_int(walk->prev_mval, walk->center_mval);
         }
       }
@@ -964,7 +964,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
    * a walk loop where the user can move move the view as if they are in a walk game
    */
   RegionView3D *rv3d = walk->rv3d;
-  ARegion *ar = walk->ar;
+  ARegion *region = walk->region;
 
   /* 3x3 copy of the view matrix so we can move along the view axis */
   float mat[3][3];
@@ -1032,7 +1032,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           float y;
 
           /* relative offset */
-          y = (float)moffset[1] / ar->winy;
+          y = (float)moffset[1] / region->winy;
 
           /* speed factor */
           y *= WALK_ROTATE_FAC;
@@ -1072,7 +1072,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           }
 
           /* relative offset */
-          x = (float)moffset[0] / ar->winx;
+          x = (float)moffset[0] / region->winx;
 
           /* speed factor */
           x *= WALK_ROTATE_FAC;

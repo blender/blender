@@ -1318,10 +1318,10 @@ static void do_outliner_range_select(bContext *C,
 }
 
 static bool outliner_is_co_within_restrict_columns(const SpaceOutliner *soops,
-                                                   const ARegion *ar,
+                                                   const ARegion *region,
                                                    float view_co_x)
 {
-  return (view_co_x > ar->v2d.cur.xmax - outliner_restrict_columns_width(soops));
+  return (view_co_x > region->v2d.cur.xmax - outliner_restrict_columns_width(soops));
 }
 
 /**
@@ -1352,15 +1352,15 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
                                                  const bool use_range,
                                                  const bool deselect_all)
 {
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   TreeElement *te;
   float view_mval[2];
   bool changed = false, rebuild_tree = false;
 
-  UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
-  if (outliner_is_co_within_restrict_columns(soops, ar, view_mval[0])) {
+  if (outliner_is_co_within_restrict_columns(soops, region, view_mval[0])) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1408,10 +1408,10 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 
   if (changed) {
     if (rebuild_tree) {
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw(region);
     }
     else {
-      ED_region_tag_redraw_no_rebuild(ar);
+      ED_region_tag_redraw_no_rebuild(region);
     }
 
     if (soops->flag & SO_SYNC_SELECT) {
@@ -1486,7 +1486,7 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   rctf rectf;
 
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
@@ -1496,7 +1496,7 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
   }
 
   WM_operator_properties_border_to_rctf(op, &rectf);
-  UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
+  UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
 
   for (TreeElement *te = soops->tree.first; te; te = te->next) {
     outliner_item_box_select(soops, scene, &rectf, te, select);
@@ -1504,7 +1504,7 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   if (soops->flag & SO_SYNC_SELECT) {
     ED_outliner_select_sync_from_outliner(C, soops);
@@ -1516,11 +1516,12 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
 static int outliner_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   float view_mval[2];
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
-  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
 
   /* Find element clicked on */
   TreeElement *te = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
@@ -1707,25 +1708,25 @@ static TreeElement *find_walk_select_start_element(SpaceOutliner *soops, bool *c
 }
 
 /* Scroll the outliner when the walk element reaches the top or bottom boundary */
-static void outliner_walk_scroll(ARegion *ar, TreeElement *te)
+static void outliner_walk_scroll(ARegion *region, TreeElement *te)
 {
   /* Account for the header height */
-  int y_max = ar->v2d.cur.ymax - UI_UNIT_Y;
-  int y_min = ar->v2d.cur.ymin;
+  int y_max = region->v2d.cur.ymax - UI_UNIT_Y;
+  int y_min = region->v2d.cur.ymin;
 
   /* Scroll if walked position is beyond the border */
   if (te->ys > y_max) {
-    outliner_scroll_view(ar, te->ys - y_max);
+    outliner_scroll_view(region, te->ys - y_max);
   }
   else if (te->ys < y_min) {
-    outliner_scroll_view(ar, -(y_min - te->ys));
+    outliner_scroll_view(region, -(y_min - te->ys));
   }
 }
 
 static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   const short direction = RNA_enum_get(op->ptr, "direction");
   const bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -1743,12 +1744,12 @@ static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   /* Scroll outliner to focus on walk element */
-  outliner_walk_scroll(ar, walk_element);
+  outliner_walk_scroll(region, walk_element);
 
   if (soops->flag & SO_SYNC_SELECT) {
     ED_outliner_select_sync_from_outliner(C, soops);
   }
-  ED_region_tag_redraw(ar);
+  ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }

@@ -143,34 +143,34 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
 
   if (sa) {
     if (sa->spacetype == SPACE_IMAGE) {
-      ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
-      if (ar) {
+      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+      if (region) {
         SpaceImage *sima = sa->spacedata.first;
-        int mval[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
+        int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
 
-        if (ED_space_image_color_sample(sima, ar, mval, r_col)) {
+        if (ED_space_image_color_sample(sima, region, mval, r_col)) {
           return;
         }
       }
     }
     else if (sa->spacetype == SPACE_NODE) {
-      ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
-      if (ar) {
+      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+      if (region) {
         SpaceNode *snode = sa->spacedata.first;
-        int mval[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
+        int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
 
-        if (ED_space_node_color_sample(bmain, snode, ar, mval, r_col)) {
+        if (ED_space_node_color_sample(bmain, snode, region, mval, r_col)) {
           return;
         }
       }
     }
     else if (sa->spacetype == SPACE_CLIP) {
-      ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
-      if (ar) {
+      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+      if (region) {
         SpaceClip *sc = sa->spacedata.first;
-        int mval[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
+        int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
 
-        if (ED_space_clip_color_sample(sc, ar, mval, r_col)) {
+        if (ED_space_clip_color_sample(sc, region, mval, r_col)) {
           return;
         }
       }

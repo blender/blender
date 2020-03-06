@@ -2553,7 +2553,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   int filter;
 
   SpaceNla *snla = (SpaceNla *)ac->sl;
-  View2D *v2d = &ac->ar->v2d;
+  View2D *v2d = &ac->region->v2d;
   rctf rectf;
 
   /* convert border-region to view coordinates */
@@ -2736,20 +2736,20 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
 
   /* free temp data and tag for refresh */
   ANIM_animdata_freelist(&anim_data);
-  ED_region_tag_redraw(ac->ar);
+  ED_region_tag_redraw(ac->region);
   return success;
 }
 
 static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
 {
-  ARegion *ar;
+  ARegion *region;
   View2D *v2d;
   int channel_index;
   float x, y;
 
   /* get useful pointers from animation context data */
-  ar = ac->ar;
-  v2d = &ar->v2d;
+  region = ac->region;
+  v2d = &region->v2d;
 
   /* Figure out which channel user clicked in. */
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
@@ -3194,7 +3194,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bAnimContext ac;
-  ARegion *ar;
+  ARegion *region;
   View2D *v2d;
   int channel_index;
   int notifierFlags = 0;
@@ -3207,8 +3207,8 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmE
   }
 
   /* get useful pointers from animation context data */
-  ar = ac.ar;
-  v2d = &ar->v2d;
+  region = ac.region;
+  v2d = &region->v2d;
 
   /* select mode is either replace (deselect all, then add) or add/extend */
   if (RNA_boolean_get(op->ptr, "extend")) {
@@ -3327,7 +3327,7 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
   }
 
   /* free temp data and tag for refresh */
-  ED_region_tag_redraw(ac->ar);
+  ED_region_tag_redraw(ac->region);
   return success;
 }
 

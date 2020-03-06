@@ -143,11 +143,11 @@ static bool generic_track_is_marker_keyframed(MovieTrackingTrack *track,
   return false;
 }
 
-static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Scene *scene)
+static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip, Scene *scene)
 {
   float x;
   int *points, totseg, i, a;
-  float sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
+  float sfra = SFRA, efra = EFRA, framelen = region->winx / (efra - sfra + 1);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *act_object = BKE_tracking_object_get_active(tracking);
   MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
@@ -159,11 +159,11 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
   /* cache background */
-  ED_region_cache_draw_background(ar);
+  ED_region_cache_draw_background(region);
 
   /* cached segments -- could be useful to debug caching strategies */
   BKE_movieclip_get_cache_segments(clip, &sc->user, &totseg, &points);
-  ED_region_cache_draw_cached_segments(ar, totseg, points, sfra, efra);
+  ED_region_cache_draw_cached_segments(region, totseg, points, sfra, efra);
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
@@ -249,7 +249,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
   GPU_blend(false);
 
   /* current frame */
-  x = (sc->user.framenr - sfra) / (efra - sfra + 1) * ar->winx;
+  x = (sc->user.framenr - sfra) / (efra - sfra + 1) * region->winx;
 
   immUniformThemeColor(TH_CFRAME);
   immRecti(pos, x, 0, x + ceilf(framelen), 8 * UI_DPI_FAC);
@@ -270,11 +270,11 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
   /* movie clip animation */
   if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask_info.mask) {
-    ED_mask_draw_frames(sc->mask_info.mask, ar, CFRA, sfra, efra);
+    ED_mask_draw_frames(sc->mask_info.mask, region, CFRA, sfra, efra);
   }
 }
 
-static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
+static void draw_movieclip_notes(SpaceClip *sc, ARegion *region)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
@@ -293,11 +293,11 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 
   if (str[0]) {
     float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.6f};
-    ED_region_info_draw(ar, str, fill_color, full_redraw);
+    ED_region_info_draw(region, str, fill_color, full_redraw);
   }
 }
 
-static void draw_movieclip_muted(ARegion *ar, int width, int height, float zoomx, float zoomy)
+static void draw_movieclip_muted(ARegion *region, int width, int height, float zoomx, float zoomy)
 {
   int x, y;
 
@@ -305,7 +305,7 @@ static void draw_movieclip_muted(ARegion *ar, int width, int height, float zoomx
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   /* find window pixel coordinates of origin */
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   immUniformColor3f(0.0f, 0.0f, 0.0f);
   immRectf(pos, x, y, x + zoomx * width, y + zoomy * height);
@@ -315,7 +315,7 @@ static void draw_movieclip_muted(ARegion *ar, int width, int height, float zoomx
 
 static void draw_movieclip_buffer(const bContext *C,
                                   SpaceClip *sc,
-                                  ARegion *ar,
+                                  ARegion *region,
                                   ImBuf *ibuf,
                                   int width,
                                   int height,
@@ -327,7 +327,7 @@ static void draw_movieclip_buffer(const bContext *C,
   int x, y;
 
   /* find window pixel coordinates of origin */
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   /* checkerboard for case alpha */
   if (ibuf->planes == 32) {
@@ -359,13 +359,13 @@ static void draw_movieclip_buffer(const bContext *C,
 }
 
 static void draw_stabilization_border(
-    SpaceClip *sc, ARegion *ar, int width, int height, float zoomx, float zoomy)
+    SpaceClip *sc, ARegion *region, int width, int height, float zoomx, float zoomy)
 {
   int x, y;
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
   /* find window pixel coordinates of origin */
-  UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
+  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   /* draw boundary border for frame if stabilization is enabled */
   if (sc->flag & SC_SHOW_STABLE && clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
@@ -1459,7 +1459,7 @@ static void draw_plane_track(SpaceClip *sc,
 /* Draw all kind of tracks. */
 static void draw_tracking_tracks(SpaceClip *sc,
                                  Scene *scene,
-                                 ARegion *ar,
+                                 ARegion *region,
                                  MovieClip *clip,
                                  int width,
                                  int height,
@@ -1484,7 +1484,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
    * to avoid this flickering, calculate base point in the same way as it happens
    * in UI_view2d_view_to_region_no_clip, but do it in floats here */
 
-  UI_view2d_view_to_region_fl(&ar->v2d, 0.0f, 0.0f, &x, &y);
+  UI_view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(x, y);
@@ -1721,8 +1721,13 @@ static void draw_tracking_tracks(SpaceClip *sc,
   }
 }
 
-static void draw_distortion(
-    SpaceClip *sc, ARegion *ar, MovieClip *clip, int width, int height, float zoomx, float zoomy)
+static void draw_distortion(SpaceClip *sc,
+                            ARegion *region,
+                            MovieClip *clip,
+                            int width,
+                            int height,
+                            float zoomx,
+                            float zoomy)
 {
   float x, y;
   const int n = 10;
@@ -1742,7 +1747,7 @@ static void draw_distortion(
     return;
   }
 
-  UI_view2d_view_to_region_fl(&ar->v2d, 0.0f, 0.0f, &x, &y);
+  UI_view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(x, y);
@@ -1934,7 +1939,7 @@ static void draw_distortion(
   GPU_matrix_pop();
 }
 
-void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
+void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *region)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
   Scene *scene = CTX_data_scene(C);
@@ -1943,11 +1948,11 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
   float zoomx, zoomy;
 
   ED_space_clip_get_size(sc, &width, &height);
-  ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+  ED_space_clip_get_zoom(sc, region, &zoomx, &zoomy);
 
   /* if no clip, nothing to do */
   if (!clip) {
-    ED_region_grid_draw(ar, zoomx, zoomy, 0.0f, 0.0f);
+    ED_region_grid_draw(region, zoomx, zoomy, 0.0f, 0.0f);
     return;
   }
 
@@ -1987,30 +1992,30 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
   }
 
   if (ibuf) {
-    draw_movieclip_buffer(C, sc, ar, ibuf, width, height, zoomx, zoomy);
+    draw_movieclip_buffer(C, sc, region, ibuf, width, height, zoomx, zoomy);
     IMB_freeImBuf(ibuf);
   }
   else if (sc->flag & SC_MUTE_FOOTAGE) {
-    draw_movieclip_muted(ar, width, height, zoomx, zoomy);
+    draw_movieclip_muted(region, width, height, zoomx, zoomy);
   }
   else {
-    ED_region_grid_draw(ar, zoomx, zoomy, 0.0f, 0.0f);
+    ED_region_grid_draw(region, zoomx, zoomy, 0.0f, 0.0f);
   }
 
   if (width && height) {
-    draw_stabilization_border(sc, ar, width, height, zoomx, zoomy);
-    draw_tracking_tracks(sc, scene, ar, clip, width, height, zoomx, zoomy);
-    draw_distortion(sc, ar, clip, width, height, zoomx, zoomy);
+    draw_stabilization_border(sc, region, width, height, zoomx, zoomy);
+    draw_tracking_tracks(sc, scene, region, clip, width, height, zoomx, zoomy);
+    draw_distortion(sc, region, clip, width, height, zoomx, zoomy);
   }
 }
 
-void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *ar)
+void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *region)
 {
   Scene *scene = CTX_data_scene(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   if (clip) {
-    draw_movieclip_cache(sc, ar, clip, scene);
-    draw_movieclip_notes(sc, ar);
+    draw_movieclip_cache(sc, region, clip, scene);
+    draw_movieclip_notes(sc, region);
   }
 }
 

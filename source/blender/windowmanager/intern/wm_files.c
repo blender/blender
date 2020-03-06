@@ -1219,7 +1219,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
 
   /* screen if no camera found */
   ScrArea *sa = NULL;
-  ARegion *ar = NULL;
+  ARegion *region = NULL;
   View3D *v3d = NULL;
 
   /* In case we are given a valid thumbnail data, just generate image from it. */
@@ -1235,8 +1235,8 @@ static ImBuf *blend_file_thumb(const bContext *C,
 
   if ((scene->camera == NULL) && (screen != NULL)) {
     sa = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
-    ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-    if (ar) {
+    region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+    if (region) {
       v3d = sa->spacedata.first;
     }
   }
@@ -1268,7 +1268,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
                                           scene,
                                           OB_SOLID,
                                           v3d,
-                                          ar,
+                                          region,
                                           BLEN_THUMB_SIZE * 2,
                                           BLEN_THUMB_SIZE * 2,
                                           IB_rect,
@@ -2813,12 +2813,12 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C,
 
 /* Build the autorun warning dialog UI */
 static uiBlock *block_create_autorun_warning(struct bContext *C,
-                                             struct ARegion *ar,
+                                             struct ARegion *region,
                                              void *UNUSED(arg1))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiStyle *style = UI_style_get_dpi();
-  uiBlock *block = UI_block_begin(C, ar, "autorun_warning_popup", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
 
   UI_block_flag_enable(
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
@@ -3049,7 +3049,9 @@ static void wm_block_file_close_save_button(uiBlock *block, wmGenericCallback *p
 
 static const char *close_file_dialog_name = "file_close_popup";
 
-static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegion *ar, void *arg1)
+static uiBlock *block_create__close_file_dialog(struct bContext *C,
+                                                struct ARegion *region,
+                                                void *arg1)
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
@@ -3075,7 +3077,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
   int title_width = MAX2(UI_fontstyle_string_width(fs, title), U.widget_unit * 22);
 
   /* Create dialog */
-  uiBlock *block = UI_block_begin(C, ar, close_file_dialog_name, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, close_file_dialog_name, UI_EMBOSS);
   style = UI_style_get_dpi();
 
   UI_block_flag_enable(

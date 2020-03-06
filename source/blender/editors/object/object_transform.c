@@ -1637,7 +1637,7 @@ static void object_transform_axis_target_calc_depth_init(struct XFormAxisData *x
   struct XFormAxisItem *item = xfd->object_data;
   float view_co_a[3], view_co_b[3];
   const float mval_fl[2] = {UNPACK2(mval)};
-  ED_view3d_win_to_ray(xfd->vc.ar, mval_fl, view_co_a, view_co_b);
+  ED_view3d_win_to_ray(xfd->vc.region, mval_fl, view_co_a, view_co_b);
   add_v3_v3(view_co_b, view_co_a);
   float center[3] = {0.0f};
   int center_tot = 0;
@@ -1655,7 +1655,7 @@ static void object_transform_axis_target_calc_depth_init(struct XFormAxisData *x
   if (center_tot) {
     mul_v3_fl(center, 1.0f / center_tot);
     float center_proj[3];
-    ED_view3d_project(xfd->vc.ar, center, center_proj);
+    ED_view3d_project(xfd->vc.region, center, center_proj);
     xfd->prev.depth = center_proj[2];
     xfd->prev.is_depth_valid = true;
   }
@@ -1777,12 +1777,12 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
   vc.v3d->flag2 |= V3D_HIDE_OVERLAYS;
 #endif
 
-  ED_view3d_autodist_init(vc.depsgraph, vc.ar, vc.v3d, 0);
+  ED_view3d_autodist_init(vc.depsgraph, vc.region, vc.v3d, 0);
 
   if (vc.rv3d->depths != NULL) {
     vc.rv3d->depths->damaged = true;
   }
-  ED_view3d_depth_update(vc.ar);
+  ED_view3d_depth_update(vc.region);
 
 #ifdef USE_RENDER_OVERRIDE
   vc.v3d->flag2 = flag2_prev;
@@ -1793,7 +1793,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
     return OPERATOR_CANCELLED;
   }
 
-  ED_region_tag_redraw(vc.ar);
+  ED_region_tag_redraw(vc.region);
 
   struct XFormAxisData *xfd;
   xfd = op->customdata = MEM_callocN(sizeof(struct XFormAxisData), __func__);
@@ -1850,7 +1850,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   struct XFormAxisData *xfd = op->customdata;
-  ARegion *ar = xfd->vc.ar;
+  ARegion *region = xfd->vc.region;
 
   view3d_operator_needs_opengl(C);
 
@@ -1884,7 +1884,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         xfd->prev.depth = depth;
         xfd->prev.is_depth_valid = true;
-        if (ED_view3d_depth_unproject(ar, event->mval, depth, location_world)) {
+        if (ED_view3d_depth_unproject(region, event->mval, depth, location_world)) {
           if (is_translate) {
 
             float normal[3];
@@ -1984,7 +1984,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
     }
     xfd->is_translate = is_translate;
 
-    ED_region_tag_redraw(xfd->vc.ar);
+    ED_region_tag_redraw(xfd->vc.region);
   }
 
   bool is_finished = false;
