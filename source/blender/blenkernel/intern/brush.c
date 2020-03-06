@@ -30,9 +30,12 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
@@ -47,6 +50,131 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h" /* externtex */
+
+static void brush_init_data(ID *id)
+{
+  Brush *brush = (Brush *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(brush, id));
+
+  MEMCPY_STRUCT_AFTER(brush, DNA_struct_default_get(Brush), id);
+
+  /* enable fake user by default */
+  id_fake_user_set(&brush->id);
+
+  /* the default alpha falloff curve */
+  BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
+}
+
+static void brush_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
+{
+  Brush *brush_dst = (Brush *)id_dst;
+  const Brush *brush_src = (const Brush *)id_src;
+  if (brush_src->icon_imbuf) {
+    brush_dst->icon_imbuf = IMB_dupImBuf(brush_src->icon_imbuf);
+  }
+
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+    BKE_previewimg_id_copy(&brush_dst->id, &brush_src->id);
+  }
+  else {
+    brush_dst->preview = NULL;
+  }
+
+  brush_dst->curve = BKE_curvemapping_copy(brush_src->curve);
+  if (brush_src->gpencil_settings != NULL) {
+    brush_dst->gpencil_settings = MEM_dupallocN(brush_src->gpencil_settings);
+    brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_sensitivity);
+    brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_strength);
+    brush_dst->gpencil_settings->curve_jitter = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_jitter);
+  }
+
+  /* enable fake user by default */
+  id_fake_user_set(&brush_dst->id);
+}
+
+static void brush_free_data(ID *id)
+{
+  Brush *brush = (Brush *)id;
+  if (brush->icon_imbuf) {
+    IMB_freeImBuf(brush->icon_imbuf);
+  }
+  BKE_curvemapping_free(brush->curve);
+
+  if (brush->gpencil_settings != NULL) {
+    BKE_curvemapping_free(brush->gpencil_settings->curve_sensitivity);
+    BKE_curvemapping_free(brush->gpencil_settings->curve_strength);
+    BKE_curvemapping_free(brush->gpencil_settings->curve_jitter);
+    MEM_SAFE_FREE(brush->gpencil_settings);
+  }
+
+  MEM_SAFE_FREE(brush->gradient);
+
+  BKE_previewimg_free(&(brush->preview));
+}
+
+static void brush_make_local(Main *bmain, ID *id, const int flags)
+{
+  Brush *brush = (Brush *)id;
+  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+  bool is_local = false, is_lib = false;
+
+  /* - only lib users: do nothing (unless force_local is set)
+   * - only local users: set flag
+   * - mixed: make copy
+   */
+
+  if (!ID_IS_LINKED(brush)) {
+    return;
+  }
+
+  if (brush->clone.image) {
+    /* Special case: ima always local immediately. Clone image should only have one user anyway. */
+    BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, 0);
+  }
+
+  BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
+
+  if (lib_local || is_local) {
+    if (!is_lib) {
+      BKE_lib_id_clear_library_data(bmain, &brush->id);
+      BKE_lib_id_expand_local(bmain, &brush->id);
+
+      /* enable fake user by default */
+      id_fake_user_set(&brush->id);
+    }
+    else {
+      Brush *brush_new = BKE_brush_copy(bmain, brush); /* Ensures FAKE_USER is set */
+
+      brush_new->id.us = 0;
+
+      /* setting newid is mandatory for complex make_lib_local logic... */
+      ID_NEW_SET(brush, brush_new);
+
+      if (!lib_local) {
+        BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+      }
+    }
+  }
+}
+
+IDTypeInfo IDType_ID_BR = {
+    .id_code = ID_BR,
+    .id_filter = FILTER_ID_BR,
+    .main_listbase_index = INDEX_ID_BR,
+    .struct_size = sizeof(Brush),
+    .name = "Brush",
+    .name_plural = "brushes",
+    .translation_context = BLT_I18NCONTEXT_ID_BRUSH,
+    .flags = 0,
+
+    .init_data = brush_init_data,
+    .copy_data = brush_copy_data,
+    .free_data = brush_free_data,
+    .make_local = brush_make_local,
+};
 
 static RNG *brush_rng;
 
@@ -116,19 +244,6 @@ static void brush_defaults(Brush *brush)
 
 /* Datablock add/copy/free/make_local */
 
-void BKE_brush_init(Brush *brush)
-{
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(brush, id));
-
-  MEMCPY_STRUCT_AFTER(brush, DNA_struct_default_get(Brush), id);
-
-  /* enable fake user by default */
-  id_fake_user_set(&brush->id);
-
-  /* the default alpha falloff curve */
-  BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
-}
-
 /**
  * \note Resulting brush will have two users: one as a fake user,
  * another is assumed to be used by the caller.
@@ -139,7 +254,7 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 
   brush = BKE_libblock_alloc(bmain, ID_BR, name, 0);
 
-  BKE_brush_init(brush);
+  brush_init_data(&brush->id);
 
   brush->ob_mode = ob_mode;
 
@@ -698,116 +813,11 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mo
   return NULL;
 }
 
-/**
- * Only copy internal data of Brush ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_brush_copy_data(Main *UNUSED(bmain),
-                         Brush *brush_dst,
-                         const Brush *brush_src,
-                         const int flag)
-{
-  if (brush_src->icon_imbuf) {
-    brush_dst->icon_imbuf = IMB_dupImBuf(brush_src->icon_imbuf);
-  }
-
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
-    BKE_previewimg_id_copy(&brush_dst->id, &brush_src->id);
-  }
-  else {
-    brush_dst->preview = NULL;
-  }
-
-  brush_dst->curve = BKE_curvemapping_copy(brush_src->curve);
-  if (brush_src->gpencil_settings != NULL) {
-    brush_dst->gpencil_settings = MEM_dupallocN(brush_src->gpencil_settings);
-    brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
-        brush_src->gpencil_settings->curve_sensitivity);
-    brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
-        brush_src->gpencil_settings->curve_strength);
-    brush_dst->gpencil_settings->curve_jitter = BKE_curvemapping_copy(
-        brush_src->gpencil_settings->curve_jitter);
-  }
-
-  /* enable fake user by default */
-  id_fake_user_set(&brush_dst->id);
-}
-
 Brush *BKE_brush_copy(Main *bmain, const Brush *brush)
 {
   Brush *brush_copy;
   BKE_id_copy(bmain, &brush->id, (ID **)&brush_copy);
   return brush_copy;
-}
-
-/** Free (or release) any data used by this brush (does not free the brush itself). */
-void BKE_brush_free(Brush *brush)
-{
-  if (brush->icon_imbuf) {
-    IMB_freeImBuf(brush->icon_imbuf);
-  }
-  BKE_curvemapping_free(brush->curve);
-
-  if (brush->gpencil_settings != NULL) {
-    BKE_curvemapping_free(brush->gpencil_settings->curve_sensitivity);
-    BKE_curvemapping_free(brush->gpencil_settings->curve_strength);
-    BKE_curvemapping_free(brush->gpencil_settings->curve_jitter);
-    MEM_SAFE_FREE(brush->gpencil_settings);
-  }
-
-  MEM_SAFE_FREE(brush->gradient);
-
-  BKE_previewimg_free(&(brush->preview));
-}
-
-void BKE_brush_make_local(Main *bmain, Brush *brush, const int flags)
-{
-  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
-  bool is_local = false, is_lib = false;
-
-  /* - only lib users: do nothing (unless force_local is set)
-   * - only local users: set flag
-   * - mixed: make copy
-   */
-
-  if (!ID_IS_LINKED(brush)) {
-    return;
-  }
-
-  if (brush->clone.image) {
-    /* Special case: ima always local immediately. Clone image should only have one user anyway. */
-    BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, 0);
-  }
-
-  BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
-
-  if (lib_local || is_local) {
-    if (!is_lib) {
-      BKE_lib_id_clear_library_data(bmain, &brush->id);
-      BKE_lib_id_expand_local(bmain, &brush->id);
-
-      /* enable fake user by default */
-      id_fake_user_set(&brush->id);
-    }
-    else {
-      Brush *brush_new = BKE_brush_copy(bmain, brush); /* Ensures FAKE_USER is set */
-
-      brush_new->id.us = 0;
-
-      /* setting newid is mandatory for complex make_lib_local logic... */
-      ID_NEW_SET(brush, brush_new);
-
-      if (!lib_local) {
-        BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-      }
-    }
-  }
 }
 
 void BKE_brush_debug_print_state(Brush *br)

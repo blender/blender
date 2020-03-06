@@ -560,9 +560,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_BR:
-      if (!test) {
-        BKE_brush_make_local(bmain, (Brush *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_PA:
       if (!test) {
@@ -778,7 +776,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_node_tree_copy_data(bmain, (bNodeTree *)*r_newid, (bNodeTree *)id, flag);
         break;
       case ID_BR:
-        BKE_brush_copy_data(bmain, (Brush *)*r_newid, (Brush *)id, flag);
+        BLI_assert(0);
         break;
       case ID_PA:
         BKE_particlesettings_copy_data(
@@ -1405,7 +1403,7 @@ void BKE_libblock_init_empty(ID *id)
       ntreeInitDefault((bNodeTree *)id);
       break;
     case ID_BR:
-      BKE_brush_init((Brush *)id);
+      BLI_assert(0);
       break;
     case ID_PA:
       /* Nothing to do. */

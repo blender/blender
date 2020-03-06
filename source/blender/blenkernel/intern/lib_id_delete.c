@@ -212,7 +212,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       ntreeFreeTree((bNodeTree *)id);
       break;
     case ID_BR:
-      BKE_brush_free((Brush *)id);
+      BLI_assert(0);
       break;
     case ID_PA:
       BKE_particlesettings_free((ParticleSettings *)id);
