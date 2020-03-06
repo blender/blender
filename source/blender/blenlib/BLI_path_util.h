@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 void BLI_setenv(const char *env, const char *val) ATTR_NONNULL(1);
 void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);

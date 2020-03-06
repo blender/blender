@@ -21,6 +21,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_operator_api.h"
+
 /*----------- bmop error system ----------*/
 
 /* pushes an error onto the bmesh error stack.

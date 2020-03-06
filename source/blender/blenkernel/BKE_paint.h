@@ -63,6 +63,7 @@ struct bToolRef;
 
 enum eOverlayFlags;
 
+#include "BLI_utildefines.h"
 #include "DNA_object_enums.h"
 
 extern const char PAINT_CURSOR_SCULPT[3];

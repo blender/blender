@@ -25,9 +25,9 @@
 #ifndef __BLI_FILEOPS_H__
 #define __BLI_FILEOPS_H__
 
+#include <stdint.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,6 +39,7 @@ extern "C" {
 #include <limits.h> /* for PATH_MAX */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 #ifndef PATH_MAX
 #  define PATH_MAX 4096

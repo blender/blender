@@ -24,6 +24,8 @@
 #include <memory>
 #include <algorithm>
 
+#include "BLI_utildefines.h"
+
 namespace BLI {
 
 using std::copy;

@@ -31,6 +31,7 @@ extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 /********************************* Init **************************************/
 

@@ -25,9 +25,10 @@
 #define __INTERFACE_INTERN_H__
 
 #include "BLI_compiler_attrs.h"
-#include "UI_resources.h"
-#include "RNA_types.h"
 #include "DNA_listBase.h"
+#include "RNA_types.h"
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 struct ARegion;
 struct ID;

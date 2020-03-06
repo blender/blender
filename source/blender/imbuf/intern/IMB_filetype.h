@@ -21,6 +21,8 @@
 #ifndef __IMB_FILETYPE_H__
 #define __IMB_FILETYPE_H__
 
+#include "IMB_imbuf.h"
+
 /* Generic File Type */
 
 struct ImBuf;

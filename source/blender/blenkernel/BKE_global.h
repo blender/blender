@@ -27,6 +27,7 @@
  *   for every fresh Blender run.
  */
 
+#include "BLI_utildefines.h"
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus

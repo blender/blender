@@ -33,6 +33,7 @@ extern "C" {
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_inline.h"
+#include "BLI_utildefines.h"
 
 /************************************* Init ***********************************/
 

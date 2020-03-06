@@ -27,6 +27,8 @@
 extern "C" {
 #endif
 
+#include "BLI_utildefines.h"
+
 struct Depsgraph;
 struct ID;
 struct ImBuf;

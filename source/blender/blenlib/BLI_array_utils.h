@@ -23,6 +23,7 @@
  */
 
 #include "BLI_compiler_typecheck.h"
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {

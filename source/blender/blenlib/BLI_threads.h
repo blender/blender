@@ -29,6 +29,8 @@ extern "C" {
 
 #include <pthread.h>
 
+#include "BLI_sys_types.h"
+
 #ifdef __APPLE__
 #  include <libkern/OSAtomic.h>
 #endif

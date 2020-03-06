@@ -24,6 +24,8 @@
 #ifndef __DNA_FLUID_TYPES_H__
 #define __DNA_FLUID_TYPES_H__
 
+#include "DNA_listBase.h"
+
 /* Domain flags. */
 enum {
   FLUID_DOMAIN_USE_NOISE = (1 << 1),        /* Use noise. */

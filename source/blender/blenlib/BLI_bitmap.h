@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#include "BLI_utildefines.h"
+
 typedef unsigned int BLI_bitmap;
 
 /* warning: the bitmap does not keep track of its own size or check

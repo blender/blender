@@ -28,8 +28,9 @@
  * This is also used to implement a 'set' (see #GSet below).
  */
 
-#include "BLI_sys_types.h" /* for bool */
 #include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+#include "BLI_sys_types.h" /* for bool */
 
 #ifdef __cplusplus
 extern "C" {

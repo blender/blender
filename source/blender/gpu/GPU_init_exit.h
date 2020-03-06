@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#include "BLI_utildefines.h"
+
 void GPU_init(void);
 void GPU_exit(void);
 bool GPU_is_initialized(void);

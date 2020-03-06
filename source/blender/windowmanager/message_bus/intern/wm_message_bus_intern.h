@@ -21,7 +21,7 @@
 #ifndef __WM_MESSAGE_BUS_INTERN_H__
 #define __WM_MESSAGE_BUS_INTERN_H__
 
-/* wm_message_bus.h must be included first */
+#include "../wm_message_bus.h"
 
 struct wmMsgBus {
   struct GSet *messages_gset[WM_MSG_TYPE_NUM];

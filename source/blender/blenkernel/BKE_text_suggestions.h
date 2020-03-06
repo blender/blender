@@ -27,6 +27,8 @@
 extern "C" {
 #endif
 
+#include "DNA_text_types.h"
+
 /* ****************************************************************************
  * Suggestions should be added in sorted order although a linear sorting method is
  * implemented. The list is then divided up based on the prefix provided by

@@ -24,6 +24,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh.h"
+
 struct CustomData_MeshMasks;
 struct Main;
 struct Mesh;

@@ -38,6 +38,7 @@
 #endif
 
 #include "BLI_utildefines.h"
+#include "implicit.h"
 
 typedef float Scalar;
 

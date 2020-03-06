@@ -22,6 +22,8 @@
 #include <math.h>
 
 #include "COLLADASWLibraryAnimationClips.h"
+#include "DEG_depsgraph.h"
+#include "ExportSettings.h"
 
 class AnimationClipExporter : COLLADASW::LibraryAnimationClips {
  private:

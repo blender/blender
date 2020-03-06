@@ -19,6 +19,7 @@
 #ifndef __COM_OUTPUTFILEMULTIVIEWOPERATION_H__
 #define __COM_OUTPUTFILEMULTIVIEWOPERATION_H__
 #include "COM_NodeOperation.h"
+#include "COM_OutputFileOperation.h"
 
 #include "BLI_rect.h"
 #include "BLI_path_util.h"

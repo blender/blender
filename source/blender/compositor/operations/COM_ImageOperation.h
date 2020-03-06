@@ -22,6 +22,7 @@
 #include "COM_NodeOperation.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 #include "BKE_image.h"
 extern "C" {
 #include "RE_pipeline.h"

@@ -23,7 +23,7 @@
 #include "MEM_guardedalloc.h"
 #include "DNA_scene_types.h"
 #include "BLI_listbase.h"
-#include "BKE_image.h"
+#include "BLI_utildefines.h"
 extern "C" {
 #include "RE_pipeline.h"
 }

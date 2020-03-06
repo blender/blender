@@ -20,6 +20,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 #define _BLI_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
 #define _BLI_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)

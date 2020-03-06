@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+#include "BLI_math.h"
+
 struct Heap;
 struct HeapNode;
 typedef struct Heap Heap;

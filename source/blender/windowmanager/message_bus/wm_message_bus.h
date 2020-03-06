@@ -21,6 +21,7 @@
 #ifndef __WM_MESSAGE_BUS_H__
 #define __WM_MESSAGE_BUS_H__
 
+#include "RNA_types.h"
 #include <stdio.h>
 
 struct ID;

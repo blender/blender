@@ -21,6 +21,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_core.h"
+
 struct BMAllocTemplate;
 
 bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len);

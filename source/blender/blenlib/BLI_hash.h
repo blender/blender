@@ -25,6 +25,8 @@
 extern "C" {
 #endif
 
+#include "BLI_utildefines.h"
+
 BLI_INLINE unsigned int BLI_hash_int_2d(unsigned int kx, unsigned int ky)
 {
 #define rot(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
