@@ -43,10 +43,50 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
+
+static void screen_free_data(ID *id)
+{
+  bScreen *screen = (bScreen *)id;
+  ARegion *ar;
+
+  /* No animdata here. */
+
+  for (ar = screen->regionbase.first; ar; ar = ar->next) {
+    BKE_area_region_free(NULL, ar);
+  }
+
+  BLI_freelistN(&screen->regionbase);
+
+  BKE_screen_area_map_free(AREAMAP_FROM_SCREEN(screen));
+
+  BKE_previewimg_free(&screen->preview);
+
+  /* Region and timer are freed by the window manager. */
+  MEM_SAFE_FREE(screen->tool_tip);
+}
+
+IDTypeInfo IDType_ID_SCR = {
+    .id_code = ID_SCR,
+    .id_filter = 0,
+    .main_listbase_index = INDEX_ID_SCR,
+    .struct_size = sizeof(bScreen),
+    .name = "Screen",
+    .name_plural = "screens",
+    .translation_context = BLT_I18NCONTEXT_ID_SCREEN,
+    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_MAKELOCAL,
+
+    .init_data = NULL,
+    .copy_data = NULL,
+    .free_data = screen_free_data,
+    .make_local = NULL,
+};
 
 /* ************ Spacetype/regiontype handling ************** */
 
@@ -474,22 +514,7 @@ void BKE_screen_area_map_free(ScrAreaMap *area_map)
 /** Free (or release) any data used by this screen (does not free the screen itself). */
 void BKE_screen_free(bScreen *sc)
 {
-  ARegion *ar;
-
-  /* No animdata here. */
-
-  for (ar = sc->regionbase.first; ar; ar = ar->next) {
-    BKE_area_region_free(NULL, ar);
-  }
-
-  BLI_freelistN(&sc->regionbase);
-
-  BKE_screen_area_map_free(AREAMAP_FROM_SCREEN(sc));
-
-  BKE_previewimg_free(&sc->preview);
-
-  /* Region and timer are freed by the window manager. */
-  MEM_SAFE_FREE(sc->tool_tip);
+  screen_free_data(&sc->id);
 }
 
 /* ***************** Screen edges & verts ***************** */

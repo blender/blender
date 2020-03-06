@@ -139,7 +139,7 @@ extern IDTypeInfo IDType_ID_CA;
 // extern IDTypeInfo IDType_ID_IP;
 extern IDTypeInfo IDType_ID_KE;
 extern IDTypeInfo IDType_ID_WO;
-// extern IDTypeInfo IDType_ID_SCR;
+extern IDTypeInfo IDType_ID_SCR;
 // extern IDTypeInfo IDType_ID_VF;
 // extern IDTypeInfo IDType_ID_TXT;
 // extern IDTypeInfo IDType_ID_SPK;

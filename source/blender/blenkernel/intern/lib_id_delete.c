@@ -182,7 +182,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_SCR:
-      BKE_screen_free((bScreen *)id);
+      BLI_assert(0);
       break;
     case ID_VF:
       BKE_vfont_free((VFont *)id);
