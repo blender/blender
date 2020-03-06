@@ -292,12 +292,12 @@ int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd,
   return index;
 }
 
-int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
-                                            Image *ima,
-                                            Object *ob,
-                                            bool use_sculpt_pbvh)
+eV3DShadingColorType workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
+                                                             Image *ima,
+                                                             Object *ob,
+                                                             bool use_sculpt_pbvh)
 {
-  int color_type = wpd->shading.color_type;
+  eV3DShadingColorType color_type = wpd->shading.color_type;
   const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
 
   if ((color_type == V3D_SHADING_TEXTURE_COLOR) &&

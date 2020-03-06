@@ -844,7 +844,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
                                                            Material *mat,
                                                            Image *ima,
                                                            ImageUser *iuser,
-                                                           int color_type,
+                                                           eV3DShadingColorType color_type,
                                                            int interp)
 {
   WORKBENCH_StorageList *stl = vedata->stl;
@@ -908,7 +908,8 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
       ImageUser *iuser;
       int interp;
       workbench_material_get_image_and_mat(ob, part->omat, &image, &iuser, &interp, &mat);
-      int color_type = workbench_material_determine_color_type(wpd, image, ob, false);
+      eV3DShadingColorType color_type = workbench_material_determine_color_type(
+          wpd, image, ob, false);
       WORKBENCH_MaterialData *material = get_or_create_material_data(
           vedata, ob, mat, image, iuser, color_type, interp);
 
@@ -946,7 +947,8 @@ static void workbench_cache_populate_texture_paint_mode(WORKBENCH_Data *vedata, 
     Image *image = imapaint->canvas;
     int interp = (imapaint->interp == IMAGEPAINT_INTERP_LINEAR) ? SHD_INTERP_LINEAR :
                                                                   SHD_INTERP_CLOSEST;
-    int color_type = workbench_material_determine_color_type(wpd, image, ob, use_sculpt_pbvh);
+    eV3DShadingColorType color_type = workbench_material_determine_color_type(
+        wpd, image, ob, use_sculpt_pbvh);
     struct GPUBatch *geom = DRW_cache_mesh_surface_texpaint_single_get(ob);
     material = get_or_create_material_data(vedata, ob, NULL, image, NULL, color_type, interp);
 
@@ -963,7 +965,8 @@ static void workbench_cache_populate_texture_paint_mode(WORKBENCH_Data *vedata, 
         ImageUser *iuser;
         int interp;
         workbench_material_get_image_and_mat(ob, i + 1, &image, &iuser, &interp, &mat);
-        int color_type = workbench_material_determine_color_type(wpd, image, ob, use_sculpt_pbvh);
+        eV3DShadingColorType color_type = workbench_material_determine_color_type(
+            wpd, image, ob, use_sculpt_pbvh);
         material = get_or_create_material_data(vedata, ob, mat, image, iuser, color_type, interp);
         DRW_shgroup_call(material->shgrp, geom_array[i], ob);
       }
@@ -981,7 +984,8 @@ static void workbench_cache_populate_vertex_paint_mode(WORKBENCH_Data *vedata, O
                                !DRW_state_is_image_render();
   WORKBENCH_MaterialData *material;
 
-  int color_type = workbench_material_determine_color_type(wpd, NULL, ob, use_sculpt_pbvh);
+  eV3DShadingColorType color_type = workbench_material_determine_color_type(
+      wpd, NULL, ob, use_sculpt_pbvh);
   struct GPUBatch *geom = DRW_cache_mesh_surface_vertpaint_get(ob);
   material = get_or_create_material_data(vedata, ob, NULL, NULL, NULL, color_type, false);
   DRW_shgroup_call(material->shgrp, geom, ob);
@@ -1055,7 +1059,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
           ImageUser *iuser;
           int interp;
           workbench_material_get_image_and_mat(ob, i + 1, &image, &iuser, &interp, &mat);
-          int color_type = workbench_material_determine_color_type(
+          eV3DShadingColorType color_type = workbench_material_determine_color_type(
               wpd, image, ob, use_sculpt_pbvh);
           if (color_type == V3D_SHADING_MATERIAL_COLOR && mat && mat->a < 1.0) {
             material = workbench_forward_get_or_create_material_data(
@@ -1075,7 +1079,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
                   V3D_SHADING_OBJECT_COLOR,
                   V3D_SHADING_RANDOM_COLOR,
                   V3D_SHADING_VERTEX_COLOR)) {
-      int color_type = workbench_material_determine_color_type(wpd, NULL, ob, use_sculpt_pbvh);
+      eV3DShadingColorType color_type = workbench_material_determine_color_type(
+          wpd, NULL, ob, use_sculpt_pbvh);
 
       if ((ob->color[3] < 1.0f) && (color_type == V3D_SHADING_OBJECT_COLOR)) {
         material = workbench_forward_get_or_create_material_data(

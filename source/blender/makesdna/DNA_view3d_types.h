@@ -38,6 +38,7 @@ struct wmTimer;
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_view3d_enums.h"
 
 typedef struct RegionView3D {
 
@@ -422,13 +423,6 @@ enum {
 #define V3D_GP_FADE_NOACTIVE_LAYERS (1 << 5)  /* fade layers not active */
 #define V3D_GP_FADE_NOACTIVE_GPENCIL (1 << 6) /* Fade other GPencil objects */
 
-/** #View3DShading.light */
-enum {
-  V3D_LIGHTING_FLAT = 0,
-  V3D_LIGHTING_STUDIO = 1,
-  V3D_LIGHTING_MATCAP = 2,
-};
-
 /** #View3DShading.flag */
 enum {
   V3D_SHADING_OBJECT_OUTLINE = (1 << 0),
@@ -445,27 +439,6 @@ enum {
   V3D_SHADING_DEPTH_OF_FIELD = (1 << 11),
   V3D_SHADING_SCENE_LIGHTS_RENDER = (1 << 12),
   V3D_SHADING_SCENE_WORLD_RENDER = (1 << 13),
-};
-
-/** #View3DShading.color_type */
-enum {
-  V3D_SHADING_MATERIAL_COLOR = 0,
-  V3D_SHADING_RANDOM_COLOR = 1,
-  V3D_SHADING_SINGLE_COLOR = 2,
-  V3D_SHADING_TEXTURE_COLOR = 3,
-  V3D_SHADING_OBJECT_COLOR = 4,
-  V3D_SHADING_VERTEX_COLOR = 5,
-
-  /* Is used to display the object using the error color. For example when in
-   * solid texture paint mode without any textures configured */
-  V3D_SHADING_ERROR_COLOR = 999,
-};
-
-/** #View3DShading.background_type */
-enum {
-  V3D_SHADING_BACKGROUND_THEME = 0,
-  V3D_SHADING_BACKGROUND_WORLD = 1,
-  V3D_SHADING_BACKGROUND_VIEWPORT = 2,
 };
 
 /** #View3DShading.cavity_type */
@@ -606,13 +579,6 @@ enum {
   V3D_GIZMO_SHOW_CAMERA_LENS = (1 << 0),
   V3D_GIZMO_SHOW_CAMERA_DOF_DIST = (1 << 2),
 };
-
-/** Settings for offscreen rendering */
-typedef enum eV3DOffscreenDrawFlag {
-  V3D_OFSDRAW_NONE = (0),
-  V3D_OFSDRAW_SHOW_ANNOTATION = (1 << 0),
-  V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS = (1 << 1),
-} eV3DOffscreenDrawFlag;
 
 #define RV3D_CAMZOOM_MIN -30
 #define RV3D_CAMZOOM_MAX 600

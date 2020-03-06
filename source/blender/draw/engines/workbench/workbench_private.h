@@ -285,7 +285,7 @@ typedef struct WORKBENCH_EffectInfo {
 typedef struct WORKBENCH_MaterialData {
   float base_color[3], metallic;
   float roughness, alpha;
-  int color_type;
+  eV3DShadingColorType color_type;
   int interp;
   Image *ima;
   ImageUser *iuser;
@@ -452,13 +452,14 @@ void workbench_forward_cache_finish(WORKBENCH_Data *vedata);
 /* For OIT in deferred */
 void workbench_forward_outline_shaders_ensure(WORKBENCH_PrivateData *wpd, eGPUShaderConfig sh_cfg);
 void workbench_forward_choose_shaders(WORKBENCH_PrivateData *wpd, eGPUShaderConfig sh_cfg);
-WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_Data *vedata,
-                                                                      Object *ob,
-                                                                      Material *mat,
-                                                                      Image *ima,
-                                                                      ImageUser *iuser,
-                                                                      int color_type,
-                                                                      int interp);
+WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
+    WORKBENCH_Data *vedata,
+    Object *ob,
+    Material *mat,
+    Image *ima,
+    ImageUser *iuser,
+    eV3DShadingColorType color_type,
+    int interp);
 
 /* workbench_effect_aa.c */
 void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx);
@@ -488,10 +489,10 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata,
 void workbench_dof_draw_pass(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
-int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
-                                            Image *ima,
-                                            Object *ob,
-                                            bool use_sculpt_pbvh);
+eV3DShadingColorType workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
+                                                             Image *ima,
+                                                             Object *ob,
+                                                             bool use_sculpt_pbvh);
 void workbench_material_get_image_and_mat(
     Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, int *r_interp, Material **r_mat);
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
