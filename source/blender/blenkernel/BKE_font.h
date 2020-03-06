@@ -71,18 +71,10 @@ bool BKE_vfont_is_builtin(struct VFont *vfont);
 void BKE_vfont_builtin_register(void *mem, int size);
 
 void BKE_vfont_free_data(struct VFont *vfont);
-void BKE_vfont_free(struct VFont *sc);
-void BKE_vfont_init(struct VFont *vfont);
-void BKE_vfont_copy_data(struct Main *bmain,
-                         struct VFont *vfont_dst,
-                         const struct VFont *vfont_src,
-                         const int flag);
 struct VFont *BKE_vfont_builtin_get(void);
 struct VFont *BKE_vfont_load(struct Main *bmain, const char *filepath);
 struct VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists);
 struct VFont *BKE_vfont_load_exists(struct Main *bmain, const char *filepath);
-
-void BKE_vfont_make_local(struct Main *bmain, struct VFont *vfont, const int flags);
 
 bool BKE_vfont_to_curve_ex(struct Object *ob,
                            struct Curve *cu,

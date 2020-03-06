@@ -41,6 +41,8 @@
 #include "BLI_threads.h"
 #include "BLI_vfontdata.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_vfont_types.h"
@@ -50,12 +52,91 @@
 #include "BKE_lib_id.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_curve.h"
 
 static CLG_LogRef LOG = {"bke.data_transfer"};
 static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;
+
+/**************************** Prototypes **************************/
+
+static PackedFile *get_builtin_packedfile(void);
+
+/****************************** VFont Datablock ************************/
+
+static void vfont_init_data(ID *id)
+{
+  VFont *vfont = (VFont *)id;
+  PackedFile *pf = get_builtin_packedfile();
+
+  if (pf) {
+    VFontData *vfd;
+
+    vfd = BLI_vfontdata_from_freetypefont(pf);
+    if (vfd) {
+      vfont->data = vfd;
+
+      BLI_strncpy(vfont->name, FO_BUILTIN_NAME, sizeof(vfont->name));
+    }
+
+    /* Free the packed file */
+    BKE_packedfile_free(pf);
+  }
+}
+
+static void vfont_copy_data(Main *UNUSED(bmain),
+                            ID *id_dst,
+                            const ID *UNUSED(id_src),
+                            const int flag)
+{
+  VFont *vfont_dst = (VFont *)id_dst;
+
+  /* We never handle usercount here for own data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+  /* Just to be sure, should not have any value actually after reading time. */
+  vfont_dst->temp_pf = NULL;
+
+  if (vfont_dst->packedfile) {
+    vfont_dst->packedfile = BKE_packedfile_duplicate(vfont_dst->packedfile);
+  }
+
+  if (vfont_dst->data) {
+    vfont_dst->data = BLI_vfontdata_copy(vfont_dst->data, flag_subdata);
+  }
+}
+
+/** Free (or release) any data used by this font (does not free the font itself). */
+static void vfont_free_data(ID *id)
+{
+  VFont *vfont = (VFont *)id;
+  BKE_vfont_free_data(vfont);
+
+  if (vfont->packedfile) {
+    BKE_packedfile_free(vfont->packedfile);
+    vfont->packedfile = NULL;
+  }
+}
+
+IDTypeInfo IDType_ID_VF = {
+    .id_code = ID_VF,
+    .id_filter = FILTER_ID_VF,
+    .main_listbase_index = INDEX_ID_VF,
+    .struct_size = sizeof(VFont),
+    .name = "Font",
+    .name_plural = "fonts",
+    .translation_context = BLT_I18NCONTEXT_ID_VFONT,
+    .flags = 0,
+
+    .init_data = vfont_init_data,
+    .copy_data = vfont_copy_data,
+    .free_data = vfont_free_data,
+    .make_local = NULL,
+};
+
+/***************************** VFont *******************************/
 
 /* The vfont code */
 void BKE_vfont_free_data(struct VFont *vfont)
@@ -87,37 +168,6 @@ void BKE_vfont_free_data(struct VFont *vfont)
   if (vfont->temp_pf) {
     BKE_packedfile_free(vfont->temp_pf); /* NULL when the font file can't be found on disk */
     vfont->temp_pf = NULL;
-  }
-}
-
-/** Free (or release) any data used by this font (does not free the font itself). */
-void BKE_vfont_free(struct VFont *vf)
-{
-  BKE_vfont_free_data(vf);
-
-  if (vf->packedfile) {
-    BKE_packedfile_free(vf->packedfile);
-    vf->packedfile = NULL;
-  }
-}
-
-void BKE_vfont_copy_data(Main *UNUSED(bmain),
-                         VFont *vfont_dst,
-                         const VFont *UNUSED(vfont_src),
-                         const int flag)
-{
-  /* We never handle usercount here for own data. */
-  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
-
-  /* Just to be sure, should not have any value actually after reading time. */
-  vfont_dst->temp_pf = NULL;
-
-  if (vfont_dst->packedfile) {
-    vfont_dst->packedfile = BKE_packedfile_duplicate(vfont_dst->packedfile);
-  }
-
-  if (vfont_dst->data) {
-    vfont_dst->data = BLI_vfontdata_copy(vfont_dst->data, flag_subdata);
   }
 }
 
@@ -218,26 +268,6 @@ static VFontData *vfont_get_data(VFont *vfont)
   return vfont->data;
 }
 
-/* Bad naming actually in this case... */
-void BKE_vfont_init(VFont *vfont)
-{
-  PackedFile *pf = get_builtin_packedfile();
-
-  if (pf) {
-    VFontData *vfd;
-
-    vfd = BLI_vfontdata_from_freetypefont(pf);
-    if (vfd) {
-      vfont->data = vfd;
-
-      BLI_strncpy(vfont->name, FO_BUILTIN_NAME, sizeof(vfont->name));
-    }
-
-    /* Free the packed file */
-    BKE_packedfile_free(pf);
-  }
-}
-
 VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 {
   char filename[FILE_MAXFILE];
@@ -323,11 +353,6 @@ VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *
 VFont *BKE_vfont_load_exists(struct Main *bmain, const char *filepath)
 {
   return BKE_vfont_load_exists_ex(bmain, filepath, NULL);
-}
-
-void BKE_vfont_make_local(Main *bmain, VFont *vfont, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &vfont->id, flags);
 }
 
 static VFont *which_vfont(Curve *cu, CharInfo *info)

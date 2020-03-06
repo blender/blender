@@ -511,9 +511,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_VF:
-      if (!test) {
-        BKE_vfont_make_local(bmain, (VFont *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_TXT:
       BLI_assert(0);
@@ -784,7 +782,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_sound_copy_data(bmain, (bSound *)*r_newid, (bSound *)id, flag);
         break;
       case ID_VF:
-        BKE_vfont_copy_data(bmain, (VFont *)*r_newid, (VFont *)id, flag);
+        BLI_assert(0);
         break;
       case ID_LI:
       case ID_SCR:
@@ -1358,7 +1356,7 @@ void BKE_libblock_init_empty(ID *id)
       /* Nothing to do. */
       break;
     case ID_VF:
-      BKE_vfont_init((VFont *)id);
+      BLI_assert(0);
       break;
     case ID_TXT:
       BLI_assert(0);
