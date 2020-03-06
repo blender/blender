@@ -243,11 +243,6 @@ void SCULPT_pose_ik_chain_free(struct SculptPoseIKChain *ik_chain);
 void sculpt_visibility_sync_all_face_sets_to_vertices(struct SculptSession *ss);
 void sculpt_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
 
-/* Dynamic topology */
-void sculpt_pbvh_clear(Object *ob);
-void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
-void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
-
 /* Undo */
 
 typedef enum {
