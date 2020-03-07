@@ -2489,22 +2489,19 @@ static bool file_delete_poll(bContext *C)
 
 int file_delete_exec(bContext *C, wmOperator *op)
 {
-  char str[FILE_MAX];
-  Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   ScrArea *sa = CTX_wm_area(C);
-  FileDirEntry *file;
   int numfiles = filelist_files_ensure(sfile->files);
-  int i;
 
   const char *error_message = NULL;
   bool report_error = false;
   errno = 0;
-  for (i = 0; i < numfiles; i++) {
+  for (int i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
-      file = filelist_file(sfile->files, i);
-      BLI_make_file_string(BKE_main_blendfile_path(bmain), str, sfile->params->dir, file->relpath);
+      FileDirEntry *file = filelist_file(sfile->files, i);
+      char str[FILE_MAX];
+      BLI_join_dirfile(str, sizeof(str), sfile->params->dir, file->relpath);
       if (BLI_delete_soft(str, &error_message) != 0 || BLI_exists(str)) {
         report_error = true;
       }
