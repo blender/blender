@@ -346,7 +346,9 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
 
-  return OPERATOR_FINISHED;
+  /* Temporary fix to allow deleting both collections and objects at the same time
+   * using the same key mapping. */
+  return OPERATOR_PASS_THROUGH;
 }
 
 void OUTLINER_OT_collection_delete(wmOperatorType *ot)
