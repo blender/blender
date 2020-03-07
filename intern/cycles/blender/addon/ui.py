@@ -190,7 +190,6 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
             col.prop(cscene, "aa_samples", text="Render")
             col.prop(cscene, "preview_aa_samples", text="Viewport")
 
-        col.prop(cscene, "use_adaptive_sampling", text="Adaptive Sampling")
         # Viewport denoising is currently only supported with OptiX
         if show_optix_denoising(context):
             col = layout.column()
@@ -231,6 +230,32 @@ class CYCLES_RENDER_PT_sampling_sub_samples(CyclesButtonsPanel, Panel):
         draw_samples_info(layout, context)
 
 
+class CYCLES_RENDER_PT_sampling_adaptive(CyclesButtonsPanel, Panel):
+    bl_label = "Adaptive Sampling"
+    bl_parent_id = "CYCLES_RENDER_PT_sampling"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        layout = self.layout
+        scene = context.scene
+        cscene = scene.cycles
+
+        layout.prop(cscene, "use_adaptive_sampling", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        cscene = scene.cycles
+
+        layout.active = cscene.use_adaptive_sampling
+
+        col = layout.column(align=True)
+        col.prop(cscene, "adaptive_min_samples", text="Min Samples")
+        col.prop(cscene, "adaptive_threshold", text="Noise Threshold")
+
 class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
     bl_label = "Advanced"
     bl_parent_id = "CYCLES_RENDER_PT_sampling"
@@ -251,10 +276,6 @@ class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
         col = layout.column(align=True)
         col.active = not(cscene.use_adaptive_sampling)
         col.prop(cscene, "sampling_pattern", text="Pattern")
-        col = layout.column(align=True)
-        col.active = cscene.use_adaptive_sampling
-        col.prop(cscene, "adaptive_min_samples", text="Adaptive Min Samples")
-        col.prop(cscene, "adaptive_threshold", text="Adaptive Threshold")
 
         layout.prop(cscene, "use_square_samples")
 
@@ -2247,6 +2268,7 @@ classes = (
     CYCLES_PT_integrator_presets,
     CYCLES_RENDER_PT_sampling,
     CYCLES_RENDER_PT_sampling_sub_samples,
+    CYCLES_RENDER_PT_sampling_adaptive,
     CYCLES_RENDER_PT_sampling_advanced,
     CYCLES_RENDER_PT_light_paths,
     CYCLES_RENDER_PT_light_paths_max_bounces,

@@ -351,19 +351,20 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
 
     use_adaptive_sampling: BoolProperty(
-        name="Use adaptive sampling",
-        description="Automatically determine the number of samples per pixel based on a variance estimation",
+        name="Use Adaptive Sampling",
+        description="Automatically reduce the number of samples per pixel based on estimated noise level",
         default=False,
     )
+
     adaptive_threshold: FloatProperty(
         name="Adaptive Sampling Threshold",
-        description="Zero for automatic setting based on AA samples",
+        description="Noise level step to stop sampling at, lower values reduce noise the cost of render time. Zero for automatic setting based on number of AA samples",
         min=0.0, max=1.0,
         default=0.0,
     )
     adaptive_min_samples: IntProperty(
         name="Adaptive Min Samples",
-        description="Minimum AA samples for adaptive sampling. Zero for automatic setting based on AA samples",
+        description="Minimum AA samples for adaptive sampling, to discover noisy features before stopping sampling. Zero for automatic setting based on number of AA samples",
         min=0, max=4096,
         default=0,
     )
