@@ -2911,6 +2911,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       wmWindow *win = CTX_wm_window(C);
       if (win) {
         win->eventstate->check_click = 0;
+        win->eventstate->check_drag = 0;
       }
     }
   }
