@@ -67,7 +67,7 @@ void WM_event_print(const wmEvent *event)
 
     printf(
         "wmEvent  type:%d / %s, val:%d / %s,\n"
-        "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d,\n"
+        "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, is_repeat:%d,\n"
         "         mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p\n",
         event->type,
         type_id,
@@ -78,6 +78,7 @@ void WM_event_print(const wmEvent *event)
         event->alt,
         event->oskey,
         event->keymodifier,
+        event->is_repeat,
         event->x,
         event->y,
         event->ascii,
