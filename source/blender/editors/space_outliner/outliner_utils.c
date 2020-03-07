@@ -255,7 +255,7 @@ TreeElement *outliner_find_editbone(ListBase *lb, const EditBone *ebone)
   return NULL;
 }
 
-ID *outliner_search_back(SpaceOutliner *UNUSED(soops), TreeElement *te, short idcode)
+ID *outliner_search_back(TreeElement *te, short idcode)
 {
   TreeStoreElem *tselem;
   te = te->parent;

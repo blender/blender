@@ -318,7 +318,7 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
     ob = (Object *)tselem->id;
   }
   else {
-    ob = (Object *)outliner_search_back(soops, te, ID_OB);
+    ob = (Object *)outliner_search_back(te, ID_OB);
 
     /* Don't return when activating children of the previous active object. */
     if (ob == OBACT(view_layer) && set == OL_SETSEL_NONE) {
@@ -329,7 +329,7 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
     return OL_DRAWSEL_NONE;
   }
 
-  sce = (Scene *)outliner_search_back(soops, te, ID_SCE);
+  sce = (Scene *)outliner_search_back(te, ID_SCE);
   if (sce && scene != sce) {
     WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), sce);
     scene = sce;
@@ -405,7 +405,6 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
 static eOLDrawState tree_element_active_material(bContext *C,
                                                  Scene *UNUSED(scene),
                                                  ViewLayer *view_layer,
-                                                 SpaceOutliner *soops,
                                                  TreeElement *te,
                                                  const eOLSetState set)
 {
@@ -413,7 +412,7 @@ static eOLDrawState tree_element_active_material(bContext *C,
   Object *ob;
 
   /* we search for the object parent */
-  ob = (Object *)outliner_search_back(soops, te, ID_OB);
+  ob = (Object *)outliner_search_back(te, ID_OB);
   // note: ob->matbits can be NULL when a local object points to a library mesh.
   if (ob == NULL || ob != OBACT(view_layer) || ob->matbits == NULL) {
     return OL_DRAWSEL_NONE; /* just paranoia */
@@ -461,11 +460,10 @@ static eOLDrawState tree_element_active_material(bContext *C,
 static eOLDrawState tree_element_active_camera(bContext *C,
                                                Scene *scene,
                                                ViewLayer *UNUSED(view_layer),
-                                               SpaceOutliner *soops,
                                                TreeElement *te,
                                                const eOLSetState set)
 {
-  Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
+  Object *ob = (Object *)outliner_search_back(te, ID_OB);
 
   if (set != OL_SETSEL_NONE) {
     scene->camera = ob;
@@ -1033,13 +1031,13 @@ eOLDrawState tree_element_active(bContext *C,
       }
       break;
     case ID_MA:
-      return tree_element_active_material(C, tvc->scene, tvc->view_layer, soops, te, set);
+      return tree_element_active_material(C, tvc->scene, tvc->view_layer, te, set);
     case ID_WO:
       return tree_element_active_world(C, tvc->scene, tvc->view_layer, soops, te, set);
     case ID_TXT:
       return tree_element_active_text(C, tvc->scene, tvc->view_layer, soops, te, set);
     case ID_CA:
-      return tree_element_active_camera(C, tvc->scene, tvc->view_layer, soops, te, set);
+      return tree_element_active_camera(C, tvc->scene, tvc->view_layer, te, set);
   }
   return OL_DRAWSEL_NONE;
 }
@@ -1208,7 +1206,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
       WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, tvc->scene);
     }
     else if (OB_DATA_SUPPORT_EDITMODE(te->idcode)) {
-      Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
+      Object *ob = (Object *)outliner_search_back(te, ID_OB);
       if ((ob != NULL) && (ob->data == tselem->id)) {
         Base *base = BKE_view_layer_base_find(tvc->view_layer, ob);
         if ((base != NULL) && (base->flag & BASE_VISIBLE_DEPSGRAPH)) {

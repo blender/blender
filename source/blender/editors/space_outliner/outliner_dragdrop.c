@@ -237,7 +237,7 @@ static TreeElement *outliner_drop_insert_collection_find(bContext *C,
 
 /* ******************** Parent Drop Operator *********************** */
 
-static bool parent_drop_allowed(SpaceOutliner *soops, TreeElement *te, Object *potential_child)
+static bool parent_drop_allowed(TreeElement *te, Object *potential_child)
 {
   TreeStoreElem *tselem = TREESTORE(te);
   if (te->idcode != ID_OB || tselem->type != 0) {
@@ -257,7 +257,7 @@ static bool parent_drop_allowed(SpaceOutliner *soops, TreeElement *te, Object *p
   }
 
   /* check that parent/child are both in the same scene */
-  Scene *scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
+  Scene *scene = (Scene *)outliner_search_back(te, ID_SCE);
 
   /* currently outliner organized in a way that if there's no parent scene
    * element for object it means that all displayed objects belong to
@@ -316,7 +316,7 @@ static bool parent_drop_poll(bContext *C,
     return false;
   }
 
-  if (parent_drop_allowed(soops, te, potential_child)) {
+  if (parent_drop_allowed(te, potential_child)) {
     TREESTORE(te)->flag |= TSE_DRAG_INTO;
     ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
     return true;
@@ -332,7 +332,7 @@ static void parent_drop_set_parents(
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
   TreeElement *te = outliner_find_id(soops, &soops->tree, &parent->id);
-  Scene *scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
+  Scene *scene = (Scene *)outliner_search_back(te, ID_SCE);
 
   if (scene == NULL) {
     /* currently outliner organized in a way, that if there's no parent scene

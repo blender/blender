@@ -832,7 +832,7 @@ void outliner_do_object_operation_ex(bContext *C,
     if (tselem->flag & TSE_SELECTED) {
       if (tselem->type == 0 && te->idcode == ID_OB) {
         // when objects selected in other scenes... dunno if that should be allowed
-        Scene *scene_owner = (Scene *)outliner_search_back(soops, te, ID_SCE);
+        Scene *scene_owner = (Scene *)outliner_search_back(te, ID_SCE);
         if (scene_owner && scene_act != scene_owner) {
           WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), scene_owner);
         }
@@ -1048,9 +1048,8 @@ static void constraint_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
 {
   bContext *C = C_v;
   Main *bmain = CTX_data_main(C);
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
   bConstraint *constraint = (bConstraint *)te->directdata;
-  Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
+  Object *ob = (Object *)outliner_search_back(te, ID_OB);
 
   if (event == OL_CONSTRAINTOP_ENABLE) {
     constraint->flag &= ~CONSTRAINT_OFF;
@@ -1089,9 +1088,8 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 {
   bContext *C = (bContext *)Carg;
   Main *bmain = CTX_data_main(C);
-  SpaceOutliner *soops = CTX_wm_space_outliner(C);
   ModifierData *md = (ModifierData *)te->directdata;
-  Object *ob = (Object *)outliner_search_back(soops, te, ID_OB);
+  Object *ob = (Object *)outliner_search_back(te, ID_OB);
 
   if (event == OL_MODIFIER_OP_TOGVIS) {
     md->mode ^= eModifierMode_Realtime;
