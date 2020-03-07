@@ -30,7 +30,7 @@
 const std::string smoke_variables =
     "\n\
 mantaMsg('Smoke variables low')\n\
-preconditioner_s$ID$    = PcMGDynamic\n\
+preconditioner_s$ID$    = PcMGStatic\n\
 using_colors_s$ID$      = $USING_COLORS$\n\
 using_heat_s$ID$        = $USING_HEAT$\n\
 using_fire_s$ID$        = $USING_FIRE$\n\
@@ -391,6 +391,8 @@ def smoke_step_$ID$():\n\
     mantaMsg('Walls')\n\
     setWallBcs(flags=flags_s$ID$, vel=vel_s$ID$, obvel=obvel_s$ID$ if using_obstacle_s$ID$ else None)\n\
     \n\
+    preconditioner_s$ID$ = PcMGDynamic if using_obstacle_s$ID$ and obvel_s$ID$.getMax() > 0 else PcMGStatic\n\
+    mantaMsg('Using preconditioner: ' + str(preconditioner_s$ID$))\n\
     if using_guiding_s$ID$:\n\
         mantaMsg('Guiding and pressure')\n\
         PD_fluid_guiding(vel=vel_s$ID$, velT=velT_s$ID$, flags=flags_s$ID$, weight=weightGuide_s$ID$, blurRadius=beta_sg$ID$, pressure=pressure_s$ID$, tau=tau_sg$ID$, sigma=sigma_sg$ID$, theta=theta_sg$ID$, preconditioner=preconditioner_s$ID$, zeroPressureFixing=not doOpen_s$ID$)\n\
