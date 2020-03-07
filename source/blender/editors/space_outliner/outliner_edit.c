@@ -770,7 +770,7 @@ static int outliner_id_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
+  BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
   BKE_copybuffer_save(bmain, str, op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected data-block(s)", num_ids);
@@ -797,7 +797,7 @@ static int outliner_id_paste_exec(bContext *C, wmOperator *op)
   char str[FILE_MAX];
   const short flag = FILE_AUTOSELECT | FILE_ACTIVE_COLLECTION;
 
-  BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
+  BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
 
   const int num_pasted = BKE_copybuffer_paste(C, str, flag, op->reports, 0);
   if (num_pasted == 0) {

@@ -114,7 +114,7 @@ static void sig_handle_crash(int signum)
       char fname[FILE_MAX];
 
       if (!(G_MAIN && G_MAIN->name[0])) {
-        BLI_make_file_string("/", fname, BKE_tempdir_base(), "crash.blend");
+        BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), "crash.blend");
       }
       else {
         BLI_strncpy(fname, G_MAIN->name, sizeof(fname));

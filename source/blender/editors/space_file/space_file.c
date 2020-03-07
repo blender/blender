@@ -802,7 +802,7 @@ void ED_file_read_bookmarks(void)
 
   if (cfgdir) {
     char name[FILE_MAX];
-    BLI_make_file_string("/", name, cfgdir, BLENDER_BOOKMARK_FILE);
+    BLI_join_dirfile(name, sizeof(name), cfgdir, BLENDER_BOOKMARK_FILE);
     fsmenu_read_bookmarks(ED_fsmenu_get(), name);
   }
 }

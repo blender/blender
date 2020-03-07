@@ -157,13 +157,12 @@ DocumentExporter::DocumentExporter(BlenderContext &blender_context, ExportSettin
 static COLLADABU::NativeString make_temp_filepath(const char *name, const char *extension)
 {
   char tempfile[FILE_MAX];
-  const char *tempdir = BKE_tempdir_session();
 
   if (name == NULL) {
     name = "untitled";
   }
 
-  BLI_make_file_string(NULL, tempfile, tempdir, name);
+  BLI_join_dirfile(tempfile, sizeof(tempfile), BKE_tempdir_session(), name);
 
   if (extension) {
     BLI_path_extension_ensure(tempfile, FILE_MAX, extension);

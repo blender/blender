@@ -1088,7 +1088,7 @@ void wm_history_file_read(void)
     return;
   }
 
-  BLI_make_file_string("/", name, cfgdir, BLENDER_HISTORY_FILE);
+  BLI_join_dirfile(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
 
   lines = BLI_file_read_as_lines(name);
 
@@ -1144,7 +1144,7 @@ static void wm_history_file_write(void)
     return;
   }
 
-  BLI_make_file_string("/", name, user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_join_dirfile(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
 
   fp = BLI_fopen(name, "w");
   if (fp) {
@@ -1487,7 +1487,7 @@ void wm_autosave_location(char *filepath)
   }
 #endif
 
-  BLI_make_file_string("/", filepath, BKE_tempdir_base(), path);
+  BLI_join_dirfile(filepath, FILE_MAX, BKE_tempdir_base(), path);
 }
 
 void WM_autosave_init(wmWindowManager *wm)
@@ -1559,7 +1559,7 @@ void wm_autosave_delete(void)
 
   if (BLI_exists(filename)) {
     char str[FILE_MAX];
-    BLI_make_file_string("/", str, BKE_tempdir_base(), BLENDER_QUIT_FILE);
+    BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
     /* if global undo; remove tempsave, otherwise rename */
     if (U.uiflag & USER_GLOBALUNDO) {
@@ -2439,7 +2439,7 @@ void WM_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
 
-  BLI_make_file_string("/", filepath, BKE_tempdir_base(), BLENDER_QUIT_FILE);
+  BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
   /* if reports==NULL, it's called directly without operator, we add a quick check here */
   if (reports || BLI_exists(filepath)) {
     G.fileflags |= G_FILE_RECOVER;

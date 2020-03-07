@@ -267,10 +267,10 @@ void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *path)
 
     fsentry->path = (path && path[0]) ? BLI_strdup(path) : NULL;
 
-    BLI_make_file_string("/",
-                         tmp_name,
-                         BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                         BLENDER_BOOKMARK_FILE);
+    BLI_join_dirfile(tmp_name,
+                     sizeof(tmp_name),
+                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                     BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(ED_fsmenu_get(), tmp_name);
   }
 }
@@ -332,10 +332,10 @@ void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name)
       BLI_strncpy(fsentry->name, name, sizeof(fsentry->name));
     }
 
-    BLI_make_file_string("/",
-                         tmp_name,
-                         BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                         BLENDER_BOOKMARK_FILE);
+    BLI_join_dirfile(tmp_name,
+                     sizeof(tmp_name),
+                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                     BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(ED_fsmenu_get(), tmp_name);
   }
 }

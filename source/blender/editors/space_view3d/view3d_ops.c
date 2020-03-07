@@ -76,7 +76,7 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
+  BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
   BKE_copybuffer_save(bmain, str, op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected object(s)", num_copied);
@@ -108,7 +108,7 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
     flag |= FILE_ACTIVE_COLLECTION;
   }
 
-  BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
+  BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
 
   const int num_pasted = BKE_copybuffer_paste(C, str, flag, op->reports, FILTER_ID_OB);
   if (num_pasted == 0) {

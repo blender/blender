@@ -948,8 +948,10 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 
     fsmenu_insert_entry(
         fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, NULL, ICON_FILE_FOLDER, FS_INSERT_SAVE);
-    BLI_make_file_string(
-        "/", name, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+    BLI_join_dirfile(name,
+                     sizeof(name),
+                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                     BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(fsmenu, name);
   }
 
@@ -991,10 +993,10 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
       char name[FILE_MAX];
 
       fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
-      BLI_make_file_string("/",
-                           name,
-                           BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                           BLENDER_BOOKMARK_FILE);
+      BLI_join_dirfile(name,
+                       sizeof(name),
+                       BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                       BLENDER_BOOKMARK_FILE);
       fsmenu_write_file(fsmenu, name);
       ED_area_tag_refresh(sa);
       ED_area_tag_redraw(sa);
@@ -1045,8 +1047,10 @@ static int bookmark_cleanup_exec(bContext *C, wmOperator *UNUSED(op))
   if (changed) {
     char name[FILE_MAX];
 
-    BLI_make_file_string(
-        "/", name, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+    BLI_join_dirfile(name,
+                     sizeof(name),
+                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                     BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(fsmenu, name);
     fsmenu_refresh_bookmarks_status(CTX_wm_manager(C), fsmenu);
     ED_area_tag_refresh(sa);
@@ -1122,8 +1126,10 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
   /* Need to update active bookmark number. */
   sfile->bookmarknr = new_index;
 
-  BLI_make_file_string(
-      "/", fname, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+  BLI_join_dirfile(fname,
+                   sizeof(fname),
+                   BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                   BLENDER_BOOKMARK_FILE);
   fsmenu_write_file(fsmenu, fname);
 
   ED_area_tag_redraw(sa);
@@ -1168,8 +1174,10 @@ static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
   while (ED_fsmenu_get_entry(fsmenu, FS_CATEGORY_RECENT, 0) != NULL) {
     fsmenu_remove_entry(fsmenu, FS_CATEGORY_RECENT, 0);
   }
-  BLI_make_file_string(
-      "/", name, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+  BLI_join_dirfile(name,
+                   sizeof(name),
+                   BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                   BLENDER_BOOKMARK_FILE);
   fsmenu_write_file(fsmenu, name);
   ED_area_tag_redraw(sa);
 
@@ -1571,10 +1579,10 @@ int file_exec(bContext *C, wmOperator *exec_op)
                           FS_INSERT_SAVE | FS_INSERT_FIRST);
     }
 
-    BLI_make_file_string(BKE_main_blendfile_path(bmain),
-                         filepath,
-                         BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                         BLENDER_BOOKMARK_FILE);
+    BLI_join_dirfile(filepath,
+                     sizeof(filepath),
+                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                     BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(ED_fsmenu_get(), filepath);
     WM_event_fileselect_event(wm, op, EVT_FILESELECT_EXEC);
   }
