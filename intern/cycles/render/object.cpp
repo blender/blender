@@ -17,6 +17,7 @@
 #include "render/camera.h"
 #include "device/device.h"
 #include "render/hair.h"
+#include "render/integrator.h"
 #include "render/light.h"
 #include "render/mesh.h"
 #include "render/curves.h"
@@ -65,6 +66,7 @@ struct UpdateObjectTransformState {
   KernelObject *objects;
   Transform *object_motion_pass;
   DecomposedTransform *object_motion;
+  float *object_volume_step;
 
   /* Flags which will be synchronized to Integrator. */
   bool have_motion;
@@ -266,6 +268,65 @@ uint Object::visibility_for_tracing() const
   return trace_visibility;
 }
 
+float Object::compute_volume_step_size() const
+{
+  if (!geometry->has_volume) {
+    return FLT_MAX;
+  }
+
+  /* Compute step rate from shaders. */
+  float step_rate = FLT_MAX;
+
+  foreach (Shader *shader, geometry->used_shaders) {
+    if (shader->has_volume) {
+      if ((shader->heterogeneous_volume && shader->has_volume_spatial_varying) ||
+          (shader->has_volume_attribute_dependency)) {
+        step_rate = fminf(shader->volume_step_rate, step_rate);
+      }
+    }
+  }
+
+  if (step_rate == FLT_MAX) {
+    return FLT_MAX;
+  }
+
+  /* Compute step size from voxel grids. */
+  float step_size = FLT_MAX;
+
+  foreach (Attribute &attr, geometry->attributes.attributes) {
+    if (attr.element == ATTR_ELEMENT_VOXEL) {
+      ImageHandle &handle = attr.data_voxel();
+      const ImageMetaData &metadata = handle.metadata();
+      if (metadata.width == 0 || metadata.height == 0 || metadata.depth == 0) {
+        continue;
+      }
+
+      /* Step size is transformed from voxel to world space. */
+      Transform voxel_tfm = tfm;
+      if (metadata.use_transform_3d) {
+        voxel_tfm = tfm * transform_inverse(metadata.transform_3d);
+      }
+
+      float3 size = make_float3(
+          1.0f / metadata.width, 1.0f / metadata.height, 1.0f / metadata.depth);
+      float voxel_step_size = min3(fabs(transform_direction(&voxel_tfm, size)));
+
+      if (voxel_step_size > 0.0f) {
+        step_size = fminf(voxel_step_size, step_size);
+      }
+    }
+  }
+
+  if (step_size == FLT_MAX) {
+    /* Fall back to 1/10th of bounds for procedural volumes. */
+    step_size = 0.1f * average(bounds.size());
+  }
+
+  step_size *= step_rate;
+
+  return step_size;
+}
+
 int Object::get_device_index() const
 {
   return index;
@@ -451,6 +512,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     flag |= SD_OBJECT_HOLDOUT_MASK;
   }
   state->object_flag[ob->index] = flag;
+  state->object_volume_step[ob->index] = FLT_MAX;
 
   /* Have curves. */
   if (geom->type == Geometry::HAIR) {
@@ -504,6 +566,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
 
   state.objects = dscene->objects.alloc(scene->objects.size());
   state.object_flag = dscene->object_flag.alloc(scene->objects.size());
+  state.object_volume_step = dscene->object_volume_step.alloc(scene->objects.size());
   state.object_motion = NULL;
   state.object_motion_pass = NULL;
 
@@ -624,6 +687,7 @@ void ObjectManager::device_update_flags(
 
   /* Object info flag. */
   uint *object_flag = dscene->object_flag.data();
+  float *object_volume_step = dscene->object_volume_step.data();
 
   /* Object volume intersection. */
   vector<Object *> volume_objects;
@@ -634,6 +698,10 @@ void ObjectManager::device_update_flags(
         volume_objects.push_back(object);
       }
       has_volume_objects = true;
+      object_volume_step[object->index] = object->compute_volume_step_size();
+    }
+    else {
+      object_volume_step[object->index] = FLT_MAX;
     }
   }
 
@@ -651,6 +719,7 @@ void ObjectManager::device_update_flags(
     else {
       object_flag[object->index] &= ~(SD_OBJECT_HAS_VOLUME | SD_OBJECT_HAS_VOLUME_ATTRIBUTES);
     }
+
     if (object->is_shadow_catcher) {
       object_flag[object->index] |= SD_OBJECT_SHADOW_CATCHER;
     }
@@ -679,6 +748,7 @@ void ObjectManager::device_update_flags(
 
   /* Copy object flag. */
   dscene->object_flag.copy_to_device();
+  dscene->object_volume_step.copy_to_device();
 }
 
 void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Scene *scene)
@@ -725,6 +795,7 @@ void ObjectManager::device_free(Device *, DeviceScene *dscene)
   dscene->object_motion_pass.free();
   dscene->object_motion.free();
   dscene->object_flag.free();
+  dscene->object_volume_step.free();
 }
 
 void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress &progress)

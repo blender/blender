@@ -63,6 +63,7 @@ DeviceScene::DeviceScene(Device *device)
       object_motion_pass(device, "__object_motion_pass", MEM_GLOBAL),
       object_motion(device, "__object_motion", MEM_GLOBAL),
       object_flag(device, "__object_flag", MEM_GLOBAL),
+      object_volume_step(device, "__object_volume_step", MEM_GLOBAL),
       camera_motion(device, "__camera_motion", MEM_GLOBAL),
       attributes_map(device, "__attributes_map", MEM_GLOBAL),
       attributes_float(device, "__attributes_float", MEM_GLOBAL),

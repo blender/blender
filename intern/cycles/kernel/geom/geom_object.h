@@ -320,6 +320,17 @@ ccl_device_inline uint object_patch_map_offset(KernelGlobals *kg, int object)
   return kernel_tex_fetch(__objects, object).patch_map_offset;
 }
 
+/* Volume step size */
+
+ccl_device_inline float object_volume_step_size(KernelGlobals *kg, int object)
+{
+  if (object == OBJECT_NONE) {
+    return kernel_data.background.volume_step_size;
+  }
+
+  return kernel_tex_fetch(__object_volume_step, object);
+}
+
 /* Pass ID for shader */
 
 ccl_device int shader_pass_id(KernelGlobals *kg, const ShaderData *sd)

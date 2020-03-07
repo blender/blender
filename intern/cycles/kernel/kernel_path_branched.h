@@ -91,7 +91,7 @@ ccl_device_forceinline void kernel_branched_path_volume(KernelGlobals *kg,
   Ray volume_ray = *ray;
   volume_ray.t = (hit) ? isect->t : FLT_MAX;
 
-  bool heterogeneous = volume_stack_is_heterogeneous(kg, state->volume_stack);
+  float step_size = volume_stack_step_size(kg, state->volume_stack);
 
 #      ifdef __VOLUME_DECOUPLED__
   /* decoupled ray marching only supported on CPU */
@@ -100,7 +100,7 @@ ccl_device_forceinline void kernel_branched_path_volume(KernelGlobals *kg,
     VolumeSegment volume_segment;
 
     shader_setup_from_volume(kg, sd, &volume_ray);
-    kernel_volume_decoupled_record(kg, state, &volume_ray, sd, &volume_segment, heterogeneous);
+    kernel_volume_decoupled_record(kg, state, &volume_ray, sd, &volume_segment, step_size);
 
     /* direct light sampling */
     if (volume_segment.closure_flag & SD_SCATTER) {
@@ -171,7 +171,7 @@ ccl_device_forceinline void kernel_branched_path_volume(KernelGlobals *kg,
       path_state_branch(&ps, j, num_samples);
 
       VolumeIntegrateResult result = kernel_volume_integrate(
-          kg, &ps, sd, &volume_ray, L, &tp, heterogeneous);
+          kg, &ps, sd, &volume_ray, L, &tp, step_size);
 
 #      ifdef __VOLUME_SCATTER__
       if (result == VOLUME_PATH_SCATTERED) {

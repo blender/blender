@@ -50,7 +50,7 @@ NODE_DEFINE(Integrator)
   SOCKET_INT(ao_bounces, "AO Bounces", 0);
 
   SOCKET_INT(volume_max_steps, "Volume Max Steps", 1024);
-  SOCKET_FLOAT(volume_step_size, "Volume Step Size", 0.1f);
+  SOCKET_FLOAT(volume_step_rate, "Volume Step Rate", 1.0f);
 
   SOCKET_BOOLEAN(caustics_reflective, "Reflective Caustics", true);
   SOCKET_BOOLEAN(caustics_refractive, "Refractive Caustics", true);
@@ -143,7 +143,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   }
 
   kintegrator->volume_max_steps = volume_max_steps;
-  kintegrator->volume_step_size = volume_step_size;
+  kintegrator->volume_step_rate = volume_step_rate;
 
   kintegrator->caustics_reflective = caustics_reflective;
   kintegrator->caustics_refractive = caustics_refractive;

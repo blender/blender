@@ -97,6 +97,9 @@ class Object : public Node {
   /* Returns the index that is used in the kernel for this object. */
   int get_device_index() const;
 
+  /* Compute step size from attributes, shaders, transforms. */
+  float compute_volume_step_size() const;
+
  protected:
   /* Specifies the position of the object in scene->objects and
    * in the device vectors. Gets set in device_update. */

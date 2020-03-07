@@ -101,15 +101,19 @@ ccl_device float kernel_volume_channel_get(float3 value, int channel)
 
 #ifdef __VOLUME__
 
-ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, ccl_addr_space VolumeStack *stack)
+ccl_device float volume_stack_step_size(KernelGlobals *kg, ccl_addr_space VolumeStack *stack)
 {
+  float step_size = FLT_MAX;
+
   for (int i = 0; stack[i].shader != SHADER_NONE; i++) {
     int shader_flag = kernel_tex_fetch(__shaders, (stack[i].shader & SHADER_MASK)).flags;
 
+    bool heterogeneous = false;
+
     if (shader_flag & SD_HETEROGENEOUS_VOLUME) {
-      return true;
+      heterogeneous = true;
     }
-    else if (shader_flag & SD_NEED_ATTRIBUTES) {
+    else if (shader_flag & SD_NEED_VOLUME_ATTRIBUTES) {
       /* We want to render world or objects without any volume grids
        * as homogeneous, but can only verify this at run-time since other
        * heterogeneous volume objects may be using the same shader. */
@@ -117,13 +121,19 @@ ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, ccl_addr_space 
       if (object != OBJECT_NONE) {
         int object_flag = kernel_tex_fetch(__object_flag, object);
         if (object_flag & SD_OBJECT_HAS_VOLUME_ATTRIBUTES) {
-          return true;
+          heterogeneous = true;
         }
       }
     }
+
+    if (heterogeneous) {
+      float object_step_size = object_volume_step_size(kg, stack[i].object);
+      object_step_size *= kernel_data.integrator.volume_step_rate;
+      step_size = fminf(object_step_size, step_size);
+    }
   }
 
-  return false;
+  return step_size;
 }
 
 ccl_device int volume_stack_sampling_method(KernelGlobals *kg, VolumeStack *stack)
@@ -158,12 +168,13 @@ ccl_device int volume_stack_sampling_method(KernelGlobals *kg, VolumeStack *stac
 
 ccl_device_inline void kernel_volume_step_init(KernelGlobals *kg,
                                                ccl_addr_space PathState *state,
+                                               const float object_step_size,
                                                float t,
                                                float *step_size,
                                                float *step_offset)
 {
   const int max_steps = kernel_data.integrator.volume_max_steps;
-  float step = min(kernel_data.integrator.volume_step_size, t);
+  float step = min(object_step_size, t);
 
   /* compute exact steps in advance for malloc */
   if (t > max_steps * step) {
@@ -199,7 +210,8 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
                                                    ccl_addr_space PathState *state,
                                                    Ray *ray,
                                                    ShaderData *sd,
-                                                   float3 *throughput)
+                                                   float3 *throughput,
+                                                   const float object_step_size)
 {
   float3 tp = *throughput;
   const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
@@ -207,7 +219,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
   /* prepare for stepping */
   int max_steps = kernel_data.integrator.volume_max_steps;
   float step_offset, step_size;
-  kernel_volume_step_init(kg, state, ray->t, &step_size, &step_offset);
+  kernel_volume_step_init(kg, state, object_step_size, ray->t, &step_size, &step_offset);
 
   /* compute extinction at the start */
   float t = 0.0f;
@@ -264,8 +276,9 @@ ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg,
 {
   shader_setup_from_volume(kg, shadow_sd, ray);
 
-  if (volume_stack_is_heterogeneous(kg, state->volume_stack))
-    kernel_volume_shadow_heterogeneous(kg, state, ray, shadow_sd, throughput);
+  float step_size = volume_stack_step_size(kg, state->volume_stack);
+  if (step_size != FLT_MAX)
+    kernel_volume_shadow_heterogeneous(kg, state, ray, shadow_sd, throughput, step_size);
   else
     kernel_volume_shadow_homogeneous(kg, state, ray, shadow_sd, throughput);
 }
@@ -533,7 +546,8 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
                                                Ray *ray,
                                                ShaderData *sd,
                                                PathRadiance *L,
-                                               ccl_addr_space float3 *throughput)
+                                               ccl_addr_space float3 *throughput,
+                                               const float object_step_size)
 {
   float3 tp = *throughput;
   const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
@@ -541,7 +555,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
   /* prepare for stepping */
   int max_steps = kernel_data.integrator.volume_max_steps;
   float step_offset, step_size;
-  kernel_volume_step_init(kg, state, ray->t, &step_size, &step_offset);
+  kernel_volume_step_init(kg, state, object_step_size, ray->t, &step_size, &step_offset);
 
   /* compute coefficients at the start */
   float t = 0.0f;
@@ -679,12 +693,13 @@ kernel_volume_integrate(KernelGlobals *kg,
                         Ray *ray,
                         PathRadiance *L,
                         ccl_addr_space float3 *throughput,
-                        bool heterogeneous)
+                        float step_size)
 {
   shader_setup_from_volume(kg, sd, ray);
 
-  if (heterogeneous)
-    return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput);
+  if (step_size != FLT_MAX)
+    return kernel_volume_integrate_heterogeneous_distance(
+        kg, state, ray, sd, L, throughput, step_size);
   else
     return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, true);
 }
@@ -735,7 +750,7 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
                                                Ray *ray,
                                                ShaderData *sd,
                                                VolumeSegment *segment,
-                                               bool heterogeneous)
+                                               const float object_step_size)
 {
   const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
 
@@ -743,9 +758,9 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
   int max_steps;
   float step_size, step_offset;
 
-  if (heterogeneous) {
+  if (object_step_size != FLT_MAX) {
     max_steps = kernel_data.integrator.volume_max_steps;
-    kernel_volume_step_init(kg, state, ray->t, &step_size, &step_offset);
+    kernel_volume_step_init(kg, state, object_step_size, ray->t, &step_size, &step_offset);
 
 #      ifdef __KERNEL_CPU__
     /* NOTE: For the branched path tracing it's possible to have direct

@@ -45,6 +45,8 @@ class Background : public Node {
   bool transparent_glass;
   float transparent_roughness_threshold;
 
+  float volume_step_size;
+
   bool need_update;
 
   Background();

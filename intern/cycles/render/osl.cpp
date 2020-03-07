@@ -760,14 +760,12 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
   else if (current_type == SHADER_TYPE_VOLUME) {
     if (node->has_spatial_varying())
       current_shader->has_volume_spatial_varying = true;
+    if (node->has_attribute_dependency())
+      current_shader->has_volume_attribute_dependency = true;
   }
 
   if (node->has_object_dependency()) {
     current_shader->has_object_dependency = true;
-  }
-
-  if (node->has_attribute_dependency()) {
-    current_shader->has_attribute_dependency = true;
   }
 
   if (node->has_integrator_dependency()) {
@@ -1143,8 +1141,8 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
     shader->has_displacement = false;
     shader->has_surface_spatial_varying = false;
     shader->has_volume_spatial_varying = false;
+    shader->has_volume_attribute_dependency = false;
     shader->has_object_dependency = false;
-    shader->has_attribute_dependency = false;
     shader->has_integrator_dependency = false;
 
     /* generate surface shader */

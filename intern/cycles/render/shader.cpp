@@ -178,6 +178,8 @@ NODE_DEFINE(Shader)
               volume_interpolation_method_enum,
               VOLUME_INTERPOLATION_LINEAR);
 
+  SOCKET_FLOAT(volume_step_rate, "Volume Step Rate", 1.0f);
+
   static NodeEnum displacement_method_enum;
   displacement_method_enum.insert("bump", DISPLACE_BUMP);
   displacement_method_enum.insert("true", DISPLACE_TRUE);
@@ -203,10 +205,11 @@ Shader::Shader() : Node(node_type)
   has_bssrdf_bump = false;
   has_surface_spatial_varying = false;
   has_volume_spatial_varying = false;
+  has_volume_attribute_dependency = false;
   has_object_dependency = false;
-  has_attribute_dependency = false;
   has_integrator_dependency = false;
   has_volume_connected = false;
+  prev_volume_step_rate = 0.0f;
 
   displacement_method = DISPLACE_BUMP;
 
@@ -353,9 +356,10 @@ void Shader::tag_update(Scene *scene)
     scene->geometry_manager->need_update = true;
   }
 
-  if (has_volume != prev_has_volume) {
+  if (has_volume != prev_has_volume || volume_step_rate != prev_volume_step_rate) {
     scene->geometry_manager->need_flags_update = true;
     scene->object_manager->need_flags_update = true;
+    prev_volume_step_rate = volume_step_rate;
   }
 }
 
@@ -533,10 +537,12 @@ void ShaderManager::device_update_common(Device *device,
     /* in this case we can assume transparent surface */
     if (shader->has_volume_connected && !shader->has_surface)
       flag |= SD_HAS_ONLY_VOLUME;
-    if (shader->heterogeneous_volume && shader->has_volume_spatial_varying)
-      flag |= SD_HETEROGENEOUS_VOLUME;
-    if (shader->has_attribute_dependency)
-      flag |= SD_NEED_ATTRIBUTES;
+    if (shader->has_volume) {
+      if (shader->heterogeneous_volume && shader->has_volume_spatial_varying)
+        flag |= SD_HETEROGENEOUS_VOLUME;
+    }
+    if (shader->has_volume_attribute_dependency)
+      flag |= SD_NEED_VOLUME_ATTRIBUTES;
     if (shader->has_bssrdf_bump)
       flag |= SD_HAS_BSSRDF_BUMP;
     if (device->info.has_volume_decoupled) {

@@ -887,13 +887,13 @@ enum ShaderDataFlag {
   SD_HAS_DISPLACEMENT = (1 << 26),
   /* Has constant emission (value stored in __shaders) */
   SD_HAS_CONSTANT_EMISSION = (1 << 27),
-  /* Needs to access attributes */
-  SD_NEED_ATTRIBUTES = (1 << 28),
+  /* Needs to access attributes for volume rendering */
+  SD_NEED_VOLUME_ATTRIBUTES = (1 << 28),
 
   SD_SHADER_FLAGS = (SD_USE_MIS | SD_HAS_TRANSPARENT_SHADOW | SD_HAS_VOLUME | SD_HAS_ONLY_VOLUME |
                      SD_HETEROGENEOUS_VOLUME | SD_HAS_BSSRDF_BUMP | SD_VOLUME_EQUIANGULAR |
                      SD_VOLUME_MIS | SD_VOLUME_CUBIC | SD_HAS_BUMP | SD_HAS_DISPLACEMENT |
-                     SD_HAS_CONSTANT_EMISSION | SD_NEED_ATTRIBUTES)
+                     SD_HAS_CONSTANT_EMISSION | SD_NEED_VOLUME_ATTRIBUTES)
 };
 
 /* Object flags. */
@@ -1275,6 +1275,7 @@ typedef struct KernelBackground {
   /* only shader index */
   int surface_shader;
   int volume_shader;
+  float volume_step_size;
   int transparent;
   float transparent_roughness_squared_threshold;
 
@@ -1282,7 +1283,6 @@ typedef struct KernelBackground {
   float ao_factor;
   float ao_distance;
   float ao_bounces_factor;
-  float ao_pad;
 } KernelBackground;
 static_assert_align(KernelBackground, 16);
 
@@ -1355,7 +1355,7 @@ typedef struct KernelIntegrator {
   /* volume render */
   int use_volumes;
   int volume_max_steps;
-  float volume_step_size;
+  float volume_step_rate;
   int volume_samples;
 
   int start_sample;

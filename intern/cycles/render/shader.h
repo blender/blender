@@ -92,6 +92,8 @@ class Shader : public Node {
   bool heterogeneous_volume;
   VolumeSampling volume_sampling_method;
   int volume_interpolation_method;
+  float volume_step_rate;
+  float prev_volume_step_rate;
 
   /* synchronization */
   bool need_update;
@@ -118,8 +120,8 @@ class Shader : public Node {
   bool has_bssrdf_bump;
   bool has_surface_spatial_varying;
   bool has_volume_spatial_varying;
+  bool has_volume_attribute_dependency;
   bool has_object_dependency;
-  bool has_attribute_dependency;
   bool has_integrator_dependency;
 
   /* displacement */
