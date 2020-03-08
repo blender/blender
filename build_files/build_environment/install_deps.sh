@@ -5377,7 +5377,7 @@ print_info() {
     PRINT "  $_1"
     _buildargs="$_buildargs $_1"
     if [ -d $INST/xr-openxr-sdk ]; then
-      _1="-D XR_OPENXR_ROOT_DIR=$INST/xr-openxr-sdk"
+      _1="-D XR_OPENXR_SDK_ROOT_DIR=$INST/xr-openxr-sdk"
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
