@@ -54,9 +54,11 @@ class Attribute {
   AttributeElement element;
   uint flags; /* enum AttributeFlag */
 
-  Attribute()
-  {
-  }
+  Attribute(ustring name,
+            TypeDesc type,
+            AttributeElement element,
+            Geometry *geom,
+            AttributePrimitive prim);
   ~Attribute();
   void set(ustring name, TypeDesc type, AttributeElement element);
   void resize(Geometry *geom, AttributePrimitive prim, bool reserve_only);
@@ -151,7 +153,6 @@ class Attribute {
   void add(const float3 &f);
   void add(const uchar4 &f);
   void add(const Transform &tfm);
-  void add(const ImageHandle &handle);
   void add(const char *data);
 
   static bool same_storage(TypeDesc a, TypeDesc b);

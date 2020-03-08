@@ -23,6 +23,7 @@ set(SRC
   graph.cpp
   hair.cpp
   image.cpp
+  image_oiio.cpp
   integrator.cpp
   jitter.cpp
   light.cpp
@@ -61,6 +62,7 @@ set(SRC_HEADERS
   graph.h
   hair.h
   image.h
+  image_oiio.h
   integrator.h
   light.h
   jitter.h

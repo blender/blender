@@ -256,7 +256,6 @@ NODE_DEFINE(ImageTextureNode)
 ImageTextureNode::ImageTextureNode() : ImageSlotTextureNode(node_type)
 {
   colorspace = u_colorspace_raw;
-  builtin_data = NULL;
   animated = false;
   tiles.push_back(1001);
 }
@@ -268,17 +267,15 @@ ShaderNode *ImageTextureNode::clone() const
   return node;
 }
 
-ImageKey ImageTextureNode::image_key() const
+ImageParams ImageTextureNode::image_params() const
 {
-  ImageKey key;
-  key.filename = filename.string();
-  key.builtin_data = builtin_data;
-  key.animated = animated;
-  key.interpolation = interpolation;
-  key.extension = extension;
-  key.alpha_type = alpha_type;
-  key.colorspace = colorspace;
-  return key;
+  ImageParams params;
+  params.animated = animated;
+  params.interpolation = interpolation;
+  params.extension = extension;
+  params.alpha_type = alpha_type;
+  params.colorspace = colorspace;
+  return params;
 }
 
 void ImageTextureNode::cull_tiles(Scene *scene, ShaderGraph *graph)
@@ -365,9 +362,8 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
 
   if (handle.empty()) {
     cull_tiles(compiler.scene, compiler.current_graph);
-
     ImageManager *image_manager = compiler.scene->image_manager;
-    handle = image_manager->add_image(image_key(), 0, tiles);
+    handle = image_manager->add_image(filename.string(), image_params(), tiles);
   }
 
   /* All tiles have the same metadata. */
@@ -448,11 +444,11 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
 
   if (handle.empty()) {
     ImageManager *image_manager = compiler.scene->image_manager;
-    handle = image_manager->add_image(image_key(), 0);
+    handle = image_manager->add_image(filename.string(), image_params());
   }
 
   const ImageMetaData metadata = handle.metadata();
-  const bool is_float = metadata.is_float;
+  const bool is_float = metadata.is_float();
   const bool compress_as_srgb = metadata.compress_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
@@ -524,7 +520,6 @@ NODE_DEFINE(EnvironmentTextureNode)
 EnvironmentTextureNode::EnvironmentTextureNode() : ImageSlotTextureNode(node_type)
 {
   colorspace = u_colorspace_raw;
-  builtin_data = NULL;
   animated = false;
 }
 
@@ -535,17 +530,15 @@ ShaderNode *EnvironmentTextureNode::clone() const
   return node;
 }
 
-ImageKey EnvironmentTextureNode::image_key() const
+ImageParams EnvironmentTextureNode::image_params() const
 {
-  ImageKey key;
-  key.filename = filename.string();
-  key.builtin_data = builtin_data;
-  key.animated = animated;
-  key.interpolation = interpolation;
-  key.extension = EXTENSION_REPEAT;
-  key.alpha_type = alpha_type;
-  key.colorspace = colorspace;
-  return key;
+  ImageParams params;
+  params.animated = animated;
+  params.interpolation = interpolation;
+  params.extension = EXTENSION_REPEAT;
+  params.alpha_type = alpha_type;
+  params.colorspace = colorspace;
+  return params;
 }
 
 void EnvironmentTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
@@ -569,7 +562,7 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
 
   if (handle.empty()) {
     ImageManager *image_manager = compiler.scene->image_manager;
-    handle = image_manager->add_image(image_key(), 0);
+    handle = image_manager->add_image(filename.string(), image_params());
   }
 
   const ImageMetaData metadata = handle.metadata();
@@ -596,18 +589,15 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
 
 void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 {
-  tex_mapping.compile(compiler);
-
-  /* See comments in ImageTextureNode::compile about support
-   * of builtin images.
-   */
   if (handle.empty()) {
     ImageManager *image_manager = compiler.scene->image_manager;
-    handle = image_manager->add_image(image_key(), 0);
+    handle = image_manager->add_image(filename.string(), image_params());
   }
 
+  tex_mapping.compile(compiler);
+
   const ImageMetaData metadata = handle.metadata();
-  const bool is_float = metadata.is_float;
+  const bool is_float = metadata.is_float();
   const bool compress_as_srgb = metadata.compress_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
@@ -1655,7 +1645,6 @@ NODE_DEFINE(PointDensityTextureNode)
 
 PointDensityTextureNode::PointDensityTextureNode() : ShaderNode(node_type)
 {
-  builtin_data = NULL;
 }
 
 PointDensityTextureNode::~PointDensityTextureNode()
@@ -1668,7 +1657,7 @@ ShaderNode *PointDensityTextureNode::clone() const
    * add_image again, to work around access of freed data on the Blender
    * side. A better solution should be found to avoid this. */
   PointDensityTextureNode *node = new PointDensityTextureNode(*this);
-  node->handle = handle;
+  node->handle = handle; /* TODO: not needed? */
   return node;
 }
 
@@ -1680,18 +1669,11 @@ void PointDensityTextureNode::attributes(Shader *shader, AttributeRequestSet *at
   ShaderNode::attributes(shader, attributes);
 }
 
-void PointDensityTextureNode::add_image(ImageManager *image_manager)
+ImageParams PointDensityTextureNode::image_params() const
 {
-  if (!handle.empty()) {
-    return;
-  }
-
-  ImageKey key;
-  key.filename = filename.string();
-  key.builtin_data = builtin_data;
-  key.interpolation = interpolation;
-
-  handle = image_manager->add_image(key, 0);
+  ImageParams params;
+  params.interpolation = interpolation;
+  return params;
 }
 
 void PointDensityTextureNode::compile(SVMCompiler &compiler)
@@ -1704,7 +1686,10 @@ void PointDensityTextureNode::compile(SVMCompiler &compiler)
   const bool use_color = !color_out->links.empty();
 
   if (use_density || use_color) {
-    add_image(compiler.scene->image_manager);
+    if (handle.empty()) {
+      ImageManager *image_manager = compiler.scene->image_manager;
+      handle = image_manager->add_image(filename.string(), image_params());
+    }
 
     const int slot = handle.svm_slot();
     if (slot != -1) {
@@ -1744,7 +1729,10 @@ void PointDensityTextureNode::compile(OSLCompiler &compiler)
   const bool use_color = !color_out->links.empty();
 
   if (use_density || use_color) {
-    add_image(compiler.scene->image_manager);
+    if (handle.empty()) {
+      ImageManager *image_manager = compiler.scene->image_manager;
+      handle = image_manager->add_image(filename.string(), image_params());
+    }
 
     compiler.parameter_texture("filename", handle.svm_slot());
     if (space == NODE_TEX_VOXEL_SPACE_WORLD) {

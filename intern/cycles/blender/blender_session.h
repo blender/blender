@@ -157,22 +157,6 @@ class BlenderSession {
                                      bool do_update_only);
   void do_write_update_render_tile(RenderTile &rtile, bool do_update_only, bool highlight);
 
-  int builtin_image_frame(const string &builtin_name);
-  void builtin_image_info(const string &builtin_name, void *builtin_data, ImageMetaData &metadata);
-  bool builtin_image_pixels(const string &builtin_name,
-                            void *builtin_data,
-                            int tile,
-                            unsigned char *pixels,
-                            const size_t pixels_size,
-                            const bool associate_alpha,
-                            const bool free_cache);
-  bool builtin_image_float_pixels(const string &builtin_name,
-                                  void *builtin_data,
-                                  int tile,
-                                  float *pixels,
-                                  const size_t pixels_size,
-                                  const bool associate_alpha,
-                                  const bool free_cache);
   void builtin_images_load();
 
   /* Update tile manager to reflect resumable render settings. */

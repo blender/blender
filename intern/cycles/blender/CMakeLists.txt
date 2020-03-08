@@ -38,6 +38,7 @@ set(SRC
   CCL_api.h
   blender_device.h
   blender_id_map.h
+  blender_image.h
   blender_object_cull.h
   blender_sync.h
   blender_session.h

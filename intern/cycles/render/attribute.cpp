@@ -26,6 +26,25 @@ CCL_NAMESPACE_BEGIN
 
 /* Attribute */
 
+Attribute::Attribute(
+    ustring name, TypeDesc type, AttributeElement element, Geometry *geom, AttributePrimitive prim)
+    : name(name), std(ATTR_STD_NONE), type(type), element(element), flags(0)
+{
+  /* string and matrix not supported! */
+  assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
+         type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
+         type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix || type == TypeFloat2 ||
+         type == TypeRGBA);
+
+  if (element == ATTR_ELEMENT_VOXEL) {
+    buffer.resize(sizeof(ImageHandle));
+    new (buffer.data()) ImageHandle();
+  }
+  else {
+    resize(geom, prim, false);
+  }
+}
+
 Attribute::~Attribute()
 {
   /* For voxel data, we need to free the image handle. */
@@ -35,34 +54,23 @@ Attribute::~Attribute()
   }
 }
 
-void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
-{
-  name = name_;
-  type = type_;
-  element = element_;
-  std = ATTR_STD_NONE;
-  flags = 0;
-
-  /* string and matrix not supported! */
-  assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
-         type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-         type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix || type == TypeFloat2 ||
-         type == TypeRGBA);
-}
-
 void Attribute::resize(Geometry *geom, AttributePrimitive prim, bool reserve_only)
 {
-  if (reserve_only) {
-    buffer.reserve(buffer_size(geom, prim));
-  }
-  else {
-    buffer.resize(buffer_size(geom, prim), 0);
+  if (element != ATTR_ELEMENT_VOXEL) {
+    if (reserve_only) {
+      buffer.reserve(buffer_size(geom, prim));
+    }
+    else {
+      buffer.resize(buffer_size(geom, prim), 0);
+    }
   }
 }
 
 void Attribute::resize(size_t num_elements)
 {
-  buffer.resize(num_elements * data_sizeof(), 0);
+  if (element != ATTR_ELEMENT_VOXEL) {
+    buffer.resize(num_elements * data_sizeof(), 0);
+  }
 }
 
 void Attribute::add(const float &f)
@@ -118,15 +126,6 @@ void Attribute::add(const Transform &f)
 
   for (size_t i = 0; i < size; i++)
     buffer.push_back(data[i]);
-}
-
-void Attribute::add(const ImageHandle &handle)
-{
-  assert(data_sizeof() == sizeof(ImageHandle));
-  assert(buffer.size() == 0);
-
-  buffer.resize(sizeof(ImageHandle));
-  new (buffer.data()) ImageHandle(handle);
 }
 
 void Attribute::add(const char *data)
@@ -409,23 +408,9 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
     remove(name);
   }
 
-#if __cplusplus >= 201103L
-  attributes.emplace_back();
-  attr = &attributes.back();
-  attr->set(name, type, element);
-#else
-  {
-    Attribute attr_temp;
-    attr_temp.set(name, type, element);
-    attributes.push_back(attr_temp);
-    attr = &attributes.back();
-  }
-#endif
-
-  /* this is weak .. */
-  attr->resize(geometry, prim, false);
-
-  return attr;
+  Attribute new_attr(name, type, element, geometry, prim);
+  attributes.emplace_back(std::move(new_attr));
+  return &attributes.back();
 }
 
 Attribute *AttributeSet::find(ustring name) const
