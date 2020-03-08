@@ -80,8 +80,6 @@ void BKE_sound_reset_runtime(struct bSound *sound);
 void BKE_sound_load(struct Main *main, struct bSound *sound);
 void BKE_sound_ensure_loaded(struct Main *bmain, struct bSound *sound);
 
-void BKE_sound_free(struct bSound *sound);
-
 /* Matches AUD_Channels. */
 typedef enum eSoundChannels {
   SOUND_CHANNELS_INVALID = 0,
@@ -105,13 +103,6 @@ typedef struct SoundInfo {
 /* Get information about given sound. Returns truth on success., false if sound can not be loaded
  * or if the codes is not supported. */
 bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *sound_info);
-
-void BKE_sound_copy_data(struct Main *bmain,
-                         struct bSound *sound_dst,
-                         const struct bSound *sound_src,
-                         const int flag);
-
-void BKE_sound_make_local(struct Main *bmain, struct bSound *sound, const int flags);
 
 #if defined(WITH_AUDASPACE)
 AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
