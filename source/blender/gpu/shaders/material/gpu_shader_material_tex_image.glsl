@@ -183,21 +183,21 @@ void tex_box_sample_nearest(
   if (N.x < 0.0) {
     uv.x = 1.0 - uv.x;
   }
-  ivec2 pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+  ivec2 pix = ivec2(fract(uv.xy) * textureSize(ima, 0).xy);
   color1 = texelFetch(ima, pix, 0);
   /* Y projection */
   uv = texco.xz;
   if (N.y > 0.0) {
     uv.x = 1.0 - uv.x;
   }
-  pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+  pix = ivec2(fract(uv.xy) * textureSize(ima, 0).xy);
   color2 = texelFetch(ima, pix, 0);
   /* Z projection */
   uv = texco.yx;
   if (N.z > 0.0) {
     uv.x = 1.0 - uv.x;
   }
-  pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+  pix = ivec2(fract(uv.xy) * textureSize(ima, 0).xy);
   color3 = texelFetch(ima, pix, 0);
 }
 
