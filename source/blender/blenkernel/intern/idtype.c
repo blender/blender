@@ -67,9 +67,9 @@ static void id_type_init(void)
   INIT_TYPE(ID_KE);
   INIT_TYPE(ID_WO);
   INIT_TYPE(ID_SCR);
-   INIT_TYPE(ID_VF);
+  INIT_TYPE(ID_VF);
   INIT_TYPE(ID_TXT);
-  // INIT_TYPE(ID_SPK);
+  INIT_TYPE(ID_SPK);
   // INIT_TYPE(ID_SO);
   INIT_TYPE(ID_GR);
   INIT_TYPE(ID_AR);

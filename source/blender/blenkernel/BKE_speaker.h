@@ -29,15 +29,8 @@ extern "C" {
 struct Main;
 struct Speaker;
 
-void BKE_speaker_init(struct Speaker *spk);
 void *BKE_speaker_add(struct Main *bmain, const char *name);
-void BKE_speaker_copy_data(struct Main *bmain,
-                           struct Speaker *spk_dst,
-                           const struct Speaker *spk_src,
-                           const int flag);
 struct Speaker *BKE_speaker_copy(struct Main *bmain, const struct Speaker *spk);
-void BKE_speaker_make_local(struct Main *bmain, struct Speaker *spk, const int flags);
-void BKE_speaker_free(struct Speaker *spk);
 
 #ifdef __cplusplus
 }

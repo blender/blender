@@ -26,17 +26,43 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_animsys.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_speaker.h"
 
-void BKE_speaker_init(Speaker *spk)
+static void speaker_init_data(ID *id)
 {
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(spk, id));
+  Speaker *speaker = (Speaker *)id;
 
-  MEMCPY_STRUCT_AFTER(spk, DNA_struct_default_get(Speaker), id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(speaker, id));
+
+  MEMCPY_STRUCT_AFTER(speaker, DNA_struct_default_get(Speaker), id);
 }
+
+static void speaker_free_data(ID *id)
+{
+  BKE_animdata_free(id, false);
+}
+
+IDTypeInfo IDType_ID_SPK = {
+    .id_code = ID_SPK,
+    .id_filter = FILTER_ID_SPK,
+    .main_listbase_index = INDEX_ID_SPK,
+    .struct_size = sizeof(Speaker),
+    .name = "Speaker",
+    .name_plural = "speakers",
+    .translation_context = BLT_I18NCONTEXT_ID_SPEAKER,
+    .flags = 0,
+
+    .init_data = speaker_init_data,
+    .copy_data = NULL,
+    .free_data = speaker_free_data,
+    .make_local = NULL,
+};
 
 void *BKE_speaker_add(Main *bmain, const char *name)
 {
@@ -44,27 +70,9 @@ void *BKE_speaker_add(Main *bmain, const char *name)
 
   spk = BKE_libblock_alloc(bmain, ID_SPK, name, 0);
 
-  BKE_speaker_init(spk);
+  speaker_init_data(&spk->id);
 
   return spk;
-}
-
-/**
- * Only copy internal data of Speaker ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_speaker_copy_data(Main *UNUSED(bmain),
-                           Speaker *UNUSED(spk_dst),
-                           const Speaker *UNUSED(spk_src),
-                           const int UNUSED(flag))
-{
-  /* Nothing to do! */
 }
 
 Speaker *BKE_speaker_copy(Main *bmain, const Speaker *spk)
@@ -72,14 +80,4 @@ Speaker *BKE_speaker_copy(Main *bmain, const Speaker *spk)
   Speaker *spk_copy;
   BKE_id_copy(bmain, &spk->id, (ID **)&spk_copy);
   return spk_copy;
-}
-
-void BKE_speaker_make_local(Main *bmain, Speaker *spk, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &spk->id, flags);
-}
-
-void BKE_speaker_free(Speaker *spk)
-{
-  BKE_animdata_free((ID *)spk, false);
 }

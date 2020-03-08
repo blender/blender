@@ -190,7 +190,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_SPK:
-      BKE_speaker_free((Speaker *)id);
+      BLI_assert(0);
       break;
     case ID_LP:
       BLI_assert(0);
