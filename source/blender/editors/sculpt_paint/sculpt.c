@@ -307,7 +307,7 @@ static void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
   }
 }
 
-static bool SCULPT_vertex_visibility_from_face_sets_get(SculptSession *ss, int index)
+static bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -318,6 +318,26 @@ static bool SCULPT_vertex_visibility_from_face_sets_get(SculptSession *ss, int i
         }
       }
       return false;
+    }
+    case PBVH_BMESH:
+      return true;
+    case PBVH_GRIDS:
+      return true;
+  }
+  return true;
+}
+
+static bool SCULPT_vertex_all_face_sets_visible_get(SculptSession *ss, int index)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      MeshElemMap *vert_map = &ss->pmap[index];
+      for (int j = 0; j < ss->pmap[index].count; j++) {
+        if (ss->face_sets[vert_map->indices[j]] < 0) {
+          return false;
+        }
+      }
+      return true;
     }
     case PBVH_BMESH:
       return true;
@@ -391,7 +411,7 @@ static bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_se
 
 static void sculpt_visibility_sync_face_sets_to_vertex(SculptSession *ss, int index)
 {
-  SCULPT_vertex_visible_set(ss, index, SCULPT_vertex_visibility_from_face_sets_get(ss, index));
+  SCULPT_vertex_visible_set(ss, index, SCULPT_vertex_any_face_set_visible_get(ss, index));
 }
 
 void SCULPT_visibility_sync_all_face_sets_to_vertices(SculptSession *ss)
@@ -3262,7 +3282,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                   vd.index,
                                                                   tls->thread_id);
 
-      if (fade > 0.05f) {
+      if (fade > 0.05f && SCULPT_vertex_all_face_sets_visible_get(ss, vd.index)) {
         SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
       }
     }
@@ -10594,7 +10614,7 @@ static int sculpt_face_set_create_invoke(bContext *C, wmOperator *op, const wmEv
 
   if (mode == SCULPT_FACE_SET_MASKED) {
     for (int i = 0; i < tot_vert; i++) {
-      if (SCULPT_vertex_mask_get(ss, i) >= threshold) {
+      if (SCULPT_vertex_mask_get(ss, i) >= threshold && SCULPT_vertex_visible_get(ss, i)) {
         SCULPT_vertex_face_set_set(ss, i, next_face_set);
       }
     }
@@ -10602,7 +10622,7 @@ static int sculpt_face_set_create_invoke(bContext *C, wmOperator *op, const wmEv
 
   if (mode == SCULPT_FACE_SET_VISIBLE) {
     for (int i = 0; i < tot_vert; i++) {
-      if (SCULPT_vertex_visible_get(ss, i)) {
+      if (SCULPT_vertex_visible_get(ss, i) && SCULPT_vertex_all_face_sets_visible_get(ss, i)) {
         SCULPT_vertex_face_set_set(ss, i, next_face_set);
       }
     }
