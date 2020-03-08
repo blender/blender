@@ -534,8 +534,8 @@ static void update_attribute_element_offset(Geometry *geom,
 
     if (mattr->element == ATTR_ELEMENT_VOXEL) {
       /* store slot in offset value */
-      VoxelAttribute *voxel_data = mattr->data_voxel();
-      offset = voxel_data->slot;
+      ImageHandle &handle = mattr->data_voxel();
+      offset = handle.svm_slot();
     }
     else if (mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
       uchar4 *data = mattr->data_uchar4();
@@ -1143,7 +1143,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
         }
 
         Mesh *mesh = static_cast<Mesh *>(geom);
-        create_volume_mesh(scene, mesh, progress);
+        create_volume_mesh(mesh, progress);
       }
     }
   }
@@ -1171,7 +1171,8 @@ void GeometryManager::device_update_displacement_images(Device *device,
           }
 
           ImageSlotTextureNode *image_node = static_cast<ImageSlotTextureNode *>(node);
-          foreach (int slot, image_node->slots) {
+          for (int i = 0; i < image_node->handle.num_tiles(); i++) {
+            const int slot = image_node->handle.svm_slot(i);
             if (slot != -1) {
               bump_images.insert(slot);
             }
@@ -1204,10 +1205,10 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
         continue;
       }
 
-      VoxelAttribute *voxel = attr.data_voxel();
-
-      if (voxel->slot != -1) {
-        volume_images.insert(voxel->slot);
+      ImageHandle &handle = attr.data_voxel();
+      const int slot = handle.svm_slot();
+      if (slot != -1) {
+        volume_images.insert(slot);
       }
     }
   }

@@ -28,13 +28,10 @@ CCL_NAMESPACE_BEGIN
 
 Attribute::~Attribute()
 {
-  /* for voxel data, we need to remove the image from the image manager */
+  /* For voxel data, we need to free the image handle. */
   if (element == ATTR_ELEMENT_VOXEL) {
-    VoxelAttribute *voxel_data = data_voxel();
-
-    if (voxel_data && voxel_data->slot != -1) {
-      voxel_data->manager->remove_image(voxel_data->slot);
-    }
+    ImageHandle &handle = data_voxel();
+    handle.~ImageHandle();
   }
 }
 
@@ -123,15 +120,13 @@ void Attribute::add(const Transform &f)
     buffer.push_back(data[i]);
 }
 
-void Attribute::add(const VoxelAttribute &f)
+void Attribute::add(const ImageHandle &handle)
 {
-  assert(data_sizeof() == sizeof(VoxelAttribute));
+  assert(data_sizeof() == sizeof(ImageHandle));
+  assert(buffer.size() == 0);
 
-  char *data = (char *)&f;
-  size_t size = sizeof(f);
-
-  for (size_t i = 0; i < size; i++)
-    buffer.push_back(data[i]);
+  buffer.resize(sizeof(ImageHandle));
+  new (buffer.data()) ImageHandle(handle);
 }
 
 void Attribute::add(const char *data)
@@ -145,7 +140,7 @@ void Attribute::add(const char *data)
 size_t Attribute::data_sizeof() const
 {
   if (element == ATTR_ELEMENT_VOXEL)
-    return sizeof(VoxelAttribute);
+    return sizeof(ImageHandle);
   else if (element == ATTR_ELEMENT_CORNER_BYTE)
     return sizeof(uchar4);
   else if (type == TypeDesc::TypeFloat)

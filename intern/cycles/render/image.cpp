@@ -79,6 +79,92 @@ const char *name_from_type(ImageDataType type)
 
 }  // namespace
 
+/* Image Handle */
+
+ImageHandle::ImageHandle() : manager(NULL)
+{
+}
+
+ImageHandle::ImageHandle(const ImageHandle &other) : slots(other.slots), manager(other.manager)
+{
+  /* Increase image user count. */
+  foreach (const int slot, slots) {
+    manager->add_image_user(slot);
+  }
+}
+
+ImageHandle &ImageHandle::operator=(const ImageHandle &other)
+{
+  clear();
+  manager = other.manager;
+  slots = other.slots;
+
+  foreach (const int slot, slots) {
+    manager->add_image_user(slot);
+  }
+
+  return *this;
+}
+
+ImageHandle::~ImageHandle()
+{
+  clear();
+}
+
+void ImageHandle::clear()
+{
+  foreach (const int slot, slots) {
+    manager->remove_image_user(slot);
+  }
+}
+
+bool ImageHandle::empty()
+{
+  return slots.empty();
+}
+
+int ImageHandle::num_tiles()
+{
+  return slots.size();
+}
+
+ImageMetaData ImageHandle::metadata()
+{
+  if (slots.empty()) {
+    return ImageMetaData();
+  }
+
+  return manager->images[slots.front()]->metadata;
+}
+
+int ImageHandle::svm_slot(const int tile_index)
+{
+  if (tile_index >= slots.size()) {
+    return -1;
+  }
+
+  if (manager->osl_texture_system) {
+    ImageManager::Image *img = manager->images[slots[tile_index]];
+    if (!img->key.builtin_data) {
+      return -1;
+    }
+  }
+
+  return slots[tile_index];
+}
+
+device_memory *ImageHandle::image_memory(const int tile_index)
+{
+  if (tile_index >= slots.size()) {
+    return NULL;
+  }
+
+  ImageManager::Image *img = manager->images[slots[tile_index]];
+  return img ? img->mem : NULL;
+}
+
+/* Image Manager */
+
 ImageManager::ImageManager(const DeviceInfo &info)
 {
   need_update = true;
@@ -86,10 +172,7 @@ ImageManager::ImageManager(const DeviceInfo &info)
   animation_frame = 0;
 
   /* Set image limits */
-  max_num_images = TEX_NUM_MAX;
   has_half_images = info.has_half_images;
-
-  tex_num_images = 0;
 }
 
 ImageManager::~ImageManager()
@@ -112,31 +195,6 @@ bool ImageManager::set_animation_frame_update(int frame)
       if (images[slot] && images[slot]->key.animated)
         return true;
     }
-  }
-
-  return false;
-}
-
-device_memory *ImageManager::image_memory(int slot)
-{
-  if (slot == -1) {
-    return NULL;
-  }
-
-  Image *img = images[slot];
-  return img ? img->mem : NULL;
-}
-
-bool ImageManager::get_image_metadata(int slot, ImageMetaData &metadata)
-{
-  if (slot == -1) {
-    return false;
-  }
-
-  Image *img = images[slot];
-  if (img) {
-    metadata = img->metadata;
-    return true;
   }
 
   return false;
@@ -174,7 +232,7 @@ void ImageManager::metadata_detect_colorspace(ImageMetaData &metadata, const cha
   }
 }
 
-bool ImageManager::get_image_metadata(const ImageKey &key, ImageMetaData &metadata)
+bool ImageManager::load_image_metadata(const ImageKey &key, ImageMetaData &metadata)
 {
   metadata = ImageMetaData();
   metadata.colorspace = key.colorspace;
@@ -267,12 +325,37 @@ bool ImageManager::get_image_metadata(const ImageKey &key, ImageMetaData &metada
   return true;
 }
 
-int ImageManager::add_image(const ImageKey &key, float frame, ImageMetaData &metadata)
+ImageHandle ImageManager::add_image(const ImageKey &key, float frame)
+{
+  ImageHandle handle;
+  handle.slots.push_back(add_image_slot(key, frame));
+  handle.manager = this;
+  return handle;
+}
+
+ImageHandle ImageManager::add_image(const ImageKey &key, float frame, const vector<int> &tiles)
+{
+  ImageHandle handle;
+  handle.manager = this;
+
+  foreach (int tile, tiles) {
+    ImageKey tile_key = key;
+    if (tile != 0) {
+      string_replace(tile_key.filename, "<UDIM>", string_printf("%04d", tile));
+    }
+    handle.slots.push_back(add_image_slot(tile_key, frame));
+  }
+
+  return handle;
+}
+
+int ImageManager::add_image_slot(const ImageKey &key, float frame)
 {
   Image *img;
   size_t slot;
 
-  get_image_metadata(key, metadata);
+  ImageMetaData metadata;
+  load_image_metadata(key, metadata);
 
   thread_scoped_lock device_lock(device_mutex);
 
@@ -309,19 +392,6 @@ int ImageManager::add_image(const ImageKey &key, float frame, ImageMetaData &met
       break;
   }
 
-  /* Count if we're over the limit.
-   * Very unlikely, since max_num_images is insanely big. But better safe
-   * than sorry.
-   */
-  if (tex_num_images > max_num_images) {
-    printf(
-        "ImageManager::add_image: Reached image limit (%d), "
-        "skipping '%s'\n",
-        max_num_images,
-        key.filename.c_str());
-    return -1;
-  }
-
   if (slot == images.size()) {
     images.resize(images.size() + 1);
   }
@@ -337,8 +407,6 @@ int ImageManager::add_image(const ImageKey &key, float frame, ImageMetaData &met
 
   images[slot] = img;
 
-  ++tex_num_images;
-
   need_update = true;
 
   return slot;
@@ -352,7 +420,7 @@ void ImageManager::add_image_user(int slot)
   image->users++;
 }
 
-void ImageManager::remove_image(int slot)
+void ImageManager::remove_image_user(int slot)
 {
   Image *image = images[slot];
   assert(image && image->users >= 1);
@@ -365,32 +433,6 @@ void ImageManager::remove_image(int slot)
    * that use them, but we do not want to reload the image all the time. */
   if (image->users == 0)
     need_update = true;
-}
-
-void ImageManager::remove_image(const ImageKey &key)
-{
-  size_t slot;
-
-  for (slot = 0; slot < images.size(); slot++) {
-    if (images[slot] && images[slot]->key == key) {
-      remove_image(slot);
-      return;
-    }
-  }
-}
-
-/* TODO(sergey): Deduplicate with the iteration above, but make it pretty,
- * without bunch of arguments passing around making code readability even
- * more cluttered.
- */
-void ImageManager::tag_reload_image(const ImageKey &key)
-{
-  for (size_t slot = 0; slot < images.size(); slot++) {
-    if (images[slot] && images[slot]->key == key) {
-      images[slot]->need_load = true;
-      break;
-    }
-  }
 }
 
 static bool image_associate_alpha(ImageManager::Image *img)
@@ -881,7 +923,6 @@ void ImageManager::device_free_image(Device *, int slot)
 
     delete img;
     images[slot] = NULL;
-    --tex_num_images;
   }
 }
 
@@ -900,9 +941,13 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
       device_free_image(device, slot);
     }
     else if (images[slot]->need_load) {
-      if (!osl_texture_system || images[slot]->key.builtin_data)
+      if (osl_texture_system && !images[slot]->key.builtin_data) {
+        images[slot]->need_load = false;
+      }
+      else {
         pool.push(
             function_bind(&ImageManager::device_load_image, this, device, scene, slot, &progress));
+      }
     }
   }
 
@@ -920,8 +965,12 @@ void ImageManager::device_update_slot(Device *device, Scene *scene, int slot, Pr
     device_free_image(device, slot);
   }
   else if (image->need_load) {
-    if (!osl_texture_system || image->key.builtin_data)
+    if (osl_texture_system && !image->key.builtin_data) {
+      images[slot]->need_load = false;
+    }
+    else {
       device_load_image(device, scene, slot, progress);
+    }
   }
 }
 

@@ -166,7 +166,7 @@ class GeometryManager {
  protected:
   bool displace(Device *device, DeviceScene *dscene, Scene *scene, Mesh *mesh, Progress &progress);
 
-  void create_volume_mesh(Scene *scene, Mesh *mesh, Progress &progress);
+  void create_volume_mesh(Mesh *mesh, Progress &progress);
 
   /* Attributes */
   void update_osl_attributes(Device *device,

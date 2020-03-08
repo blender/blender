@@ -686,14 +686,6 @@ static ShaderNode *add_node(Scene *scene,
       for (b_image.tiles.begin(b_iter); b_iter != b_image.tiles.end(); ++b_iter) {
         image->tiles.push_back(b_iter->number());
       }
-
-      /* TODO: restore */
-      /* TODO(sergey): Does not work properly when we change builtin type. */
-#if 0
-      if (b_image.is_updated()) {
-        scene->image_manager->tag_reload_image(image->image_key());
-      }
-#endif
     }
     node = image;
   }
@@ -730,14 +722,6 @@ static ShaderNode *add_node(Scene *scene,
 
       env->animated = b_env_node.image_user().use_auto_refresh();
       env->alpha_type = get_image_alpha_type(b_image);
-
-      /* TODO: restore */
-      /* TODO(sergey): Does not work properly when we change builtin type. */
-#if 0
-      if (b_image.is_updated()) {
-        scene->image_manager->tag_reload_image(env->image_key());
-      }
-#endif
     }
     node = env;
   }
@@ -885,14 +869,9 @@ static ShaderNode *add_node(Scene *scene,
     point_density->space = (NodeTexVoxelSpace)b_point_density_node.space();
     point_density->interpolation = get_image_interpolation(b_point_density_node);
     point_density->builtin_data = b_point_density_node.ptr.data;
-    point_density->image_manager = scene->image_manager;
 
-    /* TODO(sergey): Use more proper update flag. */
-    if (true) {
-      point_density->add_image();
-      b_point_density_node.cache_point_density(b_depsgraph);
-      scene->image_manager->tag_reload_image(point_density->image_key());
-    }
+    point_density->add_image(scene->image_manager);
+    b_point_density_node.cache_point_density(b_depsgraph);
     node = point_density;
 
     /* Transformation form world space to texture space.

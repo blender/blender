@@ -362,7 +362,7 @@ struct VoxelAttributeGrid {
   int channels;
 };
 
-void GeometryManager::create_volume_mesh(Scene *scene, Mesh *mesh, Progress &progress)
+void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
 {
   string msg = string_printf("Computing Volume Mesh %s", mesh->name.c_str());
   progress.set_status("Updating Mesh", msg);
@@ -378,8 +378,8 @@ void GeometryManager::create_volume_mesh(Scene *scene, Mesh *mesh, Progress &pro
       continue;
     }
 
-    VoxelAttribute *voxel = attr.data_voxel();
-    device_memory *image_memory = scene->image_manager->image_memory(voxel->slot);
+    ImageHandle &handle = attr.data_voxel();
+    device_memory *image_memory = handle.image_memory();
     int3 resolution = make_int3(
         image_memory->data_width, image_memory->data_height, image_memory->data_depth);
 

@@ -78,12 +78,9 @@ class ImageSlotTextureNode : public TextureNode {
   explicit ImageSlotTextureNode(const NodeType *node_type) : TextureNode(node_type)
   {
     special_type = SHADER_SPECIAL_TYPE_IMAGE_SLOT;
-    image_manager = NULL;
   }
-  ~ImageSlotTextureNode();
-  void add_image_user() const;
-  ImageManager *image_manager;
-  vector<int> slots;
+
+  ImageHandle handle;
 };
 
 class ImageTextureNode : public ImageSlotTextureNode {
@@ -103,7 +100,7 @@ class ImageTextureNode : public ImageSlotTextureNode {
            animated == image_node.animated;
   }
 
-  ImageKey image_key(const int tile = 0) const;
+  ImageKey image_key() const;
 
   /* Parameters. */
   ustring filename;
@@ -117,11 +114,6 @@ class ImageTextureNode : public ImageSlotTextureNode {
   bool animated;
   float3 vector;
   ccl::vector<int> tiles;
-
-  /* Runtime. */
-  bool is_float;
-  bool compress_as_srgb;
-  ustring known_colorspace;
 
  protected:
   void cull_tiles(Scene *scene, ShaderGraph *graph);
@@ -159,11 +151,6 @@ class EnvironmentTextureNode : public ImageSlotTextureNode {
   InterpolationType interpolation;
   bool animated;
   float3 vector;
-
-  /* Runtime. */
-  bool is_float;
-  bool compress_as_srgb;
-  ustring known_colorspace;
 };
 
 class SkyTextureNode : public TextureNode {
@@ -370,9 +357,7 @@ class PointDensityTextureNode : public ShaderNode {
     return true;
   }
 
-  void add_image();
-
-  ImageKey image_key() const;
+  void add_image(ImageManager *image_manager);
 
   /* Parameters. */
   ustring filename;
@@ -383,8 +368,7 @@ class PointDensityTextureNode : public ShaderNode {
   void *builtin_data;
 
   /* Runtime. */
-  ImageManager *image_manager;
-  int slot;
+  ImageHandle handle;
 
   virtual bool equals(const ShaderNode &other)
   {

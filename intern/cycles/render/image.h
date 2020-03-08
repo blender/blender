@@ -31,11 +31,18 @@
 CCL_NAMESPACE_BEGIN
 
 class Device;
+class ImageHandle;
+class ImageKey;
+class ImageMetaData;
+class ImageManager;
 class Progress;
 class RenderStats;
 class Scene;
 class ColorSpaceProcessor;
 
+/* Image MetaData
+ *
+ * Information about the image that is available before the image pxeisl are loaded. */
 class ImageMetaData {
  public:
   /* Must be set by image file or builtin callback. */
@@ -72,6 +79,10 @@ class ImageMetaData {
   }
 };
 
+/* Image Key
+ *
+ * Image description that uniquely identifies and images. When adding images
+ * with the same key, they will be internally deduplicated. */
 class ImageKey {
  public:
   string filename;
@@ -101,18 +112,44 @@ class ImageKey {
   }
 };
 
+/* Image Handle
+ *
+ * Access handle for image in the image manager. Multiple shader nodes may
+ * share the same image, and this class handles reference counting for that. */
+class ImageHandle {
+ public:
+  ImageHandle();
+  ImageHandle(const ImageHandle &other);
+  ImageHandle &operator=(const ImageHandle &other);
+  ~ImageHandle();
+
+  void clear();
+
+  bool empty();
+  int num_tiles();
+
+  ImageMetaData metadata();
+  int svm_slot(const int tile_index = 0);
+  device_memory *image_memory(const int tile_index = 0);
+
+ protected:
+  vector<int> slots;
+  ImageManager *manager;
+
+  friend class ImageManager;
+};
+
+/* Image Manager
+ *
+ * Handles loading and storage of all images in the scene. This includes 2D
+ * texture images and 3D volume images. */
 class ImageManager {
  public:
   explicit ImageManager(const DeviceInfo &info);
   ~ImageManager();
 
-  int add_image(const ImageKey &key, float frame, ImageMetaData &metadata);
-  void add_image_user(int slot);
-  void remove_image(int slot);
-  void remove_image(const ImageKey &key);
-  void tag_reload_image(const ImageKey &key);
-  bool get_image_metadata(const ImageKey &key, ImageMetaData &metadata);
-  bool get_image_metadata(int slot, ImageMetaData &metadata);
+  ImageHandle add_image(const ImageKey &key, float frame);
+  ImageHandle add_image(const ImageKey &key, float frame, const vector<int> &tiles);
 
   void device_update(Device *device, Scene *scene, Progress &progress);
   void device_update_slot(Device *device, Scene *scene, int slot, Progress *progress);
@@ -123,8 +160,6 @@ class ImageManager {
 
   void set_osl_texture_system(void *texture_system);
   bool set_animation_frame_update(int frame);
-
-  device_memory *image_memory(int slot);
 
   void collect_statistics(RenderStats *stats);
 
@@ -167,8 +202,6 @@ class ImageManager {
   };
 
  private:
-  int tex_num_images;
-  int max_num_images;
   bool has_half_images;
 
   thread_mutex device_mutex;
@@ -176,6 +209,12 @@ class ImageManager {
 
   vector<Image *> images;
   void *osl_texture_system;
+
+  int add_image_slot(const ImageKey &key, float frame);
+  void add_image_user(int slot);
+  void remove_image_user(int slot);
+
+  bool load_image_metadata(const ImageKey &key, ImageMetaData &metadata);
 
   bool file_load_image_generic(Image *img, unique_ptr<ImageInput> *in);
 
@@ -186,6 +225,8 @@ class ImageManager {
 
   void device_load_image(Device *device, Scene *scene, int slot, Progress *progress);
   void device_free_image(Device *device, int slot);
+
+  friend class ImageHandle;
 };
 
 CCL_NAMESPACE_END

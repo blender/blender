@@ -48,15 +48,12 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Mesh *mesh, float 
     mesh->volume_isovalue = b_domain.clipping();
 
     Attribute *attr = mesh->attributes.add(std);
-    VoxelAttribute *volume_data = attr->data_voxel();
-    ImageMetaData metadata;
 
     ImageKey key;
     key.filename = Attribute::standard_name(std);
     key.builtin_data = b_ob.ptr.data;
 
-    volume_data->manager = image_manager;
-    volume_data->slot = image_manager->add_image(key, frame, metadata);
+    attr->add(image_manager->add_image(key, frame));
   }
 
   /* Create a matrix to transform from object space to mesh texture space.
