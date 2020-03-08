@@ -787,8 +787,6 @@ def km_outliner(params):
         ("outliner.collection_new", {"type": 'C', "value": 'PRESS'}, None),
         ("outliner.collection_delete", {"type": 'X', "value": 'PRESS'}, None),
         ("outliner.collection_delete", {"type": 'DEL', "value": 'PRESS'}, None),
-        ("outliner.object_operation", {"type": 'X', "value": 'PRESS'}, {"properties": [("type", 'DELETE')]}),
-        ("outliner.object_operation", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("type", 'DELETE')]}),
         ("object.move_to_collection", {"type": 'M', "value": 'PRESS'}, None),
         ("object.link_to_collection", {"type": 'M', "value": 'PRESS', "shift": True}, None),
         ("outliner.collection_exclude_set", {"type": 'E', "value": 'PRESS'}, None),
