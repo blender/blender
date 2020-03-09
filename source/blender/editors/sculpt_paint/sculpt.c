@@ -4888,7 +4888,6 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
   const Brush *brush = data->brush;
   const float *area_no = data->area_no;
   const float *area_co = data->area_co;
-  const float hardness = 0.65f;
 
   PBVHVertexIter vd;
   float(*proxy)[3];
@@ -4911,15 +4910,10 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
 
       sub_v3_v3v3(val, intr, vd.co);
 
-      float dist = sqrtf(test.dist);
-      float p = dist / ss->cache->radius;
-      p = (p - hardness) / (1.0f - hardness);
-      CLAMP(p, 0.0f, 1.0f);
-      dist *= p;
       const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                   brush,
                                                                   vd.co,
-                                                                  dist,
+                                                                  sqrtf(test.dist),
                                                                   vd.no,
                                                                   vd.fno,
                                                                   vd.mask ? *vd.mask : 0.0f,

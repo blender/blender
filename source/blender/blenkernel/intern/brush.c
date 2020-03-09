@@ -1303,6 +1303,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->spacing = 3;
       br->autosmooth_factor = 0.25f;
       br->normal_radius_factor = 0.75f;
+      br->hardness = 0.65f;
       break;
     case SCULPT_TOOL_CLAY_THUMB:
       br->alpha = 0.5f;
