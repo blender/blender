@@ -43,16 +43,7 @@ struct bContext;
 
 void BKE_linestyle_init(struct FreestyleLineStyle *linestyle);
 FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name);
-void BKE_linestyle_free(FreestyleLineStyle *linestyle);
-void BKE_linestyle_copy_data(struct Main *bmain,
-                             struct FreestyleLineStyle *linestyle_dst,
-                             const struct FreestyleLineStyle *linestyle_src,
-                             const int flag);
 FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, const FreestyleLineStyle *linestyle);
-
-void BKE_linestyle_make_local(struct Main *bmain,
-                              struct FreestyleLineStyle *linestyle,
-                              const int flags);
 
 FreestyleLineStyle *BKE_linestyle_active_from_view_layer(struct ViewLayer *view_layer);
 

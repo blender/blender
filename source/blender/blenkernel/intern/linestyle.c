@@ -37,14 +37,131 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_freestyle.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_colortools.h"
 #include "BKE_animsys.h"
+
+static void linestyle_init_data(ID *id)
+{
+  FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(linestyle, id));
+
+  MEMCPY_STRUCT_AFTER(linestyle, DNA_struct_default_get(FreestyleLineStyle), id);
+
+  BKE_linestyle_geometry_modifier_add(linestyle, NULL, LS_MODIFIER_SAMPLING);
+}
+
+static void linestyle_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+{
+  FreestyleLineStyle *linestyle_dst = (FreestyleLineStyle *)id_dst;
+  const FreestyleLineStyle *linestyle_src = (const FreestyleLineStyle *)id_src;
+
+  /* We never handle usercount here for own data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+  /* We always need allocation of our private ID data. */
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
+
+  for (int a = 0; a < MAX_MTEX; a++) {
+    if (linestyle_src->mtex[a]) {
+      linestyle_dst->mtex[a] = MEM_mallocN(sizeof(*linestyle_dst->mtex[a]), __func__);
+      *linestyle_dst->mtex[a] = *linestyle_src->mtex[a];
+    }
+  }
+
+  if (linestyle_src->nodetree) {
+    BKE_id_copy_ex(bmain,
+                   (ID *)linestyle_src->nodetree,
+                   (ID **)&linestyle_dst->nodetree,
+                   flag_private_id_data);
+  }
+
+  LineStyleModifier *linestyle_modifier;
+  BLI_listbase_clear(&linestyle_dst->color_modifiers);
+  for (linestyle_modifier = (LineStyleModifier *)linestyle_src->color_modifiers.first;
+       linestyle_modifier;
+       linestyle_modifier = linestyle_modifier->next) {
+    BKE_linestyle_color_modifier_copy(linestyle_dst, linestyle_modifier, flag_subdata);
+  }
+
+  BLI_listbase_clear(&linestyle_dst->alpha_modifiers);
+  for (linestyle_modifier = (LineStyleModifier *)linestyle_src->alpha_modifiers.first;
+       linestyle_modifier;
+       linestyle_modifier = linestyle_modifier->next) {
+    BKE_linestyle_alpha_modifier_copy(linestyle_dst, linestyle_modifier, flag_subdata);
+  }
+
+  BLI_listbase_clear(&linestyle_dst->thickness_modifiers);
+  for (linestyle_modifier = (LineStyleModifier *)linestyle_src->thickness_modifiers.first;
+       linestyle_modifier;
+       linestyle_modifier = linestyle_modifier->next) {
+    BKE_linestyle_thickness_modifier_copy(linestyle_dst, linestyle_modifier, flag_subdata);
+  }
+
+  BLI_listbase_clear(&linestyle_dst->geometry_modifiers);
+  for (linestyle_modifier = (LineStyleModifier *)linestyle_src->geometry_modifiers.first;
+       linestyle_modifier;
+       linestyle_modifier = linestyle_modifier->next) {
+    BKE_linestyle_geometry_modifier_copy(linestyle_dst, linestyle_modifier, flag_subdata);
+  }
+}
+
+static void linestyle_free_data(ID *id)
+{
+  FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
+  LineStyleModifier *linestyle_modifier;
+
+  BKE_animdata_free(&linestyle->id, false);
+
+  for (int material_slot_index = 0; material_slot_index < MAX_MTEX; material_slot_index++) {
+    MEM_SAFE_FREE(linestyle->mtex[material_slot_index]);
+  }
+
+  /* is no lib link block, but linestyle extension */
+  if (linestyle->nodetree) {
+    ntreeFreeNestedTree(linestyle->nodetree);
+    MEM_freeN(linestyle->nodetree);
+    linestyle->nodetree = NULL;
+  }
+
+  while ((linestyle_modifier = (LineStyleModifier *)linestyle->color_modifiers.first)) {
+    BKE_linestyle_color_modifier_remove(linestyle, linestyle_modifier);
+  }
+  while ((linestyle_modifier = (LineStyleModifier *)linestyle->alpha_modifiers.first)) {
+    BKE_linestyle_alpha_modifier_remove(linestyle, linestyle_modifier);
+  }
+  while ((linestyle_modifier = (LineStyleModifier *)linestyle->thickness_modifiers.first)) {
+    BKE_linestyle_thickness_modifier_remove(linestyle, linestyle_modifier);
+  }
+  while ((linestyle_modifier = (LineStyleModifier *)linestyle->geometry_modifiers.first)) {
+    BKE_linestyle_geometry_modifier_remove(linestyle, linestyle_modifier);
+  }
+}
+
+IDTypeInfo IDType_ID_LS = {
+    .id_code = ID_LS,
+    .id_filter = FILTER_ID_LS,
+    .main_listbase_index = INDEX_ID_LS,
+    .struct_size = sizeof(FreestyleLineStyle),
+    .name = "FreestyleLineStyle",
+    .name_plural = "linestyles",
+    .translation_context = BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
+    .flags = 0,
+
+    .init_data = linestyle_init_data,
+    .copy_data = linestyle_copy_data,
+    .free_data = linestyle_free_data,
+    .make_local = NULL,
+};
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {
     NULL,
@@ -75,11 +192,7 @@ static const char *modifier_name[LS_MODIFIER_NUM] = {
 
 void BKE_linestyle_init(FreestyleLineStyle *linestyle)
 {
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(linestyle, id));
-
-  MEMCPY_STRUCT_AFTER(linestyle, DNA_struct_default_get(FreestyleLineStyle), id);
-
-  BKE_linestyle_geometry_modifier_add(linestyle, NULL, LS_MODIFIER_SAMPLING);
+  linestyle_init_data(&linestyle->id);
 }
 
 FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name)
@@ -93,102 +206,11 @@ FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name)
   return linestyle;
 }
 
-/** Free (or release) any data used by this linestyle (does not free the linestyle itself). */
-void BKE_linestyle_free(FreestyleLineStyle *linestyle)
-{
-  LineStyleModifier *m;
-  int a;
-
-  BKE_animdata_free(&linestyle->id, false);
-
-  for (a = 0; a < MAX_MTEX; a++) {
-    MEM_SAFE_FREE(linestyle->mtex[a]);
-  }
-
-  /* is no lib link block, but linestyle extension */
-  if (linestyle->nodetree) {
-    ntreeFreeNestedTree(linestyle->nodetree);
-    MEM_freeN(linestyle->nodetree);
-    linestyle->nodetree = NULL;
-  }
-
-  while ((m = (LineStyleModifier *)linestyle->color_modifiers.first)) {
-    BKE_linestyle_color_modifier_remove(linestyle, m);
-  }
-  while ((m = (LineStyleModifier *)linestyle->alpha_modifiers.first)) {
-    BKE_linestyle_alpha_modifier_remove(linestyle, m);
-  }
-  while ((m = (LineStyleModifier *)linestyle->thickness_modifiers.first)) {
-    BKE_linestyle_thickness_modifier_remove(linestyle, m);
-  }
-  while ((m = (LineStyleModifier *)linestyle->geometry_modifiers.first)) {
-    BKE_linestyle_geometry_modifier_remove(linestyle, m);
-  }
-}
-
-/**
- * Only copy internal data of Linestyle ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_linestyle_copy_data(struct Main *bmain,
-                             FreestyleLineStyle *linestyle_dst,
-                             const FreestyleLineStyle *linestyle_src,
-                             const int flag)
-{
-  /* We never handle usercount here for own data. */
-  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
-  /* We always need allocation of our private ID data. */
-  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
-
-  for (int a = 0; a < MAX_MTEX; a++) {
-    if (linestyle_src->mtex[a]) {
-      linestyle_dst->mtex[a] = MEM_mallocN(sizeof(*linestyle_dst->mtex[a]), __func__);
-      *linestyle_dst->mtex[a] = *linestyle_src->mtex[a];
-    }
-  }
-
-  if (linestyle_src->nodetree) {
-    BKE_id_copy_ex(bmain,
-                   (ID *)linestyle_src->nodetree,
-                   (ID **)&linestyle_dst->nodetree,
-                   flag_private_id_data);
-  }
-
-  LineStyleModifier *m;
-  BLI_listbase_clear(&linestyle_dst->color_modifiers);
-  for (m = (LineStyleModifier *)linestyle_src->color_modifiers.first; m; m = m->next) {
-    BKE_linestyle_color_modifier_copy(linestyle_dst, m, flag_subdata);
-  }
-  BLI_listbase_clear(&linestyle_dst->alpha_modifiers);
-  for (m = (LineStyleModifier *)linestyle_src->alpha_modifiers.first; m; m = m->next) {
-    BKE_linestyle_alpha_modifier_copy(linestyle_dst, m, flag_subdata);
-  }
-  BLI_listbase_clear(&linestyle_dst->thickness_modifiers);
-  for (m = (LineStyleModifier *)linestyle_src->thickness_modifiers.first; m; m = m->next) {
-    BKE_linestyle_thickness_modifier_copy(linestyle_dst, m, flag_subdata);
-  }
-  BLI_listbase_clear(&linestyle_dst->geometry_modifiers);
-  for (m = (LineStyleModifier *)linestyle_src->geometry_modifiers.first; m; m = m->next) {
-    BKE_linestyle_geometry_modifier_copy(linestyle_dst, m, flag_subdata);
-  }
-}
-
 FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, const FreestyleLineStyle *linestyle)
 {
   FreestyleLineStyle *linestyle_copy;
   BKE_id_copy(bmain, &linestyle->id, (ID **)&linestyle_copy);
   return linestyle_copy;
-}
-
-void BKE_linestyle_make_local(struct Main *bmain, FreestyleLineStyle *linestyle, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &linestyle->id, flags);
 }
 
 FreestyleLineStyle *BKE_linestyle_active_from_view_layer(ViewLayer *view_layer)

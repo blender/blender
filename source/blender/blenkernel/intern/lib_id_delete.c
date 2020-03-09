@@ -229,7 +229,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_LS:
-      BKE_linestyle_free((FreestyleLineStyle *)id);
+      BLI_assert(0);
       break;
     case ID_PAL:
       BKE_palette_free((Palette *)id);
