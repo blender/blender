@@ -103,6 +103,7 @@
     .pose_smooth_iterations = 4, \
     .pose_ik_segments = 1, \
     .hardness = 0.0f, \
+    .automasking_boundary_edges_propagation_steps = 1, \
  \
     /* A kernel radius of 1 has almost no effect (T63233). */ \
     .blur_kernel_radius = 2, \

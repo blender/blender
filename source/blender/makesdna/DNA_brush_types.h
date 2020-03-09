@@ -321,6 +321,7 @@ typedef enum eGP_Sculpt_Mode_Flag {
 typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),
   BRUSH_AUTOMASKING_FACE_SETS = (1 << 1),
+  BRUSH_AUTOMASKING_BOUNDARY_EDGES = (1 << 2),
 } eAutomasking_flag;
 
 typedef struct Brush {
@@ -426,7 +427,7 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1_[6];
+  char _pad1[6];
 
   float autosmooth_factor;
 
@@ -446,7 +447,9 @@ typedef struct Brush {
   int curve_preset;
   float hardness;
 
+  /* automasking */
   int automasking_flags;
+  int automasking_boundary_edges_propagation_steps;
 
   /* Factor that controls the shape of the brush tip by rounding the corners of a square. */
   /* 0.0 value produces a square, 1.0 produces a circle. */
@@ -497,7 +500,6 @@ typedef struct Brush {
   float mask_stencil_pos[2];
   float mask_stencil_dimension[2];
 
-  char _pad6[4];
   struct BrushGpencilSettings *gpencil_settings;
 
 } Brush;

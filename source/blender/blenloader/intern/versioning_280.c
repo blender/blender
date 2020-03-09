@@ -4811,5 +4811,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Boundary Edges Automasking. */
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "Brush", "int", "automasking_boundary_edges_propagation_steps")) {
+      for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+        br->automasking_boundary_edges_propagation_steps = 1;
+      }
+    }
   }
 }
