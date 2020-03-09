@@ -260,6 +260,13 @@ void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
                                            const float outline_col[3],
                                            const float outline_alpha);
 
+/* Slide/Relax */
+void SCULPT_relax_vertex(struct SculptSession *ss,
+                         struct PBVHVertexIter *vd,
+                         float factor,
+                         bool filter_boundary_face_sets,
+                         float *r_final_pos);
+
 /* Sculpt Visibility API */
 void SCULPT_visibility_sync_all_face_sets_to_vertices(struct SculptSession *ss);
 void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
@@ -528,6 +535,10 @@ typedef struct StrokeCache {
   float location[3];
   float last_location[3];
 
+  /* Used for alternating between deformation in brushes that need to apply different ones to
+   * achieve certain effects. */
+  int iteration_count;
+
   /* Original pixel radius with the pressure curve applied for dyntopo detail size */
   float dyntopo_pixel_radius;
 
@@ -634,6 +645,10 @@ typedef struct StrokeCache {
 typedef struct FilterCache {
   bool enabled_axis[3];
   int random_seed;
+
+  /* Used for alternating between filter operations in filters that need to apply different ones to
+   * achieve certain effects. */
+  int iteration_count;
 
   /* unmasked nodes */
   PBVHNode **nodes;

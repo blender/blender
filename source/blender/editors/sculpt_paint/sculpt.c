@@ -443,21 +443,30 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
   }
 }
 
-static bool UNUSED_FUNCTION(sculpt_vertex_has_unique_face_set)(SculptSession *ss, int index)
+static bool sculpt_vertex_has_unique_face_set(SculptSession *ss, int index)
 {
-  MeshElemMap *vert_map = &ss->pmap[index];
-  int face_set = -1;
-  for (int i = 0; i < ss->pmap[index].count; i++) {
-    if (face_set == -1) {
-      face_set = ss->face_sets[vert_map->indices[i]];
-    }
-    else {
-      if (ss->face_sets[vert_map->indices[i]] != face_set) {
-        return false;
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      MeshElemMap *vert_map = &ss->pmap[index];
+      int face_set = -1;
+      for (int i = 0; i < ss->pmap[index].count; i++) {
+        if (face_set == -1) {
+          face_set = abs(ss->face_sets[vert_map->indices[i]]);
+        }
+        else {
+          if (abs(ss->face_sets[vert_map->indices[i]]) != face_set) {
+            return false;
+          }
+        }
       }
+      return true;
     }
+    case PBVH_BMESH:
+      return false;
+    case PBVH_GRIDS:
+      return false;
   }
-  return true;
+  return false;
 }
 
 static int SCULPT_face_set_next_available_get(SculptSession *ss)
@@ -3290,6 +3299,51 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
+static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
+                                                const int n,
+                                                const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  float bstrength = ss->cache->bstrength;
+
+  PBVHVertexIter vd;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+
+  const bool relax_face_sets = !(ss->cache->iteration_count % 3 == 0);
+  /* This operations needs a stregth tweak as the relax deformation is too weak by default. */
+  if (relax_face_sets) {
+    bstrength *= 2.0f;
+  }
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      if (relax_face_sets != sculpt_vertex_has_unique_face_set(ss, vd.index)) {
+        const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                    brush,
+                                                                    vd.co,
+                                                                    sqrtf(test.dist),
+                                                                    vd.no,
+                                                                    vd.fno,
+                                                                    vd.mask ? *vd.mask : 0.0f,
+                                                                    vd.index,
+                                                                    tls->thread_id);
+
+        SCULPT_relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
+        if (vd.mvert) {
+          vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+        }
+      }
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
 static void do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
@@ -3319,7 +3373,14 @@ static void do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 
   PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  BKE_pbvh_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
+  if (ss->cache->alt_smooth) {
+    for (int i = 0; i < 4; i++) {
+      BKE_pbvh_parallel_range(0, totnode, &data, do_relax_face_sets_brush_task_cb_ex, &settings);
+    }
+  }
+  else {
+    BKE_pbvh_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
+  }
 }
 
 static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
@@ -3466,10 +3527,11 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void sculpt_relax_vertex(SculptSession *ss,
-                                PBVHVertexIter *vd,
-                                float factor,
-                                float *r_final_pos)
+void SCULPT_relax_vertex(SculptSession *ss,
+                         PBVHVertexIter *vd,
+                         float factor,
+                         bool filter_boundary_face_sets,
+                         float *r_final_pos)
 {
   float smooth_pos[3];
   float final_disp[3];
@@ -3479,8 +3541,11 @@ static void sculpt_relax_vertex(SculptSession *ss,
   SculptVertexNeighborIter ni;
   sculpt_vertex_neighbors_iter_begin(ss, vd->index, ni)
   {
-    add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.index));
-    count++;
+    if (!filter_boundary_face_sets ||
+        (filter_boundary_face_sets && !sculpt_vertex_has_unique_face_set(ss, ni.index))) {
+      add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.index));
+      count++;
+    }
   }
   sculpt_vertex_neighbors_iter_end(ni);
 
@@ -3539,7 +3604,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
                                                       vd.index,
                                                       tls->thread_id);
 
-      sculpt_relax_vertex(ss, &vd, fade * bstrength, vd.co);
+      SCULPT_relax_vertex(ss, &vd, fade * bstrength, false, vd.co);
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
       }
@@ -5688,14 +5753,23 @@ static void do_brush_action_task_cb(void *__restrict userdata,
                                     const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
 
   /* Face Sets modifications do a single undo push */
-  if (data->brush->sculpt_tool != SCULPT_TOOL_DRAW_FACE_SETS) {
+  if (data->brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
+    /* Draw face sets in smooth mode moves the vertices. */
+    if (ss->cache->alt_smooth) {
+      SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+      BKE_pbvh_node_mark_update(data->nodes[n]);
+    }
+  }
+  else {
     SCULPT_undo_push_node(data->ob,
                           data->nodes[n],
                           data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
                                                                          SCULPT_UNDO_COORDS);
   }
+
   if (data->brush->sculpt_tool == SCULPT_TOOL_MASK) {
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
@@ -5759,8 +5833,10 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
     BKE_pbvh_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
 
+    /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
+     * vertices and uses regular coords undo. */
     if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS && ss->cache->first_time &&
-        ss->cache->mirror_symmetry_pass == 0) {
+        ss->cache->mirror_symmetry_pass == 0 && !ss->cache->alt_smooth) {
       SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
     }
 
@@ -6533,7 +6609,7 @@ static void sculpt_update_cache_invariants(
       cache->saved_mask_brush_tool = brush->mask_tool;
       brush->mask_tool = BRUSH_MASK_SMOOTH;
     }
-    else if (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) {
+    else if (ELEM(brush->sculpt_tool, SCULPT_TOOL_SLIDE_RELAX, SCULPT_TOOL_DRAW_FACE_SETS)) {
       /* Do nothing, this tool has its own smooth mode. */
     }
     else {
@@ -6926,6 +7002,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   }
 
   cache->special_rotation = ups->brush_rotation;
+
+  cache->iteration_count++;
 }
 
 /* Returns true if any of the smoothing modes are active (currently
@@ -7596,7 +7674,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
       if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
         brush->mask_tool = ss->cache->saved_mask_brush_tool;
       }
-      else if (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) {
+      else if (ELEM(brush->sculpt_tool, SCULPT_TOOL_SLIDE_RELAX, SCULPT_TOOL_DRAW_FACE_SETS)) {
         /* Do nothing. */
       }
       else {
@@ -8964,6 +9042,7 @@ typedef enum eSculptMeshFilterTypes {
   MESH_FILTER_SPHERE = 3,
   MESH_FILTER_RANDOM = 4,
   MESH_FILTER_RELAX = 5,
+  MESH_FILTER_RELAX_FACE_SETS = 6,
 } eSculptMeshFilterTypes;
 
 static EnumPropertyItem prop_mesh_filter_types[] = {
@@ -8973,6 +9052,11 @@ static EnumPropertyItem prop_mesh_filter_types[] = {
     {MESH_FILTER_SPHERE, "SPHERE", 0, "Sphere", "Morph into sphere"},
     {MESH_FILTER_RANDOM, "RANDOM", 0, "Random", "Randomize vertex positions"},
     {MESH_FILTER_RELAX, "RELAX", 0, "Relax", "Relax mesh"},
+    {MESH_FILTER_RELAX_FACE_SETS,
+     "RELAX_FACE_SETS",
+     0,
+     "Relax Face Sets",
+     "Smooth the edges of all the Face Sets"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -8991,7 +9075,7 @@ static EnumPropertyItem prop_mesh_filter_deform_axis_items[] = {
 
 static bool sculpt_mesh_filter_needs_pmap(int filter_type)
 {
-  return ELEM(filter_type, MESH_FILTER_SMOOTH, MESH_FILTER_RELAX);
+  return ELEM(filter_type, MESH_FILTER_SMOOTH, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS);
 }
 
 static void mesh_filter_task_cb(void *__restrict userdata,
@@ -9006,6 +9090,12 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+
+  /* When using the relax face sets mehs filter, each 3 iterations, do a whole mesh relax to smooth
+   * the contents of the Face Set. */
+  /* This produces better results as the relax operation is no completely focused on the
+   * boundaries. */
+  const bool relax_face_sets = !(ss->filter_cache->iteration_count % 3 == 0);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
@@ -9024,13 +9114,26 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       if (!SCULPT_vertex_has_face_set(ss, vd.index, ss->filter_cache->active_face_set)) {
         continue;
       }
+      /* Skip the edges of the face set when relaxing or smoothing. There is a relax face set
+       * option to relax the boindaries independently. */
+      if (filter_type == MESH_FILTER_RELAX) {
+        if (!sculpt_vertex_has_unique_face_set(ss, vd.index)) {
+          continue;
+        }
+      }
     }
 
-    if (filter_type == MESH_FILTER_RELAX) {
+    if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
       copy_v3_v3(orig_co, vd.co);
     }
     else {
       copy_v3_v3(orig_co, orig_data.co);
+    }
+
+    if (filter_type == MESH_FILTER_RELAX_FACE_SETS) {
+      if (relax_face_sets == sculpt_vertex_has_unique_face_set(ss, vd.index)) {
+        continue;
+      }
     }
 
     switch (filter_type) {
@@ -9095,7 +9198,12 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         break;
       }
       case MESH_FILTER_RELAX: {
-        sculpt_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), val);
+        SCULPT_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), false, val);
+        sub_v3_v3v3(disp, val, vd.co);
+        break;
+      }
+      case MESH_FILTER_RELAX_FACE_SETS: {
+        SCULPT_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), relax_face_sets, val);
         sub_v3_v3v3(disp, val, vd.co);
         break;
       }
@@ -9159,12 +9267,14 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
       &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
   BKE_pbvh_parallel_range(0, ss->filter_cache->totnode, &data, mesh_filter_task_cb, &settings);
 
+  ss->filter_cache->iteration_count++;
+
   if (ss->deform_modifiers_active || ss->shapekey_active) {
     sculpt_flush_stroke_deform(sd, ob, true);
   }
 
   /* The relax mesh filter needs the updated normals of the modified mesh after each iteration. */
-  if (filter_type == MESH_FILTER_RELAX) {
+  if (ELEM(MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
     BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
   }
 
