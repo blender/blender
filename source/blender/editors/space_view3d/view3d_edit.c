@@ -5028,12 +5028,13 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     float ray_co[3];
 
     struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-        bmain, scene, CTX_data_ensure_evaluated_depsgraph(C), 0, region, v3d);
+        bmain, scene, 0, region, v3d);
 
     float obmat[4][4];
     Object *ob_dummy = NULL;
     float dist_px = 0;
     if (ED_transform_snap_object_project_view3d_ex(snap_context,
+                                                   CTX_data_ensure_evaluated_depsgraph(C),
                                                    SCE_SNAP_MODE_FACE,
                                                    &(const struct SnapObjectParams){
                                                        .snap_select = SNAP_ALL,

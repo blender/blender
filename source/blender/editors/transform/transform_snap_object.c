@@ -112,7 +112,6 @@ typedef struct SnapObjectData {
 struct SnapObjectContext {
   Main *bmain;
   Scene *scene;
-  Depsgraph *depsgraph;
 
   int flag;
 
@@ -373,11 +372,12 @@ typedef void (*IterSnapObjsCallback)(SnapObjectContext *sctx,
  * \param snap_select: from enum #eSnapSelect.
  */
 static void iter_snap_objects(SnapObjectContext *sctx,
+                              Depsgraph *depsgraph,
                               const struct SnapObjectParams *params,
                               IterSnapObjsCallback sob_callback,
                               void *data)
 {
-  ViewLayer *view_layer = DEG_get_input_view_layer(sctx->depsgraph);
+  ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
   const View3D *v3d = sctx->v3d_data.v3d;
   const eSnapSelect snap_select = params->snap_select;
   const bool use_object_edit_cage = params->use_object_edit_cage;
@@ -408,10 +408,10 @@ static void iter_snap_objects(SnapObjectContext *sctx,
       }
     }
 
-    Object *obj_eval = DEG_get_evaluated_object(sctx->depsgraph, base->object);
+    Object *obj_eval = DEG_get_evaluated_object(depsgraph, base->object);
     if (obj_eval->transflag & OB_DUPLI) {
       DupliObject *dupli_ob;
-      ListBase *lb = object_duplilist(sctx->depsgraph, sctx->scene, obj_eval);
+      ListBase *lb = object_duplilist(depsgraph, sctx->scene, obj_eval);
       for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
         sob_callback(
             sctx, use_object_edit_cage, use_backface_culling, dupli_ob->ob, dupli_ob->mat, data);
@@ -1113,6 +1113,7 @@ static void raycast_obj_cb(SnapObjectContext *sctx,
  * \param r_hit_list: List of #SnapObjectHitDepth (caller must free).
  */
 static bool raycastObjects(SnapObjectContext *sctx,
+                           Depsgraph *depsgraph,
                            const struct SnapObjectParams *params,
                            const float ray_start[3],
                            const float ray_dir[3],
@@ -1141,7 +1142,7 @@ static bool raycastObjects(SnapObjectContext *sctx,
       .ret = false,
   };
 
-  iter_snap_objects(sctx, params, raycast_obj_cb, &data);
+  iter_snap_objects(sctx, depsgraph, params, raycast_obj_cb, &data);
 
   return data.ret;
 }
@@ -2813,6 +2814,7 @@ static void sanp_obj_cb(SnapObjectContext *sctx,
  * \param r_obmat: Object matrix (may not be #Object.obmat with dupli-instances).
  */
 static short snapObjectsRay(SnapObjectContext *sctx,
+                            Depsgraph *depsgraph,
                             SnapData *snapdata,
                             const struct SnapObjectParams *params,
                             /* read/write args */
@@ -2835,7 +2837,7 @@ static short snapObjectsRay(SnapObjectContext *sctx,
       .ret = 0,
   };
 
-  iter_snap_objects(sctx, params, sanp_obj_cb, &data);
+  iter_snap_objects(sctx, depsgraph, params, sanp_obj_cb, &data);
 
   return data.ret;
 }
@@ -2846,10 +2848,7 @@ static short snapObjectsRay(SnapObjectContext *sctx,
 /** \name Public Object Snapping API
  * \{ */
 
-SnapObjectContext *ED_transform_snap_object_context_create(Main *bmain,
-                                                           Scene *scene,
-                                                           Depsgraph *depsgraph,
-                                                           int flag)
+SnapObjectContext *ED_transform_snap_object_context_create(Main *bmain, Scene *scene, int flag)
 {
   SnapObjectContext *sctx = MEM_callocN(sizeof(*sctx), __func__);
 
@@ -2857,7 +2856,6 @@ SnapObjectContext *ED_transform_snap_object_context_create(Main *bmain,
 
   sctx->bmain = bmain;
   sctx->scene = scene;
-  sctx->depsgraph = depsgraph;
 
   sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
   /* Initialize as needed (edit-mode only). */
@@ -2869,13 +2867,12 @@ SnapObjectContext *ED_transform_snap_object_context_create(Main *bmain,
 
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(Main *bmain,
                                                                   Scene *scene,
-                                                                  Depsgraph *depsgraph,
                                                                   int flag,
                                                                   /* extra args for view3d */
                                                                   const ARegion *region,
                                                                   const View3D *v3d)
 {
-  SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, depsgraph, flag);
+  SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, flag);
 
   sctx->use_v3d = true;
   sctx->v3d_data.region = region;
@@ -2916,6 +2913,7 @@ void ED_transform_snap_object_context_set_editmesh_callbacks(
 }
 
 bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
+                                             Depsgraph *depsgraph,
                                              const struct SnapObjectParams *params,
                                              const float ray_start[3],
                                              const float ray_normal[3],
@@ -2926,8 +2924,18 @@ bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
                                              Object **r_ob,
                                              float r_obmat[4][4])
 {
-  return raycastObjects(
-      sctx, params, ray_start, ray_normal, ray_depth, r_loc, r_no, r_index, r_ob, r_obmat, NULL);
+  return raycastObjects(sctx,
+                        depsgraph,
+                        params,
+                        ray_start,
+                        ray_normal,
+                        ray_depth,
+                        r_loc,
+                        r_no,
+                        r_index,
+                        r_ob,
+                        r_obmat,
+                        NULL);
 }
 
 /**
@@ -2938,6 +2946,7 @@ bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
  * \param r_hit_list: List of #SnapObjectHitDepth (caller must free).
  */
 bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
+                                              Depsgraph *depsgraph,
                                               const struct SnapObjectParams *params,
                                               const float ray_start[3],
                                               const float ray_normal[3],
@@ -2953,8 +2962,18 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
   float ray_depth_prev = ray_depth;
 #endif
 
-  bool retval = raycastObjects(
-      sctx, params, ray_start, ray_normal, &ray_depth, NULL, NULL, NULL, NULL, NULL, r_hit_list);
+  bool retval = raycastObjects(sctx,
+                               depsgraph,
+                               params,
+                               ray_start,
+                               ray_normal,
+                               &ray_depth,
+                               NULL,
+                               NULL,
+                               NULL,
+                               NULL,
+                               NULL,
+                               r_hit_list);
 
   /* meant to be readonly for 'all' hits, ensure it is */
 #ifdef DEBUG
@@ -2976,6 +2995,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
  * \return Snap success
  */
 static bool transform_snap_context_project_ray_impl(SnapObjectContext *sctx,
+                                                    Depsgraph *depsgraph,
                                                     const struct SnapObjectParams *params,
                                                     const float ray_start[3],
                                                     const float ray_normal[3],
@@ -2987,12 +3007,13 @@ static bool transform_snap_context_project_ray_impl(SnapObjectContext *sctx,
 
   /* try snap edge, then face if it fails */
   ret = ED_transform_snap_object_project_ray_ex(
-      sctx, params, ray_start, ray_normal, ray_depth, r_co, r_no, NULL, NULL, NULL);
+      sctx, depsgraph, params, ray_start, ray_normal, ray_depth, r_co, r_no, NULL, NULL, NULL);
 
   return ret;
 }
 
 bool ED_transform_snap_object_project_ray(SnapObjectContext *sctx,
+                                          Depsgraph *depsgraph,
                                           const struct SnapObjectParams *params,
                                           const float ray_origin[3],
                                           const float ray_direction[3],
@@ -3007,11 +3028,12 @@ bool ED_transform_snap_object_project_ray(SnapObjectContext *sctx,
   }
 
   return transform_snap_context_project_ray_impl(
-      sctx, params, ray_origin, ray_direction, ray_depth, r_co, r_no);
+      sctx, depsgraph, params, ray_origin, ray_direction, ray_depth, r_co, r_no);
 }
 
 static short transform_snap_context_project_view3d_mixed_impl(
     SnapObjectContext *sctx,
+    Depsgraph *depsgraph,
     const unsigned short snap_to_flag,
     const struct SnapObjectParams *params,
     const float mval[2],
@@ -3041,7 +3063,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
   if (snap_to_flag & SCE_SNAP_MODE_FACE || use_occlusion_test) {
     float ray_start[3], ray_normal[3];
-    if (!ED_view3d_win_to_ray_clipped_ex(sctx->depsgraph,
+    if (!ED_view3d_win_to_ray_clipped_ex(depsgraph,
                                          sctx->v3d_data.region,
                                          sctx->v3d_data.v3d,
                                          mval,
@@ -3054,8 +3076,18 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
     float dummy_ray_depth = BVH_RAYCAST_DIST_MAX;
 
-    has_hit = raycastObjects(
-        sctx, params, ray_start, ray_normal, &dummy_ray_depth, loc, no, &index, &ob, obmat, NULL);
+    has_hit = raycastObjects(sctx,
+                             depsgraph,
+                             params,
+                             ray_start,
+                             ray_normal,
+                             &dummy_ray_depth,
+                             loc,
+                             no,
+                             &index,
+                             &ob,
+                             obmat,
+                             NULL);
 
     if (has_hit && (snap_to_flag & SCE_SNAP_MODE_FACE)) {
       retval = SCE_SNAP_MODE_FACE;
@@ -3129,7 +3161,8 @@ static short transform_snap_context_project_view3d_mixed_impl(
       snapdata.has_occlusion_plane = true;
     }
 
-    elem_test = snapObjectsRay(sctx, &snapdata, params, &dist_px_tmp, loc, no, &index, &ob, obmat);
+    elem_test = snapObjectsRay(
+        sctx, depsgraph, &snapdata, params, &dist_px_tmp, loc, no, &index, &ob, obmat);
     if (elem_test) {
       elem = elem_test;
     }
@@ -3176,6 +3209,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 }
 
 short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
+                                                 Depsgraph *depsgraph,
                                                  const unsigned short snap_to,
                                                  const struct SnapObjectParams *params,
                                                  const float mval[2],
@@ -3187,8 +3221,18 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                  Object **r_ob,
                                                  float r_obmat[4][4])
 {
-  return transform_snap_context_project_view3d_mixed_impl(
-      sctx, snap_to, params, mval, prev_co, dist_px, r_loc, r_no, r_index, r_ob, r_obmat);
+  return transform_snap_context_project_view3d_mixed_impl(sctx,
+                                                          depsgraph,
+                                                          snap_to,
+                                                          params,
+                                                          mval,
+                                                          prev_co,
+                                                          dist_px,
+                                                          r_loc,
+                                                          r_no,
+                                                          r_index,
+                                                          r_ob,
+                                                          r_obmat);
 }
 
 /**
@@ -3205,6 +3249,7 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
  * \return Snap success
  */
 bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
+                                             Depsgraph *depsgraph,
                                              const unsigned short snap_to,
                                              const struct SnapObjectParams *params,
                                              const float mval[2],
@@ -3213,14 +3258,25 @@ bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
                                              float r_loc[3],
                                              float r_no[3])
 {
-  return ED_transform_snap_object_project_view3d_ex(
-             sctx, snap_to, params, mval, prev_co, dist_px, r_loc, r_no, NULL, NULL, NULL) != 0;
+  return ED_transform_snap_object_project_view3d_ex(sctx,
+                                                    depsgraph,
+                                                    snap_to,
+                                                    params,
+                                                    mval,
+                                                    prev_co,
+                                                    dist_px,
+                                                    r_loc,
+                                                    r_no,
+                                                    NULL,
+                                                    NULL,
+                                                    NULL) != 0;
 }
 
 /**
  * see: #ED_transform_snap_object_project_ray_all
  */
 bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
+                                                    Depsgraph *depsgraph,
                                                     const struct SnapObjectParams *params,
                                                     const float mval[2],
                                                     float ray_depth,
@@ -3229,7 +3285,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
 {
   float ray_start[3], ray_normal[3];
 
-  if (!ED_view3d_win_to_ray_clipped_ex(sctx->depsgraph,
+  if (!ED_view3d_win_to_ray_clipped_ex(depsgraph,
                                        sctx->v3d_data.region,
                                        sctx->v3d_data.v3d,
                                        mval,
@@ -3241,7 +3297,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
   }
 
   return ED_transform_snap_object_project_ray_all(
-      sctx, params, ray_start, ray_normal, ray_depth, sort, r_hit_list);
+      sctx, depsgraph, params, ray_start, ray_normal, ray_depth, sort, r_hit_list);
 }
 
 /** \} */

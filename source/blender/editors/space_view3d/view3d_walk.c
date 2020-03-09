@@ -375,6 +375,7 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
   add_v3_v3(ray_start, dvec_tmp);
 
   ret = ED_transform_snap_object_project_ray(walk->snap_context,
+                                             walk->depsgraph,
                                              &(const struct SnapObjectParams){
                                                  .snap_select = SNAP_ALL,
                                              },
@@ -413,6 +414,7 @@ static bool walk_ray_cast(RegionView3D *rv3d,
   normalize_v3(ray_normal);
 
   ret = ED_transform_snap_object_project_ray(walk->snap_context,
+                                             walk->depsgraph,
                                              &(const struct SnapObjectParams){
                                                  .snap_select = SNAP_ALL,
                                              },
@@ -551,7 +553,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->rv3d->rflag |= RV3D_NAVIGATING;
 
   walk->snap_context = ED_transform_snap_object_context_create_view3d(
-      bmain, walk->scene, CTX_data_ensure_evaluated_depsgraph(C), 0, walk->region, walk->v3d);
+      bmain, walk->scene, 0, walk->region, walk->v3d);
 
   walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(
       walk->depsgraph,

@@ -420,7 +420,7 @@ void EDBM_project_snap_verts(
   ED_view3d_init_mats_rv3d(obedit, region->regiondata);
 
   struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-      bmain, CTX_data_scene(C), depsgraph, 0, region, CTX_wm_view3d(C));
+      bmain, CTX_data_scene(C), 0, region, CTX_wm_view3d(C));
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
@@ -428,6 +428,7 @@ void EDBM_project_snap_verts(
       if (ED_view3d_project_float_object(region, eve->co, mval, V3D_PROJ_TEST_NOP) ==
           V3D_PROJ_RET_OK) {
         if (ED_transform_snap_object_project_view3d(snap_context,
+                                                    depsgraph,
                                                     SCE_SNAP_MODE_FACE,
                                                     &(const struct SnapObjectParams){
                                                         .snap_select = SNAP_NOT_ACTIVE,

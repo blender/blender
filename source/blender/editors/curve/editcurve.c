@@ -5677,10 +5677,11 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       const float mval[2] = {UNPACK2(event->mval)};
 
       struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-          vc.bmain, vc.scene, vc.depsgraph, 0, vc.region, vc.v3d);
+          vc.bmain, vc.scene, 0, vc.region, vc.v3d);
 
       ED_transform_snap_object_project_view3d(
           snap_context,
+          vc.depsgraph,
           SCE_SNAP_MODE_FACE,
           &(const struct SnapObjectParams){
               .snap_select = (vc.obedit != NULL) ? SNAP_NOT_ACTIVE : SNAP_ALL,

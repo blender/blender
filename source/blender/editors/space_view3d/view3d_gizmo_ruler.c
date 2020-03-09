@@ -288,12 +288,7 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
   else if (state == RULER_STATE_DRAG) {
     memset(&ruler_info->drag_state_prev, 0x0, sizeof(ruler_info->drag_state_prev));
     ruler_info->snap_context = ED_transform_snap_object_context_create_view3d(
-        bmain,
-        CTX_data_scene(C),
-        CTX_data_ensure_evaluated_depsgraph(C),
-        0,
-        ruler_info->region,
-        CTX_wm_view3d(C));
+        bmain, CTX_data_scene(C), 0, ruler_info->region, CTX_wm_view3d(C));
   }
   else {
     BLI_assert(0);
@@ -308,7 +303,8 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3], cons
 }
 
 /* use for mousemove events */
-static bool view3d_ruler_item_mousemove(RulerInfo *ruler_info,
+static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
+                                        RulerInfo *ruler_info,
                                         RulerItem *ruler_item,
                                         const int mval[2],
                                         const bool do_thickness,
@@ -336,6 +332,7 @@ static bool view3d_ruler_item_mousemove(RulerInfo *ruler_info,
       co_other = ruler_item->co[inter->co_index == 0 ? 2 : 0];
 
       if (ED_transform_snap_object_project_view3d(ruler_info->snap_context,
+                                                  depsgraph,
                                                   SCE_SNAP_MODE_FACE,
                                                   &(const struct SnapObjectParams){
                                                       .snap_select = SNAP_ALL,
@@ -350,6 +347,7 @@ static bool view3d_ruler_item_mousemove(RulerInfo *ruler_info,
         /* add some bias */
         madd_v3_v3v3fl(ray_start, co, ray_normal, eps_bias);
         ED_transform_snap_object_project_ray(ruler_info->snap_context,
+                                             depsgraph,
                                              &(const struct SnapObjectParams){
                                                  .snap_select = SNAP_ALL,
                                                  .use_object_edit_cage = true,
@@ -379,6 +377,7 @@ static bool view3d_ruler_item_mousemove(RulerInfo *ruler_info,
 
       if (ED_transform_snap_object_project_view3d(
               ruler_info->snap_context,
+              depsgraph,
               (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
                SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR),
               &(const struct SnapObjectParams){
@@ -922,8 +921,9 @@ static int gizmo_ruler_modal(bContext *C,
 
   if (do_cursor_update) {
     if (ruler_info->state == RULER_STATE_DRAG) {
+      struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       if (view3d_ruler_item_mousemove(
-              ruler_info, ruler_item, event->mval, do_thickness, do_snap)) {
+              depsgraph, ruler_info, ruler_item, event->mval, do_thickness, do_snap)) {
         do_draw = true;
       }
     }
@@ -976,7 +976,9 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
       }
 
       /* update the new location */
-      view3d_ruler_item_mousemove(ruler_info, ruler_item_pick, event->mval, false, false);
+      struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      view3d_ruler_item_mousemove(
+          depsgraph, ruler_info, ruler_item_pick, event->mval, false, false);
     }
   }
   else {
@@ -1126,9 +1128,10 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
     RulerInfo *ruler_info = gzgroup->customdata;
     RulerInteraction *inter = ruler_item->gz.interaction_data;
     if (use_depth) {
+      struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       /* snap the first point added, not essential but handy */
       inter->co_index = 0;
-      view3d_ruler_item_mousemove(ruler_info, ruler_item, event->mval, false, true);
+      view3d_ruler_item_mousemove(depsgraph, ruler_info, ruler_item, event->mval, false, true);
       copy_v3_v3(inter->drag_start_co, ruler_item->co[inter->co_index]);
     }
     else {
