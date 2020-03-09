@@ -2271,6 +2271,14 @@ def _grease_pencil_selection(params):
     ]
 
 
+def _grease_pencil_display():
+    return [
+        ("wm.context_toggle", {"type": 'Q', "value": 'PRESS', "shift": True},
+         {"properties": [("data_path", 'space_data.overlay.use_gpencil_edit_lines')]}),
+        ("wm.context_toggle", {"type": 'Q', "value": 'PRESS', "shift": True, "alt": True},
+         {"properties": [("data_path", 'space_data.overlay.use_gpencil_multiedit_line_only')]}),
+    ]
+
 
 def km_grease_pencil_stroke_edit_mode(params):
     items = []
@@ -2516,7 +2524,7 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         # Display
         *_grease_pencil_display(),
         # Context menu
-        op_panel("VIEW3D_PT_gpencil_sculpt_context_menu", params.context_menu_event),
+        op_panel("VIEW3D_PT_gpencil_sculpt_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
     return keymap
@@ -2766,7 +2774,7 @@ def km_grease_pencil_stroke_vertex_mode(params):
         op_tool("builtin.brush.Smear", {"type": 'K', "value": 'PRESS'}),
         op_tool("builtin.brush.Replace", {"type": 'R', "value": 'PRESS'}),
         # Vertex Paint context menu
-        op_panel("VIEW3D_PT_gpencil_vertex_context_menu", params.context_menu_event),
+        op_panel("VIEW3D_PT_gpencil_vertex_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
     return keymap
