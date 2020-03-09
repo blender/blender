@@ -75,6 +75,50 @@
 
 #include "bmesh.h"
 
+static void palette_init_data(ID *id)
+{
+  Palette *palette = (Palette *)id;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(palette, id));
+
+  /* Enable fake user by default. */
+  id_fake_user_set(&palette->id);
+}
+
+static void palette_copy_data(Main *UNUSED(bmain),
+                              ID *id_dst,
+                              const ID *id_src,
+                              const int UNUSED(flag))
+{
+  Palette *palette_dst = (Palette *)id_dst;
+  const Palette *palette_src = (const Palette *)id_src;
+
+  BLI_duplicatelist(&palette_dst->colors, &palette_src->colors);
+}
+
+static void palette_free_data(ID *id)
+{
+  Palette *palette = (Palette *)id;
+
+  BLI_freelistN(&palette->colors);
+}
+
+IDTypeInfo IDType_ID_PAL = {
+    .id_code = ID_PAL,
+    .id_filter = FILTER_ID_PAL,
+    .main_listbase_index = INDEX_ID_PAL,
+    .struct_size = sizeof(Palette),
+    .name = "Palette",
+    .name_plural = "palettes",
+    .translation_context = BLT_I18NCONTEXT_ID_PALETTE,
+    .flags = 0,
+
+    .init_data = palette_init_data,
+    .copy_data = palette_copy_data,
+    .free_data = palette_free_data,
+    .make_local = NULL,
+};
+
 static void paint_curve_copy_data(Main *UNUSED(bmain),
                                   ID *id_dst,
                                   const ID *id_src,
@@ -642,46 +686,11 @@ Palette *BKE_palette_add(Main *bmain, const char *name)
   return palette;
 }
 
-/**
- * Only copy internal data of Palette ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_palette_copy_data(Main *UNUSED(bmain),
-                           Palette *palette_dst,
-                           const Palette *palette_src,
-                           const int UNUSED(flag))
-{
-  BLI_duplicatelist(&palette_dst->colors, &palette_src->colors);
-}
-
 Palette *BKE_palette_copy(Main *bmain, const Palette *palette)
 {
   Palette *palette_copy;
   BKE_id_copy(bmain, &palette->id, (ID **)&palette_copy);
   return palette_copy;
-}
-
-void BKE_palette_make_local(Main *bmain, Palette *palette, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &palette->id, flags);
-}
-
-void BKE_palette_init(Palette *palette)
-{
-  /* Enable fake user by default. */
-  id_fake_user_set(&palette->id);
-}
-
-/** Free (or release) any data used by this palette (does not free the palette itself). */
-void BKE_palette_free(Palette *palette)
-{
-  BLI_freelistN(&palette->colors);
 }
 
 PaletteColor *BKE_palette_color_add(Palette *palette)

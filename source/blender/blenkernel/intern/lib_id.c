@@ -548,9 +548,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_PAL:
-      if (!test) {
-        BKE_palette_make_local(bmain, (Palette *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_PC:
       BLI_assert(0);
@@ -750,7 +748,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_PAL:
-        BKE_palette_copy_data(bmain, (Palette *)*r_newid, (Palette *)id, flag);
+        BLI_assert(0);
         break;
       case ID_PC:
         BLI_assert(0);
@@ -1391,7 +1389,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_PAL:
-      BKE_palette_init((Palette *)id);
+      BLI_assert(0);
       break;
     default:
       BLI_assert(0); /* Should never reach this point... */

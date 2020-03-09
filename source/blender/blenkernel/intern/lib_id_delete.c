@@ -232,7 +232,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_PAL:
-      BKE_palette_free((Palette *)id);
+      BLI_assert(0);
       break;
     case ID_PC:
       BLI_assert(0);

@@ -135,15 +135,8 @@ void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag);
 void BKE_paint_set_overlay_override(enum eOverlayFlags flag);
 
 /* palettes */
-void BKE_palette_init(struct Palette *palette);
-void BKE_palette_free(struct Palette *palette);
 struct Palette *BKE_palette_add(struct Main *bmain, const char *name);
-void BKE_palette_copy_data(struct Main *bmain,
-                           struct Palette *palette_dst,
-                           const struct Palette *palette_src,
-                           const int flag);
 struct Palette *BKE_palette_copy(struct Main *bmain, const struct Palette *palette);
-void BKE_palette_make_local(struct Main *bmain, struct Palette *palette, const int flags);
 struct PaletteColor *BKE_palette_color_add(struct Palette *palette);
 bool BKE_palette_is_empty(const struct Palette *palette);
 void BKE_palette_color_remove(struct Palette *palette, struct PaletteColor *color);
