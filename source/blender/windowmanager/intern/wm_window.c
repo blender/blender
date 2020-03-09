@@ -2167,21 +2167,9 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 
     switch (global_area->global->align) {
       case GLOBAL_AREA_ALIGN_TOP:
-        if ((screen_rect.ymax - height) > window_rect.ymin) {
-          height += U.pixelsize;
-        }
-        if (screen_rect.ymax < (window_rect.ymax - 1)) {
-          height += U.pixelsize;
-        }
         screen_rect.ymax -= height;
         break;
       case GLOBAL_AREA_ALIGN_BOTTOM:
-        if (screen_rect.ymin > window_rect.ymin) {
-          height += U.pixelsize;
-        }
-        if ((screen_rect.ymin + height) < (window_rect.ymax - 1)) {
-          height += U.pixelsize;
-        }
         screen_rect.ymin += height;
         break;
       default:

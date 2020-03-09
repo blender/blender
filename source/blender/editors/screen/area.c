@@ -1382,6 +1382,7 @@ static void region_rect_recursive(
         region->winrct.ymax = region->winrct.ymin + prefsizey - 1;
         winrct->ymin = region->winrct.ymax + 1;
       }
+      BLI_rcti_sanitize(winrct);
     }
   }
   else if (ELEM(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
@@ -1407,6 +1408,7 @@ static void region_rect_recursive(
         region->winrct.xmax = region->winrct.xmin + prefsizex - 1;
         winrct->xmin = region->winrct.xmax + 1;
       }
+      BLI_rcti_sanitize(winrct);
     }
   }
   else if (alignment == RGN_ALIGN_VSPLIT || alignment == RGN_ALIGN_HSPLIT) {
