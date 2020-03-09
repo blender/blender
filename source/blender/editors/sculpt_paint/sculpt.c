@@ -2358,6 +2358,9 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   if (p < hardness) {
     final_len = 0.0f;
   }
+  else if (hardness == 1.0f) {
+    final_len = cache->radius;
+  }
   else {
     p = (p - hardness) / (1.0f - hardness);
     final_len = p * cache->radius;
