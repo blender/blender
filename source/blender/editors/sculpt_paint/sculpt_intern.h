@@ -203,6 +203,9 @@ void SCULPT_floodfill_execute(
     void *userdata);
 void SCULPT_floodfill_free(SculptFloodFill *flood);
 
+/* Automasking. */
+float SCULPT_automasking_factor_get(SculptSession *ss, int vert);
+
 /* Brushes. */
 
 /* Cloth Brush. */

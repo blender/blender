@@ -1470,7 +1470,7 @@ static bool sculpt_automasking_enabled(SculptSession *ss, const Brush *br)
   return false;
 }
 
-static float sculpt_automasking_factor_get(SculptSession *ss, int vert)
+float SCULPT_automasking_factor_get(SculptSession *ss, int vert)
 {
   if (ss->cache->automask) {
     return ss->cache->automask[vert];
@@ -2255,7 +2255,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   avg *= 1.0f - mask;
 
   /* Automasking. */
-  avg *= sculpt_automasking_factor_get(ss, vertex_index);
+  avg *= SCULPT_automasking_factor_get(ss, vertex_index);
 
   return avg;
 }
@@ -4038,7 +4038,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
       mul_v3_fl(final_disp, 1.0f - *vd.mask);
     }
 
-    mul_v3_fl(final_disp, sculpt_automasking_factor_get(ss, vd.index));
+    mul_v3_fl(final_disp, SCULPT_automasking_factor_get(ss, vd.index));
 
     copy_v3_v3(proxy[vd.i], final_disp);
 

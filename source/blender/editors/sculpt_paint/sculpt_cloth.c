@@ -384,7 +384,8 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
       sub_v3_v3v3(pos_diff, cloth_sim->pos[i], cloth_sim->prev_pos[i]);
       mul_v3_fl(pos_diff, (1.0f - cloth_sim->damping));
 
-      const float mask_v = (1.0f - (vd.mask ? *vd.mask : 0.0f));
+      const float mask_v = (1.0f - (vd.mask ? *vd.mask : 0.0f)) *
+                           SCULPT_automasking_factor_get(ss, vd.index);
       madd_v3_v3fl(cloth_sim->pos[i], pos_diff, mask_v);
       madd_v3_v3fl(cloth_sim->pos[i], cloth_sim->acceleration[i], mask_v);
 
@@ -448,8 +449,10 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
       mul_v3_v3fl(correction_vector, v1_to_v2, 1.0f - (constraint_distance / current_distance));
       mul_v3_v3fl(correction_vector_half, correction_vector, 0.5f);
 
-      const float mask_v1 = (1.0f - SCULPT_vertex_mask_get(ss, v1));
-      const float mask_v2 = (1.0f - SCULPT_vertex_mask_get(ss, v2));
+      const float mask_v1 = (1.0f - SCULPT_vertex_mask_get(ss, v1)) *
+                            SCULPT_automasking_factor_get(ss, v1);
+      const float mask_v2 = (1.0f - SCULPT_vertex_mask_get(ss, v2)) *
+                            SCULPT_automasking_factor_get(ss, v2);
 
       const float sim_factor_v1 = cloth_brush_simulation_falloff_get(
           brush, ss->cache->radius, ss->cache->initial_location, cloth_sim->init_pos[v1]);
