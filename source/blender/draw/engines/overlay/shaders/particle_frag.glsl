@@ -1,7 +1,8 @@
 
 in vec4 finalColor;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 lineOutput;
 
 void main()
 {
@@ -13,4 +14,6 @@ void main()
   /* Nice sphere falloff. */
   float intensity = sqrt(1.0 - dist * 2.0) * 0.5 + 0.5;
   fragColor = finalColor * vec4(intensity, intensity, intensity, 1.0);
+
+  lineOutput = vec4(0.0);
 }
