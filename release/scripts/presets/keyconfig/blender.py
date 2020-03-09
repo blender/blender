@@ -156,39 +156,35 @@ class Prefs(bpy.types.KeyConfigPreferences):
     )
 
     def draw(self, layout):
+        layout.use_property_split = True
+
         is_select_left = (self.select_mouse == 'LEFT')
 
-        split = layout.split()
-        col = split.column(align=True)
-        col.label(text="Select With:")
-        col.row().prop(self, "select_mouse", expand=True)
-
+        # General settings.
+        col = layout.column()
+        col.row().prop(self, "select_mouse", text="Select with Mouse Button", expand=True)
+        col.row().prop(self, "spacebar_action", text="Spacebar Action", expand=True)
         if is_select_left:
-            col.label(text="Activate Gizmo:")
-            col.row().prop(self, "gizmo_action", expand=True)
-        else:
-            col.label()
-            col.label()
+            col.row().prop(self, "gizmo_action", text="Activate Gizmo Event", expand=True)
 
-        col.prop(self, "use_select_all_toggle")
+        # Checkboxes sub-layout.
+        col = layout.column()
+        sub = col.column(align=True)
+        sub.prop(self, "use_select_all_toggle")
 
-        col = split.column(align=True)
-        col.label(text="Spacebar Action:")
-        col.row().prop(self, "spacebar_action", expand=True)
+        # 3DView settings.
+        col = layout.column()
+        col.label(text="3D View")
+        col.row().prop(self, "v3d_tilde_action", text="Grave Accent / Tilde Action", expand=True)
+        col.row().prop(self, "v3d_mmb_action", text="Middle Mouse Action", expand=True)
+        col.row().prop(self, "v3d_alt_mmb_drag_action", text="Alt Middle Mouse Drag Action", expand=True)
 
-        layout.label(text="3D View:")
-        split = layout.split()
-        col = split.column()
-        col.prop(self, "use_v3d_tab_menu")
-        col.prop(self, "use_pie_click_drag")
-        col.prop(self, "use_v3d_shade_ex_pie")
-        col = split.column()
-        col.label(text="Tilde Action:")
-        col.row().prop(self, "v3d_tilde_action", expand=True)
-        col.label(text="Middle Mouse Action:")
-        col.row().prop(self, "v3d_mmb_action", expand=True)
-        col.label(text="Alt Middle Mouse Drag Action:")
-        col.row().prop(self, "v3d_alt_mmb_drag_action", expand=True)
+        # Checkboxes sub-layout.
+        col = layout.column()
+        sub = col.column(align=True)
+        sub.prop(self, "use_v3d_tab_menu")
+        sub.prop(self, "use_pie_click_drag")
+        sub.prop(self, "use_v3d_shade_ex_pie")
 
 
 blender_default = bpy.utils.execfile(os.path.join(DIRNAME, "keymap_data", "blender_default.py"))
