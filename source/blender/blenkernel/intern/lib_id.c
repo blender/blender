@@ -544,9 +544,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_MSK:
-      if (!test) {
-        BKE_mask_make_local(bmain, (Mask *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_LS:
       if (!test) {
@@ -750,7 +748,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_MSK:
-        BKE_mask_copy_data(bmain, (Mask *)*r_newid, (Mask *)id, flag);
+        BLI_assert(0);
         break;
       case ID_LS:
         BKE_linestyle_copy_data(
@@ -1376,7 +1374,7 @@ void BKE_libblock_init_empty(ID *id)
       /* Nothing to do. */
       break;
     case ID_MSK:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_LS:
       BKE_linestyle_init((FreestyleLineStyle *)id);

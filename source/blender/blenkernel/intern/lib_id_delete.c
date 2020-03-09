@@ -226,7 +226,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_MSK:
-      BKE_mask_free((Mask *)id);
+      BLI_assert(0);
       break;
     case ID_LS:
       BKE_linestyle_free((FreestyleLineStyle *)id);

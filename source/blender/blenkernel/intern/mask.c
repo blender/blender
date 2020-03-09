@@ -45,6 +45,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
+#include "BKE_idtype.h"
 
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -58,6 +59,49 @@
 #include "DEG_depsgraph_build.h"
 
 static CLG_LogRef LOG = {"bke.mask"};
+
+static void mask_copy_data(Main *UNUSED(bmain),
+                           ID *id_dst,
+                           const ID *id_src,
+                           const int UNUSED(flag))
+{
+  Mask *mask_dst = (Mask *)id_dst;
+  const Mask *mask_src = (const Mask *)id_src;
+
+  BLI_listbase_clear(&mask_dst->masklayers);
+
+  /* TODO add unused flag to those as well. */
+  BKE_mask_layer_copy_list(&mask_dst->masklayers, &mask_src->masklayers);
+
+  /* enable fake user by default */
+  id_fake_user_set(&mask_dst->id);
+}
+
+static void mask_free_data(ID *id)
+{
+  Mask *mask = (Mask *)id;
+
+  BKE_animdata_free((ID *)mask, false);
+
+  /* free mask data */
+  BKE_mask_layer_free_list(&mask->masklayers);
+}
+
+IDTypeInfo IDType_ID_MSK = {
+    .id_code = ID_MSK,
+    .id_filter = FILTER_ID_MSK,
+    .main_listbase_index = INDEX_ID_MSK,
+    .struct_size = sizeof(Mask),
+    .name = "Mask",
+    .name_plural = "masks",
+    .translation_context = BLT_I18NCONTEXT_ID_MASK,
+    .flags = 0,
+
+    .init_data = NULL,
+    .copy_data = mask_copy_data,
+    .free_data = mask_free_data,
+    .make_local = NULL,
+};
 
 static struct {
   ListBase splines;
@@ -875,40 +919,11 @@ Mask *BKE_mask_copy_nolib(Mask *mask)
   return mask_new;
 }
 
-/**
- * Only copy internal data of Mask ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_mask_copy_data(Main *UNUSED(bmain),
-                        Mask *mask_dst,
-                        const Mask *mask_src,
-                        const int UNUSED(flag))
-{
-  BLI_listbase_clear(&mask_dst->masklayers);
-
-  /* TODO add unused flag to those as well. */
-  BKE_mask_layer_copy_list(&mask_dst->masklayers, &mask_src->masklayers);
-
-  /* enable fake user by default */
-  id_fake_user_set(&mask_dst->id);
-}
-
 Mask *BKE_mask_copy(Main *bmain, const Mask *mask)
 {
   Mask *mask_copy;
   BKE_id_copy(bmain, &mask->id, (ID **)&mask_copy);
   return mask_copy;
-}
-
-void BKE_mask_make_local(Main *bmain, Mask *mask, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &mask->id, flags);
 }
 
 void BKE_mask_point_free(MaskSplinePoint *point)
@@ -1059,10 +1074,7 @@ void BKE_mask_layer_free_list(ListBase *masklayers)
 /** Free (or release) any data used by this mask (does not free the mask itself). */
 void BKE_mask_free(Mask *mask)
 {
-  BKE_animdata_free((ID *)mask, false);
-
-  /* free mask data */
-  BKE_mask_layer_free_list(&mask->masklayers);
+  mask_free_data(&mask->id);
 }
 
 void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2])

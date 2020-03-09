@@ -153,7 +153,7 @@ extern IDTypeInfo IDType_ID_PA;
 // extern IDTypeInfo IDType_ID_GD;
 extern IDTypeInfo IDType_ID_WM;
 extern IDTypeInfo IDType_ID_MC;
-// extern IDTypeInfo IDType_ID_MSK;
+extern IDTypeInfo IDType_ID_MSK;
 // extern IDTypeInfo IDType_ID_LS;
 // extern IDTypeInfo IDType_ID_PAL;
 extern IDTypeInfo IDType_ID_PC;
