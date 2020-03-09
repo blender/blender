@@ -129,8 +129,10 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   const bool all_wires = (ob->dtx & OB_DRAW_ALL_EDGES) != 0;
   const bool is_xray = (ob->dtx & OB_DRAWXRAY) != 0;
   const bool is_mesh = ob->type == OB_MESH;
-  const bool use_wire = (pd->overlay.flag & V3D_OVERLAY_WIREFRAMES) || (ob->dtx & OB_DRAWWIRE) ||
-                        (ob->dt == OB_WIRE);
+  const bool is_mesh_verts_only = is_mesh && (((Mesh *)ob->data)->totedge == 0 &&
+                                              ((Mesh *)ob->data)->totvert > 0);
+  const bool use_wire = !is_mesh_verts_only && ((pd->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
+                                                (ob->dtx & OB_DRAWWIRE) || (ob->dt == OB_WIRE));
 
   if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
     OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
@@ -225,7 +227,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
     /* Draw loose geometry. */
-    if (me->totedge == 0 && me->totvert > 0) {
+    if (is_mesh_verts_only) {
       struct GPUBatch *geom = DRW_cache_mesh_all_verts_get(ob);
       if (geom) {
         OVERLAY_extra_loose_points(cb, geom, ob->obmat, color);
