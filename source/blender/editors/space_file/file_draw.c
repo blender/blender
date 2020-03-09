@@ -377,7 +377,6 @@ static void file_draw_preview(uiBlock *block,
 
 static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 {
-  Main *bmain = CTX_data_main(C);
   char newname[FILE_MAX + 12];
   char orgname[FILE_MAX + 12];
   char filename[FILE_MAX + 12];
