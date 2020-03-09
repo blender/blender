@@ -2297,18 +2297,24 @@ static PyObject *callPythonFunction(std::string varName,
 
   // Get pyobject that holds result value
   main = PyImport_ImportModule("__main__");
-  if (!main)
+  if (!main) {
+    PyGILState_Release(gilstate);
     return nullptr;
+  }
 
   var = PyObject_GetAttrString(main, varName.c_str());
-  if (!var)
+  if (!var) {
+    PyGILState_Release(gilstate);
     return nullptr;
+  }
 
   func = PyObject_GetAttrString(var, functionName.c_str());
 
   Py_DECREF(var);
-  if (!func)
+  if (!func) {
+    PyGILState_Release(gilstate);
     return nullptr;
+  }
 
   if (!isAttribute) {
     returnedValue = PyObject_CallObject(func, nullptr);
