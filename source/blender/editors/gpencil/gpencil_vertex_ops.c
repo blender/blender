@@ -360,7 +360,6 @@ static int gp_vertexpaint_levels_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)ob->data;
 
   bool changed = false;
-  int i;
   bGPDspoint *pt;
 
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -384,9 +383,10 @@ static int gp_vertexpaint_levels_exec(bContext *C, wmOperator *op)
 
     /* Stroke points. */
     if (mode != GP_PAINT_VERTEX_FILL) {
+      int i;
       for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
         if ((pt->flag & GP_SPOINT_SELECT) && (pt->vert_color[3] > 0.0f)) {
-          for (int i2 = 0; i < 3; i2++) {
+          for (int i2 = 0; i2 < 3; i2++) {
             pt->vert_color[i2] = gain * (pt->vert_color[i2] + offset);
           }
         }
