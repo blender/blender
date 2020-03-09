@@ -50,7 +50,6 @@ extern "C" {
 #include "builder/deg_builder_cycle.h"
 #include "builder/deg_builder_nodes.h"
 #include "builder/deg_builder_relations.h"
-#include "builder/deg_builder_remove_noop.h"
 #include "builder/deg_builder_transitive.h"
 
 #include "intern/debug/deg_debug.h"
@@ -211,7 +210,6 @@ static void graph_build_finalize_common(DEG::Depsgraph *deg_graph, Main *bmain)
   if (G.debug_value == 799) {
     DEG::deg_graph_transitive_reduction(deg_graph);
   }
-  DEG::deg_graph_remove_unused_noops(deg_graph);
   /* Store pointers to commonly used valuated datablocks. */
   deg_graph->scene_cow = (Scene *)deg_graph->get_cow_id(&deg_graph->scene->id);
   /* Flush visibility layer and re-schedule nodes for update. */

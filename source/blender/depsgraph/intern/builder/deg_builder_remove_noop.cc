@@ -35,13 +35,24 @@
 
 namespace DEG {
 
+static inline bool is_unused_noop(OperationNode *op_node)
+{
+  if (op_node == nullptr) {
+    return false;
+  }
+  if (op_node->flag & OperationFlag::DEPSOP_FLAG_PINNED) {
+    return false;
+  }
+  return op_node->is_noop() && op_node->outlinks.empty();
+}
+
 void deg_graph_remove_unused_noops(Depsgraph *graph)
 {
   int num_removed_relations = 0;
   deque<OperationNode *> queue;
 
   for (OperationNode *node : graph->operations) {
-    if (node->is_noop() && node->outlinks.empty()) {
+    if (is_unused_noop(node)) {
       queue.push_back(node);
     }
   }
@@ -61,7 +72,7 @@ void deg_graph_remove_unused_noops(Depsgraph *graph)
 
       /* Queue parent no-op node that has now become unused. */
       OperationNode *operation = dependency->get_exit_operation();
-      if (operation != nullptr && operation->is_noop() && operation->outlinks.empty()) {
+      if (is_unused_noop(operation)) {
         queue.push_back(operation);
       }
     }

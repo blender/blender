@@ -46,6 +46,7 @@ extern "C" {
 #include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 #include "intern/builder/deg_builder_cache.h"
+#include "intern/builder/deg_builder_remove_noop.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_id.h"
@@ -212,6 +213,8 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 {
   /* Make sure dependencies of visible ID datablocks are visible. */
   deg_graph_build_flush_visibility(graph);
+  deg_graph_remove_unused_noops(graph);
+
   /* Re-tag IDs for update if it was tagged before the relations
    * update tag. */
   for (IDNode *id_node : graph->id_nodes) {

@@ -125,6 +125,9 @@ static int deg_debug_node_color_index(const Node *node)
     case NodeType::OPERATION: {
       OperationNode *op_node = (OperationNode *)node;
       if (op_node->is_noop()) {
+        if (op_node->flag & OperationFlag::DEPSOP_FLAG_PINNED) {
+          return 7;
+        }
         return 8;
       }
       break;
@@ -195,6 +198,7 @@ static void deg_debug_graphviz_legend(const DebugContext &ctx)
   deg_debug_graphviz_legend_color(ctx, "Component", colors[1]);
   deg_debug_graphviz_legend_color(ctx, "ID Node", colors[5]);
   deg_debug_graphviz_legend_color(ctx, "NOOP", colors[8]);
+  deg_debug_graphviz_legend_color(ctx, "Pinned OP", colors[7]);
 #endif
 
 #ifdef COLOR_SCHEME_NODE_TYPE

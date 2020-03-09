@@ -624,7 +624,9 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     is_parent_collection_visible_ = is_visible;
     build_collection(nullptr, object->instance_collection);
     is_parent_collection_visible_ = is_current_parent_collection_visible;
-    add_operation_node(&object->id, NodeType::DUPLI, OperationCode::DUPLI);
+    OperationNode *op_node = add_operation_node(
+        &object->id, NodeType::DUPLI, OperationCode::DUPLI);
+    op_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
   }
   /* Synchronization back to original object. */
   add_operation_node(&object->id,
