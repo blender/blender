@@ -536,9 +536,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_GD:
-      if (!test) {
-        BKE_gpencil_make_local(bmain, (bGPdata *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_MC:
       BLI_assert(0);
@@ -740,7 +738,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_GD:
-        BKE_gpencil_copy_data((bGPdata *)*r_newid, (bGPdata *)id, flag);
+        BLI_assert(0);
         break;
       case ID_MC:
         BLI_assert(0);
@@ -1368,7 +1366,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_GD:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_MSK:
       BLI_assert(0);

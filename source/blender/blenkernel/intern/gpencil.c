@@ -59,6 +59,7 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_icons.h"
+#include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -72,6 +73,54 @@
 #include "DEG_depsgraph_query.h"
 
 static CLG_LogRef LOG = {"bke.gpencil"};
+
+static void greasepencil_copy_data(Main *UNUSED(bmain),
+                                   ID *id_dst,
+                                   const ID *id_src,
+                                   const int UNUSED(flag))
+{
+  bGPdata *gpd_dst = (bGPdata *)id_dst;
+  const bGPdata *gpd_src = (const bGPdata *)id_src;
+
+  /* duplicate material array */
+  if (gpd_src->mat) {
+    gpd_dst->mat = MEM_dupallocN(gpd_src->mat);
+  }
+
+  /* copy layers */
+  BLI_listbase_clear(&gpd_dst->layers);
+  LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
+    /* make a copy of source layer and its data */
+
+    /* TODO here too could add unused flags... */
+    bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);
+
+    BLI_addtail(&gpd_dst->layers, gpl_dst);
+  }
+}
+
+static void greasepencil_free_data(ID *id)
+{
+  /* Really not ideal, but for now will do... In theory custom behaviors like not freeing cache
+   * should be handled through specific API, and not be part of the generic one. */
+  BKE_gpencil_free((bGPdata *)id, true);
+}
+
+IDTypeInfo IDType_ID_GD = {
+    .id_code = ID_GD,
+    .id_filter = FILTER_ID_GD,
+    .main_listbase_index = INDEX_ID_GD,
+    .struct_size = sizeof(bGPdata),
+    .name = "GPencil",
+    .name_plural = "grease_pencils",
+    .translation_context = BLT_I18NCONTEXT_ID_GPENCIL,
+    .flags = 0,
+
+    .init_data = NULL,
+    .copy_data = greasepencil_copy_data,
+    .free_data = greasepencil_free_data,
+    .make_local = NULL,
+};
 
 /* ************************************************** */
 /* Draw Engine */
@@ -671,35 +720,6 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
   return gpl_dst;
 }
 
-/**
- * Only copy internal data of GreasePencil ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_gpencil_copy_data(bGPdata *gpd_dst, const bGPdata *gpd_src, const int UNUSED(flag))
-{
-  /* duplicate material array */
-  if (gpd_src->mat) {
-    gpd_dst->mat = MEM_dupallocN(gpd_src->mat);
-  }
-
-  /* copy layers */
-  BLI_listbase_clear(&gpd_dst->layers);
-  LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
-    /* make a copy of source layer and its data */
-
-    /* TODO here too could add unused flags... */
-    bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);
-
-    BLI_addtail(&gpd_dst->layers, gpl_dst);
-  }
-}
-
 /* Standard API to make a copy of GP datablock, separate from copying its data */
 bGPdata *BKE_gpencil_copy(Main *bmain, const bGPdata *gpd)
 {
@@ -733,15 +753,10 @@ bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool in
   }
 
   /* Copy internal data (layers, etc.) */
-  BKE_gpencil_copy_data(gpd_dst, gpd_src, 0);
+  greasepencil_copy_data(bmain, &gpd_dst->id, &gpd_src->id, 0);
 
   /* return new */
   return gpd_dst;
-}
-
-void BKE_gpencil_make_local(Main *bmain, bGPdata *gpd, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &gpd->id, flags);
 }
 
 /* ************************************************** */
