@@ -270,50 +270,53 @@ void DRW_shader_library_free(DRWShaderLibrary *lib);
   } while (0)
 
 /* Batches */
-
+/* DRWState is a bitmask that stores the current render state and the desired render state. Based
+ * on the differences the minimum state changes can be invoked to setup the desired render state.
+ *
+ * The Write Stencil, Stencil test, Depth test and Blend state options are mutual exclusive
+ * therefore they aren't ordered as a bit mask.*/
 typedef enum {
   /** Write mask */
   DRW_STATE_WRITE_DEPTH = (1 << 0),
   DRW_STATE_WRITE_COLOR = (1 << 1),
+  /* Write Stencil. These options are mutual exclusive and packed into 2 bits */
   DRW_STATE_WRITE_STENCIL = (1 << 2),
-  DRW_STATE_WRITE_STENCIL_SHADOW_PASS = (1 << 3),
-  DRW_STATE_WRITE_STENCIL_SHADOW_FAIL = (1 << 4),
-
-  /** Depth test */
-  DRW_STATE_DEPTH_ALWAYS = (1 << 5),
-  DRW_STATE_DEPTH_LESS = (1 << 6),
-  DRW_STATE_DEPTH_LESS_EQUAL = (1 << 7),
-  DRW_STATE_DEPTH_EQUAL = (1 << 8),
-  DRW_STATE_DEPTH_GREATER = (1 << 9),
-  DRW_STATE_DEPTH_GREATER_EQUAL = (1 << 10),
+  DRW_STATE_WRITE_STENCIL_SHADOW_PASS = (2 << 2),
+  DRW_STATE_WRITE_STENCIL_SHADOW_FAIL = (3 << 2),
+  /** Depth test. These options are mutual exclusive and packed into 3 bits */
+  DRW_STATE_DEPTH_ALWAYS = (1 << 4),
+  DRW_STATE_DEPTH_LESS = (2 << 4),
+  DRW_STATE_DEPTH_LESS_EQUAL = (3 << 4),
+  DRW_STATE_DEPTH_EQUAL = (4 << 4),
+  DRW_STATE_DEPTH_GREATER = (5 << 4),
+  DRW_STATE_DEPTH_GREATER_EQUAL = (6 << 4),
   /** Culling test */
-  DRW_STATE_CULL_BACK = (1 << 11),
-  DRW_STATE_CULL_FRONT = (1 << 12),
-  /** Stencil test */
-  DRW_STATE_STENCIL_ALWAYS = (1 << 13),
-  DRW_STATE_STENCIL_EQUAL = (1 << 14),
-  DRW_STATE_STENCIL_NEQUAL = (1 << 15),
+  DRW_STATE_CULL_BACK = (1 << 7),
+  DRW_STATE_CULL_FRONT = (1 << 8),
+  /** Stencil test . These options are mutal exclusive and packed into 2 bits*/
+  DRW_STATE_STENCIL_ALWAYS = (1 << 9),
+  DRW_STATE_STENCIL_EQUAL = (2 << 9),
+  DRW_STATE_STENCIL_NEQUAL = (3 << 9),
 
-  /** Blend state */
-  DRW_STATE_BLEND_ADD = (1 << 16),
+  /** Blend state. These options are mutual exclusive and packed into 4 bits */
+  DRW_STATE_BLEND_ADD = (1 << 11),
   /** Same as additive but let alpha accumulate without premult. */
-  DRW_STATE_BLEND_ADD_FULL = (1 << 17),
+  DRW_STATE_BLEND_ADD_FULL = (2 << 11),
   /** Standard alpha blending. */
-  DRW_STATE_BLEND_ALPHA = (1 << 18),
+  DRW_STATE_BLEND_ALPHA = (3 << 11),
   /** Use that if color is already premult by alpha. */
-  DRW_STATE_BLEND_ALPHA_PREMUL = (1 << 19),
-  DRW_STATE_BLEND_BACKGROUND = (1 << 20),
-  DRW_STATE_BLEND_OIT = (1 << 21),
-  DRW_STATE_BLEND_MUL = (1 << 22),
-  DRW_STATE_BLEND_SUB = (1 << 23),
+  DRW_STATE_BLEND_ALPHA_PREMUL = (4 << 11),
+  DRW_STATE_BLEND_BACKGROUND = (5 << 11),
+  DRW_STATE_BLEND_OIT = (6 << 11),
+  DRW_STATE_BLEND_MUL = (7 << 11),
+  DRW_STATE_BLEND_SUB = (8 << 11),
   /** Use dual source blending. WARNING: Only one color buffer allowed. */
-  DRW_STATE_BLEND_CUSTOM = (1 << 24),
+  DRW_STATE_BLEND_CUSTOM = (9 << 11),
+  DRW_STATE_LOGIC_INVERT = (10 << 11),
 
-  DRW_STATE_IN_FRONT_SELECT = (1 << 25),
-  DRW_STATE_LOGIC_INVERT = (1 << 26),
-  DRW_STATE_SHADOW_OFFSET = (1 << 27),
-  DRW_STATE_CLIP_PLANES = (1 << 28),
-  // DRW_STATE_WIRE_SMOOTH = (1 << 29), /* UNUSED */
+  DRW_STATE_IN_FRONT_SELECT = (1 << 27),
+  DRW_STATE_SHADOW_OFFSET = (1 << 28),
+  DRW_STATE_CLIP_PLANES = (1 << 29),
   DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 30),
   /** DO NOT USE. Assumed always enabled. Only used internally. */
   DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),

@@ -114,19 +114,20 @@ void drw_state_set(DRWState state)
       /* Stencil Write */
       if (test) {
         glStencilMask(0xFF);
-        if (test & DRW_STATE_WRITE_STENCIL) {
-          glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        }
-        else if (test & DRW_STATE_WRITE_STENCIL_SHADOW_PASS) {
-          glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
-          glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
-        }
-        else if (test & DRW_STATE_WRITE_STENCIL_SHADOW_FAIL) {
-          glStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-          glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-        }
-        else {
-          BLI_assert(0);
+        switch (test) {
+          case DRW_STATE_WRITE_STENCIL:
+            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+            break;
+          case DRW_STATE_WRITE_STENCIL_SHADOW_PASS:
+            glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
+            glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+            break;
+          case DRW_STATE_WRITE_STENCIL_SHADOW_FAIL:
+            glStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+            glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+            break;
+          default:
+            BLI_assert(0);
         }
       }
       else {
@@ -191,26 +192,27 @@ void drw_state_set(DRWState state)
       if (test) {
         glEnable(GL_DEPTH_TEST);
 
-        if (state & DRW_STATE_DEPTH_LESS) {
-          glDepthFunc(GL_LESS);
-        }
-        else if (state & DRW_STATE_DEPTH_LESS_EQUAL) {
-          glDepthFunc(GL_LEQUAL);
-        }
-        else if (state & DRW_STATE_DEPTH_EQUAL) {
-          glDepthFunc(GL_EQUAL);
-        }
-        else if (state & DRW_STATE_DEPTH_GREATER) {
-          glDepthFunc(GL_GREATER);
-        }
-        else if (state & DRW_STATE_DEPTH_GREATER_EQUAL) {
-          glDepthFunc(GL_GEQUAL);
-        }
-        else if (state & DRW_STATE_DEPTH_ALWAYS) {
-          glDepthFunc(GL_ALWAYS);
-        }
-        else {
-          BLI_assert(0);
+        switch (test) {
+          case DRW_STATE_DEPTH_LESS:
+            glDepthFunc(GL_LESS);
+            break;
+          case DRW_STATE_DEPTH_LESS_EQUAL:
+            glDepthFunc(GL_LEQUAL);
+            break;
+          case DRW_STATE_DEPTH_EQUAL:
+            glDepthFunc(GL_EQUAL);
+            break;
+          case DRW_STATE_DEPTH_GREATER:
+            glDepthFunc(GL_GREATER);
+            break;
+          case DRW_STATE_DEPTH_GREATER_EQUAL:
+            glDepthFunc(GL_GEQUAL);
+            break;
+          case DRW_STATE_DEPTH_ALWAYS:
+            glDepthFunc(GL_ALWAYS);
+            break;
+          default:
+            BLI_assert(0);
         }
       }
       else {
@@ -244,62 +246,63 @@ void drw_state_set(DRWState state)
       if (test) {
         glEnable(GL_BLEND);
 
-        if ((state & DRW_STATE_BLEND_ALPHA) != 0) {
-          glBlendFuncSeparate(GL_SRC_ALPHA,
-                              GL_ONE_MINUS_SRC_ALPHA, /* RGB */
-                              GL_ONE,
-                              GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
-        }
-        else if ((state & DRW_STATE_BLEND_BACKGROUND) != 0) {
-          /* Special blend to add color under and multiply dst by alpha. */
-          glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA,
-                              GL_SRC_ALPHA, /* RGB */
-                              GL_ZERO,
-                              GL_SRC_ALPHA); /* Alpha */
-        }
-        else if ((state & DRW_STATE_BLEND_ALPHA_PREMUL) != 0) {
-          glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-        }
-        else if ((state & DRW_STATE_BLEND_MUL) != 0) {
-          glBlendFunc(GL_DST_COLOR, GL_ZERO);
-        }
-        else if ((state & DRW_STATE_BLEND_OIT) != 0) {
-          glBlendFuncSeparate(GL_ONE,
-                              GL_ONE, /* RGB */
-                              GL_ZERO,
-                              GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
-        }
-        else if ((state & DRW_STATE_BLEND_ADD) != 0) {
-          /* Do not let alpha accumulate but premult the source RGB by it. */
-          glBlendFuncSeparate(GL_SRC_ALPHA,
-                              GL_ONE, /* RGB */
-                              GL_ZERO,
-                              GL_ONE); /* Alpha */
-        }
-        else if ((state & DRW_STATE_BLEND_ADD_FULL) != 0) {
-          /* Let alpha accumulate. */
-          glBlendFunc(GL_ONE, GL_ONE);
-        }
-        else if ((state & DRW_STATE_BLEND_SUB) != 0) {
-          glBlendFunc(GL_ONE, GL_ONE);
-        }
-        else if ((state & DRW_STATE_BLEND_CUSTOM) != 0) {
-          /* Custom blend parameters using dual source blending.
-           * Can only be used with one Draw Buffer. */
-          glBlendFunc(GL_ONE, GL_SRC1_COLOR);
-        }
-        else if ((state & DRW_STATE_LOGIC_INVERT) != 0) {
-          /* Replace logic op by blend func to support floating point framebuffer. */
-          glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR,
-                              GL_ZERO, /* RGB */
-                              GL_ZERO,
-                              GL_ONE); /* Alpha */
-        }
-        else {
-          BLI_assert(0);
+        switch (test) {
+          case DRW_STATE_BLEND_ALPHA:
+            glBlendFuncSeparate(GL_SRC_ALPHA,
+                                GL_ONE_MINUS_SRC_ALPHA, /* RGB */
+                                GL_ONE,
+                                GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
+            break;
+          case DRW_STATE_BLEND_BACKGROUND:
+            /* Special blend to add color under and multiply dst by alpha. */
+            glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA,
+                                GL_SRC_ALPHA, /* RGB */
+                                GL_ZERO,
+                                GL_SRC_ALPHA); /* Alpha */
+            break;
+          case DRW_STATE_BLEND_ALPHA_PREMUL:
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+            break;
+          case DRW_STATE_BLEND_MUL:
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
+            break;
+          case DRW_STATE_BLEND_OIT:
+            glBlendFuncSeparate(GL_ONE,
+                                GL_ONE, /* RGB */
+                                GL_ZERO,
+                                GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
+            break;
+          case DRW_STATE_BLEND_ADD:
+            /* Do not let alpha accumulate but premult the source RGB by it. */
+            glBlendFuncSeparate(GL_SRC_ALPHA,
+                                GL_ONE, /* RGB */
+                                GL_ZERO,
+                                GL_ONE); /* Alpha */
+            break;
+          case DRW_STATE_BLEND_ADD_FULL:
+            /* Let alpha accumulate. */
+            glBlendFunc(GL_ONE, GL_ONE);
+            break;
+          case DRW_STATE_BLEND_SUB:
+            glBlendFunc(GL_ONE, GL_ONE);
+            break;
+          case DRW_STATE_BLEND_CUSTOM:
+            /* Custom blend parameters using dual source blending.
+             * Can only be used with one Draw Buffer. */
+            glBlendFunc(GL_ONE, GL_SRC1_COLOR);
+            break;
+          case DRW_STATE_LOGIC_INVERT:
+            /* Replace logic op by blend func to support floating point framebuffer. */
+            glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR,
+                                GL_ZERO, /* RGB */
+                                GL_ZERO,
+                                GL_ONE); /* Alpha */
+            break;
+          default:
+            BLI_assert(0);
         }
 
-        if ((state & DRW_STATE_BLEND_SUB) != 0) {
+        if (test == DRW_STATE_BLEND_SUB) {
           glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
         }
         else {
@@ -405,14 +408,14 @@ static void drw_stencil_state_set(uint write_mask, uint reference, uint compare_
    * - (write-mask & reference) is what gets written if the test condition is fulfilled.
    **/
   glStencilMask(write_mask);
-
-  if ((DST.state & DRW_STATE_STENCIL_ALWAYS) != 0) {
+  DRWState stencil_test = DST.state & DRW_STATE_STENCIL_TEST_ENABLED;
+  if (stencil_test == DRW_STATE_STENCIL_ALWAYS) {
     glStencilFunc(GL_ALWAYS, reference, compare_mask);
   }
-  else if ((DST.state & DRW_STATE_STENCIL_EQUAL) != 0) {
+  else if (stencil_test == DRW_STATE_STENCIL_EQUAL) {
     glStencilFunc(GL_EQUAL, reference, compare_mask);
   }
-  else if ((DST.state & DRW_STATE_STENCIL_NEQUAL) != 0) {
+  else if (stencil_test == DRW_STATE_STENCIL_NEQUAL) {
     glStencilFunc(GL_NOTEQUAL, reference, compare_mask);
   }
 }
