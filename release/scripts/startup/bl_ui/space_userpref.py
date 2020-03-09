@@ -37,18 +37,13 @@ class USERPREF_HT_header(Header):
     def draw_buttons(layout, context):
         prefs = context.preferences
 
-        layout.scale_x = 1.0
-        layout.scale_y = 1.0
         layout.operator_context = 'EXEC_AREA'
-
-        row = layout.row()
-        row.menu("USERPREF_MT_save_load", text="", icon='COLLAPSEMENU')
 
         if prefs.use_preferences_save and (not bpy.app.use_userpref_skip_save_on_exit):
             pass
         else:
             # Show '*' to let users know the preferences have been modified.
-            row.operator(
+            layout.operator(
                 "wm.save_userpref",
                 text="Save Preferences{:s}".format(" *" if prefs.is_dirty else ""),
             )
@@ -59,7 +54,10 @@ class USERPREF_HT_header(Header):
 
         layout.template_header()
 
+        USERPREF_MT_editor_menus.draw_collapsible(context, layout)
+
         layout.separator_spacer()
+
         self.draw_buttons(layout, context)
 
 
@@ -82,6 +80,25 @@ class USERPREF_PT_navigation_bar(Panel):
         col.scale_x = 1.3
         col.scale_y = 1.3
         col.prop(prefs, "active_section", expand=True)
+
+
+class USERPREF_MT_editor_menus(Menu):
+    bl_idname = "USERPREF_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.menu("USERPREF_MT_view")
+        layout.menu("USERPREF_MT_save_load", text="Preferences")
+
+
+class USERPREF_MT_view(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.menu("INFO_MT_area")
 
 
 class USERPREF_MT_save_load(Menu):
@@ -125,11 +142,10 @@ class USERPREF_PT_save_preferences(Panel):
         return False
 
     def draw(self, context):
-        layout = self.layout
+        layout = self.layout.row()
         layout.operator_context = 'EXEC_AREA'
 
-        layout.scale_x = 1.3
-        layout.scale_y = 1.3
+        layout.menu("USERPREF_MT_save_load", text="", icon='COLLAPSEMENU')
 
         USERPREF_HT_header.draw_buttons(layout, context)
 
@@ -2128,6 +2144,8 @@ classes = (
     USERPREF_HT_header,
     USERPREF_PT_navigation_bar,
     USERPREF_PT_save_preferences,
+    USERPREF_MT_editor_menus,
+    USERPREF_MT_view,
     USERPREF_MT_save_load,
 
     USERPREF_PT_interface_display,
