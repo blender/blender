@@ -62,6 +62,7 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -78,13 +79,10 @@
 
 static CLG_LogRef LOG = {"bke.ipo"};
 
-/* *************************************************** */
-/* Old-Data Freeing Tools */
-
-/* Free data from old IPO-Blocks (those which haven't been converted), but not IPO block itself */
-// XXX this shouldn't be necessary anymore, but may occur while not all data is converted yet
-void BKE_ipo_free(Ipo *ipo)
+static void ipo_free_data(ID *id)
 {
+  Ipo *ipo = (Ipo *)id;
+
   IpoCurve *icu, *icn;
   int n = 0;
 
@@ -109,6 +107,25 @@ void BKE_ipo_free(Ipo *ipo)
     printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s'\n", n, ipo->id.name + 2);
   }
 }
+
+IDTypeInfo IDType_ID_IP = {
+    .id_code = ID_IP,
+    .id_filter = 0,
+    .main_listbase_index = INDEX_ID_IP,
+    .struct_size = sizeof(Ipo),
+    .name = "Ipo",
+    .name_plural = "ipos",
+    .translation_context = "",
+    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_MAKELOCAL,
+
+    .init_data = NULL,
+    .copy_data = NULL,
+    .free_data = ipo_free_data,
+    .make_local = NULL,
+};
+
+/* *************************************************** */
+/* Old-Data Freeing Tools */
 
 /* *************************************************** */
 /* ADRCODE to RNA-Path Conversion Code  - Special (Bitflags) */

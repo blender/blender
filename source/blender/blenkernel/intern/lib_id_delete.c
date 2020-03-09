@@ -172,7 +172,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BLI_assert(0);
       break;
     case ID_IP: /* Deprecated. */
-      BKE_ipo_free((Ipo *)id);
+      BLI_assert(0);
       break;
     case ID_KE:
       BLI_assert(0);
