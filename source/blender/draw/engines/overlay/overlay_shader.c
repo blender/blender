@@ -1246,7 +1246,7 @@ GPUShader *OVERLAY_shader_particle_dot(void)
                                  datatoc_common_view_lib_glsl,
                                  datatoc_particle_vert_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_particle_frag_glsl, NULL},
+        .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_particle_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg->def, "#define USE_DOTS\n", NULL},
     });
   }
