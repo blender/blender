@@ -3221,7 +3221,7 @@ static void gpencil_add_guide_points(const tGPsdata *p,
                                      int segments)
 {
   bGPdata *gpd = p->gpd;
-  if ((gpd->runtime.sbuffer_used == 0)) {
+  if (gpd->runtime.sbuffer_used == 0) {
     return;
   }
 

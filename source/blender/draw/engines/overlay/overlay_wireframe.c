@@ -222,7 +222,6 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   }
   else if (is_mesh && (!is_edit_mode || has_edit_mesh_cage)) {
     OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
-    Mesh *me = ob->data;
     float *color;
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
