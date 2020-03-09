@@ -390,7 +390,7 @@ def draw_keymaps(context, layout):
 
     # layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
     # row.operator("preferences.keyconfig_remove", text="", icon='X')
-    rowsub = row.split(factor=0.3, align=True)
+    rowsub = row.split(factor=0.4, align=True)
     # postpone drawing into rowsub, so we can set alert!
 
     layout.separator()
@@ -405,7 +405,8 @@ def draw_keymaps(context, layout):
         ok = True
 
     # go back and fill in rowsub
-    rowsub.prop(spref, "filter_type", text="")
+    rowsubsub = rowsub.row(align=True)
+    rowsubsub.prop(spref, "filter_type", expand=True)
     rowsubsub = rowsub.row(align=True)
     if not ok:
         rowsubsub.alert = True

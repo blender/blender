@@ -1470,9 +1470,9 @@ class USERPREF_PT_navigation_zoom(NavigationPanel, CenterAlignMixIn, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.row().prop(inputs, "view_zoom_method", text="Zoom Method", expand=True)
+        flow.row().prop(inputs, "view_zoom_method", text="Zoom Method")
         if inputs.view_zoom_method in {'DOLLY', 'CONTINUE'}:
-            flow.row().prop(inputs, "view_zoom_axis", expand=True)
+            flow.row().prop(inputs, "view_zoom_axis")
             flow.prop(inputs, "invert_mouse_zoom", text="Invert Mouse Zoom Direction")
 
         flow.prop(inputs, "invert_zoom_wheel", text="Invert Wheel Zoom Direction")
