@@ -533,9 +533,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       BLI_assert(0);
       return true;
     case ID_PA:
-      if (!test) {
-        BKE_particlesettings_make_local(bmain, (ParticleSettings *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_GD:
       if (!test) {
@@ -745,8 +743,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BLI_assert(0);
         break;
       case ID_PA:
-        BKE_particlesettings_copy_data(
-            bmain, (ParticleSettings *)*r_newid, (ParticleSettings *)id, flag);
+        BLI_assert(0);
         break;
       case ID_GD:
         BKE_gpencil_copy_data((bGPdata *)*r_newid, (bGPdata *)id, flag);
@@ -1372,7 +1369,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_PA:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_PC:
       BLI_assert(0);

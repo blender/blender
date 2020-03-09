@@ -331,7 +331,6 @@ int psys_uses_gravity(struct ParticleSimulationData *sim);
 void BKE_particlesettings_fluid_default_settings(struct ParticleSettings *part);
 
 /* free */
-void BKE_particlesettings_free(struct ParticleSettings *part);
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
 void psys_free(struct Object *ob, struct ParticleSystem *psys);
 
@@ -369,16 +368,8 @@ struct ModifierData *object_add_particle_system(struct Main *bmain,
                                                 const char *name);
 void object_remove_particle_system(struct Main *bmain, struct Scene *scene, struct Object *ob);
 struct ParticleSettings *BKE_particlesettings_add(struct Main *bmain, const char *name);
-void BKE_particlesettings_copy_data(struct Main *bmain,
-                                    struct ParticleSettings *part_dst,
-                                    const struct ParticleSettings *part_src,
-                                    const int flag);
 struct ParticleSettings *BKE_particlesettings_copy(struct Main *bmain,
                                                    const struct ParticleSettings *part);
-void BKE_particlesettings_make_local(struct Main *bmain,
-                                     struct ParticleSettings *part,
-                                     const int flags);
-
 void psys_reset(struct ParticleSystem *psys, int mode);
 
 void psys_find_parents(struct ParticleSimulationData *sim, const bool use_render_params);

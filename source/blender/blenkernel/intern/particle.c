@@ -58,6 +58,7 @@
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_effect.h"
+#include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_lattice.h"
 
@@ -79,6 +80,91 @@
 #include "RE_render_ext.h"
 
 #include "particle_private.h"
+
+static void fluid_free_settings(SPHFluidSettings *fluid);
+
+static void particle_settings_copy_data(Main *UNUSED(bmain),
+                                        ID *id_dst,
+                                        const ID *id_src,
+                                        const int UNUSED(flag))
+{
+  ParticleSettings *particle_settings_dst = (ParticleSettings *)id_dst;
+  const ParticleSettings *partticle_settings_src = (const ParticleSettings *)id_src;
+
+  particle_settings_dst->pd = BKE_partdeflect_copy(partticle_settings_src->pd);
+  particle_settings_dst->pd2 = BKE_partdeflect_copy(partticle_settings_src->pd2);
+  particle_settings_dst->effector_weights = MEM_dupallocN(
+      partticle_settings_src->effector_weights);
+  particle_settings_dst->fluid = MEM_dupallocN(partticle_settings_src->fluid);
+
+  if (partticle_settings_src->clumpcurve) {
+    particle_settings_dst->clumpcurve = BKE_curvemapping_copy(partticle_settings_src->clumpcurve);
+  }
+  if (partticle_settings_src->roughcurve) {
+    particle_settings_dst->roughcurve = BKE_curvemapping_copy(partticle_settings_src->roughcurve);
+  }
+  if (partticle_settings_src->twistcurve) {
+    particle_settings_dst->twistcurve = BKE_curvemapping_copy(partticle_settings_src->twistcurve);
+  }
+
+  particle_settings_dst->boids = boid_copy_settings(partticle_settings_src->boids);
+
+  for (int a = 0; a < MAX_MTEX; a++) {
+    if (partticle_settings_src->mtex[a]) {
+      particle_settings_dst->mtex[a] = MEM_dupallocN(partticle_settings_src->mtex[a]);
+    }
+  }
+
+  BLI_duplicatelist(&particle_settings_dst->instance_weights,
+                    &partticle_settings_src->instance_weights);
+}
+
+static void particle_settings_free_data(ID *id)
+{
+  ParticleSettings *particle_settings = (ParticleSettings *)id;
+
+  BKE_animdata_free((ID *)particle_settings, false);
+
+  for (int a = 0; a < MAX_MTEX; a++) {
+    MEM_SAFE_FREE(particle_settings->mtex[a]);
+  }
+
+  if (particle_settings->clumpcurve) {
+    BKE_curvemapping_free(particle_settings->clumpcurve);
+  }
+  if (particle_settings->roughcurve) {
+    BKE_curvemapping_free(particle_settings->roughcurve);
+  }
+  if (particle_settings->twistcurve) {
+    BKE_curvemapping_free(particle_settings->twistcurve);
+  }
+
+  BKE_partdeflect_free(particle_settings->pd);
+  BKE_partdeflect_free(particle_settings->pd2);
+
+  MEM_SAFE_FREE(particle_settings->effector_weights);
+
+  BLI_freelistN(&particle_settings->instance_weights);
+
+  boid_free_settings(particle_settings->boids);
+  fluid_free_settings(particle_settings->fluid);
+}
+
+IDTypeInfo IDType_ID_PA = {
+    .id_code = ID_PA,
+    .id_filter = FILTER_ID_PA,
+    .main_listbase_index = INDEX_ID_PA,
+    .struct_size = sizeof(ParticleSettings),
+    .name = "ParticleSettings",
+    .name_plural = "particles",
+    .translation_context = BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
+    .flags = 0,
+
+    .init_data = NULL,
+    .copy_data = particle_settings_copy_data,
+    .free_data = particle_settings_free_data,
+    .make_local = NULL,
+};
 
 unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];
 unsigned int PSYS_FRAND_SEED_MULTIPLIER[PSYS_FRAND_COUNT];
@@ -482,40 +568,6 @@ static void fluid_free_settings(SPHFluidSettings *fluid)
   if (fluid) {
     MEM_freeN(fluid);
   }
-}
-
-/**
- * Free (or release) any data used by this particle settings (does not free the partsett itself).
- */
-void BKE_particlesettings_free(ParticleSettings *part)
-{
-  int a;
-
-  BKE_animdata_free((ID *)part, false);
-
-  for (a = 0; a < MAX_MTEX; a++) {
-    MEM_SAFE_FREE(part->mtex[a]);
-  }
-
-  if (part->clumpcurve) {
-    BKE_curvemapping_free(part->clumpcurve);
-  }
-  if (part->roughcurve) {
-    BKE_curvemapping_free(part->roughcurve);
-  }
-  if (part->twistcurve) {
-    BKE_curvemapping_free(part->twistcurve);
-  }
-
-  BKE_partdeflect_free(part->pd);
-  BKE_partdeflect_free(part->pd2);
-
-  MEM_SAFE_FREE(part->effector_weights);
-
-  BLI_freelistN(&part->instance_weights);
-
-  boid_free_settings(part->boids);
-  fluid_free_settings(part->fluid);
 }
 
 void free_hair(Object *object, ParticleSystem *psys, int dynamics)
@@ -3789,57 +3841,11 @@ void BKE_particlesettings_twist_curve_init(ParticleSettings *part)
   part->twistcurve = cumap;
 }
 
-/**
- * Only copy internal data of ParticleSettings ID from source
- * to already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_particlesettings_copy_data(Main *UNUSED(bmain),
-                                    ParticleSettings *part_dst,
-                                    const ParticleSettings *part_src,
-                                    const int UNUSED(flag))
-{
-  part_dst->pd = BKE_partdeflect_copy(part_src->pd);
-  part_dst->pd2 = BKE_partdeflect_copy(part_src->pd2);
-  part_dst->effector_weights = MEM_dupallocN(part_src->effector_weights);
-  part_dst->fluid = MEM_dupallocN(part_src->fluid);
-
-  if (part_src->clumpcurve) {
-    part_dst->clumpcurve = BKE_curvemapping_copy(part_src->clumpcurve);
-  }
-  if (part_src->roughcurve) {
-    part_dst->roughcurve = BKE_curvemapping_copy(part_src->roughcurve);
-  }
-  if (part_src->twistcurve) {
-    part_dst->twistcurve = BKE_curvemapping_copy(part_src->twistcurve);
-  }
-
-  part_dst->boids = boid_copy_settings(part_src->boids);
-
-  for (int a = 0; a < MAX_MTEX; a++) {
-    if (part_src->mtex[a]) {
-      part_dst->mtex[a] = MEM_dupallocN(part_src->mtex[a]);
-    }
-  }
-
-  BLI_duplicatelist(&part_dst->instance_weights, &part_src->instance_weights);
-}
-
 ParticleSettings *BKE_particlesettings_copy(Main *bmain, const ParticleSettings *part)
 {
   ParticleSettings *part_copy;
   BKE_id_copy(bmain, &part->id, (ID **)&part_copy);
   return part_copy;
-}
-
-void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &part->id, flags);
 }
 
 /************************************************/
