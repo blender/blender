@@ -1216,7 +1216,7 @@ static bool drw_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d)
   const bool exclude_gpencil_rendering = v3d ? (v3d->object_type_exclude_viewport &
                                                 (1 << OB_GPENCIL)) != 0 :
                                                false;
-  return (!exclude_gpencil_rendering) || DEG_id_type_any_exists(depsgraph, ID_GD);
+  return (!exclude_gpencil_rendering) && DEG_id_type_any_exists(depsgraph, ID_GD);
 }
 
 /* -------------------------------------------------------------------- */
