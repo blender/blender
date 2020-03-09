@@ -37,8 +37,11 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_cachefile.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -49,6 +52,54 @@
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"
 #endif
+
+static void cachefile_handle_free(CacheFile *cache_file);
+
+static void cache_file_init_data(ID *id)
+{
+  CacheFile *cache_file = (CacheFile *)id;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cache_file, id));
+
+  cache_file->scale = 1.0f;
+}
+
+static void cache_file_copy_data(Main *UNUSED(bmain),
+                                 ID *id_dst,
+                                 const ID *id_src,
+                                 const int UNUSED(flag))
+{
+  CacheFile *cache_file_dst = (CacheFile *)id_dst;
+  const CacheFile *cache_file_src = (const CacheFile *)id_src;
+
+  cache_file_dst->handle = NULL;
+  cache_file_dst->handle_readers = NULL;
+  BLI_duplicatelist(&cache_file_dst->object_paths, &cache_file_src->object_paths);
+}
+
+static void cache_file_free_data(ID *id)
+{
+  CacheFile *cache_file = (CacheFile *)id;
+  BKE_animdata_free((ID *)cache_file, false);
+  cachefile_handle_free(cache_file);
+  BLI_freelistN(&cache_file->object_paths);
+}
+
+IDTypeInfo IDType_ID_CF = {
+    .id_code = ID_CF,
+    .id_filter = FILTER_ID_CF,
+    .main_listbase_index = INDEX_ID_CF,
+    .struct_size = sizeof(CacheFile),
+    .name = "CacheFile",
+    .name_plural = "cache_files",
+    .translation_context = BLT_I18NCONTEXT_ID_CACHEFILE,
+    .flags = 0,
+
+    .init_data = cache_file_init_data,
+    .copy_data = cache_file_copy_data,
+    .free_data = cache_file_free_data,
+    .make_local = NULL,
+};
 
 /* TODO: make this per cache file to avoid global locks. */
 static SpinLock spin;
@@ -157,51 +208,9 @@ void *BKE_cachefile_add(Main *bmain, const char *name)
 {
   CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, name, 0);
 
-  BKE_cachefile_init(cache_file);
+  cache_file_init_data(&cache_file->id);
 
   return cache_file;
-}
-
-void BKE_cachefile_init(CacheFile *cache_file)
-{
-  cache_file->filepath[0] = '\0';
-  cache_file->override_frame = false;
-  cache_file->frame = 0.0f;
-  cache_file->is_sequence = false;
-  cache_file->scale = 1.0f;
-  BLI_listbase_clear(&cache_file->object_paths);
-
-  cache_file->handle = NULL;
-  cache_file->handle_filepath[0] = '\0';
-  cache_file->handle_readers = NULL;
-}
-
-/** Free (or release) any data used by this cachefile (does not free the cachefile itself). */
-void BKE_cachefile_free(CacheFile *cache_file)
-{
-  BKE_animdata_free((ID *)cache_file, false);
-  cachefile_handle_free(cache_file);
-  BLI_freelistN(&cache_file->object_paths);
-}
-
-/**
- * Only copy internal data of CacheFile ID from source to already
- * allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_cachefile_copy_data(Main *UNUSED(bmain),
-                             CacheFile *cache_file_dst,
-                             const CacheFile *UNUSED(cache_file_src),
-                             const int UNUSED(flag))
-{
-  cache_file_dst->handle = NULL;
-  cache_file_dst->handle_readers = NULL;
-  BLI_duplicatelist(&cache_file_dst->object_paths, &cache_file_dst->object_paths);
 }
 
 CacheFile *BKE_cachefile_copy(Main *bmain, const CacheFile *cache_file)
@@ -209,11 +218,6 @@ CacheFile *BKE_cachefile_copy(Main *bmain, const CacheFile *cache_file)
   CacheFile *cache_file_copy;
   BKE_id_copy(bmain, &cache_file->id, (ID **)&cache_file_copy);
   return cache_file_copy;
-}
-
-void BKE_cachefile_make_local(Main *bmain, CacheFile *cache_file, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &cache_file->id, flags);
 }
 
 void BKE_cachefile_reload(Depsgraph *depsgraph, CacheFile *cache_file)

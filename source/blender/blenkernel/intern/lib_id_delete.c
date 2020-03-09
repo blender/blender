@@ -238,7 +238,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_paint_curve_free((PaintCurve *)id);
       break;
     case ID_CF:
-      BKE_cachefile_free((CacheFile *)id);
+      BLI_assert(0);
       break;
     case ID_WS:
       BLI_assert(0);

@@ -568,9 +568,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_CF:
-      if (!test) {
-        BKE_cachefile_make_local(bmain, (CacheFile *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_WS:
     case ID_SCR:
@@ -772,7 +770,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_paint_curve_copy_data(bmain, (PaintCurve *)*r_newid, (PaintCurve *)id, flag);
         break;
       case ID_CF:
-        BKE_cachefile_copy_data(bmain, (CacheFile *)*r_newid, (CacheFile *)id, flag);
+        BLI_assert(0);
         break;
       case ID_SO:
         BLI_assert(0);
@@ -1391,7 +1389,7 @@ void BKE_libblock_init_empty(ID *id)
       BKE_linestyle_init((FreestyleLineStyle *)id);
       break;
     case ID_CF:
-      BKE_cachefile_init((CacheFile *)id);
+      BLI_assert(0);
       break;
     case ID_KE:
       /* Shapekeys are a complex topic too - they depend on their 'user' data type...
