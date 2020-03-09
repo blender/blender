@@ -2183,7 +2183,11 @@ void uiItemFullR(uiLayout *layout,
     }
 
     if (flag & UI_ITEM_R_CHECKBOX_INVERT) {
-      if (ELEM(but->type, UI_BTYPE_CHECKBOX, UI_BTYPE_CHECKBOX_N)) {
+      if (ELEM(but->type,
+               UI_BTYPE_CHECKBOX,
+               UI_BTYPE_CHECKBOX_N,
+               UI_BTYPE_ICON_TOGGLE,
+               UI_BTYPE_ICON_TOGGLE_N)) {
         but->drawflag |= UI_BUT_CHECKBOX_INVERT;
       }
     }
