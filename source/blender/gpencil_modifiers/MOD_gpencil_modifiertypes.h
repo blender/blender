@@ -43,6 +43,7 @@ extern GpencilModifierTypeInfo modifierType_Gpencil_Offset;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Armature;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Time;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Multiply;
+extern GpencilModifierTypeInfo modifierType_Gpencil_Vertexcolor;
 
 /* MOD_gpencil_util.c */
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[]);

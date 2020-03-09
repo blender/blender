@@ -83,6 +83,8 @@ void createTransGPencil(bContext *C, TransInfo *t)
 
   const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
   const bool is_prop_edit_connected = (t->flag & T_PROP_CONNECTED) != 0;
+  const bool is_scale_thickness = ((t->mode == TFM_GPENCIL_SHRINKFATTEN) ||
+                                   (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_SCALE_THICKNESS));
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
@@ -108,7 +110,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
    */
   for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     /* only editable and visible layers are considered */
-    if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
+    if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
       bGPDframe *gpf;
       bGPDstroke *gps;
       bGPDframe *init_gpf = gpl->actframe;
@@ -180,7 +182,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
   /* Second Pass: Build transdata array */
   for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     /* only editable and visible layers are considered */
-    if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
+    if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
       const int cfra = (gpl->flag & GP_LAYER_FRAMELOCK) ? gpl->actframe->framenum : cfra_scene;
       bGPDframe *gpf = gpl->actframe;
       bGPDstroke *gps;
@@ -196,11 +198,11 @@ void createTransGPencil(bContext *C, TransInfo *t)
       int f_end = 0;
 
       if (use_multiframe_falloff) {
-        BKE_gpencil_get_range_selected(gpl, &f_init, &f_end);
+        BKE_gpencil_frame_range_selected(gpl, &f_init, &f_end);
       }
 
       /* calculate difference matrix */
-      ED_gpencil_parent_location(depsgraph, obact, gpd, gpl, diff_mat);
+      BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
       /* undo matrix */
       invert_m4_m4(inverse_diff_mat, diff_mat);
 
@@ -312,9 +314,9 @@ void createTransGPencil(bContext *C, TransInfo *t)
                   }
 
                   /* for other transform modes (e.g. shrink-fatten), need to additional data
-                   * but never for scale or mirror
+                   * but never for mirror
                    */
-                  if ((t->mode != TFM_RESIZE) && (t->mode != TFM_MIRROR)) {
+                  if ((t->mode != TFM_MIRROR) && (is_scale_thickness)) {
                     if (t->mode != TFM_GPENCIL_OPACITY) {
                       td->val = &pt->pressure;
                       td->ival = pt->pressure;

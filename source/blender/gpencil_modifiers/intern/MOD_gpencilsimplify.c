@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
@@ -84,21 +85,21 @@ static void deformStroke(GpencilModifierData *md,
   switch (mmd->mode) {
     case GP_SIMPLIFY_FIXED: {
       for (int i = 0; i < mmd->step; i++) {
-        BKE_gpencil_simplify_fixed(gps);
+        BKE_gpencil_stroke_simplify_fixed(gps);
       }
       break;
     }
     case GP_SIMPLIFY_ADAPTIVE: {
       /* simplify stroke using Ramer-Douglas-Peucker algorithm */
-      BKE_gpencil_simplify_stroke(gps, mmd->factor);
+      BKE_gpencil_stroke_simplify_adaptive(gps, mmd->factor);
       break;
     }
     case GP_SIMPLIFY_SAMPLE: {
-      BKE_gpencil_sample_stroke(gps, mmd->length, false);
+      BKE_gpencil_stroke_sample(gps, mmd->length, false);
       break;
     }
     case GP_SIMPLIFY_MERGE: {
-      BKE_gpencil_merge_distance_stroke(gpf, gps, mmd->distance, true);
+      BKE_gpencil_stroke_merge_distance(gpf, gps, mmd->distance, true);
       break;
     }
     default:
@@ -113,9 +114,9 @@ static void bakeModifier(struct Main *UNUSED(bmain),
 {
   bGPdata *gpd = ob->data;
 
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         deformStroke(md, depsgraph, ob, gpl, gpf, gps);
       }
     }

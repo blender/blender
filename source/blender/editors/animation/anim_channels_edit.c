@@ -3135,7 +3135,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
       if (gpl->flag & GP_LAYER_SELECT) {
         ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, gpl, ANIMTYPE_GPLAYER);
         /* update other layer status */
-        BKE_gpencil_layer_setactive(gpd, gpl);
+        BKE_gpencil_layer_active_set(gpd, gpl);
         BKE_gpencil_layer_autolock_set(gpd, false);
         DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
       }

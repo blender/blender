@@ -44,7 +44,7 @@ ShaderFxTypeInfo shaderfx_Type_Pixel = {
     /* structName */ "PixelShaderFxData",
     /* structSize */ sizeof(PixelShaderFxData),
     /* type */ eShaderFxType_GpencilType,
-    /* flags */ eShaderFxTypeFlag_Single,
+    /* flags */ 0,
 
     /* copyData */ copyData,
 

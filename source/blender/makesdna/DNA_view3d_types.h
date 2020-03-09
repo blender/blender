@@ -224,6 +224,9 @@ typedef struct View3DOverlay {
   float gpencil_grid_opacity;
   float gpencil_fade_layer;
 
+  /** Factor for mixing vertex paint with original color */
+  float gpencil_vertex_paint_opacity;
+  char _pad4[4];
 } View3DOverlay;
 
 typedef struct View3D_Runtime {
@@ -415,13 +418,15 @@ enum {
 #define V3D_FLAG2_UNUSED_15 (1 << 15) /* cleared */
 
 /** #View3D.gp_flag (short) */
-#define V3D_GP_SHOW_PAPER (1 << 0) /* Activate paper to cover all viewport */
-#define V3D_GP_SHOW_GRID (1 << 1)  /* Activate paper grid */
+#define V3D_GP_FADE_OBJECTS (1 << 0) /* Fade all non GP objects */
+#define V3D_GP_SHOW_GRID (1 << 1)    /* Activate paper grid */
 #define V3D_GP_SHOW_EDIT_LINES (1 << 2)
 #define V3D_GP_SHOW_MULTIEDIT_LINES (1 << 3)
 #define V3D_GP_SHOW_ONION_SKIN (1 << 4)       /* main switch at view level */
 #define V3D_GP_FADE_NOACTIVE_LAYERS (1 << 5)  /* fade layers not active */
 #define V3D_GP_FADE_NOACTIVE_GPENCIL (1 << 6) /* Fade other GPencil objects */
+#define V3D_GP_SHOW_STROKE_DIRECTION (1 << 7) /* Show Strokes Directions */
+#define V3D_GP_SHOW_MATERIAL_NAME (1 << 8)    /* Show Material names */
 
 /** #View3DShading.flag */
 enum {

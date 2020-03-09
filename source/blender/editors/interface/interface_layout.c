@@ -2325,7 +2325,7 @@ void uiItemFullR_with_popover(uiLayout *layout,
   uiItemFullR(layout, ptr, prop, index, value, flag, name, icon);
   but = but->next;
   while (but) {
-    if (but->rnaprop == prop && but->type == UI_BTYPE_MENU) {
+    if (but->rnaprop == prop && ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_COLOR)) {
       ui_but_rna_menu_convert_to_panel_type(but, panel_type);
       break;
     }

@@ -1116,80 +1116,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 276, 4)) {
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       ToolSettings *ts = scene->toolsettings;
-
-      if (ts->gp_sculpt.brush[0].size == 0) {
-        GP_Sculpt_Settings *gset = &ts->gp_sculpt;
-        GP_Sculpt_Data *brush;
-
-        brush = &gset->brush[GP_SCULPT_TYPE_SMOOTH];
-        brush->size = 25;
-        brush->strength = 0.3f;
-        brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_SMOOTH_PRESSURE;
-
-        brush = &gset->brush[GP_SCULPT_TYPE_THICKNESS];
-        brush->size = 25;
-        brush->strength = 0.5f;
-        brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
-
-        brush = &gset->brush[GP_SCULPT_TYPE_GRAB];
-        brush->size = 50;
-        brush->strength = 0.3f;
-        brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
-
-        brush = &gset->brush[GP_SCULPT_TYPE_PUSH];
-        brush->size = 25;
-        brush->strength = 0.3f;
-        brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
-
-        brush = &gset->brush[GP_SCULPT_TYPE_TWIST];
-        brush->size = 50;
-        brush->strength = 0.3f;  // XXX?
-        brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
-
-        brush = &gset->brush[GP_SCULPT_TYPE_PINCH];
-        brush->size = 50;
-        brush->strength = 0.5f;  // XXX?
-        brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
-
-        brush = &gset->brush[GP_SCULPT_TYPE_RANDOMIZE];
-        brush->size = 25;
-        brush->strength = 0.5f;
-        brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
-
-        brush = &gset->brush[GP_SCULPT_TYPE_CLONE];
-        brush->size = 50;
-        brush->strength = 1.0f;
-      }
-
       if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "gpencil_v3d_align")) {
-#if 0 /* XXX: Cannot do this, as we get random crashes... */
-        if (scene->gpd) {
-          bGPdata *gpd = scene->gpd;
-
-          /* Copy over the settings stored in the GP data-block linked to the scene,
-           * for minimal disruption. */
-          ts->gpencil_v3d_align = 0;
-
-          if (gpd->flag & GP_DATA_VIEWALIGN) {
-            ts->gpencil_v3d_align |= GP_PROJECT_VIEWSPACE;
-          }
-          if (gpd->flag & GP_DATA_DEPTH_VIEW) {
-            ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_VIEW;
-          }
-          if (gpd->flag & GP_DATA_DEPTH_STROKE) {
-            ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_STROKE;
-          }
-
-          if (gpd->flag & GP_DATA_DEPTH_STROKE_ENDPOINTS) {
-            ts->gpencil_v3d_align |= GP_PROJECT_DEPTH_STROKE_ENDPOINTS;
-          }
-        }
-        else {
-          /* Default to cursor for all standard 3D views */
-          ts->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
-        }
-#endif
-
         ts->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
         ts->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
         ts->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
@@ -1203,7 +1130,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       /* Ensure that the datablock's onion-skinning toggle flag
        * stays in sync with the status of the actual layers
        */
-      for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         if (gpl->flag & GP_LAYER_ONIONSKIN) {
           enabled = true;
         }
@@ -1424,22 +1351,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 277, 3)) {
     /* ------- init of grease pencil initialization --------------- */
     if (!DNA_struct_elem_find(fd->filesdna, "bGPDstroke", "bGPDpalettecolor", "*palcolor")) {
-      for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
-        ToolSettings *ts = scene->toolsettings;
-        /* initialize use position for sculpt brushes */
-        ts->gp_sculpt.flag |= GP_SCULPT_SETT_FLAG_APPLY_POSITION;
-
-        /* new strength sculpt brush */
-        if (ts->gp_sculpt.brush[0].size >= 11) {
-          GP_Sculpt_Settings *gset = &ts->gp_sculpt;
-          GP_Sculpt_Data *brush;
-
-          brush = &gset->brush[GP_SCULPT_TYPE_STRENGTH];
-          brush->size = 25;
-          brush->strength = 0.5f;
-          brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
-        }
-      }
       /* Convert Grease Pencil to new palettes/brushes
        * Loop all strokes and create the palette and all colors
        */
@@ -1447,7 +1358,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if (BLI_listbase_is_empty(&gpd->palettes)) {
           /* create palette */
           bGPDpalette *palette = BKE_gpencil_palette_addnew(gpd, "GP_Palette");
-          for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+          LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
             /* create color using layer name */
             bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_addnew(palette, gpl->info);
             if (palcolor != NULL) {
@@ -1475,8 +1386,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
               ARRAY_SET_ITEMS(gpl->tintcolor, 0.0f, 0.0f, 0.0f, 0.0f);
 
               /* flush relevant layer-settings to strokes */
-              for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-                for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+              LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+                LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
                   /* set stroke to palette and force recalculation */
                   BLI_strncpy(gps->colorname, gpl->info, sizeof(gps->colorname));
                   gps->thickness = gpl->thickness;

@@ -1537,7 +1537,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
      *     Will also remove parent from grease pencil from other scenes,
      *     even when use_global is false... */
     for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
-      for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         if (gpl->parent != NULL) {
           if (gpl->parent == ob) {
             gpl->parent = NULL;
@@ -2394,7 +2394,7 @@ static int convert_exec(bContext *C, wmOperator *op)
            * Nurbs Surface are not supported.
            */
           ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
-          gpencil_ob = ED_gpencil_add_object(C, scene, ob->loc, local_view_bits);
+          gpencil_ob = ED_gpencil_add_object(C, ob->loc, local_view_bits);
           copy_v3_v3(gpencil_ob->rot, ob->rot);
           copy_v3_v3(gpencil_ob->scale, ob->scale);
           BKE_gpencil_convert_curve(bmain, scene, gpencil_ob, ob, false, false, true);

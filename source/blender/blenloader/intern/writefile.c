@@ -1830,11 +1830,51 @@ static void write_gpencil_modifiers(WriteData *wd, ListBase *modbase)
         write_curvemapping(wd, gpmd->curve_thickness);
       }
     }
+    else if (md->type == eGpencilModifierType_Noise) {
+      NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
+
+      if (gpmd->curve_intensity) {
+        write_curvemapping(wd, gpmd->curve_intensity);
+      }
+    }
     else if (md->type == eGpencilModifierType_Hook) {
       HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
 
       if (gpmd->curfalloff) {
         write_curvemapping(wd, gpmd->curfalloff);
+      }
+    }
+    else if (md->type == eGpencilModifierType_Vertexcolor) {
+      VertexcolorGpencilModifierData *gpmd = (VertexcolorGpencilModifierData *)md;
+      if (gpmd->colorband) {
+        writestruct(wd, DATA, ColorBand, 1, gpmd->colorband);
+      }
+      if (gpmd->curve_intensity) {
+        write_curvemapping(wd, gpmd->curve_intensity);
+      }
+    }
+    else if (md->type == eGpencilModifierType_Smooth) {
+      SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
+      if (gpmd->curve_intensity) {
+        write_curvemapping(wd, gpmd->curve_intensity);
+      }
+    }
+    else if (md->type == eGpencilModifierType_Color) {
+      ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
+      if (gpmd->curve_intensity) {
+        write_curvemapping(wd, gpmd->curve_intensity);
+      }
+    }
+    else if (md->type == eGpencilModifierType_Opacity) {
+      OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
+      if (gpmd->curve_intensity) {
+        write_curvemapping(wd, gpmd->curve_intensity);
+      }
+    }
+    else if (md->type == eGpencilModifierType_Tint) {
+      TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
+      if (gpmd->curve_intensity) {
+        write_curvemapping(wd, gpmd->curve_intensity);
       }
     }
   }
@@ -2546,6 +2586,18 @@ static void write_scene(WriteData *wd, Scene *sce)
     writestruct(wd, DATA, GpPaint, 1, tos->gp_paint);
     write_paint(wd, &tos->gp_paint->paint);
   }
+  if (tos->gp_vertexpaint) {
+    writestruct(wd, DATA, GpVertexPaint, 1, tos->gp_vertexpaint);
+    write_paint(wd, &tos->gp_vertexpaint->paint);
+  }
+  if (tos->gp_sculptpaint) {
+    writestruct(wd, DATA, GpSculptPaint, 1, tos->gp_sculptpaint);
+    write_paint(wd, &tos->gp_sculptpaint->paint);
+  }
+  if (tos->gp_weightpaint) {
+    writestruct(wd, DATA, GpWeightPaint, 1, tos->gp_weightpaint);
+    write_paint(wd, &tos->gp_weightpaint->paint);
+  }
   /* write grease-pencil custom ipo curve to file */
   if (tos->gp_interpolate.custom_ipo) {
     write_curvemapping(wd, tos->gp_interpolate.custom_ipo);
@@ -2741,14 +2793,17 @@ static void write_gpencil(WriteData *wd, bGPdata *gpd)
 
     /* write grease-pencil layers to file */
     writelist(wd, DATA, bGPDlayer, &gpd->layers);
-    for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+      /* Write mask list. */
+      writelist(wd, DATA, bGPDlayer_Mask, &gpl->mask_layers);
       /* write this layer's frames to file */
       writelist(wd, DATA, bGPDframe, &gpl->frames);
-      for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
         /* write strokes */
         writelist(wd, DATA, bGPDstroke, &gpf->strokes);
-        for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           writestruct(wd, DATA, bGPDspoint, gps->totpoints, gps->points);
+          writestruct(wd, DATA, bGPDtriangle, gps->tot_triangles, gps->triangles);
           write_dverts(wd, gps->totpoints, gps->dvert);
         }
       }

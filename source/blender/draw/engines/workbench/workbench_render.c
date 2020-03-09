@@ -117,6 +117,60 @@ static bool workbench_render_framebuffers_init(void)
   return ok;
 }
 
+static void workbench_render_result_z(struct RenderLayer *rl,
+                                      const char *viewname,
+                                      const rcti *rect)
+{
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  ViewLayer *view_layer = draw_ctx->view_layer;
+
+  if ((view_layer->passflag & SCE_PASS_Z) != 0) {
+    RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
+
+    GPU_framebuffer_bind(dfbl->default_fb);
+    GPU_framebuffer_read_depth(dfbl->default_fb,
+                               rect->xmin,
+                               rect->ymin,
+                               BLI_rcti_size_x(rect),
+                               BLI_rcti_size_y(rect),
+                               rp->rect);
+
+    float winmat[4][4];
+    DRW_view_winmat_get(NULL, winmat, false);
+
+    int pix_ct = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
+
+    /* Convert ogl depth [0..1] to view Z [near..far] */
+    if (DRW_view_is_persp_get(NULL)) {
+      for (int i = 0; i < pix_ct; i++) {
+        if (rp->rect[i] == 1.0f) {
+          rp->rect[i] = 1e10f; /* Background */
+        }
+        else {
+          rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
+          rp->rect[i] = winmat[3][2] / (rp->rect[i] + winmat[2][2]);
+        }
+      }
+    }
+    else {
+      /* Keep in mind, near and far distance are negatives. */
+      float near = DRW_view_near_distance_get(NULL);
+      float far = DRW_view_far_distance_get(NULL);
+      float range = fabsf(far - near);
+
+      for (int i = 0; i < pix_ct; i++) {
+        if (rp->rect[i] == 1.0f) {
+          rp->rect[i] = 1e10f; /* Background */
+        }
+        else {
+          rp->rect[i] = -rp->rect[i] * range + near;
+        }
+      }
+    }
+  }
+}
+
 static void workbench_render_framebuffers_finish(void)
 {
 }
@@ -195,8 +249,8 @@ void workbench_render(WORKBENCH_Data *data,
   const char *viewname = RE_GetActiveRenderView(engine->re);
   RenderPass *rp = RE_pass_find_by_name(render_layer, RE_PASSNAME_COMBINED, viewname);
 
-  GPU_framebuffer_bind(dfbl->color_only_fb);
-  GPU_framebuffer_read_color(dfbl->color_only_fb,
+  GPU_framebuffer_bind(dfbl->default_fb);
+  GPU_framebuffer_read_color(dfbl->default_fb,
                              rect->xmin,
                              rect->ymin,
                              BLI_rcti_size_x(rect),
@@ -204,6 +258,8 @@ void workbench_render(WORKBENCH_Data *data,
                              4,
                              0,
                              rp->rect);
+
+  workbench_render_result_z(render_layer, viewname, rect);
 
   workbench_render_framebuffers_finish();
 }

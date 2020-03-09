@@ -113,12 +113,7 @@ static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstro
   }
 }
 
-/* Generic "generateStrokes" callback */
-static void generateStrokes(GpencilModifierData *md,
-                            Depsgraph *UNUSED(depsgraph),
-                            Object *ob,
-                            bGPDlayer *gpl,
-                            bGPDframe *gpf)
+static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
 {
   MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
   bGPDstroke *gps, *gps_new = NULL;
@@ -145,12 +140,27 @@ static void generateStrokes(GpencilModifierData *md,
                                            mmd->flag & GP_MIRROR_INVERT_PASS,
                                            mmd->flag & GP_MIRROR_INVERT_LAYERPASS,
                                            mmd->flag & GP_MIRROR_INVERT_MATERIAL)) {
-          gps_new = BKE_gpencil_stroke_duplicate(gps);
+          gps_new = BKE_gpencil_stroke_duplicate(gps, true);
           update_position(ob, mmd, gps_new, xi);
           BLI_addtail(&gpf->strokes, gps_new);
         }
       }
     }
+  }
+}
+
+/* Generic "generateStrokes" callback */
+static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
+{
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  bGPdata *gpd = (bGPdata *)ob->data;
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    bGPDframe *gpf = BKE_gpencil_frame_retime_get(depsgraph, scene, ob, gpl);
+    if (gpf == NULL) {
+      continue;
+    }
+    generate_geometry(md, ob, gpl, gpf);
   }
 }
 
@@ -160,14 +170,14 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
   bGPdata *gpd = ob->data;
   int oldframe = (int)DEG_get_ctime(depsgraph);
 
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       /* apply mirror effects on this frame */
       CFRA = gpf->framenum;
       BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 
       /* compute mirror effects on this frame */
-      generateStrokes(md, depsgraph, ob, gpl, gpf);
+      generate_geometry(md, ob, gpl, gpf);
     }
   }
 

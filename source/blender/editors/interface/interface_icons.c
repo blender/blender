@@ -2050,7 +2050,10 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
     }
 
     /* reset the icon */
-    if ((ob != NULL) && (ob->mode & OB_MODE_PAINT_GPENCIL) && (br->gpencil_settings != NULL)) {
+    if ((ob != NULL) &&
+        (ob->mode & (OB_MODE_PAINT_GPENCIL | OB_MODE_VERTEX_GPENCIL | OB_MODE_SCULPT_GPENCIL |
+                     OB_MODE_WEIGHT_GPENCIL)) &&
+        (br->gpencil_settings != NULL)) {
       switch (br->gpencil_settings->icon_id) {
         case GP_BRUSH_ICON_PENCIL:
           br->id.icon_id = ICON_GPBRUSH_PENCIL;
@@ -2087,6 +2090,54 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
           break;
         case GP_BRUSH_ICON_ERASE_STROKE:
           br->id.icon_id = ICON_GPBRUSH_ERASE_STROKE;
+          break;
+        case GP_BRUSH_ICON_TINT:
+          br->id.icon_id = ICON_BRUSH_TEXDRAW;
+          break;
+        case GP_BRUSH_ICON_VERTEX_DRAW:
+          br->id.icon_id = ICON_BRUSH_MIX;
+          break;
+        case GP_BRUSH_ICON_VERTEX_BLUR:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
+        case GP_BRUSH_ICON_VERTEX_AVERAGE:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
+        case GP_BRUSH_ICON_VERTEX_SMEAR:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
+        case GP_BRUSH_ICON_VERTEX_REPLACE:
+          br->id.icon_id = ICON_BRUSH_MIX;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_SMOOTH:
+          br->id.icon_id = ICON_GPBRUSH_SMOOTH;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_THICKNESS:
+          br->id.icon_id = ICON_GPBRUSH_THICKNESS;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_STRENGTH:
+          br->id.icon_id = ICON_GPBRUSH_STRENGTH;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_RANDOMIZE:
+          br->id.icon_id = ICON_GPBRUSH_RANDOMIZE;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_GRAB:
+          br->id.icon_id = ICON_GPBRUSH_GRAB;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_PUSH:
+          br->id.icon_id = ICON_GPBRUSH_PUSH;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_TWIST:
+          br->id.icon_id = ICON_GPBRUSH_TWIST;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_PINCH:
+          br->id.icon_id = ICON_GPBRUSH_PINCH;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_CLONE:
+          br->id.icon_id = ICON_GPBRUSH_CLONE;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_WEIGHT:
+          br->id.icon_id = ICON_GPBRUSH_WEIGHT;
           break;
         default:
           br->id.icon_id = ICON_GPBRUSH_PEN;

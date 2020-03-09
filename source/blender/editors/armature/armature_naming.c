@@ -299,7 +299,7 @@ void ED_armature_bone_rename(Main *bmain,
       if (ob->type == OB_GPENCIL) {
 
         bGPdata *gpd = (bGPdata *)ob->data;
-        for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           if ((gpl->parent != NULL) && (gpl->parent->data == arm)) {
             if (STREQ(gpl->parsubstr, oldname)) {
               BLI_strncpy(gpl->parsubstr, newname, MAXBONENAME);

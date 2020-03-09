@@ -26,6 +26,7 @@ from bpy.types import (
 )
 
 from bl_ui.properties_grease_pencil_common import (
+    GreasePencilLayerMasksPanel,
     GreasePencilLayerAdjustmentsPanel,
     GreasePencilLayerRelationsPanel,
     GreasePencilLayerDisplayPanel,
@@ -699,6 +700,15 @@ class DOPESHEET_PT_gpencil_mode(LayersDopeSheetPanel, Panel):
             row = layout.row(align=True)
             row.prop(gpl, "opacity", text="Opacity", slider=True)
 
+            row = layout.row(align=True)
+            row.prop(gpl, "use_lights")
+
+
+class DOPESHEET_PT_gpencil_layer_masks(LayersDopeSheetPanel, GreasePencilLayerMasksPanel, Panel):
+    bl_label = "Masks"
+    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_options = {'DEFAULT_CLOSED'}
+
 
 class DOPESHEET_PT_gpencil_layer_adjustments(LayersDopeSheetPanel, GreasePencilLayerAdjustmentsPanel, Panel):
     bl_label = "Adjustments"
@@ -736,6 +746,7 @@ classes = (
     DOPESHEET_MT_snap_pie,
     DOPESHEET_PT_filters,
     DOPESHEET_PT_gpencil_mode,
+    DOPESHEET_PT_gpencil_layer_masks,
     DOPESHEET_PT_gpencil_layer_adjustments,
     DOPESHEET_PT_gpencil_layer_relations,
     DOPESHEET_PT_gpencil_layer_display,

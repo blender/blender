@@ -84,13 +84,36 @@ static int gpencil_select_mode_from_sculpt(eGP_Sculpt_SelectMaskFlag mode)
   }
 }
 
+/* Convert vertex mask mode to Select mode */
+static int gpencil_select_mode_from_vertex(eGP_Sculpt_SelectMaskFlag mode)
+{
+  if (mode & GP_VERTEX_MASK_SELECTMODE_POINT) {
+    return GP_SELECTMODE_POINT;
+  }
+  else if (mode & GP_VERTEX_MASK_SELECTMODE_STROKE) {
+    return GP_SELECTMODE_STROKE;
+  }
+  else if (mode & GP_VERTEX_MASK_SELECTMODE_SEGMENT) {
+    return GP_SELECTMODE_SEGMENT;
+  }
+  else {
+    return GP_SELECTMODE_POINT;
+  }
+}
+
 static bool gpencil_select_poll(bContext *C)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
 
   if (GPENCIL_SCULPT_MODE(gpd)) {
-    ToolSettings *ts = CTX_data_tool_settings(C);
     if (!(GPENCIL_ANY_SCULPT_MASK(ts->gpencil_selectmode_sculpt))) {
+      return false;
+    }
+  }
+
+  if (GPENCIL_VERTEX_MODE(gpd)) {
+    if (!(GPENCIL_ANY_VERTEX_MASK(ts->gpencil_selectmode_vertex))) {
       return false;
     }
   }
@@ -350,7 +373,7 @@ static void gp_select_same_layer(bContext *C)
   Scene *scene = CTX_data_scene(C);
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_USE_PREV);
+    bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV);
     bGPDstroke *gps;
     bool found = false;
 
@@ -832,7 +855,7 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
  * from gpencil_paint.c #gp_stroke_eraser_dostroke().
  * It would be great to de-duplicate the logic here sometime, but that can wait.
  */
-static bool gp_stroke_do_circle_sel(bGPdata *gpd,
+static bool gp_stroke_do_circle_sel(bGPdata *UNUSED(gpd),
                                     bGPDlayer *gpl,
                                     bGPDstroke *gps,
                                     GP_SpaceConversion *gsc,
@@ -845,13 +868,12 @@ static bool gp_stroke_do_circle_sel(bGPdata *gpd,
                                     const int selectmode,
                                     const float scale)
 {
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   bGPDspoint *pt1 = NULL;
   bGPDspoint *pt2 = NULL;
   int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
   int i;
   bool changed = false;
-  bGPDstroke *gps_active = (!is_multiedit) ? gps->runtime.gps_orig : gps;
+  bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
   bGPDspoint *pt_active = NULL;
 
   if (gps->totpoints == 1) {
@@ -910,22 +932,22 @@ static bool gp_stroke_do_circle_sel(bGPdata *gpd,
            */
           hit = true;
           if (select) {
-            pt_active = (!is_multiedit) ? pt1->runtime.pt_orig : pt1;
+            pt_active = pt1->runtime.pt_orig;
             if (pt_active != NULL) {
               pt_active->flag |= GP_SPOINT_SELECT;
             }
-            pt_active = (!is_multiedit) ? pt2->runtime.pt_orig : pt2;
+            pt_active = pt2->runtime.pt_orig;
             if (pt_active != NULL) {
               pt_active->flag |= GP_SPOINT_SELECT;
             }
             changed = true;
           }
           else {
-            pt_active = (!is_multiedit) ? pt1->runtime.pt_orig : pt1;
+            pt_active = pt1->runtime.pt_orig;
             if (pt_active != NULL) {
               pt_active->flag &= ~GP_SPOINT_SELECT;
             }
-            pt_active = (!is_multiedit) ? pt2->runtime.pt_orig : pt2;
+            pt_active = pt2->runtime.pt_orig;
             if (pt_active != NULL) {
               pt_active->flag &= ~GP_SPOINT_SELECT;
             }
@@ -942,7 +964,7 @@ static bool gp_stroke_do_circle_sel(bGPdata *gpd,
     /* if stroke mode expand selection */
     if ((hit) && (selectmode == GP_SELECTMODE_STROKE)) {
       for (i = 0, pt1 = gps->points; i < gps->totpoints; i++, pt1++) {
-        pt_active = (!is_multiedit) ? pt1->runtime.pt_orig : pt1;
+        pt_active = (pt1->runtime.pt_orig) ? pt1->runtime.pt_orig : pt1;
         if (pt_active != NULL) {
           if (select) {
             pt_active->flag |= GP_SPOINT_SELECT;
@@ -955,7 +977,7 @@ static bool gp_stroke_do_circle_sel(bGPdata *gpd,
     }
 
     /* expand selection to segment */
-    pt_active = (!is_multiedit) ? pt1->runtime.pt_orig : pt1;
+    pt_active = (pt1->runtime.pt_orig) ? pt1->runtime.pt_orig : pt1;
     if ((hit) && (selectmode == GP_SELECTMODE_SEGMENT) && (select) && (pt_active != NULL)) {
       float r_hita[3], r_hitb[3];
       bool hit_select = (bool)(pt1->flag & GP_SPOINT_SELECT);
@@ -976,9 +998,17 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
 
-  const int selectmode = (ob && ob->mode == OB_MODE_SCULPT_GPENCIL) ?
-                             gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt) :
-                             ts->gpencil_selectmode_edit;
+  int selectmode;
+  if (ob && ob->mode == OB_MODE_SCULPT_GPENCIL) {
+    selectmode = gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt);
+  }
+  else if (ob && ob->mode == OB_MODE_VERTEX_GPENCIL) {
+    selectmode = gpencil_select_mode_from_vertex(ts->gpencil_selectmode_vertex);
+  }
+  else {
+    selectmode = ts->gpencil_selectmode_edit;
+  }
+
   const float scale = ts->gp_sculpt.isect_threshold;
 
   /* if not edit/sculpt mode, the event is catched but not processed */
@@ -1100,9 +1130,16 @@ static int gpencil_generic_select_exec(bContext *C,
   ToolSettings *ts = CTX_data_tool_settings(C);
   ScrArea *sa = CTX_wm_area(C);
 
-  const short selectmode = (ob && ob->mode == OB_MODE_SCULPT_GPENCIL) ?
-                               gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt) :
-                               ts->gpencil_selectmode_edit;
+  int selectmode;
+  if (ob && ob->mode == OB_MODE_SCULPT_GPENCIL) {
+    selectmode = gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt);
+  }
+  else if (ob && ob->mode == OB_MODE_VERTEX_GPENCIL) {
+    selectmode = gpencil_select_mode_from_vertex(ts->gpencil_selectmode_vertex);
+  }
+  else {
+    selectmode = ts->gpencil_selectmode_edit;
+  }
 
   const bool strokemode = ((selectmode == GP_SELECTMODE_STROKE) &&
                            ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
@@ -1145,16 +1182,16 @@ static int gpencil_generic_select_exec(bContext *C,
   /* select/deselect points */
   GP_EVALUATED_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
   {
-    bGPDstroke *gps_active = (!is_multiedit) ? gps->runtime.gps_orig : gps;
+    bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
 
     bGPDspoint *pt;
     int i;
     bool hit = false;
     for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-      if ((!is_multiedit) && (pt->runtime.pt_orig == NULL)) {
+      if (pt->runtime.pt_orig == NULL) {
         continue;
       }
-      bGPDspoint *pt_active = (!is_multiedit) ? pt->runtime.pt_orig : pt;
+      bGPDspoint *pt_active = pt->runtime.pt_orig;
 
       /* convert point coords to screenspace */
       const bool is_inside = is_inside_fn(gps, pt, &gsc, gpstroke_iter.diff_mat, user_data);
@@ -1192,7 +1229,7 @@ static int gpencil_generic_select_exec(bContext *C,
           if ((!is_multiedit) && (pt->runtime.pt_orig == NULL)) {
             continue;
           }
-          bGPDspoint *pt_active = (!is_multiedit) ? pt->runtime.pt_orig : pt;
+          bGPDspoint *pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
           if (sel_op_result) {
             pt_active->flag |= GP_SPOINT_SELECT;
@@ -1419,6 +1456,10 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
     whole = (bool)(gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt) ==
                    GP_SELECTMODE_STROKE);
   }
+  else if ((ob) && (ob->mode == OB_MODE_VERTEX_GPENCIL)) {
+    whole = (bool)(gpencil_select_mode_from_vertex(ts->gpencil_selectmode_sculpt) ==
+                   GP_SELECTMODE_STROKE);
+  }
   else {
     whole = (bool)(ts->gpencil_selectmode_edit == GP_SELECTMODE_STROKE);
   }
@@ -1433,7 +1474,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
   /* XXX: maybe we should go from the top of the stack down instead... */
   GP_EVALUATED_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
   {
-    bGPDstroke *gps_active = (!is_multiedit) ? gps->runtime.gps_orig : gps;
+    bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
     bGPDspoint *pt;
     int i;
 
@@ -1526,9 +1567,16 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
       hit_stroke->flag |= GP_STROKE_SELECT;
 
       /* expand selection to segment */
-      const short selectmode = (ob && ob->mode == OB_MODE_SCULPT_GPENCIL) ?
-                                   gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt) :
-                                   ts->gpencil_selectmode_edit;
+      int selectmode;
+      if (ob && ob->mode == OB_MODE_SCULPT_GPENCIL) {
+        selectmode = gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt);
+      }
+      else if (ob && ob->mode == OB_MODE_VERTEX_GPENCIL) {
+        selectmode = gpencil_select_mode_from_vertex(ts->gpencil_selectmode_vertex);
+      }
+      else {
+        selectmode = ts->gpencil_selectmode_edit;
+      }
 
       if (selectmode == GP_SELECTMODE_SEGMENT) {
         float r_hita[3], r_hitb[3];
@@ -1604,6 +1652,110 @@ void GPENCIL_OT_select(wmOperatorType *ot)
                             INT_MIN,
                             INT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
+/* Select by Vertex Color. */
+static bool gpencil_select_color_poll(bContext *C)
+{
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  Object *ob = CTX_data_active_object(C);
+  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+    return false;
+  }
+  bGPdata *gpd = (bGPdata *)ob->data;
+
+  if (GPENCIL_VERTEX_MODE(gpd)) {
+    if (!(GPENCIL_ANY_VERTEX_MASK(ts->gpencil_selectmode_vertex))) {
+      return false;
+    }
+
+    /* Any data to use. */
+    if (gpd->layers.first) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static int gpencil_select_color_exec(bContext *C, wmOperator *op)
+{
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  Object *ob = CTX_data_active_object(C);
+  bGPdata *gpd = (bGPdata *)ob->data;
+  if (!GPENCIL_VERTEX_MODE(gpd)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Paint *paint = &ts->gp_vertexpaint->paint;
+  Brush *brush = paint->brush;
+  bool done = false;
+
+  float hsv_brush[3], hsv_stroke[3];
+  rgb_to_hsv_compat_v(brush->rgb, hsv_brush);
+
+  /* Select any visible stroke that uses this color */
+  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    bGPDspoint *pt;
+    int i;
+    bool gps_selected = false;
+    /* Check all stroke points. */
+    for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+      if (pt->vert_color[3] < 0.03f) {
+        continue;
+      }
+
+      rgb_to_hsv_compat_v(pt->vert_color, hsv_stroke);
+      /* Only check Hue to get full value and saturation ranges. */
+      if (compare_ff(hsv_stroke[0], hsv_brush[0], threshold)) {
+        pt->flag |= GP_SPOINT_SELECT;
+        gps_selected = true;
+      }
+    }
+
+    if (gps_selected) {
+      gps->flag |= GP_STROKE_SELECT;
+      done = true;
+    }
+  }
+  CTX_DATA_END;
+
+  if (done) {
+    /* updates */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+
+    /* copy on write tag is needed, or else no refresh happens */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+
+    WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_select_color(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Select Color";
+  ot->idname = "GPENCIL_OT_select_color";
+  ot->description = "Select all strokes with same color";
+
+  /* callbacks */
+  ot->exec = gpencil_select_color_exec;
+  ot->poll = gpencil_select_color_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  prop = RNA_def_float(ot->srna, "threshold", 0.01f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);
+  /* avoid re-using last var */
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */

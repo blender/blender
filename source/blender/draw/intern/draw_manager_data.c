@@ -637,13 +637,12 @@ static void drw_command_draw(DRWShadingGroup *shgroup, GPUBatch *batch, DRWResou
   cmd->handle = handle;
 }
 
-static void drw_command_draw_range(DRWShadingGroup *shgroup,
-                                   GPUBatch *batch,
-                                   uint start,
-                                   uint count)
+static void drw_command_draw_range(
+    DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle, uint start, uint count)
 {
   DRWCommandDrawRange *cmd = drw_command_create(shgroup, DRW_CMD_DRAW_RANGE);
   cmd->batch = batch;
+  cmd->handle = handle;
   cmd->vert_first = start;
   cmd->vert_count = count;
 }
@@ -659,6 +658,16 @@ static void drw_command_draw_instance(DRWShadingGroup *shgroup,
   cmd->handle = handle;
   cmd->inst_count = count;
   cmd->use_attribs = use_attrib;
+}
+
+static void drw_command_draw_intance_range(
+    DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle, uint start, uint count)
+{
+  DRWCommandDrawInstanceRange *cmd = drw_command_create(shgroup, DRW_CMD_DRAW_INSTANCE_RANGE);
+  cmd->batch = batch;
+  cmd->handle = handle;
+  cmd->inst_first = start;
+  cmd->inst_count = count;
 }
 
 static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
@@ -681,11 +690,18 @@ static void drw_command_set_select_id(DRWShadingGroup *shgroup, GPUVertBuf *buf,
   cmd->select_id = select_id;
 }
 
-static void drw_command_set_stencil_mask(DRWShadingGroup *shgroup, uint mask)
+static void drw_command_set_stencil_mask(DRWShadingGroup *shgroup,
+                                         uint write_mask,
+                                         uint reference,
+                                         uint comp_mask)
 {
-  BLI_assert(mask <= 0xFF);
+  BLI_assert(write_mask <= 0xFF);
+  BLI_assert(reference <= 0xFF);
+  BLI_assert(comp_mask <= 0xFF);
   DRWCommandSetStencil *cmd = drw_command_create(shgroup, DRW_CMD_STENCIL);
-  cmd->mask = mask;
+  cmd->write_mask = write_mask;
+  cmd->comp_mask = comp_mask;
+  cmd->ref = reference;
 }
 
 static void drw_command_clear(DRWShadingGroup *shgroup,
@@ -746,13 +762,27 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
   }
 }
 
-void DRW_shgroup_call_range(DRWShadingGroup *shgroup, struct GPUBatch *geom, uint v_sta, uint v_ct)
+void DRW_shgroup_call_range(
+    DRWShadingGroup *shgroup, struct Object *ob, GPUBatch *geom, uint v_sta, uint v_ct)
 {
   BLI_assert(geom != NULL);
   if (G.f & G_FLAG_PICKSEL) {
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }
-  drw_command_draw_range(shgroup, geom, v_sta, v_ct);
+  DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
+  drw_command_draw_range(shgroup, geom, handle, v_sta, v_ct);
+}
+
+void DRW_shgroup_call_instance_range(
+    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_ct)
+{
+  BLI_assert(i_ct > 0);
+  BLI_assert(geom != NULL);
+  if (G.f & G_FLAG_PICKSEL) {
+    drw_command_set_select_id(shgroup, NULL, DST.select_id);
+  }
+  DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
+  drw_command_draw_intance_range(shgroup, geom, handle, i_sta, i_ct);
 }
 
 static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
@@ -1101,10 +1131,16 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   int info_ubo_location = GPU_shader_get_uniform_block(shader, "infoBlock");
   int baseinst_location = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_BASE_INSTANCE);
   int chunkid_location = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_RESOURCE_CHUNK);
+  int resourceid_location = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_RESOURCE_ID);
 
   if (chunkid_location != -1) {
     drw_shgroup_uniform_create_ex(
         shgroup, chunkid_location, DRW_UNIFORM_RESOURCE_CHUNK, NULL, 0, 1);
+  }
+
+  if (resourceid_location != -1) {
+    drw_shgroup_uniform_create_ex(
+        shgroup, resourceid_location, DRW_UNIFORM_RESOURCE_ID, NULL, 0, 1);
   }
 
   if (baseinst_location != -1) {
@@ -1302,9 +1338,18 @@ void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state)
   drw_command_set_mutable_state(shgroup, 0x0, state);
 }
 
+void DRW_shgroup_stencil_set(DRWShadingGroup *shgroup,
+                             uint write_mask,
+                             uint reference,
+                             uint comp_mask)
+{
+  drw_command_set_stencil_mask(shgroup, write_mask, reference, comp_mask);
+}
+
+/* TODO remove this function. */
 void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, uint mask)
 {
-  drw_command_set_stencil_mask(shgroup, mask);
+  drw_command_set_stencil_mask(shgroup, 0xFF, mask, 0xFF);
 }
 
 void DRW_shgroup_clear_framebuffer(DRWShadingGroup *shgroup,

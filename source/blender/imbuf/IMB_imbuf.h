@@ -601,6 +601,9 @@ void bilinear_interpolation_color_wrap(
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol[3]);
 
+void IMB_sampleImageAtLocation(
+    struct ImBuf *ibuf, float x, float y, bool make_linear_rgb, float color[4]);
+
 /**
  *
  * \attention defined in readimage.c

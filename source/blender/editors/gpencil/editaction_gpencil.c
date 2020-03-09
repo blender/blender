@@ -58,15 +58,13 @@
 /* Loops over the gp-frames for a gp-layer, and applies the given callback */
 bool ED_gplayer_frames_looper(bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPDframe *, Scene *))
 {
-  bGPDframe *gpf;
-
   /* error checker */
   if (gpl == NULL) {
     return false;
   }
 
   /* do loop */
-  for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     /* execute callback */
     if (gpf_cb(gpf, scene)) {
       return true;
@@ -83,7 +81,6 @@ bool ED_gplayer_frames_looper(bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPD
 /* make a listing all the gp-frames in a layer as cfraelems */
 void ED_gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlysel)
 {
-  bGPDframe *gpf;
   CfraElem *ce;
 
   /* error checking */
@@ -92,7 +89,7 @@ void ED_gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlysel)
   }
 
   /* loop through gp-frames, adding */
-  for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     if ((onlysel == 0) || (gpf->flag & GP_FRAME_SELECT)) {
       ce = MEM_callocN(sizeof(CfraElem), "CfraElem");
 
@@ -110,15 +107,13 @@ void ED_gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlysel)
 /* check if one of the frames in this layer is selected */
 bool ED_gplayer_frame_select_check(bGPDlayer *gpl)
 {
-  bGPDframe *gpf;
-
   /* error checking */
   if (gpl == NULL) {
     return false;
   }
 
   /* stop at the first one found */
-  for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     if (gpf->flag & GP_FRAME_SELECT) {
       return true;
     }
@@ -151,15 +146,13 @@ static void gpframe_select(bGPDframe *gpf, short select_mode)
 /* set all/none/invert select (like above, but with SELECT_* modes) */
 void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
 {
-  bGPDframe *gpf;
-
   /* error checking */
   if (gpl == NULL) {
     return;
   }
 
   /* handle according to mode */
-  for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     gpframe_select(gpf, select_mode);
   }
 }
@@ -185,7 +178,7 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
     return;
   }
 
-  gpf = BKE_gpencil_layer_find_frame(gpl, selx);
+  gpf = BKE_gpencil_layer_frame_find(gpl, selx);
 
   if (gpf) {
     gpframe_select(gpf, select_mode);
@@ -195,14 +188,12 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
 /* select the frames in this layer that occur within the bounds specified */
 void ED_gplayer_frames_select_box(bGPDlayer *gpl, float min, float max, short select_mode)
 {
-  bGPDframe *gpf;
-
   if (gpl == NULL) {
     return;
   }
 
   /* only select those frames which are in bounds */
-  for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     if (IN_RANGE(gpf->framenum, min, max)) {
       gpframe_select(gpf, select_mode);
     }
@@ -215,14 +206,12 @@ void ED_gplayer_frames_select_region(KeyframeEditData *ked,
                                      short tool,
                                      short select_mode)
 {
-  bGPDframe *gpf;
-
   if (gpl == NULL) {
     return;
   }
 
   /* only select frames which are within the region */
-  for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     /* construct a dummy point coordinate to do this testing with */
     float pt[2] = {0};
 
@@ -251,7 +240,6 @@ void ED_gplayer_frames_select_region(KeyframeEditData *ked,
 /* Delete selected frames */
 bool ED_gplayer_frames_delete(bGPDlayer *gpl)
 {
-  bGPDframe *gpf, *gpfn;
   bool changed = false;
 
   /* error checking */
@@ -260,11 +248,9 @@ bool ED_gplayer_frames_delete(bGPDlayer *gpl)
   }
 
   /* check for frames to delete */
-  for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
-    gpfn = gpf->next;
-
+  LISTBASE_FOREACH_MUTABLE (bGPDframe *, gpf, &gpl->frames) {
     if (gpf->flag & GP_FRAME_SELECT) {
-      BKE_gpencil_layer_delframe(gpl, gpf);
+      BKE_gpencil_layer_frame_delete(gpl, gpf);
       changed = true;
     }
   }
@@ -275,16 +261,13 @@ bool ED_gplayer_frames_delete(bGPDlayer *gpl)
 /* Duplicate selected frames from given gp-layer */
 void ED_gplayer_frames_duplicate(bGPDlayer *gpl)
 {
-  bGPDframe *gpf, *gpfn;
-
   /* error checking */
   if (gpl == NULL) {
     return;
   }
 
   /* duplicate selected frames  */
-  for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
-    gpfn = gpf->next;
+  LISTBASE_FOREACH_MUTABLE (bGPDframe *, gpf, &gpl->frames) {
 
     /* duplicate this frame */
     if (gpf->flag & GP_FRAME_SELECT) {
@@ -304,13 +287,11 @@ void ED_gplayer_frames_duplicate(bGPDlayer *gpl)
  */
 void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
 {
-  bGPDframe *gpf;
-
   if (gpl == NULL) {
     return;
   }
 
-  for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     if (gpf->flag & GP_FRAME_SELECT) {
       gpf->key_type = type;
     }
@@ -370,10 +351,9 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
   for (ale = anim_data.first; ale; ale = ale->next) {
     ListBase copied_frames = {NULL, NULL};
     bGPDlayer *gpl = (bGPDlayer *)ale->data;
-    bGPDframe *gpf;
 
     /* loop over frames, and copy only selected frames */
-    for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       /* if frame is selected, make duplicate it and its strokes */
       if (gpf->flag & GP_FRAME_SELECT) {
         /* make a copy of this frame */
@@ -489,7 +469,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
       gpfs->framenum += offset;
 
       /* get frame to copy data into (if no frame returned, then just ignore) */
-      gpf = BKE_gpencil_layer_getframe(gpld, gpfs->framenum, GP_GETFRAME_ADD_NEW);
+      gpf = BKE_gpencil_layer_frame_get(gpld, gpfs->framenum, GP_GETFRAME_ADD_NEW);
       if (gpf) {
         bGPDstroke *gps, *gpsn;
 
@@ -502,21 +482,15 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
          */
         for (gps = gpfs->strokes.first; gps; gps = gps->next) {
           /* make a copy of stroke, then of its points array */
-          gpsn = MEM_dupallocN(gps);
-          gpsn->points = MEM_dupallocN(gps->points);
-          if (gps->dvert != NULL) {
-            gpsn->dvert = MEM_dupallocN(gps->dvert);
-            BKE_gpencil_stroke_weights_duplicate(gps, gpsn);
-          }
-          /* duplicate triangle information */
-          gpsn->triangles = MEM_dupallocN(gps->triangles);
+          gpsn = BKE_gpencil_stroke_duplicate(gps, true);
+
           /* append stroke to frame */
           BLI_addtail(&gpf->strokes, gpsn);
         }
 
         /* if no strokes (i.e. new frame) added, free gpf */
         if (BLI_listbase_is_empty(&gpf->strokes)) {
-          BKE_gpencil_layer_delframe(gpld, gpf);
+          BKE_gpencil_layer_frame_delete(gpld, gpf);
         }
       }
 

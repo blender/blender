@@ -792,13 +792,13 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   if (is_gp_edit) {
     float diff_mat[4][4];
     const bool use_mat_local = true;
-    for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
       /* only editable and visible layers are considered */
 
-      if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
+      if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
 
         /* calculate difference matrix */
-        ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, diff_mat);
+        BKE_gpencil_parent_matrix_get(depsgraph, ob, gpl, diff_mat);
 
         for (bGPDstroke *gps = gpl->actframe->strokes.first; gps; gps = gps->next) {
           /* skip strokes that are invalid for current view */

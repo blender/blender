@@ -1370,7 +1370,8 @@ static const EnumPropertyItem *object_mode_set_itemsf(bContext *C,
                 OB_MODE_EDIT_GPENCIL,
                 OB_MODE_PAINT_GPENCIL,
                 OB_MODE_SCULPT_GPENCIL,
-                OB_MODE_WEIGHT_GPENCIL) &&
+                OB_MODE_WEIGHT_GPENCIL,
+                OB_MODE_VERTEX_GPENCIL) &&
            (ob->type == OB_GPENCIL)) ||
           (input->value == OB_MODE_OBJECT)) {
         RNA_enum_item_add(&item, &totitem, input);

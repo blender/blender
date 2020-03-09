@@ -172,37 +172,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
   if (tref_rt->data_block[0]) {
     Main *bmain = CTX_data_main(C);
 
-    if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_SCULPT_GPENCIL)) {
-      const EnumPropertyItem *items = rna_enum_gpencil_sculpt_brush_items;
-      const int i = RNA_enum_from_identifier(items, tref_rt->data_block);
-      if (i != -1) {
-        const int value = items[i].value;
-        wmWindowManager *wm = bmain->wm.first;
-        for (wmWindow *win = wm->windows.first; win; win = win->next) {
-          if (workspace == WM_window_get_active_workspace(win)) {
-            Scene *scene = WM_window_get_active_scene(win);
-            ToolSettings *ts = scene->toolsettings;
-            ts->gp_sculpt.brushtype = value;
-          }
-        }
-      }
-    }
-    else if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_WEIGHT_GPENCIL)) {
-      const EnumPropertyItem *items = rna_enum_gpencil_weight_brush_items;
-      const int i = RNA_enum_from_identifier(items, tref_rt->data_block);
-      if (i != -1) {
-        const int value = items[i].value;
-        wmWindowManager *wm = bmain->wm.first;
-        for (wmWindow *win = wm->windows.first; win; win = win->next) {
-          if (workspace == WM_window_get_active_workspace(win)) {
-            Scene *scene = WM_window_get_active_scene(win);
-            ToolSettings *ts = scene->toolsettings;
-            ts->gp_sculpt.weighttype = value;
-          }
-        }
-      }
-    }
-    else if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_PARTICLE)) {
+    if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_PARTICLE)) {
       const EnumPropertyItem *items = rna_enum_particle_edit_hair_brush_items;
       const int i = RNA_enum_from_identifier(items, tref_rt->data_block);
       if (i != -1) {
@@ -414,29 +384,7 @@ void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToo
     if (ob == NULL) {
       /* pass */
     }
-    else if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_SCULPT_GPENCIL)) {
-      if (ob->mode & OB_MODE_SCULPT_GPENCIL) {
-        const EnumPropertyItem *items = rna_enum_gpencil_sculpt_brush_items;
-        const int i = RNA_enum_from_value(items, ts->gp_sculpt.brushtype);
-        const EnumPropertyItem *item = &items[i];
-        if (!STREQ(tref_rt->data_block, item->identifier)) {
-          STRNCPY(tref_rt->data_block, item->identifier);
-          SNPRINTF(tref->idname, "builtin_brush.%s", item->name);
-        }
-      }
-    }
-    else if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_WEIGHT_GPENCIL)) {
-      if (ob->mode & OB_MODE_WEIGHT_GPENCIL) {
-        const EnumPropertyItem *items = rna_enum_gpencil_weight_brush_items;
-        const int i = RNA_enum_from_value(items, ts->gp_sculpt.weighttype);
-        const EnumPropertyItem *item = &items[i];
-        if (!STREQ(tref_rt->data_block, item->identifier)) {
-          STRNCPY(tref_rt->data_block, item->identifier);
-          SNPRINTF(tref->idname, "builtin_brush.%s", item->name);
-        }
-      }
-    }
-    else if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_PARTICLE)) {
+    if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_PARTICLE)) {
       if (ob->mode & OB_MODE_PARTICLE_EDIT) {
         const EnumPropertyItem *items = rna_enum_particle_edit_hair_brush_items;
         const int i = RNA_enum_from_value(items, ts->particle.brushtype);
@@ -735,6 +683,8 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
           return "builtin_brush.Push";
         case CTX_MODE_WEIGHT_GPENCIL:
           return "builtin_brush.Weight";
+        case CTX_MODE_VERTEX_GPENCIL:
+          return "builtin_brush.Draw";
           /* end temporary hack. */
 
         case CTX_MODE_PARTICLE:

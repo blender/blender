@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_meshdata_types.h"
@@ -108,6 +109,8 @@ static void deformStroke(GpencilModifierData *md,
     }
     calc_latt_deform((struct LatticeDeformData *)mmd->cache_data, &pt->x, mmd->strength * weight);
   }
+  /* Calc geometry data. */
+  BKE_gpencil_stroke_geometry_update(gps);
 }
 
 /* FIXME: Ideally we be doing this on a copy of the main depsgraph
@@ -125,8 +128,8 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
     return;
   }
 
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       /* apply lattice effects on this frame
        * NOTE: this assumes that we don't want lattice animation on non-keyframed frames
        */
@@ -137,7 +140,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
       BKE_gpencil_lattice_init(ob);
 
       /* compute lattice effects on this frame */
-      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         deformStroke(md, depsgraph, ob, gpl, gpf, gps);
       }
     }

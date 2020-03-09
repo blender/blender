@@ -206,6 +206,47 @@ void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
   attr->names[attr->name_len++] = copy_attr_name(format, alias);
 }
 
+/**
+ * Makes vertex attrib from the next vertices to be accessible in the vertex shader.
+ * For an attrib named "attr" you can access the next nth vertex using "attrn".
+ * Use this function after specifying all the attribs in the format.
+ *
+ * NOTE: This does NOT work when using indexed rendering.
+ * NOTE: Only works for first attrib name. (this limitation can be changed if needed)
+ *
+ * WARNING: this function creates a lot of aliases/attribs, make sure to keep the attrib name
+ * short to avoid overflowing the namebuffer.
+ * */
+void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count)
+{
+  /* Sanity check. Maximum can be upgraded if needed. */
+  BLI_assert(load_count > 1 && load_count < 5);
+  /* We need a packed format because of format->stride. */
+  if (!format->packed) {
+    VertexFormat_pack(format);
+  }
+
+  BLI_assert((format->name_len + 1) * load_count < GPU_VERT_FORMAT_MAX_NAMES);
+  BLI_assert(format->attr_len * load_count <= GPU_VERT_ATTR_MAX_LEN);
+  BLI_assert(format->name_offset * load_count < GPU_VERT_ATTR_NAMES_BUF_LEN);
+
+  const GPUVertAttr *attr = format->attrs;
+  int attr_len = format->attr_len;
+  for (int i = 0; i < attr_len; i++, attr++) {
+    const char *attr_name = GPU_vertformat_attr_name_get(format, attr, 0);
+    for (int j = 1; j < load_count; j++) {
+      char load_name[64];
+      BLI_snprintf(load_name, sizeof(load_name), "%s%d", attr_name, j);
+      GPUVertAttr *dst_attr = &format->attrs[format->attr_len++];
+      *dst_attr = *attr;
+
+      dst_attr->names[0] = copy_attr_name(format, load_name);
+      dst_attr->name_len = 1;
+      dst_attr->offset += format->stride * j;
+    }
+  }
+}
+
 int GPU_vertformat_attr_id_get(const GPUVertFormat *format, const char *name)
 {
   for (int i = 0; i < format->attr_len; i++) {

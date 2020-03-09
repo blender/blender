@@ -155,7 +155,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
     DRW_shgroup_uniform_bool_copy(grp, "selected", selected);
     DRW_shgroup_uniform_vec3_copy(grp, "customColor", color);
     /* Only draw the required range. */
-    DRW_shgroup_call_range(grp, mpath_batch_line_get(mpath), start_index, len);
+    DRW_shgroup_call_range(grp, NULL, mpath_batch_line_get(mpath), start_index, len);
   }
 
   /* Draw points. */
@@ -167,7 +167,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
     DRW_shgroup_uniform_bool_copy(grp, "showKeyFrames", show_keyframes);
     DRW_shgroup_uniform_vec3_copy(grp, "customColor", color);
     /* Only draw the required range. */
-    DRW_shgroup_call_range(grp, mpath_batch_points_get(mpath), start_index, len);
+    DRW_shgroup_call_range(grp, NULL, mpath_batch_points_get(mpath), start_index, len);
   }
 
   /* Draw frame numbers at each frame-step value. */

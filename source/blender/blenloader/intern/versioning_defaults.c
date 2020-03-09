@@ -44,10 +44,12 @@
 #include "BKE_appdir.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
+#include "BKE_gpencil.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
@@ -234,6 +236,13 @@ static void blo_update_defaults_screen(bScreen *screen,
           SpaceAction *saction = sa->spacedata.first;
           /* Enable Sliders. */
           saction->flag |= SACTION_SLIDERS;
+        }
+        else if (sa->spacetype == SPACE_VIEW3D) {
+          View3D *v3d = sa->spacedata.first;
+          /* Set Material Color by default. */
+          v3d->shading.color_type = V3D_SHADING_MATERIAL_COLOR;
+          /* Enable Annotations. */
+          v3d->flag2 |= V3D_SHOW_ANNOTATION;
         }
       }
     }
@@ -583,7 +592,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
   }
 
-  if (app_template && STREQ(app_template, "2D_Animation")) {
+  /* New grease pencil brushes and vertex paint setup. */
+  {
     /* Update Grease Pencil brushes. */
     Brush *brush;
 
@@ -617,8 +627,49 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       BKE_id_delete(bmain, brush);
     }
 
+    /* Rename and fix materials. */
+    if (app_template && STREQ(app_template, "2D_Animation")) {
+      Material *ma = NULL;
+      rename_id_for_versioning(bmain, ID_MA, "Black", "Solid Stroke");
+      rename_id_for_versioning(bmain, ID_MA, "Red", "Squares Stroke");
+      rename_id_for_versioning(bmain, ID_MA, "Grey", "Solid Fill");
+      rename_id_for_versioning(bmain, ID_MA, "Black Dots", "Dots Stroke");
+
+      /* Dots Stroke. */
+      ma = BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2);
+      if (ma == NULL) {
+        ma = BKE_gpencil_material_add(bmain, "Dots Stroke");
+      }
+      ma->gp_style->mode = GP_MATERIAL_MODE_DOT;
+
+      /* Squares Stroke. */
+      ma = BLI_findstring(&bmain->materials, "Squares Stroke", offsetof(ID, name) + 2);
+      if (ma == NULL) {
+        ma = BKE_gpencil_material_add(bmain, "Squares Stroke");
+      }
+      ma->gp_style->mode = GP_MATERIAL_MODE_SQUARE;
+
+      /* Change Solid Fill settings. */
+      ma = BLI_findstring(&bmain->materials, "Solid Fill", offsetof(ID, name) + 2);
+      if (ma != NULL) {
+        ma->gp_style->flag &= ~GP_MATERIAL_STROKE_SHOW;
+      }
+    }
+
     /* Reset all grease pencil brushes. */
     Scene *scene = bmain->scenes.first;
-    BKE_brush_gpencil_presets(bmain, scene->toolsettings);
+    BKE_brush_gpencil_paint_presets(bmain, scene->toolsettings);
+
+    /* Ensure new Paint modes. */
+    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
+    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
+    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+
+    /* Enable cursor. */
+    GpPaint *gp_paint = scene->toolsettings->gp_paint;
+    gp_paint->paint.flags |= PAINT_SHOW_BRUSH;
+
+    /* Ensure Palette by default. */
+    BKE_gpencil_palette_ensure(bmain, scene);
   }
 }

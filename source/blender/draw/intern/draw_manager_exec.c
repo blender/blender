@@ -50,6 +50,7 @@ void DRW_select_load_id(uint id)
 typedef struct DRWCommandsState {
   GPUBatch *batch;
   int resource_chunk;
+  int resource_id;
   int base_inst;
   int inst_count;
   int v_first;
@@ -60,6 +61,7 @@ typedef struct DRWCommandsState {
   int obinfos_loc;
   int baseinst_loc;
   int chunkid_loc;
+  int resourceid_loc;
   /* Legacy matrix support. */
   int obmat_loc;
   int obinv_loc;
@@ -221,7 +223,6 @@ void drw_state_set(DRWState state)
   {
     int test;
     if (CHANGED_ANY_STORE_VAR(DRW_STATE_STENCIL_TEST_ENABLED, test)) {
-      DST.stencil_mask = STENCIL_UNDEFINED;
       if (test) {
         glEnable(GL_STENCIL_TEST);
       }
@@ -234,11 +235,12 @@ void drw_state_set(DRWState state)
   /* Blending (all buffer) */
   {
     int test;
-    if (CHANGED_ANY_STORE_VAR(
-            DRW_STATE_BLEND_ALPHA | DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_BLEND_ADD |
-                DRW_STATE_BLEND_MUL | DRW_STATE_BLEND_ADD_FULL | DRW_STATE_BLEND_OIT |
-                DRW_STATE_BLEND_BACKGROUND | DRW_STATE_BLEND_CUSTOM | DRW_STATE_LOGIC_INVERT,
-            test)) {
+    if (CHANGED_ANY_STORE_VAR(DRW_STATE_BLEND_ALPHA | DRW_STATE_BLEND_ALPHA_PREMUL |
+                                  DRW_STATE_BLEND_ADD | DRW_STATE_BLEND_MUL |
+                                  DRW_STATE_BLEND_ADD_FULL | DRW_STATE_BLEND_OIT |
+                                  DRW_STATE_BLEND_BACKGROUND | DRW_STATE_BLEND_CUSTOM |
+                                  DRW_STATE_LOGIC_INVERT | DRW_STATE_BLEND_SUB,
+                              test)) {
       if (test) {
         glEnable(GL_BLEND);
 
@@ -278,6 +280,9 @@ void drw_state_set(DRWState state)
           /* Let alpha accumulate. */
           glBlendFunc(GL_ONE, GL_ONE);
         }
+        else if ((state & DRW_STATE_BLEND_SUB) != 0) {
+          glBlendFunc(GL_ONE, GL_ONE);
+        }
         else if ((state & DRW_STATE_BLEND_CUSTOM) != 0) {
           /* Custom blend parameters using dual source blending.
            * Can only be used with one Draw Buffer. */
@@ -292,6 +297,13 @@ void drw_state_set(DRWState state)
         }
         else {
           BLI_assert(0);
+        }
+
+        if ((state & DRW_STATE_BLEND_SUB) != 0) {
+          glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+        }
+        else {
+          glBlendEquation(GL_FUNC_ADD);
         }
       }
       else {
@@ -385,19 +397,23 @@ void drw_state_set(DRWState state)
   DST.state = state;
 }
 
-static void drw_stencil_set(uint mask)
+static void drw_stencil_state_set(uint write_mask, uint reference, uint compare_mask)
 {
-  if (DST.stencil_mask != mask) {
-    DST.stencil_mask = mask;
-    if ((DST.state & DRW_STATE_STENCIL_ALWAYS) != 0) {
-      glStencilFunc(GL_ALWAYS, mask, 0xFF);
-    }
-    else if ((DST.state & DRW_STATE_STENCIL_EQUAL) != 0) {
-      glStencilFunc(GL_EQUAL, mask, 0xFF);
-    }
-    else if ((DST.state & DRW_STATE_STENCIL_NEQUAL) != 0) {
-      glStencilFunc(GL_NOTEQUAL, mask, 0xFF);
-    }
+  /* Reminders:
+   * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
+   *   stencil_value being the value stored in the stencil buffer.
+   * - (writemask & reference) is what gets written if the test condition is fullfiled.
+   **/
+  glStencilMask(write_mask);
+
+  if ((DST.state & DRW_STATE_STENCIL_ALWAYS) != 0) {
+    glStencilFunc(GL_ALWAYS, reference, compare_mask);
+  }
+  else if ((DST.state & DRW_STATE_STENCIL_EQUAL) != 0) {
+    glStencilFunc(GL_EQUAL, reference, compare_mask);
+  }
+  else if ((DST.state & DRW_STATE_STENCIL_NEQUAL) != 0) {
+    glStencilFunc(GL_NOTEQUAL, reference, compare_mask);
   }
 }
 
@@ -978,6 +994,9 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           state->chunkid_loc = uni->location;
           GPU_shader_uniform_int(shgroup->shader, uni->location, 0);
           break;
+        case DRW_UNIFORM_RESOURCE_ID:
+          state->resourceid_loc = uni->location;
+          break;
         case DRW_UNIFORM_TFEEDBACK_TARGET:
           BLI_assert(data && (*use_tfeedback == false));
           *use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
@@ -1096,6 +1115,14 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
     }
     state->resource_chunk = chunk;
   }
+
+  if (state->resourceid_loc != -1) {
+    int id = DRW_handle_id_get(handle);
+    if (state->resource_id != id) {
+      GPU_shader_uniform_int(NULL, state->resourceid_loc, id);
+      state->resource_id = id;
+    }
+  }
 }
 
 static void draw_call_batching_flush(DRWShadingGroup *shgroup, DRWCommandsState *state)
@@ -1114,6 +1141,7 @@ static void draw_call_single_do(DRWShadingGroup *shgroup,
                                 DRWResourceHandle handle,
                                 int vert_first,
                                 int vert_count,
+                                int inst_first,
                                 int inst_count,
                                 bool do_base_instance)
 {
@@ -1142,7 +1170,7 @@ static void draw_call_single_do(DRWShadingGroup *shgroup,
                         batch,
                         vert_first,
                         vert_count,
-                        do_base_instance ? DRW_handle_id_get(&handle) : 0,
+                        do_base_instance ? DRW_handle_id_get(&handle) : inst_first,
                         inst_count,
                         state->baseinst_loc);
 }
@@ -1151,6 +1179,7 @@ static void draw_call_batching_start(DRWCommandsState *state)
 {
   state->neg_scale = false;
   state->resource_chunk = 0;
+  state->resource_id = -1;
   state->base_inst = 0;
   state->inst_count = 0;
   state->v_first = 0;
@@ -1227,6 +1256,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       .obinfos_loc = -1,
       .baseinst_loc = -1,
       .chunkid_loc = -1,
+      .resourceid_loc = -1,
       .obmat_loc = -1,
       .obinv_loc = -1,
       .mvp_loc = -1,
@@ -1307,7 +1337,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
           drw_state_set((pass_state & ~state.drw_state_disabled) | state.drw_state_enabled);
           break;
         case DRW_CMD_STENCIL:
-          drw_stencil_set(cmd->stencil.mask);
+          drw_stencil_state_set(cmd->stencil.write_mask, cmd->stencil.ref, cmd->stencil.comp_mask);
           break;
         case DRW_CMD_SELECTID:
           state.select_id = cmd->select_id.select_id;
@@ -1315,8 +1345,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
           break;
         case DRW_CMD_DRAW:
           if (!USE_BATCHING || state.obmats_loc == -1 || (G.f & G_FLAG_PICKSEL) ||
-              cmd->draw.batch->inst[0]) {
-            draw_call_single_do(shgroup, &state, cmd->draw.batch, cmd->draw.handle, 0, 0, 0, true);
+              cmd->draw.batch->inst) {
+            draw_call_single_do(
+                shgroup, &state, cmd->draw.batch, cmd->draw.handle, 0, 0, 0, 0, true);
           }
           else {
             draw_call_batching_do(shgroup, &state, &cmd->draw);
@@ -1329,6 +1360,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                               cmd->procedural.handle,
                               0,
                               cmd->procedural.vert_count,
+                              0,
                               1,
                               true);
           break;
@@ -1339,6 +1371,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                               cmd->instance.handle,
                               0,
                               0,
+                              0,
                               cmd->instance.inst_count,
                               cmd->instance.use_attribs == 0);
           break;
@@ -1346,11 +1379,23 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
           draw_call_single_do(shgroup,
                               &state,
                               cmd->range.batch,
-                              (DRWResourceHandle)0,
+                              cmd->range.handle,
                               cmd->range.vert_first,
                               cmd->range.vert_count,
+                              0,
                               1,
                               true);
+          break;
+        case DRW_CMD_DRAW_INSTANCE_RANGE:
+          draw_call_single_do(shgroup,
+                              &state,
+                              cmd->instance_range.batch,
+                              cmd->instance_range.handle,
+                              0,
+                              0,
+                              cmd->instance_range.inst_first,
+                              cmd->instance_range.inst_count,
+                              false);
           break;
       }
     }

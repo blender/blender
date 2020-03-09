@@ -887,7 +887,7 @@ static void posttrans_gpd_clean(bGPdata *gpd)
       for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
         gpfn = gpf->next;
         if (gpfn && gpf->framenum == gpfn->framenum) {
-          BKE_gpencil_layer_delframe(gpl, gpf);
+          BKE_gpencil_layer_frame_delete(gpl, gpf);
         }
       }
     }
@@ -2740,9 +2740,11 @@ void createTransData(bContext *C, TransInfo *t)
       has_transform_context = false;
     }
   }
-  else if ((ob) &&
-           (ELEM(
-               ob->mode, OB_MODE_PAINT_GPENCIL, OB_MODE_SCULPT_GPENCIL, OB_MODE_WEIGHT_GPENCIL))) {
+  else if ((ob) && (ELEM(ob->mode,
+                         OB_MODE_PAINT_GPENCIL,
+                         OB_MODE_SCULPT_GPENCIL,
+                         OB_MODE_WEIGHT_GPENCIL,
+                         OB_MODE_VERTEX_GPENCIL))) {
     /* In grease pencil all transformations must be canceled if not Object or Edit. */
     has_transform_context = false;
   }

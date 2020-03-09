@@ -201,7 +201,11 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
         shgrp = pd->wires_grp[is_xray][use_coloring];
       }
 
-      if (use_sculpt_pbvh) {
+      if (ob->type == OB_GPENCIL) {
+        /* TODO (fclem) Make GPencil objects have correct boundbox. */
+        DRW_shgroup_call_no_cull(shgrp, geom, ob);
+      }
+      else if (use_sculpt_pbvh) {
         DRW_shgroup_call_sculpt(shgrp, ob, true, false, false);
       }
       else {

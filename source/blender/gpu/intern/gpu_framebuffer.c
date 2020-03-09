@@ -614,6 +614,21 @@ void GPU_framebuffer_clear(GPUFrameBuffer *fb,
   glClear(mask);
 }
 
+/* Clear all textures bound to this framebuffer with a different color. */
+void GPU_framebuffer_multi_clear(GPUFrameBuffer *fb, const float (*clear_cols)[4])
+{
+  CHECK_FRAMEBUFFER_IS_BOUND(fb);
+
+  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+  GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0;
+  for (int i = 0; type < GPU_FB_MAX_ATTACHEMENT; i++, type++) {
+    if (fb->attachments[type].tex != NULL) {
+      glClearBufferfv(GL_COLOR, i, clear_cols[i]);
+    }
+  }
+}
+
 void GPU_framebuffer_read_depth(GPUFrameBuffer *fb, int x, int y, int w, int h, float *data)
 {
   CHECK_FRAMEBUFFER_IS_BOUND(fb);

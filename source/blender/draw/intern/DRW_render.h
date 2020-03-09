@@ -280,8 +280,9 @@ typedef enum {
   DRW_STATE_BLEND_BACKGROUND = (1 << 20),
   DRW_STATE_BLEND_OIT = (1 << 21),
   DRW_STATE_BLEND_MUL = (1 << 22),
+  DRW_STATE_BLEND_SUB = (1 << 23),
   /** Use dual source blending. WARNING: Only one color buffer allowed. */
-  DRW_STATE_BLEND_CUSTOM = (1 << 23),
+  DRW_STATE_BLEND_CUSTOM = (1 << 24),
 
   DRW_STATE_IN_FRONT_SELECT = (1 << 25),
   DRW_STATE_LOGIC_INVERT = (1 << 26),
@@ -362,10 +363,10 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 #define DRW_shgroup_call_no_cull(shgrp, geom, ob) \
   DRW_shgroup_call_ex(shgrp, ob, NULL, geom, true, NULL)
 
-void DRW_shgroup_call_range(DRWShadingGroup *shgroup,
-                            struct GPUBatch *geom,
-                            uint v_sta,
-                            uint v_ct);
+void DRW_shgroup_call_range(
+    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint v_sta, uint v_ct);
+void DRW_shgroup_call_instance_range(
+    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint v_sta, uint v_ct);
 
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_ct);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_ct);
@@ -402,6 +403,17 @@ void DRW_buffer_add_entry_array(DRWCallBuffer *buffer, const void *attr[], uint 
 
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state);
+
+/* Reminders:
+ * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
+ *   stencil_value being the value stored in the stencil buffer.
+ * - (writemask & reference) is what gets written if the test condition is fullfiled.
+ **/
+void DRW_shgroup_stencil_set(DRWShadingGroup *shgroup,
+                             uint write_mask,
+                             uint reference,
+                             uint comp_mask);
+/* TODO remove this function. Obsolete version. mask is actually reference value. */
 void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, uint mask);
 
 /* Issue a clear command. */

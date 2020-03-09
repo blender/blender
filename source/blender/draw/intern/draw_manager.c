@@ -1183,7 +1183,7 @@ static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
   const bool use_xray = XRAY_ENABLED(v3d);
 
   drw_engines_enable_from_engine(engine_type, drawtype, use_xray);
-  if (gpencil_engine_needed) {
+  if (gpencil_engine_needed && ((drawtype >= OB_SOLID) || !use_xray)) {
     use_drw_engine(&draw_engine_gpencil_type);
   }
   drw_engines_enable_overlays();
@@ -1654,14 +1654,6 @@ static void DRW_render_gpencil_to_image(RenderEngine *engine,
 
 void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph)
 {
-  /* This function is only valid for Cycles & Workbench
-   * Eevee does all work in the Eevee render directly.
-   * Maybe it can be done equal for all engines?
-   */
-  if (STREQ(engine->type->name, "Eevee")) {
-    return;
-  }
-
   /* Early out if there are no grease pencil objects, especially important
    * to avoid failing in in background renders without OpenGL context. */
   if (!DRW_render_check_grease_pencil(depsgraph)) {
@@ -1740,8 +1732,13 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   GPU_framebuffer_restore();
 
   /* Changing Context */
-  /* GPXX Review this context */
-  DRW_opengl_context_disable();
+  if (re_gl_context != NULL) {
+    DRW_gpu_render_context_disable(re_gpu_context);
+    DRW_opengl_render_context_disable(re_gl_context);
+  }
+  else {
+    DRW_opengl_context_disable();
+  }
 
   DST.buffer_finish_called = false;
 }
@@ -1838,14 +1835,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
     drw_view_reset();
     engine_type->draw_engine->render_to_image(data, engine, render_layer, &render_rect);
     DST.buffer_finish_called = false;
-
-    /* grease pencil: render result is merged in the previous render result. */
-    if (DRW_render_check_grease_pencil(depsgraph)) {
-      DRW_state_reset();
-      drw_view_reset();
-      DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
-      DST.buffer_finish_called = false;
-    }
   }
 
   RE_engine_end_result(engine, render_result, false, false, false);
@@ -2213,13 +2202,6 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
     if (!select_pass_fn(DRW_SELECT_PASS_POST, select_pass_user_data)) {
       break;
     }
-  }
-
-  /* TODO: GPXX Workaround for grease pencil selection while draw manager support a callback from
-   * scene finish */
-  void *data = GPU_viewport_engine_data_get(DST.viewport, &draw_engine_gpencil_type);
-  if (data != NULL) {
-    DRW_gpencil_free_runtime_data(data);
   }
 
   DRW_state_lock(0);

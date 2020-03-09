@@ -357,7 +357,7 @@ static void gpencil_add_verts_to_dgroups(
   }
 
   /* loop all strokes */
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
     bGPDspoint *pt = NULL;
 
@@ -368,7 +368,7 @@ static void gpencil_add_verts_to_dgroups(
           continue;
         }
 
-        for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           /* skip strokes that are invalid for current view */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;

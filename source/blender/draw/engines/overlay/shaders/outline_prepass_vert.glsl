@@ -1,7 +1,9 @@
 
 uniform bool isTransform;
 
+#ifndef USE_GPENCIL
 in vec3 pos;
+#endif
 
 #ifdef USE_GEOM
 out vec3 vPos;
@@ -47,11 +49,19 @@ uint outline_colorid_get(void)
 
 void main()
 {
+#ifdef USE_GPENCIL
+  gpencil_vertex();
+#  ifdef USE_WORLD_CLIP_PLANES
+  vec3 world_pos = point_object_to_world(pos1.xyz);
+#  endif
+
+#else
   vec3 world_pos = point_object_to_world(pos);
-#ifdef USE_GEOM
-  vPos = point_world_to_view(world_pos);
-#endif
   gl_Position = point_world_to_ndc(world_pos);
+#  ifdef USE_GEOM
+  vPos = point_world_to_view(world_pos);
+#  endif
+#endif
   /* Small bias to always be on top of the geom. */
   gl_Position.z -= 1e-3;
 

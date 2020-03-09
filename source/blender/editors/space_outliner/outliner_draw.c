@@ -817,7 +817,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
           bGPDlayer *gpl = te->directdata;
 
           /* always make layer active */
-          BKE_gpencil_layer_setactive(gpd, gpl);
+          BKE_gpencil_layer_active_set(gpd, gpl);
 
           // XXX: name needs translation stuff
           BLI_uniquename(
@@ -2251,6 +2251,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
               break;
             case eGpencilModifierType_Armature:
               data.icon = ICON_MOD_ARMATURE;
+              break;
+            case eGpencilModifierType_Vertexcolor:
+              data.icon = ICON_MOD_NORMALEDIT;
               break;
 
               /* Default */

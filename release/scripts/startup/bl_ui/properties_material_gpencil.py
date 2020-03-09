@@ -47,6 +47,11 @@ class GPENCIL_MT_color_context_menu(Menu):
         layout.separator()
 
         layout.operator("object.material_slot_remove_unused")
+        layout.operator("gpencil.stroke_merge_material", text="Merge Similar")
+
+        layout.separator()
+        layout.operator("gpencil.material_to_vertex_color", text="Convert Materials to Vertex Color")
+        layout.operator("gpencil.extract_palette_vertex", text="Extract Palette from Vertex Color")
 
 
 class GPENCIL_UL_matslots(UIList):
@@ -142,27 +147,25 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
 
             col.prop(gpcolor, "stroke_style", text="Style")
 
+            row = col.row()
+            row.prop(gpcolor, "color", text="Base Color")
+
             if gpcolor.stroke_style == 'TEXTURE':
                 row = col.row()
                 row.enabled = not gpcolor.lock
                 col = row.column(align=True)
                 col.template_ID(gpcolor, "stroke_image", open="image.open")
+
+            if gpcolor.stroke_style == 'TEXTURE':
+                row = col.row()
+                row.prop(gpcolor, "mix_stroke_factor", text="Blend", slider=True)
                 if gpcolor.mode == 'LINE':
                     col.prop(gpcolor, "pixel_size", text="UV Factor")
-
-                col.prop(gpcolor, "use_stroke_pattern", text="Use As Stencil Mask")
-                if gpcolor.use_stroke_pattern is False:
-                    col.prop(gpcolor, "use_stroke_texture_mix", text="Mix Color")
-                    if gpcolor.use_stroke_texture_mix is True:
-                        col.prop(gpcolor, "mix_stroke_factor", text="Factor")
-
-            if (gpcolor.stroke_style == 'SOLID' or gpcolor.use_stroke_pattern or gpcolor.use_stroke_texture_mix):
-                col.prop(gpcolor, "color", text="Color")
 
             if gpcolor.mode in {'DOTS', 'BOX'}:
                 col.prop(gpcolor, "alignment_mode")
 
-            if gpcolor.mode == 'LINE' and gpcolor.stroke_style != 'TEXTURE':
+            if gpcolor.mode == 'LINE':
                 col.prop(gpcolor, "use_overlap_strokes")
 
 
@@ -188,54 +191,34 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
         col.enabled = not gpcolor.lock
         col.prop(gpcolor, "fill_style", text="Style")
 
-        if gpcolor.fill_style == 'GRADIENT':
+
+        if gpcolor.fill_style == 'SOLID':
+            col.prop(gpcolor, "fill_color", text="Base Color")
+
+        elif gpcolor.fill_style == 'GRADIENT':
             col.prop(gpcolor, "gradient_type")
 
-        if gpcolor.fill_style != 'TEXTURE':
-            col.prop(gpcolor, "fill_color", text="Color")
+            col.prop(gpcolor, "fill_color", text="Base Color")
+            col.prop(gpcolor, "mix_color", text="Secondary Color")
+            col.prop(gpcolor, "mix_factor", text="Blend in Fill Gradient", slider=True)
+            col.prop(gpcolor, "flip", text="Flip Colors")
 
-            if gpcolor.fill_style in {'GRADIENT', 'CHECKER'}:
-                col.prop(gpcolor, "mix_color", text="Secondary Color")
+            col.prop(gpcolor, "texture_offset", text="Location")
+            col.prop(gpcolor, "texture_scale", text="Scale")
+            if gpcolor.gradient_type == 'LINEAR':
+                col.prop(gpcolor, "texture_angle", text="Rotation")
 
-            if gpcolor.fill_style == 'GRADIENT':
-                col.prop(gpcolor, "mix_factor", text="Mix Factor", slider=True)
-
-            if gpcolor.fill_style in {'GRADIENT', 'CHECKER'}:
-                col.prop(gpcolor, "flip", text="Flip Colors")
-
-                col.prop(gpcolor, "pattern_shift", text="Location")
-                col.prop(gpcolor, "pattern_scale", text="Scale")
-
-            if gpcolor.gradient_type == 'RADIAL' and gpcolor.fill_style not in {'SOLID', 'CHECKER'}:
-                col.prop(gpcolor, "pattern_radius", text="Radius")
-            else:
-                if gpcolor.fill_style != 'SOLID':
-                    col.prop(gpcolor, "pattern_angle", text="Angle")
-
-            if gpcolor.fill_style == 'CHECKER':
-                col.prop(gpcolor, "pattern_gridsize", text="Box Size")
-
-        # Texture
-        if gpcolor.fill_style == 'TEXTURE' or (gpcolor.use_fill_texture_mix is True and gpcolor.fill_style == 'SOLID'):
+        elif gpcolor.fill_style == 'TEXTURE':
             col.template_ID(gpcolor, "fill_image", open="image.open")
 
-            if gpcolor.fill_style == 'TEXTURE':
-                col.prop(gpcolor, "use_fill_pattern", text="Use as Stencil Mask")
-                if gpcolor.use_fill_pattern is True:
-                    col.prop(gpcolor, "fill_color", text="Color")
+            col.prop(gpcolor, "fill_color", text="Base Color")
+            col.prop(gpcolor, "texture_opacity", slider=True)
+            col.prop(gpcolor, "mix_factor", text="Blend in Fill Texture", slider=True)
 
-            col.prop(gpcolor, "texture_offset", text="Offset")
+            col.prop(gpcolor, "texture_offset", text="Location")
+            col.prop(gpcolor, "texture_angle", text="Rotation")
             col.prop(gpcolor, "texture_scale", text="Scale")
-            col.prop(gpcolor, "texture_angle")
-            col.prop(gpcolor, "texture_opacity")
             col.prop(gpcolor, "texture_clamp", text="Clip Image")
-
-            if gpcolor.use_fill_pattern is False:
-                col.prop(gpcolor, "use_fill_texture_mix", text="Mix with Color")
-
-                if gpcolor.use_fill_texture_mix is True:
-                    col.prop(gpcolor, "fill_color", text="Mix Color")
-                    col.prop(gpcolor, "mix_factor", text="Mix Factor", slider=True)
 
 
 class MATERIAL_PT_gpencil_preview(GPMaterialButtonsPanel, Panel):
@@ -291,5 +274,6 @@ classes = (
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
+
     for cls in classes:
         register_class(cls)

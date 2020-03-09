@@ -27,6 +27,10 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_ghash.h"
+#include "BLI_hash.h"
+#include "BLI_rand.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_math.h"
@@ -54,26 +58,24 @@
 #include "MOD_gpencil_util.h"
 #include "MOD_gpencil_modifiertypes.h"
 
+typedef struct tmpStrokes {
+  struct tmpStrokes *next, *prev;
+  bGPDframe *gpf;
+  bGPDstroke *gps;
+} tmpStrokes;
+
 static void initData(GpencilModifierData *md)
 {
   ArrayGpencilModifierData *gpmd = (ArrayGpencilModifierData *)md;
   gpmd->count = 2;
-  gpmd->offset[0] = 1.0f;
-  gpmd->offset[1] = 0.0f;
-  gpmd->offset[2] = 0.0f;
-  gpmd->shift[0] = 0.0f;
+  gpmd->shift[0] = 1.0f;
   gpmd->shift[1] = 0.0f;
   gpmd->shift[2] = 0.0f;
-  gpmd->scale[0] = 1.0f;
-  gpmd->scale[1] = 1.0f;
-  gpmd->scale[2] = 1.0f;
-  gpmd->rnd_rot = 0.5f;
-  gpmd->rnd_size = 0.5f;
+  zero_v3(gpmd->offset);
+  zero_v3(gpmd->rnd_scale);
   gpmd->object = NULL;
-
-  /* fill random values */
-  BLI_array_frand(gpmd->rnd, 20, 1);
-  gpmd->rnd[0] = 1;
+  gpmd->flag |= GP_ARRAY_USE_RELATIVE;
+  gpmd->seed = 1;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -90,46 +92,24 @@ static void BKE_gpencil_instance_modifier_instance_tfm(Object *ob,
                                                        float r_offset[4][4])
 {
   float offset[3], rot[3], scale[3];
-  int ri = mmd->rnd[0];
-  float factor;
+  ARRAY_SET_ITEMS(scale, 1.0f, 1.0f, 1.0f);
+  zero_v3(rot);
 
-  offset[0] = mmd->offset[0] * elem_idx;
-  offset[1] = mmd->offset[1] * elem_idx;
-  offset[2] = mmd->offset[2] * elem_idx;
-
-  /* rotation */
-  if (mmd->flag & GP_ARRAY_RANDOM_ROT) {
-    factor = mmd->rnd_rot * mmd->rnd[ri];
-    mul_v3_v3fl(rot, mmd->rot, factor);
-    add_v3_v3(rot, mmd->rot);
+  if (mmd->flag & GP_ARRAY_USE_OFFSET) {
+    offset[0] = mmd->offset[0] * elem_idx;
+    offset[1] = mmd->offset[1] * elem_idx;
+    offset[2] = mmd->offset[2] * elem_idx;
   }
   else {
-    copy_v3_v3(rot, mmd->rot);
+    zero_v3(offset);
   }
 
-  /* scale */
-  if (mmd->flag & GP_ARRAY_RANDOM_SIZE) {
-    factor = mmd->rnd_size * mmd->rnd[ri];
-    mul_v3_v3fl(scale, mmd->scale, factor);
-    add_v3_v3(scale, mmd->scale);
-  }
-  else {
-    copy_v3_v3(scale, mmd->scale);
-  }
-
-  /* advance random index */
-  mmd->rnd[0]++;
-  if (mmd->rnd[0] > 19) {
-    mmd->rnd[0] = 1;
-  }
-
-  /* calculate matrix */
+  /* Calculate matrix */
   loc_eul_size_to_mat4(r_mat, offset, rot, scale);
-
   copy_m4_m4(r_offset, r_mat);
 
   /* offset object */
-  if (mmd->object) {
+  if ((mmd->flag & GP_ARRAY_USE_OB_OFFSET) && (mmd->object)) {
     float mat_offset[4][4];
     float obinv[4][4];
 
@@ -147,140 +127,158 @@ static void BKE_gpencil_instance_modifier_instance_tfm(Object *ob,
 
 /* array modifier - generate geometry callback (for viewport/rendering) */
 static void generate_geometry(GpencilModifierData *md,
-                              Depsgraph *UNUSED(depsgraph),
-                              Object *ob,
-                              bGPDlayer *gpl,
-                              bGPDframe *gpf)
+                              Depsgraph *depsgraph,
+                              Scene *scene,
+                              Object *ob)
 {
   ArrayGpencilModifierData *mmd = (ArrayGpencilModifierData *)md;
   ListBase stroke_cache = {NULL, NULL};
-  bGPDstroke *gps;
-  int idx;
+  /* Load the strokes to be duplicated. */
+  bGPdata *gpd = (bGPdata *)ob->data;
+  bool found = false;
 
-  /* Check which strokes we can use once, and store those results in an array
-   * for quicker checking of what's valid (since string comparisons are expensive)
-   */
-  const int num_strokes = BLI_listbase_count(&gpf->strokes);
-  int num_valid = 0;
-
-  bool *valid_strokes = MEM_callocN(sizeof(bool) * num_strokes, __func__);
-
-  for (gps = gpf->strokes.first, idx = 0; gps; gps = gps->next, idx++) {
-    /* Record whether this stroke can be used
-     * ATTENTION: The logic here is the inverse of what's used everywhere else!
-     */
-    if (is_stroke_affected_by_modifier(ob,
-                                       mmd->layername,
-                                       mmd->materialname,
-                                       mmd->pass_index,
-                                       mmd->layer_pass,
-                                       1,
-                                       gpl,
-                                       gps,
-                                       mmd->flag & GP_ARRAY_INVERT_LAYER,
-                                       mmd->flag & GP_ARRAY_INVERT_PASS,
-                                       mmd->flag & GP_ARRAY_INVERT_LAYERPASS,
-                                       mmd->flag & GP_ARRAY_INVERT_MATERIAL)) {
-      valid_strokes[idx] = true;
-      num_valid++;
-    }
+  /* Get bounbox for relative offset. */
+  float size[3] = {0.0f, 0.0f, 0.0f};
+  if (mmd->flag & GP_ARRAY_USE_RELATIVE) {
+    BoundBox *bb = BKE_object_boundbox_get(ob);
+    const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+    BKE_boundbox_init_from_minmax(bb, min, max);
+    BKE_boundbox_calc_size_aabb(bb, size);
+    mul_v3_fl(size, 2.0f);
+    /* Need a minimum size (for flat drawings). */
+    CLAMP3_MIN(size, 0.01f);
   }
 
-  /* Early exit if no strokes can be copied */
-  if (num_valid == 0) {
-    if (G.debug & G_DEBUG) {
-      printf("GP Array Mod - No strokes to be included\n");
-    }
+  int seed = mmd->seed;
+  /* Make sure different modifiers get different seeds. */
+  seed += BLI_hash_string(ob->id.name + 2);
+  seed += BLI_hash_string(md->name);
 
-    MEM_SAFE_FREE(valid_strokes);
-    return;
-  }
-
-  /* Generate new instances of all existing strokes,
-   * keeping each instance together so they maintain
-   * the correct ordering relative to each other
-   */
-  float current_offset[4][4];
-  unit_m4(current_offset);
-
-  for (int x = 0; x < mmd->count; x++) {
-    /* original strokes are at index = 0 */
-    if (x == 0) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    bGPDframe *gpf = BKE_gpencil_frame_retime_get(depsgraph, scene, ob, gpl);
+    if (gpf == NULL) {
       continue;
     }
+    LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+      if (is_stroke_affected_by_modifier(ob,
+                                         mmd->layername,
+                                         mmd->materialname,
+                                         mmd->pass_index,
+                                         mmd->layer_pass,
+                                         1,
+                                         gpl,
+                                         gps,
+                                         mmd->flag & GP_ARRAY_INVERT_LAYER,
+                                         mmd->flag & GP_ARRAY_INVERT_PASS,
+                                         mmd->flag & GP_ARRAY_INVERT_LAYERPASS,
+                                         mmd->flag & GP_ARRAY_INVERT_MATERIAL)) {
+        tmpStrokes *tmp = MEM_callocN(sizeof(tmpStrokes), __func__);
+        tmp->gpf = gpf;
+        tmp->gps = gps;
+        BLI_addtail(&stroke_cache, tmp);
 
-    /* Compute transforms for this instance */
-    float mat[4][4];
-    float mat_offset[4][4];
-    BKE_gpencil_instance_modifier_instance_tfm(ob, mmd, x, mat, mat_offset);
-
-    if (mmd->object) {
-      /* recalculate cumulative offset here */
-      mul_m4_m4m4(current_offset, current_offset, mat_offset);
-    }
-    else {
-      copy_m4_m4(current_offset, mat);
-    }
-    /* apply shift */
-    madd_v3_v3fl(current_offset[3], mmd->shift, x);
-
-    /* Duplicate original strokes to create this instance */
-    for (gps = gpf->strokes.first, idx = 0; gps; gps = gps->next, idx++) {
-      /* check if stroke can be duplicated */
-      if (valid_strokes[idx]) {
-        /* Calculate original stroke center (only first loop). */
-        float r_min[3], r_max[3], center[3];
-        if (x == 1) {
-          INIT_MINMAX(r_min, r_max);
-          BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
-          add_v3_v3v3(center, r_min, r_max);
-          mul_v3_fl(center, 0.5f);
-          sub_v3_v3v3(center, center, ob->obmat[3]);
-        }
-
-        /* Duplicate stroke */
-        bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps);
-
-        /* Move points */
-        for (int i = 0; i < gps->totpoints; i++) {
-          bGPDspoint *pt = &gps_dst->points[i];
-          /* Apply object local transform (Rot/Scale). */
-          if (mmd->object) {
-            mul_m4_v3(mat, &pt->x);
-          }
-          /* Translate to object origin. */
-          float fpt[3];
-          sub_v3_v3v3(fpt, &pt->x, center);
-          /* Global Rotate and scale. */
-          mul_mat3_m4_v3(current_offset, fpt);
-          /* Global translate. */
-          add_v3_v3(fpt, center);
-          add_v3_v3v3(&pt->x, fpt, current_offset[3]);
-        }
-
-        /* if replace material, use new one */
-        if ((mmd->mat_rpl > 0) && (mmd->mat_rpl <= ob->totcol)) {
-          gps_dst->mat_nr = mmd->mat_rpl - 1;
-        }
-
-        /* Add new stroke to cache, to be added to the frame once
-         * all duplicates have been made
-         */
-        BLI_addtail(&stroke_cache, gps_dst);
+        found = true;
       }
     }
   }
 
-  /* merge newly created stroke instances back into the main stroke list */
-  if (mmd->flag & GP_ARRAY_KEEP_ONTOP) {
-    BLI_movelisttolist_reverse(&gpf->strokes, &stroke_cache);
-  }
-  else {
-    BLI_movelisttolist(&gpf->strokes, &stroke_cache);
-  }
+  if (found) {
+    /* Generate new instances of all existing strokes,
+     * keeping each instance together so they maintain
+     * the correct ordering relative to each other
+     */
+    float current_offset[4][4];
+    unit_m4(current_offset);
 
-  /* free temp data */
-  MEM_SAFE_FREE(valid_strokes);
+    float rand_offset = BLI_hash_int_01(seed);
+
+    for (int x = 0; x < mmd->count; x++) {
+      /* original strokes are at index = 0 */
+      if (x == 0) {
+        continue;
+      }
+
+      /* Compute transforms for this instance */
+      float mat[4][4];
+      float mat_offset[4][4];
+      BKE_gpencil_instance_modifier_instance_tfm(ob, mmd, x, mat, mat_offset);
+
+      if ((mmd->flag & GP_ARRAY_USE_OB_OFFSET) && (mmd->object)) {
+        /* recalculate cumulative offset here */
+        mul_m4_m4m4(current_offset, current_offset, mat_offset);
+      }
+      else {
+        copy_m4_m4(current_offset, mat);
+      }
+
+      /* Apply relative offset. */
+      if (mmd->flag & GP_ARRAY_USE_RELATIVE) {
+        float relative[3];
+        mul_v3_v3v3(relative, mmd->shift, size);
+        madd_v3_v3fl(current_offset[3], relative, x);
+      }
+
+      float rand[3][3];
+      for (int j = 0; j < 3; j++) {
+        uint primes[3] = {2, 3, 7};
+        double offset[3] = {0.0, 0.0, 0.0};
+        double r[3];
+        /* To ensure a nice distribution, we use halton sequence and offset using the seed. */
+        BLI_halton_3d(primes, offset, x, r);
+
+        for (int i = 0; i < 3; i++) {
+          rand[j][i] = fmodf(r[i] * 2.0 - 1.0 + rand_offset, 1.0f);
+          rand[j][i] = fmodf(sin(rand[j][i] * 12.9898 + j * 78.233) * 43758.5453, 1.0f);
+        }
+      }
+      /* Calculate Random matrix. */
+      float mat_rnd[4][4];
+      float loc[3], rot[3];
+      float scale[3] = {1.0f, 1.0f, 1.0f};
+      mul_v3_v3v3(loc, mmd->rnd_offset, rand[0]);
+      mul_v3_v3v3(rot, mmd->rnd_rot, rand[1]);
+      madd_v3_v3v3(scale, mmd->rnd_scale, rand[2]);
+
+      loc_eul_size_to_mat4(mat_rnd, loc, rot, scale);
+
+      /* Duplicate original strokes to create this instance. */
+      LISTBASE_FOREACH_BACKWARD (tmpStrokes *, iter, &stroke_cache) {
+        /* Duplicate stroke */
+        bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(iter->gps, true);
+
+        /* Move points */
+        for (int i = 0; i < iter->gps->totpoints; i++) {
+          bGPDspoint *pt = &gps_dst->points[i];
+          /* Apply randomness matrix. */
+          mul_m4_v3(mat_rnd, &pt->x);
+
+          /* Apply object local transform (Rot/Scale). */
+          if ((mmd->flag & GP_ARRAY_USE_OB_OFFSET) && (mmd->object)) {
+            mul_m4_v3(mat, &pt->x);
+          }
+          /* Global Rotate and scale. */
+          mul_mat3_m4_v3(current_offset, &pt->x);
+          /* Global translate. */
+          add_v3_v3(&pt->x, current_offset[3]);
+        }
+
+        /* If replace material, use new one. */
+        if ((mmd->mat_rpl > 0) && (mmd->mat_rpl <= ob->totcol)) {
+          gps_dst->mat_nr = mmd->mat_rpl - 1;
+        }
+
+        /* Add new stroke. */
+        BLI_addhead(&iter->gpf->strokes, gps_dst);
+        /* Calc bounding box. */
+        BKE_gpencil_stroke_boundingbox_calc(gps_dst);
+      }
+    }
+
+    /* Free temp data. */
+    LISTBASE_FOREACH_MUTABLE (tmpStrokes *, tmp, &stroke_cache) {
+      BLI_freelinkN(&stroke_cache, tmp);
+    }
+  }
 }
 
 static void bakeModifier(Main *UNUSED(bmain),
@@ -288,23 +286,17 @@ static void bakeModifier(Main *UNUSED(bmain),
                          GpencilModifierData *md,
                          Object *ob)
 {
-
-  bGPdata *gpd = ob->data;
-
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-      generate_geometry(md, depsgraph, ob, gpl, gpf);
-    }
-  }
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  generate_geometry(md, depsgraph, scene, ob);
 }
 
 /* -------------------------------- */
 
 /* Generic "generateStrokes" callback */
-static void generateStrokes(
-    GpencilModifierData *md, Depsgraph *depsgraph, Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
+static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
 {
-  generate_geometry(md, depsgraph, ob, gpl, gpf);
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  generate_geometry(md, depsgraph, scene, ob);
 }
 
 static void updateDepsgraph(GpencilModifierData *md, const ModifierUpdateDepsgraphContext *ctx)

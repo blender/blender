@@ -26,7 +26,6 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
@@ -35,6 +34,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_main.h"
@@ -52,13 +52,28 @@ static void initData(GpencilModifierData *md)
   ARRAY_SET_ITEMS(gpmd->hsv, 0.5f, 1.0f, 1.0f);
   gpmd->layername[0] = '\0';
   gpmd->materialname[0] = '\0';
-  gpmd->flag |= GP_COLOR_CREATE_COLORS;
   gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
+
+  gpmd->curve_intensity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  if (gpmd->curve_intensity) {
+    CurveMapping *curve = gpmd->curve_intensity;
+    BKE_curvemapping_initialize(curve);
+  }
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
+  ColorGpencilModifierData *gmd = (ColorGpencilModifierData *)md;
+  ColorGpencilModifierData *tgmd = (ColorGpencilModifierData *)target;
+
+  if (tgmd->curve_intensity != NULL) {
+    BKE_curvemapping_free(tgmd->curve_intensity);
+    tgmd->curve_intensity = NULL;
+  }
+
   BKE_gpencil_modifier_copyData_generic(md, target);
+
+  tgmd->curve_intensity = BKE_curvemapping_copy(gmd->curve_intensity);
 }
 
 /* color correction strokes */
@@ -72,6 +87,7 @@ static void deformStroke(GpencilModifierData *md,
 
   ColorGpencilModifierData *mmd = (ColorGpencilModifierData *)md;
   float hsv[3], factor[3];
+  const bool use_curve = (mmd->flag & GP_COLOR_CUSTOM_CURVE) != 0 && mmd->curve_intensity;
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
@@ -89,60 +105,76 @@ static void deformStroke(GpencilModifierData *md,
   }
 
   copy_v3_v3(factor, mmd->hsv);
-  /* keep initial values unchanged, subtracting the default values. */
-  factor[0] -= 0.5f;
-  factor[1] -= 1.0f;
-  factor[2] -= 1.0f;
+  MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
 
-  if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
-    rgb_to_hsv_v(gps->runtime.tmp_stroke_rgba, hsv);
-    add_v3_v3(hsv, factor);
-    CLAMP3(hsv, 0.0f, 1.0f);
-    hsv_to_rgb_v(hsv, gps->runtime.tmp_stroke_rgba);
+  /* Apply to Vertex Color. */
+  /* Fill */
+  if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
+    /* If not using Vertex Color, use the material color. */
+    if ((gp_style != NULL) && (gps->vert_color_fill[3] == 0.0f) &&
+        (gp_style->fill_rgba[3] > 0.0f)) {
+      copy_v4_v4(gps->vert_color_fill, gp_style->fill_rgba);
+      gps->vert_color_fill[3] = 1.0f;
+    }
+
+    rgb_to_hsv_v(gps->vert_color_fill, hsv);
+    hsv[0] = fractf(hsv[0] + factor[0] + 0.5f);
+    hsv[1] = clamp_f(hsv[1] * factor[1], 0.0f, 1.0f);
+    hsv[2] = hsv[2] * factor[2];
+    hsv_to_rgb_v(hsv, gps->vert_color_fill);
   }
 
-  if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
-    rgb_to_hsv_v(gps->runtime.tmp_fill_rgba, hsv);
-    add_v3_v3(hsv, factor);
-    CLAMP3(hsv, 0.0f, 1.0f);
-    hsv_to_rgb_v(hsv, gps->runtime.tmp_fill_rgba);
+  /* Stroke */
+  if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
+
+    for (int i = 0; i < gps->totpoints; i++) {
+      bGPDspoint *pt = &gps->points[i];
+      /* If not using Vertex Color, use the material color. */
+      if ((gp_style != NULL) && (pt->vert_color[3] == 0.0f) && (gp_style->stroke_rgba[3] > 0.0f)) {
+        copy_v4_v4(pt->vert_color, gp_style->stroke_rgba);
+        pt->vert_color[3] = 1.0f;
+      }
+
+      /* Custom curve to modulate value. */
+      float factor_value[3];
+      copy_v3_v3(factor_value, factor);
+      if (use_curve) {
+        float value = (float)i / (gps->totpoints - 1);
+        float mixfac = BKE_curvemapping_evaluateF(mmd->curve_intensity, 0, value);
+        mul_v3_fl(factor_value, mixfac);
+      }
+
+      rgb_to_hsv_v(pt->vert_color, hsv);
+      hsv[0] = fractf(hsv[0] + factor_value[0] + 0.5f);
+      hsv[1] = clamp_f(hsv[1] * factor_value[1], 0.0f, 1.0f);
+      hsv[2] = hsv[2] * factor_value[2];
+      hsv_to_rgb_v(hsv, pt->vert_color);
+    }
   }
 }
 
-static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData *md, Object *ob)
+static void bakeModifier(Main *UNUSED(bmain),
+                         Depsgraph *depsgraph,
+                         GpencilModifierData *md,
+                         Object *ob)
 {
-  ColorGpencilModifierData *mmd = (ColorGpencilModifierData *)md;
   bGPdata *gpd = ob->data;
 
-  GHash *gh_color = BLI_ghash_str_new("GP_Color modifier");
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-
-        Material *mat = BKE_gpencil_material(ob, gps->mat_nr + 1);
-        if (mat == NULL) {
-          continue;
-        }
-        MaterialGPencilStyle *gp_style = mat->gp_style;
-        /* skip stroke if it doesn't have color info */
-        if (ELEM(NULL, gp_style)) {
-          continue;
-        }
-
-        copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
-        copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
-
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         deformStroke(md, depsgraph, ob, gpl, gpf, gps);
-
-        gpencil_apply_modifier_material(
-            bmain, ob, mat, gh_color, gps, (bool)(mmd->flag & GP_COLOR_CREATE_COLORS));
       }
     }
   }
-  /* free hash buffers */
-  if (gh_color) {
-    BLI_ghash_free(gh_color, NULL, NULL);
-    gh_color = NULL;
+}
+
+static void freeData(GpencilModifierData *md)
+{
+  ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
+
+  if (gpmd->curve_intensity) {
+    BKE_curvemapping_free(gpmd->curve_intensity);
   }
 }
 
@@ -161,7 +193,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Color = {
     /* remapTime */ NULL,
 
     /* initData */ initData,
-    /* freeData */ NULL,
+    /* freeData */ freeData,
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,

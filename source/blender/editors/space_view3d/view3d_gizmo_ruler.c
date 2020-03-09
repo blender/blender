@@ -409,7 +409,7 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
 /* Helper: Find the layer created as ruler. */
 static bGPDlayer *view3d_ruler_layer_get(bGPdata *gpd)
 {
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     if (gpl->flag & GP_LAYER_IS_RULER) {
       return gpl;
     }
@@ -445,7 +445,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     gpl->flag |= GP_LAYER_HIDE | GP_LAYER_IS_RULER;
   }
 
-  gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_NEW);
+  gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_NEW);
   BKE_gpencil_free_strokes(gpf);
 
   for (ruler_item = gzgroup->gizmos.first; ruler_item;
@@ -477,9 +477,10 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     }
     gps->flag = GP_STROKE_3DSPACE;
     gps->thickness = 3;
-    gps->gradient_f = 1.0f;
-    gps->gradient_s[0] = 1.0f;
-    gps->gradient_s[1] = 1.0f;
+    gps->hardeness = 1.0f;
+    gps->fill_opacity_fac = 1.0f;
+    copy_v2_fl(gps->aspect_ratio, 1.0f);
+    gps->uv_scale = 1.0f;
 
     BLI_addtail(&gpf->strokes, gps);
     changed = true;
@@ -498,7 +499,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
     gpl = view3d_ruler_layer_get(scene->gpd);
     if (gpl) {
       bGPDframe *gpf;
-      gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_USE_PREV);
+      gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV);
       if (gpf) {
         bGPDstroke *gps;
         for (gps = gpf->strokes.first; gps; gps = gps->next) {

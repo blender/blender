@@ -60,6 +60,8 @@ typedef struct OVERLAY_PassList {
   DRWPass *clipping_frustum_ps;
   DRWPass *edit_curve_wire_ps[2];
   DRWPass *edit_curve_handle_ps;
+  DRWPass *edit_gpencil_ps;
+  DRWPass *edit_gpencil_gizmos_ps;
   DRWPass *edit_lattice_ps;
   DRWPass *edit_mesh_depth_ps[2];
   DRWPass *edit_mesh_verts_ps[2];
@@ -76,6 +78,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *extra_blend_ps;
   DRWPass *extra_centers_ps;
   DRWPass *extra_grid_ps;
+  DRWPass *gpencil_canvas_ps;
   DRWPass *facing_ps;
   DRWPass *grid_ps;
   DRWPass *image_background_ps;
@@ -219,6 +222,8 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_curve_points_grp;
   DRWShadingGroup *edit_lattice_points_grp;
   DRWShadingGroup *edit_lattice_wires_grp;
+  DRWShadingGroup *edit_gpencil_points_grp;
+  DRWShadingGroup *edit_gpencil_wires_grp;
   DRWShadingGroup *edit_mesh_depth_grp[2];
   DRWShadingGroup *edit_mesh_faces_grp[2];
   DRWShadingGroup *edit_mesh_faces_cage_grp[2];
@@ -238,6 +243,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *motion_path_lines_grp;
   DRWShadingGroup *motion_path_points_grp;
   DRWShadingGroup *outlines_grp;
+  DRWShadingGroup *outlines_gpencil_grp;
   DRWShadingGroup *paint_surf_grp;
   DRWShadingGroup *paint_wire_grp;
   DRWShadingGroup *paint_wire_selected_grp;
@@ -277,6 +283,7 @@ typedef struct OVERLAY_PrivateData {
   float xray_opacity;
   short v3d_flag;     /* TODO move to View3DOverlay */
   short v3d_gridflag; /* TODO move to View3DOverlay */
+  int cfra;
   DRWState clipping_state;
   OVERLAY_ShadingData shdata;
 
@@ -419,6 +426,12 @@ void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_surf_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_curve_draw(OVERLAY_Data *vedata);
 
+void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_gpencil_draw(OVERLAY_Data *vedata);
+void OVERLAY_edit_gpencil_draw(OVERLAY_Data *vedata);
+
 void OVERLAY_edit_lattice_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_lattice_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_lattice_cache_populate(OVERLAY_Data *vedata, Object *ob);
@@ -446,7 +459,6 @@ void OVERLAY_extra_centers_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_camera_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_empty_cache_populate(OVERLAY_Data *vedata, Object *ob);
-void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_speaker_cache_populate(OVERLAY_Data *vedata, Object *ob);
@@ -547,6 +559,9 @@ GPUShader *OVERLAY_shader_depth_only(void);
 GPUShader *OVERLAY_shader_edit_curve_handle(void);
 GPUShader *OVERLAY_shader_edit_curve_point(void);
 GPUShader *OVERLAY_shader_edit_curve_wire(void);
+GPUShader *OVERLAY_shader_edit_gpencil_guide_point(void);
+GPUShader *OVERLAY_shader_edit_gpencil_point(void);
+GPUShader *OVERLAY_shader_edit_gpencil_wire(void);
 GPUShader *OVERLAY_shader_edit_lattice_point(void);
 GPUShader *OVERLAY_shader_edit_lattice_wire(void);
 GPUShader *OVERLAY_shader_edit_mesh_analysis(void);
@@ -564,12 +579,14 @@ GPUShader *OVERLAY_shader_extra_wire(bool use_object);
 GPUShader *OVERLAY_shader_extra_loose_point(void);
 GPUShader *OVERLAY_shader_extra_point(void);
 GPUShader *OVERLAY_shader_facing(void);
+GPUShader *OVERLAY_shader_gpencil_canvas(void);
 GPUShader *OVERLAY_shader_grid(void);
 GPUShader *OVERLAY_shader_image(void);
 GPUShader *OVERLAY_shader_motion_path_line(void);
 GPUShader *OVERLAY_shader_motion_path_vert(void);
 GPUShader *OVERLAY_shader_uniform_color(void);
 GPUShader *OVERLAY_shader_outline_prepass(bool use_wire);
+GPUShader *OVERLAY_shader_outline_prepass_gpencil(void);
 GPUShader *OVERLAY_shader_extra_grid(void);
 GPUShader *OVERLAY_shader_outline_detect(void);
 GPUShader *OVERLAY_shader_paint_face(void);

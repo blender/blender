@@ -537,9 +537,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
       pts->pressure = pt->pressure;
       pts->strength = pt->strength;
       pts->time = pt->time;
-
-      /* force fill recalc */
-      gps->flag |= GP_STROKE_RECALC_GEOMETRY;
+      gps->tot_triangles = 0;
     }
 
     /* increment counters */
@@ -604,14 +602,13 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
   /* copy appropriate settings for stroke */
   gps->totpoints = totelem;
   gps->thickness = gpl->thickness;
-  gps->gradient_f = 1.0f;
-  gps->gradient_s[0] = 1.0f;
-  gps->gradient_s[1] = 1.0f;
+  gps->fill_opacity_fac = 1.0f;
+  gps->hardeness = 1.0f;
+  copy_v2_fl(gps->aspect_ratio, 1.0f);
+  gps->uv_scale = 1.0f;
   gps->flag = gpd->runtime.sbuffer_sflag;
   gps->inittime = p->inittime;
-
-  /* enable recalculation flag by default (only used if hq fill) */
-  gps->flag |= GP_STROKE_RECALC_GEOMETRY;
+  gps->tot_triangles = 0;
 
   /* allocate enough memory for a continuous array for storage points */
   gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
@@ -1207,7 +1204,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
   ToolSettings *ts = scene->toolsettings;
 
   /* get active layer (or add a new one if non-existent) */
-  p->gpl = BKE_gpencil_layer_getactive(p->gpd);
+  p->gpl = BKE_gpencil_layer_active_get(p->gpd);
   if (p->gpl == NULL) {
     /* tag for annotations */
     p->gpd->flag |= GP_DATA_ANNOTATIONS;
@@ -1235,7 +1232,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
      */
     bool has_layer_to_erase = false;
 
-    if (gpencil_layer_is_editable(p->gpl)) {
+    if (BKE_gpencil_layer_is_editable(p->gpl)) {
       /* Ensure that there's stuff to erase here (not including selection mask below)... */
       if (p->gpl->actframe && p->gpl->actframe->strokes.first) {
         has_layer_to_erase = true;
@@ -1263,7 +1260,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
       add_frame_mode = GP_GETFRAME_ADD_NEW;
     }
 
-    p->gpf = BKE_gpencil_layer_getframe(p->gpl, CFRA, add_frame_mode);
+    p->gpf = BKE_gpencil_layer_frame_get(p->gpl, CFRA, add_frame_mode);
 
     if (p->gpf == NULL) {
       p->status = GP_STATUS_ERROR;

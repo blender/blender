@@ -30,7 +30,6 @@ extern ShaderFxTypeInfo shaderfx_Type_Blur;
 extern ShaderFxTypeInfo shaderfx_Type_Colorize;
 extern ShaderFxTypeInfo shaderfx_Type_Flip;
 extern ShaderFxTypeInfo shaderfx_Type_Glow;
-extern ShaderFxTypeInfo shaderfx_Type_Light;
 extern ShaderFxTypeInfo shaderfx_Type_Pixel;
 extern ShaderFxTypeInfo shaderfx_Type_Rim;
 extern ShaderFxTypeInfo shaderfx_Type_Shadow;

@@ -181,7 +181,8 @@ typedef enum {
   DRW_CMD_DRAW = 0, /* Only sortable type. Must be 0. */
   DRW_CMD_DRAW_RANGE = 1,
   DRW_CMD_DRAW_INSTANCE = 2,
-  DRW_CMD_DRAW_PROCEDURAL = 3,
+  DRW_CMD_DRAW_INSTANCE_RANGE = 3,
+  DRW_CMD_DRAW_PROCEDURAL = 4,
   /* Other Commands */
   DRW_CMD_CLEAR = 12,
   DRW_CMD_DRWSTATE = 13,
@@ -200,6 +201,7 @@ typedef struct DRWCommandDraw {
 /* Assume DRWResourceHandle to be 0. */
 typedef struct DRWCommandDrawRange {
   GPUBatch *batch;
+  DRWResourceHandle handle;
   uint vert_first;
   uint vert_count;
 } DRWCommandDrawRange;
@@ -210,6 +212,13 @@ typedef struct DRWCommandDrawInstance {
   uint inst_count;
   uint use_attribs; /* bool */
 } DRWCommandDrawInstance;
+
+typedef struct DRWCommandDrawInstanceRange {
+  GPUBatch *batch;
+  DRWResourceHandle handle;
+  uint inst_first;
+  uint inst_count;
+} DRWCommandDrawInstanceRange;
 
 typedef struct DRWCommandDrawProcedural {
   GPUBatch *batch;
@@ -224,7 +233,9 @@ typedef struct DRWCommandSetMutableState {
 } DRWCommandSetMutableState;
 
 typedef struct DRWCommandSetStencil {
-  uint mask;
+  uint write_mask;
+  uint comp_mask;
+  uint ref;
 } DRWCommandSetStencil;
 
 typedef struct DRWCommandSetSelectID {
@@ -243,6 +254,7 @@ typedef union DRWCommand {
   DRWCommandDraw draw;
   DRWCommandDrawRange range;
   DRWCommandDrawInstance instance;
+  DRWCommandDrawInstanceRange instance_range;
   DRWCommandDrawProcedural procedural;
   DRWCommandSetMutableState state;
   DRWCommandSetStencil stencil;
@@ -273,6 +285,7 @@ typedef enum {
   DRW_UNIFORM_BLOCK_OBMATS,
   DRW_UNIFORM_BLOCK_OBINFOS,
   DRW_UNIFORM_RESOURCE_CHUNK,
+  DRW_UNIFORM_RESOURCE_ID,
   /** Legacy / Fallback */
   DRW_UNIFORM_BASE_INSTANCE,
   DRW_UNIFORM_MODEL_MATRIX,
@@ -469,7 +482,6 @@ typedef struct DRWManager {
   /* Managed by `DRW_state_set`, `DRW_state_reset` */
   DRWState state;
   DRWState state_lock;
-  uint stencil_mask;
 
   /* Per viewport */
   GPUViewport *viewport;

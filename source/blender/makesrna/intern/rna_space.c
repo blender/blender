@@ -1013,6 +1013,9 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
     }
   }
 
+  /* Update Gpencil. */
+  rna_GPencil_update(bmain, scene, ptr);
+
   bScreen *screen = (bScreen *)ptr->owner_id;
   for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
     for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
@@ -3289,7 +3292,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_View3DShading_color_type_itemf");
   RNA_def_property_ui_text(prop, "Color", "Color Type");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "wireframe_color_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "wire_color_type");
@@ -3782,8 +3785,8 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Annotation", "Show annotations for this view");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "use_gpencil_paper", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_PAPER);
+  prop = RNA_def_property(srna, "use_gpencil_fade_objects", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_FADE_OBJECTS);
   RNA_def_property_ui_text(
       prop,
       "Fade Objects",
@@ -3801,10 +3804,24 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
       prop, "Fade Layers", "Toggle fading of Grease Pencil layers except the active one");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
-  prop = RNA_def_property(srna, "use_gpencil_fade_objects", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_gpencil_fade_gp_objects", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_FADE_NOACTIVE_GPENCIL);
   RNA_def_property_ui_text(
       prop, "Fade Grease Pencil Objects", "Fade Grease Pencil Objects, except the active one");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
+
+  prop = RNA_def_property(srna, "use_gpencil_show_directions", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_STROKE_DIRECTION);
+  RNA_def_property_ui_text(prop,
+                           "Stroke Direction",
+                           "Show stroke drawing direction with a bigger green dot (start) "
+                           "and smaller red dot (end) points");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
+
+  prop = RNA_def_property(srna, "use_gpencil_show_material_name", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_MATERIAL_NAME);
+  RNA_def_property_ui_text(
+      prop, "Stroke Material Name", "Show material name assigned to each stroke");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "gpencil_grid_opacity", PROP_FLOAT, PROP_NONE);
@@ -3814,7 +3831,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   /* Paper opacity factor */
-  prop = RNA_def_property(srna, "gpencil_paper_opacity", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "gpencil_fade_objects", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_paper_opacity");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Opacity", "Fade factor");
@@ -3832,12 +3849,12 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   /* show edit lines */
   prop = RNA_def_property(srna, "use_gpencil_edit_lines", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_EDIT_LINES);
-  RNA_def_property_ui_text(prop, "Show Edit Lines", "Show edit lines when editing strokes");
+  RNA_def_property_ui_text(prop, "Show Edit Lines", "Show Edit Lines when editing strokes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "use_gpencil_multiedit_line_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_SHOW_MULTIEDIT_LINES);
-  RNA_def_property_ui_text(prop, "Lines Only", "Only show edit lines for additional frames");
+  RNA_def_property_ui_text(prop, "Lines Only", "Show Edit Lines only in multiframe");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
   /* main grease pencil onion switch */
@@ -3848,12 +3865,20 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
   /* vertex opacity */
-  prop = RNA_def_property(srna, "vertex_opacity", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "vertex_opacity", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "vertex_opacity");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Vertex Opacity", "Opacity for edit vertices");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_GPencil_update");
+
+  /* Vertex Paint opacity factor */
+  prop = RNA_def_property(srna, "gpencil_vertex_paint_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_vertex_paint_opacity");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_ui_text(prop, "Opacity", "Vertex Paint mix factor");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 }
 
 static void rna_def_space_view3d(BlenderRNA *brna)

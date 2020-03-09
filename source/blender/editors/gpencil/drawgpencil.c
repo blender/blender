@@ -233,128 +233,8 @@ static void gp_draw_stroke_volumetric_3d(const bGPDspoint *points,
 }
 
 /* --------------- Stroke Fills ----------------- */
-/* calc bounding box in 2d using flat projection data */
-static void gp_calc_2d_bounding_box(
-    const float (*points2d)[2], int totpoints, float minv[2], float maxv[2], bool expand)
-{
-  copy_v2_v2(minv, points2d[0]);
-  copy_v2_v2(maxv, points2d[0]);
-
-  for (int i = 1; i < totpoints; i++) {
-    /* min */
-    if (points2d[i][0] < minv[0]) {
-      minv[0] = points2d[i][0];
-    }
-    if (points2d[i][1] < minv[1]) {
-      minv[1] = points2d[i][1];
-    }
-    /* max */
-    if (points2d[i][0] > maxv[0]) {
-      maxv[0] = points2d[i][0];
-    }
-    if (points2d[i][1] > maxv[1]) {
-      maxv[1] = points2d[i][1];
-    }
-  }
-  /* If not expanded, use a perfect square */
-  if (expand == false) {
-    if (maxv[0] > maxv[1]) {
-      maxv[1] = maxv[0];
-    }
-    else {
-      maxv[0] = maxv[1];
-    }
-  }
-}
-
-/* calc texture coordinates using flat projected points */
-static void gp_calc_stroke_text_coordinates(const float (*points2d)[2],
-                                            int totpoints,
-                                            const float minv[2],
-                                            float maxv[2],
-                                            float (*r_uv)[2])
-{
-  float d[2];
-  d[0] = maxv[0] - minv[0];
-  d[1] = maxv[1] - minv[1];
-  for (int i = 0; i < totpoints; i++) {
-    r_uv[i][0] = (points2d[i][0] - minv[0]) / d[0];
-    r_uv[i][1] = (points2d[i][1] - minv[1]) / d[1];
-  }
-}
-
-/* Triangulate stroke for high quality fill
- * (this is done only if cache is null or stroke was modified). */
-static void gp_triangulate_stroke_fill(bGPDstroke *gps)
-{
-  BLI_assert(gps->totpoints >= 3);
-
-  /* allocate memory for temporary areas */
-  gps->tot_triangles = gps->totpoints - 2;
-  uint(*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->tot_triangles,
-                                        "GP Stroke temp triangulation");
-  float(*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints,
-                                    "GP Stroke temp 2d points");
-  float(*uv)[2] = MEM_mallocN(sizeof(*uv) * gps->totpoints, "GP Stroke temp 2d uv data");
-
-  int direction = 0;
-
-  /* convert to 2d and triangulate */
-  BKE_gpencil_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
-  BLI_polyfill_calc(points2d, (uint)gps->totpoints, direction, tmp_triangles);
-
-  /* calc texture coordinates automatically */
-  float minv[2];
-  float maxv[2];
-  /* first needs bounding box data */
-  gp_calc_2d_bounding_box((const float(*)[2])points2d, gps->totpoints, minv, maxv, false);
-  /* calc uv data */
-  gp_calc_stroke_text_coordinates((const float(*)[2])points2d, gps->totpoints, minv, maxv, uv);
-
-  /* Number of triangles */
-  gps->tot_triangles = gps->totpoints - 2;
-  /* save triangulation data in stroke cache */
-  if (gps->tot_triangles > 0) {
-    if (gps->triangles == NULL) {
-      gps->triangles = MEM_callocN(sizeof(*gps->triangles) * gps->tot_triangles,
-                                   "GP Stroke triangulation");
-    }
-    else {
-      gps->triangles = MEM_recallocN(gps->triangles, sizeof(*gps->triangles) * gps->tot_triangles);
-    }
-
-    for (int i = 0; i < gps->tot_triangles; i++) {
-      bGPDtriangle *stroke_triangle = &gps->triangles[i];
-      memcpy(stroke_triangle->verts, tmp_triangles[i], sizeof(uint[3]));
-      /* copy texture coordinates */
-      copy_v2_v2(stroke_triangle->uv[0], uv[tmp_triangles[i][0]]);
-      copy_v2_v2(stroke_triangle->uv[1], uv[tmp_triangles[i][1]]);
-      copy_v2_v2(stroke_triangle->uv[2], uv[tmp_triangles[i][2]]);
-    }
-  }
-  else {
-    /* No triangles needed - Free anything allocated previously */
-    if (gps->triangles) {
-      MEM_freeN(gps->triangles);
-    }
-
-    gps->triangles = NULL;
-  }
-
-  /* disable recalculation flag */
-  if (gps->flag & GP_STROKE_RECALC_GEOMETRY) {
-    gps->flag &= ~GP_STROKE_RECALC_GEOMETRY;
-  }
-
-  /* clear memory */
-  MEM_SAFE_FREE(tmp_triangles);
-  MEM_SAFE_FREE(points2d);
-  MEM_SAFE_FREE(uv);
-}
-
 /* add a new fill point and texture coordinates to vertex buffer */
 static void gp_add_filldata_tobuffer(const bGPDspoint *pt,
-                                     const float uv[2],
                                      uint pos,
                                      uint texcoord,
                                      short flag,
@@ -375,47 +255,9 @@ static void gp_add_filldata_tobuffer(const bGPDspoint *pt,
     fpt[2] = 0.0f; /* 2d always is z=0.0f */
   }
 
-  immAttr2f(texcoord, uv[0], uv[1]); /* texture coordinates */
-  immVertex3fv(pos, fpt);            /* position */
+  immAttr2f(texcoord, pt->uv_fill[0], pt->uv_fill[1]); /* texture coordinates */
+  immVertex3fv(pos, fpt);                              /* position */
 }
-
-#if 0 /* GPXX disabled, not used in annotations */
-/* assign image texture for filling stroke */
-static int gp_set_filling_texture(Image *image, short flag)
-{
-  ImBuf *ibuf;
-  uint *bind = &image->bindcode[TEXTARGET_TEXTURE_2D];
-  int error = GL_NO_ERROR;
-  ImageUser iuser = {NULL};
-  void *lock;
-
-  iuser.ok = true;
-
-  ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
-
-  if (ibuf == NULL || ibuf->rect == NULL) {
-    BKE_image_release_ibuf(image, ibuf, NULL);
-    return (int)GL_INVALID_OPERATION;
-  }
-
-  GPU_create_gl_tex(
-      bind, ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, GL_TEXTURE_2D, false, false, image);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  if (flag & GP_STYLE_COLOR_TEX_CLAMP) {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  }
-  else {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  }
-  BKE_image_release_ibuf(image, ibuf, NULL);
-
-  return error;
-}
-#endif
 
 /* draw fills for shapes */
 static void gp_draw_stroke_fill(bGPdata *gpd,
@@ -428,17 +270,11 @@ static void gp_draw_stroke_fill(bGPdata *gpd,
                                 const float color[4])
 {
   BLI_assert(gps->totpoints >= 3);
+  BLI_assert(gps->tot_triangles >= 1);
   const bool use_mat = (gpd->mat != NULL);
 
   Material *ma = (use_mat) ? gpd->mat[gps->mat_nr] : BKE_material_default_gpencil();
   MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
-
-  /* Calculate triangles cache for filling area (must be done only after changes) */
-  if ((gps->flag & GP_STROKE_RECALC_GEOMETRY) || (gps->tot_triangles == 0) ||
-      (gps->triangles == NULL)) {
-    gp_triangulate_stroke_fill(gps);
-  }
-  BLI_assert(gps->tot_triangles >= 1);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -450,25 +286,13 @@ static void gp_draw_stroke_fill(bGPdata *gpd,
   immUniform1i("fill_type", gp_style->fill_style);
   immUniform1f("mix_factor", gp_style->mix_factor);
 
-  immUniform1f("gradient_angle", gp_style->gradient_angle);
-  immUniform1f("gradient_radius", gp_style->gradient_radius);
-  immUniform1f("pattern_gridsize", gp_style->pattern_gridsize);
-  immUniform2fv("gradient_scale", gp_style->gradient_scale);
-  immUniform2fv("gradient_shift", gp_style->gradient_shift);
-
   immUniform1f("texture_angle", gp_style->texture_angle);
   immUniform2fv("texture_scale", gp_style->texture_scale);
   immUniform2fv("texture_offset", gp_style->texture_offset);
   immUniform1f("texture_opacity", gp_style->texture_opacity);
-  immUniform1i("t_mix", (gp_style->flag & GP_STYLE_FILL_TEX_MIX) != 0);
-  immUniform1i("t_flip", (gp_style->flag & GP_STYLE_COLOR_FLIP_FILL) != 0);
-#if 0 /* GPXX disabled, not used in annotations */
-  /* image texture */
-  if ((gp_style->fill_style == GP_STYLE_FILL_STYLE_TEXTURE) ||
-      (gp_style->flag & GP_STYLE_COLOR_TEX_MIX)) {
-    gp_set_filling_texture(gp_style->ima, gp_style->flag);
-  }
-#endif
+  immUniform1i("t_mix", (gp_style->flag & GP_MATERIAL_FILL_TEX_MIX) != 0);
+  immUniform1i("t_flip", (gp_style->flag & GP_MATERIAL_FLIP_FILL) != 0);
+
   /* Draw all triangles for filling the polygon (cache must be calculated before) */
   immBegin(GPU_PRIM_TRIS, gps->tot_triangles * 3);
   /* TODO: use batch instead of immediate mode, to share vertices */
@@ -477,7 +301,6 @@ static void gp_draw_stroke_fill(bGPdata *gpd,
   for (int i = 0; i < gps->tot_triangles; i++, stroke_triangle++) {
     for (int j = 0; j < 3; j++) {
       gp_add_filldata_tobuffer(&gps->points[stroke_triangle->verts[j]],
-                               stroke_triangle->uv[j],
                                pos,
                                texcoord,
                                gps->flag,
@@ -887,15 +710,15 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
     Material *ma = (use_mat) ? tgpw->gpd->mat[gps->mat_nr] : BKE_material_default_gpencil();
     MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
 
-    if ((gp_style == NULL) || (gp_style->flag & GP_STYLE_COLOR_HIDE) ||
+    if ((gp_style == NULL) || (gp_style->flag & GP_MATERIAL_HIDE) ||
         /* if onion and ghost flag do not draw*/
-        (tgpw->onion && (gp_style->flag & GP_STYLE_COLOR_ONIONSKIN))) {
+        (tgpw->onion && (gp_style->flag & GP_MATERIAL_ONIONSKIN))) {
       continue;
     }
 
     /* if disable fill, the colors with fill must be omitted too except fill boundary strokes */
     if ((tgpw->disable_fill == 1) && (gp_style->fill_rgba[3] > 0.0f) &&
-        ((gps->flag & GP_STROKE_NOFILL) == 0) && (gp_style->flag & GP_STYLE_FILL_SHOW)) {
+        ((gps->flag & GP_STROKE_NOFILL) == 0) && (gp_style->flag & GP_MATERIAL_FILL_SHOW)) {
       continue;
     }
 
@@ -980,7 +803,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
         }
       }
 
-      if (gp_style->mode == GP_STYLE_MODE_DOTS) {
+      if (gp_style->mode == GP_MATERIAL_MODE_DOT) {
         /* volumetric stroke drawing */
         if (tgpw->disable_fill != 1) {
           gp_draw_stroke_volumetric_3d(gps->points, gps->totpoints, sthickness, ink);
@@ -1061,7 +884,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
           copy_v4_v4(ink, tcolor);
         }
       }
-      if (gp_style->mode == GP_STYLE_MODE_DOTS) {
+      if (gp_style->mode == GP_MATERIAL_MODE_DOT) {
         /* blob/disk-based "volumetric" drawing */
         gp_draw_stroke_volumetric_2d(gps->points,
                                      gps->totpoints,
@@ -1116,113 +939,8 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 
 /* ----- General Drawing ------ */
 
-/* draw interpolate strokes (used only while operator is running) */
-void ED_gp_draw_interpolation(const bContext *C, tGPDinterpolate *tgpi, const int type)
-{
-  tGPDdraw tgpw;
-  ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = region->regiondata;
-  tGPDinterpolate_layer *tgpil;
-  Object *obact = CTX_data_active_object(C);
-  /* Drawing code is expected to run with fully evaluated depsgraph. */
-  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-
-  float color[4];
-
-  UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, color);
-  color[3] = 0.6f;
-  int dflag = 0;
-  /* if 3d stuff, enable flags */
-  if (type == REGION_DRAW_POST_VIEW) {
-    dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
-  }
-
-  tgpw.rv3d = rv3d;
-  tgpw.depsgraph = depsgraph;
-  tgpw.ob = obact;
-  tgpw.gpd = tgpi->gpd;
-  tgpw.offsx = 0;
-  tgpw.offsy = 0;
-  tgpw.winx = tgpi->region->winx;
-  tgpw.winy = tgpi->region->winy;
-  tgpw.dflag = dflag;
-
-  /* turn on alpha-blending */
-  GPU_blend(true);
-  for (tgpil = tgpi->ilayers.first; tgpil; tgpil = tgpil->next) {
-    /* calculate parent position */
-    ED_gpencil_parent_location(depsgraph, obact, tgpi->gpd, tgpil->gpl, tgpw.diff_mat);
-    if (tgpil->interFrame) {
-      tgpw.gpl = tgpil->gpl;
-      tgpw.gpf = tgpil->interFrame;
-      tgpw.t_gpf = tgpil->interFrame;
-      tgpw.gps = NULL;
-
-      tgpw.lthick = tgpil->gpl->line_change;
-      tgpw.opacity = 1.0;
-      copy_v4_v4(tgpw.tintcolor, color);
-      tgpw.onion = true;
-      tgpw.custonion = true;
-      if (obact->totcol == 0) {
-        tgpw.gpd->mat = NULL;
-      }
-
-      gp_draw_strokes(&tgpw);
-    }
-  }
-  GPU_blend(false);
-}
-
 /* wrapper to draw strokes for filling operator */
 void ED_gp_draw_fill(tGPDdraw *tgpw)
 {
   gp_draw_strokes(tgpw);
-}
-
-/* draw a short status message in the top-right corner */
-static void UNUSED_FUNCTION(gp_draw_status_text)(const bGPdata *gpd, ARegion *region)
-{
-
-  /* Cannot draw any status text when drawing OpenGL Renders */
-  if (G.f & G_FLAG_RENDER_VIEWPORT) {
-    return;
-  }
-
-  /* Get bounds of region - Necessary to avoid problems with region overlap. */
-  const rcti *rect = ED_region_visible_rect(region);
-
-  /* for now, this should only be used to indicate when we are in stroke editmode */
-  if (gpd->flag & GP_DATA_STROKE_EDITMODE) {
-    const char *printable = IFACE_("GPencil Stroke Editing");
-    float printable_size[2];
-
-    int font_id = BLF_default();
-
-    BLF_width_and_height(
-        font_id, printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
-
-    int xco = (rect->xmax - U.widget_unit) - (int)printable_size[0];
-    int yco = (rect->ymax - U.widget_unit);
-
-    /* text label */
-    UI_FontThemeColor(font_id, TH_TEXT_HI);
-#ifdef WITH_INTERNATIONAL
-    BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
-#else
-    BLF_draw_default_ascii(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
-#endif
-
-    /* grease pencil icon... */
-    // XXX: is this too intrusive?
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-    GPU_blend(true);
-
-    xco -= U.widget_unit;
-    yco -= (int)printable_size[1] / 2;
-
-    UI_icon_draw(xco, yco, ICON_GREASEPENCIL);
-
-    GPU_blend(false);
-  }
 }

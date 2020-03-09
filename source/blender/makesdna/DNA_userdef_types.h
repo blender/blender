@@ -853,8 +853,7 @@ typedef struct UserDef {
   short pie_menu_threshold;
 
   short opensubdiv_compute_type;
-  /** #eMultiSample_Type, amount of samples for Grease Pencil. */
-  short gpencil_multisamples;
+  short _pad6;
 
   char factor_display_type;
 
@@ -1228,7 +1227,7 @@ typedef enum eNdof_Flag {
 
 #define NDOF_PIXELS_PER_SECOND 600.0f
 
-/** UserDef.ogl_multisamples and gpencil_multisamples */
+/** UserDef.ogl_multisamples */
 typedef enum eMultiSample_Type {
   USER_MULTISAMPLE_NONE = 0,
   USER_MULTISAMPLE_2 = 2,

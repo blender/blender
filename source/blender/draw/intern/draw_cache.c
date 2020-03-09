@@ -136,6 +136,7 @@ static struct DRWShapeCache {
   GPUBatch *drw_particle_cross;
   GPUBatch *drw_particle_circle;
   GPUBatch *drw_particle_axis;
+  GPUBatch *drw_gpencil_dummy_quad;
 } SHC = {NULL};
 
 void DRW_shape_cache_free(void)
@@ -747,6 +748,29 @@ GPUBatch *DRW_cache_normal_arrow_get(void)
 }
 
 /* -------------------------------------------------------------------- */
+/** \name Dummy vbos
+ *
+ * We need a dummy vbo containing the vertex count to draw instances ranges.
+ *
+ * \{ */
+
+GPUBatch *DRW_gpencil_dummy_buffer_get(void)
+{
+  if (SHC.drw_gpencil_dummy_quad == NULL) {
+    GPUVertFormat format = {0};
+    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U8, 1, GPU_FETCH_INT);
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    GPU_vertbuf_data_alloc(vbo, 4);
+
+    SHC.drw_gpencil_dummy_quad = GPU_batch_create_ex(
+        GPU_PRIM_TRI_FAN, vbo, NULL, GPU_BATCH_OWNS_VBO);
+  }
+  return SHC.drw_gpencil_dummy_quad;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Common Object API
  * \{ */
 
@@ -793,6 +817,9 @@ GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
       return DRW_cache_text_face_wireframe_get(ob);
     case OB_MBALL:
       return DRW_cache_mball_face_wireframe_get(ob);
+    case OB_GPENCIL: {
+      return DRW_cache_gpencil_face_wireframe_get(ob);
+    }
     default:
       return NULL;
   }

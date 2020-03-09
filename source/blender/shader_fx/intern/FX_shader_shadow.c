@@ -44,7 +44,7 @@ static void initData(ShaderFxData *md)
   gpfx->rotation = 0.0f;
   ARRAY_SET_ITEMS(gpfx->offset, 15, 20);
   ARRAY_SET_ITEMS(gpfx->scale, 1.0f, 1.0f);
-  ARRAY_SET_ITEMS(gpfx->shadow_rgba, 0.54f, 0.62f, 1.0f, 0.9f);
+  ARRAY_SET_ITEMS(gpfx->shadow_rgba, 0.0f, 0.0f, 0.0f, 0.8f);
 
   gpfx->amplitude = 10.0f;
   gpfx->period = 20.0f;

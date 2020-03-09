@@ -38,7 +38,7 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -1325,89 +1325,6 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
       }
     }
     BKE_constraints_clear_evalob(cob);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name GPencil.
- * \{ */
-
-static void OVERLAY_gpencil_color_names(Object *ob)
-{
-  if (ob->mode != OB_MODE_EDIT_GPENCIL) {
-    return;
-  }
-
-  bGPdata *gpd = (bGPdata *)ob->data;
-  if (gpd == NULL) {
-    return;
-  }
-
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  ViewLayer *view_layer = draw_ctx->view_layer;
-  int theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-  uchar color[4];
-  /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
-  UI_GetThemeColor3ubv(theme_id, color);
-  color[3] = 255;
-  struct DRWTextStore *dt = DRW_text_cache_ensure();
-
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    if (gpl->flag & GP_LAYER_HIDE) {
-      continue;
-    }
-    bGPDframe *gpf = gpl->actframe;
-    if (gpf == NULL) {
-      continue;
-    }
-    for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-      Material *ma = BKE_object_material_get(ob, gps->mat_nr + 1);
-      if (ma == NULL) {
-        continue;
-      }
-
-      MaterialGPencilStyle *gp_style = ma->gp_style;
-      /* skip stroke if it doesn't have any valid data */
-      if ((gps->points == NULL) || (gps->totpoints < 1) || (gp_style == NULL)) {
-        continue;
-      }
-      /* check if the color is visible */
-      if (gp_style->flag & GP_STYLE_COLOR_HIDE) {
-        continue;
-      }
-
-      /* only if selected */
-      if (gps->flag & GP_STROKE_SELECT) {
-        float fpt[3];
-        for (int i = 0; i < gps->totpoints; i++) {
-          bGPDspoint *pt = &gps->points[i];
-          if (pt->flag & GP_SPOINT_SELECT) {
-            mul_v3_m4v3(fpt, ob->obmat, &pt->x);
-            DRW_text_cache_add(dt,
-                               fpt,
-                               ma->id.name + 2,
-                               strlen(ma->id.name + 2),
-                               10,
-                               0,
-                               DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
-                               color);
-            break;
-          }
-        }
-      }
-    }
-  }
-}
-
-void OVERLAY_gpencil_cache_populate(OVERLAY_Data *UNUSED(vedata), Object *ob)
-{
-  /* don't show object extras in set's */
-  if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
-    if ((ob->dtx & OB_DRAWNAME) && DRW_state_show_text()) {
-      OVERLAY_gpencil_color_names(ob);
-    }
   }
 }
 

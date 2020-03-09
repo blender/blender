@@ -47,7 +47,7 @@ ShaderFxTypeInfo shaderfx_Type_Flip = {
     /* structName */ "FlipShaderFxData",
     /* structSize */ sizeof(FlipShaderFxData),
     /* type */ eShaderFxType_GpencilType,
-    /* flags */ eShaderFxTypeFlag_Single,
+    /* flags */ 0,
 
     /* copyData */ copyData,
 

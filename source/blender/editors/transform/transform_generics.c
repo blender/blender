@@ -1149,12 +1149,15 @@ static void recalcData_sequencer(TransInfo *t)
 static void recalcData_gpencil_strokes(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+  bGPDstroke *gps_prev = NULL;
 
   TransData *td = tc->data;
   for (int i = 0; i < tc->data_len; i++, td++) {
     bGPDstroke *gps = td->extra;
-    if (gps != NULL) {
-      gps->flag |= GP_STROKE_RECALC_GEOMETRY;
+    if ((gps != NULL) && (gps != gps_prev)) {
+      /* Calc geometry data. */
+      BKE_gpencil_stroke_geometry_update(gps);
+      gps_prev = gps;
     }
   }
 }

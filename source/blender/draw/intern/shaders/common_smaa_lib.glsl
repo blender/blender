@@ -692,6 +692,10 @@ void SMAANeighborhoodBlendingVS(float2 texcoord, out float4 offset)
 //-----------------------------------------------------------------------------
 // Edge Detection Pixel Shaders (First Pass)
 
+#  ifndef SMAA_LUMA_WEIGHT
+#    define SMAA_LUMA_WEIGHT float4(0.2126, 0.7152, 0.0722, 0.0)
+#  endif
+
 /**
  * Luma Edge Detection
  *
@@ -716,7 +720,8 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
 #  endif
 
   // Calculate lumas:
-  float4 weights = float4(0.2126 * 0.5, 0.7152 * 0.5, 0.0722 * 0.5, 0.5);
+  // float4 weights = float4(0.2126, 0.7152, 0.0722, 0.0);
+  float4 weights = SMAA_LUMA_WEIGHT;
   float L = dot(SMAASamplePoint(colorTex, texcoord).rgba, weights);
 
   float Lleft = dot(SMAASamplePoint(colorTex, offset[0].xy).rgba, weights);
@@ -727,9 +732,11 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
   delta.xy = abs(L - float2(Lleft, Ltop));
   float2 edges = step(threshold, delta.xy);
 
+#  ifndef SMAA_NO_DISCARD
   // Then discard if there is no edge:
   if (dot(edges, float2(1.0, 1.0)) == 0.0)
     discard;
+#  endif
 
   // Calculate right and bottom deltas:
   float Lright = dot(SMAASamplePoint(colorTex, offset[1].xy).rgba, weights);
@@ -793,9 +800,11 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
   // We do the usual threshold:
   float2 edges = step(threshold, delta.xy);
 
+#  ifndef SMAA_NO_DISCARD
   // Then discard if there is no edge:
   if (dot(edges, float2(1.0, 1.0)) == 0.0)
     discard;
+#  endif
 
   // Calculate right and bottom deltas:
   float3 Cright = SMAASamplePoint(colorTex, offset[1].xy).rgb;

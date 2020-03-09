@@ -72,6 +72,8 @@ void DRW_globals_update(void)
   UI_COLOR_RGBA_FROM_U8(0xB0, 0x00, 0xB0, 0xFF, gb->colorVertexMissingData);
   UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, gb->colorEditMeshActive);
   UI_GetThemeColor4fv(TH_EDGE_SELECT, gb->colorEdgeSelect);
+  UI_GetThemeColor4fv(TH_GP_VERTEX, gb->colorGpencilVertex);
+  UI_GetThemeColor4fv(TH_GP_VERTEX_SELECT, gb->colorGpencilVertexSelect);
 
   UI_GetThemeColor4fv(TH_EDGE_SEAM, gb->colorEdgeSeam);
   UI_GetThemeColor4fv(TH_EDGE_SHARP, gb->colorEdgeSharp);

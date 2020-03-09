@@ -167,6 +167,18 @@ typedef struct Object_Runtime {
   struct Mesh *mesh_deform_eval;
 
   /**
+   * Original grease pencil bGPdata pointer, before object->data was changed to point
+   * to gpd_eval.
+   * Is assigned by dependency graph's copy-on-write evaluation.
+   */
+  struct bGPdata *gpd_orig;
+  /**
+   * bGPdata structure created during object evaluation.
+   * It has all modifiers applied.
+   */
+  struct bGPdata *gpd_eval;
+
+  /**
    * This is a mesh representation of corresponding object.
    * It created when Python calls `object.to_mesh()`.
    */
@@ -174,14 +186,6 @@ typedef struct Object_Runtime {
 
   /** Runtime evaluated curve-specific data, not stored in the file. */
   struct CurveCache *curve_cache;
-
-  /** Runtime grease pencil drawing data */
-  struct GpencilBatchCache *gpencil_cache;
-  /** Runtime grease pencil total layers used for evaluated data created by modifiers */
-  int gpencil_tot_layers;
-  char _pad4[4];
-  /** Runtime grease pencil evaluated data created by modifiers */
-  struct bGPDframe *gpencil_evaluated_frames;
 
   unsigned short local_collections_bits;
   short _pad2[3];
@@ -542,6 +546,8 @@ enum {
   OB_DRAWTRANSP = 1 << 7,
   OB_DRAW_ALL_EDGES = 1 << 8, /* only for meshes currently */
   OB_DRAW_NO_SHADOW_CAST = 1 << 9,
+  /* Enable lights for grease pencil. */
+  OB_USE_GPENCIL_LIGHTS = 1 << 10,
 };
 
 /* empty_drawtype: no flags */

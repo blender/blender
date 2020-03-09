@@ -68,6 +68,8 @@ typedef struct GlobalsUboStorage {
   float colorFace[4];
   float colorFaceSelect[4];
   float colorFaceFreestyle[4];
+  float colorGpencilVertex[4];
+  float colorGpencilVertexSelect[4];
   float colorNormal[4];
   float colorVNormal[4];
   float colorLNormal[4];

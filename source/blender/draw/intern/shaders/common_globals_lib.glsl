@@ -32,6 +32,8 @@ layout(std140) uniform globalsBlock
   vec4 colorFace;
   vec4 colorFaceSelect;
   vec4 colorFaceFreestyle;
+  vec4 colorGpencilVertex;
+  vec4 colorGpencilVertexSelect;
   vec4 colorNormal;
   vec4 colorVNormal;
   vec4 colorLNormal;

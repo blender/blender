@@ -65,10 +65,13 @@ static int gp_stroke_material(Main *bmain, Object *ob, const ColorTemplate *pct,
   ma = BKE_gpencil_object_material_new(bmain, ob, pct->name, &idx);
 
   copy_v4_v4(ma->gp_style->stroke_rgba, pct->line);
+  srgb_to_linearrgb_v4(ma->gp_style->stroke_rgba, ma->gp_style->stroke_rgba);
+
   copy_v4_v4(ma->gp_style->fill_rgba, pct->fill);
+  srgb_to_linearrgb_v4(ma->gp_style->fill_rgba, ma->gp_style->fill_rgba);
 
   if (fill) {
-    ma->gp_style->flag |= GP_STYLE_FILL_SHOW;
+    ma->gp_style->flag |= GP_MATERIAL_FILL_SHOW;
   }
 
   return idx;
@@ -240,8 +243,9 @@ void ED_gpencil_create_stroke(bContext *C, Object *ob, float mat[4][4])
   UNUSED_VARS(frame_color);
 
   /* generate stroke */
-  gps = BKE_gpencil_add_stroke(frame_lines, color_black, 175, 75);
+  gps = BKE_gpencil_stroke_add(frame_lines, color_black, 175, 75, false);
   BKE_gpencil_stroke_add_points(gps, data0, 175, mat);
+  BKE_gpencil_stroke_geometry_update(gps);
 
   /* update depsgraph */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

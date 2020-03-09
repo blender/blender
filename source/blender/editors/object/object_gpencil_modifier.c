@@ -91,6 +91,11 @@ GpencilModifierData *ED_object_gpencil_modifier_add(
   /* make sure modifier data has unique name */
   BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, new_md);
 
+  /* Enable edit mode visible by default. */
+  if (mti->flags & eGpencilModifierTypeFlag_SupportsEditmode) {
+    new_md->mode |= eGpencilModifierMode_Editmode;
+  }
+
   bGPdata *gpd = ob->data;
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
@@ -362,7 +367,7 @@ void OBJECT_OT_gpencil_modifier_add(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Add Grease Pencil Modifier";
+  ot->name = "Add Modifier";
   ot->description = "Add a procedural operation/effect to the active grease pencil object";
   ot->idname = "OBJECT_OT_gpencil_modifier_add";
 

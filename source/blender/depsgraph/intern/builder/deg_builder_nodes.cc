@@ -1310,7 +1310,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
           obdata,
           NodeType::GEOMETRY,
           OperationCode::GEOMETRY_EVAL,
-          function_bind(BKE_gpencil_eval_geometry, _1, (bGPdata *)obdata_cow));
+          function_bind(BKE_gpencil_frame_active_set, _1, (bGPdata *)obdata_cow));
       op_node->set_as_entry();
       break;
     }

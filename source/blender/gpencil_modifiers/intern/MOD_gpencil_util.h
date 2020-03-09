@@ -47,11 +47,4 @@ bool is_stroke_affected_by_modifier(struct Object *ob,
 
 float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);
 
-void gpencil_apply_modifier_material(struct Main *bmain,
-                                     struct Object *ob,
-                                     struct Material *mat,
-                                     struct GHash *gh_color,
-                                     struct bGPDstroke *gps,
-                                     bool crt_material);
-
 #endif /* __MOD_GPENCIL_UTIL_H__ */

@@ -95,6 +95,7 @@ typedef enum eGPUTextureFormat {
 #if 0
   GPU_RGB10_A2,
   GPU_RGB10_A2UI,
+  GPU_SRGB8_A8,
 #endif
   GPU_R11F_G11F_B10F,
   GPU_DEPTH32F_STENCIL8,

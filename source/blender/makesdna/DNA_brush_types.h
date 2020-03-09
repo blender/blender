@@ -50,8 +50,7 @@ typedef struct BrushClone {
 typedef struct BrushGpencilSettings {
   /** Amount of smoothing to apply to newly created strokes. */
   float draw_smoothfac;
-  /** Amount of sensitivity to apply to newly created strokes. */
-  float draw_sensitivity;
+  char _pad2[4];
   /** Amount of alpha strength to apply to newly created strokes. */
   float draw_strength;
   /** Amount of jitter to apply to newly created strokes. */
@@ -64,18 +63,11 @@ typedef struct BrushGpencilSettings {
   float draw_random_press;
   /** Factor of strength for strength. */
   float draw_random_strength;
-  /** Factor of randomness for subdivision. */
-  float draw_random_sub;
   /** Number of times to apply smooth factor to new strokes. */
   short draw_smoothlvl;
   /** Number of times to subdivide new strokes. */
   short draw_subdivide;
-  short _pad;
-
-  /** Number of times to apply thickness smooth factor to new strokes. */
-  short thick_smoothlvl;
-  /** Amount of thickness smoothing to apply to newly created strokes. */
-  float thick_smoothfac;
+  char _pad[4];
 
   /** Factor for transparency. */
   float fill_threshold;
@@ -83,7 +75,7 @@ typedef struct BrushGpencilSettings {
   short fill_leak;
   /** Fill zoom factor */
   short fill_factor;
-  char _pad_1[4];
+  char _pad1[4];
 
   /** Number of simplify steps. */
   int fill_simplylvl;
@@ -110,11 +102,23 @@ typedef struct BrushGpencilSettings {
   int flag;
 
   /** gradient control along y for color */
-  float gradient_f;
+  float hardeness;
   /** factor xy of shape for dots gradients */
-  float gradient_s[2];
+  float aspect_ratio[2];
   /** Simplify adaptive factor */
   float simplify_f;
+
+  /** Mix colorfactor */
+  float vertex_factor;
+  int vertex_mode;
+
+  /** eGP_Sculpt_Flag. */
+  int sculpt_flag;
+  /** eGP_Sculpt_Mode_Flag. */
+  int sculpt_mode_flag;
+  /** Preset type (used to reset brushes - internal). */
+  short preset_type;
+  char _pad3[6];
 
   struct CurveMapping *curve_sensitivity;
   struct CurveMapping *curve_strength;
@@ -125,6 +129,49 @@ typedef struct BrushGpencilSettings {
   struct Material *material;
 } BrushGpencilSettings;
 
+/* BrushGpencilSettings->preset_type.
+ * Use a range for each group and not continuous values.*/
+typedef enum eGPBrush_Presets {
+  GP_BRUSH_PRESET_UNKNOWN = 0,
+
+  /* Draw 1-99. */
+  GP_BRUSH_PRESET_AIRBRUSH = 1,
+  GP_BRUSH_PRESET_INK_PEN = 2,
+  GP_BRUSH_PRESET_INK_PEN_ROUGH = 3,
+  GP_BRUSH_PRESET_MARKER_BOLD = 4,
+  GP_BRUSH_PRESET_MARKER_CHISEL = 5,
+  GP_BRUSH_PRESET_PEN = 6,
+  GP_BRUSH_PRESET_PENCIL_SOFT = 7,
+  GP_BRUSH_PRESET_PENCIL = 8,
+  GP_BRUSH_PRESET_FILL_AREA = 9,
+  GP_BRUSH_PRESET_ERASER_SOFT = 10,
+  GP_BRUSH_PRESET_ERASER_HARD = 11,
+  GP_BRUSH_PRESET_ERASER_POINT = 12,
+  GP_BRUSH_PRESET_ERASER_STROKE = 13,
+  GP_BRUSH_PRESET_TINT = 14,
+
+  /* Vertex Paint 100-199. */
+  GP_BRUSH_PRESET_VERTEX_DRAW = 100,
+  GP_BRUSH_PRESET_VERTEX_BLUR = 101,
+  GP_BRUSH_PRESET_VERTEX_AVERAGE = 102,
+  GP_BRUSH_PRESET_VERTEX_SMEAR = 103,
+  GP_BRUSH_PRESET_VERTEX_REPLACE = 104,
+
+  /* Sculpt 200-299. */
+  GP_BRUSH_PRESET_SMOOTH_STROKE = 200,
+  GP_BRUSH_PRESET_STRENGTH_STROKE = 201,
+  GP_BRUSH_PRESET_THICKNESS_STROKE = 202,
+  GP_BRUSH_PRESET_GRAB_STROKE = 203,
+  GP_BRUSH_PRESET_PUSH_STROKE = 204,
+  GP_BRUSH_PRESET_TWIST_STROKE = 205,
+  GP_BRUSH_PRESET_PINCH_STROKE = 206,
+  GP_BRUSH_PRESET_RANDOMIZE_STROKE = 207,
+  GP_BRUSH_PRESET_CLONE_STROKE = 208,
+
+  /* Weight Paint 300-399. */
+  GP_BRUSH_PRESET_DRAW_WEIGHT = 300,
+} eGPBrush_Presets;
+
 /* BrushGpencilSettings->gp_flag */
 typedef enum eGPDbrush_Flag {
   /* brush use pressure */
@@ -133,8 +180,6 @@ typedef enum eGPDbrush_Flag {
   GP_BRUSH_USE_STENGTH_PRESSURE = (1 << 1),
   /* brush use pressure for alpha factor */
   GP_BRUSH_USE_JITTER_PRESSURE = (1 << 2),
-  /* enable screen cursor */
-  GP_BRUSH_ENABLE_CURSOR = (1 << 5),
   /* fill hide transparent */
   GP_BRUSH_FILL_HIDE = (1 << 6),
   /* show fill help lines */
@@ -187,6 +232,22 @@ typedef enum eGP_BrushIcons {
   GP_BRUSH_ICON_ERASE_STROKE = 10,
   GP_BRUSH_ICON_AIRBRUSH = 11,
   GP_BRUSH_ICON_CHISEL = 12,
+  GP_BRUSH_ICON_TINT = 13,
+  GP_BRUSH_ICON_VERTEX_DRAW = 14,
+  GP_BRUSH_ICON_VERTEX_BLUR = 15,
+  GP_BRUSH_ICON_VERTEX_AVERAGE = 16,
+  GP_BRUSH_ICON_VERTEX_SMEAR = 17,
+  GP_BRUSH_ICON_VERTEX_REPLACE = 18,
+  GP_BRUSH_ICON_GPBRUSH_SMOOTH = 19,
+  GP_BRUSH_ICON_GPBRUSH_THICKNESS = 20,
+  GP_BRUSH_ICON_GPBRUSH_STRENGTH = 21,
+  GP_BRUSH_ICON_GPBRUSH_RANDOMIZE = 22,
+  GP_BRUSH_ICON_GPBRUSH_GRAB = 23,
+  GP_BRUSH_ICON_GPBRUSH_PUSH = 24,
+  GP_BRUSH_ICON_GPBRUSH_TWIST = 25,
+  GP_BRUSH_ICON_GPBRUSH_PINCH = 26,
+  GP_BRUSH_ICON_GPBRUSH_CLONE = 27,
+  GP_BRUSH_ICON_GPBRUSH_WEIGHT = 28,
 } eGP_BrushIcons;
 
 typedef enum eBrushCurvePreset {
@@ -224,6 +285,38 @@ typedef enum eBrushClothForceFalloffType {
   BRUSH_CLOTH_FORCE_FALLOFF_RADIAL = 0,
   BRUSH_CLOTH_FORCE_FALLOFF_PLANE = 1,
 } eBrushClothForceFalloffType;
+
+/* Gpencilsettings.Vertex_mode */
+typedef enum eGp_Vertex_Mode {
+  /* Affect to Stroke only. */
+  GPPAINT_MODE_STROKE = 0,
+  /* Affect to Fill only. */
+  GPPAINT_MODE_FILL = 1,
+  /* Affect to both. */
+  GPPAINT_MODE_BOTH = 2,
+} eGp_Vertex_Mode;
+
+/* sculpt_flag */
+typedef enum eGP_Sculpt_Flag {
+  /* invert the effect of the brush */
+  GP_SCULPT_FLAG_INVERT = (1 << 0),
+  /* smooth brush affects pressure values as well */
+  GP_SCULPT_FLAG_SMOOTH_PRESSURE = (1 << 2),
+  /* temporary invert action */
+  GP_SCULPT_FLAG_TMP_INVERT = (1 << 3),
+} eGP_Sculpt_Flag;
+
+/* sculpt_mode_flag */
+typedef enum eGP_Sculpt_Mode_Flag {
+  /* apply brush to position */
+  GP_SCULPT_FLAGMODE_APPLY_POSITION = (1 << 0),
+  /* apply brush to strength */
+  GP_SCULPT_FLAGMODE_APPLY_STRENGTH = (1 << 1),
+  /* apply brush to thickness */
+  GP_SCULPT_FLAGMODE_APPLY_THICKNESS = (1 << 2),
+  /* apply brush to uv data */
+  GP_SCULPT_FLAGMODE_APPLY_UV = (1 << 3),
+} eGP_Sculpt_Mode_Flag;
 
 typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),
@@ -327,7 +420,13 @@ typedef struct Brush {
   char mask_tool;
   /** Active grease pencil tool. */
   char gpencil_tool;
-  char _pad1[5];
+  /** Active grease pencil vertex tool. */
+  char gpencil_vertex_tool;
+  /** Active grease pencil sculpt tool. */
+  char gpencil_sculpt_tool;
+  /** Active grease pencil weight tool. */
+  char gpencil_weight_tool;
+  char _pad1_[6];
 
   float autosmooth_factor;
 
@@ -398,9 +497,20 @@ typedef struct Brush {
   float mask_stencil_pos[2];
   float mask_stencil_dimension[2];
 
+  char _pad6[4];
   struct BrushGpencilSettings *gpencil_settings;
 
 } Brush;
+
+/* Struct to hold palette colors for sorting. */
+typedef struct tPaletteColorHSV {
+  float rgb[3];
+  float value;
+  float h;
+  float s;
+  float v;
+} tPaletteColorHSV;
+
 typedef struct PaletteColor {
   struct PaletteColor *next, *prev;
   /* two values, one to store rgb, other to store values for sculpt/weight */
@@ -629,7 +739,36 @@ typedef enum eBrushGPaintTool {
   GPAINT_TOOL_DRAW = 0,
   GPAINT_TOOL_FILL = 1,
   GPAINT_TOOL_ERASE = 2,
+  GPAINT_TOOL_TINT = 3,
 } eBrushGPaintTool;
+
+/* BrushGpencilSettings->brush type */
+typedef enum eBrushGPVertexTool {
+  GPVERTEX_TOOL_DRAW = 0,
+  GPVERTEX_TOOL_BLUR = 1,
+  GPVERTEX_TOOL_AVERAGE = 2,
+  GPVERTEX_TOOL_TINT = 3,
+  GPVERTEX_TOOL_SMEAR = 4,
+  GPVERTEX_TOOL_REPLACE = 5,
+} eBrushGPVertexTool;
+
+/* BrushGpencilSettings->brush type */
+typedef enum eBrushGPSculptTool {
+  GPSCULPT_TOOL_SMOOTH = 0,
+  GPSCULPT_TOOL_THICKNESS = 1,
+  GPSCULPT_TOOL_STRENGTH = 2,
+  GPSCULPT_TOOL_GRAB = 3,
+  GPSCULPT_TOOL_PUSH = 4,
+  GPSCULPT_TOOL_TWIST = 5,
+  GPSCULPT_TOOL_PINCH = 6,
+  GPSCULPT_TOOL_RANDOMIZE = 7,
+  GPSCULPT_TOOL_CLONE = 8,
+} eBrushGPSculptTool;
+
+/* BrushGpencilSettings->brush type */
+typedef enum eBrushGPWeightTool {
+  GPWEIGHT_TOOL_DRAW = 0,
+} eBrushGPWeightTool;
 
 /* direction that the brush displaces along */
 enum {

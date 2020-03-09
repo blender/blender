@@ -54,6 +54,9 @@ extern char datatoc_edit_curve_handle_geom_glsl[];
 extern char datatoc_edit_curve_handle_vert_glsl[];
 extern char datatoc_edit_curve_point_vert_glsl[];
 extern char datatoc_edit_curve_wire_vert_glsl[];
+extern char datatoc_edit_gpencil_canvas_vert_glsl[];
+extern char datatoc_edit_gpencil_guide_vert_glsl[];
+extern char datatoc_edit_gpencil_vert_glsl[];
 extern char datatoc_edit_lattice_point_vert_glsl[];
 extern char datatoc_edit_lattice_wire_vert_glsl[];
 extern char datatoc_edit_mesh_common_lib_glsl[];
@@ -113,6 +116,8 @@ extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_point_varying_color_varying_outline_aa_frag_glsl[];
 extern char datatoc_gpu_shader_common_obinfos_lib_glsl[];
 
+extern char datatoc_gpencil_common_lib_glsl[];
+
 extern char datatoc_common_colormanagement_lib_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
 extern char datatoc_common_fxaa_lib_glsl[];
@@ -138,6 +143,9 @@ typedef struct OVERLAY_Shaders {
   GPUShader *edit_curve_handle;
   GPUShader *edit_curve_point;
   GPUShader *edit_curve_wire;
+  GPUShader *edit_gpencil_guide_point;
+  GPUShader *edit_gpencil_point;
+  GPUShader *edit_gpencil_wire;
   GPUShader *edit_lattice_point;
   GPUShader *edit_lattice_wire;
   GPUShader *edit_mesh_vert;
@@ -159,11 +167,13 @@ typedef struct OVERLAY_Shaders {
   GPUShader *extra_lightprobe_grid;
   GPUShader *extra_loose_point;
   GPUShader *facing;
+  GPUShader *gpencil_canvas;
   GPUShader *grid;
   GPUShader *image;
   GPUShader *motion_path_line;
   GPUShader *motion_path_vert;
   GPUShader *outline_prepass;
+  GPUShader *outline_prepass_gpencil;
   GPUShader *outline_prepass_wire;
   GPUShader *outline_detect;
   GPUShader *paint_face;
@@ -557,6 +567,58 @@ GPUShader *OVERLAY_shader_edit_curve_wire(void)
   return sh_data->edit_curve_wire;
 }
 
+GPUShader *OVERLAY_shader_edit_gpencil_guide_point(void)
+{
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
+  if (!sh_data->edit_gpencil_guide_point) {
+    sh_data->edit_gpencil_guide_point = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){datatoc_common_view_lib_glsl,
+                                 datatoc_edit_gpencil_guide_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
+    });
+  }
+  return sh_data->edit_gpencil_guide_point;
+}
+
+GPUShader *OVERLAY_shader_edit_gpencil_point(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->edit_gpencil_point) {
+    sh_data->edit_gpencil_point = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_edit_gpencil_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, "#define USE_POINTS\n", NULL},
+    });
+  }
+  return sh_data->edit_gpencil_point;
+}
+
+GPUShader *OVERLAY_shader_edit_gpencil_wire(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->edit_gpencil_wire) {
+    sh_data->edit_gpencil_wire = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_edit_gpencil_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, NULL},
+    });
+  }
+  return sh_data->edit_gpencil_wire;
+}
+
 GPUShader *OVERLAY_shader_edit_lattice_point(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -883,6 +945,21 @@ GPUShader *OVERLAY_shader_facing(void)
   return sh_data->facing;
 }
 
+GPUShader *OVERLAY_shader_gpencil_canvas(void)
+{
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
+  if (!sh_data->gpencil_canvas) {
+    sh_data->gpencil_canvas = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_edit_gpencil_canvas_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_extra_frag_glsl, NULL},
+    });
+  }
+  return sh_data->gpencil_canvas;
+}
+
 GPUShader *OVERLAY_shader_grid(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
@@ -996,6 +1073,32 @@ GPUShader *OVERLAY_shader_outline_prepass(bool use_wire)
     });
   }
   return use_wire ? sh_data->outline_prepass_wire : sh_data->outline_prepass;
+}
+
+GPUShader *OVERLAY_shader_outline_prepass_gpencil(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->outline_prepass_gpencil) {
+    sh_data->outline_prepass_gpencil = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_gpencil_common_lib_glsl,
+                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
+                                 datatoc_outline_prepass_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_common_view_lib_glsl,
+                                 datatoc_gpencil_common_lib_glsl,
+                                 datatoc_outline_prepass_frag_glsl,
+                                 NULL},
+        .defs = (const char *[]){sh_cfg->def,
+                                 "#define USE_GPENCIL\n",
+                                 "#define UNIFORM_RESOURCE_ID\n",
+                                 NULL},
+    });
+  }
+  return sh_data->outline_prepass_gpencil;
 }
 
 GPUShader *OVERLAY_shader_outline_detect(void)

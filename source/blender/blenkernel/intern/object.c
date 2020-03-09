@@ -729,8 +729,11 @@ void BKE_object_free_derived_caches(Object *ob)
   BKE_object_to_mesh_clear(ob);
   BKE_object_free_curve_cache(ob);
 
-  /* clear grease pencil data */
-  DRW_gpencil_freecache(ob);
+  /* Clear grease pencil data. */
+  if (ob->runtime.gpd_eval != NULL) {
+    BKE_gpencil_eval_delete(ob->runtime.gpd_eval);
+    ob->runtime.gpd_eval = NULL;
+  }
 }
 
 void BKE_object_free_caches(Object *object)
@@ -803,6 +806,9 @@ bool BKE_object_is_in_editmode(const Object *ob)
     case OB_SURF:
     case OB_CURVE:
       return ((Curve *)ob->data)->editnurb != NULL;
+    case OB_GPENCIL:
+      /* Grease Pencil object has no edit mode data. */
+      return GPENCIL_EDIT_MODE((bGPdata *)ob->data);
     default:
       return false;
   }
@@ -1033,6 +1039,10 @@ static void object_init(Object *ob, const short ob_type)
   if (ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
     ob->trackflag = OB_NEGZ;
     ob->upflag = OB_POSY;
+  }
+
+  if (ob->type == OB_GPENCIL) {
+    ob->dtx |= OB_USE_GPENCIL_LIGHTS;
   }
 }
 
@@ -3963,7 +3973,6 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
   runtime->data_eval = NULL;
   runtime->mesh_deform_eval = NULL;
   runtime->curve_cache = NULL;
-  runtime->gpencil_cache = NULL;
 }
 
 /*

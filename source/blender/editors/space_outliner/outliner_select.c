@@ -561,7 +561,7 @@ static eOLDrawState tree_element_active_gplayer(bContext *C,
    */
   if (set != OL_SETSEL_NONE) {
     if (gpl) {
-      BKE_gpencil_layer_setactive(gpd, gpl);
+      BKE_gpencil_layer_active_set(gpd, gpl);
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
     }

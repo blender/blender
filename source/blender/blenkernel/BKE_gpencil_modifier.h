@@ -141,20 +141,10 @@ typedef struct GpencilModifierTypeInfo {
   /**
    * Callback for GP "geometry" modifiers that create extra geometry
    * in the frame (e.g. Array)
-   *
-   * The gpf parameter contains the GP frame/strokes to operate on. This is
-   * usually a copy of the original (unmodified and saved to files) stroke data.
-   * Modifiers should only add any generated strokes to this frame (and not one accessed
-   * via the gpl parameter).
-   *
-   * The modifier_index parameter indicates where the modifier is
-   * in the modifier stack in relation to other modifiers.
    */
   void (*generateStrokes)(struct GpencilModifierData *md,
                           struct Depsgraph *depsgraph,
-                          struct Object *ob,
-                          struct bGPDlayer *gpl,
-                          struct bGPDframe *gpf);
+                          struct Object *ob);
 
   /**
    * Bake-down GP modifier's effects into the GP data-block.
@@ -297,30 +287,21 @@ bool BKE_gpencil_has_geometry_modifiers(struct Object *ob);
 bool BKE_gpencil_has_time_modifiers(struct Object *ob);
 bool BKE_gpencil_has_transform_modifiers(struct Object *ob);
 
-void BKE_gpencil_stroke_modifiers(struct Depsgraph *depsgraph,
-                                  struct Object *ob,
-                                  struct bGPDlayer *gpl,
-                                  struct bGPDframe *gpf,
-                                  struct bGPDstroke *gps,
-                                  bool is_render);
-void BKE_gpencil_geometry_modifiers(struct Depsgraph *depsgraph,
-                                    struct Object *ob,
-                                    struct bGPDlayer *gpl,
-                                    struct bGPDframe *gpf,
-                                    bool is_render);
-int BKE_gpencil_time_modifier(struct Depsgraph *depsgraph,
-                              struct Scene *scene,
-                              struct Object *ob,
-                              struct bGPDlayer *gpl,
-                              int cfra,
-                              bool is_render);
-
 void BKE_gpencil_lattice_init(struct Object *ob);
 void BKE_gpencil_lattice_clear(struct Object *ob);
 
 void BKE_gpencil_modifiers_calc(struct Depsgraph *depsgraph,
                                 struct Scene *scene,
                                 struct Object *ob);
+
+void BKE_gpencil_prepare_eval_data(struct Depsgraph *depsgraph,
+                                   struct Scene *scene,
+                                   struct Object *ob);
+
+struct bGPDframe *BKE_gpencil_frame_retime_get(struct Depsgraph *depsgraph,
+                                               struct Scene *scene,
+                                               struct Object *ob,
+                                               struct bGPDlayer *gpl);
 
 #ifdef __cplusplus
 }

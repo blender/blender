@@ -72,15 +72,14 @@ typedef struct MaterialGPencilStyle {
   /** Factor used to define shader behavior (several uses). */
   float mix_factor;
   /** Angle used for gradients orientation. */
-  float gradient_angle;
+  float gradient_angle DNA_DEPRECATED;
   /** Radius for radial gradients. */
-  float gradient_radius;
-  /** Cheesboard size. */
-  float pattern_gridsize;
+  float gradient_radius DNA_DEPRECATED;
+  char _pad2[4];
   /** Uv coordinates scale. */
-  float gradient_scale[2];
+  float gradient_scale[2] DNA_DEPRECATED;
   /** Factor to shift filling in 2d space. */
-  float gradient_shift[2];
+  float gradient_shift[2] DNA_DEPRECATED;
   /** Angle used for texture orientation. */
   float texture_angle;
   /** Texture scale (separated of uv scale). */
@@ -107,35 +106,35 @@ typedef struct MaterialGPencilStyle {
 /* MaterialGPencilStyle->flag */
 typedef enum eMaterialGPencilStyle_Flag {
   /* Fill Texture is a pattern */
-  GP_STYLE_FILL_PATTERN = (1 << 0),
+  GP_MATERIAL_FILL_PATTERN = (1 << 0),
   /* don't display color */
-  GP_STYLE_COLOR_HIDE = (1 << 1),
+  GP_MATERIAL_HIDE = (1 << 1),
   /* protected from further editing */
-  GP_STYLE_COLOR_LOCKED = (1 << 2),
+  GP_MATERIAL_LOCKED = (1 << 2),
   /* do onion skinning */
-  GP_STYLE_COLOR_ONIONSKIN = (1 << 3),
+  GP_MATERIAL_ONIONSKIN = (1 << 3),
   /* clamp texture */
-  GP_STYLE_COLOR_TEX_CLAMP = (1 << 4),
+  GP_MATERIAL_TEX_CLAMP = (1 << 4),
   /* mix fill texture */
-  GP_STYLE_FILL_TEX_MIX = (1 << 5),
+  GP_MATERIAL_FILL_TEX_MIX = (1 << 5),
   /* Flip fill colors */
-  GP_STYLE_COLOR_FLIP_FILL = (1 << 6),
+  GP_MATERIAL_FLIP_FILL = (1 << 6),
   /* Stroke Texture is a pattern */
-  GP_STYLE_STROKE_PATTERN = (1 << 7),
+  GP_MATERIAL_STROKE_PATTERN = (1 << 7),
   /* Stroke show main switch */
-  GP_STYLE_STROKE_SHOW = (1 << 8),
-  /* Fill  show main switch */
-  GP_STYLE_FILL_SHOW = (1 << 9),
+  GP_MATERIAL_STROKE_SHOW = (1 << 8),
+  /* Fill show main switch */
+  GP_MATERIAL_FILL_SHOW = (1 << 9),
   /* mix stroke texture */
-  GP_STYLE_STROKE_TEX_MIX = (1 << 11),
+  GP_MATERIAL_STROKE_TEX_MIX = (1 << 11),
   /* disable stencil clipping (overlap) */
-  GP_STYLE_DISABLE_STENCIL = (1 << 12),
+  GP_MATERIAL_DISABLE_STENCIL = (1 << 12),
 } eMaterialGPencilStyle_Flag;
 
 typedef enum eMaterialGPencilStyle_Mode {
-  GP_STYLE_MODE_LINE = 0, /* line */
-  GP_STYLE_MODE_DOTS = 1, /* dots */
-  GP_STYLE_MODE_BOX = 2,  /* rectangles */
+  GP_MATERIAL_MODE_LINE = 0,
+  GP_MATERIAL_MODE_DOT = 1,
+  GP_MATERIAL_MODE_SQUARE = 2,
 } eMaterialGPencilStyle_Mode;
 
 typedef struct Material {
@@ -332,28 +331,28 @@ enum {
 
 /* Grease Pencil Stroke styles */
 enum {
-  GP_STYLE_STROKE_STYLE_SOLID = 0,
-  GP_STYLE_STROKE_STYLE_TEXTURE,
+  GP_MATERIAL_STROKE_STYLE_SOLID = 0,
+  GP_MATERIAL_STROKE_STYLE_TEXTURE,
 };
 
 /* Grease Pencil Fill styles */
 enum {
-  GP_STYLE_FILL_STYLE_SOLID = 0,
-  GP_STYLE_FILL_STYLE_GRADIENT,
-  GP_STYLE_FILL_STYLE_CHECKER,
-  GP_STYLE_FILL_STYLE_TEXTURE,
+  GP_MATERIAL_FILL_STYLE_SOLID = 0,
+  GP_MATERIAL_FILL_STYLE_GRADIENT,
+  GP_MATERIAL_FILL_STYLE_CHECKER, /* DEPRECATED (only for convert old files) */
+  GP_MATERIAL_FILL_STYLE_TEXTURE,
 };
 
 /* Grease Pencil Gradient Types */
 enum {
-  GP_STYLE_GRADIENT_LINEAR = 0,
-  GP_STYLE_GRADIENT_RADIAL,
+  GP_MATERIAL_GRADIENT_LINEAR = 0,
+  GP_MATERIAL_GRADIENT_RADIAL,
 };
 
 /* Grease Pencil Follow Drawing Modes */
 enum {
-  GP_STYLE_FOLLOW_PATH = 0,
-  GP_STYLE_FOLLOW_OBJ,
-  GP_STYLE_FOLLOW_FIXED,
+  GP_MATERIAL_FOLLOW_PATH = 0,
+  GP_MATERIAL_FOLLOW_OBJ,
+  GP_MATERIAL_FOLLOW_FIXED,
 };
 #endif

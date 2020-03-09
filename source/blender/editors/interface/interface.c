@@ -4115,9 +4115,9 @@ static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_
 
 void ui_but_rna_menu_convert_to_panel_type(uiBut *but, const char *panel_type)
 {
-  BLI_assert(but->type == UI_BTYPE_MENU);
-  BLI_assert(but->menu_create_func == ui_def_but_rna__menu);
-  BLI_assert((void *)but->poin == but);
+  BLI_assert(ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_COLOR));
+  //  BLI_assert(but->menu_create_func == ui_def_but_rna__menu);
+  //  BLI_assert((void *)but->poin == but);
   but->menu_create_func = ui_def_but_rna__panel_type;
   but->func_argN = BLI_strdup(panel_type);
 }

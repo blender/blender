@@ -24,6 +24,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -150,6 +151,11 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
   else {
     ob->transflag &= ~OB_NEG_SCALE;
   }
+
+  /* Assign evaluated version. */
+  if ((ob->type == OB_GPENCIL) && (ob->runtime.gpd_eval != NULL)) {
+    ob->data = ob->runtime.gpd_eval;
+  }
 }
 
 void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
@@ -213,9 +219,12 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     case OB_LATTICE:
       BKE_lattice_modifiers_calc(depsgraph, scene, ob);
       break;
-    case OB_GPENCIL:
+    case OB_GPENCIL: {
+      BKE_gpencil_prepare_eval_data(depsgraph, scene, ob);
       BKE_gpencil_modifiers_calc(depsgraph, scene, ob);
+      BKE_gpencil_update_layer_parent(depsgraph, ob);
       break;
+    }
   }
 
   /* particles */

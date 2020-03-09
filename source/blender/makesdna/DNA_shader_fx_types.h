@@ -34,7 +34,7 @@ typedef enum ShaderFxType {
   eShaderFxType_None = 0,
   eShaderFxType_Blur = 1,
   eShaderFxType_Flip = 2,
-  eShaderFxType_Light = 3,
+  eShaderFxType_Light_deprecated = 3, /* DEPRECATED (replaced by scene lights) */
   eShaderFxType_Pixel = 4,
   eShaderFxType_Swirl = 5,
   eShaderFxType_Wave = 6,
@@ -81,15 +81,13 @@ typedef struct ShaderFxData_Runtime {
 
 typedef struct BlurShaderFxData {
   ShaderFxData shaderfx;
-  int radius[2];
+  float radius[2];
   /** Flags. */
   int flag;
   /** Number of samples. */
   int samples;
-  /** Circle of confusion. */
-  float coc;
-  /** Not visible in rna. */
-  int blur[2];
+  /** Rotation of blur effect.  */
+  float rotation;
   char _pad[4];
 
   ShaderFxData_Runtime runtime;
@@ -136,14 +134,20 @@ typedef enum eFlipShaderFx_Flag {
 
 typedef struct GlowShaderFxData {
   ShaderFxData shaderfx;
-  float glow_color[3];
+  float glow_color[4];
   float select_color[3];
   float threshold;
   /** Flags. */
   int flag;
   int mode;
-  int blur[2];
+  float blur[2];
   int samples;
+  /** Rotation of effect.  */
+  float rotation;
+  /** Blend modes. */
+  int blend_mode;
+  char _pad[4];
+
   ShaderFxData_Runtime runtime;
 } GlowShaderFxData;
 
@@ -156,19 +160,6 @@ typedef enum eGlowShaderFx_Flag {
   FX_GLOW_USE_ALPHA = (1 << 0),
 } eGlowShaderFx_Flag;
 
-typedef struct LightShaderFxData {
-  ShaderFxData shaderfx;
-  struct Object *object;
-  /** Flags. */
-  int flag;
-  float energy;
-  float ambient;
-  /** Internal, not visible in rna. */
-  float loc[4];
-  char _pad[4];
-  ShaderFxData_Runtime runtime;
-} LightShaderFxData;
-
 typedef struct PixelShaderFxData {
   ShaderFxData shaderfx;
   /** Last element used for shader only. */
@@ -178,10 +169,6 @@ typedef struct PixelShaderFxData {
   float rgba[4];
   ShaderFxData_Runtime runtime;
 } PixelShaderFxData;
-
-typedef enum ePixelShaderFx_Flag {
-  FX_PIXEL_USE_LINES = (1 << 0),
-} ePixelShaderFx_Flag;
 
 typedef struct RimShaderFxData {
   ShaderFxData shaderfx;

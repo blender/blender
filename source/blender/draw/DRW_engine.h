@@ -129,7 +129,6 @@ void DRW_draw_select_id(struct Depsgraph *depsgraph,
 /* grease pencil render */
 bool DRW_render_check_grease_pencil(struct Depsgraph *depsgraph);
 void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph);
-void DRW_gpencil_freecache(struct Object *ob);
 
 /* This is here because GPUViewport needs it */
 struct DRWInstanceDataList *DRW_instance_data_list_create(void);

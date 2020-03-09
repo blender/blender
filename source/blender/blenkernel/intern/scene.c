@@ -201,72 +201,6 @@ static void scene_init_data(ID *id)
   BKE_color_managed_view_settings_init_render(
       &scene->r.bake.im_format.view_settings, &scene->r.bake.im_format.display_settings, "Filmic");
 
-  /* GP Sculpt brushes */
-  {
-    GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
-    GP_Sculpt_Data *gp_brush;
-    float curcolor_add[3], curcolor_sub[3];
-    ARRAY_SET_ITEMS(curcolor_add, 1.0f, 0.6f, 0.6f);
-    ARRAY_SET_ITEMS(curcolor_sub, 0.6f, 0.6f, 1.0f);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_SMOOTH];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.3f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_SMOOTH_PRESSURE |
-                     GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_THICKNESS];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.5f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_STRENGTH];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.5f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_GRAB];
-    gp_brush->size = 50;
-    gp_brush->strength = 0.3f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_PUSH];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.3f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_TWIST];
-    gp_brush->size = 50;
-    gp_brush->strength = 0.3f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_PINCH];
-    gp_brush->size = 50;
-    gp_brush->strength = 0.5f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-
-    gp_brush = &gset->brush[GP_SCULPT_TYPE_RANDOMIZE];
-    gp_brush->size = 25;
-    gp_brush->strength = 0.5f;
-    gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
-    copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
-    copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
-  }
-
   /* Curve Profile */
   scene->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
 
@@ -560,6 +494,18 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
     ts->gp_paint = MEM_dupallocN(ts->gp_paint);
     BKE_paint_copy(&ts->gp_paint->paint, &ts->gp_paint->paint, flag);
   }
+  if (ts->gp_vertexpaint) {
+    ts->gp_vertexpaint = MEM_dupallocN(ts->gp_vertexpaint);
+    BKE_paint_copy(&ts->gp_vertexpaint->paint, &ts->gp_vertexpaint->paint, flag);
+  }
+  if (ts->gp_sculptpaint) {
+    ts->gp_sculptpaint = MEM_dupallocN(ts->gp_sculptpaint);
+    BKE_paint_copy(&ts->gp_sculptpaint->paint, &ts->gp_sculptpaint->paint, flag);
+  }
+  if (ts->gp_weightpaint) {
+    ts->gp_weightpaint = MEM_dupallocN(ts->gp_weightpaint);
+    BKE_paint_copy(&ts->gp_weightpaint->paint, &ts->gp_weightpaint->paint, flag);
+  }
 
   BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint, flag);
   ts->imapaint.paintcursor = NULL;
@@ -601,6 +547,18 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
   if (toolsettings->gp_paint) {
     BKE_paint_free(&toolsettings->gp_paint->paint);
     MEM_freeN(toolsettings->gp_paint);
+  }
+  if (toolsettings->gp_vertexpaint) {
+    BKE_paint_free(&toolsettings->gp_vertexpaint->paint);
+    MEM_freeN(toolsettings->gp_vertexpaint);
+  }
+  if (toolsettings->gp_sculptpaint) {
+    BKE_paint_free(&toolsettings->gp_sculptpaint->paint);
+    MEM_freeN(toolsettings->gp_sculptpaint);
+  }
+  if (toolsettings->gp_weightpaint) {
+    BKE_paint_free(&toolsettings->gp_weightpaint->paint);
+    MEM_freeN(toolsettings->gp_weightpaint);
   }
   BKE_paint_free(&toolsettings->imapaint.paint);
 

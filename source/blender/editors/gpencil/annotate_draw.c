@@ -33,6 +33,7 @@
 #include "BLI_sys_types.h"
 
 #include "BLI_math.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.h"
@@ -562,7 +563,7 @@ static void annotation_draw_strokes(bGPdata *UNUSED(gpd),
 {
   GPU_program_point_size(true);
 
-  for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
     /* check if stroke can be drawn */
     if (annotation_can_draw_stroke(gps, dflag) == false) {
       continue;
@@ -625,7 +626,7 @@ static void annotation_draw_strokes(bGPdata *UNUSED(gpd),
 }
 
 /* Draw selected verts for strokes being edited */
-static void annotation_draw_strokes_edit(bGPdata *gpd,
+static void annotation_draw_strokes_edit(bGPdata *UNUSED(gpd),
                                          bGPDlayer *gpl,
                                          const bGPDframe *gpf,
                                          int offsx,
@@ -660,7 +661,7 @@ static void annotation_draw_strokes_edit(bGPdata *gpd,
   GPU_program_point_size(true);
 
   /* draw stroke verts */
-  for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
     /* check if stroke can be drawn */
     if (annotation_can_draw_stroke(gps, dflag) == false) {
       continue;
@@ -689,6 +690,9 @@ static void annotation_draw_strokes_edit(bGPdata *gpd,
       vsize = bsize + 2;
     }
 
+    /* Why? */
+    UNUSED_VARS(vsize);
+
     float selectColor[4];
     UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, selectColor);
     selectColor[3] = alpha;
@@ -709,31 +713,12 @@ static void annotation_draw_strokes_edit(bGPdata *gpd,
 
     immBegin(GPU_PRIM_POINTS, gps->totpoints);
 
-    /* Draw start and end point differently if enabled stroke direction hint */
-    bool show_direction_hint = (gpd->flag & GP_DATA_SHOW_DIRECTION) && (gps->totpoints > 1);
-
     /* Draw all the stroke points (selected or not) */
     bGPDspoint *pt = gps->points;
     for (int i = 0; i < gps->totpoints; i++, pt++) {
       /* size and color first */
-      if (show_direction_hint && i == 0) {
-        /* start point in green bigger */
-        immAttr3f(color, 0.0f, 1.0f, 0.0f);
-        immAttr1f(size, vsize + 4);
-      }
-      else if (show_direction_hint && (i == gps->totpoints - 1)) {
-        /* end point in red smaller */
-        immAttr3f(color, 1.0f, 0.0f, 0.0f);
-        immAttr1f(size, vsize + 1);
-      }
-      else if (pt->flag & GP_SPOINT_SELECT) {
-        immAttr3fv(color, selectColor);
-        immAttr1f(size, vsize);
-      }
-      else {
-        immAttr3fv(color, gpl->color);
-        immAttr1f(size, bsize);
-      }
+      immAttr3fv(color, gpl->color);
+      immAttr1f(size, bsize);
 
       /* then position */
       if (gps->flag & GP_STROKE_3DSPACE) {
@@ -857,7 +842,7 @@ static void annotation_draw_data_layers(
 {
   float ink[4];
 
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* verify never thickness is less than 1 */
     CLAMP_MIN(gpl->thickness, 1.0f);
     short lthick = gpl->thickness;
@@ -872,7 +857,7 @@ static void annotation_draw_data_layers(
     }
 
     /* get frame to draw */
-    bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra, GP_GETFRAME_USE_PREV);
+    bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, cfra, GP_GETFRAME_USE_PREV);
     if (gpf == NULL) {
       continue;
     }

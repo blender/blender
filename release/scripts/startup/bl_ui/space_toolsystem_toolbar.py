@@ -1455,6 +1455,11 @@ class _defs_gpencil_paint:
 
     @ToolDef.from_fn
     def eyedropper():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("ui.eyedropper_gpencil_color")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", expand=True)
         return dict(
             idname="builtin.eyedropper",
             label="Eyedropper",
@@ -1462,6 +1467,7 @@ class _defs_gpencil_paint:
             cursor='EYEDROPPER',
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
         )
 
 
@@ -1594,6 +1600,23 @@ class _defs_gpencil_edit:
             draw_settings=_template_widget.VIEW3D_GGT_xform_extrude.draw_settings,
         )
 
+    @ToolDef.from_fn
+    def transform_fill():
+        def draw_settings(context, layout, tool):
+                props = tool.operator_properties("gpencil.transform_fill")
+                row = layout.row()
+                row.use_property_split = False
+                row.prop(props, "mode", expand=True)
+
+        return dict(
+            idname="builtin.transform_fill",
+            label="Transform Fill",
+            icon="ops.gpencil.transform_fill",
+            cursor='DEFAULT',
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
 
 class _defs_gpencil_sculpt:
 
@@ -1613,11 +1636,10 @@ class _defs_gpencil_sculpt:
             context,
             idname_prefix="builtin_brush.",
             icon_prefix="ops.gpencil.sculpt_",
-            type=bpy.types.GPencilSculptSettings,
-            attr="sculpt_tool",
+            type=bpy.types.Brush,
+            attr="gpencil_sculpt_tool",
             tooldef_keywords=dict(
                 operator="gpencil.sculpt_paint",
-                keymap="3D View Tool: Sculpt Gpencil, Paint",
             ),
         )
 
@@ -1630,11 +1652,37 @@ class _defs_gpencil_weight:
             context,
             idname_prefix="builtin_brush.",
             icon_prefix="ops.gpencil.sculpt_",
-            type=bpy.types.GPencilSculptSettings,
-            attr="weight_tool",
+            type=bpy.types.Brush,
+            attr="gpencil_weight_tool",
             tooldef_keywords=dict(
-                operator="gpencil.sculpt_paint",
-                keymap="3D View Tool: Sculpt Gpencil, Paint",
+                operator="gpencil.weight_paint",
+            ),
+        )
+
+
+class _defs_gpencil_vertex:
+
+    @staticmethod
+    def poll_select_mask(context):
+        if context is None:
+            return True
+        ob = context.active_object
+        ts = context.scene.tool_settings
+        return ob and ob.type == 'GPENCIL' and (ts.use_gpencil_vertex_select_mask_point or
+                                                ts.use_gpencil_vertex_select_mask_stroke or
+                                                ts.use_gpencil_vertex_select_mask_segment)
+
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_enum_ex(
+            context,
+            idname_prefix="builtin_brush.",
+            icon_prefix="brush.paint_vertex.",
+            type=bpy.types.Brush,
+            attr="gpencil_vertex_tool",
+            cursor='DOT',
+            tooldef_keywords=dict(
+                operator="gpencil.vertex_paint",
             ),
         )
 
@@ -2202,6 +2250,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_gpencil_edit.tosphere,
             ),
             None,
+            _defs_gpencil_edit.transform_fill,
+            None,
             *_tools_annotate,
         ],
         'SCULPT_GPENCIL': [
@@ -2218,6 +2268,17 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_weight.generate_from_brushes,
             None,
             *_tools_annotate,
+        ],
+        'VERTEX_GPENCIL': [
+            _defs_gpencil_vertex.generate_from_brushes,
+            None,
+            *_tools_annotate,
+            None,
+            lambda context: (
+                VIEW3D_PT_tools_active._tools_gpencil_select
+                if _defs_gpencil_vertex.poll_select_mask(context)
+                else ()
+            ),
         ],
     }
 class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):

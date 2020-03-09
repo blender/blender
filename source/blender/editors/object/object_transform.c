@@ -696,7 +696,7 @@ static int apply_objects_internal(bContext *C,
           /* Unsupported configuration */
           bool has_unparented_layers = false;
 
-          for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+          LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
             /* Parented layers aren't supported as we can't easily re-evaluate
              * the scene to sample parent movement */
             if (gpl->parent == NULL) {
@@ -1394,13 +1394,13 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
             /* recalculate all strokes
              * (all layers are considered without evaluating lock attributes) */
-            for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+            LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
               /* calculate difference matrix */
-              ED_gpencil_parent_location(depsgraph, obact, gpd, gpl, diff_mat);
+              BKE_gpencil_parent_matrix_get(depsgraph, obact, gpl, diff_mat);
               /* undo matrix */
               invert_m4_m4(inverse_diff_mat, diff_mat);
-              for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-                for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+              LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+                LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
                   for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                     float mpt[3];
                     mul_v3_m4v3(mpt, inverse_diff_mat, &pt->x);

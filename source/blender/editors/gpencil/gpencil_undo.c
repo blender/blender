@@ -90,14 +90,14 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
     if (gpd_ptr) {
       if (*gpd_ptr) {
         bGPdata *gpd = *gpd_ptr;
-        bGPDlayer *gpl, *gpld;
+        bGPDlayer *gpld;
 
         BKE_gpencil_free_layers(&gpd->layers);
 
         /* copy layers */
         BLI_listbase_clear(&gpd->layers);
 
-        for (gpl = new_gpd->layers.first; gpl; gpl = gpl->next) {
+        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           /* make a copy of source layer and its data */
           gpld = BKE_gpencil_layer_duplicate(gpl);
           BLI_addtail(&gpd->layers, gpld);

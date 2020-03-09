@@ -45,7 +45,6 @@ set(SRC
   intern/FX_shader_colorize.c
   intern/FX_shader_flip.c
   intern/FX_shader_glow.c
-  intern/FX_shader_light.c
   intern/FX_shader_pixel.c
   intern/FX_shader_rim.c
   intern/FX_shader_shadow.c

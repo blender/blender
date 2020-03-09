@@ -60,11 +60,11 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
     vec2 perp = vec2(-edge.y, edge.x);
     float dist = dot(perp, frag_co - edge_start);
     /* Add 0.1 to diffenrentiate with cleared pixels. */
-    return vec4(perp * 0.5 + 0.5, dist * 0.25 + 0.5 + 0.1, 0.0);
+    return vec4(perp * 0.5 + 0.5, dist * 0.25 + 0.5 + 0.1, 1.0);
   }
   else {
     /* Default line if the origin is perfectly aligned with a pixel. */
-    return vec4(1.0, 0.0, 0.5 + 0.1, 0.0);
+    return vec4(1.0, 0.0, 0.5 + 0.1, 1.0);
   }
 }
 
@@ -89,7 +89,14 @@ uniform int baseInstance;
 #    define instanceId gl_InstanceID
 #  endif
 
-#  define resource_id (baseInstance + instanceId)
+#  ifdef UNIFORM_RESOURCE_ID
+/* This is in the case we want to do a special instance drawcall but still want to have the
+ * right resourceId and all the correct ubo datas. */
+uniform int resourceId;
+#    define resource_id resourceId
+#  else
+#    define resource_id (baseInstance + instanceId)
+#  endif
 
 /* Use this to declare and pass the value if
  * the fragment shader uses the resource_id. */

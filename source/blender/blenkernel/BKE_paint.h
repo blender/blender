@@ -34,6 +34,7 @@ struct Brush;
 struct CurveMapping;
 struct Depsgraph;
 struct EnumPropertyItem;
+struct GHash;
 struct GridPaintMask;
 struct ImagePool;
 struct MLoop;
@@ -55,6 +56,7 @@ struct SubdivCCG;
 struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
+struct tPaletteColorHSV;
 struct UnifiedPaintSettings;
 struct View3D;
 struct ViewLayer;
@@ -82,9 +84,13 @@ typedef enum ePaintMode {
   PAINT_MODE_TEXTURE_2D = 4,
   PAINT_MODE_SCULPT_UV = 5,
   PAINT_MODE_GPENCIL = 6,
+  /* Grease Pencil Vertex Paint */
+  PAINT_MODE_VERTEX_GPENCIL = 7,
+  PAINT_MODE_SCULPT_GPENCIL = 8,
+  PAINT_MODE_WEIGHT_GPENCIL = 9,
 
   /** Keep last. */
-  PAINT_MODE_INVALID = 7,
+  PAINT_MODE_INVALID = 10,
 } ePaintMode;
 
 #define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PAINT_MODE_SCULPT_UV)
@@ -142,6 +148,15 @@ struct PaletteColor *BKE_palette_color_add(struct Palette *palette);
 bool BKE_palette_is_empty(const struct Palette *palette);
 void BKE_palette_color_remove(struct Palette *palette, struct PaletteColor *color);
 void BKE_palette_clear(struct Palette *palette);
+
+void BKE_palette_sort_hsv(struct tPaletteColorHSV *color_array, const int totcol);
+void BKE_palette_sort_svh(struct tPaletteColorHSV *color_array, const int totcol);
+void BKE_palette_sort_vhs(struct tPaletteColorHSV *color_array, const int totcol);
+void BKE_palette_sort_luminance(struct tPaletteColorHSV *color_array, const int totcol);
+bool BKE_palette_from_hash(struct Main *bmain,
+                           struct GHash *color_table,
+                           const char *name,
+                           const bool linear);
 
 /* paint curves */
 struct PaintCurve *BKE_paint_curve_add(struct Main *bmain, const char *name);

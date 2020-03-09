@@ -46,13 +46,22 @@ void BKE_brush_system_exit(void);
 
 /* datablock functions */
 struct Brush *BKE_brush_add(struct Main *bmain, const char *name, const eObjectMode ob_mode);
-struct Brush *BKE_brush_add_gpencil(struct Main *bmain, struct ToolSettings *ts, const char *name);
+struct Brush *BKE_brush_add_gpencil(struct Main *bmain,
+                                    struct ToolSettings *ts,
+                                    const char *name,
+                                    eObjectMode mode);
+bool BKE_brush_delete(struct Main *bmain, struct Brush *brush);
 void BKE_brush_init_gpencil_settings(struct Brush *brush);
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode);
 struct Brush *BKE_brush_copy(struct Main *bmain, const struct Brush *brush);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);
-void BKE_brush_gpencil_presets(struct Main *bmain, struct ToolSettings *ts);
+
+void BKE_brush_gpencil_paint_presets(struct Main *bmain, struct ToolSettings *ts);
+void BKE_brush_gpencil_vertex_presets(struct Main *bmain, struct ToolSettings *ts);
+void BKE_brush_gpencil_sculpt_presets(struct Main *bmain, struct ToolSettings *ts);
+void BKE_brush_gpencil_weight_presets(struct Main *bmain, struct ToolSettings *ts);
+void BKE_gpencil_brush_preset_set(struct Main *bmain, struct Brush *brush, const short type);
 
 /* image icon function */
 struct ImBuf *get_brush_icon(struct Brush *brush);

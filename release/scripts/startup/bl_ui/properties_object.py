@@ -397,6 +397,27 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         col.prop(ob, "hide_select", text="Selectable", toggle=False, invert_checkbox=True)
 
 
+class OBJECT_PT_greasepencil_light(ObjectButtonsPanel, Panel):
+    bl_label = "Grease Pencil"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object) and (context.engine in cls.COMPAT_ENGINES) and (context.object.type == 'GPENCIL')
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        layout = self.layout
+        ob = context.object
+
+        col = flow.column()
+        col.prop(ob, "use_grease_pencil_lights", toggle=False)
+
+
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "object"
@@ -417,6 +438,7 @@ classes = (
     OBJECT_PT_display,
     OBJECT_PT_display_bounds,
     OBJECT_PT_visibility,
+    OBJECT_PT_greasepencil_light,
     OBJECT_PT_custom_props,
 )
 

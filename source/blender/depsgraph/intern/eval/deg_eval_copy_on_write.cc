@@ -43,6 +43,7 @@
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_gpencil.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_scene.h"
@@ -790,6 +791,9 @@ void update_id_after_copy(const Depsgraph *depsgraph,
           update_pose_orig_pointers(object_orig->pose, object_cow->pose);
         }
         BKE_pose_pchan_index_rebuild(object_cow->pose);
+      }
+      if (object_cow->type == OB_GPENCIL) {
+        BKE_gpencil_update_orig_pointers(object_orig, object_cow);
       }
       update_particles_after_copy(depsgraph, object_orig, object_cow);
       update_modifiers_orig_pointers(object_orig, object_cow);

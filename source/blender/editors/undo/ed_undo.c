@@ -202,7 +202,8 @@ static int ed_undo_step_impl(
         if (ELEM(obact->mode,
                  OB_MODE_PAINT_GPENCIL,
                  OB_MODE_SCULPT_GPENCIL,
-                 OB_MODE_WEIGHT_GPENCIL)) {
+                 OB_MODE_WEIGHT_GPENCIL,
+                 OB_MODE_VERTEX_GPENCIL)) {
           ED_gpencil_toggle_brush_cursor(C, true, NULL);
         }
         else {

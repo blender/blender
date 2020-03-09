@@ -29,6 +29,7 @@ struct ModifierData;
 struct Object;
 struct PTCacheEdit;
 struct ParticleSystem;
+struct bGPDstroke;
 
 void DRW_shape_cache_free(void);
 void DRW_shape_cache_reset(void);
@@ -45,6 +46,9 @@ struct GPUBatch *DRW_cache_quad_wires_get(void);
 struct GPUBatch *DRW_cache_cube_get(void);
 struct GPUBatch *DRW_cache_sphere_get(void);
 struct GPUBatch *DRW_cache_normal_arrow_get(void);
+
+/* Dummy VBOs */
+struct GPUBatch *DRW_gpencil_dummy_buffer_get(void);
 
 /* Common Object */
 struct GPUBatch *DRW_cache_object_all_edges_get(struct Object *ob);
@@ -195,5 +199,18 @@ struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob,
                                                      uint gpumat_array_len);
 struct GPUBatch *DRW_cache_mball_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mball_edge_detection_get(struct Object *ob, bool *r_is_manifold);
+
+/* GPencil */
+struct GPUBatch *DRW_cache_gpencil_strokes_get(struct Object *ob, int cfra);
+struct GPUBatch *DRW_cache_gpencil_fills_get(struct Object *ob, int cfra);
+struct GPUBatch *DRW_cache_gpencil_edit_lines_get(struct Object *ob, int cfra);
+struct GPUBatch *DRW_cache_gpencil_edit_points_get(struct Object *ob, int cfra);
+struct GPUBatch *DRW_cache_gpencil_sbuffer_stroke_get(struct Object *ob);
+struct GPUBatch *DRW_cache_gpencil_sbuffer_fill_get(struct Object *ob);
+
+struct GPUBatch *DRW_cache_gpencil_face_wireframe_get(struct Object *ob);
+
+struct bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(struct Object *ob);
+void DRW_cache_gpencil_sbuffer_clear(struct Object *ob);
 
 #endif /* __DRAW_CACHE_H__ */

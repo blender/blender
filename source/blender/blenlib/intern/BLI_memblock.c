@@ -81,7 +81,16 @@ BLI_memblock *BLI_memblock_create_ex(uint elem_size, uint chunk_size)
 
 void BLI_memblock_destroy(BLI_memblock *mblk, MemblockValFreeFP free_callback)
 {
-  BLI_memblock_clear(mblk, free_callback);
+  int elem_per_chunk = mblk->chunk_size / mblk->elem_size;
+
+  if (free_callback) {
+    for (int i = 0; i <= mblk->elem_last; i++) {
+      int chunk_idx = i / elem_per_chunk;
+      int elem_idx = i - elem_per_chunk * chunk_idx;
+      void *val = (char *)(mblk->chunk_list[chunk_idx]) + mblk->elem_size * elem_idx;
+      free_callback(val);
+    }
+  }
 
   for (int i = 0; i < mblk->chunk_len; i++) {
     MEM_SAFE_FREE(mblk->chunk_list[i]);

@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_math.h"
@@ -116,6 +117,8 @@ static void deformStroke(GpencilModifierData *md,
   }
 
   gpencil_deform_verts(mmd, ob, gps);
+  /* Calc geometry data. */
+  BKE_gpencil_stroke_geometry_update(gps);
 }
 
 static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData *md, Object *ob)
@@ -131,8 +134,8 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
     return;
   }
 
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       /* apply armature effects on this frame
        * NOTE: this assumes that we don't want armature animation on non-keyframed frames
        */
@@ -140,7 +143,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
       BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 
       /* compute armature effects on this frame */
-      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         deformStroke(md_eval, depsgraph, object_eval, gpl, gpf, gps);
       }
     }
