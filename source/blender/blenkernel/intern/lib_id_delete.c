@@ -241,7 +241,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_cachefile_free((CacheFile *)id);
       break;
     case ID_WS:
-      BKE_workspace_free((WorkSpace *)id);
+      BLI_assert(0);
       break;
   }
 }

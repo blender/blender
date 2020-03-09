@@ -35,7 +35,6 @@ struct bToolRef;
 /* Create, delete, init */
 
 struct WorkSpace *BKE_workspace_add(struct Main *bmain, const char *name);
-void BKE_workspace_free(struct WorkSpace *workspace);
 void BKE_workspace_remove(struct Main *bmain, struct WorkSpace *workspace);
 
 struct WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const struct Main *bmain);

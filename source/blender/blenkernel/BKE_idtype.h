@@ -158,7 +158,7 @@ extern IDTypeInfo IDType_ID_WM;
 // extern IDTypeInfo IDType_ID_PAL;
 // extern IDTypeInfo IDType_ID_PC;
 // extern IDTypeInfo IDType_ID_CF;
-// extern IDTypeInfo IDType_ID_WS;
+extern IDTypeInfo IDType_ID_WS;
 extern IDTypeInfo IDType_ID_LP;
 
 /* ********** Helpers/Utils API. ********** */
