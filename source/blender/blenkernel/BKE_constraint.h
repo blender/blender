@@ -191,8 +191,12 @@ struct bConstraintOb *BKE_constraints_make_evalob(struct Depsgraph *depsgraph,
                                                   short datatype);
 void BKE_constraints_clear_evalob(struct bConstraintOb *cob);
 
-void BKE_constraint_mat_convertspace(
-    struct Object *ob, struct bPoseChannel *pchan, float mat[4][4], short from, short to);
+void BKE_constraint_mat_convertspace(struct Object *ob,
+                                     struct bPoseChannel *pchan,
+                                     float mat[4][4],
+                                     short from,
+                                     short to,
+                                     const bool keep_scale);
 
 void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
                                       struct Scene *scene,
