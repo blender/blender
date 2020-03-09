@@ -15,6 +15,7 @@ out vec4 fragColor;
 
 void main()
 {
+  vec3 color;
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
   if (renderpassType == SCE_PASS_Z) {
@@ -25,7 +26,7 @@ void main()
     else {
       depth = -get_view_z_from_depth(depth);
     }
-    fragColor.r = depth;
+    color = vec3(depth);
   }
 
   else if (renderpassType == SCE_PASS_AO) {
@@ -41,24 +42,26 @@ void main()
     if (depth != 1.0 && any(notEqual(encoded_normal, vec2(0.0)))) {
       vec3 decoded_normal = normal_decode(texelFetch(inputBuffer, texel, 0).rg, vec3(0.0));
       vec3 world_normal = mat3(ViewMatrixInverse) * decoded_normal;
-      fragColor = vec4(world_normal, 1.0);
+      color = world_normal;
     }
     else {
-      fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      color = vec3(0.0);
     }
   }
 
   else if ((renderpassType & ACCUMULATED_VALUE_PASSES) != 0) {
     float accumulated_value = texelFetch(inputBuffer, texel, 0).r;
-    fragColor = vec4(vec3(accumulated_value / currentSample), 1.0);
+    color = vec3(accumulated_value / currentSample);
   }
 
   else if ((renderpassType & ACCUMULATED_COLOR_PASSES) != 0) {
     vec3 accumulated_color = texelFetch(inputBuffer, texel, 0).rgb;
-    fragColor = vec4(accumulated_color / currentSample, 1.0);
+    color = (accumulated_color / currentSample);
   }
 
   else {
-    fragColor = vec4(1.0, 0.0, 1.0, 1.0);
+    color = vec4(1.0, 0.0, 1.0, 1.0);
   }
+
+  fragColor = vec4(color, 1.0);
 }
