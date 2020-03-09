@@ -53,6 +53,7 @@
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
 #include "BKE_gpencil.h"
+#include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
@@ -73,6 +74,43 @@
 #include "RNA_enum_types.h"
 
 #include "bmesh.h"
+
+static void paint_curve_copy_data(Main *UNUSED(bmain),
+                                  ID *id_dst,
+                                  const ID *id_src,
+                                  const int UNUSED(flag))
+{
+  PaintCurve *paint_curve_dst = (PaintCurve *)id_dst;
+  const PaintCurve *paint_curve_src = (const PaintCurve *)id_src;
+
+  if (paint_curve_src->tot_points != 0) {
+    paint_curve_dst->points = MEM_dupallocN(paint_curve_src->points);
+  }
+}
+
+static void paint_curve_free_data(ID *id)
+{
+  PaintCurve *paint_curve = (PaintCurve *)id;
+
+  MEM_SAFE_FREE(paint_curve->points);
+  paint_curve->tot_points = 0;
+}
+
+IDTypeInfo IDType_ID_PC = {
+    .id_code = ID_PC,
+    .id_filter = FILTER_ID_PC,
+    .main_listbase_index = INDEX_ID_PC,
+    .struct_size = sizeof(PaintCurve),
+    .name = "PaintCurve",
+    .name_plural = "paint_curves",
+    .translation_context = BLT_I18NCONTEXT_ID_PAINTCURVE,
+    .flags = 0,
+
+    .init_data = NULL,
+    .copy_data = paint_curve_copy_data,
+    .free_data = paint_curve_free_data,
+    .make_local = NULL,
+};
 
 const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};
 const char PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
@@ -474,13 +512,6 @@ uint BKE_paint_get_brush_tool_offset_from_paintmode(const ePaintMode mode)
   return 0;
 }
 
-/** Free (or release) any data used by this paint curve (does not free the pcurve itself). */
-void BKE_paint_curve_free(PaintCurve *pc)
-{
-  MEM_SAFE_FREE(pc->points);
-  pc->tot_points = 0;
-}
-
 PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
 {
   PaintCurve *pc;
@@ -490,36 +521,11 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
   return pc;
 }
 
-/**
- * Only copy internal data of PaintCurve ID from source to
- * already allocated/initialized destination.
- * You probably never want to use that directly,
- * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
- *
- * WARNING! This function will not handle ID user count!
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
-void BKE_paint_curve_copy_data(Main *UNUSED(bmain),
-                               PaintCurve *pc_dst,
-                               const PaintCurve *pc_src,
-                               const int UNUSED(flag))
-{
-  if (pc_src->tot_points != 0) {
-    pc_dst->points = MEM_dupallocN(pc_src->points);
-  }
-}
-
 PaintCurve *BKE_paint_curve_copy(Main *bmain, const PaintCurve *pc)
 {
   PaintCurve *pc_copy;
   BKE_id_copy(bmain, &pc->id, (ID **)&pc_copy);
   return pc_copy;
-}
-
-void BKE_paint_curve_make_local(Main *bmain, PaintCurve *pc, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, &pc->id, flags);
 }
 
 Palette *BKE_paint_palette(Paint *p)

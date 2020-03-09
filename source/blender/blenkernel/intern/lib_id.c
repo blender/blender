@@ -563,9 +563,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_PC:
-      if (!test) {
-        BKE_paint_curve_make_local(bmain, (PaintCurve *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_CF:
       BLI_assert(0);
@@ -767,7 +765,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_palette_copy_data(bmain, (Palette *)*r_newid, (Palette *)id, flag);
         break;
       case ID_PC:
-        BKE_paint_curve_copy_data(bmain, (PaintCurve *)*r_newid, (PaintCurve *)id, flag);
+        BLI_assert(0);
         break;
       case ID_CF:
         BLI_assert(0);
@@ -1377,7 +1375,7 @@ void BKE_libblock_init_empty(ID *id)
       /* Nothing to do. */
       break;
     case ID_PC:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_GD:
       /* Nothing to do. */

@@ -145,13 +145,7 @@ void BKE_palette_clear(struct Palette *palette);
 
 /* paint curves */
 struct PaintCurve *BKE_paint_curve_add(struct Main *bmain, const char *name);
-void BKE_paint_curve_free(struct PaintCurve *pc);
-void BKE_paint_curve_copy_data(struct Main *bmain,
-                               struct PaintCurve *pc_dst,
-                               const struct PaintCurve *pc_src,
-                               const int flag);
 struct PaintCurve *BKE_paint_curve_copy(struct Main *bmain, const struct PaintCurve *pc);
-void BKE_paint_curve_make_local(struct Main *bmain, struct PaintCurve *pc, const int flags);
 
 bool BKE_paint_ensure(struct ToolSettings *ts, struct Paint **r_paint);
 void BKE_paint_init(struct Main *bmain, struct Scene *sce, ePaintMode mode, const char col[3]);

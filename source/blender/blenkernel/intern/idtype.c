@@ -83,7 +83,7 @@ static void id_type_init(void)
   // INIT_TYPE(ID_MSK);
   // INIT_TYPE(ID_LS);
   // INIT_TYPE(ID_PAL);
-  // INIT_TYPE(ID_PC);
+  INIT_TYPE(ID_PC);
   INIT_TYPE(ID_CF);
   INIT_TYPE(ID_WS);
   INIT_TYPE(ID_LP);
