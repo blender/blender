@@ -223,7 +223,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
       BKE_gpencil_free((bGPdata *)id, true);
       break;
     case ID_MC:
-      BKE_movieclip_free((MovieClip *)id);
+      BLI_assert(0);
       break;
     case ID_MSK:
       BKE_mask_free((Mask *)id);

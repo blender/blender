@@ -541,9 +541,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
       }
       return true;
     case ID_MC:
-      if (!test) {
-        BKE_movieclip_make_local(bmain, (MovieClip *)id, flags);
-      }
+      BLI_assert(0);
       return true;
     case ID_MSK:
       if (!test) {
@@ -749,7 +747,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
         BKE_gpencil_copy_data((bGPdata *)*r_newid, (bGPdata *)id, flag);
         break;
       case ID_MC:
-        BKE_movieclip_copy_data(bmain, (MovieClip *)*r_newid, (MovieClip *)id, flag);
+        BLI_assert(0);
         break;
       case ID_MSK:
         BKE_mask_copy_data(bmain, (Mask *)*r_newid, (Mask *)id, flag);
@@ -1300,7 +1298,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_LI:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_OB:
       BLI_assert(0);
@@ -1342,7 +1340,7 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_SCR:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_VF:
       BLI_assert(0);
@@ -1354,13 +1352,13 @@ void BKE_libblock_init_empty(ID *id)
       BLI_assert(0);
       break;
     case ID_GR:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_AR:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_AC:
-      /* Nothing to do. */
+      BLI_assert(0);
       break;
     case ID_NT:
       BLI_assert(0);
