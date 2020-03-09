@@ -53,6 +53,7 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
@@ -931,7 +932,7 @@ bool ABC_import(bContext *C,
 
 /* ************************************************************************** */
 
-void ABC_get_transform(CacheReader *reader, float r_mat[4][4], float time, float scale)
+void ABC_get_transform(CacheReader *reader, float r_mat_world[4][4], float time, float scale)
 {
   if (!reader) {
     return;
@@ -940,7 +941,25 @@ void ABC_get_transform(CacheReader *reader, float r_mat[4][4], float time, float
   AbcObjectReader *abc_reader = reinterpret_cast<AbcObjectReader *>(reader);
 
   bool is_constant = false;
-  abc_reader->read_matrix(r_mat, time, scale, is_constant);
+
+  /* Convert from the local matrix we obtain from Alembic to world coordinates
+   * for Blender. This conversion is done here rather than by Blender due to
+   * work around the non-standard interpretation of CONSTRAINT_SPACE_LOCAL in
+   * BKE_constraint_mat_convertspace().  */
+  Object *object = abc_reader->object();
+  if (object->parent == nullptr) {
+    /* No parent, so local space is the same as world space. */
+    abc_reader->read_matrix(r_mat_world, time, scale, is_constant);
+    return;
+  }
+
+  float mat_parent[4][4];
+  BKE_object_get_parent_matrix(object, object->parent, mat_parent);
+
+  float mat_local[4][4];
+  abc_reader->read_matrix(mat_local, time, scale, is_constant);
+  mul_m4_m4m4(r_mat_world, mat_parent, object->parentinv);
+  mul_m4_m4m4(r_mat_world, r_mat_world, mat_local);
 }
 
 /* ************************************************************************** */

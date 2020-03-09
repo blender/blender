@@ -110,7 +110,10 @@ AbcArchiveHandle *ABC_create_handle(struct Main *bmain,
 
 void ABC_free_handle(AbcArchiveHandle *handle);
 
-void ABC_get_transform(struct CacheReader *reader, float r_mat[4][4], float time, float scale);
+void ABC_get_transform(struct CacheReader *reader,
+                       float r_mat_world[4][4],
+                       float time,
+                       float scale);
 
 /* Either modifies current_mesh in-place or constructs a new mesh. */
 struct Mesh *ABC_read_mesh(struct CacheReader *reader,
