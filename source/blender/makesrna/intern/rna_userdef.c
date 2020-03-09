@@ -4987,7 +4987,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 
   /* Currently only used for insert offset (aka auto-offset),
    * maybe also be useful for later stuff though. */
-  prop = RNA_def_property(srna, "node_margin", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "node_margin", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "node_margin");
   RNA_def_property_ui_text(
       prop, "Auto-offset Margin", "Minimum distance between nodes for Auto-offsetting nodes");
