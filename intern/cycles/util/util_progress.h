@@ -204,6 +204,8 @@ class Progress {
 
   float get_progress()
   {
+    thread_scoped_lock lock(progress_mutex);
+
     if (total_pixel_samples > 0) {
       return ((float)pixel_samples) / total_pixel_samples;
     }
