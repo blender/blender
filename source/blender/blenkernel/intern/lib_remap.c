@@ -48,13 +48,6 @@
 
 static CLG_LogRef LOG = {.identifier = "bke.lib_remap"};
 
-BKE_library_free_window_manager_cb free_windowmanager_cb = NULL;
-
-void BKE_library_callback_free_window_manager_set(BKE_library_free_window_manager_cb func)
-{
-  free_windowmanager_cb = func;
-}
-
 BKE_library_free_notifier_reference_cb free_notifier_reference_cb = NULL;
 
 void BKE_library_callback_free_notifier_reference_set(BKE_library_free_notifier_reference_cb func)

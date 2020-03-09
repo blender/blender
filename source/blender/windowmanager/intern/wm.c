@@ -37,9 +37,12 @@
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -61,6 +64,27 @@
 #endif
 
 /* ****************************************************** */
+
+static void window_manager_free_data(ID *id)
+{
+  wm_close_and_free(NULL, (wmWindowManager *)id);
+}
+
+IDTypeInfo IDType_ID_WM = {
+    .id_code = ID_WM,
+    .id_filter = 0,
+    .main_listbase_index = INDEX_ID_WM,
+    .struct_size = sizeof(wmWindowManager),
+    .name = "WindowManager",
+    .name_plural = "window_managers",
+    .translation_context = BLT_I18NCONTEXT_ID_WINDOWMANAGER,
+    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_MAKELOCAL,
+
+    .init_data = NULL,
+    .copy_data = NULL,
+    .free_data = window_manager_free_data,
+    .make_local = NULL,
+};
 
 #define MAX_OP_REGISTERED 32
 
