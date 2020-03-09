@@ -57,6 +57,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"
 #include "BKE_camera.h"
@@ -119,8 +120,7 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
     BKE_lib_override_library_free(&id->override_library, do_id_user);
   }
 
-  /* XXX TODO remove animdata handling from each type's freeing func,
-   * and do it here, like for copy! */
+  BKE_animdata_free(id, do_id_user);
 }
 
 void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))

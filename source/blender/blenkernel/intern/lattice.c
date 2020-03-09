@@ -99,8 +99,6 @@ static void lattice_free_data(ID *id)
 {
   Lattice *lattice = (Lattice *)id;
 
-  BKE_animdata_free(&lattice->id, false);
-
   BKE_lattice_batch_cache_free(lattice);
 
   MEM_SAFE_FREE(lattice->def);

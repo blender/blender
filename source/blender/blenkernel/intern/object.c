@@ -272,7 +272,6 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
 static void object_free_data(ID *id)
 {
   Object *ob = (Object *)id;
-  BKE_animdata_free((ID *)ob, false);
 
   DRW_drawdata_free((ID *)ob);
 

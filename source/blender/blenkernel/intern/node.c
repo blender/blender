@@ -195,8 +195,6 @@ static void ntree_free_data(ID *id)
   bNode *node, *next;
   bNodeSocket *sock, *nextsock;
 
-  BKE_animdata_free((ID *)ntree, false);
-
   /* XXX hack! node trees should not store execution graphs at all.
    * This should be removed when old tree types no longer require it.
    * Currently the execution data for texture nodes remains in the tree
@@ -2156,6 +2154,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
 void ntreeFreeTree(bNodeTree *ntree)
 {
   ntree_free_data(&ntree->id);
+  BKE_animdata_free(&ntree->id, false);
 }
 
 void ntreeFreeNestedTree(bNodeTree *ntree)

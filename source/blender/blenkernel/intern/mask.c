@@ -81,8 +81,6 @@ static void mask_free_data(ID *id)
 {
   Mask *mask = (Mask *)id;
 
-  BKE_animdata_free((ID *)mask, false);
-
   /* free mask data */
   BKE_mask_layer_free_list(&mask->masklayers);
 }

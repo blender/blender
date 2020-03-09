@@ -123,8 +123,6 @@ static void material_free_data(ID *id)
 {
   Material *material = (Material *)id;
 
-  BKE_animdata_free((ID *)material, false);
-
   /* Free gpu material before the ntree */
   GPU_material_free(&material->gpumaterial);
 

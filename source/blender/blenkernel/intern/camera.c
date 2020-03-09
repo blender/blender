@@ -112,8 +112,6 @@ static void camera_free_data(ID *id)
 {
   Camera *cam = (Camera *)id;
   BLI_freelistN(&cam->bg_images);
-
-  BKE_animdata_free(id, false);
 }
 
 IDTypeInfo IDType_ID_CA = {

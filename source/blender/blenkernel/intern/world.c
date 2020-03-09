@@ -55,7 +55,6 @@
 static void world_free_data(ID *id)
 {
   World *wrld = (World *)id;
-  BKE_animdata_free(id, false);
 
   DRW_drawdata_free(id);
 

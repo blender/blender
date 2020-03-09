@@ -105,8 +105,6 @@ static void curve_free_data(ID *id)
 {
   Curve *curve = (Curve *)id;
 
-  BKE_animdata_free((ID *)curve, false);
-
   BKE_curve_batch_cache_free(curve);
 
   BKE_nurbList_free(&curve->nurb);

@@ -92,8 +92,6 @@ static void metaball_free_data(ID *id)
 {
   MetaBall *metaball = (MetaBall *)id;
 
-  BKE_animdata_free((ID *)metaball, false);
-
   BKE_mball_batch_cache_free(metaball);
 
   MEM_SAFE_FREE(metaball->mat);

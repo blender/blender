@@ -80,7 +80,6 @@ static void cache_file_copy_data(Main *UNUSED(bmain),
 static void cache_file_free_data(ID *id)
 {
   CacheFile *cache_file = (CacheFile *)id;
-  BKE_animdata_free((ID *)cache_file, false);
   cachefile_handle_free(cache_file);
   BLI_freelistN(&cache_file->object_paths);
 }

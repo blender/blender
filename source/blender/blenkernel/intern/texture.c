@@ -109,7 +109,6 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
 static void texture_free_data(ID *id)
 {
   Tex *texture = (Tex *)id;
-  BKE_animdata_free((ID *)texture, false);
 
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {

@@ -43,11 +43,6 @@ static void speaker_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(speaker, DNA_struct_default_get(Speaker), id);
 }
 
-static void speaker_free_data(ID *id)
-{
-  BKE_animdata_free(id, false);
-}
-
 IDTypeInfo IDType_ID_SPK = {
     .id_code = ID_SPK,
     .id_filter = FILTER_ID_SPK,
@@ -60,7 +55,7 @@ IDTypeInfo IDType_ID_SPK = {
 
     .init_data = speaker_init_data,
     .copy_data = NULL,
-    .free_data = speaker_free_data,
+    .free_data = NULL,
     .make_local = NULL,
 };
 

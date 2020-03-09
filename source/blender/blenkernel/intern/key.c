@@ -84,8 +84,6 @@ static void shapekey_free_data(ID *id)
   Key *key = (Key *)id;
   KeyBlock *kb;
 
-  BKE_animdata_free((ID *)key, false);
-
   while ((kb = BLI_pophead(&key->block))) {
     if (kb->data) {
       MEM_freeN(kb->data);

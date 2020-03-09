@@ -138,7 +138,6 @@ static void armature_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src
 static void armature_free_data(struct ID *id)
 {
   bArmature *armature = (bArmature *)id;
-  BKE_animdata_free(&armature->id, false);
 
   BKE_armature_bone_hash_free(armature);
   BKE_armature_bonelist_free(&armature->bonebase);

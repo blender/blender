@@ -123,8 +123,6 @@ static void particle_settings_free_data(ID *id)
 {
   ParticleSettings *particle_settings = (ParticleSettings *)id;
 
-  BKE_animdata_free((ID *)particle_settings, false);
-
   for (int a = 0; a < MAX_MTEX; a++) {
     MEM_SAFE_FREE(particle_settings->mtex[a]);
   }

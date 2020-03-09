@@ -120,8 +120,6 @@ static void linestyle_free_data(ID *id)
   FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
   LineStyleModifier *linestyle_modifier;
 
-  BKE_animdata_free(&linestyle->id, false);
-
   for (int material_slot_index = 0; material_slot_index < MAX_MTEX; material_slot_index++) {
     MEM_SAFE_FREE(linestyle->mtex[material_slot_index]);
   }

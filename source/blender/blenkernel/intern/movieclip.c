@@ -105,7 +105,6 @@ static void movie_clip_free_data(ID *id)
   free_buffers(movie_clip);
 
   BKE_tracking_free(&movie_clip->tracking);
-  BKE_animdata_free((ID *)movie_clip, false);
 }
 
 IDTypeInfo IDType_ID_MC = {

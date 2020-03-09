@@ -61,6 +61,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+static void mesh_clear_geometry(Mesh *mesh);
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
 
 static void mesh_init_data(ID *id)
@@ -136,7 +137,9 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 static void mesh_free_data(ID *id)
 {
   Mesh *mesh = (Mesh *)id;
-  BKE_mesh_clear_geometry(mesh);
+
+  BKE_mesh_runtime_clear_cache(mesh);
+  mesh_clear_geometry(mesh);
   MEM_SAFE_FREE(mesh->mat);
 }
 
@@ -586,11 +589,8 @@ void BKE_mesh_free(Mesh *me)
   mesh_free_data(&me->id);
 }
 
-void BKE_mesh_clear_geometry(Mesh *mesh)
+static void mesh_clear_geometry(Mesh *mesh)
 {
-  BKE_animdata_free(&mesh->id, false);
-  BKE_mesh_runtime_clear_cache(mesh);
-
   CustomData_free(&mesh->vdata, mesh->totvert);
   CustomData_free(&mesh->edata, mesh->totedge);
   CustomData_free(&mesh->fdata, mesh->totface);
@@ -613,6 +613,13 @@ void BKE_mesh_clear_geometry(Mesh *mesh)
   mesh->totselect = 0;
 
   BKE_mesh_update_customdata_pointers(mesh, false);
+}
+
+void BKE_mesh_clear_geometry(Mesh *mesh)
+{
+  BKE_animdata_free(&mesh->id, false);
+  BKE_mesh_runtime_clear_cache(mesh);
+  mesh_clear_geometry(mesh);
 }
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)

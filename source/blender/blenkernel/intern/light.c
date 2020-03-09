@@ -143,7 +143,6 @@ static void light_make_local(Main *bmain, ID *id, const int flags)
 static void light_free_data(ID *id)
 {
   Light *la = (Light *)id;
-  BKE_animdata_free(&la->id, false);
 
   BKE_curvemapping_free(la->curfalloff);
 
