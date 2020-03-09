@@ -213,6 +213,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const MLoopCol *vcol,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,
+                                  const int face_sets_color_default,
                                   const int (*face_vert_indices)[3],
                                   const int update_flags)
 {
@@ -267,8 +268,12 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
         for (uint i = 0; i < buffers->face_indices_len; i++) {
           if (show_face_sets) {
             const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-            face_set_overlay_color_get(
-                sculpt_face_sets[lt->poly], face_sets_color_seed, face_set_color);
+            const int fset = abs(sculpt_face_sets[lt->poly]);
+
+            /* Skip for the default color Face Set to render it white. */
+            if (fset != face_sets_color_default) {
+              face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
+            }
           }
           for (int j = 0; j < 3; j++) {
             const int vidx = face_vert_indices[i][j];
@@ -325,8 +330,11 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
           uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
           if (show_face_sets) {
-            face_set_overlay_color_get(
-                sculpt_face_sets[lt->poly], face_sets_color_seed, face_set_color);
+            const int fset = abs(sculpt_face_sets[lt->poly]);
+            /* Skip for the default color Face Set to render it white. */
+            if (fset != face_sets_color_default) {
+              face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
+            }
           }
 
           float fmask = 0.0f;

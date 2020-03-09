@@ -83,6 +83,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MLoopCol *vcol,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,
+                                  const int face_sets_color_default,
                                   const int (*face_vert_indices)[3],
                                   const int update_flags);
 

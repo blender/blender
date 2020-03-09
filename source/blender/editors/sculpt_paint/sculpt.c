@@ -10974,7 +10974,10 @@ static int sculpt_face_sets_randomize_colors_invoke(bContext *C,
 
   int new_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
   mesh->face_sets_color_seed = new_seed;
-  BKE_pbvh_face_sets_color_seed_set(pbvh, new_seed);
+  if (ss->face_sets) {
+    mesh->face_sets_color_default = ss->face_sets[0];
+  }
+  BKE_pbvh_face_sets_color_set(pbvh, new_seed, mesh->face_sets_color_default);
 
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
   for (int i = 0; i < totnode; i++) {

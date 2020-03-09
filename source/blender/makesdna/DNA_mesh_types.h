@@ -197,9 +197,12 @@ typedef struct Mesh {
   float remesh_voxel_adaptivity;
   char remesh_mode;
 
-  char _pad1[7];
+  char _pad1[3];
 
   int face_sets_color_seed;
+  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
+   * default and Face Sets can be used without affecting the color of the mesh. */
+  int face_sets_color_default;
 
   /** Deprecated multiresolution modeling data, only keep for loading old files. */
   struct Multires *mr DNA_DEPRECATED;

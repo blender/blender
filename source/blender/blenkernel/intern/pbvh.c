@@ -565,6 +565,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh,
   bvh->pdata = pdata;
 
   bvh->face_sets_color_seed = mesh->face_sets_color_seed;
+  bvh->face_sets_color_default = mesh->face_sets_color_default;
 
   BB_reset(&cb);
 
@@ -1304,6 +1305,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      CustomData_get_layer(bvh->ldata, CD_MLOOPCOL),
                                      CustomData_get_layer(bvh->pdata, CD_SCULPT_FACE_SETS),
                                      bvh->face_sets_color_seed,
+                                     bvh->face_sets_color_default,
                                      node->face_vert_indices,
                                      update_flags);
         break;
@@ -2615,9 +2617,10 @@ void BKE_pbvh_update_normals(PBVH *bvh, struct SubdivCCG *subdiv_ccg)
   MEM_SAFE_FREE(nodes);
 }
 
-void BKE_pbvh_face_sets_color_seed_set(PBVH *bvh, int seed)
+void BKE_pbvh_face_sets_color_set(PBVH *bvh, int seed, int color_default)
 {
   bvh->face_sets_color_seed = seed;
+  bvh->face_sets_color_default = color_default;
 }
 
 /**

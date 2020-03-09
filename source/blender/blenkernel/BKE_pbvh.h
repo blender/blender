@@ -299,7 +299,7 @@ void BKE_pbvh_grids_update(PBVH *bvh,
                            struct DMFlagMat *flagmats,
                            unsigned int **grid_hidden);
 
-void BKE_pbvh_face_sets_color_seed_set(PBVH *bvh, int seed);
+void BKE_pbvh_face_sets_color_set(PBVH *bvh, int seed, int color_default);
 
 /* Layer displacement */
 

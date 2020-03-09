@@ -4796,7 +4796,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
               View3D *v3d = (View3D *)sl;
-              v3d->overlay.sculpt_mode_face_sets_opacity = 0.0f;
+              v3d->overlay.sculpt_mode_face_sets_opacity = 1.0f;
             }
           }
         }

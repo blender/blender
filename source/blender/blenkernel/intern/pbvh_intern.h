@@ -137,6 +137,7 @@ struct PBVH {
   CustomData *pdata;
 
   int face_sets_color_seed;
+  int face_sets_color_default;
 
   /* Grid Data */
   CCGKey gridkey;

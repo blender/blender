@@ -36,6 +36,7 @@
     .remesh_voxel_size = 0.1f, \
     .remesh_voxel_adaptivity = 0.0f, \
     .face_sets_color_seed = 0, \
+    .face_sets_color_default = 1, \
     .flag = ME_REMESH_FIX_POLES | ME_REMESH_REPROJECT_VOLUME, \
   }
 
