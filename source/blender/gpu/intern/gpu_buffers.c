@@ -266,8 +266,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
         }
 
         /* Face Sets. */
-        uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
         for (uint i = 0; i < buffers->face_indices_len; i++) {
+          uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
           if (show_face_sets) {
             const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
             const int fset = abs(sculpt_face_sets[lt->poly]);
