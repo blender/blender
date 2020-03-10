@@ -121,6 +121,8 @@ typedef enum PropertySubType {
   PROP_PASSWORD = 6,
 
   /* numbers */
+  /** A dimension in pixel units, possibly before DPI scaling (so value may not be the final pixel
+   * value but the one to apply DPI scale to). */
   PROP_PIXEL = 12,
   PROP_UNSIGNED = 13,
   PROP_PERCENTAGE = 14,
