@@ -361,6 +361,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Noise level step to stop sampling at, lower values reduce noise the cost of render time. Zero for automatic setting based on number of AA samples",
         min=0.0, max=1.0,
         default=0.0,
+        precision=4,
     )
     adaptive_min_samples: IntProperty(
         name="Adaptive Min Samples",
