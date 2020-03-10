@@ -218,35 +218,53 @@ uniform float strokeIndexOffset = 0.0;
  * - ma3 reference the next adjacency point.
  * Note that we are rendering quad instances and not using any index buffer (except for fills).
  */
-in vec4 ma;
-in vec4 ma1;
-in vec4 ma2;
-in vec4 ma3;
-#  define strength1 ma1.y
-#  define strength2 ma2.y
-#  define stroke_id1 ma1.z
-#  define point_id1 ma1.w
+/* x is material index, y is stroke_id, z is point_id, w is aspect & rotation & hardness packed. */
+in ivec4 ma;
+in ivec4 ma1;
+in ivec4 ma2;
+in ivec4 ma3;
 /* Position contains thickness in 4th component. */
 in vec4 pos;  /* Prev adj vert */
 in vec4 pos1; /* Current edge */
 in vec4 pos2; /* Current edge */
 in vec4 pos3; /* Next adj vert */
-#  define thickness1 pos1.w
-#  define thickness2 pos2.w
-/* xy is UV for fills, z is U of stroke, w is cosine of UV angle with sign of sine.  */
+/* xy is UV for fills, z is U of stroke, w is strength.  */
 in vec4 uv1;
 in vec4 uv2;
-
 in vec4 col1;
 in vec4 col2;
-
 in vec4 fcol1;
+/* WARNING: Max attrib count is actually 14 because OSX OpenGL implementation
+ * considers gl_VertexID and gl_InstanceID as vertex attribute. (see T74536) */
+#  define stroke_id1 ma1.y
+#  define point_id1 ma1.z
+#  define thickness1 pos1.w
+#  define thickness2 pos2.w
+#  define strength1 uv1.w
+#  define strength2 uv2.w
+/* Packed! need to be decoded. */
+#  define hardness1 ma1.w
+#  define hardness2 ma2.w
+#  define uvrot1 ma1.w
+#  define aspect1 ma1.w
 
-/* hard.x is aspect. */
-in vec2 hard1;
-in vec2 hard2;
-#  define aspect1 hard1.x
-#  define aspect2 hard2.x
+vec2 decode_aspect(int packed_data)
+{
+  float asp = float(uint(packed_data) & 0x1FFu) * (1.0 / 255.0);
+  return (asp > 1.0) ? vec2(1.0, (asp - 1.0)) : vec2(asp, 1.0);
+}
+
+float decode_uvrot(int packed_data)
+{
+  uint udata = uint(packed_data);
+  float uvrot = 1e-8 + float((udata & 0x1FE00u) >> 9u) * (1.0 / 255.0);
+  return ((udata & 0x20000u) != 0u) ? -uvrot : uvrot;
+}
+
+float decode_hardness(int packed_data)
+{
+  return float((uint(packed_data) & 0x3FC0000u) >> 18u) * (1.0 / 255.0);
+}
 
 void discard_vert()
 {
@@ -356,13 +374,13 @@ void stroke_vertex()
 #  endif
 
   /* Special Case. Stroke with single vert are rendered as dots. Do not discard them. */
-  if (!is_dot && ma.x == -1.0 && ma2.x == -1.0) {
+  if (!is_dot && ma.x == -1 && ma2.x == -1) {
     is_dot = true;
     is_squares = false;
   }
 
   /* Enpoints, we discard the vertices. */
-  if (ma1.x == -1.0 || (!is_dot && ma2.x == -1.0)) {
+  if (ma1.x == -1 || (!is_dot && ma2.x == -1)) {
     discard_vert();
     return;
   }
@@ -398,7 +416,7 @@ void stroke_vertex()
   thickness = stroke_thickness_modulate(thickness);
 
   finalUvs = vec2(x, y) * 0.5 + 0.5;
-  strokeHardeness = (use_curr) ? hard1.y : hard2.y;
+  strokeHardeness = decode_hardness(use_curr ? hardness1 : hardness2);
 
   if (is_dot) {
 #  ifdef GP_MATERIAL_BUFFER_LEN
@@ -408,7 +426,7 @@ void stroke_vertex()
     vec2 x_axis;
 #  ifdef GP_MATERIAL_BUFFER_LEN
     if (alignement == GP_STROKE_ALIGNMENT_STROKE) {
-      x_axis = (ma2.x == -1.0) ? line_adj : line;
+      x_axis = (ma2.x == -1) ? line_adj : line;
     }
     else if (alignement == GP_STROKE_ALIGNMENT_FIXED) {
       /* Default for no-material drawing. */
@@ -423,25 +441,20 @@ void stroke_vertex()
     }
 
     /* Rotation: Encoded as Cos + Sin sign. */
-    float rot_sin = sqrt(1.0 - uv1.w * uv1.w) * sign(uv1.w);
-    float rot_cos = abs(uv1.w);
+    float uv_rot = decode_uvrot(uvrot1);
+    float rot_sin = sqrt(1.0 - uv_rot * uv_rot) * sign(uv_rot);
+    float rot_cos = abs(uv_rot);
     x_axis = mat2(rot_cos, -rot_sin, rot_sin, rot_cos) * x_axis;
 
     vec2 y_axis = rotate_90deg(x_axis);
 
-    strokeAspect.x = aspect1;
+    strokeAspect = decode_aspect(aspect1);
 
-    if (strokeAspect.x > 1.0) {
-      strokeAspect.y = strokeAspect.x;
-      strokeAspect.x = 1.0;
-    }
-    else {
-      strokeAspect.x = 1.0 / strokeAspect.x;
-      strokeAspect.y = 1.0;
-    }
+    x *= strokeAspect.x;
+    y *= strokeAspect.y;
 
-    x /= strokeAspect.x;
-    y /= strokeAspect.y;
+    /* Invert for vertex shader. */
+    strokeAspect = 1.0 / strokeAspect;
 
     gl_Position.xy += (x * x_axis + y * y_axis) * sizeViewportInv.xy * thickness;
 

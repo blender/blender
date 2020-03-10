@@ -166,23 +166,20 @@ void DRW_gpencil_batch_cache_free(bGPdata *gpd)
 
 /* MUST match the format below. */
 typedef struct gpStrokeVert {
-  /** Mat is float because we need to pack other float attribs with it. */
-  float mat, strength, stroke_id, point_id;
+  int32_t mat, stroke_id, point_id, packed_asp_hard_rot;
   /** Position and thickness packed in the same attribute. */
   float pos[3], thickness;
-  float uv_fill[2], u_stroke, v_rot;
-  /** Aspect ratio and hardnes. */
-  float aspect_ratio, hardness;
+  /** UV and strength packed in the same attribute. */
+  float uv_fill[2], u_stroke, strength;
 } gpStrokeVert;
 
 static GPUVertFormat *gpencil_stroke_format(void)
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "ma", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "ma", GPU_COMP_I32, 4, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "uv", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "hard", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     /* IMPORTANT: This means having only 4 attributes to fit into GPU module limit of 16 attrib. */
     GPU_vertformat_multiload_enable(&format, 4);
   }
@@ -249,6 +246,29 @@ static int gpencil_stroke_is_cyclic(const bGPDstroke *gps)
   return ((gps->flag & GP_STROKE_CYCLIC) != 0) && (gps->totpoints > 2);
 }
 
+BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float hard)
+{
+  int32_t packed = 0;
+  /* Aspect uses 9 bits */
+  float asp_normalized = (asp > 1.0f) ? (1.0f / asp) : asp;
+  packed |= (int32_t)unit_float_to_uchar_clamp(asp_normalized);
+  /* Store if inversed in the 9th bit. */
+  if (asp > 1.0f) {
+    packed |= 1 << 8;
+  }
+  /* Rotation uses 9 bits */
+  /* Rotation are in [-90°..90°] range, so we can encode the sign of the angle + the cosine
+   * because the cosine will always be positive. */
+  packed |= (int32_t)unit_float_to_uchar_clamp(cosf(rot)) << 9;
+  /* Store sine sign in 9th bit. */
+  if (rot < 0.0f) {
+    packed |= 1 << 17;
+  }
+  /* Hardness uses 8 bits */
+  packed |= (int32_t)unit_float_to_uchar_clamp(hard) << 18;
+  return packed;
+}
+
 static void gpencil_buffer_add_point(gpStrokeVert *verts,
                                      gpColorVert *cols,
                                      const bGPDstroke *gps,
@@ -275,15 +295,14 @@ static void gpencil_buffer_add_point(gpStrokeVert *verts,
   vert->u_stroke = pt->uv_fac;
   vert->stroke_id = gps->runtime.stroke_start;
   vert->point_id = v;
-  /* Rotation are in [-90°..90°] range, so we can encode the sign of the angle + the cosine
-   * because the cosine will always be positive. */
-  vert->v_rot = cosf(pt->uv_rot) * signf(pt->uv_rot);
   vert->thickness = max_ff(0.0f, gps->thickness * pt->pressure) * (round_cap1 ? 1.0 : -1.0);
   /* Tag endpoint material to -1 so they get discarded by vertex shader. */
   vert->mat = (is_endpoint) ? -1 : (gps->mat_nr % GP_MATERIAL_BUFFER_LEN);
 
-  vert->aspect_ratio = gps->aspect_ratio[0] / max_ff(gps->aspect_ratio[1], 1e-8);
-  vert->hardness = gps->hardeness;
+  float aspect_ratio = gps->aspect_ratio[0] / max_ff(gps->aspect_ratio[1], 1e-8);
+
+  vert->packed_asp_hard_rot = pack_rotation_aspect_hardness(
+      pt->uv_rot, aspect_ratio, gps->hardeness);
 }
 
 static void gpencil_buffer_add_stroke(gpStrokeVert *verts,

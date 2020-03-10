@@ -9,7 +9,7 @@ uniform vec4 gpEditColor;
 uniform sampler1D weightTex;
 
 in vec3 pos;
-in float ma;
+in int ma;
 in uint vflag;
 in float weight;
 
@@ -93,7 +93,7 @@ void main()
 #endif
 
   /* Discard unwanted padding vertices. */
-  if (ma == -1.0 || (is_multiframe && !doMultiframe)) {
+  if (ma == -1 || (is_multiframe && !doMultiframe)) {
     discard_vert();
   }
 
