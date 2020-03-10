@@ -362,7 +362,7 @@ void color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, float mix
 
 void stroke_vertex()
 {
-  int m = int(ma1.x);
+  int m = ma1.x;
   bool is_dot = false;
   bool is_squares = false;
 
@@ -538,7 +538,7 @@ void fill_vertex()
   finalPos = wpos;
 
 #  ifdef GP_MATERIAL_BUFFER_LEN
-  int m = int(ma1.x);
+  int m = ma1.x;
 
   vec4 fill_col = MATERIAL(m).fill_color;
   float mix_tex = MATERIAL(m).fill_texture_mix;
