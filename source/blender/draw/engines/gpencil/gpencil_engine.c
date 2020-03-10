@@ -200,7 +200,8 @@ void GPENCIL_cache_init(void *ved)
   pd->use_layer_fb = false;
   pd->use_object_fb = false;
   pd->use_mask_fb = false;
-  pd->use_signed_fb = false;
+  /* Always use high precision for render. */
+  pd->use_signed_fb = !pd->is_viewport;
 
   if (draw_ctx->v3d) {
     const bool hide_overlay = ((draw_ctx->v3d->flag2 & V3D_HIDE_OVERLAYS) != 0);
