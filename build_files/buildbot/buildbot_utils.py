@@ -98,7 +98,7 @@ class VersionInfo:
             self.is_development_build = False
         else:
             # Development build
-            self.full_version = self.version + '-' + self.hash
+            self.full_version = self.version + self.version_char + '-' + self.hash
             self.is_development_build = True
 
     def _parse_header_file(self, filename, define):
