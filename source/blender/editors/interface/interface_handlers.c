@@ -9616,7 +9616,7 @@ static int ui_handle_menu_event(bContext *C,
                   but->active->cancel = true;
                   button_activate_exit(C, but, but->active, false, false);
                 }
-                WM_event_add_mousemove(but->active->window);
+                WM_event_add_mousemove(CTX_wm_window(C));
               }
             }
             break;
