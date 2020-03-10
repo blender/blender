@@ -1662,6 +1662,15 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 283, 8)) {
+
+    /* During development of Blender 2.80 the "Object.hide" property was
+     * removed, and reintroduced in 5e968a996a53 as "Object.hide_viewport". */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      BKE_fcurves_id_cb(&ob->id, do_version_fcurve_hide_viewport_fix, NULL);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1673,12 +1682,6 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
-
-    /* During development of Blender 2.80 the "Object.hide" property was
-     * removed, and reintroduced in 5e968a996a53 as "Object.hide_viewport". */
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      BKE_fcurves_id_cb(&ob->id, do_version_fcurve_hide_viewport_fix, NULL);
-    }
   }
 }
 
@@ -4778,17 +4781,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 283, 8)) {
     if (!DNA_struct_elem_find(
             fd->filesdna, "View3DOverlay", "float", "sculpt_mode_face_sets_opacity")) {
       for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -4831,5 +4824,27 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Default Face Set Color. */
+    for (Mesh *me = bmain->meshes.first; me != NULL; me = me->id.next) {
+      if (me->totpoly > 0) {
+        int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+        if (face_sets) {
+          me->face_sets_color_default = abs(face_sets[0]);
+        }
+      }
+    }
+  }
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

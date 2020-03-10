@@ -1545,6 +1545,9 @@ static void sculpt_update_object(
       for (int i = 0; i < me->totpoly; i++) {
         ss->face_sets[i] = 1;
       }
+
+      /* Set the default face set color if the datalayer did not exist. */
+      me->face_sets_color_default = 1;
     }
     ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
   }
@@ -1554,6 +1557,8 @@ static void sculpt_update_object(
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   BLI_assert(pbvh == ss->pbvh);
   UNUSED_VARS_NDEBUG(pbvh);
+
+  BKE_pbvh_face_sets_color_set(ss->pbvh, me->face_sets_color_seed, me->face_sets_color_default);
 
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
     BKE_mesh_vert_poly_map_create(
