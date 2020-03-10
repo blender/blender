@@ -1526,7 +1526,7 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
 {
 
-  /* only data types supported for now */
+  /* Only data types supported for now. */
   if (offset != 0) {
     Editing *ed = BKE_sequencer_editing_get(scene, false);
     int i;
@@ -1535,16 +1535,16 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
     for (i = data->num_seq - 1; i >= 0; i--) {
       Sequence *seq = data->seq_array[i];
       int endframe;
-      /* we have the offset, do the terrible math */
+      /* We have the offset, apply the values to the sequence strips. */
 
       /* first, do the offset */
       seq->start = data->ts[i].start + offset;
 
       if (data->trim[i]) {
-        /* find the endframe */
+        /* Find the end-frame. */
         endframe = seq->start + seq->len;
 
-        /* now compute the terrible offsets */
+        /* Now compute the sequence offsets. */
         if (endframe > seq->enddisp) {
           seq->endstill = 0;
           seq->endofs = endframe - seq->enddisp;
@@ -1564,12 +1564,12 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
         }
       }
       else {
-        /* if no real trim, don't change the data, rather transform the strips themselves */
+        /* If no real trim, don't change the data, rather transform the strips themselves. */
         seq->startdisp = data->ts[i].startdisp + offset;
         seq->enddisp = data->ts[i].enddisp + offset;
       }
 
-      /* effects are only added if we they are in a meta-strip.
+      /* Effects are only added if we they are in a meta-strip.
        * In this case, dependent strips will just be transformed and
        * we can skip calculating for effects.
        * This way we can avoid an extra loop just for effects*/
