@@ -1675,6 +1675,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
    * Versioning code until next subversion bump goes here.
    *
    * \note Be sure to check when bumping the version:
+   * - #blo_do_versions_280 in this file.
    * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
    * - "versioning_userdef.c", #do_versions_theme
    *
@@ -4835,10 +4836,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
    * \note Be sure to check when bumping the version:
+   * - #do_versions_after_linking_280 in this file.
    * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
    * - "versioning_userdef.c", #do_versions_theme
    *
