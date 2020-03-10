@@ -11033,10 +11033,10 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
   }
 
   ED_region_tag_redraw(region);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
   View3D *v3d = CTX_wm_view3d(C);
   if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   return OPERATOR_FINISHED;
