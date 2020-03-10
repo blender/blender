@@ -619,7 +619,7 @@ class DOPESHEET_MT_context_menu(Menu):
 class DOPESHEET_MT_channel_context_menu(Menu):
     bl_label = "Dope Sheet Channel Context Menu"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
         layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
@@ -634,7 +634,12 @@ class DOPESHEET_MT_channel_context_menu(Menu):
 
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
-        layout.operator_menu_enum("action.extrapolation_type", "type", text="Extrapolation Mode")
+
+        if bpy.ops.graph.extrapolation_type.poll(context.copy()):
+            operator = "graph.extrapolation_type"
+        else:
+            operator = "action.extrapolation_type"
+        layout.operator_menu_enum(operator, "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("anim.channels_expand")

@@ -1963,7 +1963,8 @@ def km_dopesheet_generic(_params):
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'GRAPH_EDITOR')]})
+         {"properties": [("data_path", 'area.type'), ("value", 'GRAPH_EDITOR')]}),
+        ("action.extrapolation_type", {"type": 'E', "value": 'PRESS', "shift": True}, None),
     ])
 
     return keymap
