@@ -978,7 +978,7 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "uv_rotation", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "uv_rot");
-  RNA_def_property_range(prop, 0.0f, M_PI * 2);
+  RNA_def_property_range(prop, -M_PI_2, M_PI_2);
   RNA_def_property_ui_text(prop, "UV Rotation", "Internal UV factor for dot mode");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
