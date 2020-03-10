@@ -1176,7 +1176,7 @@ static void trans_mesh_customdata_correction_apply_vert(struct TransCustomDataLa
     BM_loop_interp_from_face(bm, l, f_copy, false, false);
 
     /* make sure face-attributes are correct (e.g. #MLoopUV, #MLoopCol) */
-    BM_elem_attrs_copy_ex(tcld->bm_origfaces, bm, f_copy, l->f, 0x0, CD_MASK_NORMAL);
+    BM_elem_attrs_copy_ex(tcld->bm_origfaces, bm, f_copy, l->f, BM_ELEM_SELECT, CD_MASK_NORMAL);
 
     /* weight the loop */
     if (do_loop_weight) {
