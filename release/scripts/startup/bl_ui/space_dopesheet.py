@@ -498,6 +498,7 @@ class DOPESHEET_MT_key(Menu):
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
         layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
 
         layout.separator()
         layout.operator("action.clean").channels = False
@@ -600,6 +601,7 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
         layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
 
         layout.separator()
 

@@ -456,6 +456,24 @@ short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
   return 0;
 }
 
+void ANIM_animdata_keyframe_callback(bAnimContext *ac,
+                                     eAnimFilter_Flags filter,
+                                     KeyframeEditFunc callback_fn)
+{
+  ListBase anim_data = {NULL, NULL};
+  bAnimListElem *ale;
+
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, callback_fn, calchandles_fcurve);
+    ale->update |= ANIM_UPDATE_DEFAULT;
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
 /* ************************************************************************** */
 /* Keyframe Integrity Tools */
 

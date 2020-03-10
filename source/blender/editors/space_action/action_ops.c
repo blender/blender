@@ -63,6 +63,7 @@ void action_operatortypes(void)
   WM_operatortype_append(ACTION_OT_handle_type);
   WM_operatortype_append(ACTION_OT_interpolation_type);
   WM_operatortype_append(ACTION_OT_extrapolation_type);
+  WM_operatortype_append(ACTION_OT_easing_type);
   WM_operatortype_append(ACTION_OT_keyframe_type);
   WM_operatortype_append(ACTION_OT_sample);
   WM_operatortype_append(ACTION_OT_clean);

@@ -99,6 +99,7 @@ void ACTION_OT_keyframe_type(struct wmOperatorType *ot);
 void ACTION_OT_handle_type(struct wmOperatorType *ot);
 void ACTION_OT_interpolation_type(struct wmOperatorType *ot);
 void ACTION_OT_extrapolation_type(struct wmOperatorType *ot);
+void ACTION_OT_easing_type(struct wmOperatorType *ot);
 
 void ACTION_OT_frame_jump(struct wmOperatorType *ot);
 
