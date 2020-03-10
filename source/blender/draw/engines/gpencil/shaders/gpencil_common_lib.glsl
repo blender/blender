@@ -551,13 +551,13 @@ void fill_vertex()
   /* Decode fill opacity. */
   vec4 fcol_decode = vec4(fcol1.rgb, floor(fcol1.a / 10.0));
   float fill_opacity = fcol1.a - (fcol_decode.a * 10);
-  fcol_decode.a /= 10000.0f;
+  fcol_decode.a /= 10000.0;
 
   /* Apply opacity. */
   fill_col.a *= fill_opacity;
   /* If factor is > 1 force opacity. */
   if (fill_opacity > 1.0) {
-    fill_col.a += fill_opacity - 1.0f;
+    fill_col.a += fill_opacity - 1.0;
   }
 
   fill_col.a = clamp(fill_col.a, 0.0, 1.0);
