@@ -231,8 +231,8 @@ static GP_Sculpt_Settings *gpsculpt_get_settings(Scene *scene)
 static bool gp_brush_invert_check(tGP_BrushEditData *gso)
 {
   /* The basic setting is the brush's setting (from the panel) */
-  bool invert = ((gso->brush->gpencil_settings->sculpt_flag & GP_SCULPT_FLAG_INVERT) != 0);
-
+  bool invert = ((gso->brush->gpencil_settings->sculpt_flag & GP_SCULPT_FLAG_INVERT) != 0) ||
+                (gso->brush->gpencil_settings->sculpt_flag & BRUSH_DIR_IN);
   /* During runtime, the user can hold down the Ctrl key to invert the basic behavior */
   if (gso->flag & GP_SCULPT_FLAG_INVERT) {
     invert ^= true;
