@@ -564,6 +564,21 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
   const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
 
+  /* Do some very minimal mesh validation. */
+  const int poly_count = face_counts->size();
+  const int loop_count = face_indices->size();
+  /* This is the same test as in poly_to_tri_count(). */
+  if (poly_count > 0 && loop_count < poly_count * 2) {
+    if (err_str != nullptr) {
+      *err_str = "Invalid mesh; more detail on the console";
+    }
+    printf("Alembic: invalid mesh sample for '%s/%s' at time %f, less than 2 loops per face\n",
+           m_iobject.getFullName().c_str(),
+           m_schema.getName().c_str(),
+           sample_sel.getRequestedTime());
+    return existing_mesh;
+  }
+
   Mesh *new_mesh = NULL;
 
   /* Only read point data when streaming meshes, unless we need to create new ones. */
