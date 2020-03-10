@@ -442,7 +442,7 @@ void stroke_vertex()
 
     /* Rotation: Encoded as Cos + Sin sign. */
     float uv_rot = decode_uvrot(uvrot1);
-    float rot_sin = sqrt(1.0 - uv_rot * uv_rot) * sign(uv_rot);
+    float rot_sin = sqrt(max(0.0, 1.0 - uv_rot * uv_rot)) * sign(uv_rot);
     float rot_cos = abs(uv_rot);
     x_axis = mat2(rot_cos, -rot_sin, rot_sin, rot_cos) * x_axis;
 
