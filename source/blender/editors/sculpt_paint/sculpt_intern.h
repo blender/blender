@@ -663,6 +663,9 @@ typedef struct FilterCache {
   float *prev_mask;
   float mask_expand_initial_co[3];
 
+  /* Used to prevent undesired results on certain mesh filters. */
+  float *automask;
+
   int new_face_set;
   int *prev_face_set;
 

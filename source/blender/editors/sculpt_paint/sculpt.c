@@ -1633,17 +1633,11 @@ static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *a
 
 #define EDGE_DISTANCE_INF -1
 
-static float *sculpt_boundary_edges_automasking_init(Sculpt *sd,
-                                                     Object *ob,
+static float *sculpt_boundary_edges_automasking_init(Object *ob,
+                                                     int propagation_steps,
                                                      float *automask_factor)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-  const int propagation_steps = brush->automasking_boundary_edges_propagation_steps;
-
-  if (!sculpt_automasking_enabled(ss, brush)) {
-    return NULL;
-  }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
     BLI_assert(!"Boundary Edges masking: pmap missing");
@@ -1693,6 +1687,10 @@ static void sculpt_automasking_init(Sculpt *sd, Object *ob)
   Brush *brush = BKE_paint_brush(&sd->paint);
   const int totvert = SCULPT_vertex_count_get(ss);
 
+  if (!sculpt_automasking_enabled(ss, brush)) {
+    return;
+  }
+
   ss->cache->automask = MEM_callocN(sizeof(float) * SCULPT_vertex_count_get(ss),
                                     "automask_factor");
 
@@ -1711,7 +1709,8 @@ static void sculpt_automasking_init(Sculpt *sd, Object *ob)
 
   if (brush->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
     SCULPT_vertex_random_access_init(ss);
-    sculpt_boundary_edges_automasking_init(sd, ob, ss->cache->automask);
+    sculpt_boundary_edges_automasking_init(
+        ob, brush->automasking_boundary_edges_propagation_steps, ss->cache->automask);
   }
 }
 
@@ -9143,6 +9142,10 @@ static void sculpt_filter_cache_free(SculptSession *ss)
   if (ss->filter_cache->prev_face_set) {
     MEM_freeN(ss->filter_cache->prev_face_set);
   }
+  if (ss->filter_cache->automask) {
+    MEM_freeN(ss->filter_cache->automask);
+  }
+
   MEM_freeN(ss->filter_cache);
   ss->filter_cache = NULL;
 }
@@ -9310,7 +9313,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         break;
       }
       case MESH_FILTER_RELAX: {
-        SCULPT_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), false, val);
+        SCULPT_relax_vertex(
+            ss, &vd, clamp_f(fade * ss->filter_cache->automask[vd.index], 0.0f, 1.0f), false, val);
         sub_v3_v3v3(disp, val, vd.co);
         break;
       }
@@ -9442,6 +9446,16 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   ss->filter_cache->enabled_axis[0] = deform_axis & MESH_FILTER_DEFORM_X;
   ss->filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
   ss->filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
+
+  if (RNA_enum_get(op->ptr, "type") == MESH_FILTER_RELAX) {
+    const int totvert = SCULPT_vertex_count_get(ss);
+    ss->filter_cache->automask = MEM_mallocN(totvert * sizeof(float),
+                                             "Relax filter edge automask");
+    for (int i = 0; i < totvert; i++) {
+      ss->filter_cache->automask[i] = 1.0f;
+    }
+    sculpt_boundary_edges_automasking_init(ob, 1, ss->filter_cache->automask);
+  }
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
