@@ -4819,5 +4819,17 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         br->automasking_boundary_edges_propagation_steps = 1;
       }
     }
+
+    /* Corrective smooth modifier scale*/
+    if (!DNA_struct_elem_find(fd->filesdna, "CorrectiveSmoothModifierData", "float", "scale")) {
+      for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+        for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+          if (md->type == eModifierType_CorrectiveSmooth) {
+            CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+            csmd->scale = 1.0f;
+          }
+        }
+      }
+    }
   }
 }

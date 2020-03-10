@@ -1677,7 +1677,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.prop(md, "factor", text="Factor")
         layout.prop(md, "iterations")
-
+        layout.prop(md, "scale")
         row = layout.row()
         row.prop(md, "smooth_type")
 

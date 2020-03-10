@@ -3109,6 +3109,13 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Repeat", "");
   RNA_def_property_update(prop, 0, "rna_CorrectiveSmoothModifier_update");
 
+  prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "scale");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 10.0, 5, 3);
+  RNA_def_property_ui_text(prop, "Scale", "Compensate for scale applied by other modifiers");
+  RNA_def_property_update(prop, 0, "rna_CorrectiveSmoothModifier_update");
+
   prop = RNA_def_property(srna, "rest_source", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "rest_source");
   RNA_def_property_enum_items(prop, modifier_rest_source_items);
