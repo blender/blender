@@ -459,7 +459,7 @@ static void WIDGETGROUP_node_sbeam_setup(const bContext *UNUSED(C), wmGizmoGroup
 
   RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_CROSS_2D);
 
-  gz->scale_basis = 0.05f;
+  gz->scale_basis = 0.05f / 75.0f;
 
   gzgroup->customdata = sbeam_group;
 }
@@ -566,7 +566,7 @@ static void WIDGETGROUP_node_corner_pin_setup(const bContext *UNUSED(C), wmGizmo
 
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_CROSS_2D);
 
-    gz->scale_basis = 0.01f;
+    gz->scale_basis = 0.01f / 75.0;
   }
 
   gzgroup->customdata = cpin_group;
