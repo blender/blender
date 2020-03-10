@@ -636,7 +636,12 @@ static bool is_hidden_dot_filename(const char *filename, FileListInternEntry *fi
     BLI_strncpy(tmp_filename, filename, sizeof(tmp_filename));
     sep = tmp_filename + (sep - filename);
     while (sep) {
+      /* This happens when a path contains 'ALTSEP', '\' on Unix for e.g.
+       * Supporting alternate slashes in paths is a bigger task involving changes
+       * in many parts of the code, for now just prevent an assert, see T74579. */
+#if 0
       BLI_assert(sep[1] != '\0');
+#endif
       if (is_hidden_dot_filename(sep + 1, file)) {
         hidden = true;
         break;
