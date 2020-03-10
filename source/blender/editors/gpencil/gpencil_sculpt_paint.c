@@ -405,27 +405,15 @@ static bool gp_brush_strength_apply(tGP_BrushEditData *gso,
   bGPDspoint *pt = gps->points + pt_index;
   float inf;
 
-  /* Compute strength of effect
-   * - We divide the strength, so that users can set "sane" values.
-   *   Otherwise, good default values are in the range of 0.093
-   */
-  inf = gp_brush_influence_calc(gso, radius, co) / 2.0f;
-  CLAMP_MIN(inf, 0.01f);
+  /* Compute strength of effect */
+  inf = gp_brush_influence_calc(gso, radius, co) * 0.125f;
 
-  /* apply */
+  /* Invert effect. */
   if (gp_brush_invert_check(gso)) {
-    /* make line more transparent - reduce alpha factor */
-    pt->strength -= inf;
+    inf *= -1.0f;
   }
-  else {
-    /* make line more opaque - increase stroke strength */
-    pt->strength += inf;
-  }
-  /* Strength should stay within [0.0, 1.0] */
-  CLAMP(pt->strength, 0.0f, 1.0f);
 
-  /* smooth the strength */
-  BKE_gpencil_stroke_smooth_strength(gps, pt_index, inf);
+  pt->strength = clamp_f(pt->strength + inf, 0.0f, 1.0f);
 
   return true;
 }
