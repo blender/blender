@@ -776,6 +776,7 @@ struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, Wor
                                       wo,
                                       engine,
                                       options,
+                                      false,
                                       e_data.vert_background_shader_str,
                                       NULL,
                                       e_data.frag_shader_lib,
@@ -796,6 +797,7 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
                                       wo,
                                       engine,
                                       options,
+                                      false,
                                       e_data.vert_background_shader_str,
                                       NULL,
                                       e_data.frag_shader_lib,
@@ -819,6 +821,7 @@ struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *
                                      wo,
                                      engine,
                                      options,
+                                     true,
                                      e_data.vert_volume_shader_str,
                                      e_data.geom_volume_shader_str,
                                      e_data.volume_shader_lib,
@@ -853,6 +856,7 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene,
                                         ma,
                                         engine,
                                         options,
+                                        false,
                                         e_data.vert_shader_str,
                                         NULL,
                                         e_data.frag_shader_lib,
@@ -880,6 +884,7 @@ struct GPUMaterial *EEVEE_material_mesh_volume_get(struct Scene *scene, Material
                                         ma,
                                         engine,
                                         options,
+                                        true,
                                         e_data.vert_volume_shader_str,
                                         e_data.geom_volume_shader_str,
                                         e_data.volume_shader_lib,
@@ -916,6 +921,7 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene,
                                         ma,
                                         engine,
                                         options,
+                                        false,
                                         (is_shadow) ? e_data.vert_shadow_shader_str :
                                                       e_data.vert_shader_str,
                                         NULL,
@@ -945,6 +951,7 @@ struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma)
                                         ma,
                                         engine,
                                         options,
+                                        false,
                                         e_data.vert_shader_str,
                                         NULL,
                                         e_data.frag_shader_lib,
@@ -1919,7 +1926,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
      * to know if the material has a "volume nodetree".
      */
     bool use_volume_material = (gpumat_array[0] &&
-                                GPU_material_use_domain_volume(gpumat_array[0]));
+                                GPU_material_has_volume_output(gpumat_array[0]));
 
     if ((ob->dt >= OB_SOLID) || DRW_state_is_image_render()) {
       /* Get per-material split surface */
@@ -1968,7 +1975,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           /* Do not render surface if we are rendering a volume object
            * and do not have a surface closure. */
           if (use_volume_material &&
-              (gpumat_array[i] && !GPU_material_use_domain_surface(gpumat_array[i]))) {
+              (gpumat_array[i] && !GPU_material_has_surface_output(gpumat_array[i]))) {
             continue;
           }
 

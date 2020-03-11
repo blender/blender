@@ -119,6 +119,10 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
       input->source = GPU_SOURCE_TEX_TILED_MAPPING;
       input->texture = link->texture;
       break;
+    case GPU_NODE_LINK_VOLUME_GRID:
+      input->source = GPU_SOURCE_VOLUME_GRID;
+      input->volume_grid = link->volume_grid;
+      break;
     case GPU_NODE_LINK_ATTR:
       input->source = GPU_SOURCE_ATTR;
       input->attr = link->attr;
@@ -321,6 +325,31 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
   return tex;
 }
 
+static GPUMaterialVolumeGrid *gpu_node_graph_add_volume_grid(GPUNodeGraph *graph, const char *name)
+{
+  /* Find existing volume grid. */
+  int num_grids = 0;
+  GPUMaterialVolumeGrid *grid = graph->volume_grids.first;
+  for (; grid; grid = grid->next) {
+    if (STREQ(grid->name, name)) {
+      break;
+    }
+    num_grids++;
+  }
+
+  /* Add new requested volume grid. */
+  if (grid == NULL) {
+    grid = MEM_callocN(sizeof(*grid), __func__);
+    grid->name = BLI_strdup(name);
+    BLI_snprintf(grid->sampler_name, sizeof(grid->sampler_name), "vsamp%d", num_grids);
+    BLI_addtail(&graph->volume_grids, grid);
+  }
+
+  grid->users++;
+
+  return grid;
+}
+
 /* Creating Inputs */
 
 GPUNodeLink *GPU_attribute(GPUMaterial *mat, const CustomDataType type, const char *name)
@@ -391,6 +420,30 @@ GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *ro
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_COLORBAND;
   link->texture = gpu_node_graph_add_texture(graph, NULL, NULL, colorband, link->link_type);
+  return link;
+}
+
+GPUNodeLink *GPU_volume_grid(GPUMaterial *mat, const char *name)
+{
+  /* NOTE: this could be optimized by automatically merging duplicate
+   * lookups of the same attribute. */
+  GPUNodeGraph *graph = gpu_material_node_graph(mat);
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_VOLUME_GRID;
+  link->volume_grid = gpu_node_graph_add_volume_grid(graph, name);
+
+  /* Two special cases, where we adjust the output values of smoke grids to
+   * bring the into standard range without having to modify the grid values. */
+  if (strcmp(name, "color") == 0) {
+    GPU_link(mat, "node_attribute_volume_color", link, &link);
+  }
+  else if (strcmp(name, "temperature") == 0) {
+    GPU_link(mat, "node_attribute_volume_temperature", link, &link);
+  }
+  else {
+    GPU_link(mat, "node_attribute_volume", link, &link);
+  }
+
   return link;
 }
 
@@ -537,6 +590,9 @@ static void gpu_inputs_free(ListBase *inputs)
     else if (ELEM(input->source, GPU_SOURCE_TEX, GPU_SOURCE_TEX_TILED_MAPPING)) {
       input->texture->users--;
     }
+    else if (ELEM(input->source, GPU_SOURCE_VOLUME_GRID)) {
+      input->volume_grid->users--;
+    }
 
     if (input->link) {
       gpu_node_link_free(input->link);
@@ -579,6 +635,11 @@ void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 void gpu_node_graph_free(GPUNodeGraph *graph)
 {
   gpu_node_graph_free_nodes(graph);
+
+  for (GPUMaterialVolumeGrid *grid = graph->volume_grids.first; grid; grid = grid->next) {
+    MEM_SAFE_FREE(grid->name);
+  }
+  BLI_freelistN(&graph->volume_grids);
   BLI_freelistN(&graph->textures);
   BLI_freelistN(&graph->attributes);
 }
@@ -635,6 +696,14 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
     next = tex->next;
     if (tex->users == 0) {
       BLI_freelinkN(&graph->textures, tex);
+    }
+  }
+
+  for (GPUMaterialVolumeGrid *grid = graph->volume_grids.first, *next = NULL; grid; grid = next) {
+    next = grid->next;
+    if (grid->users == 0) {
+      MEM_SAFE_FREE(grid->name);
+      BLI_freelinkN(&graph->volume_grids, grid);
     }
   }
 }

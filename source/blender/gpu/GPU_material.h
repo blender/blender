@@ -98,13 +98,9 @@ typedef enum eGPUBuiltin {
   GPU_LOC_TO_VIEW_MATRIX = (1 << 13),
   GPU_INVERSE_LOC_TO_VIEW_MATRIX = (1 << 14),
   GPU_OBJECT_INFO = (1 << 15),
-  GPU_VOLUME_DENSITY = (1 << 16),
-  GPU_VOLUME_COLOR = (1 << 17),
-  GPU_VOLUME_FLAME = (1 << 18),
-  GPU_VOLUME_TEMPERATURE = (1 << 19),
-  GPU_BARYCENTRIC_TEXCO = (1 << 20),
-  GPU_BARYCENTRIC_DIST = (1 << 21),
-  GPU_WORLD_NORMAL = (1 << 22),
+  GPU_BARYCENTRIC_TEXCO = (1 << 16),
+  GPU_BARYCENTRIC_DIST = (1 << 17),
+  GPU_WORLD_NORMAL = (1 << 18),
 } eGPUBuiltin;
 
 typedef enum eGPUMatFlag {
@@ -146,6 +142,7 @@ GPUNodeLink *GPU_image(GPUMaterial *mat, struct Image *ima, struct ImageUser *iu
 GPUNodeLink *GPU_image_tiled(GPUMaterial *mat, struct Image *ima, struct ImageUser *iuser);
 GPUNodeLink *GPU_image_tiled_mapping(GPUMaterial *mat, struct Image *ima, struct ImageUser *iuser);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer);
+GPUNodeLink *GPU_volume_grid(GPUMaterial *mat, const char *name);
 GPUNodeLink *GPU_builtin(eGPUBuiltin builtin);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);
@@ -179,7 +176,8 @@ GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
                                         struct bNodeTree *ntree,
                                         struct ListBase *gpumaterials,
                                         const void *engine_type,
-                                        int options,
+                                        const int options,
+                                        const bool is_volume_shader,
                                         const char *vert_code,
                                         const char *geom_code,
                                         const char *frag_lib,
@@ -192,7 +190,6 @@ void GPU_materials_free(struct Main *bmain);
 
 struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
-struct ListBase *GPU_material_get_inputs(GPUMaterial *material);
 struct Material *GPU_material_get_material(GPUMaterial *material);
 eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
@@ -200,8 +197,10 @@ struct GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 struct GPUUniformBuffer *GPU_material_create_sss_profile_ubo(void);
 
-bool GPU_material_use_domain_surface(GPUMaterial *mat);
-bool GPU_material_use_domain_volume(GPUMaterial *mat);
+bool GPU_material_has_surface_output(GPUMaterial *mat);
+bool GPU_material_has_volume_output(GPUMaterial *mat);
+
+bool GPU_material_is_volume_shader(GPUMaterial *mat);
 
 void GPU_material_flag_set(GPUMaterial *mat, eGPUMatFlag flag);
 bool GPU_material_flag_get(GPUMaterial *mat, eGPUMatFlag flag);
@@ -231,8 +230,16 @@ typedef struct GPUMaterialTexture {
   int users;
 } GPUMaterialTexture;
 
+typedef struct GPUMaterialVolumeGrid {
+  struct GPUMaterialVolumeGrid *next, *prev;
+  char *name;
+  char sampler_name[32]; /* Name of sampler in GLSL. */
+  int users;
+} GPUMaterialVolumeGrid;
+
 ListBase GPU_material_attributes(GPUMaterial *material);
 ListBase GPU_material_textures(GPUMaterial *material);
+ListBase GPU_material_volume_grids(GPUMaterial *material);
 
 #ifdef __cplusplus
 }

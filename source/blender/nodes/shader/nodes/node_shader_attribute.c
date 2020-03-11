@@ -42,28 +42,18 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 {
   NodeShaderAttribute *attr = node->storage;
 
-  /* FIXME : if an attribute layer (like vertex color) has one of these names,
-   * it will not work as expected. */
-  if (strcmp(attr->name, "density") == 0) {
-    return GPU_stack_link(
-        mat, node, "node_attribute_volume_density", in, out, GPU_builtin(GPU_VOLUME_DENSITY));
-  }
-  else if (strcmp(attr->name, "color") == 0) {
-    return GPU_stack_link(
-        mat, node, "node_attribute_volume_color", in, out, GPU_builtin(GPU_VOLUME_COLOR));
-  }
-  else if (strcmp(attr->name, "flame") == 0) {
-    return GPU_stack_link(
-        mat, node, "node_attribute_volume_flame", in, out, GPU_builtin(GPU_VOLUME_FLAME));
-  }
-  else if (strcmp(attr->name, "temperature") == 0) {
-    return GPU_stack_link(mat,
-                          node,
-                          "node_attribute_volume_temperature",
-                          in,
-                          out,
-                          GPU_builtin(GPU_VOLUME_FLAME),
-                          GPU_builtin(GPU_VOLUME_TEMPERATURE));
+  if (GPU_material_is_volume_shader(mat)) {
+    if (out[0].hasoutput) {
+      out[0].link = GPU_volume_grid(mat, attr->name);
+    }
+    if (out[1].hasoutput) {
+      out[1].link = GPU_volume_grid(mat, attr->name);
+    }
+    if (out[2].hasoutput) {
+      out[2].link = GPU_volume_grid(mat, attr->name);
+    }
+
+    return 1;
   }
   else {
     GPUNodeLink *cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);

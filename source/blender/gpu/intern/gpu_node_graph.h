@@ -48,6 +48,8 @@ typedef enum eGPUDataSource {
   GPU_SOURCE_STRUCT,
   GPU_SOURCE_TEX,
   GPU_SOURCE_TEX_TILED_MAPPING,
+  GPU_SOURCE_VOLUME_GRID,
+  GPU_SOURCE_VOLUME_GRID_TRANSFORM,
 } eGPUDataSource;
 
 typedef enum {
@@ -59,6 +61,7 @@ typedef enum {
   GPU_NODE_LINK_IMAGE,
   GPU_NODE_LINK_IMAGE_TILED,
   GPU_NODE_LINK_IMAGE_TILED_MAPPING,
+  GPU_NODE_LINK_VOLUME_GRID,
   GPU_NODE_LINK_OUTPUT,
   GPU_NODE_LINK_UNIFORM,
 } GPUNodeLinkType;
@@ -88,6 +91,8 @@ struct GPUNodeLink {
     eGPUBuiltin builtin;
     /* GPU_NODE_LINK_COLORBAND */
     struct GPUTexture **colorband;
+    /* GPU_NODE_LINK_VOLUME_GRID */
+    struct GPUMaterialVolumeGrid *volume_grid;
     /* GPU_NODE_LINK_OUTPUT */
     struct GPUOutput *output;
     /* GPU_NODE_LINK_ATTR */
@@ -126,6 +131,8 @@ typedef struct GPUInput {
     struct GPUMaterialTexture *texture;
     /* GPU_SOURCE_ATTR */
     struct GPUMaterialAttribute *attr;
+    /* GPU_SOURCE_VOLUME_GRID */
+    struct GPUMaterialVolumeGrid *volume_grid;
   };
 } GPUInput;
 
@@ -139,6 +146,7 @@ typedef struct GPUNodeGraph {
   /* Requested attributes and textures. */
   ListBase attributes;
   ListBase textures;
+  ListBase volume_grids;
 } GPUNodeGraph;
 
 /* Node Graph */

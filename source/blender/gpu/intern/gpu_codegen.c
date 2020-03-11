@@ -269,18 +269,6 @@ static const char *gpu_builtin_name(eGPUBuiltin builtin)
   else if (builtin == GPU_OBJECT_INFO) {
     return "unfobjectinfo";
   }
-  else if (builtin == GPU_VOLUME_DENSITY) {
-    return "sampdensity";
-  }
-  else if (builtin == GPU_VOLUME_COLOR) {
-    return "sampcolor";
-  }
-  else if (builtin == GPU_VOLUME_FLAME) {
-    return "sampflame";
-  }
-  else if (builtin == GPU_VOLUME_TEMPERATURE) {
-    return "unftemperature";
-  }
   else if (builtin == GPU_BARYCENTRIC_TEXCO) {
     return "unfbarycentrictex";
   }
@@ -344,6 +332,11 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
     }
   }
 
+  /* Volume Grids */
+  for (GPUMaterialVolumeGrid *grid = graph->volume_grids.first; grid; grid = grid->next) {
+    BLI_dynstr_appendf(ds, "uniform sampler3D %s;\n", grid->sampler_name);
+  }
+
   /* Print other uniforms */
   for (node = graph->nodes.first; node; node = node->next) {
     for (input = node->inputs.first; input; input = input->next) {
@@ -353,13 +346,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
           builtins |= input->builtin;
           name = gpu_builtin_name(input->builtin);
 
-          if (BLI_str_startswith(name, "samp")) {
-            if ((input->builtin == GPU_VOLUME_DENSITY) || (input->builtin == GPU_VOLUME_COLOR) ||
-                (input->builtin == GPU_VOLUME_FLAME)) {
-              BLI_dynstr_appendf(ds, "uniform sampler3D %s;\n", name);
-            }
-          }
-          else if (BLI_str_startswith(name, "unf")) {
+          if (BLI_str_startswith(name, "unf")) {
             BLI_dynstr_appendf(ds, "uniform %s %s;\n", gpu_data_type_to_string(input->type), name);
           }
           else {
@@ -441,6 +428,9 @@ static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph, GPUOutput *f
       }
       else if (input->source == GPU_SOURCE_TEX_TILED_MAPPING) {
         BLI_dynstr_append(ds, input->texture->tiled_mapping_name);
+      }
+      else if (input->source == GPU_SOURCE_VOLUME_GRID) {
+        BLI_dynstr_append(ds, input->volume_grid->sampler_name);
       }
       else if (input->source == GPU_SOURCE_OUTPUT) {
         codegen_convert_datatype(
