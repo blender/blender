@@ -2915,6 +2915,21 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       }
     }
   }
+  else if (ISMOUSE_WHEEL(event->type) || ISMOUSE_GESTURE(event->type)) {
+    /* Modifiers which can trigger click event's,
+     * however we don't want this if the mouse wheel has been used, see T74607. */
+    if (wm_action_not_handled(action)) {
+      /* pass */
+    }
+    else {
+      wmWindow *win = CTX_wm_window(C);
+      if (win) {
+        if (ISKEYMODIFIER(win->eventstate->prevtype)) {
+          win->eventstate->check_click = 0;
+        }
+      }
+    }
+  }
 
   return action;
 }
