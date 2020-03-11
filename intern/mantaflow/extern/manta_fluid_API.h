@@ -132,14 +132,14 @@ void manta_smoke_turbulence_export(struct MANTA *smoke,
                                    float **tcw2);
 void manta_smoke_get_rgba(struct MANTA *smoke, float *data, int sequential);
 void manta_smoke_turbulence_get_rgba(struct MANTA *smoke, float *data, int sequential);
-void manta_smoke_get_rgba_from_density(struct MANTA *smoke,
-                                       float color[3],
-                                       float *data,
-                                       int sequential);
-void manta_smoke_turbulence_get_rgba_from_density(struct MANTA *smoke,
-                                                  float color[3],
-                                                  float *data,
-                                                  int sequential);
+void manta_smoke_get_rgba_fixed_color(struct MANTA *smoke,
+                                      float color[3],
+                                      float *data,
+                                      int sequential);
+void manta_smoke_turbulence_get_rgba_fixed_color(struct MANTA *smoke,
+                                                 float color[3],
+                                                 float *data,
+                                                 int sequential);
 void manta_smoke_ensure_heat(struct MANTA *smoke, struct FluidModifierData *mmd);
 void manta_smoke_ensure_fire(struct MANTA *smoke, struct FluidModifierData *mmd);
 void manta_smoke_ensure_colors(struct MANTA *smoke, struct FluidModifierData *mmd);

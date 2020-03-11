@@ -70,7 +70,7 @@ static void node_shader_gpu_volume_attribute(GPUMaterial *mat,
   }
   else if (strcmp(name, "color") == 0) {
     GPU_link(
-        mat, "node_attribute_volume_color", GPU_builtin(GPU_VOLUME_DENSITY), outcol, outvec, outf);
+        mat, "node_attribute_volume_color", GPU_builtin(GPU_VOLUME_COLOR), outcol, outvec, outf);
   }
   else if (strcmp(name, "flame") == 0) {
     GPU_link(

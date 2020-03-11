@@ -272,6 +272,9 @@ static const char *gpu_builtin_name(eGPUBuiltin builtin)
   else if (builtin == GPU_VOLUME_DENSITY) {
     return "sampdensity";
   }
+  else if (builtin == GPU_VOLUME_COLOR) {
+    return "sampcolor";
+  }
   else if (builtin == GPU_VOLUME_FLAME) {
     return "sampflame";
   }
@@ -351,7 +354,8 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
           name = gpu_builtin_name(input->builtin);
 
           if (BLI_str_startswith(name, "samp")) {
-            if ((input->builtin == GPU_VOLUME_DENSITY) || (input->builtin == GPU_VOLUME_FLAME)) {
+            if ((input->builtin == GPU_VOLUME_DENSITY) || (input->builtin == GPU_VOLUME_COLOR) ||
+                (input->builtin == GPU_VOLUME_FLAME)) {
               BLI_dynstr_appendf(ds, "uniform sampler3D %s;\n", name);
             }
           }

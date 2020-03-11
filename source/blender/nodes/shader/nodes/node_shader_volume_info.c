@@ -40,6 +40,7 @@ static int node_shader_gpu_volume_info(GPUMaterial *mat,
                         in,
                         out,
                         GPU_builtin(GPU_VOLUME_DENSITY),
+                        GPU_builtin(GPU_VOLUME_COLOR),
                         GPU_builtin(GPU_VOLUME_FLAME),
                         GPU_builtin(GPU_VOLUME_TEMPERATURE));
 }

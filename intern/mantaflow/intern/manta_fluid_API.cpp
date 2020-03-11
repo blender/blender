@@ -455,14 +455,9 @@ static void get_rgba(
 
   for (i = 0; i < total_cells; i++) {
     float alpha = a[i];
-    if (alpha) {
-      data[i * m] = r[i];
-      data[i * m + i_g] = g[i];
-      data[i * m + i_b] = b[i];
-    }
-    else {
-      data[i * m] = data[i * m + i_g] = data[i * m + i_b] = 0.0f;
-    }
+    data[i * m] = r[i] * alpha;
+    data[i * m + i_g] = g[i] * alpha;
+    data[i * m + i_b] = b[i] * alpha;
     data[i * m + i_a] = alpha;
   }
 }
@@ -489,8 +484,7 @@ void manta_smoke_turbulence_get_rgba(MANTA *smoke, float *data, int sequential)
            sequential);
 }
 
-static void get_rgba_from_density(
-    float color[3], float *a, int total_cells, float *data, int sequential)
+static void get_rgba_fixed_color(float color[3], int total_cells, float *data, int sequential)
 {
   int i;
   int m = 4, i_g = 1, i_b = 2, i_a = 3;
@@ -502,31 +496,24 @@ static void get_rgba_from_density(
   }
 
   for (i = 0; i < total_cells; i++) {
-    float alpha = a[i];
-    if (alpha) {
-      data[i * m] = color[0] * alpha;
-      data[i * m + i_g] = color[1] * alpha;
-      data[i * m + i_b] = color[2] * alpha;
-    }
-    else {
-      data[i * m] = data[i * m + i_g] = data[i * m + i_b] = 0.0f;
-    }
-    data[i * m + i_a] = alpha;
+    data[i * m] = color[0];
+    data[i * m + i_g] = color[1];
+    data[i * m + i_b] = color[2];
+    data[i * m + i_a] = 1.0f;
   }
 }
 
-void manta_smoke_get_rgba_from_density(MANTA *smoke, float color[3], float *data, int sequential)
+void manta_smoke_get_rgba_fixed_color(MANTA *smoke, float color[3], float *data, int sequential)
 {
-  get_rgba_from_density(color, smoke->getDensity(), smoke->getTotalCells(), data, sequential);
+  get_rgba_fixed_color(color, smoke->getTotalCells(), data, sequential);
 }
 
-void manta_smoke_turbulence_get_rgba_from_density(MANTA *smoke,
-                                                  float color[3],
-                                                  float *data,
-                                                  int sequential)
+void manta_smoke_turbulence_get_rgba_fixed_color(MANTA *smoke,
+                                                 float color[3],
+                                                 float *data,
+                                                 int sequential)
 {
-  get_rgba_from_density(
-      color, smoke->getDensityHigh(), smoke->getTotalCellsHigh(), data, sequential);
+  get_rgba_fixed_color(color, smoke->getTotalCellsHigh(), data, sequential);
 }
 
 void manta_smoke_ensure_heat(MANTA *smoke, struct FluidModifierData *mmd)

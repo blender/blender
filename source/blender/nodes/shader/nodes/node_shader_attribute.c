@@ -50,7 +50,7 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   }
   else if (strcmp(attr->name, "color") == 0) {
     return GPU_stack_link(
-        mat, node, "node_attribute_volume_color", in, out, GPU_builtin(GPU_VOLUME_DENSITY));
+        mat, node, "node_attribute_volume_color", in, out, GPU_builtin(GPU_VOLUME_COLOR));
   }
   else if (strcmp(attr->name, "flame") == 0) {
     return GPU_stack_link(

@@ -5439,7 +5439,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb, Object *ob)
 
         mmd->domain->fluid = NULL;
         mmd->domain->fluid_mutex = BLI_rw_mutex_alloc();
-        mmd->domain->tex = NULL;
+        mmd->domain->tex_density = NULL;
+        mmd->domain->tex_color = NULL;
         mmd->domain->tex_shadow = NULL;
         mmd->domain->tex_flame = NULL;
         mmd->domain->tex_flame_coba = NULL;

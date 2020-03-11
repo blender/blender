@@ -146,7 +146,8 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
     GPU_create_smoke(mmd, 1);
   }
 
-  if ((!mds->use_coba && mds->tex == NULL) || (mds->use_coba && mds->tex_field == NULL)) {
+  if ((!mds->use_coba && (mds->tex_density == NULL && mds->tex_color == NULL)) ||
+      (mds->use_coba && mds->tex_field == NULL)) {
     return;
   }
 
@@ -201,7 +202,8 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
     static float white[3] = {1.0f, 1.0f, 1.0f};
     bool use_constant_color = ((mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
                                (mds->active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET) != 0);
-    DRW_shgroup_uniform_texture(grp, "densityTexture", mds->tex);
+    DRW_shgroup_uniform_texture(
+        grp, "densityTexture", (mds->tex_color) ? mds->tex_color : mds->tex_density);
     DRW_shgroup_uniform_texture(grp, "shadowTexture", mds->tex_shadow);
     DRW_shgroup_uniform_texture(
         grp, "flameTexture", (mds->tex_flame) ? mds->tex_flame : e_data.dummy_tex);

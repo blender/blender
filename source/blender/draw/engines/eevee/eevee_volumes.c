@@ -141,10 +141,10 @@ static void eevee_create_shader_volumes(void)
   e_data.volumetric_accum_sh = DRW_shader_create_fullscreen(datatoc_volumetric_accum_frag_glsl,
                                                             NULL);
 
-  float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  e_data.dummy_density = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, color);
+  const float density[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  e_data.dummy_density = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, density);
 
-  float flame = 0.0f;
+  const float flame = 0.0f;
   e_data.dummy_flame = DRW_texture_create_3d(1, 1, 1, GPU_R8, DRW_TEX_WRAP, &flame);
 }
 
@@ -368,6 +368,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
       /* Fix principle volumetric not working with world materials. */
       DRW_shgroup_uniform_texture(grp, "sampdensity", e_data.dummy_density);
+      DRW_shgroup_uniform_texture(grp, "sampcolor", e_data.dummy_density);
       DRW_shgroup_uniform_texture(grp, "sampflame", e_data.dummy_flame);
       DRW_shgroup_uniform_vec2_copy(grp, "unftemperature", (float[2]){0.0f, 1.0f});
 
@@ -477,7 +478,9 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
     }
 
     DRW_shgroup_uniform_texture_ref(
-        grp, "sampdensity", mds->tex ? &mds->tex : &e_data.dummy_density);
+        grp, "sampdensity", mds->tex_density ? &mds->tex_density : &e_data.dummy_density);
+    DRW_shgroup_uniform_texture_ref(
+        grp, "sampcolor", mds->tex_color ? &mds->tex_color : &e_data.dummy_density);
     DRW_shgroup_uniform_texture_ref(
         grp, "sampflame", mds->tex_flame ? &mds->tex_flame : &e_data.dummy_flame);
 
@@ -493,6 +496,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   }
   else {
     DRW_shgroup_uniform_texture(grp, "sampdensity", e_data.dummy_density);
+    DRW_shgroup_uniform_texture(grp, "sampcolor", e_data.dummy_density);
     DRW_shgroup_uniform_texture(grp, "sampflame", e_data.dummy_flame);
     DRW_shgroup_uniform_vec3(grp, "volumeColor", white, 1);
     DRW_shgroup_uniform_vec2(grp, "unftemperature", (float[2]){0.0f, 1.0f}, 1);

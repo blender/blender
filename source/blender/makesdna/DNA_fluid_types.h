@@ -256,7 +256,8 @@ typedef struct FluidDomainSettings {
   struct Collection *fluid_group;
   struct Collection *force_group;    /* UNUSED */
   struct Collection *effector_group; /* Effector objects group. */
-  struct GPUTexture *tex;
+  struct GPUTexture *tex_density;
+  struct GPUTexture *tex_color;
   struct GPUTexture *tex_wt;
   struct GPUTexture *tex_shadow;
   struct GPUTexture *tex_flame;

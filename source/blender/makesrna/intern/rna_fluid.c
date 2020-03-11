@@ -720,7 +720,7 @@ static void rna_FluidModifier_color_grid_get(PointerRNA *ptr, float *values)
         manta_smoke_turbulence_get_rgba(mds->fluid, values, 0);
       }
       else {
-        manta_smoke_turbulence_get_rgba_from_density(mds->fluid, mds->active_color, values, 0);
+        manta_smoke_turbulence_get_rgba_fixed_color(mds->fluid, mds->active_color, values, 0);
       }
     }
     else {
@@ -728,7 +728,7 @@ static void rna_FluidModifier_color_grid_get(PointerRNA *ptr, float *values)
         manta_smoke_get_rgba(mds->fluid, values, 0);
       }
       else {
-        manta_smoke_get_rgba_from_density(mds->fluid, mds->active_color, values, 0);
+        manta_smoke_get_rgba_fixed_color(mds->fluid, mds->active_color, values, 0);
       }
     }
   }
