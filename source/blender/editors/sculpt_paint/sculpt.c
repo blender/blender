@@ -3661,6 +3661,10 @@ void SCULPT_relax_vertex(SculptSession *ss,
   if (count > 0) {
     mul_v3_fl(smooth_pos, 1.0f / (float)count);
   }
+  else {
+    copy_v3_v3(r_final_pos, vd->co);
+    return;
+  }
 
   float plane[4];
   float smooth_closest_plane[3];
@@ -3671,6 +3675,12 @@ void SCULPT_relax_vertex(SculptSession *ss,
   else {
     copy_v3_v3(vno, vd->fno);
   }
+
+  if (is_zero_v3(vno)) {
+    copy_v3_v3(r_final_pos, vd->co);
+    return;
+  }
+
   plane_from_point_normal_v3(plane, vd->co, vno);
   closest_to_plane_v3(smooth_closest_plane, plane, smooth_pos);
   sub_v3_v3v3(final_disp, smooth_closest_plane, vd->co);
