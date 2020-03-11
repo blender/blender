@@ -477,9 +477,9 @@ class OptiXDevice : public CUDADevice {
     // Calculate maximum trace continuation stack size
     unsigned int trace_css = stack_size[PG_HITD].cssCH;
     // This is based on the maximum of closest-hit and any-hit/intersection programs
-    trace_css = max(trace_css, stack_size[PG_HITD].cssIS + stack_size[PG_HITD].cssAH);
-    trace_css = max(trace_css, stack_size[PG_HITL].cssIS + stack_size[PG_HITL].cssAH);
-    trace_css = max(trace_css, stack_size[PG_HITS].cssIS + stack_size[PG_HITS].cssAH);
+    trace_css = std::max(trace_css, stack_size[PG_HITD].cssIS + stack_size[PG_HITD].cssAH);
+    trace_css = std::max(trace_css, stack_size[PG_HITL].cssIS + stack_size[PG_HITL].cssAH);
+    trace_css = std::max(trace_css, stack_size[PG_HITS].cssIS + stack_size[PG_HITS].cssAH);
 
     OptixPipelineLinkOptions link_options;
     link_options.maxTraceDepth = 1;
@@ -548,8 +548,9 @@ class OptiXDevice : public CUDADevice {
                               &pipelines[PIP_SHADER_EVAL]));
 
       // Calculate continuation stack size based on the maximum of all ray generation stack sizes
-      const unsigned int css = max(stack_size[PG_BAKE].cssRG,
-                                   max(stack_size[PG_DISP].cssRG, stack_size[PG_BACK].cssRG)) +
+      const unsigned int css = std::max(stack_size[PG_BAKE].cssRG,
+                                        std::max(stack_size[PG_DISP].cssRG,
+                                                 stack_size[PG_BACK].cssRG)) +
                                link_options.maxTraceDepth * trace_css;
 
       check_result_optix_ret(optixPipelineSetStackSize(
