@@ -764,10 +764,6 @@ typedef enum eDopeSheet_FilterFlag {
   /** show only F-Curves which are disabled/have errors - for debugging drivers */
   ADS_FILTER_ONLY_ERRORS = (1 << 28),
 
-  /* GPencil Mode */
-  /** GP Mode - Only show datablocks used in the scene */
-  ADS_FILTER_GP_3DONLY = (1 << 29),
-
 #if 0
   /** combination filters (some only used at runtime) */
   ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM |
