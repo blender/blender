@@ -710,7 +710,7 @@ void GPENCIL_cache_finish(void *ved)
 
     if (pd->use_mask_fb) {
       /* We need an extra depth to not disturb the normal drawing.
-       * The color_tx is needed for framebuffer cmpleteness. */
+       * The color_tx is needed for frame-buffer completeness. */
       GPUTexture *color_tx, *depth_tx;
       depth_tx = DRW_texture_pool_query_2d(
           size[0], size[1], GPU_DEPTH24_STENCIL8, &draw_engine_gpencil_type);

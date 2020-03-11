@@ -402,7 +402,7 @@ static void drw_stencil_state_set(uint write_mask, uint reference, uint compare_
   /* Reminders:
    * - (compare_mask & reference) is what is tested against (compare_mask & stencil_value)
    *   stencil_value being the value stored in the stencil buffer.
-   * - (writemask & reference) is what gets written if the test condition is fullfiled.
+   * - (write-mask & reference) is what gets written if the test condition is fulfilled.
    **/
   glStencilMask(write_mask);
 

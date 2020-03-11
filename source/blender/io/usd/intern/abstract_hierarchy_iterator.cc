@@ -345,7 +345,7 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
   }
   else {
     /* The parent object is NOT part of the duplicated collection. This means that the world
-     * transform of this dupliobject can be influenced by objects that are not part of its
+     * transform of this dupli-object can be influenced by objects that are not part of its
      * export graph. */
     animation_check_include_parent = true;
     context->export_parent = duplicator;

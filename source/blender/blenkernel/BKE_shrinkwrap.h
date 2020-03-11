@@ -170,7 +170,7 @@ void BKE_shrinkwrap_snap_point_to_surface(const struct ShrinkwrapTreeData *tree,
                                           float r_point_co[3]);
 
 /*
- * NULL initializers to local data
+ * NULL initializes to local data
  */
 #define NULL_ShrinkwrapCalcData \
   { \

@@ -188,9 +188,9 @@ static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr,
    * not a very efficient way of getting hair key location data,
    * but it's the best we've got at the present
    *
-   * IDEAS: include additional information in pointerRNA beforehand,
-   * for example a pointer to the ParticleStstemModifierData to which the
-   * hairkey belongs.
+   * IDEAS: include additional information in PointerRNA beforehand,
+   * for example a pointer to the ParticleSystemModifierData to which the
+   * hair-key belongs.
    */
 
   for (md = ob->modifiers.first; md; md = md->next) {
@@ -199,9 +199,9 @@ static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr,
       if (psmd && psmd->mesh_final && psmd->psys) {
         psys = psmd->psys;
         for (i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
-          /* hairkeys are stored sequentially in memory, so we can
+          /* Hair-keys are stored sequentially in memory, so we can
            * find if it's the same particle by comparing pointers,
-           * without having to iterate over them all */
+           * without having to iterate over them all. */
           if ((hkey >= pa->hair) && (hkey < pa->hair + pa->totkey)) {
             *psmd_pt = psmd;
             *pa_pt = pa;

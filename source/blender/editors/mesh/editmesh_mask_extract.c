@@ -349,7 +349,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_begin(ob, "mask slice");
     /* TODO: The ideal functionality would be to preserve the current face sets and add a new one
-     * for the new triangles, but this datalayer needs to be rebuild in order to make sculpt mode
+     * for the new triangles, but this data-layer needs to be rebuild in order to make sculpt mode
      * not crash when modifying the geometry. */
     CustomData_free_layers(&mesh->pdata, CD_SCULPT_FACE_SETS, mesh->totpoly);
   }

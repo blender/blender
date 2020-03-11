@@ -50,11 +50,9 @@ static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))
   char str[UI_MAX_DRAW_STR];
   copy_v3_v3(t->values_final, t->values);
 
-  /*
-   * OPTIMIZATION:
-   * This still recalcs transformation on mouse move
-   * while it should only recalc on constraint change
-   * */
+  /* OPTIMIZATION:
+   * This still recalculates transformation on mouse move
+   * while it should only recalculate on constraint change. */
 
   /* if an axis has been selected */
   if (t->con.mode & CON_APPLY) {

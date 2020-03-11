@@ -177,8 +177,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       icon = RNA_struct_ui_icon(ptr.type);
 
       /* valid path - remove the invalid tag since we now know how to use it saving
-       * users manual effort to reenable using "Revive Disabled FCurves" [#29629]
-       */
+       * users manual effort to re-enable using "Revive Disabled FCurves" T29629. */
       fcu->flag &= ~FCURVE_DISABLED;
     }
     else {

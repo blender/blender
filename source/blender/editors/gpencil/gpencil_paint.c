@@ -3280,8 +3280,10 @@ static void gpencil_add_guide_points(const tGPsdata *p,
   }
 }
 
-/* Add fake points for missing mouse movements when the artist draw very fast creating an arc
- * with the vertice in the midle of the segment and using the angle of the previous segment. */
+/**
+ * Add fake points for missing mouse movements when the artist draw very fast creating an arc
+ * with the vertex in the middle of the segment and using the angle of the previous segment.
+ */
 static void gpencil_add_fake_points(const wmEvent *event, tGPsdata *p)
 {
   Brush *brush = p->brush;

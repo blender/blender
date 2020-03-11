@@ -108,7 +108,7 @@ static void gpencil_object_random_color_get(const Object *ob, float r_color[3])
 
 static void gpencil_shade_color(float color[3])
 {
-  /* This is scene refered color, not gamma corrected and not per perceptual.
+  /* This is scene refereed color, not gamma corrected and not per perceptual.
    * So we lower the threshold a bit. (1.0 / 3.0) */
   if (color[0] + color[1] + color[2] > 1.1) {
     add_v3_fl(color, -0.25f);

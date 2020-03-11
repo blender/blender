@@ -943,7 +943,7 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob,
 }
 
 /**
- * Wrapper for objectmode/editmode.
+ * Wrapper for object-mode/edit-mode.
  *
  * call #BM_mesh_elem_table_ensure first for editmesh.
  */

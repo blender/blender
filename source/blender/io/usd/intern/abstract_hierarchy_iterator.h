@@ -65,8 +65,8 @@ struct HierarchyContext {
   /* When weak_export=true, the object will be exported only as transform, and only if is an
    * ancestor of an object with weak_export=false.
    *
-   * In other words: when weak_export=true but this object has no children, or all decendants also
-   * have weak_export=true, this object (and by recursive reasoning all its decendants) will be
+   * In other words: when weak_export=true but this object has no children, or all descendants also
+   * have weak_export=true, this object (and by recursive reasoning all its descendants) will be
    * excluded from the export.
    *
    * The export hierarchy is kept as close to the the hierarchy in Blender as possible. As such, an
@@ -222,7 +222,7 @@ class AbstractHierarchyIterator {
    *
    * When this returns true, only a transform writer is created and marked as
    * 'weak export'. In this case, the transform writer will be removed before
-   * exporting starts, unless a decendant of this object is to be exported.
+   * exporting starts, unless a descendant of this object is to be exported.
    * Dupli-object generated from this object will also be skipped.
    *
    * See HierarchyContext::weak_export.

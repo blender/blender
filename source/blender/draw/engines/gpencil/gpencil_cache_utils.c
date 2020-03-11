@@ -61,7 +61,7 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
   /* TODO: This does not work quite well if you use
    * strokes not aligned with the object axes. Maybe we could try to
    * compute the minimum axis of all strokes. But this would be more
-   * computationaly heavy and should go into the GPData evaluation. */
+   * computationally heavy and should go into the GPData evaluation. */
   BoundBox *bbox = BKE_object_boundbox_get(ob);
   /* Convert bbox to matrix */
   float mat[4][4], size[3], center[3];

@@ -2741,7 +2741,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       }
       /* Optimization: Static liquid flow objects don't need emission computation after first
        * frame.
-       * TODO (sebbas): Also do not use static mode if inital velocities are enabled. */
+       * TODO (sebbas): Also do not use static mode if initial velocities are enabled. */
       if (mfs->type == FLUID_FLOW_TYPE_LIQUID && is_static && !is_first_frame && !use_velocity) {
         continue;
       }
@@ -2961,7 +2961,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       if (is_liquid && !is_first_frame) {
 
         /* Skip static liquid objects that are not on the first frame.
-         * TODO (sebbas): Also do not use static mode if inital velocities are enabled. */
+         * TODO (sebbas): Also do not use static mode if initial velocities are enabled. */
         if (is_static && !use_velocity) {
           continue;
         }
@@ -3222,7 +3222,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *mds, Mesh *orgmesh, Obj
   float cell_size_scaled[3];
 
   /* Assign material + flags to new mesh.
-   * If there are no faces in original mesj, keep materials and flags unchanged. */
+   * If there are no faces in original mesh, keep materials and flags unchanged. */
   MPoly *mpoly;
   MPoly mp_example = {0};
   mpoly = orgmesh->mpoly;

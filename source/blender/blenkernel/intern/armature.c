@@ -1008,12 +1008,12 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param,
    * - These properties allow users to hand-animate the
    *   bone curve/shape, without having to resort to using
    *   extra bones
-   * - The "bone" level offsets are for defining the restpose
+   * - The "bone" level offsets are for defining the rest-pose
    *   shape of the bone (e.g. for curved eyebrows for example).
    *   -> In the viewport, it's needed to define what the rest pose
    *      looks like
    *   -> For "rest == 0", we also still need to have it present
-   *      so that we can "cancel out" this restpose when it comes
+   *      so that we can "cancel out" this rest-pose when it comes
    *      time to deform some geometry, it won't cause double transforms.
    * - The "pchan" level offsets are the ones that animators actually
    *   end up animating
