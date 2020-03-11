@@ -3023,7 +3023,7 @@ Image *BKE_image_ensure_viewer(Main *bmain, int type, const char *name)
 
   /* happens on reload, imagewindow cannot be image user when hidden*/
   if (ima->id.us == 0) {
-    id_us_plus(&ima->id);
+    id_us_ensure_real(&ima->id);
   }
 
   return ima;
