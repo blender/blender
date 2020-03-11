@@ -46,7 +46,7 @@
 
 /* Adjust these constants as needed. */
 #define MAX_DEFINE_LENGTH 256
-#define MAX_EXT_DEFINE_LENGTH 256
+#define MAX_EXT_DEFINE_LENGTH 512
 
 /* Non-generated shaders */
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
@@ -234,6 +234,10 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
   }
   if (GLEW_ARB_shader_draw_parameters) {
     strcat(defines, "#extension GL_ARB_shader_draw_parameters : enable\n");
+  }
+  if (GPU_arb_texture_cube_map_array_is_supported()) {
+    strcat(defines, "#extension GL_ARB_texture_cube_map_array : enable\n");
+    strcat(defines, "#define GPU_ARB_texture_cube_map_array\n");
   }
 }
 

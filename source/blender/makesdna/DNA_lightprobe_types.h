@@ -160,6 +160,10 @@ typedef struct LightCacheTexture {
 
 typedef struct LightCache {
   int flag;
+  /** Version number to know if the cache data is compatible with this version of blender. */
+  int version;
+  /** Type of data this cache contains. */
+  int type;
   /* only a single cache for now */
   /** Number of probes to use for rendering. */
   int cube_len, grid_len;
@@ -180,6 +184,14 @@ typedef struct LightCache {
   LightProbeCache *cube_data;
   LightGridCache *grid_data;
 } LightCache;
+
+/* Bump the version number for lightcache data structure changes. */
+#define LIGHTCACHE_STATIC_VERSION 1
+
+/* LightCache->type */
+enum {
+  LIGHTCACHE_TYPE_STATIC = 0,
+};
 
 /* LightCache->flag */
 enum {

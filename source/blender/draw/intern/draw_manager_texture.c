@@ -123,6 +123,15 @@ GPUTexture *DRW_texture_create_cube(int w,
   return tex;
 }
 
+GPUTexture *DRW_texture_create_cube_array(
+    int w, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels)
+{
+  GPUTexture *tex = GPU_texture_create_cube_array(w, d, format, fpixels, NULL);
+  drw_texture_set_parameters(tex, flags);
+
+  return tex;
+}
+
 GPUTexture *DRW_texture_pool_query_2d(int w,
                                       int h,
                                       eGPUTextureFormat format,

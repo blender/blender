@@ -2767,9 +2767,9 @@ static void write_scene(WriteData *wd, Scene *sce)
   }
 
   /* Eevee Lightcache */
-  if (sce->eevee.light_cache && !wd->use_memfile) {
-    writestruct(wd, DATA, LightCache, 1, sce->eevee.light_cache);
-    write_lightcache(wd, sce->eevee.light_cache);
+  if (sce->eevee.light_cache_data && !wd->use_memfile) {
+    writestruct(wd, DATA, LightCache, 1, sce->eevee.light_cache_data);
+    write_lightcache(wd, sce->eevee.light_cache_data);
   }
 
   write_view3dshading(wd, &sce->display.shading);

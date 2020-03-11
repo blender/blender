@@ -1633,7 +1633,8 @@ typedef struct SceneEEVEE {
   int shadow_cube_size;
   int shadow_cascade_size;
 
-  struct LightCache *light_cache;
+  struct LightCache *light_cache DNA_DEPRECATED;
+  struct LightCache *light_cache_data;
   char light_cache_info[64];
 
   float overscan;

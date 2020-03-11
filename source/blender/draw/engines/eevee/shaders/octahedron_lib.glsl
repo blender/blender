@@ -18,21 +18,3 @@ vec2 mapping_octahedron(vec3 cubevec, vec2 texel_size)
 
   return uvs;
 }
-
-vec4 textureLod_octahedron(sampler2DArray tex, vec4 cubevec, float lod, float lod_max)
-{
-  vec2 texelSize = 1.0 / vec2(textureSize(tex, int(lod_max)));
-
-  vec2 uvs = mapping_octahedron(cubevec.xyz, texelSize);
-
-  return textureLod(tex, vec3(uvs, cubevec.w), lod);
-}
-
-vec4 texture_octahedron(sampler2DArray tex, vec4 cubevec)
-{
-  vec2 texelSize = 1.0 / vec2(textureSize(tex, 0));
-
-  vec2 uvs = mapping_octahedron(cubevec.xyz, texelSize);
-
-  return texture(tex, vec3(uvs, cubevec.w));
-}

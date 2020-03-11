@@ -157,6 +157,8 @@
 
 #include "RE_engine.h"
 
+#include "engines/eevee/eevee_lightcache.h"
+
 #include "readfile.h"
 
 #include <errno.h>
@@ -1852,8 +1854,8 @@ void blo_make_scene_pointer_map(FileData *fd, Main *oldmain)
   fd->scenemap = oldnewmap_new();
 
   for (; sce; sce = sce->id.next) {
-    if (sce->eevee.light_cache) {
-      struct LightCache *light_cache = sce->eevee.light_cache;
+    if (sce->eevee.light_cache_data) {
+      struct LightCache *light_cache = sce->eevee.light_cache_data;
       oldnewmap_insert(fd->scenemap, light_cache, light_cache, 0);
     }
   }
@@ -1873,7 +1875,7 @@ void blo_end_scene_pointer_map(FileData *fd, Main *oldmain)
   }
 
   for (; sce; sce = sce->id.next) {
-    sce->eevee.light_cache = newsceadr(fd, sce->eevee.light_cache);
+    sce->eevee.light_cache_data = newsceadr(fd, sce->eevee.light_cache_data);
   }
 }
 
@@ -6927,19 +6929,20 @@ static void direct_link_scene(FileData *fd, Scene *sce)
   if (fd->memfile) {
     /* If it's undo try to recover the cache. */
     if (fd->scenemap) {
-      sce->eevee.light_cache = newsceadr(fd, sce->eevee.light_cache);
+      sce->eevee.light_cache_data = newsceadr(fd, sce->eevee.light_cache_data);
     }
     else {
-      sce->eevee.light_cache = NULL;
+      sce->eevee.light_cache_data = NULL;
     }
   }
   else {
     /* else try to read the cache from file. */
-    sce->eevee.light_cache = newdataadr(fd, sce->eevee.light_cache);
-    if (sce->eevee.light_cache) {
-      direct_link_lightcache(fd, sce->eevee.light_cache);
+    sce->eevee.light_cache_data = newdataadr(fd, sce->eevee.light_cache_data);
+    if (sce->eevee.light_cache_data) {
+      direct_link_lightcache(fd, sce->eevee.light_cache_data);
     }
   }
+  EEVEE_lightcache_info_update(&sce->eevee);
 
   direct_link_view3dshading(fd, &sce->display.shading);
 

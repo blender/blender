@@ -804,7 +804,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       Scene *scene_cow = (Scene *)id_cow;
       const Scene *scene_orig = (const Scene *)id_orig;
       scene_cow->toolsettings = scene_orig->toolsettings;
-      scene_cow->eevee.light_cache = scene_orig->eevee.light_cache;
+      scene_cow->eevee.light_cache_data = scene_orig->eevee.light_cache_data;
       scene_setup_view_layers_after_remap(depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
       update_scene_orig_pointers(scene_orig, scene_cow);
       break;
@@ -1000,7 +1000,7 @@ void discard_scene_pointers(ID *id_cow)
 {
   Scene *scene_cow = (Scene *)id_cow;
   scene_cow->toolsettings = nullptr;
-  scene_cow->eevee.light_cache = nullptr;
+  scene_cow->eevee.light_cache_data = nullptr;
 }
 
 /* nullptr-ify all edit mode pointers which points to data from

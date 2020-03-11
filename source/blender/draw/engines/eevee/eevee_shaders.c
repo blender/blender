@@ -88,6 +88,7 @@ extern char datatoc_lightprobe_planar_downsample_vert_glsl[];
 extern char datatoc_irradiance_lib_glsl[];
 extern char datatoc_lightprobe_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
+extern char datatoc_cubemap_lib_glsl[];
 
 /* Velocity Resolve */
 extern char datatoc_effect_velocity_resolve_frag_glsl[];
@@ -196,6 +197,7 @@ GPUShader *EEVEE_shaders_background_studiolight_sh_get(void)
 {
   if (e_data.probe_background_studiolight_sh == NULL) {
     char *frag_str = BLI_string_joinN(datatoc_octahedron_lib_glsl,
+                                      datatoc_cubemap_lib_glsl,
                                       datatoc_common_uniforms_lib_glsl,
                                       datatoc_bsdf_common_lib_glsl,
                                       datatoc_lightprobe_lib_glsl,
@@ -217,6 +219,7 @@ GPUShader *EEVEE_shaders_probe_cube_display_sh_get(void)
 {
   if (e_data.probe_cube_display_sh == NULL) {
     char *shader_str = BLI_string_joinN(datatoc_octahedron_lib_glsl,
+                                        datatoc_cubemap_lib_glsl,
                                         datatoc_common_view_lib_glsl,
                                         datatoc_common_uniforms_lib_glsl,
                                         datatoc_bsdf_common_lib_glsl,
@@ -238,6 +241,7 @@ GPUShader *EEVEE_shaders_probe_grid_display_sh_get(void)
 {
   if (e_data.probe_grid_display_sh == NULL) {
     char *shader_str = BLI_string_joinN(datatoc_octahedron_lib_glsl,
+                                        datatoc_cubemap_lib_glsl,
                                         datatoc_common_view_lib_glsl,
                                         datatoc_common_uniforms_lib_glsl,
                                         datatoc_bsdf_common_lib_glsl,

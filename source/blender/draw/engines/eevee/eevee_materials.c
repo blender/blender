@@ -89,6 +89,7 @@ extern char datatoc_common_hair_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_irradiance_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
+extern char datatoc_cubemap_lib_glsl[];
 extern char datatoc_lit_surface_frag_glsl[];
 extern char datatoc_lit_surface_vert_glsl[];
 extern char datatoc_raytrace_lib_glsl[];
@@ -618,6 +619,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
                                               datatoc_raytrace_lib_glsl,
                                               datatoc_ssr_lib_glsl,
                                               datatoc_octahedron_lib_glsl,
+                                              datatoc_cubemap_lib_glsl,
                                               datatoc_irradiance_lib_glsl,
                                               datatoc_lightprobe_lib_glsl,
                                               datatoc_ltc_lib_glsl,
@@ -641,6 +643,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
                                                 datatoc_bsdf_common_lib_glsl,
                                                 datatoc_ambient_occlusion_lib_glsl,
                                                 datatoc_octahedron_lib_glsl,
+                                                datatoc_cubemap_lib_glsl,
                                                 datatoc_irradiance_lib_glsl,
                                                 datatoc_lightprobe_lib_glsl,
                                                 datatoc_ltc_lib_glsl,

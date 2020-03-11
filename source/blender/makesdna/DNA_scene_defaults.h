@@ -224,7 +224,7 @@
     .shadow_cube_size = 512, \
     .shadow_cascade_size = 1024, \
  \
-    .light_cache = NULL, \
+    .light_cache_data = NULL, \
     .light_threshold = 0.01f, \
  \
     .overscan = 3.0f, \

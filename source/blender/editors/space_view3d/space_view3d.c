@@ -1422,7 +1422,7 @@ static void space_view3d_listener(wmWindow *UNUSED(win),
 static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
   Scene *scene = CTX_data_scene(C);
-  LightCache *lcache = scene->eevee.light_cache;
+  LightCache *lcache = scene->eevee.light_cache_data;
 
   if (lcache && (lcache->flag & LIGHTCACHE_UPDATE_AUTO) != 0) {
     lcache->flag &= ~LIGHTCACHE_UPDATE_AUTO;

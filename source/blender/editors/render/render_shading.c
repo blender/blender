@@ -890,14 +890,14 @@ enum {
 
 static void light_cache_bake_tag_cache(Scene *scene, wmOperator *op)
 {
-  if (scene->eevee.light_cache != NULL) {
+  if (scene->eevee.light_cache_data != NULL) {
     int subset = RNA_enum_get(op->ptr, "subset");
     switch (subset) {
       case LIGHTCACHE_SUBSET_ALL:
-        scene->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_GRID | LIGHTCACHE_UPDATE_CUBE;
+        scene->eevee.light_cache_data->flag |= LIGHTCACHE_UPDATE_GRID | LIGHTCACHE_UPDATE_CUBE;
         break;
       case LIGHTCACHE_SUBSET_CUBE:
-        scene->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_CUBE;
+        scene->eevee.light_cache_data->flag |= LIGHTCACHE_UPDATE_CUBE;
         break;
       case LIGHTCACHE_SUBSET_DIRTY:
         /* Leave tag untouched. */
@@ -1046,7 +1046,7 @@ static bool light_cache_free_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
 
-  return scene->eevee.light_cache;
+  return scene->eevee.light_cache_data;
 }
 
 static int light_cache_free_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1057,12 +1057,12 @@ static int light_cache_free_exec(bContext *C, wmOperator *UNUSED(op))
   wmWindowManager *wm = CTX_wm_manager(C);
   WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
 
-  if (!scene->eevee.light_cache) {
+  if (!scene->eevee.light_cache_data) {
     return OPERATOR_CANCELLED;
   }
 
-  EEVEE_lightcache_free(scene->eevee.light_cache);
-  scene->eevee.light_cache = NULL;
+  EEVEE_lightcache_free(scene->eevee.light_cache_data);
+  scene->eevee.light_cache_data = NULL;
 
   EEVEE_lightcache_info_update(&scene->eevee);
 

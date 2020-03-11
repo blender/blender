@@ -166,6 +166,8 @@ struct GPUTexture *DRW_texture_create_cube(int w,
                                            eGPUTextureFormat format,
                                            DRWTextureFlag flags,
                                            const float *fpixels);
+struct GPUTexture *DRW_texture_create_cube_array(
+    int w, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 
 void DRW_texture_ensure_fullscreen_2d(struct GPUTexture **tex,
                                       eGPUTextureFormat format,

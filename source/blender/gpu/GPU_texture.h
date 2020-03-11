@@ -162,6 +162,12 @@ GPUTexture *GPU_texture_create_nD(int w,
                                   int samples,
                                   const bool can_rescale,
                                   char err_out[256]);
+GPUTexture *GPU_texture_cube_create(int w,
+                                    int d,
+                                    const void *pixels,
+                                    eGPUTextureFormat tex_format,
+                                    eGPUDataFormat gpu_data_format,
+                                    char err_out[256]);
 
 GPUTexture *GPU_texture_create_1d(int w,
                                   eGPUTextureFormat data_type,
@@ -185,6 +191,9 @@ GPUTexture *GPU_texture_create_cube(int w,
                                     eGPUTextureFormat data_type,
                                     const float *pixels,
                                     char err_out[256]);
+GPUTexture *GPU_texture_create_cube_array(
+    int w, int d, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+
 GPUTexture *GPU_texture_create_from_vertbuf(struct GPUVertBuf *vert);
 GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat data_type, const uint buffer);
 
@@ -252,6 +261,7 @@ void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);
 int GPU_texture_layers(const GPUTexture *tex);
 eGPUTextureFormat GPU_texture_format(const GPUTexture *tex);
 int GPU_texture_samples(const GPUTexture *tex);
+bool GPU_texture_array(const GPUTexture *tex);
 bool GPU_texture_cube(const GPUTexture *tex);
 bool GPU_texture_depth(const GPUTexture *tex);
 bool GPU_texture_stencil(const GPUTexture *tex);

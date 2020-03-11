@@ -395,9 +395,9 @@ static void scene_free_data(ID *id)
     scene->master_collection = NULL;
   }
 
-  if (scene->eevee.light_cache) {
-    EEVEE_lightcache_free(scene->eevee.light_cache);
-    scene->eevee.light_cache = NULL;
+  if (scene->eevee.light_cache_data) {
+    EEVEE_lightcache_free(scene->eevee.light_cache_data);
+    scene->eevee.light_cache_data = NULL;
   }
 
   if (scene->display.shading.prop) {
@@ -583,7 +583,7 @@ void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
 {
   /* Copy eevee data between scenes. */
   sce_dst->eevee = sce_src->eevee;
-  sce_dst->eevee.light_cache = NULL;
+  sce_dst->eevee.light_cache_data = NULL;
   sce_dst->eevee.light_cache_info[0] = '\0';
   /* TODO Copy the cache. */
 }

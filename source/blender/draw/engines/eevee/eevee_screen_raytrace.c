@@ -54,6 +54,7 @@ extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
+extern char datatoc_cubemap_lib_glsl[];
 extern char datatoc_effect_ssr_frag_glsl[];
 extern char datatoc_lightprobe_lib_glsl[];
 extern char datatoc_raytrace_lib_glsl[];
@@ -67,6 +68,7 @@ static struct GPUShader *eevee_effects_screen_raytrace_shader_get(int options)
                                             datatoc_bsdf_sampling_lib_glsl,
                                             datatoc_ambient_occlusion_lib_glsl,
                                             datatoc_octahedron_lib_glsl,
+                                            datatoc_cubemap_lib_glsl,
                                             datatoc_lightprobe_lib_glsl,
                                             datatoc_raytrace_lib_glsl,
                                             datatoc_effect_ssr_frag_glsl);

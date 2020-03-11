@@ -72,6 +72,7 @@ extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
+extern char datatoc_cubemap_lib_glsl[];
 extern char datatoc_irradiance_lib_glsl[];
 extern char datatoc_lights_lib_glsl[];
 extern char datatoc_volumetric_accum_frag_glsl[];
@@ -99,6 +100,7 @@ static void eevee_create_shader_volumes(void)
                                                          datatoc_common_uniforms_lib_glsl,
                                                          datatoc_bsdf_common_lib_glsl,
                                                          datatoc_octahedron_lib_glsl,
+                                                         datatoc_cubemap_lib_glsl,
                                                          datatoc_irradiance_lib_glsl,
                                                          datatoc_lights_lib_glsl,
                                                          datatoc_volumetric_lib_glsl);

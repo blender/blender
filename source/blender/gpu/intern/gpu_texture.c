@@ -109,7 +109,7 @@ static uint gpu_texture_memory_footprint_compute(GPUTexture *tex)
       return tex->bytesize * tex->w * tex->h * tex->d * samp;
     case GL_TEXTURE_CUBE_MAP:
       return tex->bytesize * 6 * tex->w * tex->h * samp;
-    case GL_TEXTURE_CUBE_MAP_ARRAY:
+    case GL_TEXTURE_CUBE_MAP_ARRAY_ARB:
       return tex->bytesize * 6 * tex->w * tex->h * tex->d * samp;
     default:
       return 0;
@@ -138,6 +138,7 @@ static const char *gl_enum_to_str(GLenum e)
 #define ENUM_TO_STRING(e) [GL_##e] = STRINGIFY_ARG(e)
   static const char *enum_strings[] = {
       ENUM_TO_STRING(TEXTURE_CUBE_MAP),
+      ENUM_TO_STRING(TEXTURE_CUBE_MAP_ARRAY),
       ENUM_TO_STRING(TEXTURE_2D),
       ENUM_TO_STRING(TEXTURE_2D_ARRAY),
       ENUM_TO_STRING(TEXTURE_1D),
@@ -199,6 +200,25 @@ static int gpu_get_component_count(eGPUTextureFormat format)
       return 2;
     default:
       return 1;
+  }
+}
+
+static uint gpu_get_data_format_bytesize(int comp, eGPUDataFormat data_format)
+{
+  switch (data_format) {
+    case GPU_DATA_FLOAT:
+      return sizeof(float) * comp;
+    case GPU_DATA_INT:
+    case GPU_DATA_UNSIGNED_INT:
+      return sizeof(int) * comp;
+    case GPU_DATA_UNSIGNED_INT_24_8:
+    case GPU_DATA_10_11_11_REV:
+      return sizeof(int);
+    case GPU_DATA_UNSIGNED_BYTE:
+      return sizeof(char) * comp;
+    default:
+      BLI_assert(0);
+      return 0;
   }
 }
 
@@ -679,6 +699,7 @@ GPUTexture *GPU_texture_create_nD(int w,
     }
     else {
       tex->target_base = tex->target = GL_TEXTURE_2D_ARRAY;
+      tex->format_flag |= GPU_FORMAT_ARRAY;
     }
   }
   else if (n == 1) {
@@ -687,6 +708,7 @@ GPUTexture *GPU_texture_create_nD(int w,
     }
     else {
       tex->target_base = tex->target = GL_TEXTURE_1D_ARRAY;
+      tex->format_flag |= GPU_FORMAT_ARRAY;
     }
   }
   else if (n == 3) {
@@ -839,17 +861,12 @@ GPUTexture *GPU_texture_create_nD(int w,
   return tex;
 }
 
-static GPUTexture *GPU_texture_cube_create(int w,
-                                           int d,
-                                           const float *fpixels_px,
-                                           const float *fpixels_py,
-                                           const float *fpixels_pz,
-                                           const float *fpixels_nx,
-                                           const float *fpixels_ny,
-                                           const float *fpixels_nz,
-                                           eGPUTextureFormat tex_format,
-                                           eGPUDataFormat gpu_data_format,
-                                           char err_out[256])
+GPUTexture *GPU_texture_cube_create(int w,
+                                    int d,
+                                    const void *pixels,
+                                    eGPUTextureFormat tex_format,
+                                    eGPUDataFormat gpu_data_format,
+                                    char err_out[256])
 {
   GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
   tex->w = w;
@@ -867,8 +884,21 @@ static GPUTexture *GPU_texture_cube_create(int w,
     tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP;
   }
   else {
-    BLI_assert(false && "Cubemap array Not implemented yet");
-    // tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP_ARRAY;
+    tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP_ARRAY_ARB;
+    tex->format_flag |= GPU_FORMAT_ARRAY;
+
+    if (!GPU_arb_texture_cube_map_array_is_supported()) {
+      fprintf(stderr, "ERROR: Attempt to create a cubemap array without hardware support!\n");
+      BLI_assert(0);
+      GPU_texture_free(tex);
+      return NULL;
+    }
+
+    if (d > GPU_max_texture_layers() / 6) {
+      BLI_assert(0);
+      GPU_texture_free(tex);
+      return NULL;
+    }
   }
 
   GLenum internalformat = gpu_get_gl_internalformat(tex_format);
@@ -905,60 +935,42 @@ static GPUTexture *GPU_texture_cube_create(int w,
   glBindTexture(tex->target, tex->bindcode);
 
   /* Upload Texture */
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-               0,
-               internalformat,
-               tex->w,
-               tex->h,
-               0,
-               data_format,
-               data_type,
-               fpixels_px);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-               0,
-               internalformat,
-               tex->w,
-               tex->h,
-               0,
-               data_format,
-               data_type,
-               fpixels_py);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-               0,
-               internalformat,
-               tex->w,
-               tex->h,
-               0,
-               data_format,
-               data_type,
-               fpixels_pz);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-               0,
-               internalformat,
-               tex->w,
-               tex->h,
-               0,
-               data_format,
-               data_type,
-               fpixels_nx);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-               0,
-               internalformat,
-               tex->w,
-               tex->h,
-               0,
-               data_format,
-               data_type,
-               fpixels_ny);
-  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-               0,
-               internalformat,
-               tex->w,
-               tex->h,
-               0,
-               data_format,
-               data_type,
-               fpixels_nz);
+  if (d == 0) {
+    const char *pixels_px, *pixels_py, *pixels_pz, *pixels_nx, *pixels_ny, *pixels_nz;
+
+    if (pixels) {
+      size_t face_ofs = w * w * gpu_get_data_format_bytesize(tex->components, gpu_data_format);
+      pixels_px = (char *)pixels + 0 * face_ofs;
+      pixels_nx = (char *)pixels + 1 * face_ofs;
+      pixels_py = (char *)pixels + 2 * face_ofs;
+      pixels_ny = (char *)pixels + 3 * face_ofs;
+      pixels_pz = (char *)pixels + 4 * face_ofs;
+      pixels_nz = (char *)pixels + 5 * face_ofs;
+    }
+    else {
+      pixels_px = pixels_py = pixels_pz = pixels_nx = pixels_ny = pixels_nz = NULL;
+    }
+
+    GLuint face = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+    glTexImage2D(face++, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, pixels_px);
+    glTexImage2D(face++, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, pixels_nx);
+    glTexImage2D(face++, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, pixels_py);
+    glTexImage2D(face++, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, pixels_ny);
+    glTexImage2D(face++, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, pixels_pz);
+    glTexImage2D(face++, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, pixels_nz);
+  }
+  else {
+    glTexImage3D(tex->target,
+                 0,
+                 internalformat,
+                 tex->w,
+                 tex->h,
+                 tex->d * 6,
+                 0,
+                 data_format,
+                 data_type,
+                 pixels);
+  }
 
   /* Texture Parameters */
   if (GPU_texture_stencil(tex) || /* Does not support filtering */
@@ -1131,33 +1143,16 @@ GPUTexture *GPU_texture_create_cube(int w,
                                     char err_out[256])
 {
   BLI_assert(w > 0);
-  const float *fpixels_px, *fpixels_py, *fpixels_pz, *fpixels_nx, *fpixels_ny, *fpixels_nz;
-  const int channels = gpu_get_component_count(tex_format);
+  eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
+  return GPU_texture_cube_create(w, 0, fpixels, tex_format, data_format, err_out);
+}
 
-  if (fpixels) {
-    int face_ofs = w * w * channels;
-    fpixels_px = fpixels + 0 * face_ofs;
-    fpixels_nx = fpixels + 1 * face_ofs;
-    fpixels_py = fpixels + 2 * face_ofs;
-    fpixels_ny = fpixels + 3 * face_ofs;
-    fpixels_pz = fpixels + 4 * face_ofs;
-    fpixels_nz = fpixels + 5 * face_ofs;
-  }
-  else {
-    fpixels_px = fpixels_py = fpixels_pz = fpixels_nx = fpixels_ny = fpixels_nz = NULL;
-  }
-
-  return GPU_texture_cube_create(w,
-                                 0,
-                                 fpixels_px,
-                                 fpixels_py,
-                                 fpixels_pz,
-                                 fpixels_nx,
-                                 fpixels_ny,
-                                 fpixels_nz,
-                                 tex_format,
-                                 GPU_DATA_FLOAT,
-                                 err_out);
+GPUTexture *GPU_texture_create_cube_array(
+    int w, int d, eGPUTextureFormat tex_format, const float *fpixels, char err_out[256])
+{
+  BLI_assert(w > 0 && d > 0);
+  eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
+  return GPU_texture_cube_create(w, d, fpixels, tex_format, data_format, err_out);
 }
 
 GPUTexture *GPU_texture_create_from_vertbuf(GPUVertBuf *vert)
@@ -1297,6 +1292,7 @@ void GPU_texture_add_mipmap(GPUTexture *tex,
       break;
     case GL_TEXTURE_3D:
     case GL_TEXTURE_2D_ARRAY:
+    case GL_TEXTURE_CUBE_MAP_ARRAY_ARB:
       glTexImage3D(tex->target,
                    miplvl,
                    internalformat,
@@ -1385,29 +1381,13 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int mipl
 
   gpu_validate_data_format(tex->format, gpu_data_format);
 
-  size_t buf_size = gpu_texture_memory_footprint_compute(tex);
   size_t samples_count = max_ii(1, tex->samples);
-
   samples_count *= size[0];
   samples_count *= max_ii(1, size[1]);
   samples_count *= max_ii(1, size[2]);
-  samples_count *= (GPU_texture_cube(tex)) ? 6 : 1;
+  samples_count *= (GPU_texture_cube(tex) && !GPU_texture_array(tex)) ? 6 : 1;
 
-  switch (gpu_data_format) {
-    case GPU_DATA_FLOAT:
-      buf_size = sizeof(float) * samples_count * tex->components;
-      break;
-    case GPU_DATA_INT:
-    case GPU_DATA_UNSIGNED_INT:
-      buf_size = sizeof(int) * samples_count * tex->components;
-      break;
-    case GPU_DATA_UNSIGNED_INT_24_8:
-    case GPU_DATA_10_11_11_REV:
-      buf_size = sizeof(int) * samples_count;
-      break;
-    case GPU_DATA_UNSIGNED_BYTE:
-      break;
-  }
+  size_t buf_size = samples_count * gpu_get_data_format_bytesize(tex->components, gpu_data_format);
 
   /* AMD Pro driver have a bug that write 8 bytes past buffer size
    * if the texture is big. (see T66573) */
@@ -1418,7 +1398,7 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int mipl
 
   glBindTexture(tex->target, tex->bindcode);
 
-  if (GPU_texture_cube(tex)) {
+  if (GPU_texture_cube(tex) && !GPU_texture_array(tex)) {
     int cube_face_size = buf_size / 6;
     for (int i = 0; i < 6; i++) {
       glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
@@ -1763,6 +1743,11 @@ int GPU_texture_samples(const GPUTexture *tex)
   return tex->samples;
 }
 
+bool GPU_texture_array(const GPUTexture *tex)
+{
+  return (tex->format_flag & GPU_FORMAT_ARRAY) != 0;
+}
+
 bool GPU_texture_depth(const GPUTexture *tex)
 {
   return (tex->format_flag & GPU_FORMAT_DEPTH) != 0;
@@ -1828,8 +1813,12 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size)
     size[1] = max_ii(1, tex->h / div);
   }
 
-  if (tex->target == GL_TEXTURE_2D_ARRAY) {
+  if (GPU_texture_array(tex)) {
     size[2] = tex->d;
+    /* Return the number of face layers. */
+    if (GPU_texture_cube(tex)) {
+      size[2] *= 6;
+    }
   }
   else if (tex->d > 0) {
     size[2] = max_ii(1, tex->d / div);

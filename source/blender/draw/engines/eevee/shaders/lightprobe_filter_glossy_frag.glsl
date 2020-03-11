@@ -33,29 +33,9 @@ vec3 octahedral_to_cubemap_proj(vec2 co)
 
 void main()
 {
-  vec2 uvs = gl_FragCoord.xy * texelSize;
-
-  /* Add a N pixel border to ensure filtering is correct
-   * for N mipmap levels. */
-  uvs = (uvs - paddingSize) / (1.0 - 2.0 * paddingSize);
-
-  /* edge mirroring : only mirror if directly adjacent
-   * (not diagonally adjacent) */
-  vec2 m = abs(uvs - 0.5) + 0.5;
-  vec2 f = floor(m);
-  if (f.x - f.y != 0.0) {
-    uvs = 1.0 - uvs;
-  }
-
-  /* clamp to [0-1] */
-  uvs = fract(uvs);
-
-  /* get cubemap vector */
-  vec3 cubevec = octahedral_to_cubemap_proj(uvs);
-
   vec3 N, T, B, V;
 
-  vec3 R = normalize(cubevec);
+  vec3 R = normalize(worldPosition);
 
   /* Isotropic assumption */
   N = V = R;

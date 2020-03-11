@@ -116,7 +116,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
                                          EEVEE_shaders_background_studiolight_sh_get();
 
       const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
-      int cube_res = octahedral_size_from_cubesize(scene_eval->eevee.gi_cubemap_resolution);
+      int cube_res = scene_eval->eevee.gi_cubemap_resolution;
 
       /* If one of the component is missing we start from scratch. */
       if ((stl->lookdev_grid_data == NULL) || (stl->lookdev_cube_data == NULL) ||

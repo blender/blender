@@ -78,6 +78,8 @@ extern struct DrawEngineType draw_engine_eevee_type;
   SHADER_IRRADIANCE
 /* clang-format on */
 
+#define EEVEE_PROBE_MAX min_ii(MAX_PROBE, GPU_max_texture_layers() / 6)
+
 #define SWAP_DOUBLE_BUFFERS() \
   { \
     if (effects->swap_double_buffer) { \
@@ -136,20 +138,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
              ((v3d->shading.type == OB_RENDER) && \
               ((v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER) == 0))))
 
-#define MIN_CUBE_LOD_LEVEL 3
-
-BLI_INLINE int octahedral_size_from_cubesize(int cube_size)
-{
-  int cube_pixel_count = square_i(cube_size) * 6;
-  int octa_size = (int)ceilf(sqrtf(cube_pixel_count));
-  int lod_count = log2_floor_u(octa_size) - MIN_CUBE_LOD_LEVEL;
-  /* Find lowest lod size and grow back to avoid having non matching mipsizes that would
-   * break trilinear interpolation. */
-  octa_size /= 1 << lod_count;
-  octa_size *= 1 << lod_count;
-  return octa_size;
-}
-
+#define MIN_CUBE_LOD_LEVEL 1
 #define MAX_PLANAR_LOD_LEVEL 9
 
 /* All the renderpasses that use the GPUMaterial for accumulation */
