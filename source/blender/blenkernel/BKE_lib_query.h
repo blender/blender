@@ -91,11 +91,11 @@ typedef struct LibraryIDLinkCallbackData {
   void *user_data;
   /**
    * 'Real' ID, the one that might be in bmain, only differs from self_id when the later is an
-   * embeded one.
+   * embedded one.
    */
   struct ID *id_owner;
   /**
-   * ID from which the current ID pointer is being processed. It may be an embeded ID like master
+   * ID from which the current ID pointer is being processed. It may be an embedded ID like master
    * collection or root node tree.
    */
   struct ID *id_self;

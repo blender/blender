@@ -105,8 +105,8 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   ID *old_id = id_remap_data->old_id;
   ID *new_id = id_remap_data->new_id;
 
-  /* Those asserts ensure the general sanity of ID tags regarding 'embeded' ID data (root nodetrees
-   * and co). */
+  /* Those asserts ensure the general sanity of ID tags regarding 'embedded' ID data (root
+   * nodetrees and co). */
   BLI_assert(id_owner == id_remap_data->id_owner);
   BLI_assert(id_self == id_owner || (id_self->flag & LIB_EMBEDDED_DATA) != 0);
 
