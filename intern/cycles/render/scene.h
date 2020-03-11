@@ -230,6 +230,7 @@ class Scene {
 
   /* default shaders */
   Shader *default_surface;
+  Shader *default_volume;
   Shader *default_light;
   Shader *default_background;
   Shader *default_empty;

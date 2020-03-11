@@ -102,8 +102,8 @@ void OSLShaderManager::device_update(Device *device,
 
   device_free(device, dscene, scene);
 
-  /* determine which shaders are in use */
-  device_update_shaders_used(scene);
+  /* set texture system */
+  scene->image_manager->set_osl_texture_system((void *)ts);
 
   /* create shaders */
   OSLGlobals *og = (OSLGlobals *)device->osl_memory();
@@ -141,9 +141,6 @@ void OSLShaderManager::device_update(Device *device,
     shader->need_update = false;
 
   need_update = false;
-
-  /* set texture system */
-  scene->image_manager->set_osl_texture_system((void *)ts);
 
   /* add special builtin texture types */
   services->textures.insert(ustring("@ao"), new OSLTextureHandle(OSLTextureHandle::AO));

@@ -168,7 +168,7 @@ NODE_DEFINE(Shader)
   SOCKET_ENUM(volume_sampling_method,
               "Volume Sampling Method",
               volume_sampling_method_enum,
-              VOLUME_SAMPLING_DISTANCE);
+              VOLUME_SAMPLING_MULTIPLE_IMPORTANCE);
 
   static NodeEnum volume_interpolation_method_enum;
   volume_interpolation_method_enum.insert("linear", VOLUME_INTERPOLATION_LINEAR);
@@ -415,7 +415,7 @@ ShaderManager::~ShaderManager()
 {
 }
 
-ShaderManager *ShaderManager::create(Scene *scene, int shadingsystem)
+ShaderManager *ShaderManager::create(int shadingsystem)
 {
   ShaderManager *manager;
 
@@ -430,8 +430,6 @@ ShaderManager *ShaderManager::create(Scene *scene, int shadingsystem)
   {
     manager = new SVMShaderManager();
   }
-
-  add_default(scene);
 
   return manager;
 }
@@ -471,8 +469,12 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   return id;
 }
 
-void ShaderManager::device_update_shaders_used(Scene *scene)
+void ShaderManager::update_shaders_used(Scene *scene)
 {
+  if (!need_update) {
+    return;
+  }
+
   /* figure out which shaders are in use, so SVM/OSL can skip compiling them
    * for speed and avoid loading image textures into memory */
   uint id = 0;
@@ -623,9 +625,27 @@ void ShaderManager::add_default(Scene *scene)
 
     Shader *shader = new Shader();
     shader->name = "default_surface";
-    shader->graph = graph;
+    shader->set_graph(graph);
     scene->shaders.push_back(shader);
     scene->default_surface = shader;
+    shader->tag_update(scene);
+  }
+
+  /* default volume */
+  {
+    ShaderGraph *graph = new ShaderGraph();
+
+    PrincipledVolumeNode *principled = new PrincipledVolumeNode();
+    graph->add(principled);
+
+    graph->connect(principled->output("Volume"), graph->output()->input("Volume"));
+
+    Shader *shader = new Shader();
+    shader->name = "default_volume";
+    shader->set_graph(graph);
+    scene->shaders.push_back(shader);
+    scene->default_volume = shader;
+    shader->tag_update(scene);
   }
 
   /* default light */
@@ -641,9 +661,10 @@ void ShaderManager::add_default(Scene *scene)
 
     Shader *shader = new Shader();
     shader->name = "default_light";
-    shader->graph = graph;
+    shader->set_graph(graph);
     scene->shaders.push_back(shader);
     scene->default_light = shader;
+    shader->tag_update(scene);
   }
 
   /* default background */
@@ -652,9 +673,10 @@ void ShaderManager::add_default(Scene *scene)
 
     Shader *shader = new Shader();
     shader->name = "default_background";
-    shader->graph = graph;
+    shader->set_graph(graph);
     scene->shaders.push_back(shader);
     scene->default_background = shader;
+    shader->tag_update(scene);
   }
 
   /* default empty */
@@ -663,9 +685,10 @@ void ShaderManager::add_default(Scene *scene)
 
     Shader *shader = new Shader();
     shader->name = "default_empty";
-    shader->graph = graph;
+    shader->set_graph(graph);
     scene->shaders.push_back(shader);
     scene->default_empty = shader;
+    shader->tag_update(scene);
   }
 }
 
@@ -704,6 +727,10 @@ void ShaderManager::get_requested_features(Scene *scene,
   requested_features->nodes_features = 0;
   for (int i = 0; i < scene->shaders.size(); i++) {
     Shader *shader = scene->shaders[i];
+    if (!shader->used) {
+      continue;
+    }
+
     /* Gather requested features from all the nodes from the graph nodes. */
     get_requested_graph_features(shader->graph, requested_features);
     ShaderNode *output_node = shader->graph->output();

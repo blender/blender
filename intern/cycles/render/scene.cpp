@@ -104,9 +104,11 @@ Scene::Scene(const SceneParams &params_, Device *device)
 
   /* OSL only works on the CPU */
   if (device->info.has_osl)
-    shader_manager = ShaderManager::create(this, params.shadingsystem);
+    shader_manager = ShaderManager::create(params.shadingsystem);
   else
-    shader_manager = ShaderManager::create(this, SHADINGSYSTEM_SVM);
+    shader_manager = ShaderManager::create(SHADINGSYSTEM_SVM);
+
+  shader_manager->add_default(this);
 }
 
 Scene::~Scene()

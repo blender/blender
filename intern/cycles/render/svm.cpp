@@ -85,9 +85,6 @@ void SVMShaderManager::device_update(Device *device,
   /* test if we need to update */
   device_free(device, dscene, scene);
 
-  /* determine which shaders are in use */
-  device_update_shaders_used(scene);
-
   /* Build all shaders. */
   TaskPool task_pool;
   vector<array<int4>> shader_svm_nodes(num_shaders);

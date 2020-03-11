@@ -3358,7 +3358,7 @@ NODE_DEFINE(PrincipledVolumeNode)
   SOCKET_IN_COLOR(emission_color, "Emission Color", make_float3(1.0f, 1.0f, 1.0f));
   SOCKET_IN_FLOAT(blackbody_intensity, "Blackbody Intensity", 0.0f);
   SOCKET_IN_COLOR(blackbody_tint, "Blackbody Tint", make_float3(1.0f, 1.0f, 1.0f));
-  SOCKET_IN_FLOAT(temperature, "Temperature", 1500.0f);
+  SOCKET_IN_FLOAT(temperature, "Temperature", 1000.0f);
   SOCKET_IN_FLOAT(volume_mix_weight, "VolumeMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
   SOCKET_OUT_CLOSURE(volume, "Volume");
@@ -3369,6 +3369,8 @@ NODE_DEFINE(PrincipledVolumeNode)
 PrincipledVolumeNode::PrincipledVolumeNode() : VolumeNode(node_type)
 {
   closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
+  density_attribute = ustring("density");
+  temperature_attribute = ustring("temperature");
 }
 
 void PrincipledVolumeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
