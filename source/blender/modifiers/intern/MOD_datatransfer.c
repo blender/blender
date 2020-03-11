@@ -220,7 +220,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     modifier_setError(md, "%s", BKE_reports_string(&reports, RPT_ERROR));
   }
   else if ((dtmd->data_types & DT_TYPE_LNOR) && !(me->flag & ME_AUTOSMOOTH)) {
-    modifier_setError((ModifierData *)dtmd, "Enable 'Auto Smooth' option in mesh settings");
+    modifier_setError((ModifierData *)dtmd, "Enable 'Auto Smooth' in Object Data Properties");
   }
   else if (result->totvert > HIGH_POLY_WARNING ||
            ((Mesh *)(ob_source->data))->totvert > HIGH_POLY_WARNING) {
