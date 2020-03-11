@@ -1461,6 +1461,13 @@ static void select_similar_data_pchan(bContext *C, const size_t bytes_size, cons
   EditBone *ebone_act = CTX_data_active_bone(C);
 
   const bPoseChannel *pchan_active = BKE_pose_channel_find_name(obedit->pose, ebone_act->name);
+
+  /* This will mostly happen for corner cases where the user tried to access this
+   * before having any valid pose data for the armature. */
+  if (pchan_active == NULL) {
+    return;
+  }
+
   const char *data_active = (const char *)POINTER_OFFSET(pchan_active, offset);
   for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
     if (EBONE_SELECTABLE(arm, ebone)) {
