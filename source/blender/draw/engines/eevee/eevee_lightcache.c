@@ -1262,6 +1262,12 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
   lbake->do_update = do_update;
   lbake->progress = progress;
 
+  if (G.background) {
+    /* Make sure to init GL capabilities before counting probes. */
+    eevee_lightbake_context_enable(lbake);
+    eevee_lightbake_context_disable(lbake);
+  }
+
   /* Count lightprobes */
   eevee_lightbake_count_probes(lbake);
 
