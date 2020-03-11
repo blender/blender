@@ -124,6 +124,8 @@ struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
       const bool existing_key = BLI_ghash_ensure_p(
           id_map->uuid_map, POINTER_FROM_UINT(id->session_uuid), &id_ptr_v);
       BLI_assert(existing_key == false);
+      UNUSED_VARS_NDEBUG(existing_key);
+
       *id_ptr_v = id;
     }
     FOREACH_MAIN_ID_END;
