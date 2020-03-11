@@ -68,7 +68,7 @@ typedef struct IDRemap {
   ID *old_id;
   ID *new_id;
   /** The ID in which we are replacing old_id by new_id usages. */
-  ID *id;
+  ID *id_owner;
   short flag;
 
   /* 'Output' data. */
@@ -98,12 +98,17 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
+  ID *id_owner = cb_data->id_owner;
   ID *id_self = cb_data->id_self;
   ID **id_p = cb_data->id_pointer;
   IDRemap *id_remap_data = cb_data->user_data;
   ID *old_id = id_remap_data->old_id;
   ID *new_id = id_remap_data->new_id;
-  ID *id = id_remap_data->id;
+
+  /* Those asserts ensure the general sanity of ID tags regarding 'embeded' ID data (root nodetrees
+   * and co). */
+  BLI_assert(id_owner == id_remap_data->id_owner);
+  BLI_assert(id_self == id_owner || (id_self->flag & LIB_PRIVATE_DATA) != 0);
 
   if (!old_id) { /* Used to cleanup all IDs used by a specific one. */
     BLI_assert(!new_id);
@@ -123,9 +128,10 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     /* Note: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
      * on the other hand since they get reset to lib data on file open/reload it is indirect too.
      * Edit Mode is also a 'skip direct' case. */
-    const bool is_obj = (GS(id->name) == ID_OB);
-    const bool is_obj_proxy = (is_obj && (((Object *)id)->proxy || ((Object *)id)->proxy_group));
-    const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id));
+    const bool is_obj = (GS(id_owner->name) == ID_OB);
+    const bool is_obj_proxy = (is_obj &&
+                               (((Object *)id_owner)->proxy || ((Object *)id_owner)->proxy_group));
+    const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id_owner));
     const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
                                 (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
     const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_OVERRIDE_LIBRARY) != 0;
@@ -149,19 +155,19 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 
     if ((id_remap_data->flag & ID_REMAP_FLAG_NEVER_NULL_USAGE) &&
         (cb_flag & IDWALK_CB_NEVER_NULL)) {
-      id->tag |= LIB_TAG_DOIT;
+      id_owner->tag |= LIB_TAG_DOIT;
     }
 
     /* Special hack in case it's Object->data and we are in edit mode, and new_id is not NULL
      * (otherwise, we follow common NEVER_NULL flags).
      * (skipped_indirect too). */
     if ((is_never_null && skip_never_null) ||
-        (is_obj_editmode && (((Object *)id)->data == *id_p) && new_id != NULL) ||
+        (is_obj_editmode && (((Object *)id_owner)->data == *id_p) && new_id != NULL) ||
         (skip_indirect && is_indirect) || (is_reference && skip_reference)) {
       if (is_indirect) {
         id_remap_data->skipped_indirect++;
         if (is_obj) {
-          Object *ob = (Object *)id;
+          Object *ob = (Object *)id_owner;
           if (ob->data == *id_p && ob->proxy != NULL) {
             /* And another 'Proudly brought to you by Proxy Hell' hack!
              * This will allow us to avoid clearing 'LIB_EXTERN' flag of obdata of proxies... */
@@ -189,6 +195,11 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
         DEG_id_tag_update_ex(id_remap_data->bmain,
                              id_self,
                              ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+        if (id_self != id_owner) {
+          DEG_id_tag_update_ex(id_remap_data->bmain,
+                               id_owner,
+                               ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+        }
       }
       if (cb_flag & IDWALK_CB_USER) {
         /* NOTE: We don't user-count IDs which are not in the main database.
@@ -215,7 +226,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
       }
       /* We need to remap proxy_from pointer of remapped proxy... sigh. */
       if (is_obj_proxy && new_id != NULL) {
-        Object *ob = (Object *)id;
+        Object *ob = (Object *)id_owner;
         if (ob->proxy == (Object *)new_id) {
           ob->proxy->proxy_from = ob;
         }
@@ -228,11 +239,11 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 
 static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 {
-  switch (GS(r_id_remap_data->id->name)) {
+  switch (GS(r_id_remap_data->id_owner->name)) {
     case ID_OB: {
       ID *old_id = r_id_remap_data->old_id;
       if (!old_id || GS(old_id->name) == ID_AR) {
-        Object *ob = (Object *)r_id_remap_data->id;
+        Object *ob = (Object *)r_id_remap_data->id_owner;
         /* Object's pose holds reference to armature bones... sic */
         /* Note that in theory, we should have to bother about
          * linked/non-linked/never-null/etc. flags/states.
@@ -371,7 +382,7 @@ static void libblock_remap_data(
   r_id_remap_data->bmain = bmain;
   r_id_remap_data->old_id = old_id;
   r_id_remap_data->new_id = new_id;
-  r_id_remap_data->id = NULL;
+  r_id_remap_data->id_owner = NULL;
   r_id_remap_data->flag = remap_flags;
   r_id_remap_data->status = 0;
   r_id_remap_data->skipped_direct = 0;
@@ -382,7 +393,7 @@ static void libblock_remap_data(
 #ifdef DEBUG_PRINT
     printf("\tchecking id %s (%p, %p)\n", id->name, id, id->lib);
 #endif
-    r_id_remap_data->id = id;
+    r_id_remap_data->id_owner = id;
     libblock_remap_data_preprocess(r_id_remap_data);
     BKE_library_foreach_ID_link(
         NULL, id, foreach_libblock_remap_callback, (void *)r_id_remap_data, foreach_id_flags);
@@ -398,7 +409,7 @@ static void libblock_remap_data(
         /* Note that we cannot skip indirect usages of old_id here (if requested),
          * we still need to check it for the user count handling...
          * XXX No more true (except for debug usage of those skipping counters). */
-        r_id_remap_data->id = id_curr;
+        r_id_remap_data->id_owner = id_curr;
         libblock_remap_data_preprocess(r_id_remap_data);
         BKE_library_foreach_ID_link(NULL,
                                     id_curr,
