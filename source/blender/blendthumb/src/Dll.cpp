@@ -159,7 +159,8 @@ struct REGISTRY_ENTRY {
   PCWSTR pszKeyName;
   PCWSTR pszValueName;
   DWORD dwValueType;
-  PCWSTR pszData;
+  PCWSTR pszData;     //These two fields could/should have been a union, but C++
+  DWORD dwData;       //only lets you initalize the first field in a union.
 };
 
 // Creates a registry key (if needed) and sets the default value of the key
@@ -187,7 +188,7 @@ HRESULT CreateRegKeyAndSetValue(const REGISTRY_ENTRY *pRegistryEntry)
         break;
       case REG_DWORD:
         size = sizeof(DWORD);
-        data = (DWORD)pRegistryEntry->pszData;
+        data = pRegistryEntry->dwData;
         lpData = (BYTE *)&data;
         break;
       default:
@@ -235,7 +236,7 @@ STDAPI DllRegisterServer()
          L"Software\\Classes\\.blend\\",
          L"Treatment",
          REG_DWORD,
-         0},  // doesn't appear to do anything...
+         0,0},  // doesn't appear to do anything...
         {HKEY_CURRENT_USER,
          L"Software\\Classes\\.blend\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",
          NULL,
