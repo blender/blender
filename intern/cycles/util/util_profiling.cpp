@@ -15,6 +15,7 @@
  */
 
 #include "util/util_algorithm.h"
+#include "util/util_foreach.h"
 #include "util/util_profiling.h"
 #include "util/util_set.h"
 

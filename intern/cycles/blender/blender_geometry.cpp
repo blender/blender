@@ -23,6 +23,8 @@
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"
 
+#include "util/util_foreach.h"
+
 CCL_NAMESPACE_BEGIN
 
 Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,

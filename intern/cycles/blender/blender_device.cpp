@@ -17,6 +17,8 @@
 #include "blender/blender_device.h"
 #include "blender/blender_util.h"
 
+#include "util/util_foreach.h"
+
 CCL_NAMESPACE_BEGIN
 
 enum DenoiserType {

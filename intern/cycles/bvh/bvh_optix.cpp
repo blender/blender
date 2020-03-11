@@ -22,6 +22,7 @@
 #  include "render/geometry.h"
 #  include "render/mesh.h"
 #  include "render/object.h"
+#  include "util/util_foreach.h"
 #  include "util/util_logging.h"
 #  include "util/util_progress.h"
 

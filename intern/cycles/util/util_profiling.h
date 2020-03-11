@@ -19,7 +19,6 @@
 
 #include <atomic>
 
-#include "util/util_foreach.h"
 #include "util/util_map.h"
 #include "util/util_thread.h"
 #include "util/util_vector.h"
