@@ -16,6 +16,19 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
+
+/* Developers Note:
+ *
+ * This test currently only creates windows and draws a 'dot' under the cursor on LMB,
+ * quits when Q is pressed.
+ *
+ * More work is needed for logging drawing to work properly.
+ *
+ * - Use GPU_matrix API.
+ * - Replace old OpenGL calls to glColor, etc with 'imm' API.
+ * - Investigate BLF font flushing (UI_widgetbase_draw_cache_flush) which is currently disabled.
+ */
+
 #ifdef _MSC_VER
 #  pragma warning(disable : 4244 4305)
 #endif
@@ -25,6 +38,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <GL/glew.h>
 #include "GL.h"
 
 #include "MEM_guardedalloc.h"
@@ -32,11 +46,6 @@
 #include "GHOST_C-api.h"
 
 #include "BLF_api.h"
-extern int datatoc_bfont_ttf_size;
-extern char datatoc_bfont_ttf[];
-
-/* cheat */
-char U[1024] = {0};
 
 #include "Util.h"
 #include "Basic.h"
@@ -45,7 +54,13 @@ char U[1024] = {0};
 
 #include "WindowData.h"
 
-/***/
+/* GPU API. */
+#include "GPU_immediate.h"
+#include "GPU_context.h"
+#include "GPU_init_exit.h"
+
+extern int datatoc_bfont_ttf_size;
+extern char datatoc_bfont_ttf[];
 
 typedef struct _LoggerWindow LoggerWindow;
 typedef struct _MultiTestApp MultiTestApp;
@@ -122,6 +137,7 @@ typedef struct {
   MultiTestApp *app;
 
   GHOST_WindowHandle win;
+  GPUContext *gpu_context;
 
   int size[2];
 
@@ -138,6 +154,7 @@ static void mainwindow_log(MainWindow *mw, char *str)
 static void mainwindow_do_draw(MainWindow *mw)
 {
   GHOST_ActivateWindowDrawingContext(mw->win);
+  GPU_context_active_set(mw->gpu_context);
 
   if (mw->lmbut[0]) {
     glClearColor(0.5, 0.5, 0.5, 1);
@@ -158,6 +175,7 @@ static void mainwindow_do_reshape(MainWindow *mw)
   GHOST_RectangleHandle bounds = GHOST_GetClientBounds(mw->win);
 
   GHOST_ActivateWindowDrawingContext(mw->win);
+  GPU_context_active_set(mw->gpu_context);
 
   mw->size[0] = GHOST_GetWidthRectangle(bounds);
   mw->size[1] = GHOST_GetHeightRectangle(bounds);
@@ -311,6 +329,11 @@ MainWindow *mainwindow_new(MultiTestApp *app)
 
   if (win) {
     MainWindow *mw = MEM_callocN(sizeof(*mw), "mainwindow_new");
+
+    GLuint default_fb = GHOST_GetDefaultOpenGLFramebuffer(win);
+    mw->gpu_context = GPU_context_create(default_fb);
+    GPU_init();
+
     mw->app = app;
     mw->win = win;
 
@@ -342,6 +365,7 @@ struct _LoggerWindow {
   MultiTestApp *app;
 
   GHOST_WindowHandle win;
+  GPUContext *gpu_context;
 
   int font;
   int fontheight;
@@ -400,6 +424,7 @@ static void loggerwindow_do_reshape(LoggerWindow *lw)
   GHOST_RectangleHandle bounds = GHOST_GetClientBounds(lw->win);
 
   GHOST_ActivateWindowDrawingContext(lw->win);
+  GPU_context_active_set(lw->gpu_context);
 
   lw->size[0] = GHOST_GetWidthRectangle(bounds);
   lw->size[1] = GHOST_GetHeightRectangle(bounds);
@@ -414,6 +439,8 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
   int sb_rect[2][2], sb_thumb[2][2];
 
   GHOST_ActivateWindowDrawingContext(lw->win);
+  GPU_context_active_set(lw->gpu_context);
+  immActivate();
 
   glClearColor(1, 1, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -450,6 +477,8 @@ static void loggerwindow_do_draw(LoggerWindow *lw)
   }
 
   GHOST_SwapWindowBuffers(lw->win);
+
+  immDeactivate();
 }
 
 static void loggerwindow_do_move(LoggerWindow *lw, int x, int y)
@@ -557,6 +586,11 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
 
   if (win) {
     LoggerWindow *lw = MEM_callocN(sizeof(*lw), "loggerwindow_new");
+
+    GLuint default_fb = GHOST_GetDefaultOpenGLFramebuffer(win);
+    lw->gpu_context = GPU_context_create(default_fb);
+    GPU_init();
+
     int bbox[2][2];
     lw->app = app;
     lw->win = win;
@@ -616,6 +650,7 @@ typedef struct {
   MultiTestApp *app;
 
   GHOST_WindowHandle win;
+  GPUContext *gpu_context;
 
   int size[2];
 } ExtraWindow;
@@ -623,6 +658,7 @@ typedef struct {
 static void extrawindow_do_draw(ExtraWindow *ew)
 {
   GHOST_ActivateWindowDrawingContext(ew->win);
+  GPU_context_active_set(ew->gpu_context);
 
   glClearColor(1, 1, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -638,6 +674,7 @@ static void extrawindow_do_reshape(ExtraWindow *ew)
   GHOST_RectangleHandle bounds = GHOST_GetClientBounds(ew->win);
 
   GHOST_ActivateWindowDrawingContext(ew->win);
+  GPU_context_active_set(ew->gpu_context);
 
   ew->size[0] = GHOST_GetWidthRectangle(bounds);
   ew->size[1] = GHOST_GetHeightRectangle(bounds);
@@ -750,6 +787,11 @@ ExtraWindow *extrawindow_new(MultiTestApp *app)
 
   if (win) {
     ExtraWindow *ew = MEM_callocN(sizeof(*ew), "mainwindow_new");
+
+    GLuint default_fb = GHOST_GetDefaultOpenGLFramebuffer(win);
+    ew->gpu_context = GPU_context_create(default_fb);
+    GPU_init();
+
     ew->app = app;
     ew->win = win;
 
@@ -889,6 +931,9 @@ void multitestapp_run(MultiTestApp *app)
 
 void multitestapp_free(MultiTestApp *app)
 {
+  BLF_exit();
+  GPU_exit();
+
   mainwindow_free(app->main);
   loggerwindow_free(app->logger);
   GHOST_DisposeSystem(app->sys);
@@ -901,9 +946,7 @@ int main(int argc, char **argv)
 {
   MultiTestApp *app;
 
-#ifndef USE_BMF
   BLF_init();
-#endif
 
   app = multitestapp_new();
 

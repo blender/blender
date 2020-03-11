@@ -1,16 +1,36 @@
 
+# see "cmake --help-policy CMP0003"
+# So library linking is more sane
 cmake_policy(SET CMP0003 NEW)
+
+# So BUILDINFO and BLENDERPATH strings are automatically quoted
 cmake_policy(SET CMP0005 NEW)
 
-cmake_minimum_required(VERSION 2.8)
+# So syntax problems are errors
+cmake_policy(SET CMP0010 NEW)
+
+# Input directories must have CMakeLists.txt
+cmake_policy(SET CMP0014 NEW)
+
+cmake_minimum_required(VERSION 3.5)
+
+project(GhostMultiTest)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../../..//build_files/cmake/Modules")
 
 set(WITH_GUARDEDALLOC ON)
 
+add_executable(datatoc
+  "${CMAKE_SOURCE_DIR}/../../../source/blender/datatoc/datatoc.c")
+
+# Fake the current source dir for includes.
+set(_CMAKE_CURRENT_SOURCE_DIR_INIT "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # -----------------------------------------------------------------------------
 # Macros
 
+# For data_to_c macro.
+# include(../../../build_files/cmake/macros.cmake)
 
 # stub macro, does nothing
 macro(blender_add_lib
@@ -18,6 +38,7 @@ macro(blender_add_lib
   sources
   includes
   includes_sys
+  library_deps # ignored.
   )
 
 endmacro()
@@ -28,10 +49,15 @@ macro(suffix_relpaths
 
   set(${new_files})
   foreach(_file ${files})
-    if(IS_ABSOLUTE _file)
+    if(IS_ABSOLUTE "${_file}")
       list(APPEND ${new_files} ${_file})
     else()
-      list(APPEND ${new_files} "${prefix}${_file}")
+      set(_file_to "${prefix}${_file}")
+      list(APPEND ${new_files} ${_file_to})
+      get_source_file_property(_is_generated ${_file} GENERATED)
+      set_source_files_properties(${_file_to} PROPERTIES GENERATED ${_is_generated})
+      unset(_file_to)
+      unset(_is_generated)
     endif()
   endforeach()
   unset(_file)
@@ -48,10 +74,38 @@ macro(data_to_c
   add_custom_command(
     OUTPUT ${file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    COMMAND ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/datatoc ${file_from} ${file_to}
+    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to}
     DEPENDS ${file_from} datatoc)
   unset(_file_to_path)
 endmacro()
+
+# same as above but generates the var name and output automatic.
+function(data_to_c_simple
+  file_from
+  list_to_add
+  )
+
+  # remove ../'s
+  get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}   REALPATH)
+  get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c REALPATH)
+
+
+  list(APPEND ${list_to_add} ${_file_to})
+  source_group(Generated FILES ${_file_to})
+  list(APPEND ${list_to_add} ${file_from})
+  set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
+
+  get_filename_component(_file_to_path ${_file_to} PATH)
+
+  message(OUTPUT "  ${_file_to}")
+  add_custom_command(
+    OUTPUT  ${_file_to}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
+    COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
+    DEPENDS ${_file_from} datatoc)
+
+  set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
+endfunction()
 
 # -----------------------------------------------------------------------------
 # Defines
@@ -96,12 +150,38 @@ suffix_relpaths(SRC_NEW "${SRC}" "../../string/")
 include_directories(${INC_NEW})
 add_library(string_lib ${SRC_NEW})
 
+# numaapi (for 'bli_lib')
+include(${CMAKE_SOURCE_DIR}/../../numaapi/CMakeLists.txt)
+suffix_relpaths(INC_NEW "${INC}" "../../numaapi/")
+suffix_relpaths(SRC_NEW "${SRC}" "../../numaapi/")
+include_directories(${INC_NEW})
+add_library(numaapi_lib ${SRC_NEW})
+
 # guardedalloc
 include(${CMAKE_SOURCE_DIR}/../../guardedalloc/CMakeLists.txt)
 suffix_relpaths(INC_NEW "${INC}" "../../guardedalloc/")
 suffix_relpaths(SRC_NEW "${SRC}" "../../guardedalloc/")
 include_directories(${INC_NEW})
 add_library(guardedalloc_lib ${SRC_NEW})
+
+# gpu (used by blenfont)
+add_definitions(-DGPU_STANDALONE)
+set(CMAKE_CURRENT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../../source/blender/gpu")
+include(${CMAKE_SOURCE_DIR}/../../../source/blender/gpu/CMakeLists.txt)
+suffix_relpaths(INC_NEW "${INC}" "../../../source/blender/gpu/")
+suffix_relpaths(SRC_NEW "${SRC}" "../../../source/blender/gpu/")
+include_directories(${INC_NEW})
+add_library(gpu_lib ${SRC_NEW})
+set(CMAKE_CURRENT_SOURCE_DIR "${_CMAKE_CURRENT_SOURCE_DIR_INIT}")
+
+# imbuf (used by )
+# set(CMAKE_CURRENT_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../../source/blender/imbuf")
+# include(${CMAKE_SOURCE_DIR}/../../../source/blender/imbuf/CMakeLists.txt)
+# suffix_relpaths(INC_NEW "${INC}" "../../../source/blender/imbuf/")
+# suffix_relpaths(SRC_NEW "${SRC}" "../../../source/blender/imbuf/")
+# include_directories(${INC_NEW})
+# add_library(imbuf_lib ${SRC_NEW})
+# set(CMAKE_CURRENT_SOURCE_DIR "${_CMAKE_CURRENT_SOURCE_DIR_INIT}")
 
 # blenfont
 include(${CMAKE_SOURCE_DIR}/../../../source/blender/blenfont/CMakeLists.txt)
@@ -128,6 +208,10 @@ add_library(glewmx_lib ${SRC_NEW})
 include_directories(
   "../../../source/blender/blenlib"
 )
+
+# Needed for math_matrix.c to avoid eigen_capi.h dep.
+add_definitions(-DMATH_STANDALONE)
+
 add_library(bli_lib
   "../../../source/blender/blenlib/intern/fileops.c"
   "../../../source/blender/blenlib/intern/gsqueue.c"
@@ -136,15 +220,23 @@ add_library(bli_lib
   "../../../source/blender/blenlib/intern/string_utf8.c"
   "../../../source/blender/blenlib/intern/listbase.c"
   "../../../source/blender/blenlib/intern/math_color.c"
+  "../../../source/blender/blenlib/intern/math_geom.c"
+  "../../../source/blender/blenlib/intern/math_matrix.c"
+  "../../../source/blender/blenlib/intern/math_rotation.c"
+  "../../../source/blender/blenlib/intern/math_vector.c"
   "../../../source/blender/blenlib/intern/storage.c"
   "../../../source/blender/blenlib/intern/task.c"
   "../../../source/blender/blenlib/intern/threads.c"
   "../../../source/blender/blenlib/intern/time.c"
   "../../../source/blender/blenlib/intern/path_util.c"
   "../../../source/blender/blenlib/intern/BLI_dynstr.c"
+  "../../../source/blender/blenlib/intern/BLI_ghash.c"
+  "../../../source/blender/blenlib/intern/BLI_ghash_utils.c"
   "../../../source/blender/blenlib/intern/BLI_linklist.c"
   "../../../source/blender/blenlib/intern/BLI_memarena.c"
   "../../../source/blender/blenlib/intern/BLI_mempool.c"
+  "../../../source/blender/blenlib/intern/hash_mm2a.c"
+  "../../../source/blender/blenlib/intern/string_utils.c"
   "../../../source/blender/blenlib/intern/system.c"
 )
 
@@ -190,10 +282,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS}")
 # -----------------------------------------------------------------------------
 # Executables
 
-# DataToC
-add_executable(datatoc
-    ${CMAKE_SOURCE_DIR}/../../../source/blender/datatoc/datatoc.c)
-
 # Gears (C)
 add_executable(gears_c
     ${CMAKE_SOURCE_DIR}/gears/GHOST_C-Test.c)
@@ -224,8 +312,11 @@ target_link_libraries(gears_cpp
 
 # MultiTest (C)
 set(data_to_c_files)
-data_to_c(${CMAKE_SOURCE_DIR}/../../../release/datafiles/bfont.ttf
-          ${CMAKE_CURRENT_BINARY_DIR}/bfont.ttf.c data_to_c_files)
+data_to_c(
+  ${CMAKE_SOURCE_DIR}/../../../release/datafiles/bfont.ttf
+  ${CMAKE_CURRENT_BINARY_DIR}/bfont.ttf.c
+  data_to_c_files
+)
 
 add_executable(multitest_c
   ${CMAKE_SOURCE_DIR}/multitest/Basic.c
@@ -240,16 +331,20 @@ add_executable(multitest_c
 
 
 target_link_libraries(multitest_c
-    blenfont_lib
-    bli_lib
-    ghost_lib
-    glewmx_lib
-    string_lib
-    guardedalloc_lib
-    wcwidth_lib
-    ${OPENGL_gl_LIBRARY}
-    ${FREETYPE_LIBRARY}
-    ${ZLIB_LIBRARIES}
-    ${CMAKE_DL_LIBS}
-    ${PLATFORM_LINKLIBS}
-    )
+  blenfont_lib
+  bli_lib
+  gpu_lib
+  # imbuf_lib
+  ghost_lib
+  bli_lib  # again...
+  glewmx_lib
+  string_lib
+  numaapi_lib
+  guardedalloc_lib
+  wcwidth_lib
+  ${OPENGL_gl_LIBRARY}
+  ${FREETYPE_LIBRARY}
+  ${ZLIB_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ${PLATFORM_LINKLIBS}
+)
