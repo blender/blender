@@ -164,7 +164,7 @@ void AbstractHierarchyIterator::debug_print_export_graph(const ExportGraph &grap
       }
     }
   }
-  printf("    (Total graph size: %lu objects\n", total_graph_size);
+  printf("    (Total graph size: %zu objects\n", total_graph_size);
 }
 
 void AbstractHierarchyIterator::export_graph_construct()
