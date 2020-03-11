@@ -1015,6 +1015,7 @@ class OBJECT_OT_assign_property_defaults(Operator):
 classes = (
     ClearAllRestrictRender,
     DupliOffsetFromCursor,
+    DupliOffsetFromObject,
     IsolateTypeRender,
     JoinUVs,
     LoadBackgroundImage,
