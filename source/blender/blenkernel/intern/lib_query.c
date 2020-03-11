@@ -587,7 +587,12 @@ static void library_foreach_ID_link(Main *bmain,
 
   for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
     data.self_id = id;
-    data.owner_id = (id->flag & LIB_EMBEDDED_DATA) ? id_owner : data.self_id;
+    /* Note that we may call this functions sometime directly on an embedded ID, without any
+     * knowledge of the owner ID then.
+     * While not great, and that should be probably sanitized at some point, we cal live with it
+     * for now. */
+    data.owner_id = ((id->flag & LIB_EMBEDDED_DATA) != 0 && id_owner != NULL) ? id_owner :
+                                                                                data.self_id;
 
     /* inherit_data is non-NULL when this function is called for some sub-data ID
      * (like root nodetree of a material).
