@@ -1052,7 +1052,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     /* Unlike on Linux, not all keys can send repeat events. E.g. modifier keys don't. */
     if (keyDown) {
       if (system->m_keycode_last_repeat_key == vk) {
-          is_repeat = true;
+        is_repeat = true;
       }
       system->m_keycode_last_repeat_key = vk;
     }

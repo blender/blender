@@ -5040,8 +5040,16 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       {2048, "SAMPLES_2048", 0, "2048 Samples", "Set audio mixing buffer size to 2048 samples"},
       {4096, "SAMPLES_4096", 0, "4096 Samples", "Set audio mixing buffer size to 4096 samples"},
       {8192, "SAMPLES_8192", 0, "8192 Samples", "Set audio mixing buffer size to 8192 samples"},
-      {16384, "SAMPLES_16384", 0, "16384 Samples", "Set audio mixing buffer size to 16384 samples"},
-      {32768, "SAMPLES_32768", 0, "32768 Samples", "Set audio mixing buffer size to 32768 samples"},
+      {16384,
+       "SAMPLES_16384",
+       0,
+       "16384 Samples",
+       "Set audio mixing buffer size to 16384 samples"},
+      {32768,
+       "SAMPLES_32768",
+       0,
+       "32768 Samples",
+       "Set audio mixing buffer size to 32768 samples"},
       {0, NULL, 0, NULL, NULL},
   };
 

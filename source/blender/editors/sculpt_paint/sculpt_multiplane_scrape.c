@@ -58,7 +58,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-
 typedef struct MultiplaneScrapeSampleData {
   float area_cos[2][3];
   float area_nos[2][3];
@@ -222,7 +221,6 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 }
-
 
 /* Public functions. */
 
@@ -400,9 +398,9 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
 }
 
 void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
-                                                  SculptSession *ss,
-                                                  const float outline_col[3],
-                                                  const float outline_alpha)
+                                           SculptSession *ss,
+                                           const float outline_col[3],
+                                           const float outline_alpha)
 {
   float local_mat_inv[4][4];
   invert_m4_m4(local_mat_inv, ss->cache->stroke_local_mat);
