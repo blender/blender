@@ -413,8 +413,7 @@ static void region_cursor_set(wmWindow *win, bool swin_changed)
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
-  ED_screen_areas_iter(win, screen, area)
-  {
+  ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region == screen->active_region) {
         region_cursor_set_ex(win, area, region, swin_changed);
@@ -467,8 +466,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 
     screen_geom_vertices_scale(win, screen);
 
-    ED_screen_areas_iter(win, screen, area)
-    {
+    ED_screen_areas_iter (win, screen, area) {
       /* set spacetype and region callbacks, calls init() */
       /* sets subwindows for regions, adds handlers */
       ED_area_initialize(wm, win, area);
@@ -691,8 +689,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
   ARegion *region;
   ARegion *region_prev = screen->active_region;
 
-  ED_screen_areas_iter(win, screen, area_iter)
-  {
+  ED_screen_areas_iter (win, screen, area_iter) {
     if (xy[0] > area_iter->totrct.xmin && xy[0] < area_iter->totrct.xmax) {
       if (xy[1] > area_iter->totrct.ymin && xy[1] < area_iter->totrct.ymax) {
         if (ED_area_azones_update(area_iter, xy) == NULL) {
@@ -718,8 +715,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
   /* Check for redraw headers. */
   if (region_prev != screen->active_region) {
 
-    ED_screen_areas_iter(win, screen, area_iter)
-    {
+    ED_screen_areas_iter (win, screen, area_iter) {
       bool do_draw = false;
 
       for (region = area_iter->regionbase.first; region; region = region->next) {

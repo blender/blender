@@ -625,8 +625,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
   bScreen *screen = WM_window_get_active_screen(win);
 
   /* Draw screen areas into own frame buffer. */
-  ED_screen_areas_iter(win, screen, area)
-  {
+  ED_screen_areas_iter (win, screen, area) {
     CTX_wm_area_set(C, area);
 
     /* Compute UI layouts for dynamically size regions. */
@@ -741,8 +740,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 #endif
 
   /* Blit non-overlapping area regions. */
-  ED_screen_areas_iter(win, screen, area)
-  {
+  ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region->visible && region->overlap == false) {
         /* Blit from offscreen buffer. */
@@ -753,8 +751,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 
   /* Draw paint cursors. */
   if (wm->paintcursors.first) {
-    ED_screen_areas_iter(win, screen, area)
-    {
+    ED_screen_areas_iter (win, screen, area) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         if (region->visible && region == screen->active_region) {
           CTX_wm_area_set(C, area);
@@ -773,8 +770,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
 
   /* Blend in overlapping area regions */
-  ED_screen_areas_iter(win, screen, area)
-  {
+  ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region->visible && region->overlap) {
         wm_draw_region_blend(region, 0, true);
@@ -914,8 +910,7 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
     }
   }
 
-  ED_screen_areas_iter(win, screen, area)
-  {
+  ED_screen_areas_iter (win, screen, area) {
     for (region = area->regionbase.first; region; region = region->next) {
       wm_region_test_gizmo_do_draw(C, area, region, true);
       wm_region_test_render_do_draw(scene, depsgraph, area, region);
@@ -962,8 +957,7 @@ static void wm_draw_update_clear_window(bContext *C, wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
-  ED_screen_areas_iter(win, screen, area)
-  {
+  ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       wm_region_test_gizmo_do_draw(C, area, region, false);
     }
