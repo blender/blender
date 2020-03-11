@@ -7030,7 +7030,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   if (cache->first_time ||
       !((brush->flag & BRUSH_ANCHORED) || (brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK) ||
-        (brush->sculpt_tool == SCULPT_TOOL_ROTATE))) {
+        (brush->sculpt_tool == SCULPT_TOOL_ROTATE) ||
+        (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
+         brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB))) {
     RNA_float_get_array(ptr, "location", cache->true_location);
   }
 
