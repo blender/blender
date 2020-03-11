@@ -216,9 +216,22 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Mesh *mesh, float 
   }
 }
 
+/* If the voxel attributes change, we need to rebuild the bounding mesh. */
+static vector<int> get_voxel_image_slots(Mesh *mesh)
+{
+  vector<int> slots;
+  for (const Attribute &attr : mesh->attributes.attributes) {
+    if (attr.element == ATTR_ELEMENT_VOXEL) {
+      slots.push_back(attr.data_voxel().svm_slot());
+    }
+  }
+
+  return slots;
+}
+
 void BlenderSync::sync_volume(BL::Object &b_ob, Mesh *mesh, const vector<Shader *> &used_shaders)
 {
-  bool old_has_voxel_attributes = mesh->has_voxel_attributes();
+  vector<int> old_voxel_slots = get_voxel_image_slots(mesh);
 
   mesh->clear();
   mesh->used_shaders = used_shaders;
@@ -229,7 +242,7 @@ void BlenderSync::sync_volume(BL::Object &b_ob, Mesh *mesh, const vector<Shader 
   }
 
   /* Tag update. */
-  bool rebuild = (old_has_voxel_attributes != mesh->has_voxel_attributes());
+  bool rebuild = (old_voxel_slots != get_voxel_image_slots(mesh));
   mesh->tag_update(scene, rebuild);
 }
 
