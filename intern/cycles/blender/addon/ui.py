@@ -770,6 +770,8 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_solid", text="Surfaces")
         col = flow.column()
         col.prop(view_layer, "use_strand", text="Hair")
+        col = flow.column()
+        col.prop(view_layer, "use_volumes", text="Volumes")
         if with_freestyle:
             col = flow.column()
             col.prop(view_layer, "use_freestyle", text="Freestyle")

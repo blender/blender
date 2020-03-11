@@ -405,6 +405,7 @@ void BlenderSync::sync_view_layer(BL::SpaceView3D & /*b_v3d*/, BL::ViewLayer &b_
   view_layer.use_background_ao = b_view_layer.use_ao();
   view_layer.use_surfaces = b_view_layer.use_solid();
   view_layer.use_hair = b_view_layer.use_strand();
+  view_layer.use_volumes = b_view_layer.use_volumes();
 
   /* Material override. */
   view_layer.material_override = b_view_layer.material_override();

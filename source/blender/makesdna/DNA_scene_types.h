@@ -242,6 +242,7 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_STRAND (1 << 5)
 #define SCE_LAY_FRS (1 << 6)
 #define SCE_LAY_AO (1 << 7)
+#define SCE_LAY_VOLUMES (1 << 8)
 /* flags between (1 << 8) and (1 << 15) are set to 1 already, for future options */
 
 #define SCE_LAY_ALL_Z (1 << 15)

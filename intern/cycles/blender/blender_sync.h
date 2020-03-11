@@ -236,6 +236,7 @@ class BlenderSync {
           use_background_ao(true),
           use_surfaces(true),
           use_hair(true),
+          use_volumes(true),
           samples(0),
           bound_samples(false)
     {
@@ -247,6 +248,7 @@ class BlenderSync {
     bool use_background_ao;
     bool use_surfaces;
     bool use_hair;
+    bool use_volumes;
     int samples;
     bool bound_samples;
   } view_layer;
