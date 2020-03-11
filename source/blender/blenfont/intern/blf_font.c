@@ -230,8 +230,10 @@ void blf_batch_draw(void)
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
+#ifndef BLF_STANDALONE
   /* We need to flush widget base first to ensure correct ordering. */
   UI_widgetbase_draw_cache_flush();
+#endif
 
   GPUTexture *texture = blf_batch_cache_texture_load();
   GPU_texture_bind(texture, 0);

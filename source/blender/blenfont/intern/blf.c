@@ -47,11 +47,9 @@
 
 #include "IMB_colormanagement.h"
 
-#ifndef BLF_STANDALONE
-#  include "GPU_shader.h"
-#  include "GPU_matrix.h"
-#  include "GPU_immediate.h"
-#endif
+#include "GPU_shader.h"
+#include "GPU_matrix.h"
+#include "GPU_immediate.h"
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"

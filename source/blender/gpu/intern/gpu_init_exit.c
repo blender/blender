@@ -64,12 +64,16 @@ void GPU_init(void)
     immInit();
   }
 
+#ifndef GPU_STANDALONE
   gpu_pbvh_init();
+#endif
 }
 
 void GPU_exit(void)
 {
+#ifndef GPU_STANDALONE
   gpu_pbvh_exit();
+#endif
 
   if (!G.background) {
     immDestroy();

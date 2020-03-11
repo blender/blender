@@ -30,6 +30,7 @@
 #include "GPU_immediate.h"
 #include "GPU_draw.h"
 #include "GPU_select.h"
+#include "GPU_state.h"
 #include "GPU_glew.h"
 
 #include "MEM_guardedalloc.h"

@@ -26,9 +26,8 @@
 
 #include <stdlib.h>
 
-#include "GPU_immediate.h"
-#include "GPU_draw.h"
 #include "GPU_select.h"
+#include "GPU_state.h"
 #include "GPU_glew.h"
 
 #include "MEM_guardedalloc.h"
@@ -36,10 +35,6 @@
 #include "BLI_rect.h"
 
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
-
-#include "BKE_global.h"
 
 #include "gpu_select_private.h"
 

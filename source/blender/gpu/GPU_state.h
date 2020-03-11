@@ -65,6 +65,18 @@ void GPU_finish(void);
 
 void GPU_logic_op_invert_set(bool enable);
 
+/* Attribute push & pop. */
+typedef enum eGPUAttrMask {
+  GPU_DEPTH_BUFFER_BIT = (1 << 0),
+  GPU_ENABLE_BIT = (1 << 1),
+  GPU_SCISSOR_BIT = (1 << 2),
+  GPU_VIEWPORT_BIT = (1 << 3),
+  GPU_BLEND_BIT = (1 << 4),
+} eGPUAttrMask;
+
+void gpuPushAttr(eGPUAttrMask mask);
+void gpuPopAttr(void);
+
 #ifdef __cplusplus
 }
 #endif

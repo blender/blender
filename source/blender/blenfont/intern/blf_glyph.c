@@ -46,10 +46,8 @@
 
 #include "BLF_api.h"
 
-#ifndef BLF_STANDALONE
-#  include "GPU_immediate.h"
-#  include "GPU_extensions.h"
-#endif
+#include "GPU_immediate.h"
+#include "GPU_extensions.h"
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"

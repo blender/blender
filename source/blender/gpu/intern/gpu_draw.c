@@ -861,6 +861,7 @@ static void gpu_texture_update_from_ibuf(
  * available. It is also required when requesting the GPUTexture for a render result. */
 GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, int textarget)
 {
+#ifndef GPU_STANDALONE
   if (ima == NULL) {
     return NULL;
   }
@@ -919,10 +920,13 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
   GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
 
   return *tex;
+#endif
+  return NULL;
 }
 
 GPUTexture *GPU_texture_from_movieclip(MovieClip *clip, MovieClipUser *cuser, int textarget)
 {
+#ifndef GPU_STANDALONE
   if (clip == NULL) {
     return NULL;
   }
@@ -945,6 +949,9 @@ GPUTexture *GPU_texture_from_movieclip(MovieClip *clip, MovieClipUser *cuser, in
 
   *tex = GPU_texture_from_bindcode(textarget, bindcode);
   return *tex;
+#else
+  return NULL;
+#endif
 }
 
 void GPU_free_texture_movieclip(struct MovieClip *clip)
@@ -1270,6 +1277,7 @@ void GPU_create_gl_tex_compressed(unsigned int *bind, int textarget, Image *ima,
  * re-uploaded to OpenGL */
 void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
 {
+#ifndef GPU_STANDALONE
   if (!GTS.domipmap) {
     return;
   }
@@ -1321,10 +1329,12 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
       }
     }
   }
+#endif /* GPU_STANDALONE */
 }
 
 void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
+#ifndef GPU_STANDALONE
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
   ImageTile *tile = BKE_image_get_tile_from_iuser(ima, iuser);
 
@@ -1346,6 +1356,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
   }
 
   BKE_image_release_ibuf(ima, ibuf, NULL);
+#endif
 }
 
 static LinkNode *image_free_queue = NULL;
@@ -1526,177 +1537,3 @@ void GPU_state_init(void)
     glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
   }
 }
-
-/** \name Framebuffer color depth, for selection codes
- * \{ */
-
-#define STATE_STACK_DEPTH 16
-
-typedef struct {
-  eGPUAttrMask mask;
-
-  /* GL_ENABLE_BIT */
-  uint is_blend : 1;
-  uint is_cull_face : 1;
-  uint is_depth_test : 1;
-  uint is_dither : 1;
-  uint is_lighting : 1;
-  uint is_line_smooth : 1;
-  uint is_color_logic_op : 1;
-  uint is_multisample : 1;
-  uint is_polygon_offset_line : 1;
-  uint is_polygon_offset_fill : 1;
-  uint is_polygon_smooth : 1;
-  uint is_sample_alpha_to_coverage : 1;
-  uint is_scissor_test : 1;
-  uint is_stencil_test : 1;
-
-  bool is_clip_plane[6];
-
-  /* GL_DEPTH_BUFFER_BIT */
-  /* uint is_depth_test : 1; */
-  int depth_func;
-  double depth_clear_value;
-  bool depth_write_mask;
-
-  /* GL_SCISSOR_BIT */
-  int scissor_box[4];
-  /* uint is_scissor_test : 1; */
-
-  /* GL_VIEWPORT_BIT */
-  int viewport[4];
-  double near_far[2];
-} GPUAttrValues;
-
-typedef struct {
-  GPUAttrValues attr_stack[STATE_STACK_DEPTH];
-  uint top;
-} GPUAttrStack;
-
-static GPUAttrStack state = {
-    .top = 0,
-};
-
-#define AttrStack state
-#define Attr state.attr_stack[state.top]
-
-/**
- * Replacement for glPush/PopAttributes
- *
- * We don't need to cover all the options of legacy OpenGL
- * but simply the ones used by Blender.
- */
-void gpuPushAttr(eGPUAttrMask mask)
-{
-  Attr.mask = mask;
-
-  if ((mask & GPU_DEPTH_BUFFER_BIT) != 0) {
-    Attr.is_depth_test = glIsEnabled(GL_DEPTH_TEST);
-    glGetIntegerv(GL_DEPTH_FUNC, &Attr.depth_func);
-    glGetDoublev(GL_DEPTH_CLEAR_VALUE, &Attr.depth_clear_value);
-    glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean *)&Attr.depth_write_mask);
-  }
-
-  if ((mask & GPU_ENABLE_BIT) != 0) {
-    Attr.is_blend = glIsEnabled(GL_BLEND);
-
-    for (int i = 0; i < 6; i++) {
-      Attr.is_clip_plane[i] = glIsEnabled(GL_CLIP_PLANE0 + i);
-    }
-
-    Attr.is_cull_face = glIsEnabled(GL_CULL_FACE);
-    Attr.is_depth_test = glIsEnabled(GL_DEPTH_TEST);
-    Attr.is_dither = glIsEnabled(GL_DITHER);
-    Attr.is_line_smooth = glIsEnabled(GL_LINE_SMOOTH);
-    Attr.is_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
-    Attr.is_multisample = glIsEnabled(GL_MULTISAMPLE);
-    Attr.is_polygon_offset_line = glIsEnabled(GL_POLYGON_OFFSET_LINE);
-    Attr.is_polygon_offset_fill = glIsEnabled(GL_POLYGON_OFFSET_FILL);
-    Attr.is_polygon_smooth = glIsEnabled(GL_POLYGON_SMOOTH);
-    Attr.is_sample_alpha_to_coverage = glIsEnabled(GL_SAMPLE_ALPHA_TO_COVERAGE);
-    Attr.is_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-    Attr.is_stencil_test = glIsEnabled(GL_STENCIL_TEST);
-  }
-
-  if ((mask & GPU_SCISSOR_BIT) != 0) {
-    Attr.is_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-    glGetIntegerv(GL_SCISSOR_BOX, (GLint *)&Attr.scissor_box);
-  }
-
-  if ((mask & GPU_VIEWPORT_BIT) != 0) {
-    glGetDoublev(GL_DEPTH_RANGE, (GLdouble *)&Attr.near_far);
-    glGetIntegerv(GL_VIEWPORT, (GLint *)&Attr.viewport);
-  }
-
-  if ((mask & GPU_BLEND_BIT) != 0) {
-    Attr.is_blend = glIsEnabled(GL_BLEND);
-  }
-
-  BLI_assert(AttrStack.top < STATE_STACK_DEPTH);
-  AttrStack.top++;
-}
-
-static void restore_mask(GLenum cap, const bool value)
-{
-  if (value) {
-    glEnable(cap);
-  }
-  else {
-    glDisable(cap);
-  }
-}
-
-void gpuPopAttr(void)
-{
-  BLI_assert(AttrStack.top > 0);
-  AttrStack.top--;
-
-  GLint mask = Attr.mask;
-
-  if ((mask & GPU_DEPTH_BUFFER_BIT) != 0) {
-    restore_mask(GL_DEPTH_TEST, Attr.is_depth_test);
-    glDepthFunc(Attr.depth_func);
-    glClearDepth(Attr.depth_clear_value);
-    glDepthMask(Attr.depth_write_mask);
-  }
-
-  if ((mask & GPU_ENABLE_BIT) != 0) {
-    restore_mask(GL_BLEND, Attr.is_blend);
-
-    for (int i = 0; i < 6; i++) {
-      restore_mask(GL_CLIP_PLANE0 + i, Attr.is_clip_plane[i]);
-    }
-
-    restore_mask(GL_CULL_FACE, Attr.is_cull_face);
-    restore_mask(GL_DEPTH_TEST, Attr.is_depth_test);
-    restore_mask(GL_DITHER, Attr.is_dither);
-    restore_mask(GL_LINE_SMOOTH, Attr.is_line_smooth);
-    restore_mask(GL_COLOR_LOGIC_OP, Attr.is_color_logic_op);
-    restore_mask(GL_MULTISAMPLE, Attr.is_multisample);
-    restore_mask(GL_POLYGON_OFFSET_LINE, Attr.is_polygon_offset_line);
-    restore_mask(GL_POLYGON_OFFSET_FILL, Attr.is_polygon_offset_fill);
-    restore_mask(GL_POLYGON_SMOOTH, Attr.is_polygon_smooth);
-    restore_mask(GL_SAMPLE_ALPHA_TO_COVERAGE, Attr.is_sample_alpha_to_coverage);
-    restore_mask(GL_SCISSOR_TEST, Attr.is_scissor_test);
-    restore_mask(GL_STENCIL_TEST, Attr.is_stencil_test);
-  }
-
-  if ((mask & GPU_VIEWPORT_BIT) != 0) {
-    glViewport(Attr.viewport[0], Attr.viewport[1], Attr.viewport[2], Attr.viewport[3]);
-    glDepthRange(Attr.near_far[0], Attr.near_far[1]);
-  }
-
-  if ((mask & GPU_SCISSOR_BIT) != 0) {
-    restore_mask(GL_SCISSOR_TEST, Attr.is_scissor_test);
-    glScissor(Attr.scissor_box[0], Attr.scissor_box[1], Attr.scissor_box[2], Attr.scissor_box[3]);
-  }
-
-  if ((mask & GPU_BLEND_BIT) != 0) {
-    restore_mask(GL_BLEND, Attr.is_blend);
-  }
-}
-
-#undef Attr
-#undef AttrStack
-
-/** \} */
