@@ -25,6 +25,8 @@
 
 #include <stddef.h>
 
+#include "DNA_ID.h"
+
 struct ID;
 
 /* Uncomment this to have verbose log about original and CoW pointers
@@ -94,5 +96,6 @@ bool deg_copy_on_write_is_expanded(const struct ID *id_cow);
  * This includes images.
  */
 bool deg_copy_on_write_is_needed(const ID *id_orig);
+bool deg_copy_on_write_is_needed(const ID_Type id_type);
 
 }  // namespace DEG

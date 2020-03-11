@@ -103,6 +103,7 @@ void IDNode::init(const ID *id, const char *UNUSED(subdata))
 {
   BLI_assert(id != nullptr);
   /* Store ID-pointer. */
+  id_type = GS(id->name);
   id_orig = (ID *)id;
   eval_flags = 0;
   previous_eval_flags = 0;

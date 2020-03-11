@@ -914,8 +914,11 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
   user_data.depsgraph = depsgraph;
   user_data.node_builder = node_builder;
   user_data.create_placeholders = create_placeholders;
-  BKE_library_foreach_ID_link(
-      nullptr, id_cow, foreach_libblock_remap_callback, (void *)&user_data, IDWALK_NOP);
+  BKE_library_foreach_ID_link(nullptr,
+                              id_cow,
+                              foreach_libblock_remap_callback,
+                              (void *)&user_data,
+                              IDWALK_IGNORE_EMBEDDED_ID);
   /* Correct or tweak some pointers which are not taken care by foreach
    * from above. */
   update_id_after_copy(depsgraph, id_node, id_orig, id_cow);
@@ -1113,6 +1116,11 @@ bool deg_copy_on_write_is_expanded(const ID *id_cow)
 bool deg_copy_on_write_is_needed(const ID *id_orig)
 {
   const ID_Type id_type = GS(id_orig->name);
+  return deg_copy_on_write_is_needed(id_type);
+}
+
+bool deg_copy_on_write_is_needed(const ID_Type id_type)
+{
   return ID_TYPE_IS_COW(id_type);
 }
 

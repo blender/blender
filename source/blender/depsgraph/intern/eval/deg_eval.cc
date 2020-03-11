@@ -37,6 +37,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_node_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -343,11 +344,13 @@ void depsgraph_ensure_view_layer(Depsgraph *graph)
    * - It was tagged for update of CoW component.
    * This allows us to have proper view layer pointer. */
   Scene *scene_cow = graph->scene_cow;
-  if (!deg_copy_on_write_is_expanded(&scene_cow->id) ||
-      scene_cow->id.recalc & ID_RECALC_COPY_ON_WRITE) {
-    const IDNode *id_node = graph->find_id_node(&graph->scene->id);
-    deg_update_copy_on_write_datablock(graph, id_node);
+  if (deg_copy_on_write_is_expanded(&scene_cow->id) &&
+      (scene_cow->id.recalc & ID_RECALC_COPY_ON_WRITE) == 0) {
+    return;
   }
+
+  const IDNode *scene_id_node = graph->find_id_node(&graph->scene->id);
+  deg_update_copy_on_write_datablock(graph, scene_id_node);
 }
 
 }  // namespace
