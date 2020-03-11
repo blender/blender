@@ -92,6 +92,8 @@ if(WITH_CYCLES_OSL)
   list(APPEND LIB
     cycles_kernel_osl
   )
+
+  SET_PROPERTY(SOURCE osl.cpp PROPERTY COMPILE_FLAGS ${RTTI_DISABLE_FLAGS})
 endif()
 
 include_directories(${INC})
