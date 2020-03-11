@@ -619,16 +619,16 @@ static ShaderNode *add_node(Scene *scene,
       /* create script node */
       BL::ShaderNodeScript b_script_node(b_node);
 
-      OSLShaderManager *manager = (OSLShaderManager *)scene->shader_manager;
+      ShaderManager *manager = scene->shader_manager;
       string bytecode_hash = b_script_node.bytecode_hash();
 
       if (!bytecode_hash.empty()) {
-        node = manager->osl_node("", bytecode_hash, b_script_node.bytecode());
+        node = OSLShaderManager::osl_node(manager, "", bytecode_hash, b_script_node.bytecode());
       }
       else {
         string absolute_filepath = blender_absolute_path(
             b_data, b_ntree, b_script_node.filepath());
-        node = manager->osl_node(absolute_filepath, "");
+        node = OSLShaderManager::osl_node(manager, absolute_filepath, "");
       }
     }
 #else

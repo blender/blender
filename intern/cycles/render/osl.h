@@ -93,9 +93,10 @@ class OSLShaderManager : public ShaderManager {
   OSLShaderInfo *shader_loaded_info(const string &hash);
 
   /* create OSL node using OSLQuery */
-  OSLNode *osl_node(const std::string &filepath,
-                    const std::string &bytecode_hash = "",
-                    const std::string &bytecode = "");
+  static OSLNode *osl_node(ShaderManager *manager,
+                           const std::string &filepath,
+                           const std::string &bytecode_hash = "",
+                           const std::string &bytecode = "");
 
  protected:
   void texture_system_init();
