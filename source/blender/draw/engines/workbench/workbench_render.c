@@ -41,20 +41,12 @@
 
 #include "workbench_private.h"
 
-static void workbench_render_deferred_cache(void *vedata,
-                                            struct Object *ob,
-                                            struct RenderEngine *UNUSED(engine),
-                                            struct Depsgraph *UNUSED(depsgraph))
+static void workbench_render_cache(void *vedata,
+                                   struct Object *ob,
+                                   struct RenderEngine *UNUSED(engine),
+                                   struct Depsgraph *UNUSED(depsgraph))
 {
-  workbench_deferred_solid_cache_populate(vedata, ob);
-}
-
-static void workbench_render_forward_cache(void *vedata,
-                                           struct Object *ob,
-                                           struct RenderEngine *UNUSED(engine),
-                                           struct Depsgraph *UNUSED(depsgraph))
-{
-  workbench_forward_cache_populate(vedata, ob);
+  workbench_cache_populate(vedata, ob);
 }
 
 static void workbench_render_matrices_init(RenderEngine *engine, Depsgraph *depsgraph)
@@ -171,18 +163,11 @@ static void workbench_render_result_z(struct RenderLayer *rl,
   }
 }
 
-static void workbench_render_framebuffers_finish(void)
+void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer, const rcti *rect)
 {
-}
-
-void workbench_render(WORKBENCH_Data *data,
-                      RenderEngine *engine,
-                      RenderLayer *render_layer,
-                      const rcti *rect)
-{
+  WORKBENCH_Data *data = ved;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene = draw_ctx->scene;
   Depsgraph *depsgraph = draw_ctx->depsgraph;
   workbench_render_matrices_init(engine, depsgraph);
 
@@ -191,59 +176,31 @@ void workbench_render(WORKBENCH_Data *data,
     return;
   }
 
-  const bool deferred = !XRAY_FLAG_ENABLED(&scene->display);
+  workbench_engine_init(data);
 
-  if (deferred) {
-    /* Init engine. */
-    workbench_deferred_engine_init(data);
+  workbench_cache_init(data);
+  DRW_render_object_iter(data, engine, depsgraph, workbench_render_cache);
+  workbench_cache_finish(data);
 
-    /* Init objects. */
-    workbench_deferred_cache_init(data);
-    DRW_render_object_iter(data, engine, depsgraph, workbench_render_deferred_cache);
-    workbench_deferred_cache_finish(data);
-    DRW_render_instance_buffer_finish();
+  DRW_render_instance_buffer_finish();
 
-    /* Also we weed to have a correct fbo bound for DRW_hair_update */
-    GPU_framebuffer_bind(dfbl->color_only_fb);
-    DRW_hair_update();
+  /* Also we weed to have a correct fbo bound for DRW_hair_update */
+  GPU_framebuffer_bind(dfbl->default_fb);
+  DRW_hair_update();
 
-    /* Draw. */
-    int num_samples = workbench_taa_calculate_num_iterations(data);
-    for (int sample = 0; sample < num_samples; sample++) {
-      if (RE_engine_test_break(engine)) {
-        break;
-      }
-      workbench_deferred_draw_scene(data);
+  GPU_framebuffer_bind(dfbl->default_fb);
+  GPU_framebuffer_clear_depth(dfbl->default_fb, 1.0f);
+
+  WORKBENCH_PrivateData *wpd = data->stl->wpd;
+  while (wpd->taa_sample < max_ii(1, wpd->taa_sample_len)) {
+    if (RE_engine_test_break(engine)) {
+      break;
     }
-
-    workbench_deferred_draw_finish(data);
+    workbench_update_world_ubo(wpd);
+    workbench_draw_sample(data);
   }
-  else {
-    /* Init engine. */
-    workbench_forward_engine_init(data);
 
-    /* Init objects. */
-    workbench_forward_cache_init(data);
-    DRW_render_object_iter(data, engine, depsgraph, workbench_render_forward_cache);
-    workbench_forward_cache_finish(data);
-    DRW_render_instance_buffer_finish();
-
-    /* Also we weed to have a correct fbo bound for DRW_hair_update */
-    GPU_framebuffer_bind(dfbl->color_only_fb);
-    DRW_hair_update();
-
-    /* Draw. */
-    int num_samples = workbench_taa_calculate_num_iterations(data);
-    for (int sample = 0; sample < num_samples; sample++) {
-      if (RE_engine_test_break(engine)) {
-        break;
-      }
-
-      workbench_forward_draw_scene(data);
-    }
-
-    workbench_forward_draw_finish(data);
-  }
+  workbench_draw_finish(data);
 
   /* Write render output. */
   const char *viewname = RE_GetActiveRenderView(engine->re);
@@ -260,8 +217,6 @@ void workbench_render(WORKBENCH_Data *data,
                              rp->rect);
 
   workbench_render_result_z(render_layer, viewname, rect);
-
-  workbench_render_framebuffers_finish();
 }
 
 void workbench_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)

@@ -382,9 +382,6 @@ static void OVERLAY_cache_finish(void *vedata)
     DRW_texture_ensure_fullscreen_2d(&dtxl->depth_in_front, GPU_DEPTH24_STENCIL8, 0);
 
     GPU_framebuffer_ensure_config(
-        &dfbl->default_fb,
-        {GPU_ATTACHMENT_TEXTURE(dtxl->depth), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
-    GPU_framebuffer_ensure_config(
         &dfbl->in_front_fb,
         {GPU_ATTACHMENT_TEXTURE(dtxl->depth_in_front), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
   }

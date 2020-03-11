@@ -24,6 +24,7 @@
 #include "DNA_world_types.h"
 #include "DNA_material_types.h"
 
+#include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
@@ -282,6 +283,8 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
 
 /* -------------------------------------------------------------------- */
 
+/** \{ */
+
 GPUShader *DRW_shader_create(const char *vert,
                              const char *geom,
                              const char *frag,
@@ -468,3 +471,129 @@ void DRW_shader_free(GPUShader *shader)
 {
   GPU_shader_free(shader);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name Shader Library
+ *
+ * Simple include system for glsl files.
+ *
+ * Usage: Create a DRWShaderLibrary and add the library in the right order.
+ * You can have nested dependencies but each new library needs to have all its dependencies already
+ * added to the DRWShaderLibrary.
+ * Finally you can use DRW_shader_library_create_shader_string to get a shader string that also
+ * contains the needed libraries for this shader.
+ * \{ */
+
+/* 32 because we use a 32bit bitmap. */
+#define MAX_LIB 32
+#define MAX_LIB_NAME 64
+#define MAX_LIB_DEPS 8
+
+struct DRWShaderLibrary {
+  char *libs[MAX_LIB];
+  char libs_name[MAX_LIB][MAX_LIB_NAME];
+  uint32_t libs_deps[MAX_LIB];
+};
+
+DRWShaderLibrary *DRW_shader_library_create(void)
+{
+  return MEM_callocN(sizeof(DRWShaderLibrary), "DRWShaderLibrary");
+}
+
+void DRW_shader_library_free(DRWShaderLibrary *lib)
+{
+  MEM_SAFE_FREE(lib);
+}
+
+static int drw_shader_library_search(DRWShaderLibrary *lib, const char *name)
+{
+  for (int i = 0; i < MAX_LIB; i++) {
+    if (lib->libs[i]) {
+      if (!strncmp(lib->libs_name[i], name, strlen(lib->libs_name[i]))) {
+        return i;
+      }
+    }
+    else {
+      break;
+    }
+  }
+  return -1;
+}
+
+/* Return bitmap of dependencies. */
+static uint32_t drw_shader_dependencies_get(DRWShaderLibrary *lib, char *lib_code)
+{
+  /* Search dependencies. */
+  uint32_t deps = 0;
+  char *haystack = lib_code;
+  while ((haystack = strstr(haystack, "BLENDER_REQUIRE("))) {
+    haystack += 16;
+    int dep = drw_shader_library_search(lib, haystack);
+    if (dep == -1) {
+      printf(
+          "Error: Dependency not found.\n"
+          "This might be due to bad lib ordering.\n");
+      BLI_assert(0);
+    }
+    else {
+      deps |= 1u << (uint32_t)dep;
+    }
+  }
+  return deps;
+}
+
+void DRW_shader_library_add_file(DRWShaderLibrary *lib, char *lib_code, const char *lib_name)
+{
+  int index = -1;
+  for (int i = 0; i < MAX_LIB; i++) {
+    if (lib->libs[i] == NULL) {
+      index = i;
+      break;
+    }
+  }
+
+  if (index > -1) {
+    lib->libs[index] = lib_code;
+    BLI_strncpy(lib->libs_name[index], lib_name, MAX_LIB_NAME);
+  }
+  else {
+    printf("Error: Too many libraries. Cannot add %s.\n", lib_name);
+    BLI_assert(0);
+  }
+
+  lib->libs_deps[index] = drw_shader_dependencies_get(lib, lib_code);
+}
+
+/* Return an allocN'ed string containing the shader code with its dependencies prepended.
+ * Caller must free the string with MEM_freeN after use. */
+char *DRW_shader_library_create_shader_string(DRWShaderLibrary *lib, char *shader_code)
+{
+  uint32_t deps = drw_shader_dependencies_get(lib, shader_code);
+
+  DynStr *ds = BLI_dynstr_new();
+  /* Add all dependencies recursively. */
+  for (int i = MAX_LIB - 1; i > -1; i--) {
+    if (lib->libs[i] && (deps & (1u << (uint32_t)i))) {
+      deps |= lib->libs_deps[i];
+    }
+  }
+  /* Concatenate all needed libs into one string. */
+  for (int i = 0; i < MAX_LIB; i++) {
+    if (deps & 1u) {
+      BLI_dynstr_append(ds, lib->libs[i]);
+    }
+    deps = deps >> 1;
+  }
+
+  BLI_dynstr_append(ds, shader_code);
+
+  char *str = BLI_dynstr_get_cstring(ds);
+  BLI_dynstr_free(ds);
+
+  return str;
+}
+
+/** \} */

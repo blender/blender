@@ -177,6 +177,11 @@ struct DRWShadingGroup *DRW_shgroup_hair_create(struct Object *object,
                                                 struct DRWPass *hair_pass,
                                                 struct GPUShader *shader);
 
+struct DRWShadingGroup *DRW_shgroup_hair_create_sub(struct Object *object,
+                                                    struct ParticleSystem *psys,
+                                                    struct ModifierData *md,
+                                                    struct DRWShadingGroup *shgrp);
+
 struct DRWShadingGroup *DRW_shgroup_material_hair_create(struct Object *object,
                                                          struct ParticleSystem *psys,
                                                          struct ModifierData *md,

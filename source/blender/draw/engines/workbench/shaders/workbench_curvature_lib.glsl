@@ -1,6 +1,5 @@
-#ifndef CURVATURE_OFFSET
-#  define CURVATURE_OFFSET 1
-#endif
+
+#pragma BLENDER_REQUIRE(workbench_data_lib.glsl)
 
 float curvature_soft_clamp(float curvature, float control)
 {
@@ -10,33 +9,35 @@ float curvature_soft_clamp(float curvature, float control)
   return 0.25 / control;
 }
 
-float calculate_curvature(
-    usampler2D objectId, sampler2D normalBuffer, ivec2 texel, float ridge, float valley)
+void curvature_compute(vec2 uv,
+                       usampler2D objectIdBuffer,
+                       sampler2D normalBuffer,
+                       out float curvature)
 {
-  uint object_up = texelFetchOffset(objectId, texel, 0, ivec2(0, CURVATURE_OFFSET)).r;
-  uint object_down = texelFetchOffset(objectId, texel, 0, ivec2(0, -CURVATURE_OFFSET)).r;
-  uint object_left = texelFetchOffset(objectId, texel, 0, ivec2(-CURVATURE_OFFSET, 0)).r;
-  uint object_right = texelFetchOffset(objectId, texel, 0, ivec2(CURVATURE_OFFSET, 0)).r;
+  curvature = 0.0;
 
+  vec3 offset = vec3(world_data.viewport_size_inv, 0.0) * world_data.ui_scale;
+  uint object_up = texture(objectIdBuffer, uv + offset.zy).r;
+  uint object_down = texture(objectIdBuffer, uv - offset.zy).r;
+  uint object_right = texture(objectIdBuffer, uv + offset.xz).r;
+  uint object_left = texture(objectIdBuffer, uv - offset.xz).r;
+
+  /* Remove object outlines. */
   if ((object_up != object_down) || (object_right != object_left)) {
-    return 0.0;
+    return;
   }
 
-  vec2 normal_up = texelFetchOffset(normalBuffer, texel, 0, ivec2(0, CURVATURE_OFFSET)).rg;
-  vec2 normal_down = texelFetchOffset(normalBuffer, texel, 0, ivec2(0, -CURVATURE_OFFSET)).rg;
-  vec2 normal_left = texelFetchOffset(normalBuffer, texel, 0, ivec2(-CURVATURE_OFFSET, 0)).rg;
-  vec2 normal_right = texelFetchOffset(normalBuffer, texel, 0, ivec2(CURVATURE_OFFSET, 0)).rg;
+  float normal_up = workbench_normal_decode(texture(normalBuffer, uv + offset.zy)).g;
+  float normal_down = workbench_normal_decode(texture(normalBuffer, uv - offset.zy)).g;
+  float normal_right = workbench_normal_decode(texture(normalBuffer, uv + offset.xz)).r;
+  float normal_left = workbench_normal_decode(texture(normalBuffer, uv - offset.xz)).r;
 
-  normal_up = workbench_normal_decode(normal_up).rg;
-  normal_down = workbench_normal_decode(normal_down).rg;
-  normal_left = workbench_normal_decode(normal_left).rg;
-  normal_right = workbench_normal_decode(normal_right).rg;
-
-  float normal_diff = ((normal_up.g - normal_down.g) + (normal_right.r - normal_left.r));
+  float normal_diff = (normal_up - normal_down) + (normal_right - normal_left);
 
   if (normal_diff < 0) {
-    return -2.0 * curvature_soft_clamp(-normal_diff, valley);
+    curvature = -2.0 * curvature_soft_clamp(-normal_diff, world_data.curvature_valley);
   }
-
-  return 2.0 * curvature_soft_clamp(normal_diff, ridge);
+  else {
+    curvature = 2.0 * curvature_soft_clamp(normal_diff, world_data.curvature_ridge);
+  }
 }

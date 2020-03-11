@@ -68,22 +68,17 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
                                      OVERLAY_shader_wireframe();
 
   for (int xray = 0; xray < (is_material_shmode ? 1 : 2); xray++) {
-    /* Only do stencil test if stencil buffer is written by the render engine. */
-    DRWState stencil_state = is_material_shmode ? 0 : DRW_STATE_STENCIL_EQUAL;
     DRWState state = DRW_STATE_FIRST_VERTEX_CONVENTION | DRW_STATE_WRITE_COLOR |
                      DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     DRWPass *pass;
-    uint stencil_mask;
 
     if (xray == 0) {
-      DRW_PASS_CREATE(psl->wireframe_ps, state | stencil_state | pd->clipping_state);
+      DRW_PASS_CREATE(psl->wireframe_ps, state | pd->clipping_state);
       pass = psl->wireframe_ps;
-      stencil_mask = 0xFF;
     }
     else {
       DRW_PASS_CREATE(psl->wireframe_xray_ps, state | pd->clipping_state);
       pass = psl->wireframe_xray_ps;
-      stencil_mask = 0x00;
     }
 
     for (int use_coloring = 0; use_coloring < 2; use_coloring++) {
@@ -94,17 +89,14 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
       DRW_shgroup_uniform_bool_copy(grp, "isObjectColor", is_object_color);
       DRW_shgroup_uniform_bool_copy(grp, "isRandomColor", is_random_color);
-      DRW_shgroup_stencil_mask(grp, stencil_mask);
 
       pd->wires_all_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);
       DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 1.0f);
-      DRW_shgroup_stencil_mask(grp, stencil_mask);
     }
 
     pd->wires_sculpt_grp[xray] = grp = DRW_shgroup_create(wires_sh, pass);
     DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 10.0f);
     DRW_shgroup_uniform_bool_copy(grp, "useColoring", false);
-    DRW_shgroup_stencil_mask(grp, stencil_mask);
   }
 
   if (is_material_shmode) {

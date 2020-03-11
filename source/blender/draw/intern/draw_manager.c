@@ -1118,45 +1118,23 @@ static void use_drw_engine(DrawEngineType *engine)
   BLI_addtail(&DST.enabled_engines, ld);
 }
 
-/**
- * Use for external render engines.
- */
-static void drw_engines_enable_external(void)
-{
-  use_drw_engine(DRW_engine_viewport_external_type.draw_engine);
-}
-
-/* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type,
-                                           eDrawType drawtype,
-                                           bool use_xray)
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, eDrawType drawtype)
 {
   switch (drawtype) {
     case OB_WIRE:
-      use_drw_engine(&draw_engine_workbench_transparent);
-      break;
-
     case OB_SOLID:
-      if (use_xray) {
-        use_drw_engine(&draw_engine_workbench_transparent);
-      }
-      else {
-        use_drw_engine(&draw_engine_workbench_solid);
-      }
+      use_drw_engine(DRW_engine_viewport_workbench_type.draw_engine);
       break;
-
     case OB_MATERIAL:
     case OB_RENDER:
     default:
-      /* TODO layers */
       if (engine_type->draw_engine != NULL) {
         use_drw_engine(engine_type->draw_engine);
       }
-
-      if ((engine_type->flag & RE_INTERNAL) == 0) {
-        drw_engines_enable_external();
+      else if ((engine_type->flag & RE_INTERNAL) == 0) {
+        use_drw_engine(DRW_engine_viewport_external_type.draw_engine);
       }
       break;
   }
@@ -1182,7 +1160,7 @@ static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
   const eDrawType drawtype = v3d->shading.type;
   const bool use_xray = XRAY_ENABLED(v3d);
 
-  drw_engines_enable_from_engine(engine_type, drawtype, use_xray);
+  drw_engines_enable_from_engine(engine_type, drawtype);
   if (gpencil_engine_needed && ((drawtype >= OB_SOLID) || !use_xray)) {
     use_drw_engine(&draw_engine_gpencil_type);
   }
@@ -1607,6 +1585,9 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
     GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
     GPU_blend(true);
   }
+
+  GPU_matrix_identity_set();
+  GPU_matrix_identity_projection_set();
 
   GPU_viewport_unbind_from_offscreen(render_viewport, ofs, do_color_management);
 
@@ -2645,9 +2626,6 @@ void DRW_engines_register(void)
 {
   RE_engines_register(&DRW_engine_viewport_eevee_type);
   RE_engines_register(&DRW_engine_viewport_workbench_type);
-
-  DRW_engine_register(&draw_engine_workbench_solid);
-  DRW_engine_register(&draw_engine_workbench_transparent);
 
   DRW_engine_register(&draw_engine_gpencil_type);
 

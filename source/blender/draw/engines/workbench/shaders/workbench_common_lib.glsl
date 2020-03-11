@@ -1,22 +1,8 @@
-#define NO_OBJECT_ID uint(0)
+
 #define EPSILON 0.00001
 #define M_PI 3.14159265358979323846
 
 #define CAVITY_BUFFER_RANGE 4.0
-
-/* 4x4 bayer matrix prepared for 8bit UNORM precision error. */
-#define P(x) (((x + 0.5) * (1.0 / 16.0) - 0.5) * (1.0 / 255.0))
-const vec4 dither_mat4x4[4] = vec4[4](vec4(P(0.0), P(8.0), P(2.0), P(10.0)),
-                                      vec4(P(12.0), P(4.0), P(14.0), P(6.0)),
-                                      vec4(P(3.0), P(11.0), P(1.0), P(9.0)),
-                                      vec4(P(15.0), P(7.0), P(13.0), P(5.0)));
-
-float bayer_dither_noise()
-{
-  ivec2 tx1 = ivec2(gl_FragCoord.xy) % 4;
-  ivec2 tx2 = ivec2(gl_FragCoord.xy) % 2;
-  return dither_mat4x4[tx1.x][tx1.y];
-}
 
 #ifdef WORKBENCH_ENCODE_NORMALS
 
@@ -24,7 +10,7 @@ float bayer_dither_noise()
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Spheremap Transform */
-vec3 workbench_normal_decode(WB_Normal enc)
+vec3 workbench_normal_decode(vec4 enc)
 {
   vec2 fenc = enc.xy * 4.0 - 2.0;
   float f = dot(fenc, fenc);
@@ -37,8 +23,9 @@ vec3 workbench_normal_decode(WB_Normal enc)
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Spheremap Transform */
-WB_Normal workbench_normal_encode(vec3 n)
+WB_Normal workbench_normal_encode(bool front_face, vec3 n)
 {
+  n = normalize(front_face ? n : -n);
   float p = sqrt(n.z * 8.0 + 8.0);
   n.xy = clamp(n.xy / p + 0.5, 0.0, 1.0);
   return n.xy;
@@ -47,161 +34,64 @@ WB_Normal workbench_normal_encode(vec3 n)
 #else
 #  define WB_Normal vec3
 /* Well just do nothing... */
-#  define workbench_normal_encode(a) (a)
-#  define workbench_normal_decode(a) (a)
+#  define workbench_normal_encode(f, a) (a)
+#  define workbench_normal_decode(a) (a.xyz)
 #endif /* WORKBENCH_ENCODE_NORMALS */
 
-/* Encoding into the alpha of a RGBA8 UNORM texture. */
+/* Encoding into the alpha of a RGBA16F texture. (10bit mantissa) */
 #define TARGET_BITCOUNT 8u
 #define METALLIC_BITS 3u /* Metallic channel is less important. */
 #define ROUGHNESS_BITS (TARGET_BITCOUNT - METALLIC_BITS)
-#define TOTAL_BITS (METALLIC_BITS + ROUGHNESS_BITS)
 
 /* Encode 2 float into 1 with the desired precision. */
 float workbench_float_pair_encode(float v1, float v2)
 {
-  // const uint total_mask = ~(0xFFFFFFFFu << TOTAL_BITS);
   // const uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
   // const uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);
   /* Same as above because some compiler are dumb af. and think we use mediump int.  */
-  const int total_mask = 0xFF;
   const int v1_mask = 0x1F;
   const int v2_mask = 0x7;
   int iv1 = int(v1 * float(v1_mask));
   int iv2 = int(v2 * float(v2_mask)) << int(ROUGHNESS_BITS);
-  return float(iv1 | iv2) * (1.0 / float(total_mask));
+  return float(iv1 | iv2);
 }
 
 void workbench_float_pair_decode(float data, out float v1, out float v2)
 {
-  // const uint total_mask = ~(0xFFFFFFFFu << TOTAL_BITS);
   // const uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
   // const uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);
   /* Same as above because some compiler are dumb af. and think we use mediump int.  */
-  const int total_mask = 0xFF;
   const int v1_mask = 0x1F;
   const int v2_mask = 0x7;
-  int idata = int(data * float(total_mask));
+  int idata = int(data);
   v1 = float(idata & v1_mask) * (1.0 / float(v1_mask));
   v2 = float(idata >> int(ROUGHNESS_BITS)) * (1.0 / float(v2_mask));
 }
 
-float calculate_transparent_weight(float z, float alpha)
-{
-#if 0
-  /* Eq 10 : Good for surfaces with varying opacity (like particles) */
-  float a = min(1.0, alpha * 10.0) + 0.01;
-  float b = -gl_FragCoord.z * 0.95 + 1.0;
-  float w = a * a * a * 3e2 * b * b * b;
-#else
-  /* Eq 7 put more emphasis on surfaces closer to the view. */
-  // float w = 10.0 / (1e-5 + pow(abs(z) / 5.0, 2.0) + pow(abs(z) / 200.0, 6.0)); /* Eq 7 */
-  // float w = 10.0 / (1e-5 + pow(abs(z) / 10.0, 3.0) + pow(abs(z) / 200.0, 6.0)); /* Eq 8 */
-  // float w = 10.0 / (1e-5 + pow(abs(z) / 200.0, 4.0)); /* Eq 9 */
-  /* Same as eq 7, but optimized. */
-  float a = abs(z) / 5.0;
-  float b = abs(z) / 200.0;
-  b *= b;
-  float w = 10.0 / ((1e-5 + a * a) + b * (b * b)); /* Eq 7 */
-#endif
-  return alpha * clamp(w, 1e-2, 3e2);
-}
-
-/* Special function only to be used with calculate_transparent_weight(). */
-float linear_zdepth(float depth, vec4 viewvecs[3], mat4 proj_mat)
-{
-  if (proj_mat[3][3] == 0.0) {
-    float d = 2.0 * depth - 1.0;
-    return -proj_mat[3][2] / (d + proj_mat[2][2]);
-  }
-  else {
-    /* Return depth from near plane. */
-    return depth * viewvecs[1].z;
-  }
-}
-
 vec3 view_vector_from_screen_uv(vec2 uv, vec4 viewvecs[3], mat4 proj_mat)
 {
-  return (proj_mat[3][3] == 0.0) ? normalize(viewvecs[0].xyz + vec3(uv, 0.0) * viewvecs[1].xyz) :
-                                   vec3(0.0, 0.0, 1.0);
-}
-
-vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
-{
-  /* Quick creation of an orthonormal basis */
-  float a = 1.0 / (1.0 + I.z);
-  float b = -I.x * I.y * a;
-  vec3 b1 = vec3(1.0 - I.x * I.x * a, b, -I.x);
-  vec3 b2 = vec3(b, 1.0 - I.y * I.y * a, -I.y);
-  vec2 matcap_uv = vec2(dot(b1, N), dot(b2, N));
-  if (flipped) {
-    matcap_uv.x = -matcap_uv.x;
+  if (proj_mat[3][3] == 0.0) {
+    return normalize(viewvecs[0].xyz + vec3(uv, 0.0) * viewvecs[1].xyz);
   }
-  return matcap_uv * 0.496 + 0.5;
-}
-
-bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
-{
-  vec2 tile_pos = floor(co.xy);
-
-  if (tile_pos.x < 0 || tile_pos.y < 0 || tile_pos.x >= 10)
-    return false;
-
-  float tile = 10.0 * tile_pos.y + tile_pos.x;
-  if (tile >= textureSize(map, 0).x)
-    return false;
-
-  /* Fetch tile information. */
-  float tile_layer = texelFetch(map, ivec2(tile, 0), 0).x;
-  if (tile_layer < 0.0)
-    return false;
-
-  vec4 tile_info = texelFetch(map, ivec2(tile, 1), 0);
-
-  co = vec3(((co.xy - tile_pos) * tile_info.zw) + tile_info.xy, tile_layer);
-  return true;
-}
-
-vec4 workbench_sample_texture(sampler2D image,
-                              vec2 coord,
-                              bool nearest_sampling,
-                              bool premultiplied)
-{
-  vec2 tex_size = vec2(textureSize(image, 0).xy);
-  /* TODO(fclem) We could do the same with sampler objects.
-   * But this is a quick workaround instead of messing with the GPUTexture itself. */
-  vec2 uv = nearest_sampling ? (floor(coord * tex_size) + 0.5) / tex_size : coord;
-  vec4 color = texture(image, uv);
-
-  /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
-  if (premultiplied && !(color.a == 0.0 || color.a == 1.0)) {
-    color.rgb = color.rgb / color.a;
+  else {
+    return vec3(0.0, 0.0, 1.0);
   }
-
-  return color;
 }
 
-vec4 workbench_sample_texture_array(sampler2DArray tile_array,
-                                    sampler1DArray tile_data,
-                                    vec2 coord,
-                                    bool nearest_sampling,
-                                    bool premultiplied)
+vec3 view_position_from_depth(vec2 uvcoords, float depth, vec4 viewvecs[3], mat4 proj_mat)
 {
-  vec2 tex_size = vec2(textureSize(tile_array, 0).xy);
+  if (proj_mat[3][3] == 0.0) {
+    /* Perspective */
+    float d = 2.0 * depth - 1.0;
 
-  vec3 uv = vec3(coord, 0);
-  if (!node_tex_tile_lookup(uv, tile_array, tile_data))
-    return vec4(1.0, 0.0, 1.0, 1.0);
+    float zview = -proj_mat[3][2] / (d + proj_mat[2][2]);
 
-  /* TODO(fclem) We could do the same with sampler objects.
-   * But this is a quick workaround instead of messing with the GPUTexture itself. */
-  uv.xy = nearest_sampling ? (floor(uv.xy * tex_size) + 0.5) / tex_size : uv.xy;
-  vec4 color = texture(tile_array, uv);
-
-  /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
-  if (premultiplied && !(color.a == 0.0 || color.a == 1.0)) {
-    color.rgb = color.rgb / color.a;
+    return zview * (viewvecs[0].xyz + vec3(uvcoords, 0.0) * viewvecs[1].xyz);
   }
+  else {
+    /* Orthographic */
+    vec3 offset = vec3(uvcoords, depth);
 
-  return color;
+    return viewvecs[0].xyz + offset * viewvecs[1].xyz;
+  }
 }

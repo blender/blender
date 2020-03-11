@@ -134,6 +134,13 @@ GPUTexture *DRW_texture_pool_query_2d(int w,
   return tex;
 }
 
+GPUTexture *DRW_texture_pool_query_fullscreen(eGPUTextureFormat format,
+                                              DrawEngineType *engine_type)
+{
+  const float *size = DRW_viewport_size_get();
+  return DRW_texture_pool_query_2d((int)size[0], (int)size[1], format, engine_type);
+}
+
 void DRW_texture_ensure_fullscreen_2d(GPUTexture **tex,
                                       eGPUTextureFormat format,
                                       DRWTextureFlag flags)

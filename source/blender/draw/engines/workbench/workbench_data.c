@@ -22,133 +22,231 @@
 
 #include "workbench_private.h"
 
+#include "BLI_memblock.h"
+
 #include "DNA_userdef_types.h"
 
 #include "ED_view3d.h"
+#include "ED_screen.h"
 
 #include "UI_resources.h"
 
-#include "GPU_batch.h"
+#include "GPU_uniformbuffer.h"
 
 /* -------------------------------------------------------------------- */
 /** \name World Data
  * \{ */
 
-static void workbench_world_data_free(DrawData *dd)
+GPUUniformBuffer *workbench_material_ubo_alloc(WORKBENCH_PrivateData *wpd)
 {
-  WORKBENCH_WorldData *data = (WORKBENCH_WorldData *)dd;
-  DRW_UBO_FREE_SAFE(data->world_ubo);
+  struct GPUUniformBuffer **ubo = BLI_memblock_alloc(wpd->material_ubo);
+  if (*ubo == NULL) {
+    *ubo = GPU_uniformbuffer_create(sizeof(WORKBENCH_UBO_Material) * MAX_MATERIAL, NULL, NULL);
+  }
+  return *ubo;
 }
 
-/* Ensure the availability of the world_ubo in the given WORKBENCH_PrivateData
- *
- * See T70167: Some platforms create threads to upload ubo's.
- *
- * Reuses the last previous created `world_ubo`. Due to limitations of
- * DrawData it will only be reused when there is a world attached to the Scene.
- * Future development: The best location would be to store it in the View3D.
- *
- * We don't cache the data itself as there was no indication that that lead to
- * an improvement.
- *
- * This functions also sets the `WORKBENCH_PrivateData.is_world_ubo_owner` that must
- * be respected.
- */
-static void workbench_world_data_ubo_ensure(const Scene *scene, WORKBENCH_PrivateData *wpd)
+static void workbench_ubo_free(void *elem)
 {
-  World *world = scene->world;
-  if (world) {
-    WORKBENCH_WorldData *engine_world_data = (WORKBENCH_WorldData *)DRW_drawdata_ensure(
-        &world->id,
-        &draw_engine_workbench_solid,
-        sizeof(WORKBENCH_WorldData),
-        NULL,
-        &workbench_world_data_free);
-
-    if (engine_world_data->world_ubo == NULL) {
-      engine_world_data->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World),
-                                                              &wpd->world_data);
-    }
-    else {
-      DRW_uniformbuffer_update(engine_world_data->world_ubo, &wpd->world_data);
-    }
-
-    /* Borrow world data ubo */
-    wpd->is_world_ubo_owner = false;
-    wpd->world_ubo = engine_world_data->world_ubo;
-  }
-  else {
-    /* there is no world so we cannot cache the UBO. */
-    BLI_assert(!wpd->world_ubo || wpd->is_world_ubo_owner);
-    if (!wpd->world_ubo) {
-      wpd->is_world_ubo_owner = true;
-      wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), &wpd->world_data);
-    }
-  }
+  GPUUniformBuffer **ubo = elem;
+  DRW_UBO_FREE_SAFE(*ubo);
 }
 
-static void workbench_world_data_update_shadow_direction_vs(WORKBENCH_PrivateData *wpd)
+static void workbench_view_layer_data_free(void *storage)
 {
-  WORKBENCH_UBO_World *wd = &wpd->world_data;
-  float light_direction[3];
-  float view_matrix[4][4];
-  DRW_view_viewmat_get(NULL, view_matrix, false);
+  WORKBENCH_ViewLayerData *vldata = (WORKBENCH_ViewLayerData *)storage;
 
-  workbench_private_data_get_light_direction(light_direction);
+  DRW_UBO_FREE_SAFE(vldata->dof_sample_ubo);
+  DRW_UBO_FREE_SAFE(vldata->world_ubo);
+  DRW_UBO_FREE_SAFE(vldata->cavity_sample_ubo);
+  DRW_TEXTURE_FREE_SAFE(vldata->cavity_jitter_tx);
 
-  /* Shadow direction. */
-  mul_v3_mat3_m4v3(wd->shadow_direction_vs, view_matrix, light_direction);
+  BLI_memblock_destroy(vldata->material_ubo_data, NULL);
+  BLI_memblock_destroy(vldata->material_ubo, workbench_ubo_free);
+}
+
+static WORKBENCH_ViewLayerData *workbench_view_layer_data_ensure_ex(struct ViewLayer *view_layer)
+{
+  WORKBENCH_ViewLayerData **vldata = (WORKBENCH_ViewLayerData **)
+      DRW_view_layer_engine_data_ensure_ex(view_layer,
+                                           (DrawEngineType *)&workbench_view_layer_data_ensure_ex,
+                                           &workbench_view_layer_data_free);
+
+  if (*vldata == NULL) {
+    *vldata = MEM_callocN(sizeof(**vldata), "WORKBENCH_ViewLayerData");
+    size_t matbuf_size = sizeof(WORKBENCH_UBO_Material) * MAX_MATERIAL;
+    (*vldata)->material_ubo_data = BLI_memblock_create_ex(matbuf_size, matbuf_size * 2);
+    (*vldata)->material_ubo = BLI_memblock_create_ex(sizeof(void *), sizeof(void *) * 8);
+    (*vldata)->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), NULL);
+  }
+
+  return *vldata;
 }
 
 /* \} */
 
-void workbench_clear_color_get(float color[4])
+static void workbench_viewvecs_update(float r_viewvecs[3][4])
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene = draw_ctx->scene;
+  float invproj[4][4];
+  const bool is_persp = DRW_view_is_persp_get(NULL);
+  DRW_view_winmat_get(NULL, invproj, true);
 
-  if (!DRW_state_is_scene_render() || !DRW_state_draw_background()) {
-    zero_v4(color);
+  /* view vectors for the corners of the view frustum.
+   * Can be used to recreate the world space position easily */
+  copy_v4_fl4(r_viewvecs[0], -1.0f, -1.0f, -1.0f, 1.0f);
+  copy_v4_fl4(r_viewvecs[1], 1.0f, -1.0f, -1.0f, 1.0f);
+  copy_v4_fl4(r_viewvecs[2], -1.0f, 1.0f, -1.0f, 1.0f);
+
+  /* convert the view vectors to view space */
+  for (int i = 0; i < 3; i++) {
+    mul_m4_v4(invproj, r_viewvecs[i]);
+    /* normalized trick see:
+     * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
+    mul_v3_fl(r_viewvecs[i], 1.0f / r_viewvecs[i][3]);
+    if (is_persp) {
+      mul_v3_fl(r_viewvecs[i], 1.0f / r_viewvecs[i][2]);
+    }
+    r_viewvecs[i][3] = 1.0;
   }
-  else if (scene->world) {
-    copy_v3_v3(color, &scene->world->horr);
-    color[3] = 1.0f;
-  }
-  else {
-    zero_v3(color);
-    color[3] = 1.0f;
+
+  /* we need to store the differences */
+  r_viewvecs[1][0] -= r_viewvecs[0][0];
+  r_viewvecs[1][1] = r_viewvecs[2][1] - r_viewvecs[0][1];
+
+  /* calculate a depth offset as well */
+  if (!is_persp) {
+    float vec_far[] = {-1.0f, -1.0f, 1.0f, 1.0f};
+    mul_m4_v4(invproj, vec_far);
+    mul_v3_fl(vec_far, 1.0f / vec_far[3]);
+    r_viewvecs[1][2] = vec_far[2] - r_viewvecs[0][2];
   }
 }
 
-void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info)
+static void workbench_studiolight_data_update(WORKBENCH_PrivateData *wpd, WORKBENCH_UBO_World *wd)
 {
-  effect_info->jitter_index = 0;
-  effect_info->view_updated = true;
+  StudioLight *studiolight = wpd->studio_light;
+  float view_matrix[4][4], rot_matrix[4][4];
+  DRW_view_viewmat_get(NULL, view_matrix, false);
+
+  if (USE_WORLD_ORIENTATION(wpd)) {
+    axis_angle_to_mat4_single(rot_matrix, 'Z', -wpd->shading.studiolight_rot_z);
+    mul_m4_m4m4(rot_matrix, view_matrix, rot_matrix);
+    swap_v3_v3(rot_matrix[2], rot_matrix[1]);
+    negate_v3(rot_matrix[2]);
+  }
+  else {
+    unit_m4(rot_matrix);
+  }
+
+  if (U.edit_studio_light) {
+    studiolight = BKE_studiolight_studio_edit_get();
+  }
+
+  /* Studio Lights. */
+  for (int i = 0; i < 4; i++) {
+    WORKBENCH_UBO_Light *light = &wd->lights[i];
+
+    SolidLight *sl = (studiolight) ? &studiolight->light[i] : NULL;
+    if (sl && sl->flag) {
+      copy_v3_v3(light->light_direction, sl->vec);
+      mul_mat3_m4_v3(rot_matrix, light->light_direction);
+      /* We should predivide the power by PI but that makes the lights really dim. */
+      copy_v3_v3(light->specular_color, sl->spec);
+      copy_v3_v3(light->diffuse_color, sl->col);
+      light->wrapped = sl->smooth;
+    }
+    else {
+      copy_v3_fl3(light->light_direction, 1.0f, 0.0f, 0.0f);
+      copy_v3_fl(light->specular_color, 0.0f);
+      copy_v3_fl(light->diffuse_color, 0.0f);
+    }
+  }
+
+  if (studiolight) {
+    copy_v3_v3(wd->ambient_color, studiolight->light_ambient);
+  }
+  else {
+    copy_v3_fl(wd->ambient_color, 1.0f);
+  }
+
+  wd->use_specular = workbench_is_specular_highlight_enabled(wpd);
 }
 
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene = draw_ctx->scene;
-  wpd->material_hash = BLI_ghash_ptr_new(__func__);
-  wpd->material_transp_hash = BLI_ghash_ptr_new(__func__);
-  wpd->preferences = &U;
-
-  View3D *v3d = draw_ctx->v3d;
   RegionView3D *rv3d = draw_ctx->rv3d;
+  View3D *v3d = draw_ctx->v3d;
+  Scene *scene = draw_ctx->scene;
+  WORKBENCH_ViewLayerData *vldata = workbench_view_layer_data_ensure_ex(draw_ctx->view_layer);
+
+  wpd->is_playback = DRW_state_is_playback();
+  wpd->is_navigating = rv3d && (rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING));
+
+  wpd->ctx_mode = CTX_data_mode_enum_ex(
+      draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
+
+  wpd->preferences = &U;
+  wpd->scene = scene;
+  wpd->sh_cfg = draw_ctx->sh_cfg;
+  wpd->clip_state = RV3D_CLIPPING_ENABLED(v3d, rv3d) ? DRW_STATE_CLIP_PLANES : 0;
+  wpd->cull_state = CULL_BACKFACE_ENABLED(wpd) ? DRW_STATE_CULL_BACK : 0;
+  wpd->vldata = vldata;
+  wpd->world_ubo = vldata->world_ubo;
+
+  wpd->taa_sample_len = workbench_antialiasing_sample_count_get(wpd);
+
+  wpd->volumes_do = false;
+  BLI_listbase_clear(&wpd->smoke_domains);
 
   if (!v3d || (v3d->shading.type == OB_RENDER && BKE_scene_uses_blender_workbench(scene))) {
+    /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
+     * But this is a workaround for a missing update tagging from operators. */
+    if (scene->display.shading.type != wpd->shading.type ||
+        XRAY_ENABLED(v3d) != XRAY_ENABLED((&scene->display))) {
+      wpd->view_updated = true;
+    }
+
     wpd->shading = scene->display.shading;
-    wpd->shading.xray_alpha = XRAY_ALPHA((&scene->display));
-    wpd->use_color_render_settings = true;
+    if (XRAY_FLAG_ENABLED((&scene->display))) {
+      wpd->shading.xray_alpha = XRAY_ALPHA((&scene->display));
+    }
+    else {
+      wpd->shading.xray_alpha = 1.0f;
+    }
+
+    if (scene->r.alphamode == R_ALPHAPREMUL) {
+      copy_v4_fl(wpd->background_color, 0.0f);
+    }
+    else if (scene->world) {
+      World *wo = scene->world;
+      copy_v4_fl4(wpd->background_color, wo->horr, wo->horg, wo->horb, 1.0f);
+    }
+    else {
+      copy_v4_fl4(wpd->background_color, 0.0f, 0.0f, 0.0f, 1.0f);
+    }
   }
   else {
-    wpd->shading = v3d->shading;
-    wpd->shading.xray_alpha = XRAY_ALPHA(v3d);
-    wpd->use_color_render_settings = false;
-  }
+    /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
+     * But this is a workaround for a missing update tagging from operators. */
+    if (v3d->shading.type != wpd->shading.type || XRAY_ENABLED(v3d) != XRAY_ENABLED(wpd)) {
+      wpd->view_updated = true;
+    }
 
-  wpd->use_color_management = BKE_scene_check_color_management_enabled(scene);
+    wpd->shading = v3d->shading;
+    if (wpd->shading.type < OB_SOLID) {
+      wpd->shading.xray_alpha = 0.0f;
+    }
+    else if (XRAY_ENABLED(v3d)) {
+      wpd->shading.xray_alpha = XRAY_ALPHA(v3d);
+    }
+    else {
+      wpd->shading.xray_alpha = 1.0f;
+    }
+
+    /* No background. The overlays will draw the correct one. */
+    copy_v4_fl(wpd->background_color, 0.0f);
+  }
 
   if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
     wpd->studio_light = BKE_studiolight_find(wpd->shading.matcap, STUDIOLIGHT_TYPE_MATCAP);
@@ -162,119 +260,56 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light, STUDIOLIGHT_TYPE_STUDIO);
   }
 
-  float shadow_focus = scene->display.shadow_focus;
-  /* Clamp to avoid overshadowing and shading errors. */
-  CLAMP(shadow_focus, 0.0001f, 0.99999f);
-  wpd->shadow_shift = scene->display.shadow_shift;
-  wpd->shadow_focus = 1.0f - shadow_focus * (1.0f - wpd->shadow_shift);
-  wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
-
-  WORKBENCH_UBO_World *wd = &wpd->world_data;
-  wd->matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
-
-  studiolight_update_world(wpd, wpd->studio_light, wd);
-
-  copy_v3_v3(wd->object_outline_color, wpd->shading.object_outline_color);
-  wd->object_outline_color[3] = 1.0f;
-
-  wd->curvature_ridge = 0.5f / max_ff(square_f(wpd->shading.curvature_ridge_factor), 1e-4f);
-  wd->curvature_valley = 0.7f / max_ff(square_f(wpd->shading.curvature_valley_factor), 1e-4f);
-
-  /* Will be NULL when rendering. */
-  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    wpd->world_clip_planes = rv3d->clip;
-  }
-  else {
-    wpd->world_clip_planes = NULL;
-  }
-
-  workbench_world_data_update_shadow_direction_vs(wpd);
-  workbench_world_data_ubo_ensure(scene, wpd);
-
-  /* Cavity settings */
   {
-    const int ssao_samples = scene->display.matcap_ssao_samples;
-
-    float invproj[4][4];
-    const bool is_persp = DRW_view_is_persp_get(NULL);
-    /* view vectors for the corners of the view frustum.
-     * Can be used to recreate the world space position easily */
-    float viewvecs[3][4] = {
-        {-1.0f, -1.0f, -1.0f, 1.0f},
-        {1.0f, -1.0f, -1.0f, 1.0f},
-        {-1.0f, 1.0f, -1.0f, 1.0f},
-    };
-    int i;
-    const float *size = DRW_viewport_size_get();
-
-    wpd->ssao_params[0] = ssao_samples;
-    wpd->ssao_params[1] = size[0] / 64.0;
-    wpd->ssao_params[2] = size[1] / 64.0;
-    wpd->ssao_params[3] = 0;
-
-    /* distance, factor, factor, attenuation */
-    copy_v4_fl4(wpd->ssao_settings,
-                scene->display.matcap_ssao_distance,
-                wpd->shading.cavity_valley_factor,
-                wpd->shading.cavity_ridge_factor,
-                scene->display.matcap_ssao_attenuation);
-
-    DRW_view_winmat_get(NULL, wpd->winmat, false);
-    DRW_view_winmat_get(NULL, invproj, true);
-
-    /* convert the view vectors to view space */
-    for (i = 0; i < 3; i++) {
-      mul_m4_v4(invproj, viewvecs[i]);
-      /* normalized trick see:
-       * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
-      mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][3]);
-      if (is_persp) {
-        mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]);
-      }
-      viewvecs[i][3] = 1.0;
-
-      copy_v4_v4(wpd->viewvecs[i], viewvecs[i]);
-    }
-
-    /* we need to store the differences */
-    wpd->viewvecs[1][0] -= wpd->viewvecs[0][0];
-    wpd->viewvecs[1][1] = wpd->viewvecs[2][1] - wpd->viewvecs[0][1];
-
-    /* calculate a depth offset as well */
-    if (!is_persp) {
-      float vec_far[] = {-1.0f, -1.0f, 1.0f, 1.0f};
-      mul_m4_v4(invproj, vec_far);
-      mul_v3_fl(vec_far, 1.0f / vec_far[3]);
-      wpd->viewvecs[1][2] = vec_far[2] - wpd->viewvecs[0][2];
-    }
+    /* Material UBOs. */
+    wpd->material_ubo_data = vldata->material_ubo_data;
+    wpd->material_ubo = vldata->material_ubo;
+    wpd->material_chunk_count = 1;
+    wpd->material_chunk_curr = 0;
+    wpd->material_index = 1;
+    /* Create default material ubo. */
+    wpd->material_ubo_data_curr = BLI_memblock_alloc(wpd->material_ubo_data);
+    wpd->material_ubo_curr = workbench_material_ubo_alloc(wpd);
+    /* Init default material used by vertex color & texture. */
+    workbench_material_ubo_data(
+        wpd, NULL, NULL, &wpd->material_ubo_data_curr[0], V3D_SHADING_MATERIAL_COLOR);
   }
-
-  wpd->volumes_do = false;
-  BLI_listbase_clear(&wpd->smoke_domains);
 }
 
-void workbench_private_data_get_light_direction(float r_light_direction[3])
+void workbench_update_world_ubo(WORKBENCH_PrivateData *wpd)
+{
+  WORKBENCH_UBO_World wd;
+
+  copy_v2_v2(wd.viewport_size, DRW_viewport_size_get());
+  copy_v2_v2(wd.viewport_size_inv, DRW_viewport_invert_size_get());
+  copy_v3_v3(wd.object_outline_color, wpd->shading.object_outline_color);
+  wd.object_outline_color[3] = 1.0f;
+  wd.ui_scale = G_draw.block.sizePixel;
+  wd.matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
+
+  workbench_studiolight_data_update(wpd, &wd);
+  workbench_shadow_data_update(wpd, &wd);
+  workbench_cavity_data_update(wpd, &wd);
+  workbench_viewvecs_update(wd.viewvecs);
+
+  DRW_uniformbuffer_update(wpd->world_ubo, &wd);
+}
+
+void workbench_update_material_ubos(WORKBENCH_PrivateData *UNUSED(wpd))
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  Scene *scene = draw_ctx->scene;
+  WORKBENCH_ViewLayerData *vldata = workbench_view_layer_data_ensure_ex(draw_ctx->view_layer);
 
-  copy_v3_v3(r_light_direction, scene->display.light_direction);
-  SWAP(float, r_light_direction[2], r_light_direction[1]);
-  r_light_direction[2] = -r_light_direction[2];
-  r_light_direction[0] = -r_light_direction[0];
-}
-
-void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
-{
-  BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
-  BLI_ghash_free(wpd->material_transp_hash, NULL, MEM_freeN);
-
-  if (wpd->is_world_ubo_owner) {
-    DRW_UBO_FREE_SAFE(wpd->world_ubo);
-  }
-  else {
-    wpd->world_ubo = NULL;
+  BLI_memblock_iter iter, iter_data;
+  BLI_memblock_iternew(vldata->material_ubo, &iter);
+  BLI_memblock_iternew(vldata->material_ubo_data, &iter_data);
+  WORKBENCH_UBO_Material *matchunk;
+  while ((matchunk = BLI_memblock_iterstep(&iter_data))) {
+    GPUUniformBuffer **ubo = BLI_memblock_iterstep(&iter);
+    BLI_assert(*ubo != NULL);
+    GPU_uniformbuffer_update(*ubo, matchunk);
   }
 
-  DRW_UBO_FREE_SAFE(wpd->dof_ubo);
+  BLI_memblock_clear(vldata->material_ubo, workbench_ubo_free);
+  BLI_memblock_clear(vldata->material_ubo_data, NULL);
 }

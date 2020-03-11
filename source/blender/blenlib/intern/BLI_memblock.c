@@ -191,10 +191,14 @@ void *BLI_memblock_iterstep(BLI_memblock_iter *iter)
   return ptr;
 }
 
-/* Direct access. elem is element index inside the chosen chunk. */
+/* Direct access. elem is element index inside the chosen chunk.
+ * Double usage: You can set chunk to 0 and set the absolute elem index.
+ * The correct chunk will be retrieve. */
 void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem)
 {
   BLI_assert(chunk < mblk->chunk_len);
-  BLI_assert(elem < (mblk->chunk_size / mblk->elem_size));
+  int elem_per_chunk = mblk->chunk_size / mblk->elem_size;
+  chunk += elem / elem_per_chunk;
+  elem = elem % elem_per_chunk;
   return (char *)(mblk->chunk_list[chunk]) + mblk->elem_size * elem;
 }

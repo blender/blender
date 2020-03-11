@@ -97,19 +97,18 @@ set(SRC
   engines/eevee/eevee_subsurface.c
   engines/eevee/eevee_temporal_sampling.c
   engines/eevee/eevee_volumes.c
-  engines/workbench/solid_mode.c
-  engines/workbench/transparent_mode.c
   engines/workbench/workbench_data.c
-  engines/workbench/workbench_deferred.c
-  engines/workbench/workbench_effect_aa.c
+  engines/workbench/workbench_effect_antialiasing.c
+  engines/workbench/workbench_effect_cavity.c
   engines/workbench/workbench_effect_dof.c
-  engines/workbench/workbench_effect_fxaa.c
-  engines/workbench/workbench_effect_taa.c
+  engines/workbench/workbench_effect_outline.c
   engines/workbench/workbench_engine.c
-  engines/workbench/workbench_forward.c
   engines/workbench/workbench_materials.c
+  engines/workbench/workbench_opaque.c
   engines/workbench/workbench_render.c
-  engines/workbench/workbench_studiolight.c
+  engines/workbench/workbench_shader.c
+  engines/workbench/workbench_shadow.c
+  engines/workbench/workbench_transparent.c
   engines/workbench/workbench_volume.c
   engines/external/external_engine.c
   engines/gpencil/gpencil_antialiasing.c
@@ -247,28 +246,32 @@ data_to_c_simple(engines/eevee/shaders/volumetric_scatter_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_integration_frag.glsl SRC)
 
 data_to_c_simple(engines/workbench/shaders/workbench_cavity_lib.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_cavity_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_common_lib.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_data_lib.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_deferred_composite_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_deferred_background_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_effect_dof_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_effect_fxaa_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_effect_taa_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_forward_composite_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_forward_depth_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_forward_transparent_accum_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_ghost_resolve_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_object_outline_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_composite_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_curvature_lib.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_prepass_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_data_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_effect_cavity_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_effect_dof_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_effect_outline_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_effect_smaa_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_effect_smaa_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_effect_taa_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_image_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_matcap_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_material_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_merge_infront_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_prepass_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_shadow_vert.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_shadow_geom.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_prepass_hair_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_prepass_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_shader_interface_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_caps_geom.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_debug_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_volume_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_shadow_geom.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_shadow_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_transparent_accum_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_transparent_resolve_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_volume_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_volume_vert.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_world_light_lib.glsl SRC)
 
 data_to_c_simple(intern/shaders/common_colormanagement_lib.glsl SRC)
