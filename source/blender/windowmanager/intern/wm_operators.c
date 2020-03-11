@@ -3340,7 +3340,7 @@ static int previews_id_ensure_callback(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
 
-  if (cb_flag & IDWALK_CB_PRIVATE) {
+  if (cb_flag & IDWALK_CB_EMBEDDED) {
     return IDWALK_RET_NOP;
   }
 

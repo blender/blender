@@ -1654,7 +1654,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
   }
   else {
     ntree = MEM_callocN(sizeof(bNodeTree), "new node tree");
-    ntree->id.flag |= LIB_PRIVATE_DATA;
+    ntree->id.flag |= LIB_EMBEDDED_DATA;
     *((short *)ntree->id.name) = ID_NT;
     BLI_strncpy(ntree->id.name + 2, name, sizeof(ntree->id.name));
   }

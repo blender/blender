@@ -340,7 +340,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
   ID *id_self = cb_data->id_self;
   ID **id_pointer = cb_data->id_pointer;
   int const cb_flag = cb_data->cb_flag;
-  if (cb_flag & IDWALK_CB_PRIVATE) {
+  if (cb_flag & IDWALK_CB_EMBEDDED) {
     return IDWALK_RET_NOP;
   }
 
@@ -1148,7 +1148,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   ID *new_id = *r_newid;
   int flag = orig_flag;
 
-  const bool is_private_id_data = (id->flag & LIB_PRIVATE_DATA) != 0;
+  const bool is_private_id_data = (id->flag & LIB_EMBEDDED_DATA) != 0;
 
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != NULL);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
@@ -1167,7 +1167,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   }
 
   /* The id->flag bits to copy over. */
-  const int copy_idflag_mask = LIB_PRIVATE_DATA;
+  const int copy_idflag_mask = LIB_EMBEDDED_DATA;
 
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
     /* r_newid already contains pointer to allocated memory. */
@@ -1744,7 +1744,7 @@ static void library_make_local_copying_check(ID *id,
       }
 
       /* Shapekeys are considered 'private' to their owner ID here, and never tagged
-       * (since they cannot be linked), * so we have to switch effective parent to their owner.
+       * (since they cannot be linked), so we have to switch effective parent to their owner.
        */
       if (GS(par_id->name) == ID_KE) {
         par_id = ((Key *)par_id)->from;

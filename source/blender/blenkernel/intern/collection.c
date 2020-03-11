@@ -89,7 +89,7 @@ static void collection_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
   const Collection *collection_src = (const Collection *)id_src;
 
   BLI_assert(((collection_src->flag & COLLECTION_IS_MASTER) != 0) ==
-             ((collection_src->id.flag & LIB_PRIVATE_DATA) != 0));
+             ((collection_src->id.flag & LIB_EMBEDDED_DATA) != 0));
 
   /* Do not copy collection's preview (same behavior as for objects). */
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO temp hack */
@@ -366,7 +366,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
                                      const bool do_obdata)
 {
   /* It's not allowed to copy the master collection. */
-  BLI_assert((collection->id.flag & LIB_PRIVATE_DATA) == 0);
+  BLI_assert((collection->id.flag & LIB_EMBEDDED_DATA) == 0);
   BLI_assert((collection->flag & COLLECTION_IS_MASTER) == 0);
   if (collection->flag & COLLECTION_IS_MASTER) {
     return NULL;
@@ -514,7 +514,7 @@ Collection *BKE_collection_master_add()
   /* Not an actual datablock, but owned by scene. */
   Collection *master_collection = MEM_callocN(sizeof(Collection), "Master Collection");
   STRNCPY(master_collection->id.name, "GRMaster Collection");
-  master_collection->id.flag |= LIB_PRIVATE_DATA;
+  master_collection->id.flag |= LIB_EMBEDDED_DATA;
   master_collection->flag |= COLLECTION_IS_MASTER;
   return master_collection;
 }

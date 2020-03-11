@@ -5832,7 +5832,7 @@ ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)
     *r_path = "";
   }
 
-  if ((id != NULL) && (id->flag & LIB_PRIVATE_DATA)) {
+  if ((id != NULL) && (id->flag & LIB_EMBEDDED_DATA)) {
     switch (GS(id->name)) {
       case ID_NT:
         if (r_path) {

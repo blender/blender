@@ -923,7 +923,7 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
   if (DEG_get_original_id(id) != id) {
     ret = PyUnicode_FromFormat("Evaluated %s %R", BKE_idcode_to_name(GS(id->name)), tmp_str);
   }
-  else if (RNA_struct_is_ID(self->ptr.type) && (id->flag & LIB_PRIVATE_DATA) == 0) {
+  else if (RNA_struct_is_ID(self->ptr.type) && (id->flag & LIB_EMBEDDED_DATA) == 0) {
     ret = PyUnicode_FromFormat(
         "bpy.data.%s[%R]", BKE_idcode_to_name_plural(GS(id->name)), tmp_str);
   }

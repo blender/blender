@@ -94,7 +94,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
 
-  if (cb_flag & IDWALK_CB_PRIVATE) {
+  if (cb_flag & IDWALK_CB_EMBEDDED) {
     return IDWALK_RET_NOP;
   }
 
@@ -108,7 +108,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   /* Those asserts ensure the general sanity of ID tags regarding 'embeded' ID data (root nodetrees
    * and co). */
   BLI_assert(id_owner == id_remap_data->id_owner);
-  BLI_assert(id_self == id_owner || (id_self->flag & LIB_PRIVATE_DATA) != 0);
+  BLI_assert(id_self == id_owner || (id_self->flag & LIB_EMBEDDED_DATA) != 0);
 
   if (!old_id) { /* Used to cleanup all IDs used by a specific one. */
     BLI_assert(!new_id);
@@ -653,7 +653,7 @@ void BKE_libblock_relink_ex(
 static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
-  if (cb_flag & IDWALK_CB_PRIVATE) {
+  if (cb_flag & IDWALK_CB_EMBEDDED) {
     return IDWALK_RET_NOP;
   }
 

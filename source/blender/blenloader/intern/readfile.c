@@ -7790,7 +7790,7 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
   ID **id_pointer = cb_data->id_pointer;
-  if (cb_flag & IDWALK_CB_PRIVATE || *id_pointer == NULL) {
+  if (cb_flag & IDWALK_CB_EMBEDDED || *id_pointer == NULL) {
     return IDWALK_RET_NOP;
   }
 
@@ -7801,7 +7801,7 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
     Collection *collection = (Collection *)*id_pointer;
     if (collection->flag & COLLECTION_IS_MASTER) {
       /* We should never reach that point anymore, since master collection private ID should be
-       * properly tagged with IDWALK_CB_PRIVATE. */
+       * properly tagged with IDWALK_CB_EMBEDDED. */
       BLI_assert(0);
       return IDWALK_RET_NOP;
     }

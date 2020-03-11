@@ -55,14 +55,14 @@ enum {
   IDWALK_CB_INDIRECT_USAGE = (1 << 2),
 
   /**
-   * That ID is used as mere sub-data by its owner
-   * (only case currently: those f***ing nodetrees in materials etc.).
-   * This means callback shall not *do* anything,
-   * only use this as informative data if it needs it.
+   * That ID is used as mere sub-data by its owner (only case currently: those root nodetrees in
+   * materials etc., and the Scene's master collections).
+   * This means callback shall not *do* anything, only use this as informative data if it needs it.
    */
-  IDWALK_CB_PRIVATE = (1 << 3),
+  IDWALK_CB_EMBEDDED = (1 << 3),
 
-  /** That ID is not really used by its owner, it's just an internal hint/helper.
+  /**
+   * That ID is not really used by its owner, it's just an internal hint/helper.
    * This addresses Their Highest Ugliness the 'from' pointers: Object->from_proxy and Key->from.
    * How to handle that kind of cases totally depends on what caller code is doing... */
   IDWALK_CB_LOOPBACK = (1 << 4),

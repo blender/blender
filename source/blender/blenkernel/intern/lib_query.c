@@ -137,11 +137,15 @@ enum {
 
 typedef struct LibraryForeachIDData {
   Main *bmain;
-  /* 'Real' ID, the one that might be in bmain, only differs from self_id when the later is a
-   * private one. */
+  /**
+   * 'Real' ID, the one that might be in bmain, only differs from self_id when the later is a
+   * private one.
+   */
   ID *owner_id;
-  /* ID from which the current ID pointer is being processed. It may be a 'private' ID like master
-   * collection or root node tree. */
+  /**
+   * ID from which the current ID pointer is being processed. It may be an embedded ID like master
+   * collection or root node tree.
+   */
   ID *self_id;
 
   int flag;
@@ -343,8 +347,8 @@ static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBas
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
      * anyway... */
     const int cb_flag = (lc->collection != NULL &&
-                         (lc->collection->id.flag & LIB_PRIVATE_DATA) != 0) ?
-                            IDWALK_CB_PRIVATE :
+                         (lc->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
+                            IDWALK_CB_EMBEDDED :
                             IDWALK_CB_NOP;
     FOREACH_CALLBACK_INVOKE(data, lc->collection, cb_flag);
     library_foreach_layer_collection(data, &lc->layer_collections);
@@ -367,8 +371,8 @@ static void library_foreach_collection(LibraryForeachIDData *data, Collection *c
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
      * anyway... */
     const int cb_flag = ((parent->collection != NULL &&
-                          (parent->collection->id.flag & LIB_PRIVATE_DATA) != 0) ?
-                             IDWALK_CB_PRIVATE :
+                          (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
+                             IDWALK_CB_EMBEDDED :
                              IDWALK_CB_NOP);
     FOREACH_CALLBACK_INVOKE(
         data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
@@ -484,13 +488,13 @@ static void library_foreach_screen_area(LibraryForeachIDData *data, ScrArea *are
         FOREACH_CALLBACK_INVOKE_ID(data, snode->from, IDWALK_CB_NOP);
 
         FOREACH_CALLBACK_INVOKE(
-            data, snode->nodetree, is_private_nodetree ? IDWALK_CB_PRIVATE : IDWALK_CB_USER);
+            data, snode->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER);
 
         for (path = snode->treepath.first; path; path = path->next) {
           if (path == snode->treepath.first) {
             /* first nodetree in path is same as snode->nodetree */
             FOREACH_CALLBACK_INVOKE(
-                data, path->nodetree, is_private_nodetree ? IDWALK_CB_PRIVATE : IDWALK_CB_NOP);
+                data, path->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_NOP);
           }
           else {
             FOREACH_CALLBACK_INVOKE(data, path->nodetree, IDWALK_CB_USER);
@@ -527,7 +531,7 @@ static void library_foreach_ID_as_subdata_link(ID **id_pp,
 {
   /* Needed e.g. for callbacks handling relationships... This call shall be absolutely readonly. */
   ID *id = *id_pp;
-  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pp, IDWALK_CB_PRIVATE);
+  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pp, IDWALK_CB_EMBEDDED);
   BLI_assert(id == *id_pp);
 
   if (flag & IDWALK_RECURSE) {
@@ -583,7 +587,7 @@ static void library_foreach_ID_link(Main *bmain,
 
   for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
     data.self_id = id;
-    data.owner_id = (id->flag & LIB_PRIVATE_DATA) ? id_owner : data.self_id;
+    data.owner_id = (id->flag & LIB_EMBEDDED_DATA) ? id_owner : data.self_id;
 
     /* inherit_data is non-NULL when this function is called for some sub-data ID
      * (like root nodetree of a material).
