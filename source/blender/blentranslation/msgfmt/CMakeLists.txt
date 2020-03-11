@@ -37,6 +37,10 @@ if(APPLE)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
 endif()
 
+if(WIN32)
+  set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /nodefaultlib:MSVCRT.lib")
+endif()
+
 add_executable(msgfmt ${SRC})
 
 target_link_libraries(msgfmt bf_blenlib)
