@@ -535,8 +535,9 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
         /* Modify offsets into arrays */
         int4 data = bvh_nodes[i + nsize_bbox];
-        int4 data1 = bvh_nodes[i + nsize_bbox - 1];
+
         if (use_obvh) {
+          int4 data1 = bvh_nodes[i + nsize_bbox - 1];
           data.z += (data.z < 0) ? -noffset_leaf : noffset;
           data.w += (data.w < 0) ? -noffset_leaf : noffset;
           data.x += (data.x < 0) ? -noffset_leaf : noffset;
@@ -545,6 +546,8 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
           data1.w += (data1.w < 0) ? -noffset_leaf : noffset;
           data1.x += (data1.x < 0) ? -noffset_leaf : noffset;
           data1.y += (data1.y < 0) ? -noffset_leaf : noffset;
+          pack_nodes[pack_nodes_offset + nsize_bbox] = data;
+          pack_nodes[pack_nodes_offset + nsize_bbox - 1] = data1;
         }
         else {
           data.z += (data.z < 0) ? -noffset_leaf : noffset;
@@ -553,10 +556,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
             data.x += (data.x < 0) ? -noffset_leaf : noffset;
             data.y += (data.y < 0) ? -noffset_leaf : noffset;
           }
-        }
-        pack_nodes[pack_nodes_offset + nsize_bbox] = data;
-        if (use_obvh) {
-          pack_nodes[pack_nodes_offset + nsize_bbox - 1] = data1;
+          pack_nodes[pack_nodes_offset + nsize_bbox] = data;
         }
 
         /* Usually this copies nothing, but we better
