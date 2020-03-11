@@ -534,7 +534,10 @@ static void library_foreach_ID_as_subdata_link(ID **id_pp,
   FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pp, IDWALK_CB_EMBEDDED);
   BLI_assert(id == *id_pp);
 
-  if (flag & IDWALK_RECURSE) {
+  if (flag & IDWALK_IGNORE_EMBEDDED_ID) {
+    /* Do Nothing. */
+  }
+  else if (flag & IDWALK_RECURSE) {
     /* Defer handling into main loop, recursively calling BKE_library_foreach_ID_link in
      * IDWALK_RECURSE case is troublesome, see T49553. */
     /* XXX note that this breaks the 'owner id' thing now, we likely want to handle that
