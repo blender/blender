@@ -6900,7 +6900,7 @@ class VIEW3D_PT_gpencil_sculpt_context_menu(Panel):
 
     def draw(self, context):
         ts = context.tool_settings
-        settings = ts.gpencil_paint
+        settings = ts.gpencil_sculpt_paint
         brush = settings.brush
 
         layout = self.layout
@@ -6920,7 +6920,7 @@ class VIEW3D_PT_gpencil_weight_context_menu(Panel):
 
     def draw(self, context):
         ts = context.tool_settings
-        settings = ts.gpencil_paint
+        settings = ts.gpencil_weight_paint
         brush = settings.brush
 
         layout = self.layout
