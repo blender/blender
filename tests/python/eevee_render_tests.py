@@ -35,6 +35,13 @@ def setup():
         # mat.use_screen_refraction = True
         mat.use_sss_translucency = True
 
+    # Workaround for crash with Mantaflow (T73921).
+    use_light_cache_bake = True
+    for ob in bpy.data.objects:
+        for mod in ob.modifiers:
+            if mod.type == 'FLUID':
+                use_light_cache_bake = False
+
     cubemap = None
     grid = None
     # Does not work in edit mode
@@ -79,7 +86,8 @@ def setup():
     eevee.gi_visibility_resolution = '16'
     eevee.gi_irradiance_smoothing = 0
 
-    bpy.ops.scene.light_cache_bake()
+    if use_light_cache_bake:
+        bpy.ops.scene.light_cache_bake()
 
 
 # When run from inside Blender, render and exit.
