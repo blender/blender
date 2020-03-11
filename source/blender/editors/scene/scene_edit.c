@@ -182,6 +182,8 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
     }
   }
 
+  BKE_scene_free_view_layer_depsgraph(scene, layer);
+
   BKE_view_layer_free(layer);
 
   DEG_id_tag_update(&scene->id, 0);

@@ -2057,6 +2057,14 @@ void BKE_scene_free_depsgraph_hash(Scene *scene)
   scene->depsgraph_hash = NULL;
 }
 
+void BKE_scene_free_view_layer_depsgraph(Scene *scene, ViewLayer *view_layer)
+{
+  if (scene->depsgraph_hash != NULL) {
+    DepsgraphKey key = {view_layer};
+    BLI_ghash_remove(scene->depsgraph_hash, &key, depsgraph_key_free, depsgraph_key_value_free);
+  }
+}
+
 /* Query depsgraph for a specific contexts. */
 
 Depsgraph *BKE_scene_get_depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, bool allocate)
