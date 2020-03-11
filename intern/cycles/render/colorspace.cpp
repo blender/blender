@@ -283,7 +283,7 @@ inline void processor_apply_pixels(const OCIO::Processor *processor,
       for (size_t x = 0; x < width; x++, i++) {
         float4 value = cast_to_float4(pixels + 4 * (y * width + x));
 
-        if (!(value.w == 0.0f || value.w == 1.0f)) {
+        if (!(value.w <= 0.0f || value.w == 1.0f)) {
           float inv_alpha = 1.0f / value.w;
           value.x *= inv_alpha;
           value.y *= inv_alpha;
@@ -302,12 +302,14 @@ inline void processor_apply_pixels(const OCIO::Processor *processor,
       for (size_t x = 0; x < width; x++, i++) {
         float4 value = float_pixels[i];
 
-        value.x *= value.w;
-        value.y *= value.w;
-        value.z *= value.w;
-
         if (compress_as_srgb) {
           value = color_linear_to_srgb_v4(value);
+        }
+
+        if (!(value.w <= 0.0f || value.w == 1.0f)) {
+          value.x *= value.w;
+          value.y *= value.w;
+          value.z *= value.w;
         }
 
         cast_from_float4(pixels + 4 * (y * width + x), value);
