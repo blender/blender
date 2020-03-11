@@ -165,6 +165,7 @@ class COLLECTION_MT_context_menu(Menu):
         layout.operator("object.collection_unlink", icon='X')
         layout.operator("object.collection_objects_select")
         layout.operator("object.instance_offset_from_cursor")
+        layout.operator("object.instance_offset_from_active_object")
 
 
 class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
