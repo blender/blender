@@ -351,7 +351,7 @@ ModifierTypeInfo modifierType_Boolean = {
     /* structName */ "BooleanModifierData",
     /* structSize */ sizeof(BooleanModifierData),
     /* type */ eModifierTypeType_Nonconstructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_UsesPointCache,
+    /* flags */ eModifierTypeFlag_AcceptsMesh,
 
     /* copyData */ modifier_copyData_generic,
 

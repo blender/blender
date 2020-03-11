@@ -138,6 +138,70 @@ static bool rna_Cache_get_valid_owner_ID(PointerRNA *ptr, Object **ob, Scene **s
   return (*ob != NULL || *scene != NULL);
 }
 
+static char *rna_PointCache_path(PointerRNA *ptr)
+{
+  ModifierData *md;
+  Object *ob = (Object *)ptr->owner_id;
+  PointCache *cache = ptr->data;
+
+  for (md = ob->modifiers.first; md; md = md->next) {
+    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+    if (!(mti->flags & eModifierTypeFlag_UsesPointCache)) {
+      continue;
+    }
+
+    char name_esc[sizeof(md->name) * 2];
+    BLI_strescape(name_esc, md->name, sizeof(name_esc));
+
+    switch (md->type) {
+      case eModifierType_ParticleSystem: {
+        ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+        if (psmd->psys->pointcache == cache) {
+          return BLI_sprintfN("modifiers[\"%s\"].particle_system.point_cache", name_esc);
+        }
+        break;
+      }
+      case eModifierType_DynamicPaint: {
+        DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+        if (pmd->canvas) {
+          DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+          for (; surface; surface = surface->next) {
+            if (surface->pointcache == cache) {
+              char name_surface_esc[sizeof(surface->name) * 2];
+              BLI_strescape(name_surface_esc, surface->name, sizeof(name_surface_esc));
+              return BLI_sprintfN(
+                  "modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"].point_cache",
+                  name_esc,
+                  name_surface_esc);
+            }
+          }
+        }
+        break;
+      }
+      case eModifierType_Cloth: {
+        ClothModifierData *clmd = (ClothModifierData *)md;
+        if (clmd->point_cache == cache) {
+          return BLI_sprintfN("modifiers[\"%s\"].point_cache", name_esc);
+        }
+        break;
+      }
+      case eModifierType_Softbody: {
+        SoftBody *sb = ob->soft;
+        if (sb && sb->shared->pointcache == cache) {
+          return BLI_sprintfN("modifiers[\"%s\"].point_cache", name_esc);
+        }
+        break;
+      }
+      default: {
+        return BLI_sprintfN("modifiers[\"%s\"].point_cache", name_esc);
+        break;
+      }
+    }
+  }
+  return NULL;
+}
+
 static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = NULL;
@@ -864,6 +928,8 @@ static void rna_def_pointcache_common(StructRNA *srna)
       {PTCACHE_COMPRESS_LZMA, "HEAVY", 0, "Heavy", "Effective but slow compression"},
       {0, NULL, 0, NULL, NULL},
   };
+
+  RNA_def_struct_path_func(srna, "rna_PointCache_path");
 
   prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "startframe");

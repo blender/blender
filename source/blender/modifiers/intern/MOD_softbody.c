@@ -79,7 +79,8 @@ ModifierTypeInfo modifierType_Softbody = {
     /* structSize */ sizeof(SoftbodyModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsLattice |
-        eModifierTypeFlag_RequiresOriginalData | eModifierTypeFlag_Single,
+        eModifierTypeFlag_RequiresOriginalData | eModifierTypeFlag_Single |
+        eModifierTypeFlag_UsesPointCache,
 
     /* copyData */ NULL,
 
