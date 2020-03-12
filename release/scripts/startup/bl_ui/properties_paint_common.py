@@ -1065,13 +1065,16 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         row = layout.row(align=True)
         row.prop(gp_settings, "fill_simplify_level", text="Simplify")
 
-    else:  # brush.gpencil_tool == 'DRAW':
+    else:  # brush.gpencil_tool == 'DRAW/TINT':
         row = layout.row(align=True)
         row.prop(brush, "size", text="Radius")
         row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
         row = layout.row(align=True)
         row.prop(gp_settings, "pen_strength", slider=True)
         row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
+        if brush.gpencil_tool == 'TINT':
+            row = layout.row(align=True)
+            row.prop(gp_settings, "vertex_mode", text="Mode")
 
     # FIXME: tools must use their own UI drawing!
     if tool.idname in {
@@ -1158,6 +1161,11 @@ def brush_basic_gpencil_vertex_settings(layout, _context, brush, *, compact=Fals
         row = layout.row(align=True)
         row.prop(gp_settings, "pen_strength", slider=True)
         row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
+
+    if brush.gpencil_vertex_tool in {'DRAW', 'REPLACE'}:
+        row = layout.row(align=True)
+        row.prop(gp_settings, "vertex_mode", text="Mode")
+
 
 classes = (
     VIEW3D_MT_tools_projectpaint_clone,

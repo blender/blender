@@ -692,10 +692,6 @@ class GreasePencilVertexcolorPanel:
                 row = layout.row(align=True)
                 row.prop(gp_settings, "vertex_color_factor", slider=True, text="Mix Factor")
 
-            if tool == 'TINT' or is_vertex is True:
-                row = layout.row(align=True)
-                row.prop(gp_settings, "vertex_mode", text="Mode")
-
 
 class GPENCIL_UL_layer(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
