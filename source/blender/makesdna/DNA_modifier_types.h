@@ -1255,6 +1255,19 @@ typedef struct OceanModifierData {
   float foam_coverage;
   float time;
 
+  char _pad1[4];
+
+  /* Spectrum being used. */
+  int spectrum;
+
+  /* Common JONSWAP parameters. */
+  /**
+   * This is the distance from a lee shore, called the fetch, or the distance
+   * over which the wind blows with constant velocity.
+   */
+  float fetch_jonswap;
+  float sharpen_peak_jonswap;
+
   int bakestart;
   int bakeend;
 
@@ -1284,6 +1297,13 @@ enum {
   MOD_OCEAN_GEOM_GENERATE = 0,
   MOD_OCEAN_GEOM_DISPLACE = 1,
   MOD_OCEAN_GEOM_SIM_ONLY = 2,
+};
+
+enum {
+  MOD_OCEAN_SPECTRUM_PHILLIPS = 0,
+  MOD_OCEAN_SPECTRUM_PIERSON_MOSKOWITZ = 1,
+  MOD_OCEAN_SPECTRUM_JONSWAP = 2,
+  MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE = 3,
 };
 
 enum {

@@ -92,6 +92,10 @@ static void initData(ModifierData *md)
   omd->seed = 0;
   omd->time = 1.0;
 
+  omd->spectrum = MOD_OCEAN_SPECTRUM_PHILLIPS;
+  omd->sharpen_peak_jonswap = 0.0f;
+  omd->fetch_jonswap = 120.0f;
+
   omd->size = 1.0;
   omd->repeat_x = 1;
   omd->repeat_y = 1;

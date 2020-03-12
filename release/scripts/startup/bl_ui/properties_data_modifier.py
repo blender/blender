@@ -725,6 +725,19 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "size")
         col.prop(md, "spatial_size")
 
+        layout.separator()
+
+        layout.prop(md, "spectrum")
+
+        if md.spectrum in {'TEXEL_MARSEN_ARSLOE', 'JONSWAP'}:
+            split = layout.split()
+
+            col = split.column()
+            col.prop(md, "sharpen_peak_jonswap")
+
+            col = split.column()
+            col.prop(md, "fetch_jonswap")
+
         layout.label(text="Waves:")
 
         split = layout.split()

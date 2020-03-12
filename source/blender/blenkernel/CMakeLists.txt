@@ -178,6 +178,7 @@ set(SRC
   intern/object_facemap.c
   intern/object_update.c
   intern/ocean.c
+  intern/ocean_spectrum.c
   intern/outliner_treehash.c
   intern/packedFile.c
   intern/paint.c

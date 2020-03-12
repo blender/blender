@@ -84,6 +84,9 @@ void BKE_ocean_init(struct Ocean *o,
                     float alignment,
                     float depth,
                     float time,
+                    int spectrum,
+                    float fetch_jonswap,
+                    float sharpen_peak_jonswap,
                     short do_height_field,
                     short do_chop,
                     short do_normals,
@@ -121,6 +124,11 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, in
 
 void BKE_ocean_free_cache(struct OceanCache *och);
 void BKE_ocean_free_modifier_cache(struct OceanModifierData *omd);
+
+/* ocean_spectrum.c */
+float BLI_ocean_spectrum_piersonmoskowitz(const struct Ocean *oc, const float kx, const float kz);
+float BLI_ocean_spectrum_texelmarsenarsloe(const struct Ocean *oc, const float kx, const float kz);
+float BLI_ocean_spectrum_jonswap(const struct Ocean *oc, const float kx, const float kz);
 
 #ifdef __cplusplus
 }

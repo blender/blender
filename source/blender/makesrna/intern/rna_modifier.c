@@ -5178,6 +5178,30 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
     {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem spectrum_items[] = {
+      {MOD_OCEAN_SPECTRUM_PHILLIPS,
+       "PHILLIPS",
+       0,
+       "Turbulent Ocean",
+       "Use for turbulent seas with foam"},
+      {MOD_OCEAN_SPECTRUM_PIERSON_MOSKOWITZ,
+       "PIERSON_MOSKOWITZ",
+       0,
+       "Established Ocean",
+       "Use for a large area, established ocean (Pierson-Moskowitz method)"},
+      {MOD_OCEAN_SPECTRUM_JONSWAP,
+       "JONSWAP",
+       0,
+       "Established Ocean (Sharp Peaks)",
+       "Use for sharp peaks ('JONSWAP', Pierson-Moskowitz method) with peak sharpening"},
+      {MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE,
+       "TEXEL_MARSEN_ARSLOE",
+       0,
+       "Shallow Water",
+       "Use for shallow water ('JONSWAP', 'TMA' - Texel-Marsen-Arsloe method)"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "OceanModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Ocean Modifier", "Simulate an ocean surface");
   RNA_def_struct_sdna(srna, "OceanModifierData");
@@ -5323,6 +5347,29 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Time", "Current time of the simulation");
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, -1);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "spectrum", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "spectrum");
+  RNA_def_property_enum_items(prop, spectrum_items);
+  RNA_def_property_ui_text(prop, "Spectrum", "Spectrum to use");
+  RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
+
+  prop = RNA_def_property(srna, "fetch_jonswap", PROP_FLOAT, PROP_UNSIGNED);
+  RNA_def_property_float_sdna(prop, NULL, "fetch_jonswap");
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_text(
+      prop,
+      "Fetch",
+      "This is the distance from a lee shore, "
+      "called the fetch, or the distance over which the wind blows with constant velocity. "
+      "Used by 'JONSWAP' and 'TMA' models");
+  RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
+
+  prop = RNA_def_property(srna, "sharpen_peak_jonswap", PROP_FLOAT, PROP_UNSIGNED);
+  RNA_def_property_float_sdna(prop, NULL, "sharpen_peak_jonswap");
+  RNA_def_property_range(prop, 0.0, 10.0);
+  RNA_def_property_ui_text(prop, "Sharpen peak", "Peak sharpening for 'JONSWAP' and 'TMA' models");
+  RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
   prop = RNA_def_property(srna, "random_seed", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "seed");

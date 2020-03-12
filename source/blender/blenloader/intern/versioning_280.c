@@ -4849,5 +4849,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    if (!DNA_struct_elem_find(fd->filesdna, "OceanModifierData", "float", "fetch_jonswap")) {
+      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+        for (ModifierData *md = object->modifiers.first; md; md = md->next) {
+          if (md->type == eModifierType_Ocean) {
+            OceanModifierData *omd = (OceanModifierData *)md;
+            omd->fetch_jonswap = 120.0f;
+          }
+        }
+      }
+    }
   }
 }
