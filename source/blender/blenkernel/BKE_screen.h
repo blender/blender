@@ -190,6 +190,8 @@ typedef struct ARegionType {
   /* return without drawing.
    * lock is set by region definition, and copied to do_lock by render. can become flag. */
   short do_lock, lock;
+  /** Don't handle gizmos events behind #uiBlock's with #UI_BLOCK_CLIP_EVENTS flag set. */
+  bool clip_gizmo_events_by_ui;
   /* call cursor function on each move event */
   short event_cursor;
 } ARegionType;

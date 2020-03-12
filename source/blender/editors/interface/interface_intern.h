@@ -951,6 +951,14 @@ bool ui_block_is_popover(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 bool ui_block_is_popup_any(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 
+uiBlock *ui_block_find_mouse_over_ex(const struct ARegion *region,
+                                     const int x,
+                                     const int y,
+                                     bool only_clip);
+uiBlock *ui_block_find_mouse_over(const struct ARegion *region,
+                                  const struct wmEvent *event,
+                                  bool only_clip);
+
 uiBut *ui_region_find_first_but_test_flag(struct ARegion *region,
                                           int flag_include,
                                           int flag_exclude);

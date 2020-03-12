@@ -2382,6 +2382,9 @@ struct ID *UI_context_active_but_get_tab_ID(struct bContext *C);
 
 uiBut *UI_region_active_but_get(struct ARegion *region);
 uiBut *UI_region_but_find_rect_over(const struct ARegion *region, const struct rcti *isect);
+uiBlock *UI_region_block_find_mouse_over(const struct ARegion *region,
+                                         const int xy[2],
+                                         bool only_clip);
 
 /* uiFontStyle.align */
 typedef enum eFontStyle_Align {

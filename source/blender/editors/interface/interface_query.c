@@ -505,6 +505,40 @@ bool UI_block_can_add_separator(const uiBlock *block)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Block (#uiBlock) Spatial
+ * \{ */
+
+uiBlock *ui_block_find_mouse_over_ex(const ARegion *region,
+                                     const int x,
+                                     const int y,
+                                     bool only_clip)
+{
+  if (!ui_region_contains_point_px(region, x, y)) {
+    return NULL;
+  }
+  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
+    if (only_clip) {
+      if ((block->flag & UI_BLOCK_CLIP_EVENTS) == 0) {
+        continue;
+      }
+    }
+    float mx = x, my = y;
+    ui_window_to_block_fl(region, block, &mx, &my);
+    if (BLI_rctf_isect_pt(&block->rect, mx, my)) {
+      return block;
+    }
+  }
+  return NULL;
+}
+
+uiBlock *ui_block_find_mouse_over(const ARegion *region, const wmEvent *event, bool only_clip)
+{
+  return ui_block_find_mouse_over_ex(region, event->x, event->y, only_clip);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Region (#ARegion) State
  * \{ */
 

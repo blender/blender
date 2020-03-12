@@ -981,6 +981,7 @@ void ED_spacetype_node(void)
   art->listener = node_region_listener;
   art->cursor = node_cursor;
   art->event_cursor = true;
+  art->clip_gizmo_events_by_ui = true;
 
   BLI_addhead(&st->regiontypes, art);
 

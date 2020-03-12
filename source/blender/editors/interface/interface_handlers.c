@@ -8268,6 +8268,13 @@ uiBut *UI_region_but_find_rect_over(const ARegion *region, const rcti *rect_px)
   return ui_but_find_rect_over(region, rect_px);
 }
 
+uiBlock *UI_region_block_find_mouse_over(const struct ARegion *region,
+                                         const int xy[2],
+                                         bool only_clip)
+{
+  return ui_block_find_mouse_over_ex(region, xy[0], xy[1], only_clip);
+}
+
 /**
  * Version of #UI_context_active_but_get that also returns RNA property info.
  * Helper function for insert keyframe, reset to default, etc operators.
