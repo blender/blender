@@ -189,15 +189,17 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
  * \{ */
 
 /* Returns the Face Set random color for rendering in the overlay given its ID and a color seed. */
+#define GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 static void face_set_overlay_color_get(const int face_set, const int seed, uchar *r_color)
 {
   float rgba[4];
-  const float random_mod_hue = BLI_hash_int_01(abs(face_set) + seed);
+  float random_mod_hue = GOLDEN_RATIO_CONJUGATE * (abs(face_set) + (seed % 10));
+  random_mod_hue = random_mod_hue - floorf(random_mod_hue);
   const float random_mod_sat = BLI_hash_int_01(abs(face_set) + seed + 1);
   const float random_mod_val = BLI_hash_int_01(abs(face_set) + seed + 2);
   hsv_to_rgb(random_mod_hue,
-             0.45f + (random_mod_sat * 0.35f),
-             1.0f - (random_mod_val * 0.45f),
+             0.6f + (random_mod_sat * 0.25f),
+             1.0f - (random_mod_val * 0.35f),
              &rgba[0],
              &rgba[1],
              &rgba[2]);
