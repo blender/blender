@@ -625,6 +625,10 @@ static bool sculpt_vertex_is_boundary(SculptSession *ss, const int index)
         return false;
       }
 
+      if (!SCULPT_vertex_all_face_sets_visible_get(ss, index)) {
+        return false;
+      }
+
       for (int i = 0; i < vert_map->count; i++) {
         const MPoly *p = &ss->mpoly[vert_map->indices[i]];
         unsigned f_adj_v[2];
