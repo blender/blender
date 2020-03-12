@@ -2041,13 +2041,22 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         sub.prop(md, "frame_start", text="Start")
         sub.prop(md, "frame_end", text="End")
 
-        col = layout.column()
-        col.separator()
-        col.label(text="Layer:")
-        row = col.row(align=True)
+        layout.label(text="Influence Filters:")
+
+        split = layout.split(factor=0.25)
+
+        col1 = split.column()
+
+        col1.label(text="Layer:")
+
+        col2 = split.column()
+
+        split = col2.split(factor=0.6)
+        row = split.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
         row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
-        row = layout.row(align=True)
+
+        row = split.row(align=True)
         row.prop(md, "layer_pass", text="Pass")
         row.prop(md, "invert_layer_pass", text="", icon='ARROW_LEFTRIGHT')
 
