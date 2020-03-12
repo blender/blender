@@ -354,7 +354,7 @@ bool workbench_antialiasing_setup(WORKBENCH_Data *vedata)
     }
     else {
       /* TAA is not making a big change to the matrices.
-       * Reuse the main view culling by creating a subview. */
+       * Reuse the main view culling by creating a sub-view. */
       wpd->view = DRW_view_create_sub(default_view, viewmat, winmat);
     }
     DRW_view_set_active(wpd->view);

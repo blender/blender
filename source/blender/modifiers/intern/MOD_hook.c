@@ -316,7 +316,7 @@ static void deformVerts_do(HookModifierData *hmd,
    * This should always be true and I don't generally like
    * "paranoid" style code like this, but old files can have
    * indices that are out of range because old blender did
-   * not correct them on exit editmode. - zr
+   * not correct them on exit edit-mode. - zr
    */
 
   if (hmd->force == 0.0f) {

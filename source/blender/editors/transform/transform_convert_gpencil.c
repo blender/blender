@@ -228,10 +228,11 @@ void createTransGPencil(bContext *C, TransInfo *t)
       for (gpf = init_gpf; gpf; gpf = gpf->next) {
         if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
 
-          /* if multiframe and falloff, recalculate and save value */
+          /* If multi-frame and falloff, recalculate and save value. */
           float falloff = 1.0f; /* by default no falloff */
           if ((is_multiedit) && (use_multiframe_falloff)) {
-            /* Faloff depends on distance to active frame (relative to the overall frame range) */
+            /* Falloff depends on distance to active frame
+             * (relative to the overall frame range). */
             falloff = BKE_gpencil_multiframe_falloff_calc(
                 gpf, gpl->actframe->framenum, f_init, f_end, ts->gp_sculpt.cur_falloff);
           }

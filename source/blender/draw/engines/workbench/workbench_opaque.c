@@ -19,7 +19,7 @@
 /** \file
  * \ingroup draw_engine
  *
- * Opaque Pieline:
+ * Opaque Pipeline:
  *
  * Use deferred shading to render opaque surfaces.
  * This decouple the shading cost from scene complexity.

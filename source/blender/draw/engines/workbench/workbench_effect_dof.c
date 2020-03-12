@@ -23,7 +23,7 @@
  *
  * We use a gather approach by sampling a lowres version of the color buffer.
  * The process can be summarized like this:
- * - downsample the color buffer using a COC (Circle of Confusion) aware downsample algo.
+ * - down-sample the color buffer using a COC (Circle of Confusion) aware down-sample algorithm.
  * - do a gather pass using the COC computed in the previous pass.
  * - do a median filter to reduce noise amount.
  * - composite on top of main color buffer.

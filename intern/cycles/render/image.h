@@ -69,7 +69,7 @@ class ImageParams {
 
 /* Image MetaData
  *
- * Information about the image that is available before the image pxeisl are loaded. */
+ * Information about the image that is available before the image pixels are loaded. */
 class ImageMetaData {
  public:
   /* Set by ImageLoader.load_metadata(). */

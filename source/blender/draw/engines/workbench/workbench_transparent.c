@@ -19,15 +19,15 @@
 /** \file
  * \ingroup draw_engine
  *
- * Transparent Pieline:
+ * Transparent Pipeline:
  *
- * Use Weight Blended Order Independant Transparency to render transparent surfaces.
+ * Use Weight Blended Order Independent Transparency to render transparent surfaces.
  *
  * The rendering is broken down in two passes:
  * - the accumulation pass where we render all the surfaces and accumulate all the weights.
- * - the resolve pass where we divide the accumulated infos by the weights.
+ * - the resolve pass where we divide the accumulated information by the weights.
  *
- * An additional rerender of the transparent surfaces is sometime done in order to have their
+ * An additional re-render of the transparent surfaces is sometime done in order to have their
  * correct depth and object ids correctly written.
  */
 

@@ -33,7 +33,7 @@
 
 #include "overlay_private.h"
 
-/* Returns the normal plane in ndc space. */
+/* Returns the normal plane in NDC space. */
 static void gpencil_depth_plane(Object *ob, float r_plane[4])
 {
   /* TODO put that into private data. */
@@ -42,11 +42,11 @@ static void gpencil_depth_plane(Object *ob, float r_plane[4])
   float *camera_z_axis = viewinv[2];
   float *camera_pos = viewinv[3];
 
-  /* Find the normal most likely to represent the gpObject. */
+  /* Find the normal most likely to represent the grease pencil object. */
   /* TODO: This does not work quite well if you use
    * strokes not aligned with the object axes. Maybe we could try to
    * compute the minimum axis of all strokes. But this would be more
-   * computationaly heavy and should go into the GPData evaluation. */
+   * computationally heavy and should go into the GPData evaluation. */
   BoundBox *bbox = BKE_object_boundbox_get(ob);
   /* Convert bbox to matrix */
   float mat[4][4], size[3], center[3];

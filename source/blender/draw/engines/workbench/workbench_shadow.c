@@ -23,7 +23,7 @@
  *
  * Use stencil shadow buffer to cast a sharp shadow over opaque surfaces.
  *
- * After the main prepass we render shadow volumes using custom depth & stencil states to
+ * After the main pre-pass we render shadow volumes using custom depth & stencil states to
  * set the stencil of shadowed area to anything but 0.
  *
  * Then the shading pass will shade the areas with stencil not equal 0 differently.

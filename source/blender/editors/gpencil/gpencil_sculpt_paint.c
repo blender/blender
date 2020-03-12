@@ -1744,7 +1744,8 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
         if ((gpf == gpl->actframe) || (gpf->flag & GP_FRAME_SELECT)) {
           /* compute multiframe falloff factor */
           if (gso->use_multiframe_falloff) {
-            /* Faloff depends on distance to active frame (relative to the overall frame range) */
+            /* Falloff depends on distance to active frame
+             * (relative to the overall frame range). */
             gso->mf_falloff = BKE_gpencil_multiframe_falloff_calc(
                 gpf, gpl->actframe->framenum, f_init, f_end, ts->gp_sculpt.cur_falloff);
           }

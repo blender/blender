@@ -1987,7 +1987,7 @@ static bool ed_object_select_pick(bContext *C,
 
   is_obedit = (vc.obedit != NULL);
   if (object) {
-    /* signal for view3d_opengl_select to skip editmode objects */
+    /* Signal for #view3d_opengl_select to skip edit-mode objects. */
     vc.obedit = NULL;
   }
 
@@ -2003,7 +2003,7 @@ static bool ed_object_select_pick(bContext *C,
   /* This block uses the control key to make the object selected
    * by its center point rather than its contents */
 
-  /* in editmode do not activate */
+  /* In edit-mode do not activate. */
   if (obcenter) {
 
     /* note; shift+alt goes to group-flush-selecting */
@@ -2337,11 +2337,11 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   bool toggle = RNA_boolean_get(op->ptr, "toggle");
   bool center = RNA_boolean_get(op->ptr, "center");
   bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
-  /* only force object select for editmode to support vertex parenting,
-   * or paint-select to allow pose bone select with vert/face select */
+  /* Only force object select for edit-mode to support vertex parenting,
+   * or paint-select to allow pose bone select with vert/face select. */
   bool object = (RNA_boolean_get(op->ptr, "object") &&
                  (obedit || BKE_paint_select_elem_test(obact) ||
-                  /* so its possible to select bones in weightpaint mode (LMB select) */
+                  /* so its possible to select bones in weight-paint mode (LMB select) */
                   (obact && (obact->mode & OB_MODE_WEIGHT_PAINT) &&
                    BKE_object_pose_armature_get(obact))));
 
@@ -2358,8 +2358,8 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
     obact = NULL;
 
     /* ack, this is incorrect but to do this correctly we would need an
-     * alternative editmode/objectmode keymap, this copies the functionality
-     * from 2.4x where Ctrl+Select in editmode does object select only */
+     * alternative edit-mode/object-mode keymap, this copies the functionality
+     * from 2.4x where Ctrl+Select in edit-mode does object select only. */
     center = false;
   }
 
@@ -2493,12 +2493,12 @@ void VIEW3D_OT_select(wmOperatorType *ot)
       "center",
       0,
       "Center",
-      "Use the object center when selecting, in editmode used to extend object selection");
+      "Use the object center when selecting, in edit-mode used to extend object selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only)");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only)");
+  prop = RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (edit-mode only)");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_int_vector(ot->srna,
@@ -3286,7 +3286,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
     }
     FOREACH_OBJECT_IN_MODE_END;
   }
-  else { /* no editmode, unified for bones and objects */
+  else { /* No edit-mode, unified for bones and objects. */
     if (vc.obact && vc.obact->mode & OB_MODE_SCULPT) {
       /* XXX, this is not selection, could be it's own operator. */
       changed_multi = ED_sculpt_mask_box_select(
