@@ -391,9 +391,6 @@ struct bNodeTree *ntreeCopyTree_ex(const struct bNodeTree *ntree,
                                    struct Main *bmain,
                                    const bool do_id_user);
 struct bNodeTree *ntreeCopyTree(struct Main *bmain, const struct bNodeTree *ntree);
-/* node->id user count */
-void ntreeUserIncrefID(struct bNodeTree *ntree);
-void ntreeUserDecrefID(struct bNodeTree *ntree);
 
 struct bNodeTree **BKE_ntree_ptr_from_id(struct ID *id);
 struct bNodeTree *ntreeFromID(struct ID *id);

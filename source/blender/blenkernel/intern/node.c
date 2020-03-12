@@ -1682,21 +1682,6 @@ bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree)
   return ntreeCopyTree_ex(ntree, bmain, true);
 }
 
-void ntreeUserIncrefID(bNodeTree *ntree)
-{
-  bNode *node;
-  for (node = ntree->nodes.first; node; node = node->next) {
-    id_us_plus(node->id);
-  }
-}
-void ntreeUserDecrefID(bNodeTree *ntree)
-{
-  bNode *node;
-  for (node = ntree->nodes.first; node; node = node->next) {
-    id_us_min(node->id);
-  }
-}
-
 /* *************** Node Preview *********** */
 
 /* XXX this should be removed eventually ...
