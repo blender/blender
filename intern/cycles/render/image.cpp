@@ -150,7 +150,7 @@ int ImageHandle::svm_slot(const int tile_index) const
 
   if (manager->osl_texture_system) {
     ImageManager::Image *img = manager->images[tile_slots[tile_index]];
-    if (img->loader->osl_filepath()) {
+    if (!img->loader->osl_filepath().empty()) {
       return -1;
     }
   }
@@ -394,7 +394,7 @@ int ImageManager::add_image_slot(ImageLoader *loader,
   img->params = params;
   img->loader = loader;
   img->need_metadata = true;
-  img->need_load = !(osl_texture_system && img->loader->osl_filepath());
+  img->need_load = !(osl_texture_system && !img->loader->osl_filepath().empty());
   img->builtin = builtin;
   img->users = 1;
   img->mem = NULL;
@@ -794,7 +794,7 @@ void ImageManager::device_free_image(Device *, int slot)
   if (osl_texture_system) {
 #ifdef WITH_OSL
     ustring filepath = img->loader->osl_filepath();
-    if (filepath) {
+    if (!filepath.empty()) {
       ((OSL::TextureSystem *)osl_texture_system)->invalidate(filepath);
     }
 #endif
