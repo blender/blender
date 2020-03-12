@@ -1102,7 +1102,7 @@ static void recalcData_objects(TransInfo *t)
 
     if (motionpath_update) {
       /* Update motion paths once for all transformed objects. */
-      ED_objects_recalculate_paths(t->context, t->scene, OBJECT_PATH_CALC_RANGE_CHANGED);
+      ED_objects_recalculate_paths(t->context, t->scene, OBJECT_PATH_CALC_RANGE_CURRENT_FRAME);
     }
 
     if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
