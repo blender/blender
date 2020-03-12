@@ -377,17 +377,6 @@ static void PALETTE_OT_extract_from_image(wmOperatorType *ot)
 }
 
 /* Sort Palette color by Hue and Saturation. */
-static bool palette_sort_poll(bContext *C)
-{
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  Palette *palette = paint->palette;
-  if (palette) {
-    return true;
-  }
-
-  return false;
-}
-
 static int palette_sort_exec(bContext *C, wmOperator *op)
 {
   const int type = RNA_enum_get(op->ptr, "type");
@@ -477,7 +466,7 @@ static void PALETTE_OT_sort(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = palette_sort_exec;
-  ot->poll = palette_sort_poll;
+  ot->poll = palette_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -522,7 +511,7 @@ static void PALETTE_OT_color_move(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = palette_color_move_exec;
-  ot->poll = palette_sort_poll;
+  ot->poll = palette_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -531,17 +520,6 @@ static void PALETTE_OT_color_move(wmOperatorType *ot)
 }
 
 /* Join Palette swatches. */
-static bool palette_join_poll(bContext *C)
-{
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  Palette *palette = paint->palette;
-  if (palette) {
-    return true;
-  }
-
-  return false;
-}
-
 static int palette_join_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -599,7 +577,7 @@ static void PALETTE_OT_join(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = palette_join_exec;
-  ot->poll = palette_join_poll;
+  ot->poll = palette_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
