@@ -1715,22 +1715,28 @@ static size_t animdata_filter_gpencil_layers_data(ListBase *anim_data,
   /* loop over layers as the conditions are acceptable (top-Down order) */
   for (gpl = gpd->layers.last; gpl; gpl = gpl->prev) {
     /* only if selected */
-    if (ANIMCHANNEL_SELOK(SEL_GPL(gpl))) {
-      /* only if editable */
-      if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
-        /* active... */
-        if (!(filter_mode & ANIMFILTER_ACTIVE) || (gpl->flag & GP_LAYER_ACTIVE)) {
-          /* skip layer if the name doesn't match the filter string */
-          if ((ads) && (ads->searchstr[0] != '\0')) {
-            if (name_matches_dopesheet_filter(ads, gpl->info) == false) {
-              continue;
-            }
-          }
-          /* add to list */
-          ANIMCHANNEL_NEW_CHANNEL(gpl, ANIMTYPE_GPLAYER, gpd, NULL);
-        }
-      }
+    if (!ANIMCHANNEL_SELOK(SEL_GPL(gpl))) {
+      continue;
     }
+
+    /* only if editable */
+    if ((filter_mode & ANIMFILTER_FOREDIT) && !EDITABLE_GPL(gpl)) {
+      continue;
+    }
+
+    /* active... */
+    if ((filter_mode & ANIMFILTER_ACTIVE) && (gpl->flag & GP_LAYER_ACTIVE) == 0) {
+      continue;
+    }
+
+    /* skip layer if the name doesn't match the filter string */
+    if (ads != NULL && ads->searchstr[0] != '\0' &&
+        name_matches_dopesheet_filter(ads, gpl->info) == false) {
+      continue;
+    }
+
+    /* add to list */
+    ANIMCHANNEL_NEW_CHANNEL(gpl, ANIMTYPE_GPLAYER, gpd, NULL);
   }
 
   return items;
