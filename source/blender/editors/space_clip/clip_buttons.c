@@ -259,8 +259,6 @@ typedef struct {
   MovieTrackingTrack *track;
   MovieTrackingMarker *marker;
 
-  /** current frame number */
-  int framenr;
   /** position of marker in pixel coords */
   float marker_pos[2];
   /** position and dimensions of marker pattern in pixel coords */
@@ -283,14 +281,12 @@ static void to_pixel_space(float r[2], float a[2], int width, int height)
 static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 {
   MarkerUpdateCb *cb = (MarkerUpdateCb *)arg_cb;
-  MovieTrackingMarker *marker;
 
   if (!cb->compact) {
     return;
   }
 
-  marker = BKE_tracking_marker_ensure(cb->track, cb->framenr);
-
+  MovieTrackingMarker *marker = cb->marker;
   marker->flag = cb->marker_flag;
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
@@ -299,14 +295,12 @@ static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 static void marker_block_handler(bContext *C, void *arg_cb, int event)
 {
   MarkerUpdateCb *cb = (MarkerUpdateCb *)arg_cb;
-  MovieTrackingMarker *marker;
   int width, height;
   bool ok = false;
 
   BKE_movieclip_get_size(cb->clip, cb->user, &width, &height);
 
-  marker = BKE_tracking_marker_ensure(cb->track, cb->framenr);
-
+  MovieTrackingMarker *marker = cb->marker;
   if (event == B_MARKER_POS) {
     marker->pos[0] = cb->marker_pos[0] / width;
     marker->pos[1] = cb->marker_pos[1] / height;
@@ -452,7 +446,8 @@ void uiTemplateMarker(uiLayout *layout,
   user = userptr->data;
   track = trackptr->data;
 
-  marker = BKE_tracking_marker_get(track, user->framenr);
+  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
+  marker = BKE_tracking_marker_get(track, clip_framenr);
 
   cb = MEM_callocN(sizeof(MarkerUpdateCb), "uiTemplateMarker update_cb");
   cb->compact = compact;
@@ -461,7 +456,6 @@ void uiTemplateMarker(uiLayout *layout,
   cb->track = track;
   cb->marker = marker;
   cb->marker_flag = marker->flag;
-  cb->framenr = user->framenr;
 
   if (compact) {
     block = uiLayoutGetBlock(layout);

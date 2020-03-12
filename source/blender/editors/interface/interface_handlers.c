@@ -58,6 +58,7 @@
 #include "BKE_unit.h"
 #include "BKE_paint.h"
 #include "BKE_curveprofile.h"
+#include "BKE_movieclip.h"
 
 #include "IMB_colormanagement.h"
 
@@ -7339,8 +7340,10 @@ static bool ui_numedit_but_TRACKPREVIEW(
   }
 
   if (!scopes->track_locked) {
-    if (scopes->marker->framenr != scopes->framenr) {
-      scopes->marker = BKE_tracking_marker_ensure(scopes->track, scopes->framenr);
+    const MovieClip *clip = CTX_data_edit_movieclip(C);
+    int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scopes->framenr);
+    if (scopes->marker->framenr != clip_framenr) {
+      scopes->marker = BKE_tracking_marker_ensure(scopes->track, clip_framenr);
     }
 
     scopes->marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
