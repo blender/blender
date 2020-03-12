@@ -61,6 +61,18 @@ bool ED_region_overlap_isect_xy(const ARegion *region, const int event_xy[2])
           ED_region_overlap_isect_y(region, event_xy[1]));
 }
 
+bool ED_region_overlap_isect_any_xy(const ScrArea *area, const int event_xy[2])
+{
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (ED_region_is_overlap(area->spacetype, region->regiontype)) {
+      if (ED_region_overlap_isect_xy(region, event_xy)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_ar_gutter)
 {
   *r_ar_gutter = region->winrct;

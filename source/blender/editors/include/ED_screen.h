@@ -431,6 +431,7 @@ int ED_region_generic_tools_region_snap_size(const struct ARegion *region, int s
 bool ED_region_overlap_isect_x(const ARegion *region, const int event_x);
 bool ED_region_overlap_isect_y(const ARegion *region, const int event_y);
 bool ED_region_overlap_isect_xy(const ARegion *region, const int event_xy[2]);
+bool ED_region_overlap_isect_any_xy(const ScrArea *area, const int event_xy[2]);
 bool ED_region_overlap_isect_x_with_margin(const ARegion *region,
                                            const int event_x,
                                            const int margin);

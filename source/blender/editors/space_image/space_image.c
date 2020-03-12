@@ -262,18 +262,22 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 }
 
 /* dropboxes */
-static bool image_drop_poll(bContext *UNUSED(C),
+static bool image_drop_poll(bContext *C,
                             wmDrag *drag,
-                            const wmEvent *UNUSED(event),
+                            const wmEvent *event,
                             const char **UNUSED(tooltip))
 {
+  ScrArea *area = CTX_wm_area(C);
+  if (ED_region_overlap_isect_any_xy(area, &event->x)) {
+    return false;
+  }
   if (drag->type == WM_DRAG_PATH) {
     /* rule might not work? */
     if (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE, ICON_FILE_BLANK)) {
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 static void image_drop_copy(wmDrag *drag, wmDropBox *drop)

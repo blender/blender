@@ -436,35 +436,50 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *region)
   ED_view3d_stop_render_preview(wm, region);
 }
 
-static bool view3d_ob_drop_poll(bContext *UNUSED(C),
+static bool view3d_drop_id_in_main_region_poll(bContext *C,
+                                               wmDrag *drag,
+                                               const wmEvent *event,
+                                               ID_Type id_type)
+{
+  ScrArea *area = CTX_wm_area(C);
+  if (ED_region_overlap_isect_any_xy(area, &event->x)) {
+    return false;
+  }
+  return WM_drag_ID(drag, id_type) != NULL;
+}
+
+static bool view3d_ob_drop_poll(bContext *C,
                                 wmDrag *drag,
-                                const wmEvent *UNUSED(event),
+                                const wmEvent *event,
                                 const char **UNUSED(tooltip))
 {
-  return WM_drag_ID(drag, ID_OB) != NULL;
+  return view3d_drop_id_in_main_region_poll(C, drag, event, ID_OB);
 }
 
-static bool view3d_collection_drop_poll(bContext *UNUSED(C),
+static bool view3d_collection_drop_poll(bContext *C,
                                         wmDrag *drag,
-                                        const wmEvent *UNUSED(event),
+                                        const wmEvent *event,
                                         const char **UNUSED(tooltip))
 {
-  return WM_drag_ID(drag, ID_GR) != NULL;
+  return view3d_drop_id_in_main_region_poll(C, drag, event, ID_GR);
 }
 
-static bool view3d_mat_drop_poll(bContext *UNUSED(C),
+static bool view3d_mat_drop_poll(bContext *C,
                                  wmDrag *drag,
-                                 const wmEvent *UNUSED(event),
+                                 const wmEvent *event,
                                  const char **UNUSED(tooltip))
 {
-  return WM_drag_ID(drag, ID_MA) != NULL;
+  return view3d_drop_id_in_main_region_poll(C, drag, event, ID_MA);
 }
 
-static bool view3d_ima_drop_poll(bContext *UNUSED(C),
+static bool view3d_ima_drop_poll(bContext *C,
                                  wmDrag *drag,
-                                 const wmEvent *UNUSED(event),
+                                 const wmEvent *event,
                                  const char **UNUSED(tooltip))
 {
+  if (ED_region_overlap_isect_any_xy(CTX_wm_area(C), &event->x)) {
+    return false;
+  }
   if (drag->type == WM_DRAG_PATH) {
     /* rule might not work? */
     return (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE));
