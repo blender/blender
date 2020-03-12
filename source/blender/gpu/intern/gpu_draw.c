@@ -180,27 +180,28 @@ float GPU_get_anisotropic(void)
 
 /* Set OpenGL state for an MTFace */
 
-static GPUTexture **gpu_get_image_gputexture(Image *ima, GLenum textarget)
+static GPUTexture **gpu_get_image_gputexture(Image *ima, GLenum textarget, const int multiview_eye)
 {
   if (textarget == GL_TEXTURE_2D) {
-    return &ima->gputexture[TEXTARGET_TEXTURE_2D];
+    return &(ima->gputexture[TEXTARGET_TEXTURE_2D][multiview_eye]);
   }
   else if (textarget == GL_TEXTURE_CUBE_MAP) {
-    return &ima->gputexture[TEXTARGET_TEXTURE_CUBE_MAP];
+    return &(ima->gputexture[TEXTARGET_TEXTURE_CUBE_MAP][multiview_eye]);
   }
   else if (textarget == GL_TEXTURE_2D_ARRAY) {
-    return &ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY];
+    return &(ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY][multiview_eye]);
   }
   else if (textarget == GL_TEXTURE_1D_ARRAY) {
-    return &ima->gputexture[TEXTARGET_TEXTURE_TILE_MAPPING];
+    return &(ima->gputexture[TEXTARGET_TEXTURE_TILE_MAPPING][multiview_eye]);
   }
 
   return NULL;
 }
 
-static uint gpu_texture_create_tile_mapping(Image *ima)
+static uint gpu_texture_create_tile_mapping(Image *ima, const int multiview_eye)
 {
-  GPUTexture *tilearray = ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY];
+  GPUTexture *tilearray = ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY][multiview_eye];
+
   if (tilearray == NULL) {
     return 0;
   }
@@ -876,7 +877,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
   BKE_image_tag_time(ima);
 
   /* Test if we already have a texture. */
-  GPUTexture **tex = gpu_get_image_gputexture(ima, textarget);
+  GPUTexture **tex = gpu_get_image_gputexture(ima, textarget, iuser->multiview_eye);
   if (*tex) {
     return *tex;
   }
@@ -904,7 +905,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, ImBuf *ibuf, 
     bindcode = gpu_texture_create_tile_array(ima, ibuf_intern);
   }
   else if (textarget == GL_TEXTURE_1D_ARRAY) {
-    bindcode = gpu_texture_create_tile_mapping(ima);
+    bindcode = gpu_texture_create_tile_mapping(ima, iuser->multiview_eye);
   }
   else {
     bindcode = gpu_texture_create_from_ibuf(ima, ibuf_intern, textarget);
@@ -1288,14 +1289,16 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
     for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
       if (BKE_image_has_opengl_texture(ima)) {
         if (ima->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
-          for (int a = 0; a < TEXTARGET_COUNT; a++) {
-            if (ELEM(a, TEXTARGET_TEXTURE_2D, TEXTARGET_TEXTURE_2D_ARRAY)) {
-              GPUTexture *tex = ima->gputexture[a];
-              if (tex != NULL) {
-                GPU_texture_bind(tex, 0);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
-                GPU_texture_unbind(tex);
+          for (int eye = 0; eye < 2; eye++) {
+            for (int a = 0; a < TEXTARGET_COUNT; a++) {
+              if (ELEM(a, TEXTARGET_TEXTURE_2D, TEXTARGET_TEXTURE_2D_ARRAY)) {
+                GPUTexture *tex = ima->gputexture[a][eye];
+                if (tex != NULL) {
+                  GPU_texture_bind(tex, 0);
+                  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
+                  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
+                  GPU_texture_unbind(tex);
+                }
               }
             }
           }
@@ -1312,14 +1315,16 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
   else {
     for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
       if (BKE_image_has_opengl_texture(ima)) {
-        for (int a = 0; a < TEXTARGET_COUNT; a++) {
-          if (ELEM(a, TEXTARGET_TEXTURE_2D, TEXTARGET_TEXTURE_2D_ARRAY)) {
-            GPUTexture *tex = ima->gputexture[a];
-            if (tex != NULL) {
-              GPU_texture_bind(tex, 0);
-              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-              glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
-              GPU_texture_unbind(tex);
+        for (int eye = 0; eye < 2; eye++) {
+          for (int a = 0; a < TEXTARGET_COUNT; a++) {
+            if (ELEM(a, TEXTARGET_TEXTURE_2D, TEXTARGET_TEXTURE_2D_ARRAY)) {
+              GPUTexture *tex = ima->gputexture[a][eye];
+              if (tex != NULL) {
+                GPU_texture_bind(tex, 0);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
+                GPU_texture_unbind(tex);
+              }
             }
           }
         }
@@ -1343,14 +1348,14 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
     GPU_free_image(ima);
   }
 
-  GPUTexture *tex = ima->gputexture[TEXTARGET_TEXTURE_2D];
+  GPUTexture *tex = ima->gputexture[TEXTARGET_TEXTURE_2D][0];
   /* Check if we need to update the main gputexture. */
   if (tex != NULL && tile == ima->tiles.first) {
     gpu_texture_update_from_ibuf(tex, ima, ibuf, NULL, x, y, w, h);
   }
 
   /* Check if we need to update the array gputexture. */
-  tex = ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY];
+  tex = ima->gputexture[TEXTARGET_TEXTURE_2D_ARRAY][0];
   if (tex != NULL) {
     gpu_texture_update_from_ibuf(tex, ima, ibuf, tile, x, y, w, h);
   }
@@ -1395,11 +1400,13 @@ void GPU_free_unused_buffers(Main *bmain)
 
 static void gpu_free_image_immediate(Image *ima)
 {
-  for (int i = 0; i < TEXTARGET_COUNT; i++) {
-    /* free glsl image binding */
-    if (ima->gputexture[i] != NULL) {
-      GPU_texture_free(ima->gputexture[i]);
-      ima->gputexture[i] = NULL;
+  for (int eye = 0; eye < 2; eye++) {
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      /* free glsl image binding */
+      if (ima->gputexture[i][eye] != NULL) {
+        GPU_texture_free(ima->gputexture[i][eye]);
+        ima->gputexture[i][eye] = NULL;
+      }
     }
   }
 

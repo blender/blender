@@ -117,6 +117,9 @@ static void camera_background_images_stereo_setup(Scene *scene,
       /* show only left or right camera */
       iuser->multiview_eye = v3d->stereo3d_camera;
     }
+    else {
+      iuser->multiview_eye = v3d->multiview_eye;
+    }
 
     BKE_image_multiview_index(ima, iuser);
   }
