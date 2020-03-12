@@ -138,7 +138,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
              ((v3d->shading.type == OB_RENDER) && \
               ((v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER) == 0))))
 
-#define MIN_CUBE_LOD_LEVEL 1
+#define MIN_CUBE_LOD_LEVEL 3
 #define MAX_PLANAR_LOD_LEVEL 9
 
 /* All the renderpasses that use the GPUMaterial for accumulation */
