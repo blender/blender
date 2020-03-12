@@ -264,7 +264,7 @@ class CPUDevice : public Device {
 
   CPUDevice(DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool background_)
       : Device(info_, stats_, profiler_, background_),
-        texture_info(this, "__texture_info", MEM_TEXTURE),
+        texture_info(this, "__texture_info", MEM_GLOBAL),
 #define REGISTER_KERNEL(name) name##_kernel(KERNEL_FUNCTIONS(name))
         REGISTER_KERNEL(path_trace),
         REGISTER_KERNEL(convert_to_half_float),
@@ -372,6 +372,9 @@ class CPUDevice : public Device {
     if (mem.type == MEM_TEXTURE) {
       assert(!"mem_alloc not supported for textures.");
     }
+    else if (mem.type == MEM_GLOBAL) {
+      assert(!"mem_alloc not supported for global memory.");
+    }
     else {
       if (mem.name) {
         VLOG(1) << "Buffer allocate: " << mem.name << ", "
@@ -396,9 +399,13 @@ class CPUDevice : public Device {
 
   void mem_copy_to(device_memory &mem)
   {
-    if (mem.type == MEM_TEXTURE) {
-      tex_free(mem);
-      tex_alloc(mem);
+    if (mem.type == MEM_GLOBAL) {
+      global_free(mem);
+      global_alloc(mem);
+    }
+    else if (mem.type == MEM_TEXTURE) {
+      tex_free((device_texture &)mem);
+      tex_alloc((device_texture &)mem);
     }
     else if (mem.type == MEM_PIXELS) {
       assert(!"mem_copy_to not supported for pixels.");
@@ -430,8 +437,11 @@ class CPUDevice : public Device {
 
   void mem_free(device_memory &mem)
   {
-    if (mem.type == MEM_TEXTURE) {
-      tex_free(mem);
+    if (mem.type == MEM_GLOBAL) {
+      global_free(mem);
+    }
+    else if (mem.type == MEM_TEXTURE) {
+      tex_free((device_texture &)mem);
     }
     else if (mem.device_pointer) {
       if (mem.type == MEM_DEVICE_ONLY) {
@@ -453,52 +463,50 @@ class CPUDevice : public Device {
     kernel_const_copy(&kernel_globals, name, host, size);
   }
 
-  void tex_alloc(device_memory &mem)
+  void global_alloc(device_memory &mem)
   {
-    VLOG(1) << "Texture allocate: " << mem.name << ", "
+    VLOG(1) << "Global memory allocate: " << mem.name << ", "
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 
-    if (mem.interpolation == INTERPOLATION_NONE) {
-      /* Data texture. */
-      kernel_tex_copy(&kernel_globals, mem.name, mem.host_pointer, mem.data_size);
-    }
-    else {
-      /* Image Texture. */
-      int slot = 0;
-      if (string_startswith(mem.name, "__tex_image")) {
-        int pos = string(mem.name).rfind("_");
-        slot = atoi(mem.name + pos + 1);
-      }
-      else {
-        assert(0);
-      }
-
-      if (slot >= texture_info.size()) {
-        /* Allocate some slots in advance, to reduce amount
-         * of re-allocations. */
-        texture_info.resize(slot + 128);
-      }
-
-      TextureInfo &info = texture_info[slot];
-      info.data = (uint64_t)mem.host_pointer;
-      info.data_type = mem.image_data_type;
-      info.cl_buffer = 0;
-      info.interpolation = mem.interpolation;
-      info.extension = mem.extension;
-      info.width = mem.data_width;
-      info.height = mem.data_height;
-      info.depth = mem.data_depth;
-
-      need_texture_info = true;
-    }
+    kernel_global_memory_copy(&kernel_globals, mem.name, mem.host_pointer, mem.data_size);
 
     mem.device_pointer = (device_ptr)mem.host_pointer;
     mem.device_size = mem.memory_size();
     stats.mem_alloc(mem.device_size);
   }
 
-  void tex_free(device_memory &mem)
+  void global_free(device_memory &mem)
+  {
+    if (mem.device_pointer) {
+      mem.device_pointer = 0;
+      stats.mem_free(mem.device_size);
+      mem.device_size = 0;
+    }
+  }
+
+  void tex_alloc(device_texture &mem)
+  {
+    VLOG(1) << "Texture allocate: " << mem.name << ", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")";
+
+    mem.device_pointer = (device_ptr)mem.host_pointer;
+    mem.device_size = mem.memory_size();
+    stats.mem_alloc(mem.device_size);
+
+    const uint slot = mem.slot;
+    if (slot >= texture_info.size()) {
+      /* Allocate some slots in advance, to reduce amount of re-allocations. */
+      texture_info.resize(slot + 128);
+    }
+
+    texture_info[slot] = mem.info;
+    texture_info[slot].data = (uint64_t)mem.host_pointer;
+    need_texture_info = true;
+  }
+
+  void tex_free(device_texture &mem)
   {
     if (mem.device_pointer) {
       mem.device_pointer = 0;

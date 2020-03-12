@@ -155,9 +155,13 @@ class CUDADevice : public Device {
 
   virtual void const_copy_to(const char *name, void *host, size_t size);
 
-  void tex_alloc(device_memory &mem);
+  void global_alloc(device_memory &mem);
 
-  void tex_free(device_memory &mem);
+  void global_free(device_memory &mem);
+
+  void tex_alloc(device_texture &mem);
+
+  void tex_free(device_texture &mem);
 
   bool denoising_non_local_means(device_ptr image_ptr,
                                  device_ptr guide_ptr,

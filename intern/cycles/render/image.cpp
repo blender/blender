@@ -158,7 +158,7 @@ int ImageHandle::svm_slot(const int tile_index) const
   return tile_slots[tile_index];
 }
 
-device_memory *ImageHandle::image_memory(const int tile_index) const
+device_texture *ImageHandle::image_memory(const int tile_index) const
 {
   if (tile_index >= tile_slots.size()) {
     return NULL;
@@ -438,10 +438,8 @@ static bool image_associate_alpha(ImageManager::Image *img)
            img->params.alpha_type == IMAGE_ALPHA_CHANNEL_PACKED);
 }
 
-template<TypeDesc::BASETYPE FileFormat, typename StorageType, typename DeviceType>
-bool ImageManager::file_load_image(Image *img,
-                                   int texture_limit,
-                                   device_vector<DeviceType> &tex_img)
+template<TypeDesc::BASETYPE FileFormat, typename StorageType>
+bool ImageManager::file_load_image(Image *img, int texture_limit)
 {
   /* we only handle certain number of components */
   if (!(img->metadata.channels >= 1 && img->metadata.channels <= 4)) {
@@ -470,7 +468,7 @@ bool ImageManager::file_load_image(Image *img,
   }
   else {
     thread_scoped_lock device_lock(device_mutex);
-    pixels = (StorageType *)tex_img.alloc(width, height, depth);
+    pixels = (StorageType *)img->mem->alloc(width, height, depth);
   }
 
   if (pixels == NULL) {
@@ -587,21 +585,13 @@ bool ImageManager::file_load_image(Image *img,
 
     {
       thread_scoped_lock device_lock(device_mutex);
-      texture_pixels = (StorageType *)tex_img.alloc(scaled_width, scaled_height, scaled_depth);
+      texture_pixels = (StorageType *)img->mem->alloc(scaled_width, scaled_height, scaled_depth);
     }
 
     memcpy(texture_pixels, &scaled_pixels[0], scaled_pixels.size() * sizeof(StorageType));
   }
 
   return true;
-}
-
-static void image_set_device_memory(ImageManager::Image *img, device_memory *mem)
-{
-  img->mem = mem;
-  mem->image_data_type = img->metadata.type;
-  mem->interpolation = img->params.interpolation;
-  mem->extension = img->params.extension;
 }
 
 void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Progress *progress)
@@ -619,7 +609,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
   load_image_metadata(img);
   ImageDataType type = img->metadata.type;
 
-  /* Slot assignment */
+  /* Name for debugging. */
   img->mem_name = string_printf("__tex_image_%s_%03d", name_from_type(type), slot);
 
   /* Free previous texture in slot. */
@@ -629,154 +619,98 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
     img->mem = NULL;
   }
 
+  img->mem = new device_texture(
+      device, img->mem_name.c_str(), slot, type, img->params.interpolation, img->params.extension);
+
   /* Create new texture. */
   if (type == IMAGE_DATA_TYPE_FLOAT4) {
-    device_vector<float4> *tex_img = new device_vector<float4>(
-        device, img->mem_name.c_str(), MEM_TEXTURE);
-
-    if (!file_load_image<TypeDesc::FLOAT, float>(img, texture_limit, *tex_img)) {
+    if (!file_load_image<TypeDesc::FLOAT, float>(img, texture_limit)) {
       /* on failure to load, we set a 1x1 pixels pink image */
       thread_scoped_lock device_lock(device_mutex);
-      float *pixels = (float *)tex_img->alloc(1, 1);
+      float *pixels = (float *)img->mem->alloc(1, 1);
 
       pixels[0] = TEX_IMAGE_MISSING_R;
       pixels[1] = TEX_IMAGE_MISSING_G;
       pixels[2] = TEX_IMAGE_MISSING_B;
       pixels[3] = TEX_IMAGE_MISSING_A;
     }
-
-    image_set_device_memory(img, tex_img);
-
-    thread_scoped_lock device_lock(device_mutex);
-    tex_img->copy_to_device();
   }
   else if (type == IMAGE_DATA_TYPE_FLOAT) {
-    device_vector<float> *tex_img = new device_vector<float>(
-        device, img->mem_name.c_str(), MEM_TEXTURE);
-
-    if (!file_load_image<TypeDesc::FLOAT, float>(img, texture_limit, *tex_img)) {
+    if (!file_load_image<TypeDesc::FLOAT, float>(img, texture_limit)) {
       /* on failure to load, we set a 1x1 pixels pink image */
       thread_scoped_lock device_lock(device_mutex);
-      float *pixels = (float *)tex_img->alloc(1, 1);
+      float *pixels = (float *)img->mem->alloc(1, 1);
 
       pixels[0] = TEX_IMAGE_MISSING_R;
     }
-
-    image_set_device_memory(img, tex_img);
-
-    thread_scoped_lock device_lock(device_mutex);
-    tex_img->copy_to_device();
   }
   else if (type == IMAGE_DATA_TYPE_BYTE4) {
-    device_vector<uchar4> *tex_img = new device_vector<uchar4>(
-        device, img->mem_name.c_str(), MEM_TEXTURE);
-
-    if (!file_load_image<TypeDesc::UINT8, uchar>(img, texture_limit, *tex_img)) {
+    if (!file_load_image<TypeDesc::UINT8, uchar>(img, texture_limit)) {
       /* on failure to load, we set a 1x1 pixels pink image */
       thread_scoped_lock device_lock(device_mutex);
-      uchar *pixels = (uchar *)tex_img->alloc(1, 1);
+      uchar *pixels = (uchar *)img->mem->alloc(1, 1);
 
       pixels[0] = (TEX_IMAGE_MISSING_R * 255);
       pixels[1] = (TEX_IMAGE_MISSING_G * 255);
       pixels[2] = (TEX_IMAGE_MISSING_B * 255);
       pixels[3] = (TEX_IMAGE_MISSING_A * 255);
     }
-
-    image_set_device_memory(img, tex_img);
-
-    thread_scoped_lock device_lock(device_mutex);
-    tex_img->copy_to_device();
   }
   else if (type == IMAGE_DATA_TYPE_BYTE) {
-    device_vector<uchar> *tex_img = new device_vector<uchar>(
-        device, img->mem_name.c_str(), MEM_TEXTURE);
-
-    if (!file_load_image<TypeDesc::UINT8, uchar>(img, texture_limit, *tex_img)) {
+    if (!file_load_image<TypeDesc::UINT8, uchar>(img, texture_limit)) {
       /* on failure to load, we set a 1x1 pixels pink image */
       thread_scoped_lock device_lock(device_mutex);
-      uchar *pixels = (uchar *)tex_img->alloc(1, 1);
+      uchar *pixels = (uchar *)img->mem->alloc(1, 1);
 
       pixels[0] = (TEX_IMAGE_MISSING_R * 255);
     }
-
-    image_set_device_memory(img, tex_img);
-
-    thread_scoped_lock device_lock(device_mutex);
-    tex_img->copy_to_device();
   }
   else if (type == IMAGE_DATA_TYPE_HALF4) {
-    device_vector<half4> *tex_img = new device_vector<half4>(
-        device, img->mem_name.c_str(), MEM_TEXTURE);
-
-    if (!file_load_image<TypeDesc::HALF, half>(img, texture_limit, *tex_img)) {
+    if (!file_load_image<TypeDesc::HALF, half>(img, texture_limit)) {
       /* on failure to load, we set a 1x1 pixels pink image */
       thread_scoped_lock device_lock(device_mutex);
-      half *pixels = (half *)tex_img->alloc(1, 1);
+      half *pixels = (half *)img->mem->alloc(1, 1);
 
       pixels[0] = TEX_IMAGE_MISSING_R;
       pixels[1] = TEX_IMAGE_MISSING_G;
       pixels[2] = TEX_IMAGE_MISSING_B;
       pixels[3] = TEX_IMAGE_MISSING_A;
     }
-
-    image_set_device_memory(img, tex_img);
-
-    thread_scoped_lock device_lock(device_mutex);
-    tex_img->copy_to_device();
   }
   else if (type == IMAGE_DATA_TYPE_USHORT) {
-    device_vector<uint16_t> *tex_img = new device_vector<uint16_t>(
-        device, img->mem_name.c_str(), MEM_TEXTURE);
-
-    if (!file_load_image<TypeDesc::USHORT, uint16_t>(img, texture_limit, *tex_img)) {
+    if (!file_load_image<TypeDesc::USHORT, uint16_t>(img, texture_limit)) {
       /* on failure to load, we set a 1x1 pixels pink image */
       thread_scoped_lock device_lock(device_mutex);
-      uint16_t *pixels = (uint16_t *)tex_img->alloc(1, 1);
+      uint16_t *pixels = (uint16_t *)img->mem->alloc(1, 1);
 
       pixels[0] = (TEX_IMAGE_MISSING_R * 65535);
     }
-
-    image_set_device_memory(img, tex_img);
-
-    thread_scoped_lock device_lock(device_mutex);
-    tex_img->copy_to_device();
   }
   else if (type == IMAGE_DATA_TYPE_USHORT4) {
-    device_vector<ushort4> *tex_img = new device_vector<ushort4>(
-        device, img->mem_name.c_str(), MEM_TEXTURE);
-
-    if (!file_load_image<TypeDesc::USHORT, uint16_t>(img, texture_limit, *tex_img)) {
+    if (!file_load_image<TypeDesc::USHORT, uint16_t>(img, texture_limit)) {
       /* on failure to load, we set a 1x1 pixels pink image */
       thread_scoped_lock device_lock(device_mutex);
-      uint16_t *pixels = (uint16_t *)tex_img->alloc(1, 1);
+      uint16_t *pixels = (uint16_t *)img->mem->alloc(1, 1);
 
       pixels[0] = (TEX_IMAGE_MISSING_R * 65535);
       pixels[1] = (TEX_IMAGE_MISSING_G * 65535);
       pixels[2] = (TEX_IMAGE_MISSING_B * 65535);
       pixels[3] = (TEX_IMAGE_MISSING_A * 65535);
     }
-
-    image_set_device_memory(img, tex_img);
-
-    thread_scoped_lock device_lock(device_mutex);
-    tex_img->copy_to_device();
   }
   else if (type == IMAGE_DATA_TYPE_HALF) {
-    device_vector<half> *tex_img = new device_vector<half>(
-        device, img->mem_name.c_str(), MEM_TEXTURE);
-
-    if (!file_load_image<TypeDesc::HALF, half>(img, texture_limit, *tex_img)) {
+    if (!file_load_image<TypeDesc::HALF, half>(img, texture_limit)) {
       /* on failure to load, we set a 1x1 pixels pink image */
       thread_scoped_lock device_lock(device_mutex);
-      half *pixels = (half *)tex_img->alloc(1, 1);
+      half *pixels = (half *)img->mem->alloc(1, 1);
 
       pixels[0] = TEX_IMAGE_MISSING_R;
     }
+  }
 
-    image_set_device_memory(img, tex_img);
-
+  {
     thread_scoped_lock device_lock(device_mutex);
-    tex_img->copy_to_device();
+    img->mem->copy_to_device();
   }
 
   /* Cleanup memory in image loader. */

@@ -142,7 +142,7 @@ class ImageHandle {
 
   ImageMetaData metadata();
   int svm_slot(const int tile_index = 0) const;
-  device_memory *image_memory(const int tile_index = 0) const;
+  device_texture *image_memory(const int tile_index = 0) const;
 
  protected:
   vector<int> tile_slots;
@@ -191,7 +191,7 @@ class ImageManager {
     bool builtin;
 
     string mem_name;
-    device_memory *mem;
+    device_texture *mem;
 
     int users;
     thread_mutex mutex;
@@ -212,8 +212,8 @@ class ImageManager {
 
   void load_image_metadata(Image *img);
 
-  template<TypeDesc::BASETYPE FileFormat, typename StorageType, typename DeviceType>
-  bool file_load_image(Image *img, int texture_limit, device_vector<DeviceType> &tex_img);
+  template<TypeDesc::BASETYPE FileFormat, typename StorageType>
+  bool file_load_image(Image *img, int texture_limit);
 
   void device_load_image(Device *device, Scene *scene, int slot, Progress *progress);
   void device_free_image(Device *device, int slot);

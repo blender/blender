@@ -72,7 +72,7 @@ void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t s
     assert(0);
 }
 
-void kernel_tex_copy(KernelGlobals *kg, const char *name, void *mem, size_t size)
+void kernel_global_memory_copy(KernelGlobals *kg, const char *name, void *mem, size_t size)
 {
   if (0) {
   }

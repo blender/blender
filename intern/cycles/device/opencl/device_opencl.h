@@ -428,8 +428,10 @@ class OpenCLDevice : public Device {
   int mem_sub_ptr_alignment();
 
   void const_copy_to(const char *name, void *host, size_t size);
-  void tex_alloc(device_memory &mem);
-  void tex_free(device_memory &mem);
+  void global_alloc(device_memory &mem);
+  void global_free(device_memory &mem);
+  void tex_alloc(device_texture &mem);
+  void tex_free(device_texture &mem);
 
   size_t global_size_round_up(int group_size, int global_size);
   void enqueue_kernel(cl_kernel kernel,

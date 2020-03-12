@@ -38,7 +38,7 @@ void *kernel_osl_memory(KernelGlobals *kg);
 bool kernel_osl_use(KernelGlobals *kg);
 
 void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t size);
-void kernel_tex_copy(KernelGlobals *kg, const char *name, void *mem, size_t size);
+void kernel_global_memory_copy(KernelGlobals *kg, const char *name, void *mem, size_t size);
 
 #define KERNEL_ARCH cpu
 #include "kernel/kernels/cpu/kernel_cpu.h"

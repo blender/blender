@@ -23,6 +23,7 @@
 
 #include "util/util_array.h"
 #include "util/util_half.h"
+#include "util/util_string.h"
 #include "util/util_texture.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
@@ -31,7 +32,14 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 
-enum MemoryType { MEM_READ_ONLY, MEM_READ_WRITE, MEM_DEVICE_ONLY, MEM_TEXTURE, MEM_PIXELS };
+enum MemoryType {
+  MEM_READ_ONLY,
+  MEM_READ_WRITE,
+  MEM_DEVICE_ONLY,
+  MEM_GLOBAL,
+  MEM_TEXTURE,
+  MEM_PIXELS
+};
 
 /* Supported Data Types */
 
@@ -208,9 +216,6 @@ class device_memory {
   size_t data_depth;
   MemoryType type;
   const char *name;
-  ImageDataType image_data_type;
-  InterpolationType interpolation;
-  ExtensionType extension;
 
   /* Pointers. */
   Device *device;
@@ -311,7 +316,7 @@ template<typename T> class device_only_memory : public device_memory {
  * in and copied to the device with copy_to_device(). Or alternatively
  * allocated and set to zero on the device with zero_to_device().
  *
- * When using memory type MEM_TEXTURE, a pointer to this memory will be
+ * When using memory type MEM_GLOBAL, a pointer to this memory will be
  * automatically attached to kernel globals, using the provided name
  * matching an entry in kernel_textures.h. */
 
@@ -502,6 +507,33 @@ class device_sub_ptr {
 
   Device *device;
   device_ptr ptr;
+};
+
+/* Device Texture
+ *
+ * 2D or 3D image texture memory. */
+
+class device_texture : public device_memory {
+ public:
+  device_texture(Device *device,
+                 const char *name,
+                 const uint slot,
+                 ImageDataType image_data_type,
+                 InterpolationType interpolation,
+                 ExtensionType extension);
+  ~device_texture();
+
+  void *alloc(const size_t width, const size_t height, const size_t depth = 0);
+  void copy_to_device();
+
+  uint slot;
+  TextureInfo info;
+
+ protected:
+  size_t size(const size_t width, const size_t height, const size_t depth)
+  {
+    return width * ((height == 0) ? 1 : height) * ((depth == 0) ? 1 : depth);
+  }
 };
 
 CCL_NAMESPACE_END
