@@ -104,6 +104,7 @@ typedef struct tGP_BrushVertexpaintData {
   bGPdata *gpd;
 
   Brush *brush;
+  float linear_color[3];
   eGPDvertex_brush_Flag flag;
   eGP_Vertex_SelectMaskFlag mask;
 
@@ -444,7 +445,7 @@ static bool brush_tint_apply(tGP_BrushVertexpaintData *gso,
       /* Premult. */
       mul_v3_fl(pt->vert_color, pt->vert_color[3]);
       /* "Alpha over" blending. */
-      interp_v3_v3v3(pt->vert_color, pt->vert_color, brush->rgb, inf);
+      interp_v3_v3v3(pt->vert_color, pt->vert_color, gso->linear_color, inf);
       pt->vert_color[3] = pt->vert_color[3] * (1.0 - inf) + inf;
       /* Un-premult. */
       if (pt->vert_color[3] > 0.0f) {
@@ -463,7 +464,7 @@ static bool brush_tint_apply(tGP_BrushVertexpaintData *gso,
       /* Premult. */
       mul_v3_fl(gps->vert_color_fill, gps->vert_color_fill[3]);
       /* "Alpha over" blending. */
-      interp_v3_v3v3(gps->vert_color_fill, gps->vert_color_fill, brush->rgb, inf_fill);
+      interp_v3_v3v3(gps->vert_color_fill, gps->vert_color_fill, gso->linear_color, inf_fill);
       gps->vert_color_fill[3] = gps->vert_color_fill[3] * (1.0 - inf_fill) + inf_fill;
       /* Un-premult. */
       if (gps->vert_color_fill[3] > 0.0f) {
@@ -483,7 +484,7 @@ static bool brush_replace_apply(tGP_BrushVertexpaintData *gso, bGPDstroke *gps, 
 
   /* Apply color to Stroke point. */
   if (GPENCIL_TINT_VERTEX_COLOR_STROKE(brush)) {
-    copy_v3_v3(pt->vert_color, brush->rgb);
+    copy_v3_v3(pt->vert_color, gso->linear_color);
     /* If not mix color, full replace. */
     if (pt->vert_color[3] == 0.0f) {
       pt->vert_color[3] = 1.0f;
@@ -492,7 +493,7 @@ static bool brush_replace_apply(tGP_BrushVertexpaintData *gso, bGPDstroke *gps, 
 
   /* Apply color to Fill area (all with same color and factor). */
   if (GPENCIL_TINT_VERTEX_COLOR_FILL(brush)) {
-    copy_v3_v3(gps->vert_color_fill, brush->rgb);
+    copy_v3_v3(gps->vert_color_fill, gso->linear_color);
     /* If not mix color, full replace. */
     if (gps->vert_color_fill[3] == 0.0f) {
       gps->vert_color_fill[3] = 1.0f;
@@ -731,6 +732,7 @@ static bool gp_vertexpaint_brush_init(bContext *C, wmOperator *op)
   op->customdata = gso;
 
   gso->brush = paint->brush;
+  srgb_to_linearrgb_v3_v3(gso->linear_color, gso->brush->rgb);
   BKE_curvemapping_initialize(gso->brush->curve);
 
   gso->is_painting = false;
