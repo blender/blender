@@ -2583,10 +2583,9 @@ bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
   bGPDspoint pt_dummy, pt_dummy_ps;
   float boundbox_min[2] = {0.0f};
   float boundbox_max[2] = {0.0f};
-  float zerov3[3];
 
   /* Check we have something to use (only for old files). */
-  if (equals_v3v3(zerov3, gps->boundbox_min)) {
+  if (is_zero_v3(gps->boundbox_min)) {
     BKE_gpencil_stroke_boundingbox_calc(gps);
   }
 
