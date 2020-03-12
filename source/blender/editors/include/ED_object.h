@@ -146,6 +146,12 @@ typedef enum eObjectSelect_Mode {
   BA_INVERT = 2,
 } eObjectSelect_Mode;
 
+typedef enum eObClearParentTypes {
+  CLEAR_PARENT_ALL = 0,
+  CLEAR_PARENT_KEEP_TRANSFORM,
+  CLEAR_PARENT_INVERSE,
+} eObClearParentTypes;
+
 #ifdef __RNA_TYPES_H__
 extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
