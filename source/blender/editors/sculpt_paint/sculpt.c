@@ -356,9 +356,6 @@ static void SCULPT_vertex_face_set_set(SculptSession *ss, int index, int face_se
         if (ss->face_sets[vert_map->indices[j]] > 0) {
           ss->face_sets[vert_map->indices[j]] = abs(face_set);
         }
-        else {
-          ss->face_sets[vert_map->indices[j]] = -abs(face_set);
-        }
       }
     } break;
     case PBVH_BMESH:
@@ -3400,7 +3397,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                   vd.index,
                                                                   tls->thread_id);
 
-      if (fade > 0.05f && SCULPT_vertex_all_face_sets_visible_get(ss, vd.index)) {
+      if (fade > 0.05f) {
         SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
       }
     }
@@ -10868,7 +10865,7 @@ static int sculpt_face_set_create_invoke(bContext *C, wmOperator *op, const wmEv
 
   if (mode == SCULPT_FACE_SET_VISIBLE) {
     for (int i = 0; i < tot_vert; i++) {
-      if (SCULPT_vertex_visible_get(ss, i) && SCULPT_vertex_all_face_sets_visible_get(ss, i)) {
+      if (SCULPT_vertex_visible_get(ss, i)) {
         SCULPT_vertex_face_set_set(ss, i, next_face_set);
       }
     }
