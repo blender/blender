@@ -80,6 +80,9 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = CTX_data_scene(C);
 
+  Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
+  ED_object_sculptmode_exit(C, depsgraph);
+
   BKE_sculpt_mask_layers_ensure(ob, NULL);
 
   Mesh *mesh = ob->data;
