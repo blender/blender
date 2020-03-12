@@ -1735,6 +1735,11 @@ static size_t animdata_filter_gpencil_layers_data(ListBase *anim_data,
       continue;
     }
 
+    /* Skip empty layers. */
+    if (BLI_listbase_is_empty(&gpl->frames)) {
+      continue;
+    }
+
     /* add to list */
     ANIMCHANNEL_NEW_CHANNEL(gpl, ANIMTYPE_GPLAYER, gpd, NULL);
   }
