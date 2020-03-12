@@ -119,21 +119,25 @@ static void move_geom_draw(const wmGizmo *gz,
 
   immUniformColor4fv(color);
 
+  /* Use the final scale as a radius if it's not already applied to the final matrix. */
+  const float radius = (gz->flag & WM_GIZMO_DRAW_NO_SCALE) ? gz->scale_final : 1.0f;
+
   if (draw_style == ED_GIZMO_MOVE_STYLE_RING_2D) {
     if (filled) {
-      imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
+      imm_draw_circle_fill_2d(pos, 0, 0, radius, DIAL_RESOLUTION);
     }
     else {
-      imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
+      imm_draw_circle_wire_2d(pos, 0, 0, radius, DIAL_RESOLUTION);
     }
   }
   else if (draw_style == ED_GIZMO_MOVE_STYLE_CROSS_2D) {
+    const float radius_diag = M_SQRT1_2 * radius;
     immBegin(GPU_PRIM_LINES, 4);
-    immVertex2f(pos, 1.0f, 1.0f);
-    immVertex2f(pos, -1.0f, -1.0f);
+    immVertex2f(pos, radius_diag, radius_diag);
+    immVertex2f(pos, -radius_diag, -radius_diag);
 
-    immVertex2f(pos, -1.0f, 1.0f);
-    immVertex2f(pos, 1.0f, -1.0f);
+    immVertex2f(pos, -radius_diag, radius_diag);
+    immVertex2f(pos, radius_diag, -radius_diag);
     immEnd();
   }
   else {
@@ -260,6 +264,9 @@ static int gizmo_move_modal(bContext *C,
       return OPERATOR_RUNNING_MODAL;
     }
     sub_v2_v2v2(prop_delta, mval_proj_curr, mval_proj_init);
+    if ((gz->flag & WM_GIZMO_DRAW_NO_SCALE) == 0) {
+      mul_v2_fl(prop_delta, gz->scale_final);
+    }
     prop_delta[2] = 0.0f;
   }
 
@@ -394,8 +401,10 @@ static int gizmo_move_test_select(bContext *C, wmGizmo *gz, const int mval[2])
     return -1;
   }
 
-  /* The 'gz->scale_final' is already applied when projecting. */
-  if (len_squared_v2(point_local) < 1.0f) {
+  /* The 'gz->scale_final' is already applied to the projection
+   * when #WM_GIZMO_DRAW_NO_SCALE isn't set. */
+  const float radius = (gz->flag & WM_GIZMO_DRAW_NO_SCALE) ? gz->scale_final : 1.0f;
+  if (len_squared_v2(point_local) < radius) {
     return 0;
   }
 
