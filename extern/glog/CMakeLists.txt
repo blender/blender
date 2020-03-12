@@ -77,9 +77,11 @@ if(WIN32)
   list(APPEND INC
     src/windows
   )
-  # Repress warning about google::LogMessageFatal::~LogMessageFatal
-  # not returning.
-  add_definitions("/wd4722")
+  if(MSVC)
+    # Suppress warning about google::LogMessageFatal::~LogMessageFatal
+    # not returning.
+    add_definitions("/wd4722")
+  endif()
 else()
   list(APPEND INC
     include

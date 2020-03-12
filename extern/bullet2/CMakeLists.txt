@@ -415,9 +415,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
-if(WIN32)
+if(MSVC)
   # bullet is responsible for quite a few silly warnings
-  # repress all of them. Not great, but they really needed
+  # suppress all of them. Not great, but they really needed
   # to sort that out themselves.
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W0")
 endif()
