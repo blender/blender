@@ -81,6 +81,9 @@ typedef struct PBVHFrustumPlanes {
   int num_planes;
 } PBVHFrustumPlanes;
 
+void BKE_pbvh_set_frustum_planes(PBVH *bvh, PBVHFrustumPlanes *planes);
+void BKE_pbvh_get_frustum_planes(PBVH *bvh, PBVHFrustumPlanes *planes);
+
 /* Callbacks */
 
 /* returns 1 if the search should continue from this node, 0 otherwise */
@@ -190,7 +193,8 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *bvh,
 void BKE_pbvh_draw_cb(PBVH *bvh,
                       bool show_vcol,
                       bool update_only_visible,
-                      PBVHFrustumPlanes *frustum,
+                      PBVHFrustumPlanes *update_frustum,
+                      PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
                       void *user_data);
 

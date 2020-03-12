@@ -2137,6 +2137,7 @@ typedef enum ePaintFlags {
   PAINT_FAST_NAVIGATE = (1 << 1),
   PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
   PAINT_USE_CAVITY_MASK = (1 << 3),
+  PAINT_SCULPT_DELAY_UPDATES = (1 << 4),
 } ePaintFlags;
 
 /* Paint.symmetry_flags

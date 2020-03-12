@@ -884,7 +884,11 @@ static float sculpt_debug_colors[9][4] = {
 
 static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers)
 {
+  if (!buffers) {
+    return;
+  }
 
+  /* Meh... use_mask is a bit misleading here. */
   if (scd->use_mask && !GPU_pbvh_buffers_has_overlays(buffers)) {
     return;
   }
@@ -958,24 +962,52 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
 
   const DRWContextState *drwctx = DRW_context_state_get();
   RegionView3D *rv3d = drwctx->rv3d;
+  const bool navigating = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
+
+  Paint *p = NULL;
+  if (drwctx->evil_C != NULL) {
+    p = BKE_paint_get_active_from_context(drwctx->evil_C);
+  }
 
   /* Frustum planes to show only visible PBVH nodes. */
-  float planes[6][4];
-  drw_sculpt_get_frustum_planes(scd->ob, planes);
-  PBVHFrustumPlanes frustum = {.planes = planes, .num_planes = 6};
+  float update_planes[6][4];
+  float draw_planes[6][4];
+  PBVHFrustumPlanes update_frustum;
+  PBVHFrustumPlanes draw_frustum;
+
+  if (p && (p->flags & PAINT_SCULPT_DELAY_UPDATES)) {
+    update_frustum.planes = update_planes;
+    update_frustum.num_planes = 6;
+    BKE_pbvh_get_frustum_planes(pbvh, &update_frustum);
+    if (!navigating) {
+      drw_sculpt_get_frustum_planes(scd->ob, update_planes);
+      update_frustum.planes = update_planes;
+      update_frustum.num_planes = 6;
+      BKE_pbvh_set_frustum_planes(pbvh, &update_frustum);
+    }
+  }
+  else {
+    drw_sculpt_get_frustum_planes(scd->ob, update_planes);
+    update_frustum.planes = update_planes;
+    update_frustum.num_planes = 6;
+  }
+
+  drw_sculpt_get_frustum_planes(scd->ob, draw_planes);
+  draw_frustum.planes = draw_planes;
+  draw_frustum.num_planes = 6;
 
   /* Fast mode to show low poly multires while navigating. */
   scd->fast_mode = false;
-  if (drwctx->evil_C != NULL) {
-    Paint *p = BKE_paint_get_active_from_context(drwctx->evil_C);
-    if (p && (p->flags & PAINT_FAST_NAVIGATE)) {
-      scd->fast_mode = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
-    }
+  if (p && (p->flags & PAINT_FAST_NAVIGATE)) {
+    scd->fast_mode = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
   }
 
   /* Update draw buffers only for visible nodes while painting.
    * But do update them otherwise so navigating stays smooth. */
-  const bool update_only_visible = rv3d && (rv3d->rflag & RV3D_PAINTING);
+  bool update_only_visible = rv3d && !(rv3d->rflag & RV3D_PAINTING);
+  if (p && (p->flags & PAINT_SCULPT_DELAY_UPDATES)) {
+    update_only_visible = true;
+  }
 
   Mesh *mesh = scd->ob->data;
   BKE_pbvh_update_normals(pbvh, mesh->runtime.subdiv_ccg);
@@ -983,7 +1015,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
   BKE_pbvh_draw_cb(pbvh,
                    use_vcol,
                    update_only_visible,
-                   &frustum,
+                   &update_frustum,
+                   &draw_frustum,
                    (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb,
                    scd);
 

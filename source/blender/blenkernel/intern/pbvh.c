@@ -2683,7 +2683,8 @@ static bool pbvh_draw_search_cb(PBVHNode *node, void *data_v)
 void BKE_pbvh_draw_cb(PBVH *bvh,
                       bool show_vcol,
                       bool update_only_visible,
-                      PBVHFrustumPlanes *frustum,
+                      PBVHFrustumPlanes *update_frustum,
+                      PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
                       void *user_data)
 {
@@ -2704,7 +2705,7 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
   }
 
   /* Gather visible nodes. */
-  PBVHDrawSearchData data = {.frustum = frustum, .accum_update_flag = 0};
+  PBVHDrawSearchData data = {.frustum = update_frustum, .accum_update_flag = 0};
   BKE_pbvh_search_gather(bvh, pbvh_draw_search_cb, &data, &nodes, &totnode);
 
   if (update_only_visible && (data.accum_update_flag & update_flag)) {
@@ -2722,7 +2723,15 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
     }
 
     node->flag &= ~(PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers);
+  }
 
+  MEM_SAFE_FREE(nodes);
+
+  PBVHDrawSearchData draw_data = {.frustum = draw_frustum, .accum_update_flag = 0};
+  BKE_pbvh_search_gather(bvh, pbvh_draw_search_cb, &draw_data, &nodes, &totnode);
+
+  for (int a = 0; a < totnode; a++) {
+    PBVHNode *node = nodes[a];
     if (!(node->flag & PBVH_FullyHidden)) {
       draw_fn(user_data, node->draw_buffers);
     }
@@ -2996,6 +3005,22 @@ void pbvh_show_mask_set(PBVH *bvh, bool show_mask)
 void pbvh_show_face_sets_set(PBVH *bvh, bool show_face_sets)
 {
   bvh->show_face_sets = show_face_sets;
+}
+
+void BKE_pbvh_set_frustum_planes(PBVH *bvh, PBVHFrustumPlanes *planes)
+{
+  bvh->num_planes = planes->num_planes;
+  for (int i = 0; i < bvh->num_planes; i++) {
+    copy_v4_v4(bvh->planes[i], planes->planes[i]);
+  }
+}
+
+void BKE_pbvh_get_frustum_planes(PBVH *bvh, PBVHFrustumPlanes *planes)
+{
+  planes->num_planes = bvh->num_planes;
+  for (int i = 0; i < planes->num_planes; i++) {
+    copy_v4_v4(planes->planes[i], bvh->planes[i]);
+  }
 }
 
 void BKE_pbvh_parallel_range_settings(PBVHParallelSettings *settings,

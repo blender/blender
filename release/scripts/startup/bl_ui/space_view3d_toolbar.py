@@ -903,6 +903,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col = flow.column()
         col.prop(sculpt, "show_low_resolution")
         col = flow.column()
+        col.prop(sculpt, "use_sculpt_delay_updates")
+        col = flow.column()
         col.prop(sculpt, "use_deform_only")
 
         col = flow.column()
