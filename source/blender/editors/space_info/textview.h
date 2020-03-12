@@ -21,6 +21,14 @@
 #ifndef __TEXTVIEW_H__
 #define __TEXTVIEW_H__
 
+enum eTextViewContext_LineFlag {
+  TVC_LINE_FG = (1 << 0),
+  TVC_LINE_BG = (1 << 1),
+  TVC_LINE_ICON = (1 << 2),
+  TVC_LINE_ICON_FG = (1 << 3),
+  TVC_LINE_ICON_BG = (1 << 4)
+};
+
 typedef struct TextViewContext {
   /** Font size scaled by the interface size. */
   int lheight;
@@ -40,22 +48,22 @@ typedef struct TextViewContext {
   /* callbacks */
   int (*begin)(struct TextViewContext *tvc);
   void (*end)(struct TextViewContext *tvc);
-  void *arg1;
-  void *arg2;
+  const void *arg1;
+  const void *arg2;
 
   /* iterator */
   int (*step)(struct TextViewContext *tvc);
-  int (*line_get)(struct TextViewContext *tvc, const char **, int *);
-  int (*line_data)(struct TextViewContext *tvc,
-                   unsigned char fg[4],
-                   unsigned char bg[4],
-                   int *icon,
-                   unsigned char icon_fg[4],
-                   unsigned char icon_bg[4]);
+  void (*line_get)(struct TextViewContext *tvc, const char **r_line, int *r_len);
+  enum eTextViewContext_LineFlag (*line_data)(struct TextViewContext *tvc,
+                                              uchar fg[4],
+                                              uchar bg[4],
+                                              int *r_icon,
+                                              uchar r_icon_fg[4],
+                                              uchar r_icon_bg[4]);
   void (*draw_cursor)(struct TextViewContext *tvc, int cwidth, int columns, int descender);
   /* constant theme colors */
   void (*const_colors)(struct TextViewContext *tvc, unsigned char bg_sel[4]);
-  void *iter;
+  const void *iter;
   int iter_index;
   /** Char index, used for multi-line report display. */
   int iter_char;
@@ -71,13 +79,5 @@ int textview_draw(struct TextViewContext *tvc,
                   const int mval_init[2],
                   void **r_mval_pick_item,
                   int *r_mval_pick_offset);
-
-enum {
-  TVC_LINE_FG = (1 << 0),
-  TVC_LINE_BG = (1 << 1),
-  TVC_LINE_ICON = (1 << 2),
-  TVC_LINE_ICON_FG = (1 << 3),
-  TVC_LINE_ICON_BG = (1 << 4)
-};
 
 #endif /* __TEXTVIEW_H__ */

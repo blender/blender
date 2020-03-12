@@ -45,19 +45,19 @@ void FILE_OT_find_missing_files(struct wmOperatorType *ot);
 void INFO_OT_reports_display_update(struct wmOperatorType *ot);
 
 /* info_draw.c */
-void *info_text_pick(struct SpaceInfo *sinfo,
+void *info_text_pick(const struct SpaceInfo *sinfo,
                      const struct ARegion *region,
-                     ReportList *reports,
+                     const struct ReportList *reports,
                      int mouse_y);
-int info_textview_height(struct SpaceInfo *sinfo,
+int info_textview_height(const struct SpaceInfo *sinfo,
                          const struct ARegion *region,
-                         struct ReportList *reports);
-void info_textview_main(struct SpaceInfo *sinfo,
+                         const struct ReportList *reports);
+void info_textview_main(const struct SpaceInfo *sinfo,
                         const struct ARegion *region,
-                        struct ReportList *reports);
+                        const struct ReportList *reports);
 
 /* info_report.c */
-int info_report_mask(struct SpaceInfo *sinfo);
+int info_report_mask(const struct SpaceInfo *sinfo);
 void INFO_OT_select_pick(struct wmOperatorType *ot); /* report selection */
 void INFO_OT_select_all(struct wmOperatorType *ot);
 void INFO_OT_select_box(struct wmOperatorType *ot);

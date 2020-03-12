@@ -72,7 +72,7 @@ static void reports_select_all(ReportList *reports, int report_mask, int action)
   }
 }
 
-int info_report_mask(SpaceInfo *UNUSED(sinfo))
+int info_report_mask(const SpaceInfo *UNUSED(sinfo))
 {
 #if 0
   int report_mask = 0;

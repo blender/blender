@@ -38,14 +38,14 @@
 
 #include "../space_info/textview.h"
 
-static int console_line_data(struct TextViewContext *tvc,
-                             uchar fg[4],
-                             uchar UNUSED(bg[4]),
-                             int *UNUSED(icon),
-                             uchar UNUSED(icon_fg[4]),
-                             uchar UNUSED(icon_bg[4]))
+static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
+                                                        uchar fg[4],
+                                                        uchar UNUSED(bg[4]),
+                                                        int *UNUSED(icon),
+                                                        uchar UNUSED(icon_fg[4]),
+                                                        uchar UNUSED(icon_bg[4]))
 {
-  ConsoleLine *cl_iter = (ConsoleLine *)tvc->iter;
+  const ConsoleLine *cl_iter = tvc->iter;
   int fg_id = TH_TEXT;
 
   switch (cl_iter->type) {
@@ -67,7 +67,7 @@ static int console_line_data(struct TextViewContext *tvc,
   return TVC_LINE_FG;
 }
 
-void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_dummy)
+void console_scrollback_prompt_begin(SpaceConsole *sc, ConsoleLine *cl_dummy)
 {
   /* fake the edit line being in the scroll buffer */
   ConsoleLine *cl = sc->history.last;
@@ -81,7 +81,7 @@ void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_du
   memcpy(cl_dummy->line + prompt_len, cl->line, cl->len + 1);
   BLI_addtail(&sc->scrollback, cl_dummy);
 }
-void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy)
+void console_scrollback_prompt_end(SpaceConsole *sc, ConsoleLine *cl_dummy)
 {
   MEM_freeN(cl_dummy->line);
   BLI_remlink(&sc->scrollback, cl_dummy);
@@ -112,14 +112,13 @@ static int console_textview_step(TextViewContext *tvc)
   return ((tvc->iter = (void *)((Link *)tvc->iter)->prev) != NULL);
 }
 
-static int console_textview_line_get(struct TextViewContext *tvc, const char **line, int *len)
+static void console_textview_line_get(TextViewContext *tvc, const char **r_line, int *r_len)
 {
-  ConsoleLine *cl = (ConsoleLine *)tvc->iter;
-  *line = cl->line;
-  *len = cl->len;
+  const ConsoleLine *cl = tvc->iter;
+  *r_line = cl->line;
+  *r_len = cl->len;
   // printf("'%s' %d\n", *line, cl->len);
   BLI_assert(cl->line[cl->len] == '\0' && (cl->len == 0 || cl->line[cl->len - 1] != '\0'));
-  return 1;
 }
 
 static void console_cursor_wrap_offset(
@@ -144,7 +143,7 @@ static void console_cursor_wrap_offset(
   return;
 }
 
-static void console_textview_draw_cursor(struct TextViewContext *tvc,
+static void console_textview_draw_cursor(TextViewContext *tvc,
                                          int cwidth,
                                          int columns,
                                          int descender)
@@ -201,7 +200,7 @@ static void console_textview_draw_rect_calc(const ARegion *region,
   r_draw_rect_outer->ymax = region->winy;
 }
 
-static int console_textview_main__internal(struct SpaceConsole *sc,
+static int console_textview_main__internal(SpaceConsole *sc,
                                            const ARegion *region,
                                            const bool do_draw,
                                            const int mval[2],
@@ -243,19 +242,19 @@ static int console_textview_main__internal(struct SpaceConsole *sc,
   return ret;
 }
 
-void console_textview_main(struct SpaceConsole *sc, const ARegion *region)
+void console_textview_main(SpaceConsole *sc, const ARegion *region)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
   console_textview_main__internal(sc, region, true, mval, NULL, NULL);
 }
 
-int console_textview_height(struct SpaceConsole *sc, const ARegion *region)
+int console_textview_height(SpaceConsole *sc, const ARegion *region)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
   return console_textview_main__internal(sc, region, false, mval, NULL, NULL);
 }
 
-int console_char_pick(struct SpaceConsole *sc, const ARegion *region, const int mval[2])
+int console_char_pick(SpaceConsole *sc, const ARegion *region, const int mval[2])
 {
   int r_mval_pick_offset = 0;
   void *mval_pick_item = NULL;

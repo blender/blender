@@ -39,14 +39,14 @@
 #include "textview.h"
 #include "GPU_framebuffer.h"
 
-static int report_line_data(struct TextViewContext *tvc,
-                            uchar fg[4],
-                            uchar bg[4],
-                            int *icon,
-                            uchar icon_fg[4],
-                            uchar icon_bg[4])
+static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
+                                                       uchar fg[4],
+                                                       uchar bg[4],
+                                                       int *r_icon,
+                                                       uchar r_icon_fg[4],
+                                                       uchar r_icon_bg[4])
 {
-  Report *report = (Report *)tvc->iter;
+  const Report *report = tvc->iter;
 
   /* Same text color no matter what type of report. */
   UI_GetThemeColor4ubv((report->flag & SELECT) ? TH_INFO_SELECTED_TEXT : TH_TEXT, fg);
@@ -64,35 +64,35 @@ static int report_line_data(struct TextViewContext *tvc,
   if (report->type & RPT_ERROR_ALL) {
     icon_fg_id = TH_INFO_ERROR_TEXT;
     icon_bg_id = TH_INFO_ERROR;
-    *icon = ICON_CANCEL;
+    *r_icon = ICON_CANCEL;
   }
   else if (report->type & RPT_WARNING_ALL) {
     icon_fg_id = TH_INFO_WARNING_TEXT;
     icon_bg_id = TH_INFO_WARNING;
-    *icon = ICON_ERROR;
+    *r_icon = ICON_ERROR;
   }
   else if (report->type & RPT_INFO_ALL) {
     icon_fg_id = TH_INFO_INFO_TEXT;
     icon_bg_id = TH_INFO_INFO;
-    *icon = ICON_INFO;
+    *r_icon = ICON_INFO;
   }
   else if (report->type & RPT_DEBUG_ALL) {
     icon_fg_id = TH_INFO_DEBUG_TEXT;
     icon_bg_id = TH_INFO_DEBUG;
-    *icon = ICON_SYSTEM;
+    *r_icon = ICON_SYSTEM;
   }
   else if (report->type & RPT_PROPERTY) {
     icon_fg_id = TH_INFO_PROPERTY_TEXT;
     icon_bg_id = TH_INFO_PROPERTY;
-    *icon = ICON_OPTIONS;
+    *r_icon = ICON_OPTIONS;
   }
   else if (report->type & RPT_OPERATOR) {
     icon_fg_id = TH_INFO_OPERATOR_TEXT;
     icon_bg_id = TH_INFO_OPERATOR;
-    *icon = ICON_CHECKMARK;
+    *r_icon = ICON_CHECKMARK;
   }
   else {
-    *icon = ICON_NONE;
+    *r_icon = ICON_NONE;
   }
 
   if (report->flag & SELECT) {
@@ -100,9 +100,9 @@ static int report_line_data(struct TextViewContext *tvc,
     icon_bg_id = TH_INFO_SELECTED_TEXT;
   }
 
-  if (*icon != ICON_NONE) {
-    UI_GetThemeColor4ubv(icon_fg_id, icon_fg);
-    UI_GetThemeColor4ubv(icon_bg_id, icon_bg);
+  if (*r_icon != ICON_NONE) {
+    UI_GetThemeColor4ubv(icon_fg_id, r_icon_fg);
+    UI_GetThemeColor4ubv(icon_bg_id, r_icon_bg);
     return TVC_LINE_FG | TVC_LINE_BG | TVC_LINE_ICON | TVC_LINE_ICON_FG | TVC_LINE_ICON_BG;
   }
   else {
@@ -113,7 +113,7 @@ static int report_line_data(struct TextViewContext *tvc,
 /* reports! */
 static void report_textview_init__internal(TextViewContext *tvc)
 {
-  Report *report = (Report *)tvc->iter;
+  const Report *report = tvc->iter;
   const char *str = report->message;
   const char *next_str = strchr(str + tvc->iter_char, '\n');
 
@@ -127,9 +127,9 @@ static void report_textview_init__internal(TextViewContext *tvc)
 
 static int report_textview_skip__internal(TextViewContext *tvc)
 {
-  SpaceInfo *sinfo = (SpaceInfo *)tvc->arg1;
+  const SpaceInfo *sinfo = tvc->arg1;
   const int report_mask = info_report_mask(sinfo);
-  while (tvc->iter && (((Report *)tvc->iter)->type & report_mask) == 0) {
+  while (tvc->iter && (((const Report *)tvc->iter)->type & report_mask) == 0) {
     tvc->iter = (void *)((Link *)tvc->iter)->prev;
   }
   return (tvc->iter != NULL);
@@ -137,7 +137,7 @@ static int report_textview_skip__internal(TextViewContext *tvc)
 
 static int report_textview_begin(TextViewContext *tvc)
 {
-  ReportList *reports = (ReportList *)tvc->arg2;
+  const ReportList *reports = tvc->arg2;
 
   tvc->lheight = 14 * UI_DPI_FAC;
   tvc->sel_start = 0;
@@ -170,7 +170,7 @@ static void report_textview_end(TextViewContext *UNUSED(tvc))
 static int report_textview_step(TextViewContext *tvc)
 {
   /* simple case, but no newline support */
-  Report *report = (Report *)tvc->iter;
+  const Report *report = tvc->iter;
 
   if (report->len <= tvc->iter_char_next) {
     tvc->iter = (void *)((Link *)tvc->iter)->prev;
@@ -195,12 +195,11 @@ static int report_textview_step(TextViewContext *tvc)
   }
 }
 
-static int report_textview_line_get(struct TextViewContext *tvc, const char **line, int *len)
+static void report_textview_line_get(TextViewContext *tvc, const char **r_line, int *r_len)
 {
-  Report *report = (Report *)tvc->iter;
-  *line = report->message + tvc->iter_char;
-  *len = tvc->iter_char_next - tvc->iter_char;
-  return 1;
+  const Report *report = tvc->iter;
+  *r_line = report->message + tvc->iter_char;
+  *r_len = tvc->iter_char_next - tvc->iter_char;
 }
 
 static void info_textview_draw_rect_calc(const ARegion *region,
@@ -220,9 +219,9 @@ static void info_textview_draw_rect_calc(const ARegion *region,
   r_draw_rect_outer->ymax = region->winy;
 }
 
-static int info_textview_main__internal(struct SpaceInfo *sinfo,
+static int info_textview_main__internal(const SpaceInfo *sinfo,
                                         const ARegion *region,
-                                        ReportList *reports,
+                                        const ReportList *reports,
                                         const bool do_draw,
                                         const int mval[2],
                                         void **r_mval_pick_item,
@@ -259,9 +258,9 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo,
   return ret;
 }
 
-void *info_text_pick(struct SpaceInfo *sinfo,
+void *info_text_pick(const SpaceInfo *sinfo,
                      const ARegion *region,
-                     ReportList *reports,
+                     const ReportList *reports,
                      int mval_y)
 {
   void *mval_pick_item = NULL;
@@ -271,13 +270,13 @@ void *info_text_pick(struct SpaceInfo *sinfo,
   return (void *)mval_pick_item;
 }
 
-int info_textview_height(struct SpaceInfo *sinfo, const ARegion *region, ReportList *reports)
+int info_textview_height(const SpaceInfo *sinfo, const ARegion *region, const ReportList *reports)
 {
   int mval[2] = {INT_MAX, INT_MAX};
   return info_textview_main__internal(sinfo, region, reports, false, mval, NULL, NULL);
 }
 
-void info_textview_main(struct SpaceInfo *sinfo, const ARegion *region, ReportList *reports)
+void info_textview_main(const SpaceInfo *sinfo, const ARegion *region, const ReportList *reports)
 {
   int mval[2] = {INT_MAX, INT_MAX};
   info_textview_main__internal(sinfo, region, reports, true, mval, NULL, NULL);
