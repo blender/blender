@@ -162,7 +162,8 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
 {
   bNodeTree *ntree = NULL;
   Key *key = NULL;
-  const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0;
+  const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0 &&
+                              (id->flag & LIB_EMBEDDED_DATA) == 0;
 
   lib_id_library_local_paths(bmain, id->lib, id);
 
