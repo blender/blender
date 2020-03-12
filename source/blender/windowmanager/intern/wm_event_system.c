@@ -2498,6 +2498,152 @@ static int wm_handlers_do_keymap_with_gizmo_handler(
   return action;
 }
 
+static int wm_handlers_do_gizmo_handler(bContext *C,
+                                        wmWindowManager *wm,
+                                        wmEventHandler_Gizmo *handler,
+                                        wmEvent *event,
+                                        ListBase *handlers,
+                                        const bool do_debug_handler)
+{
+  int action = WM_HANDLER_CONTINUE;
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
+  wmGizmoMap *gzmap = handler->gizmo_map;
+  BLI_assert(gzmap != NULL);
+  wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
+
+  if (region->gizmo_map != handler->gizmo_map) {
+    WM_gizmomap_tag_refresh(handler->gizmo_map);
+  }
+
+  wm_gizmomap_handler_context_gizmo(C, handler);
+  wm_region_mouse_co(C, event);
+
+  /* Drag events use the previous click location to highlight the gizmos,
+   * Get the highlight again in case the user dragged off the gizmo. */
+  const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
+  const bool is_event_modifier = ISKEYMODIFIER(event->type);
+
+  bool handle_highlight = false;
+  bool handle_keymap = false;
+
+  /* handle gizmo highlighting */
+  if (!wm_gizmomap_modal_get(gzmap) &&
+      ((event->type == MOUSEMOVE) || is_event_modifier || is_event_drag)) {
+    handle_highlight = true;
+    if (is_event_modifier || is_event_drag) {
+      handle_keymap = true;
+    }
+  }
+  else {
+    handle_keymap = true;
+  }
+
+  if (handle_highlight) {
+    struct {
+      wmGizmo *gz;
+      int part;
+    } prev = {
+        .gz = gz,
+        .part = gz ? gz->highlight_part : 0,
+    };
+    int part = -1;
+    gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
+
+    /* If no gizmos are/were active, don't clear tool-tips. */
+    if (gz || prev.gz) {
+      if ((prev.gz != gz) || (prev.part != part)) {
+        WM_tooltip_clear(C, CTX_wm_window(C));
+      }
+    }
+
+    if (wm_gizmomap_highlight_set(gzmap, C, gz, part)) {
+      if (gz != NULL) {
+        if (U.flag & USER_TOOLTIPS) {
+          WM_tooltip_timer_init(C, CTX_wm_window(C), area, region, WM_gizmomap_tooltip_init);
+        }
+      }
+    }
+  }
+
+  /* Don't use from now on. */
+  bool is_event_handle_all = gz && (gz->flag & WM_GIZMO_EVENT_HANDLE_ALL);
+
+  if (handle_keymap) {
+    /* Handle highlight gizmo. */
+    if (gz != NULL) {
+      bool keymap_poll = false;
+      wmGizmoGroup *gzgroup = gz->parent_gzgroup;
+      wmKeyMap *keymap = WM_keymap_active(wm, gz->keymap ? gz->keymap : gzgroup->type->keymap);
+      action |= wm_handlers_do_keymap_with_gizmo_handler(
+          C, event, handlers, handler, gzgroup, keymap, do_debug_handler, &keymap_poll);
+
+#ifdef USE_GIZMO_MOUSE_PRIORITY_HACK
+      if (((action & WM_HANDLER_BREAK) == 0) && !is_event_handle_all && keymap_poll) {
+        if ((event->val == KM_PRESS) && ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
+
+          wmEvent event_test_click = *event;
+          event_test_click.val = KM_CLICK;
+
+          wmEvent event_test_click_drag = *event;
+          event_test_click_drag.val = KM_CLICK_DRAG;
+
+          wmEvent event_test_tweak = *event;
+          event_test_tweak.type = EVT_TWEAK_L + (event->type - LEFTMOUSE);
+          event_test_tweak.val = KM_ANY;
+
+          for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+            if ((kmi->flag & KMI_INACTIVE) == 0) {
+              if (wm_eventmatch(&event_test_click, kmi) ||
+                  wm_eventmatch(&event_test_click_drag, kmi) ||
+                  wm_eventmatch(&event_test_tweak, kmi)) {
+                wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+                if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
+                  is_event_handle_all = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+#endif /* USE_GIZMO_MOUSE_PRIORITY_HACK */
+    }
+
+    /* Don't use from now on. */
+    gz = NULL;
+
+    /* Fallback to selected gizmo (when un-handled). */
+    if ((action & WM_HANDLER_BREAK) == 0) {
+      if (WM_gizmomap_is_any_selected(gzmap)) {
+        const ListBase *groups = WM_gizmomap_group_list(gzmap);
+        for (wmGizmoGroup *gzgroup = groups->first; gzgroup; gzgroup = gzgroup->next) {
+          if (wm_gizmogroup_is_any_selected(gzgroup)) {
+            wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
+            action |= wm_handlers_do_keymap_with_gizmo_handler(
+                C, event, handlers, handler, gzgroup, keymap, do_debug_handler, NULL);
+            if (action & WM_HANDLER_BREAK) {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (is_event_handle_all) {
+    if (action == WM_HANDLER_CONTINUE) {
+      action |= WM_HANDLER_BREAK | WM_HANDLER_MODAL;
+    }
+  }
+
+  /* restore the area */
+  CTX_wm_area_set(C, area);
+  CTX_wm_region_set(C, region);
+
+  return action;
+}
+
 static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
 {
   const bool do_debug_handler =
@@ -2609,142 +2755,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
       }
       else if (handler_base->type == WM_HANDLER_TYPE_GIZMO) {
         wmEventHandler_Gizmo *handler = (wmEventHandler_Gizmo *)handler_base;
-        ScrArea *area = CTX_wm_area(C);
-        ARegion *region = CTX_wm_region(C);
-        wmGizmoMap *gzmap = handler->gizmo_map;
-        BLI_assert(gzmap != NULL);
-        wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
-
-        if (region->gizmo_map != handler->gizmo_map) {
-          WM_gizmomap_tag_refresh(handler->gizmo_map);
-        }
-
-        wm_gizmomap_handler_context_gizmo(C, handler);
-        wm_region_mouse_co(C, event);
-
-        /* Drag events use the previous click location to highlight the gizmos,
-         * Get the highlight again in case the user dragged off the gizmo. */
-        const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
-        const bool is_event_modifier = ISKEYMODIFIER(event->type);
-
-        bool handle_highlight = false;
-        bool handle_keymap = false;
-
-        /* handle gizmo highlighting */
-        if (!wm_gizmomap_modal_get(gzmap) &&
-            ((event->type == MOUSEMOVE) || is_event_modifier || is_event_drag)) {
-          handle_highlight = true;
-          if (is_event_modifier || is_event_drag) {
-            handle_keymap = true;
-          }
-        }
-        else {
-          handle_keymap = true;
-        }
-
-        if (handle_highlight) {
-          struct {
-            wmGizmo *gz;
-            int part;
-          } prev = {
-              .gz = gz,
-              .part = gz ? gz->highlight_part : 0,
-          };
-          int part = -1;
-          gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
-
-          /* If no gizmos are/were active, don't clear tool-tips. */
-          if (gz || prev.gz) {
-            if ((prev.gz != gz) || (prev.part != part)) {
-              WM_tooltip_clear(C, CTX_wm_window(C));
-            }
-          }
-
-          if (wm_gizmomap_highlight_set(gzmap, C, gz, part)) {
-            if (gz != NULL) {
-              if (U.flag & USER_TOOLTIPS) {
-                WM_tooltip_timer_init(C, CTX_wm_window(C), area, region, WM_gizmomap_tooltip_init);
-              }
-            }
-          }
-        }
-
-        /* Don't use from now on. */
-        bool is_event_handle_all = gz && (gz->flag & WM_GIZMO_EVENT_HANDLE_ALL);
-
-        if (handle_keymap) {
-          /* Handle highlight gizmo. */
-          if (gz != NULL) {
-            bool keymap_poll = false;
-            wmGizmoGroup *gzgroup = gz->parent_gzgroup;
-            wmKeyMap *keymap = WM_keymap_active(wm,
-                                                gz->keymap ? gz->keymap : gzgroup->type->keymap);
-            action |= wm_handlers_do_keymap_with_gizmo_handler(
-                C, event, handlers, handler, gzgroup, keymap, do_debug_handler, &keymap_poll);
-
-#ifdef USE_GIZMO_MOUSE_PRIORITY_HACK
-            if (((action & WM_HANDLER_BREAK) == 0) && !is_event_handle_all && keymap_poll) {
-              if ((event->val == KM_PRESS) &&
-                  ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
-
-                wmEvent event_test_click = *event;
-                event_test_click.val = KM_CLICK;
-
-                wmEvent event_test_click_drag = *event;
-                event_test_click_drag.val = KM_CLICK_DRAG;
-
-                wmEvent event_test_tweak = *event;
-                event_test_tweak.type = EVT_TWEAK_L + (event->type - LEFTMOUSE);
-                event_test_tweak.val = KM_ANY;
-
-                for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
-                  if ((kmi->flag & KMI_INACTIVE) == 0) {
-                    if (wm_eventmatch(&event_test_click, kmi) ||
-                        wm_eventmatch(&event_test_click_drag, kmi) ||
-                        wm_eventmatch(&event_test_tweak, kmi)) {
-                      wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
-                      if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
-                        is_event_handle_all = true;
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-#endif /* USE_GIZMO_MOUSE_PRIORITY_HACK */
-          }
-
-          /* Don't use from now on. */
-          gz = NULL;
-
-          /* Fallback to selected gizmo (when un-handled). */
-          if ((action & WM_HANDLER_BREAK) == 0) {
-            if (WM_gizmomap_is_any_selected(gzmap)) {
-              const ListBase *groups = WM_gizmomap_group_list(gzmap);
-              for (wmGizmoGroup *gzgroup = groups->first; gzgroup; gzgroup = gzgroup->next) {
-                if (wm_gizmogroup_is_any_selected(gzgroup)) {
-                  wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
-                  action |= wm_handlers_do_keymap_with_gizmo_handler(
-                      C, event, handlers, handler, gzgroup, keymap, do_debug_handler, NULL);
-                  if (action & WM_HANDLER_BREAK) {
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        if (is_event_handle_all) {
-          if (action == WM_HANDLER_CONTINUE) {
-            action |= WM_HANDLER_BREAK | WM_HANDLER_MODAL;
-          }
-        }
-
-        /* restore the area */
-        CTX_wm_area_set(C, area);
-        CTX_wm_region_set(C, region);
+        action |= wm_handlers_do_gizmo_handler(C, wm, handler, event, handlers, do_debug_handler);
       }
       else if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
