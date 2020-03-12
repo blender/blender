@@ -36,7 +36,7 @@
 /** Can be left blank, otherwise a,b,c... etc with no quotes. */
 #define BLENDER_VERSION_CHAR a
 /** alpha/beta/rc/release, docs use this. */
-#define BLENDER_VERSION_CYCLE beta
+#define BLENDER_VERSION_CYCLE release
 /** Optionally set to 1,2,... for example to get alpha1 or rc2. */
 #define BLENDER_VERSION_CYCLE_NUMBER
 
