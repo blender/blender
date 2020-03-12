@@ -193,6 +193,8 @@ device_texture::device_texture(Device *device,
 
 device_texture::~device_texture()
 {
+  device_free();
+  host_free();
 }
 
 /* Host memory allocation. */
