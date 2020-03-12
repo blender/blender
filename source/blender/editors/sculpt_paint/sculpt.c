@@ -833,7 +833,7 @@ void SCULPT_floodfill_execute(
     sculpt_vertex_duplicates_and_neighbors_iter_begin(ss, from_v, ni)
     {
       const int to_v = ni.index;
-      if (flood->visited_vertices[to_v] == 0) {
+      if (flood->visited_vertices[to_v] == 0 && SCULPT_vertex_visible_get(ss, to_v)) {
         flood->visited_vertices[to_v] = 1;
 
         if (func(ss, from_v, to_v, ni.is_duplicate, userdata)) {
