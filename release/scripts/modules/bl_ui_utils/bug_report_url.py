@@ -57,7 +57,7 @@ def url_prefill_from_blender(addon_info=None):
         )
     )
     fh.write(
-        "Worked: (optional)\n"
+        "Worked: (newest version of Blender that worked as expected)\n"
     )
     if addon_info:
         fh.write(
