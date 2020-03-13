@@ -268,6 +268,12 @@ typedef struct FileListEntryPreview {
   ImBuf *img;
 } FileListEntryPreview;
 
+/* Dummy wrapper around FileListEntryPreview to ensure we do not access freed memory when freeing
+ * tasks' data (see T74609). */
+typedef struct FileListEntryPreviewTaskData {
+  FileListEntryPreview *preview;
+} FileListEntryPreviewTaskData;
+
 typedef struct FileListFilter {
   uint64_t filter;
   uint64_t filter_id;
@@ -1254,7 +1260,8 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool,
                                         int UNUSED(threadid))
 {
   FileListEntryCache *cache = BLI_task_pool_userdata(pool);
-  FileListEntryPreview *preview = taskdata;
+  FileListEntryPreviewTaskData *preview_taskdata = taskdata;
+  FileListEntryPreview *preview = preview_taskdata->preview;
 
   ThumbSource source = 0;
 
@@ -1283,10 +1290,8 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool,
   preview->img = IMB_thumb_manage(preview->path, THB_LARGE, source);
   IMB_thumb_path_unlock(preview->path);
 
-  /* Used to tell free func to not free anything.
-   * Note that we do not care about cas result here,
-   * we only want value attribution itself to be atomic (and memory barier).*/
-  atomic_cas_uint32(&preview->flags, preview->flags, 0);
+  /* That way task freeing function won't free th preview, since it does not own it anymore. */
+  atomic_cas_ptr((void **)&preview_taskdata->preview, preview, NULL);
   BLI_thread_queue_push(cache->previews_done, preview);
 
   //  printf("%s: End (%d)...\n", __func__, threadid);
@@ -1296,16 +1301,18 @@ static void filelist_cache_preview_freef(TaskPool *__restrict UNUSED(pool),
                                          void *taskdata,
                                          int UNUSED(threadid))
 {
-  FileListEntryPreview *preview = taskdata;
+  FileListEntryPreviewTaskData *preview_taskdata = taskdata;
+  FileListEntryPreview *preview = preview_taskdata->preview;
 
-  /* If preview->flag is empty, it means that preview has already been generated and
-   * added to done queue, we do not own it anymore. */
-  if (preview->flags) {
+  /* preview_taskdata->preview is atomically set to NULL once preview has been processed and sent
+   * to previews_done queue. */
+  if (preview != NULL) {
     if (preview->img) {
       IMB_freeImBuf(preview->img);
     }
     MEM_freeN(preview);
   }
+  MEM_freeN(preview_taskdata);
 }
 
 static void filelist_cache_preview_ensure_running(FileListEntryCache *cache)
@@ -1322,11 +1329,10 @@ static void filelist_cache_preview_ensure_running(FileListEntryCache *cache)
 
 static void filelist_cache_previews_clear(FileListEntryCache *cache)
 {
-  FileListEntryPreview *preview;
-
   if (cache->previews_pool) {
     BLI_task_pool_cancel(cache->previews_pool);
 
+    FileListEntryPreview *preview;
     while ((preview = BLI_thread_queue_pop_timeout(cache->previews_done, 0))) {
       // printf("%s: DONE %d - %s - %p\n", __func__, preview->index, preview->path,
       // preview->img);
@@ -1374,9 +1380,13 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
 
     filelist_cache_preview_ensure_running(cache);
+
+    FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
+                                                                 __func__);
+    preview_taskdata->preview = preview;
     BLI_task_pool_push_ex(cache->previews_pool,
                           filelist_cache_preview_runf,
-                          preview,
+                          preview_taskdata,
                           true,
                           filelist_cache_preview_freef,
                           TASK_PRIORITY_LOW);
