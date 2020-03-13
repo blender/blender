@@ -65,10 +65,10 @@ typedef struct TextViewContext {
   void (*const_colors)(struct TextViewContext *tvc, unsigned char bg_sel[4]);
   const void *iter;
   int iter_index;
-  /** Char index, used for multi-line report display. */
-  int iter_char;
-  /** Same as 'iter_char', next new-line. */
-  int iter_char_next;
+  /** Used for internal multi-line iteration. */
+  int iter_char_begin;
+  /** The last character (not inclusive). */
+  int iter_char_end;
   /** Internal iterator use. */
   int iter_tmp;
 
