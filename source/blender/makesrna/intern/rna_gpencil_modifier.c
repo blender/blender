@@ -478,12 +478,6 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Seed", "Random seed");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "use_edit_position", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_NOISE_MOD_LOCATION);
-  RNA_def_property_ui_text(
-      prop, "Affect Position", "The modifier affects the position of the point");
-  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
-
   prop = RNA_def_property(srna, "noise_scale", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "noise_scale");
   RNA_def_property_range(prop, 0.0, 1.0);

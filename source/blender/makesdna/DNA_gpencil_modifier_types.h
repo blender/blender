@@ -105,15 +105,15 @@ typedef struct NoiseGpencilModifierData {
 
 typedef enum eNoiseGpencil_Flag {
   GP_NOISE_USE_RANDOM = (1 << 0),
-  GP_NOISE_MOD_LOCATION = (1 << 1),
-  GP_NOISE_MOD_STRENGTH = (1 << 2),
-  GP_NOISE_MOD_THICKNESS = (1 << 3),
+  GP_NOISE_MOD_LOCATION = (1 << 1),  /* Deprecated (only for versioning). */
+  GP_NOISE_MOD_STRENGTH = (1 << 2),  /* Deprecated (only for versioning). */
+  GP_NOISE_MOD_THICKNESS = (1 << 3), /* Deprecated (only for versioning). */
   GP_NOISE_FULL_STROKE = (1 << 4),
   GP_NOISE_CUSTOM_CURVE = (1 << 5),
   GP_NOISE_INVERT_LAYER = (1 << 6),
   GP_NOISE_INVERT_PASS = (1 << 7),
   GP_NOISE_INVERT_VGROUP = (1 << 8),
-  GP_NOISE_MOD_UV = (1 << 9),
+  GP_NOISE_MOD_UV = (1 << 9), /* Deprecated (only for versioning). */
   GP_NOISE_INVERT_LAYERPASS = (1 << 10),
   GP_NOISE_INVERT_MATERIAL = (1 << 11),
 } eNoiseGpencil_Flag;
