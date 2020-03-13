@@ -1121,20 +1121,25 @@ static void deformVert(void *__restrict userdata,
 {
   const SDefDeformData *const data = (SDefDeformData *)userdata;
   const SDefBind *sdbind = data->bind_verts[index].binds;
+  const int num_binds = data->bind_verts[index].numbinds;
   float *const vertexCos = data->vertexCos[index];
   float norm[3], temp[3];
 
   zero_v3(vertexCos);
 
-  for (int j = 0; j < data->bind_verts[index].numbinds; j++, sdbind++) {
-    /* Mode-generic operations (allocate poly coordinates) */
-    float(*coords)[3] = MEM_malloc_arrayN(sdbind->numverts, sizeof(*coords), "SDefDoPolyCoords");
+  /* Allocate a `coords_buffer` that fits all the temp-data. */
+  int max_verts = 0;
+  for (int j = 0; j < num_binds; j++) {
+    max_verts = MAX2(max_verts, sdbind[j].numverts);
+  }
+  float(*coords_buffer)[3] = MEM_malloc_arrayN(max_verts, sizeof(*coords_buffer), __func__);
 
+  for (int j = 0; j < num_binds; j++, sdbind++) {
     for (int k = 0; k < sdbind->numverts; k++) {
-      copy_v3_v3(coords[k], data->targetCos[sdbind->vert_inds[k]]);
+      copy_v3_v3(coords_buffer[k], data->targetCos[sdbind->vert_inds[k]]);
     }
 
-    normal_poly_v3(norm, coords, sdbind->numverts);
+    normal_poly_v3(norm, coords_buffer, sdbind->numverts);
     zero_v3(temp);
 
     /* ---------- looptri mode ---------- */
@@ -1147,14 +1152,14 @@ static void deformVert(void *__restrict userdata,
       /* ---------- ngon mode ---------- */
       if (sdbind->mode == MOD_SDEF_MODE_NGON) {
         for (int k = 0; k < sdbind->numverts; k++) {
-          madd_v3_v3fl(temp, coords[k], sdbind->vert_weights[k]);
+          madd_v3_v3fl(temp, coords_buffer[k], sdbind->vert_weights[k]);
         }
       }
 
       /* ---------- centroid mode ---------- */
       else if (sdbind->mode == MOD_SDEF_MODE_CENTROID) {
         float cent[3];
-        mid_v3_v3_array(cent, coords, sdbind->numverts);
+        mid_v3_v3_array(cent, coords_buffer, sdbind->numverts);
 
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[0]], sdbind->vert_weights[0]);
         madd_v3_v3fl(temp, data->targetCos[sdbind->vert_inds[1]], sdbind->vert_weights[1]);
@@ -1162,13 +1167,12 @@ static void deformVert(void *__restrict userdata,
       }
     }
 
-    MEM_freeN(coords);
-
     /* Apply normal offset (generic for all modes) */
     madd_v3_v3fl(temp, norm, sdbind->normal_dist);
 
     madd_v3_v3fl(vertexCos, temp, sdbind->influence);
   }
+  MEM_freeN(coords_buffer);
 }
 
 static void surfacedeformModifier_do(ModifierData *md,
