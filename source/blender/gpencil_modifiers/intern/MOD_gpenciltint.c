@@ -143,7 +143,7 @@ static void deformStroke(GpencilModifierData *md,
     return;
   }
   MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
-  const bool is_gradient = (mmd->type == GP_TINT_GRADIENT) != 0;
+  const bool is_gradient = (mmd->type == GP_TINT_GRADIENT);
 
   /* If factor > 1.0, affect the strength of the stroke. */
   if (mmd->factor > 1.0f) {
