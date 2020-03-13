@@ -21,13 +21,6 @@
 
 #include <pxr/base/tf/stringUtils.h>
 
-extern "C" {
-#include "BKE_animsys.h"
-#include "BKE_key.h"
-
-#include "DNA_modifier_types.h"
-}
-
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
 // Materials
@@ -83,31 +76,6 @@ void USDAbstractWriter::write(HierarchyContext &context)
   do_write(context);
 
   frame_has_been_written_ = true;
-}
-
-bool USDAbstractWriter::check_is_animated(const HierarchyContext &context) const
-{
-  const Object *object = context.object;
-
-  if (BKE_animdata_id_is_animated(static_cast<ID *>(object->data))) {
-    return true;
-  }
-  if (BKE_key_from_object(object) != nullptr) {
-    return true;
-  }
-
-  /* Test modifiers. */
-  /* TODO(Sybren): replace this with a check on the depsgraph to properly check for dependency on
-   * time. */
-  ModifierData *md = static_cast<ModifierData *>(object->modifiers.first);
-  while (md) {
-    if (md->type != eModifierType_Subsurf) {
-      return true;
-    }
-    md = md->next;
-  }
-
-  return false;
 }
 
 const pxr::SdfPath &USDAbstractWriter::usd_path() const

@@ -115,6 +115,8 @@ class AbstractHierarchyWriter {
   // TODO(Sybren): add function like absent() that's called when a writer was previously created,
   // but wasn't used while exporting the current frame (for example, a particle-instanced mesh of
   // which the particle is no longer alive).
+ protected:
+  virtual bool check_is_animated(const HierarchyContext &context) const;
 };
 
 /* AbstractHierarchyIterator iterates over objects in a dependency graph, and constructs export
