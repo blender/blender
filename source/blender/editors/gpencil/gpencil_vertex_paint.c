@@ -484,19 +484,15 @@ static bool brush_replace_apply(tGP_BrushVertexpaintData *gso, bGPDstroke *gps, 
 
   /* Apply color to Stroke point. */
   if (GPENCIL_TINT_VERTEX_COLOR_STROKE(brush)) {
-    copy_v3_v3(pt->vert_color, gso->linear_color);
-    /* If not mix color, full replace. */
-    if (pt->vert_color[3] == 0.0f) {
-      pt->vert_color[3] = 1.0f;
+    if (pt->vert_color[3] > 0.0f) {
+      copy_v3_v3(pt->vert_color, gso->linear_color);
     }
   }
 
   /* Apply color to Fill area (all with same color and factor). */
   if (GPENCIL_TINT_VERTEX_COLOR_FILL(brush)) {
-    copy_v3_v3(gps->vert_color_fill, gso->linear_color);
-    /* If not mix color, full replace. */
-    if (gps->vert_color_fill[3] == 0.0f) {
-      gps->vert_color_fill[3] = 1.0f;
+    if (gps->vert_color_fill[3] > 0.0f) {
+      copy_v3_v3(gps->vert_color_fill, gso->linear_color);
     }
   }
 
