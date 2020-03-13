@@ -60,7 +60,7 @@ static void initData(ModifierData *md)
   mmd->renderlvl = 0;
   mmd->totlvl = 0;
   mmd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
-  mmd->quality = 3;
+  mmd->quality = 4;
   mmd->flags |= eMultiresModifierFlag_UseCrease;
 }
 
