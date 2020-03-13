@@ -57,7 +57,7 @@ struct RenderResult *render_result_new_from_exr(
     void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
 void render_result_view_new(struct RenderResult *rr, const char *viewname);
-void render_result_views_new(struct RenderResult *rr, struct RenderData *rd);
+void render_result_views_new(struct RenderResult *rr, const struct RenderData *rd);
 
 /* Merge */
 
@@ -110,7 +110,7 @@ bool render_result_exr_file_cache_read(struct Render *re);
 /* Combined Pixel Rect */
 
 struct ImBuf *render_result_rect_to_ibuf(struct RenderResult *rr,
-                                         struct RenderData *rd,
+                                         const struct RenderData *rd,
                                          const int view_id);
 
 void render_result_rect_fill_zero(struct RenderResult *rr, const int view_id);

@@ -43,7 +43,7 @@ struct GPUViewport;
 struct View3DShading;
 
 void ED_view3d_draw_offscreen(struct Depsgraph *depsgraph,
-                              struct Scene *scene,
+                              const struct Scene *scene,
                               eDrawType drawtype,
                               struct View3D *v3d,
                               struct ARegion *region,

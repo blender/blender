@@ -259,13 +259,13 @@ void ANIM_keyingset_infos_exit(void);
 /* -------- */
 
 /* Get the active KeyingSet for the given scene */
-struct KeyingSet *ANIM_scene_get_active_keyingset(struct Scene *scene);
+struct KeyingSet *ANIM_scene_get_active_keyingset(const struct Scene *scene);
 
 /* Get the index of the Keying Set provided, for the given Scene */
 int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks);
 
 /* Get Keying Set to use for Auto-Keyframing some transforms */
-struct KeyingSet *ANIM_get_keyingset_for_autokeying(struct Scene *scene,
+struct KeyingSet *ANIM_get_keyingset_for_autokeying(const struct Scene *scene,
                                                     const char *tranformKSName);
 
 /* Dynamically populate an enum of Keying Sets */
@@ -442,7 +442,7 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
              (U.autokey_flag & AUTOKEY_FLAG_##flag))
 
 /* auto-keyframing feature - checks for whether anything should be done for the current frame */
-bool autokeyframe_cfra_can_key(struct Scene *scene, struct ID *id);
+bool autokeyframe_cfra_can_key(const struct Scene *scene, struct ID *id);
 
 /* ************ Keyframe Checking ******************** */
 

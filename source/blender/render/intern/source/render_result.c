@@ -798,7 +798,7 @@ void render_result_view_new(RenderResult *rr, const char *viewname)
   BLI_strncpy(rv->name, viewname, sizeof(rv->name));
 }
 
-void render_result_views_new(RenderResult *rr, RenderData *rd)
+void render_result_views_new(RenderResult *rr, const RenderData *rd)
 {
   SceneRenderView *srv;
 
@@ -1459,7 +1459,7 @@ bool render_result_exr_file_cache_read(Render *re)
 
 /*************************** Combined Pixel Rect *****************************/
 
-ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd, const int view_id)
+ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const int view_id)
 {
   ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, rd->im_format.planes, 0);
   RenderView *rv = RE_RenderViewGetById(rr, view_id);

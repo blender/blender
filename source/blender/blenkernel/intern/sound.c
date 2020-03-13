@@ -135,7 +135,7 @@ static int sound_cfra;
 static char **audio_device_names = NULL;
 #endif
 
-BLI_INLINE void sound_verify_evaluated_id(ID *id)
+BLI_INLINE void sound_verify_evaluated_id(const ID *id)
 {
   UNUSED_VARS_NDEBUG(id);
   /* This is a bit tricky and not quite reliable, but good enough check.
@@ -504,7 +504,7 @@ void BKE_sound_load(Main *bmain, bSound *sound)
   sound_load_audio(bmain, sound, true);
 }
 
-AUD_Device *BKE_sound_mixdown(Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
+AUD_Device *BKE_sound_mixdown(const Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
 {
   sound_verify_evaluated_id(&scene->id);
   return AUD_openMixdownDevice(specs, scene->sound_scene, volume, start / FPS);

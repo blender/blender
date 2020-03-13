@@ -807,7 +807,7 @@ static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
  * \note don't set windows active in here, is used by renderwin too.
  */
 void view3d_viewmatrix_set(Depsgraph *depsgraph,
-                           Scene *scene,
+                           const Scene *scene,
                            const View3D *v3d,
                            RegionView3D *rv3d,
                            const float rect_scale[2])

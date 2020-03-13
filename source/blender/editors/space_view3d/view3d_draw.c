@@ -109,7 +109,7 @@
  * \note keep this synced with #ED_view3d_mats_rv3d_backup/#ED_view3d_mats_rv3d_restore
  */
 void ED_view3d_update_viewmat(Depsgraph *depsgraph,
-                              Scene *scene,
+                              const Scene *scene,
                               View3D *v3d,
                               ARegion *region,
                               float viewmat[4][4],
@@ -208,7 +208,7 @@ static void view3d_main_region_setup_view(Depsgraph *depsgraph,
 }
 
 static void view3d_main_region_setup_offscreen(Depsgraph *depsgraph,
-                                               Scene *scene,
+                                               const Scene *scene,
                                                View3D *v3d,
                                                ARegion *region,
                                                float viewmat[4][4],
@@ -222,7 +222,10 @@ static void view3d_main_region_setup_offscreen(Depsgraph *depsgraph,
   GPU_matrix_set(rv3d->viewmat);
 }
 
-static bool view3d_stereo3d_active(wmWindow *win, Scene *scene, View3D *v3d, RegionView3D *rv3d)
+static bool view3d_stereo3d_active(wmWindow *win,
+                                   const Scene *scene,
+                                   View3D *v3d,
+                                   RegionView3D *rv3d)
 {
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
     return false;
@@ -842,7 +845,7 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *region, View3D *v3d, bo
 /* ******************** other elements ***************** */
 
 /** could move this elsewhere, but tied into #ED_view3d_grid_scale */
-float ED_scene_grid_scale(Scene *scene, const char **grid_unit)
+float ED_scene_grid_scale(const Scene *scene, const char **grid_unit)
 {
   /* apply units */
   if (scene->unit.system) {
@@ -863,13 +866,13 @@ float ED_scene_grid_scale(Scene *scene, const char **grid_unit)
   return 1.0f;
 }
 
-float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
+float ED_view3d_grid_scale(const Scene *scene, View3D *v3d, const char **grid_unit)
 {
   return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
 #define STEPS_LEN 8
-void ED_view3d_grid_steps(Scene *scene,
+void ED_view3d_grid_steps(const Scene *scene,
                           View3D *v3d,
                           RegionView3D *rv3d,
                           float r_grid_steps[STEPS_LEN])
@@ -1562,7 +1565,7 @@ static void view3d_draw_view(const bContext *C, ARegion *region)
   DRW_draw_view(C);
 }
 
-RenderEngineType *ED_view3d_engine_type(Scene *scene, int drawtype)
+RenderEngineType *ED_view3d_engine_type(const Scene *scene, int drawtype)
 {
   /*
    * Temporary viewport draw modes until we have a proper system.
@@ -1606,7 +1609,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *region)
  * \{ */
 
 static void view3d_stereo3d_setup_offscreen(Depsgraph *depsgraph,
-                                            Scene *scene,
+                                            const Scene *scene,
                                             View3D *v3d,
                                             ARegion *region,
                                             float winmat[4][4],
@@ -1630,7 +1633,7 @@ static void view3d_stereo3d_setup_offscreen(Depsgraph *depsgraph,
 }
 
 void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
-                              Scene *scene,
+                              const Scene *scene,
                               eDrawType drawtype,
                               View3D *v3d,
                               ARegion *region,
@@ -2309,7 +2312,7 @@ void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixSto
  * \note The info that this uses is updated in #ED_refresh_viewport_fps,
  * which currently gets called during #SCREEN_OT_animation_step.
  */
-void ED_scene_draw_fps(Scene *scene, int xoffset, int *yoffset)
+void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 {
   ScreenFrameRateInfo *fpsi = scene->fps_info;
   char printable[16];

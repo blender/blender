@@ -393,7 +393,7 @@ void BKE_sequence_single_fix(struct Sequence *seq);
 bool BKE_sequence_test_overlap(struct ListBase *seqbasep, struct Sequence *test);
 void BKE_sequence_translate(struct Scene *scene, struct Sequence *seq, int delta);
 void BKE_sequence_sound_init(struct Scene *scene, struct Sequence *seq);
-struct Sequence *BKE_sequencer_foreground_frame_get(struct Scene *scene, int frame);
+const struct Sequence *BKE_sequencer_foreground_frame_get(const struct Scene *scene, int frame);
 struct ListBase *BKE_sequence_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 struct Sequence *BKE_sequence_metastrip(ListBase *seqbase /* = ed->seqbase */,
                                         struct Sequence *meta /* = NULL */,

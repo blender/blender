@@ -1120,7 +1120,7 @@ static void use_drw_engine(DrawEngineType *engine)
 
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type, eDrawType drawtype)
+static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, eDrawType drawtype)
 {
   switch (drawtype) {
     case OB_WIRE:

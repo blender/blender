@@ -2709,7 +2709,7 @@ void ANIM_OT_keyframe_clear_button(wmOperatorType *ot)
 /* ******************************************* */
 /* AUTO KEYFRAME */
 
-bool autokeyframe_cfra_can_key(Scene *scene, ID *id)
+bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
 {
   float cfra = (float)CFRA;  // XXX for now, this will do
 

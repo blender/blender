@@ -36,7 +36,7 @@ struct Scene;
 
 typedef struct bMovieHandle {
   int (*start_movie)(void *context_v,
-                     struct Scene *scene,
+                     const struct Scene *scene,
                      struct RenderData *rd,
                      int rectx,
                      int recty,
@@ -55,14 +55,20 @@ typedef struct bMovieHandle {
   void (*end_movie)(void *context_v);
 
   /* Optional function. */
-  void (*get_movie_path)(char *string, struct RenderData *rd, bool preview, const char *suffix);
+  void (*get_movie_path)(char *string,
+                         const struct RenderData *rd,
+                         bool preview,
+                         const char *suffix);
 
   void *(*context_create)(void);
   void (*context_free)(void *context_v);
 } bMovieHandle;
 
 bMovieHandle *BKE_movie_handle_get(const char imtype);
-void BKE_movie_filepath_get(char *string, struct RenderData *rd, bool preview, const char *suffix);
+void BKE_movie_filepath_get(char *string,
+                            const struct RenderData *rd,
+                            bool preview,
+                            const char *suffix);
 
 #ifdef __cplusplus
 }

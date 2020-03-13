@@ -740,7 +740,7 @@ bool BKE_scene_object_find(Scene *scene, Object *ob)
   return false;
 }
 
-Object *BKE_scene_object_find_by_name(Scene *scene, const char *name)
+Object *BKE_scene_object_find_by_name(const Scene *scene, const char *name)
 {
   for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
        view_layer = view_layer->next) {
@@ -999,10 +999,10 @@ bool BKE_scene_camera_switch_update(Scene *scene)
   return false;
 }
 
-char *BKE_scene_find_marker_name(Scene *scene, int frame)
+const char *BKE_scene_find_marker_name(const Scene *scene, int frame)
 {
-  ListBase *markers = &scene->markers;
-  TimeMarker *m1, *m2;
+  const ListBase *markers = &scene->markers;
+  const TimeMarker *m1, *m2;
 
   /* search through markers for match */
   for (m1 = markers->first, m2 = markers->last; m1 && m2; m1 = m1->next, m2 = m2->prev) {
@@ -1024,9 +1024,9 @@ char *BKE_scene_find_marker_name(Scene *scene, int frame)
 
 /* return the current marker for this frame,
  * we can have more than 1 marker per frame, this just returns the first :/ */
-char *BKE_scene_find_last_marker_name(Scene *scene, int frame)
+const char *BKE_scene_find_last_marker_name(const Scene *scene, int frame)
 {
-  TimeMarker *marker, *best_marker = NULL;
+  const TimeMarker *marker, *best_marker = NULL;
   int best_frame = -MAXFRAME * 2;
   for (marker = scene->markers.first; marker; marker = marker->next) {
     if (marker->frame == frame) {

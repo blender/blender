@@ -198,7 +198,7 @@ void RE_engine_set_error_message(RenderEngine *engine, const char *msg);
 
 int RE_engine_render(struct Render *re, int do_all);
 
-bool RE_engine_is_external(struct Render *re);
+bool RE_engine_is_external(const struct Render *re);
 
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe);
 

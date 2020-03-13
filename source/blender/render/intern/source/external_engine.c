@@ -116,7 +116,7 @@ RenderEngineType *RE_engines_find(const char *idname)
   return type;
 }
 
-bool RE_engine_is_external(Render *re)
+bool RE_engine_is_external(const Render *re)
 {
   return (re->engine && re->engine->type && re->engine->type->render);
 }

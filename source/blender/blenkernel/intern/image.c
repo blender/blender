@@ -1813,7 +1813,7 @@ typedef struct StampData {
  * \param use_dynamic: Also include data that can change on a per-frame basis.
  */
 static void stampdata(
-    Scene *scene, Object *camera, StampData *stamp_data, int do_prefix, bool use_dynamic)
+    const Scene *scene, Object *camera, StampData *stamp_data, int do_prefix, bool use_dynamic)
 {
   char text[256];
   struct tm *tl;
@@ -1935,7 +1935,7 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_SEQSTRIP) {
-    Sequence *seq = BKE_sequencer_foreground_frame_get(scene, scene->r.cfra);
+    const Sequence *seq = BKE_sequencer_foreground_frame_get(scene, scene->r.cfra);
 
     if (seq) {
       STRNCPY(text, seq->name + 2);
@@ -2479,7 +2479,7 @@ void BKE_render_result_stamp_info(Scene *scene,
   }
 }
 
-struct StampData *BKE_stamp_info_from_scene_static(Scene *scene)
+struct StampData *BKE_stamp_info_from_scene_static(const Scene *scene)
 {
   struct StampData *stamp_data;
 

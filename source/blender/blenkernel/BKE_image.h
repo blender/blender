@@ -68,7 +68,7 @@ void BKE_render_result_stamp_info(struct Scene *scene,
  * Fills in the static stamp data (i.e. everything except things that can change per frame).
  * The caller is responsible for freeing the allocated memory.
  */
-struct StampData *BKE_stamp_info_from_scene_static(struct Scene *scene);
+struct StampData *BKE_stamp_info_from_scene_static(const struct Scene *scene);
 bool BKE_stamp_is_known_field(const char *field_name);
 void BKE_imbuf_stamp_info(struct RenderResult *rr, struct ImBuf *ibuf);
 void BKE_stamp_info_from_imbuf(struct RenderResult *rr, struct ImBuf *ibuf);

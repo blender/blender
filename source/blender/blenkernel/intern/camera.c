@@ -666,7 +666,7 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
 /* don't move the camera, just yield the fit location */
 /* r_scale only valid/useful for ortho cameras */
 bool BKE_camera_view_frame_fit_to_scene(
-    Depsgraph *depsgraph, Scene *scene, Object *camera_ob, float r_co[3], float *r_scale)
+    Depsgraph *depsgraph, const Scene *scene, Object *camera_ob, float r_co[3], float *r_scale)
 {
   CameraParams params;
   CameraViewFrameData data_cb;
@@ -813,7 +813,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
 }
 
 /* the view matrix is used by the viewport drawing, it is basically the inverted model matrix */
-void BKE_camera_multiview_view_matrix(RenderData *rd,
+void BKE_camera_multiview_view_matrix(const RenderData *rd,
                                       const Object *camera,
                                       const bool is_left,
                                       float r_viewmat[4][4])
@@ -832,7 +832,7 @@ static bool camera_is_left(const char *viewname)
   return true;
 }
 
-void BKE_camera_multiview_model_matrix(RenderData *rd,
+void BKE_camera_multiview_model_matrix(const RenderData *rd,
                                        const Object *camera,
                                        const char *viewname,
                                        float r_modelmat[4][4])
@@ -841,7 +841,7 @@ void BKE_camera_multiview_model_matrix(RenderData *rd,
   normalize_m4(r_modelmat);
 }
 
-void BKE_camera_multiview_model_matrix_scaled(RenderData *rd,
+void BKE_camera_multiview_model_matrix_scaled(const RenderData *rd,
                                               const Object *camera,
                                               const char *viewname,
                                               float r_modelmat[4][4])
@@ -860,7 +860,7 @@ void BKE_camera_multiview_model_matrix_scaled(RenderData *rd,
   }
 }
 
-void BKE_camera_multiview_window_matrix(RenderData *rd,
+void BKE_camera_multiview_window_matrix(const RenderData *rd,
                                         const Object *camera,
                                         const char *viewname,
                                         float r_winmat[4][4])
@@ -879,7 +879,7 @@ void BKE_camera_multiview_window_matrix(RenderData *rd,
   copy_m4_m4(r_winmat, params.winmat);
 }
 
-bool BKE_camera_multiview_spherical_stereo(RenderData *rd, const Object *camera)
+bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *camera)
 {
   Camera *cam;
   const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
@@ -903,9 +903,8 @@ bool BKE_camera_multiview_spherical_stereo(RenderData *rd, const Object *camera)
   return false;
 }
 
-static Object *camera_multiview_advanced(Scene *scene, Object *camera, const char *suffix)
+static Object *camera_multiview_advanced(const Scene *scene, Object *camera, const char *suffix)
 {
-  SceneRenderView *srv;
   char name[MAX_NAME];
   const char *camera_name = camera->id.name + 2;
   const int len_name = strlen(camera_name);
@@ -914,7 +913,7 @@ static Object *camera_multiview_advanced(Scene *scene, Object *camera, const cha
   name[0] = '\0';
 
   /* we need to take the better match, thus the len_suffix_max test */
-  for (srv = scene->r.views.first; srv; srv = srv->next) {
+  for (const SceneRenderView *srv = scene->r.views.first; srv; srv = srv->next) {
     const int len_suffix = strlen(srv->suffix);
 
     if ((len_suffix < len_suffix_max) || (len_name < len_suffix)) {
@@ -938,7 +937,7 @@ static Object *camera_multiview_advanced(Scene *scene, Object *camera, const cha
 }
 
 /* returns the camera to be used for render */
-Object *BKE_camera_multiview_render(Scene *scene, Object *camera, const char *viewname)
+Object *BKE_camera_multiview_render(const Scene *scene, Object *camera, const char *viewname)
 {
   const bool is_multiview = (camera != NULL) && (scene->r.scemode & R_MULTIVIEW) != 0;
 
@@ -993,7 +992,9 @@ static float camera_stereo3d_shift_x(const Object *camera, const char *viewname)
   return shift;
 }
 
-float BKE_camera_multiview_shift_x(RenderData *rd, const Object *camera, const char *viewname)
+float BKE_camera_multiview_shift_x(const RenderData *rd,
+                                   const Object *camera,
+                                   const char *viewname)
 {
   const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
   Camera *data = camera->data;
@@ -1011,7 +1012,7 @@ float BKE_camera_multiview_shift_x(RenderData *rd, const Object *camera, const c
   }
 }
 
-void BKE_camera_multiview_params(RenderData *rd,
+void BKE_camera_multiview_params(const RenderData *rd,
                                  CameraParams *params,
                                  const Object *camera,
                                  const char *viewname)

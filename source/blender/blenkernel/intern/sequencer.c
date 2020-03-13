@@ -4603,10 +4603,10 @@ void BKE_sequence_sound_init(Scene *scene, Sequence *seq)
   }
 }
 
-Sequence *BKE_sequencer_foreground_frame_get(Scene *scene, int frame)
+const Sequence *BKE_sequencer_foreground_frame_get(const Scene *scene, int frame)
 {
-  Editing *ed = BKE_sequencer_editing_get(scene, false);
-  Sequence *seq, *best_seq = NULL;
+  const Editing *ed = scene->ed;
+  const Sequence *seq, *best_seq = NULL;
   int best_machine = -1;
 
   if (!ed) {

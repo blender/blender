@@ -202,7 +202,7 @@ void view3d_winmatrix_set(struct Depsgraph *depsgraph,
                           const View3D *v3d,
                           const rcti *rect);
 void view3d_viewmatrix_set(struct Depsgraph *depsgraph,
-                           Scene *scene,
+                           const struct Scene *scene,
                            const View3D *v3d,
                            RegionView3D *rv3d,
                            const float rect_scale[2]);

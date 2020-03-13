@@ -125,7 +125,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
   } \
   ((void)0)
 
-BLI_INLINE bool eevee_hdri_preview_overlay_enabled(View3D *v3d)
+BLI_INLINE bool eevee_hdri_preview_overlay_enabled(const View3D *v3d)
 {
   /* Only show the HDRI Preview in Shading Preview in the Viewport. */
   if (v3d == NULL || v3d->shading.type != OB_MATERIAL) {

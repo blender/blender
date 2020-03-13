@@ -101,7 +101,7 @@ typedef struct View3DCameraControl {
   void *obtfm;
 } View3DCameraControl;
 
-BLI_INLINE Object *view3d_cameracontrol_object(View3DCameraControl *vctrl)
+BLI_INLINE Object *view3d_cameracontrol_object(const View3DCameraControl *vctrl)
 {
   return vctrl->root_parent ? vctrl->root_parent : vctrl->ctx_v3d->camera;
 }

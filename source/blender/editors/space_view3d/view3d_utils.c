@@ -586,8 +586,11 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
   }
 }
 
-bool ED_view3d_camera_autokey(
-    Scene *scene, ID *id_key, struct bContext *C, const bool do_rotate, const bool do_translate)
+bool ED_view3d_camera_autokey(const Scene *scene,
+                              ID *id_key,
+                              struct bContext *C,
+                              const bool do_rotate,
+                              const bool do_translate)
 {
   if (autokeyframe_cfra_can_key(scene, id_key)) {
     const float cfra = (float)CFRA;
