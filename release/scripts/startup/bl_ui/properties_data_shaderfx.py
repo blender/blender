@@ -56,7 +56,7 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
 
     def FX_BLUR(self, layout, fx):
 
-        layout.prop(fx, "use_dof_mode", text="Use as Depth Of Field")
+        layout.prop(fx, "use_dof_mode", text="Use Depth of Field")
         layout.separator()
 
         col = layout.column()
