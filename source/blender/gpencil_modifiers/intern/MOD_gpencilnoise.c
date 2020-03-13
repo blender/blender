@@ -182,7 +182,7 @@ static void deformStroke(GpencilModifierData *md,
   for (int i = 0; i < gps->totpoints; i++) {
     bGPDspoint *pt = &gps->points[i];
     /* verify vertex group */
-    dvert = &gps->dvert[i];
+    dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
     float weight = get_modifier_point_weight(dvert, invert_group, def_nr);
     if (weight < 0.0f) {
       continue;
