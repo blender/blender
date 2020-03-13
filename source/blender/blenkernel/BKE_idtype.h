@@ -70,7 +70,7 @@ typedef struct IDTypeInfo {
    * Bitflag matching id_code, used for filtering (e.g. in file browser), see DNA_ID.h's
    * FILTER_ID_XX enums.
    */
-  int id_filter;
+  int64_t id_filter;
 
   /**
    * Define the position of this data-block type in the virtual list of all data in a Main that is
