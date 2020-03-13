@@ -148,6 +148,10 @@ bool multiresModifier_reshapeFromCCG(const int tot_level,
           &reshape_context, subdiv_ccg, coarse_mesh, tot_level)) {
     return false;
   }
+
+  CustomData_external_read(
+      &coarse_mesh->ldata, &coarse_mesh->id, CD_MASK_MDISPS, coarse_mesh->totloop);
+
   multires_reshape_store_original_grids(&reshape_context);
   multires_reshape_ensure_grids(coarse_mesh, reshape_context.top.level);
   if (!multires_reshape_assign_final_coords_from_ccg(&reshape_context, subdiv_ccg)) {
