@@ -1772,6 +1772,21 @@ static void subdiv_foreach_single_geometry_vertices(SubdivForeachTaskContext *ct
   }
 }
 
+static void subdiv_foreach_mark_non_loose_geometry(SubdivForeachTaskContext *ctx)
+{
+  const Mesh *coarse_mesh = ctx->coarse_mesh;
+  const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+  const MLoop *coarse_mloop = coarse_mesh->mloop;
+  for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
+    const MPoly *coarse_poly = &coarse_mpoly[poly_index];
+    for (int corner = 0; corner < coarse_poly->totloop; corner++) {
+      const MLoop *loop = &coarse_mloop[coarse_poly->loopstart + corner];
+      BLI_BITMAP_ENABLE(ctx->coarse_edges_used_map, loop->e);
+      BLI_BITMAP_ENABLE(ctx->coarse_vertices_used_map, loop->v);
+    }
+  }
+}
+
 static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
 {
   /* NOTE: In theory, we can try to skip allocation of TLS here, but in
@@ -1785,6 +1800,15 @@ static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
   /* Run callbacks which are supposed to be run once per shared geometry. */
   subdiv_foreach_single_geometry_vertices(ctx, tls);
   subdiv_foreach_tls_free(ctx, tls);
+
+  const SubdivForeachContext *foreach_context = ctx->foreach_context;
+  const bool is_loose_geometry_tagged = (foreach_context->vertex_every_edge != NULL &&
+                                         foreach_context->vertex_every_corner != NULL);
+  const bool is_loose_geometry_tags_needed = (foreach_context->vertex_loose != NULL ||
+                                              foreach_context->vertex_of_loose_edge != NULL);
+  if (is_loose_geometry_tagged && is_loose_geometry_tags_needed) {
+    subdiv_foreach_mark_non_loose_geometry(ctx);
+  }
 }
 
 static void subdiv_foreach_task(void *__restrict userdata,
