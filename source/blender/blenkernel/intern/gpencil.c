@@ -3909,6 +3909,9 @@ void BKE_gpencil_frame_original_pointers_update(const struct bGPDframe *gpf_orig
 
       /* Assign original point pointer. */
       for (int i = 0; i < gps_orig->totpoints; i++) {
+        if (i > gps_eval->totpoints - 1) {
+          break;
+        }
         bGPDspoint *pt_eval = &gps_eval->points[i];
         pt_eval->runtime.pt_orig = &gps_orig->points[i];
         pt_eval->runtime.idx_orig = i;
