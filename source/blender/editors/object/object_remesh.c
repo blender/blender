@@ -207,7 +207,6 @@ typedef enum eSymmetryAxes {
 typedef struct QuadriFlowJob {
   /* from wmJob */
   struct Object *owner;
-  struct Main *bmain;
   short *stop, *do_update;
   float *progress;
 
@@ -318,13 +317,13 @@ static void quadriflow_update_job(void *customdata, float progress, int *cancel)
   *(qj->progress) = progress;
 }
 
-static Mesh *remesh_symmetry_bisect(Main *bmain, Mesh *mesh, eSymmetryAxes symmetry_axes)
+static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
 {
   MirrorModifierData mmd = {{0}};
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
 
   Mesh *mesh_bisect, *mesh_bisect_temp;
-  mesh_bisect = BKE_mesh_copy(bmain, mesh);
+  mesh_bisect = BKE_mesh_copy_for_eval(mesh, false);
 
   int axis;
   float plane_co[3], plane_no[3];
@@ -342,12 +341,12 @@ static Mesh *remesh_symmetry_bisect(Main *bmain, Mesh *mesh, eSymmetryAxes symme
       mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane(
           &mmd, mesh_bisect, axis, plane_co, plane_no);
       if (mesh_bisect_temp != mesh_bisect) {
-        BKE_id_free(bmain, mesh_bisect_temp);
+        BKE_id_free(NULL, mesh_bisect_temp);
       }
     }
   }
 
-  BKE_id_free(bmain, mesh);
+  BKE_id_free(NULL, mesh);
 
   return mesh_bisect;
 }
@@ -405,10 +404,10 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
 
   /* Run Quadriflow bisect operations on a copy of the mesh to keep the code readable without
    * freeing the original ID */
-  bisect_mesh = BKE_mesh_copy(qj->bmain, mesh);
+  bisect_mesh = BKE_mesh_copy_for_eval(mesh, false);
 
   /* Bisect the input mesh using the paint symmetry settings */
-  bisect_mesh = remesh_symmetry_bisect(qj->bmain, bisect_mesh, qj->symmetry_axes);
+  bisect_mesh = remesh_symmetry_bisect(bisect_mesh, qj->symmetry_axes);
 
   new_mesh = BKE_mesh_remesh_quadriflow_to_mesh_nomain(
       bisect_mesh,
@@ -424,7 +423,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
       quadriflow_update_job,
       (void *)qj);
 
-  BKE_id_free(qj->bmain, bisect_mesh);
+  BKE_id_free(NULL, bisect_mesh);
 
   if (new_mesh == NULL) {
     *do_update = true;
@@ -501,7 +500,6 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   QuadriFlowJob *job = MEM_mallocN(sizeof(QuadriFlowJob), "QuadriFlowJob");
 
   job->owner = CTX_data_active_object(C);
-  job->bmain = CTX_data_main(C);
 
   job->target_faces = RNA_int_get(op->ptr, "target_faces");
   job->seed = RNA_int_get(op->ptr, "seed");
