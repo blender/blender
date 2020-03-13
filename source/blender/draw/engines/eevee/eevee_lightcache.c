@@ -777,6 +777,8 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
   if (!lbake->resource_only) {
     BLI_mutex_unlock(lbake->mutex);
   }
+
+  EEVEE_volumes_free_smoke_textures();
 }
 
 /* Cache as in draw cache not light cache. */

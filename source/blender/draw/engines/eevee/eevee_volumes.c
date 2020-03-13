@@ -178,8 +178,6 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   const float *viewport_size = DRW_viewport_size_get();
 
-  BLI_listbase_clear(&e_data.smoke_domains);
-
   const int tile_size = scene_eval->eevee.volumetric_tile_size;
 
   /* Find Froxel Texture resolution. */
