@@ -171,9 +171,8 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
   mMeshFromFile = false;
   mParticlesFromFile = false;
 
-  // Only start Mantaflow once. No need to start whenever new FLUID objected is allocated
-  if (!mantaInitialized)
-    initializeMantaflow();
+  // Setup Mantaflow in Python
+  initializeMantaflow();
 
   // Initialize Mantaflow variables in Python
   // Liquid

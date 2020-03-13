@@ -3674,8 +3674,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
 
   /* Reset fluid if no fluid present (obviously)
    * or if timeline gets reset to startframe */
-  if (!mds->fluid || is_startframe) {
+  if (!mds->fluid) {
     BKE_fluid_modifier_reset_ex(mmd, false);
+    BKE_fluid_modifier_init(mmd, depsgraph, ob, scene, me);
   }
 
   /* Guiding parent res pointer needs initialization */
@@ -3686,8 +3687,6 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       copy_v3_v3_int(mds->guide_res, mmd_parent->domain->res);
     }
   }
-
-  BKE_fluid_modifier_init(mmd, depsgraph, ob, scene, me);
 
   /* ensure that time parameters are initialized correctly before every step */
   float fps = scene->r.frs_sec / scene->r.frs_sec_base;
