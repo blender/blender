@@ -1420,6 +1420,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
                              const CustomData_MeshMasks *mask,
                              bool take_ownership)
 {
+  BLI_assert(mesh_src->id.tag & LIB_TAG_NO_MAIN);
+
   /* mesh_src might depend on mesh_dst, so we need to do everything with a local copy */
   /* TODO(Sybren): the above claim came from 2.7x derived-mesh code (DM_to_mesh);
    * check whether it is still true with Mesh */
@@ -1571,6 +1573,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
 
 void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
 {
+  BLI_assert(mesh_src->id.tag & LIB_TAG_NO_MAIN);
+
   int a, totvert = mesh_src->totvert;
   float *fp;
   MVert *mvert;
