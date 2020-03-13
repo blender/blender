@@ -5424,6 +5424,174 @@ static PyObject *pyrna_prop_collection_foreach_set(BPy_PropertyRNA *self, PyObje
   return foreach_getset(self, args, 1);
 }
 
+static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
+                                             PyObject *args,
+                                             const bool do_set)
+{
+  PyObject *item = NULL;
+  Py_ssize_t i, seq_size, size;
+  void *array = NULL;
+  PropertyType prop_type = RNA_property_type(self->prop);
+
+  /* Get/set both take the same args currently. */
+  PyObject *seq;
+
+  if (prop_type != PROP_INT && prop_type != PROP_FLOAT) {
+    PyErr_Format(PyExc_TypeError, "foreach_get/set available only for int and float");
+    return NULL;
+  }
+
+  if (!PyArg_ParseTuple(args, "O:foreach_get/set", &seq)) {
+    return NULL;
+  }
+
+  if (!PySequence_Check(seq) && PyObject_CheckBuffer(seq)) {
+    PyErr_Format(
+        PyExc_TypeError,
+        "foreach_get/set expected second argument to be a sequence or buffer, not a %.200s",
+        Py_TYPE(seq)->tp_name);
+    return NULL;
+  }
+
+  size = pyrna_prop_array_length(self);
+  seq_size = PySequence_Size(seq);
+
+  if (size != seq_size) {
+    PyErr_Format(PyExc_TypeError, "expected sequence size %d, got %d", size, seq_size);
+    return NULL;
+  }
+
+  Py_buffer buf;
+  if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+    PyErr_Clear();
+
+    switch (prop_type) {
+      case PROP_INT:
+        array = PyMem_Malloc(sizeof(int) * size);
+        if (do_set) {
+          for (i = 0; i < size; i++) {
+            item = PySequence_GetItem(seq, i);
+            ((int *)array)[i] = (int)PyLong_AsLong(item);
+            Py_DECREF(item);
+          }
+
+          RNA_property_int_set_array(&self->ptr, self->prop, array);
+        }
+        else {
+          RNA_property_int_get_array(&self->ptr, self->prop, array);
+
+          for (i = 0; i < size; i++) {
+            item = PyLong_FromLong((long)((int *)array)[i]);
+            PySequence_SetItem(seq, i, item);
+            Py_DECREF(item);
+          }
+        }
+
+        break;
+      case PROP_FLOAT:
+        array = PyMem_Malloc(sizeof(float) * size);
+        if (do_set) {
+          for (i = 0; i < size; i++) {
+            item = PySequence_GetItem(seq, i);
+            ((float *)array)[i] = (float)PyFloat_AsDouble(item);
+            Py_DECREF(item);
+          }
+
+          RNA_property_float_set_array(&self->ptr, self->prop, array);
+        }
+        else {
+          RNA_property_float_get_array(&self->ptr, self->prop, array);
+
+          for (i = 0; i < size; i++) {
+            item = PyFloat_FromDouble((double)((float *)array)[i]);
+            PySequence_SetItem(seq, i, item);
+            Py_DECREF(item);
+          }
+        }
+        break;
+      case PROP_BOOLEAN:
+      case PROP_STRING:
+      case PROP_ENUM:
+      case PROP_POINTER:
+      case PROP_COLLECTION:
+        /* Should never happen. */
+        BLI_assert(false);
+        break;
+    }
+
+    PyMem_Free(array);
+
+    if (PyErr_Occurred()) {
+      /* Maybe we could make our own error. */
+      PyErr_Print();
+      PyErr_SetString(PyExc_TypeError, "couldn't access the py sequence");
+      return NULL;
+    }
+  }
+  else {
+    char f = buf.format ? buf.format[0] : 0;
+    if ((prop_type == PROP_INT && (buf.itemsize != sizeof(int) || (f != 'l' && f != 'i'))) ||
+        (prop_type == PROP_FLOAT && (buf.itemsize != sizeof(float) || f != 'f'))) {
+      PyBuffer_Release(&buf);
+      PyErr_Format(PyExc_TypeError, "incorrect sequence item type: %s", buf.format);
+      return NULL;
+    }
+
+    switch (prop_type) {
+      case PROP_INT:
+        if (do_set) {
+          RNA_property_int_set_array(&self->ptr, self->prop, buf.buf);
+        }
+        else {
+          RNA_property_int_get_array(&self->ptr, self->prop, buf.buf);
+        }
+        break;
+      case PROP_FLOAT:
+        if (do_set) {
+          RNA_property_float_set_array(&self->ptr, self->prop, buf.buf);
+        }
+        else {
+          RNA_property_float_get_array(&self->ptr, self->prop, buf.buf);
+        }
+        break;
+      case PROP_BOOLEAN:
+      case PROP_STRING:
+      case PROP_ENUM:
+      case PROP_POINTER:
+      case PROP_COLLECTION:
+        /* Should never happen. */
+        BLI_assert(false);
+        break;
+    }
+
+    PyBuffer_Release(&buf);
+  }
+
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(pyrna_prop_array_foreach_get_doc,
+             ".. method:: foreach_get(seq)\n"
+             "\n"
+             "   This is a function to give fast access to array data.\n");
+static PyObject *pyrna_prop_array_foreach_get(BPy_PropertyArrayRNA *self, PyObject *args)
+{
+  PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
+
+  return pyprop_array_foreach_getset(self, args, false);
+}
+
+PyDoc_STRVAR(pyrna_prop_array_foreach_set_doc,
+             ".. method:: foreach_set(seq)\n"
+             "\n"
+             "   This is a function to give fast access to array data.\n");
+static PyObject *pyrna_prop_array_foreach_set(BPy_PropertyArrayRNA *self, PyObject *args)
+{
+  PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
+
+  return pyprop_array_foreach_getset(self, args, true);
+}
+
 /* A bit of a kludge, make a list out of a collection or array,
  * then return the list's iter function, not especially fast, but convenient for now. */
 static PyObject *pyrna_prop_array_iter(BPy_PropertyArrayRNA *self)
@@ -5572,6 +5740,15 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 };
 
 static struct PyMethodDef pyrna_prop_array_methods[] = {
+    {"foreach_get",
+     (PyCFunction)pyrna_prop_array_foreach_get,
+     METH_VARARGS,
+     pyrna_prop_array_foreach_get_doc},
+    {"foreach_set",
+     (PyCFunction)pyrna_prop_array_foreach_set,
+     METH_VARARGS,
+     pyrna_prop_array_foreach_set_doc},
+
     {NULL, NULL, 0, NULL},
 };
 
