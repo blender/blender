@@ -140,30 +140,26 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
   using OpenSubdiv::Sdc::Crease;
   const OpenSubdiv_Converter *converter = cb_data.converter;
   const bool full_topology_specified = converter->specifiesFullTopology(converter);
-  if (!full_topology_specified && converter->getNumEdges == NULL) {
-    assert(converter->getEdgeSharpness == NULL);
-    assert(converter->getVertexSharpness == NULL);
-    assert(converter->isInfiniteSharpVertex == NULL);
-    return true;
-  }
-  const int num_edges = converter->getNumEdges(converter);
-  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-    const float sharpness = converter->getEdgeSharpness(converter, edge_index);
-    if (sharpness < 1e-6f) {
-      continue;
-    }
-    if (full_topology_specified) {
-      setBaseEdgeSharpness(refiner, edge_index, sharpness);
-    }
-    else {
-      int edge_vertices[2];
-      converter->getEdgeVertices(converter, edge_index, edge_vertices);
-      const int base_edge_index = findBaseEdge(refiner, edge_vertices[0], edge_vertices[1]);
-      if (base_edge_index == OpenSubdiv::Far::INDEX_INVALID) {
-        printf("OpenSubdiv Error: failed to find reconstructed edge\n");
-        return false;
+  if (full_topology_specified || converter->getEdgeVertices != NULL) {
+    const int num_edges = converter->getNumEdges(converter);
+    for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
+      const float sharpness = converter->getEdgeSharpness(converter, edge_index);
+      if (sharpness < 1e-6f) {
+        continue;
       }
-      setBaseEdgeSharpness(refiner, base_edge_index, sharpness);
+      if (full_topology_specified) {
+        setBaseEdgeSharpness(refiner, edge_index, sharpness);
+      }
+      else {
+        int edge_vertices[2];
+        converter->getEdgeVertices(converter, edge_index, edge_vertices);
+        const int base_edge_index = findBaseEdge(refiner, edge_vertices[0], edge_vertices[1]);
+        if (base_edge_index == OpenSubdiv::Far::INDEX_INVALID) {
+          printf("OpenSubdiv Error: failed to find reconstructed edge\n");
+          return false;
+        }
+        setBaseEdgeSharpness(refiner, base_edge_index, sharpness);
+      }
     }
   }
   // OpenSubdiv expects non-manifold vertices to be sharp but at the time it
@@ -177,16 +173,18 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
       setBaseVertexSharpness(refiner, vertex_index, Crease::SHARPNESS_INFINITE);
       continue;
     }
-    float sharpness = converter->getVertexSharpness(converter, vertex_index);
-    if (vertex_edges.size() == 2) {
-      const int edge0 = vertex_edges[0], edge1 = vertex_edges[1];
-      const float sharpness0 = refiner._levels[0]->getEdgeSharpness(edge0);
-      const float sharpness1 = refiner._levels[0]->getEdgeSharpness(edge1);
-      // TODO(sergey): Find a better mixing between edge and vertex sharpness.
-      sharpness += min(sharpness0, sharpness1);
-      sharpness = min(sharpness, 10.0f);
+    if (converter->getVertexSharpness != NULL) {
+      float sharpness = converter->getVertexSharpness(converter, vertex_index);
+      if (vertex_edges.size() == 2) {
+        const int edge0 = vertex_edges[0], edge1 = vertex_edges[1];
+        const float sharpness0 = refiner._levels[0]->getEdgeSharpness(edge0);
+        const float sharpness1 = refiner._levels[0]->getEdgeSharpness(edge1);
+        // TODO(sergey): Find a better mixing between edge and vertex sharpness.
+        sharpness += min(sharpness0, sharpness1);
+        sharpness = min(sharpness, 10.0f);
+      }
+      setBaseVertexSharpness(refiner, vertex_index, sharpness);
     }
-    setBaseVertexSharpness(refiner, vertex_index, sharpness);
   }
   return true;
 }
