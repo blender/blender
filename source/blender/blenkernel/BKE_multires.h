@@ -130,6 +130,10 @@ int multires_mdisp_corners(struct MDisps *s);
 /* update multires data after topology changing */
 void multires_topology_changed(struct Mesh *me);
 
+void multires_ensure_external_read(struct Mesh *mesh, int top_level);
+void multiresModifier_ensure_external_read(struct Mesh *mesh,
+                                           const struct MultiresModifierData *mmd);
+
 /**** interpolation stuff ****/
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v);
 int mdisp_rot_face_to_crn(struct MVert *mvert,

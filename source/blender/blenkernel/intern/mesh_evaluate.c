@@ -3576,6 +3576,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id,
 
   if (id) {
     /* ensure external data is transferred */
+    /* TODO(sergey): Use multiresModifier_ensure_external_read(). */
     CustomData_external_read(fdata, id, CD_MASK_MDISPS, totface_i);
   }
 

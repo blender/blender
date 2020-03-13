@@ -47,6 +47,7 @@ typedef struct MultiresDisplacementData {
   int grid_size;
   /* Mesh is used to read external displacement. */
   Mesh *mesh;
+  const MultiresModifierData *mmd;
   const MPoly *mpoly;
   const MDisps *mdisps;
   /* Indexed by ptex face index, contains polygon/corner which corresponds
@@ -328,9 +329,7 @@ static int displacement_get_face_corner(MultiresDisplacementData *data,
 static void initialize(SubdivDisplacement *displacement)
 {
   MultiresDisplacementData *data = displacement->user_data;
-  Mesh *mesh = data->mesh;
-  /* Make sure external displacement is read. */
-  CustomData_external_read(&mesh->ldata, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+  multiresModifier_ensure_external_read(data->mesh, data->mmd);
   data->is_initialized = true;
 }
 
@@ -421,6 +420,7 @@ static void displacement_init_data(SubdivDisplacement *displacement,
   data->subdiv = subdiv;
   data->grid_size = BKE_subdiv_grid_size_from_level(mmd->totlvl);
   data->mesh = mesh;
+  data->mmd = mmd;
   data->mpoly = mesh->mpoly;
   data->mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
   data->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);

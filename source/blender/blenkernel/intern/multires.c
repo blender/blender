@@ -647,7 +647,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
   GridPaintMask *gpm;
 
   multires_set_tot_mdisps(me, mmd->totlvl);
-  CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
+  multiresModifier_ensure_external_read(me, mmd);
   mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
   gpm = CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK);
 
@@ -713,7 +713,7 @@ void multiresModifier_del_levels(MultiresModifierData *mmd,
   MDisps *mdisps;
 
   multires_set_tot_mdisps(me, mmd->totlvl);
-  CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
+  multiresModifier_ensure_external_read(me, mmd);
   mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
   multires_force_sculpt_rebuild(ob);
@@ -1144,7 +1144,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
   me = ccgdm->multires.ob->data;
   mmd = ccgdm->multires.mmd;
   multires_set_tot_mdisps(me, mmd->totlvl);
-  CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
+  multiresModifier_ensure_external_read(me, mmd);
   mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
   if (mdisps) {
@@ -1372,7 +1372,7 @@ DerivedMesh *multires_make_derived_from_derived(
   }
 
   multires_set_tot_mdisps(me, mmd->totlvl);
-  CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
+  multiresModifier_ensure_external_read(me, mmd);
 
   /*run displacement*/
   multiresModifier_disp_run(result, ob->data, dm, APPLY_DISPLACEMENTS, subGridData, mmd->totlvl);
@@ -2224,7 +2224,7 @@ static void multires_apply_smat(struct Depsgraph *UNUSED(depsgraph),
   }
   /* Make sure layer present. */
   Mesh *mesh = (Mesh *)object->data;
-  CustomData_external_read(&mesh->ldata, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+  multiresModifier_ensure_external_read(mesh, mmd);
   if (!CustomData_get_layer(&mesh->ldata, CD_MDISPS)) {
     return;
   }
@@ -2316,6 +2316,44 @@ void multires_topology_changed(Mesh *me)
       continue;
     }
   }
+}
+
+/* Makes sure data from an external file is fully read.
+ *
+ * Since the multires data files only contain displacement vectors without knowledge about
+ * subdivision level some extra work is needed. Namely make is to all displacement grids have
+ * proper level and number of displacement vectors set.  */
+void multires_ensure_external_read(struct Mesh *mesh, int top_level)
+{
+  if (!CustomData_external_test(&mesh->ldata, CD_MDISPS)) {
+    return;
+  }
+
+  MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
+  if (mdisps == NULL) {
+    mdisps = CustomData_add_layer(&mesh->ldata, CD_MDISPS, CD_DEFAULT, NULL, mesh->totloop);
+  }
+
+  const int totloop = mesh->totloop;
+
+  for (int i = 0; i < totloop; ++i) {
+    if (mdisps[i].level != top_level) {
+      MEM_SAFE_FREE(mdisps[i].disps);
+    }
+
+    /* NOTE: CustomData_external_read will take care of allocation of displacement vectors if
+     * they are missing. */
+
+    const int totdisp = multires_grid_tot[top_level];
+    mdisps[i].totdisp = totdisp;
+    mdisps[i].level = top_level;
+  }
+
+  CustomData_external_read(&mesh->ldata, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+}
+void multiresModifier_ensure_external_read(struct Mesh *mesh, const MultiresModifierData *mmd)
+{
+  multires_ensure_external_read(mesh, mmd->totlvl);
 }
 
 /***************** Multires interpolation stuff *****************/
