@@ -72,7 +72,6 @@ void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
   INIT_GP_TYPE(Armature);
   INIT_GP_TYPE(Time);
   INIT_GP_TYPE(Multiply);
-  INIT_GP_TYPE(Vertexcolor);
 #undef INIT_GP_TYPE
 }
 

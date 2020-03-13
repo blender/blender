@@ -59,7 +59,6 @@ set(SRC
   intern/MOD_gpencilthick.c
   intern/MOD_gpenciltime.c
   intern/MOD_gpenciltint.c
-  intern/MOD_gpencilvertexcolor.c
 
   MOD_gpencil_modifiertypes.h
 )

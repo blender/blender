@@ -47,7 +47,6 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_Armature = 15,
   eGpencilModifierType_Time = 16,
   eGpencilModifierType_Multiply = 17,
-  eGpencilModifierType_Vertexcolor = 18,
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
 
@@ -222,38 +221,6 @@ typedef enum eOpacityModesGpencil_Flag {
   GP_OPACITY_MODE_MATERIAL = 0,
   GP_OPACITY_MODE_STRENGTH = 1,
 } eOpacityModesGpencil_Flag;
-
-typedef struct TintGpencilModifierData {
-  GpencilModifierData modifier;
-  /** Layer name. */
-  char layername[64];
-  /** Material name. */
-  char materialname[64];
-  /** Custom index for passes. */
-  int pass_index;
-  /** Flags. */
-  int flag;
-  /** Tint color. */
-  float rgb[3];
-  /** Mix factor. */
-  float factor;
-  /** Modify stroke, fill or both. */
-  char modify_color;
-  char _pad[7];
-  /** Custom index for passes. */
-  int layer_pass;
-
-  char _pad1[4];
-  struct CurveMapping *curve_intensity;
-} TintGpencilModifierData;
-
-typedef enum eTintGpencil_Flag {
-  GP_TINT_INVERT_LAYER = (1 << 1),
-  GP_TINT_INVERT_PASS = (1 << 2),
-  GP_TINT_INVERT_LAYERPASS = (1 << 3),
-  GP_TINT_INVERT_MATERIAL = (1 << 4),
-  GP_TINT_CUSTOM_CURVE = (1 << 5),
-} eTintGpencil_Flag;
 
 typedef struct ColorGpencilModifierData {
   GpencilModifierData modifier;
@@ -700,7 +667,7 @@ typedef enum eMultiplyGpencil_Flag {
   GP_MULTIPLY_ENABLE_FADING = (1 << 2),
 } eMultiplyGpencil_Flag;
 
-typedef struct VertexcolorGpencilModifierData {
+typedef struct TintGpencilModifierData {
   GpencilModifierData modifier;
 
   struct Object *object;
@@ -716,25 +683,33 @@ typedef struct VertexcolorGpencilModifierData {
   int layer_pass;
   /** Flags. */
   int flag;
-  /** Mode. */
+  /** Mode (Stroke/Fill/Both). */
   int mode;
 
   float factor;
   float radius;
+  /** Simple Tint color. */
+  float rgb[3];
+  /** Type of Tint. */
+  int type;
 
   struct CurveMapping *curve_intensity;
 
   struct ColorBand *colorband;
-} VertexcolorGpencilModifierData;
+} TintGpencilModifierData;
 
-typedef enum eVertexcolorGpencil_Flag {
-  GP_VERTEXCOL_INVERT_LAYER = (1 << 0),
-  GP_VERTEXCOL_INVERT_PASS = (1 << 1),
-  GP_VERTEXCOL_INVERT_VGROUP = (1 << 2),
-  GP_VERTEXCOL_UNIFORM_SPACE = (1 << 3),
-  GP_VERTEXCOL_INVERT_LAYERPASS = (1 << 4),
-  GP_VERTEXCOL_INVERT_MATERIAL = (1 << 5),
-  GP_VERTEXCOL_CUSTOM_CURVE = (1 << 6),
-} eVertexcolorGpencil_Flag;
+typedef enum eTintGpencil_Type {
+  GP_TINT_UNIFORM = 0,
+  GP_TINT_GRADIENT = 1,
+} eTintGpencil_Type;
+
+typedef enum eTintGpencil_Flag {
+  GP_TINT_INVERT_LAYER = (1 << 0),
+  GP_TINT_INVERT_PASS = (1 << 1),
+  GP_TINT_INVERT_VGROUP = (1 << 2),
+  GP_TINT_INVERT_LAYERPASS = (1 << 4),
+  GP_TINT_INVERT_MATERIAL = (1 << 5),
+  GP_TINT_CUSTOM_CURVE = (1 << 6),
+} eTintGpencil_Flag;
 
 #endif /* __DNA_GPENCIL_MODIFIER_TYPES_H__ */

@@ -5774,8 +5774,8 @@ static void direct_link_gpencil_modifiers(FileData *fd, ListBase *lb)
         BKE_curvemapping_initialize(gpmd->curve_thickness);
       }
     }
-    else if (md->type == eGpencilModifierType_Vertexcolor) {
-      VertexcolorGpencilModifierData *gpmd = (VertexcolorGpencilModifierData *)md;
+    else if (md->type == eGpencilModifierType_Tint) {
+      TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
       gpmd->colorband = newdataadr(fd, gpmd->colorband);
       gpmd->curve_intensity = newdataadr(fd, gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
@@ -5793,14 +5793,6 @@ static void direct_link_gpencil_modifiers(FileData *fd, ListBase *lb)
     }
     else if (md->type == eGpencilModifierType_Color) {
       ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
-      gpmd->curve_intensity = newdataadr(fd, gpmd->curve_intensity);
-      if (gpmd->curve_intensity) {
-        direct_link_curvemapping(fd, gpmd->curve_intensity);
-        BKE_curvemapping_initialize(gpmd->curve_intensity);
-      }
-    }
-    else if (md->type == eGpencilModifierType_Tint) {
-      TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
       gpmd->curve_intensity = newdataadr(fd, gpmd->curve_intensity);
       if (gpmd->curve_intensity) {
         direct_link_curvemapping(fd, gpmd->curve_intensity);

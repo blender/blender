@@ -1844,8 +1844,8 @@ static void write_gpencil_modifiers(WriteData *wd, ListBase *modbase)
         write_curvemapping(wd, gpmd->curfalloff);
       }
     }
-    else if (md->type == eGpencilModifierType_Vertexcolor) {
-      VertexcolorGpencilModifierData *gpmd = (VertexcolorGpencilModifierData *)md;
+    else if (md->type == eGpencilModifierType_Tint) {
+      TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
       if (gpmd->colorband) {
         writestruct(wd, DATA, ColorBand, 1, gpmd->colorband);
       }
@@ -1867,12 +1867,6 @@ static void write_gpencil_modifiers(WriteData *wd, ListBase *modbase)
     }
     else if (md->type == eGpencilModifierType_Opacity) {
       OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
-      if (gpmd->curve_intensity) {
-        write_curvemapping(wd, gpmd->curve_intensity);
-      }
-    }
-    else if (md->type == eGpencilModifierType_Tint) {
-      TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
       if (gpmd->curve_intensity) {
         write_curvemapping(wd, gpmd->curve_intensity);
       }

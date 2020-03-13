@@ -1891,16 +1891,34 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         self.gpencil_masking(layout, ob, md, True, True)
 
     def GP_TINT(self, layout, ob, md):
-        split = layout.split()
+        layout.row().prop(md, "tint_type", expand=True)
 
-        col = split.column()
-        col.prop(md, "color")
-        col.prop(md, "factor")
+        if md.tint_type == 'UNIFORM':
+            col = layout.column()
+            col.prop(md, "color")
 
-        row = layout.row()
-        row.prop(md, "modify_color")
+            col.separator()
+            col.prop(md, "factor")
 
-        self.gpencil_masking(layout, ob, md, False, True)
+        if md.tint_type == 'GRADIENT':
+            col = layout.column()
+            col.label(text="Colors:")
+            col.template_color_ramp(md, "colors")
+
+            col.separator()
+
+            col.label(text="Object:")
+            col.prop(md, "object", text="")
+
+            col.separator()
+            row = col.row(align=True)
+            row.prop(md, "radius")
+            row.prop(md, "factor")
+
+        col.separator()
+        col.prop(md, "vertex_mode")
+
+        self.gpencil_masking(layout, ob, md, True, True)
 
     def GP_TIME(self, layout, ob, md):
         gpd = ob.data
@@ -2164,25 +2182,6 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
             subcol.prop(md, "fading_opacity", slider=True)
 
         self.gpencil_masking(layout, ob, md, False)
-
-    def GP_VERTEXCOLOR(self, layout, ob, md):
-        col = layout.column()
-        col.label(text="Object:")
-        col.prop(md, "object", text="")
-
-        col.separator()
-        row = col.row(align=True)
-        row.prop(md, "radius")
-        row.prop(md, "factor", text="Strength", slider=True)
-
-        col.separator()
-        col.label(text="Colors:")
-        col.template_color_ramp(md, "colors")
-
-        col.separator()
-        col.prop(md, "vertex_mode")
-
-        self.gpencil_masking(layout, ob, md, True, True)
 
 
 classes = (
