@@ -49,7 +49,6 @@ extern "C" {
 namespace USD {
 
 struct ExportJobData {
-  ViewLayer *view_layer;
   Main *bmain;
   Depsgraph *depsgraph;
   wmWindowManager *wm;
@@ -57,22 +56,13 @@ struct ExportJobData {
   char filename[FILE_MAX];
   USDExportParams params;
 
-  short *stop;
-  short *do_update;
-  float *progress;
-
-  bool was_canceled;
   bool export_ok;
 };
 
 static void export_startjob(void *customdata, short *stop, short *do_update, float *progress)
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
-
-  data->stop = stop;
-  data->do_update = do_update;
-  data->progress = progress;
-  data->was_canceled = false;
+  data->export_ok = false;
 
   G.is_rendering = true;
   WM_set_locked_interface(data->wm, true);
@@ -97,7 +87,6 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
      * USDC files, and creating a new UsdStage fails. */
     WM_reportf(
         RPT_ERROR, "USD Export: unable to find suitable USD plugin to write %s", data->filename);
-    data->export_ok = false;
     return;
   }
 
@@ -150,8 +139,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
     BKE_scene_graph_update_for_newframe(data->depsgraph, data->bmain);
   }
 
-  data->export_ok = !data->was_canceled;
-
+  data->export_ok = true;
   *progress = 1.0f;
   *do_update = true;
 }
@@ -162,7 +150,7 @@ static void export_endjob(void *customdata)
 
   DEG_graph_free(data->depsgraph);
 
-  if (data->was_canceled && BLI_exists(data->filename)) {
+  if (!data->export_ok && BLI_exists(data->filename)) {
     BLI_delete(data->filename, false, false);
   }
 
