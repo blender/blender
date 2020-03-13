@@ -627,7 +627,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       BKE_id_delete(bmain, brush);
     }
 
-    /* Rename and fix materials. */
+    /* Rename and fix materials and enable default object lights on. */
     if (app_template && STREQ(app_template, "2D_Animation")) {
       Material *ma = NULL;
       rename_id_for_versioning(bmain, ID_MA, "Black", "Solid Stroke");
@@ -653,6 +653,11 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       ma = BLI_findstring(&bmain->materials, "Solid Fill", offsetof(ID, name) + 2);
       if (ma != NULL) {
         ma->gp_style->flag &= ~GP_MATERIAL_STROKE_SHOW;
+      }
+
+      Object *ob = BLI_findstring(&bmain->objects, "Stroke", offsetof(ID, name) + 2);
+      if (ob && ob->type == OB_GPENCIL) {
+        ob->dtx |= OB_USE_GPENCIL_LIGHTS;
       }
     }
 
