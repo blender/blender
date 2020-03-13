@@ -3067,12 +3067,12 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 }
 
-void filelist_readjob_stop(wmWindowManager *wm, ScrArea *sa)
+void filelist_readjob_stop(wmWindowManager *wm, Scene *owner_scene)
 {
-  WM_jobs_kill_type(wm, sa, WM_JOB_TYPE_FILESEL_READDIR);
+  WM_jobs_kill_type(wm, owner_scene, WM_JOB_TYPE_FILESEL_READDIR);
 }
 
-int filelist_readjob_running(wmWindowManager *wm, ScrArea *sa)
+int filelist_readjob_running(wmWindowManager *wm, Scene *owner_scene)
 {
-  return WM_jobs_test(wm, sa, WM_JOB_TYPE_FILESEL_READDIR);
+  return WM_jobs_test(wm, owner_scene, WM_JOB_TYPE_FILESEL_READDIR);
 }

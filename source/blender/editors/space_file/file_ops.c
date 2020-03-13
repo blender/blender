@@ -1649,10 +1649,9 @@ static int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  ScrArea *sa = CTX_wm_area(C);
   struct FSMenu *fsmenu = ED_fsmenu_get();
 
-  ED_fileselect_clear(wm, sa, sfile);
+  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
 
   /* refresh system directory menu */
   fsmenu_refresh_system_category(fsmenu);
@@ -1988,7 +1987,6 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  ScrArea *sa = CTX_wm_area(C);
   const bool do_diropen = RNA_boolean_get(op->ptr, "open");
 
   if (!sfile->params) {
@@ -2047,13 +2045,13 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
   /* set timer to smoothly view newly generated file */
   /* max 30 frs/sec */
   if (sfile->smoothscroll_timer != NULL) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+    WM_event_remove_timer(wm, CTX_wm_window(C), sfile->smoothscroll_timer);
   }
   sfile->smoothscroll_timer = WM_event_add_timer(wm, CTX_wm_window(C), TIMER1, 1.0 / 1000.0);
   sfile->scroll_offset = 0;
 
   /* reload dir to make sure we're seeing what's in the directory */
-  ED_fileselect_clear(wm, sa, sfile);
+  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
 
   if (do_diropen) {
     BLI_strncpy(sfile->params->dir, path, sizeof(sfile->params->dir));
@@ -2302,11 +2300,10 @@ static int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  ScrArea *sa = CTX_wm_area(C);
 
   if (sfile->params) {
     sfile->params->flag ^= FILE_HIDE_DOT;
-    ED_fileselect_clear(wm, sa, sfile);
+    ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
   }
 
@@ -2491,7 +2488,6 @@ int file_delete_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  ScrArea *sa = CTX_wm_area(C);
   int numfiles = filelist_files_ensure(sfile->files);
 
   const char *error_message = NULL;
@@ -2520,7 +2516,7 @@ int file_delete_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_fileselect_clear(wm, sa, sfile);
+  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
   return OPERATOR_FINISHED;

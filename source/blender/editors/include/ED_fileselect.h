@@ -133,9 +133,13 @@ void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y);
 
 void ED_operatormacros_file(void);
 
-void ED_fileselect_clear(struct wmWindowManager *wm, struct ScrArea *sa, struct SpaceFile *sfile);
+void ED_fileselect_clear(struct wmWindowManager *wm,
+                         struct Scene *owner_scene,
+                         struct SpaceFile *sfile);
 
-void ED_fileselect_exit(struct wmWindowManager *wm, struct ScrArea *sa, struct SpaceFile *sfile);
+void ED_fileselect_exit(struct wmWindowManager *wm,
+                        struct Scene *owner_scene,
+                        struct SpaceFile *sfile);
 
 void ED_fileselect_window_params_get(const struct wmWindow *win,
                                      int win_size[2],

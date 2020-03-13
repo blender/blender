@@ -382,7 +382,6 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
   char filename[FILE_MAX + 12];
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
-  ScrArea *sa = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
   BLI_join_dirfile(orgname, sizeof(orgname), sfile->params->dir, oldname);
@@ -410,7 +409,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
       }
 
       /* to make sure we show what is on disk */
-      ED_fileselect_clear(wm, sa, sfile);
+      ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
     }
 
     ED_region_tag_redraw(region);
