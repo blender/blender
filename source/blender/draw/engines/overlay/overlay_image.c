@@ -369,7 +369,9 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
      * see: T59347 */
     int size[2] = {0};
     if (ima != NULL) {
-      tex = GPU_texture_from_blender(ima, ob->iuser, NULL, GL_TEXTURE_2D);
+      ImageUser iuser = *ob->iuser;
+      camera_background_images_stereo_setup(draw_ctx->scene, draw_ctx->v3d, ima, &iuser);
+      tex = GPU_texture_from_blender(ima, &iuser, NULL, GL_TEXTURE_2D);
       if (tex) {
         size[0] = GPU_texture_orig_width(tex);
         size[1] = GPU_texture_orig_height(tex);
