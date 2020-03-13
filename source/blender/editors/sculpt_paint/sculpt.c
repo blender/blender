@@ -11042,6 +11042,18 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
     SCULPT_face_sets_visibility_invert(ss);
   }
 
+  /* For modes that use the cursor active vertex, update the rotation origin for viewport
+   * navigation. */
+  if (ELEM(mode, SCULPT_FACE_SET_VISIBILITY_TOGGLE, SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE)) {
+    UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
+    float location[3];
+    copy_v3_v3(location, SCULPT_active_vertex_co_get(ss));
+    mul_m4_v3(ob->obmat, location);
+    copy_v3_v3(ups->average_stroke_accum, location);
+    ups->average_stroke_counter = 1;
+    ups->last_stroke_valid = true;
+  }
+
   /* Sync face sets visibility and vertex visibility. */
   SCULPT_visibility_sync_all_face_sets_to_vertices(ss);
 
