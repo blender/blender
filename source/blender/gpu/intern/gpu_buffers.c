@@ -116,7 +116,7 @@ void gpu_pbvh_init()
         &g_vbo_id.format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
     /* TODO: Do not allocate these `.msk` and `.col` when they are not used. */
     g_vbo_id.msk = GPU_vertformat_attr_add(
-        &g_vbo_id.format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+        &g_vbo_id.format, "msk", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
     g_vbo_id.col = GPU_vertformat_attr_add(
         &g_vbo_id.format, "ac", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     g_vbo_id.fset = GPU_vertformat_attr_add(
@@ -264,15 +264,15 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
           copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
           copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), v->no);
 
-          float mask;
+          uchar mask;
           if (show_mask) {
-            mask = vmask[vidx];
+            mask = (uchar)(vmask[vidx] * 255);
           }
           else {
             mask = 0.0f;
           }
-          *(float *)GPU_vertbuf_raw_step(&msk_step) = mask;
-          empty_mask = empty_mask && (mask == 0.0f);
+          *(uchar *)GPU_vertbuf_raw_step(&msk_step) = mask;
+          empty_mask = empty_mask && (mask == 0);
         }
 
         /* Face Sets. */
@@ -348,8 +348,10 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
           }
 
           float fmask = 0.0f;
+          uchar cmask = 0;
           if (show_mask) {
             fmask = (vmask[vtri[0]] + vmask[vtri[1]] + vmask[vtri[2]]) / 3.0f;
+            cmask = (uchar)(fmask * 255);
           }
 
           for (uint j = 0; j < 3; j++) {
@@ -357,8 +359,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
             copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
             copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), no);
-            *(float *)GPU_vertbuf_raw_step(&msk_step) = fmask;
-            empty_mask = empty_mask && (fmask == 0.0f);
+            *(uchar *)GPU_vertbuf_raw_step(&msk_step) = cmask;
+            empty_mask = empty_mask && (cmask == 0);
             /* Face Sets. */
             memcpy(GPU_vertbuf_raw_step(&fset_step), face_set_color, sizeof(uchar) * 3);
 
@@ -730,8 +732,9 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
 
             if (has_mask && show_mask) {
               float fmask = *CCG_elem_mask(key, elem);
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
-              empty_mask = empty_mask && (fmask == 0.0f);
+              uchar cmask = (uchar)(fmask * 255);
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &cmask);
+              empty_mask = empty_mask && (cmask == 0);
             }
 
             if (show_vcol) {
@@ -779,14 +782,15 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index + 3, no_short);
 
             if (has_mask && show_mask) {
-              float fsets = (*CCG_elem_mask(key, elems[0]) + *CCG_elem_mask(key, elems[1]) +
+              float fmask = (*CCG_elem_mask(key, elems[0]) + *CCG_elem_mask(key, elems[1]) +
                              *CCG_elem_mask(key, elems[2]) + *CCG_elem_mask(key, elems[3])) *
                             0.25f;
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 0, &fsets);
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 1, &fsets);
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 2, &fsets);
-              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 3, &fsets);
-              empty_mask = empty_mask && (fsets == 0.0f);
+              uchar cmask = (uchar)(fmask * 255);
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 0, &cmask);
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 1, &cmask);
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 2, &cmask);
+              GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 3, &cmask);
+              empty_mask = empty_mask && (cmask == 0);
             }
 
             ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
@@ -867,8 +871,9 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
 
   if (show_mask) {
     float effective_mask = fmask ? *fmask : BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
-    GPU_vertbuf_attr_set(vert_buf, g_vbo_id.msk, v_index, &effective_mask);
-    *empty_mask = *empty_mask && (effective_mask == 0.0f);
+    uchar cmask = (uchar)(effective_mask * 255);
+    GPU_vertbuf_attr_set(vert_buf, g_vbo_id.msk, v_index, &cmask);
+    *empty_mask = *empty_mask && (cmask == 0);
   }
 
   if (show_vcol) {
