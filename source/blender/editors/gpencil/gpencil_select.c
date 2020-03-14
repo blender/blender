@@ -1693,8 +1693,9 @@ static int gpencil_select_vertex_color_exec(bContext *C, wmOperator *op)
   Brush *brush = paint->brush;
   bool done = false;
 
-  float hsv_brush[3], hsv_stroke[3];
-  rgb_to_hsv_compat_v(brush->rgb, hsv_brush);
+  float hsv_brush[3], hsv_stroke[3], linear_color[3];
+  srgb_to_linearrgb_v3_v3(linear_color, brush->rgb);
+  rgb_to_hsv_compat_v(linear_color, hsv_brush);
 
   /* Select any visible stroke that uses this color */
   CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
