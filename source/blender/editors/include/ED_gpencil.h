@@ -33,13 +33,13 @@ struct ListBase;
 struct PointerRNA;
 
 struct Brush;
+struct GP_SpaceConversion;
 struct bGPDframe;
 struct bGPDlayer;
 struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
 struct tGPspoint;
-struct GP_SpaceConversion;
 
 struct ARegion;
 struct Depsgraph;
@@ -47,8 +47,8 @@ struct Main;
 struct RegionView3D;
 struct ReportList;
 struct Scene;
-struct ToolSettings;
 struct ScrArea;
+struct ToolSettings;
 struct View3D;
 struct ViewLayer;
 struct bContext;

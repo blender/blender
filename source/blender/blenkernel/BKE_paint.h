@@ -56,12 +56,12 @@ struct SubdivCCG;
 struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
-struct tPaletteColorHSV;
 struct UnifiedPaintSettings;
 struct View3D;
 struct ViewLayer;
 struct bContext;
 struct bToolRef;
+struct tPaletteColorHSV;
 
 enum eOverlayFlags;
 

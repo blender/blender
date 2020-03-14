@@ -78,10 +78,10 @@ struct rcti;
 typedef struct DRWCallBuffer DRWCallBuffer;
 typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
+typedef struct DRWShaderLibrary DRWShaderLibrary;
 typedef struct DRWShadingGroup DRWShadingGroup;
 typedef struct DRWUniform DRWUniform;
 typedef struct DRWView DRWView;
-typedef struct DRWShaderLibrary DRWShaderLibrary;
 
 /* TODO Put it somewhere else? */
 typedef struct BoundSphere {

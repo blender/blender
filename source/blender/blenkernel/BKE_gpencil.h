@@ -34,8 +34,10 @@ struct CurveMapping;
 struct Depsgraph;
 struct GHash;
 struct ListBase;
+struct MDeformVert;
 struct Main;
 struct Material;
+struct MaterialGPencilStyle;
 struct Object;
 struct Scene;
 struct SpaceImage;
@@ -47,8 +49,6 @@ struct bGPDlayer_Mask;
 struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
-struct MaterialGPencilStyle;
-struct MDeformVert;
 
 #define GPENCIL_SIMPLIFY(scene) ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))
 #define GPENCIL_SIMPLIFY_ONPLAY(playing) \

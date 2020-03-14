@@ -65,8 +65,6 @@ set(SRC
   transform_gizmo_3d.c
   transform_gizmo_extrude_3d.c
   transform_input.c
-  transform_ops.c
-  transform_orientations.c
   transform_mode.c
   transform_mode_align.c
   transform_mode_baketime.c
@@ -98,6 +96,8 @@ set(SRC
   transform_mode_trackball.c
   transform_mode_translate.c
   transform_mode_vert_slide.c
+  transform_ops.c
+  transform_orientations.c
   transform_snap.c
   transform_snap_object.c
 

@@ -22,8 +22,8 @@
 #include "BLI_utildefines.h"
 #include "IMB_imbuf.h"
 
-struct ImBuf;
 struct ColorSpace;
+struct ImBuf;
 
 void IMB_freeImBuf(struct ImBuf *UNUSED(ibuf))
 {

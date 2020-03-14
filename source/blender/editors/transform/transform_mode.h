@@ -27,9 +27,9 @@
 
 struct AnimData;
 struct LinkNode;
-struct TransInfo;
-struct TransDataContainer;
 struct TransData;
+struct TransDataContainer;
+struct TransInfo;
 struct wmOperator;
 
 /* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */

@@ -30,6 +30,7 @@ extern "C" {
 
 struct ARegion;
 struct FileSelectParams;
+struct Scene;
 struct ScrArea;
 struct SpaceFile;
 struct bContext;
