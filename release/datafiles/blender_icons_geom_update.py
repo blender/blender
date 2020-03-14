@@ -86,5 +86,5 @@ edit_text_file(
     os.path.join(ROOTDIR, "source", "blender", "editors", "datafiles", "CMakeLists.txt"),
     "# BEGIN ICON_GEOM_NAMES",
     "# END ICON_GEOM_NAMES",
-    "\t" + "\n\t".join(icon_files) + "\n",
+    "  " + "\n  ".join(icon_files) + "\n",
 )
