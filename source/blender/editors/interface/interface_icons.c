@@ -177,6 +177,30 @@ static const IconType icontypes[] = {
 #  include "UI_icons.h"
 };
 
+/* ********** Alert Icons ********** */
+
+#  define ALERT_IMG_SIZE 256
+
+ImBuf *UI_alert_image(eAlertIcon icon)
+{
+# ifdef WITH_HEADLESS
+  return NULL
+# else
+  ImBuf *ibuf;
+  icon = MIN2(icon, ALERT_ICON_MAX - 1);
+  const int left = icon * ALERT_IMG_SIZE;
+  const rcti crop = {left, left + ALERT_IMG_SIZE - 1, 0, ALERT_IMG_SIZE - 1};
+  ibuf = IMB_ibImageFromMemory((const uchar *)datatoc_alert_icons_png,
+                               datatoc_alert_icons_png_size,
+                               IB_rect,
+                               NULL,
+                               "alert_icon");
+  IMB_rect_crop(ibuf, &crop);
+  IMB_premultiply_alpha(ibuf);
+  return ibuf;
+#endif
+}
+
 /* **************************************************** */
 
 static DrawInfo *def_internal_icon(

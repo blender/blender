@@ -52,6 +52,17 @@ typedef struct IconFile {
 
 #define PREVIEW_DEFAULT_HEIGHT 128
 
+typedef enum eAlertIcon {
+  ALERT_ICON_WARNING = 0,
+  ALERT_ICON_QUESTION = 1,
+  ALERT_ICON_ERROR = 2,
+  ALERT_ICON_INFO = 3,
+  ALERT_ICON_BLENDER = 4,
+  ALERT_ICON_MAX,
+} eAlertIcon;
+
+struct ImBuf *UI_alert_image(eAlertIcon icon);
+
 /*
  * Resizable Icons for Blender
  */

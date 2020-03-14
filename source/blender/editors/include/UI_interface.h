@@ -1124,7 +1124,10 @@ uiBut *uiDefIconButO_ptr(uiBlock *block,
                          short width,
                          short height,
                          const char *tip);
-
+uiBut *uiDefButImage(
+    uiBlock *block, void *imbuf, int x, int y, short width, short height, const uchar color[4]);
+uiBut *uiDefButAlert(
+    uiBlock *block, int icon, int x, int y, short width, short height);
 uiBut *uiDefIconTextBut(uiBlock *block,
                         int type,
                         int retval,

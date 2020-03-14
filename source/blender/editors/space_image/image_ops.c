@@ -2351,7 +2351,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
         else {
           BKE_reportf(reports,
                       RPT_WARNING,
-                      "Packed library image: %s from library %s can't be saved",
+                      "Packed library image can't be saved: \"%s\" from \"%s\"",
                       ima->id.name + 2,
                       ima->id.lib->name);
         }
@@ -2359,7 +2359,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
       else if (!is_format_writable) {
         BKE_reportf(reports,
                     RPT_WARNING,
-                    "Image %s can't be saved automatically, must use a different file format",
+                    "Image can't be saved, use a different file format: \"%s\"",
                     ima->id.name + 2);
       }
       else {
@@ -2368,7 +2368,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
           if (BLI_gset_haskey(unique_paths, ima->name)) {
             BKE_reportf(reports,
                         RPT_WARNING,
-                        "File path used by more than one saved image: %s",
+                        "Multiple images can't be saved to an identical path: \"%s\"",
                         ima->name);
           }
           else {
@@ -2378,8 +2378,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
         else {
           BKE_reportf(reports,
                       RPT_WARNING,
-                      "Image %s can't be saved, no valid file path: %s",
-                      ima->id.name + 2,
+                      "Image can't be saved, no valid file path: \"%s\"",
                       ima->name);
         }
       }

@@ -192,6 +192,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_node.grid_levels = U_theme_default.space_node.grid_levels;
   }
 
+  if (!USER_VERSION_ATLEAST(283, 9)) {
+    FROM_DEFAULT_V4_UCHAR(space_info.info_warning);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

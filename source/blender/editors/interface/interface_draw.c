@@ -707,9 +707,6 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
     return;
   }
 
-  float facx = 1.0f;
-  float facy = 1.0f;
-
   int w = BLI_rcti_size_x(rect);
   int h = BLI_rcti_size_y(rect);
 
@@ -722,10 +719,18 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
 #  endif
 
   GPU_blend(true);
+  /* Combine with premultiplied alpha. */
+  GPU_blend_set_func_separate(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
   if (w != ibuf->x || h != ibuf->y) {
-    facx = (float)w / (float)ibuf->x;
-    facy = (float)h / (float)ibuf->y;
+    /* We scale the bitmap, rather than have OGL do a worse job. */
+    IMB_scaleImBuf(ibuf, w, h);
+  }
+
+  float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  if (but->col[3] != 0) {
+    /* Optionally use uiBut's col to recolor the image. */
+    rgba_uchar_to_float(col, but->col);
   }
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
@@ -738,11 +743,14 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
                    GL_UNSIGNED_BYTE,
                    GL_NEAREST,
                    ibuf->rect,
-                   facx,
-                   facy,
-                   NULL);
+                   1.0f,
+                   1.0f,
+                   col);
 
   GPU_blend(false);
+  /* Reset default. */
+  GPU_blend_set_func_separate(
+      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 #  if 0
   // restore scissortest

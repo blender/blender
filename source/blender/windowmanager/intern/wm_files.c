@@ -113,6 +113,7 @@
 #include "GHOST_Path-api.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -3055,11 +3056,38 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
-  uiStyle *style = UI_style_get();
-  uiFontStyle *fs = &style->widgetlabel;
+  uiStyle *style = UI_style_get_dpi();
+  const int dialog_width = U.widget_unit * 22;
+  const short icon_size = 64 * U.dpi_fac;
 
-  /* Filename */
-  const char *blendfile_pathpath = BKE_main_blendfile_path(bmain);
+  /* Calculate icon column factor. */
+  const float split_factor = (float)icon_size / (float)(dialog_width - style->columnspace);
+
+  uiBlock *block = UI_block_begin(C, region, close_file_dialog_name, UI_EMBOSS);
+
+  UI_block_flag_enable(
+      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_emboss_set(block, UI_EMBOSS);
+
+  uiLayout *block_layout = UI_block_layout(
+      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, 0, 0, style);
+
+  /* Split layout to put alert icon on left side. */
+  uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
+
+  /* Alert Icon. */
+  uiLayout *layout = uiLayoutColumn(split_block, false);
+  uiDefButAlert(block, ALERT_ICON_WARNING, 0, 0, 0, icon_size);
+
+  /* The rest of the content on the right. */
+  layout = uiLayoutColumn(split_block, false);
+
+  /* Title. */
+  uiItemL_ex(layout, TIP_("Save changes before closing?"), ICON_NONE, true, false);
+
+  /* Filename. */
+  const char *blendfile_pathpath = BKE_main_blendfile_path(CTX_data_main(C));
   char filename[FILE_MAX];
   if (blendfile_pathpath[0] != '\0') {
     BLI_split_file_part(blendfile_pathpath, filename, sizeof(filename));
@@ -3068,45 +3096,37 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   else {
     STRNCPY(filename, IFACE_("Untitled"));
   }
+  uiItemL(layout, filename, ICON_NONE);
 
-  /* Title */
-  char title[FILE_MAX + 100];
-  UI_text_clip_middle_ex(
-      fs, filename, U.widget_unit * 9, U.widget_unit * 2, sizeof(filename), '\0');
-  BLI_snprintf(title, sizeof(title), TIP_("Save changes to \"%s\" before closing?"), filename);
-  int title_width = MAX2(UI_fontstyle_string_width(fs, title), U.widget_unit * 22);
-
-  /* Create dialog */
-  uiBlock *block = UI_block_begin(C, region, close_file_dialog_name, UI_EMBOSS);
-  style = UI_style_get_dpi();
-
-  UI_block_flag_enable(
-      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-  UI_block_emboss_set(block, UI_EMBOSS);
-
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     10,
-                                     2,
-                                     U.widget_unit * 2 + title_width,
-                                     U.widget_unit * 6,
-                                     0,
-                                     style);
-
-  /* Title */
-  uiItemL_ex(layout, title, ICON_ERROR, true, false);
-
-  /* Image Saving */
+  /* Image Saving Warnings. */
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
   uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
 
   LISTBASE_FOREACH (Report *, report, &reports.list) {
-    uiItemL_ex(layout, report->message, ICON_CANCEL, false, true);
+    uiLayout *row = uiLayoutColumn(layout, false);
+    uiLayoutSetScaleY(row, 0.6f);
+    uiItemS_ex(row, 1.2f);
+
+    /* Error messages created in ED_image_save_all_modified_info() can be long,
+     * but are made to separate into two parts at first colon between text and paths.
+     */
+    char *message = BLI_strdupn(report->message, report->len);
+    char *path_info = strstr(message, ": ");
+    if (path_info) {
+      /* Terminate message string at colon. */
+      path_info[1] = '\0';
+      /* Skip over the ": " */
+      path_info += 2;
+    }
+    uiItemL_ex(row, message, ICON_NONE, false, true);
+    if (path_info) {
+      uiItemL_ex(row, path_info, ICON_NONE, false, true);
+    }
+    MEM_freeN(message);
   }
 
+  /* Modified Images Checkbox. */
   if (modified_images_count > 0) {
     char message[64];
     BLI_snprintf(message,
@@ -3114,7 +3134,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
                  (modified_images_count == 1) ? "Save %u modified image" :
                                                 "Save %u modified images",
                  modified_images_count);
-    uiItemS(layout);
+    uiItemS_ex(layout, 2.0f);
     uiDefButBitC(block,
                  UI_BTYPE_CHECKBOX,
                  1,
@@ -3134,9 +3154,9 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
 
   BKE_reports_clear(&reports);
 
-  uiItemS_ex(layout, 3.0f);
+  uiItemS_ex(layout, 1.0f);
 
-  /* Buttons */
+  /* Buttons. */
 #ifdef _WIN32
   const bool windows_layout = true;
 #else
@@ -3146,37 +3166,44 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   if (windows_layout) {
     /* Windows standard layout. */
 
-    uiLayout *split = uiLayoutSplit(layout, 0.18f, true);
+    uiLayout *split = uiLayoutSplit(block_layout, 0.174f, true);
     uiLayoutSetScaleY(split, 1.2f);
 
-    uiLayout *col = uiLayoutColumn(split, false);
-    uiItemS(col);
+    uiLayoutColumn(split, false);
+    uiItemS(layout);
 
-    col = uiLayoutColumn(split, false);
+    uiLayoutColumn(split, false);
     wm_block_file_close_save_button(block, post_action);
 
-    col = uiLayoutColumn(split, false);
+    uiLayoutColumn(split, false);
     wm_block_file_close_discard_button(block, post_action);
 
-    col = uiLayoutColumn(split, false);
+    uiLayoutColumn(split, false);
     wm_block_file_close_cancel_button(block, post_action);
   }
   else {
     /* macOS and Linux standard layout. */
 
-    uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
+    uiLayout *split = uiLayoutSplit(block_layout, 0.167f, true);
     uiLayoutSetScaleY(split, 1.2f);
 
-    uiLayout *col = uiLayoutColumn(split, true);
+    layout = uiLayoutColumn(split, false);
+    uiItemS(layout);
+
+    /* Split button area into two sections: 40/60. */
+    uiLayout *mac_left = uiLayoutSplit(split, 0.40f, true);
+
+    /* First button uses 75% of left side (30% of original). */
+    uiLayoutSplit(mac_left, 0.75f, true);
     wm_block_file_close_discard_button(block, post_action);
 
-    col = uiLayoutColumn(split, true);
-    uiItemS(col);
+    /* The right side is split 50/50 (each 30% of original). */
+    uiLayout *mac_right = uiLayoutSplit(mac_left, 0.50f, true);
 
-    col = uiLayoutColumn(split, true);
+    uiLayoutColumn(mac_right, false);
     wm_block_file_close_cancel_button(block, post_action);
 
-    col = uiLayoutColumn(split, false);
+    uiLayoutColumn(mac_right, false);
     wm_block_file_close_save_button(block, post_action);
   }
 

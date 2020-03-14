@@ -4439,6 +4439,48 @@ uiBut *uiDefBut(uiBlock *block,
   return but;
 }
 
+uiBut *uiDefButImage(
+    uiBlock *block, void *imbuf, int x, int y, short width, short height, const uchar color[4])
+{
+  uiBut *but = ui_def_but(
+      block, UI_BTYPE_IMAGE, 0, "", x, y, width, height, imbuf, 0, 0, 0, 0, "");
+  if (color) {
+    copy_v4_v4_uchar(but->col, color);
+  }
+  else {
+    but->col[0] = 255;
+    but->col[1] = 255;
+    but->col[2] = 255;
+    but->col[3] = 255;
+  }
+  ui_but_update(but);
+  return but;
+}
+
+uiBut *uiDefButAlert(uiBlock *block, int icon, int x, int y, short width, short height)
+{
+  struct ImBuf *ibuf = UI_alert_image(icon);
+
+  if (icon == ALERT_ICON_BLENDER) {
+    return uiDefButImage(block, ibuf, x, y, width, height, NULL);
+  }
+  else {
+    uchar icon_color[4];
+    ThemeColorID color_id = TH_INFO_WARNING;
+    if (icon == ALERT_ICON_ERROR) {
+      color_id = TH_INFO_ERROR;
+    }
+    else if (icon == ALERT_ICON_INFO) {
+      color_id = TH_INFO_INFO;
+    }
+    else if (icon == ALERT_ICON_QUESTION) {
+      color_id = TH_INFO_PROPERTY;
+    }
+    UI_GetThemeColorType4ubv(color_id, SPACE_INFO, icon_color);
+    return uiDefButImage(block, ibuf, x, y, width, height, icon_color);
+  }
+}
+
 /**
  * if \a _x_ is a power of two (only one bit) return the power,
  * otherwise return -1.
