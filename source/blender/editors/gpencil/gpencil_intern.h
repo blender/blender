@@ -407,7 +407,7 @@ void GPENCIL_OT_select_less(struct wmOperatorType *ot);
 void GPENCIL_OT_select_first(struct wmOperatorType *ot);
 void GPENCIL_OT_select_last(struct wmOperatorType *ot);
 void GPENCIL_OT_select_alternate(struct wmOperatorType *ot);
-void GPENCIL_OT_select_color(struct wmOperatorType *ot);
+void GPENCIL_OT_select_vertex_color(struct wmOperatorType *ot);
 
 void GPENCIL_OT_duplicate(struct wmOperatorType *ot);
 void GPENCIL_OT_delete(struct wmOperatorType *ot);

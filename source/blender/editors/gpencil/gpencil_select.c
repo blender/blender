@@ -1655,7 +1655,7 @@ void GPENCIL_OT_select(wmOperatorType *ot)
 }
 
 /* Select by Vertex Color. */
-static bool gpencil_select_color_poll(bContext *C)
+static bool gpencil_select_vertex_color_poll(bContext *C)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
@@ -1678,7 +1678,7 @@ static bool gpencil_select_color_poll(bContext *C)
   return false;
 }
 
-static int gpencil_select_color_exec(bContext *C, wmOperator *op)
+static int gpencil_select_vertex_color_exec(bContext *C, wmOperator *op)
 {
   const float threshold = RNA_float_get(op->ptr, "threshold");
 
@@ -1736,18 +1736,18 @@ static int gpencil_select_color_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_select_color(wmOperatorType *ot)
+void GPENCIL_OT_select_vertex_color(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Select Color";
-  ot->idname = "GPENCIL_OT_select_color";
-  ot->description = "Select all strokes with same color";
+  ot->name = "Select Vertex Color";
+  ot->idname = "GPENCIL_OT_select_vertex_color";
+  ot->description = "Select all strokes with same vertex color";
 
   /* callbacks */
-  ot->exec = gpencil_select_color_exec;
-  ot->poll = gpencil_select_color_poll;
+  ot->exec = gpencil_select_vertex_color_exec;
+  ot->poll = gpencil_select_vertex_color_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
