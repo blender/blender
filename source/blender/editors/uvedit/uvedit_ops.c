@@ -3485,6 +3485,10 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima,
 
 /** \} */
 
+#define UV_SELECT_ISLAND_LIMIT \
+  float limit[2]; \
+  uvedit_pixel_to_float(sima, limit, 0.05f)
+
 /* -------------------------------------------------------------------- */
 /** \name Box Select Operator
  * \{ */
@@ -3517,6 +3521,8 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
 
   pinned = RNA_boolean_get(op->ptr, "pinned");
+
+  UV_SELECT_ISLAND_LIMIT;
 
   bool changed_multi = false;
 
@@ -3569,23 +3575,33 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
         if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
           continue;
         }
+        bool has_selected = false;
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-          if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION)) {
-
-            /* UV_SYNC_SELECTION - can't do pinned selection */
-            if (BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
-              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-              BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+          if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
+            if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION)) {
+              /* UV_SYNC_SELECTION - can't do pinned selection */
+              if (BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
+                uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+                BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+                has_selected = true;
+              }
+            }
+            else if (pinned) {
+              if ((luv->flag & MLOOPUV_PINNED) && BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
+                uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+                BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+              }
             }
           }
-          else if (pinned) {
-            if ((luv->flag & MLOOPUV_PINNED) && BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
-              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-              BM_elem_flag_enable(l->v, BM_ELEM_TAG);
-            }
-          }
+        }
+        if (has_selected && ts->uv_selectmode == UV_SELECT_ISLAND) {
+          UvNearestHit hit = {
+              .ob = obedit,
+              .efa = efa,
+          };
+          uv_select_linked_multi(
+              scene, ima, objects, objects_len, limit, &hit, true, !select, false, false);
         }
       }
 
@@ -3681,6 +3697,8 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 
   UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
 
+  UV_SELECT_ISLAND_LIMIT;
+
   bool changed_multi = false;
 
   uint objects_len = 0;
@@ -3728,13 +3746,28 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
       BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+        if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+          continue;
+        }
+        bool has_selected = false;
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          if (uv_inside_circle(luv->uv, offset, ellipse)) {
-            changed = true;
-            uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-            BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+          if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
+            luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+            if (uv_inside_circle(luv->uv, offset, ellipse)) {
+              changed = true;
+              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+              BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+              has_selected = true;
+            }
           }
+        }
+        if (has_selected && ts->uv_selectmode == UV_SELECT_ISLAND) {
+          UvNearestHit hit = {
+              .ob = obedit,
+              .efa = efa,
+          };
+          uv_select_linked_multi(
+              scene, ima, objects, objects_len, limit, &hit, true, !select, false, false);
         }
       }
 
@@ -3809,6 +3842,8 @@ static bool do_lasso_select_mesh_uv(bContext *C,
   bool changed_multi = false;
   rcti rect;
 
+  UV_SELECT_ISLAND_LIMIT;
+
   BLI_lasso_boundbox(&rect, mcords, moves);
 
   uint objects_len = 0;
@@ -3857,21 +3892,32 @@ static bool do_lasso_select_mesh_uv(bContext *C,
       BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
-          BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-            if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
-              MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-              if (UI_view2d_view_to_region_clip(
-                      &region->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]) &&
-                  BLI_rcti_isect_pt_v(&rect, screen_uv) &&
-                  BLI_lasso_is_point_inside(
-                      mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED)) {
-                uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-                changed = true;
-                BM_elem_flag_enable(l->v, BM_ELEM_TAG);
-              }
+        if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+          continue;
+        }
+        bool has_selected = false;
+        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+          if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
+            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+            if (UI_view2d_view_to_region_clip(
+                    &region->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]) &&
+                BLI_rcti_isect_pt_v(&rect, screen_uv) &&
+                BLI_lasso_is_point_inside(
+                    mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED)) {
+              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+              changed = true;
+              BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+              has_selected = true;
             }
           }
+        }
+        if (has_selected && ts->uv_selectmode == UV_SELECT_ISLAND) {
+          UvNearestHit hit = {
+              .ob = obedit,
+              .efa = efa,
+          };
+          uv_select_linked_multi(
+              scene, ima, objects, objects_len, limit, &hit, true, !select, false, false);
         }
       }
 
