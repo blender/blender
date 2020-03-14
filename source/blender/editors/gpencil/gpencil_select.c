@@ -1681,6 +1681,7 @@ static bool gpencil_select_vertex_color_poll(bContext *C)
 static int gpencil_select_vertex_color_exec(bContext *C, wmOperator *op)
 {
   const float threshold = RNA_float_get(op->ptr, "threshold");
+  const bool keep = RNA_boolean_get(op->ptr, "keep");
 
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
@@ -1702,8 +1703,18 @@ static int gpencil_select_vertex_color_exec(bContext *C, wmOperator *op)
     bGPDspoint *pt;
     int i;
     bool gps_selected = false;
+    /* If clear unselect stroke. */
+    if (!keep) {
+      gps->flag &= ~GP_STROKE_SELECT;
+    }
+
     /* Check all stroke points. */
     for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+      /* Clear any previous point selected. */
+      if (!keep) {
+        pt->flag &= ~GP_SPOINT_SELECT;
+      }
+
       if (pt->vert_color[3] < 0.03f) {
         continue;
       }
@@ -1756,6 +1767,10 @@ void GPENCIL_OT_select_vertex_color(wmOperatorType *ot)
   /* properties */
   prop = RNA_def_float(ot->srna, "threshold", 0.01f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);
   /* avoid re-using last var */
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(
+      ot->srna, "keep", true, "Keep Previous Selection", "Keep any previous selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
