@@ -632,8 +632,8 @@ class GreasePencilMaterialsPanel:
                 if ob.data.use_stroke_edit_mode:
                     row = layout.row(align=True)
                     row.operator("gpencil.stroke_change_color", text="Assign")
-                    row.operator("gpencil.color_select", text="Select").deselect = False
-                    row.operator("gpencil.color_select", text="Deselect").deselect = True
+                    row.operator("gpencil.select_material", text="Select").deselect = False
+                    row.operator("gpencil.select_material", text="Deselect").deselect = True
         # stroke color
             ma = None
             if is_view3d and brush is not None:
