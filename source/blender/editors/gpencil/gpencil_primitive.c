@@ -1157,8 +1157,6 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 
   /* set GP datablock */
   tgpi->gpd = gpd;
-  /* region where paint was originated */
-  tgpi->gpd->runtime.ar = tgpi->region;
 
   /* if brush doesn't exist, create a new set (fix damaged files from old versions) */
   if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {

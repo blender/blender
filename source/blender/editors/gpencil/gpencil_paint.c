@@ -1653,9 +1653,6 @@ static void gp_session_validatebuffer(tGPsdata *p)
   /* reset flags */
   gpd->runtime.sbuffer_sflag = 0;
 
-  /* reset region */
-  gpd->runtime.ar = NULL;
-
   /* reset inittime */
   p->inittime = 0.0;
 
@@ -1884,7 +1881,6 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 
   /* setup active color */
   /* region where paint was originated */
-  p->gpd->runtime.ar = CTX_wm_region(C);
   int totcol = p->ob->totcol;
   gp_init_colors(p);
 
