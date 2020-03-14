@@ -2398,9 +2398,6 @@ def km_grease_pencil_stroke_paint_draw_brush(params):
         # Draw - straight lines
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
-        # Draw - poly lines
-        ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
-         {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
         # Erase
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
@@ -2720,11 +2717,11 @@ def km_grease_pencil_stroke_weight_mode(params):
 
     items.extend([
         # Brush strength
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
+        ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_weight_paint.brush.strength')]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt.brush.size')]}),
+         {"properties": [("data_path_primary", 'tool_settings.gpencil_weight_paint.brush.size')]}),
         # Context menu
         *_template_items_context_panel("VIEW3D_PT_gpencil_weight_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
@@ -2760,10 +2757,10 @@ def km_grease_pencil_stroke_vertex_mode(params):
         # Selection
         *_grease_pencil_selection(params),
         # Brush strength
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
+        ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength')]}),
         # Brush size
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
+        ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_vertex_paint.brush.size')]}),
         # Display
         *_grease_pencil_display(),
