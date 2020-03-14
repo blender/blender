@@ -321,7 +321,7 @@ void DepsgraphNodeBuilder::begin_build()
   for (IDNode *id_node : graph_->id_nodes) {
     /* It is possible that the ID does not need to have CoW version in which case id_cow is the
      * same as id_orig. Additionally, such ID might have been removed, which makes the check
-     * for whether id_cow is expanded to access freed memory. In orderr to deal with this we
+     * for whether id_cow is expanded to access freed memory. In order to deal with this we
      * check whether CoW is needed based on a scalar value which does not lead to access of
      * possibly deleted memory.
      * Additionally, this saves some space in the map by skipping mapping for datablocks which

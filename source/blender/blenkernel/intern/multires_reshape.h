@@ -101,22 +101,27 @@ typedef struct MultiresReshapeContext {
   int *face_ptex_offset;
 } MultiresReshapeContext;
 
-/* Coordinate which identifies element of a grid.
- * This is directly related on how CD_MDISPS stores dispalcement.
+/**
+ * Coordinate which identifies element of a grid.
+ * This is directly related on how #CD_MDISPS stores displacement.
  */
 typedef struct GridCoord {
   int grid_index;
   float u, v;
 } GridCoord;
 
-/* COordinate within ptex, which is what OpenSubdiv API operates on.  */
+/**
+ * Coordinate within ptex, which is what OpenSubdiv API operates on.
+ */
 typedef struct PTexCoord {
   int ptex_face_index;
   float u, v;
 } PTexCoord;
 
-/* Element of a grid data stored in the destination mesh.
- * This is where reshaped coordinates and mask values will be written to. */
+/**
+ * Element of a grid data stored in the destination mesh.
+ * This is where reshaped coordinates and mask values will be written to.
+ */
 typedef struct ReshapeGridElement {
   float *displacement;
   float *mask;
@@ -270,7 +275,7 @@ void multires_reshape_assign_final_coords_from_orig_mdisps(
 /** \name Displacement smooth.
  * \{ */
 
-/* Operates on a displacement grids (CD_MDISPS) which contains object space coordinates stopred for
+/* Operates on a displacement grids (CD_MDISPS) which contains object space coordinates stored for
  * the reshape level.
  *
  * The result is grids which are defining mesh with a smooth surface and details starting from
@@ -278,7 +283,7 @@ void multires_reshape_assign_final_coords_from_orig_mdisps(
 void multires_reshape_smooth_object_grids_with_details(
     const MultiresReshapeContext *reshape_context);
 
-/* Operates on a displacement grids (CD_MDISPS) which contains object spacecoordinates stopred for
+/* Operates on a displacement grids (CD_MDISPS) which contains object space-coordinates stored for
  * the reshape level.
  *
  * Makes it so surface on top level looks smooth. Details are not preserved
@@ -305,9 +310,9 @@ void multires_reshape_object_grids_to_tangent_displacement(
  * \{ */
 
 /* Update mesh coordinates to the final positions of displacement in object space.
- * This is effectively desired position of base mesh vertices after caneling out displacement.
+ * This is effectively desired position of base mesh vertices after canceling out displacement.
  *
- * NOTE: Expects that mesh's CD_MDISPS has been set ot object space positions. */
+ * NOTE: Expects that mesh's CD_MDISPS has been set to object space positions. */
 void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *reshape_context);
 
 /* Perform better fitting of the base mesh so its subdivided version brings vertices to their

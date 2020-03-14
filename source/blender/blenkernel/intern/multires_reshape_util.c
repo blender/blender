@@ -379,8 +379,7 @@ void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *re
                                                 float r_tangent_matrix[3][3])
 {
   /* For a quad faces we would need to flip the tangent, since they will use
-   * use different coordinates within displacement grid comparent to ptex
-   * face. */
+   * use different coordinates within displacement grid compared to the ptex face. */
   const bool is_quad = multires_reshape_is_quad_face(reshape_context, face_index);
   const int tangent_corner = is_quad ? corner : 0;
   BKE_multires_construct_tangent_matrix(r_tangent_matrix, dPdu, dPdv, tangent_corner);

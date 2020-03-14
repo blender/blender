@@ -786,8 +786,8 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
         if (pinfo->do_grid_update) {
           scene_orig->eevee.light_cache_data->flag |= LIGHTCACHE_UPDATE_GRID;
         }
-        /* If we update grid we need to update the cubemaps too.
-         * So always refresh cubemaps. */
+        /* If we update grid we need to update the cube-maps too.
+         * So always refresh cube-maps. */
         scene_orig->eevee.light_cache_data->flag |= LIGHTCACHE_UPDATE_CUBE;
         /* Tag the lightcache to auto update. */
         scene_orig->eevee.light_cache_data->flag |= LIGHTCACHE_UPDATE_AUTO;

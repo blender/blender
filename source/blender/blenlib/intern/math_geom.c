@@ -5724,7 +5724,7 @@ static float ff_quad_form_factor(float *p, float *n, float *q0, float *q1, float
 
 static __m128 sse_approx_acos(__m128 x)
 {
-  /* needs a better approximation than taylor expansion of acos, since that
+  /* needs a better approximation than Taylor expansion of acos, since that
    * gives big errors for near 1.0 values, sqrt(2 * x) * acos(1 - x) should work
    * better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
 

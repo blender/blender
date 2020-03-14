@@ -89,7 +89,7 @@ bool BLT_lang_is_ime_supported(void);
  * NOTE: We translate BLT_I18NCONTEXT_DEFAULT as BLT_I18NCONTEXT_DEFAULT_BPY in Python,
  *       as we can't use "natural" None value in rna string properties... :/
  *       The void string "" is also interpreted as BLT_I18NCONTEXT_DEFAULT.
- *       For perf reason, we only use the first char to detect this context,
+ *       For performance reason, we only use the first char to detect this context,
  *       so other contexts should never start with the same char!
  */
 #define BLT_I18NCONTEXT_DEFAULT NULL

@@ -38,8 +38,10 @@ typedef struct MultiresReshapeAssignVertcosContext {
   const int num_vert_coords;
 } MultiresReshapeAssignVertcosContext;
 
-/* Set single displacement grid value at a reshape level to a correspnding vertex coordinate.
- * This function will be called for every side of a boundary grid points for inner coordinates. */
+/**
+ * Set single displacement grid value at a reshape level to a corresponding vertex coordinate.
+ * This function will be called for every side of a boundary grid points for inner coordinates.
+ */
 static void multires_reshape_vertcos_foreach_single_vertex(
     const SubdivForeachContext *foreach_context,
     const GridCoord *grid_coord,

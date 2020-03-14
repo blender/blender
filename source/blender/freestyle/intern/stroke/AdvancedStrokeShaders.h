@@ -35,7 +35,7 @@ class CalligraphicShader : public StrokeShader {
  public:
   /*! Builds the shader.
    *  \param iMinThickness:
-   *    The minimum thickness in the direction perpandicular to the main direction.
+   *    The minimum thickness in the direction perpendicular to the main direction.
    *  \param iMaxThickness:
    *    The maximum thickness in the main direction.
    *  \param iOrientation:
