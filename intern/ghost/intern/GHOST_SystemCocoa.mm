@@ -580,7 +580,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
                              keyEquivalent:@"h"];
       [menuItem setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
 
-      menuItem = [appMenu addItemWithTitle:@"Hide others"
+      menuItem = [appMenu addItemWithTitle:@"Hide Others"
                                     action:@selector(hideOtherApplications:)
                              keyEquivalent:@"h"];
       [menuItem
