@@ -33,6 +33,8 @@
 
 #include "IMB_imbuf.h"
 
+#include "BLI_utildefines.h"
+
 /* implementation */
 
 void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buffer, size_t *size)
