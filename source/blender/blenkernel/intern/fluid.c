@@ -3271,12 +3271,12 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *mds, Mesh *orgmesh, Obj
   }
 
   me = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 3, num_faces);
-  mverts = me->mvert;
-  mpolys = me->mpoly;
-  mloops = me->mloop;
   if (!me) {
     return NULL;
   }
+  mverts = me->mvert;
+  mpolys = me->mpoly;
+  mloops = me->mloop;
 
   /* Get size (dimension) but considering scaling scaling. */
   copy_v3_v3(cell_size_scaled, mds->cell_size);
