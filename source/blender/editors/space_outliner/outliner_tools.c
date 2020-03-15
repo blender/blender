@@ -678,8 +678,8 @@ static void object_delete_cb(bContext *C,
       return;
     }
 
-    // check also library later
-    if ((ob->mode && OB_MODE_EDIT) && BKE_object_is_in_editmode(ob)) {
+    /* Check also library later. */
+    if ((ob->mode & OB_MODE_EDIT) && BKE_object_is_in_editmode(ob)) {
       ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
     }
     BKE_id_delete(bmain, ob);
