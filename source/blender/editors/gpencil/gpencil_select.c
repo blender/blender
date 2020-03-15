@@ -1784,7 +1784,6 @@ static int gpencil_select_vertex_color_exec(bContext *C, wmOperator *op)
       /* Extend stroke selection. */
       if (selectmode == GP_SELECTMODE_STROKE) {
         bGPDspoint *pt1 = NULL;
-        int i;
 
         for (i = 0, pt1 = gps->points; i < gps->totpoints; i++, pt1++) {
           pt1->flag |= GP_SPOINT_SELECT;
@@ -1830,15 +1829,16 @@ void GPENCIL_OT_select_vertex_color(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_int(ot->srna,
-                     "threshold",
-                     0,
-                     0,
-                     6,
-                     "Threshold",
-                     "Tolerance of the selection. Higher values select a wider range of similar colors",
-                     0,
-                     6);
+  prop = RNA_def_int(
+      ot->srna,
+      "threshold",
+      0,
+      0,
+      6,
+      "Threshold",
+      "Tolerance of the selection. Higher values select a wider range of similar colors",
+      0,
+      6);
   /* avoid re-using last var */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 

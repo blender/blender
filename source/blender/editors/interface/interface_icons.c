@@ -183,9 +183,9 @@ static const IconType icontypes[] = {
 
 ImBuf *UI_alert_image(eAlertIcon icon)
 {
-# ifdef WITH_HEADLESS
+#  ifdef WITH_HEADLESS
   return NULL
-# else
+#  else
   ImBuf *ibuf;
   icon = MIN2(icon, ALERT_ICON_MAX - 1);
   const int left = icon * ALERT_IMG_SIZE;
@@ -198,7 +198,7 @@ ImBuf *UI_alert_image(eAlertIcon icon)
   IMB_rect_crop(ibuf, &crop);
   IMB_premultiply_alpha(ibuf);
   return ibuf;
-#endif
+#  endif
 }
 
 /* **************************************************** */

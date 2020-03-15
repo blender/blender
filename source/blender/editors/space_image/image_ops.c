@@ -2376,10 +2376,8 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
           }
         }
         else {
-          BKE_reportf(reports,
-                      RPT_WARNING,
-                      "Image can't be saved, no valid file path: \"%s\"",
-                      ima->name);
+          BKE_reportf(
+              reports, RPT_WARNING, "Image can't be saved, no valid file path: \"%s\"", ima->name);
         }
       }
     }
