@@ -705,8 +705,7 @@ static void bb_allocateData(FluidObjectBB *bb, bool use_velocity, bool use_influ
   }
 
   bb->distances = MEM_malloc_arrayN(bb->total_cells, sizeof(float), "fluid_bb_distances");
-  /* Initialize to infinity. */
-  memset(bb->distances, 0x7f7f7f7f, sizeof(float) * bb->total_cells);
+  copy_vn_fl(bb->distances, bb->total_cells, FLT_MAX);
 
   bb->valid = true;
 }
