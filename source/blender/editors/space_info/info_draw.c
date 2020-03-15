@@ -53,7 +53,7 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
 
   /* Zebra striping for background. */
   int bg_id = (report->flag & SELECT) ? TH_INFO_SELECTED : TH_BACK;
-  int shade = tvc->iter_tmp % 2 ? 4 : -4;
+  int shade = (tvc->iter_tmp % 2) ? 4 : -4;
   UI_GetThemeColorShade4ubv(bg_id, shade, bg);
 
   /* Icon color and backgound depend of report type. */

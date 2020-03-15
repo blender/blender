@@ -3164,7 +3164,7 @@ static void regularize_profile_orientation(BevelParams *bp, BMEdge *bme)
       }
       else {
         /* The opposite side as the first direction because we're moving the other way. */
-        edgehalf->leftv->is_profile_start = !toward_bv ^ right_highest;
+        edgehalf->leftv->is_profile_start = (!toward_bv) ^ right_highest;
       }
 
       /* The next jump will in the opposite direction relative to the BevVert. */
