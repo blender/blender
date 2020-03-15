@@ -282,7 +282,9 @@ static bool ed_object_mode_generic_exit_ex(struct Main *bmain,
       ED_object_posemode_exit_ex(bmain, ob);
     }
   }
-  else if ((ob->type == OB_GPENCIL) && ((ob->mode & OB_MODE_OBJECT) == 0)) {
+  else if (ob->type == OB_GPENCIL) {
+    /* Accounted for above. */
+    BLI_assert((ob->mode & OB_MODE_OBJECT) == 0);
     if (only_test) {
       return true;
     }

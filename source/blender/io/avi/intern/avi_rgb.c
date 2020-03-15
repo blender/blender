@@ -97,7 +97,8 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buf
 
     if (buf) {
       size_t rowstride = movie->header->Width * 3;
-      if ((bits != 16) && (movie->header->Width % 2)) {
+      BLI_assert(bits != 16);
+      if (movie->header->Width % 2) {
         rowstride++;
       }
 

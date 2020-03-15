@@ -591,11 +591,9 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           DEG_relations_tag_update(bmain);
         }
         else {
-          if (id) {
-            Main *bmain = CTX_data_main(C);
-            id_single_user(C, id, &template_ui->ptr, template_ui->prop);
-            DEG_relations_tag_update(bmain);
-          }
+          Main *bmain = CTX_data_main(C);
+          id_single_user(C, id, &template_ui->ptr, template_ui->prop);
+          DEG_relations_tag_update(bmain);
         }
       }
       break;

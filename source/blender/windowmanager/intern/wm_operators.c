@@ -3516,7 +3516,7 @@ static int previews_clear_exec(bContext *C, wmOperator *op)
            BKE_idcode_to_idfilter(GS(id->name)) & id_filters);
 #endif
 
-    if (!id || !(BKE_idcode_to_idfilter(GS(id->name)) & id_filters)) {
+    if (!(BKE_idcode_to_idfilter(GS(id->name)) & id_filters)) {
       continue;
     }
 

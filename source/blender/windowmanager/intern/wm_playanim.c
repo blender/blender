@@ -525,9 +525,7 @@ static void build_pict_list_ex(
       BLI_stringenc(filepath, fp_decoded.head, fp_decoded.tail, fp_decoded.digits, fp_framenr);
 
       while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0))) {
-        if (hasevent) {
-          GHOST_DispatchEvents(g_WS.ghost_system);
-        }
+        GHOST_DispatchEvents(g_WS.ghost_system);
         if (ps->loading == false) {
           return;
         }

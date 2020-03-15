@@ -3382,11 +3382,9 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 
         if (use_add) {
           /* In add mode, we add relative shape key offset. */
-          if (kb) {
-            const float *rco = CustomData_bmesh_get_n(
-                &em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
-            sub_v3_v3v3(co, co, rco);
-          }
+          const float *rco = CustomData_bmesh_get_n(
+              &em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
+          sub_v3_v3v3(co, co, rco);
 
           madd_v3_v3fl(eve->co, co, blend);
         }
