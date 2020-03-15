@@ -529,6 +529,8 @@ void workbench_draw_finish(void *ved)
 {
   WORKBENCH_Data *vedata = ved;
   workbench_volume_draw_finish(vedata);
+  /* Reset default view. */
+  DRW_view_set_active(NULL);
 }
 
 static void workbench_engine_free(void)
