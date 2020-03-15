@@ -243,7 +243,7 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
   bool tot_changed = false, do_init;
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
 
   do_init = (v2d->flag & V2D_IS_INITIALISED) == 0;
 

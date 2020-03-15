@@ -81,7 +81,7 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
     return;
   }
 
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
 
   BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.pixelsize * U.dpi);
   int label_width = BLF_width(style->widgetlabel.uifont_id, label, strlen(label));
@@ -259,7 +259,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
 {
   uiBlock *block;
   uiBut *but;
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
 
   block = UI_block_begin(C, region, "splash", UI_EMBOSS);
 

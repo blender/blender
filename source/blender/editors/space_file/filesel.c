@@ -639,7 +639,7 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 
 float file_string_width(const char *str)
 {
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   float width;
 
   UI_fontstyle_set(&style->widget);
@@ -661,12 +661,12 @@ float file_font_pointsize(void)
 #if 0
   float s;
   char tmp[2] = "X";
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   UI_fontstyle_set(&style->widget);
   s = BLF_height(style->widget.uifont_id, tmp);
   return style->widget.points;
 #else
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   UI_fontstyle_set(&style->widget);
   return style->widget.points * UI_DPI_FAC;
 #endif

@@ -2818,7 +2818,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                                              void *UNUSED(arg1))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
 
   UI_block_flag_enable(
@@ -3056,7 +3056,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   const int dialog_width = U.widget_unit * 22;
   const short icon_size = 64 * U.dpi_fac;
 

@@ -2351,7 +2351,7 @@ static void ed_panel_draw(const bContext *C,
                           int em,
                           bool vertical)
 {
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
 
   /* draw panel */
   uiBlock *block = UI_block_begin(C, region, pt->idname, UI_EMBOSS);
@@ -2734,7 +2734,7 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *region)
 
 void ED_region_header_layout(const bContext *C, ARegion *region)
 {
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   uiBlock *block;
   uiLayout *layout;
   HeaderType *ht;
@@ -2960,7 +2960,7 @@ void ED_region_info_draw_multiline(ARegion *region,
                                    const bool full_redraw)
 {
   const int header_height = UI_UNIT_Y;
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   int fontid = style->widget.uifont_id;
   int scissor[4];
   int num_lines = 0;
@@ -3266,7 +3266,7 @@ void ED_region_image_metadata_draw(
 {
   float box_y;
   rctf rect;
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
 
   if (!ibuf->metadata) {
     return;
@@ -3521,7 +3521,7 @@ void ED_region_cache_draw_background(ARegion *region)
 
 void ED_region_cache_draw_curfra_label(const int framenr, const float x, const float y)
 {
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   int fontid = style->widget.uifont_id;
   char numstr[32];
   float font_dims[2] = {0.0f, 0.0f};

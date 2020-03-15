@@ -1319,7 +1319,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   wmOperator *op = arg_op;
   uiBlock *block;
   uiLayout *layout;
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   int width = 15 * UI_UNIT_X;
 
   block = UI_block_begin(C, region, __func__, UI_EMBOSS);
@@ -1401,7 +1401,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
   wmOperator *op = data->op;
   uiBlock *block;
   uiLayout *layout;
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
 
   block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
@@ -1450,7 +1450,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userDa
   wmOperator *op = data->op;
   uiBlock *block;
   uiLayout *layout;
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
 
   block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
@@ -2308,7 +2308,7 @@ static void radial_control_paint_curve(uint pos, Brush *br, float radius, int li
 static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void *customdata)
 {
   RadialControl *rc = customdata;
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   const uiFontStyle *fstyle = &style->widget;
   const int fontid = fstyle->uifont_id;
   short fstyle_points = fstyle->points;

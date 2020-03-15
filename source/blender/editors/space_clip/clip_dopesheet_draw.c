@@ -296,7 +296,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   SpaceClip *sc = CTX_wm_space_clip(C);
   View2D *v2d = &region->v2d;
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   int fontid = style->widget.uifont_id;
 
   if (!clip) {

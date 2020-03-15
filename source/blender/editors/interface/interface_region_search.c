@@ -498,7 +498,7 @@ static void ui_searchbox_region_free_cb(ARegion *region)
 ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but)
 {
   wmWindow *win = CTX_wm_window(C);
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   static ARegionType type;
   ARegion *region;
   uiSearchboxData *data;

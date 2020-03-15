@@ -310,7 +310,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
     bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
 {
   wmWindow *window = CTX_wm_window(C);
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   uiPopupBlockHandle *handle;
   uiPopupMenu *pup;
 
@@ -380,7 +380,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
                                     const char *block_name,
                                     int icon)
 {
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   uiPopupMenu *pup = MEM_callocN(sizeof(uiPopupMenu), "popup menu");
   uiBut *but;
 

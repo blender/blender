@@ -2155,7 +2155,7 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
   int winx, winy;

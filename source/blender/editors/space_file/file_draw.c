@@ -170,7 +170,6 @@ static void file_draw_string(int sx,
                              eFontStyle_Align align,
                              const uchar col[4])
 {
-  uiStyle *style;
   uiFontStyle fs;
   rcti rect;
   char fname[FILE_MAXFILE];
@@ -179,7 +178,7 @@ static void file_draw_string(int sx,
     return;
   }
 
-  style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   fs = style->widgetlabel;
 
   BLI_strncpy(fname, string, FILE_MAXFILE);

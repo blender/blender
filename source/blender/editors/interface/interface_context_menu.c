@@ -169,7 +169,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
   wmKeyMapItem *kmi;
   PointerRNA ptr;
   uiLayout *layout;
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
 
@@ -225,7 +225,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
   wmKeyMapItem *kmi;
   PointerRNA ptr;
   uiLayout *layout;
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
   int kmi_id;
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);

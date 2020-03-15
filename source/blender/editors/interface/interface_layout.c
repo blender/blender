@@ -91,7 +91,7 @@ typedef struct uiLayoutRoot {
   uiMenuHandleFunc handlefunc;
   void *argv;
 
-  uiStyle *style;
+  const uiStyle *style;
   uiBlock *block;
   uiLayout *layout;
 } uiLayoutRoot;
@@ -499,7 +499,7 @@ static void ui_item_array(uiLayout *layout,
                           bool compact,
                           bool show_text)
 {
-  uiStyle *style = layout->root->style;
+  const uiStyle *style = layout->root->style;
   uiBut *but;
   PropertyType type;
   PropertySubType subtype;
@@ -3707,7 +3707,7 @@ static void ui_litem_layout_root(uiLayout *litem)
 /* box layout */
 static void ui_litem_estimate_box(uiLayout *litem)
 {
-  uiStyle *style = litem->root->style;
+  const uiStyle *style = litem->root->style;
 
   ui_litem_estimate_column(litem, true);
 
@@ -3722,7 +3722,7 @@ static void ui_litem_estimate_box(uiLayout *litem)
 static void ui_litem_layout_box(uiLayout *litem)
 {
   uiLayoutItemBx *box = (uiLayoutItemBx *)litem;
-  uiStyle *style = litem->root->style;
+  const uiStyle *style = litem->root->style;
   uiBut *but;
   int w, h;
 
@@ -3767,7 +3767,7 @@ static void ui_litem_layout_box(uiLayout *litem)
 /* multi-column layout, automatically flowing to the next */
 static void ui_litem_estimate_column_flow(uiLayout *litem)
 {
-  uiStyle *style = litem->root->style;
+  const uiStyle *style = litem->root->style;
   uiLayoutItemFlow *flow = (uiLayoutItemFlow *)litem;
   uiItem *item;
   int col, x, y, emh, emy, miny, itemw, itemh, maxw = 0;
@@ -3832,7 +3832,7 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 
 static void ui_litem_layout_column_flow(uiLayout *litem)
 {
-  uiStyle *style = litem->root->style;
+  const uiStyle *style = litem->root->style;
   uiLayoutItemFlow *flow = (uiLayoutItemFlow *)litem;
   uiItem *item;
   int col, x, y, w, emh, emy, miny, itemw, itemh;
@@ -4071,7 +4071,7 @@ static void ui_litem_grid_flow_compute(ListBase *items,
 
 static void ui_litem_estimate_grid_flow(uiLayout *litem)
 {
-  uiStyle *style = litem->root->style;
+  const uiStyle *style = litem->root->style;
   uiLayoutItemGridFlow *gflow = (uiLayoutItemGridFlow *)litem;
 
   const int space_x = style->columnspace;
@@ -4199,7 +4199,7 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 static void ui_litem_layout_grid_flow(uiLayout *litem)
 {
   int i;
-  uiStyle *style = litem->root->style;
+  const uiStyle *style = litem->root->style;
   uiLayoutItemGridFlow *gflow = (uiLayoutItemGridFlow *)litem;
   uiItem *item;
 
@@ -5092,8 +5092,15 @@ static void ui_layout_add_padding_button(uiLayoutRoot *root)
   }
 }
 
-uiLayout *UI_block_layout(
-    uiBlock *block, int dir, int type, int x, int y, int size, int em, int padding, uiStyle *style)
+uiLayout *UI_block_layout(uiBlock *block,
+                          int dir,
+                          int type,
+                          int x,
+                          int y,
+                          int size,
+                          int em,
+                          int padding,
+                          const uiStyle *style)
 {
   uiLayout *layout;
   uiLayoutRoot *root;

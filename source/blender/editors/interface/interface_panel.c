@@ -434,7 +434,7 @@ void UI_panel_end(
 
 static void ui_offset_panel_block(uiBlock *block)
 {
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
 
   /* compute bounds and offset */
   ui_block_bounds_calc(block);
@@ -1938,7 +1938,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   // #define USE_FLAT_INACTIVE
   const bool is_left = RGN_ALIGN_ENUM_FROM_MASK(region->alignment != RGN_ALIGN_RIGHT);
   View2D *v2d = &region->v2d;
-  uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get();
   const uiFontStyle *fstyle = &style->widget;
   const int fontid = fstyle->uifont_id;
   short fstyle_points = fstyle->points;

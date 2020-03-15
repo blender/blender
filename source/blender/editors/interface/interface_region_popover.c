@@ -94,7 +94,7 @@ static void ui_popover_create_block(bContext *C, uiPopover *pup, int opcontext)
 {
   BLI_assert(pup->ui_size_x != 0);
 
-  uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = UI_style_get_dpi();
 
   pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS);
   UI_block_flag_enable(pup->block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
