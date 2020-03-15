@@ -1661,7 +1661,7 @@ static void gpencil_selected_hue_table(bContext *C,
                                        const int threshold,
                                        GHash *hue_table)
 {
-  const float range = pow(10, 10 - threshold);
+  const float range = pow(10, 5 - threshold);
   float hsv[3];
 
   /* Extract all colors. */
@@ -1729,7 +1729,7 @@ static int gpencil_select_vertex_color_exec(bContext *C, wmOperator *op)
   const float threshold = RNA_int_get(op->ptr, "threshold");
   const int selectmode = gpencil_select_mode_from_vertex(ts->gpencil_selectmode_vertex);
   bGPdata *gpd = (bGPdata *)ob->data;
-  const float range = pow(10, 10 - threshold);
+  const float range = pow(10, 5 - threshold);
 
   bool done = false;
 
@@ -1823,11 +1823,11 @@ void GPENCIL_OT_select_vertex_color(wmOperatorType *ot)
       "threshold",
       0,
       0,
-      10,
+      5,
       "Threshold",
       "Tolerance of the selection. Higher values select a wider range of similar colors",
       0,
-      10);
+      5);
   /* avoid re-using last var */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
