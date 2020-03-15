@@ -489,7 +489,7 @@ TEST(delaunay, Quad0)
   int e_diag_out;
   const char *spec = R"(4 0 0
   0.0 1.0
-  1,0. 0.0
+  1.0 0.0
   2.0 0.1
   2.25 0.5
   )";
