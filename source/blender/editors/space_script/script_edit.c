@@ -67,12 +67,12 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
   ot->name = "Run Python File";
   ot->description = "Run Python file";
   ot->idname = "SCRIPT_OT_python_file_run";
-  ot->flag = OPTYPE_UNDO;
 
   /* api callbacks */
   ot->exec = run_pyfile_exec;
   ot->poll = ED_operator_areaactive;
 
+  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   RNA_def_string_file_path(ot->srna, "filepath", NULL, FILE_MAX, "Path", "");

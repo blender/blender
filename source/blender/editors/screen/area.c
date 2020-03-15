@@ -3175,7 +3175,6 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
     ctx.fontid = fontid;
     ctx.xmin = xmin;
     ctx.ymin = ymin;
-    ctx.vertical_offset = vertical_offset;
     ctx.current_y = ofs_y;
     ctx.vertical_offset = vertical_offset;
     IMB_metadata_foreach(ibuf, metadata_custom_draw_fields, &ctx);

@@ -57,7 +57,6 @@ static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)
   data->despill_factor = 1.0f;
   data->edge_kernel_radius = 3;
   data->edge_kernel_tolerance = 0.1f;
-  data->clip_white = 1.0f;
   data->clip_black = 0.0f;
   data->clip_white = 1.0f;
 

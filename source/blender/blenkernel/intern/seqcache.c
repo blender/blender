@@ -682,7 +682,6 @@ void BKE_sequencer_cache_put(
   key->nfra = cfra - seq->start;
   key->type = type;
   key->cost = cost;
-  key->cache_owner = cache;
   key->link_prev = NULL;
   key->link_next = NULL;
   key->is_temp_cache = true;

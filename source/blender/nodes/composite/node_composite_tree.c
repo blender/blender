@@ -101,9 +101,8 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
   bNode *node = ntree->nodes.first;
   bNode *local_node = localtree->nodes.first;
   while (node != NULL) {
-    local_node->original = node;
 
-    /* ensure new user input gets handled ok */
+    /* Ensure new user input gets handled ok. */
     node->need_exec = 0;
     local_node->original = node;
 

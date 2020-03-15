@@ -3048,7 +3048,6 @@ static void UV_OT_select_linked(wmOperatorType *ot)
   ot->name = "Select Linked";
   ot->description = "Select all UV vertices linked to the active UV map";
   ot->idname = "UV_OT_select_linked";
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* api callbacks */
   ot->exec = uv_select_linked_exec;
