@@ -766,24 +766,25 @@ static int voronoi_addTriangulationPoint(const float coord[2],
   return (*triangulated_points_total) - 1;
 }
 
-static void voronoi_addTriangle(int v1, int v2, int v3, int (**triangles)[3], int *triangles_total)
+static void voronoi_addTriangle(
+    int v1, int v2, int v3, int (**r_triangles)[3], int *r_triangles_total)
 {
   int *triangle;
 
-  if (*triangles) {
-    *triangles = MEM_reallocN(*triangles, sizeof(int[3]) * (*triangles_total + 1));
+  if (*r_triangles) {
+    *r_triangles = MEM_reallocN(*r_triangles, sizeof(int[3]) * (*r_triangles_total + 1));
   }
   else {
-    *triangles = MEM_callocN(sizeof(int[3]), "trianglulation triangles");
+    *r_triangles = MEM_callocN(sizeof(int[3]), "trianglulation triangles");
   }
 
-  triangle = (int *)&(*triangles)[(*triangles_total)];
+  triangle = (int *)&(*r_triangles)[(*r_triangles_total)];
 
   triangle[0] = v1;
   triangle[1] = v2;
   triangle[2] = v3;
 
-  (*triangles_total)++;
+  (*r_triangles_total)++;
 }
 
 void BLI_voronoi_triangulate(const VoronoiSite *sites,
