@@ -262,58 +262,49 @@ template<typename T> inline void cast_from_float4(T *data, float4 value)
 
 /* Slower versions for other all data types, which needs to convert to float and back. */
 template<typename T, bool compress_as_srgb = false>
-inline void processor_apply_pixels(const OCIO::Processor *processor,
-                                   T *pixels,
-                                   size_t width,
-                                   size_t height)
+inline void processor_apply_pixels(const OCIO::Processor *processor, T *pixels, size_t num_pixels)
 {
   /* TODO: implement faster version for when we know the conversion
    * is a simple matrix transform between linear spaces. In that case
    * unpremultiply is not needed. */
 
   /* Process large images in chunks to keep temporary memory requirement down. */
-  size_t y_chunk_size = max(1, 16 * 1024 * 1024 / (sizeof(float4) * width));
-  vector<float4> float_pixels(y_chunk_size * width);
+  const size_t chunk_size = std::min((size_t)(16 * 1024 * 1024), num_pixels);
+  vector<float4> float_pixels(chunk_size);
 
-  for (size_t y0 = 0; y0 < height; y0 += y_chunk_size) {
-    size_t y1 = std::min(y0 + y_chunk_size, height);
-    size_t i = 0;
+  for (size_t j = 0; j < num_pixels; j += chunk_size) {
+    size_t width = std::min(chunk_size, num_pixels - j);
 
-    for (size_t y = y0; y < y1; y++) {
-      for (size_t x = 0; x < width; x++, i++) {
-        float4 value = cast_to_float4(pixels + 4 * (y * width + x));
+    for (size_t i = 0; i < width; i++) {
+      float4 value = cast_to_float4(pixels + 4 * (j + i));
 
-        if (!(value.w <= 0.0f || value.w == 1.0f)) {
-          float inv_alpha = 1.0f / value.w;
-          value.x *= inv_alpha;
-          value.y *= inv_alpha;
-          value.z *= inv_alpha;
-        }
-
-        float_pixels[i] = value;
+      if (!(value.w <= 0.0f || value.w == 1.0f)) {
+        float inv_alpha = 1.0f / value.w;
+        value.x *= inv_alpha;
+        value.y *= inv_alpha;
+        value.z *= inv_alpha;
       }
+
+      float_pixels[i] = value;
     }
 
-    OCIO::PackedImageDesc desc((float *)float_pixels.data(), width, y_chunk_size, 4);
+    OCIO::PackedImageDesc desc((float *)float_pixels.data(), width, 1, 4);
     processor->apply(desc);
 
-    i = 0;
-    for (size_t y = y0; y < y1; y++) {
-      for (size_t x = 0; x < width; x++, i++) {
-        float4 value = float_pixels[i];
+    for (size_t i = 0; i < width; i++) {
+      float4 value = float_pixels[i];
 
-        if (compress_as_srgb) {
-          value = color_linear_to_srgb_v4(value);
-        }
-
-        if (!(value.w <= 0.0f || value.w == 1.0f)) {
-          value.x *= value.w;
-          value.y *= value.w;
-          value.z *= value.w;
-        }
-
-        cast_from_float4(pixels + 4 * (y * width + x), value);
+      if (compress_as_srgb) {
+        value = color_linear_to_srgb_v4(value);
       }
+
+      if (!(value.w <= 0.0f || value.w == 1.0f)) {
+        value.x *= value.w;
+        value.y *= value.w;
+        value.z *= value.w;
+      }
+
+      cast_from_float4(pixels + 4 * (j + i), value);
     }
   }
 }
@@ -322,9 +313,7 @@ inline void processor_apply_pixels(const OCIO::Processor *processor,
 template<typename T>
 void ColorSpaceManager::to_scene_linear(ustring colorspace,
                                         T *pixels,
-                                        size_t width,
-                                        size_t height,
-                                        size_t depth,
+                                        size_t num_pixels,
                                         bool compress_as_srgb)
 {
 #ifdef WITH_OCIO
@@ -333,23 +322,17 @@ void ColorSpaceManager::to_scene_linear(ustring colorspace,
   if (processor) {
     if (compress_as_srgb) {
       /* Compress output as sRGB. */
-      for (size_t z = 0; z < depth; z++) {
-        processor_apply_pixels<T, true>(processor, &pixels[z * width * height], width, height);
-      }
+      processor_apply_pixels<T, true>(processor, pixels, num_pixels);
     }
     else {
       /* Write output as scene linear directly. */
-      for (size_t z = 0; z < depth; z++) {
-        processor_apply_pixels<T>(processor, &pixels[z * width * height], width, height);
-      }
+      processor_apply_pixels<T>(processor, pixels, num_pixels);
     }
   }
 #else
   (void)colorspace;
   (void)pixels;
-  (void)width;
-  (void)height;
-  (void)depth;
+  (void)num_pixels;
   (void)compress_as_srgb;
 #endif
 }
@@ -404,9 +387,9 @@ void ColorSpaceManager::free_memory()
 }
 
 /* Template instanstations so we don't have to inline functions. */
-template void ColorSpaceManager::to_scene_linear(ustring, uchar *, size_t, size_t, size_t, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, ushort *, size_t, size_t, size_t, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, half *, size_t, size_t, size_t, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, float *, size_t, size_t, size_t, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, uchar *, size_t, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, ushort *, size_t, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, half *, size_t, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, float *, size_t, bool);
 
 CCL_NAMESPACE_END

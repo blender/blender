@@ -45,9 +45,7 @@ class ColorSpaceManager {
   template<typename T>
   static void to_scene_linear(ustring colorspace,
                               T *pixels,
-                              size_t width,
-                              size_t height,
-                              size_t depth,
+                              size_t num_pixels,
                               bool compress_as_srgb);
 
   /* Efficiently convert pixels to scene linear colorspace at render time,

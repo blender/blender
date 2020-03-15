@@ -534,7 +534,7 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
         img->metadata.colorspace != u_colorspace_srgb) {
       /* Convert to scene linear. */
       ColorSpaceManager::to_scene_linear(
-          img->metadata.colorspace, pixels, width, height, depth, img->metadata.compress_as_srgb);
+          img->metadata.colorspace, pixels, num_pixels, img->metadata.compress_as_srgb);
     }
   }
 
