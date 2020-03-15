@@ -658,7 +658,7 @@ static void gpu_viewport_storage_free(StorageList *stl, int stl_len)
 
 static void gpu_viewport_passes_free(PassList *psl, int psl_len)
 {
-  memset(psl, 0, sizeof(struct DRWPass *) * psl_len);
+  memset(psl->passes, 0, sizeof(*psl->passes) * psl_len);
 }
 
 /* Must be executed inside Drawmanager Opengl Context. */
