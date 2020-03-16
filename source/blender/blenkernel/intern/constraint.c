@@ -4822,7 +4822,7 @@ static bConstraintTypeInfo CTI_FOLLOWTRACK = {
     followtrack_evaluate,           /* evaluate */
 };
 
-/* ----------- Camre Solver ------------- */
+/* ----------- Camera Solver ------------- */
 
 static void camerasolver_new_data(void *cdata)
 {
