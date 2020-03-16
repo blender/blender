@@ -560,6 +560,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       light
       mesh
       motion_blur
+      openvdb
       render_layer
       reports
       shader
