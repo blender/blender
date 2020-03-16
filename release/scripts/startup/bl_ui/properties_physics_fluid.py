@@ -192,8 +192,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
                 sub.prop(domain, "gravity", text="Using Scene Gravity", icon='SCENE_DATA')
             else:
                 col.prop(domain, "gravity", text="Gravity")
-            # TODO (sebbas): Clipping var useful for manta openvdb caching?
-            # col.prop(domain, "clipping", text="Empty Space")
+            col.prop(domain, "clipping", text="Empty Space")
 
             if domain.cache_type == 'MODULAR':
                 col.separator()

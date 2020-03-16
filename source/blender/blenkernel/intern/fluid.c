@@ -4851,7 +4851,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
 #else
     mmd->domain->openvdb_comp = VDB_COMPRESSION_ZIP;
 #endif
-    mmd->domain->clipping = 1e-3f;
+    mmd->domain->clipping = 1e-6f;
     mmd->domain->data_depth = 0;
   }
   else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
