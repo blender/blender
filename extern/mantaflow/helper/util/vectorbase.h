@@ -15,7 +15,7 @@
 #define _VECTORBASE_H
 
 // get rid of windos min/max defines
-#if defined(WIN32) || defined(_WIN32)
+#if (defined(WIN32) || defined(_WIN32)) && !defined(NOMINMAX)
 #  define NOMINMAX
 #endif
 
