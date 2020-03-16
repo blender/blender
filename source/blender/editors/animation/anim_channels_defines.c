@@ -71,6 +71,7 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
@@ -916,7 +917,8 @@ static bool acf_group_setting_valid(bAnimContext *ac,
   /* for now, all settings are supported, though some are only conditionally */
   switch (setting) {
     /* unsupported */
-    case ACHANNEL_SETTING_SOLO: /* Only available in NLA Editor for tracks */
+    case ACHANNEL_SETTING_SOLO:   /* Only available in NLA Editor for tracks */
+    case ACHANNEL_SETTING_PINNED: /* Only for NLA actions */
       return false;
 
     /* conditionally supported */
@@ -1963,6 +1965,25 @@ static int acf_dsskey_icon(bAnimListElem *UNUSED(ale))
   return ICON_SHAPEKEY_DATA;
 }
 
+/* check if some setting exists for this channel */
+static bool acf_dsskey_setting_valid(bAnimContext *ac,
+                                     bAnimListElem *UNUSED(ale),
+                                     eAnimChannel_Settings setting)
+{
+  switch (setting) {
+    case ACHANNEL_SETTING_SELECT:
+    case ACHANNEL_SETTING_EXPAND:
+      return true;
+
+    /* mute is only supported for NLA */
+    case ACHANNEL_SETTING_MUTE:
+      return ((ac) && (ac->spacetype == SPACE_NLA));
+
+    default:
+      return false;
+  }
+}
+
 /* get the appropriate flag(s) for the setting when it is valid  */
 static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac),
                                    eAnimChannel_Settings setting,
@@ -2029,9 +2050,9 @@ static bAnimChannelType ACF_DSSKEY = {
     acf_generic_idblock_name_prop, /* name prop */
     acf_dsskey_icon,               /* icon */
 
-    acf_generic_dataexpand_setting_valid, /* has setting */
-    acf_dsskey_setting_flag,              /* flag for setting */
-    acf_dsskey_setting_ptr,               /* pointer for setting */
+    acf_dsskey_setting_valid, /* has setting */
+    acf_dsskey_setting_flag,  /* flag for setting */
+    acf_dsskey_setting_ptr,   /* pointer for setting */
 };
 
 /* World Expander  ------------------------------------------- */
@@ -3155,6 +3176,8 @@ static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac),
     /* unsupported */
     case ACHANNEL_SETTING_EXPAND: /* gpencil layers are more like F-Curves than groups */
     case ACHANNEL_SETTING_SOLO:   /* nla editor only */
+    case ACHANNEL_SETTING_MOD_OFF:
+    case ACHANNEL_SETTING_PINNED: /* nla actions only */
       return false;
 
     /* always available */
@@ -3335,6 +3358,9 @@ static bool acf_masklay_setting_valid(bAnimContext *UNUSED(ac),
     case ACHANNEL_SETTING_EXPAND:  /* mask layers are more like F-Curves than groups */
     case ACHANNEL_SETTING_VISIBLE: /* graph editor only */
     case ACHANNEL_SETTING_SOLO:    /* nla editor only */
+    case ACHANNEL_SETTING_MOD_OFF:
+    case ACHANNEL_SETTING_PINNED: /* nla actions only */
+    case ACHANNEL_SETTING_MUTE:
       return false;
 
     /* always available */
@@ -4112,10 +4138,6 @@ void ANIM_channel_draw(
       /* just skip - drawn as widget now */
       offset += ICON_WIDTH;
     }
-    else if (ale->type == ANIMTYPE_GPLAYER) {
-      /* just skip - drawn as a widget */
-      offset += ICON_WIDTH;
-    }
   }
 
   /* step 5) draw name ............................................... */
@@ -4163,8 +4185,16 @@ void ANIM_channel_draw(
   }
 
   /* step 6) draw backdrops behind mute+protection toggles + (sliders) ....................... */
-  /* reset offset - now goes from RHS of panel */
-  offset = 0;
+  /*  - Reset offset - now goes from RHS of panel.
+   *  - Exception for graph editor, which needs extra space for the scroll bar.
+   */
+  if (ac->spacetype == SPACE_GRAPH &&
+      ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_GROUP)) {
+    offset = V2D_SCROLL_WIDTH;
+  }
+  else {
+    offset = 0;
+  }
 
   /* TODO: when drawing sliders, make those draw instead of these toggles if not enough space */
 
@@ -4207,7 +4237,14 @@ void ANIM_channel_draw(
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
         offset += ICON_WIDTH;
       }
+
+      /* grease pencil visibility... */
       if (ale->type == ANIMTYPE_GPLAYER) {
+        offset += ICON_WIDTH;
+      }
+
+      /* modifiers toggle... */
+      if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MOD_OFF)) {
         offset += ICON_WIDTH;
       }
 
@@ -4957,8 +4994,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
       /* modifiers disable */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MOD_OFF)) {
-        /* hack: extra spacing, to avoid touching the mute toggle */
-        offset -= ICON_WIDTH * 1.2f;
+        offset -= ICON_WIDTH;
         draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_MOD_OFF);
       }
 
@@ -5073,37 +5109,19 @@ void ANIM_channel_draw_widgets(const bContext *C,
         else if (ale->type == ANIMTYPE_GPLAYER) {
           bGPdata *gpd = (bGPdata *)ale->id;
           if ((gpd != NULL) && ((gpd->flag & GP_DATA_ANNOTATIONS) == 0)) {
-            /* Add some offset to make it more pleasing to the eye. */
-            offset += SLIDER_WIDTH / 2.1f;
+            /* Reset slider offset, in order to add special gp icons. */
+            offset += SLIDER_WIDTH;
 
             char *gp_rna_path = NULL;
             bGPDlayer *gpl = (bGPDlayer *)ale->data;
-            const short width = SLIDER_WIDTH / 5;
 
             /* Create the RNA pointers. */
             RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, &ptr);
             RNA_id_pointer_create(ale->id, &id_ptr);
             int icon;
 
-            /* Layer opacity. */
-            UI_block_emboss_set(block, UI_EMBOSS);
-            prop = RNA_struct_find_property(&ptr, "opacity");
-            gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
-            if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-              uiDefAutoButR(block,
-                            &ptr,
-                            prop,
-                            array_index,
-                            "",
-                            ICON_NONE,
-                            offset,
-                            ymid,
-                            width * 3,
-                            channel_height);
-            }
-            MEM_freeN(gp_rna_path);
-
             /* Mask Layer. */
+            offset -= ICON_WIDTH;
             UI_block_emboss_set(block, UI_EMBOSS_NONE);
             prop = RNA_struct_find_property(&ptr, "use_mask_layer");
             gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
@@ -5121,14 +5139,15 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             array_index,
                             "",
                             icon,
-                            offset + (width * 3),
+                            offset,
                             ymid,
-                            width,
+                            ICON_WIDTH,
                             channel_height);
             }
             MEM_freeN(gp_rna_path);
 
             /* Layer onion skinning switch. */
+            offset -= ICON_WIDTH;
             prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
             gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
             if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
@@ -5140,7 +5159,27 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             array_index,
                             "",
                             icon,
-                            offset + (width * 4),
+                            offset,
+                            ymid,
+                            ICON_WIDTH,
+                            channel_height);
+            }
+            MEM_freeN(gp_rna_path);
+
+            /* Layer opacity. */
+            const short width = SLIDER_WIDTH * 0.6;
+            offset -= width;
+            UI_block_emboss_set(block, UI_EMBOSS);
+            prop = RNA_struct_find_property(&ptr, "opacity");
+            gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
+            if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
+              uiDefAutoButR(block,
+                            &ptr,
+                            prop,
+                            array_index,
+                            "",
+                            ICON_NONE,
+                            offset,
                             ymid,
                             width,
                             channel_height);
