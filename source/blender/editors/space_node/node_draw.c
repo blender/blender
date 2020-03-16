@@ -1181,6 +1181,25 @@ static void node_draw_basis(const bContext *C,
     UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_group_edit");
     UI_block_emboss_set(node->block, UI_EMBOSS);
   }
+  if (node->type == NODE_CUSTOM && node->typeinfo->ui_icon != ICON_NONE) {
+    iconofs -= iconbutw;
+    UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
+    uiDefIconBut(node->block,
+                 UI_BTYPE_BUT,
+                 0,
+                 node->typeinfo->ui_icon,
+                 iconofs,
+                 rct->ymax - NODE_DY,
+                 iconbutw,
+                 UI_UNIT_Y,
+                 NULL,
+                 0,
+                 0,
+                 0,
+                 0,
+                 "");
+    UI_block_emboss_set(node->block, UI_EMBOSS);
+  }
 
   /* title */
   if (node->flag & SELECT) {
