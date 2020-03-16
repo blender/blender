@@ -21,5 +21,6 @@ local:
 	*boost*;
 	*SDL*;
 	*embree*;
+	cu*;
 };
 
