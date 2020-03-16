@@ -304,7 +304,12 @@ void ImageManager::load_image_metadata(Image *img)
   metadata = ImageMetaData();
   metadata.colorspace = img->params.colorspace;
 
-  img->loader->load_metadata(metadata);
+  if (img->loader->load_metadata(metadata)) {
+    assert(metadata.type != IMAGE_DATA_NUM_TYPES);
+  }
+  else {
+    metadata.type = IMAGE_DATA_TYPE_BYTE4;
+  }
 
   metadata.detect_colorspace();
 
