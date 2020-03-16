@@ -542,7 +542,7 @@ static void draw_seq_handle(View2D *v2d,
   }
 
   if ((G.moving & G_TRANSFORM_SEQ) || (seq->flag & whichsel)) {
-    const char col[4] = {255, 255, 255, 255};
+    const uchar col[4] = {255, 255, 255, 255};
     char numstr[32];
     size_t numstr_len;
 
@@ -574,7 +574,7 @@ static void draw_seq_text(View2D *v2d,
   char str[32 + FILE_MAX];
   size_t str_len;
   const char *name = seq->name + 2;
-  char col[4];
+  uchar col[4];
 
   /* note, all strings should include 'name' */
   if (name[0] == '\0') {

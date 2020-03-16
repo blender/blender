@@ -250,13 +250,17 @@ char UI_view2d_rect_in_scrollers(const struct ARegion *region,
                                  const struct rcti *rect);
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
-void UI_view2d_text_cache_add(
-    struct View2D *v2d, float x, float y, const char *str, size_t str_len, const char col[4]);
+void UI_view2d_text_cache_add(struct View2D *v2d,
+                              float x,
+                              float y,
+                              const char *str,
+                              size_t str_len,
+                              const unsigned char col[4]);
 void UI_view2d_text_cache_add_rectf(struct View2D *v2d,
                                     const struct rctf *rect_view,
                                     const char *str,
                                     size_t str_len,
-                                    const char col[4]);
+                                    const unsigned char col[4]);
 void UI_view2d_text_cache_draw(struct ARegion *region);
 
 /* operators */

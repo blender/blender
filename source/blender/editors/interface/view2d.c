@@ -2146,7 +2146,7 @@ static MemArena *g_v2d_strings_arena = NULL;
 static View2DString *g_v2d_strings = NULL;
 
 void UI_view2d_text_cache_add(
-    View2D *v2d, float x, float y, const char *str, size_t str_len, const char col[4])
+    View2D *v2d, float x, float y, const char *str, size_t str_len, const uchar col[4])
 {
   int mval[2];
 
@@ -2177,7 +2177,7 @@ void UI_view2d_text_cache_add(
 
 /* no clip (yet) */
 void UI_view2d_text_cache_add_rectf(
-    View2D *v2d, const rctf *rect_view, const char *str, size_t str_len, const char col[4])
+    View2D *v2d, const rctf *rect_view, const char *str, size_t str_len, const uchar col[4])
 {
   rcti rect;
 

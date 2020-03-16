@@ -604,7 +604,7 @@ static void nla_draw_strip_text(AnimData *adt,
                          (nlt->flag & NLATRACK_SOLO) == 0);
   char str[256];
   size_t str_len;
-  char col[4];
+  uchar col[4];
 
   /* just print the name and the range */
   if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
@@ -652,7 +652,7 @@ static void nla_draw_strip_frames_text(
     NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float UNUSED(yminc), float ymaxc)
 {
   const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
-  const char col[4] = {220, 220, 220, 255}; /* light gray */
+  const uchar col[4] = {220, 220, 220, 255}; /* light gray */
   char numstr[32];
   size_t numstr_len;
 
