@@ -203,7 +203,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
      * But this is a workaround for a missing update tagging from operators. */
     if (scene->display.shading.type != wpd->shading.type ||
-        XRAY_ENABLED(v3d) != XRAY_ENABLED((&scene->display))) {
+        (v3d && (XRAY_ENABLED(v3d) != XRAY_ENABLED(&scene->display)))) {
       wpd->view_updated = true;
     }
 
