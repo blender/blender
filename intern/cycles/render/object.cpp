@@ -270,14 +270,20 @@ uint Object::visibility_for_tracing() const
 
 float Object::compute_volume_step_size() const
 {
-  if (!geometry->has_volume) {
+  if (geometry->type != Geometry::MESH) {
+    return FLT_MAX;
+  }
+
+  Mesh *mesh = static_cast<Mesh *>(geometry);
+
+  if (!mesh->has_volume) {
     return FLT_MAX;
   }
 
   /* Compute step rate from shaders. */
   float step_rate = FLT_MAX;
 
-  foreach (Shader *shader, geometry->used_shaders) {
+  foreach (Shader *shader, mesh->used_shaders) {
     if (shader->has_volume) {
       if ((shader->heterogeneous_volume && shader->has_volume_spatial_varying) ||
           (shader->has_volume_attribute_dependency)) {
@@ -293,7 +299,7 @@ float Object::compute_volume_step_size() const
   /* Compute step size from voxel grids. */
   float step_size = FLT_MAX;
 
-  foreach (Attribute &attr, geometry->attributes.attributes) {
+  foreach (Attribute &attr, mesh->attributes.attributes) {
     if (attr.element == ATTR_ELEMENT_VOXEL) {
       ImageHandle &handle = attr.data_voxel();
       const ImageMetaData &metadata = handle.metadata();
@@ -301,15 +307,26 @@ float Object::compute_volume_step_size() const
         continue;
       }
 
-      /* Step size is transformed from voxel to world space. */
-      Transform voxel_tfm = tfm;
-      if (metadata.use_transform_3d) {
-        voxel_tfm = tfm * transform_inverse(metadata.transform_3d);
-      }
+      /* User specified step size. */
+      float voxel_step_size = mesh->volume_step_size;
 
-      float3 size = make_float3(
-          1.0f / metadata.width, 1.0f / metadata.height, 1.0f / metadata.depth);
-      float voxel_step_size = min3(fabs(transform_direction(&voxel_tfm, size)));
+      if (voxel_step_size == 0.0f) {
+        /* Auto detect step size. */
+        float3 size = make_float3(
+            1.0f / metadata.width, 1.0f / metadata.height, 1.0f / metadata.depth);
+
+        /* Step size is transformed from voxel to world space. */
+        Transform voxel_tfm = tfm;
+        if (metadata.use_transform_3d) {
+          voxel_tfm = tfm * transform_inverse(metadata.transform_3d);
+        }
+        voxel_step_size = min3(fabs(transform_direction(&voxel_tfm, size)));
+      }
+      else if (mesh->volume_object_space) {
+        /* User specified step size in object space. */
+        float3 size = make_float3(voxel_step_size, voxel_step_size, voxel_step_size);
+        voxel_step_size = min3(fabs(transform_direction(&tfm, size)));
+      }
 
       if (voxel_step_size > 0.0f) {
         step_size = fminf(voxel_step_size, step_size);
@@ -352,12 +369,23 @@ static float object_surface_area(UpdateObjectTransformState *state,
     return 0.0f;
   }
 
+  Mesh *mesh = static_cast<Mesh *>(geom);
+  if (mesh->has_volume) {
+    /* Volume density automatically adjust to object scale. */
+    if (mesh->volume_object_space) {
+      const float3 unit = normalize(make_float3(1.0f, 1.0f, 1.0f));
+      return 1.0f / len(transform_direction(&tfm, unit));
+    }
+    else {
+      return 1.0f;
+    }
+  }
+
   /* Compute surface area. for uniform scale we can do avoid the many
    * transform calls and share computation for instances.
    *
    * TODO(brecht): Correct for displacement, and move to a better place.
    */
-  Mesh *mesh = static_cast<Mesh *>(geom);
   float surface_area = 0.0f;
   float uniform_scale;
   if (transform_uniform_scale(tfm, uniform_scale)) {

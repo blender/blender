@@ -8,6 +8,7 @@
 uniform vec3 volumeOrcoLoc;
 uniform vec3 volumeOrcoSize;
 uniform mat4 volumeObjectToTexture;
+uniform float volumeDensityScale = 1.0;
 #endif
 
 flat in int slice;
@@ -50,6 +51,12 @@ void main()
   Closure cl = CLOSURE_DEFAULT;
 #else
   Closure cl = nodetree_exec();
+#endif
+
+#ifdef MESH_SHADER
+  cl.scatter *= volumeDensityScale;
+  cl.absorption *= volumeDensityScale;
+  cl.emission *= volumeDensityScale;
 #endif
 
   volumeScattering = vec4(cl.scatter, 1.0);

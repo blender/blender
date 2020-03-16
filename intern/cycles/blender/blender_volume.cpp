@@ -207,7 +207,7 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Mesh *mesh, float 
       continue;
     }
 
-    mesh->volume_isovalue = b_domain.clipping();
+    mesh->volume_clipping = b_domain.clipping();
 
     Attribute *attr = mesh->attributes.add(std);
 
@@ -292,7 +292,11 @@ static void sync_volume_object(BL::BlendData &b_data, BL::Object &b_ob, Scene *s
   BL::Volume b_volume(b_ob.data());
   b_volume.grids.load(b_data.ptr.data);
 
-  mesh->volume_isovalue = 1e-3f; /* TODO: make user setting. */
+  BL::VolumeRender b_render(b_volume.render());
+
+  mesh->volume_clipping = b_render.clipping();
+  mesh->volume_step_size = b_render.step_size();
+  mesh->volume_object_space = (b_render.space() == BL::VolumeRender::space_OBJECT);
 
   /* Find grid with matching name. */
   BL::Volume::grids_iterator b_grid_iter;

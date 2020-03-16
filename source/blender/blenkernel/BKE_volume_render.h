@@ -65,6 +65,10 @@ void BKE_volume_grid_wireframe(const struct Volume *volume,
                                BKE_volume_wireframe_cb cb,
                                void *cb_userdata);
 
+/* Render */
+
+float BKE_volume_density_scale(const struct Volume *volume, const float matrix[4][4]);
+
 #ifdef __cplusplus
 }
 #endif

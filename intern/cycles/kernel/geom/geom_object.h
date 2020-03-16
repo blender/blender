@@ -322,6 +322,15 @@ ccl_device_inline uint object_patch_map_offset(KernelGlobals *kg, int object)
 
 /* Volume step size */
 
+ccl_device_inline float object_volume_density(KernelGlobals *kg, int object)
+{
+  if (object == OBJECT_NONE) {
+    return 1.0f;
+  }
+
+  return kernel_tex_fetch(__objects, object).surface_area;
+}
+
 ccl_device_inline float object_volume_step_size(KernelGlobals *kg, int object)
 {
   if (object == OBJECT_NONE) {

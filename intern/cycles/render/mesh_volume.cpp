@@ -450,7 +450,7 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
 
   /* Build bounding mesh around non-empty volume cells. */
   VolumeMeshBuilder builder(&volume_params);
-  const float isovalue = mesh->volume_isovalue;
+  const float clipping = mesh->volume_clipping;
 
   for (int z = 0; z < resolution.z; ++z) {
     for (int y = 0; y < resolution.y; ++y) {
@@ -462,7 +462,7 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
           const int channels = voxel_grid.channels;
 
           for (int c = 0; c < channels; c++) {
-            if (voxel_grid.data[voxel_index * channels + c] >= isovalue) {
+            if (voxel_grid.data[voxel_index * channels + c] >= clipping) {
               builder.add_node_with_padding(x, y, z);
               break;
             }

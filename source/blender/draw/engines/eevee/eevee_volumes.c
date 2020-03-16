@@ -451,6 +451,10 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
   DRW_shgroup_uniform_vec3_copy(grp, "volumeOrcoLoc", (float[3]){0.5f, 0.5f, 0.5f});
   DRW_shgroup_uniform_vec3_copy(grp, "volumeOrcoSize", (float[3]){0.5f, 0.5f, 0.5f});
 
+  /* Set density scale. */
+  const float density_scale = BKE_volume_density_scale(volume, ob->obmat);
+  DRW_shgroup_uniform_float_copy(grp, "volumeDensityScale", density_scale);
+
   /* Bind volume grid textures. */
   LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
     VolumeGrid *volume_grid = BKE_volume_grid_find(volume, gpu_grid->name);

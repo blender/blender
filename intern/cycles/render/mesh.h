@@ -133,7 +133,9 @@ class Mesh : public Geometry {
   array<int> triangle_patch; /* must be < 0 for non subd triangles */
   array<float2> vert_patch_uv;
 
-  float volume_isovalue;
+  float volume_clipping;
+  float volume_step_size;
+  bool volume_object_space;
 
   array<SubdFace> subd_faces;
   array<int> subd_face_corners;

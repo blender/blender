@@ -356,3 +356,18 @@ void BKE_volume_grid_wireframe(const Volume *volume,
   cb(cb_userdata, NULL, NULL, 0, 0);
 #endif
 }
+
+/* Render */
+
+float BKE_volume_density_scale(const Volume *volume, const float matrix[4][4])
+{
+  if (volume->render.space == VOLUME_SPACE_OBJECT) {
+    float unit[3] = {1.0f, 1.0f, 1.0f};
+    normalize_v3(unit);
+    mul_mat3_m4_v3(matrix, unit);
+    return 1.0f / len_v3(unit);
+  }
+  else {
+    return 1.0f;
+  }
+}

@@ -145,7 +145,9 @@ Mesh::Mesh() : Geometry(node_type, Geometry::MESH), subd_attributes(this, ATTR_P
 
   num_subd_verts = 0;
 
-  volume_isovalue = 0.001f;
+  volume_clipping = 0.001f;
+  volume_step_size = 0.0f;
+  volume_object_space = false;
 
   num_ngons = 0;
 

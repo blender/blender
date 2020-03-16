@@ -48,7 +48,8 @@ ccl_device_inline bool volume_shader_extinction_sample(KernelGlobals *kg,
   shader_eval_volume(kg, sd, state, state->volume_stack, PATH_RAY_SHADOW);
 
   if (sd->flag & SD_EXTINCTION) {
-    *extinction = sd->closure_transparent_extinction;
+    const float density = object_volume_density(kg, sd->object);
+    *extinction = sd->closure_transparent_extinction * density;
     return true;
   }
   else {
@@ -83,6 +84,11 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
         coeff->sigma_s += sc->weight;
     }
   }
+
+  const float density = object_volume_density(kg, sd->object);
+  coeff->sigma_s *= density;
+  coeff->sigma_t *= density;
+  coeff->emission *= density;
 
   return true;
 }

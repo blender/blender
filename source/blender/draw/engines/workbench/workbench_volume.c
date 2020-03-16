@@ -229,7 +229,8 @@ static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
   step_length = len_v3(slice_ct);
 
   /* Compute density scale. */
-  const float density_scale = volume->display.density;
+  const float density_scale = volume->display.density *
+                              BKE_volume_density_scale(volume, ob->obmat);
 
   /* Set uniforms. */
   DRWShadingGroup *grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
