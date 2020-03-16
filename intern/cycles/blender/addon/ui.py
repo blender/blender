@@ -1415,8 +1415,6 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         light = context.light
         clamp = light.cycles
 
-        layout.use_property_decorate = False
-
         if self.bl_space_type == 'PROPERTIES':
             layout.row().prop(light, "type", expand=True)
             layout.use_property_split = True
