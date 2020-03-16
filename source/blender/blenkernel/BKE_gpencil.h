@@ -193,6 +193,7 @@ void BKE_gpencil_layer_mask_remove_ref(struct bGPdata *gpd, const char *name);
 struct bGPDlayer_Mask *BKE_gpencil_layer_mask_named_get(struct bGPDlayer *gpl, const char *name);
 void BKE_gpencil_layer_mask_sort(struct bGPdata *gpd, struct bGPDlayer *gpl);
 void BKE_gpencil_layer_mask_sort_all(struct bGPdata *gpd);
+void BKE_gpencil_layer_frames_sort(struct bGPDlayer *gpl, bool *r_has_duplicate_frames);
 
 /* Brush */
 struct Material *BKE_gpencil_brush_material_get(struct Brush *brush);

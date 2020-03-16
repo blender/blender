@@ -830,25 +830,6 @@ bool FrameOnMouseSide(char side, float frame, float cframe)
 
 /* ********************* ACTION EDITOR ****************** */
 
-static int gpf_cmp_frame(void *thunk, const void *a, const void *b)
-{
-  const bGPDframe *frame_a = a;
-  const bGPDframe *frame_b = b;
-
-  if (frame_a->framenum < frame_b->framenum) {
-    return -1;
-  }
-  if (frame_a->framenum > frame_b->framenum) {
-    return 1;
-  }
-  *((bool *)thunk) = true;
-  /* selected last */
-  if ((frame_a->flag & GP_FRAME_SELECT) && ((frame_b->flag & GP_FRAME_SELECT) == 0)) {
-    return 1;
-  }
-  return 0;
-}
-
 static int masklay_shape_cmp_frame(void *thunk, const void *a, const void *b)
 {
   const MaskLayerShape *frame_a = a;
@@ -881,7 +862,7 @@ static void posttrans_gpd_clean(bGPdata *gpd)
     bGPDframe *gpf, *gpfn;
     bool is_double = false;
 
-    BLI_listbase_sort_r(&gpl->frames, gpf_cmp_frame, &is_double);
+    BKE_gpencil_layer_frames_sort(gpl, &is_double);
 
     if (is_double) {
       for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
