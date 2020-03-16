@@ -111,7 +111,7 @@ static void test_polyfill_topology(const float poly[][2],
     const unsigned int v1 = i;
     const unsigned int v2 = (i + 1) % poly_tot;
     void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
-    EXPECT_EQ((void *)p != NULL, 1);
+    EXPECT_NE((void *)p, nullptr);
     EXPECT_EQ((intptr_t)*p, 1);
   }
 
