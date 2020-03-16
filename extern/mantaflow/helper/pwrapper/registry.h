@@ -62,7 +62,7 @@ void MantaEnsureRegistration();
 
 #ifdef BLENDER
 #  ifdef PyMODINIT_FUNC
-PyMODINIT_FUNC PyInit_Main(void);
+PyMODINIT_FUNC PyInit_manta_main(void);
 #  endif
 #endif
 

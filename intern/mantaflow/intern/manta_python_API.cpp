@@ -26,5 +26,5 @@
 
 PyObject *Manta_initPython(void)
 {
-  return Pb::PyInit_Main();
+  return Pb::PyInit_manta_main();
 }
