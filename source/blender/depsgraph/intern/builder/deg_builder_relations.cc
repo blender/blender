@@ -2127,9 +2127,20 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       /* Layer parenting need react to the parent object transformation. */
       LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         if (gpl->parent != NULL) {
-          ComponentKey transform_key(&gpl->parent->id, NodeType::TRANSFORM);
           ComponentKey gpd_geom_key(&gpd->id, NodeType::GEOMETRY);
-          add_relation(transform_key, gpd_geom_key, "GPencil Parent Layer");
+
+          if (gpl->partype == PARBONE) {
+            ComponentKey bone_key(&gpl->parent->id, NodeType::BONE, gpl->parsubstr);
+            OperationKey armature_key(
+                &gpl->parent->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+
+            add_relation(bone_key, gpd_geom_key, "Bone Parent");
+            add_relation(armature_key, gpd_geom_key, "Armature Parent");
+          }
+          else {
+            ComponentKey transform_key(&gpl->parent->id, NodeType::TRANSFORM);
+            add_relation(transform_key, gpd_geom_key, "GPencil Parent Layer");
+          }
         }
       }
       break;

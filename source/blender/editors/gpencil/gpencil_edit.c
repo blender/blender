@@ -2597,10 +2597,11 @@ void GPENCIL_OT_dissolve(wmOperatorType *ot)
  */
 static bool gp_snap_poll(bContext *C)
 {
-  bGPdata *gpd = CTX_data_gpencil_data(C);
   ScrArea *sa = CTX_wm_area(C);
+  Object *ob = CTX_data_active_object(C);
 
-  return (gpd != NULL) && ((sa != NULL) && (sa->spacetype == SPACE_VIEW3D));
+  return (ob != NULL) && (ob->type == OB_GPENCIL) &&
+         ((sa != NULL) && (sa->spacetype == SPACE_VIEW3D));
 }
 
 /* --------------------------------- */
@@ -2775,12 +2776,13 @@ void GPENCIL_OT_snap_to_cursor(wmOperatorType *ot)
 
 static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
 {
-  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *obact = CTX_data_active_object(C);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, obact);
+  bGPdata *gpd = (bGPdata *)ob_eval->data;
 
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *obact = CTX_data_active_object(C);
 
   float *cursor = scene->cursor.location;
   float centroid[3] = {0.0f};

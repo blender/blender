@@ -4034,42 +4034,35 @@ void BKE_gpencil_update_layer_parent(const Depsgraph *depsgraph, Object *ob)
   }
 
   bGPdata *gpd = (bGPdata *)ob->data;
-  bGPDspoint *pt;
-  int i;
-  float diff_mat[4][4];
   float cur_mat[4][4];
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     if ((gpl->parent != NULL) && (gpl->actframe != NULL)) {
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, gpl->parent);
-
+      Object *ob_parent = DEG_get_evaluated_object(depsgraph, gpl->parent);
       /* calculate new matrix */
       if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
-        invert_m4_m4(cur_mat, ob_eval->obmat);
+        copy_m4_m4(cur_mat, ob_parent->obmat);
       }
       else if (gpl->partype == PARBONE) {
-        bPoseChannel *pchan = BKE_pose_channel_find_name(ob_eval->pose, gpl->parsubstr);
-        if (pchan) {
-          float tmp_mat[4][4];
-          mul_m4_m4m4(tmp_mat, ob_eval->obmat, pchan->pose_mat);
-          invert_m4_m4(cur_mat, tmp_mat);
+        bPoseChannel *pchan = BKE_pose_channel_find_name(ob_parent->pose, gpl->parsubstr);
+        if (pchan != NULL) {
+          copy_m4_m4(cur_mat, ob->imat);
+          mul_m4_m4m4(cur_mat, ob_parent->obmat, pchan->pose_mat);
+        }
+        else {
+          unit_m4(cur_mat);
         }
       }
       /* only redo if any change */
       if (!equals_m4m4(gpl->inverse, cur_mat)) {
-
-        /* first apply current transformation to all strokes */
-        BKE_gpencil_parent_matrix_get(depsgraph, ob, gpl, diff_mat);
-        /* undo local object */
-        sub_v3_v3(diff_mat[3], ob->obmat[3]);
-
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpl->actframe->strokes) {
+          bGPDspoint *pt;
+          int i;
           for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-            mul_m4_v3(diff_mat, &pt->x);
+            mul_m4_v3(gpl->inverse, &pt->x);
+            mul_m4_v3(cur_mat, &pt->x);
           }
         }
-        /* set new parent matrix */
-        copy_m4_m4(gpl->inverse, cur_mat);
       }
     }
   }
