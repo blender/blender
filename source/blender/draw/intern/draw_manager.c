@@ -1627,6 +1627,13 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
   return false;
 }
 
+static void drw_view_reset(void)
+{
+  DST.view_default = NULL;
+  DST.view_active = NULL;
+  DST.view_previous = NULL;
+}
+
 static void DRW_render_gpencil_to_image(RenderEngine *engine,
                                         struct RenderLayer *render_layer,
                                         const rcti *rect)
@@ -1701,10 +1708,13 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
 
   RenderResult *render_result = RE_engine_get_result(engine);
   RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
-
-  DST.buffer_finish_called = false;
-
-  DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
+  for (RenderView *render_view = render_result->views.first; render_view != NULL;
+       render_view = render_view->next) {
+    RE_SetActiveRenderView(render, render_view->name);
+    drw_view_reset();
+    DST.buffer_finish_called = false;
+    DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
+  }
 
   /* Force cache to reset. */
   drw_viewport_cache_resize();
@@ -1726,13 +1736,6 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   }
 
   DST.buffer_finish_called = false;
-}
-
-static void drw_view_reset(void)
-{
-  DST.view_default = NULL;
-  DST.view_active = NULL;
-  DST.view_previous = NULL;
 }
 
 void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)

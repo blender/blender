@@ -104,10 +104,21 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
 
   /* FIXME(fclem): we have a precision loss in the depth buffer because of this reupload.
    * Find where it comes from! */
-  txl->render_depth_tx = DRW_texture_create_2d(
-      size[0], size[1], GPU_DEPTH_COMPONENT24, 0, do_region ? NULL : pix_z);
-  txl->render_color_tx = DRW_texture_create_2d(
-      size[0], size[1], GPU_RGBA16F, 0, do_region ? NULL : pix_col);
+  /* In multi view render the textures can be reused. */
+  if (txl->render_depth_tx && !do_clear_z) {
+    GPU_texture_update(txl->render_depth_tx, GPU_DATA_FLOAT, pix_z);
+  }
+  else {
+    txl->render_depth_tx = DRW_texture_create_2d(
+        size[0], size[1], GPU_DEPTH_COMPONENT24, 0, do_region ? NULL : pix_z);
+  }
+  if (txl->render_color_tx && !do_clear_col) {
+    GPU_texture_update(txl->render_color_tx, GPU_DATA_FLOAT, pix_col);
+  }
+  else {
+    txl->render_color_tx = DRW_texture_create_2d(
+        size[0], size[1], GPU_RGBA16F, 0, do_region ? NULL : pix_col);
+  }
 
   GPU_framebuffer_ensure_config(&fbl->render_fb,
                                 {
