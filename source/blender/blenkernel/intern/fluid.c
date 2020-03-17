@@ -1894,40 +1894,6 @@ static void sample_mesh(FluidFlowSettings *mfs,
     v3 = mloop[mlooptri[f_index].tri[2]].v;
     interp_weights_tri_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, nearest.co);
 
-    /* Initial velocity of flow object. */
-    if (mfs->flags & FLUID_FLOW_INITVELOCITY && velocity_map) {
-      /* Apply normal directional velocity. */
-      if (mfs->vel_normal) {
-        /* Interpolate vertex normal vectors to get nearest point normal. */
-        normal_short_to_float_v3(n1, mvert[v1].no);
-        normal_short_to_float_v3(n2, mvert[v2].no);
-        normal_short_to_float_v3(n3, mvert[v3].no);
-        interp_v3_v3v3v3(hit_normal, n1, n2, n3, weights);
-        normalize_v3(hit_normal);
-
-        /* Apply normal directional velocity. */
-        velocity_map[index * 3] += hit_normal[0] * mfs->vel_normal * 0.25f;
-        velocity_map[index * 3 + 1] += hit_normal[1] * mfs->vel_normal * 0.25f;
-        velocity_map[index * 3 + 2] += hit_normal[2] * mfs->vel_normal * 0.25f;
-      }
-      /* Apply object velocity. */
-      if (has_velocity && mfs->vel_multi) {
-        float hit_vel[3];
-        interp_v3_v3v3v3(
-            hit_vel, &vert_vel[v1 * 3], &vert_vel[v2 * 3], &vert_vel[v3 * 3], weights);
-        velocity_map[index * 3] += hit_vel[0] * mfs->vel_multi;
-        velocity_map[index * 3 + 1] += hit_vel[1] * mfs->vel_multi;
-        velocity_map[index * 3 + 2] += hit_vel[2] * mfs->vel_multi;
-#  ifdef DEBUG_PRINT
-        /* Debugging: Print flow object velocities. */
-        printf("adding flow object vel: [%f, %f, %f]\n", hit_vel[0], hit_vel[1], hit_vel[2]);
-#  endif
-      }
-      velocity_map[index * 3] += mfs->vel_coord[0];
-      velocity_map[index * 3 + 1] += mfs->vel_coord[1];
-      velocity_map[index * 3 + 2] += mfs->vel_coord[2];
-    }
-
     /* Compute emission strength for smoke flow. */
     if (is_gas_flow) {
       /* Emission from surface is based on UI configurable distance value. */
@@ -1976,6 +1942,40 @@ static void sample_mesh(FluidFlowSettings *mfs,
         BKE_texture_get_value(NULL, mfs->noise_texture, tex_co, &texres, false);
         emission_strength *= texres.tin;
       }
+    }
+
+    /* Initial velocity of flow object. Only compute velocity if emission is present. */
+    if (mfs->flags & FLUID_FLOW_INITVELOCITY && velocity_map && emission_strength != 0.0) {
+      /* Apply normal directional velocity. */
+      if (mfs->vel_normal) {
+        /* Interpolate vertex normal vectors to get nearest point normal. */
+        normal_short_to_float_v3(n1, mvert[v1].no);
+        normal_short_to_float_v3(n2, mvert[v2].no);
+        normal_short_to_float_v3(n3, mvert[v3].no);
+        interp_v3_v3v3v3(hit_normal, n1, n2, n3, weights);
+        normalize_v3(hit_normal);
+
+        /* Apply normal directional velocity. */
+        velocity_map[index * 3] += hit_normal[0] * mfs->vel_normal * 0.25f;
+        velocity_map[index * 3 + 1] += hit_normal[1] * mfs->vel_normal * 0.25f;
+        velocity_map[index * 3 + 2] += hit_normal[2] * mfs->vel_normal * 0.25f;
+      }
+      /* Apply object velocity. */
+      if (has_velocity && mfs->vel_multi) {
+        float hit_vel[3];
+        interp_v3_v3v3v3(
+            hit_vel, &vert_vel[v1 * 3], &vert_vel[v2 * 3], &vert_vel[v3 * 3], weights);
+        velocity_map[index * 3] += hit_vel[0] * mfs->vel_multi;
+        velocity_map[index * 3 + 1] += hit_vel[1] * mfs->vel_multi;
+        velocity_map[index * 3 + 2] += hit_vel[2] * mfs->vel_multi;
+#  ifdef DEBUG_PRINT
+        /* Debugging: Print flow object velocities. */
+        printf("adding flow object vel: [%f, %f, %f]\n", hit_vel[0], hit_vel[1], hit_vel[2]);
+#  endif
+      }
+      velocity_map[index * 3] += mfs->vel_coord[0];
+      velocity_map[index * 3 + 1] += mfs->vel_coord[1];
+      velocity_map[index * 3 + 2] += mfs->vel_coord[2];
     }
   }
 
