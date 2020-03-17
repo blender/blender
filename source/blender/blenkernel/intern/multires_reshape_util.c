@@ -53,21 +53,21 @@ Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
                                        /*const*/ Object *object,
                                        const MultiresModifierData *mmd)
 {
-  Mesh *coarse_mesh;
+  Mesh *base_mesh;
 
   if (depsgraph != NULL) {
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
-    coarse_mesh = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
+    base_mesh = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
   }
   else {
-    coarse_mesh = (Mesh *)object->data;
+    base_mesh = (Mesh *)object->data;
   }
 
   SubdivSettings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
-  Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, coarse_mesh);
-  if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh, NULL)) {
+  Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, base_mesh);
+  if (!BKE_subdiv_eval_update_from_mesh(subdiv, base_mesh, NULL)) {
     BKE_subdiv_free(subdiv);
     return NULL;
   }
@@ -303,8 +303,8 @@ int multires_reshape_grid_to_corner(const MultiresReshapeContext *reshape_contex
 
 bool multires_reshape_is_quad_face(const MultiresReshapeContext *reshape_context, int face_index)
 {
-  const MPoly *coarse_poly = &reshape_context->base_mesh->mpoly[face_index];
-  return (coarse_poly->totloop == 4);
+  const MPoly *base_poly = &reshape_context->base_mesh->mpoly[face_index];
+  return (base_poly->totloop == 4);
 }
 
 /* For the given grid index get index of corresponding ptex face. */
