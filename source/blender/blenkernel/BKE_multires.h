@@ -96,11 +96,12 @@ struct Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
                                       struct Object *object,
                                       struct MultiresModifierData *mmd);
 
-/* Creates mesh with all deform modifiers leading the multires one applied.
+/* Get coordinates of a deformed base mesh which is an ionput to the given multires modifier.
  * NOTE: The modifiers will be re-evaluated. */
-struct Mesh *BKE_multires_create_deformed_base_mesh(struct Depsgraph *depsgraph,
-                                                    struct Object *object,
-                                                    struct MultiresModifierData *mmd);
+float (*BKE_multires_create_deformed_base_mesh_vert_coords(struct Depsgraph *depsgraph,
+                                                           struct Object *object,
+                                                           struct MultiresModifierData *mmd,
+                                                           int *r_num_deformed_verts))[3];
 
 void multiresModifier_del_levels(struct MultiresModifierData *mmd,
                                  struct Scene *scene,

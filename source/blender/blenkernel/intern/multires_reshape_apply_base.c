@@ -189,16 +189,11 @@ void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *resh
   BLI_assert(object != NULL);
   BLI_assert(mmd != NULL);
 
-  /* If there are no modifiers prior to the multires can use base mesh as it have all the updated
-   * vertices already. */
-  if (mmd->modifier.prev == NULL) {
-    BKE_subdiv_eval_update_from_mesh(reshape_context->subdiv, reshape_context->base_mesh, NULL);
-  }
-  else {
-    /* TODO(sergey): Possible optimization is to only evaluate new verticies positions without
-     * construction of the entire mesh. */
-    Mesh *deformed_base_mesh = BKE_multires_create_deformed_base_mesh(depsgraph, object, mmd);
-    BKE_subdiv_eval_update_from_mesh(reshape_context->subdiv, deformed_base_mesh, NULL);
-    BKE_id_free(NULL, deformed_base_mesh);
-  }
+  float(*deformed_verts)[3] = BKE_multires_create_deformed_base_mesh_vert_coords(
+      depsgraph, object, mmd, NULL);
+
+  BKE_subdiv_eval_update_from_mesh(
+      reshape_context->subdiv, reshape_context->base_mesh, deformed_verts);
+
+  MEM_freeN(deformed_verts);
 }
