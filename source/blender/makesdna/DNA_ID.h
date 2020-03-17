@@ -245,12 +245,20 @@ typedef struct ID {
   int us;
   int icon_id;
   int recalc;
+  /**
+   * Used by undo code. Value of recalc is stored there when reading an ID from memfile, and not
+   * touched by anything, which means it can be used as 'reference' recalc value for the next undo
+   * step, when going backward (i.e. actual undo, redo can just use recalc value directly).
+   */
+  int recalc_undo_accumulated;
 
   /**
    * A session-wide unique identifier for a given ID, that remain the same across potential
    * re-allocations (e.g. due to undo/redo steps).
    */
   unsigned int session_uuid;
+
+  char _pad[4];
 
   IDProperty *properties;
 

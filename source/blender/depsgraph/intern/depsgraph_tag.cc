@@ -814,12 +814,16 @@ void DEG_ids_check_recalc(
 
 static void deg_graph_clear_id_recalc_flags(ID *id)
 {
+  /* Keep incremental track of used recalc flags, to get proper update when undoing. */
+  id->recalc_undo_accumulated |= id->recalc;
   id->recalc &= ~ID_RECALC_ALL;
   bNodeTree *ntree = ntreeFromID(id);
   /* Clear embedded node trees too. */
   if (ntree) {
+    ntree->id.recalc_undo_accumulated |= ntree->id.recalc;
     ntree->id.recalc &= ~ID_RECALC_ALL;
   }
+  /* XXX And what about scene's master collection here? */
 }
 
 void DEG_ids_clear_recalc(Main *UNUSED(bmain), Depsgraph *depsgraph)
