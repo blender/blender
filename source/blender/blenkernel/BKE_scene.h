@@ -30,6 +30,7 @@ extern "C" {
 struct AviCodecData;
 struct Collection;
 struct Depsgraph;
+struct GHash;
 struct Main;
 struct Object;
 struct RenderData;
@@ -221,6 +222,9 @@ struct Depsgraph *BKE_scene_get_depsgraph(struct Main *bmain,
                                           struct Scene *scene,
                                           struct ViewLayer *view_layer,
                                           bool allocate);
+
+struct GHash *BKE_scene_undo_depsgraphs_extract(struct Main *bmain);
+void BKE_scene_undo_depsgraphs_restore(struct Main *bmain, struct GHash *depsgraph_extract);
 
 void BKE_scene_transform_orientation_remove(struct Scene *scene,
                                             struct TransformOrientation *orientation);

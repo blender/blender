@@ -2067,12 +2067,16 @@ void BKE_scene_free_view_layer_depsgraph(Scene *scene, ViewLayer *view_layer)
 
 /* Query depsgraph for a specific contexts. */
 
-Depsgraph *BKE_scene_get_depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, bool allocate)
+static Depsgraph **scene_get_depsgraph_p(Main *bmain,
+                                         Scene *scene,
+                                         ViewLayer *view_layer,
+                                         const bool allocate_ghash_entry,
+                                         const bool allocate_depsgraph)
 {
   BLI_assert(scene != NULL);
   BLI_assert(view_layer != NULL);
   /* Make sure hash itself exists. */
-  if (allocate) {
+  if (allocate_ghash_entry) {
     BKE_scene_ensure_depsgraph_hash(scene);
   }
   if (scene->depsgraph_hash == NULL) {
@@ -2083,29 +2087,121 @@ Depsgraph *BKE_scene_get_depsgraph(Main *bmain, Scene *scene, ViewLayer *view_la
    */
   DepsgraphKey key;
   key.view_layer = view_layer;
-  Depsgraph *depsgraph;
-  if (allocate) {
+  Depsgraph **depsgraph_ptr;
+  if (allocate_ghash_entry) {
     DepsgraphKey **key_ptr;
-    Depsgraph **depsgraph_ptr;
     if (!BLI_ghash_ensure_p_ex(
             scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr)) {
       *key_ptr = MEM_mallocN(sizeof(DepsgraphKey), __func__);
       **key_ptr = key;
-      *depsgraph_ptr = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
-      /* TODO(sergey): Would be cool to avoid string format print,
-       * but is a bit tricky because we can't know in advance  whether
-       * we will ever enable debug messages for this depsgraph.
-       */
-      char name[1024];
-      BLI_snprintf(name, sizeof(name), "%s :: %s", scene->id.name, view_layer->name);
-      DEG_debug_name_set(*depsgraph_ptr, name);
+      if (allocate_depsgraph) {
+        *depsgraph_ptr = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
+        /* TODO(sergey): Would be cool to avoid string format print,
+         * but is a bit tricky because we can't know in advance  whether
+         * we will ever enable debug messages for this depsgraph.
+         */
+        char name[1024];
+        BLI_snprintf(name, sizeof(name), "%s :: %s", scene->id.name, view_layer->name);
+        DEG_debug_name_set(*depsgraph_ptr, name);
+      }
+      else {
+        *depsgraph_ptr = NULL;
+      }
     }
-    depsgraph = *depsgraph_ptr;
   }
   else {
-    depsgraph = BLI_ghash_lookup(scene->depsgraph_hash, &key);
+    depsgraph_ptr = (Depsgraph **)BLI_ghash_lookup_p(scene->depsgraph_hash, &key);
   }
-  return depsgraph;
+  return depsgraph_ptr;
+}
+
+Depsgraph *BKE_scene_get_depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, bool allocate)
+{
+  Depsgraph **depsgraph_ptr = scene_get_depsgraph_p(bmain, scene, view_layer, allocate, allocate);
+  return (depsgraph_ptr != NULL) ? *depsgraph_ptr : NULL;
+}
+
+static char *scene_undo_depsgraph_gen_key(Scene *scene, ViewLayer *view_layer, char *key_full)
+{
+  if (key_full == NULL) {
+    key_full = MEM_callocN(MAX_ID_NAME + FILE_MAX + MAX_NAME, __func__);
+  }
+
+  size_t key_full_offset = BLI_strncpy_rlen(key_full, scene->id.name, MAX_ID_NAME);
+  if (scene->id.lib != NULL) {
+    key_full_offset += BLI_strncpy_rlen(key_full + key_full_offset, scene->id.lib->name, FILE_MAX);
+  }
+  key_full_offset += BLI_strncpy_rlen(key_full + key_full_offset, view_layer->name, MAX_NAME);
+  BLI_assert(key_full_offset < MAX_ID_NAME + FILE_MAX + MAX_NAME);
+
+  return key_full;
+}
+
+GHash *BKE_scene_undo_depsgraphs_extract(Main *bmain)
+{
+  GHash *depsgraph_extract = BLI_ghash_new(
+      BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, __func__);
+
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    if (scene->depsgraph_hash == NULL) {
+      /* In some cases, e.g. when undo has to perform multiple steps at once, no depsgraph will be
+       * built so this pointer may be NULL. */
+      continue;
+    }
+    for (ViewLayer *view_layer = scene->view_layers.first; view_layer != NULL;
+         view_layer = view_layer->next) {
+      DepsgraphKey key;
+      key.view_layer = view_layer;
+      Depsgraph **depsgraph = (Depsgraph **)BLI_ghash_lookup_p(scene->depsgraph_hash, &key);
+
+      if (depsgraph != NULL && *depsgraph != NULL) {
+        char *key_full = scene_undo_depsgraph_gen_key(scene, view_layer, NULL);
+
+        /* We steal the depsgraph from the scene. */
+        BLI_ghash_insert(depsgraph_extract, key_full, *depsgraph);
+        *depsgraph = NULL;
+      }
+    }
+  }
+
+  return depsgraph_extract;
+}
+
+void BKE_scene_undo_depsgraphs_restore(Main *bmain, GHash *depsgraph_extract)
+{
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    BLI_assert(scene->depsgraph_hash == NULL);
+
+    for (ViewLayer *view_layer = scene->view_layers.first; view_layer != NULL;
+         view_layer = view_layer->next) {
+      char key_full[MAX_ID_NAME + FILE_MAX + MAX_NAME] = {0};
+      scene_undo_depsgraph_gen_key(scene, view_layer, key_full);
+
+      Depsgraph **depsgraph_extract_ptr = (Depsgraph **)BLI_ghash_lookup_p(depsgraph_extract,
+                                                                           key_full);
+      if (depsgraph_extract_ptr == NULL) {
+        continue;
+      }
+      BLI_assert(*depsgraph_extract_ptr != NULL);
+
+      Depsgraph **depsgraph_scene_ptr = scene_get_depsgraph_p(
+          bmain, scene, view_layer, true, false);
+      BLI_assert(depsgraph_scene_ptr != NULL);
+      BLI_assert(*depsgraph_scene_ptr == NULL);
+
+      /* We steal the depsgraph back from our 'extract' storage to the scene. */
+      Depsgraph *depsgraph = *depsgraph_extract_ptr;
+
+      DEG_graph_replace_owners(depsgraph, bmain, scene, view_layer);
+
+      DEG_graph_tag_relations_update(depsgraph);
+
+      *depsgraph_scene_ptr = depsgraph;
+      *depsgraph_extract_ptr = NULL;
+    }
+  }
+
+  BLI_ghash_free(depsgraph_extract, MEM_freeN, depsgraph_key_value_free);
 }
 
 /* -------------------------------------------------------------------- */
