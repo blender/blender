@@ -1066,7 +1066,7 @@ static void extract_lines_adjacency_looptri_mesh(const MeshRenderData *mr,
                                                  void *data)
 {
   const MPoly *mpoly = &mr->mpoly[mlt->poly];
-  if (!(mpoly->flag & ME_HIDE)) {
+  if (!(mr->use_hide && (mpoly->flag & ME_HIDE))) {
     lines_adjacency_triangle(mr->mloop[mlt->tri[0]].v,
                              mr->mloop[mlt->tri[1]].v,
                              mr->mloop[mlt->tri[2]].v,
