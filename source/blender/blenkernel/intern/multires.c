@@ -293,6 +293,25 @@ Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
   return result;
 }
 
+Mesh *BKE_multires_create_deformed_base_mesh(struct Depsgraph *depsgraph,
+                                             Object *object,
+                                             MultiresModifierData *mmd)
+{
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+
+  const int mmd_index = BLI_findindex(&object->modifiers, &mmd->modifier);
+  BLI_assert(mmd_index != -1);
+
+  Object object_for_eval = *object_eval;
+  object_for_eval.data = object->data;
+
+  Mesh *base_mesh = mesh_create_eval_final_view_index(
+      depsgraph, scene_eval, object, &CD_MASK_BAREMESH, mmd_index - 1);
+
+  return base_mesh;
+}
+
 MultiresModifierData *find_multires_modifier_before(Scene *scene, ModifierData *lastmd)
 {
   ModifierData *md;

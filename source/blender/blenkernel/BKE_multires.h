@@ -90,9 +90,18 @@ int multires_get_level(const struct Scene *scene,
                        const struct MultiresModifierData *mmd,
                        bool render,
                        bool ignore_simplify);
+
+/* Creates mesh with multires modifier applied on current object's deform mesh. */
 struct Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
                                       struct Object *object,
                                       struct MultiresModifierData *mmd);
+
+/* Creates mesh with all deform modifiers leading the multires one applied.
+ * NOTE: The modifiers will be re-evaluated. */
+struct Mesh *BKE_multires_create_deformed_base_mesh(struct Depsgraph *depsgraph,
+                                                    struct Object *object,
+                                                    struct MultiresModifierData *mmd);
+
 void multiresModifier_del_levels(struct MultiresModifierData *mmd,
                                  struct Scene *scene,
                                  struct Object *object,
