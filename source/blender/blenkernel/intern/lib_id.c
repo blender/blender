@@ -597,7 +597,7 @@ bool BKE_id_copy(Main *bmain, const ID *id, ID **newid)
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note Most internal ID data itself is not swapped (only IDProperties are).
  */
-void BKE_id_swap(Main *bmain, ID *id_a, ID *id_b)
+static void id_swap(Main *bmain, ID *id_a, ID *id_b, const bool do_full_id)
 {
   BLI_assert(GS(id_a->name) == GS(id_b->name));
 
@@ -651,17 +651,45 @@ void BKE_id_swap(Main *bmain, ID *id_a, ID *id_b)
 
 #undef CASE_SWAP
 
-  /* Restore original ID's internal data. */
-  *id_a = id_a_back;
-  *id_b = id_b_back;
+  if (!do_full_id) {
+    /* Restore original ID's internal data. */
+    *id_a = id_a_back;
+    *id_b = id_b_back;
 
-  /* Exception: IDProperties. */
-  id_a->properties = id_b_back.properties;
-  id_b->properties = id_a_back.properties;
+    /* Exception: IDProperties. */
+    id_a->properties = id_b_back.properties;
+    id_b->properties = id_a_back.properties;
+  }
 
-  /* Swap will have broken internal references to itself, restore them. */
-  BKE_libblock_relink_ex(bmain, id_a, id_b, id_a, ID_REMAP_SKIP_NEVER_NULL_USAGE);
-  BKE_libblock_relink_ex(bmain, id_b, id_a, id_b, ID_REMAP_SKIP_NEVER_NULL_USAGE);
+  if (bmain != NULL) {
+    /* Swap will have broken internal references to itself, restore them. */
+    BKE_libblock_relink_ex(bmain, id_a, id_b, id_a, ID_REMAP_SKIP_NEVER_NULL_USAGE);
+    BKE_libblock_relink_ex(bmain, id_b, id_a, id_b, ID_REMAP_SKIP_NEVER_NULL_USAGE);
+  }
+}
+
+/**
+ * Does a mere memory swap over the whole IDs data (including type-specific memory).
+ * \note Most internal ID data itself is not swapped (only IDProperties are).
+ *
+ * \param bmain May be NULL, in which case there will be no remapping of internal pointers to
+ * itself.
+ */
+void BKE_lib_id_swap(Main *bmain, ID *id_a, ID *id_b)
+{
+  id_swap(bmain, id_a, id_b, false);
+}
+
+/**
+ * Does a mere memory swap over the whole IDs data (including type-specific memory).
+ * \note All internal ID data itself is also swapped.
+ *
+ * \param bmain May be NULL, in which case there will be no remapping of internal pointers to
+ * itself.
+ */
+void BKE_lib_id_swap_full(Main *bmain, ID *id_a, ID *id_b)
+{
+  id_swap(bmain, id_a, id_b, true);
 }
 
 /** Does *not* set ID->newid pointer. */

@@ -813,7 +813,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
 
   /* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa.
    * So when we'll free tmp_id, we'll actually free old, outdated data from local. */
-  BKE_id_swap(bmain, local, tmp_id);
+  BKE_lib_id_swap(bmain, local, tmp_id);
 
   /* Again, horribly inn-efficient in our case, we need something off-Main
    * (aka more generic nolib copy/free stuff)! */

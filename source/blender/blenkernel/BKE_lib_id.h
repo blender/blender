@@ -217,7 +217,10 @@ bool id_single_user(struct bContext *C,
 bool BKE_id_copy_is_allowed(const struct ID *id);
 bool BKE_id_copy(struct Main *bmain, const struct ID *id, struct ID **newid);
 bool BKE_id_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);
-void BKE_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
+
+void BKE_lib_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
+void BKE_lib_id_swap_full(struct Main *bmain, struct ID *id_a, struct ID *id_b);
+
 void id_sort_by_name(struct ListBase *lb, struct ID *id, struct ID *id_sorting_hint);
 void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id);
 
