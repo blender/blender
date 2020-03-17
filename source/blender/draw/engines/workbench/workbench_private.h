@@ -101,6 +101,7 @@ typedef struct WORKBENCH_TextureList {
   struct GPUTexture *smaa_area_tx;
   struct GPUTexture *dummy_image_tx;
   struct GPUTexture *dummy_volume_tx;
+  struct GPUTexture *dummy_shadow_tx;
   struct GPUTexture *dummy_coba_tx;
 } WORKBENCH_TextureList;
 
@@ -405,7 +406,7 @@ GPUShader *workbench_shader_outline_get(void);
 GPUShader *workbench_shader_antialiasing_accumulation_get(void);
 GPUShader *workbench_shader_antialiasing_get(int stage);
 
-GPUShader *workbench_shader_volume_get(bool slice, bool coba, bool cubic);
+GPUShader *workbench_shader_volume_get(bool slice, bool coba, bool cubic, bool smoke);
 
 void workbench_shader_depth_of_field_get(GPUShader **prepare_sh,
                                          GPUShader **downsample_sh,
@@ -479,7 +480,8 @@ void workbench_volume_cache_init(WORKBENCH_Data *vedata);
 void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
                                      struct Scene *UNUSED(scene),
                                      struct Object *ob,
-                                     struct ModifierData *md);
+                                     struct ModifierData *md,
+                                     eV3DShadingColorType color_type);
 void workbench_volume_draw_pass(WORKBENCH_Data *vedata);
 void workbench_volume_draw_finish(WORKBENCH_Data *vedata);
 

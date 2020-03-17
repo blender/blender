@@ -29,6 +29,8 @@ struct ModifierData;
 struct Object;
 struct PTCacheEdit;
 struct ParticleSystem;
+struct Volume;
+struct VolumeGrid;
 struct bGPDstroke;
 
 void DRW_shape_cache_free(void);
@@ -199,6 +201,39 @@ struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob,
                                                      uint gpumat_array_len);
 struct GPUBatch *DRW_cache_mball_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mball_edge_detection_get(struct Object *ob, bool *r_is_manifold);
+
+/* Hair */
+struct GPUBatch *DRW_cache_hair_surface_get(struct Object *ob);
+struct GPUBatch **DRW_cache_hair_surface_shaded_get(struct Object *ob,
+                                                    struct GPUMaterial **gpumat_array,
+                                                    uint gpumat_array_len);
+struct GPUBatch *DRW_cache_hair_face_wireframe_get(struct Object *ob);
+struct GPUBatch *DRW_cache_hair_edge_detection_get(struct Object *ob, bool *r_is_manifold);
+
+/* PointCloud */
+struct GPUBatch *DRW_cache_pointcloud_get_dots(struct Object *obj);
+
+/* Volume */
+typedef struct DRWVolumeGrid {
+  struct DRWVolumeGrid *next, *prev;
+
+  /* Grid name. */
+  char *name;
+
+  /* 3D texture. */
+  struct GPUTexture *texture;
+
+  /* Transform between 0..1 texture space and object space. */
+  float texture_to_object[4][4];
+  float object_to_texture[4][4];
+
+  /* Transfrom from bounds to texture space. */
+  float object_to_bounds[4][4];
+  float bounds_to_texture[4][4];
+} DRWVolumeGrid;
+
+DRWVolumeGrid *DRW_volume_batch_cache_get_grid(struct Volume *volume, struct VolumeGrid *grid);
+struct GPUBatch *DRW_cache_volume_face_wireframe_get(struct Object *ob);
 
 /* GPencil */
 struct GPUBatch *DRW_cache_gpencil_strokes_get(struct Object *ob, int cfra);

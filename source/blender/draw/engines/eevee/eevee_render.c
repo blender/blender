@@ -177,7 +177,7 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 void EEVEE_render_cache(void *vedata,
                         struct Object *ob,
                         struct RenderEngine *engine,
-                        struct Depsgraph *UNUSED(depsgraph))
+                        struct Depsgraph *depsgraph)
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
@@ -210,6 +210,13 @@ void EEVEE_render_cache(void *vedata,
   if (ob_visibility & OB_VISIBLE_SELF) {
     if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
       EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
+    }
+    else if (ob->type == OB_HAIR) {
+      EEVEE_object_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
+    }
+    else if (ob->type == OB_VOLUME) {
+      Scene *scene = DEG_get_evaluated_scene(depsgraph);
+      EEVEE_volumes_cache_object_add(sldata, vedata, scene, ob);
     }
     else if (ob->type == OB_LIGHTPROBE) {
       EEVEE_lightprobes_cache_add(sldata, vedata, ob);

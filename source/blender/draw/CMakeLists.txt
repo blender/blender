@@ -53,10 +53,13 @@ set(SRC
   intern/draw_cache_impl_curve.c
   intern/draw_cache_impl_displist.c
   intern/draw_cache_impl_gpencil.c
+  intern/draw_cache_impl_hair.c
   intern/draw_cache_impl_lattice.c
   intern/draw_cache_impl_mesh.c
   intern/draw_cache_impl_metaball.c
   intern/draw_cache_impl_particles.c
+  intern/draw_cache_impl_pointcloud.c
+  intern/draw_cache_impl_volume.c
   intern/draw_color_management.c
   intern/draw_common.c
   intern/draw_debug.c
@@ -139,6 +142,7 @@ set(SRC
   engines/overlay/overlay_outline.c
   engines/overlay/overlay_paint.c
   engines/overlay/overlay_particle.c
+  engines/overlay/overlay_pointcloud.c
   engines/overlay/overlay_sculpt.c
   engines/overlay/overlay_shader.c
   engines/overlay/overlay_wireframe.c
@@ -377,6 +381,8 @@ data_to_c_simple(engines/overlay/shaders/paint_weight_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/paint_wire_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/particle_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/particle_frag.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/pointcloud_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/pointcloud_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/sculpt_mask_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/volume_velocity_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/wireframe_vert.glsl SRC)

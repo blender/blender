@@ -214,7 +214,7 @@ void DRW_displist_vertbuf_create_pos_and_nor(ListBase *lb, GPUVertBuf *vbo)
   }
 }
 
-void DRW_displist_vertbuf_create_wiredata(ListBase *lb, GPUVertBuf *vbo)
+void DRW_vertbuf_create_wiredata(GPUVertBuf *vbo, const int vert_len)
 {
   static GPUVertFormat format = {0};
   static struct {
@@ -232,21 +232,25 @@ void DRW_displist_vertbuf_create_wiredata(ListBase *lb, GPUVertBuf *vbo)
     }
   }
 
-  int vbo_len_used = curve_render_surface_vert_len_get(lb);
-
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, vbo_len_used);
+  GPU_vertbuf_data_alloc(vbo, vert_len);
 
   if (vbo->format.stride == 1) {
-    memset(vbo->data, 0xFF, (size_t)vbo_len_used);
+    memset(vbo->data, 0xFF, (size_t)vert_len);
   }
   else {
     GPUVertBufRaw wd_step;
     GPU_vertbuf_attr_get_raw_data(vbo, attr_id.wd, &wd_step);
-    for (int i = 0; i < vbo_len_used; i++) {
+    for (int i = 0; i < vert_len; i++) {
       *((float *)GPU_vertbuf_raw_step(&wd_step)) = 1.0f;
     }
   }
+}
+
+void DRW_displist_vertbuf_create_wiredata(ListBase *lb, GPUVertBuf *vbo)
+{
+  const int vert_len = curve_render_surface_vert_len_get(lb);
+  DRW_vertbuf_create_wiredata(vbo, vert_len);
 }
 
 void DRW_displist_indexbuf_create_triangles_in_order(ListBase *lb, GPUIndexBuf *ibo)

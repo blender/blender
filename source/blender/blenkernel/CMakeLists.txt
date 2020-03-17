@@ -242,6 +242,7 @@ set(SRC
   intern/undo_system.c
   intern/unit.c
   intern/volume.cc
+  intern/volume_render.cc
   intern/workspace.c
   intern/world.c
   intern/writeavi.c
@@ -375,6 +376,7 @@ set(SRC
   BKE_undo_system.h
   BKE_unit.h
   BKE_volume.h
+  BKE_volume_render.h
   BKE_workspace.h
   BKE_world.h
   BKE_writeavi.h

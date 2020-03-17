@@ -108,28 +108,6 @@ class DATA_PT_volume_grids(DataButtonsPanel, Panel):
         layout.template_list("VOLUME_UL_grids", "grids", volume, "grids", volume.grids, "active_index", rows=3)
 
 
-class DATA_PT_volume_render(DataButtonsPanel, Panel):
-    bl_label = "Render"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        scene = context.scene
-        volume = context.volume
-        render = volume.render
-
-        col = layout.column(align=True)
-        col.prop(render, "space")
-        col.prop(render, "step_size")
-
-        if scene.render.engine == 'CYCLES':
-            col = layout.column(align=True)
-            col.prop(render, "clipping")
-
-
 class DATA_PT_volume_viewport_display(DataButtonsPanel, Panel):
     bl_label = "Viewport Display"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
@@ -162,7 +140,6 @@ classes = (
     DATA_PT_volume_grids,
     DATA_PT_volume_file,
     DATA_PT_volume_viewport_display,
-    DATA_PT_volume_render,
     DATA_PT_custom_props_volume,
     VOLUME_UL_grids,
 )

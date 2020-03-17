@@ -7,6 +7,7 @@
 #ifdef MESH_SHADER
 uniform vec3 volumeOrcoLoc;
 uniform vec3 volumeOrcoSize;
+uniform mat4 volumeObjectToTexture;
 #endif
 
 flat in int slice;
@@ -35,8 +36,10 @@ void main()
   worldPosition = point_view_to_world(viewPosition);
 #ifdef MESH_SHADER
   volumeObjectLocalCoord = point_world_to_object(worldPosition);
+  /* TODO: redundant transform */
   volumeObjectLocalCoord = (volumeObjectLocalCoord - volumeOrcoLoc + volumeOrcoSize) /
                            (volumeOrcoSize * 2.0);
+  volumeObjectLocalCoord = (volumeObjectToTexture * vec4(volumeObjectLocalCoord, 1.0)).xyz;
 
   if (any(lessThan(volumeObjectLocalCoord, vec3(0.0))) ||
       any(greaterThan(volumeObjectLocalCoord, vec3(1.0))))

@@ -335,6 +335,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
   /* Volume Grids */
   for (GPUMaterialVolumeGrid *grid = graph->volume_grids.first; grid; grid = grid->next) {
     BLI_dynstr_appendf(ds, "uniform sampler3D %s;\n", grid->sampler_name);
+    BLI_dynstr_appendf(ds, "uniform mat4 %s = mat4(0.0);\n", grid->transform_name);
   }
 
   /* Print other uniforms */
@@ -431,6 +432,9 @@ static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph, GPUOutput *f
       }
       else if (input->source == GPU_SOURCE_VOLUME_GRID) {
         BLI_dynstr_append(ds, input->volume_grid->sampler_name);
+      }
+      else if (input->source == GPU_SOURCE_VOLUME_GRID_TRANSFORM) {
+        BLI_dynstr_append(ds, input->volume_grid->transform_name);
       }
       else if (input->source == GPU_SOURCE_OUTPUT) {
         codegen_convert_datatype(

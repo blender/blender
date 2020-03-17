@@ -38,6 +38,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_hair.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -48,6 +49,8 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
+#include "BKE_pointcloud.h"
+#include "BKE_volume.h"
 
 #include "draw_manager.h"
 #include "DNA_camera_types.h"
@@ -2653,6 +2656,15 @@ void DRW_engines_register(void)
 
     BKE_gpencil_batch_cache_dirty_tag_cb = DRW_gpencil_batch_cache_dirty_tag;
     BKE_gpencil_batch_cache_free_cb = DRW_gpencil_batch_cache_free;
+
+    BKE_hair_batch_cache_dirty_tag_cb = DRW_hair_batch_cache_dirty_tag;
+    BKE_hair_batch_cache_free_cb = DRW_hair_batch_cache_free;
+
+    BKE_pointcloud_batch_cache_dirty_tag_cb = DRW_pointcloud_batch_cache_dirty_tag;
+    BKE_pointcloud_batch_cache_free_cb = DRW_pointcloud_batch_cache_free;
+
+    BKE_volume_batch_cache_dirty_tag_cb = DRW_volume_batch_cache_dirty_tag;
+    BKE_volume_batch_cache_free_cb = DRW_volume_batch_cache_free;
   }
 }
 

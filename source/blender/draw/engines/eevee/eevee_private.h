@@ -902,6 +902,10 @@ void EEVEE_particle_hair_cache_populate(EEVEE_Data *vedata,
                                         EEVEE_ViewLayerData *sldata,
                                         Object *ob,
                                         bool *cast_shadow);
+void EEVEE_object_hair_cache_populate(EEVEE_Data *vedata,
+                                      EEVEE_ViewLayerData *sldata,
+                                      Object *ob,
+                                      bool *cast_shadow);
 void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);

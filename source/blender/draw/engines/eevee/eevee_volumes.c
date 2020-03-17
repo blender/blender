@@ -29,11 +29,15 @@
 
 #include "DNA_object_force_types.h"
 #include "DNA_fluid_types.h"
+#include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_modifier.h"
-#include "BKE_mesh.h"
 #include "BKE_fluid.h"
+#include "BKE_global.h"
+#include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_volume.h"
+#include "BKE_volume_render.h"
 
 #include "ED_screen.h"
 
@@ -59,6 +63,7 @@ static struct {
   GPUTexture *depth_src;
 
   GPUTexture *dummy_density;
+  GPUTexture *dummy_color;
   GPUTexture *dummy_flame;
 
   GPUTexture *dummy_scatter;
@@ -368,8 +373,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
       /* Fix principle volumetric not working with world materials. */
       ListBase gpu_grids = GPU_material_volume_grids(mat);
-      for (GPUMaterialVolumeGrid *gpu_grid = gpu_grids.first; gpu_grid;
-           gpu_grid = gpu_grid->next) {
+      LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, &gpu_grids) {
         DRW_shgroup_uniform_texture(grp, gpu_grid->sampler_name, e_data.dummy_density);
       }
 
@@ -390,64 +394,92 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 }
 
-typedef struct EEVEE_InstanceVolumeMatrix {
-  DrawData dd;
-  float volume_mat[4][4];
-} EEVEE_InstanceVolumeMatrix;
+static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWShadingGroup *grp)
+{
+  Volume *volume = ob->data;
+  BKE_volume_load(volume, G.main);
 
-void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
-                                    EEVEE_Data *vedata,
-                                    Scene *scene,
-                                    Object *ob)
+  /* Test if we need to use multiple transforms. */
+  DRWVolumeGrid *first_drw_grid = NULL;
+  bool multiple_transforms = true;
+
+  LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
+    VolumeGrid *volume_grid = BKE_volume_grid_find(volume, gpu_grid->name);
+    DRWVolumeGrid *drw_grid = (volume_grid) ?
+                                  DRW_volume_batch_cache_get_grid(volume, volume_grid) :
+                                  NULL;
+
+    if (drw_grid) {
+      if (first_drw_grid == NULL) {
+        first_drw_grid = drw_grid;
+      }
+      else if (drw_grid &&
+               !equals_m4m4(drw_grid->object_to_texture, first_drw_grid->object_to_texture)) {
+        multiple_transforms = true;
+        break;
+      }
+    }
+  }
+
+  /* Bail out of no grids to render. */
+  if (first_drw_grid == NULL) {
+    return false;
+  }
+
+  /* Set transform matrix for the volume as a whole. This one is also used for
+   * clipping so must map the entire bounding box to 0..1. */
+  float bounds_to_object[4][4];
+
+  if (multiple_transforms) {
+    /* For multiple grids with different transform, we first transform from object space
+     * to bounds, then for each individual grid from bounds to texture. */
+    BoundBox *bb = BKE_volume_boundbox_get(ob);
+    float bb_size[3];
+    sub_v3_v3v3(bb_size, bb->vec[6], bb->vec[0]);
+    size_to_mat4(bounds_to_object, bb_size);
+    copy_v3_v3(bounds_to_object[3], bb->vec[0]);
+
+    invert_m4_m4(first_drw_grid->object_to_bounds, bounds_to_object);
+    DRW_shgroup_uniform_mat4(grp, "volumeObjectToTexture", first_drw_grid->object_to_bounds);
+  }
+  else {
+    /* All grid transforms are equal, we can transform to texture space immediately. */
+    DRW_shgroup_uniform_mat4(grp, "volumeObjectToTexture", first_drw_grid->object_to_texture);
+  }
+
+  /* Don't use orco transform here, only matrix. */
+  DRW_shgroup_uniform_vec3_copy(grp, "volumeOrcoLoc", (float[3]){0.5f, 0.5f, 0.5f});
+  DRW_shgroup_uniform_vec3_copy(grp, "volumeOrcoSize", (float[3]){0.5f, 0.5f, 0.5f});
+
+  /* Bind volume grid textures. */
+  LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
+    VolumeGrid *volume_grid = BKE_volume_grid_find(volume, gpu_grid->name);
+    DRWVolumeGrid *drw_grid = (volume_grid) ?
+                                  DRW_volume_batch_cache_get_grid(volume, volume_grid) :
+                                  NULL;
+
+    DRW_shgroup_uniform_texture(
+        grp, gpu_grid->sampler_name, (drw_grid) ? drw_grid->texture : e_data.dummy_density);
+
+    if (drw_grid && multiple_transforms) {
+      /* Specify per-volume tranform matrix that is applied after the
+       * transform from object to bounds. */
+      mul_m4_m4m4(drw_grid->bounds_to_texture, drw_grid->object_to_texture, bounds_to_object);
+      DRW_shgroup_uniform_mat4(grp, gpu_grid->transform_name, drw_grid->bounds_to_texture);
+    }
+  }
+
+  return true;
+}
+
+static bool eevee_volume_object_mesh_init(Scene *scene,
+                                          Object *ob,
+                                          ListBase *gpu_grids,
+                                          DRWShadingGroup *grp)
 {
   static const float white[3] = {1.0f, 1.0f, 1.0f};
+  ModifierData *md = NULL;
 
-  float *texcoloc = NULL;
-  float *texcosize = NULL;
-  struct ModifierData *md = NULL;
-  Material *ma = BKE_object_material_get(ob, 1);
-
-  if (ma == NULL) {
-    return;
-  }
-
-  float size[3];
-  mat4_to_size(size, ob->obmat);
-  /* Check if any of the axes have 0 length. (see T69070) */
-  const float epsilon = 1e-8f;
-  if ((size[0] < epsilon) || (size[1] < epsilon) || (size[2] < epsilon)) {
-    return;
-  }
-
-  struct GPUMaterial *mat = EEVEE_material_mesh_volume_get(scene, ma);
-  eGPUMaterialStatus status = GPU_material_status(mat);
-
-  if (status == GPU_MAT_QUEUED) {
-    vedata->stl->g_data->queued_shaders_count++;
-  }
-  /* If shader failed to compile or is currently compiling. */
-  if (status != GPU_MAT_SUCCESS) {
-    return;
-  }
-
-  DRWShadingGroup *grp = DRW_shgroup_material_create(mat, vedata->psl->volumetric_objects_ps);
-
-  BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, &texcosize);
-
-  /* TODO(fclem) remove those "unnecessary" UBOs */
-  DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
-  DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
-  DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-  DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
-  DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
-  DRW_shgroup_uniform_block(
-      grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
-
-  DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-  DRW_shgroup_uniform_vec3(grp, "volumeOrcoLoc", texcoloc, 1);
-  DRW_shgroup_uniform_vec3(grp, "volumeOrcoSize", texcosize, 1);
-
-  ListBase gpu_grids = GPU_material_volume_grids(mat);
   /* Smoke Simulation */
   if (((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
       (md = modifiers_findByType(ob, eModifierType_Fluid)) &&
@@ -458,7 +490,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
 
     /* Don't try to show liquid domains here. */
     if (!mds->fluid || !(mds->type == FLUID_DOMAIN_TYPE_GAS)) {
-      return;
+      return false;
     }
 
     /* Don't show smoke before simulation starts, this could be made an option in the future. */
@@ -479,7 +511,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
       BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(mmd));
     }
 
-    for (GPUMaterialVolumeGrid *gpu_grid = gpu_grids.first; gpu_grid; gpu_grid = gpu_grid->next) {
+    LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
       if (STREQ(gpu_grid->name, "density")) {
         DRW_shgroup_uniform_texture_ref(grp,
                                         gpu_grid->sampler_name,
@@ -510,10 +542,85 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_vec2(grp, "volumeTemperature", &mds->flame_ignition, 1);
   }
   else {
-    for (GPUMaterialVolumeGrid *gpu_grid = gpu_grids.first; gpu_grid; gpu_grid = gpu_grid->next) {
+    LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
       DRW_shgroup_uniform_texture(grp, gpu_grid->sampler_name, e_data.dummy_density);
     }
-    DRW_shgroup_uniform_vec3(grp, "volumeColor", white, 1);
+  }
+
+  /* Transform for mesh volumes. */
+  static const float unit_mat[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
+                                       {0.0f, 1.0f, 0.0f, 0.0f},
+                                       {0.0f, 0.0f, 1.0f, 0.0f},
+                                       {0.0f, 0.0f, 0.0f, 1.0f}};
+  float *texco_loc, *texco_size;
+  BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texco_loc, &texco_size);
+
+  DRW_shgroup_uniform_mat4(grp, "volumeObjectToTexture", unit_mat);
+  DRW_shgroup_uniform_vec3(grp, "volumeOrcoLoc", texco_loc, 1);
+  DRW_shgroup_uniform_vec3(grp, "volumeOrcoSize", texco_size, 1);
+
+  return true;
+}
+
+void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
+                                    EEVEE_Data *vedata,
+                                    Scene *scene,
+                                    Object *ob)
+{
+  Material *ma = BKE_object_material_get(ob, 1);
+
+  if (ma == NULL) {
+    if (ob->type == OB_VOLUME) {
+      ma = BKE_material_default_volume();
+    }
+    else {
+      return;
+    }
+  }
+
+  float size[3];
+  mat4_to_size(size, ob->obmat);
+  /* Check if any of the axes have 0 length. (see T69070) */
+  const float epsilon = 1e-8f;
+  if ((size[0] < epsilon) || (size[1] < epsilon) || (size[2] < epsilon)) {
+    return;
+  }
+
+  struct GPUMaterial *mat = EEVEE_material_mesh_volume_get(scene, ma);
+  eGPUMaterialStatus status = GPU_material_status(mat);
+
+  if (status == GPU_MAT_QUEUED) {
+    vedata->stl->g_data->queued_shaders_count++;
+  }
+  /* If shader failed to compile or is currently compiling. */
+  if (status != GPU_MAT_SUCCESS) {
+    return;
+  }
+
+  DRWShadingGroup *grp = DRW_shgroup_material_create(mat, vedata->psl->volumetric_objects_ps);
+
+  /* TODO(fclem) remove those "unnecessary" UBOs */
+  DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+  DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+  DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+  DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+  DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+  DRW_shgroup_uniform_block(
+      grp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
+
+  DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+
+  ListBase gpu_grids = GPU_material_volume_grids(mat);
+
+  if (ob->type == OB_VOLUME) {
+    if (!eevee_volume_object_grids_init(ob, &gpu_grids, grp)) {
+      return;
+    }
+  }
+  else {
+    if (!eevee_volume_object_mesh_init(scene, ob, &gpu_grids, grp)) {
+      return;
+    }
   }
 
   /* TODO Reduce to number of slices intersecting. */
@@ -757,6 +864,7 @@ void EEVEE_volumes_free(void)
 
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_density);
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_flame);
+  DRW_TEXTURE_FREE_SAFE(e_data.dummy_color);
 
   DRW_SHADER_FREE_SAFE(e_data.volumetric_clear_sh);
   DRW_SHADER_FREE_SAFE(e_data.scatter_sh);

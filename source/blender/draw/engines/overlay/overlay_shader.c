@@ -102,6 +102,8 @@ extern char datatoc_paint_weight_vert_glsl[];
 extern char datatoc_paint_wire_vert_glsl[];
 extern char datatoc_particle_vert_glsl[];
 extern char datatoc_particle_frag_glsl[];
+extern char datatoc_pointcloud_vert_glsl[];
+extern char datatoc_pointcloud_frag_glsl[];
 extern char datatoc_sculpt_mask_vert_glsl[];
 extern char datatoc_volume_velocity_vert_glsl[];
 extern char datatoc_wireframe_vert_glsl[];
@@ -184,6 +186,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *paint_wire;
   GPUShader *particle_dot;
   GPUShader *particle_shape;
+  GPUShader *pointcloud_dot;
   GPUShader *sculpt_mask;
   GPUShader *uniform_color;
   GPUShader *volume_velocity_needle_sh;
@@ -1270,6 +1273,25 @@ GPUShader *OVERLAY_shader_particle_shape(void)
     });
   }
   return sh_data->particle_shape;
+}
+
+GPUShader *OVERLAY_shader_pointcloud_dot(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->pointcloud_dot) {
+    sh_data->pointcloud_dot = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg->lib,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_pointcloud_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_pointcloud_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg->def, "#define USE_DOTS\n", NULL},
+    });
+  }
+  return sh_data->pointcloud_dot;
 }
 
 GPUShader *OVERLAY_shader_sculpt_mask(void)

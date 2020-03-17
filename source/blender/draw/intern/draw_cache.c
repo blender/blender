@@ -19,13 +19,16 @@
  */
 
 #include "DNA_scene_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_object_types.h"
+#include "DNA_particle_types.h"
+#include "DNA_pointcloud_types.h"
+#include "DNA_volume_types.h"
 
 #include "UI_resources.h"
 
@@ -799,6 +802,12 @@ GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
       return DRW_cache_text_edge_detection_get(ob, r_is_manifold);
     case OB_MBALL:
       return DRW_cache_mball_edge_detection_get(ob, r_is_manifold);
+    case OB_HAIR:
+      return NULL;
+    case OB_POINTCLOUD:
+      return NULL;
+    case OB_VOLUME:
+      return NULL;
     default:
       return NULL;
   }
@@ -817,6 +826,12 @@ GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
       return DRW_cache_text_face_wireframe_get(ob);
     case OB_MBALL:
       return DRW_cache_mball_face_wireframe_get(ob);
+    case OB_HAIR:
+      return NULL;
+    case OB_POINTCLOUD:
+      return NULL;
+    case OB_VOLUME:
+      return DRW_cache_volume_face_wireframe_get(ob);
     case OB_GPENCIL: {
       return DRW_cache_gpencil_face_wireframe_get(ob);
     }
@@ -837,7 +852,13 @@ GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob)
     case OB_FONT:
       return DRW_cache_text_loose_edges_get(ob);
     case OB_MBALL:
-      /* Cannot have any loose edge */
+      return NULL;
+    case OB_HAIR:
+      return NULL;
+    case OB_POINTCLOUD:
+      return NULL;
+    case OB_VOLUME:
+      return NULL;
     default:
       return NULL;
   }
@@ -856,6 +877,12 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
       return DRW_cache_text_surface_get(ob);
     case OB_MBALL:
       return DRW_cache_mball_surface_get(ob);
+    case OB_HAIR:
+      return NULL;
+    case OB_POINTCLOUD:
+      return NULL;
+    case OB_VOLUME:
+      return NULL;
     default:
       return NULL;
   }
@@ -875,6 +902,12 @@ int DRW_cache_object_material_count_get(struct Object *ob)
       return DRW_curve_material_count_get(ob->data);
     case OB_MBALL:
       return DRW_metaball_material_count_get(ob->data);
+    case OB_HAIR:
+      return DRW_hair_material_count_get(ob->data);
+    case OB_POINTCLOUD:
+      return DRW_pointcloud_material_count_get(ob->data);
+    case OB_VOLUME:
+      return DRW_volume_material_count_get(ob->data);
     default:
       BLI_assert(0);
       return 0;
@@ -896,6 +929,12 @@ GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
       return DRW_cache_text_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
     case OB_MBALL:
       return DRW_cache_mball_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
+    case OB_HAIR:
+      return NULL;
+    case OB_POINTCLOUD:
+      return NULL;
+    case OB_VOLUME:
+      return NULL;
     default:
       return NULL;
   }
@@ -3214,6 +3253,27 @@ GPUBatch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name PointCloud
+ * \{ */
+
+GPUBatch *DRW_cache_pointcloud_get_dots(Object *object)
+{
+  return DRW_pointcloud_batch_cache_get_dots(object);
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Volume
+ * \{ */
+
+GPUBatch *DRW_cache_volume_face_wireframe_get(Object *ob)
+{
+  BLI_assert(ob->type == OB_VOLUME);
+  return DRW_volume_batch_cache_get_wireframes_face(ob->data);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Particles
  * \{ */
 
@@ -3443,6 +3503,15 @@ void drw_batch_cache_validate(Object *ob)
       break;
     case OB_LATTICE:
       DRW_lattice_batch_cache_validate((Lattice *)ob->data);
+      break;
+    case OB_HAIR:
+      DRW_hair_batch_cache_validate((Hair *)ob->data);
+      break;
+    case OB_POINTCLOUD:
+      DRW_pointcloud_batch_cache_validate((PointCloud *)ob->data);
+      break;
+    case OB_VOLUME:
+      DRW_volume_batch_cache_validate((Volume *)ob->data);
       break;
     default:
       break;

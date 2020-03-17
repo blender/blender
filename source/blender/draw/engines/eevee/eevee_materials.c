@@ -32,9 +32,10 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 
-#include "DNA_world_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "GPU_material.h"
 
@@ -1021,7 +1022,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(EEVEE_ViewLayerDa
 
   EEVEE_PassList *psl = vedata->psl;
 
-  BLI_assert(!is_hair || (ob && psys && md));
+  BLI_assert(!is_hair || (ob && ((psys && md) || ob->type == OB_HAIR)));
 
   SET_FLAG_FROM_TEST(options, is_hair, VAR_MAT_HAIR);
   SET_FLAG_FROM_TEST(options, holdout, VAR_MAT_HOLDOUT);
@@ -1715,7 +1716,12 @@ BLI_INLINE Material *eevee_object_material_get(Object *ob, int slot)
 {
   Material *ma = BKE_object_material_get(ob, slot + 1);
   if (ma == NULL) {
-    ma = BKE_material_default_empty();
+    if (ob->type == OB_VOLUME) {
+      ma = BKE_material_default_volume();
+    }
+    else {
+      ma = BKE_material_default_empty();
+    }
   }
   return ma;
 }
@@ -2062,6 +2068,14 @@ void EEVEE_particle_hair_cache_populate(EEVEE_Data *vedata,
       }
     }
   }
+}
+
+void EEVEE_object_hair_cache_populate(EEVEE_Data *vedata,
+                                      EEVEE_ViewLayerData *sldata,
+                                      Object *ob,
+                                      bool *cast_shadow)
+{
+  eevee_hair_cache_populate(vedata, sldata, ob, NULL, NULL, HAIR_MATERIAL_NR, cast_shadow);
 }
 
 void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)

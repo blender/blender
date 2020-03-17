@@ -437,7 +437,15 @@ bool DRW_object_is_flat(Object *ob, int *r_axis)
 {
   float dim[3];
 
-  if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
+  if (!ELEM(ob->type,
+            OB_MESH,
+            OB_CURVE,
+            OB_SURF,
+            OB_FONT,
+            OB_MBALL,
+            OB_HAIR,
+            OB_POINTCLOUD,
+            OB_VOLUME)) {
     /* Non-meshes object cannot be considered as flat. */
     return false;
   }

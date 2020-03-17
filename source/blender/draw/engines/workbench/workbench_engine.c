@@ -33,8 +33,9 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 
-#include "DNA_image_types.h"
 #include "DNA_fluid_types.h"
+#include "DNA_hair_types.h"
+#include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
@@ -192,12 +193,12 @@ static void workbench_cache_common_populate(WORKBENCH_PrivateData *wpd,
 
 static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
                                           Object *ob,
+                                          ParticleSystem *psys,
                                           ModifierData *md,
                                           eV3DShadingColorType color_type,
-                                          bool use_texpaint_mode)
+                                          bool use_texpaint_mode,
+                                          const int matnr)
 {
-  ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
-  ParticleSettings *part = psys->part;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
 
@@ -206,8 +207,8 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
   int interp = (imapaint && imapaint->interp == IMAGEPAINT_INTERP_LINEAR) ? SHD_INTERP_LINEAR :
                                                                             SHD_INTERP_CLOSEST;
   DRWShadingGroup *grp = (use_texpaint_mode) ?
-                             workbench_image_hair_setup(wpd, ob, part->omat, ima, NULL, interp) :
-                             workbench_material_hair_setup(wpd, ob, part->omat, color_type);
+                             workbench_image_hair_setup(wpd, ob, matnr, ima, NULL, interp) :
+                             workbench_material_hair_setup(wpd, ob, matnr, color_type);
 
   DRW_shgroup_hair_create_sub(ob, psys, md, grp);
 }
@@ -244,14 +245,20 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     color_type = V3D_SHADING_OBJECT_COLOR;
   }
 
-  *r_sculpt_pbvh = is_sculpt_pbvh;
-  *r_texpaint_mode = false;
+  if (r_sculpt_pbvh) {
+    *r_sculpt_pbvh = is_sculpt_pbvh;
+  }
+  if (r_texpaint_mode) {
+    *r_texpaint_mode = false;
+  }
 
   if (!is_sculpt_pbvh && !is_render) {
     /* Force texture or vertex mode if object is in paint mode. */
     if (is_texpaint_mode && me && me->mloopuv) {
       color_type = V3D_SHADING_TEXTURE_COLOR;
-      *r_texpaint_mode = true;
+      if (r_texpaint_mode) {
+        *r_texpaint_mode = true;
+      }
     }
     else if (is_vertpaint_mode && me && me->mloopcol) {
       color_type = V3D_SHADING_VERTEX_COLOR;
@@ -286,8 +293,8 @@ void workbench_cache_populate(void *ved, Object *ob)
   }
 
   if (ob->type == OB_MESH && ob->modifiers.first != NULL) {
-    bool use_sculpt_pbvh, use_texpaint_mode;
-    int color_type = workbench_color_type_get(wpd, ob, &use_sculpt_pbvh, &use_texpaint_mode, NULL);
+    bool use_texpaint_mode;
+    int color_type = workbench_color_type_get(wpd, ob, NULL, &use_texpaint_mode, NULL);
 
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type != eModifierType_ParticleSystem) {
@@ -301,7 +308,8 @@ void workbench_cache_populate(void *ved, Object *ob)
       const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
       if (draw_as == PART_DRAW_PATH) {
-        workbench_cache_hair_populate(wpd, ob, md, color_type, use_texpaint_mode);
+        workbench_cache_hair_populate(
+            wpd, ob, psys, md, color_type, use_texpaint_mode, part->omat);
       }
     }
   }
@@ -311,7 +319,7 @@ void workbench_cache_populate(void *ved, Object *ob)
     if (md && modifier_isEnabled(wpd->scene, md, eModifierMode_Realtime)) {
       FluidModifierData *fmd = (FluidModifierData *)md;
       if (fmd->domain && fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
-        workbench_volume_cache_populate(vedata, wpd->scene, ob, md);
+        workbench_volume_cache_populate(vedata, wpd->scene, ob, md, V3D_SHADING_SINGLE_COLOR);
         return; /* Do not draw solid in this case. */
       }
     }
@@ -325,7 +333,7 @@ void workbench_cache_populate(void *ved, Object *ob)
     return;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
+  if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_POINTCLOUD)) {
     bool use_sculpt_pbvh, use_texpaint_mode, draw_shadow, has_transp_mat = false;
     eV3DShadingColorType color_type = workbench_color_type_get(
         wpd, ob, &use_sculpt_pbvh, &use_texpaint_mode, &draw_shadow);
@@ -342,6 +350,16 @@ void workbench_cache_populate(void *ved, Object *ob)
 
     if (draw_shadow) {
       workbench_shadow_cache_populate(vedata, ob, has_transp_mat);
+    }
+  }
+  else if (ob->type == OB_HAIR) {
+    int color_type = workbench_color_type_get(wpd, ob, NULL, NULL, NULL);
+    workbench_cache_hair_populate(wpd, ob, NULL, NULL, color_type, false, HAIR_MATERIAL_NR);
+  }
+  else if (ob->type == OB_VOLUME) {
+    if (wpd->shading.type != OB_WIRE) {
+      int color_type = workbench_color_type_get(wpd, ob, NULL, NULL, NULL);
+      workbench_volume_cache_populate(vedata, wpd->scene, ob, NULL, color_type);
     }
   }
 }

@@ -79,11 +79,18 @@ typedef struct ParticleHairCache {
   int point_len;
 } ParticleHairCache;
 
+void particle_batch_cache_clear_hair(struct ParticleHairCache *hair_cache);
+
 bool particles_ensure_procedural_data(struct Object *object,
                                       struct ParticleSystem *psys,
                                       struct ModifierData *md,
                                       struct ParticleHairCache **r_hair_cache,
                                       int subdiv,
                                       int thickness_res);
+
+bool hair_ensure_procedural_data(struct Object *object,
+                                 struct ParticleHairCache **r_hair_cache,
+                                 int subdiv,
+                                 int thickness_res);
 
 #endif /* __DRAW_HAIR_PRIVATE_H__ */

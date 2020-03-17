@@ -233,7 +233,8 @@ typedef struct GPUMaterialTexture {
 typedef struct GPUMaterialVolumeGrid {
   struct GPUMaterialVolumeGrid *next, *prev;
   char *name;
-  char sampler_name[32]; /* Name of sampler in GLSL. */
+  char sampler_name[32];   /* Name of sampler in GLSL. */
+  char transform_name[32]; /* Name of 4x4 matrix in GLSL. */
   int users;
 } GPUMaterialVolumeGrid;
 

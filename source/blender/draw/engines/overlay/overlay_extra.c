@@ -475,13 +475,25 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
       texcosize = mb->size;
       break;
     }
+    case ID_HA:
+    case ID_PT:
+    case ID_VO: {
+      /* No user defined texture space support. */
+      break;
+    }
     default:
       BLI_assert(0);
   }
 
   float mat[4][4];
-  size_to_mat4(mat, texcosize);
-  copy_v3_v3(mat[3], texcoloc);
+
+  if (texcoloc != NULL && texcosize != NULL) {
+    size_to_mat4(mat, texcosize);
+    copy_v3_v3(mat[3], texcoloc);
+  }
+  else {
+    unit_m4(mat);
+  }
 
   mul_m4_m4m4(mat, ob->obmat, mat);
 

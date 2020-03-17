@@ -11,6 +11,7 @@ uniform sampler3D shadowTexture;
 uniform sampler3D flameTexture;
 uniform sampler1D flameColorTexture;
 uniform sampler1D transferTexture;
+uniform mat4 volumeObjectToTexture;
 
 uniform int samplesLen = 256;
 uniform float noiseOfs = 0.0;
@@ -110,20 +111,24 @@ void volume_properties(vec3 ls_pos, out vec3 scattering, out float extinction)
   scattering = tval.rgb * 1500.0;
   extinction = max(1e-4, tval.a * 50.0);
 #else
+#  ifdef VOLUME_SMOKE
   float flame = sample_volume_texture(flameTexture, co).r;
   vec4 emission = texture(flameColorTexture, flame);
+#  endif
+  vec3 density = sample_volume_texture(densityTexture, co).rgb;
   float shadows = sample_volume_texture(shadowTexture, co).r;
-  vec4 density = sample_volume_texture(densityTexture, co); /* rgb: color, a: density */
 
-  scattering = density.rgb * densityScale;
+  scattering = density * densityScale;
   extinction = max(1e-4, dot(scattering, vec3(0.33333)));
   scattering *= activeColor;
 
   /* Scale shadows in log space and clamp them to avoid completely black shadows. */
   scattering *= exp(clamp(log(shadows) * densityScale * 0.1, -2.5, 0.0)) * M_PI;
 
+#  ifdef VOLUME_SMOKE
   /* 800 is arbitrary and here to mimic old viewport. TODO make it a parameter */
   scattering += pow(emission.rgb, vec3(2.2)) * emission.a * 800.0;
+#  endif
 #endif
 }
 
@@ -201,9 +206,16 @@ void main()
   vec3 ls_ray_ori = point_view_to_object(vs_ray_ori);
   vec3 ls_ray_end = point_view_to_object(vs_ray_end);
 
+#  ifdef VOLUME_SMOKE
   ls_ray_dir = (OrcoTexCoFactors[0].xyz + ls_ray_dir * OrcoTexCoFactors[1].xyz) * 2.0 - 1.0;
   ls_ray_ori = (OrcoTexCoFactors[0].xyz + ls_ray_ori * OrcoTexCoFactors[1].xyz) * 2.0 - 1.0;
   ls_ray_end = (OrcoTexCoFactors[0].xyz + ls_ray_end * OrcoTexCoFactors[1].xyz) * 2.0 - 1.0;
+#  else
+  ls_ray_dir = (volumeObjectToTexture * vec4(ls_ray_dir, 1.0)).xyz * 2.0f - 1.0;
+  ls_ray_ori = (volumeObjectToTexture * vec4(ls_ray_ori, 1.0)).xyz * 2.0f - 1.0;
+  ls_ray_end = (volumeObjectToTexture * vec4(ls_ray_end, 1.0)).xyz * 2.0f - 1.0;
+#  endif
+
   ls_ray_dir -= ls_ray_ori;
 
   /* TODO: Align rays to volume center so that it mimics old behaviour of slicing the volume. */
