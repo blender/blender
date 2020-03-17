@@ -1274,7 +1274,7 @@ static PointerRNA rna_WindowManager_xr_session_state_get(PointerRNA *ptr)
       WM_xr_session_state_handle_get(&wm->xr);
 #  else
       NULL;
-  UNUSED_VAR(wm);
+  UNUSED_VARS(wm);
 #  endif
 
   return rna_pointer_inherit_refine(ptr, &RNA_XrSessionState, state);
