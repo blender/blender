@@ -4376,7 +4376,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_api_region_view3d(srna);
 }
 
-static void rna_def_space_buttons(BlenderRNA *brna)
+static void rna_def_space_properties(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
@@ -6515,7 +6515,7 @@ void RNA_def_space(BlenderRNA *brna)
   rna_def_space_filebrowser(brna);
   rna_def_space_outliner(brna);
   rna_def_space_view3d(brna);
-  rna_def_space_buttons(brna);
+  rna_def_space_properties(brna);
   rna_def_space_dopesheet(brna);
   rna_def_space_graph(brna);
   rna_def_space_nla(brna);
