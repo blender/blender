@@ -270,14 +270,17 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
   return mdisps;
 }
 
-Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph, MultiresModifierData *mmd, Object *ob)
+Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
+                               Object *object,
+                               MultiresModifierData *mmd)
 {
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Mesh *deformed_mesh = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+  Mesh *deformed_mesh = mesh_get_eval_deform(
+      depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
   ModifierEvalContext modifier_ctx = {
       .depsgraph = depsgraph,
-      .object = ob_eval,
+      .object = object_eval,
       .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY,
   };
 
