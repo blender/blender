@@ -875,10 +875,8 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
   UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
   UI_GetThemeColor4ubv(TH_TEXT, text_color_unselected);
 
-  float camera_mat[4][4], normal_mat[4][4];
+  float camera_mat[4][4];
   BKE_tracking_get_camera_object_matrix(ob, camera_mat);
-
-  normalize_m4_m4(normal_mat, ob->obmat);
 
   LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
     float tracking_object_mat[4][4];
@@ -889,12 +887,15 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
     else {
       const int framenr = BKE_movieclip_remap_scene_to_clip_frame(
           clip, DEG_get_ctime(draw_ctx->depsgraph));
+
       float object_mat[4][4];
       BKE_tracking_camera_get_reconstructed_interpolate(
           tracking, tracking_object, framenr, object_mat);
 
-      invert_m4(object_mat);
-      mul_m4_m4m4(tracking_object_mat, normal_mat, object_mat);
+      float object_imat[4][4];
+      invert_m4_m4(object_imat, object_mat);
+
+      mul_m4_m4m4(tracking_object_mat, ob->obmat, object_imat);
     }
 
     ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
