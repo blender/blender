@@ -39,6 +39,7 @@
 
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
+#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
@@ -3524,7 +3525,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *mds, Mesh *orgmesh, Obje
   return result;
 }
 
-static void manta_step(
+static int manta_step(
     Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me, FluidModifierData *mmd, int frame)
 {
   FluidDomainSettings *mds = mmd->domain;
@@ -3532,17 +3533,20 @@ static void manta_step(
   float time_per_frame;
   bool init_resolution = true;
 
-  /* update object state */
+  /* Store baking success - bake might be aborted anytime by user. */
+  int result = 1;
+
+  /* Update object state. */
   invert_m4_m4(mds->imat, ob->obmat);
   copy_m4_m4(mds->obmat, ob->obmat);
 
-  /* gas domain might use adaptive domain */
+  /* Gas domain might use adaptive domain. */
   if (mds->type == FLUID_DOMAIN_TYPE_GAS) {
     init_resolution = (mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) != 0;
   }
   manta_set_domain_from_mesh(mds, ob, me, init_resolution);
 
-  /* use local variables for adaptive loop, dt can change */
+  /* Use local variables for adaptive loop, dt can change. */
   frame_length = mds->frame_length;
   dt = mds->dt;
   time_per_frame = 0;
@@ -3550,26 +3554,38 @@ static void manta_step(
 
   BLI_mutex_lock(&object_update_lock);
 
-  /* loop as long as time_per_frame (sum of sub dt's) does not exceed actual framelength */
+  /* Loop as long as time_per_frame (sum of sub dt's) does not exceed actual framelength. */
   while (time_per_frame < frame_length) {
     manta_adapt_timestep(mds->fluid);
     dt = manta_get_timestep(mds->fluid);
 
-    /* save adapted dt so that MANTA object can access it (important when adaptive domain creates
-     * new MANTA object) */
+    /* Save adapted dt so that MANTA object can access it (important when adaptive domain creates
+     * new MANTA object). */
     mds->dt = dt;
 
-    /* count for how long this while loop is running */
+    /* Count for how long this while loop is running. */
     time_per_frame += dt;
     time_total += dt;
 
-    /* Calculate inflow geometry */
+    /* Calculate inflow geometry. */
     update_flowsfluids(depsgraph, scene, ob, mds, time_per_frame, frame_length, frame, dt);
+
+    /* If user requested stop, quit baking */
+    if (G.is_break) {
+      result = 0;
+      break;
+    }
 
     manta_update_variables(mds->fluid, mmd);
 
-    /* Calculate obstacle geometry */
+    /* Calculate obstacle geometry. */
     update_obstacles(depsgraph, scene, ob, mds, time_per_frame, frame_length, frame, dt);
+
+    /* If user requested stop, quit baking */
+    if (G.is_break) {
+      result = 0;
+      break;
+    }
 
     if (mds->total_cells > 1) {
       update_effectors(depsgraph, scene, ob, mds, dt);
@@ -3578,12 +3594,20 @@ static void manta_step(
       mds->time_per_frame = time_per_frame;
       mds->time_total = time_total;
     }
+
+    /* If user requested stop, quit baking */
+    if (G.is_break) {
+      result = 0;
+      break;
+    }
   }
 
   if (mds->type == FLUID_DOMAIN_TYPE_GAS) {
     manta_smoke_calc_transparency(mds, DEG_get_evaluated_view_layer(depsgraph));
   }
   BLI_mutex_unlock(&object_update_lock);
+
+  return result;
 }
 
 static void manta_guiding(
@@ -3952,9 +3976,11 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       manta_guiding(depsgraph, scene, ob, mmd, scene_framenr);
     }
     if (baking_data) {
-      manta_step(depsgraph, scene, ob, me, mmd, scene_framenr);
-      manta_write_config(mds->fluid, mmd, scene_framenr);
-      manta_write_data(mds->fluid, mmd, scene_framenr);
+      /* Only save baked data if all of it completed successfully. */
+      if (manta_step(depsgraph, scene, ob, me, mmd, scene_framenr)) {
+        manta_write_config(mds->fluid, mmd, scene_framenr);
+        manta_write_data(mds->fluid, mmd, scene_framenr);
+      }
     }
     if (has_data || baking_data) {
       if (baking_noise && with_smoke && with_noise) {
@@ -3969,6 +3995,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
     }
   }
   mmd->time = scene_framenr;
+  G.is_break = false;
 }
 
 static void BKE_fluid_modifier_process(

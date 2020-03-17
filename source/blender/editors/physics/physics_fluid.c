@@ -305,6 +305,12 @@ static void fluid_bake_sequence(FluidJob *job)
 
     /* Update animation system */
     ED_update_for_newframe(job->bmain, job->depsgraph);
+
+    /* If user requested stop, quit baking */
+    if (G.is_break) {
+      job->success = 0;
+      return;
+    }
   }
 
   /* Restore frame position that we were on before bake */
