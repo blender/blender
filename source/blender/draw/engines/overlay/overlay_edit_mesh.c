@@ -398,7 +398,7 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
     DRW_draw_pass(psl->edit_mesh_normals_ps);
     overlay_edit_mesh_draw_components(psl, pd, false);
 
-    if (v3d->shading.type == OB_SOLID && pd->edit_mesh.ghost_ob == 1 &&
+    if (!DRW_state_is_depth() && v3d->shading.type == OB_SOLID && pd->edit_mesh.ghost_ob == 1 &&
         pd->edit_mesh.edit_ob == 1) {
       /* In the case of single ghost object edit (common case for retopology):
        * we clear the depth buffer so that only the depth of the retopo mesh
