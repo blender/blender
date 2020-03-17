@@ -120,6 +120,14 @@ class GHOST_Context : public GHOST_IContext {
   }
 
   /**
+   * Returns if the window is rendered upside down compared to OpenGL.
+   */
+  inline bool isUpsideDown() const
+  {
+    return false;
+  }
+
+  /**
    * Gets the OpenGL framebuffer associated with the OpenGL context
    * \return The ID of an OpenGL framebuffer object.
    */

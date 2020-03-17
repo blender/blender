@@ -116,6 +116,8 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     oxr_binding.glx.glxDrawable = ctx_glx->m_window;
     oxr_binding.glx.glxContext = ctx_glx->m_context;
     oxr_binding.glx.visualid = visual_info->visualid;
+
+    XFree(visual_info);
 #elif defined(WIN32)
     GHOST_ContextWGL *ctx_wgl = static_cast<GHOST_ContextWGL *>(ghost_ctx);
 

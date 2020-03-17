@@ -598,6 +598,8 @@ typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, GHOST_T
 
 #ifdef WITH_XR_OPENXR
 
+struct GHOST_XrError;
+struct GHOST_XrDrawViewInfo;
 /**
  * The XR view (i.e. the OpenXR runtime) may require a different graphics library than OpenGL. An
  * offscreen texture of the viewport will then be drawn into using OpenGL, but the final texture
@@ -605,7 +607,7 @@ typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, GHOST_T
  *
  * This enum defines the possible graphics bindings to attempt to enable.
  */
-typedef enum {
+typedef enum GHOST_TXrGraphicsBinding {
   GHOST_kXrGraphicsUnknown = 0,
   GHOST_kXrGraphicsOpenGL,
 #  ifdef WIN32
@@ -614,6 +616,16 @@ typedef enum {
   /* For later */
   //  GHOST_kXrGraphicsVulkan,
 } GHOST_TXrGraphicsBinding;
+
+typedef void (*GHOST_XrErrorHandlerFn)(const struct GHOST_XrError *);
+
+typedef void (*GHOST_XrSessionExitFn)(void *customdata);
+
+typedef void *(*GHOST_XrGraphicsContextBindFn)(enum GHOST_TXrGraphicsBinding graphics_lib);
+typedef void (*GHOST_XrGraphicsContextUnbindFn)(enum GHOST_TXrGraphicsBinding graphics_lib,
+                                                GHOST_ContextHandle graphics_context);
+typedef void (*GHOST_XrDrawViewFn)(const struct GHOST_XrDrawViewInfo *draw_view, void *customdata);
+
 /* An array of GHOST_TXrGraphicsBinding items defining the candidate bindings to use. The first
  * available candidate will be chosen, so order defines priority. */
 typedef const GHOST_TXrGraphicsBinding *GHOST_XrGraphicsBindingCandidates;
@@ -638,13 +650,17 @@ typedef struct {
 
 typedef struct {
   GHOST_XrPose base_pose;
+
+  GHOST_XrSessionExitFn exit_fn;
+  void *exit_customdata;
 } GHOST_XrSessionBeginInfo;
 
-typedef struct {
+typedef struct GHOST_XrDrawViewInfo {
   int ofsx, ofsy;
   int width, height;
 
-  GHOST_XrPose pose;
+  GHOST_XrPose eye_pose;
+  GHOST_XrPose local_pose;
 
   struct {
     float angle_left, angle_right;
@@ -655,18 +671,11 @@ typedef struct {
   char expects_srgb_buffer;
 } GHOST_XrDrawViewInfo;
 
-typedef struct {
+typedef struct GHOST_XrError {
   const char *user_message;
 
   void *customdata;
 } GHOST_XrError;
-
-typedef void (*GHOST_XrErrorHandlerFn)(const GHOST_XrError *);
-
-typedef void *(*GHOST_XrGraphicsContextBindFn)(GHOST_TXrGraphicsBinding graphics_lib);
-typedef void (*GHOST_XrGraphicsContextUnbindFn)(GHOST_TXrGraphicsBinding graphics_lib,
-                                                void *graphics_context);
-typedef void (*GHOST_XrDrawViewFn)(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
 
 #endif
 

@@ -186,8 +186,7 @@ if(APPLE)
   option(WITH_XR_OPENXR   "Enable VR features through the OpenXR specification" OFF)
   mark_as_advanced(WITH_XR_OPENXR)
 else()
-  # Disabled until there's more than just the build system stuff. Should be enabled soon.
-  option(WITH_XR_OPENXR   "Enable VR features through the OpenXR specification" OFF)
+  option(WITH_XR_OPENXR   "Enable VR features through the OpenXR specification" ON)
 endif()
 
 # Compositor

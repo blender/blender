@@ -156,6 +156,10 @@ void *WM_opengl_context_create(void);
 void WM_opengl_context_dispose(void *context);
 void WM_opengl_context_activate(void *context);
 void WM_opengl_context_release(void *context);
+#ifdef WIN32
+void *WM_directx_context_create(void);
+void WM_directx_context_dispose(void *context);
+#endif
 
 struct wmWindow *WM_window_open(struct bContext *C, const struct rcti *rect);
 struct wmWindow *WM_window_open_temp(struct bContext *C,
@@ -866,6 +870,18 @@ struct wmGenericCallback *WM_generic_callback_steal(struct wmGenericCallback *ca
 void WM_generic_callback_free(struct wmGenericCallback *callback);
 
 void WM_generic_user_data_free(struct wmGenericUserData *user_data);
+
+#ifdef WITH_XR_OPENXR
+/* wm_xr.c */
+bool WM_xr_session_exists(const wmXrData *xr);
+bool WM_xr_session_is_ready(const wmXrData *xr);
+struct wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr);
+bool WM_xr_session_state_viewer_pose_location_get(const wmXrData *xr, float r_location[3]);
+bool WM_xr_session_state_viewer_pose_rotation_get(const wmXrData *xr, float r_rotation[4]);
+bool WM_xr_session_state_viewer_pose_matrix_info_get(const wmXrData *xr,
+                                                     float r_viewmat[4][4],
+                                                     float *r_focal_len);
+#endif
 
 #ifdef __cplusplus
 }

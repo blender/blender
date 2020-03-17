@@ -1,0 +1,9 @@
+{
+    "file_format_version": "1.0.0",
+    "runtime":
+    {
+        "api_version": "1.0",
+        "name": "Oculus OpenXR",
+        "library_path": "c:\\Program Files\\Oculus\\Support\\oculus-runtime\\LibOVRRT64_1.dll"
+    }
+}

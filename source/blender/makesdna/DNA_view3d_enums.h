@@ -26,6 +26,7 @@ typedef enum eV3DOffscreenDrawFlag {
   V3D_OFSDRAW_NONE = (0),
   V3D_OFSDRAW_SHOW_ANNOTATION = (1 << 0),
   V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS = (1 << 1),
+  V3D_OFSDRAW_SHOW_GRIDFLOOR = (1 << 2),
 } eV3DOffscreenDrawFlag;
 
 /** #View3DShading.light */

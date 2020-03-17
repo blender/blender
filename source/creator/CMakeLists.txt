@@ -111,6 +111,10 @@ if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
 endif()
 
+if(WITH_XR_OPENXR)
+  add_definitions(-DWITH_XR_OPENXR)
+endif()
+
 # Setup the exe sources and buildinfo
 set(SRC
   creator.c
@@ -856,6 +860,8 @@ elseif(WIN32)
       ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu_glitchworkaround.cmd
       ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_log.cmd
       ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup.cmd
+      ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_oculus.cmd
+      ${CMAKE_SOURCE_DIR}/release/windows/batch/oculus.json
     DESTINATION "."
   )
 

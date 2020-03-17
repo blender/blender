@@ -636,6 +636,13 @@ void perspective_m4(float mat[4][4],
                     const float top,
                     const float nearClip,
                     const float farClip);
+void perspective_m4_fov(float mat[4][4],
+                        const float angle_left,
+                        const float angle_right,
+                        const float angle_up,
+                        const float angle_down,
+                        const float nearClip,
+                        const float farClip);
 void orthographic_m4(float mat[4][4],
                      const float left,
                      const float right,

@@ -50,6 +50,9 @@ def _init_addon_blacklist():
     # netrender has known problems re-registering
     BLACKLIST_ADDONS.add("netrender")
 
+    if not bpy.app.build_options.xr_openxr:
+        BLACKLIST_ADDONS.add("viewport_vr_preview")
+
     for mod in addon_utils.modules():
         if addon_utils.module_bl_info(mod)['blender'] < (2, 80, 0):
             BLACKLIST_ADDONS.add(mod.__name__)

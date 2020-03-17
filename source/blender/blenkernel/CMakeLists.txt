@@ -667,6 +667,10 @@ if(WITH_TBB)
   )
 endif()
 
+if(WITH_XR_OPENXR)
+  add_definitions(-DWITH_XR_OPENXR)
+endif()
+
 # # Warnings as errors, this is too strict!
 # if(MSVC)
 #    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")

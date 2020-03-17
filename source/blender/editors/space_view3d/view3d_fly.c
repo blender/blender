@@ -1039,7 +1039,7 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   FlyInfo *fly;
 
-  if (rv3d->viewlock & RV3D_LOCKED) {
+  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) {
     return OPERATOR_CANCELLED;
   }
 

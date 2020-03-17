@@ -39,6 +39,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_lattice.h"
@@ -114,42 +115,59 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
     if (region) {
       RegionView3D *rv3d;
       if ((region->regiontype == RGN_TYPE_WINDOW) && (rv3d = region->regiondata) &&
-          (rv3d->viewlock & RV3D_LOCKED) == 0) {
+          (rv3d->viewlock & RV3D_LOCK_ROTATION) == 0) {
         *r_v3d = v3d;
         *r_ar = region;
         return true;
       }
       else {
-        ARegion *ar_unlock_user = NULL;
-        ARegion *ar_unlock = NULL;
-        for (region = sa->regionbase.first; region; region = region->next) {
-          /* find the first unlocked rv3d */
-          if (region->regiondata && region->regiontype == RGN_TYPE_WINDOW) {
-            rv3d = region->regiondata;
-            if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
-              ar_unlock = region;
-              if (rv3d->persp == RV3D_PERSP || rv3d->persp == RV3D_CAMOB) {
-                ar_unlock_user = region;
-                break;
-              }
-            }
-          }
-        }
-
-        /* camera/perspective view get priority when the active region is locked */
-        if (ar_unlock_user) {
+        if (ED_view3d_area_user_region(sa, v3d, r_ar)) {
           *r_v3d = v3d;
-          *r_ar = ar_unlock_user;
-          return true;
-        }
-
-        if (ar_unlock) {
-          *r_v3d = v3d;
-          *r_ar = ar_unlock;
           return true;
         }
       }
     }
+  }
+
+  return false;
+}
+
+/**
+ * Similar to #ED_view3d_context_user_region() but does not use context. Always performs a lookup.
+ * Also works if \a v3d is not the active space.
+ */
+bool ED_view3d_area_user_region(const ScrArea *sa, const View3D *v3d, ARegion **r_ar)
+{
+  RegionView3D *rv3d = NULL;
+  ARegion *ar_unlock_user = NULL;
+  ARegion *ar_unlock = NULL;
+  const ListBase *region_list = (v3d == sa->spacedata.first) ? &sa->regionbase : &v3d->regionbase;
+
+  BLI_assert(v3d->spacetype == SPACE_VIEW3D);
+
+  for (ARegion *region = region_list->first; region; region = region->next) {
+    /* find the first unlocked rv3d */
+    if (region->regiondata && region->regiontype == RGN_TYPE_WINDOW) {
+      rv3d = region->regiondata;
+      if ((rv3d->viewlock & RV3D_LOCK_ROTATION) == 0) {
+        ar_unlock = region;
+        if (rv3d->persp == RV3D_PERSP || rv3d->persp == RV3D_CAMOB) {
+          ar_unlock_user = region;
+          break;
+        }
+      }
+    }
+  }
+
+  /* camera/perspective view get priority when the active region is locked */
+  if (ar_unlock_user) {
+    *r_ar = ar_unlock_user;
+    return true;
+  }
+
+  if (ar_unlock) {
+    *r_ar = ar_unlock;
+    return true;
   }
 
   return false;
@@ -333,9 +351,11 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
     v3dn->localvd = NULL;
     v3dn->runtime.properties_storage = NULL;
   }
+  /* Only one View3D is allowed to have this flag! */
+  v3dn->runtime.flag &= ~V3D_RUNTIME_XR_SESSION_ROOT;
 
   v3dn->local_collections_uuid = 0;
-  v3dn->flag &= ~V3D_LOCAL_COLLECTIONS;
+  v3dn->flag &= ~(V3D_LOCAL_COLLECTIONS | V3D_XR_SESSION_MIRROR);
 
   if (v3dn->shading.type == OB_RENDER) {
     v3dn->shading.type = OB_SOLID;
@@ -715,6 +735,13 @@ static void view3d_main_region_listener(
       if (ELEM(wmn->data, ND_UNDO)) {
         WM_gizmomap_tag_refresh(gzmap);
       }
+      else if (ELEM(wmn->data, ND_XR_DATA_CHANGED)) {
+        /* Only cause a redraw if this a VR session mirror. Should more features be added that
+         * require redraws, we could pass something to wmn->reference, e.g. the flag value. */
+        if (v3d->flag & V3D_XR_SESSION_MIRROR) {
+          ED_region_tag_redraw(region);
+        }
+      }
       break;
     case NC_ANIMATION:
       switch (wmn->data) {
@@ -912,6 +939,11 @@ static void view3d_main_region_listener(
         if (wmn->subtype == NS_VIEW3D_GPU) {
           rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
         }
+#ifdef WITH_XR_OPENXR
+        else if (wmn->subtype == NS_VIEW3D_SHADING) {
+          ED_view3d_xr_shading_update(G_MAIN->wm.first, v3d, scene);
+        }
+#endif
         ED_region_tag_redraw(region);
         WM_gizmomap_tag_refresh(gzmap);
       }
@@ -1371,6 +1403,11 @@ static void view3d_buttons_region_listener(wmWindow *UNUSED(win),
     case NC_IMAGE:
       /* Update for the image layers in texture paint. */
       if (wmn->action == NA_EDITED) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+    case NC_WM:
+      if (wmn->data == ND_XR_DATA_CHANGED) {
         ED_region_tag_redraw(region);
       }
       break;

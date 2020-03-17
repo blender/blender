@@ -75,6 +75,7 @@ set(SRC
   intern/wm_splash_screen.c
   intern/wm_stereo.c
   intern/wm_subwindow.c
+  intern/wm_surface.c
   intern/wm_toolsystem.c
   intern/wm_tooltip.c
   intern/wm_uilist_type.c
@@ -101,6 +102,7 @@ set(SRC
   wm_event_system.h
   wm_event_types.h
   wm_files.h
+  wm_surface.h
   wm_window.h
   intern/wm_platform_support.h
   intern/wm_window_private.h
@@ -185,6 +187,13 @@ if(WITH_COMPOSITOR)
     bf_compositor
   )
   add_definitions(-DWITH_COMPOSITOR)
+endif()
+
+if(WITH_XR_OPENXR)
+  add_definitions(-DWITH_XR_OPENXR)
+  list(APPEND SRC
+    intern/wm_xr.c
+  )
 endif()
 
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

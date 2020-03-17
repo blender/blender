@@ -98,6 +98,7 @@
 #include "wm_event_system.h"
 #include "wm.h"
 #include "wm_files.h"
+#include "wm_surface.h"
 #include "wm_window.h"
 #include "wm_platform_support.h"
 
@@ -534,6 +535,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_materials_exit();
 
   wm_operatortype_free();
+  wm_surfaces_free();
   wm_dropbox_free();
   WM_menutype_free();
   WM_uilisttype_free();

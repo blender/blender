@@ -93,6 +93,7 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     struct RenderEngineType *engine_type,
                                     struct ARegion *region,
                                     struct View3D *v3d,
+                                    const bool is_image_render,
                                     const bool draw_background,
                                     const bool do_color_management,
                                     struct GPUOffScreen *ofs,
@@ -138,6 +139,14 @@ void DRW_opengl_context_create(void);
 void DRW_opengl_context_destroy(void);
 void DRW_opengl_context_enable(void);
 void DRW_opengl_context_disable(void);
+
+#ifdef WITH_XR_OPENXR
+/* XXX see comment on DRW_xr_opengl_context_get() */
+void *DRW_xr_opengl_context_get(void);
+void *DRW_xr_gpu_context_get(void);
+void DRW_xr_drawing_begin(void);
+void DRW_xr_drawing_end(void);
+#endif
 
 /* For garbage collection */
 void DRW_cache_free_old_batches(struct Main *bmain);

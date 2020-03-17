@@ -379,6 +379,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
     wm_autosave_timer_ended(wm);
   }
 
+#ifdef WITH_XR_OPENXR
+  /* May send notifier, so do before freeing notifier queue. */
+  wm_xr_exit(wm);
+#endif
+
   while ((win = BLI_pophead(&wm->windows))) {
     /* prevent draw clear to use screen */
     BKE_workspace_active_set(win->workspace_hook, NULL);

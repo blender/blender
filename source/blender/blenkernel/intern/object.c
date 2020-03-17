@@ -2680,7 +2680,8 @@ void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *o
 }
 
 /**
- * Applies the global transformation \a mat to the \a ob using a relative parent space if supplied.
+ * Applies the global transformation \a mat to the \a ob using a relative parent space if
+ * supplied.
  *
  * \param mat: the global transformation mat that the object should be set object to.
  * \param parent: the parent space in which this object will be set relative to
@@ -3183,7 +3184,8 @@ typedef struct ObTfmBack {
   float obmat[4][4];
   /** inverse result of parent, so that object doesn't 'stick' to parent. */
   float parentinv[4][4];
-  /** inverse result of constraints. doesn't include effect of parent or object local transform. */
+  /** inverse result of constraints. doesn't include effect of parent or object local transform.
+   */
   float constinv[4][4];
   /** inverse matrix of 'obmat' for during render, temporally: ipokeys of transform. */
   float imat[4][4];

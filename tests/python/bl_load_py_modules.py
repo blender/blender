@@ -56,6 +56,9 @@ MODULE_SYS_PATHS = {
 if not bpy.app.build_options.freestyle:
     BLACKLIST.add("render_freestyle_svg")
 
+if not bpy.app.build_options.xr_openxr:
+    BLACKLIST.add("viewport_vr_preview")
+
 BLACKLIST_DIRS = (
     os.path.join(bpy.utils.resource_path('USER'), "scripts"),
 ) + tuple(addon_utils.paths()[1:])

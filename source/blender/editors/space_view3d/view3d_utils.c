@@ -459,7 +459,7 @@ bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *re
   RegionView3D *rv3d = region->regiondata;
   const bool autopersp = (U.uiflag & USER_AUTOPERSP) != 0;
 
-  BLI_assert((rv3d->viewlock & RV3D_LOCKED) == 0);
+  BLI_assert((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0);
 
   if (ED_view3d_camera_lock_check(v3d, rv3d)) {
     return false;
@@ -679,7 +679,7 @@ static void view3d_boxview_clip(ScrArea *sa)
     if (region->regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3d = region->regiondata;
 
-      if (rv3d->viewlock & RV3D_BOXCLIP) {
+      if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) {
         if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
           if (region->winx > region->winy) {
             x1 = rv3d->dist;
@@ -751,7 +751,7 @@ static void view3d_boxview_clip(ScrArea *sa)
     if (region->regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3d = region->regiondata;
 
-      if (rv3d->viewlock & RV3D_BOXCLIP) {
+      if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) {
         rv3d->rflag |= RV3D_CLIPPING;
         memcpy(rv3d->clip, clip, sizeof(clip));
         if (rv3d->clipbb) {
@@ -822,10 +822,10 @@ void view3d_boxview_sync(ScrArea *sa, ARegion *region)
     if (artest != region && artest->regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3dtest = artest->regiondata;
 
-      if (rv3dtest->viewlock & RV3D_LOCKED) {
+      if (RV3D_LOCK_FLAGS(rv3dtest) & RV3D_LOCK_ROTATION) {
         rv3dtest->dist = rv3d->dist;
         view3d_boxview_sync_axis(rv3dtest, rv3d);
-        clip |= rv3dtest->viewlock & RV3D_BOXCLIP;
+        clip |= RV3D_LOCK_FLAGS(rv3dtest) & RV3D_BOXCLIP;
 
         ED_region_tag_redraw(artest);
       }
@@ -848,12 +848,12 @@ void view3d_boxview_copy(ScrArea *sa, ARegion *region)
     if (artest != region && artest->regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3dtest = artest->regiondata;
 
-      if (rv3dtest->viewlock) {
+      if (RV3D_LOCK_FLAGS(rv3dtest)) {
         rv3dtest->dist = rv3d->dist;
         copy_v3_v3(rv3dtest->ofs, rv3d->ofs);
         ED_region_tag_redraw(artest);
 
-        clip |= ((rv3dtest->viewlock & RV3D_BOXCLIP) != 0);
+        clip |= ((RV3D_LOCK_FLAGS(rv3dtest) & RV3D_BOXCLIP) != 0);
       }
     }
   }
@@ -874,7 +874,7 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *region, bool do_clip)
    * properties are always being edited, weak */
   viewlock = rv3d->viewlock;
 
-  if ((viewlock & RV3D_LOCKED) == 0) {
+  if ((viewlock & RV3D_LOCK_ROTATION) == 0) {
     do_clip = (viewlock & RV3D_BOXCLIP) != 0;
     viewlock = 0;
   }
@@ -899,12 +899,12 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *region, bool do_clip)
     }
   }
 
-  if (rv3d->viewlock & RV3D_BOXVIEW) {
+  if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(sa, ar_sync ? ar_sync : sa->regionbase.last);
   }
 
   /* ensure locked regions have an axis, locked user views don't make much sense */
-  if (viewlock & RV3D_LOCKED) {
+  if (viewlock & RV3D_LOCK_ROTATION) {
     int index_qsplit = 0;
     for (region = sa->regionbase.first; region; region = region->next) {
       if (region->alignment == RGN_ALIGN_QSPLIT) {

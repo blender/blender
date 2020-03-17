@@ -7187,6 +7187,7 @@ static void direct_link_region(FileData *fd, ARegion *region, int spacetype)
         rv3d->smooth_timer = NULL;
 
         rv3d->rflag &= ~(RV3D_NAVIGATING | RV3D_PAINTING);
+        rv3d->runtime_viewlock = 0;
       }
     }
   }
@@ -7277,7 +7278,10 @@ static void direct_link_area(FileData *fd, ScrArea *area)
         direct_link_gpencil(fd, v3d->gpd);
       }
       v3d->localvd = newdataadr(fd, v3d->localvd);
+
+      /* Runtime data */
       v3d->runtime.properties_storage = NULL;
+      v3d->runtime.flag = 0;
 
       /* render can be quite heavy, set to solid on load */
       if (v3d->shading.type == OB_RENDER) {
@@ -7658,6 +7662,23 @@ static bool direct_link_area_map(FileData *fd, ScrAreaMap *area_map)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name XR-data
+ * \{ */
+
+static void direct_link_wm_xr_data(FileData *fd, wmXrData *xr_data)
+{
+  direct_link_view3dshading(fd, &xr_data->session_settings.shading);
+}
+
+static void lib_link_wm_xr_data(FileData *fd, ID *parent_id, wmXrData *xr_data)
+{
+  xr_data->session_settings.base_pose_object = newlibadr(
+      fd, parent_id->lib, xr_data->session_settings.base_pose_object);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Read ID: Window Manager
  * \{ */
 
@@ -7710,6 +7731,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
     }
   }
 
+  direct_link_wm_xr_data(fd, &wm->xr);
+
   BLI_listbase_clear(&wm->timers);
   BLI_listbase_clear(&wm->operators);
   BLI_listbase_clear(&wm->paintcursors);
@@ -7723,6 +7746,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
   wm->undo_stack = NULL;
 
   wm->message_bus = NULL;
+
+  wm->xr.runtime = NULL;
 
   BLI_listbase_clear(&wm->jobs);
   BLI_listbase_clear(&wm->drags);
@@ -7747,6 +7772,8 @@ static void lib_link_windowmanager(FileData *fd, Main *UNUSED(bmain), wmWindowMa
     for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
       lib_link_area(fd, &wm->id, area);
     }
+
+    lib_link_wm_xr_data(fd, &wm->id, &wm->xr);
   }
 }
 
@@ -7909,6 +7936,12 @@ static void lib_link_main_data_restore(struct IDNameLib_Map *id_map, Main *newma
     BKE_library_foreach_ID_link(newmain, id, lib_link_main_data_restore_cb, id_map, IDWALK_NOP);
   }
   FOREACH_MAIN_ID_END;
+}
+
+static void lib_link_wm_xr_data_restore(struct IDNameLib_Map *id_map, wmXrData *xr_data)
+{
+  xr_data->session_settings.base_pose_object = restore_pointer_by_name(
+      id_map, (ID *)xr_data->session_settings.base_pose_object, USER_REAL);
 }
 
 static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, ViewLayer *view_layer)
@@ -8240,6 +8273,8 @@ void blo_lib_link_restore(Main *oldmain,
 
     BLI_assert(win->screen == NULL);
   }
+
+  lib_link_wm_xr_data_restore(id_map, &curwm->xr);
 
   /* Restore all ID pointers in Main database itself
    * (especially IDProperties might point to some word-space of other 'weirdly unchanged' ID

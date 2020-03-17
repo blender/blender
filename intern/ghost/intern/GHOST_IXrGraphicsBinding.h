@@ -41,6 +41,8 @@ class GHOST_IXrGraphicsBinding {
 #endif
   } oxr_binding;
 
+  virtual ~GHOST_IXrGraphicsBinding() = default;
+
   /**
    * Does __not__ require this object is initialized (can be called prior to
    * #initFromGhostContext). It's actually meant to be called first.

@@ -92,6 +92,7 @@ set(DEFSRC
   rna_wm_gizmo.c
   rna_workspace.c
   rna_world.c
+  rna_xr.c
 )
 
 set(APISRC
@@ -323,6 +324,10 @@ endif()
 
 if(WITH_INPUT_NDOF)
   add_definitions(-DWITH_INPUT_NDOF)
+endif()
+
+if(WITH_XR_OPENXR)
+  add_definitions(-DWITH_XR_OPENXR)
 endif()
 
 # Build makesrna executable

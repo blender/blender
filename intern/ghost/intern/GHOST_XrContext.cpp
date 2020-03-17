@@ -454,10 +454,12 @@ GHOST_TXrGraphicsBinding GHOST_XrContext::determineGraphicsBindingTypeToEnable(
 
 void GHOST_XrContext::startSession(const GHOST_XrSessionBeginInfo *begin_info)
 {
+  m_custom_funcs.session_exit_fn = begin_info->exit_fn;
+  m_custom_funcs.session_exit_customdata = begin_info->exit_customdata;
+
   if (m_session == nullptr) {
     m_session = std::unique_ptr<GHOST_XrSession>(new GHOST_XrSession(this));
   }
-
   m_session->start(begin_info);
 }
 

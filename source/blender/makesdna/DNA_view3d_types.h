@@ -106,10 +106,12 @@ typedef struct RegionView3D {
   char persp;
   char view;
   char view_axis_roll;
-  char viewlock;
+  char viewlock; /* Should usually be accessed with RV3D_LOCK_FLAGS()! */
+  /** Options for runtime only locking (cleared on file read) */
+  char runtime_viewlock; /* Should usually be accessed with RV3D_LOCK_FLAGS()! */
   /** Options for quadview (store while out of quad view). */
   char viewlock_quad;
-  char _pad[2];
+  char _pad[1];
   /** Normalized offset for locked view: (-1, -1) bottom left, (1, 1) upper right. */
   float ofs_lock[2];
 
@@ -232,6 +234,10 @@ typedef struct View3DOverlay {
 typedef struct View3D_Runtime {
   /** Nkey panel stores stuff here. */
   void *properties_storage;
+  /** Runtime only flags. */
+  int flag;
+
+  char _pad1[4];
 } View3D_Runtime;
 
 /** 3D ViewPort Struct. */
@@ -342,12 +348,19 @@ typedef struct View3D {
 #define V3D_FLAG_UNUSED_1 (1 << 1) /* cleared */
 #define V3D_HIDE_HELPLINES (1 << 2)
 #define V3D_INVALID_BACKBUF (1 << 3)
+#define V3D_XR_SESSION_MIRROR (1 << 4)
 
 #define V3D_FLAG_UNUSED_10 (1 << 10) /* cleared */
 #define V3D_SELECT_OUTLINE (1 << 11)
 #define V3D_FLAG_UNUSED_12 (1 << 12) /* cleared */
 #define V3D_GLOBAL_STATS (1 << 13)
 #define V3D_DRAW_CENTERS (1 << 15)
+
+/** #View3D_Runtime.flag */
+enum {
+  /** The 3D view which the XR session was created in is flagged with this. */
+  V3D_RUNTIME_XR_SESSION_ROOT = (1 << 0),
+};
 
 /** #RegionView3D.persp */
 #define RV3D_ORTHO 0
@@ -367,9 +380,19 @@ typedef struct View3D {
 #define RV3D_ZOFFSET_DISABLED 64
 
 /** #RegionView3D.viewlock */
-#define RV3D_LOCKED (1 << 0)
-#define RV3D_BOXVIEW (1 << 1)
-#define RV3D_BOXCLIP (1 << 2)
+enum {
+  RV3D_LOCK_ROTATION = (1 << 0),
+  RV3D_BOXVIEW = (1 << 1),
+  RV3D_BOXCLIP = (1 << 2),
+  RV3D_LOCK_LOCATION = (1 << 3),
+  RV3D_LOCK_ZOOM_AND_DOLLY = (1 << 4),
+
+  RV3D_LOCK_ANY_TRANSFORM = (RV3D_LOCK_LOCATION | RV3D_LOCK_ROTATION | RV3D_LOCK_ZOOM_AND_DOLLY),
+};
+
+/* Bitwise OR of the regular lock-flags with runtime only lock-flags. */
+#define RV3D_LOCK_FLAGS(rv3d) ((rv3d)->viewlock | ((rv3d)->runtime_viewlock))
+
 /** #RegionView3D.viewlock_quad */
 #define RV3D_VIEWLOCK_INIT (1 << 7)
 

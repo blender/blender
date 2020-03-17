@@ -139,6 +139,13 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
    * with click drag events by popping up under the cursor and catching the tweak event.
    */
   WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK = (1 << 8),
+
+  /**
+   * Cause continuous redraws, i.e. set the region redraw flag on every main loop itertion. This
+   * should really be avoided by using proper region redraw tagging, notifiers and the message-bus,
+   * however for VR it's sometimes needed.
+   */
+  WM_GIZMOGROUPTYPE_VR_REDRAWS = (1 << 9),
 } eWM_GizmoFlagGroupTypeFlag;
 
 /**

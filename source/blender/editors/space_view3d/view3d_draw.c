@@ -317,10 +317,35 @@ static void view3d_stereo3d_setup(
   }
 }
 
+#ifdef WITH_XR_OPENXR
+static void view3d_xr_mirror_setup(const wmWindowManager *wm,
+                                   Depsgraph *depsgraph,
+                                   Scene *scene,
+                                   View3D *v3d,
+                                   ARegion *region,
+                                   const rcti *rect)
+{
+  RegionView3D *rv3d = region->regiondata;
+  float viewmat[4][4];
+  const float lens_old = v3d->lens;
+
+  if (!WM_xr_session_state_viewer_pose_matrix_info_get(&wm->xr, viewmat, &v3d->lens)) {
+    /* Can't get info from XR session, use fallback values. */
+    copy_m4_m4(viewmat, rv3d->viewmat);
+    v3d->lens = lens_old;
+  }
+  view3d_main_region_setup_view(depsgraph, scene, v3d, region, viewmat, NULL, rect);
+
+  /* Reset overridden View3D data */
+  v3d->lens = lens_old;
+}
+#endif /* WITH_XR_OPENXR */
+
 /**
  * Set the correct matrices
  */
-void ED_view3d_draw_setup_view(wmWindow *win,
+void ED_view3d_draw_setup_view(const wmWindowManager *wm,
+                               wmWindow *win,
                                Depsgraph *depsgraph,
                                Scene *scene,
                                ARegion *region,
@@ -331,13 +356,23 @@ void ED_view3d_draw_setup_view(wmWindow *win,
 {
   RegionView3D *rv3d = region->regiondata;
 
+#ifdef WITH_XR_OPENXR
   /* Setup the view matrix. */
-  if (view3d_stereo3d_active(win, scene, v3d, rv3d)) {
+  if (ED_view3d_is_region_xr_mirror_active(wm, v3d, region)) {
+    view3d_xr_mirror_setup(wm, depsgraph, scene, v3d, region, rect);
+  }
+  else
+#endif
+      if (view3d_stereo3d_active(win, scene, v3d, rv3d)) {
     view3d_stereo3d_setup(depsgraph, scene, v3d, region, rect);
   }
   else {
     view3d_main_region_setup_view(depsgraph, scene, v3d, region, viewmat, winmat, rect);
   }
+
+#ifndef WITH_XR_OPENXR
+  UNUSED_VARS(wm);
+#endif
 }
 
 /** \} */
@@ -803,7 +838,8 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *region, View3D *v3d, bo
   UI_Theme_Store(&theme_state);
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
-  ED_view3d_draw_setup_view(NULL, depsgraph, scene, region, v3d, NULL, NULL, NULL);
+  ED_view3d_draw_setup_view(
+      G_MAIN->wm.first, NULL, depsgraph, scene, region, v3d, NULL, NULL, NULL);
 
   GPU_clear(GPU_DEPTH_BIT);
 
@@ -1481,7 +1517,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
   wmWindowManager *wm = CTX_wm_manager(C);
 
 #ifdef WITH_INPUT_NDOF
-  if ((U.ndof_flag & NDOF_SHOW_GUIDE) && ((rv3d->viewlock & RV3D_LOCKED) == 0) &&
+  if ((U.ndof_flag & NDOF_SHOW_GUIDE) && ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) &&
       (rv3d->persp != RV3D_CAMOB)) {
     /* TODO: draw something else (but not this) during fly mode */
     draw_rotation_guide(rv3d);
@@ -1552,7 +1588,8 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
 
 static void view3d_draw_view(const bContext *C, ARegion *region)
 {
-  ED_view3d_draw_setup_view(CTX_wm_window(C),
+  ED_view3d_draw_setup_view(CTX_wm_manager(C),
+                            CTX_wm_window(C),
                             CTX_data_expect_evaluated_depsgraph(C),
                             CTX_data_scene(C),
                             region,
@@ -1641,6 +1678,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               int winy,
                               float viewmat[4][4],
                               float winmat[4][4],
+                              bool is_image_render,
                               bool do_sky,
                               bool UNUSED(is_persp),
                               const char *viewname,
@@ -1690,8 +1728,15 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   }
 
   /* main drawing call */
-  DRW_draw_render_loop_offscreen(
-      depsgraph, engine_type, region, v3d, do_sky, do_color_management, ofs, viewport);
+  DRW_draw_render_loop_offscreen(depsgraph,
+                                 engine_type,
+                                 region,
+                                 v3d,
+                                 is_image_render,
+                                 do_sky,
+                                 do_color_management,
+                                 ofs,
+                                 viewport);
 
   /* restore size */
   region->winx = bwinx;
@@ -1704,6 +1749,94 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   UI_Theme_Restore(&theme_state);
 
   G.f &= ~G_FLAG_RENDER_VIEWPORT;
+}
+
+/**
+ * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen). Similar too
+ * #ED_view_draw_offscreen_imbuf_simple, but takes view/projection matrices as arguments.
+ */
+void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
+                                     Scene *scene,
+                                     View3DShading *shading_override,
+                                     int drawtype,
+                                     int winx,
+                                     int winy,
+                                     uint draw_flags,
+                                     float viewmat[4][4],
+                                     float winmat[4][4],
+                                     float clip_start,
+                                     float clip_end,
+                                     bool is_image_render,
+                                     bool do_sky,
+                                     bool is_persp,
+                                     const char *viewname,
+                                     const bool do_color_management,
+                                     GPUOffScreen *ofs,
+                                     GPUViewport *viewport)
+{
+  View3D v3d = {NULL};
+  ARegion ar = {NULL};
+  RegionView3D rv3d = {{{0}}};
+
+  v3d.regionbase.first = v3d.regionbase.last = &ar;
+  ar.regiondata = &rv3d;
+  ar.regiontype = RGN_TYPE_WINDOW;
+
+  View3DShading *source_shading_settings = &scene->display.shading;
+  if (draw_flags & V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS && shading_override != NULL) {
+    source_shading_settings = shading_override;
+  }
+  memcpy(&v3d.shading, source_shading_settings, sizeof(View3DShading));
+  v3d.shading.type = drawtype;
+
+  if (shading_override) {
+    /* Pass. */
+  }
+  else if (drawtype == OB_MATERIAL) {
+    v3d.shading.flag = V3D_SHADING_SCENE_WORLD | V3D_SHADING_SCENE_LIGHTS;
+  }
+
+  if (draw_flags & V3D_OFSDRAW_SHOW_ANNOTATION) {
+    v3d.flag2 |= V3D_SHOW_ANNOTATION;
+  }
+  if (draw_flags & V3D_OFSDRAW_SHOW_GRIDFLOOR) {
+    v3d.gridflag |= V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y;
+    v3d.grid = 1.0f;
+    v3d.gridlines = 16;
+    v3d.gridsubdiv = 10;
+
+    /* Show grid, disable other overlays (set all available _HIDE_ flags). */
+    v3d.overlay.flag |= V3D_OVERLAY_HIDE_CURSOR | V3D_OVERLAY_HIDE_TEXT |
+                        V3D_OVERLAY_HIDE_MOTION_PATHS | V3D_OVERLAY_HIDE_BONES |
+                        V3D_OVERLAY_HIDE_OBJECT_XTRAS | V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
+    v3d.flag |= V3D_HIDE_HELPLINES;
+  }
+  else {
+    v3d.flag2 = V3D_HIDE_OVERLAYS;
+  }
+
+  rv3d.persp = RV3D_PERSP;
+  v3d.clip_start = clip_start;
+  v3d.clip_end = clip_end;
+  /* Actually not used since we pass in the projection matrix. */
+  v3d.lens = 0;
+
+  ED_view3d_draw_offscreen(depsgraph,
+                           scene,
+                           drawtype,
+                           &v3d,
+                           &ar,
+                           winx,
+                           winy,
+                           viewmat,
+                           winmat,
+                           is_image_render,
+                           do_sky,
+                           is_persp,
+                           viewname,
+                           do_color_management,
+                           ofs,
+                           viewport);
 }
 
 /**
@@ -1815,6 +1948,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                            sizey,
                            NULL,
                            winmat,
+                           true,
                            draw_sky,
                            !is_ortho,
                            viewname,
@@ -1901,6 +2035,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   if (draw_flags & V3D_OFSDRAW_SHOW_ANNOTATION) {
     v3d.flag2 |= V3D_SHOW_ANNOTATION;
+  }
+  if (draw_flags & V3D_OFSDRAW_SHOW_GRIDFLOOR) {
+    v3d.gridflag |= V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y;
   }
 
   v3d.shading.background_type = V3D_SHADING_BACKGROUND_WORLD;
@@ -2212,7 +2349,7 @@ float view3d_depth_near(ViewDepths *d)
 void ED_view3d_draw_depth_gpencil(Depsgraph *depsgraph, Scene *scene, ARegion *region, View3D *v3d)
 {
   /* Setup view matrix. */
-  ED_view3d_draw_setup_view(NULL, depsgraph, scene, region, v3d, NULL, NULL, NULL);
+  ED_view3d_draw_setup_view(NULL, NULL, depsgraph, scene, region, v3d, NULL, NULL, NULL);
 
   GPU_clear(GPU_DEPTH_BIT);
 

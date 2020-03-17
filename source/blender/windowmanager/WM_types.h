@@ -310,6 +310,7 @@ typedef struct wmNotifier {
 #define ND_HISTORY (4 << 16)
 #define ND_JOB (5 << 16)
 #define ND_UNDO (6 << 16)
+#define ND_XR_DATA_CHANGED (7 << 17)
 
 /* NC_SCREEN */
 #define ND_LAYOUTBROWSE (1 << 16)
@@ -437,6 +438,7 @@ typedef struct wmNotifier {
 
 /* subtype 3d view editing */
 #define NS_VIEW3D_GPU (16 << 8)
+#define NS_VIEW3D_SHADING (16 << 9)
 
 /* action classification */
 #define NOTE_ACTION (0x000000FF)

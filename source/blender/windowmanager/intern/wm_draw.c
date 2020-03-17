@@ -67,6 +67,7 @@
 #include "wm_draw.h"
 #include "wm_window.h"
 #include "wm_event_system.h"
+#include "wm_surface.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.h"
@@ -186,7 +187,10 @@ static void wm_area_mark_invalid_backbuf(ScrArea *sa)
   }
 }
 
-static void wm_region_test_gizmo_do_draw(ARegion *region, bool tag_redraw)
+static void wm_region_test_gizmo_do_draw(bContext *C,
+                                         ScrArea *sa,
+                                         ARegion *region,
+                                         bool tag_redraw)
 {
   if (region->gizmo_map == NULL) {
     return;
@@ -195,10 +199,26 @@ static void wm_region_test_gizmo_do_draw(ARegion *region, bool tag_redraw)
   wmGizmoMap *gzmap = region->gizmo_map;
   for (wmGizmoGroup *gzgroup = WM_gizmomap_group_list(gzmap)->first; gzgroup;
        gzgroup = gzgroup->next) {
+    if (tag_redraw && (gzgroup->type->flag & WM_GIZMOGROUPTYPE_VR_REDRAWS)) {
+      ScrArea *ctx_sa = CTX_wm_area(C);
+      ARegion *ctx_ar = CTX_wm_region(C);
+
+      CTX_wm_area_set(C, sa);
+      CTX_wm_region_set(C, region);
+
+      if (WM_gizmo_group_type_poll(C, gzgroup->type)) {
+        ED_region_tag_redraw_editor_overlays(region);
+      }
+
+      /* Reset. */
+      CTX_wm_area_set(C, ctx_sa);
+      CTX_wm_region_set(C, ctx_ar);
+    }
+
     for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
       if (gz->do_draw) {
         if (tag_redraw) {
-          ED_region_tag_redraw_no_rebuild(region);
+          ED_region_tag_redraw_editor_overlays(region);
         }
         gz->do_draw = false;
       }
@@ -236,6 +256,19 @@ static void wm_region_test_render_do_draw(const Scene *scene,
     }
   }
 }
+
+#ifdef WITH_XR_OPENXR
+static void wm_region_test_xr_do_draw(const wmWindowManager *wm,
+                                      const ScrArea *area,
+                                      ARegion *region)
+{
+  if ((area->spacetype == SPACE_VIEW3D) && (region->regiontype == RGN_TYPE_WINDOW)) {
+    if (ED_view3d_is_region_xr_mirror_active(wm, area->spacedata.first, region)) {
+      ED_region_tag_redraw_no_rebuild(region);
+    }
+  }
+}
+#endif
 
 static bool wm_region_use_viewport_by_type(short space_type, short region_type)
 {
@@ -836,11 +869,26 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   screen->do_draw = false;
 }
 
+/**
+ * Draw offscreen contexts not bound to a specific window.
+ */
+static void wm_draw_surface(bContext *C, wmSurface *surface)
+{
+  wm_window_clear_drawable(CTX_wm_manager(C));
+  wm_surface_make_drawable(surface);
+
+  surface->draw(C);
+
+  /* Avoid interference with window drawable */
+  wm_surface_clear_drawable();
+}
+
 /****************** main update call **********************/
 
 /* quick test to prevent changing window drawable */
-static bool wm_draw_update_test_window(Main *bmain, wmWindow *win)
+static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
 {
+  const wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
@@ -861,8 +909,11 @@ static bool wm_draw_update_test_window(Main *bmain, wmWindow *win)
   ED_screen_areas_iter(win, screen, sa)
   {
     for (region = sa->regionbase.first; region; region = region->next) {
-      wm_region_test_gizmo_do_draw(region, true);
+      wm_region_test_gizmo_do_draw(C, sa, region, true);
       wm_region_test_render_do_draw(scene, depsgraph, sa, region);
+#ifdef WITH_XR_OPENXR
+      wm_region_test_xr_do_draw(wm, sa, region);
+#endif
 
       if (region->visible && region->do_draw) {
         do_draw = true;
@@ -890,19 +941,23 @@ static bool wm_draw_update_test_window(Main *bmain, wmWindow *win)
     return true;
   }
 
+#ifndef WITH_XR_OPENXR
+  UNUSED_VARS(wm);
+#endif
+
   return false;
 }
 
 /* Clear drawing flags, after drawing is complete so any draw flags set during
  * drawing don't cause any additional redraws. */
-static void wm_draw_update_clear_window(wmWindow *win)
+static void wm_draw_update_clear_window(bContext *C, wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
   ED_screen_areas_iter(win, screen, sa)
   {
     for (ARegion *region = sa->regionbase.first; region; region = region->next) {
-      wm_region_test_gizmo_do_draw(region, false);
+      wm_region_test_gizmo_do_draw(C, sa, region, false);
     }
   }
 
@@ -944,10 +999,10 @@ void wm_draw_update(bContext *C)
     }
 #endif
 
-    if (wm_draw_update_test_window(bmain, win)) {
-      bScreen *screen = WM_window_get_active_screen(win);
+    CTX_wm_window_set(C, win);
 
-      CTX_wm_window_set(C, win);
+    if (wm_draw_update_test_window(bmain, C, win)) {
+      bScreen *screen = WM_window_get_active_screen(win);
 
       /* sets context window+screen */
       wm_window_make_drawable(wm, win);
@@ -956,13 +1011,16 @@ void wm_draw_update(bContext *C)
       ED_screen_ensure_updated(wm, win, screen);
 
       wm_draw_window(C, win);
-      wm_draw_update_clear_window(win);
+      wm_draw_update_clear_window(C, win);
 
       wm_window_swap_buffers(win);
-
-      CTX_wm_window_set(C, NULL);
     }
   }
+
+  CTX_wm_window_set(C, NULL);
+
+  /* Draw non-windows (surfaces) */
+  wm_surfaces_iter(C, wm_draw_surface);
 }
 
 void wm_draw_region_clear(wmWindow *win, ARegion *UNUSED(region))

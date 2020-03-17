@@ -25,9 +25,9 @@
 #include <memory>
 
 class GHOST_XrContext;
+class GHOST_XrSwapchain;
 struct OpenXRSessionData;
 struct GHOST_XrDrawInfo;
-struct GHOST_XrSwapchain;
 
 class GHOST_XrSession {
  public:
@@ -74,6 +74,7 @@ class GHOST_XrSession {
       std::vector<XrCompositionLayerProjectionView> &r_proj_layer_views, void *draw_customdata);
   void drawView(GHOST_XrSwapchain &swapchain,
                 XrCompositionLayerProjectionView &r_proj_layer_view,
+                XrSpaceLocation &view_location,
                 XrView &view,
                 void *draw_customdata);
   void beginFrameDrawing();

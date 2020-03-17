@@ -33,6 +33,9 @@ struct GHOST_XrCustomFuncs {
   /** Function to release (possibly free) a graphics context. */
   GHOST_XrGraphicsContextUnbindFn gpu_ctx_unbind_fn = nullptr;
 
+  GHOST_XrSessionExitFn session_exit_fn = nullptr;
+  void *session_exit_customdata = nullptr;
+
   /** Custom per-view draw function for Blender side drawing. */
   GHOST_XrDrawViewFn draw_view_fn = nullptr;
 };

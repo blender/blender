@@ -205,6 +205,7 @@ void RNA_def_world(struct BlenderRNA *brna);
 void RNA_def_movieclip(struct BlenderRNA *brna);
 void RNA_def_tracking(struct BlenderRNA *brna);
 void RNA_def_mask(struct BlenderRNA *brna);
+void RNA_def_xr(struct BlenderRNA *brna);
 
 /* Common Define functions */
 
