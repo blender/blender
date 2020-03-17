@@ -91,7 +91,6 @@ int multires_get_level(const struct Scene *scene,
                        bool render,
                        bool ignore_simplify);
 struct Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
-                                      struct Scene *scene,
                                       struct MultiresModifierData *mmd,
                                       struct Object *ob);
 void multiresModifier_del_levels(struct MultiresModifierData *mmd,

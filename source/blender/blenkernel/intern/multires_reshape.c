@@ -107,11 +107,9 @@ bool multiresModifier_reshapeFromDeformModifier(struct Depsgraph *depsgraph,
   highest_mmd.lvl = highest_mmd.totlvl;
   highest_mmd.renderlvl = highest_mmd.totlvl;
 
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-
   /* Create mesh for the multires, ignoring any further modifiers (leading
    * deformation modifiers will be applied though). */
-  Mesh *multires_mesh = BKE_multires_create_mesh(depsgraph, scene_eval, &highest_mmd, object);
+  Mesh *multires_mesh = BKE_multires_create_mesh(depsgraph, &highest_mmd, object);
   int num_deformed_verts;
   float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(multires_mesh, &num_deformed_verts);
 
