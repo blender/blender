@@ -350,17 +350,6 @@ if(WITH_CYCLES_NETWORK)
   add_definitions(-DWITH_NETWORK)
 endif()
 
-if(WITH_OPENCOLORIO)
-  add_definitions(-DWITH_OCIO)
-  include_directories(
-    SYSTEM
-    ${OPENCOLORIO_INCLUDE_DIRS}
-  )
-  if(WIN32)
-    add_definitions(-DOpenColorIO_STATIC)
-  endif()
-endif()
-
 if(WITH_CYCLES_STANDALONE OR WITH_CYCLES_NETWORK OR WITH_CYCLES_CUBIN_COMPILER)
   add_subdirectory(app)
 endif()

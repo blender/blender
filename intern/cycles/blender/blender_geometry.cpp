@@ -38,7 +38,8 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   BL::ID b_key_id = (BKE_object_is_modified(b_ob)) ? b_ob_instance : b_ob_data;
   GeometryKey key(b_key_id.ptr.data, use_particle_hair);
   BL::Material material_override = view_layer.material_override;
-  Shader *default_shader = scene->default_surface;
+  Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
+                                                                      scene->default_surface;
   Geometry::Type geom_type = (use_particle_hair &&
                               (scene->curve_system_manager->primitive != CURVE_TRIANGLES)) ?
                                  Geometry::HAIR :
@@ -124,7 +125,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   if (use_particle_hair) {
     sync_hair(b_depsgraph, b_ob, geom, used_shaders);
   }
-  else if (object_fluid_gas_domain_find(b_ob)) {
+  else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
     Mesh *mesh = static_cast<Mesh *>(geom);
     sync_volume(b_ob, mesh, used_shaders);
   }
@@ -164,7 +165,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
   if (use_particle_hair) {
     sync_hair_motion(b_depsgraph, b_ob, geom, motion_step);
   }
-  else if (object_fluid_gas_domain_find(b_ob)) {
+  else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
     /* No volume motion blur support yet. */
   }
   else {

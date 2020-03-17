@@ -24,6 +24,7 @@ set(SRC
   hair.cpp
   image.cpp
   image_oiio.cpp
+  image_vdb.cpp
   integrator.cpp
   jitter.cpp
   light.cpp
@@ -63,6 +64,7 @@ set(SRC_HEADERS
   hair.h
   image.h
   image_oiio.h
+  image_vdb.h
   integrator.h
   light.h
   jitter.h
@@ -96,6 +98,27 @@ if(WITH_CYCLES_OSL)
   )
 
   SET_PROPERTY(SOURCE osl.cpp PROPERTY COMPILE_FLAGS ${RTTI_DISABLE_FLAGS})
+endif()
+
+if(WITH_OPENCOLORIO)
+  add_definitions(-DWITH_OCIO)
+  include_directories(
+    SYSTEM
+    ${OPENCOLORIO_INCLUDE_DIRS}
+  )
+  if(WIN32)
+    add_definitions(-DOpenColorIO_STATIC)
+  endif()
+endif()
+
+if(WITH_OPENVDB)
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
+  list(APPEND INC_SYS
+    ${OPENVDB_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${OPENVDB_LIBRARIES}
+  )
 endif()
 
 include_directories(${INC})

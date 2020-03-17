@@ -67,10 +67,16 @@ bool BlenderSync::object_is_mesh(BL::Object &b_ob)
     return false;
   }
 
-  if (b_ob.type() == BL::Object::type_CURVE) {
+  BL::Object::type_enum type = b_ob.type();
+
+  if (type == BL::Object::type_VOLUME) {
+    /* Will be exported attached to mesh. */
+    return true;
+  }
+  else if (type == BL::Object::type_CURVE) {
     /* Skip exporting curves without faces, overhead can be
      * significant if there are many for path animation. */
-    BL::Curve b_curve(b_ob.data());
+    BL::Curve b_curve(b_ob_data);
 
     return (b_curve.bevel_object() || b_curve.extrude() != 0.0f || b_curve.bevel_depth() != 0.0f ||
             b_curve.dimensions() == BL::Curve::dimensions_2D || b_ob.modifiers.length());

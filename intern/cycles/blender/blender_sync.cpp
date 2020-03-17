@@ -178,6 +178,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
         world_recalc = true;
       }
     }
+    /* Volume */
+    else if (b_id.is_a(&RNA_Volume)) {
+      BL::Volume b_volume(b_id);
+      geometry_map.set_recalc(b_volume);
+    }
   }
 
   BlenderViewportParameters new_viewport_parameters(b_v3d);

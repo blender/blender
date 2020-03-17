@@ -16,11 +16,18 @@
 
 #include "render/colorspace.h"
 #include "render/image.h"
+#include "render/image_vdb.h"
 #include "render/mesh.h"
 #include "render/object.h"
 
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"
+
+#ifdef WITH_OPENVDB
+#  include <openvdb/openvdb.h>
+openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const struct Volume *volume,
+                                                             struct VolumeGrid *grid);
+#endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -210,19 +217,121 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Mesh *mesh, float 
 
     attr->data_voxel() = scene->image_manager->add_image(loader, params);
   }
+}
 
-  /* Create a matrix to transform from object space to mesh texture space.
-   * This does not work with deformations but that can probably only be done
-   * well with a volume grid mapping of coordinates. */
-  if (mesh->need_attribute(scene, ATTR_STD_GENERATED_TRANSFORM)) {
-    Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
-    Transform *tfm = attr->data_transform();
+class BlenderVolumeLoader : public VDBImageLoader {
+ public:
+  BlenderVolumeLoader(BL::Volume b_volume, const string &grid_name)
+      : VDBImageLoader(grid_name),
+        b_volume(b_volume),
+        b_volume_grid(PointerRNA_NULL),
+        unload(false)
+  {
+#ifdef WITH_OPENVDB
+    /* Find grid with matching name. */
+    BL::Volume::grids_iterator b_grid_iter;
+    for (b_volume.grids.begin(b_grid_iter); b_grid_iter != b_volume.grids.end(); ++b_grid_iter) {
+      if (b_grid_iter->name() == grid_name) {
+        b_volume_grid = *b_grid_iter;
+      }
+    }
+#endif
+  }
 
-    BL::Mesh b_mesh(b_ob.data());
-    float3 loc, size;
-    mesh_texture_space(b_mesh, loc, size);
+  bool load_metadata(ImageMetaData &metadata) override
+  {
+    if (!b_volume_grid) {
+      return false;
+    }
 
-    *tfm = transform_translate(-loc) * transform_scale(size);
+    unload = !b_volume_grid.is_loaded();
+
+#ifdef WITH_OPENVDB
+    Volume *volume = (Volume *)b_volume.ptr.data;
+    VolumeGrid *volume_grid = (VolumeGrid *)b_volume_grid.ptr.data;
+    grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+#endif
+
+    return VDBImageLoader::load_metadata(metadata);
+  }
+
+  bool load_pixels(const ImageMetaData &metadata,
+                   void *pixels,
+                   const size_t pixel_size,
+                   const bool associate_alpha) override
+  {
+    if (!b_volume_grid) {
+      return false;
+    }
+
+    return VDBImageLoader::load_pixels(metadata, pixels, pixel_size, associate_alpha);
+  }
+
+  bool equals(const ImageLoader &other) const override
+  {
+    /* TODO: detect multiple volume datablocks with the same filepath. */
+    const BlenderVolumeLoader &other_loader = (const BlenderVolumeLoader &)other;
+    return b_volume == other_loader.b_volume && b_volume_grid == other_loader.b_volume_grid;
+  }
+
+  void cleanup() override
+  {
+    VDBImageLoader::cleanup();
+    if (b_volume_grid && unload) {
+      b_volume_grid.unload();
+    }
+  }
+
+  BL::Volume b_volume;
+  BL::VolumeGrid b_volume_grid;
+  bool unload;
+};
+
+static void sync_volume_object(BL::BlendData &b_data, BL::Object &b_ob, Scene *scene, Mesh *mesh)
+{
+  BL::Volume b_volume(b_ob.data());
+  b_volume.grids.load(b_data.ptr.data);
+
+  mesh->volume_isovalue = 1e-3f; /* TODO: make user setting. */
+
+  /* Find grid with matching name. */
+  BL::Volume::grids_iterator b_grid_iter;
+  for (b_volume.grids.begin(b_grid_iter); b_grid_iter != b_volume.grids.end(); ++b_grid_iter) {
+    BL::VolumeGrid b_grid = *b_grid_iter;
+    ustring name = ustring(b_grid.name());
+    AttributeStandard std = ATTR_STD_NONE;
+
+    if (name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {
+      std = ATTR_STD_VOLUME_DENSITY;
+    }
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR)) {
+      std = ATTR_STD_VOLUME_COLOR;
+    }
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME)) {
+      std = ATTR_STD_VOLUME_FLAME;
+    }
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT)) {
+      std = ATTR_STD_VOLUME_HEAT;
+    }
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_TEMPERATURE)) {
+      std = ATTR_STD_VOLUME_TEMPERATURE;
+    }
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY)) {
+      std = ATTR_STD_VOLUME_VELOCITY;
+    }
+
+    if ((std != ATTR_STD_NONE && mesh->need_attribute(scene, std)) ||
+        mesh->need_attribute(scene, name)) {
+      Attribute *attr = (std != ATTR_STD_NONE) ?
+                            mesh->attributes.add(std) :
+                            mesh->attributes.add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
+
+      ImageLoader *loader = new BlenderVolumeLoader(b_volume, name.string());
+      ImageParams params;
+      params.frame = b_volume.grids.frame();
+
+      attr->data_voxel() = scene->image_manager->add_image(loader, params);
+    }
   }
 }
 
@@ -246,9 +355,16 @@ void BlenderSync::sync_volume(BL::Object &b_ob, Mesh *mesh, const vector<Shader 
   mesh->clear();
   mesh->used_shaders = used_shaders;
 
-  /* Smoke domain. */
   if (view_layer.use_volumes) {
-    sync_smoke_volume(scene, b_ob, mesh, b_scene.frame_current());
+    if (b_ob.type() == BL::Object::type_VOLUME) {
+      /* Volume object. Create only attributes, bounding mesh will then
+       * be automatically generated later. */
+      sync_volume_object(b_data, b_ob, scene, mesh);
+    }
+    else {
+      /* Smoke domain. */
+      sync_smoke_volume(scene, b_ob, mesh, b_scene.frame_current());
+    }
   }
 
   /* Tag update. */
