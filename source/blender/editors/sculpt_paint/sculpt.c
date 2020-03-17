@@ -8371,9 +8371,8 @@ static void SCULPT_OT_optimize(wmOperatorType *ot)
 static bool sculpt_no_multires_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-  if (ss && ss->pbvh && SCULPT_mode_poll(C)) {
-    return BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS;
+  if (SCULPT_mode_poll(C) && ob->sculpt && ob->sculpt->pbvh) {
+    return BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_GRIDS;
   }
   return false;
 }
