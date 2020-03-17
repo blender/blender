@@ -87,12 +87,6 @@ struct Mesh *mesh_create_eval_final_view(struct Depsgraph *depsgraph,
                                          struct Object *ob,
                                          const struct CustomData_MeshMasks *dataMask);
 
-struct Mesh *mesh_create_eval_final_view_index(struct Depsgraph *depsgraph,
-                                               struct Scene *scene,
-                                               struct Object *ob,
-                                               const struct CustomData_MeshMasks *dataMask,
-                                               int index);
-
 struct Mesh *mesh_create_eval_no_deform(struct Depsgraph *depsgraph,
                                         struct Scene *scene,
                                         struct Object *ob,
