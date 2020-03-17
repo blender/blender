@@ -83,6 +83,9 @@ typedef struct UndoStep {
   bool skip;
   /** Some situations require the global state to be stored, edge cases when exiting modes. */
   bool use_memfile_step;
+  /** When this is true, undo/memfile read code is allowed to re-use old data-blocks for unchanged
+   * IDs, and existing depsgraphes. This has to be forbidden in some cases (like renamed IDs). */
+  bool use_old_bmain_data;
   /** For use by undo systems that accumulate changes (text editor, painting). */
   bool is_applied;
   /* Over alloc 'type->struct_size'. */

@@ -4027,6 +4027,12 @@ static bool write_file_handle(Main *mainvar,
         if (do_override) {
           BKE_lib_override_library_operations_store_end(override_storage, id);
         }
+
+        if (wd->use_memfile) {
+          /* Very important to do it after every ID write now, otherwise we cannot know whether a
+           * specific ID changed or not. */
+          mywrite_flush(wd);
+        }
       }
 
       mywrite_flush(wd);

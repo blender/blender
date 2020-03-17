@@ -23,12 +23,20 @@
 #include "BLI_utildefines.h"
 #include "BLI_sys_types.h"
 
+#include "BLI_ghash.h"
+
 #include "DNA_object_enums.h"
+#include "DNA_object_types.h"
 
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
-#include "BKE_undo_system.h"
+#include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
+#include "BKE_undo_system.h"
+
+#include "../depsgraph/DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -85,16 +93,102 @@ static bool memfile_undosys_step_encode(struct bContext *UNUSED(C),
   us->data = BKE_memfile_undo_encode(bmain, us_prev ? us_prev->data : NULL);
   us->step.data_size = us->data->undo_size;
 
+  /* Store the fact that we should not re-use old data with that undo step, and reset the Main
+   * flag. */
+  us->step.use_old_bmain_data = !bmain->use_memfile_full_barrier;
+  bmain->use_memfile_full_barrier = false;
+
   return true;
 }
 
-static void memfile_undosys_step_decode(
-    struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir), bool UNUSED(is_final))
+static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
 {
+  ID *id_self = cb_data->id_self;
+  ID **id_pointer = cb_data->id_pointer;
+  BLI_assert((id_self->tag & LIB_TAG_UNDO_OLD_ID_REUSED) != 0);
+  Main *bmain = cb_data->user_data;
+
+  ID *id = *id_pointer;
+  if (id != NULL && id->lib == NULL && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) == 0) {
+    bool do_stop_iter = true;
+    if (GS(id_self->name) == ID_OB) {
+      Object *ob_self = (Object *)id_self;
+      if (ob_self->type == OB_ARMATURE) {
+        if (ob_self->data == id) {
+          BLI_assert(GS(id->name) == ID_AR);
+          if (ob_self->pose != NULL) {
+            /* We have a changed/re-read armature used by an unchanged armature object: our beloved
+             * Bone pointers from the object's pose need their usual special treatment. */
+            ob_self->pose->flag |= POSE_RECALC;
+          }
+        }
+        else {
+          /* Cannot stop iteration until we checked ob_self->data pointer... */
+          do_stop_iter = false;
+        }
+      }
+    }
+
+    /* In case an old, re-used ID is using a newly read data-block (i.e. one of its ID pointers got
+     * updated), we have to tell the depsgraph about it. */
+    DEG_id_tag_update_ex(bmain, id_self, ID_RECALC_COPY_ON_WRITE);
+    return do_stop_iter ? IDWALK_RET_STOP_ITER : IDWALK_RET_NOP;
+  }
+
+  return IDWALK_RET_NOP;
+}
+
+static void memfile_undosys_step_decode(struct bContext *C,
+                                        struct Main *bmain,
+                                        UndoStep *us_p,
+                                        int undo_direction,
+                                        bool UNUSED(is_final))
+{
+  BLI_assert(undo_direction != 0);
+
+  bool use_old_bmain_data = true;
+
+  if (!U.experimental.use_undo_speedup) {
+    use_old_bmain_data = false;
+  }
+  else if (undo_direction > 0) {
+    /* Redo case.
+     * The only time we should have to force a complete redo is when current step is tagged as a
+     * redo barrier.
+     * If previous step was not a memfile one should not matter here, current data in old bmain
+     * should still always be valid for unchanged dtat-blocks. */
+    if (us_p->use_old_bmain_data == false) {
+      use_old_bmain_data = false;
+    }
+  }
+  else {
+    /* Undo case.
+     * Here we do not care whether current step is an undo barrier, since we are comming from 'the
+     * future' we can still re-use old data. However, if *next* undo step (i.e. the one immédiately
+     * in the future, the one we are comming from) is a barrier, then we have to force a complete
+     * undo.
+     * Note that non-memfile undo steps **should** not be an issue anymore, since we handle
+     * fine-grained update flags now.
+     */
+    UndoStep *us_next = us_p->next;
+    if (us_next != NULL) {
+      if (us_next->use_old_bmain_data == false) {
+        use_old_bmain_data = false;
+      }
+    }
+  }
+
+  /* Extract depsgraphs from current bmain (which may be freed during undo step reading),
+   * and store them for re-use. */
+  GHash *depsgraphs = NULL;
+  if (use_old_bmain_data) {
+    depsgraphs = BKE_scene_undo_depsgraphs_extract(bmain);
+  }
+
   ED_editors_exit(bmain, false);
 
   MemFileUndoStep *us = (MemFileUndoStep *)us_p;
-  BKE_memfile_undo_decode(us->data, C);
+  BKE_memfile_undo_decode(us->data, undo_direction, use_old_bmain_data, C);
 
   for (UndoStep *us_iter = us_p->next; us_iter; us_iter = us_iter->next) {
     if (BKE_UNDOSYS_TYPE_IS_MEMFILE_SKIP(us_iter->type)) {
@@ -112,6 +206,24 @@ static void memfile_undosys_step_decode(
   /* bmain has been freed. */
   bmain = CTX_data_main(C);
   ED_editors_init_for_undo(bmain);
+
+  if (use_old_bmain_data) {
+    /* Restore previous depsgraphs into current bmain. */
+    BKE_scene_undo_depsgraphs_restore(bmain, depsgraphs);
+
+    /* We need to inform depsgraph about re-used old IDs that would be using newly read
+     * data-blocks, at least COW evaluated copies need to be updated... */
+    ID *id = NULL;
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      if (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) {
+        BKE_library_foreach_ID_link(
+            bmain, id, memfile_undosys_step_id_reused_cb, bmain, IDWALK_READONLY);
+      }
+    }
+    FOREACH_MAIN_ID_END;
+
+    BKE_main_id_tag_all(bmain, LIB_TAG_UNDO_OLD_ID_REUSED, false);
+  }
 
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
 }

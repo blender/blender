@@ -559,6 +559,10 @@ enum {
   /* Datablock was not allocated by standard system (BKE_libblock_alloc), do not free its memory
    * (usual type-specific freeing is called though). */
   LIB_TAG_NOT_ALLOCATED = 1 << 18,
+
+  /* RESET_AFTER_USE Used by undo system to tag unchanged IDs re-used from old Main (instead of
+   * read from memfile). */
+  LIB_TAG_UNDO_OLD_ID_REUSED = 1 << 19,
 };
 
 /* Tag given ID for an update in all the dependency graphs. */

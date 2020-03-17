@@ -2133,6 +2133,25 @@ class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
 """
 
 
+class USERPREF_PT_experimental_system(ExperimentalPanel, Panel):
+    bl_label = "System"
+
+    def draw(self, context):
+        prefs = context.preferences
+        experimental = prefs.experimental
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        task = "T60695"
+        split = layout.split(factor=0.66)
+        col = split.split()
+        col.prop(experimental, "use_undo_speedup")
+        col = split.split()
+        col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
+
+
 # -----------------------------------------------------------------------------
 # Class Registration
 
@@ -2221,6 +2240,8 @@ classes = (
 
     # Popovers.
     USERPREF_PT_ndof_settings,
+
+    USERPREF_PT_experimental_system,
 
     # Add dynamically generated editor theme panels last,
     # so they show up last in the theme section.
