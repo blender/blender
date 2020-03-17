@@ -218,6 +218,9 @@ short ED_fileselect_set_params(SpaceFile *sfile)
     if ((prop = RNA_struct_find_property(op->ptr, "filter_usd"))) {
       params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_USD : 0;
     }
+    if ((prop = RNA_struct_find_property(op->ptr, "filter_volume"))) {
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_VOLUME : 0;
+    }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_glob"))) {
       /* Protection against pyscripts not setting proper size limit... */
       char *tmp = RNA_property_string_get_alloc(

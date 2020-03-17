@@ -568,6 +568,29 @@ static void rna_def_dopesheet(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_FILE, 0);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
+#  ifdef WITH_NEW_OBJECT_TYPES
+  prop = RNA_def_property(srna, "show_hairs", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag2", ADS_FILTER_NOHAIR);
+  RNA_def_property_ui_text(
+      prop, "Display Hair", "Include visualization of hair related animation data");
+  RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_HAIR, 0);
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+
+  prop = RNA_def_property(srna, "show_pointclouds", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag2", ADS_FILTER_NOPOINTCLOUD);
+  RNA_def_property_ui_text(
+      prop, "Display Point Cloud", "Include visualization of point cloud related animation data");
+  RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_POINTCLOUD, 0);
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+#  endif
+
+  prop = RNA_def_property(srna, "show_volumes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag2", ADS_FILTER_NOVOLUME);
+  RNA_def_property_ui_text(
+      prop, "Display Volume", "Include visualization of volume related animation data");
+  RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_VOLUME, 0);
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+
   prop = RNA_def_property(srna, "show_gpencil", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOGPENCIL);
   RNA_def_property_ui_text(

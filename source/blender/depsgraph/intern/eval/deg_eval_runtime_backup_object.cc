@@ -129,6 +129,17 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
       }
     }
   }
+  else if (ELEM(object->type, OB_HAIR, OB_POINTCLOUD, OB_VOLUME)) {
+    if (object->id.recalc & ID_RECALC_GEOMETRY) {
+      /* Free evaluated caches. */
+      object->data = data_orig;
+      BKE_object_free_derived_caches(object);
+    }
+    else {
+      object->data = object->runtime.data_eval;
+    }
+  }
+
   object->base_flag = base_flag;
   object->base_local_view_bits = base_local_view_bits;
   /* Restore modifier's runtime data.

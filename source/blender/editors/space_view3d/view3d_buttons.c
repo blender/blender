@@ -1591,8 +1591,8 @@ static void view3d_panel_transform(const bContext *C, Panel *pa)
     RNA_id_pointer_create(&ob->id, &obptr);
     v3d_transform_butsR(col, &obptr);
 
-    /* dimensions and editmode just happen to be the same checks */
-    if (OB_TYPE_SUPPORT_EDITMODE(ob->type)) {
+    /* Dimensions and editmode are mostly the same check. */
+    if (OB_TYPE_SUPPORT_EDITMODE(ob->type) || ELEM(ob->type, OB_VOLUME, OB_HAIR, OB_POINTCLOUD)) {
       View3D *v3d = CTX_wm_view3d(C);
       v3d_object_dimension_buts(NULL, col, v3d, ob);
     }

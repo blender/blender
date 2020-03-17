@@ -559,6 +559,14 @@ static bool view3d_ima_empty_drop_poll(bContext *C,
   return false;
 }
 
+static bool view3d_volume_drop_poll(bContext *UNUSED(C),
+                                    wmDrag *drag,
+                                    const wmEvent *UNUSED(event),
+                                    const char **UNUSED(tooltip))
+{
+  return (drag->type == WM_DRAG_PATH) && (drag->icon == ICON_FILE_VOLUME);
+}
+
 static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_ID(drag, ID_OB);
@@ -626,6 +634,7 @@ static void view3d_dropboxes(void)
       lb, "VIEW3D_OT_background_image_add", view3d_ima_bg_drop_poll, view3d_id_path_drop_copy);
   WM_dropbox_add(
       lb, "OBJECT_OT_drop_named_image", view3d_ima_empty_drop_poll, view3d_id_path_drop_copy);
+  WM_dropbox_add(lb, "OBJECT_OT_volume_import", view3d_volume_drop_poll, view3d_id_path_drop_copy);
   WM_dropbox_add(lb,
                  "OBJECT_OT_collection_instance_add",
                  view3d_collection_drop_poll,

@@ -124,6 +124,7 @@ typedef struct FileData {
   struct OldNewMap *movieclipmap;
   struct OldNewMap *scenemap;
   struct OldNewMap *soundmap;
+  struct OldNewMap *volumemap;
   struct OldNewMap *packedmap;
 
   struct BHeadSort *bheadmap;
@@ -164,6 +165,8 @@ void blo_make_movieclip_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_end_movieclip_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_make_sound_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_end_sound_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_make_volume_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_end_volume_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_end_packed_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd);

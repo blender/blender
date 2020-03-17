@@ -30,6 +30,7 @@
 #include "intern/eval/deg_eval_runtime_backup_object.h"
 #include "intern/eval/deg_eval_runtime_backup_scene.h"
 #include "intern/eval/deg_eval_runtime_backup_sound.h"
+#include "intern/eval/deg_eval_runtime_backup_volume.h"
 
 namespace DEG {
 
@@ -52,6 +53,7 @@ class RuntimeBackup {
   DrawDataList drawdata_backup;
   DrawDataList *drawdata_ptr;
   MovieClipBackup movieclip_backup;
+  VolumeBackup volume_backup;
 };
 
 }  // namespace DEG

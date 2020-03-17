@@ -456,12 +456,18 @@ enum {
   /** Grease Pencil object used in 3D view but not used for annotation in 2D. */
   OB_GPENCIL = 26,
 
+  OB_HAIR = 27,
+
+  OB_POINTCLOUD = 28,
+
+  OB_VOLUME = 29,
+
   OB_TYPE_MAX,
 };
 
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
-  (((_type) >= OB_MESH && (_type) <= OB_MBALL) || ((_type) == OB_GPENCIL))
+  (((_type) >= OB_MESH && (_type) <= OB_MBALL) || ((_type) >= OB_GPENCIL && (_type) <= OB_VOLUME))
 #define OB_TYPE_SUPPORT_VGROUP(_type) (ELEM(_type, OB_MESH, OB_LATTICE, OB_GPENCIL))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
   (ELEM(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
@@ -472,7 +478,20 @@ enum {
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \
-  (ELEM(_id_type, ID_ME, ID_CU, ID_MB, ID_LA, ID_SPK, ID_LP, ID_CA, ID_LT, ID_GD, ID_AR))
+  (ELEM(_id_type, \
+        ID_ME, \
+        ID_CU, \
+        ID_MB, \
+        ID_LA, \
+        ID_SPK, \
+        ID_LP, \
+        ID_CA, \
+        ID_LT, \
+        ID_GD, \
+        ID_AR, \
+        ID_HA, \
+        ID_PT, \
+        ID_VO))
 
 #define OB_DATA_SUPPORT_ID_CASE \
 ID_ME: \
@@ -484,7 +503,10 @@ case ID_LP: \
 case ID_CA: \
 case ID_LT: \
 case ID_GD: \
-case ID_AR
+case ID_AR: \
+case ID_HA: \
+case ID_PT: \
+case ID_VO
 
 /* partype: first 4 bits: type */
 enum {

@@ -29,6 +29,10 @@
 
 #include "BLI_utildefines.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "dna_type_offsets.h"
 
 extern const void *DNA_default_table[SDNA_TYPE_MAX];
@@ -44,5 +48,9 @@ char *_DNA_struct_default_alloc_impl(const char *data_src, size_t size, const ch
 #define DNA_struct_default_alloc(struct_name) \
   (struct_name *)_DNA_struct_default_alloc_impl( \
       DNA_default_table[SDNA_TYPE_FROM_STRUCT(struct_name)], sizeof(struct_name), __func__)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __DNA_DEFAULTS_H__ */

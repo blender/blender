@@ -1080,6 +1080,9 @@ static int filelist_geticon_ex(FileDirEntry *file,
   else if (typeflag & FILE_TYPE_USD) {
     return ICON_FILE_3D;
   }
+  else if (typeflag & FILE_TYPE_VOLUME) {
+    return ICON_FILE_VOLUME;
+  }
   else if (typeflag & FILE_TYPE_OBJECT_IO) {
     return ICON_FILE_3D;
   }
@@ -2236,6 +2239,9 @@ int ED_path_extension_type(const char *path)
   else if (BLI_path_extension_check_n(path, ".usd", ".usda", ".usdc", NULL)) {
     return FILE_TYPE_USD;
   }
+  else if (BLI_path_extension_check(path, ".vdb")) {
+    return FILE_TYPE_VOLUME;
+  }
   else if (BLI_path_extension_check(path, ".zip")) {
     return FILE_TYPE_ARCHIVE;
   }
@@ -2298,6 +2304,8 @@ int ED_file_extension_icon(const char *path)
       return ICON_FILE_TEXT;
     case FILE_TYPE_ARCHIVE:
       return ICON_FILE_ARCHIVE;
+    case FILE_TYPE_VOLUME:
+      return ICON_FILE_VOLUME;
     default:
       return ICON_FILE_BLANK;
   }
@@ -2625,9 +2633,9 @@ static void filelist_readjob_main_rec(Main *bmain, FileList *filelist)
   if (filelist->dir[0] == 0) {
     /* make directories */
 #  ifdef WITH_FREESTYLE
-    filelist->filelist.nbr_entries = 24;
+		filelist->filelist.nbr_entries = 27;
 #  else
-    filelist->filelist.nbr_entries = 23;
+		filelist->filelist.nbr_entries = 26;
 #  endif
     filelist_resize(filelist, filelist->filelist.nbr_entries);
 
@@ -2658,8 +2666,11 @@ static void filelist_readjob_main_rec(Main *bmain, FileList *filelist)
     filelist->filelist.entries[20].entry->relpath = BLI_strdup("Action");
     filelist->filelist.entries[21].entry->relpath = BLI_strdup("NodeTree");
     filelist->filelist.entries[22].entry->relpath = BLI_strdup("Speaker");
+		filelist->filelist.entries[23].entry->relpath = BLI_strdup("Hair");
+		filelist->filelist.entries[24].entry->relpath = BLI_strdup("Point Cloud");
+		filelist->filelist.entries[25].entry->relpath = BLI_strdup("Volume");
 #  ifdef WITH_FREESTYLE
-    filelist->filelist.entries[23].entry->relpath = BLI_strdup("FreestyleLineStyle");
+		filelist->filelist.entries[26].entry->relpath = BLI_strdup("FreestyleLineStyle");
 #  endif
   }
   else {

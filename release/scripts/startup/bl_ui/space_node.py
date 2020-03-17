@@ -76,7 +76,8 @@ class NODE_HT_header(Header):
 
                 layout.separator_spacer()
 
-                types_that_support_material = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'GPENCIL'}
+                types_that_support_material = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META',
+                                               'GPENCIL', 'VOLUME', 'HAIR', 'POINTCLOUD'}
                 # disable material slot buttons when pinned, cannot find correct slot within id_from (#36589)
                 # disable also when the selected object does not support materials
                 has_material_slots = not snode.pin and ob_type in types_that_support_material

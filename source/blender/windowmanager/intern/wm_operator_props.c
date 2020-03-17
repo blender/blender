@@ -161,6 +161,12 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   prop = RNA_def_boolean(
       ot->srna, "filter_usd", (filter & FILE_TYPE_USD) != 0, "Filter USD files", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "filter_volume",
+                         (filter & FILE_TYPE_VOLUME) != 0,
+                         "Filter OpenVDB volume files",
+                         "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "filter_folder", (filter & FILE_TYPE_FOLDER) != 0, "Filter folders", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);

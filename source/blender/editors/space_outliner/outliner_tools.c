@@ -27,13 +27,16 @@
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
 #include "DNA_constraint_types.h"
@@ -153,6 +156,9 @@ static void set_operation_types(SpaceOutliner *soops,
           case ID_CF:
           case ID_WS:
           case ID_LP:
+          case ID_HA:
+          case ID_PT:
+          case ID_VO:
             is_standard_id = true;
             break;
           case ID_WM:
@@ -229,6 +235,21 @@ static void unlink_material_cb(bContext *UNUSED(C),
     MetaBall *mb = (MetaBall *)tsep->id;
     totcol = mb->totcol;
     matar = mb->mat;
+  }
+  else if (GS(tsep->id->name) == ID_HA) {
+    Hair *hair = (Hair *)tsep->id;
+    totcol = hair->totcol;
+    matar = hair->mat;
+  }
+  else if (GS(tsep->id->name) == ID_PT) {
+    PointCloud *pointcloud = (PointCloud *)tsep->id;
+    totcol = pointcloud->totcol;
+    matar = pointcloud->mat;
+  }
+  else if (GS(tsep->id->name) == ID_VO) {
+    Volume *volume = (Volume *)tsep->id;
+    totcol = volume->totcol;
+    matar = volume->mat;
   }
   else {
     BLI_assert(0);

@@ -135,7 +135,10 @@ void ANIM_set_active_channel(bAnimContext *ac,
       case ANIMTYPE_DSLINESTYLE:
       case ANIMTYPE_DSSPK:
       case ANIMTYPE_DSGPENCIL:
-      case ANIMTYPE_DSMCLIP: {
+      case ANIMTYPE_DSMCLIP:
+      case ANIMTYPE_DSHAIR:
+      case ANIMTYPE_DSPOINTCLOUD:
+      case ANIMTYPE_DSVOLUME: {
         /* need to verify that this data is valid for now */
         if (ale->adt) {
           ACHANNEL_SET_FLAG(ale->adt, ACHANNEL_SETFLAG_CLEAR, ADT_UI_ACTIVE);
@@ -188,7 +191,10 @@ void ANIM_set_active_channel(bAnimContext *ac,
       case ANIMTYPE_DSNTREE:
       case ANIMTYPE_DSTEX:
       case ANIMTYPE_DSGPENCIL:
-      case ANIMTYPE_DSMCLIP: {
+      case ANIMTYPE_DSMCLIP:
+      case ANIMTYPE_DSHAIR:
+      case ANIMTYPE_DSPOINTCLOUD:
+      case ANIMTYPE_DSVOLUME: {
         /* need to verify that this data is valid for now */
         if (ale && ale->adt) {
           ale->adt->flag |= ADT_UI_ACTIVE;
@@ -323,7 +329,10 @@ void ANIM_deselect_anim_channels(
         case ANIMTYPE_DSLINESTYLE:
         case ANIMTYPE_DSSPK:
         case ANIMTYPE_DSGPENCIL:
-        case ANIMTYPE_DSMCLIP: {
+        case ANIMTYPE_DSMCLIP:
+        case ANIMTYPE_DSHAIR:
+        case ANIMTYPE_DSPOINTCLOUD:
+        case ANIMTYPE_DSVOLUME: {
           if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED)) {
             sel = ACHANNEL_SETFLAG_CLEAR;
           }
@@ -416,7 +425,10 @@ void ANIM_deselect_anim_channels(
       case ANIMTYPE_DSLINESTYLE:
       case ANIMTYPE_DSSPK:
       case ANIMTYPE_DSGPENCIL:
-      case ANIMTYPE_DSMCLIP: {
+      case ANIMTYPE_DSMCLIP:
+      case ANIMTYPE_DSHAIR:
+      case ANIMTYPE_DSPOINTCLOUD:
+      case ANIMTYPE_DSVOLUME: {
         /* need to verify that this data is valid for now */
         if (ale->adt) {
           ACHANNEL_SET_FLAG(ale->adt, sel, ADT_UI_SELECTED);
@@ -2949,7 +2961,10 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
     case ANIMTYPE_DSLINESTYLE:
     case ANIMTYPE_DSSPK:
     case ANIMTYPE_DSGPENCIL:
-    case ANIMTYPE_DSMCLIP: {
+    case ANIMTYPE_DSMCLIP:
+    case ANIMTYPE_DSHAIR:
+    case ANIMTYPE_DSPOINTCLOUD:
+    case ANIMTYPE_DSVOLUME: {
       /* sanity checking... */
       if (ale->adt) {
         /* select/deselect */

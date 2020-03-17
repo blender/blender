@@ -37,6 +37,7 @@
 #include "DNA_ID.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_volume_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BLI_blenlib.h"
@@ -48,6 +49,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
+#include "BKE_volume.h"
 
 int BKE_packedfile_seek(PackedFile *pf, int offset, int whence)
 {
@@ -114,6 +116,7 @@ int BKE_packedfile_count_all(Main *bmain)
   Image *ima;
   VFont *vf;
   bSound *sound;
+  Volume *volume;
   int count = 0;
 
   /* let's check if there are packed files... */
@@ -131,6 +134,12 @@ int BKE_packedfile_count_all(Main *bmain)
 
   for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
     if (sound->packedfile) {
+      count++;
+    }
+  }
+
+  for (volume = bmain->volumes.first; volume; volume = volume->id.next) {
+    if (volume->packedfile) {
       count++;
     }
   }
@@ -234,6 +243,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   Image *ima;
   VFont *vfont;
   bSound *sound;
+  Volume *volume;
   int tot = 0;
 
   for (ima = bmain->images.first; ima; ima = ima->id.next) {
@@ -262,6 +272,14 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
     if (sound->packedfile == NULL && !ID_IS_LINKED(sound)) {
       sound->packedfile = BKE_packedfile_new(reports, sound->name, BKE_main_blendfile_path(bmain));
+      tot++;
+    }
+  }
+
+  for (volume = bmain->volumes.first; volume; volume = volume->id.next) {
+    if (volume->packedfile == NULL && !ID_IS_LINKED(volume)) {
+      volume->packedfile = BKE_packedfile_new(
+          reports, volume->filepath, BKE_main_blendfile_path(bmain));
       tot++;
     }
   }
@@ -524,6 +542,9 @@ static void unpack_generate_paths(const char *name,
     case ID_IM:
       BLI_snprintf(r_relpath, relpathlen, "//textures/%s", tempname);
       break;
+    case ID_VO:
+      BLI_snprintf(r_relpath, relpathlen, "//volumes/%s", tempname);
+      break;
     default:
       break;
   }
@@ -643,6 +664,36 @@ int BKE_packedfile_unpack_image(Main *bmain,
   return (ret_value);
 }
 
+int BKE_packedfile_unpack_volume(Main *bmain,
+                                 ReportList *reports,
+                                 Volume *volume,
+                                 enum ePF_FileStatus how)
+{
+  char localname[FILE_MAX], absname[FILE_MAX];
+  char *newfilepath;
+  int ret_value = RET_ERROR;
+
+  if (volume != NULL) {
+    unpack_generate_paths(
+        volume->filepath, (ID *)volume, absname, localname, sizeof(absname), sizeof(localname));
+    newfilepath = BKE_packedfile_unpack_to_file(
+        reports, BKE_main_blendfile_path(bmain), absname, localname, volume->packedfile, how);
+    if (newfilepath != NULL) {
+      BLI_strncpy(volume->filepath, newfilepath, sizeof(volume->filepath));
+      MEM_freeN(newfilepath);
+
+      BKE_packedfile_free(volume->packedfile);
+      volume->packedfile = NULL;
+
+      BKE_volume_unload(volume);
+
+      ret_value = RET_OK;
+    }
+  }
+
+  return (ret_value);
+}
+
 int BKE_packedfile_unpack_all_libraries(Main *bmain, ReportList *reports)
 {
   Library *lib;
@@ -702,6 +753,7 @@ void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileSt
   Image *ima;
   VFont *vf;
   bSound *sound;
+  Volume *volume;
 
   for (ima = bmain->images.first; ima; ima = ima->id.next) {
     if (BKE_image_has_packedfile(ima)) {
@@ -718,6 +770,12 @@ void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileSt
   for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
     if (sound->packedfile) {
       BKE_packedfile_unpack_sound(bmain, reports, sound, how);
+    }
+  }
+
+  for (volume = bmain->volumes.first; volume; volume = volume->id.next) {
+    if (volume->packedfile) {
+      BKE_packedfile_unpack_volume(bmain, reports, volume, how);
     }
   }
 }
@@ -737,6 +795,10 @@ bool BKE_packedfile_id_check(ID *id)
     case ID_SO: {
       bSound *snd = (bSound *)id;
       return snd->packedfile != NULL;
+    }
+    case ID_VO: {
+      Volume *volume = (Volume *)id;
+      return volume->packedfile != NULL;
     }
     case ID_LI: {
       Library *li = (Library *)id;
@@ -770,6 +832,13 @@ void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF
       bSound *snd = (bSound *)id;
       if (snd->packedfile) {
         BKE_packedfile_unpack_sound(bmain, reports, snd, how);
+      }
+      break;
+    }
+    case ID_VO: {
+      Volume *volume = (Volume *)id;
+      if (volume->packedfile) {
+        BKE_packedfile_unpack_volume(bmain, reports, volume, how);
       }
       break;
     }

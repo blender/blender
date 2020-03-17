@@ -37,7 +37,8 @@ RuntimeBackup::RuntimeBackup(const Depsgraph *depsgraph)
       sound_backup(depsgraph),
       object_backup(depsgraph),
       drawdata_ptr(nullptr),
-      movieclip_backup(depsgraph)
+      movieclip_backup(depsgraph),
+      volume_backup(depsgraph)
 {
   drawdata_backup.first = drawdata_backup.last = nullptr;
 }
@@ -63,6 +64,9 @@ void RuntimeBackup::init_from_id(ID *id)
       break;
     case ID_MC:
       movieclip_backup.init_from_movieclip(reinterpret_cast<MovieClip *>(id));
+      break;
+    case ID_VO:
+      volume_backup.init_from_volume(reinterpret_cast<Volume *>(id));
       break;
     default:
       break;
@@ -94,6 +98,9 @@ void RuntimeBackup::restore_to_id(ID *id)
       break;
     case ID_MC:
       movieclip_backup.restore_to_movieclip(reinterpret_cast<MovieClip *>(id));
+      break;
+    case ID_VO:
+      volume_backup.restore_to_volume(reinterpret_cast<Volume *>(id));
       break;
     default:
       break;

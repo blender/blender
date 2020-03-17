@@ -135,6 +135,7 @@ set(SRC
   ../DNA_curve_defaults.h
   ../DNA_defaults.h
   ../DNA_image_defaults.h
+  ../DNA_hair_defaults.h
   ../DNA_lattice_defaults.h
   ../DNA_light_defaults.h
   ../DNA_lightprobe_defaults.h
@@ -143,11 +144,13 @@ set(SRC
   ../DNA_mesh_defaults.h
   ../DNA_meta_defaults.h
   ../DNA_object_defaults.h
+  ../DNA_pointcloud_defaults.h
   ../DNA_scene_defaults.h
   ../DNA_speaker_defaults.h
   ../DNA_texture_defaults.h
   ../DNA_vec_defaults.h
   ../DNA_view3d_defaults.h
+  ../DNA_volume_defaults.h
   ../DNA_world_defaults.h
 )
 

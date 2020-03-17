@@ -118,6 +118,9 @@
 #include "BKE_camera.h"
 #include "BKE_image.h"
 #include "BKE_gpencil.h"
+#include "BKE_hair.h"
+#include "BKE_pointcloud.h"
+#include "BKE_volume.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -1013,6 +1016,12 @@ static const char *get_obdata_defname(int type)
       return DATA_("Armature");
     case OB_SPEAKER:
       return DATA_("Speaker");
+    case OB_HAIR:
+      return DATA_("Hair");
+    case OB_POINTCLOUD:
+      return DATA_("PointCloud");
+    case OB_VOLUME:
+      return DATA_("Volume");
     case OB_EMPTY:
       return DATA_("Empty");
     case OB_GPENCIL:
@@ -1076,6 +1085,12 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
       return BKE_lightprobe_add(bmain, name);
     case OB_GPENCIL:
       return BKE_gpencil_data_addnew(bmain, name);
+    case OB_HAIR:
+      return BKE_hair_add(bmain, name);
+    case OB_POINTCLOUD:
+      return BKE_pointcloud_add(bmain, name);
+    case OB_VOLUME:
+      return BKE_volume_add(bmain, name);
     case OB_EMPTY:
       return NULL;
     default:
@@ -1763,6 +1778,39 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
         else
         {
           obn->data = ID_NEW_SET(obn->data, BKE_gpencil_copy(bmain, obn->data));
+          didit = 1;
+        }
+        id_us_min(id);
+      }
+      break;
+    case OB_HAIR:
+      if (dupflag & USER_DUP_HAIR) {
+        ID_NEW_REMAP_US2(obn->data)
+        else
+        {
+          obn->data = ID_NEW_SET(obn->data, BKE_hair_copy(bmain, obn->data));
+          didit = 1;
+        }
+        id_us_min(id);
+      }
+      break;
+    case OB_POINTCLOUD:
+      if (dupflag & USER_DUP_POINTCLOUD) {
+        ID_NEW_REMAP_US2(obn->data)
+        else
+        {
+          obn->data = ID_NEW_SET(obn->data, BKE_pointcloud_copy(bmain, obn->data));
+          didit = 1;
+        }
+        id_us_min(id);
+      }
+      break;
+    case OB_VOLUME:
+      if (dupflag & USER_DUP_VOLUME) {
+        ID_NEW_REMAP_US2(obn->data)
+        else
+        {
+          obn->data = ID_NEW_SET(obn->data, BKE_volume_copy(bmain, obn->data));
           didit = 1;
         }
         id_us_min(id);
@@ -2810,6 +2858,15 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
     case OB_GPENCIL:
       bb = BKE_gpencil_boundbox_get(ob);
       break;
+    case OB_HAIR:
+      bb = BKE_hair_boundbox_get(ob);
+      break;
+    case OB_POINTCLOUD:
+      bb = BKE_pointcloud_boundbox_get(ob);
+      break;
+    case OB_VOLUME:
+      bb = BKE_volume_boundbox_get(ob);
+      break;
     default:
       break;
   }
@@ -2980,6 +3037,25 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
       }
       break;
     }
+    case OB_HAIR: {
+      bb = *BKE_hair_boundbox_get(ob);
+      BKE_boundbox_minmax(&bb, ob->obmat, min_r, max_r);
+      changed = true;
+      break;
+    }
+
+    case OB_POINTCLOUD: {
+      bb = *BKE_pointcloud_boundbox_get(ob);
+      BKE_boundbox_minmax(&bb, ob->obmat, min_r, max_r);
+      changed = true;
+      break;
+    }
+    case OB_VOLUME: {
+      bb = *BKE_volume_boundbox_get(ob);
+      BKE_boundbox_minmax(&bb, ob->obmat, min_r, max_r);
+      changed = true;
+      break;
+    }
   }
 
   if (changed == false) {
@@ -3125,6 +3201,7 @@ void BKE_object_foreach_display_point(Object *ob,
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
+  /* TODO: pointcloud and hair objects support */
   Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   float co[3];
 

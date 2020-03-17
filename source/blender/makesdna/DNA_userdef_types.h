@@ -1133,6 +1133,9 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_PSYS = (1 << 11),
   USER_DUP_LIGHTPROBE = (1 << 12),
   USER_DUP_GPENCIL = (1 << 13),
+  USER_DUP_HAIR = (1 << 14),
+  USER_DUP_POINTCLOUD = (1 << 15),
+  USER_DUP_VOLUME = (1 << 16),
 } eDupli_ID_Flags;
 
 /**

@@ -2418,6 +2418,15 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case OB_LIGHTPROBE:
           data.icon = ICON_OUTLINER_OB_LIGHTPROBE;
           break;
+        case OB_HAIR:
+          data.icon = ICON_OUTLINER_OB_HAIR;
+          break;
+        case OB_POINTCLOUD:
+          data.icon = ICON_OUTLINER_OB_POINTCLOUD;
+          break;
+        case OB_VOLUME:
+          data.icon = ICON_OUTLINER_OB_VOLUME;
+          break;
         case OB_EMPTY:
           if (ob->instance_collection && (ob->transflag & OB_DUPLICOLLECTION)) {
             data.icon = ICON_OUTLINER_OB_GROUP_INSTANCE;
@@ -2514,6 +2523,15 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           break;
         case ID_GR:
           data.icon = ICON_GROUP;
+          break;
+        case ID_HA:
+          data.icon = ICON_OUTLINER_DATA_HAIR;
+          break;
+        case ID_PT:
+          data.icon = ICON_OUTLINER_DATA_POINTCLOUD;
+          break;
+        case ID_VO:
+          data.icon = ICON_OUTLINER_DATA_VOLUME;
           break;
         case ID_LI:
           if (tselem->id->tag & LIB_TAG_MISSING) {

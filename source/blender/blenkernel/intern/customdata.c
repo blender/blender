@@ -30,7 +30,9 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_customdata_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_ID.h"
 
 #include "BLI_utildefines.h"
@@ -1623,6 +1625,14 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(short[2]), "vec2s", 1, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 42: CD_SCULPT_FACE_SETS */
     {sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* 43: CD_LOCATION */
+    {sizeof(float[3]), "vec3f", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* 44: CD_RADIUS */
+    {sizeof(float), "MFloatProperty", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* 45: CD_HAIRCURVE */
+    {sizeof(HairCurve), "HairCurve", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+    /* 46: CD_HAIR_MAPPING */
+    {sizeof(HairMapping), "HairMapping", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -1667,10 +1677,14 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDMVertSkin",
     /* 37-38 */ "CDFreestyleEdge",
     "CDFreestyleFace",
-    /* 39-41 */ "CDMLoopTangent",
+    /* 39-42 */ "CDMLoopTangent",
     "CDTessLoopNormal",
     "CDCustomLoopNormal",
     "CDSculptFaceGroups",
+    /* 43-46 */ "CDHairPoint",
+    "CDHairCurve",
+    "CDHairMapping",
+    "CDPoint",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {

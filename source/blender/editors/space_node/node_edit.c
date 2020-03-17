@@ -446,8 +446,17 @@ void ED_node_shader_default(const bContext *C, ID *id)
 
   if (GS(id->name) == ID_MA) {
     /* Materials */
+    Object *ob = CTX_data_active_object(C);
     Material *ma = (Material *)id;
-    Material *ma_default = BKE_material_default_surface();
+    Material *ma_default;
+
+    if (ob && ob->type == OB_VOLUME) {
+      ma_default = BKE_material_default_volume();
+    }
+    else {
+      ma_default = BKE_material_default_surface();
+    }
+
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
     ntreeUpdateTree(bmain, ma->nodetree);
   }

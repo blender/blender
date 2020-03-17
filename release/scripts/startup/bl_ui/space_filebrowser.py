@@ -137,6 +137,9 @@ class FILEBROWSER_PT_filter(Panel):
             row = col.row()
             row.label(icon='FILE_TEXT')
             row.prop(params, "use_filter_text", text="Text Files", toggle=0)
+            row = col.row()
+            row.label(icon='FILE_VOLUME')
+            row.prop(params, "use_filter_volume", text="Volume Files", toggle=0)
 
         col.separator()
 

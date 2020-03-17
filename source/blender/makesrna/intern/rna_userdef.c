@@ -4985,6 +4985,23 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Duplicate GPencil", "Causes grease pencil data to be duplicated with the object");
 
+#  ifdef WITH_NEW_OBJECT_TYPES
+  prop = RNA_def_property(srna, "use_duplicate_hair", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_HAIR);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Hair", "Causes hair data to be duplicated with the object");
+
+  prop = RNA_def_property(srna, "use_duplicate_pointcloud", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_POINTCLOUD);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Point Cloud", "Causes point cloud data to be duplicated with the object");
+#  endif
+
+  prop = RNA_def_property(srna, "use_duplicate_volume", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_VOLUME);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Volume", "Causes volume data to be duplicated with the object");
+
   /* Currently only used for insert offset (aka auto-offset),
    * maybe also be useful for later stuff though. */
   prop = RNA_def_property(srna, "node_margin", PROP_INT, PROP_PIXEL);

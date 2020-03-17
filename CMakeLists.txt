@@ -319,6 +319,10 @@ mark_as_advanced(WITH_SYSTEM_GLOG)
 # Freestyle
 option(WITH_FREESTYLE     "Enable Freestyle (advanced edges rendering)" ON)
 
+# New object types
+option(WITH_NEW_OBJECT_TYPES "Enable new hair and pointcloud objects (use for development only, don't save in files)" OFF)
+mark_as_advanced(WITH_NEW_OBJECT_TYPES)
+
 # Misc
 if(WIN32)
   option(WITH_INPUT_IME "Enable Input Method Editor (IME) for complex Asian character input" ON)

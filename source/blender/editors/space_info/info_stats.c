@@ -204,6 +204,11 @@ static void stats_object(Object *ob, SceneStats *stats, GSet *objects_gset)
       }
       break;
     }
+    case OB_HAIR:
+    case OB_POINTCLOUD:
+    case OB_VOLUME: {
+      break;
+    }
   }
 }
 

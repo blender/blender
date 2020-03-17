@@ -26,6 +26,8 @@
  * ID type structure, helping to factorize common operations and data for all data-block types.
  */
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -160,6 +162,9 @@ extern IDTypeInfo IDType_ID_PC;
 extern IDTypeInfo IDType_ID_CF;
 extern IDTypeInfo IDType_ID_WS;
 extern IDTypeInfo IDType_ID_LP;
+extern IDTypeInfo IDType_ID_HA;
+extern IDTypeInfo IDType_ID_PT;
+extern IDTypeInfo IDType_ID_VO;
 
 /* ********** Helpers/Utils API. ********** */
 

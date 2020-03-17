@@ -110,6 +110,9 @@ bool id_type_can_have_animdata(const short id_type)
     case ID_MSK:
     case ID_GD:
     case ID_CF:
+    case ID_HA:
+    case ID_PT:
+    case ID_VO:
       return true;
 
     /* no AnimData */
@@ -1327,6 +1330,15 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
 
   /* cache files */
   ANIMDATA_IDS_CB(bmain->cachefiles.first);
+
+  /* hairs */
+  ANIMDATA_IDS_CB(bmain->hairs.first);
+
+  /* pointclouds */
+  ANIMDATA_IDS_CB(bmain->pointclouds.first);
+
+  /* volumes */
+  ANIMDATA_IDS_CB(bmain->volumes.first);
 }
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
@@ -1426,6 +1438,15 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id,
 
   /* cache files */
   RENAMEFIX_ANIM_IDS(bmain->cachefiles.first);
+
+  /* hairs */
+  RENAMEFIX_ANIM_IDS(bmain->hairs.first);
+
+  /* pointclouds */
+  RENAMEFIX_ANIM_IDS(bmain->pointclouds.first);
+
+  /* volumes */
+  RENAMEFIX_ANIM_IDS(bmain->volumes.first);
 
   /* scenes */
   RENAMEFIX_ANIM_NODETREE_IDS(bmain->scenes.first, Scene);
@@ -4034,6 +4055,15 @@ void BKE_animsys_evaluate_all_animation(Main *main,
 
   /* cache files */
   EVAL_ANIM_IDS(main->cachefiles.first, ADT_RECALC_ANIM);
+
+  /* hairs */
+  EVAL_ANIM_IDS(main->hairs.first, ADT_RECALC_ANIM);
+
+  /* pointclouds */
+  EVAL_ANIM_IDS(main->pointclouds.first, ADT_RECALC_ANIM);
+
+  /* volumes */
+  EVAL_ANIM_IDS(main->volumes.first, ADT_RECALC_ANIM);
 
   /* objects */
   /* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets

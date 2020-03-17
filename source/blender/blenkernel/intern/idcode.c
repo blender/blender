@@ -61,7 +61,7 @@ static IDType idtypes[] = {
   {ID_GR,   "Collection",         "collections",     BLT_I18NCONTEXT_ID_COLLECTION,         IDTYPE_FLAGS_ISLINKABLE},
   {ID_CU,   "Curve",              "curves",          BLT_I18NCONTEXT_ID_CURVE,              IDTYPE_FLAGS_ISLINKABLE},
   {ID_GD,   "GPencil",            "grease_pencils",  BLT_I18NCONTEXT_ID_GPENCIL,            IDTYPE_FLAGS_ISLINKABLE}, /* rename gpencil */
-
+	{ID_HA,   "Hair",               "hair",            BLT_I18NCONTEXT_ID_HAIR,               IDTYPE_FLAGS_ISLINKABLE},
   {ID_IM,   "Image",              "images",          BLT_I18NCONTEXT_ID_IMAGE,              IDTYPE_FLAGS_ISLINKABLE},
   {ID_IP,   "Ipo",                "ipos",            "",                                    IDTYPE_FLAGS_ISLINKABLE}, /* deprecated */
   {ID_KE,   "Key",                "shape_keys",      BLT_I18NCONTEXT_ID_SHAPEKEY,           0                      },
@@ -80,6 +80,7 @@ static IDType idtypes[] = {
   {ID_PAL,  "Palettes",           "palettes",        BLT_I18NCONTEXT_ID_PALETTE,            IDTYPE_FLAGS_ISLINKABLE},
   {ID_PC,   "PaintCurve",         "paint_curves",    BLT_I18NCONTEXT_ID_PAINTCURVE,         IDTYPE_FLAGS_ISLINKABLE},
   {ID_LP,   "LightProbe",         "lightprobes",     BLT_I18NCONTEXT_ID_LIGHTPROBE,         IDTYPE_FLAGS_ISLINKABLE},
+	{ID_PT,   "PointCloud",         "pointclouds",     BLT_I18NCONTEXT_ID_POINTCLOUD,         IDTYPE_FLAGS_ISLINKABLE},
   {ID_SCE,  "Scene",              "scenes",          BLT_I18NCONTEXT_ID_SCENE,              IDTYPE_FLAGS_ISLINKABLE},
   {ID_SCR,  "Screen",             "screens",         BLT_I18NCONTEXT_ID_SCREEN,             IDTYPE_FLAGS_ISLINKABLE},
   {ID_SEQ,  "Sequence",           "sequences",       BLT_I18NCONTEXT_ID_SEQUENCE,           0                      }, /* not actually ID data */
@@ -88,6 +89,7 @@ static IDType idtypes[] = {
   {ID_TE,   "Texture",            "textures",        BLT_I18NCONTEXT_ID_TEXTURE,            IDTYPE_FLAGS_ISLINKABLE},
   {ID_TXT,  "Text",               "texts",           BLT_I18NCONTEXT_ID_TEXT,               IDTYPE_FLAGS_ISLINKABLE},
   {ID_VF,   "VFont",              "fonts",           BLT_I18NCONTEXT_ID_VFONT,              IDTYPE_FLAGS_ISLINKABLE},
+	{ID_VO,   "Volume",             "volumes",         BLT_I18NCONTEXT_ID_VOLUME,             IDTYPE_FLAGS_ISLINKABLE},
   {ID_WO,   "World",              "worlds",          BLT_I18NCONTEXT_ID_WORLD,              IDTYPE_FLAGS_ISLINKABLE},
   {ID_WM,   "WindowManager",      "window_managers", BLT_I18NCONTEXT_ID_WINDOWMANAGER,      0                       },
   {ID_WS,   "WorkSpace",          "workspaces",      BLT_I18NCONTEXT_ID_WORKSPACE,          IDTYPE_FLAGS_ISLINKABLE},
@@ -215,6 +217,9 @@ uint64_t BKE_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(TE);
     CASE_IDFILTER(TXT);
     CASE_IDFILTER(VF);
+    CASE_IDFILTER(HA);
+    CASE_IDFILTER(PT);
+    CASE_IDFILTER(VO);
     CASE_IDFILTER(WO);
     CASE_IDFILTER(WS);
     default:
@@ -242,8 +247,10 @@ short BKE_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(CU);
     CASE_IDFILTER(GD);
     CASE_IDFILTER(GR);
+    CASE_IDFILTER(HA);
     CASE_IDFILTER(IM);
     CASE_IDFILTER(LA);
+    CASE_IDFILTER(LP);
     CASE_IDFILTER(LS);
     CASE_IDFILTER(LT);
     CASE_IDFILTER(MA);
@@ -256,13 +263,14 @@ short BKE_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(PA);
     CASE_IDFILTER(PAL);
     CASE_IDFILTER(PC);
-    CASE_IDFILTER(LP);
+    CASE_IDFILTER(PT);
     CASE_IDFILTER(SCE);
     CASE_IDFILTER(SPK);
     CASE_IDFILTER(SO);
     CASE_IDFILTER(TE);
     CASE_IDFILTER(TXT);
     CASE_IDFILTER(VF);
+    CASE_IDFILTER(VO);
     CASE_IDFILTER(WO);
     default:
       return 0;
@@ -289,11 +297,13 @@ int BKE_idcode_to_index(const short idcode)
     CASE_IDINDEX(CU);
     CASE_IDINDEX(GD);
     CASE_IDINDEX(GR);
+    CASE_IDINDEX(HA);
     CASE_IDINDEX(IM);
     CASE_IDINDEX(KE);
     CASE_IDINDEX(IP);
     CASE_IDINDEX(LA);
     CASE_IDINDEX(LI);
+    CASE_IDINDEX(LP);
     CASE_IDINDEX(LS);
     CASE_IDINDEX(LT);
     CASE_IDINDEX(MA);
@@ -306,7 +316,7 @@ int BKE_idcode_to_index(const short idcode)
     CASE_IDINDEX(PA);
     CASE_IDINDEX(PAL);
     CASE_IDINDEX(PC);
-    CASE_IDINDEX(LP);
+    CASE_IDINDEX(PT);
     CASE_IDINDEX(SCE);
     CASE_IDINDEX(SCR);
     CASE_IDINDEX(SPK);
@@ -314,6 +324,7 @@ int BKE_idcode_to_index(const short idcode)
     CASE_IDINDEX(TE);
     CASE_IDINDEX(TXT);
     CASE_IDINDEX(VF);
+    CASE_IDINDEX(VO);
     CASE_IDINDEX(WM);
     CASE_IDINDEX(WO);
     CASE_IDINDEX(WS);
@@ -343,11 +354,13 @@ short BKE_idcode_from_index(const int index)
     CASE_IDCODE(CU);
     CASE_IDCODE(GD);
     CASE_IDCODE(GR);
+    CASE_IDCODE(HA);
     CASE_IDCODE(IM);
     CASE_IDCODE(KE);
     CASE_IDCODE(IP);
     CASE_IDCODE(LA);
     CASE_IDCODE(LI);
+    CASE_IDCODE(LP);
     CASE_IDCODE(LS);
     CASE_IDCODE(LT);
     CASE_IDCODE(MA);
@@ -360,7 +373,7 @@ short BKE_idcode_from_index(const int index)
     CASE_IDCODE(PA);
     CASE_IDCODE(PAL);
     CASE_IDCODE(PC);
-    CASE_IDCODE(LP);
+    CASE_IDCODE(PT);
     CASE_IDCODE(SCE);
     CASE_IDCODE(SCR);
     CASE_IDCODE(SPK);
@@ -368,6 +381,7 @@ short BKE_idcode_from_index(const int index)
     CASE_IDCODE(TE);
     CASE_IDCODE(TXT);
     CASE_IDCODE(VF);
+    CASE_IDCODE(VO);
     CASE_IDCODE(WM);
     CASE_IDCODE(WO);
     CASE_IDCODE(WS);

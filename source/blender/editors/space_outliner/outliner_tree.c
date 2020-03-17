@@ -33,6 +33,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
@@ -40,7 +41,9 @@
 #include "DNA_meta_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_speaker_types.h"
@@ -750,6 +753,25 @@ static void outliner_add_id_contents(SpaceOutliner *soops,
         Collection *collection = (Collection *)id;
         outliner_add_collection_recursive(soops, collection, te);
       }
+      break;
+    }
+    case ID_HA: {
+      Hair *hair = (Hair *)id;
+      if (outliner_animdata_test(hair->adt))
+        outliner_add_element(soops, &te->subtree, hair, te, TSE_ANIM_DATA, 0);
+      break;
+    }
+    case ID_PT: {
+      PointCloud *pointcloud = (PointCloud *)id;
+      if (outliner_animdata_test(pointcloud->adt))
+        outliner_add_element(soops, &te->subtree, pointcloud, te, TSE_ANIM_DATA, 0);
+      break;
+    }
+    case ID_VO: {
+      Volume *volume = (Volume *)id;
+      if (outliner_animdata_test(volume->adt))
+        outliner_add_element(soops, &te->subtree, volume, te, TSE_ANIM_DATA, 0);
+      break;
     }
     default:
       break;

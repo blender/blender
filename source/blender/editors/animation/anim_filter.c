@@ -46,6 +46,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cachefile_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_linestyle_types.h"
@@ -58,11 +59,13 @@
 #include "DNA_node_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_speaker_types.h"
+#include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_brush_types.h"
@@ -780,6 +783,42 @@ static bAnimListElem *make_new_animlistelem(void *data,
         AnimData *adt = spk->adt;
 
         ale->flag = FILTER_SPK_OBJD(spk);
+
+        ale->key_data = (adt) ? adt->action : NULL;
+        ale->datatype = ALE_ACT;
+
+        ale->adt = BKE_animdata_from_id(data);
+        break;
+      }
+      case ANIMTYPE_DSHAIR: {
+        Hair *hair = (Hair *)data;
+        AnimData *adt = hair->adt;
+
+        ale->flag = FILTER_HAIR_OBJD(hair);
+
+        ale->key_data = (adt) ? adt->action : NULL;
+        ale->datatype = ALE_ACT;
+
+        ale->adt = BKE_animdata_from_id(data);
+        break;
+      }
+      case ANIMTYPE_DSPOINTCLOUD: {
+        PointCloud *pointcloud = (PointCloud *)data;
+        AnimData *adt = pointcloud->adt;
+
+        ale->flag = FILTER_POINTS_OBJD(pointcloud);
+
+        ale->key_data = (adt) ? adt->action : NULL;
+        ale->datatype = ALE_ACT;
+
+        ale->adt = BKE_animdata_from_id(data);
+        break;
+      }
+      case ANIMTYPE_DSVOLUME: {
+        Volume *volume = (Volume *)data;
+        AnimData *adt = volume->adt;
+
+        ale->flag = FILTER_VOLUME_OBJD(volume);
 
         ale->key_data = (adt) ? adt->action : NULL;
         ale->datatype = ALE_ACT;
@@ -2542,6 +2581,39 @@ static size_t animdata_filter_ds_obdata(
 
       type = ANIMTYPE_DSSPK;
       expanded = FILTER_SPK_OBJD(spk);
+      break;
+    }
+    case OB_HAIR: /* ---------- Hair ----------- */
+    {
+      Hair *hair = (Hair *)ob->data;
+
+      if (ads->filterflag2 & ADS_FILTER_NOHAIR)
+        return 0;
+
+      type = ANIMTYPE_DSHAIR;
+      expanded = FILTER_HAIR_OBJD(hair);
+      break;
+    }
+    case OB_POINTCLOUD: /* ---------- PointCloud ----------- */
+    {
+      PointCloud *pointcloud = (PointCloud *)ob->data;
+
+      if (ads->filterflag2 & ADS_FILTER_NOPOINTCLOUD)
+        return 0;
+
+      type = ANIMTYPE_DSPOINTCLOUD;
+      expanded = FILTER_POINTS_OBJD(pointcloud);
+      break;
+    }
+    case OB_VOLUME: /* ---------- Volume ----------- */
+    {
+      Volume *volume = (Volume *)ob->data;
+
+      if (ads->filterflag2 & ADS_FILTER_NOVOLUME)
+        return 0;
+
+      type = ANIMTYPE_DSVOLUME;
+      expanded = FILTER_VOLUME_OBJD(volume);
       break;
     }
   }

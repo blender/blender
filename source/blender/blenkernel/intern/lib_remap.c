@@ -520,6 +520,9 @@ void BKE_libblock_remap_locked(Main *bmain, void *old_idv, void *new_idv, const 
     case ID_ME:
     case ID_CU:
     case ID_MB:
+    case ID_HA:
+    case ID_PT:
+    case ID_VO:
       if (new_id) { /* Only affects us in case obdata was relinked (changed). */
         for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
           libblock_remap_data_postprocess_obdata_relink(bmain, ob, new_id);

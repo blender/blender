@@ -140,7 +140,10 @@ bool nla_panel_context(const bContext *C,
       case ANIMTYPE_DSLINESTYLE:
       case ANIMTYPE_DSSPK:
       case ANIMTYPE_DSGPENCIL:
-      case ANIMTYPE_PALETTE: {
+      case ANIMTYPE_PALETTE:
+      case ANIMTYPE_DSHAIR:
+      case ANIMTYPE_DSPOINTCLOUD:
+      case ANIMTYPE_DSVOLUME: {
         /* for these channels, we only do AnimData */
         if (ale->adt && adt_ptr) {
           ID *id;

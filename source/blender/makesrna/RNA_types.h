@@ -362,6 +362,11 @@ typedef struct ArrayIterator {
   IteratorSkipFunc skip;
 } ArrayIterator;
 
+typedef struct CountIterator {
+  void *ptr;
+  int item;
+} CountIterator;
+
 typedef struct CollectionPropertyIterator {
   /* internal */
   PointerRNA parent;
@@ -370,6 +375,7 @@ typedef struct CollectionPropertyIterator {
   union {
     ArrayIterator array;
     ListBaseIterator listbase;
+    CountIterator count;
     void *custom;
   } internal;
   int idprop;

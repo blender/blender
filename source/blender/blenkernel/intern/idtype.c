@@ -87,6 +87,9 @@ static void id_type_init(void)
   INIT_TYPE(ID_CF);
   INIT_TYPE(ID_WS);
   INIT_TYPE(ID_LP);
+  INIT_TYPE(ID_HA);
+  INIT_TYPE(ID_PT);
+  INIT_TYPE(ID_VO);
 
 #undef INIT_TYPE
 }

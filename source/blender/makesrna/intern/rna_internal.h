@@ -159,6 +159,7 @@ void RNA_def_fcurve(struct BlenderRNA *brna);
 void RNA_def_gpencil(struct BlenderRNA *brna);
 void RNA_def_greasepencil_modifier(struct BlenderRNA *brna);
 void RNA_def_shader_fx(struct BlenderRNA *brna);
+void RNA_def_hair(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
 void RNA_def_key(struct BlenderRNA *brna);
 void RNA_def_light(struct BlenderRNA *brna);
@@ -176,6 +177,7 @@ void RNA_def_object_force(struct BlenderRNA *brna);
 void RNA_def_packedfile(struct BlenderRNA *brna);
 void RNA_def_palette(struct BlenderRNA *brna);
 void RNA_def_particle(struct BlenderRNA *brna);
+void RNA_def_pointcloud(struct BlenderRNA *brna);
 void RNA_def_pose(struct BlenderRNA *brna);
 void RNA_def_profile(struct BlenderRNA *brna);
 void RNA_def_lightprobe(struct BlenderRNA *brna);
@@ -198,6 +200,7 @@ void RNA_def_sound(struct BlenderRNA *brna);
 void RNA_def_ui(struct BlenderRNA *brna);
 void RNA_def_userdef(struct BlenderRNA *brna);
 void RNA_def_vfont(struct BlenderRNA *brna);
+void RNA_def_volume(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_wm_gizmo(struct BlenderRNA *brna);
 void RNA_def_workspace(struct BlenderRNA *brna);
@@ -443,6 +446,9 @@ void RNA_def_main_cachefiles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_workspaces(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);
 
 /* ID Properties */
 

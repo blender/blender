@@ -88,12 +88,20 @@ set(DEFSRC
   rna_ui.c
   rna_userdef.c
   rna_vfont.c
+  rna_volume.c
   rna_wm.c
   rna_wm_gizmo.c
   rna_workspace.c
   rna_world.c
   rna_xr.c
 )
+
+if(WITH_NEW_OBJECT_TYPES)
+  list(APPEND DEFSRC
+    rna_hair.c
+    rna_pointcloud.c
+  )
+endif()
 
 set(APISRC
   rna_action_api.c
@@ -328,6 +336,10 @@ endif()
 
 if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
+endif()
+
+if(WITH_NEW_OBJECT_TYPES)
+  add_definitions(-DWITH_NEW_OBJECT_TYPES)
 endif()
 
 # Build makesrna executable

@@ -120,6 +120,7 @@ set(SRC
   intern/freestyle.c
   intern/gpencil.c
   intern/gpencil_modifier.c
+  intern/hair.c
   intern/icons.c
   intern/icons_rasterize.c
   intern/idcode.c
@@ -196,6 +197,7 @@ set(SRC
   intern/pbvh_bmesh.c
   intern/pbvh_parallel.cc
   intern/pointcache.c
+  intern/pointcloud.c
   intern/report.c
   intern/rigidbody.c
   intern/scene.c
@@ -239,6 +241,7 @@ set(SRC
   intern/tracking_util.c
   intern/undo_system.c
   intern/unit.c
+  intern/volume.cc
   intern/workspace.c
   intern/world.c
   intern/writeavi.c
@@ -296,12 +299,12 @@ set(SRC
   BKE_global.h
   BKE_gpencil.h
   BKE_gpencil_modifier.h
+  BKE_hair.h
   BKE_icons.h
   BKE_idcode.h
   BKE_idprop.h
   BKE_idtype.h
   BKE_image.h
-  BKE_image_save.h
   BKE_ipo.h
   BKE_kelvinlet.h
   BKE_key.h
@@ -345,6 +348,7 @@ set(SRC
   BKE_particle.h
   BKE_pbvh.h
   BKE_pointcache.h
+  BKE_pointcloud.h
   BKE_report.h
   BKE_rigidbody.h
   BKE_scene.h
@@ -370,6 +374,7 @@ set(SRC
   BKE_tracking.h
   BKE_undo_system.h
   BKE_unit.h
+  BKE_volume.h
   BKE_workspace.h
   BKE_world.h
   BKE_writeavi.h
@@ -634,16 +639,14 @@ if(WITH_OPENVDB)
   list(APPEND INC
      ../../../intern/openvdb
   )
-  list(APPEND LIB
-     bf_intern_openvdb
+  list(APPEND INC_SYS
+    ${OPENVDB_INCLUDE_DIRS}
   )
-  add_definitions(-DWITH_OPENVDB)
-
-  if(WITH_OPENVDB_BLOSC)
-    add_definitions(
-      -DWITH_OPENVDB_BLOSC
-    )
-  endif()
+  list(APPEND LIB
+    bf_intern_openvdb
+    ${OPENVDB_LIBRARIES}
+  )
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
 if(WITH_QUADRIFLOW)

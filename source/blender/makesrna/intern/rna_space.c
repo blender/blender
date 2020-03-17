@@ -4230,6 +4230,13 @@ static void rna_def_space_view3d(BlenderRNA *brna)
         {"Surface", (1 << OB_SURF), {"show_object_viewport_surf", "show_object_select_surf"}},
         {"Meta", (1 << OB_MBALL), {"show_object_viewport_meta", "show_object_select_meta"}},
         {"Font", (1 << OB_FONT), {"show_object_viewport_font", "show_object_select_font"}},
+#  ifdef WITH_NEW_OBJECT_TYPES
+        {"Hair", (1 << OB_HAIR), {"show_object_viewport_hair", "show_object_select_hair"}},
+        {"Point Cloud",
+         (1 << OB_POINTCLOUD),
+         {"show_object_viewport_pointcloud", "show_object_select_pointcloud"}},
+#  endif
+        {"Volume", (1 << OB_VOLUME), {"show_object_viewport_volume", "show_object_select_volume"}},
         {"Armature",
          (1 << OB_ARMATURE),
          {"show_object_viewport_armature", "show_object_select_armature"}},
@@ -5432,8 +5439,16 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
        "Grease Pencil",
        "Show Grease pencil data-blocks"},
       {FILTER_ID_GR, "filter_group", ICON_GROUP, "Collections", "Show Collection data-blocks"},
+#  ifdef WITH_NEW_OBJECT_TYPES
+      {FILTER_ID_HA, "filter_hair", ICON_HAIR_DATA, "Hairs", "Show/hide Hair data-blocks"},
+#  endif
       {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
       {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
+      {FILTER_ID_LP,
+       "filter_light_probe",
+       ICON_OUTLINER_DATA_LIGHTPROBE,
+       "Light Probes",
+       "Show Light Probe data-blocks"},
       {FILTER_ID_LS,
        "filter_linestyle",
        ICON_LINE_DATA,
@@ -5470,17 +5485,20 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
        ICON_CURVE_BEZCURVE,
        "Paint Curves",
        "Show Paint Curve data-blocks"},
-      {FILTER_ID_LP,
-       "filter_light_probe",
-       ICON_OUTLINER_DATA_LIGHTPROBE,
-       "Light Probes",
-       "Show Light Probe data-blocks"},
+#  ifdef WITH_NEW_OBJECT_TYPES
+      {FILTER_ID_PT,
+       "filter_pointcloud",
+       ICON_POINTCLOUD_DATA,
+       "Point Clouds",
+       "Show/hide Point Cloud data-blocks"},
+#  endif
       {FILTER_ID_SCE, "filter_scene", ICON_SCENE_DATA, "Scenes", "Show Scene data-blocks"},
       {FILTER_ID_SPK, "filter_speaker", ICON_SPEAKER, "Speakers", "Show Speaker data-blocks"},
       {FILTER_ID_SO, "filter_sound", ICON_SOUND, "Sounds", "Show Sound data-blocks"},
       {FILTER_ID_TE, "filter_texture", ICON_TEXTURE_DATA, "Textures", "Show Texture data-blocks"},
       {FILTER_ID_TXT, "filter_text", ICON_TEXT, "Texts", "Show Text data-blocks"},
       {FILTER_ID_VF, "filter_font", ICON_FONT_DATA, "Fonts", "Show Font data-blocks"},
+      {FILTER_ID_VO, "filter_volume", ICON_VOLUME_DATA, "Volumes", "Show/hide Volume data-blocks"},
       {FILTER_ID_WO, "filter_world", ICON_WORLD_DATA, "Worlds", "Show World data-blocks"},
       {FILTER_ID_WS,
        "filter_work_space",
@@ -5495,8 +5513,9 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
        "category_object",
        ICON_GROUP,
        "Objects & Collections",
-       "Show objects and groups"},
-      {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME,
+       "Show objects and collections"},
+      {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME | FILTER_ID_HA |
+           FILTER_ID_PT | FILTER_ID_VO,
        "category_geometry",
        ICON_MESH_DATA,
        "Geometry",
@@ -5691,6 +5710,12 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "filter", FILE_TYPE_TEXT);
   RNA_def_property_ui_text(prop, "Filter Text", "Show text files");
   RNA_def_property_ui_icon(prop, ICON_FILE_TEXT, 0);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
+  prop = RNA_def_property(srna, "use_filter_volume", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "filter", FILE_TYPE_VOLUME);
+  RNA_def_property_ui_text(prop, "Filter Volume", "Show 3D volume files");
+  RNA_def_property_ui_icon(prop, ICON_FILE_VOLUME, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   prop = RNA_def_property(srna, "use_filter_folder", PROP_BOOLEAN, PROP_NONE);

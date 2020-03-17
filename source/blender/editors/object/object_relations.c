@@ -66,6 +66,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
+#include "BKE_hair.h"
 #include "BKE_idprop.h"
 #include "BKE_light.h"
 #include "BKE_lattice.h"
@@ -82,10 +83,12 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
+#include "BKE_volume.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -1899,6 +1902,15 @@ static void single_obdata_users(
             break;
           case OB_GPENCIL:
             ob->data = ID_NEW_SET(ob->data, BKE_gpencil_copy(bmain, ob->data));
+            break;
+          case OB_HAIR:
+            ob->data = ID_NEW_SET(ob->data, BKE_hair_copy(bmain, ob->data));
+            break;
+          case OB_POINTCLOUD:
+            ob->data = ID_NEW_SET(ob->data, BKE_pointcloud_copy(bmain, ob->data));
+            break;
+          case OB_VOLUME:
+            ob->data = ID_NEW_SET(ob->data, BKE_volume_copy(bmain, ob->data));
             break;
           default:
             printf("ERROR %s: can't copy %s\n", __func__, id->name);

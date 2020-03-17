@@ -126,6 +126,12 @@ class DopesheetFilterPopoverBase:
             flow.prop(dopesheet, "show_lattices", text="Lattices")
         if bpy.data.metaballs:
             flow.prop(dopesheet, "show_metaballs", text="Metaballs")
+        if hasattr(bpy.data, "hairs") and bpy.data.hairs:
+            flow.prop(dopesheet, "show_hairs", text="Hairs")
+        if hasattr(bpy.data, "pointclouds") and bpy.data.pointclouds:
+            flow.prop(dopesheet, "show_pointclouds", text="Point Clouds")
+        if bpy.data.volumes:
+            flow.prop(dopesheet, "show_volumes", text="Volumes")
 
         # data types
         flow.prop(dopesheet, "show_worlds", text="Worlds")

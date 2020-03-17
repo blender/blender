@@ -64,6 +64,7 @@ extern "C" {
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_force_types.h"
 
@@ -537,6 +538,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_CU:
     case ID_MB:
     case ID_LT:
+    case ID_HA:
+    case ID_PT:
+    case ID_VO:
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
@@ -771,7 +775,10 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
     case OB_SURF:
     case OB_MBALL:
     case OB_LATTICE:
-    case OB_GPENCIL: {
+    case OB_GPENCIL:
+    case OB_HAIR:
+    case OB_POINTCLOUD:
+    case OB_VOLUME: {
       build_object_data_geometry(object);
       /* TODO(sergey): Only for until we support granular
        * update of curves. */
@@ -2145,6 +2152,19 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
+    case ID_HA:
+      break;
+    case ID_PT:
+      break;
+    case ID_VO: {
+      Volume *volume = (Volume *)obdata;
+      if (volume->is_sequence) {
+        TimeSourceKey time_key;
+        ComponentKey geometry_key(obdata, NodeType::GEOMETRY);
+        add_relation(time_key, geometry_key, "Volume sequence time");
+      }
+      break;
+    }
     default:
       BLI_assert(!"Should not happen");
       break;
@@ -2593,7 +2613,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
       continue;
     }
     int rel_flag = (RELATION_FLAG_NO_FLUSH | RELATION_FLAG_GODMODE);
-    if ((id_type == ID_ME && comp_node->type == NodeType::GEOMETRY) ||
+    if ((ELEM(id_type, ID_ME, ID_HA, ID_PT, ID_VO) && comp_node->type == NodeType::GEOMETRY) ||
         (id_type == ID_CF && comp_node->type == NodeType::CACHE)) {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }

@@ -405,6 +405,9 @@ typedef enum ID_Type {
   ID_CF = MAKE_ID2('C', 'F'),  /* CacheFile */
   ID_WS = MAKE_ID2('W', 'S'),  /* WorkSpace */
   ID_LP = MAKE_ID2('L', 'P'),  /* LightProbe */
+  ID_HA = MAKE_ID2('H', 'A'),  /* Hair */
+  ID_PT = MAKE_ID2('P', 'T'),  /* PointCloud */
+  ID_VO = MAKE_ID2('V', 'O'),  /* Volume */
 } ID_Type;
 
 /* Only used as 'placeholder' in .blend files for directly linked data-blocks. */
@@ -670,39 +673,40 @@ typedef enum IDRecalcFlag {
 } IDRecalcFlag;
 
 /* To filter ID types (filter_id). 64 bit to fit all types. */
-enum {
-  FILTER_ID_AC = (1ULL << 0),
-  FILTER_ID_AR = (1ULL << 1),
-  FILTER_ID_BR = (1ULL << 2),
-  FILTER_ID_CA = (1ULL << 3),
-  FILTER_ID_CU = (1ULL << 4),
-  FILTER_ID_GD = (1ULL << 5),
-  FILTER_ID_GR = (1ULL << 6),
-  FILTER_ID_IM = (1ULL << 7),
-  FILTER_ID_LA = (1ULL << 8),
-  FILTER_ID_LS = (1ULL << 9),
-  FILTER_ID_LT = (1ULL << 10),
-  FILTER_ID_MA = (1ULL << 11),
-  FILTER_ID_MB = (1ULL << 12),
-  FILTER_ID_MC = (1ULL << 13),
-  FILTER_ID_ME = (1ULL << 14),
-  FILTER_ID_MSK = (1ULL << 15),
-  FILTER_ID_NT = (1ULL << 16),
-  FILTER_ID_OB = (1ULL << 17),
-  FILTER_ID_PAL = (1ULL << 18),
-  FILTER_ID_PC = (1ULL << 19),
-  FILTER_ID_SCE = (1ULL << 20),
-  FILTER_ID_SPK = (1ULL << 21),
-  FILTER_ID_SO = (1ULL << 22),
-  FILTER_ID_TE = (1ULL << 23),
-  FILTER_ID_TXT = (1ULL << 24),
-  FILTER_ID_VF = (1ULL << 25),
-  FILTER_ID_WO = (1ULL << 26),
-  FILTER_ID_PA = (1ULL << 27),
-  FILTER_ID_CF = (1ULL << 28),
-  FILTER_ID_WS = (1ULL << 29),
-  FILTER_ID_LP = (1ULL << 31),
-};
+#define FILTER_ID_AC (1ULL << 0)
+#define FILTER_ID_AR (1ULL << 1)
+#define FILTER_ID_BR (1ULL << 2)
+#define FILTER_ID_CA (1ULL << 3)
+#define FILTER_ID_CU (1ULL << 4)
+#define FILTER_ID_GD (1ULL << 5)
+#define FILTER_ID_GR (1ULL << 6)
+#define FILTER_ID_IM (1ULL << 7)
+#define FILTER_ID_LA (1ULL << 8)
+#define FILTER_ID_LS (1ULL << 9)
+#define FILTER_ID_LT (1ULL << 10)
+#define FILTER_ID_MA (1ULL << 11)
+#define FILTER_ID_MB (1ULL << 12)
+#define FILTER_ID_MC (1ULL << 13)
+#define FILTER_ID_ME (1ULL << 14)
+#define FILTER_ID_MSK (1ULL << 15)
+#define FILTER_ID_NT (1ULL << 16)
+#define FILTER_ID_OB (1ULL << 17)
+#define FILTER_ID_PAL (1ULL << 18)
+#define FILTER_ID_PC (1ULL << 19)
+#define FILTER_ID_SCE (1ULL << 20)
+#define FILTER_ID_SPK (1ULL << 21)
+#define FILTER_ID_SO (1ULL << 22)
+#define FILTER_ID_TE (1ULL << 23)
+#define FILTER_ID_TXT (1ULL << 24)
+#define FILTER_ID_VF (1ULL << 25)
+#define FILTER_ID_WO (1ULL << 26)
+#define FILTER_ID_PA (1ULL << 27)
+#define FILTER_ID_CF (1ULL << 28)
+#define FILTER_ID_WS (1ULL << 29)
+#define FILTER_ID_LP (1ULL << 31)
+#define FILTER_ID_HA (1ULL << 32)
+#define FILTER_ID_PT (1ULL << 33)
+#define FILTER_ID_VO (1ULL << 34)
 
 #define FILTER_ID_ALL \
   (FILTER_ID_AC | FILTER_ID_AR | FILTER_ID_BR | FILTER_ID_CA | FILTER_ID_CU | FILTER_ID_GD | \
@@ -710,7 +714,7 @@ enum {
    FILTER_ID_MB | FILTER_ID_MC | FILTER_ID_ME | FILTER_ID_MSK | FILTER_ID_NT | FILTER_ID_OB | \
    FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | FILTER_ID_SPK | FILTER_ID_SO | \
    FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | FILTER_ID_CF | FILTER_ID_WS | \
-   FILTER_ID_LP)
+   FILTER_ID_LP | FILTER_ID_HA | FILTER_ID_PT | FILTER_ID_VO)
 
 /* IMPORTANT: this enum matches the order currently use in set_listbasepointers,
  * keep them in sync! */
@@ -731,6 +735,9 @@ enum {
   INDEX_ID_ME,
   INDEX_ID_CU,
   INDEX_ID_MB,
+  INDEX_ID_HA,
+  INDEX_ID_PT,
+  INDEX_ID_VO,
   INDEX_ID_LT,
   INDEX_ID_LA,
   INDEX_ID_CA,

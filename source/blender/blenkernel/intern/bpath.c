@@ -61,6 +61,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_freestyle_types.h"
+#include "DNA_volume_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -642,6 +643,13 @@ void BKE_bpath_traverse_id(
       bSound *sound = (bSound *)id;
       if (sound->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
         rewrite_path_fixed(sound->name, visit_cb, absbase, bpath_user_data);
+      }
+      break;
+    }
+    case ID_VO: {
+      Volume *volume = (Volume *)id;
+      if (volume->packedfile == NULL || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+        rewrite_path_fixed(volume->filepath, visit_cb, absbase, bpath_user_data);
       }
       break;
     }

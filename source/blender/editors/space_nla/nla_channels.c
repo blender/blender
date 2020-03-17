@@ -190,7 +190,10 @@ static int mouse_nla_channels(
     case ANIMTYPE_DSLINESTYLE:
     case ANIMTYPE_DSSPK:
     case ANIMTYPE_DSGPENCIL:
-    case ANIMTYPE_PALETTE: {
+    case ANIMTYPE_PALETTE:
+    case ANIMTYPE_DSHAIR:
+    case ANIMTYPE_DSPOINTCLOUD:
+    case ANIMTYPE_DSVOLUME: {
       /* sanity checking... */
       if (ale->adt) {
         /* select/deselect */

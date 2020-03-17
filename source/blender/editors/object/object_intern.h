@@ -111,6 +111,8 @@ void OBJECT_OT_light_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
 void OBJECT_OT_speaker_add(struct wmOperatorType *ot);
+void OBJECT_OT_hair_add(struct wmOperatorType *ot);
+void OBJECT_OT_pointcloud_add(struct wmOperatorType *ot);
 void OBJECT_OT_collection_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
@@ -119,6 +121,10 @@ void OBJECT_OT_delete(struct wmOperatorType *ot);
 void OBJECT_OT_join(struct wmOperatorType *ot);
 void OBJECT_OT_join_shapes(struct wmOperatorType *ot);
 void OBJECT_OT_convert(struct wmOperatorType *ot);
+
+/* object_volume.c */
+void OBJECT_OT_volume_add(struct wmOperatorType *ot);
+void OBJECT_OT_volume_import(struct wmOperatorType *ot);
 
 /* object_hook.c */
 void OBJECT_OT_hook_add_selob(struct wmOperatorType *ot);

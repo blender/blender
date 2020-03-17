@@ -2340,6 +2340,12 @@ int UI_idcode_icon_get(const int idcode)
       return ICON_TEXT;
     case ID_VF:
       return ICON_FONT_DATA;
+    case ID_HA:
+      return ICON_HAIR_DATA;
+    case ID_PT:
+      return ICON_POINTCLOUD_DATA;
+    case ID_VO:
+      return ICON_VOLUME_DATA;
     case ID_WO:
       return ICON_WORLD_DATA;
     case ID_WS:
