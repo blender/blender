@@ -38,6 +38,9 @@
 #endif
 
 class GHOST_ContextGLX : public GHOST_Context {
+  /* XR code needs low level graphics data to send to OpenXR. */
+  friend class GHOST_XrGraphicsBindingOpenGL;
+
  public:
   /**
    * Constructor.

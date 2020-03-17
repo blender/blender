@@ -41,6 +41,22 @@
     } * name
 #endif
 
+/**
+ * Creates a "handle" for a C++ GHOST object.
+ * A handle is just an opaque pointer to an empty struct.
+ * In the API the pointer is cast to the actual C++ class.
+ * The 'name' argument to the macro is the name of the handle to create.
+ */
+
+GHOST_DECLARE_HANDLE(GHOST_SystemHandle);
+GHOST_DECLARE_HANDLE(GHOST_TimerTaskHandle);
+GHOST_DECLARE_HANDLE(GHOST_WindowHandle);
+GHOST_DECLARE_HANDLE(GHOST_EventHandle);
+GHOST_DECLARE_HANDLE(GHOST_RectangleHandle);
+GHOST_DECLARE_HANDLE(GHOST_EventConsumerHandle);
+GHOST_DECLARE_HANDLE(GHOST_ContextHandle);
+GHOST_DECLARE_HANDLE(GHOST_XrContextHandle);
+
 typedef char GHOST_TInt8;
 typedef unsigned char GHOST_TUns8;
 typedef short GHOST_TInt16;
@@ -578,6 +594,80 @@ typedef void (*GHOST_TimerProcPtr)(GHOST_ITimerTask *task, GHOST_TUns64 time);
 #else
 struct GHOST_TimerTaskHandle__;
 typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, GHOST_TUns64 time);
+#endif
+
+#ifdef WITH_XR_OPENXR
+
+/**
+ * The XR view (i.e. the OpenXR runtime) may require a different graphics library than OpenGL. An
+ * offscreen texture of the viewport will then be drawn into using OpenGL, but the final texture
+ * draw call will happen through another lib (say DirectX).
+ *
+ * This enum defines the possible graphics bindings to attempt to enable.
+ */
+typedef enum {
+  GHOST_kXrGraphicsUnknown = 0,
+  GHOST_kXrGraphicsOpenGL,
+#  ifdef WIN32
+  GHOST_kXrGraphicsD3D11,
+#  endif
+  /* For later */
+  //  GHOST_kXrGraphicsVulkan,
+} GHOST_TXrGraphicsBinding;
+/* An array of GHOST_TXrGraphicsBinding items defining the candidate bindings to use. The first
+ * available candidate will be chosen, so order defines priority. */
+typedef const GHOST_TXrGraphicsBinding *GHOST_XrGraphicsBindingCandidates;
+
+typedef struct {
+  float position[3];
+  /* Blender convention (w, x, y, z) */
+  float orientation_quat[4];
+} GHOST_XrPose;
+
+enum {
+  GHOST_kXrContextDebug = (1 << 0),
+  GHOST_kXrContextDebugTime = (1 << 1),
+};
+
+typedef struct {
+  const GHOST_XrGraphicsBindingCandidates gpu_binding_candidates;
+  unsigned int gpu_binding_candidates_count;
+
+  unsigned int context_flag;
+} GHOST_XrContextCreateInfo;
+
+typedef struct {
+  GHOST_XrPose base_pose;
+} GHOST_XrSessionBeginInfo;
+
+typedef struct {
+  int ofsx, ofsy;
+  int width, height;
+
+  GHOST_XrPose pose;
+
+  struct {
+    float angle_left, angle_right;
+    float angle_up, angle_down;
+  } fov;
+
+  /** Set if the buffer should be submitted with a srgb transfer applied. */
+  char expects_srgb_buffer;
+} GHOST_XrDrawViewInfo;
+
+typedef struct {
+  const char *user_message;
+
+  void *customdata;
+} GHOST_XrError;
+
+typedef void (*GHOST_XrErrorHandlerFn)(const GHOST_XrError *);
+
+typedef void *(*GHOST_XrGraphicsContextBindFn)(GHOST_TXrGraphicsBinding graphics_lib);
+typedef void (*GHOST_XrGraphicsContextUnbindFn)(GHOST_TXrGraphicsBinding graphics_lib,
+                                                void *graphics_context);
+typedef void (*GHOST_XrDrawViewFn)(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
+
 #endif
 
 #endif  // __GHOST_TYPES_H__

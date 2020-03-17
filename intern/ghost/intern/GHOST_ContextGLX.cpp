@@ -273,6 +273,7 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
           m_window = (Window)glXCreatePbuffer(m_display, framebuffer_config[0], pbuffer_attribs);
         }
 
+        m_fbconfig = framebuffer_config[0];
         XFree(framebuffer_config);
       }
     }
