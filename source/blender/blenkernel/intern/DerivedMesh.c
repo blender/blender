@@ -981,6 +981,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
 
       /* grab modifiers until index i */
       if ((index != -1) && (BLI_findindex(&ob->modifiers, md) >= index)) {
+        md = NULL;
         break;
       }
     }
