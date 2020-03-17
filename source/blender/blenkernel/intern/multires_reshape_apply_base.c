@@ -27,23 +27,46 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math_vector.h"
+#include "BLI_listbase.h"
 
+#include "BKE_customdata.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_multires.h"
 #include "BKE_subdiv_eval.h"
+
+#include "DEG_depsgraph_query.h"
 
 void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  const int grid_size = reshape_context->top.grid_size;
-  const int grid_index = grid_size * grid_size - 1;
-  for (int i = 0; i < base_mesh->totloop; ++i) {
-    MDisps *displacement_grid = &reshape_context->mdisps[i];
-    const MLoop *loop = &base_mesh->mloop[i];
-    MVert *vert = &base_mesh->mvert[loop->v];
-    copy_v3_v3(vert->co, displacement_grid->disps[grid_index]);
+  const MLoop *mloop = base_mesh->mloop;
+  MVert *mvert = base_mesh->mvert;
+  for (int loop_index = 0; loop_index < base_mesh->totloop; ++loop_index) {
+    const MLoop *loop = &mloop[loop_index];
+    MVert *vert = &mvert[loop->v];
+
+    GridCoord grid_coord;
+    grid_coord.grid_index = loop_index;
+    grid_coord.u = 1.0f;
+    grid_coord.v = 1.0f;
+
+    float P[3];
+    float tangent_matrix[3][3];
+    multires_reshape_evaluate_limit_at_grid(reshape_context, &grid_coord, P, tangent_matrix);
+
+    ReshapeConstGridElement grid_element = multires_reshape_orig_grid_element_for_grid_coord(
+        reshape_context, &grid_coord);
+    float D[3];
+    mul_v3_m3v3(D, tangent_matrix, grid_element.displacement);
+
+    add_v3_v3v3(vert->co, P, D);
   }
 }
 
@@ -152,7 +175,30 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   BKE_mesh_calc_normals(base_mesh);
 }
 
-void multires_reshape_apply_base_refine_subdiv(MultiresReshapeContext *reshape_context)
+void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context)
 {
   BKE_subdiv_eval_update_from_mesh(reshape_context->subdiv, reshape_context->base_mesh, NULL);
+}
+
+void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *reshape_context)
+{
+  struct Depsgraph *depsgraph = reshape_context->depsgraph;
+  Object *object = reshape_context->object;
+  MultiresModifierData *mmd = reshape_context->mmd;
+  BLI_assert(depsgraph != NULL);
+  BLI_assert(object != NULL);
+  BLI_assert(mmd != NULL);
+
+  /* If there are no modifiers prior to the multires can use base mesh as it have all the updated
+   * vertices already. */
+  if (mmd->modifier.prev == NULL) {
+    BKE_subdiv_eval_update_from_mesh(reshape_context->subdiv, reshape_context->base_mesh, NULL);
+  }
+  else {
+    /* TODO(sergey): Possible optimization is to only evaluate new verticies positions without
+     * construction of the entire mesh. */
+    Mesh *deformed_base_mesh = BKE_multires_create_deformed_base_mesh(depsgraph, object, mmd);
+    BKE_subdiv_eval_update_from_mesh(reshape_context->subdiv, deformed_base_mesh, NULL);
+    BKE_id_free(NULL, deformed_base_mesh);
+  }
 }

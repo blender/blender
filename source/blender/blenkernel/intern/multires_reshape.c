@@ -224,10 +224,35 @@ void multiresModifier_base_apply(struct Depsgraph *depsgraph,
     return;
   }
 
+  multires_reshape_store_original_grids(&reshape_context);
+
+  /* At this point base_mesh is object's mesh, the subdiv is initialized to the deformed state of
+   * the base mesh.
+   * Store coordinates of top level grids in object space which will define true shape we would
+   * want to reshape to after modifying the base mesh. */
   multires_reshape_assign_final_coords_from_mdisps(&reshape_context);
+
+  /* For modifying base mesh we only want to consider deformation caused by multires displacement
+   * and ignore all deformation which might be caused by deformation modifiers leading the multires
+   * one.
+   * So  refine the subdiv to the original mesh verticies positions, which will also need to make
+   * it so object space displacement is re-evaluated for them (as in, can not re-use any knowledge
+   * from the final coordinates in the object space ). */
+  multires_reshape_apply_base_refine_from_base(&reshape_context);
+
+  /* Modify original mesh coordinates. This happens in two steps:
+   * - Coordinates are set to their final location, where they are intended to be in the final
+   *   result.
+   * - Heuristic moves them a bit, kind of canceling out the effect of subsurf (so then when
+   *   multires modifier applies subsurf vertices are placed at the desired location). */
   multires_reshape_apply_base_update_mesh_coords(&reshape_context);
   multires_reshape_apply_base_refit_base_mesh(&reshape_context);
-  multires_reshape_apply_base_refine_subdiv(&reshape_context);
+
+  /* Reshape to the stored final state.
+   * Not that the base changed, so the subdiv is to be refined to the new positions. Unfortunately,
+   * this can not be done foe entirely cheap: if there were deformation modifiers prior to the
+   * multires they need to be re-evaluated for the new base mesh. */
+  multires_reshape_apply_base_refine_from_deform(&reshape_context);
   multires_reshape_object_grids_to_tangent_displacement(&reshape_context);
 
   multires_reshape_context_free(&reshape_context);

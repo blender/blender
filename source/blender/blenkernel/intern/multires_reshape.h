@@ -36,6 +36,11 @@ struct Subdiv;
 struct SubdivCCG;
 
 typedef struct MultiresReshapeContext {
+  /* NOTE: Only available when context is initialized from object. */
+  struct Depsgraph *depsgraph;
+  struct Object *object;
+  struct MultiresModifierData *mmd;
+
   /* Base mesh from original object.
    * NOTE: Does NOT include any leading modifiers in it. */
   struct Mesh *base_mesh;
@@ -142,6 +147,9 @@ struct Subdiv *multires_reshape_create_subdiv(struct Depsgraph *depsgraph,
                                               struct Object *object,
                                               const struct MultiresModifierData *mmd);
 
+/* NOTE: Initialized base mesh to object's mesh, the Subdiv is created from the deformed
+ * mesh prior to the multires modifier if depsgraph is not NULL. If the depsgraph is NULL
+ * then Subdiv is created from base mesh (without any deformation applied). */
 bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape_context,
                                                  struct Depsgraph *depsgraph,
                                                  struct Object *object,
@@ -302,6 +310,12 @@ void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *resh
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context);
 
 /* Refine subdivision surface to the new positions of the base mesh. */
-void multires_reshape_apply_base_refine_subdiv(MultiresReshapeContext *reshape_context);
+void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context);
+
+/* Refine subdivision surface to the new positions of the deformed mesh (base mesh with all
+ * modifiers leading the multires applied).
+ *
+ * NOTE: Will re-evaluate all leading modifiers, so it's not cheap. */
+void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *reshape_context);
 
 #endif /* __BKE_INTERN_MULTIRES_RESHAPE_H__ */

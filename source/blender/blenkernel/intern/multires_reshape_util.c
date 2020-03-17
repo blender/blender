@@ -163,6 +163,10 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Mesh *base_mesh = (Mesh *)object->data;
 
+  reshape_context->depsgraph = depsgraph;
+  reshape_context->object = object;
+  reshape_context->mmd = mmd;
+
   reshape_context->base_mesh = base_mesh;
 
   reshape_context->subdiv = multires_reshape_create_subdiv(depsgraph, object, mmd);
