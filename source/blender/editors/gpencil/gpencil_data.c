@@ -2627,8 +2627,11 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
               LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
                 MDeformVert *dvert;
                 int i;
+                if (gps->dvert == NULL) {
+                  continue;
+                }
                 for (i = 0, dvert = gps->dvert; i < gps->totpoints; i++, dvert++) {
-                  if ((dvert->dw) && (dvert->dw->def_nr == old_idx)) {
+                  if ((dvert->dw != NULL) && (dvert->dw->def_nr == old_idx)) {
                     dvert->dw->def_nr = idx;
                   }
                 }
