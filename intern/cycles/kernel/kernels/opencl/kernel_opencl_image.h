@@ -202,10 +202,18 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
   }
 }
 
-ccl_device float4
-kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z, int interp)
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float3 P, int interp)
 {
   const ccl_global TextureInfo *info = kernel_tex_info(kg, id);
+
+  if (info->use_transform_3d) {
+    Transform tfm = info->transform_3d;
+    P = transform_point(&tfm, P);
+  }
+
+  const float x = P.x;
+  const float y = P.y;
+  const float z = P.z;
 
   if (info->extension == EXTENSION_CLIP) {
     if (x < 0.0f || y < 0.0f || z < 0.0f || x > 1.0f || y > 1.0f || z > 1.0f) {

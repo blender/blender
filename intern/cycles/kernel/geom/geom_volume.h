@@ -51,10 +51,14 @@ ccl_device float volume_attribute_float(KernelGlobals *kg,
                                         const ShaderData *sd,
                                         const AttributeDescriptor desc)
 {
-  float3 P = volume_normalized_position(kg, sd, sd->P);
+  /* todo: optimize this so we don't have to transform both here and in
+   * kernel_tex_image_interp_3d when possible. Also could optimize for the
+   * common case where transform is translation/scale only. */
+  float3 P = sd->P;
+  object_inverse_position_transform(kg, sd, &P);
   InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC) ? INTERPOLATION_CUBIC :
                                                             INTERPOLATION_NONE;
-  float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z, interp);
+  float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P, interp);
   return average(float4_to_float3(r));
 }
 
@@ -62,10 +66,11 @@ ccl_device float3 volume_attribute_float3(KernelGlobals *kg,
                                           const ShaderData *sd,
                                           const AttributeDescriptor desc)
 {
-  float3 P = volume_normalized_position(kg, sd, sd->P);
+  float3 P = sd->P;
+  object_inverse_position_transform(kg, sd, &P);
   InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC) ? INTERPOLATION_CUBIC :
                                                             INTERPOLATION_NONE;
-  float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z, interp);
+  float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P, interp);
 
   if (r.w > 1e-6f && r.w != 1.0f) {
     /* For RGBA colors, unpremultiply after interpolation. */

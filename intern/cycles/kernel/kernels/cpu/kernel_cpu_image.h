@@ -498,28 +498,34 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
   }
 }
 
-ccl_device float4 kernel_tex_image_interp_3d(
-    KernelGlobals *kg, int id, float x, float y, float z, InterpolationType interp)
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg,
+                                             int id,
+                                             float3 P,
+                                             InterpolationType interp)
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
 
+  if (info.use_transform_3d) {
+    P = transform_point(&info.transform_3d, P);
+  }
+
   switch (info.data_type) {
     case IMAGE_DATA_TYPE_HALF:
-      return TextureInterpolator<half>::interp_3d(info, x, y, z, interp);
+      return TextureInterpolator<half>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_BYTE:
-      return TextureInterpolator<uchar>::interp_3d(info, x, y, z, interp);
+      return TextureInterpolator<uchar>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_USHORT:
-      return TextureInterpolator<uint16_t>::interp_3d(info, x, y, z, interp);
+      return TextureInterpolator<uint16_t>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_FLOAT:
-      return TextureInterpolator<float>::interp_3d(info, x, y, z, interp);
+      return TextureInterpolator<float>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_HALF4:
-      return TextureInterpolator<half4>::interp_3d(info, x, y, z, interp);
+      return TextureInterpolator<half4>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_BYTE4:
-      return TextureInterpolator<uchar4>::interp_3d(info, x, y, z, interp);
+      return TextureInterpolator<uchar4>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_USHORT4:
-      return TextureInterpolator<ushort4>::interp_3d(info, x, y, z, interp);
+      return TextureInterpolator<ushort4>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_FLOAT4:
-      return TextureInterpolator<float4>::interp_3d(info, x, y, z, interp);
+      return TextureInterpolator<float4>::interp_3d(info, P.x, P.y, P.z, interp);
     default:
       assert(0);
       return make_float4(

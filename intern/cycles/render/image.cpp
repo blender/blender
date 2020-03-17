@@ -183,6 +183,7 @@ ImageMetaData::ImageMetaData()
       type(IMAGE_DATA_NUM_TYPES),
       colorspace(u_colorspace_raw),
       colorspace_file_format(""),
+      use_transform_3d(false),
       compress_as_srgb(false)
 {
 }
@@ -190,8 +191,9 @@ ImageMetaData::ImageMetaData()
 bool ImageMetaData::operator==(const ImageMetaData &other) const
 {
   return channels == other.channels && width == other.width && height == other.height &&
-         depth == other.depth && type == other.type && colorspace == other.colorspace &&
-         compress_as_srgb == other.compress_as_srgb;
+         depth == other.depth && use_transform_3d == other.use_transform_3d &&
+         (!use_transform_3d || transform_3d == other.transform_3d) && type == other.type &&
+         colorspace == other.colorspace && compress_as_srgb == other.compress_as_srgb;
 }
 
 bool ImageMetaData::is_float() const
@@ -626,6 +628,8 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
 
   img->mem = new device_texture(
       device, img->mem_name.c_str(), slot, type, img->params.interpolation, img->params.extension);
+  img->mem->info.use_transform_3d = img->metadata.use_transform_3d;
+  img->mem->info.transform_3d = img->metadata.transform_3d;
 
   /* Create new texture. */
   if (type == IMAGE_DATA_TYPE_FLOAT4) {

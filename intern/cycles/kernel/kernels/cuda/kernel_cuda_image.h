@@ -149,10 +149,21 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
   }
 }
 
-ccl_device float4 kernel_tex_image_interp_3d(
-    KernelGlobals *kg, int id, float x, float y, float z, InterpolationType interp)
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg,
+                                             int id,
+                                             float3 P,
+                                             InterpolationType interp)
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
+
+  if (info.use_transform_3d) {
+    P = transform_point(&info.transform_3d, P);
+  }
+
+  const float x = P.x;
+  const float y = P.y;
+  const float z = P.z;
+
   CUtexObject tex = (CUtexObject)info.data;
   uint interpolation = (interp == INTERPOLATION_NONE) ? info.interpolation : interp;
 

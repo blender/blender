@@ -17,6 +17,8 @@
 #ifndef __UTIL_TEXTURE_H__
 #define __UTIL_TEXTURE_H__
 
+#include "util_transform.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Texture limits on devices. */
@@ -99,7 +101,9 @@ typedef struct TextureInfo {
   uint interpolation, extension;
   /* Dimensions. */
   uint width, height, depth;
-  uint pad[3];
+  /* Transform for 3D textures. */
+  uint use_transform_3d;
+  Transform transform_3d;
 } TextureInfo;
 
 CCL_NAMESPACE_END

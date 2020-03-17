@@ -373,13 +373,15 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
   VolumeParams volume_params;
   volume_params.resolution = make_int3(0, 0, 0);
 
+  Transform transform = transform_identity();
+
   foreach (Attribute &attr, mesh->attributes.attributes) {
     if (attr.element != ATTR_ELEMENT_VOXEL) {
       continue;
     }
 
     ImageHandle &handle = attr.data_voxel();
-    device_memory *image_memory = handle.image_memory();
+    device_texture *image_memory = handle.image_memory();
     int3 resolution = make_int3(
         image_memory->data_width, image_memory->data_height, image_memory->data_depth);
 
@@ -387,14 +389,20 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
       volume_params.resolution = resolution;
     }
     else if (volume_params.resolution != resolution) {
-      VLOG(1) << "Can't create volume mesh, all voxel grid resolutions must be equal\n";
-      return;
+      /* TODO: support this as it's common for OpenVDB. */
+      VLOG(1) << "Can't create accurate volume mesh, all voxel grid resolutions must be equal\n";
+      continue;
     }
 
     VoxelAttributeGrid voxel_grid;
     voxel_grid.data = static_cast<float *>(image_memory->host_pointer);
     voxel_grid.channels = image_memory->data_elements;
     voxel_grids.push_back(voxel_grid);
+
+    /* TODO: support multiple transforms. */
+    if (image_memory->info.use_transform_3d) {
+      transform = image_memory->info.transform_3d;
+    }
   }
 
   if (voxel_grids.empty()) {
@@ -427,17 +435,14 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
   }
 
   /* Compute start point and cell size from transform. */
-  Attribute *attr = mesh->attributes.find(ATTR_STD_GENERATED_TRANSFORM);
   const int3 resolution = volume_params.resolution;
   float3 start_point = make_float3(0.0f, 0.0f, 0.0f);
   float3 cell_size = make_float3(1.0f / resolution.x, 1.0f / resolution.y, 1.0f / resolution.z);
 
-  if (attr) {
-    const Transform *tfm = attr->data_transform();
-    const Transform itfm = transform_inverse(*tfm);
-    start_point = transform_point(&itfm, start_point);
-    cell_size = transform_direction(&itfm, cell_size);
-  }
+  /* TODO: support arbitrary transforms, not just scale + translate. */
+  const Transform itfm = transform_inverse(transform);
+  start_point = transform_point(&itfm, start_point);
+  cell_size = transform_direction(&itfm, cell_size);
 
   volume_params.start_point = start_point;
   volume_params.cell_size = cell_size;

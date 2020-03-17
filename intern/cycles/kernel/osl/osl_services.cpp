@@ -1222,8 +1222,8 @@ bool OSLRenderServices::texture3d(ustring filename,
       ShaderData *sd = (ShaderData *)(sg->renderstate);
       KernelGlobals *kernel_globals = sd->osl_globals;
       int slot = handle->svm_slot;
-      float4 rgba = kernel_tex_image_interp_3d(
-          kernel_globals, slot, P.x, P.y, P.z, INTERPOLATION_NONE);
+      float3 P_float3 = make_float3(P.x, P.y, P.z);
+      float4 rgba = kernel_tex_image_interp_3d(kernel_globals, slot, P_float3, INTERPOLATION_NONE);
 
       result[0] = rgba[0];
       if (nchannels > 1)

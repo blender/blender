@@ -15,6 +15,7 @@
  */
 
 #include "render/colorspace.h"
+#include "render/image.h"
 #include "render/mesh.h"
 #include "render/object.h"
 
@@ -67,6 +68,15 @@ class BlenderSmokeLoader : public ImageLoader {
     metadata.width = resolution.x * amplify;
     metadata.height = resolution.y * amplify;
     metadata.depth = resolution.z * amplify;
+
+    /* Create a matrix to transform from object space to mesh texture space.
+     * This does not work with deformations but that can probably only be done
+     * well with a volume grid mapping of coordinates. */
+    BL::Mesh b_mesh(b_ob.data());
+    float3 loc, size;
+    mesh_texture_space(b_mesh, loc, size);
+    metadata.transform_3d = transform_translate(-loc) * transform_scale(size);
+    metadata.use_transform_3d = true;
 
     return true;
   }

@@ -24,6 +24,7 @@
 
 #include "util/util_string.h"
 #include "util/util_thread.h"
+#include "util/util_transform.h"
 #include "util/util_unique_ptr.h"
 #include "util/util_vector.h"
 
@@ -80,6 +81,10 @@ class ImageMetaData {
   /* Optional color space, defaults to raw. */
   ustring colorspace;
   const char *colorspace_file_format;
+
+  /* Optional transform for 3D images. */
+  bool use_transform_3d;
+  Transform transform_3d;
 
   /* Automatically set. */
   bool compress_as_srgb;
