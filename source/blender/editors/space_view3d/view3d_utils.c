@@ -398,7 +398,7 @@ bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb)
 
 bool ED_view3d_offset_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
-  return (rv3d->persp != RV3D_CAMOB) && (v3d->ob_centre_cursor || v3d->ob_centre);
+  return (rv3d->persp != RV3D_CAMOB) && (v3d->ob_center_cursor || v3d->ob_center);
 }
 
 /**
@@ -416,9 +416,10 @@ void ED_view3d_lastview_store(RegionView3D *rv3d)
 
 void ED_view3d_lock_clear(View3D *v3d)
 {
-  v3d->ob_centre = NULL;
-  v3d->ob_centre_bone[0] = '\0';
-  v3d->ob_centre_cursor = false;
+  v3d->ob_center = NULL;
+  v3d->ob_center_bone[0] = '\0';
+  v3d->ob_center_cursor = false;
+
   v3d->flag2 &= ~V3D_LOCK_CAMERA;
 }
 

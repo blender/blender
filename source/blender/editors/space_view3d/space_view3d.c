@@ -1523,12 +1523,12 @@ static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_i
 
     /* Values in local-view aren't used, see: T52663 */
     if (is_local == false) {
-      if ((ID *)v3d->ob_centre == old_id) {
-        v3d->ob_centre = (Object *)new_id;
+      if ((ID *)v3d->ob_center == old_id) {
+        v3d->ob_center = (Object *)new_id;
         /* Otherwise, bonename may remain valid...
          * We could be smart and check this, too? */
         if (new_id == NULL) {
-          v3d->ob_centre_bone[0] = '\0';
+          v3d->ob_center_bone[0] = '\0';
         }
       }
     }

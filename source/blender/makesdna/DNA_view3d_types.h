@@ -265,14 +265,14 @@ typedef struct View3D {
   short persp DNA_DEPRECATED;
   short view DNA_DEPRECATED;
 
-  struct Object *camera, *ob_centre;
+  struct Object *camera, *ob_center;
   rctf render_border;
 
   /** Allocated backup of its self while in localview. */
   struct View3D *localvd;
 
   /** Optional string for armature bone to define center, MAXBONENAME. */
-  char ob_centre_bone[64];
+  char ob_center_bone[64];
 
   unsigned short local_view_uuid;
   char _pad6[2];
@@ -281,7 +281,7 @@ typedef struct View3D {
   short _pad7[3];
 
   /** Optional bool for 3d cursor to define center. */
-  short ob_centre_cursor;
+  short ob_center_cursor;
   short scenelock;
   short gp_flag;
   short flag;

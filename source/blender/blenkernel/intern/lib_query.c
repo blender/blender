@@ -401,7 +401,7 @@ static void library_foreach_screen_area(LibraryForeachIDData *data, ScrArea *are
         View3D *v3d = (View3D *)sl;
 
         FOREACH_CALLBACK_INVOKE(data, v3d->camera, IDWALK_CB_NOP);
-        FOREACH_CALLBACK_INVOKE(data, v3d->ob_centre, IDWALK_CB_NOP);
+        FOREACH_CALLBACK_INVOKE(data, v3d->ob_center, IDWALK_CB_NOP);
 
         if (v3d->localvd) {
           FOREACH_CALLBACK_INVOKE(data, v3d->localvd->camera, IDWALK_CB_NOP);

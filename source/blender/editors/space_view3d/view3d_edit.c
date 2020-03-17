@@ -3182,7 +3182,7 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
   if (v3d) {
     ED_view3d_lock_clear(v3d);
 
-    v3d->ob_centre = obact; /* can be NULL */
+    v3d->ob_center = obact; /* can be NULL */
 
     if (obact && obact->type == OB_ARMATURE) {
       if (obact->mode & OB_MODE_POSE) {
@@ -3190,13 +3190,13 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
         Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
         bPoseChannel *pcham_act = BKE_pose_channel_active(obact_eval);
         if (pcham_act) {
-          BLI_strncpy(v3d->ob_centre_bone, pcham_act->name, sizeof(v3d->ob_centre_bone));
+          BLI_strncpy(v3d->ob_center_bone, pcham_act->name, sizeof(v3d->ob_center_bone));
         }
       }
       else {
         EditBone *ebone_act = ((bArmature *)obact->data)->act_edbone;
         if (ebone_act) {
-          BLI_strncpy(v3d->ob_centre_bone, ebone_act->name, sizeof(v3d->ob_centre_bone));
+          BLI_strncpy(v3d->ob_center_bone, ebone_act->name, sizeof(v3d->ob_center_bone));
         }
       }
     }
@@ -5140,7 +5140,7 @@ void ED_view3d_cursor3d_update(bContext *C,
   }
 
   /* offset the cursor lock to avoid jumping to new offset */
-  if (v3d->ob_centre_cursor) {
+  if (v3d->ob_center_cursor) {
     if (U.uiflag & USER_LOCK_CURSOR_ADJUST) {
 
       float co_2d_curr[2], co_2d_prev[2];
