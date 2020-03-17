@@ -157,6 +157,7 @@ class BlenderSync {
                         BL::Object b_ob,
                         Geometry *geom,
                         int motion_step);
+  void sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step = 0);
   void sync_particle_hair(
       Geometry *geom, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step = 0);
   void sync_curve_settings();
