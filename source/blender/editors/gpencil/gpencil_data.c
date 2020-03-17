@@ -1599,7 +1599,7 @@ void GPENCIL_OT_stroke_change_color(wmOperatorType *ot)
 
 /* ******************* Lock color of non selected Strokes colors ************************** */
 
-static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
+static int gp_material_lock_unsused_exec(bContext *C, wmOperator *UNUSED(op))
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
@@ -1655,15 +1655,15 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_stroke_lock_color(wmOperatorType *ot)
+void GPENCIL_OT_material_lock_unused(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Lock Unused Colors";
-  ot->idname = "GPENCIL_OT_stroke_lock_color";
-  ot->description = "Lock any color not used in any selected stroke";
+  ot->name = "Lock Unused Materials";
+  ot->idname = "GPENCIL_OT_material_lock_unused";
+  ot->description = "Lock any material not used in any selected stroke";
 
   /* api callbacks */
-  ot->exec = gp_stroke_lock_color_exec;
+  ot->exec = gp_material_lock_unsused_exec;
   ot->poll = gp_active_layer_poll;
 
   /* flags */
@@ -2757,7 +2757,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 }
 
 /* Color Handle operator */
-static bool gpencil_active_color_poll(bContext *C)
+static bool gpencil_active_material_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob && ob->data && (ob->type == OB_GPENCIL)) {
@@ -2847,7 +2847,7 @@ void GPENCIL_OT_lock_layer(wmOperatorType *ot)
 
 /* ********************** Isolate gpencil_ color **************************** */
 
-static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
+static int gpencil_material_isolate_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Object *ob = CTX_data_active_object(C);
@@ -2929,17 +2929,17 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_color_isolate(wmOperatorType *ot)
+void GPENCIL_OT_material_isolate(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Isolate Color";
-  ot->idname = "GPENCIL_OT_color_isolate";
+  ot->name = "Isolate Material";
+  ot->idname = "GPENCIL_OT_material_isolate";
   ot->description =
-      "Toggle whether the active color is the only one that is editable and/or visible";
+      "Toggle whether the active material is the only one that is editable and/or visible";
 
   /* callbacks */
-  ot->exec = gpencil_color_isolate_exec;
-  ot->poll = gpencil_active_color_poll;
+  ot->exec = gpencil_material_isolate_exec;
+  ot->poll = gpencil_active_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2955,7 +2955,7 @@ void GPENCIL_OT_color_isolate(wmOperatorType *ot)
 
 /* *********************** Hide colors ******************************** */
 
-static int gpencil_color_hide_exec(bContext *C, wmOperator *op)
+static int gpencil_material_hide_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -3000,16 +3000,16 @@ static int gpencil_color_hide_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_color_hide(wmOperatorType *ot)
+void GPENCIL_OT_material_hide(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Hide Color(s)";
-  ot->idname = "GPENCIL_OT_color_hide";
-  ot->description = "Hide selected/unselected Grease Pencil colors";
+  ot->name = "Hide Material(s)";
+  ot->idname = "GPENCIL_OT_material_hide";
+  ot->description = "Hide selected/unselected Grease Pencil materials";
 
   /* callbacks */
-  ot->exec = gpencil_color_hide_exec;
-  ot->poll = gpencil_active_color_poll; /* NOTE: we need an active color to play with */
+  ot->exec = gpencil_material_hide_exec;
+  ot->poll = gpencil_active_material_poll; /* NOTE: we need an active color to play with */
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3021,7 +3021,7 @@ void GPENCIL_OT_color_hide(wmOperatorType *ot)
 
 /* ********************** Show All Colors ***************************** */
 
-static int gpencil_color_reveal_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_material_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -3056,16 +3056,16 @@ static int gpencil_color_reveal_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_color_reveal(wmOperatorType *ot)
+void GPENCIL_OT_material_reveal(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Show All Colors";
-  ot->idname = "GPENCIL_OT_color_reveal";
-  ot->description = "Unhide all hidden Grease Pencil colors";
+  ot->name = "Show All Materials";
+  ot->idname = "GPENCIL_OT_material_reveal";
+  ot->description = "Unhide all hidden Grease Pencil materials";
 
   /* callbacks */
-  ot->exec = gpencil_color_reveal_exec;
-  ot->poll = gpencil_active_color_poll;
+  ot->exec = gpencil_material_reveal_exec;
+  ot->poll = gpencil_active_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3073,7 +3073,7 @@ void GPENCIL_OT_color_reveal(wmOperatorType *ot)
 
 /* ***************** Lock/Unlock All colors ************************ */
 
-static int gpencil_color_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_material_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 
   Object *ob = CTX_data_active_object(C);
@@ -3109,17 +3109,17 @@ static int gpencil_color_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_color_lock_all(wmOperatorType *ot)
+void GPENCIL_OT_material_lock_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Lock All Colors";
-  ot->idname = "GPENCIL_OT_color_lock_all";
+  ot->name = "Lock All Materials";
+  ot->idname = "GPENCIL_OT_material_lock_all";
   ot->description =
-      "Lock all Grease Pencil colors to prevent them from being accidentally modified";
+      "Lock all Grease Pencil materials to prevent them from being accidentally modified";
 
   /* callbacks */
-  ot->exec = gpencil_color_lock_all_exec;
-  ot->poll = gpencil_active_color_poll;
+  ot->exec = gpencil_material_lock_all_exec;
+  ot->poll = gpencil_active_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3127,7 +3127,7 @@ void GPENCIL_OT_color_lock_all(wmOperatorType *ot)
 
 /* -------------------------- */
 
-static int gpencil_color_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_material_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -3162,16 +3162,16 @@ static int gpencil_color_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_color_unlock_all(wmOperatorType *ot)
+void GPENCIL_OT_material_unlock_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Unlock All Colors";
-  ot->idname = "GPENCIL_OT_color_unlock_all";
-  ot->description = "Unlock all Grease Pencil colors so that they can be edited";
+  ot->name = "Unlock All Materials";
+  ot->idname = "GPENCIL_OT_material_unlock_all";
+  ot->description = "Unlock all Grease Pencil materials so that they can be edited";
 
   /* callbacks */
-  ot->exec = gpencil_color_unlock_all_exec;
-  ot->poll = gpencil_active_color_poll;
+  ot->exec = gpencil_material_unlock_all_exec;
+  ot->poll = gpencil_active_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3258,7 +3258,7 @@ void GPENCIL_OT_select_material(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gpencil_select_material_exec;
-  ot->poll = gpencil_active_color_poll;
+  ot->poll = gpencil_active_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3310,7 +3310,7 @@ void GPENCIL_OT_set_active_material(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gpencil_set_active_material_exec;
-  ot->poll = gpencil_active_color_poll;
+  ot->poll = gpencil_active_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

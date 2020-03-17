@@ -608,7 +608,7 @@ void ED_operatortypes_gpencil(void)
 
   WM_operatortype_append(GPENCIL_OT_stroke_arrange);
   WM_operatortype_append(GPENCIL_OT_stroke_change_color);
-  WM_operatortype_append(GPENCIL_OT_stroke_lock_color);
+  WM_operatortype_append(GPENCIL_OT_material_lock_unused);
   WM_operatortype_append(GPENCIL_OT_stroke_apply_thickness);
   WM_operatortype_append(GPENCIL_OT_stroke_cyclical_set);
   WM_operatortype_append(GPENCIL_OT_stroke_caps_set);
@@ -648,11 +648,11 @@ void ED_operatortypes_gpencil(void)
 
   /* color handle */
   WM_operatortype_append(GPENCIL_OT_lock_layer);
-  WM_operatortype_append(GPENCIL_OT_color_isolate);
-  WM_operatortype_append(GPENCIL_OT_color_hide);
-  WM_operatortype_append(GPENCIL_OT_color_reveal);
-  WM_operatortype_append(GPENCIL_OT_color_lock_all);
-  WM_operatortype_append(GPENCIL_OT_color_unlock_all);
+  WM_operatortype_append(GPENCIL_OT_material_isolate);
+  WM_operatortype_append(GPENCIL_OT_material_hide);
+  WM_operatortype_append(GPENCIL_OT_material_reveal);
+  WM_operatortype_append(GPENCIL_OT_material_lock_all);
+  WM_operatortype_append(GPENCIL_OT_material_unlock_all);
   WM_operatortype_append(GPENCIL_OT_select_material);
 
   /* Editing (Time) --------------- */
