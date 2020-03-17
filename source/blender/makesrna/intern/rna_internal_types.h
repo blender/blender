@@ -427,6 +427,7 @@ typedef struct EnumPropertyRNA {
   int totitem;
 
   int defaultvalue;
+  const char *native_enum_type;
 } EnumPropertyRNA;
 
 typedef struct PointerPropertyRNA {

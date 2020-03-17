@@ -283,7 +283,7 @@ static void cmp_node_rlayer_create_outputs_cb(void *UNUSED(userdata),
                                               const char *name,
                                               int UNUSED(channels),
                                               const char *UNUSED(chanid),
-                                              int type)
+                                              eNodeSocketDatatype type)
 {
   /* Register the pass in all scenes that have a render layer node for this layer.
    * Since multiple scenes can be used in the compositor, the code must loop over all scenes

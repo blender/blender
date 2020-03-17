@@ -833,6 +833,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   parm = RNA_def_string(func, "chanid", NULL, 8, "Channel IDs", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_enum(func, "type", render_pass_type_items, SOCK_FLOAT, "Type", "");
+  RNA_def_property_enum_native_type(parm, "eNodeSocketDatatype");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   /* registration */

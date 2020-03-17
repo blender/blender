@@ -369,6 +369,7 @@ void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int le
 void RNA_def_property_range(PropertyRNA *prop, double min, double max);
 
 void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item);
+void RNA_def_property_enum_native_type(PropertyRNA *prop, const char *native_enum_type);
 void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength);
 void RNA_def_property_struct_type(PropertyRNA *prop, const char *type);
 void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type);

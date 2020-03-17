@@ -1819,6 +1819,23 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
   }
 }
 
+void RNA_def_property_enum_native_type(PropertyRNA *prop, const char *native_enum_type)
+{
+  StructRNA *srna = DefRNA.laststruct;
+  switch (prop->type) {
+    case PROP_ENUM: {
+      EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
+      eprop->native_enum_type = native_enum_type;
+      break;
+    }
+    default:
+      CLOG_ERROR(
+          &LOG, "\"%s.%s\", invalid type for struct type.", srna->identifier, prop->identifier);
+      DefRNA.error = 1;
+      break;
+  }
+}
+
 void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item)
 {
   StructRNA *srna = DefRNA.laststruct;

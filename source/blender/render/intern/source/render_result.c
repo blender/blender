@@ -1206,7 +1206,7 @@ static void templates_register_pass_cb(void *userdata,
                                        const char *name,
                                        int channels,
                                        const char *chan_id,
-                                       int UNUSED(type))
+                                       eNodeSocketDatatype UNUSED(type))
 {
   ListBase *templates = userdata;
   RenderPass *pass = MEM_callocN(sizeof(RenderPass), "RenderPassTemplate");

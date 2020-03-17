@@ -1195,7 +1195,7 @@ void ntreeCompositRegisterPass(struct bNodeTree *ntree,
                                struct Scene *scene,
                                struct ViewLayer *view_layer,
                                const char *name,
-                               int type);
+                               eNodeSocketDatatype type);
 void ntreeCompositClearTags(struct bNodeTree *ntree);
 
 struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree,
