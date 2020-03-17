@@ -3535,6 +3535,8 @@ static int manta_step(
 
   /* Store baking success - bake might be aborted anytime by user. */
   int result = 1;
+  int mode = mds->cache_type;
+  bool mode_replay = (mode == FLUID_DOMAIN_CACHE_REPLAY);
 
   /* Update object state. */
   invert_m4_m4(mds->imat, ob->obmat);
@@ -3571,7 +3573,7 @@ static int manta_step(
     update_flowsfluids(depsgraph, scene, ob, mds, time_per_frame, frame_length, frame, dt);
 
     /* If user requested stop, quit baking */
-    if (G.is_break) {
+    if (G.is_break && !mode_replay) {
       result = 0;
       break;
     }
@@ -3582,7 +3584,7 @@ static int manta_step(
     update_obstacles(depsgraph, scene, ob, mds, time_per_frame, frame_length, frame, dt);
 
     /* If user requested stop, quit baking */
-    if (G.is_break) {
+    if (G.is_break && !mode_replay) {
       result = 0;
       break;
     }
@@ -3596,7 +3598,7 @@ static int manta_step(
     }
 
     /* If user requested stop, quit baking */
-    if (G.is_break) {
+    if (G.is_break && !mode_replay) {
       result = 0;
       break;
     }
@@ -3995,7 +3997,6 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
     }
   }
   mmd->time = scene_framenr;
-  G.is_break = false;
 }
 
 static void BKE_fluid_modifier_process(
