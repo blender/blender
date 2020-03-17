@@ -287,13 +287,13 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
     if (mti->type == eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
       if (!defmats) {
         const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
-        CustomData_MeshMasks data_mask = CD_MASK_BAREMESH;
+        CustomData_MeshMasks cd_mask_extra = CD_MASK_BAREMESH;
         CDMaskLink *datamasks = modifiers_calcDataMasks(
-            scene, ob, md, &data_mask, required_mode, NULL, NULL);
-        data_mask = datamasks->mask;
+            scene, ob, md, &cd_mask_extra, required_mode, NULL, NULL);
+        cd_mask_extra = datamasks->mask;
         BLI_linklist_free((LinkNode *)datamasks, NULL);
 
-        me = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, &data_mask, NULL, me_input);
+        me = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, &cd_mask_extra, NULL, me_input);
         deformedVerts = editbmesh_vert_coords_alloc(em, &numVerts);
         defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
 

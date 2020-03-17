@@ -857,11 +857,11 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
  * TODO(campbell): support mesh with only an edit-mesh which is lazy initialized.
  */
 Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(BMEditMesh *em,
-                                                   const CustomData_MeshMasks *data_mask,
+                                                   const CustomData_MeshMasks *cd_mask_extra,
                                                    float (*vertexCos)[3],
                                                    const Mesh *me_settings)
 {
-  Mesh *me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, data_mask, me_settings);
+  Mesh *me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, cd_mask_extra, me_settings);
   /* Use editmesh directly where possible. */
   me->runtime.is_original = true;
   if (vertexCos) {

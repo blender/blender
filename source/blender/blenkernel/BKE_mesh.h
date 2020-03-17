@@ -87,7 +87,7 @@ struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm,
 
 struct Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
     struct BMEditMesh *em,
-    const struct CustomData_MeshMasks *data_mask,
+    const struct CustomData_MeshMasks *cd_mask_extra,
     float (*vertexCos)[3],
     const struct Mesh *me_settings);
 
