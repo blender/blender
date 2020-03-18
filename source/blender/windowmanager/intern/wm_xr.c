@@ -143,7 +143,7 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
   WM_report(RPT_ERROR, error->user_message);
   WM_report_banner_show();
 
-  if (wm->xr.runtime->context) {
+  if (wm->xr.runtime) {
     /* Just play safe and destroy the entire runtime data, including context. */
     wm_xr_runtime_data_free(&wm->xr.runtime);
   }
