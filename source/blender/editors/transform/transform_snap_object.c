@@ -819,15 +819,14 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
   BVHTreeFromEditMesh *treedata = &sod->treedata_editmesh;
 
   if (treedata->tree == NULL) {
-    /* Get original version of the edit_mesh. */
     BLI_assert(sod->treedata_editmesh.em == BKE_editmesh_from_object(ob));
-    BMEditMesh *em_orig = sod->treedata_editmesh.em;
+    BMEditMesh *em = sod->treedata_editmesh.em;
 
     if (sctx->callbacks.edit_mesh.test_face_fn) {
-      BMesh *bm = em_orig->bm;
-      BLI_assert(poly_to_tri_count(bm->totface, bm->totloop) == em_orig->tottri);
+      BMesh *bm = em->bm;
+      BLI_assert(poly_to_tri_count(bm->totface, bm->totloop) == em->tottri);
 
-      BLI_bitmap *elem_mask = BLI_BITMAP_NEW(em_orig->tottri, __func__);
+      BLI_bitmap *elem_mask = BLI_BITMAP_NEW(em->tottri, __func__);
       int looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
           bm,
           elem_mask,
@@ -835,15 +834,14 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
           sctx->callbacks.edit_mesh.user_data);
 
       bvhtree_from_editmesh_looptri_ex(
-          treedata, em_orig, elem_mask, looptri_num_active, 0.0f, 4, 6, 0, NULL);
+          treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6, 0, NULL);
 
       MEM_freeN(elem_mask);
     }
     else {
       /* Only cache if bvhtree is created without a mask.
        * This helps keep a standardized bvhtree in cache. */
-      BKE_bvhtree_from_editmesh_get(
-          treedata, em_orig, 4, BVHTREE_FROM_EM_LOOPTRI, sod->bvh_cache_p);
+      BKE_bvhtree_from_editmesh_get(treedata, em, 4, BVHTREE_FROM_EM_LOOPTRI, sod->bvh_cache_p);
     }
 
     if (treedata->tree == NULL) {
@@ -910,10 +908,9 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
         retval = true;
 
         if (r_index) {
-          /* Get original version of the edit_mesh. */
-          BMEditMesh *em_orig = sod->treedata_editmesh.em;
+          BMEditMesh *em = sod->treedata_editmesh.em;
 
-          *r_index = BM_elem_index_get(em_orig->looptris[hit.index][0]->f);
+          *r_index = BM_elem_index_get(em->looptris[hit.index][0]->f);
         }
       }
     }
