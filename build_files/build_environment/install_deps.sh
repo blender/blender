@@ -3128,7 +3128,7 @@ compile_XR_OpenXR_SDK() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  xr_openxr_magic=0
+  xr_openxr_magic=1
   _init_xr_openxr_sdk
 
   # Clean install if needed!
@@ -3186,7 +3186,7 @@ compile_XR_OpenXR_SDK() {
     cmake_d="$cmake_d -D BUILD_WITH_XCB_HEADERS=OFF"
     cmake_d="$cmake_d -D BUILD_WITH_XLIB_HEADERS=ON"
 
-    cmake $cmake_d ..
+    cmake $cmake_d "-DCMAKE_CXX_FLAGS=-DDISABLE_STD_FILESYSTEM=1" ..
 
     make -j$THREADS && make install
     make clean
