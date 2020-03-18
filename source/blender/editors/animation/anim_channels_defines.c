@@ -4841,60 +4841,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
       draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_SOLO);
       offset += ICON_WIDTH;
     }
-    else if (ale->type == ANIMTYPE_GPLAYER) {
-#if 0
-      /* XXX: Maybe need a better design */
-      /* color swatch for layer color */
-      bGPDlayer *gpl = (bGPDlayer *)ale->data;
-      PointerRNA ptr;
-      float w = ICON_WIDTH / 2.0f;
-
-      RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, &ptr);
-
-      UI_block_align_begin(block);
-      UI_block_emboss_set(block,
-                          RNA_boolean_get(&ptr, "is_stroke_visible") ? UI_EMBOSS : UI_EMBOSS_NONE);
-      uiDefButR(block,
-                UI_BTYPE_COLOR,
-                1,
-                "",
-                offset,
-                yminc,
-                w,
-                ICON_WIDTH,
-                &ptr,
-                "color",
-                -1,
-                0,
-                0,
-                0,
-                0,
-                gpl->info);
-
-      UI_block_emboss_set(block,
-                          RNA_boolean_get(&ptr, "is_fill_visible") ? UI_EMBOSS : UI_EMBOSS_NONE);
-      uiDefButR(block,
-                UI_BTYPE_COLOR,
-                1,
-                "",
-                offset + w,
-                yminc,
-                w,
-                ICON_WIDTH,
-                &ptr,
-                "fill_color",
-                -1,
-                0,
-                0,
-                0,
-                0,
-                gpl->info);
-      UI_block_emboss_set(block, UI_EMBOSS_NONE);
-      UI_block_align_end(block);
-
-      offset += ICON_WIDTH;
-#endif
-    }
   }
 
   /* step 4) draw text - check if renaming widget is in use... */
@@ -5120,19 +5066,13 @@ void ANIM_channel_draw_widgets(const bContext *C,
             RNA_id_pointer_create(ale->id, &id_ptr);
             int icon;
 
-            /* Mask Layer. */
+            /* Layer onion skinning switch. */
             offset -= ICON_WIDTH;
-            UI_block_emboss_set(block, UI_EMBOSS_NONE);
-            prop = RNA_struct_find_property(&ptr, "use_mask_layer");
+            prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
             gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
             if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-              icon = ICON_LAYER_ACTIVE;
-              if (gpl->flag & GP_LAYER_USE_MASK) {
-                icon = ICON_MOD_MASK;
-              }
-              else {
-                icon = ICON_LAYER_ACTIVE;
-              }
+              icon = (gpl->onion_flag & GP_LAYER_ONIONSKIN) ? ICON_ONIONSKIN_ON :
+                                                              ICON_ONIONSKIN_OFF;
               uiDefAutoButR(block,
                             &ptr,
                             prop,
@@ -5146,13 +5086,19 @@ void ANIM_channel_draw_widgets(const bContext *C,
             }
             MEM_freeN(gp_rna_path);
 
-            /* Layer onion skinning switch. */
+            /* Mask Layer. */
             offset -= ICON_WIDTH;
-            prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
+            UI_block_emboss_set(block, UI_EMBOSS_NONE);
+            prop = RNA_struct_find_property(&ptr, "use_mask_layer");
             gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
             if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-              icon = (gpl->onion_flag & GP_LAYER_ONIONSKIN) ? ICON_ONIONSKIN_ON :
-                                                              ICON_ONIONSKIN_OFF;
+              icon = ICON_LAYER_ACTIVE;
+              if (gpl->flag & GP_LAYER_USE_MASK) {
+                icon = ICON_MOD_MASK;
+              }
+              else {
+                icon = ICON_LAYER_ACTIVE;
+              }
               uiDefAutoButR(block,
                             &ptr,
                             prop,
