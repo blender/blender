@@ -5318,6 +5318,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
             /* Layer onion skinning switch. */
             offset -= ICON_WIDTH;
+            UI_block_emboss_set(block, UI_EMBOSS_NONE);
             prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
             gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
             if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
