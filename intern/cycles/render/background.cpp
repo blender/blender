@@ -53,6 +53,7 @@ NODE_DEFINE(Background)
 Background::Background() : Node(node_type)
 {
   need_update = true;
+  shader = NULL;
 }
 
 Background::~Background()

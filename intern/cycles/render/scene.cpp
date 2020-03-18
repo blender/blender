@@ -85,7 +85,15 @@ DeviceScene::DeviceScene(Device *device)
 }
 
 Scene::Scene(const SceneParams &params_, Device *device)
-    : name("Scene"), device(device), dscene(device), params(params_)
+    : name("Scene"),
+      default_surface(NULL),
+      default_volume(NULL),
+      default_light(NULL),
+      default_background(NULL),
+      default_empty(NULL),
+      device(device),
+      dscene(device),
+      params(params_)
 {
   memset((void *)&dscene.data, 0, sizeof(dscene.data));
 
