@@ -24,6 +24,8 @@
 #include <map>
 #include <memory>
 
+#include "GHOST_Xr_intern.h"
+
 class GHOST_XrContext;
 class GHOST_XrSwapchain;
 struct OpenXRSessionData;

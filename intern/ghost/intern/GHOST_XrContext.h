@@ -23,6 +23,9 @@
 
 #include <memory>
 #include <vector>
+
+#include "GHOST_Xr_intern.h"
+
 #include "GHOST_IXrContext.h"
 
 struct OpenXRInstanceData;
