@@ -2897,7 +2897,7 @@ static void gpencil_guide_event_handling(bContext *C,
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
 
   /* Enter or exit set center point mode */
-  if ((event->type == OKEY) && (event->val == KM_RELEASE)) {
+  if ((event->type == EVT_OKEY) && (event->val == KM_RELEASE)) {
     if ((p->paintmode == GP_PAINTMODE_DRAW) && guide->use_guide &&
         (guide->reference_point != GP_GUIDE_REF_OBJECT)) {
       add_notifier = true;
@@ -2906,12 +2906,12 @@ static void gpencil_guide_event_handling(bContext *C,
     }
   }
   /* Freehand mode, turn off speed guide */
-  else if ((event->type == VKEY) && (event->val == KM_RELEASE)) {
+  else if ((event->type == EVT_VKEY) && (event->val == KM_RELEASE)) {
     guide->use_guide = false;
     add_notifier = true;
   }
   /* Alternate or flip direction */
-  else if ((event->type == MKEY) && (event->val == KM_RELEASE)) {
+  else if ((event->type == EVT_MKEY) && (event->val == KM_RELEASE)) {
     if (guide->type == GP_GUIDE_CIRCULAR) {
       add_notifier = true;
       guide->type = GP_GUIDE_RADIAL;
@@ -2930,7 +2930,7 @@ static void gpencil_guide_event_handling(bContext *C,
     }
   }
   /* Line guides */
-  else if ((event->type == LKEY) && (event->val == KM_RELEASE)) {
+  else if ((event->type == EVT_LKEY) && (event->val == KM_RELEASE)) {
     add_notifier = true;
     guide->use_guide = true;
     if (event->ctrl) {
@@ -2946,7 +2946,7 @@ static void gpencil_guide_event_handling(bContext *C,
     }
   }
   /* Point guide */
-  else if ((event->type == CKEY) && (event->val == KM_RELEASE)) {
+  else if ((event->type == EVT_CKEY) && (event->val == KM_RELEASE)) {
     add_notifier = true;
     if (!guide->use_guide) {
       guide->use_guide = true;
@@ -2963,7 +2963,7 @@ static void gpencil_guide_event_handling(bContext *C,
     }
   }
   /* Change line angle  */
-  else if (ELEM(event->type, JKEY, KKEY) && (event->val == KM_RELEASE)) {
+  else if (ELEM(event->type, EVT_JKEY, EVT_KKEY) && (event->val == KM_RELEASE)) {
     add_notifier = true;
     float angle = guide->angle;
     float adjust = (float)M_PI / 180.0f;
@@ -2973,7 +2973,7 @@ static void gpencil_guide_event_handling(bContext *C,
     else if (!event->shift) {
       adjust *= 15.0f;
     }
-    angle += (event->type == JKEY) ? adjust : -adjust;
+    angle += (event->type == EVT_JKEY) ? adjust : -adjust;
     angle = angle_compat_rad(angle, M_PI);
     guide->angle = angle;
   }
@@ -3373,7 +3373,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     switch (event->type) {
       /* cancel */
-      case ESCKEY:
+      case EVT_ESCKEY:
       case RIGHTMOUSE: {
         if (ELEM(event->val, KM_RELEASE)) {
           drawmode = true;
@@ -3404,26 +3404,36 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* We don't pass on key events, GP is used with key-modifiers -
    * prevents Dkey to insert drivers. */
   if (ISKEYBOARD(event->type)) {
-    if (ELEM(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY)) {
+    if (ELEM(event->type, EVT_LEFTARROWKEY, EVT_DOWNARROWKEY, EVT_RIGHTARROWKEY, EVT_UPARROWKEY)) {
       /* allow some keys:
        *   - for frame changing [#33412]
        *   - for undo (during sketching sessions)
        */
     }
-    else if (event->type == ZKEY) {
+    else if (event->type == EVT_ZKEY) {
       if (event->ctrl) {
         p->status = GP_STATUS_DONE;
         estate = OPERATOR_FINISHED;
       }
     }
-    else if (ELEM(event->type, PAD0, PAD1, PAD2, PAD3, PAD4, PAD5, PAD6, PAD7, PAD8, PAD9)) {
+    else if (ELEM(event->type,
+                  EVT_PAD0,
+                  EVT_PAD1,
+                  EVT_PAD2,
+                  EVT_PAD3,
+                  EVT_PAD4,
+                  EVT_PAD5,
+                  EVT_PAD6,
+                  EVT_PAD7,
+                  EVT_PAD8,
+                  EVT_PAD9)) {
       /* allow numpad keys so that camera/view manipulations can still take place
        * - PAD0 in particular is really important for Grease Pencil drawing,
        *   as animators may be working "to camera", so having this working
        *   is essential for ensuring that they can quickly return to that view
        */
     }
-    else if ((event->type == BKEY) && (event->val == KM_RELEASE)) {
+    else if ((event->type == EVT_BKEY) && (event->val == KM_RELEASE)) {
       /* Add Blank Frame
        * - Since this operator is non-modal, we can just call it here, and keep going...
        * - This operator is especially useful when animating
@@ -3443,7 +3453,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* Exit painting mode (and/or end current stroke).
    *
    */
-  if (ELEM(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, EKEY)) {
+  if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, EVT_ESCKEY, EVT_SPACEKEY, EVT_EKEY)) {
 
     p->status = GP_STATUS_DONE;
     estate = OPERATOR_FINISHED;
@@ -3591,16 +3601,16 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
     /* eraser size */
     else if ((p->paintmode == GP_PAINTMODE_ERASER) &&
-             ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, PADPLUSKEY, PADMINUS)) {
+             ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, EVT_PADPLUSKEY, EVT_PADMINUS)) {
       /* Just resize the brush (local version). */
       switch (event->type) {
         case WHEELDOWNMOUSE: /* larger */
-        case PADPLUSKEY:
+        case EVT_PADPLUSKEY:
           p->radius += 5;
           break;
 
         case WHEELUPMOUSE: /* smaller */
-        case PADMINUS:
+        case EVT_PADMINUS:
           p->radius -= 5;
 
           if (p->radius <= 0) {

@@ -1707,8 +1707,8 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
     }
 
     case LEFTMOUSE:
-    case RETKEY:
-    case SPACEKEY: {
+    case EVT_RETKEY:
+    case EVT_SPACEKEY: {
       MEM_freeN(data->seq_array);
       MEM_freeN(data->trim);
       MEM_freeN(data->ts);
@@ -1722,7 +1722,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
       return OPERATOR_FINISHED;
     }
 
-    case ESCKEY:
+    case EVT_ESCKEY:
     case RIGHTMOUSE: {
       int i;
       Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -1754,8 +1754,8 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
       return OPERATOR_CANCELLED;
     }
 
-    case RIGHTSHIFTKEY:
-    case LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY:
+    case EVT_LEFTSHIFTKEY:
       if (!has_numInput) {
         if (event->val == KM_PRESS) {
           data->slow = true;

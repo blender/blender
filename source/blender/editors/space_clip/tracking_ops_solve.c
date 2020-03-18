@@ -261,7 +261,7 @@ static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent
 
   /* Running solver. */
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
   }
 

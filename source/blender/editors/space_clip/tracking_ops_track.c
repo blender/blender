@@ -387,7 +387,7 @@ static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
 
   /* Running tracking. */
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
   }
 

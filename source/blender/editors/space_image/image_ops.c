@@ -3887,7 +3887,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_FINISHED;
 
     case MOUSEMOVE:

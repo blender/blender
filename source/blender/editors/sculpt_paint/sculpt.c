@@ -10067,7 +10067,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     mask_expand_update_it = ss->filter_cache->mask_update_it[(int)SCULPT_active_vertex_get(ss)];
   }
 
-  if ((event->type == ESCKEY && event->val == KM_PRESS) ||
+  if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
       (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
     /* Returning OPERATOR_CANCELLED will leak memory due to not finishing
      * undo. Better solution could be to make paint_mesh_restore_co work
@@ -10077,8 +10077,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
   }
 
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
-      (event->type == RETKEY && event->val == KM_PRESS) ||
-      (event->type == PADENTER && event->val == KM_PRESS)) {
+      (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
+      (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
 
     /* Smooth iterations. */
     SculptThreadedTaskData data = {
@@ -10148,7 +10148,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     mask_expand_update_it = ss->filter_cache->mask_update_last_it - 1;
   }
 
-  if (!ELEM(event->type, MOUSEMOVE, LEFTCTRLKEY, RIGHTCTRLKEY)) {
+  if (!ELEM(event->type, MOUSEMOVE, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
     return OPERATOR_RUNNING_MODAL;
   }
 

@@ -687,7 +687,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
         return OPERATOR_FINISHED;
       }
       break;
-    case ESCKEY:
+    case EVT_ESCKEY:
       gesture_modal_end(C, op);
       return OPERATOR_CANCELLED;
   }

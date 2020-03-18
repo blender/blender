@@ -1067,8 +1067,8 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   switch (event->type) {
     case LEFTMOUSE: /* confirm */
-    case RETKEY:
-    case PADENTER: {
+    case EVT_RETKEY:
+    case EVT_PADENTER: {
       if (event->val == KM_PRESS) {
         /* return to normal cursor and header status */
         ED_area_status_text(pso->sa, NULL);
@@ -1084,7 +1084,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
       break;
     }
 
-    case ESCKEY: /* cancel */
+    case EVT_ESCKEY: /* cancel */
     case RIGHTMOUSE: {
       if (event->val == KM_PRESS) {
         /* return to normal cursor and header status */
@@ -1141,31 +1141,31 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
         switch (event->type) {
           /* Transform Channel Limits  */
           /* XXX: Replace these hardcoded hotkeys with a modalmap that can be customised */
-          case GKEY: /* Location */
+          case EVT_GKEY: /* Location */
           {
             pose_slide_toggle_channels_mode(op, pso, PS_TFM_LOC);
             do_pose_update = true;
             break;
           }
-          case RKEY: /* Rotation */
+          case EVT_RKEY: /* Rotation */
           {
             pose_slide_toggle_channels_mode(op, pso, PS_TFM_ROT);
             do_pose_update = true;
             break;
           }
-          case SKEY: /* Scale */
+          case EVT_SKEY: /* Scale */
           {
             pose_slide_toggle_channels_mode(op, pso, PS_TFM_SIZE);
             do_pose_update = true;
             break;
           }
-          case BKEY: /* Bendy Bones */
+          case EVT_BKEY: /* Bendy Bones */
           {
             pose_slide_toggle_channels_mode(op, pso, PS_TFM_BBONE_SHAPE);
             do_pose_update = true;
             break;
           }
-          case CKEY: /* Custom Properties */
+          case EVT_CKEY: /* Custom Properties */
           {
             pose_slide_toggle_channels_mode(op, pso, PS_TFM_PROPS);
             do_pose_update = true;
@@ -1174,19 +1174,19 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
           /* Axis Locks */
           /* XXX: Hardcoded... */
-          case XKEY: {
+          case EVT_XKEY: {
             if (pose_slide_toggle_axis_locks(op, pso, PS_LOCK_X)) {
               do_pose_update = true;
             }
             break;
           }
-          case YKEY: {
+          case EVT_YKEY: {
             if (pose_slide_toggle_axis_locks(op, pso, PS_LOCK_Y)) {
               do_pose_update = true;
             }
             break;
           }
-          case ZKEY: {
+          case EVT_ZKEY: {
             if (pose_slide_toggle_axis_locks(op, pso, PS_LOCK_Z)) {
               do_pose_update = true;
             }

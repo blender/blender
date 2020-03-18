@@ -1013,14 +1013,14 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
     case MOUSEMOVE:
       stencil_control_calculate(scd, event->mval);
       break;
-    case ESCKEY:
+    case EVT_ESCKEY:
       if (event->val == KM_PRESS) {
         stencil_control_cancel(C, op);
         WM_event_add_notifier(C, NC_WINDOW, NULL);
         return OPERATOR_CANCELLED;
       }
       break;
-    case XKEY:
+    case EVT_XKEY:
       if (event->val == KM_PRESS) {
 
         if (scd->constrain_mode == STENCIL_CONSTRAINT_X) {
@@ -1033,7 +1033,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
         stencil_control_calculate(scd, event->mval);
       }
       break;
-    case YKEY:
+    case EVT_YKEY:
       if (event->val == KM_PRESS) {
         if (scd->constrain_mode == STENCIL_CONSTRAINT_Y) {
           scd->constrain_mode = 0;

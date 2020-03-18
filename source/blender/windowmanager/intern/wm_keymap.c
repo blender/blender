@@ -1096,29 +1096,29 @@ const char *WM_key_event_string(const short type, const bool compact)
         ;
 
     switch (type) {
-      case LEFTSHIFTKEY:
-      case RIGHTSHIFTKEY: {
+      case EVT_LEFTSHIFTKEY:
+      case EVT_RIGHTSHIFTKEY: {
         if (platform == MACOS) {
           single_glyph = "\xe2\x87\xa7";
         }
         return key_event_glyph_or_text(
             font_id, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Shift"), single_glyph);
       }
-      case LEFTCTRLKEY:
-      case RIGHTCTRLKEY:
+      case EVT_LEFTCTRLKEY:
+      case EVT_RIGHTCTRLKEY:
         if (platform == MACOS) {
           return key_event_glyph_or_text(font_id, "^", "\xe2\x8c\x83");
         }
         return IFACE_("Ctrl");
-      case LEFTALTKEY:
-      case RIGHTALTKEY: {
+      case EVT_LEFTALTKEY:
+      case EVT_RIGHTALTKEY: {
         if (platform == MACOS) {
           /* Option symbol on Mac keyboard. */
           single_glyph = "\xe2\x8c\xa5";
         }
         return key_event_glyph_or_text(font_id, IFACE_("Alt"), single_glyph);
       }
-      case OSKEY: {
+      case EVT_OSKEY: {
         if (platform == MACOS) {
           return key_event_glyph_or_text(font_id, IFACE_("Cmd"), "\xe2\x8c\x98");
         }
@@ -1127,26 +1127,26 @@ const char *WM_key_event_string(const short type, const bool compact)
         }
         return IFACE_("OS");
       } break;
-      case TABKEY:
+      case EVT_TABKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Tab"), "\xe2\xad\xbe");
-      case BACKSPACEKEY:
+      case EVT_BACKSPACEKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Bksp"), "\xe2\x8c\xab");
-      case ESCKEY:
+      case EVT_ESCKEY:
         if (platform == MACOS) {
           single_glyph = "\xe2\x8e\x8b";
         }
         return key_event_glyph_or_text(font_id, IFACE_("Esc"), single_glyph);
-      case RETKEY:
+      case EVT_RETKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Enter"), "\xe2\x86\xb5");
-      case SPACEKEY:
+      case EVT_SPACEKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Space"), "\xe2\x90\xa3");
-      case LEFTARROWKEY:
+      case EVT_LEFTARROWKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Left"), "\xe2\x86\x90");
-      case UPARROWKEY:
+      case EVT_UPARROWKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Up"), "\xe2\x86\x91");
-      case RIGHTARROWKEY:
+      case EVT_RIGHTARROWKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Right"), "\xe2\x86\x92");
-      case DOWNARROWKEY:
+      case EVT_DOWNARROWKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Down"), "\xe2\x86\x93");
     }
   }
@@ -1198,22 +1198,22 @@ int WM_keymap_item_raw_to_string(const short shift,
   else {
     if (shift) {
       ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(LEFTSHIFTKEY, true));
+      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTSHIFTKEY, true));
     }
 
     if (ctrl) {
       ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(LEFTCTRLKEY, true));
+      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTCTRLKEY, true));
     }
 
     if (alt) {
       ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(LEFTALTKEY, true));
+      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTALTKEY, true));
     }
 
     if (oskey) {
       ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(OSKEY, true));
+      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_OSKEY, true));
     }
   }
 

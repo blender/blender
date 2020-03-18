@@ -1449,7 +1449,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
       return OPERATOR_FINISHED;
     }
   }
-  else if (ELEM(event->type, RETKEY, SPACEKEY)) {
+  else if (ELEM(event->type, EVT_RETKEY, EVT_SPACEKEY)) {
     paint_stroke_line_end(C, op, stroke, sample_average.mouse);
     stroke_done(C, op);
     return OPERATOR_FINISHED;

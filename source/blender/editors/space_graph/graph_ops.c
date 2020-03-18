@@ -176,7 +176,7 @@ static int graphview_cursor_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
   /* execute the events */
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       if (screen) {
         screen->scrubbing = false;
       }

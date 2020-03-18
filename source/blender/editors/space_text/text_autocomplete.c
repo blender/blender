@@ -394,7 +394,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
         draw = 1;
       }
       break;
-    case ESCKEY:
+    case EVT_ESCKEY:
       if (event->val == KM_PRESS) {
         draw = swallow = 1;
         if (tools & TOOL_SUGG_LIST) {
@@ -410,8 +410,8 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
         retval = OPERATOR_CANCELLED;
       }
       break;
-    case RETKEY:
-    case PADENTER:
+    case EVT_RETKEY:
+    case EVT_PADENTER:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_SUGG_LIST) {
           ED_text_undo_push_init(C);
@@ -429,8 +429,8 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
         retval = OPERATOR_FINISHED;
       }
       break;
-    case LEFTARROWKEY:
-    case BACKSPACEKEY:
+    case EVT_LEFTARROWKEY:
+    case EVT_BACKSPACEKEY:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_SUGG_LIST) {
           if (event->ctrl) {
@@ -462,7 +462,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
         }
       }
       break;
-    case RIGHTARROWKEY:
+    case EVT_RIGHTARROWKEY:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_SUGG_LIST) {
           if (event->ctrl) {
@@ -494,11 +494,11 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
         }
       }
       break;
-    case PAGEDOWNKEY:
+    case EVT_PAGEDOWNKEY:
       scroll = SUGG_LIST_SIZE - 1;
       ATTR_FALLTHROUGH;
     case WHEELDOWNMOUSE:
-    case DOWNARROWKEY:
+    case EVT_DOWNARROWKEY:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_DOCUMENT) {
           doc_scroll++;
@@ -528,11 +528,11 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
         }
       }
       break;
-    case PAGEUPKEY:
+    case EVT_PAGEUPKEY:
       scroll = SUGG_LIST_SIZE - 1;
       ATTR_FALLTHROUGH;
     case WHEELUPMOUSE:
-    case UPARROWKEY:
+    case EVT_UPARROWKEY:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_DOCUMENT) {
           if (doc_scroll > 0) {
@@ -559,8 +559,8 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
         }
       }
       break;
-    case RIGHTSHIFTKEY:
-    case LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY:
+    case EVT_LEFTSHIFTKEY:
       break;
 #if 0
     default:

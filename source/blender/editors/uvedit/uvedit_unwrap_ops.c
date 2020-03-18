@@ -811,16 +811,16 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, const wmEvent *ev
   MinStretch *ms = op->customdata;
 
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
     case RIGHTMOUSE:
       minimize_stretch_exit(C, op, true);
       return OPERATOR_CANCELLED;
-    case RETKEY:
-    case PADENTER:
+    case EVT_RETKEY:
+    case EVT_PADENTER:
     case LEFTMOUSE:
       minimize_stretch_exit(C, op, false);
       return OPERATOR_FINISHED;
-    case PADPLUSKEY:
+    case EVT_PADPLUSKEY:
     case WHEELUPMOUSE:
       if (event->val == KM_PRESS) {
         if (ms->blend < 0.95f) {
@@ -831,7 +831,7 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, const wmEvent *ev
         }
       }
       break;
-    case PADMINUS:
+    case EVT_PADMINUS:
     case WHEELDOWNMOUSE:
       if (event->val == KM_PRESS) {
         if (ms->blend > 0.05f) {

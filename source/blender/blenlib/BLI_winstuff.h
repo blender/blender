@@ -31,14 +31,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#ifndef WIN32_SKIP_HKEY_PROTECTION
-#  undef HKEY
-#  define HKEY WIN32_HKEY /* prevent competing definitions */
-#  include <windows.h>
-#  undef HKEY
-#else
-#  include <windows.h>
-#endif
+#include <windows.h>
 
 #undef near
 #undef far

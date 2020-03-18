@@ -420,7 +420,7 @@ bool WM_event_is_tablet(const struct wmEvent *event)
 /* most os using ctrl/oskey + space to switch ime, avoid added space */
 bool WM_event_is_ime_switch(const struct wmEvent *event)
 {
-  return event->val == KM_PRESS && event->type == SPACEKEY &&
+  return event->val == KM_PRESS && event->type == EVT_SPACEKEY &&
          (event->ctrl || event->oskey || event->shift || event->alt);
 }
 #endif

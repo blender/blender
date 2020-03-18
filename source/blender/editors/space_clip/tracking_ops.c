@@ -189,7 +189,7 @@ static int add_marker_at_click_modal(bContext *C, wmOperator *UNUSED(op), const 
       return OPERATOR_FINISHED;
     }
 
-    case ESCKEY:
+    case EVT_ESCKEY:
       ED_workspace_status_text(C, NULL);
       return OPERATOR_CANCELLED;
   }
@@ -780,17 +780,17 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
   float dx, dy, mdelta[2];
 
   switch (event->type) {
-    case LEFTCTRLKEY:
-    case RIGHTCTRLKEY:
-    case LEFTSHIFTKEY:
-    case RIGHTSHIFTKEY:
+    case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY:
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY:
       if (data->action == SLIDE_ACTION_SIZE) {
-        if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY)) {
+        if (ELEM(event->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
           data->lock = event->val == KM_RELEASE;
         }
       }
 
-      if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY)) {
+      if (ELEM(event->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
         data->accurate = event->val == KM_PRESS;
       }
       ATTR_FALLTHROUGH;
@@ -966,7 +966,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       break;
 
-    case ESCKEY:
+    case EVT_ESCKEY:
       cancel_mouse_slide(op->customdata);
 
       free_slide_data(op->customdata);

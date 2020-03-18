@@ -1824,25 +1824,25 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
    * Account for rare case of when these keys are used as the 'type' not as modifiers. */
   if (kmi->shift != KM_ANY) {
     if ((winevent->shift != kmi->shift) && !(winevent->shift & kmi->shift) &&
-        !ELEM(winevent->type, LEFTSHIFTKEY, RIGHTSHIFTKEY)) {
+        !ELEM(winevent->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
       return false;
     }
   }
   if (kmi->ctrl != KM_ANY) {
     if (winevent->ctrl != kmi->ctrl && !(winevent->ctrl & kmi->ctrl) &&
-        !ELEM(winevent->type, LEFTCTRLKEY, RIGHTCTRLKEY)) {
+        !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
       return false;
     }
   }
   if (kmi->alt != KM_ANY) {
     if (winevent->alt != kmi->alt && !(winevent->alt & kmi->alt) &&
-        !ELEM(winevent->type, LEFTALTKEY, RIGHTALTKEY)) {
+        !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
       return false;
     }
   }
   if (kmi->oskey != KM_ANY) {
     if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey) &&
-        (winevent->type != OSKEY)) {
+        (winevent->type != EVT_OSKEY)) {
       return false;
     }
   }
@@ -3059,7 +3059,7 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
   if (event->type == MOUSEMOVE || ISKEYMODIFIER(event->type)) {
     screen->do_draw_drag = true;
   }
-  else if (event->type == ESCKEY) {
+  else if (event->type == EVT_ESCKEY) {
     WM_drag_free_list(&wm->drags);
 
     screen->do_draw_drag = true;
@@ -3910,139 +3910,139 @@ void WM_event_add_mousemove(wmWindow *win)
 static int convert_key(GHOST_TKey key)
 {
   if (key >= GHOST_kKeyA && key <= GHOST_kKeyZ) {
-    return (AKEY + ((int)key - GHOST_kKeyA));
+    return (EVT_AKEY + ((int)key - GHOST_kKeyA));
   }
   else if (key >= GHOST_kKey0 && key <= GHOST_kKey9) {
-    return (ZEROKEY + ((int)key - GHOST_kKey0));
+    return (EVT_ZEROKEY + ((int)key - GHOST_kKey0));
   }
   else if (key >= GHOST_kKeyNumpad0 && key <= GHOST_kKeyNumpad9) {
-    return (PAD0 + ((int)key - GHOST_kKeyNumpad0));
+    return (EVT_PAD0 + ((int)key - GHOST_kKeyNumpad0));
   }
   else if (key >= GHOST_kKeyF1 && key <= GHOST_kKeyF24) {
-    return (F1KEY + ((int)key - GHOST_kKeyF1));
+    return (EVT_F1KEY + ((int)key - GHOST_kKeyF1));
   }
   else {
     switch (key) {
       case GHOST_kKeyBackSpace:
-        return BACKSPACEKEY;
+        return EVT_BACKSPACEKEY;
       case GHOST_kKeyTab:
-        return TABKEY;
+        return EVT_TABKEY;
       case GHOST_kKeyLinefeed:
-        return LINEFEEDKEY;
+        return EVT_LINEFEEDKEY;
       case GHOST_kKeyClear:
         return 0;
       case GHOST_kKeyEnter:
-        return RETKEY;
+        return EVT_RETKEY;
 
       case GHOST_kKeyEsc:
-        return ESCKEY;
+        return EVT_ESCKEY;
       case GHOST_kKeySpace:
-        return SPACEKEY;
+        return EVT_SPACEKEY;
       case GHOST_kKeyQuote:
-        return QUOTEKEY;
+        return EVT_QUOTEKEY;
       case GHOST_kKeyComma:
-        return COMMAKEY;
+        return EVT_COMMAKEY;
       case GHOST_kKeyMinus:
-        return MINUSKEY;
+        return EVT_MINUSKEY;
       case GHOST_kKeyPlus:
-        return PLUSKEY;
+        return EVT_PLUSKEY;
       case GHOST_kKeyPeriod:
-        return PERIODKEY;
+        return EVT_PERIODKEY;
       case GHOST_kKeySlash:
-        return SLASHKEY;
+        return EVT_SLASHKEY;
 
       case GHOST_kKeySemicolon:
-        return SEMICOLONKEY;
+        return EVT_SEMICOLONKEY;
       case GHOST_kKeyEqual:
-        return EQUALKEY;
+        return EVT_EQUALKEY;
 
       case GHOST_kKeyLeftBracket:
-        return LEFTBRACKETKEY;
+        return EVT_LEFTBRACKETKEY;
       case GHOST_kKeyRightBracket:
-        return RIGHTBRACKETKEY;
+        return EVT_RIGHTBRACKETKEY;
       case GHOST_kKeyBackslash:
-        return BACKSLASHKEY;
+        return EVT_BACKSLASHKEY;
       case GHOST_kKeyAccentGrave:
-        return ACCENTGRAVEKEY;
+        return EVT_ACCENTGRAVEKEY;
 
       case GHOST_kKeyLeftShift:
-        return LEFTSHIFTKEY;
+        return EVT_LEFTSHIFTKEY;
       case GHOST_kKeyRightShift:
-        return RIGHTSHIFTKEY;
+        return EVT_RIGHTSHIFTKEY;
       case GHOST_kKeyLeftControl:
-        return LEFTCTRLKEY;
+        return EVT_LEFTCTRLKEY;
       case GHOST_kKeyRightControl:
-        return RIGHTCTRLKEY;
+        return EVT_RIGHTCTRLKEY;
       case GHOST_kKeyOS:
-        return OSKEY;
+        return EVT_OSKEY;
       case GHOST_kKeyLeftAlt:
-        return LEFTALTKEY;
+        return EVT_LEFTALTKEY;
       case GHOST_kKeyRightAlt:
-        return RIGHTALTKEY;
+        return EVT_RIGHTALTKEY;
       case GHOST_kKeyApp:
-        return APPKEY;
+        return EVT_APPKEY;
 
       case GHOST_kKeyCapsLock:
-        return CAPSLOCKKEY;
+        return EVT_CAPSLOCKKEY;
       case GHOST_kKeyNumLock:
         return 0;
       case GHOST_kKeyScrollLock:
         return 0;
 
       case GHOST_kKeyLeftArrow:
-        return LEFTARROWKEY;
+        return EVT_LEFTARROWKEY;
       case GHOST_kKeyRightArrow:
-        return RIGHTARROWKEY;
+        return EVT_RIGHTARROWKEY;
       case GHOST_kKeyUpArrow:
-        return UPARROWKEY;
+        return EVT_UPARROWKEY;
       case GHOST_kKeyDownArrow:
-        return DOWNARROWKEY;
+        return EVT_DOWNARROWKEY;
 
       case GHOST_kKeyPrintScreen:
         return 0;
       case GHOST_kKeyPause:
-        return PAUSEKEY;
+        return EVT_PAUSEKEY;
 
       case GHOST_kKeyInsert:
-        return INSERTKEY;
+        return EVT_INSERTKEY;
       case GHOST_kKeyDelete:
-        return DELKEY;
+        return EVT_DELKEY;
       case GHOST_kKeyHome:
-        return HOMEKEY;
+        return EVT_HOMEKEY;
       case GHOST_kKeyEnd:
-        return ENDKEY;
+        return EVT_ENDKEY;
       case GHOST_kKeyUpPage:
-        return PAGEUPKEY;
+        return EVT_PAGEUPKEY;
       case GHOST_kKeyDownPage:
-        return PAGEDOWNKEY;
+        return EVT_PAGEDOWNKEY;
 
       case GHOST_kKeyNumpadPeriod:
-        return PADPERIOD;
+        return EVT_PADPERIOD;
       case GHOST_kKeyNumpadEnter:
-        return PADENTER;
+        return EVT_PADENTER;
       case GHOST_kKeyNumpadPlus:
-        return PADPLUSKEY;
+        return EVT_PADPLUSKEY;
       case GHOST_kKeyNumpadMinus:
-        return PADMINUS;
+        return EVT_PADMINUS;
       case GHOST_kKeyNumpadAsterisk:
-        return PADASTERKEY;
+        return EVT_PADASTERKEY;
       case GHOST_kKeyNumpadSlash:
-        return PADSLASHKEY;
+        return EVT_PADSLASHKEY;
 
       case GHOST_kKeyGrLess:
-        return GRLESSKEY;
+        return EVT_GRLESSKEY;
 
       case GHOST_kKeyMediaPlay:
-        return MEDIAPLAY;
+        return EVT_MEDIAPLAY;
       case GHOST_kKeyMediaStop:
-        return MEDIASTOP;
+        return EVT_MEDIASTOP;
       case GHOST_kKeyMediaFirst:
-        return MEDIAFIRST;
+        return EVT_MEDIAFIRST;
       case GHOST_kKeyMediaLast:
-        return MEDIALAST;
+        return EVT_MEDIALAST;
 
       default:
-        return UNKNOWNKEY; /* GHOST_kKeyUnknown */
+        return EVT_UNKNOWNKEY; /* GHOST_kKeyUnknown */
     }
   }
 }
@@ -4095,44 +4095,44 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
   /* numpad emulation */
   if (U.flag & USER_NONUMPAD) {
     switch (event->type) {
-      case ZEROKEY:
-        event->type = PAD0;
+      case EVT_ZEROKEY:
+        event->type = EVT_PAD0;
         break;
-      case ONEKEY:
-        event->type = PAD1;
+      case EVT_ONEKEY:
+        event->type = EVT_PAD1;
         break;
-      case TWOKEY:
-        event->type = PAD2;
+      case EVT_TWOKEY:
+        event->type = EVT_PAD2;
         break;
-      case THREEKEY:
-        event->type = PAD3;
+      case EVT_THREEKEY:
+        event->type = EVT_PAD3;
         break;
-      case FOURKEY:
-        event->type = PAD4;
+      case EVT_FOURKEY:
+        event->type = EVT_PAD4;
         break;
-      case FIVEKEY:
-        event->type = PAD5;
+      case EVT_FIVEKEY:
+        event->type = EVT_PAD5;
         break;
-      case SIXKEY:
-        event->type = PAD6;
+      case EVT_SIXKEY:
+        event->type = EVT_PAD6;
         break;
-      case SEVENKEY:
-        event->type = PAD7;
+      case EVT_SEVENKEY:
+        event->type = EVT_PAD7;
         break;
-      case EIGHTKEY:
-        event->type = PAD8;
+      case EVT_EIGHTKEY:
+        event->type = EVT_PAD8;
         break;
-      case NINEKEY:
-        event->type = PAD9;
+      case EVT_NINEKEY:
+        event->type = EVT_PAD9;
         break;
-      case MINUSKEY:
-        event->type = PADMINUS;
+      case EVT_MINUSKEY:
+        event->type = EVT_PADMINUS;
         break;
-      case EQUALKEY:
-        event->type = PADPLUSKEY;
+      case EVT_EQUALKEY:
+        event->type = EVT_PADPLUSKEY;
         break;
-      case BACKSLASHKEY:
-        event->type = PADSLASHKEY;
+      case EVT_BACKSLASHKEY:
+        event->type = EVT_PADSLASHKEY;
         break;
     }
   }
@@ -4497,8 +4497,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
       /* assigning both first and second is strange - campbell */
       switch (event.type) {
-        case LEFTSHIFTKEY:
-        case RIGHTSHIFTKEY:
+        case EVT_LEFTSHIFTKEY:
+        case EVT_RIGHTSHIFTKEY:
           if (event.val == KM_PRESS) {
             if (evt->ctrl || evt->alt || evt->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
@@ -4509,8 +4509,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
           }
           event.shift = evt->shift = keymodifier;
           break;
-        case LEFTCTRLKEY:
-        case RIGHTCTRLKEY:
+        case EVT_LEFTCTRLKEY:
+        case EVT_RIGHTCTRLKEY:
           if (event.val == KM_PRESS) {
             if (evt->shift || evt->alt || evt->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
@@ -4521,8 +4521,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
           }
           event.ctrl = evt->ctrl = keymodifier;
           break;
-        case LEFTALTKEY:
-        case RIGHTALTKEY:
+        case EVT_LEFTALTKEY:
+        case EVT_RIGHTALTKEY:
           if (event.val == KM_PRESS) {
             if (evt->ctrl || evt->shift || evt->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
@@ -4533,7 +4533,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
           }
           event.alt = evt->alt = keymodifier;
           break;
-        case OSKEY:
+        case EVT_OSKEY:
           if (event.val == KM_PRESS) {
             if (evt->ctrl || evt->alt || evt->shift) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
@@ -4572,13 +4572,13 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
        * (to compose complex latin characters e.g.), it's not really clear why.
        * Since it's impossible to map a key modifier to an unknown key,
        * it shouldn't harm to clear it. */
-      if (event.keymodifier == UNKNOWNKEY) {
+      if (event.keymodifier == EVT_UNKNOWNKEY) {
         evt->keymodifier = event.keymodifier = 0;
       }
 
       /* if test_break set, it catches this. Do not set with modifier presses.
        * XXX Keep global for now? */
-      if ((event.type == ESCKEY && event.val == KM_PRESS) &&
+      if ((event.type == EVT_ESCKEY && event.val == KM_PRESS) &&
           /* check other modifiers because ms-windows uses these to bring up the task manager */
           (event.shift == 0 && event.ctrl == 0 && event.alt == 0)) {
         G.is_break = true;

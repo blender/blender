@@ -563,8 +563,8 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 
   switch (event->type) {
     case LEFTMOUSE: /* confirm */
-    case PADENTER:
-    case RETKEY: {
+    case EVT_PADENTER:
+    case EVT_RETKEY: {
       /* return to normal cursor and header status */
       ED_area_status_text(tgpi->sa, NULL);
       ED_workspace_status_text(C, NULL);
@@ -598,7 +598,7 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
       return OPERATOR_FINISHED;
     }
 
-    case ESCKEY: /* cancel */
+    case EVT_ESCKEY: /* cancel */
     case RIGHTMOUSE: {
       /* return to normal cursor and header status */
       ED_area_status_text(tgpi->sa, NULL);

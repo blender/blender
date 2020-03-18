@@ -1222,7 +1222,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent
   bool ret;
 
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       /* cancel */
       oglrender->pool_ok = false; /* Flag pool for cancel. */
       screen_opengl_render_end(C, op->customdata);

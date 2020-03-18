@@ -101,13 +101,13 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
 
     status = TREDRAW_HARD;
   }
-  else if (event->type == XKEY && event->val == KM_PRESS) {
+  else if (event->type == EVT_XKEY && event->val == KM_PRESS) {
     t->orient_axis_ortho = (t->orient_axis + 1) % 3;
     initShear_mouseInputMode(t);
 
     status = TREDRAW_HARD;
   }
-  else if (event->type == YKEY && event->val == KM_PRESS) {
+  else if (event->type == EVT_YKEY && event->val == KM_PRESS) {
     t->orient_axis_ortho = (t->orient_axis + 2) % 3;
     initShear_mouseInputMode(t);
 

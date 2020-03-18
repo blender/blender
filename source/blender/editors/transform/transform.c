@@ -788,21 +788,21 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 
     /* Initialize */
     switch (key_type) {
-      case XKEY:
+      case EVT_XKEY:
         msg1 = TIP_("along X");
         msg2 = TIP_("along %s X");
         msg3 = TIP_("locking %s X");
         axis = 'X';
         constraint_axis = CON_AXIS0;
         break;
-      case YKEY:
+      case EVT_YKEY:
         msg1 = TIP_("along Y");
         msg2 = TIP_("along %s Y");
         msg3 = TIP_("locking %s Y");
         axis = 'Y';
         constraint_axis = CON_AXIS1;
         break;
-      case ZKEY:
+      case EVT_ZKEY:
         msg1 = TIP_("along Z");
         msg2 = TIP_("along %s Z");
         msg3 = TIP_("locking %s Z");
@@ -815,7 +815,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
     }
     constraint_plane = ((CON_AXIS0 | CON_AXIS1 | CON_AXIS2) & (~constraint_axis));
 
-    if (edit_2d && (key_type != ZKEY)) {
+    if (edit_2d && (key_type != EVT_ZKEY)) {
       if (cmode == axis) {
         stopConstraint(t);
       }
@@ -1047,42 +1047,42 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_AXIS_X:
         if (!(t->flag & T_NO_CONSTRAINT)) {
-          transform_event_xyz_constraint(t, XKEY, cmode, false);
+          transform_event_xyz_constraint(t, EVT_XKEY, cmode, false);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_AXIS_Y:
         if ((t->flag & T_NO_CONSTRAINT) == 0) {
-          transform_event_xyz_constraint(t, YKEY, cmode, false);
+          transform_event_xyz_constraint(t, EVT_YKEY, cmode, false);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_AXIS_Z:
         if ((t->flag & (T_NO_CONSTRAINT)) == 0) {
-          transform_event_xyz_constraint(t, ZKEY, cmode, false);
+          transform_event_xyz_constraint(t, EVT_ZKEY, cmode, false);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_PLANE_X:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          transform_event_xyz_constraint(t, XKEY, cmode, true);
+          transform_event_xyz_constraint(t, EVT_XKEY, cmode, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_PLANE_Y:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          transform_event_xyz_constraint(t, YKEY, cmode, true);
+          transform_event_xyz_constraint(t, EVT_YKEY, cmode, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_PLANE_Z:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          transform_event_xyz_constraint(t, ZKEY, cmode, true);
+          transform_event_xyz_constraint(t, EVT_ZKEY, cmode, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
@@ -1187,15 +1187,15 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   /* else do non-mapped events */
   else if (event->val == KM_PRESS) {
     switch (event->type) {
-      case ESCKEY:
+      case EVT_ESCKEY:
       case RIGHTMOUSE:
         t->state = TRANS_CANCEL;
         handled = true;
         break;
 
-      case SPACEKEY:
-      case PADENTER:
-      case RETKEY:
+      case EVT_SPACEKEY:
+      case EVT_PADENTER:
+      case EVT_RETKEY:
         if (event->is_repeat) {
           break;
         }
@@ -1204,8 +1204,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
 
       /* enforce redraw of transform when modifiers are used */
-      case LEFTSHIFTKEY:
-      case RIGHTSHIFTKEY:
+      case EVT_LEFTSHIFTKEY:
+      case EVT_RIGHTSHIFTKEY:
         t->modifiers |= MOD_CONSTRAINT_PLANE;
         t->redraw |= TREDRAW_HARD;
         handled = true;
@@ -1246,7 +1246,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case GKEY:
+      case EVT_GKEY:
         if (event->is_repeat) {
           break;
         }
@@ -1261,7 +1261,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case SKEY:
+      case EVT_SKEY:
         if (event->is_repeat) {
           break;
         }
@@ -1276,7 +1276,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case RKEY:
+      case EVT_RKEY:
         if (event->is_repeat) {
           break;
         }
@@ -1299,7 +1299,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           }
         }
         break;
-      case CKEY:
+      case EVT_CKEY:
         if (event->is_repeat) {
           break;
         }
@@ -1313,7 +1313,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           }
         }
         break;
-      case OKEY:
+      case EVT_OKEY:
         if (event->is_repeat) {
           break;
         }
@@ -1324,7 +1324,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case PADPLUSKEY:
+      case EVT_PADPLUSKEY:
         if (event->alt && t->flag & T_PROP_EDIT) {
           t->prop_size *= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
           if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO) {
@@ -1335,7 +1335,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case PAGEUPKEY:
+      case EVT_PAGEUPKEY:
       case WHEELDOWNMOUSE:
         if (t->flag & T_AUTOIK) {
           transform_autoik_update(t, 1);
@@ -1346,7 +1346,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         t->redraw = TREDRAW_HARD;
         handled = true;
         break;
-      case PADMINUS:
+      case EVT_PADMINUS:
         if (event->alt && t->flag & T_PROP_EDIT) {
           t->prop_size /= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
           calculatePropRatio(t);
@@ -1354,7 +1354,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case PAGEDOWNKEY:
+      case EVT_PAGEDOWNKEY:
       case WHEELUPMOUSE:
         if (t->flag & T_AUTOIK) {
           transform_autoik_update(t, -1);
@@ -1365,15 +1365,15 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         t->redraw = TREDRAW_HARD;
         handled = true;
         break;
-      case LEFTALTKEY:
-      case RIGHTALTKEY:
+      case EVT_LEFTALTKEY:
+      case EVT_RIGHTALTKEY:
         if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
           t->flag |= T_ALT_TRANSFORM;
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
-      case NKEY:
+      case EVT_NKEY:
         if (event->is_repeat) {
           break;
         }
@@ -1397,8 +1397,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   }
   else if (event->val == KM_RELEASE) {
     switch (event->type) {
-      case LEFTSHIFTKEY:
-      case RIGHTSHIFTKEY:
+      case EVT_LEFTSHIFTKEY:
+      case EVT_RIGHTSHIFTKEY:
         t->modifiers &= ~MOD_CONSTRAINT_PLANE;
         t->redraw |= TREDRAW_HARD;
         handled = true;
@@ -1412,8 +1412,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case LEFTALTKEY:
-      case RIGHTALTKEY:
+      case EVT_LEFTALTKEY:
+      case EVT_RIGHTALTKEY:
         if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
           t->flag &= ~T_ALT_TRANSFORM;
           t->redraw |= TREDRAW_HARD;
@@ -2060,10 +2060,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         }
 
         if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS) {
-          if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
-              (ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
-              (ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
-              ((kmi->type == OSKEY) && event->oskey)) {
+          if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && event->ctrl) ||
+              (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && event->shift) ||
+              (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && event->alt) ||
+              ((kmi->type == EVT_OSKEY) && event->oskey)) {
             t->modifiers |= MOD_SNAP_INVERT;
           }
           break;

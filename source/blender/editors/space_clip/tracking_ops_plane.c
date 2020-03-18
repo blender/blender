@@ -270,11 +270,11 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
   float next_edge[2], prev_edge[2], next_diag_edge[2], prev_diag_edge[2];
 
   switch (event->type) {
-    case LEFTCTRLKEY:
-    case RIGHTCTRLKEY:
-    case LEFTSHIFTKEY:
-    case RIGHTSHIFTKEY:
-      if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY)) {
+    case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY:
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY:
+      if (ELEM(event->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
         data->accurate = event->val == KM_PRESS;
       }
       ATTR_FALLTHROUGH;
@@ -363,7 +363,7 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
 
       break;
 
-    case ESCKEY:
+    case EVT_ESCKEY:
       cancel_mouse_slide_plane_marker(op->customdata);
 
       free_slide_plane_marker_data(op->customdata);

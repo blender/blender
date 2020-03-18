@@ -354,7 +354,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
         ascii[0] = event->ascii;
       }
       break;
-    case BACKSPACEKEY:
+    case EVT_BACKSPACEKEY:
       /* Part specific to backspace... */
       if (!(n->val_flag[idx] & NUM_EDITED)) {
         copy_v3_v3(n->val, n->val_org);
@@ -381,7 +381,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
        * only difference is remove char(s) before/after the cursor. */
       dir = STRCUR_DIR_PREV;
       ATTR_FALLTHROUGH;
-    case DELKEY:
+    case EVT_DELKEY:
       if ((n->val_flag[idx] & NUM_EDITED) && n->str[0]) {
         int t_cur = cur = n->str_cur;
         if (event->ctrl) {
@@ -405,10 +405,10 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
         return false;
       }
       break;
-    case LEFTARROWKEY:
+    case EVT_LEFTARROWKEY:
       dir = STRCUR_DIR_PREV;
       ATTR_FALLTHROUGH;
-    case RIGHTARROWKEY:
+    case EVT_RIGHTARROWKEY:
       cur = n->str_cur;
       if (event->ctrl) {
         mode = STRCUR_JUMP_DELIM;
@@ -419,19 +419,19 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
         return true;
       }
       return false;
-    case HOMEKEY:
+    case EVT_HOMEKEY:
       if (n->str[0]) {
         n->str_cur = 0;
         return true;
       }
       return false;
-    case ENDKEY:
+    case EVT_ENDKEY:
       if (n->str[0]) {
         n->str_cur = strlen(n->str);
         return true;
       }
       return false;
-    case TABKEY:
+    case EVT_TABKEY:
 #ifdef USE_FAKE_EDIT
       n->val_flag[idx] &= ~(NUM_NEGATE | NUM_INVERSE);
 #endif
@@ -446,8 +446,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
         n->str_cur = 0;
       }
       return true;
-    case PADPERIOD:
-    case PERIODKEY:
+    case EVT_PADPERIOD:
+    case EVT_PERIODKEY:
       /* Force numdot, some OSs/countries generate a comma char in this case,
        * sic...  (T37992) */
       ascii[0] = '.';
@@ -473,29 +473,29 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 #endif
 
 #ifdef USE_FAKE_EDIT
-    case PADMINUS:
-    case MINUSKEY:
+    case EVT_PADMINUS:
+    case EVT_MINUSKEY:
       if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
         n->val_flag[idx] ^= NUM_NEGATE;
         updated = true;
       }
       break;
-    case PADSLASHKEY:
-    case SLASHKEY:
+    case EVT_PADSLASHKEY:
+    case EVT_SLASHKEY:
       if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
         n->val_flag[idx] ^= NUM_INVERSE;
         updated = true;
       }
       break;
 #endif
-    case CKEY:
+    case EVT_CKEY:
       if (event->ctrl) {
         /* Copy current str to the copypaste buffer. */
         WM_clipboard_text_set(n->str, 0);
         updated = true;
       }
       break;
-    case VKEY:
+    case EVT_VKEY:
       if (event->ctrl) {
         /* extract the first line from the clipboard */
         int pbuf_len;

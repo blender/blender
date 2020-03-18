@@ -484,11 +484,11 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
       RNA_float_set_array(op->ptr, "offset", offset);
       view_pan_exec(C, op);
       break;
-    case ESCKEY:
+    case EVT_ESCKEY:
       view_pan_exit(C, op, 1);
 
       return OPERATOR_CANCELLED;
-    case SPACEKEY:
+    case EVT_SPACEKEY:
       view_pan_exit(C, op, 0);
 
       return OPERATOR_FINISHED;
@@ -1136,7 +1136,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_FINISHED;
 
     case MOUSEMOVE:
@@ -1702,7 +1702,7 @@ static int clip_prefetch_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
 
   /* running render */
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
   }
 

@@ -142,19 +142,19 @@ void icon_draw_rect_input(float x,
       .ymax = y + h,
   };
 
-  if ((event_type >= AKEY) && (event_type <= ZKEY)) {
-    char str[2] = {'A' + (event_type - AKEY), '\0'};
+  if ((event_type >= EVT_AKEY) && (event_type <= EVT_ZKEY)) {
+    char str[2] = {'A' + (event_type - EVT_AKEY), '\0'};
     icon_draw_rect_input_text(&rect, color, str, 13);
   }
-  else if ((event_type >= F1KEY) && (event_type <= F12KEY)) {
+  else if ((event_type >= EVT_F1KEY) && (event_type <= EVT_F12KEY)) {
     char str[4];
-    SNPRINTF(str, "F%d", 1 + (event_type - F1KEY));
-    icon_draw_rect_input_text(&rect, color, str, event_type > F9KEY ? 8 : 10);
+    SNPRINTF(str, "F%d", 1 + (event_type - EVT_F1KEY));
+    icon_draw_rect_input_text(&rect, color, str, event_type > EVT_F9KEY ? 8 : 10);
   }
-  else if (event_type == LEFTSHIFTKEY) {
+  else if (event_type == EVT_LEFTSHIFTKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x87, 0xa7, 0x0});
   }
-  else if (event_type == LEFTCTRLKEY) {
+  else if (event_type == EVT_LEFTCTRLKEY) {
     if (platform == MACOS) {
       icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x8c, 0x83, 0x0});
     }
@@ -162,7 +162,7 @@ void icon_draw_rect_input(float x,
       icon_draw_rect_input_text(&rect, color, "Ctrl", 9);
     }
   }
-  else if (event_type == LEFTALTKEY) {
+  else if (event_type == EVT_LEFTALTKEY) {
     if (platform == MACOS) {
       icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x8c, 0xa5, 0x0});
     }
@@ -170,7 +170,7 @@ void icon_draw_rect_input(float x,
       icon_draw_rect_input_text(&rect, color, "Alt", 10);
     }
   }
-  else if (event_type == OSKEY) {
+  else if (event_type == EVT_OSKEY) {
     if (platform == MACOS) {
       icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x8c, 0x98, 0x0});
     }
@@ -181,22 +181,22 @@ void icon_draw_rect_input(float x,
       icon_draw_rect_input_text(&rect, color, "OS", 10);
     }
   }
-  else if (event_type == DELKEY) {
+  else if (event_type == EVT_DELKEY) {
     icon_draw_rect_input_text(&rect, color, "Del", 9);
   }
-  else if (event_type == TABKEY) {
+  else if (event_type == EVT_TABKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0xad, 0xbe, 0x0});
   }
-  else if (event_type == HOMEKEY) {
+  else if (event_type == EVT_HOMEKEY) {
     icon_draw_rect_input_text(&rect, color, "Home", 6);
   }
-  else if (event_type == ENDKEY) {
+  else if (event_type == EVT_ENDKEY) {
     icon_draw_rect_input_text(&rect, color, "End", 8);
   }
-  else if (event_type == RETKEY) {
+  else if (event_type == EVT_RETKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x8f, 0x8e, 0x0});
   }
-  else if (event_type == ESCKEY) {
+  else if (event_type == EVT_ESCKEY) {
     if (platform == MACOS) {
       icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x8e, 0x8b, 0x0});
     }
@@ -204,25 +204,25 @@ void icon_draw_rect_input(float x,
       icon_draw_rect_input_text(&rect, color, "Esc", 8);
     }
   }
-  else if (event_type == PAGEUPKEY) {
+  else if (event_type == EVT_PAGEUPKEY) {
     icon_draw_rect_input_text(&rect, color, (const char[]){'P', 0xe2, 0x86, 0x91, 0x0}, 8);
   }
-  else if (event_type == PAGEDOWNKEY) {
+  else if (event_type == EVT_PAGEDOWNKEY) {
     icon_draw_rect_input_text(&rect, color, (const char[]){'P', 0xe2, 0x86, 0x93, 0x0}, 8);
   }
-  else if (event_type == LEFTARROWKEY) {
+  else if (event_type == EVT_LEFTARROWKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x86, 0x90, 0x0});
   }
-  else if (event_type == UPARROWKEY) {
+  else if (event_type == EVT_UPARROWKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x86, 0x91, 0x0});
   }
-  else if (event_type == RIGHTARROWKEY) {
+  else if (event_type == EVT_RIGHTARROWKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x86, 0x92, 0x0});
   }
-  else if (event_type == DOWNARROWKEY) {
+  else if (event_type == EVT_DOWNARROWKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x86, 0x93, 0x0});
   }
-  else if (event_type == SPACEKEY) {
+  else if (event_type == EVT_SPACEKEY) {
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x90, 0xa3, 0x0});
   }
 }

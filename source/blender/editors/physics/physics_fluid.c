@@ -606,7 +606,7 @@ static int fluid_bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *
   }
 
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
   }
   return OPERATOR_PASS_THROUGH;

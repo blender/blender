@@ -401,7 +401,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else {
     bool handled = false;
     switch (event->type) {
-      case ESCKEY:
+      case EVT_ESCKEY:
       case RIGHTMOUSE:
         edbm_inset_cancel(C, op);
         return OPERATOR_CANCELLED;
@@ -450,8 +450,8 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
 
       case LEFTMOUSE:
-      case PADENTER:
-      case RETKEY:
+      case EVT_PADENTER:
+      case EVT_RETKEY:
         if ((event->val == KM_PRESS) ||
             ((event->val == KM_RELEASE) && RNA_boolean_get(op->ptr, "release_confirm"))) {
           edbm_inset_calc(op);
@@ -459,8 +459,8 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
           return OPERATOR_FINISHED;
         }
         break;
-      case LEFTSHIFTKEY:
-      case RIGHTSHIFTKEY:
+      case EVT_LEFTSHIFTKEY:
+      case EVT_RIGHTSHIFTKEY:
         if (event->val == KM_PRESS) {
           if (opdata->modify_depth) {
             opdata->shift_amount = RNA_float_get(op->ptr, "depth");
@@ -478,8 +478,8 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
         break;
 
-      case LEFTCTRLKEY:
-      case RIGHTCTRLKEY: {
+      case EVT_LEFTCTRLKEY:
+      case EVT_RIGHTCTRLKEY: {
         float mlen[2];
 
         mlen[0] = opdata->mcenter[0] - event->mval[0];
@@ -506,7 +506,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
       }
 
-      case OKEY:
+      case EVT_OKEY:
         if (event->val == KM_PRESS) {
           const bool use_outset = RNA_boolean_get(op->ptr, "use_outset");
           RNA_boolean_set(op->ptr, "use_outset", !use_outset);
@@ -520,7 +520,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
           handled = true;
         }
         break;
-      case BKEY:
+      case EVT_BKEY:
         if (event->val == KM_PRESS) {
           const bool use_boundary = RNA_boolean_get(op->ptr, "use_boundary");
           RNA_boolean_set(op->ptr, "use_boundary", !use_boundary);
@@ -534,7 +534,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
           handled = true;
         }
         break;
-      case IKEY:
+      case EVT_IKEY:
         if (event->val == KM_PRESS) {
           const bool use_individual = RNA_boolean_get(op->ptr, "use_individual");
           RNA_boolean_set(op->ptr, "use_individual", !use_individual);

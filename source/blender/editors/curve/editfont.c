@@ -1684,7 +1684,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* tab should exit editmode, but we allow it to be typed using modifier keys */
-  if (event_type == TABKEY) {
+  if (event_type == EVT_TABKEY) {
     if ((alt || ctrl || shift) == 0) {
       return OPERATOR_PASS_THROUGH;
     }
@@ -1693,7 +1693,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  if (event_type == BACKSPACEKEY) {
+  if (event_type == EVT_BACKSPACEKEY) {
     if (alt && ef->len != 0 && ef->pos > 0) {
       accentcode = 1;
     }

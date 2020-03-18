@@ -252,10 +252,10 @@ static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
   switch (event->type) {
     case MOUSEMOVE:
-    case LEFTCTRLKEY:
-    case RIGHTCTRLKEY:
-    case LEFTSHIFTKEY:
-    case RIGHTSHIFTKEY: {
+    case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY:
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY: {
       float value_final;
       if (cd->is_active && interactive_value_update(&cd->inter, event, &value_final)) {
         wmWindowManager *wm = CTX_wm_manager(C);
@@ -279,8 +279,8 @@ static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *ev
       }
       break;
     }
-    case RETKEY:
-    case PADENTER:
+    case EVT_RETKEY:
+    case EVT_PADENTER:
     case LEFTMOUSE: {
       if (cd->wait_for_input) {
         if (event->val == KM_PRESS) {
@@ -304,7 +304,7 @@ static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *ev
       }
       break;
     }
-    case ESCKEY:
+    case EVT_ESCKEY:
     case RIGHTMOUSE: {
       if (event->val == KM_PRESS) {
         if (cd->is_active == true) {

@@ -143,7 +143,7 @@ static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 
   /* running render */
   switch (event->type) {
-    case ESCKEY: {
+    case EVT_ESCKEY: {
       G.is_break = true;
       return OPERATOR_RUNNING_MODAL;
     }

@@ -1329,7 +1329,7 @@ static void poselib_preview_handle_search(tPoseLib_PreviewData *pld,
 {
   /* try doing some form of string manipulation first */
   switch (event) {
-    case BACKSPACEKEY:
+    case EVT_BACKSPACEKEY:
       if (pld->searchstr[0] && pld->search_cursor) {
         short len = strlen(pld->searchstr);
         short index = pld->search_cursor;
@@ -1347,7 +1347,7 @@ static void poselib_preview_handle_search(tPoseLib_PreviewData *pld,
       }
       break;
 
-    case DELKEY:
+    case EVT_DELKEY:
       if (pld->searchstr[0] && pld->searchstr[1]) {
         short len = strlen(pld->searchstr);
         short index = pld->search_cursor;
@@ -1414,16 +1414,16 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
   if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {
     switch (event->type) {
       /* exit - cancel */
-      case ESCKEY:
+      case EVT_ESCKEY:
       case RIGHTMOUSE:
         pld->state = PL_PREVIEW_CANCEL;
         break;
 
       /* exit - confirm */
       case LEFTMOUSE:
-      case RETKEY:
-      case PADENTER:
-      case SPACEKEY:
+      case EVT_RETKEY:
+      case EVT_PADENTER:
+      case EVT_SPACEKEY:
         pld->state = PL_PREVIEW_CONFIRM;
         break;
 
@@ -1431,18 +1431,18 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
       /* we add pass through here, so that the operators responsible for these can still run,
        * even though we still maintain control (as RUNNING_MODAL flag is still set too)
        */
-      case PAD0:
-      case PAD1:
-      case PAD2:
-      case PAD3:
-      case PAD4:
-      case PAD5:
-      case PAD6:
-      case PAD7:
-      case PAD8:
-      case PAD9:
-      case PADPLUSKEY:
-      case PADMINUS:
+      case EVT_PAD0:
+      case EVT_PAD1:
+      case EVT_PAD2:
+      case EVT_PAD3:
+      case EVT_PAD4:
+      case EVT_PAD5:
+      case EVT_PAD6:
+      case EVT_PAD7:
+      case EVT_PAD8:
+      case EVT_PAD9:
+      case EVT_PADPLUSKEY:
+      case EVT_PADMINUS:
       case MIDDLEMOUSE:
       case MOUSEMOVE:
         // pld->redraw = PL_PREVIEW_REDRAWHEADER;
@@ -1450,7 +1450,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
         break;
 
       /* quicky compare to original */
-      case TABKEY:
+      case EVT_TABKEY:
         pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
         pld->redraw = PL_PREVIEW_REDRAWALL;
         break;
@@ -1464,53 +1464,53 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
   /* searching takes priority over normal activity */
   switch (event->type) {
     /* exit - cancel */
-    case ESCKEY:
+    case EVT_ESCKEY:
     case RIGHTMOUSE:
       pld->state = PL_PREVIEW_CANCEL;
       break;
 
     /* exit - confirm */
     case LEFTMOUSE:
-    case RETKEY:
-    case PADENTER:
-    case SPACEKEY:
+    case EVT_RETKEY:
+    case EVT_PADENTER:
+    case EVT_SPACEKEY:
       pld->state = PL_PREVIEW_CONFIRM;
       break;
 
     /* toggle between original pose and poselib pose*/
-    case TABKEY:
+    case EVT_TABKEY:
       pld->flag |= PL_PREVIEW_SHOWORIGINAL;
       pld->redraw = PL_PREVIEW_REDRAWALL;
       break;
 
     /* change to previous pose (cyclic) */
-    case PAGEUPKEY:
+    case EVT_PAGEUPKEY:
     case WHEELUPMOUSE:
       poselib_preview_get_next(pld, -1);
       pld->redraw = PL_PREVIEW_REDRAWALL;
       break;
 
     /* change to next pose (cyclic) */
-    case PAGEDOWNKEY:
+    case EVT_PAGEDOWNKEY:
     case WHEELDOWNMOUSE:
       poselib_preview_get_next(pld, 1);
       pld->redraw = PL_PREVIEW_REDRAWALL;
       break;
 
     /* jump 5 poses (cyclic, back) */
-    case DOWNARROWKEY:
+    case EVT_DOWNARROWKEY:
       poselib_preview_get_next(pld, -5);
       pld->redraw = PL_PREVIEW_REDRAWALL;
       break;
 
     /* jump 5 poses (cyclic, forward) */
-    case UPARROWKEY:
+    case EVT_UPARROWKEY:
       poselib_preview_get_next(pld, 5);
       pld->redraw = PL_PREVIEW_REDRAWALL;
       break;
 
     /* change to next pose or searching cursor control */
-    case RIGHTARROWKEY:
+    case EVT_RIGHTARROWKEY:
       if (pld->searchstr[0]) {
         /* move text-cursor to the right */
         if (pld->search_cursor < strlen(pld->searchstr)) {
@@ -1526,7 +1526,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
       break;
 
     /* change to next pose or searching cursor control */
-    case LEFTARROWKEY:
+    case EVT_LEFTARROWKEY:
       if (pld->searchstr[0]) {
         /* move text-cursor to the left */
         if (pld->search_cursor) {
@@ -1542,7 +1542,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
       break;
 
     /* change to first pose or start of searching string */
-    case HOMEKEY:
+    case EVT_HOMEKEY:
       if (pld->searchstr[0]) {
         pld->search_cursor = 0;
         pld->redraw = PL_PREVIEW_REDRAWHEADER;
@@ -1557,7 +1557,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
       break;
 
     /* change to last pose or start of searching string */
-    case ENDKEY:
+    case EVT_ENDKEY:
       if (pld->searchstr[0]) {
         pld->search_cursor = strlen(pld->searchstr);
         pld->redraw = PL_PREVIEW_REDRAWHEADER;
@@ -1582,18 +1582,18 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
       break;
 
     /* view manipulation, or searching */
-    case PAD0:
-    case PAD1:
-    case PAD2:
-    case PAD3:
-    case PAD4:
-    case PAD5:
-    case PAD6:
-    case PAD7:
-    case PAD8:
-    case PAD9:
-    case PADPLUSKEY:
-    case PADMINUS:
+    case EVT_PAD0:
+    case EVT_PAD1:
+    case EVT_PAD2:
+    case EVT_PAD3:
+    case EVT_PAD4:
+    case EVT_PAD5:
+    case EVT_PAD6:
+    case EVT_PAD7:
+    case EVT_PAD8:
+    case EVT_PAD9:
+    case EVT_PADPLUSKEY:
+    case EVT_PADMINUS:
       if (pld->searchstr[0]) {
         /* searching... */
         poselib_preview_handle_search(pld, event->type, event->ascii);

@@ -1487,7 +1487,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
   int estate = OPERATOR_PASS_THROUGH; /* default exit state - pass through */
 
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
     case RIGHTMOUSE:
       estate = OPERATOR_CANCELLED;
       break;

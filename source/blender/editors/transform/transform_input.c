@@ -476,8 +476,8 @@ eRedrawFlag handleMouseInput(TransInfo *t, MouseInput *mi, const wmEvent *event)
   eRedrawFlag redraw = TREDRAW_NOTHING;
 
   switch (event->type) {
-    case LEFTSHIFTKEY:
-    case RIGHTSHIFTKEY:
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY:
       if (event->val == KM_PRESS) {
         t->modifiers |= MOD_PRECISION;
         /* shift is modifier for higher precision transforn */

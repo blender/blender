@@ -1749,7 +1749,7 @@ static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 static int wm_search_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* Exception for launching via spacebar */
-  if (event->type == SPACEKEY) {
+  if (event->type == EVT_SPACEKEY) {
     bool ok = true;
     ScrArea *sa = CTX_wm_area(C);
     if (sa) {
@@ -2815,7 +2815,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   else {
     handled = false;
     switch (event->type) {
-      case ESCKEY:
+      case EVT_ESCKEY:
       case RIGHTMOUSE:
         /* canceled; restore original value */
         radial_control_set_value(rc, rc->initial_value);
@@ -2823,8 +2823,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
         break;
 
       case LEFTMOUSE:
-      case PADENTER:
-      case RETKEY:
+      case EVT_PADENTER:
+      case EVT_RETKEY:
         /* done; value already set */
         RNA_property_update(C, &rc->ptr, rc->prop);
         ret = OPERATOR_FINISHED;
@@ -2930,8 +2930,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
         }
         break;
 
-      case LEFTSHIFTKEY:
-      case RIGHTSHIFTKEY: {
+      case EVT_LEFTSHIFTKEY:
+      case EVT_RIGHTSHIFTKEY: {
         if (event->val == KM_PRESS) {
           rc->slow_mouse[0] = event->x;
           rc->slow_mouse[1] = event->y;

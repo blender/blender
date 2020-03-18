@@ -1995,7 +1995,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
     }
   }
   else {
-    if (ELEM(event->type, LEFTMOUSE, RETKEY, PADENTER)) {
+    if (ELEM(event->type, LEFTMOUSE, EVT_RETKEY, EVT_PADENTER)) {
       is_finished = true;
     }
   }
@@ -2004,7 +2004,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
     object_transform_axis_target_free_data(op);
     return OPERATOR_FINISHED;
   }
-  else if (ELEM(event->type, ESCKEY, RIGHTMOUSE)) {
+  else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
     object_transform_axis_target_cancel(C, op);
     return OPERATOR_CANCELLED;
   }

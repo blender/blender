@@ -283,11 +283,11 @@ void ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent 
 
   switch (type) {
     case WHEELUPMOUSE:
-    case UPARROWKEY:
+    case EVT_UPARROWKEY:
       ui_searchbox_select(C, region, but, -1);
       break;
     case WHEELDOWNMOUSE:
-    case DOWNARROWKEY:
+    case EVT_DOWNARROWKEY:
       ui_searchbox_select(C, region, but, 1);
       break;
     case MOUSEMOVE:

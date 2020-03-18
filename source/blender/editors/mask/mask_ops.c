@@ -932,11 +932,11 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
   float co[2];
 
   switch (event->type) {
-    case LEFTALTKEY:
-    case RIGHTALTKEY:
-    case LEFTSHIFTKEY:
-    case RIGHTSHIFTKEY:
-      if (ELEM(event->type, LEFTALTKEY, RIGHTALTKEY)) {
+    case EVT_LEFTALTKEY:
+    case EVT_RIGHTALTKEY:
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY:
+      if (ELEM(event->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
         if (data->action == SLIDE_ACTION_FEATHER) {
           data->is_overall_feather = (event->val == KM_PRESS);
         }
@@ -945,7 +945,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
 
-      if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY)) {
+      if (ELEM(event->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
         data->is_accurate = (event->val == KM_PRESS);
       }
 
@@ -1165,7 +1165,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
       }
 
-    case ESCKEY:
+    case EVT_ESCKEY:
       cancel_slide_point(op->customdata);
 
       WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
@@ -1419,15 +1419,15 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
   float u = slide_data->u;
 
   switch (event->type) {
-    case LEFTSHIFTKEY:
-    case RIGHTSHIFTKEY:
-    case LEFTCTRLKEY:
-    case RIGHTCTRLKEY:
-      if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY)) {
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY:
+    case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY:
+      if (ELEM(event->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
         slide_data->accurate = (event->val == KM_PRESS);
       }
 
-      if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY)) {
+      if (ELEM(event->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
         if (event->val == KM_PRESS) {
           slide_data->adjust_bezt->h1 = slide_data->adjust_bezt->h2 = HD_FREE;
           if ((u > margin && u < 0.5f) || (u >= 0.5f && u < 1.0f - margin)) {
@@ -1551,7 +1551,7 @@ static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEve
 
       break;
 
-    case ESCKEY:
+    case EVT_ESCKEY:
       cancel_slide_spline_curvature(slide_data);
 
       WM_event_add_notifier(C, NC_MASK | NA_EDITED, slide_data->mask);

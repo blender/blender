@@ -311,19 +311,19 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
     /* Must move at least this much to avoid rounding in WM_cursor_warp. */
     float fac = GHOST_GetNativePixelSize(win->ghostwin);
 
-    if (event->type == UPARROWKEY) {
+    if (event->type == EVT_UPARROWKEY) {
       wm_cursor_warp_relative(win, 0, fac);
       return 1;
     }
-    else if (event->type == DOWNARROWKEY) {
+    else if (event->type == EVT_DOWNARROWKEY) {
       wm_cursor_warp_relative(win, 0, -fac);
       return 1;
     }
-    else if (event->type == LEFTARROWKEY) {
+    else if (event->type == EVT_LEFTARROWKEY) {
       wm_cursor_warp_relative(win, -fac, 0);
       return 1;
     }
-    else if (event->type == RIGHTARROWKEY) {
+    else if (event->type == EVT_RIGHTARROWKEY) {
       wm_cursor_warp_relative(win, fac, 0);
       return 1;
     }

@@ -215,7 +215,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
   int ret = OPERATOR_RUNNING_MODAL;
   /* execute the events */
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       ret = OPERATOR_FINISHED;
       break;
 
@@ -233,8 +233,8 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       break;
 
-    case LEFTCTRLKEY:
-    case RIGHTCTRLKEY:
+    case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY:
       if (event->val == KM_RELEASE) {
         RNA_boolean_set(op->ptr, "snap", false);
       }

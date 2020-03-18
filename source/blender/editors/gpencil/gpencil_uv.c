@@ -436,7 +436,7 @@ static int gpencil_transform_fill_modal(bContext *C, wmOperator *op, const wmEve
   GpUvData *opdata = op->customdata;
 
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
     case RIGHTMOUSE: {
       gpencil_transform_fill_cancel(C, op);
       return OPERATOR_CANCELLED;
@@ -455,8 +455,8 @@ static int gpencil_transform_fill_modal(bContext *C, wmOperator *op, const wmEve
       break;
     }
     case LEFTMOUSE:
-    case PADENTER:
-    case RETKEY: {
+    case EVT_PADENTER:
+    case EVT_RETKEY: {
       if ((event->val == KM_PRESS) ||
           ((event->val == KM_RELEASE) && RNA_boolean_get(op->ptr, "release_confirm"))) {
         gpencil_uv_transform_calc(C, op);

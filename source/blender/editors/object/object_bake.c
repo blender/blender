@@ -596,7 +596,7 @@ static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), const 
 
   /* running render */
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
   }
   return OPERATOR_PASS_THROUGH;

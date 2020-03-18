@@ -328,7 +328,7 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
 
     if (slp) {
       switch (event->type) {
-        case EKEY:
+        case EVT_EKEY:
           if (event->val == KM_PRESS) {
             slp->use_even = !slp->use_even;
             if (slp->flipped) {
@@ -337,14 +337,14 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
             return TREDRAW_HARD;
           }
           break;
-        case FKEY:
+        case EVT_FKEY:
           if (event->val == KM_PRESS) {
             slp->flipped = !slp->flipped;
             calcVertSlideCustomPoints(t);
             return TREDRAW_HARD;
           }
           break;
-        case CKEY:
+        case EVT_CKEY:
           /* use like a modifier key */
           if (event->val == KM_PRESS) {
             t->flag ^= T_ALT_TRANSFORM;
