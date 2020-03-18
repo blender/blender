@@ -367,7 +367,7 @@ void stroke_vertex()
   bool is_squares = false;
 
 #  ifdef GP_MATERIAL_BUFFER_LEN
-  if (m != -1.0) {
+  if (m != -1) {
     is_dot = GP_FLAG_TEST(MATERIAL(m).flag, GP_STROKE_ALIGNMENT);
     is_squares = !GP_FLAG_TEST(MATERIAL(m).flag, GP_STROKE_DOTS);
   }
@@ -463,8 +463,8 @@ void stroke_vertex()
     strokeThickness = (is_squares) ? 1e18 : (thickness / gl_Position.w);
   }
   else {
-    bool is_stroke_start = (ma.x == -1.0 && x == -1.0);
-    bool is_stroke_end = (ma3.x == -1.0 && x == 1.0);
+    bool is_stroke_start = (ma.x == -1 && x == -1);
+    bool is_stroke_end = (ma3.x == -1 && x == 1);
 
     /* Mitter tangent vector. */
     vec2 miter_tan = safe_normalize(line_adj + line);
