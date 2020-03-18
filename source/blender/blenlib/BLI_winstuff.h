@@ -52,7 +52,10 @@
 extern "C" {
 #endif
 
-#define _USE_MATH_DEFINES
+#if !defined(_USE_MATH_DEFINES)
+#  define _USE_MATH_DEFINES
+#endif
+
 #define MAXPATHLEN MAX_PATH
 
 #ifndef S_ISREG
