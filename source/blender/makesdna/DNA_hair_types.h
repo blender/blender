@@ -36,7 +36,7 @@ typedef struct HairCurve {
 } HairCurve;
 
 /* Hair attachment to a mesh.
- * TODO: attach to tesselated triangles or polygons?
+ * TODO: attach to tessellated triangles or polygons?
  * TODO: what type of interpolation to use for uv? */
 typedef struct HairMapping {
   float uv[2];

@@ -156,7 +156,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
      * The only time we should have to force a complete redo is when current step is tagged as a
      * redo barrier.
      * If previous step was not a memfile one should not matter here, current data in old bmain
-     * should still always be valid for unchanged dtat-blocks. */
+     * should still always be valid for unchanged datat-blocks. */
     if (us_p->use_old_bmain_data == false) {
       use_old_bmain_data = false;
     }
@@ -164,9 +164,9 @@ static void memfile_undosys_step_decode(struct bContext *C,
   else {
     /* Undo case.
      * Here we do not care whether current step is an undo barrier, since we are comming from 'the
-     * future' we can still re-use old data. However, if *next* undo step (i.e. the one immédiately
-     * in the future, the one we are comming from) is a barrier, then we have to force a complete
-     * undo.
+     * future' we can still re-use old data. However, if *next* undo step
+     * (i.e. the one immediately in the future, the one we are coming from)
+     * is a barrier, then we have to force a complete undo.
      * Note that non-memfile undo steps **should** not be an issue anymore, since we handle
      * fine-grained update flags now.
      */

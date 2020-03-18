@@ -9352,7 +9352,7 @@ static BHead *read_libblock(FileData *fd,
       /* read all data into fd->datamap */
       /* TODO: instead of building oldnewmap here we could just quickly check the bheads... could
        * save some more ticks. Probably not worth it though, bottleneck is full depsgraph rebuild
-       * and eval, not actual file reading. */
+       * and evaluate, not actual file reading. */
       bhead = read_data_into_oldnewmap(fd, id_bhead, allocname);
 
       DEBUG_PRINTF(
@@ -9889,9 +9889,9 @@ static void lib_link_all(FileData *fd, Main *bmain)
     }
 
     if (fd->memfile != NULL && do_partial_undo && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) != 0) {
-      /* This ID has been re-used from 'old' bmain. Since it was therfore unchanged accross current
-       * undo step, and old IDs re-use their old memory address, we do not need to liblink it at
-       * all. */
+      /* This ID has been re-used from 'old' bmain. Since it was therefore unchanged across
+       * current undo step, and old IDs re-use their old memory address, we do not need to liblink
+       * it at all. */
       continue;
     }
 

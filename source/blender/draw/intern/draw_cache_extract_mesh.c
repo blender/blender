@@ -3207,7 +3207,7 @@ static const MeshExtract extract_stretch_angle = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Edit UV angle stretch
+/** \name Extract Edit Mesh Analysis Colors
  * \{ */
 
 static void *extract_mesh_analysis_init(const MeshRenderData *mr, void *buf)

@@ -141,7 +141,7 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
   WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK = (1 << 8),
 
   /**
-   * Cause continuous redraws, i.e. set the region redraw flag on every main loop itertion. This
+   * Cause continuous redraws, i.e. set the region redraw flag on every main loop iteration. This
    * should really be avoided by using proper region redraw tagging, notifiers and the message-bus,
    * however for VR it's sometimes needed.
    */

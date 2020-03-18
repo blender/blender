@@ -188,7 +188,7 @@ void ED_space_clip_get_aspect_dimension_aware(SpaceClip *sc, float *aspx, float 
    * due to they're invariant to this stuff, but some transformation tools like rotation
    * should be aware of aspect correction caused by different resolution in different
    * directions.
-   * mainly this is sued for transformation stuff
+   * mainly this is used for transformation stuff
    */
 
   if (!sc->clip) {

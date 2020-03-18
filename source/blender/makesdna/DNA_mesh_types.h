@@ -78,8 +78,8 @@ struct MLoopTri_Store {
 
 /* not saved in file! */
 typedef struct Mesh_Runtime {
-  /* Evaluated mesh for objects which do not have effective modifiers. This mesh is sued as a
-   * result of modifier stack evaluation.
+  /* Evaluated mesh for objects which do not have effective modifiers.
+   * This mesh is used as a result of modifier stack evaluation.
    * Since modifier stack evaluation is threaded on object level we need some synchronization. */
   struct Mesh *mesh_eval;
   void *eval_mutex;
