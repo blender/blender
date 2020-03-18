@@ -238,7 +238,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
     /* Don't allow flushing while in the middle of a stroke (frees data in use).
      * Auto-save prevents this from happening but scripts
      * may cause a flush on saving: T53986. */
-    if (!ELEM(NULL, ob->sculpt, ob->sculpt->cache)) {
+    if (ob->sculpt != NULL && ob->sculpt->cache == NULL) {
       char *needs_flush_ptr = &ob->sculpt->needs_flush_to_id;
       if (check_needs_flush && (*needs_flush_ptr == 0)) {
         return false;
