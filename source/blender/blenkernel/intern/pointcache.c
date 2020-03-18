@@ -2385,7 +2385,7 @@ static int ptcache_file_header_begin_read(PTCacheFile *pf)
 
   /* if there was an error set file as it was */
   if (error) {
-    fseek(pf->fp, 0, SEEK_SET);
+    BLI_fseek(pf->fp, 0, SEEK_SET);
   }
 
   return !error;

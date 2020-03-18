@@ -27,6 +27,7 @@
 #include "AVI_avi.h"
 #include "avi_intern.h"
 #include "avi_endian.h"
+#include "BLI_fileops.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -61,7 +62,7 @@ AviError AVI_set_compress_option(
               movie->streams[i].sh.right = *((int *)opt_data);
               ((AviBitmapInfoHeader *)movie->streams[i].sf)->SizeImage =
                   movie->header->SuggestedBufferSize;
-              fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
+              BLI_fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
               awrite(movie,
                      movie->streams[i].sf,
                      1,
@@ -84,7 +85,7 @@ AviError AVI_set_compress_option(
               movie->streams[i].sh.bottom = *((int *)opt_data);
               ((AviBitmapInfoHeader *)movie->streams[i].sf)->SizeImage =
                   movie->header->SuggestedBufferSize;
-              fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
+              BLI_fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
               awrite(movie,
                      movie->streams[i].sf,
                      1,
@@ -100,7 +101,7 @@ AviError AVI_set_compress_option(
           for (i = 0; i < movie->header->Streams; i++) {
             if (avi_get_format_type(movie->streams[i].format) == FCC("vids")) {
               movie->streams[i].sh.Quality = (*((int *)opt_data)) * 100;
-              fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
+              BLI_fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
               awrite(movie,
                      movie->streams[i].sf,
                      1,
@@ -120,7 +121,7 @@ AviError AVI_set_compress_option(
           for (i = 0; i < movie->header->Streams; i++) {
             if (avi_get_format_type(movie->streams[i].format) == FCC("vids")) {
               movie->streams[i].sh.Scale = movie->header->MicroSecPerFrame;
-              fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
+              BLI_fseek(movie->fp, movie->offset_table[1 + i * 2 + 1], SEEK_SET);
               awrite(movie,
                      movie->streams[i].sf,
                      1,
@@ -132,7 +133,7 @@ AviError AVI_set_compress_option(
           break;
       }
 
-      fseek(movie->fp, movie->offset_table[0], SEEK_SET);
+      BLI_fseek(movie->fp, movie->offset_table[0], SEEK_SET);
       awrite(movie, movie->header, 1, sizeof(AviMainHeader), movie->fp, AVI_MAINH);
 
       break;

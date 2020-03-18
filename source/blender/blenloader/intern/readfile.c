@@ -1171,7 +1171,7 @@ static int fd_read_data_from_file(FileData *filedata,
 
 static off64_t fd_seek_data_from_file(FileData *filedata, off64_t offset, int whence)
 {
-  filedata->file_offset = lseek(filedata->filedes, offset, whence);
+  filedata->file_offset = BLI_lseek(filedata->filedes, offset, whence);
   return filedata->file_offset;
 }
 
@@ -1349,7 +1349,7 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
     return NULL;
   }
   else {
-    lseek(file, 0, SEEK_SET);
+    BLI_lseek(file, 0, SEEK_SET);
   }
 
   /* Regular file. */

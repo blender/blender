@@ -249,7 +249,7 @@ bool AVI_is_avi(const char *name)
   movie.header->Reserved[2] = GET_FCC(movie.fp);
   movie.header->Reserved[3] = GET_FCC(movie.fp);
 
-  fseek(movie.fp, movie.header->size - 14 * 4, SEEK_CUR);
+  BLI_fseek(movie.fp, movie.header->size - 14 * 4, SEEK_CUR);
 
   /* Limit number of streams to some reasonable amount to prevent
    * buffer overflow vulnerabilities. */
@@ -312,7 +312,7 @@ bool AVI_is_avi(const char *name)
     movie.streams[temp].sh.right = GET_TCC(movie.fp);
     movie.streams[temp].sh.bottom = GET_TCC(movie.fp);
 
-    fseek(movie.fp, movie.streams[temp].sh.size - 14 * 4, SEEK_CUR);
+    BLI_fseek(movie.fp, movie.streams[temp].sh.size - 14 * 4, SEEK_CUR);
 
     if (GET_FCC(movie.fp) != FCC("strf")) {
       DEBUG_PRINT("no stream format information\n");
@@ -362,27 +362,27 @@ bool AVI_is_avi(const char *name)
         }
       }
       if (j > 0) {
-        fseek(movie.fp, j, SEEK_CUR);
+        BLI_fseek(movie.fp, j, SEEK_CUR);
       }
     }
     else {
-      fseek(movie.fp, movie.streams[temp].sf_size, SEEK_CUR);
+      BLI_fseek(movie.fp, movie.streams[temp].sf_size, SEEK_CUR);
     }
 
     /* Walk to the next LIST */
     while (GET_FCC(movie.fp) != FCC("LIST")) {
       temp = GET_FCC(movie.fp);
-      if (temp < 0 || ftell(movie.fp) > movie.size) {
+      if (temp < 0 || BLI_ftell(movie.fp) > movie.size) {
         DEBUG_PRINT("incorrect size in header or error in AVI\n");
 
         MEM_freeN(movie.streams);
         fclose(movie.fp);
         return 0;
       }
-      fseek(movie.fp, temp, SEEK_CUR);
+      BLI_fseek(movie.fp, temp, SEEK_CUR);
     }
 
-    fseek(movie.fp, -4L, SEEK_CUR);
+    BLI_fseek(movie.fp, -4L, SEEK_CUR);
   }
 
   MEM_freeN(movie.streams);
@@ -437,7 +437,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
   movie->header->Reserved[2] = GET_FCC(movie->fp);
   movie->header->Reserved[3] = GET_FCC(movie->fp);
 
-  fseek(movie->fp, movie->header->size - 14 * 4, SEEK_CUR);
+  BLI_fseek(movie->fp, movie->header->size - 14 * 4, SEEK_CUR);
 
   /* Limit number of streams to some reasonable amount to prevent
    * buffer overflow vulnerabilities. */
@@ -493,7 +493,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
     movie->streams[temp].sh.right = GET_TCC(movie->fp);
     movie->streams[temp].sh.bottom = GET_TCC(movie->fp);
 
-    fseek(movie->fp, movie->streams[temp].sh.size - 14 * 4, SEEK_CUR);
+    BLI_fseek(movie->fp, movie->streams[temp].sh.size - 14 * 4, SEEK_CUR);
 
     if (GET_FCC(movie->fp) != FCC("strf")) {
       DEBUG_PRINT("no stream format information\n");
@@ -540,24 +540,24 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
         }
       }
       if (j > 0) {
-        fseek(movie->fp, j, SEEK_CUR);
+        BLI_fseek(movie->fp, j, SEEK_CUR);
       }
     }
     else {
-      fseek(movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
+      BLI_fseek(movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
     }
 
     /* Walk to the next LIST */
     while (GET_FCC(movie->fp) != FCC("LIST")) {
       temp = GET_FCC(movie->fp);
-      if (temp < 0 || ftell(movie->fp) > movie->size) {
+      if (temp < 0 || BLI_ftell(movie->fp) > movie->size) {
         DEBUG_PRINT("incorrect size in header or error in AVI\n");
         return AVI_ERROR_FORMAT;
       }
-      fseek(movie->fp, temp, SEEK_CUR);
+      BLI_fseek(movie->fp, temp, SEEK_CUR);
     }
 
-    fseek(movie->fp, -4L, SEEK_CUR);
+    BLI_fseek(movie->fp, -4L, SEEK_CUR);
   }
 
   while (1) {
@@ -573,24 +573,24 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
         break;
       }
       else {
-        fseek(movie->fp, size - 4, SEEK_CUR);
+        BLI_fseek(movie->fp, size - 4, SEEK_CUR);
       }
     }
     else {
-      fseek(movie->fp, size, SEEK_CUR);
+      BLI_fseek(movie->fp, size, SEEK_CUR);
     }
-    if (ftell(movie->fp) > movie->size) {
+    if (BLI_ftell(movie->fp) > movie->size) {
       DEBUG_PRINT("incorrect size in header or error in AVI\n");
       return AVI_ERROR_FORMAT;
     }
   }
 
-  movie->movi_offset = ftell(movie->fp);
+  movie->movi_offset = BLI_ftell(movie->fp);
   movie->read_offset = movie->movi_offset;
 
   /* Read in the index if the file has one, otherwise create one */
   if (movie->header->Flags & AVIF_HASINDEX) {
-    fseek(movie->fp, size - 4, SEEK_CUR);
+    BLI_fseek(movie->fp, size - 4, SEEK_CUR);
 
     if (GET_FCC(movie->fp) != FCC("idx1")) {
       DEBUG_PRINT("bad index informatio\n");
@@ -669,7 +669,7 @@ void *AVI_read_frame(AviMovie *movie, AviFormat format, int frame, int stream)
     return NULL;
   }
 
-  fseek(movie->fp, movie->read_offset + movie->entries[i - 1].Offset, SEEK_SET);
+  BLI_fseek(movie->fp, movie->read_offset + movie->entries[i - 1].Offset, SEEK_SET);
 
   size_t size = GET_FCC(movie->fp);
   buffer = MEM_mallocN(size, "readbuffer");
@@ -834,9 +834,9 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 
   awrite(movie, &list, 1, sizeof(AviList), movie->fp, AVI_LIST);
 
-  header_pos1 = ftell(movie->fp);
+  header_pos1 = BLI_ftell(movie->fp);
 
-  movie->offset_table[0] = ftell(movie->fp);
+  movie->offset_table[0] = BLI_ftell(movie->fp);
 
   awrite(movie, movie->header, 1, sizeof(AviMainHeader), movie->fp, AVI_MAINH);
 
@@ -847,24 +847,24 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 
     awrite(movie, &list, 1, sizeof(AviList), movie->fp, AVI_LIST);
 
-    stream_pos1 = ftell(movie->fp);
+    stream_pos1 = BLI_ftell(movie->fp);
 
-    movie->offset_table[1 + i * 2] = ftell(movie->fp);
+    movie->offset_table[1 + i * 2] = BLI_ftell(movie->fp);
     awrite(movie, &movie->streams[i].sh, 1, sizeof(AviStreamHeader), movie->fp, AVI_STREAMH);
 
-    movie->offset_table[1 + i * 2 + 1] = ftell(movie->fp);
+    movie->offset_table[1 + i * 2 + 1] = BLI_ftell(movie->fp);
     awrite(movie, movie->streams[i].sf, 1, movie->streams[i].sf_size, movie->fp, AVI_BITMAPH);
 
-    stream_pos2 = ftell(movie->fp);
+    stream_pos2 = BLI_ftell(movie->fp);
 
-    fseek(movie->fp, stream_pos1 - 8, SEEK_SET);
+    BLI_fseek(movie->fp, stream_pos1 - 8, SEEK_SET);
 
     PUT_FCCN((stream_pos2 - stream_pos1 + 4L), movie->fp);
 
-    fseek(movie->fp, stream_pos2, SEEK_SET);
+    BLI_fseek(movie->fp, stream_pos2, SEEK_SET);
   }
 
-  junk_pos = ftell(movie->fp);
+  junk_pos = BLI_ftell(movie->fp);
 
   if (junk_pos < 2024 - 8) {
     chunk.fcc = FCC("JUNK");
@@ -877,7 +877,7 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
     }
   }
 
-  header_pos2 = ftell(movie->fp);
+  header_pos2 = BLI_ftell(movie->fp);
 
   list.fcc = FCC("LIST");
   list.size = 0;
@@ -885,9 +885,9 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 
   awrite(movie, &list, 1, sizeof(AviList), movie->fp, AVI_LIST);
 
-  movie->movi_offset = ftell(movie->fp) - 8L;
+  movie->movi_offset = BLI_ftell(movie->fp) - 8L;
 
-  fseek(movie->fp, AVI_HDRL_SOFF, SEEK_SET);
+  BLI_fseek(movie->fp, AVI_HDRL_SOFF, SEEK_SET);
 
   PUT_FCCN((header_pos2 - header_pos1 + 4L), movie->fp);
 
@@ -920,7 +920,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 
   /* Slap a new record entry onto the end of the file */
 
-  fseek(movie->fp, 0L, SEEK_END);
+  BLI_fseek(movie->fp, 0L, SEEK_END);
 
   list.fcc = FCC("LIST");
   list.size = 0;
@@ -928,7 +928,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 
   awrite(movie, &list, 1, sizeof(AviList), movie->fp, AVI_LIST);
 
-  rec_off = ftell(movie->fp) - 8L;
+  rec_off = BLI_ftell(movie->fp) - 8L;
 
   /* Write a frame for every stream */
 
@@ -947,7 +947,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 
     /* Write the header info for this data chunk */
 
-    fseek(movie->fp, 0L, SEEK_END);
+    BLI_fseek(movie->fp, 0L, SEEK_END);
 
     chunk.fcc = avi_get_data_id(format, stream);
     chunk.size = size;
@@ -963,7 +963,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
     movie->entries[frame_num * (movie->header->Streams + 1) + stream + 1].ChunkId = chunk.fcc;
     movie->entries[frame_num * (movie->header->Streams + 1) + stream + 1].Flags = AVIIF_KEYFRAME;
     movie->entries[frame_num * (movie->header->Streams + 1) + stream + 1].Offset =
-        (int)(ftell(movie->fp) - 12L - movie->movi_offset);
+        (int)(BLI_ftell(movie->fp) - 12L - movie->movi_offset);
     movie->entries[frame_num * (movie->header->Streams + 1) + stream + 1].Size = chunk.size;
 
     /* Write the chunk */
@@ -976,29 +976,29 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 
     /* Update the stream headers length field */
     movie->streams[stream].sh.Length++;
-    fseek(movie->fp, movie->offset_table[1 + stream * 2], SEEK_SET);
+    BLI_fseek(movie->fp, movie->offset_table[1 + stream * 2], SEEK_SET);
     awrite(movie, &movie->streams[stream].sh, 1, sizeof(AviStreamHeader), movie->fp, AVI_STREAMH);
   }
   va_end(ap);
 
   /* Record the entry for the new record */
 
-  fseek(movie->fp, 0L, SEEK_END);
+  BLI_fseek(movie->fp, 0L, SEEK_END);
 
   movie->entries[frame_num * (movie->header->Streams + 1)].ChunkId = FCC("rec ");
   movie->entries[frame_num * (movie->header->Streams + 1)].Flags = AVIIF_LIST;
   movie->entries[frame_num * (movie->header->Streams + 1)].Offset = (int)(rec_off - 8L -
                                                                           movie->movi_offset);
-  movie->entries[frame_num * (movie->header->Streams + 1)].Size = (int)(ftell(movie->fp) -
+  movie->entries[frame_num * (movie->header->Streams + 1)].Size = (int)(BLI_ftell(movie->fp) -
                                                                         (rec_off + 4L));
 
   /* Update the record size */
-  fseek(movie->fp, rec_off, SEEK_SET);
+  BLI_fseek(movie->fp, rec_off, SEEK_SET);
   PUT_FCCN(movie->entries[frame_num * (movie->header->Streams + 1)].Size, movie->fp);
 
   /* Update the main header information in the file */
   movie->header->TotalFrames++;
-  fseek(movie->fp, movie->offset_table[0], SEEK_SET);
+  BLI_fseek(movie->fp, movie->offset_table[0], SEEK_SET);
   awrite(movie, movie->header, 1, sizeof(AviMainHeader), movie->fp, AVI_MAINH);
 
   return AVI_ERROR_NONE;
@@ -1013,8 +1013,8 @@ AviError AVI_close_compress(AviMovie *movie)
     return AVI_ERROR_FOUND;
   }
 
-  fseek(movie->fp, 0L, SEEK_END);
-  movi_size = (int)ftell(movie->fp);
+  BLI_fseek(movie->fp, 0L, SEEK_END);
+  movi_size = (int)BLI_ftell(movie->fp);
 
   PUT_FCC("idx1", movie->fp);
   PUT_FCCN((movie->index_entries * (movie->header->Streams + 1) * 16), movie->fp);
@@ -1023,13 +1023,13 @@ AviError AVI_close_compress(AviMovie *movie)
     awrite(movie, &movie->entries[temp], 1, sizeof(AviIndexEntry), movie->fp, AVI_INDEXE);
   }
 
-  temp = (int)ftell(movie->fp);
+  temp = (int)BLI_ftell(movie->fp);
 
-  fseek(movie->fp, AVI_RIFF_SOFF, SEEK_SET);
+  BLI_fseek(movie->fp, AVI_RIFF_SOFF, SEEK_SET);
 
   PUT_FCCN((temp - 8L), movie->fp);
 
-  fseek(movie->fp, movie->movi_offset, SEEK_SET);
+  BLI_fseek(movie->fp, movie->movi_offset, SEEK_SET);
 
   PUT_FCCN((movi_size - (movie->movi_offset + 4L)), movie->fp);
 

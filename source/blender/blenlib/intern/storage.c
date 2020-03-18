@@ -175,6 +175,33 @@ double BLI_dir_free_space(const char *dir)
 #endif
 }
 
+int64_t BLI_ftell(FILE *stream)
+{
+#ifdef WIN32
+  return _ftelli64(stream);
+#else
+  return ftell(stream);
+#endif
+}
+
+int BLI_fseek(FILE *stream, int64_t offset, int whence)
+{
+#ifdef WIN32
+  return _fseeki64(stream, offset, whence);
+#else
+  return fseek(stream, offset, whence);
+#endif
+}
+
+int64_t BLI_lseek(int fd, int64_t offset, int whence)
+{
+#ifdef WIN32
+  return _lseeki64(fd, offset, whence);
+#else
+  return lseek(fd, offset, whence);
+#endif
+}
+
 /**
  * Returns the file size of an opened file descriptor.
  */
@@ -383,15 +410,15 @@ static void *file_read_data_as_mem_impl(FILE *fp,
   if (S_ISDIR(st.st_mode)) {
     return NULL;
   }
-  if (fseek(fp, 0L, SEEK_END) == -1) {
+  if (BLI_fseek(fp, 0L, SEEK_END) == -1) {
     return NULL;
   }
   /* Don't use the 'st_size' because it may be the symlink. */
-  const long int filelen = ftell(fp);
+  const long int filelen = BLI_ftell(fp);
   if (filelen == -1) {
     return NULL;
   }
-  if (fseek(fp, 0L, SEEK_SET) == -1) {
+  if (BLI_fseek(fp, 0L, SEEK_SET) == -1) {
     return NULL;
   }
 
@@ -519,9 +546,9 @@ LinkNode *BLI_file_read_as_lines(const char *name)
     return NULL;
   }
 
-  fseek(fp, 0, SEEK_END);
-  size = (size_t)ftell(fp);
-  fseek(fp, 0, SEEK_SET);
+  BLI_fseek(fp, 0, SEEK_END);
+  size = (size_t)BLI_ftell(fp);
+  BLI_fseek(fp, 0, SEEK_SET);
 
   if (UNLIKELY(size == (size_t)-1)) {
     fclose(fp);
