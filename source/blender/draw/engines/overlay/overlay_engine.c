@@ -304,7 +304,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   else if (in_pose_mode && draw_bones) {
     OVERLAY_pose_armature_cache_populate(vedata, ob);
   }
-  else if (in_paint_mode) {
+  else if (in_paint_mode && !pd->hide_overlays) {
     switch (draw_ctx->object_mode) {
       case OB_MODE_VERTEX_PAINT:
         OVERLAY_paint_vertex_cache_populate(vedata, ob);
