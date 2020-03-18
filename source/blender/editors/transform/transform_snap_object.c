@@ -245,8 +245,9 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx, Object
   return sod;
 }
 
-static struct LinkNode **snap_object_data_editmesh_bvh_cache_get(Object *ob, BMEditMesh *em)
+static struct LinkNode **snap_object_data_editmesh_bvh_cache_get(Object *ob)
 {
+  BMEditMesh *em = BKE_editmesh_from_object(ob);
   if (em->mesh_eval_final) {
     return &em->mesh_eval_final->runtime.bvh_cache;
   }
@@ -263,7 +264,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
 {
   SnapObjectData *sod;
   void **sod_p;
-  bool init = false, init_min_max = true, clear_cached = false;
+  bool init = false, init_min_max = true, clear_cache = false;
 
   {
     /* Use object-data as the key in ghash since the editmesh
@@ -288,12 +289,12 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
       clear = true;
     }
     else if (sod->treedata_editmesh.em != em) {
-      clear_cached = true;
+      clear_cache = true;
       init = true;
     }
     else if (sod->bvh_cache_p) {
-      if (sod->bvh_cache_p != snap_object_data_editmesh_bvh_cache_get(ob, em)) {
-        clear_cached = true;
+      if (sod->bvh_cache_p != snap_object_data_editmesh_bvh_cache_get(ob)) {
+        clear_cache = true;
         init = true;
       }
       else if (sod->treedata_editmesh.tree && sod->treedata_editmesh.cached &&
@@ -327,7 +328,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
     sod->type = SNAP_EDIT_MESH;
     sod->treedata_editmesh.em = em;
 
-    if (clear_cached) {
+    if (clear_cache) {
       /* Only init min and max when you have a non-custom bvhtree pending. */
       init_min_max = false;
       if (sod->treedata_editmesh.cached) {
@@ -346,7 +347,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
       bm_mesh_minmax(em->bm, sod->min, sod->max);
     }
 
-    sod->bvh_cache_p = snap_object_data_editmesh_bvh_cache_get(ob, em);
+    sod->bvh_cache_p = snap_object_data_editmesh_bvh_cache_get(ob);
   }
 
   return sod;
@@ -819,7 +820,8 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
   BVHTreeFromEditMesh *treedata = &sod->treedata_editmesh;
 
   if (treedata->tree == NULL) {
-    BLI_assert(sod->treedata_editmesh.em == BKE_editmesh_from_object(ob));
+    /* Operators only update the editmesh looptris of the original mesh. */
+    BLI_assert(sod->treedata_editmesh.em == BKE_editmesh_from_object(DEG_get_original_object(ob)));
     BMEditMesh *em = sod->treedata_editmesh.em;
 
     if (sctx->callbacks.edit_mesh.test_face_fn) {
@@ -962,13 +964,14 @@ static bool raycastObj(SnapObjectContext *sctx,
       Mesh *me = ob->data;
       bool use_hide = false;
       if (BKE_object_is_in_editmode(ob)) {
-        BMEditMesh *em = BKE_editmesh_from_object(ob);
         if (use_obedit) {
+          /* Operators only update the editmesh looptris of the original mesh. */
+          BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
           retval = raycastEditMesh(sctx,
                                    ray_start,
                                    ray_dir,
                                    ob,
-                                   em,
+                                   em_orig,
                                    obmat,
                                    ob_index,
                                    use_backface_culling,
@@ -979,9 +982,12 @@ static bool raycastObj(SnapObjectContext *sctx,
                                    r_hit_list);
           break;
         }
-        else if (em->mesh_eval_final) {
-          me = em->mesh_eval_final;
-          use_hide = true;
+        else {
+          BMEditMesh *em = BKE_editmesh_from_object(ob);
+          if (em->mesh_eval_final) {
+            me = em->mesh_eval_final;
+            use_hide = true;
+          }
         }
       }
       retval = raycastMesh(sctx,
@@ -2677,14 +2683,26 @@ static short snapObject(SnapObjectContext *sctx,
     case OB_MESH: {
       Mesh *me = ob->data;
       if (BKE_object_is_in_editmode(ob)) {
-        BMEditMesh *em = BKE_editmesh_from_object(ob);
         if (use_obedit) {
-          retval = snapEditMesh(
-              sctx, snapdata, ob, em, obmat, use_backface_culling, dist_px, r_loc, r_no, r_index);
+          /* Operators only update the editmesh looptris of the original mesh. */
+          BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
+          retval = snapEditMesh(sctx,
+                                snapdata,
+                                ob,
+                                em_orig,
+                                obmat,
+                                use_backface_culling,
+                                dist_px,
+                                r_loc,
+                                r_no,
+                                r_index);
           break;
         }
-        else if (em->mesh_eval_final) {
-          me = em->mesh_eval_final;
+        else {
+          BMEditMesh *em = BKE_editmesh_from_object(ob);
+          if (em->mesh_eval_final) {
+            me = em->mesh_eval_final;
+          }
         }
       }
       else if (ob->dt == OB_BOUNDBOX) {
