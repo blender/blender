@@ -3638,9 +3638,6 @@ def km_grease_pencil_stroke_vertex_mode(params):
         *_grease_pencil_display(),
         # Tools
         op_tool("builtin_brush.Draw", {"type": 'D', "value": 'PRESS'}),
-        op_tool("builtin_brush.Blur", {"type": 'F', "value": 'PRESS'}),
-        op_tool("builtin_brush.Average", {"type": 'E', "value": 'PRESS'}),
-        op_tool("builtin.brush.Smear", {"type": 'K', "value": 'PRESS'}),
          # Keyframe menu
         ("gpencil.blank_frame_add", {"type": 'I', "value": 'PRESS', "shift": True}, None),
         ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "shift": True}, None),

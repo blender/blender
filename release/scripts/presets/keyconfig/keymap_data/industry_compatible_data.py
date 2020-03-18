@@ -2766,10 +2766,6 @@ def km_grease_pencil_stroke_vertex_mode(params):
         *_grease_pencil_display(),
         # Tools
         op_tool("builtin_brush.Draw", {"type": 'D', "value": 'PRESS'}),
-        op_tool("builtin_brush.Blur", {"type": 'F', "value": 'PRESS'}),
-        op_tool("builtin_brush.Average", {"type": 'E', "value": 'PRESS'}),
-        op_tool("builtin.brush.Smear", {"type": 'K', "value": 'PRESS'}),
-        op_tool("builtin.brush.Replace", {"type": 'R', "value": 'PRESS'}),
         # Vertex Paint context menu
         op_panel("VIEW3D_PT_gpencil_vertex_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
