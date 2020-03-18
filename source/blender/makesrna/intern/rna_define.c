@@ -1850,7 +1850,8 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
         eprop->totitem++;
 
         if (item[i].identifier[0]) {
-          if (strstr(item[i].identifier, " ")) {
+          /* Don't allow spaces in internal enum items (it's fine for Python ones). */
+          if (DefRNA.preprocess && strstr(item[i].identifier, " ")) {
             CLOG_ERROR(&LOG,
                        "\"%s.%s\", enum identifiers must not contain spaces.",
                        srna->identifier,
