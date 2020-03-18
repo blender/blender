@@ -665,9 +665,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_SEQ_EFFECT:
           cp = ts->effect;
           break;
-        case TH_SEQ_TRANSITION:
-          cp = ts->transition;
-          break;
         case TH_SEQ_META:
           cp = ts->meta;
           break;
@@ -676,6 +673,15 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_SEQ_PREVIEW:
           cp = ts->preview_back;
+          break;
+        case TH_SEQ_COLOR:
+          cp = ts->color_strip;
+          break;
+        case TH_SEQ_ACTIVE:
+          cp = ts->active_strip;
+          break;
+        case TH_SEQ_SELECTED:
+          cp = ts->selected_strip;
           break;
 
         case TH_CONSOLE_OUTPUT:

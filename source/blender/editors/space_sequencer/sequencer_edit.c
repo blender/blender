@@ -407,7 +407,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 
           /* clamp handles to defined size in pixel space */
 
-          handsize = seq->handsize;
+          handsize = 2.0f * sequence_handle_size_get_clamped(seq, pixelx);
           displen = (float)abs(seq->startdisp - seq->enddisp);
 
           /* don't even try to grab the handles of small strips */

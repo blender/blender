@@ -806,14 +806,6 @@ void BKE_sequence_calc_disp(Scene *scene, Sequence *seq)
   seq->startdisp = seq->start + seq->startofs - seq->startstill;
   seq->enddisp = seq->start + seq->len - seq->endofs + seq->endstill;
 
-  seq->handsize = 10.0; /* 10 frames */
-  if (seq->enddisp - seq->startdisp < 10) {
-    seq->handsize = (float)(0.5 * (seq->enddisp - seq->startdisp));
-  }
-  else if (seq->enddisp - seq->startdisp > 250) {
-    seq->handsize = (float)((seq->enddisp - seq->startdisp) / 25);
-  }
-
   if (seq->type == SEQ_TYPE_META) {
     seq_update_sound_bounds_recursive(scene, seq);
   }

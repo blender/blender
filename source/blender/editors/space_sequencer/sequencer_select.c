@@ -1044,7 +1044,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
       if (handles) {
         /* Get the handles draw size. */
         float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
-        float handsize = sequence_handle_size_get_clamped(seq, pixelx) * 0.75f;
+        float handsize = sequence_handle_size_get_clamped(seq, pixelx);
 
         /* Right handle. */
         if (rectf.xmax > (seq->enddisp - handsize)) {
