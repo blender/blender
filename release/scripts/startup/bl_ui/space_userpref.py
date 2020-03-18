@@ -628,6 +628,15 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
+        flow.prop(system, "use_sequencer_disk_cache")
+        flow.prop(system, "sequencer_disk_cache_dir")
+        flow.prop(system, "sequencer_disk_cache_size_limit")
+        flow.prop(system, "sequencer_disk_cache_compression")
+
+        layout.separator()
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
         flow.prop(system, "texture_time_out", text="Texture Time Out")
         flow.prop(system, "texture_collection_rate", text="Garbage Collection Rate")
 

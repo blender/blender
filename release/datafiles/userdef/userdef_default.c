@@ -221,6 +221,11 @@ const UserDef U_default = {
             .temp_win_sizey = 600,
         },
 
+    .sequencer_disk_cache_dir = "",
+    .sequencer_disk_cache_compression = 0,
+    .sequencer_disk_cache_size_limit = 100,
+    .sequencer_disk_cache_flag = 0,
+
     .runtime =
         {
             .is_dirty = 0,

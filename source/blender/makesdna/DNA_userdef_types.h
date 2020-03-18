@@ -862,7 +862,13 @@ typedef struct UserDef {
 
   char render_display_type;      /* eUserpref_RenderDisplayType */
   char filebrowser_display_type; /* eUserpref_TempSpaceDisplayType */
-  char _pad5[4];
+
+  char sequencer_disk_cache_dir[1024];
+  int sequencer_disk_cache_compression; /* eUserpref_DiskCacheCompression */
+  int sequencer_disk_cache_size_limit;
+  short sequencer_disk_cache_flag;
+
+  char _pad5[2];
 
   struct WalkNavigation walk_navigation;
 
@@ -1285,6 +1291,12 @@ typedef enum eUserpref_EmulateMMBMod {
   USER_EMU_MMB_MOD_ALT = 0,
   USER_EMU_MMB_MOD_OSKEY = 1,
 } eUserpref_EmulateMMBMod;
+
+typedef enum eUserpref_DiskCacheCompression {
+  USER_SEQ_DISK_CACHE_COMPRESSION_NONE = 0,
+  USER_SEQ_DISK_CACHE_COMPRESSION_LOW = 1,
+  USER_SEQ_DISK_CACHE_COMPRESSION_HIGH = 2,
+} eUserpref_DiskCacheCompression;
 
 #ifdef __cplusplus
 }
