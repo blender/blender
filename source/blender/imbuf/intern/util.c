@@ -31,6 +31,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#ifdef _WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"

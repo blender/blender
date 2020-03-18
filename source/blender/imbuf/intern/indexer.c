@@ -30,6 +30,9 @@
 #include "BLI_string.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
+#ifdef _WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 #include "IMB_indexer.h"
 #include "IMB_anim.h"

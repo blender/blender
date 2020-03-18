@@ -22,12 +22,7 @@
  */
 
 #ifdef _WIN32
-#  define INC_OLE2
-#  include <windows.h>
-#  include <windowsx.h>
-#  include <mmsystem.h>
-#  include <memory.h>
-#  include <commdlg.h>
+#  include "BLI_winstuff.h"
 #  include <vfw.h>
 
 #  undef AVIIF_KEYFRAME /* redefined in AVI_avi.h */

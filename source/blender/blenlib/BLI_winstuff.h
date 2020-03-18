@@ -33,8 +33,6 @@
 
 #include <windows.h>
 
-#undef near
-#undef far
 #undef rad
 #undef rad1
 #undef rad2
