@@ -1419,16 +1419,16 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq, *actseq = BKE_sequencer_active_get(scene);
 
+  if (actseq == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "No active sequence!");
+    return OPERATOR_CANCELLED;
+  }
+
   const int type = RNA_enum_get(op->ptr, "type");
   const int channel = RNA_boolean_get(op->ptr, "use_active_channel") ? actseq->machine : 0;
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
   bool changed = false;
-
-  if (actseq == NULL) {
-    BKE_report(op->reports, RPT_ERROR, "No active sequence!");
-    return OPERATOR_CANCELLED;
-  }
 
   if (!extend) {
     SEQP_BEGIN (ed, seq) {
