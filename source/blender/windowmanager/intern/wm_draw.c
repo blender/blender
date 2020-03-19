@@ -333,12 +333,12 @@ static void wm_draw_region_buffer_free(ARegion *region)
 {
   if (region->draw_buffer) {
     for (int view = 0; view < 2; view++) {
-      if (region->draw_buffer->offscreen[view]) {
-        GPU_offscreen_free(region->draw_buffer->offscreen[view]);
-      }
       if (region->draw_buffer->viewport[view]) {
         GPU_viewport_free(region->draw_buffer->viewport[view]);
       }
+    }
+    if (region->draw_buffer->offscreen) {
+      GPU_offscreen_free(region->draw_buffer->offscreen);
     }
 
     MEM_freeN(region->draw_buffer);
@@ -374,7 +374,7 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
     }
     else {
       /* Free offscreen buffer on size changes. Viewport auto resizes. */
-      GPUOffScreen *offscreen = region->draw_buffer->offscreen[0];
+      GPUOffScreen *offscreen = region->draw_buffer->offscreen;
       if (offscreen && (GPU_offscreen_width(offscreen) != region->winx ||
                         GPU_offscreen_height(offscreen) != region->winy)) {
         wm_draw_region_buffer_free(region);
@@ -402,21 +402,8 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
 
       wm_draw_offscreen_texture_parameters(offscreen);
 
-      GPUOffScreen *offscreen_right = NULL;
-      if (stereo) {
-        offscreen_right = GPU_offscreen_create(region->winx, region->winy, 0, false, false, NULL);
-
-        if (!offscreen_right) {
-          GPU_offscreen_free(offscreen);
-          return;
-        }
-
-        wm_draw_offscreen_texture_parameters(offscreen_right);
-      }
-
       region->draw_buffer = MEM_callocN(sizeof(wmDrawBuffer), "wmDrawBuffer");
-      region->draw_buffer->offscreen[0] = offscreen;
-      region->draw_buffer->offscreen[1] = offscreen_right;
+      region->draw_buffer->offscreen = offscreen;
     }
 
     region->draw_buffer->bound_view = -1;
@@ -434,7 +421,7 @@ static void wm_draw_region_bind(ARegion *region, int view)
     GPU_viewport_bind(region->draw_buffer->viewport[view], &region->winrct);
   }
   else {
-    GPU_offscreen_bind(region->draw_buffer->offscreen[view], false);
+    GPU_offscreen_bind(region->draw_buffer->offscreen, false);
 
     /* For now scissor is expected by region drawing, we could disable it
      * and do the enable/disable in the specific cases that setup scissor. */
@@ -458,7 +445,7 @@ static void wm_draw_region_unbind(ARegion *region, int view)
   }
   else {
     glDisable(GL_SCISSOR_TEST);
-    GPU_offscreen_unbind(region->draw_buffer->offscreen[view], false);
+    GPU_offscreen_unbind(region->draw_buffer->offscreen, false);
   }
 }
 
@@ -473,8 +460,7 @@ static void wm_draw_region_blit(ARegion *region, int view)
     view = 0;
   }
   else if (view > 0) {
-    if (region->draw_buffer->viewport[view] == NULL &&
-        region->draw_buffer->offscreen[view] == NULL) {
+    if (region->draw_buffer->viewport[view] == NULL) {
       /* Region does not need stereo or failed to allocate stereo buffers. */
       view = 0;
     }
@@ -485,7 +471,7 @@ static void wm_draw_region_blit(ARegion *region, int view)
   }
   else {
     GPU_offscreen_draw_to_screen(
-        region->draw_buffer->offscreen[view], region->winrct.xmin, region->winrct.ymin);
+        region->draw_buffer->offscreen, region->winrct.xmin, region->winrct.ymin);
   }
 }
 
@@ -499,7 +485,7 @@ GPUTexture *wm_draw_region_texture(ARegion *region, int view)
     return GPU_viewport_color_texture(region->draw_buffer->viewport[view]);
   }
   else {
-    return GPU_offscreen_color_texture(region->draw_buffer->offscreen[view]);
+    return GPU_offscreen_color_texture(region->draw_buffer->offscreen);
   }
 }
 
