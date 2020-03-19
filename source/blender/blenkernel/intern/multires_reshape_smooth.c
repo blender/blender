@@ -27,7 +27,9 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -43,6 +45,7 @@
 #include "opensubdiv_evaluator_capi.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
+#include "atomic_ops.h"
 #include "subdiv_converter.h"
 
 typedef struct SurfacePoint {
@@ -83,12 +86,19 @@ typedef struct Edge {
 typedef struct MultiresReshapeSmoothContext {
   const MultiresReshapeContext *reshape_context;
 
-  // Geometry at a reshape multires level.
+  /* Geometry at a reshape multires level. */
   struct {
     int num_vertices;
     Vertex *vertices;
 
-    int num_edges;
+    /* Maximum number of edges which might be stored in the edges array.
+     * Is calculated based on the number of edges in the base mesh and the subdivision level. */
+    int max_edges;
+
+    /* Sparse storage of edges. Will only include edges which have non-zero sharpness.
+     *
+     * NOTE: Different type from others to be able to easier use atomic ops. */
+    size_t num_edges;
     Edge *edges;
 
     int num_corners;
@@ -97,6 +107,9 @@ typedef struct MultiresReshapeSmoothContext {
     int num_faces;
     Face *faces;
   } geometry;
+
+  /* Index i of this map indicates that base edge i is adjacent to at least one face. */
+  BLI_bitmap *non_loose_base_edge_map;
 
   /* Subdivision surface created for geometry at a reshape level. */
   Subdiv *reshape_subdiv;
@@ -376,6 +389,11 @@ static void foreach_toplevel_grid_coord(const MultiresReshapeSmoothContext *resh
  * Calculates vertices, their coordinates in the original grids, and connections of them so then
  * it's easy to create OpenSubdiv's topology refiner. */
 
+static int get_reshape_level_resolution(const MultiresReshapeContext *reshape_context)
+{
+  return (1 << reshape_context->reshape.level) + 1;
+}
+
 static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
                          const MultiresReshapeContext *reshape_context)
 {
@@ -383,13 +401,18 @@ static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
 
   reshape_smooth_context->geometry.num_vertices = 0;
   reshape_smooth_context->geometry.vertices = NULL;
+
+  reshape_smooth_context->geometry.max_edges = 0;
   reshape_smooth_context->geometry.num_edges = 0;
   reshape_smooth_context->geometry.edges = NULL;
+
   reshape_smooth_context->geometry.num_corners = 0;
   reshape_smooth_context->geometry.corners = NULL;
+
   reshape_smooth_context->geometry.num_faces = 0;
   reshape_smooth_context->geometry.faces = NULL;
 
+  reshape_smooth_context->non_loose_base_edge_map = NULL;
   reshape_smooth_context->reshape_subdiv = NULL;
   reshape_smooth_context->base_surface_grids = NULL;
 }
@@ -417,6 +440,8 @@ static void context_free_subdiv(MultiresReshapeSmoothContext *reshape_smooth_con
 
 static void context_free(MultiresReshapeSmoothContext *reshape_smooth_context)
 {
+  MEM_freeN(reshape_smooth_context->non_loose_base_edge_map);
+
   context_free_geometry(reshape_smooth_context);
   context_free_subdiv(reshape_smooth_context);
   base_surface_grids_free(reshape_smooth_context);
@@ -424,20 +449,28 @@ static void context_free(MultiresReshapeSmoothContext *reshape_smooth_context)
 
 static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
                                   const int num_vertices,
-                                  const int num_edges,
+                                  const int UNUSED(num_edges),
                                   const int num_loops,
                                   const int num_polygons)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+
+  const int resolution = get_reshape_level_resolution(reshape_context);
+  const int num_subdiv_vertices_per_base_edge = resolution - 2;
+
+  const Mesh *base_mesh = reshape_context->base_mesh;
+  const int num_base_edges = base_mesh->totedge;
+  const int max_edges = num_base_edges * (num_subdiv_vertices_per_base_edge + 1);
 
   /* NOTE: Calloc so the counters are re-set to 0 "for free". */
   reshape_smooth_context->geometry.num_vertices = num_vertices;
   reshape_smooth_context->geometry.vertices = MEM_calloc_arrayN(
       sizeof(Vertex), num_vertices, "smooth vertices");
 
-  reshape_smooth_context->geometry.num_edges = num_edges;
+  reshape_smooth_context->geometry.max_edges = max_edges;
   reshape_smooth_context->geometry.edges = MEM_malloc_arrayN(
-      sizeof(Edge), num_edges, "smooth edges");
+      sizeof(Edge), max_edges, "smooth edges");
 
   reshape_smooth_context->geometry.num_corners = num_loops;
   reshape_smooth_context->geometry.corners = MEM_malloc_arrayN(
@@ -624,25 +657,54 @@ static void foreach_vertex_of_loose_edge(const struct SubdivForeachContext *fore
 void foreach_edge(const struct SubdivForeachContext *foreach_context,
                   void *tls,
                   const int coarse_edge_index,
-                  const int subdiv_edge_index,
+                  const int UNUSED(subdiv_edge_index),
                   const int subdiv_v1,
                   const int subdiv_v2)
 {
-  const MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
-  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+  MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
 
-  Edge *edge = &reshape_smooth_context->geometry.edges[subdiv_edge_index];
-  edge->v1 = subdiv_v1;
-  edge->v2 = subdiv_v2;
-
+  /* Ignore all inner face edges as they have sharpness of zero. */
   if (coarse_edge_index == ORIGINDEX_NONE) {
-    edge->sharpness = 0.0f;
     return;
   }
+  /* Ignore all loose edges as well, as they are not communicated to the OpenSubdiv. */
+  if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, coarse_edge_index)) {
+    return;
+  }
+
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+
+  /* This is a bit overhead to use atomics in such a simple function called from many threads,
+   * but this allows to save quite measurable amount of memory. */
+  const int edge_index = atomic_fetch_and_add_z(&reshape_smooth_context->geometry.num_edges, 1);
+  BLI_assert(edge_index < reshape_smooth_context->geometry.max_edges);
+
+  Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
+  edge->v1 = subdiv_v1;
+  edge->v2 = subdiv_v2;
 
   const Mesh *base_mesh = reshape_context->base_mesh;
   const MEdge *base_edge = &base_mesh->medge[coarse_edge_index];
   edge->sharpness = BKE_subdiv_edge_crease_to_sharpness_char(base_edge->crease);
+}
+
+static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshape_smooth_context)
+{
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+  const Mesh *base_mesh = reshape_context->base_mesh;
+  const MPoly *base_mpoly = base_mesh->mpoly;
+  const MLoop *base_mloop = base_mesh->mloop;
+
+  reshape_smooth_context->non_loose_base_edge_map = BLI_BITMAP_NEW(base_mesh->totedge,
+                                                                   "edges used map");
+
+  for (int poly_index = 0; poly_index < base_mesh->totpoly; poly_index++) {
+    const MPoly *base_poly = &base_mpoly[poly_index];
+    for (int corner = 0; corner < base_poly->totloop; corner++) {
+      const MLoop *loop = &base_mloop[base_poly->loopstart + corner];
+      BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, loop->e);
+    }
+  }
 }
 
 static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context)
@@ -661,8 +723,10 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
       .user_data = reshape_smooth_context,
   };
 
+  geometry_init_loose_information(reshape_smooth_context);
+
   SubdivToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << reshape_context->reshape.level) + 1;
+  mesh_settings.resolution = get_reshape_level_resolution(reshape_context);
   mesh_settings.use_optimal_display = false;
 
   /* TODO(sergey): Tell the foreach() to ignore loose vertices. */
@@ -721,8 +785,9 @@ static int get_num_vertices(const OpenSubdiv_Converter *converter)
 static int get_num_face_vertices(const OpenSubdiv_Converter *converter, int face_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
-  const Face *face = &reshape_smooth_context->geometry.faces[face_index];
+  BLI_assert(face_index < reshape_smooth_context->geometry.num_faces);
 
+  const Face *face = &reshape_smooth_context->geometry.faces[face_index];
   return face->num_corners;
 }
 
@@ -731,6 +796,8 @@ static void get_face_vertices(const OpenSubdiv_Converter *converter,
                               int *face_vertices)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
+  BLI_assert(face_index < reshape_smooth_context->geometry.num_faces);
+
   const Face *face = &reshape_smooth_context->geometry.faces[face_index];
 
   for (int i = 0; i < face->num_corners; ++i) {
@@ -751,6 +818,8 @@ static void get_edge_vertices(const OpenSubdiv_Converter *converter,
                               int edge_vertices[2])
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
+  BLI_assert(edge_index < reshape_smooth_context->geometry.num_edges);
+
   const Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
   edge_vertices[0] = edge->v1;
   edge_vertices[1] = edge->v2;
@@ -759,6 +828,8 @@ static void get_edge_vertices(const OpenSubdiv_Converter *converter,
 static float get_edge_sharpness(const OpenSubdiv_Converter *converter, const int edge_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
+  BLI_assert(edge_index < reshape_smooth_context->geometry.num_edges);
+
   const Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
   return edge->sharpness;
 }
@@ -766,8 +837,10 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, const int
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter, int vertex_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
-  const Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
 
+  BLI_assert(vertex_index < reshape_smooth_context->geometry.num_vertices);
+
+  const Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
   return vertex->is_infinite_sharp;
 }
 
