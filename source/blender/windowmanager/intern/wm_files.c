@@ -3182,7 +3182,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     wm_block_file_close_cancel_button(block, post_action);
   }
   else {
-    /* macOS and Linux standard layout. */
+    /* Non-Windows layout (macOS and Linux). */
 
     uiLayout *split = uiLayoutSplit(block_layout, 0.167f, true);
     uiLayoutSetScaleY(split, 1.2f);
@@ -3191,19 +3191,19 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     uiItemS(layout);
 
     /* Split button area into two sections: 40/60. */
-    uiLayout *mac_left = uiLayoutSplit(split, 0.40f, true);
+    uiLayout *split_left = uiLayoutSplit(split, 0.40f, true);
 
     /* First button uses 75% of left side (30% of original). */
-    uiLayoutSplit(mac_left, 0.75f, true);
+    uiLayoutSplit(split_left, 0.75f, true);
     wm_block_file_close_discard_button(block, post_action);
 
     /* The right side is split 50/50 (each 30% of original). */
-    uiLayout *mac_right = uiLayoutSplit(mac_left, 0.50f, true);
+    uiLayout *split_right = uiLayoutSplit(split_left, 0.50f, true);
 
-    uiLayoutColumn(mac_right, false);
+    uiLayoutColumn(split_right, false);
     wm_block_file_close_cancel_button(block, post_action);
 
-    uiLayoutColumn(mac_right, false);
+    uiLayoutColumn(split_right, false);
     wm_block_file_close_save_button(block, post_action);
   }
 
