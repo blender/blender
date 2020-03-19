@@ -570,7 +570,7 @@ static void cloth_calc_force(
       float f;
       float vol = cloth_calc_volume(clmd);
 
-      /* Calculate an artifical maximum value for cloth pressure. */
+      /* Calculate an artificial maximum value for cloth pressure. */
       f = fabs(clmd->sim_parms->uniform_pressure_force) + 200.0f;
 
       /* Clamp the cloth pressure to the calculated maximum value. */

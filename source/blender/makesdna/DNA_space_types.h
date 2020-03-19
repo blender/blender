@@ -436,7 +436,7 @@ typedef struct SpaceGraph {
 
 /* SpaceGraph.flag (Graph Editor Settings) */
 typedef enum eGraphEdit_Flag {
-  /* OLD DEPRECEATED SETTING */
+  /* OLD DEPRECATED SETTING */
   /* SIPO_LOCK_VIEW            = (1 << 0), */
 
   /* don't merge keyframes on the same frame after a transform */

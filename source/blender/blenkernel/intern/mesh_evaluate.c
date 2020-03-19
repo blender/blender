@@ -1279,7 +1279,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
         copy_v3_v3(nor, lnor);
       }
     }
-    /* Extra bonus: since small-stack is local to this funcion,
+    /* Extra bonus: since small-stack is local to this function,
      * no more need to empty it at all cost! */
   }
 }

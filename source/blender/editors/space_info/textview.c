@@ -285,7 +285,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
     tds->xy[1] += tds->lheight;
 
-    /* Check if were out of view bounds. */
+    /* Check if we're out of view bounds. */
     if (tds->xy[1] > tds->scroll_ymax) {
       MEM_freeN(offsets);
       return false;

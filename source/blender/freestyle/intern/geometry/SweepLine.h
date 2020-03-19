@@ -31,7 +31,7 @@
 
 namespace Freestyle {
 
-/*! Class to define the intersection berween two segments*/
+/*! Class to define the intersection between two segments*/
 template<class Edge> class Intersection {
  public:
   template<class EdgeClass> Intersection(EdgeClass *eA, real ta, EdgeClass *eB, real tb)

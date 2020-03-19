@@ -2998,7 +2998,7 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
   Image *ima = image_from_context(C);
   int method = RNA_enum_get(op->ptr, "method");
 
-  /* find the suppplied image by name */
+  /* find the supplied image by name */
   if (RNA_struct_property_is_set(op->ptr, "id")) {
     char imaname[MAX_ID_NAME - 2];
     RNA_string_get(op->ptr, "id", imaname);

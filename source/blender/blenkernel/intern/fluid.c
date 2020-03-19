@@ -4259,7 +4259,7 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *mds, ViewLayer *v
 
         // get starting cell (light pos)
         if (BLI_bvhtree_bb_raycast(bv, light, voxel_center, pos) > FLT_EPSILON) {
-          // we're ouside -> use point on side of domain
+          // we're outside -> use point on side of domain
           cell[0] = (int)floor(pos[0]);
           cell[1] = (int)floor(pos[1]);
           cell[2] = (int)floor(pos[2]);

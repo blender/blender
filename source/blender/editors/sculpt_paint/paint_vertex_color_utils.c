@@ -230,7 +230,7 @@ BLI_INLINE uint mcol_lighten(uint col_src, uint col_dst, int fac)
   cp_dst = (uchar *)&col_dst;
   cp_mix = (uchar *)&col_mix;
 
-  /* See if are lighter, if so mix, else don't do anything.
+  /* See if we're lighter, if so mix, else don't do anything.
    * if the paint color is darker then the original, then ignore */
   if (IMB_colormanagement_get_luminance_byte(cp_src) >
       IMB_colormanagement_get_luminance_byte(cp_dst)) {
@@ -264,7 +264,7 @@ BLI_INLINE uint mcol_darken(uint col_src, uint col_dst, int fac)
   cp_dst = (uchar *)&col_dst;
   cp_mix = (uchar *)&col_mix;
 
-  /* See if were darker, if so mix, else don't do anything.
+  /* See if we're darker, if so mix, else don't do anything.
    * if the paint color is brighter then the original, then ignore */
   if (IMB_colormanagement_get_luminance_byte(cp_src) <
       IMB_colormanagement_get_luminance_byte(cp_dst)) {

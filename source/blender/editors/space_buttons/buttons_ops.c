@@ -227,7 +227,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
           is_relative = false;
         }
 
-        /* annoying exception!, if were dealing with the user prefs, default relative to be off */
+        /* annoying exception!, if we're dealing with the user prefs, default relative to be off */
         RNA_property_boolean_set(op->ptr, prop_relpath, is_relative);
       }
     }

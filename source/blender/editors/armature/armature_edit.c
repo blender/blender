@@ -343,7 +343,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
             sub_v3_v3v3(dir_a, ebone->tail, ebone->head);
             normalize_v3(dir_a);
 
-            /* find the first bone in the chane with a different direction */
+            /* find the first bone in the chain with a different direction */
             do {
               sub_v3_v3v3(dir_b, ebone_other->head, ebone_other->tail);
               normalize_v3(dir_b);

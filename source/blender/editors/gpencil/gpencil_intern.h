@@ -562,7 +562,7 @@ void GPENCIL_OT_convert_old_files(struct wmOperatorType *ot);
 void GPENCIL_OT_generate_weights(struct wmOperatorType *ot);
 
 /* ****************************************************** */
-/* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
+/* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECATED OLD ANIM SYSTEM CODE! */
 
 /* XXX - TODO: replace this with the modern bAnimListElem... */
 /* This struct defines a structure used for quick access */
