@@ -67,10 +67,10 @@ typedef struct Corner {
   int grid_index;
 } Corner;
 
-typedef struct Dace {
+typedef struct Face {
   int start_corner_index;
   int num_corners;
-} Dace;
+} Face;
 
 typedef struct MultiresReshapeSmoothContext {
   const MultiresReshapeContext *reshape_context;
@@ -84,7 +84,7 @@ typedef struct MultiresReshapeSmoothContext {
     Corner *corners;
 
     int num_faces;
-    Dace *faces;
+    Face *faces;
   } geometry;
 
   /* Subdivision surface created for geometry at a reshape level. */
@@ -225,7 +225,7 @@ typedef struct ForeachTopLevelGridCoordTaskData {
 
 /* Find grid index which given face was created for. */
 static int get_face_grid_index(const MultiresReshapeSmoothContext *reshape_smooth_context,
-                               const Dace *face)
+                               const Face *face)
 {
   const Corner *first_corner = &reshape_smooth_context->geometry.corners[face->start_corner_index];
   const int grid_index = first_corner->grid_index;
@@ -255,7 +255,7 @@ static GridCoord *vertex_grid_coord_with_grid_index(const Vertex *vertex, const 
  * All the grid coordinates will be from the same grid index. */
 static void grid_coords_from_face_vertices(
     const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const Dace *face,
+    const Face *face,
     const GridCoord *grid_coords[])
 {
   BLI_assert(face->num_corners == 4);
@@ -314,7 +314,7 @@ static void foreach_toplevel_grid_coord_task(void *__restrict userdata_v,
   const int inner_grid_size = data->inner_grid_size;
   const float inner_grid_size_1_inv = data->inner_grid_size_1_inv;
 
-  const Dace *face = &reshape_smooth_context->geometry.faces[face_index];
+  const Face *face = &reshape_smooth_context->geometry.faces[face_index];
   const GridCoord *face_grid_coords[4];
   grid_coords_from_face_vertices(reshape_smooth_context, face, face_grid_coords);
 
@@ -425,7 +425,7 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
 
   reshape_smooth_context->geometry.num_faces = num_polygons;
   reshape_smooth_context->geometry.faces = MEM_malloc_arrayN(
-      sizeof(Dace), num_polygons, "smooth faces");
+      sizeof(Face), num_polygons, "smooth faces");
 
   return true;
 }
@@ -582,7 +582,7 @@ static void foreach_poly(const SubdivForeachContext *foreach_context,
 
   BLI_assert(subdiv_poly_index < reshape_smooth_context->geometry.num_faces);
 
-  Dace *face = &reshape_smooth_context->geometry.faces[subdiv_poly_index];
+  Face *face = &reshape_smooth_context->geometry.faces[subdiv_poly_index];
   face->start_corner_index = start_loop_index;
   face->num_corners = num_loops;
 }
@@ -676,7 +676,7 @@ static int get_num_vertices(const OpenSubdiv_Converter *converter)
 static int get_num_face_vertices(const OpenSubdiv_Converter *converter, int face_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
-  const Dace *face = &reshape_smooth_context->geometry.faces[face_index];
+  const Face *face = &reshape_smooth_context->geometry.faces[face_index];
 
   return face->num_corners;
 }
@@ -686,7 +686,7 @@ static void get_face_vertices(const OpenSubdiv_Converter *converter,
                               int *face_vertices)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
-  const Dace *face = &reshape_smooth_context->geometry.faces[face_index];
+  const Face *face = &reshape_smooth_context->geometry.faces[face_index];
 
   for (int i = 0; i < face->num_corners; ++i) {
     const int corner_index = face->start_corner_index + i;
