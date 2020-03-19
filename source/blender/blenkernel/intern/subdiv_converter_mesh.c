@@ -168,8 +168,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
   const MEdge *medge = storage->mesh->medge;
-  const float edge_crease = (float)medge[edge_index].crease / 255.0f;
-  return edge_crease * edge_crease * 10.0f;
+  return BKE_subdiv_edge_crease_to_sharpness_char(medge[edge_index].crease);
 }
 
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
