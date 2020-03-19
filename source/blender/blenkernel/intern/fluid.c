@@ -1849,7 +1849,8 @@ static void sample_mesh(FluidFlowSettings *mfs,
                       mfs->type == FLUID_FLOW_TYPE_SMOKEFIRE);
 
   /* Emission strength for gases will be computed below.
-   * For liquids it's not needed. Just set to non zero value to allow initial velocity computation */
+   * For liquids it's not needed. Just set to non zero value
+   * to allow initial velocity computation. */
   float emission_strength = (is_gas_flow) ? 0.0f : 1.0f;
 
   /* Emission inside the flow object. */
