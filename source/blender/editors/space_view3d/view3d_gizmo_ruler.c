@@ -864,7 +864,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    immUniformColor4fv(color_act);
+    immUniformThemeColor3(TH_GIZMO_VIEW_ALIGN);
 
     imm_draw_circle_wire_2d(pos, co_ss_snap[0], co_ss_snap[1], size * U.pixelsize, 32);
 

@@ -916,6 +916,7 @@ class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
         col = flow.column()
         col.prop(ui, "gizmo_primary")
         col.prop(ui, "gizmo_secondary")
+        col.prop(ui, "gizmo_view_align")
 
         col = flow.column()
         col.prop(ui, "gizmo_a")

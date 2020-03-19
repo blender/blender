@@ -196,6 +196,15 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_info.info_warning);
   }
 
+  if (!USER_VERSION_ATLEAST(283, 10)) {
+    FROM_DEFAULT_V4_UCHAR(tui.gizmo_view_align);
+
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.active_strip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.selected_strip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.color_strip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -207,10 +216,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    */
   {
     /* Keep this block, even when empty. */
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.active_strip);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.selected_strip);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.color_strip);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

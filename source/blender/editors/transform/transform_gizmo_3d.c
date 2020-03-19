@@ -397,7 +397,7 @@ static void gizmo_get_axis_color(const int axis_idx,
     case MAN_AXIS_ROT_C:
     case MAN_AXIS_SCALE_C:
     case MAN_AXIS_ROT_T:
-      copy_v4_fl(r_col, 1.0f);
+      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, r_col);
       break;
   }
 

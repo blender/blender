@@ -918,6 +918,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_GIZMO_SECONDARY:
           cp = btheme->tui.gizmo_secondary;
           break;
+        case TH_GIZMO_VIEW_ALIGN:
+          cp = btheme->tui.gizmo_view_align;
+          break;
         case TH_GIZMO_A:
           cp = btheme->tui.gizmo_a;
           break;

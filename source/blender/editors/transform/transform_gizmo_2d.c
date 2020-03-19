@@ -315,6 +315,11 @@ static void gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup
       WM_gizmo_set_scale(gz, 1.0f);
     }
     else {
+      float color[4], color_hi[4];
+      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      copy_v4_v4(color_hi, color);
+      color[3] *= 0.6f;
+
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
       RNA_property_enum_set(gz->ptr, prop, ICON_NONE);
 
@@ -322,7 +327,8 @@ static void gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup
       /* Make the center low alpha. */
       WM_gizmo_set_line_width(gz, 2.0f);
       RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.0);
-      WM_gizmo_set_color(gz, (const float[4]){1, 1, 1, 0.6});
+      WM_gizmo_set_color(gz, color);
+      WM_gizmo_set_color_highlight(gz, color_hi);
 
       WM_gizmo_set_scale(gz, 0.2f);
     }
@@ -629,6 +635,11 @@ static void gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgrou
       WM_gizmo_set_scale(gz, 1.0f);
     }
     else {
+      float color[4], color_hi[4];
+      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      copy_v4_v4(color_hi, color);
+      color[3] *= 0.6f;
+
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
       RNA_property_enum_set(gz->ptr, prop, ICON_NONE);
 
@@ -636,7 +647,8 @@ static void gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgrou
       /* Make the center low alpha. */
       WM_gizmo_set_line_width(gz, 2.0f);
       RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.0);
-      WM_gizmo_set_color(gz, (const float[4]){1, 1, 1, 0.6});
+      WM_gizmo_set_color(gz, color);
+      WM_gizmo_set_color_highlight(gz, color_hi);
 
       WM_gizmo_set_scale(gz, 1.2f);
     }
@@ -754,6 +766,9 @@ static void gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgrou
     WM_gizmo_set_scale(gz, 1.2f);
 
     {
+      float color[4];
+      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
       RNA_property_enum_set(gz->ptr, prop, ICON_NONE);
 
@@ -761,7 +776,8 @@ static void gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgrou
       /* Make the center low alpha. */
       WM_gizmo_set_line_width(gz, 2.0f);
       RNA_float_set(gz->ptr, "backdrop_fill_alpha", 0.0);
-      WM_gizmo_set_color(gz, (const float[4]){1, 1, 1, 0.6});
+      WM_gizmo_set_color(gz, color);
+      WM_gizmo_set_color_highlight(gz, color);
     }
 
     /* Assign operator. */

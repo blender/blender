@@ -182,6 +182,7 @@ typedef struct ThemeUI {
   unsigned char gizmo_hi[4];
   unsigned char gizmo_primary[4];
   unsigned char gizmo_secondary[4];
+  unsigned char gizmo_view_align[4];
   unsigned char gizmo_a[4];
   unsigned char gizmo_b[4];
 
@@ -200,7 +201,6 @@ typedef struct ThemeUI {
   unsigned char icon_shading[4];
   /** File folders. */
   unsigned char icon_folder[4];
-  char _pad2[4];
   /** Intensity of the border icons. >0 will render an border around themed
    * icons. */
   float icon_border_intensity;
