@@ -87,6 +87,14 @@ static void rna_Meta_texspace_size_set(PointerRNA *ptr, const float *values)
   copy_v3_v3(mb->size, values);
 }
 
+static void rna_MetaBall_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+
+  DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+}
+
 static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   MetaBall *mb = (MetaBall *)ptr->owner_id;
@@ -253,6 +261,16 @@ static void rna_def_metaelement(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_NEGATIVE);
   RNA_def_property_ui_text(prop, "Negative", "Set metaball as negative one");
   RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+
+  prop = RNA_def_property(srna, "use_scale_stiffness", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MB_SCALE_RAD);
+  RNA_def_property_ui_text(prop, "Scale Stiffness", "Scale stiffness instead of radius");
+  RNA_def_property_update(prop, 0, "rna_MetaBall_redraw_data");
+
+  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", 1); /* SELECT */
+  RNA_def_property_ui_text(prop, "Select", "Select element");
+  RNA_def_property_update(prop, 0, "rna_MetaBall_redraw_data");
 
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_HIDE);
