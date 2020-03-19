@@ -82,7 +82,7 @@
  * Multiple(DCACHE_IMAGES_PER_FILE) images share the same file.
  * Each of these files contains header DiskCacheHeader followed by image data.
  * Zlib compression with user definable level can be used to compress image data(per image)
- * Images are written in oreder in which they are rendered.
+ * Images are written in order in which they are rendered.
  * Overwriting of individual entry is not possible.
  * Stored images are deleted by invalidation, or when size of all files exceeds maximum
  * size specified in user preferences.

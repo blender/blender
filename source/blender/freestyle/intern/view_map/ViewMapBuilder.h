@@ -255,7 +255,7 @@ class ViewMapBuilder {
    *      fe is the border (in 2D) between 2 2D spaces.
    *      if fe is a silhouette, One of these 2D spaces is occupied by the shape to which fe
    * belongs (on its left) and the other one is either occupied by another shape or empty or
-   * occupied by the same shape. We use this ray csating operation to determine which shape lies on
+   * occupied by the same shape. We use this ray casting operation to determine which shape lies on
    * fe's right. The result is the shape id stored in oShapeId
    */
   int ComputeRayCastingVisibility(FEdge *fe,

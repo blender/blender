@@ -466,7 +466,7 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
         grp, gpu_grid->sampler_name, (drw_grid) ? drw_grid->texture : e_data.dummy_density);
 
     if (drw_grid && multiple_transforms) {
-      /* Specify per-volume tranform matrix that is applied after the
+      /* Specify per-volume transform matrix that is applied after the
        * transform from object to bounds. */
       mul_m4_m4m4(drw_grid->bounds_to_texture, drw_grid->object_to_texture, bounds_to_object);
       DRW_shgroup_uniform_mat4(grp, gpu_grid->transform_name, drw_grid->bounds_to_texture);

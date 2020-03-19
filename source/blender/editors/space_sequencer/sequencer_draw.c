@@ -1009,7 +1009,7 @@ static void draw_seq_strip(const bContext *C,
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
   /* Position of the text,
-   * make sure that the strip content is visible also when the strip heigh gets lower. */
+   * make sure that the strip content is visible also when the strip height gets lower. */
   float text_margin_y = y2 - min_ff(0.40f, 20 * U.dpi_fac * pixely);
 
   /* Show some content only when the strip is high enough. */

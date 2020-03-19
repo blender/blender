@@ -235,7 +235,7 @@ void multiresModifier_base_apply(struct Depsgraph *depsgraph,
   /* For modifying base mesh we only want to consider deformation caused by multires displacement
    * and ignore all deformation which might be caused by deformation modifiers leading the multires
    * one.
-   * So  refine the subdiv to the original mesh verticies positions, which will also need to make
+   * So refine the subdiv to the original mesh vertices positions, which will also need to make
    * it so object space displacement is re-evaluated for them (as in, can not re-use any knowledge
    * from the final coordinates in the object space ). */
   multires_reshape_apply_base_refine_from_base(&reshape_context);

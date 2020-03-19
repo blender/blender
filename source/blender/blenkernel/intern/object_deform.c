@@ -706,7 +706,7 @@ bool BKE_object_defgroup_check_lock_relative(const bool *lock_flags,
 }
 
 /**
- * Additional check for whether the lock relative mode is applicable in multipaint mode.
+ * Additional check for whether the lock relative mode is applicable in multi-paint mode.
  *
  * @return true if none of the selected groups are locked.
  */
