@@ -8,13 +8,14 @@
         icon_saturation="0.5"
         widget_emboss="#00000005"
         editor_outline="#1f1f1f"
+        widget_text_cursor="#3399e6"
         axis_x="#ff3352"
         axis_y="#8bdc00"
         axis_z="#2890ff"
         gizmo_hi="#ffffff"
         gizmo_primary="#f5f14d"
         gizmo_secondary="#63ffff"
-        gizmo_view_align="#585858"
+        gizmo_view_align="#ffffff"
         gizmo_a="#4da84d"
         gizmo_b="#a33535"
         icon_scene="#e6e6e6ff"
@@ -378,6 +379,8 @@
         face_dot="#ff8500"
         facedot_size="4"
         freestyle_face_mark="#7fff7f33"
+        face_back="#ff0000b3"
+        face_front="#0000ffb3"
         nurb_uline="#909000"
         nurb_vline="#803060"
         nurb_sel_uline="#f0ff40"
@@ -403,6 +406,7 @@
         bone_pose="#50c8ff"
         bone_pose_active="#8cffff"
         bone_solid="#e6e6e6"
+        bone_locked_weight="#ff000080"
         bundle_solid="#c8c8c8"
         camera_path="#000000"
         skin_root="#b44d4d"
@@ -435,7 +439,7 @@
             >
             <gradients>
               <ThemeGradientColors
-                show_grad="FALSE"
+                background_type="SINGLE_COLOR"
                 high_gradient="#646464"
                 gradient="#646464"
                 >
@@ -458,6 +462,8 @@
         grid="#5e5e5e"
         frame_current="#5680c2"
         time_scrub_background="#808080e6"
+        time_marker_line="#00000060"
+        time_marker_line_selected="#ffffff60"
         window_sliders="#969696"
         channels_region="#999999"
         dopesheet_channel="#2e6399"
@@ -566,6 +572,8 @@
       <ThemeNLAEditor
         grid="#5e5e5e"
         view_sliders="#969696"
+        dopesheet_channel="#5a85b2"
+        nla_track="#424242"
         active_action="#cc701a66"
         active_action_unset="#9987614d"
         preview_range="#a14d0066"
@@ -583,6 +591,8 @@
         keyframe_border_selected="#000000ff"
         frame_current="#5680c2"
         time_scrub_background="#808080e6"
+        time_marker_line="#00000060"
+        time_marker_line_selected="#ffffff60"
         >
         <space>
           <ThemeSpaceGeneric
@@ -630,6 +640,8 @@
         grid="#4d4d4d"
         frame_current="#5680c2"
         time_scrub_background="#808080e6"
+        time_marker_line="#00000060"
+        time_marker_line_selected="#ffffff60"
         value_sliders="#000000"
         view_sliders="#969696"
         dopesheet_channel="#2e639924"
@@ -710,6 +722,8 @@
         face_dot="#ff8500"
         facedot_size="3"
         freestyle_face_mark="#7fff7f33"
+        face_back="#00000000"
+        face_front="#00000000"
         editmesh_active="#ffffff80"
         wire_edit="#c0c0c0"
         edge_select="#ff8500"
@@ -781,19 +795,22 @@
         scene_strip="#828f50"
         audio_strip="#4c8f8f"
         effect_strip="#4c456c"
+        color_strip="#8f8f8f"
         meta_strip="#5b4d91"
         mask_strip="#8f5656"
         text_strip="#824c8f"
-        color_strip="#8f8f8f"
         active_strip="#d9d9d9"
         selected_strip="#ff6a00"
         frame_current="#5680c2"
         time_scrub_background="#292929e6"
+        time_marker_line="#00000060"
+        time_marker_line_selected="#ffffff60"
         keyframe="#ff8500"
         draw_action="#50c8ff"
         preview_back="#000000"
         metadatabg="#000000"
         metadatatext="#ffffff"
+        preview_range="#a14d0066"
         >
         <space>
           <ThemeSpaceGeneric
@@ -863,6 +880,7 @@
     </properties>
     <text_editor>
       <ThemeTextEditor
+        line_numbers="#d0d0d0"
         line_numbers_background="#313133"
         selected_text="#19191a"
         cursor="#ff0000"
@@ -1022,14 +1040,18 @@
       <ThemeInfo
         info_selected="#6080ff"
         info_selected_text="#ffffff"
-        info_error="#990000"
+        info_error="#990000ff"
         info_error_text="#ffffff"
-        info_warning="#b36a00"
+        info_warning="#b36a00ff"
         info_warning_text="#ffffff"
-        info_info="#1d4383"
+        info_info="#1d4383ff"
         info_info_text="#ffffff"
-        info_debug="#d3d3d3"
+        info_debug="#d3d3d3ff"
         info_debug_text="#000000"
+        info_property="#3ace87ff"
+        info_property_text="#ffffff"
+        info_operator="#3ace87ff"
+        info_operator_text="#ffffff"
         >
         <space>
           <ThemeSpaceGeneric
@@ -1148,8 +1170,12 @@
         locked_marker="#7f7f7f"
         path_before="#ff0000"
         path_after="#0000ff"
+        path_keyframe_before="#ffc4c4"
+        path_keyframe_after="#c4c4ff"
         frame_current="#5680c2"
         time_scrub_background="#292929e6"
+        time_marker_line="#00000060"
+        time_marker_line_selected="#ffffff60"
         strips="#0c0a0a"
         strips_selected="#ff8c00"
         metadatabg="#000000"
