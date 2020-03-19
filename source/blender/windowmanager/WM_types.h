@@ -120,15 +120,15 @@ struct wmEvent;
 struct wmOperator;
 struct wmWindowManager;
 
-#include "RNA_types.h"
+#include "BLI_compiler_attrs.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "BLI_compiler_attrs.h"
+#include "RNA_types.h"
 
 /* exported types for WM */
+#include "gizmo/WM_gizmo_types.h"
 #include "wm_cursors.h"
 #include "wm_event_types.h"
-#include "gizmo/WM_gizmo_types.h"
 
 /* Include external gizmo API's */
 #include "gizmo/WM_gizmo_api.h"

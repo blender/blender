@@ -34,14 +34,14 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_node.h"
 
-#include "ED_space_api.h"
 #include "ED_node.h"
 #include "ED_render.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"

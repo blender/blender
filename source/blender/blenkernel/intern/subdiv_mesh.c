@@ -25,16 +25,16 @@
 
 #include "atomic_ops.h"
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_key_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
 #include "BKE_key.h"
+#include "BKE_mesh.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
 #include "BKE_subdiv_foreach.h"

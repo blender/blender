@@ -21,15 +21,15 @@
  * \ingroup bke
  */
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"

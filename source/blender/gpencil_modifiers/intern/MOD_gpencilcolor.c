@@ -29,10 +29,10 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_gpencil.h"
@@ -42,8 +42,8 @@
 
 #include "DEG_depsgraph.h"
 
-#include "MOD_gpencil_util.h"
 #include "MOD_gpencil_modifiertypes.h"
+#include "MOD_gpencil_util.h"
 
 static void initData(GpencilModifierData *md)
 {

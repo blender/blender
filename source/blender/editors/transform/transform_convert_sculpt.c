@@ -26,8 +26,8 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 
 #include "transform.h"
 #include "transform_convert.h"

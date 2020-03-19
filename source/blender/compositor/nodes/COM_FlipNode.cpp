@@ -18,8 +18,8 @@
 
 #include "COM_FlipNode.h"
 
-#include "COM_FlipOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_FlipOperation.h"
 
 FlipNode::FlipNode(bNode *editorNode) : Node(editorNode)
 {

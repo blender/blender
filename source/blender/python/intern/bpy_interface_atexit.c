@@ -26,8 +26,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "bpy_capi_utils.h"
 #include "bpy.h" /* own include */
+#include "bpy_capi_utils.h"
 
 #include "WM_api.h"
 

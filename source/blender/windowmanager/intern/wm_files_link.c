@@ -23,28 +23,28 @@
  * Functions for dealing with append/link operators and helpers.
  */
 
-#include <float.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stddef.h>
 #include <assert.h>
+#include <ctype.h>
 #include <errno.h>
+#include <float.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_bitmap.h"
+#include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
 
 #include "BLO_readfile.h"
 

@@ -25,17 +25,17 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_ID.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
-#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -60,12 +60,12 @@
 
 #include "../blenloader/BLO_readfile.h"
 
+#include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_keyframing.h"
-#include "ED_armature.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

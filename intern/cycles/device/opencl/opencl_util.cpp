@@ -16,15 +16,15 @@
 
 #ifdef WITH_OPENCL
 
-#  include "device/opencl/device_opencl.h"
 #  include "device/device_intern.h"
+#  include "device/opencl/device_opencl.h"
 
 #  include "util/util_debug.h"
 #  include "util/util_logging.h"
 #  include "util/util_md5.h"
 #  include "util/util_path.h"
-#  include "util/util_time.h"
 #  include "util/util_system.h"
+#  include "util/util_time.h"
 
 using std::cerr;
 using std::endl;

@@ -41,8 +41,8 @@
 
 #include "NOD_socket.h"
 
-#include "UI_interface.h"
 #include "../interface/interface_intern.h" /* XXX bad level */
+#include "UI_interface.h"
 
 #include "ED_node.h" /* own include */
 

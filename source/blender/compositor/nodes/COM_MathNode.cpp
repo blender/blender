@@ -17,8 +17,8 @@
  */
 
 #include "COM_MathNode.h"
-#include "COM_MathBaseOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_MathBaseOperation.h"
 
 void MathNode::convertToOperations(NodeConverter &converter,
                                    const CompositorContext & /*context*/) const

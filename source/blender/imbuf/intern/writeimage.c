@@ -22,16 +22,16 @@
  * \ingroup imbuf
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_filetype.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"

@@ -23,8 +23,8 @@
  * Implementation of tools for debugging the depsgraph
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 extern "C" {
 #include "DNA_scene_types.h"
@@ -33,14 +33,14 @@ extern "C" {
 #include "DNA_object_types.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
+#include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_type.h"
-#include "intern/debug/deg_debug.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_time.h"

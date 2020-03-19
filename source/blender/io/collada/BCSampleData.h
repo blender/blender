@@ -20,22 +20,22 @@
 #ifndef __BCSAMPLEDATA_H__
 #define __BCSAMPLEDATA_H__
 
-#include <string>
-#include <map>
 #include <algorithm>
+#include <map>
+#include <string>
 
-#include "ExportSettings.h"
-#include "BCSampleData.h"
 #include "BCMath.h"
+#include "BCSampleData.h"
+#include "ExportSettings.h"
 
 extern "C" {
 #include "BKE_object.h"
 #include "BLI_math_rotation.h"
-#include "DNA_object_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_material_types.h"
-#include "DNA_light_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_light_types.h"
+#include "DNA_material_types.h"
+#include "DNA_object_types.h"
 }
 
 typedef std::map<Bone *, BCMatrix *> BCBoneMatrixMap;

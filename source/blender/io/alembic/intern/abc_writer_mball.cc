@@ -22,8 +22,8 @@
 #include "abc_writer_mesh.h"
 
 extern "C" {
-#include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_displist.h"

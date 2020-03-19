@@ -24,10 +24,10 @@
 #ifndef __GHOST_DROPTARGETWIN32_H__
 #define __GHOST_DROPTARGETWIN32_H__
 
-#include <string.h>
-#include <GHOST_Types.h>
-#include "GHOST_WindowWin32.h"
 #include "GHOST_SystemWin32.h"
+#include "GHOST_WindowWin32.h"
+#include <GHOST_Types.h>
+#include <string.h>
 
 class GHOST_DropTargetWin32 : public IDropTarget {
  public:

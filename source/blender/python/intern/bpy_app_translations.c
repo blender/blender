@@ -33,16 +33,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.h"
 #include "BLT_lang.h"
+#include "BLT_translation.h"
 
 #include "RNA_types.h"
 
 #include "../generic/python_utildefines.h"
 
 #ifdef WITH_INTERNATIONAL
-#  include "BLI_string.h"
 #  include "BLI_ghash.h"
+#  include "BLI_string.h"
 #endif
 
 typedef struct {

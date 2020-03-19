@@ -22,11 +22,11 @@
 
 #include "../BPy_Convert.h"
 #include "../BPy_Id.h"
+#include "../BPy_Nature.h"
+#include "../BPy_ViewShape.h"
 #include "../Interface0D/BPy_ViewVertex.h"
 #include "../Interface1D/BPy_FEdge.h"
 #include "../Interface1D/BPy_ViewEdge.h"
-#include "../BPy_Nature.h"
-#include "../BPy_ViewShape.h"
 
 #ifdef __cplusplus
 extern "C" {

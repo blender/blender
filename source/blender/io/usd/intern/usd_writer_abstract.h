@@ -19,8 +19,8 @@
 #ifndef __USD_WRITER_ABSTRACT_H__
 #define __USD_WRITER_ABSTRACT_H__
 
-#include "usd_exporter_context.h"
 #include "abstract_hierarchy_iterator.h"
+#include "usd_exporter_context.h"
 
 #include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/stage.h>

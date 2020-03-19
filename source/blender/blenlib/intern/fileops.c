@@ -24,42 +24,42 @@
 #include <stdlib.h> /* malloc */
 #include <string.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <errno.h>
 
 #include "zlib.h"
 
 #ifdef WIN32
-#  include <windows.h>
-#  include <shellapi.h>
-#  include <shobjidl.h>
-#  include <io.h>
-#  include "BLI_winstuff.h"
 #  include "BLI_fileops_types.h"
+#  include "BLI_winstuff.h"
 #  include "utf_winfunc.h"
 #  include "utfconv.h"
+#  include <io.h>
+#  include <shellapi.h>
+#  include <shobjidl.h>
+#  include <windows.h>
 #else
 #  if defined(__APPLE__)
 #    include <CoreFoundation/CoreFoundation.h>
-#    include <objc/runtime.h>
 #    include <objc/message.h>
+#    include <objc/runtime.h>
 #  endif
-#  include <sys/param.h>
 #  include <dirent.h>
-#  include <unistd.h>
+#  include <sys/param.h>
 #  include <sys/wait.h>
+#  include <unistd.h>
 #endif
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
-#include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_sys_types.h"  // for intptr_t support
+#include "BLI_utildefines.h"
 
 #if 0 /* UNUSED */
 /* gzip the file in from and write it to "to".

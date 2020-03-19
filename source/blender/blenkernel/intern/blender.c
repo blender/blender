@@ -23,23 +23,23 @@
  * Application level startup/shutdown functionality.
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
 
 #include "BKE_addon.h"
-#include "BKE_blender.h"         /* own include */
-#include "BKE_blender_version.h" /* own include */
+#include "BKE_blender.h" /* own include */
 #include "BKE_blender_user_menu.h"
+#include "BKE_blender_version.h" /* own include */
 #include "BKE_blendfile.h"
 #include "BKE_brush.h"
 #include "BKE_cachefile.h"

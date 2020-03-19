@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "node_math.h"
+#include "stdcycles.h"
 
 shader node_vector_math(string type = "add",
                         vector Vector1 = vector(0.0, 0.0, 0.0),

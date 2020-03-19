@@ -21,19 +21,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
 
+#  include "BKE_global.h"
 #  include "BKE_main.h"
 #  include "BKE_mesh.h"
-#  include "BKE_global.h"
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 

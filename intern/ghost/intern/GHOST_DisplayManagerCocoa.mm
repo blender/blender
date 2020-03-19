@@ -20,8 +20,8 @@
 
 #include <Cocoa/Cocoa.h>
 
-#include "GHOST_DisplayManagerCocoa.h"
 #include "GHOST_Debug.h"
+#include "GHOST_DisplayManagerCocoa.h"
 
 // We do not support multiple monitors at the moment
 

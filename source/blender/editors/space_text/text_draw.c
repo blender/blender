@@ -27,14 +27,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "DNA_text_types.h"
-#include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_text_types.h"
 
 #include "BKE_context.h"
+#include "BKE_screen.h"
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
-#include "BKE_screen.h"
 
 #include "ED_text.h"
 
@@ -45,8 +45,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "text_intern.h"
 #include "text_format.h"
+#include "text_intern.h"
 
 /******************** text font drawing ******************/
 

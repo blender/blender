@@ -18,12 +18,12 @@
 
 #include "COM_RenderLayersNode.h"
 #include "COM_RenderLayersProg.h"
-#include "COM_TranslateOperation.h"
 #include "COM_RotateOperation.h"
 #include "COM_ScaleOperation.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
+#include "COM_TranslateOperation.h"
 
 RenderLayersNode::RenderLayersNode(bNode *editorNode) : Node(editorNode)
 {

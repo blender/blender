@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_string_cursor_utf8.h" /* own include */
 

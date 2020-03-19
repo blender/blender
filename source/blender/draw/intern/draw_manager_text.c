@@ -22,8 +22,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_memiter.h"
 #include "BLI_math.h"
+#include "BLI_memiter.h"
 #include "BLI_string.h"
 
 #include "BKE_editmesh.h"
@@ -44,8 +44,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "WM_api.h"
 #include "BLF_api.h"
+#include "WM_api.h"
 
 #include "draw_manager_text.h"
 

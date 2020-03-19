@@ -20,18 +20,18 @@
 #ifndef __BCANIMATIONCURVE_H__
 #define __BCANIMATIONCURVE_H__
 
-#include "collada_utils.h"
 #include "BCSampleData.h"
+#include "collada_utils.h"
 
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-#include "BKE_fcurve.h"
 #include "BKE_armature.h"
+#include "BKE_fcurve.h"
 #include "BKE_material.h"
 #include "ED_anim_api.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+#include "ED_keyframing.h"
 }
 
 typedef float(TangentPoint)[2];

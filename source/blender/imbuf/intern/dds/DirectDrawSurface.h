@@ -51,10 +51,10 @@
 #ifndef __DIRECTDRAWSURFACE_H__
 #define __DIRECTDRAWSURFACE_H__
 
-#include <Common.h>
-#include <Stream.h>
 #include <ColorBlock.h>
+#include <Common.h>
 #include <Image.h>
+#include <Stream.h>
 
 struct DDSPixelFormat {
   uint size;

@@ -16,8 +16,8 @@
 
 #include <stdlib.h>
 
-#include "render/buffers.h"
 #include "device/device.h"
+#include "render/buffers.h"
 
 #include "util/util_foreach.h"
 #include "util/util_hash.h"

@@ -25,12 +25,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_kdopbvh.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_math.h"
 #include "BLI_ghash.h"
+#include "BLI_kdopbvh.h"
+#include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "BLI_polyfill_2d.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_bvhutils.h"
 
@@ -41,9 +41,9 @@
 #include "mathutils_bvhtree.h" /* own include */
 
 #ifndef MATH_STANDALONE
-#  include "DNA_object_types.h"
 #  include "DNA_mesh_types.h"
 #  include "DNA_meshdata_types.h"
+#  include "DNA_object_types.h"
 
 #  include "BKE_customdata.h"
 #  include "BKE_editmesh_bvh.h"

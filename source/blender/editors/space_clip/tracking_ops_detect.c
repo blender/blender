@@ -31,16 +31,16 @@
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
-#include "BKE_tracking.h"
 #include "BKE_report.h"
+#include "BKE_tracking.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_clip.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

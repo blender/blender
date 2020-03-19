@@ -21,15 +21,15 @@
  * \ingroup edscr
  */
 
-#include <string.h>
 #include <math.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_workspace_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -41,18 +41,18 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_sound.h"
 #include "BKE_workspace.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
-#include "ED_screen_types.h"
 #include "ED_clip.h"
 #include "ED_node.h"
+#include "ED_screen.h"
+#include "ED_screen_types.h"
 
 #include "UI_interface.h"
 

@@ -24,13 +24,13 @@
  * as well as some generic operators and shared operator properties.
  */
 
-#include <float.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stddef.h>
 #include <assert.h>
+#include <ctype.h>
 #include <errno.h>
+#include <float.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef WIN32
 #  include "GHOST_C-api.h"
@@ -43,8 +43,8 @@
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 

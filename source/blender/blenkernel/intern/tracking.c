@@ -21,42 +21,42 @@
  * \ingroup bke
  */
 
-#include <stddef.h>
 #include <limits.h>
 #include <math.h>
 #include <memory.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_base.h"
-#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_tracking.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_layer.h"
+#include "BKE_tracking.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "RNA_access.h"
 

@@ -23,8 +23,8 @@
 
 #include <stdlib.h>
 
-#include "ImportSettings.h"
 #include "ExportSettings.h"
+#include "ImportSettings.h"
 
 #ifdef __cplusplus
 extern "C" {

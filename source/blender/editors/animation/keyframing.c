@@ -21,11 +21,11 @@
  * \ingroup edanimation
  */
 
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -40,9 +40,9 @@
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
@@ -62,10 +62,10 @@
 #include "DEG_depsgraph_query.h"
 
 #include "ED_anim_api.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
-#include "ED_screen.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

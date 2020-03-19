@@ -23,21 +23,21 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_main.h"
 #include "BKE_context.h"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_movieclip.h"
 #include "BKE_report.h"
+#include "BKE_tracking.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
 #include "ED_clip.h"
+#include "ED_screen.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

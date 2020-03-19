@@ -24,9 +24,9 @@
 #ifndef __DNA_META_TYPES_H__
 #define __DNA_META_TYPES_H__
 
+#include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_ID.h"
 
 struct AnimData;
 struct BoundBox;

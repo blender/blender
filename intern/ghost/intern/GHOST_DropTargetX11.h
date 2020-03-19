@@ -24,9 +24,9 @@
 #ifndef __GHOST_DROPTARGETX11_H__
 #define __GHOST_DROPTARGETX11_H__
 
-#include <GHOST_Types.h>
-#include "GHOST_WindowX11.h"
 #include "GHOST_SystemX11.h"
+#include "GHOST_WindowX11.h"
+#include <GHOST_Types.h>
 
 #include "xdnd.h"
 

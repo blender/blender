@@ -25,8 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 
@@ -35,8 +35,8 @@
 #include "BKE_font.h"
 
 #include "GPU_batch.h"
-#include "GPU_texture.h"
 #include "GPU_material.h"
+#include "GPU_texture.h"
 
 #include "UI_resources.h"
 

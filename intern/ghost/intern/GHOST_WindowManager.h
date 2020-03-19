@@ -27,8 +27,8 @@
 
 #include <vector>
 
-#include "GHOST_Rect.h"
 #include "GHOST_IWindow.h"
+#include "GHOST_Rect.h"
 
 /**
  * Manages system windows (platform independent implementation).

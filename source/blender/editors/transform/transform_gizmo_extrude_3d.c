@@ -18,10 +18,10 @@
  * \ingroup edmesh
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_array_utils.h"
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -30,15 +30,15 @@
 #include "RNA_define.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
+#include "ED_gizmo_library.h"
+#include "ED_gizmo_utils.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
 
 #include "UI_resources.h"
 

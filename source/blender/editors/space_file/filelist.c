@@ -23,8 +23,8 @@
 
 /* global includes */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -32,8 +32,8 @@
 #ifndef WIN32
 #  include <unistd.h>
 #else
-#  include <io.h>
 #  include <direct.h>
+#  include <io.h>
 #endif
 #include "MEM_guardedalloc.h"
 
@@ -75,8 +75,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_resources.h"
 #include "UI_interface_icons.h"
+#include "UI_resources.h"
 
 #include "atomic_ops.h"
 

@@ -23,8 +23,8 @@
 // work. Still needs a lot of work to make it easy, correct and have proper
 // data ownership.
 
-#include <opensubdiv/far/topologyRefiner.h>
 #include <opensubdiv/far/patchTable.h>
+#include <opensubdiv/far/topologyRefiner.h>
 
 #include "internal/opensubdiv_util.h"
 

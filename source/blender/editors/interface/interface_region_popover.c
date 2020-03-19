@@ -46,13 +46,13 @@
 
 #include "BLI_listbase.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
-#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 
 #include "ED_screen.h"
 

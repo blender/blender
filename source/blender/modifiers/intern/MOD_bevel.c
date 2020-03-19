@@ -27,11 +27,11 @@
 
 #include "BLI_math.h"
 
+#include "DNA_curveprofile_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_curveprofile_types.h"
 
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -39,9 +39,9 @@
 
 #include "MOD_util.h"
 
+#include "BKE_curveprofile.h"
 #include "bmesh.h"
 #include "bmesh_tools.h"
-#include "BKE_curveprofile.h"
 
 #include "DEG_depsgraph_query.h"
 

@@ -25,31 +25,31 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_rand.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_linklist.h"
 #include "BLI_alloca.h"
+#include "BLI_blenlib.h"
+#include "BLI_linklist.h"
+#include "BLI_math.h"
+#include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
-#include "BKE_modifier.h"
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
-#include "BKE_main.h"
-#include "BKE_scene.h"
+#include "BKE_gpencil.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_layer.h"
 #include "BKE_lib_query.h"
-#include "BKE_collection.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -58,8 +58,8 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_gpencil_util.h"
 #include "MOD_gpencil_modifiertypes.h"
+#include "MOD_gpencil_util.h"
 
 static void initData(GpencilModifierData *md)
 {

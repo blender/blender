@@ -24,9 +24,9 @@
  * \ingroup bli
  */
 
-#include "DNA_vec_types.h"
-#include "BLI_sys_types.h" /* bool */
 #include "BLI_compiler_compat.h"
+#include "BLI_sys_types.h" /* bool */
+#include "DNA_vec_types.h"
 
 struct rctf;
 struct rcti;

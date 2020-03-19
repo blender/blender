@@ -22,19 +22,19 @@
  * \brief Blender-side interface and methods for dealing with Rigid Body simulations
  */
 
+#include <float.h>
+#include <limits.h>
+#include <math.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <stddef.h>
-#include <float.h>
-#include <math.h>
-#include <limits.h>
 
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
 #ifdef WITH_BULLET
 #  include "RBI_api.h"
@@ -44,8 +44,8 @@
 #include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 

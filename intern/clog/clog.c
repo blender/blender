@@ -18,23 +18,23 @@
  * \ingroup clog
  */
 
+#include <assert.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <assert.h>
 
 /* Disable for small single threaded programs
  * to avoid having to link with pthreads. */
 #ifdef WITH_CLOG_PTHREADS
-#  include <pthread.h>
 #  include "atomic_ops.h"
+#  include <pthread.h>
 #endif
 
 /* For 'isatty' to check for color. */
 #if defined(__unix__) || defined(__APPLE__) || defined(__HAIKU__)
-#  include <unistd.h>
 #  include <sys/time.h>
+#  include <unistd.h>
 #endif
 
 #if defined(_MSC_VER)

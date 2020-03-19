@@ -34,10 +34,10 @@ extern "C" {
 #include "DNA_scene_types.h"
 }
 
-#include "GeometryExporter.h"
-#include "collada_internal.h"
 #include "ExportSettings.h"
+#include "GeometryExporter.h"
 #include "Materials.h"
+#include "collada_internal.h"
 
 class MaterialsExporter : COLLADASW::LibraryMaterials {
  public:

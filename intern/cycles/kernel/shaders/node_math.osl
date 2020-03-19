@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "node_math.h"
+#include "stdcycles.h"
 
 /* OSL asin, acos, and pow functions are safe by default. */
 shader node_math(string type = "add",

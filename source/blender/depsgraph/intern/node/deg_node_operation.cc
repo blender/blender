@@ -25,12 +25,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 #include "intern/depsgraph.h"
-#include "intern/node/deg_node_factory.h"
 #include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_factory.h"
 #include "intern/node/deg_node_id.h"
 
 namespace DEG {

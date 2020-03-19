@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+#include "util/util_task.h"
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
 #include "util/util_system.h"
-#include "util/util_task.h"
 #include "util/util_time.h"
 
 //#define THREADING_DEBUG_ENABLED

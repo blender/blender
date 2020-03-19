@@ -14,9 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <new>
 #include <shlwapi.h>
 #include <thumbcache.h>  // For IThumbnailProvider.
-#include <new>
 
 #pragma comment(lib, "shlwapi.lib")
 
@@ -94,9 +94,9 @@ IFACEMETHODIMP CBlendThumb::Initialize(IStream *pStream, DWORD)
   return hr;
 }
 
+#include "Wincodec.h"
 #include <math.h>
 #include <zlib.h>
-#include "Wincodec.h"
 const unsigned char gzip_magic[3] = {0x1f, 0x8b, 0x08};
 
 // IThumbnailProvider

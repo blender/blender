@@ -34,13 +34,13 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
-#include "UI_view2d.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "DNA_scene_types.h"
 
-#include "BLI_rect.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_timecode.h"
 

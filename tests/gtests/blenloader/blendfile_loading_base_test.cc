@@ -31,13 +31,13 @@ extern "C" {
 #include "BKE_node.h"
 #include "BKE_scene.h"
 
-#include "BLI_threads.h"
 #include "BLI_path_util.h"
+#include "BLI_threads.h"
 
 #include "BLO_readfile.h"
 
-#include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "DNA_genfile.h" /* for DNA_sdna_current_init() */
 #include "DNA_windowmanager_types.h"

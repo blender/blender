@@ -25,12 +25,12 @@
 
 #include "DRW_render.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
+#include "DNA_customdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_customdata_types.h"
 
 #include "BKE_anim.h"
 

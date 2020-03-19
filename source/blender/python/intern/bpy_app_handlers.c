@@ -22,15 +22,15 @@
  * functions into (called via blenders generic BLI_cb api)
  */
 
-#include <Python.h>
 #include "BLI_utildefines.h"
+#include <Python.h>
 
 #include "BKE_callbacks.h"
 
-#include "RNA_types.h"
 #include "RNA_access.h"
-#include "bpy_rna.h"
+#include "RNA_types.h"
 #include "bpy_app_handlers.h"
+#include "bpy_rna.h"
 
 #include "../generic/python_utildefines.h"
 

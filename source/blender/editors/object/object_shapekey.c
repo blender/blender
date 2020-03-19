@@ -55,8 +55,8 @@
 
 #include "BLI_sys_types.h"  // for intptr_t support
 
-#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

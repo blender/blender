@@ -26,9 +26,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_blendfile.h"
 #include "BKE_global.h"
@@ -37,9 +37,9 @@
 
 #include "RNA_types.h"
 
-#include "bpy_rna.h"
 #include "bpy_capi_utils.h"
 #include "bpy_library.h"
+#include "bpy_rna.h"
 
 #include "../generic/py_capi_utils.h"
 

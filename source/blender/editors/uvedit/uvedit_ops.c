@@ -21,32 +21,31 @@
  * \ingroup eduv
  */
 
-#include <stdlib.h>
-#include <string.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
+#include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
-#include "DNA_image_types.h"
-#include "DNA_space_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_alloca.h"
-#include "BLI_math.h"
-#include "BLI_lasso_2d.h"
-#include "BLI_blenlib.h"
 #include "BLI_array.h"
+#include "BLI_blenlib.h"
 #include "BLI_hash.h"
-#include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_kdtree.h"
+#include "BLI_lasso_2d.h"
+#include "BLI_math.h"
 #include "BLI_polyfill_2d.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -69,19 +68,19 @@
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
-#include "ED_uvedit.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_transform.h"
+#include "ED_uvedit.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

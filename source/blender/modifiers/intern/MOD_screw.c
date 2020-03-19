@@ -26,8 +26,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_math.h"
 #include "BLI_alloca.h"
+#include "BLI_math.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -39,8 +39,8 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
 #include "MEM_guardedalloc.h"
+#include "MOD_modifiertypes.h"
 
 #include "BLI_strict_flags.h"
 

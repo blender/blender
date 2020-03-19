@@ -25,14 +25,14 @@
 
 #include "intern/builder/deg_builder_relations.h"
 
+#include <cstring> /* required for STREQ later on. */
 #include <stdio.h>
 #include <stdlib.h>
-#include <cstring> /* required for STREQ later on. */
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 extern "C" {
 #include "DNA_action_types.h"
@@ -57,8 +57,8 @@ extern "C" {
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_operation.h"
 
-#include "intern/depsgraph_type.h"
 #include "intern/depsgraph_relation.h"
+#include "intern/depsgraph_type.h"
 
 namespace DEG {
 

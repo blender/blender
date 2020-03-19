@@ -18,9 +18,9 @@
  */
 
 #include "GHOST_WindowCocoa.h"
-#include "GHOST_SystemCocoa.h"
 #include "GHOST_ContextNone.h"
 #include "GHOST_Debug.h"
+#include "GHOST_SystemCocoa.h"
 
 #if defined(WITH_GL_EGL)
 #  include "GHOST_ContextEGL.h"
@@ -29,8 +29,8 @@
 #endif
 
 #include <Cocoa/Cocoa.h>
-#include <QuartzCore/QuartzCore.h>
 #include <Metal/Metal.h>
+#include <QuartzCore/QuartzCore.h>
 
 #include <sys/sysctl.h>
 

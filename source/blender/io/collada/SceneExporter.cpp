@@ -19,16 +19,16 @@
  */
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BKE_collection.h"
+#include "BKE_lib_id.h"
 #include "BKE_object.h"
 #include "BLI_listbase.h"
-#include "BKE_lib_id.h"
+#include "BLI_utildefines.h"
 }
 
+#include "BCSampleData.h"
 #include "SceneExporter.h"
 #include "collada_utils.h"
-#include "BCSampleData.h"
 
 void SceneExporter::exportScene()
 {

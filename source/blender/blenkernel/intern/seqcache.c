@@ -20,34 +20,34 @@
  * \ingroup bke
  */
 
-#include <stddef.h>
 #include <memory.h>
+#include <stddef.h>
 #include <time.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h" /* for FILE_MAX. */
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
 
-#include "BLI_mempool.h"
-#include "BLI_threads.h"
-#include "BLI_listbase.h"
-#include "BLI_ghash.h"
 #include "BLI_blenlib.h"
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
+#include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_mempool.h"
 #include "BLI_path_util.h"
+#include "BLI_threads.h"
 
 #include "BKE_global.h"
-#include "BKE_sequencer.h"
-#include "BKE_scene.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
+#include "BKE_sequencer.h"
 
 /**
  * Sequencer Cache Design Notes

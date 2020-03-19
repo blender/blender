@@ -37,17 +37,17 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_animsys.h"
-#include "BKE_curve.h"
-#include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_animsys.h"
+#include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
@@ -83,9 +83,9 @@
 #include "RNA_enum_types.h"
 
 #include "ED_armature.h"
+#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_mesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

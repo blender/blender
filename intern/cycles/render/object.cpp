@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#include "render/camera.h"
+#include "render/object.h"
 #include "device/device.h"
+#include "render/camera.h"
+#include "render/curves.h"
 #include "render/hair.h"
 #include "render/integrator.h"
 #include "render/light.h"
 #include "render/mesh.h"
-#include "render/curves.h"
-#include "render/object.h"
 #include "render/particles.h"
 #include "render/scene.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
 #include "util/util_map.h"
+#include "util/util_murmurhash.h"
 #include "util/util_progress.h"
 #include "util/util_set.h"
 #include "util/util_vector.h"
-#include "util/util_murmurhash.h"
 
 #include "subd/subd_patch_table.h"
 

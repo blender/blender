@@ -26,18 +26,18 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_math_vector.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
@@ -48,8 +48,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_gpencil_util.h"
 #include "MOD_gpencil_modifiertypes.h"
+#include "MOD_gpencil_util.h"
 
 static void initData(GpencilModifierData *md)
 {

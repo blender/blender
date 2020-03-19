@@ -5,9 +5,9 @@
 #define GHASH_INTERNAL_API
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 }
 
 #define TESTCASE_SIZE 10000

@@ -24,8 +24,8 @@
 #ifndef __ED_VIEW3D_OFFSCREEN_H__
 #define __ED_VIEW3D_OFFSCREEN_H__
 
-#include "DNA_view3d_types.h"
 #include "DNA_object_enums.h"
+#include "DNA_view3d_types.h"
 
 #include "IMB_imbuf_types.h"
 

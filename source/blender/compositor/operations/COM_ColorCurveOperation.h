@@ -18,9 +18,9 @@
 
 #ifndef __COM_COLORCURVEOPERATION_H__
 #define __COM_COLORCURVEOPERATION_H__
+#include "COM_CurveBaseOperation.h"
 #include "COM_NodeOperation.h"
 #include "DNA_color_types.h"
-#include "COM_CurveBaseOperation.h"
 
 class ColorCurveOperation : public CurveBaseOperation {
  private:

@@ -22,10 +22,10 @@
 
 #include "../BPy_Convert.h"
 #include "../BPy_Id.h"
+#include "../BPy_MediumType.h"
 #include "../Interface0D/BPy_SVertex.h"
 #include "../Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "../Iterator/BPy_StrokeVertexIterator.h"
-#include "../BPy_MediumType.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -29,12 +29,12 @@
 #include "DNA_image_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_hash_mm2a.h"
-#include "BLI_link_utils.h"
-#include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
+#include "BLI_hash_mm2a.h"
+#include "BLI_link_utils.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 
@@ -53,8 +53,8 @@
 #include "gpu_material_library.h"
 #include "gpu_node_graph.h"
 
-#include <string.h>
 #include <stdarg.h>
+#include <string.h>
 
 extern char datatoc_gpu_shader_common_obinfos_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];

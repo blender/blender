@@ -29,8 +29,8 @@
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_extensions.h"
-#include "GPU_platform.h"
 #include "GPU_matrix.h"
+#include "GPU_platform.h"
 #include "GPU_shader.h"
 
 #include "gpu_batch_private.h"
@@ -38,9 +38,9 @@
 #include "gpu_primitive_private.h"
 #include "gpu_shader_private.h"
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 static void batch_update_program_bindings(GPUBatch *batch, uint i_first);
 

@@ -18,9 +18,9 @@
 
 #include <limits.h>
 
+#include "BLI_utildefines.h"
 #include "COM_FastGaussianBlurOperation.h"
 #include "MEM_guardedalloc.h"
-#include "BLI_utildefines.h"
 
 FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {

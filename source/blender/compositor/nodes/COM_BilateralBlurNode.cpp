@@ -17,9 +17,9 @@
  */
 
 #include "COM_BilateralBlurNode.h"
-#include "DNA_node_types.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_BilateralBlurOperation.h"
+#include "COM_ExecutionSystem.h"
+#include "DNA_node_types.h"
 
 BilateralBlurNode::BilateralBlurNode(bNode *editorNode) : Node(editorNode)
 {

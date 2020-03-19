@@ -18,11 +18,11 @@
 
 #ifndef __COM_PREVIEWOPERATION_H__
 #define __COM_PREVIEWOPERATION_H__
-#include "COM_NodeOperation.h"
-#include "DNA_image_types.h"
-#include "DNA_color_types.h"
-#include "BLI_rect.h"
 #include "BKE_global.h"
+#include "BLI_rect.h"
+#include "COM_NodeOperation.h"
+#include "DNA_color_types.h"
+#include "DNA_image_types.h"
 
 class PreviewOperation : public NodeOperation {
  protected:

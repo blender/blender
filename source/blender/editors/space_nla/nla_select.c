@@ -21,8 +21,8 @@
  * \ingroup spnla
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -31,8 +31,8 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_nla.h"
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
@@ -46,8 +46,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_view2d.h"
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "nla_intern.h"  // own include
 

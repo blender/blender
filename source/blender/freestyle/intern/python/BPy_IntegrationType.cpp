@@ -21,10 +21,10 @@
 #include "BPy_IntegrationType.h"
 
 #include "BPy_Convert.h"
+#include "Iterator/BPy_Interface0DIterator.h"
 #include "UnaryFunction0D/BPy_UnaryFunction0DDouble.h"
 #include "UnaryFunction0D/BPy_UnaryFunction0DFloat.h"
 #include "UnaryFunction0D/BPy_UnaryFunction0DUnsigned.h"
-#include "Iterator/BPy_Interface0DIterator.h"
 
 #ifdef __cplusplus
 extern "C" {

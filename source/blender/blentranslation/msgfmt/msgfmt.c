@@ -32,15 +32,15 @@
  * Usage: msgfmt input.po output.po
  */
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 

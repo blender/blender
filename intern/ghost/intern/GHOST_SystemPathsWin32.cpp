@@ -26,8 +26,8 @@
 #ifndef _WIN32_IE
 #  define _WIN32_IE 0x0501
 #endif
-#include <shlobj.h>
 #include "utfconv.h"
+#include <shlobj.h>
 
 GHOST_SystemPathsWin32::GHOST_SystemPathsWin32()
 {

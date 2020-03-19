@@ -23,17 +23,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
-#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_object_types.h" /* SELECT */
+#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "ED_clip.h"
@@ -44,8 +44,8 @@
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
-#include "GPU_shader.h"
 #include "GPU_matrix.h"
+#include "GPU_shader.h"
 #include "GPU_state.h"
 
 #include "UI_interface.h"

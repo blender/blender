@@ -21,12 +21,12 @@
  * \ingroup gpu
  */
 
-#include "BLI_sys_types.h"
-#include "GPU_buffers.h"
 #include "GPU_init_exit.h" /* interface */
-#include "GPU_immediate.h"
-#include "GPU_batch.h"
 #include "BKE_global.h"
+#include "BLI_sys_types.h"
+#include "GPU_batch.h"
+#include "GPU_buffers.h"
+#include "GPU_immediate.h"
 
 #include "intern/gpu_codegen.h"
 #include "intern/gpu_material_library.h"

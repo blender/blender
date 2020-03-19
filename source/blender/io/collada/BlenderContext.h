@@ -26,14 +26,14 @@
 extern "C" {
 #endif
 
-#include "DNA_object_types.h"
-#include "BLI_linklist.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
+#include "BLI_linklist.h"
+#include "BlenderTypes.h"
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 #include "DNA_layer_types.h"
-#include "BlenderTypes.h"
+#include "DNA_object_types.h"
 
 static const BC_global_forward_axis BC_DEFAULT_FORWARD = BC_GLOBAL_FORWARD_Y;
 static const BC_global_up_axis BC_DEFAULT_UP = BC_GLOBAL_UP_Z;

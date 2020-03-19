@@ -23,11 +23,11 @@
  * a template argument. Instead it can be specified at the construction time.
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_allocator.h"
 #include "BLI_array_ref.h"
-#include "BLI_memory_utils_cxx.h"
 #include "BLI_index_range.h"
+#include "BLI_memory_utils_cxx.h"
+#include "BLI_utildefines.h"
 
 namespace BLI {
 

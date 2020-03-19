@@ -31,8 +31,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_main.h"
 #include "BKE_idcode.h"
+#include "BKE_main.h"
 
 typedef struct {
   unsigned short code;

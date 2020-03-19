@@ -25,22 +25,22 @@
 
 #include "intern/builder/deg_builder_relations.h"
 
+#include <cstring> /* required for STREQ later on. */
 #include <stdio.h>
 #include <stdlib.h>
-#include <cstring> /* required for STREQ later on. */
 #include <unordered_set>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 extern "C" {
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_cachefile_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
@@ -48,16 +48,17 @@ extern "C" {
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
-#include "DNA_material_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_lightprobe_types.h"
+#include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -66,24 +67,23 @@ extern "C" {
 #include "DNA_texture_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
-#include "DNA_object_force_types.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_collection.h"
+#include "BKE_collision.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_effect.h"
-#include "BKE_collision.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
-#include "BKE_gpencil_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -106,8 +106,8 @@ extern "C" {
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_pchanmap.h"
 #include "intern/debug/deg_debug.h"
-#include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_physics.h"
+#include "intern/depsgraph_tag.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 
 #include "intern/node/deg_node.h"

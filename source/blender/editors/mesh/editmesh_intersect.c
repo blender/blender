@@ -22,17 +22,17 @@
 
 #include "DNA_object_types.h"
 
+#include "BLI_buffer.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_stack.h"
-#include "BLI_buffer.h"
-#include "BLI_linklist_stack.h"
 
-#include "BKE_layer.h"
-#include "BKE_editmesh_bvh.h"
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_bvh.h"
+#include "BKE_layer.h"
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -21,42 +21,45 @@
  * \ingroup bke
  */
 
-#include <string.h>
 #include <math.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_customdata_types.h"
+#include "DNA_defaults.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
-#include "DNA_ID.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
-#include "DNA_defaults.h"
 
-#include "BLI_math.h"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 #include "BLI_array_utils.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
+#include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_editmesh.h"
+#include "BKE_font.h"
 #include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
@@ -65,11 +68,8 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_scene.h"
 #include "BKE_node.h"
-#include "BKE_curve.h"
-#include "BKE_editmesh.h"
-#include "BKE_font.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

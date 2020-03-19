@@ -23,17 +23,17 @@
  * 3D view manipulation/operators.
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_gpencil_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -60,19 +60,19 @@
 #include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "ED_armature.h"
+#include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
-#include "ED_mesh.h"
-#include "ED_view3d.h"
 #include "ED_transform_snap_object_context.h"
+#include "ED_view3d.h"
 
 #include "UI_resources.h"
 

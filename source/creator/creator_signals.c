@@ -31,24 +31,24 @@
 #  endif
 
 #  ifdef WIN32
-#    include <windows.h>
 #    include <float.h>
+#    include <windows.h>
 #  endif
 
+#  include <errno.h>
 #  include <stdlib.h>
 #  include <string.h>
-#  include <errno.h>
 
 #  include "BLI_sys_types.h"
 
 #  ifdef WIN32
 #    include "BLI_winstuff.h"
 #  endif
-#  include "BLI_utildefines.h"
-#  include "BLI_string.h"
-#  include "BLI_path_util.h"
 #  include "BLI_fileops.h"
+#  include "BLI_path_util.h"
+#  include "BLI_string.h"
 #  include "BLI_system.h"
+#  include "BLI_utildefines.h"
 #  include BLI_SYSTEM_PID_H
 
 #  include "BKE_appdir.h" /* BKE_tempdir_base */

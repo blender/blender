@@ -21,22 +21,22 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_brush_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
+#include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_sound.h"
-#include "BKE_addon.h"
 #include "BKE_studiolight.h"
 
 #include "RNA_access.h"
@@ -181,8 +181,8 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
 #  include "BKE_idprop.h"
 #  include "BKE_main.h"
 #  include "BKE_mesh_runtime.h"
-#  include "BKE_pbvh.h"
 #  include "BKE_paint.h"
+#  include "BKE_pbvh.h"
 #  include "BKE_screen.h"
 
 #  include "DEG_depsgraph.h"
@@ -194,8 +194,8 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
 
 #  include "BLI_path_util.h"
 
-#  include "MEM_guardedalloc.h"
 #  include "MEM_CacheLimiterC-Api.h"
+#  include "MEM_guardedalloc.h"
 
 #  include "UI_interface.h"
 

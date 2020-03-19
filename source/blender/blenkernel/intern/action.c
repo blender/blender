@@ -21,31 +21,31 @@
  * \ingroup bke
  */
 
-#include <string.h>
 #include <math.h>
-#include <stdlib.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"

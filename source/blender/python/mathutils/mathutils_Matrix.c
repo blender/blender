@@ -25,12 +25,12 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "../generic/python_utildefines.h"
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 
 #ifndef MATH_STANDALONE
-#  include "BLI_string.h"
 #  include "BLI_dynstr.h"
+#  include "BLI_string.h"
 #endif
 
 typedef enum eMatrixAccess_t {

@@ -18,8 +18,8 @@
 
 #ifndef __COM_HUESATURATIONVALUECORRECTOPERATION_H__
 #define __COM_HUESATURATIONVALUECORRECTOPERATION_H__
-#include "COM_NodeOperation.h"
 #include "COM_CurveBaseOperation.h"
+#include "COM_NodeOperation.h"
 
 class HueSaturationValueCorrectOperation : public CurveBaseOperation {
  private:

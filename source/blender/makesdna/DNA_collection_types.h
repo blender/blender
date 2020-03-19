@@ -26,9 +26,9 @@
 #ifndef __DNA_COLLECTION_TYPES_H__
 #define __DNA_COLLECTION_TYPES_H__
 
+#include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_ID.h"
 
 struct Collection;
 struct Object;

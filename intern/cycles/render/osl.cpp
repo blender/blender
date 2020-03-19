@@ -20,10 +20,10 @@
 #include "render/colorspace.h"
 #include "render/graph.h"
 #include "render/light.h"
+#include "render/nodes.h"
 #include "render/osl.h"
 #include "render/scene.h"
 #include "render/shader.h"
-#include "render/nodes.h"
 
 #ifdef WITH_OSL
 

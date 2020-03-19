@@ -17,11 +17,11 @@
 #ifndef __UTIL_THREAD_H__
 #define __UTIL_THREAD_H__
 
-#include <thread>
-#include <mutex>
 #include <condition_variable>
 #include <functional>
+#include <mutex>
 #include <queue>
+#include <thread>
 
 #ifdef _WIN32
 #  include "util_windows.h"

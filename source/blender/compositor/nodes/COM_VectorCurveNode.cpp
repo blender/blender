@@ -17,8 +17,8 @@
  */
 
 #include "COM_VectorCurveNode.h"
-#include "COM_VectorCurveOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_VectorCurveOperation.h"
 
 VectorCurveNode::VectorCurveNode(bNode *editorNode) : Node(editorNode)
 {

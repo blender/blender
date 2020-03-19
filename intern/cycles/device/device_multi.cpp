@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <stdlib.h>
 #include <sstream>
+#include <stdlib.h>
 
 #include "device/device.h"
 #include "device/device_intern.h"

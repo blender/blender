@@ -21,8 +21,8 @@
  * \ingroup spinfo
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "DNA_packedFile_types.h"
 #include "DNA_space_types.h"

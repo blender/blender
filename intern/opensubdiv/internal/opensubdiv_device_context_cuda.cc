@@ -39,10 +39,10 @@
 #    include <X11/Xlib.h>
 #  endif
 
+#  include <cstdio>
 #  include <cuda.h>
 #  include <cuda_gl_interop.h>
 #  include <cuda_runtime_api.h>
-#  include <cstdio>
 
 #  include "internal/opensubdiv_util.h"
 

@@ -25,9 +25,9 @@
  */
 
 #include "AVI_avi.h"
-#include "avi_intern.h"
-#include "avi_endian.h"
 #include "BLI_fileops.h"
+#include "avi_endian.h"
+#include "avi_intern.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"

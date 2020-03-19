@@ -27,53 +27,53 @@
 
 #include <sys/stat.h>
 
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 
 /* path/file handling stuff */
 #ifndef WIN32
 #  include <dirent.h>
 #  include <unistd.h>
 #else
-#  include <io.h>
 #  include "BLI_winstuff.h"
+#  include <io.h>
 #endif
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
+#include "DNA_fluid_types.h"
+#include "DNA_freestyle_types.h"
 #include "DNA_image_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
-#include "DNA_material_types.h"
-#include "DNA_node_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_fluid_types.h"
-#include "DNA_freestyle_types.h"
 #include "DNA_volume_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_font.h"
+#include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
-#include "BKE_image.h"
 
 #include "BKE_bpath.h" /* own include */
 

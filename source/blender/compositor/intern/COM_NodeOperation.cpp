@@ -16,11 +16,11 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <typeinfo>
 #include <stdio.h>
+#include <typeinfo>
 
-#include "COM_defines.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_defines.h"
 
 #include "COM_NodeOperation.h" /* own include */
 

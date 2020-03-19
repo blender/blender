@@ -38,8 +38,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-#include "wm_event_types.h"
 #include "wm.h"
+#include "wm_event_types.h"
 
 #include "PIL_time.h"
 

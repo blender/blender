@@ -24,9 +24,9 @@
  */
 
 #include <float.h>
-#include <string.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -61,8 +61,8 @@
 #include "BKE_brush.h"
 #include "BKE_camera.h"
 #include "BKE_colorband.h"
-#include "BKE_context.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -81,8 +81,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_object.h"
 #include "ED_node.h"
+#include "ED_object.h"
 #include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"

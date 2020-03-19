@@ -24,8 +24,8 @@
 #ifndef __ABC_READER_POINTS_H__
 #define __ABC_READER_POINTS_H__
 
-#include "abc_reader_object.h"
 #include "abc_customdata.h"
+#include "abc_reader_object.h"
 
 class AbcPointsReader : public AbcObjectReader {
   Alembic::AbcGeom::IPointsSchema m_schema;

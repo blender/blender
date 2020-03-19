@@ -23,9 +23,9 @@
  * Guarded memory allocation, and boundary-write detection.
  */
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h> /* memcpy */
-#include <stdarg.h>
 #include <sys/types.h>
 
 #include "MEM_guardedalloc.h"
@@ -33,8 +33,8 @@
 /* to ensure strict conversions */
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
-#include "mallocn_intern.h"
 #include "atomic_ops.h"
+#include "mallocn_intern.h"
 
 /* Only for debugging:
  * store original buffer's name when doing MEM_dupallocN

@@ -29,8 +29,8 @@
 #endif
 
 #include <Eigen/Core>
-#include <Eigen/SVD>
 #include <Eigen/Dense>
+#include <Eigen/SVD>
 
 #include "svd.h"
 

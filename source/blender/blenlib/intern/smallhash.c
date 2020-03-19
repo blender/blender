@@ -44,8 +44,8 @@
  * use the maximum values to avoid real pointers colliding with magic numbers.
  */
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "BLI_sys_types.h"
 

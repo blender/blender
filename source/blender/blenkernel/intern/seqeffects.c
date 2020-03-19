@@ -24,22 +24,22 @@
  * \ingroup bke
  */
 
-#include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
+#include "BLI_path_util.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_rect.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_anim_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_fcurve.h"
@@ -47,9 +47,9 @@
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
 #include "BLI_math_color_blend.h"

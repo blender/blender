@@ -21,8 +21,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -36,8 +36,8 @@
 
 #  include "DNA_armature_types.h"
 
-#  include "BLI_math_vector.h"
 #  include "BKE_armature.h"
+#  include "BLI_math_vector.h"
 
 static void rna_EditBone_align_roll(EditBone *ebo, float no[3])
 {

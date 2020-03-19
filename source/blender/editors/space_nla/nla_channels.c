@@ -21,10 +21,10 @@
  * \ingroup spnla
  */
 
-#include <string.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -34,12 +34,12 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
-#include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_nla.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_report.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"

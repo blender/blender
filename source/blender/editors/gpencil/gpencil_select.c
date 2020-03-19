@@ -21,25 +21,25 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_lasso_2d.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_gpencil_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_context.h"
 #include "BKE_gpencil.h"

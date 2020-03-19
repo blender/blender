@@ -42,15 +42,15 @@
 #include "UI_view2d.h"
 
 #include "WM_api.h"
+#include "WM_message.h"
 #include "WM_types.h"
 #include "wm.h" /* XXX */
-#include "WM_message.h"
 
+#include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
 #include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
-#include "ED_gizmo_library.h"
 
 #include "transform.h" /* own include */
 

@@ -40,8 +40,8 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 #include "wm_cursors.h"
 #include "wm_window.h"
 

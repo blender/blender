@@ -17,9 +17,9 @@
 #include <atomic>
 #include <mutex>
 
-#include "BLI_index_range.h"
-#include "BLI_array_ref.h"
 #include "BLI_array_cxx.h"
+#include "BLI_array_ref.h"
+#include "BLI_index_range.h"
 #include "BLI_vector.h"
 
 namespace BLI {

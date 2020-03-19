@@ -22,14 +22,14 @@
  * \ingroup imbuf
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_math_color.h"
 #include "BLI_math_interp.h"
+#include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-#include "imbuf.h"
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "imbuf.h"
 
 #include "IMB_filter.h"
 

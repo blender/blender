@@ -18,15 +18,15 @@
 
 #include "COM_Stabilize2dNode.h"
 #include "COM_ExecutionSystem.h"
-#include "COM_TranslateOperation.h"
+#include "COM_MovieClipAttributeOperation.h"
 #include "COM_RotateOperation.h"
 #include "COM_ScaleOperation.h"
-#include "COM_MovieClipAttributeOperation.h"
 #include "COM_SetSamplerOperation.h"
+#include "COM_TranslateOperation.h"
 
 extern "C" {
-#include "DNA_movieclip_types.h"
 #include "BKE_tracking.h"
+#include "DNA_movieclip_types.h"
 }
 
 Stabilize2dNode::Stabilize2dNode(bNode *editorNode) : Node(editorNode)

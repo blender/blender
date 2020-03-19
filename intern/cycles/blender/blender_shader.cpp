@@ -24,14 +24,14 @@
 #include "render/shader.h"
 
 #include "blender/blender_image.h"
-#include "blender/blender_texture.h"
 #include "blender/blender_sync.h"
+#include "blender/blender_texture.h"
 #include "blender/blender_util.h"
 
 #include "util/util_debug.h"
 #include "util/util_foreach.h"
-#include "util/util_string.h"
 #include "util/util_set.h"
+#include "util/util_string.h"
 #include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN

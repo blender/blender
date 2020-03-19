@@ -59,8 +59,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "interface_intern.h"
 #include "interface_eyedropper_intern.h"
+#include "interface_intern.h"
 
 typedef struct EyedropperGPencil {
   struct ColorManagedDisplay *display;

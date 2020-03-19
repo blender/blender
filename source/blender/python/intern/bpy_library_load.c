@@ -28,11 +28,11 @@
 #include <Python.h>
 #include <stddef.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
-#include "BLI_string.h"
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_idcode.h"
@@ -54,8 +54,8 @@
 #define USE_RNA_DATABLOCKS
 
 #ifdef USE_RNA_DATABLOCKS
-#  include "bpy_rna.h"
 #  include "RNA_access.h"
+#  include "bpy_rna.h"
 #endif
 
 typedef struct {

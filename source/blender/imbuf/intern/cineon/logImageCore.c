@@ -22,14 +22,14 @@
  * Cineon image file format library routines.
  */
 
-#include "logmemfile.h"
 #include "logImageCore.h"
-#include "dpxlib.h"
 #include "cineonlib.h"
+#include "dpxlib.h"
+#include "logmemfile.h"
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "BLI_fileops.h"
 #include "BLI_utildefines.h"

@@ -28,8 +28,8 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
@@ -41,8 +41,8 @@
 
 #include "node_util.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "RE_pipeline.h"
 

@@ -27,12 +27,12 @@
 
 #include "BLI_utildefines.h"
 
+#include "bpy_capi_utils.h"
 #include "bpy_rna.h"
 #include "bpy_rna_callback.h"
-#include "bpy_capi_utils.h"
 
-#include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"

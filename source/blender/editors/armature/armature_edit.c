@@ -34,18 +34,18 @@
 #include "BLT_translation.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_ghash.h"
+#include "BLI_math.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_layer.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_report.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

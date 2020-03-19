@@ -25,8 +25,8 @@
 #ifndef __DNA_CONSTRAINT_TYPES_H__
 #define __DNA_CONSTRAINT_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 struct Action;

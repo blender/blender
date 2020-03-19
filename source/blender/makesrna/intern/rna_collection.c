@@ -32,8 +32,8 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "DNA_scene_types.h"
 #  include "DNA_object_types.h"
+#  include "DNA_scene_types.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

@@ -33,12 +33,12 @@
 
 #include "BKE_context.h"
 
+#include "GPU_batch.h"
+#include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

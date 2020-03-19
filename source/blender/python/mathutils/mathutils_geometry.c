@@ -25,13 +25,13 @@
 
 /* Used for PolyFill */
 #ifndef MATH_STANDALONE /* define when building outside blender */
-#  include "MEM_guardedalloc.h"
+#  include "BKE_curve.h"
+#  include "BKE_displist.h"
 #  include "BLI_blenlib.h"
 #  include "BLI_boxpack_2d.h"
 #  include "BLI_convexhull_2d.h"
 #  include "BLI_delaunay_2d.h"
-#  include "BKE_displist.h"
-#  include "BKE_curve.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 #include "BLI_math.h"

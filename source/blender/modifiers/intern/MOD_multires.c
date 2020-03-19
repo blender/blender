@@ -33,8 +33,8 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
-#include "BKE_multires.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_ccg.h"

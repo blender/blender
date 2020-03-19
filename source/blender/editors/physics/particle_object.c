@@ -31,10 +31,10 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
@@ -59,9 +59,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
-#include "ED_object.h"
 
 #include "UI_resources.h"
 

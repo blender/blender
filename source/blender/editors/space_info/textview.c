@@ -23,8 +23,8 @@
 #include "BLF_api.h"
 
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"

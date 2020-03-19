@@ -25,11 +25,11 @@
 #include "util/util_logging.h"
 #include "util/util_math.h"
 #include "util/util_opengl.h"
-#include "util/util_time.h"
+#include "util/util_string.h"
 #include "util/util_system.h"
+#include "util/util_time.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
-#include "util/util_string.h"
 
 CCL_NAMESPACE_BEGIN
 

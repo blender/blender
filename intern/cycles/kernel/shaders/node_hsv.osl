@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "node_color.h"
+#include "stdcycles.h"
 
 shader node_hsv(float Hue = 0.5,
                 float Saturation = 1.0,

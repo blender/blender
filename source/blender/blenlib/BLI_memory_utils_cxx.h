@@ -21,8 +21,8 @@
  * \ingroup bli
  */
 
-#include <memory>
 #include <algorithm>
+#include <memory>
 
 #include "BLI_utildefines.h"
 

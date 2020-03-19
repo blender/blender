@@ -27,8 +27,8 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 
-#include "DNA_object_force_types.h"
 #include "DNA_fluid_types.h"
+#include "DNA_object_force_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
@@ -43,11 +43,11 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "eevee_private.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
-#include "GPU_texture.h"
 #include "GPU_material.h"
+#include "GPU_texture.h"
+#include "eevee_private.h"
 
 static struct {
   char *volumetric_common_lib;

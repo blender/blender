@@ -23,8 +23,8 @@
 /* Future-proof, See https://docs.python.org/3/c-api/arg.html#strings-and-buffers */
 #define PY_SSIZE_T_CLEAN
 
-#include <Python.h>
 #include "blf_py_api.h"
+#include <Python.h>
 
 #include "../../blenfont/BLF_api.h"
 

@@ -24,8 +24,8 @@
 #include <stdio.h>
 
 #include "DNA_color_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_node_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLT_translation.h"
 

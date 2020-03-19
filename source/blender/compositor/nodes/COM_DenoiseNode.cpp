@@ -16,10 +16,10 @@
  * Copyright 2019, Blender Foundation.
  */
 #include "COM_DenoiseNode.h"
-#include "DNA_node_types.h"
-#include "COM_SetValueOperation.h"
-#include "COM_MixOperation.h"
 #include "COM_DenoiseOperation.h"
+#include "COM_MixOperation.h"
+#include "COM_SetValueOperation.h"
+#include "DNA_node_types.h"
 
 DenoiseNode::DenoiseNode(bNode *editorNode) : Node(editorNode)
 {

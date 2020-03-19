@@ -21,9 +21,9 @@
 #ifndef __DNA_LIGHTPROBE_TYPES_H__
 #define __DNA_LIGHTPROBE_TYPES_H__
 
+#include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_ID.h"
 
 #include "BLI_assert.h"
 

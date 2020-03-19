@@ -24,11 +24,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_alloca.h"
-#include "BLI_memarena.h"
 #include "BLI_heap.h"
 #include "BLI_linklist.h"
+#include "BLI_memarena.h"
+#include "BLI_utildefines.h"
 
 /* only for defines */
 #include "BLI_polyfill_2d.h"

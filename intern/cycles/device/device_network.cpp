@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "device/device_network.h"
 #include "device/device.h"
 #include "device/device_intern.h"
-#include "device/device_network.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"

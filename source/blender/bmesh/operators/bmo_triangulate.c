@@ -25,8 +25,8 @@
 #include "DNA_listBase.h"
 
 #include "BLI_math.h"
-#include "BLI_sort_utils.h"
 #include "BLI_scanfill.h"
+#include "BLI_sort_utils.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"

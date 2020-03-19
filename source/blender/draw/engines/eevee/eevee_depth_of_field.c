@@ -34,9 +34,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "eevee_private.h"
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
+#include "eevee_private.h"
 
 static struct {
   /* Depth Of Field */

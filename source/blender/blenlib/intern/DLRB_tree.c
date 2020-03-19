@@ -23,8 +23,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_listbase.h"
 
 /* *********************************************** */
 /* Tree API */

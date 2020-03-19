@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "render/camera.h"
-#include "device/device.h"
 #include "render/film.h"
+#include "device/device.h"
+#include "render/camera.h"
 #include "render/integrator.h"
 #include "render/mesh.h"
 #include "render/scene.h"

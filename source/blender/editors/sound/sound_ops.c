@@ -21,10 +21,10 @@
  * \ingroup edsnd
  */
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -33,9 +33,9 @@
 
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"

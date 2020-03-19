@@ -23,25 +23,25 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
 #ifdef WITH_FREESTYLE
 #  include "DNA_meshdata_types.h"
 #endif
 
-#include "BLI_math.h"
 #include "BLI_linklist.h"
+#include "BLI_math.h"
 
-#include "BKE_layer.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_report.h"
 
-#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"

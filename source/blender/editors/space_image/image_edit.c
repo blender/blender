@@ -26,8 +26,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_rect.h"
 #include "BLI_listbase.h"
+#include "BLI_rect.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"

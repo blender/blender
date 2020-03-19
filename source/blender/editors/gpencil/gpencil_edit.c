@@ -22,11 +22,11 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -39,13 +39,13 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_gpencil_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -57,16 +57,16 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_workspace.h"
 #include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -77,10 +77,10 @@
 #include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
 #include "ED_select_utils.h"
 #include "ED_space_api.h"
+#include "ED_transform_snap_object_context.h"
+#include "ED_view3d.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

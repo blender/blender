@@ -25,9 +25,9 @@
 
 #include "CLG_log.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_array_utils.h"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_defs.h"
 #include "DNA_meta_types.h"
@@ -40,13 +40,13 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_object.h"
 #include "ED_mball.h"
+#include "ED_object.h"
 #include "ED_undo.h"
 #include "ED_util.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.mball"};

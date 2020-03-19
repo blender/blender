@@ -22,17 +22,17 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_layer_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_layer_types.h"
-#include "DNA_linestyle_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_world_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_screen_types.h" /* TransformOrientation */
+#include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -44,8 +44,8 @@
 #include "BKE_editmesh.h"
 #include "BKE_paint.h"
 
-#include "ED_object.h"
 #include "ED_gpencil.h"
+#include "ED_object.h"
 
 #include "DRW_engine.h"
 
@@ -60,9 +60,9 @@
 
 #ifdef WITH_FFMPEG
 #  include "BKE_writeffmpeg.h"
+#  include "ffmpeg_compat.h"
 #  include <libavcodec/avcodec.h>
 #  include <libavformat/avformat.h>
-#  include "ffmpeg_compat.h"
 #endif
 
 #include "ED_render.h"
@@ -653,9 +653,9 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 
 #  include "DNA_anim_types.h"
 #  include "DNA_color_types.h"
+#  include "DNA_mesh_types.h"
 #  include "DNA_node_types.h"
 #  include "DNA_object_types.h"
-#  include "DNA_mesh_types.h"
 #  include "DNA_text_types.h"
 #  include "DNA_workspace_types.h"
 
@@ -663,33 +663,33 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
+#  include "BKE_animsys.h"
 #  include "BKE_brush.h"
 #  include "BKE_collection.h"
 #  include "BKE_colortools.h"
 #  include "BKE_context.h"
+#  include "BKE_freestyle.h"
 #  include "BKE_global.h"
+#  include "BKE_gpencil.h"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"
 #  include "BKE_layer.h"
 #  include "BKE_main.h"
+#  include "BKE_mesh.h"
 #  include "BKE_node.h"
 #  include "BKE_pointcache.h"
 #  include "BKE_scene.h"
-#  include "BKE_mesh.h"
 #  include "BKE_screen.h"
 #  include "BKE_sequencer.h"
-#  include "BKE_animsys.h"
-#  include "BKE_freestyle.h"
-#  include "BKE_gpencil.h"
 #  include "BKE_unit.h"
 
-#  include "ED_info.h"
-#  include "ED_node.h"
-#  include "ED_view3d.h"
-#  include "ED_mesh.h"
-#  include "ED_keyframing.h"
 #  include "ED_image.h"
+#  include "ED_info.h"
+#  include "ED_keyframing.h"
+#  include "ED_mesh.h"
+#  include "ED_node.h"
 #  include "ED_scene.h"
+#  include "ED_view3d.h"
 
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_query.h"

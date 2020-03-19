@@ -27,18 +27,18 @@
 #include <string.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_light_types.h"
 #include "DNA_workspace_types.h"
-#include "DNA_gpencil_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_bits.h"
-#include "BLI_listbase.h"
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -64,15 +64,15 @@
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_keyframing.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

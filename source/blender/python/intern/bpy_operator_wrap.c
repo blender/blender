@@ -33,9 +33,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "bpy_rna.h"
 #include "bpy_intern_string.h"
 #include "bpy_operator_wrap.h" /* own include */
+#include "bpy_rna.h"
 
 static void operator_properties_init(wmOperatorType *ot)
 {

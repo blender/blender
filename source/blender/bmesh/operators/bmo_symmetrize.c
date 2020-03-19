@@ -20,8 +20,8 @@
  * Makes the mesh symmetrical by splitting along an axis and duplicating the geometry.
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_operators_private.h"

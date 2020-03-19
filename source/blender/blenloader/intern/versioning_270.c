@@ -18,8 +18,8 @@
  * \ingroup blenloader
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 /* for MinGW32 definition of NULL, could use BLI_blenlib.h instead too */
 #include <stddef.h>
@@ -33,22 +33,22 @@
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_sdna_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_object_force_types.h"
-#include "DNA_object_types.h"
+#include "DNA_light_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_force_types.h"
+#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_linestyle_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_fluid_types.h"
 #include "DNA_rigidbody_types.h"
-#include "DNA_light_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_sdna_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 
 #include "DNA_genfile.h"
 
@@ -60,12 +60,12 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 #include "BKE_screen.h"
+#include "BKE_sequencer.h"
 #include "BKE_tracking.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 
@@ -74,8 +74,8 @@
 #include "BLO_readfile.h"
 
 #include "NOD_common.h"
-#include "NOD_socket.h"
 #include "NOD_composite.h"
+#include "NOD_socket.h"
 
 #include "readfile.h"
 

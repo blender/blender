@@ -23,10 +23,10 @@
  * Search Box Region & Interaction
  */
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,8 +34,8 @@
 
 #include "BLI_math.h"
 
-#include "BLI_string.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -54,9 +54,9 @@
 
 #include "ED_screen.h"
 
+#include "GPU_state.h"
 #include "interface_intern.h"
 #include "interface_regions_intern.h"
-#include "GPU_state.h"
 
 #define MENU_BORDER (int)(0.3f * U.widget_unit)
 

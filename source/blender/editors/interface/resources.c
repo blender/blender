@@ -32,8 +32,8 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
@@ -49,8 +49,8 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
-#include "interface_intern.h"
 #include "GPU_framebuffer.h"
+#include "interface_intern.h"
 
 /* global for themes */
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);

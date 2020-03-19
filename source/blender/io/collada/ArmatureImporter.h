@@ -21,34 +21,34 @@
 #ifndef __ARMATUREIMPORTER_H__
 #define __ARMATUREIMPORTER_H__
 
+#include "COLLADAFWMorphController.h"
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
-#include "COLLADAFWMorphController.h"
 
 extern "C" {
 #include "BKE_context.h"
 #include "BKE_key.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_key_types.h"
 
 #include "ED_armature.h"
 }
 
 #include "AnimationImporter.h"
+#include "ExtraTags.h"
 #include "MeshImporter.h"
 #include "SkinInfo.h"
 #include "TransformReader.h"
-#include "ExtraTags.h"
 
 #include <map>
 #include <vector>
 
+#include "ImportSettings.h"
 #include "collada_internal.h"
 #include "collada_utils.h"
-#include "ImportSettings.h"
 
 #define UNLIMITED_CHAIN_MAX INT_MAX
 #define MINIMUM_BONE_LENGTH 0.000001f

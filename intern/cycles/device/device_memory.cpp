@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "device/device.h"
 #include "device/device_memory.h"
+#include "device/device.h"
 
 CCL_NAMESPACE_BEGIN
 

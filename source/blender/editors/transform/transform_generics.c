@@ -21,8 +21,8 @@
  * \ingroup edtransform
  */
 
-#include <string.h>
 #include <math.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,20 +34,20 @@
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_mask_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_movieclip_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_movieclip_types.h"
-#include "DNA_mask_types.h"
-#include "DNA_meta_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
@@ -86,24 +86,24 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
+#include "ED_clip.h"
+#include "ED_curve.h" /* for curve_editnurbs */
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_particle.h"
+#include "ED_screen.h"
 #include "ED_screen_types.h"
+#include "ED_sculpt.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
-#include "ED_curve.h" /* for curve_editnurbs */
-#include "ED_clip.h"
-#include "ED_screen.h"
-#include "ED_gpencil.h"
-#include "ED_sculpt.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "RE_engine.h"
 

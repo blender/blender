@@ -25,12 +25,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_buffer.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
-#include "intern/bmesh_private.h"
 #include "bmesh_separate.h" /* own include */
+#include "intern/bmesh_private.h"
 
 /**
  * Split all faces that match `filter_fn`.

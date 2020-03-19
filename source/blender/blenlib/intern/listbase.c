@@ -25,8 +25,8 @@
  * For single linked lists see 'BLI_linklist.h'
  */
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 

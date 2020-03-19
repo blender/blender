@@ -17,28 +17,28 @@
 
 #ifdef WITH_OPTIX
 
-#  include "device/cuda/device_cuda.h"
-#  include "device/device_intern.h"
-#  include "device/device_denoising.h"
 #  include "bvh/bvh.h"
-#  include "render/scene.h"
+#  include "device/cuda/device_cuda.h"
+#  include "device/device_denoising.h"
+#  include "device/device_intern.h"
+#  include "render/buffers.h"
 #  include "render/hair.h"
 #  include "render/mesh.h"
 #  include "render/object.h"
-#  include "render/buffers.h"
+#  include "render/scene.h"
+#  include "util/util_debug.h"
+#  include "util/util_logging.h"
 #  include "util/util_md5.h"
 #  include "util/util_path.h"
 #  include "util/util_time.h"
-#  include "util/util_debug.h"
-#  include "util/util_logging.h"
 
 #  ifdef WITH_CUDA_DYNLOAD
 #    include <cuew.h>
 // Do not use CUDA SDK headers when using CUEW
 #    define OPTIX_DONT_INCLUDE_CUDA
 #  endif
-#  include <optix_stubs.h>
 #  include <optix_function_table_definition.h>
+#  include <optix_stubs.h>
 
 // TODO(pmours): Disable this once drivers have native support
 #  define OPTIX_DENOISER_NO_PIXEL_STRIDE 1

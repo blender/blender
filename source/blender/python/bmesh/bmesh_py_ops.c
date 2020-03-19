@@ -26,15 +26,15 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "bmesh.h"
 
-#include "bmesh_py_ops_call.h"
 #include "bmesh_py_ops.h" /* own include */
+#include "bmesh_py_ops_call.h"
 
 /* bmesh operator 'bmesh.ops.*' callable types
  * ******************************************* */

@@ -20,20 +20,20 @@
  * Access to application level directories.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_blender_version.h"
 #include "BKE_appdir.h" /* own include */
+#include "BKE_blender_version.h"
 
 #include "GHOST_Path-api.h"
 
@@ -49,9 +49,9 @@
 #    undef _WIN32_IE
 #  endif
 #  define _WIN32_IE 0x0501
-#  include <windows.h>
-#  include <shlobj.h>
 #  include "BLI_winstuff.h"
+#  include <shlobj.h>
+#  include <windows.h>
 #else /* non windows */
 #  ifdef WITH_BINRELOC
 #    include "binreloc.h"

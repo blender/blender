@@ -22,11 +22,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-#include "BLI_kdopbvh.h"
-#include "BLI_memarena.h"
 #include "BLI_ghash.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
@@ -38,23 +38,23 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_armature.h"
-#include "BKE_curve.h"
-#include "BKE_object.h"
 #include "BKE_anim.h" /* for duplis */
+#include "BKE_armature.h"
+#include "BKE_bvhutils.h"
+#include "BKE_curve.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_tracking.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
+#include "BKE_tracking.h"
 
 #include "DEG_depsgraph_query.h"
 
+#include "ED_armature.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
-#include "ED_armature.h"
 
 #include "ED_transform.h"
 

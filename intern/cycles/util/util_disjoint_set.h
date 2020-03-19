@@ -17,8 +17,8 @@
 #ifndef __UTIL_DISJOINT_SET_H__
 #define __UTIL_DISJOINT_SET_H__
 
-#include <utility>
 #include "util_array.h"
+#include <utility>
 
 CCL_NAMESPACE_BEGIN
 

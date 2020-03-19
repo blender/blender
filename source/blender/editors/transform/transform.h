@@ -24,8 +24,8 @@
 #ifndef __TRANSFORM_H__
 #define __TRANSFORM_H__
 
-#include "ED_transform.h"
 #include "ED_numinput.h"
+#include "ED_transform.h"
 #include "ED_view3d.h"
 
 #include "RE_engine.h"

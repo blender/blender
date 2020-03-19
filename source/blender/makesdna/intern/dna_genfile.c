@@ -27,17 +27,17 @@
  * SDNA and the SDNA of the current (running) version of Blender.
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "MEM_guardedalloc.h"  // for MEM_freeN MEM_mallocN MEM_callocN
 
-#include "BLI_utildefines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_ghash.h"
 

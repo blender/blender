@@ -17,9 +17,9 @@
  */
 
 #include "COM_InvertNode.h"
-#include "COM_InvertOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "BKE_node.h"
+#include "COM_ExecutionSystem.h"
+#include "COM_InvertOperation.h"
 
 InvertNode::InvertNode(bNode *editorNode) : Node(editorNode)
 {

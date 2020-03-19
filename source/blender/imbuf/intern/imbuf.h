@@ -24,18 +24,18 @@
 #ifndef __IMBUF_H__
 #define __IMBUF_H__
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <stdio.h>
 
 #ifndef WIN32
 #  include <unistd.h>
 #endif
 
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <string.h>
 #include <math.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #ifndef WIN32
 #  include <sys/mman.h>

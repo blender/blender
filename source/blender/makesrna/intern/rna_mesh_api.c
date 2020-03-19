@@ -21,8 +21,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "RNA_define.h"
 
@@ -39,9 +39,9 @@
 #  include "DNA_mesh_types.h"
 
 #  include "BKE_mesh.h"
-#  include "BKE_mesh_tangent.h"
 #  include "BKE_mesh_mapping.h"
 #  include "BKE_mesh_runtime.h"
+#  include "BKE_mesh_tangent.h"
 #  include "ED_mesh.h"
 
 static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, struct Mesh *mesh2)

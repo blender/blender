@@ -21,17 +21,17 @@
 #ifndef __EXTRAHANDLER_H__
 #define __EXTRAHANDLER_H__
 
-#include <string>
-#include <map>
-#include <vector>
 #include <algorithm>  // sort()
+#include <map>
+#include <string>
+#include <vector>
 
-#include "COLLADASaxFWLIExtraDataCallbackHandler.h"
-#include "COLLADASaxFWLFilePartLoader.h"
 #include "COLLADASWInstanceController.h"
+#include "COLLADASaxFWLFilePartLoader.h"
+#include "COLLADASaxFWLIExtraDataCallbackHandler.h"
 
-#include "DocumentImporter.h"
 #include "AnimationImporter.h"
+#include "DocumentImporter.h"
 
 /** \brief Handler class for \<extra\> data, through which different
  * profiles can be handled

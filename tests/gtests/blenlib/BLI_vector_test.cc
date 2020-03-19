@@ -1,5 +1,5 @@
-#include "testing/testing.h"
 #include "BLI_vector.h"
+#include "testing/testing.h"
 #include <forward_list>
 
 using BLI::Vector;

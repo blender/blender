@@ -27,9 +27,9 @@
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_compiler_attrs.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"

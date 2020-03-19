@@ -18,10 +18,10 @@
 
 #include "COM_DistanceMatteNode.h"
 #include "BKE_node.h"
+#include "COM_ConvertOperation.h"
 #include "COM_DistanceRGBMatteOperation.h"
 #include "COM_DistanceYCCMatteOperation.h"
 #include "COM_SetAlphaOperation.h"
-#include "COM_ConvertOperation.h"
 
 DistanceMatteNode::DistanceMatteNode(bNode *editorNode) : Node(editorNode)
 {

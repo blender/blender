@@ -27,9 +27,9 @@ extern "C" {
 
 #include <stdio.h>
 
-#include "DNA_windowmanager_types.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
+#include "DNA_windowmanager_types.h"
 
 /* Reporting Information and Errors
  *

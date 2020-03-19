@@ -20,13 +20,13 @@
 
 #ifdef WITH_OPENSUBDIV
 
-#  include "MEM_guardedalloc.h"
 #  include "BLI_sys_types.h"  // for intptr_t support
+#  include "MEM_guardedalloc.h"
 
-#  include "BLI_utildefines.h" /* for BLI_assert */
 #  include "BLI_listbase.h"
 #  include "BLI_math.h"
 #  include "BLI_threads.h"
+#  include "BLI_utildefines.h" /* for BLI_assert */
 
 #  include "CCGSubSurf.h"
 #  include "CCGSubSurf_intern.h"
@@ -42,8 +42,8 @@
 #  include "opensubdiv_gl_mesh_capi.h"
 #  include "opensubdiv_topology_refiner_capi.h"
 
-#  include "GPU_glew.h"
 #  include "GPU_extensions.h"
+#  include "GPU_glew.h"
 
 #  define OSD_LOG \
     if (false) \

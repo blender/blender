@@ -21,8 +21,8 @@
  * \ingroup pythonintern
  */
 
-#include <Python.h>
 #include "BLI_utildefines.h"
+#include <Python.h>
 
 #include "bpy_app_alembic.h"
 

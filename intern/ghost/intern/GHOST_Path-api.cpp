@@ -23,10 +23,10 @@
 
 #include <cstdio>
 
-#include "intern/GHOST_Debug.h"
-#include "GHOST_Types.h"
-#include "GHOST_Path-api.h"
 #include "GHOST_ISystemPaths.h"
+#include "GHOST_Path-api.h"
+#include "GHOST_Types.h"
+#include "intern/GHOST_Debug.h"
 
 GHOST_TSuccess GHOST_CreateSystemPaths(void)
 {

@@ -69,19 +69,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_vec_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_vec_types.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_scanfill.h"
 #include "BLI_memarena.h"
+#include "BLI_scanfill.h"
+#include "BLI_utildefines.h"
 
+#include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
-#include "BLI_listbase.h"
-#include "BLI_linklist.h"
 
 #include "BKE_mask.h"
 

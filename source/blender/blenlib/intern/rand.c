@@ -21,22 +21,22 @@
  * \ingroup bli
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <time.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_threads.h"
-#include "BLI_rand.h"
 #include "BLI_math.h"
+#include "BLI_rand.h"
+#include "BLI_threads.h"
 
 /* defines BLI_INLINE */
 #include "BLI_compiler_compat.h"
 
-#include "BLI_sys_types.h"
 #include "BLI_strict_flags.h"
+#include "BLI_sys_types.h"
 
 #define MULTIPLIER 0x5DEECE66Dll
 #define MASK 0x0000FFFFFFFFFFFFll

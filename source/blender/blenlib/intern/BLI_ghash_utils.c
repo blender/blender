@@ -28,9 +28,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_hash_mm2a.h"
 #include "BLI_ghash.h" /* own include */
+#include "BLI_hash_mm2a.h"
+#include "BLI_utildefines.h"
 
 /* keep last */
 #include "BLI_strict_flags.h"

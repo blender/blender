@@ -18,12 +18,12 @@
 
 #include "COM_HueSaturationValueNode.h"
 
+#include "COM_ChangeHSVOperation.h"
 #include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_MixOperation.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
-#include "COM_ChangeHSVOperation.h"
 #include "DNA_node_types.h"
 
 HueSaturationValueNode::HueSaturationValueNode(bNode *editorNode) : Node(editorNode)

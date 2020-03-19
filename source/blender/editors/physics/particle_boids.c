@@ -39,8 +39,8 @@
 #include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
-#include "RNA_enum_types.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

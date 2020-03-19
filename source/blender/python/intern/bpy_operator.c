@@ -29,16 +29,16 @@
 
 #include "RNA_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
+#include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 #include "BPY_extern.h"
+#include "bpy_capi_utils.h"
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
-#include "bpy_capi_utils.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -50,8 +50,8 @@
 
 #include "BLI_ghash.h"
 
-#include "BKE_report.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 
 /* so operators called can spawn threads which acquire the GIL */
 #define BPY_RELEASE_GIL

@@ -29,10 +29,10 @@
 #include <string.h>
 
 #include "DNA_listBase.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_windowmanager_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -42,14 +42,14 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_timer.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_idprop.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -63,9 +63,9 @@
 #include "ED_fileselect.h"
 #include "ED_info.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
-#include "ED_util.h"
 #include "ED_undo.h"
+#include "ED_util.h"
+#include "ED_view3d.h"
 
 #include "RNA_access.h"
 
@@ -74,14 +74,14 @@
 #include "PIL_time.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "wm.h"
-#include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
+#include "wm_window.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

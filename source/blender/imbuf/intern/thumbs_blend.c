@@ -21,21 +21,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h" /* Needed due to import of BLO_readfile.h */
+#include "BLI_utildefines.h"
 
 #include "BLO_blend_defs.h"
 #include "BLO_readfile.h"
 
-#include "BKE_idcode.h"
 #include "BKE_icons.h"
+#include "BKE_idcode.h"
 #include "BKE_main.h"
 
 #include "DNA_ID.h" /* For preview images... */
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
 #include "MEM_guardedalloc.h"

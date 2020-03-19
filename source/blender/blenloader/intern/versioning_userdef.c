@@ -25,18 +25,18 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_userdef_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_anim_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_addon.h"
 #include "BKE_colorband.h"
-#include "BKE_main.h"
 #include "BKE_idprop.h"
 #include "BKE_keyconfig.h"
+#include "BKE_main.h"
 
 #include "BLO_readfile.h" /* Own include. */
 

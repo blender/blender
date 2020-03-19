@@ -28,10 +28,10 @@
 #include "GHOST_C-api.h"
 
 #include "GHOST_IXrGraphicsBinding.h"
-#include "GHOST_Xr_intern.h"
 #include "GHOST_XrContext.h"
 #include "GHOST_XrException.h"
 #include "GHOST_XrSwapchain.h"
+#include "GHOST_Xr_intern.h"
 
 #include "GHOST_XrSession.h"
 

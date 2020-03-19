@@ -19,9 +19,9 @@
 #ifndef __COM_MASKOPERATION_H__
 #define __COM_MASKOPERATION_H__
 
+#include "BLI_listbase.h"
 #include "COM_NodeOperation.h"
 #include "DNA_mask_types.h"
-#include "BLI_listbase.h"
 #include "IMB_imbuf_types.h"
 
 /**

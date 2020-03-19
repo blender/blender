@@ -21,8 +21,8 @@
 #include "BPy_UnaryFunction1DEdgeNature.h"
 
 #include "../BPy_Convert.h"
-#include "../BPy_Interface1D.h"
 #include "../BPy_IntegrationType.h"
+#include "../BPy_Interface1D.h"
 
 #include "UnaryFunction1D_Nature_EdgeNature/BPy_CurveNatureF1D.h"
 

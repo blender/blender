@@ -29,11 +29,11 @@
 #  define assertd(exp) ((void)NULL)
 #endif
 
-#include <vector>
 #include <limits.h>
+#include <vector>
 
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

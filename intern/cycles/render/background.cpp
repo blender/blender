@@ -16,8 +16,8 @@
 
 #include "render/background.h"
 #include "device/device.h"
-#include "render/integrator.h"
 #include "render/graph.h"
+#include "render/integrator.h"
 #include "render/nodes.h"
 #include "render/scene.h"
 #include "render/shader.h"

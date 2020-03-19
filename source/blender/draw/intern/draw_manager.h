@@ -30,8 +30,8 @@
 
 #include "BLI_assert.h"
 #include "BLI_linklist.h"
-#include "BLI_threads.h"
 #include "BLI_memblock.h"
+#include "BLI_threads.h"
 
 #include "GPU_batch.h"
 #include "GPU_context.h"

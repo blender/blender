@@ -22,24 +22,24 @@
 
 #include "DNA_object_types.h"
 
-#include "BLI_string.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
+#include "BKE_curveprofile.h"
 #include "BKE_editmesh.h"
-#include "BKE_unit.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
-#include "BKE_curveprofile.h"
+#include "BKE_unit.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_curveprofile_types.h"
+#include "DNA_mesh_types.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -31,8 +31,8 @@
 #ifndef __DNA_SEQUENCE_TYPES_H__
 #define __DNA_SEQUENCE_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_color_types.h"
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 #include "DNA_vfont_types.h"

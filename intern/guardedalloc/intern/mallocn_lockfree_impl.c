@@ -20,9 +20,9 @@
  * Memory allocation which keeps track on allocated memory counters
  */
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h> /* memcpy */
-#include <stdarg.h>
 #include <sys/types.h>
 
 #include "MEM_guardedalloc.h"

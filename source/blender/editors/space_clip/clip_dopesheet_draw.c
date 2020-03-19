@@ -24,15 +24,15 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
 
-#include "ED_screen.h"
 #include "ED_clip.h"
+#include "ED_screen.h"
 
 #include "WM_types.h"
 

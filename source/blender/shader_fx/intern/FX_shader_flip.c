@@ -23,9 +23,9 @@
 
 #include <stdio.h>
 
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 

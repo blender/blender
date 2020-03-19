@@ -21,12 +21,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_dynstr.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_idprop.h"
 #include "BKE_idcode.h"
+#include "BKE_idprop.h"
 
 #include "MEM_guardedalloc.h"
 

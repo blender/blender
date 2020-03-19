@@ -18,8 +18,8 @@
 
 #ifndef __COM_DISTANCEYCCMATTEOPERATION_H__
 #define __COM_DISTANCEYCCMATTEOPERATION_H__
-#include "COM_MixOperation.h"
 #include "COM_DistanceRGBMatteOperation.h"
+#include "COM_MixOperation.h"
 
 /**
  * this program converts an input color to an output value.

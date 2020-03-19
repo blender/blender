@@ -24,8 +24,8 @@
 
 #include "UI_resources.h"
 
-#include "overlay_private.h"
 #include "draw_manager_text.h"
+#include "overlay_private.h"
 
 #define BG_SOLID 0
 #define BG_GRADIENT 1

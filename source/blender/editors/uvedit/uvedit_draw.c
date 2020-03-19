@@ -43,8 +43,8 @@
 
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_material.h"
 #include "BKE_layer.h"
+#include "BKE_material.h"
 
 #include "BKE_scene.h"
 
@@ -61,8 +61,8 @@
 #include "ED_mesh.h"
 #include "ED_uvedit.h"
 
-#include "UI_resources.h"
 #include "UI_interface.h"
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "uvedit_intern.h"

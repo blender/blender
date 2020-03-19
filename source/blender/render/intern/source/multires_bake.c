@@ -25,12 +25,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_threads.h"
 
 #include "BKE_ccg.h"
@@ -38,8 +38,8 @@
 #include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_multires.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
@@ -48,8 +48,8 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 typedef void (*MPassKnownData)(DerivedMesh *lores_dm,
                                DerivedMesh *hires_dm,

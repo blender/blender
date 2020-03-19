@@ -26,8 +26,8 @@
 #ifndef __GPU_ATTR_BINDING_PRIVATE_H__
 #define __GPU_ATTR_BINDING_PRIVATE_H__
 
-#include "GPU_vertex_format.h"
 #include "GPU_shader_interface.h"
+#include "GPU_vertex_format.h"
 
 void AttrBinding_clear(GPUAttrBinding *binding);
 

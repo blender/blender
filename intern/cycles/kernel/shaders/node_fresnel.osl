@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "node_fresnel.h"
+#include "stdcycles.h"
 
 shader node_fresnel(float IOR = 1.45, normal Normal = N, output float Fac = 0.0)
 {

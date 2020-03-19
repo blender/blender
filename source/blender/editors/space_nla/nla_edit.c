@@ -21,9 +21,9 @@
  * \ingroup spnla
  */
 
-#include <string.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"

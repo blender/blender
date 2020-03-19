@@ -21,8 +21,8 @@
  * \ingroup edtransform
  */
 
-#include "DNA_particle_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_particle_types.h"
 
 #include "MEM_guardedalloc.h"
 

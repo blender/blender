@@ -40,8 +40,8 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "ED_screen.h"
 #include "ED_fileselect.h"
+#include "ED_screen.h"
 #include "ED_select_utils.h"
 
 #include "UI_interface.h"
@@ -62,11 +62,11 @@
 #include "filelist.h"
 #include "fsmenu.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* ---------- FILE SELECTION ------------ */
 static FileSelection find_file_mouse_rect(SpaceFile *sfile,

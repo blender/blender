@@ -17,10 +17,10 @@
  */
 
 #include "COM_DespeckleNode.h"
-#include "DNA_scene_types.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_DespeckleOperation.h"
 #include "BLI_math.h"
+#include "COM_DespeckleOperation.h"
+#include "COM_ExecutionSystem.h"
+#include "DNA_scene_types.h"
 
 DespeckleNode::DespeckleNode(bNode *editorNode) : Node(editorNode)
 {

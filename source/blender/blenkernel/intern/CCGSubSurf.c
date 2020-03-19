@@ -18,19 +18,19 @@
  * \ingroup bke
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
-#include "MEM_guardedalloc.h"
 #include "BLI_sys_types.h"  // for intptr_t support
+#include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h" /* for BLI_assert */
 
 #include "BKE_ccg.h"
+#include "BKE_subsurf.h"
 #include "CCGSubSurf.h"
 #include "CCGSubSurf_intern.h"
-#include "BKE_subsurf.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_capi.h"

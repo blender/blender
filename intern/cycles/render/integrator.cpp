@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "render/integrator.h"
 #include "device/device.h"
 #include "render/background.h"
-#include "render/integrator.h"
 #include "render/film.h"
 #include "render/jitter.h"
 #include "render/light.h"
@@ -27,8 +27,8 @@
 #include "kernel/kernel_types.h"
 
 #include "util/util_foreach.h"
-#include "util/util_logging.h"
 #include "util/util_hash.h"
+#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -25,9 +25,9 @@
 
 #include "GHOST_C-api.h"
 
-#include "GHOST_Xr_intern.h"
 #include "GHOST_XrContext.h"
 #include "GHOST_XrException.h"
+#include "GHOST_Xr_intern.h"
 
 GHOST_XrContextHandle GHOST_XrContextCreate(const GHOST_XrContextCreateInfo *create_info)
 {

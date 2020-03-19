@@ -18,9 +18,9 @@
  * \ingroup bli
  */
 
+#include "BLI_endian_switch.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
-#include "BLI_endian_switch.h"
 
 void BLI_endian_switch_int16_array(short *val, const int size)
 {

@@ -28,8 +28,8 @@
 // This code is in the public domain -- castanyo@yahoo.es
 
 #include <ColorBlock.h>
-#include <Image.h>
 #include <Common.h>
+#include <Image.h>
 
 #if 0
 // Get approximate luminance.

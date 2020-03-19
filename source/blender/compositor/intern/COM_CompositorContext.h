@@ -19,13 +19,13 @@
 #ifndef __COM_COMPOSITORCONTEXT_H__
 #define __COM_COMPOSITORCONTEXT_H__
 
-#include <vector>
-#include <string>
-#include "DNA_node_types.h"
-#include "DNA_color_types.h"
 #include "BLI_rect.h"
-#include "DNA_scene_types.h"
 #include "COM_defines.h"
+#include "DNA_color_types.h"
+#include "DNA_node_types.h"
+#include "DNA_scene_types.h"
+#include <string>
+#include <vector>
 
 /**
  * \brief Overall context of the compositor

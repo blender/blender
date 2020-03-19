@@ -20,8 +20,8 @@
 #define __USD_HIERARCHY_ITERATOR_H__
 
 #include "abstract_hierarchy_iterator.h"
-#include "usd_exporter_context.h"
 #include "usd.h"
+#include "usd_exporter_context.h"
 
 #include <string>
 

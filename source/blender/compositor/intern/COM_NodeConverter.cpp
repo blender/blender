@@ -22,11 +22,11 @@ extern "C" {
 
 #include "COM_Debug.h"
 
-#include "COM_NodeOperationBuilder.h"
 #include "COM_NodeOperation.h"
+#include "COM_NodeOperationBuilder.h"
+#include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
-#include "COM_SetColorOperation.h"
 #include "COM_SocketProxyOperation.h"
 
 #include "COM_NodeConverter.h" /* own include */

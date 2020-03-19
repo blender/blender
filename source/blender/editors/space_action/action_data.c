@@ -21,10 +21,10 @@
  * \ingroup spaction
  */
 
+#include <float.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <float.h>
 
 #include "BLI_utildefines.h"
 
@@ -33,33 +33,33 @@
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_mask_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_nla.h"
-#include "BKE_scene.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
-#include "ED_screen.h"
+#include "ED_keyframing.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
+#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

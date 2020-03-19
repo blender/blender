@@ -41,21 +41,21 @@
  * The implementation has no global state and can be used multi-threaded.
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
-#include <float.h>
 #include <ctype.h>
-#include <stdlib.h>
 #include <fenv.h>
+#include <float.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_expr_pylike_eval.h"
-#include "BLI_utildefines.h"
-#include "BLI_math_base.h"
 #include "BLI_alloca.h"
+#include "BLI_expr_pylike_eval.h"
+#include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 #ifdef _MSC_VER
 #  pragma fenv_access(on)

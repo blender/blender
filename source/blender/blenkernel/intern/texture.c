@@ -21,46 +21,46 @@
  * \ingroup bke
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_utildefines.h"
+#include "BLI_math.h"
 #include "BLI_math_color.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
 #include "DNA_brush_types.h"
-#include "DNA_node_types.h"
 #include "DNA_color_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_linestyle_types.h"
 #include "DNA_defaults.h"
+#include "DNA_key_types.h"
+#include "DNA_linestyle_types.h"
+#include "DNA_material_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 
 #include "IMB_imbuf.h"
 
 #include "BKE_main.h"
 
-#include "BKE_colorband.h"
-#include "BKE_idtype.h"
-#include "BKE_lib_id.h"
-#include "BKE_image.h"
-#include "BKE_material.h"
-#include "BKE_texture.h"
-#include "BKE_key.h"
-#include "BKE_icons.h"
-#include "BKE_node.h"
 #include "BKE_animsys.h"
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
+#include "BKE_icons.h"
+#include "BKE_idtype.h"
+#include "BKE_image.h"
+#include "BKE_key.h"
+#include "BKE_lib_id.h"
+#include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_scene.h"
+#include "BKE_texture.h"
 
 #include "RE_shader_ext.h"
 

@@ -23,9 +23,9 @@
  * Some really low-level file operations.
  */
 
-#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 #include <sys/stat.h>
 
@@ -38,8 +38,8 @@
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || \
     defined(__DragonFly__)
 /* For statfs */
-#  include <sys/param.h>
 #  include <sys/mount.h>
+#  include <sys/param.h>
 #endif
 
 #if defined(__linux__) || defined(__hpux) || defined(__GNU__) || defined(__GLIBC__)
@@ -50,26 +50,26 @@
 #include <string.h> /* strcpy etc.. */
 
 #ifdef WIN32
-#  include <io.h>
-#  include <direct.h>
-#  include <stdbool.h>
-#  include "BLI_winstuff.h"
 #  include "BLI_string_utf8.h"
+#  include "BLI_winstuff.h"
 #  include "utfconv.h"
+#  include <direct.h>
+#  include <io.h>
+#  include <stdbool.h>
 #else
+#  include <pwd.h>
 #  include <sys/ioctl.h>
 #  include <unistd.h>
-#  include <pwd.h>
 #endif
 
 /* lib includes */
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_linklist.h"
-#include "BLI_string.h"
 #include "BLI_fileops.h"
+#include "BLI_linklist.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 /**
  * Copies the current working directory into *dir (max size maxncpy), and

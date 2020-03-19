@@ -29,20 +29,20 @@
 #endif
 
 // NOTE: Keep first, BLI_path_util conflicts with OIIO's format.
-#include <memory>
 #include "openimageio_api.h"
 #include <OpenImageIO/imageio.h>
+#include <memory>
 
 #include "MEM_guardedalloc.h"
 
 extern "C" {
 #include "BLI_blenlib.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 }
 
 OIIO_NAMESPACE_USING

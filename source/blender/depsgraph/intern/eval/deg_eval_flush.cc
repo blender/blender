@@ -27,11 +27,11 @@
 
 #include <cmath>
 
-#include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
-#include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_object.h"
 #include "BKE_scene.h"

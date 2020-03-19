@@ -21,8 +21,8 @@
 #include "BPy_UnaryFunction1DFloat.h"
 
 #include "../BPy_Convert.h"
-#include "../BPy_Interface1D.h"
 #include "../BPy_IntegrationType.h"
+#include "../BPy_Interface1D.h"
 
 #ifdef __cplusplus
 extern "C" {

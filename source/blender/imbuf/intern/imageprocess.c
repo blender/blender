@@ -31,13 +31,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_task.h"
 #include "BLI_math.h"
+#include "BLI_task.h"
+#include "BLI_utildefines.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 #include <math.h>
 
 /* Only this one is used liberally here, and in imbuf */

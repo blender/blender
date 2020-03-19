@@ -27,9 +27,9 @@
 #include "IMB_imbuf_types.h"
 
 #include "IMB_allocimbuf.h"
+#include "IMB_colormanagement_intern.h"
 #include "IMB_filetype.h"
 #include "IMB_metadata.h"
-#include "IMB_colormanagement_intern.h"
 
 #include "imbuf.h"
 
@@ -39,8 +39,8 @@
 
 #include "BLI_math.h"
 
-#include "DNA_userdef_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 /* prototypes */
 struct Stereo3DData;

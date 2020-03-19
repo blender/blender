@@ -21,16 +21,16 @@
  * \ingroup bke
  */
 
-#include <string.h>
-#include <math.h>
 #include <ctype.h>
-#include <stdlib.h>
+#include <math.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 

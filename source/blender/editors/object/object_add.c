@@ -21,9 +21,9 @@
  * \ingroup edobj
  */
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -31,24 +31,24 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_light_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
+#include "DNA_light_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
-#include "DNA_lightprobe_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_gpencil_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -58,8 +58,8 @@
 #include "BKE_armature.h"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
-#include "BKE_context.h"
 #include "BKE_constraint.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -67,12 +67,12 @@
 #include "BKE_gpencil.h"
 #include "BKE_hair.h"
 #include "BKE_key.h"
-#include "BKE_light.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
+#include "BKE_light.h"
 #include "BKE_lightprobe.h"
 #include "BKE_main.h"
 #include "BKE_material.h"

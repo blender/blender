@@ -38,8 +38,8 @@ extern "C" {
 } /* extern "C" */
 
 #include "DNA_collection_types.h"
-#include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_object_types.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_physics.h"

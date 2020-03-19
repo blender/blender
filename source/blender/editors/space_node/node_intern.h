@@ -24,9 +24,9 @@
 #ifndef __NODE_INTERN_H__
 #define __NODE_INTERN_H__
 
-#include <stddef.h> /* for size_t */
 #include "BKE_node.h"
 #include "UI_interface.h"
+#include <stddef.h> /* for size_t */
 
 /* internal exports only */
 

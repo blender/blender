@@ -72,18 +72,18 @@
  * - write #USER (#UserDef struct) if filename is ``~/.config/blender/X.XX/config/startup.blend``.
  */
 
-#include <math.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef WIN32
-#  include <zlib.h> /* odd include order-issue */
+#  include "BLI_winstuff.h"
 #  include "winsock2.h"
 #  include <io.h>
-#  include "BLI_winstuff.h"
+#  include <zlib.h> /* odd include order-issue */
 #else
 #  include <unistd.h> /* FreeBSD, for write() and close(). */
 #endif
@@ -101,53 +101,53 @@
 #include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curveprofile_types.h"
 #include "DNA_dynamicpaint_types.h"
-#include "DNA_genfile.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_gpencil_modifier_types.h"
-#include "DNA_shader_fx_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_fileglobal_types.h"
+#include "DNA_fluid_types.h"
+#include "DNA_genfile.h"
+#include "DNA_gpencil_modifier_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_hair_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_light_types.h"
 #include "DNA_layer_types.h"
+#include "DNA_light_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
-#include "DNA_meta_types.h"
+#include "DNA_mask_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_material_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_pointcloud_types.h"
-#include "DNA_lightprobe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_fluid_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_speaker_types.h"
+#include "DNA_shader_fx_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_space_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_text_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_volume_types.h"
-#include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
-#include "DNA_movieclip_types.h"
-#include "DNA_mask_types.h"
-#include "DNA_curveprofile_types.h"
+#include "DNA_world_types.h"
 
-#include "MEM_guardedalloc.h"  // MEM_freeN
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_mempool.h"
+#include "MEM_guardedalloc.h"  // MEM_freeN
 
 #include "BKE_action.h"
 #include "BKE_blender_version.h"

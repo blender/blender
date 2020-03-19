@@ -18,23 +18,23 @@
  * \ingroup RNA
  */
 
+#include <ctype.h>
 #include <float.h>
 #include <limits.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
-#include "DNA_defaults.h"
 
-#include "BLI_listbase.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 
 #include "BLT_translation.h"
 

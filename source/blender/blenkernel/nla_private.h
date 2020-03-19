@@ -24,9 +24,9 @@
 #ifndef __NLA_PRIVATE_H__
 #define __NLA_PRIVATE_H__
 
-#include "RNA_types.h"
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
+#include "RNA_types.h"
 
 #ifdef __cplusplus
 extern "C" {

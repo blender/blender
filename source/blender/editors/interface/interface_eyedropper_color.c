@@ -28,8 +28,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_math_vector.h"
 
@@ -52,9 +52,9 @@
 
 #include "interface_intern.h"
 
+#include "ED_clip.h"
 #include "ED_image.h"
 #include "ED_node.h"
-#include "ED_clip.h"
 
 #include "interface_eyedropper_intern.h"
 

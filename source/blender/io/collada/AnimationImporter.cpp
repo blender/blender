@@ -41,10 +41,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "collada_utils.h"
 #include "AnimationImporter.h"
 #include "ArmatureImporter.h"
 #include "MaterialExporter.h"
+#include "collada_utils.h"
 
 #include <algorithm>
 

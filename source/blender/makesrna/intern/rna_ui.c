@@ -29,13 +29,13 @@
 
 #include "RNA_define.h"
 
-#include "rna_internal.h"
 #include "RNA_enum_types.h"
+#include "rna_internal.h"
 
 #include "UI_interface.h"
 
-#include "WM_types.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 /* see WM_types.h */
 const EnumPropertyItem rna_enum_operator_context_items[] = {

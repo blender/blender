@@ -34,11 +34,11 @@
  * No globals - keep threadsafe.
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
-#include "BLI_memarena.h"
 #include "BLI_heap.h"
+#include "BLI_memarena.h"
 
 #include "BLI_polyfill_2d_beautify.h" /* own include */
 

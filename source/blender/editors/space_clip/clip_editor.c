@@ -21,10 +21,10 @@
  * \ingroup spclip
  */
 
-#include <stddef.h>
 #include <errno.h>
-#include <sys/types.h>
 #include <fcntl.h>
+#include <stddef.h>
+#include <sys/types.h>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -36,11 +36,11 @@
 
 #include "DNA_mask_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -51,12 +51,12 @@
 #include "BKE_tracking.h"
 
 #include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
-#include "ED_screen.h"
 #include "ED_clip.h"
 #include "ED_mask.h"
+#include "ED_screen.h"
 #include "ED_select_utils.h"
 
 #include "WM_api.h"

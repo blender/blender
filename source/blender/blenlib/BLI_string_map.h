@@ -28,9 +28,9 @@
  * a special map with string keys can be quite handy. */
 
 #include "BLI_map.h"
+#include "BLI_optional.h"
 #include "BLI_string_ref.h"
 #include "BLI_vector.h"
-#include "BLI_optional.h"
 
 namespace BLI {
 

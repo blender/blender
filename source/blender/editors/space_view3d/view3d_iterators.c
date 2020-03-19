@@ -18,27 +18,27 @@
  * \ingroup spview3d
  */
 
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_armature_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_rect.h"
 #include "BLI_math_geom.h"
+#include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_mesh_iterators.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
@@ -46,8 +46,8 @@
 
 #include "bmesh.h"
 
-#include "ED_screen.h"
 #include "ED_armature.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 typedef struct foreachScreenObjectVert_userData {

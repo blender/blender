@@ -27,8 +27,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 

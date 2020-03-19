@@ -34,11 +34,11 @@
 
 #include "BKE_context.h"
 
-#include "GPU_matrix.h"
-#include "GPU_shader.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_matrix.h"
 #include "GPU_select.h"
+#include "GPU_shader.h"
 #include "GPU_state.h"
 
 #include "RNA_access.h"
@@ -47,9 +47,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_gizmo_library.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_gizmo_library.h"
 
 /* own includes */
 #include "../gizmo_library_intern.h"

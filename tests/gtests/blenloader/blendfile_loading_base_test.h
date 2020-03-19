@@ -18,8 +18,8 @@
 #ifndef __BLENDFILE_LOADING_BASE_TEST_H__
 #define __BLENDFILE_LOADING_BASE_TEST_H__
 
-#include "testing/testing.h"
 #include "DEG_depsgraph.h"
+#include "testing/testing.h"
 
 struct BlendFileData;
 struct Depsgraph;

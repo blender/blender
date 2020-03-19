@@ -17,8 +17,8 @@
 #ifndef __CONSTANT_FOLD_H__
 #define __CONSTANT_FOLD_H__
 
-#include "util/util_types.h"
 #include "kernel/svm/svm_types.h"
+#include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
 

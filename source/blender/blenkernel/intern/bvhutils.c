@@ -21,18 +21,18 @@
  * \ingroup bke
  */
 
+#include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
-#include <assert.h>
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"

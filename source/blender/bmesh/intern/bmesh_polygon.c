@@ -23,18 +23,18 @@
  */
 
 #include "DNA_listBase.h"
-#include "DNA_modifier_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_heap.h"
+#include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
-#include "BLI_linklist.h"
-#include "BLI_heap.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"

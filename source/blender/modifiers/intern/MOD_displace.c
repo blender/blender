@@ -31,15 +31,15 @@
 #include "DNA_object_types.h"
 
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 #include "BKE_editmesh.h"
+#include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_texture.h"
-#include "BKE_deform.h"
 #include "BKE_object.h"
+#include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

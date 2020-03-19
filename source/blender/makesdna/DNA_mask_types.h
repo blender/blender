@@ -27,10 +27,10 @@
 #ifndef __DNA_MASK_TYPES_H__
 #define __DNA_MASK_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
-#include "DNA_listBase.h"
 #include "DNA_curve_types.h"
+#include "DNA_defs.h"
+#include "DNA_listBase.h"
 
 typedef struct Mask {
   ID id;

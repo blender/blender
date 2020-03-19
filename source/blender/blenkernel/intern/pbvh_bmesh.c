@@ -20,15 +20,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_buffer.h"
 #include "BLI_ghash.h"
 #include "BLI_heap_simple.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_ccg.h"
 #include "BKE_pbvh.h"
 
 #include "GPU_buffers.h"

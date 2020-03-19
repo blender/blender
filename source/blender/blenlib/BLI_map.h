@@ -26,8 +26,8 @@
  * lookups. Keys and values are stored in groups of four to avoid wasting memory due to padding.
  */
 
-#include "BLI_hash_cxx.h"
 #include "BLI_array_ref.h"
+#include "BLI_hash_cxx.h"
 #include "BLI_open_addressing.h"
 
 namespace BLI {

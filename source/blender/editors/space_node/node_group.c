@@ -25,11 +25,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_node_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_node_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BLT_translation.h"
@@ -44,8 +44,8 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ED_node.h" /* own include */
-#include "ED_screen.h"
 #include "ED_render.h"
+#include "ED_screen.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -55,8 +55,8 @@
 
 #include "UI_resources.h"
 
-#include "node_intern.h" /* own include */
 #include "NOD_common.h"
+#include "node_intern.h" /* own include */
 
 static bool node_group_operator_active(bContext *C)
 {

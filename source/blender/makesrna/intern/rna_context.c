@@ -23,8 +23,8 @@
 #include "DNA_ID.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_utildefines.h"
 #include "BKE_context.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

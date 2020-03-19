@@ -23,8 +23,8 @@
 
 #include "node_composite_util.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_linklist.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
 

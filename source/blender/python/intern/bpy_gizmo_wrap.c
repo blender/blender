@@ -37,9 +37,9 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "bpy_rna.h"
-#include "bpy_intern_string.h"
 #include "bpy_gizmo_wrap.h" /* own include */
+#include "bpy_intern_string.h"
+#include "bpy_rna.h"
 
 /* we may want to add, but not now */
 

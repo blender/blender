@@ -33,10 +33,10 @@
 #include "DRW_engine.h"
 #include "DRW_render.h" /* For DRW_shgroup_get_instance_count() */
 
-#include "MEM_guardedalloc.h"
-#include "BLI_utildefines.h"
-#include "BLI_mempool.h"
 #include "BLI_memblock.h"
+#include "BLI_mempool.h"
+#include "BLI_utildefines.h"
+#include "MEM_guardedalloc.h"
 
 #include "intern/gpu_primitive_private.h"
 

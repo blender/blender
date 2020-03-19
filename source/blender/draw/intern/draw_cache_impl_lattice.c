@@ -25,17 +25,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_lattice.h"
-#include "BKE_deform.h"
 #include "BKE_colorband.h"
+#include "BKE_deform.h"
+#include "BKE_lattice.h"
 
 #include "GPU_batch.h"
 

@@ -24,13 +24,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -38,10 +38,10 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_layer.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
@@ -57,8 +57,8 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_keyframing.h"
-#include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "UI_interface.h"

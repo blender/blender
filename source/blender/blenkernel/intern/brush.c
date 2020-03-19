@@ -21,10 +21,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_defaults.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -35,6 +35,7 @@
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -43,7 +44,6 @@
 #include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
-#include "BKE_icons.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"

@@ -21,8 +21,8 @@
 #ifndef __LIGHTEXPORTER_H__
 #define __LIGHTEXPORTER_H__
 
-#include "COLLADASWStreamWriter.h"
 #include "COLLADASWLibraryLights.h"
+#include "COLLADASWStreamWriter.h"
 
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"

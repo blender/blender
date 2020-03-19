@@ -24,8 +24,8 @@
 #ifndef __DNA_LATTICE_TYPES_H__
 #define __DNA_LATTICE_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
+#include "DNA_defs.h"
 
 struct AnimData;
 struct BPoint;

@@ -25,8 +25,8 @@
 #if defined(WITH_X11)
 #  include "GHOST_ContextGLX.h"
 #elif defined(WIN32)
-#  include "GHOST_ContextWGL.h"
 #  include "GHOST_ContextD3D.h"
+#  include "GHOST_ContextWGL.h"
 #endif
 #include "GHOST_C-api.h"
 #include "GHOST_Xr_intern.h"

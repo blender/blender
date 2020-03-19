@@ -28,14 +28,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_object_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_object_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_string.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -54,8 +54,8 @@
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 
-#include "interface_intern.h"
 #include "interface_eyedropper_intern.h"
+#include "interface_intern.h"
 
 /**
  * \note #DepthDropper is only internal name to avoid confusion with other kinds of eye-droppers.

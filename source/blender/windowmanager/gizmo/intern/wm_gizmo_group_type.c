@@ -18,8 +18,8 @@
  * \ingroup wm
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
@@ -35,8 +35,8 @@
 #include "wm.h"
 
 /* own includes */
-#include "wm_gizmo_wmapi.h"
 #include "wm_gizmo_intern.h"
+#include "wm_gizmo_wmapi.h"
 
 /** \name GizmoGroup Type Append
  *

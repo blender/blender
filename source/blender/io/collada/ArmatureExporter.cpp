@@ -39,8 +39,8 @@ extern "C" {
 
 #include "BLI_listbase.h"
 
-#include "GeometryExporter.h"
 #include "ArmatureExporter.h"
+#include "GeometryExporter.h"
 #include "SceneExporter.h"
 
 // write bone nodes

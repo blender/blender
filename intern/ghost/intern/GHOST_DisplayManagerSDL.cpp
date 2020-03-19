@@ -22,8 +22,8 @@
  * \ingroup GHOST
  */
 
-#include "GHOST_SystemSDL.h"
 #include "GHOST_DisplayManagerSDL.h"
+#include "GHOST_SystemSDL.h"
 
 #include "GHOST_WindowManager.h"
 

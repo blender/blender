@@ -24,9 +24,9 @@
 #ifndef __DNA_MESH_TYPES_H__
 #define __DNA_MESH_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
+#include "DNA_defs.h"
 
 #ifdef __cplusplus
 extern "C" {

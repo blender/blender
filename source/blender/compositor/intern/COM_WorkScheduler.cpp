@@ -19,18 +19,18 @@
 #include <list>
 #include <stdio.h>
 
-#include "COM_compositor.h"
-#include "COM_WorkScheduler.h"
 #include "COM_CPUDevice.h"
 #include "COM_OpenCLDevice.h"
 #include "COM_OpenCLKernels.cl.h"
-#include "clew.h"
+#include "COM_WorkScheduler.h"
 #include "COM_WriteBufferOperation.h"
+#include "COM_compositor.h"
+#include "clew.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
 #include "BLI_threads.h"
+#include "PIL_time.h"
 
 #include "BKE_global.h"
 

@@ -18,10 +18,10 @@
  */
 
 #include "openvdb_level_set.h"
-#include "openvdb_util.h"
-#include "openvdb_capi.h"
 #include "MEM_guardedalloc.h"
 #include "openvdb/tools/Composite.h"
+#include "openvdb_capi.h"
+#include "openvdb_util.h"
 
 OpenVDBLevelSet::OpenVDBLevelSet()
 {

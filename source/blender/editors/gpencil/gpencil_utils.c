@@ -20,24 +20,24 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
-#include "BLI_rand.h"
 
-#include "DNA_meshdata_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -45,21 +45,21 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_action.h"
-#include "BKE_colortools.h"
-#include "BKE_collection.h"
-#include "BKE_deform.h"
-#include "BKE_main.h"
 #include "BKE_brush.h"
+#include "BKE_collection.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_deform.h"
 #include "BKE_gpencil.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_material.h"
 #include "BKE_tracking.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -68,12 +68,12 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_gpencil.h"
 #include "ED_clip.h"
-#include "ED_view3d.h"
+#include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
+#include "ED_view3d.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

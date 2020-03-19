@@ -29,9 +29,9 @@ extern "C" {
 #endif
 
 #include "DNA_ID.h"
-#include "DNA_listBase.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_listBase.h"
 
 /* ************************************************ */
 /* F-Curve DataTypes */

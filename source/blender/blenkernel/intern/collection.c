@@ -30,8 +30,8 @@
 
 #include "BKE_collection.h"
 #include "BKE_icons.h"
-#include "BKE_idtype.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"

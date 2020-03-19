@@ -30,8 +30,8 @@
 #ifndef __IMAGE_H__
 #define __IMAGE_H__
 
-#include "Common.h"
 #include "Color.h"
+#include "Common.h"
 
 /// 32 bit RGBA image.
 class Image {

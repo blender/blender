@@ -24,10 +24,10 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 
-#include "ED_screen.h"
-#include "ED_transform.h"
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
+#include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "UI_resources.h"
 
@@ -38,9 +38,9 @@
 #include "RNA_access.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
-#include "WM_toolsystem.h"
 #include "WM_message.h"
+#include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "view3d_intern.h" /* own include */
 

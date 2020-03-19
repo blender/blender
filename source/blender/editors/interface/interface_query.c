@@ -20,9 +20,9 @@
  * Utilities to inspect the interface, extract information.
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_screen_types.h"
 

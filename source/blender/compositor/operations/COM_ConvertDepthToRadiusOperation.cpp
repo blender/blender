@@ -17,8 +17,8 @@
  */
 
 #include "COM_ConvertDepthToRadiusOperation.h"
-#include "BLI_math.h"
 #include "BKE_camera.h"
+#include "BLI_math.h"
 #include "DNA_camera_types.h"
 
 ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation() : NodeOperation()

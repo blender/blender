@@ -285,8 +285,8 @@ static const EnumPropertyItem space_object_items[] = {
 
 #  include "DNA_cachefile_types.h"
 
-#  include "BKE_animsys.h"
 #  include "BKE_action.h"
+#  include "BKE_animsys.h"
 #  include "BKE_constraint.h"
 #  include "BKE_context.h"
 

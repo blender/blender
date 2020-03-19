@@ -23,8 +23,8 @@
  * Manage initializing resources and correctly shutting down.
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef _WIN32
@@ -45,36 +45,36 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
-#include "BLI_utildefines.h"
 #include "BLI_timer.h"
+#include "BLI_utildefines.h"
 
-#include "BLO_writefile.h"
 #include "BLO_undofile.h"
+#include "BLO_writefile.h"
 
-#include "BKE_blendfile.h"
 #include "BKE_blender.h"
+#include "BKE_blendfile.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
+#include "BKE_keyconfig.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_mball_tessellate.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_sound.h"
-#include "BKE_keyconfig.h"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
+#include "BKE_mask.h"      /* free mask clipboard */
+#include "BKE_material.h"  /* BKE_material_copybuf_clear */
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_studiolight.h"
-#include "BKE_material.h" /* BKE_material_copybuf_clear */
 #include "BKE_tracking.h" /* free tracking clipboard */
-#include "BKE_mask.h"     /* free mask clipboard */
 
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
@@ -85,43 +85,43 @@
 #  include "BPY_extern.h"
 #endif
 
-#include "GHOST_Path-api.h"
 #include "GHOST_C-api.h"
+#include "GHOST_Path-api.h"
 
 #include "RNA_define.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
+#include "wm.h"
 #include "wm_cursors.h"
 #include "wm_event_system.h"
-#include "wm.h"
 #include "wm_files.h"
+#include "wm_platform_support.h"
 #include "wm_surface.h"
 #include "wm_window.h"
-#include "wm_platform_support.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_gpencil.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+#include "ED_keyframing.h"
 #include "ED_node.h"
 #include "ED_render.h"
-#include "ED_space_api.h"
 #include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_space_api.h"
 #include "ED_undo.h"
+#include "ED_util.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "BLF_api.h"
 #include "BLT_lang.h"
+#include "UI_interface.h"
+#include "UI_resources.h"
 
-#include "GPU_material.h"
 #include "GPU_draw.h"
 #include "GPU_init_exit.h"
+#include "GPU_material.h"
 
 #include "BKE_sound.h"
 #include "COM_compositor.h"

@@ -18,19 +18,19 @@
 
 #include "COM_ImageOperation.h"
 
-#include "BLI_listbase.h"
-#include "DNA_image_types.h"
 #include "BKE_image.h"
 #include "BKE_scene.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "DNA_image_types.h"
 
 extern "C" {
-#include "RE_pipeline.h"
-#include "RE_shader_ext.h"
-#include "RE_render_ext.h"
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
+#include "RE_pipeline.h"
+#include "RE_render_ext.h"
+#include "RE_shader_ext.h"
 }
 
 BaseImageOperation::BaseImageOperation() : NodeOperation()

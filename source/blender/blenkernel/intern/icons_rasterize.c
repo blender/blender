@@ -19,9 +19,9 @@
  */
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_math_geom.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

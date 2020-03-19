@@ -23,8 +23,8 @@
 #ifndef __DRAW_CACHE_INLINE_H__
 #define __DRAW_CACHE_INLINE_H__
 
-#include "MEM_guardedalloc.h"
 #include "GPU_batch.h"
+#include "MEM_guardedalloc.h"
 
 /* Common */
 // #define DRW_DEBUG_MESH_CACHE_REQUEST

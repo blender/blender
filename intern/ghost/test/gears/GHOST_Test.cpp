@@ -30,8 +30,8 @@
 
 #if defined(WIN32) || defined(__APPLE__)
 #  ifdef WIN32
-#    include <windows.h>
 #    include <atlbase.h>
+#    include <windows.h>
 
 #    include <GL/gl.h>
 #  else  // WIN32 \
@@ -42,12 +42,12 @@
 #  include <GL/gl.h>
 #endif  // defined(WIN32) || defined(__APPLE__)
 
-#include "STR_String.h"
 #include "GHOST_Rect.h"
+#include "STR_String.h"
 
-#include "GHOST_ISystem.h"
 #include "GHOST_IEvent.h"
 #include "GHOST_IEventConsumer.h"
+#include "GHOST_ISystem.h"
 
 #define LEFT_EYE 0
 #define RIGHT_EYE 1

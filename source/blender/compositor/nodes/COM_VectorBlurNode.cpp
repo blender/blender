@@ -17,8 +17,8 @@
  */
 
 #include "COM_VectorBlurNode.h"
-#include "DNA_node_types.h"
 #include "COM_VectorBlurOperation.h"
+#include "DNA_node_types.h"
 
 VectorBlurNode::VectorBlurNode(bNode *editorNode) : Node(editorNode)
 {

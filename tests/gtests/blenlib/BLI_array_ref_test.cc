@@ -1,6 +1,6 @@
-#include "testing/testing.h"
 #include "BLI_array_ref.h"
 #include "BLI_vector.h"
+#include "testing/testing.h"
 
 using namespace BLI;
 

@@ -48,13 +48,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-#include <DirectDrawSurface.h>
 #include <BlockDXT.h>
+#include <DirectDrawSurface.h>
 #include <PixelFormat.h>
 
+#include <math.h>    // sqrt
 #include <stdio.h>   // printf
 #include <stdlib.h>  // malloc
-#include <math.h>    // sqrt
 #include <sys/types.h>
 
 /*** declarations ***/

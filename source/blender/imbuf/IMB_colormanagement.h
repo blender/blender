@@ -24,8 +24,8 @@
  * \ingroup imbuf
  */
 
-#include "BLI_sys_types.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {

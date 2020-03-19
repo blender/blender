@@ -21,11 +21,11 @@
  * \ingroup cmpnodes
  */
 
-#include "node_composite_util.h"
 #include "BLI_assert.h"
 #include "BLI_dynstr.h"
 #include "BLI_hash_mm3.h"
 #include "BLI_utildefines.h"
+#include "node_composite_util.h"
 
 /* this is taken from the cryptomatte specification 1.0 */
 

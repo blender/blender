@@ -18,16 +18,16 @@
  * \ingroup bke
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
 #include <assert.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "BLI_sys_types.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_sys_types.h"
 
 #include "DNA_scene_types.h"
 

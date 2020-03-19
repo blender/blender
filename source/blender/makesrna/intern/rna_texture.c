@@ -25,12 +25,12 @@
 #include "DNA_brush_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_world_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h" /* MAXFRAME only */
+#include "DNA_texture_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -144,8 +144,8 @@ static const EnumPropertyItem blend_type_items[] = {
 #  include "BKE_colorband.h"
 #  include "BKE_context.h"
 #  include "BKE_image.h"
-#  include "BKE_texture.h"
 #  include "BKE_main.h"
+#  include "BKE_texture.h"
 
 #  include "DEG_depsgraph.h"
 

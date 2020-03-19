@@ -75,12 +75,12 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_tangent.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_tangent.h"
 #include "BKE_node.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "RE_bake.h"
 

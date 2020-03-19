@@ -21,10 +21,10 @@
  * \ingroup bke
  */
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,8 +34,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_report.h"
 #include "BKE_global.h" /* G.background only */
+#include "BKE_report.h"
 
 const char *BKE_report_type_str(ReportType type)
 {

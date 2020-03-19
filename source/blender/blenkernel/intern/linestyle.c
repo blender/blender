@@ -27,10 +27,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
-#include "DNA_material_types.h" /* for ramp blend */
-#include "DNA_texture_types.h"
 #include "DNA_defaults.h"
+#include "DNA_material_types.h" /* for ramp blend */
+#include "DNA_object_types.h"
+#include "DNA_texture_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -39,7 +39,9 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_animsys.h"
 #include "BKE_colorband.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_freestyle.h"
 #include "BKE_idtype.h"
@@ -47,8 +49,6 @@
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_colortools.h"
-#include "BKE_animsys.h"
 
 static void linestyle_init_data(ID *id)
 {

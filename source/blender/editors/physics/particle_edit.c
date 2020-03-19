@@ -21,26 +21,26 @@
  * \ingroup edphys
  */
 
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
 #include <assert.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_view3d_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 
-#include "BLI_math.h"
+#include "BLI_kdtree.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
-#include "BLI_rect.h"
-#include "BLI_kdtree.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_rect.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -59,10 +59,10 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_object.h"
-#include "ED_physics.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_particle.h"
+#include "ED_physics.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
@@ -74,9 +74,9 @@
 #include "UI_resources.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

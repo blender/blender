@@ -15,10 +15,10 @@
  */
 
 #include "render/bake.h"
+#include "render/integrator.h"
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/shader.h"
-#include "render/integrator.h"
 
 #include "util/util_foreach.h"
 

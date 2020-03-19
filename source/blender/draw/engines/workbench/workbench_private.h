@@ -26,9 +26,9 @@
 #include "BKE_studiolight.h"
 
 #include "DNA_image_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
-#include "DNA_userdef_types.h"
 
 #include "DRW_render.h"
 

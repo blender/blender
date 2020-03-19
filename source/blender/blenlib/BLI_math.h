@@ -66,12 +66,12 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_interp.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_solvers.h"
 #include "BLI_math_statistics.h"
+#include "BLI_math_vector.h"
 
 #endif /* __BLI_MATH_H__ */

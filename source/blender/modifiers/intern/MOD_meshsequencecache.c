@@ -20,8 +20,8 @@
 
 #include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_mesh_types.h"

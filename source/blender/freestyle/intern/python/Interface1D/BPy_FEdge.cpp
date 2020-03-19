@@ -22,9 +22,9 @@
 
 #include "../BPy_Convert.h"
 #include "../BPy_Id.h"
+#include "../BPy_Nature.h"
 #include "../Interface0D/BPy_SVertex.h"
 #include "../Interface1D/BPy_ViewEdge.h"
-#include "../BPy_Nature.h"
 
 #ifdef __cplusplus
 extern "C" {

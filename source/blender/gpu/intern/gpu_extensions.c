@@ -24,9 +24,9 @@
  * with checks for drivers and GPU support.
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 #include "MEM_guardedalloc.h"
@@ -34,13 +34,13 @@
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"
-#include "GPU_texture.h"
 #include "GPU_platform.h"
+#include "GPU_texture.h"
 
 #include "intern/gpu_private.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef WIN32

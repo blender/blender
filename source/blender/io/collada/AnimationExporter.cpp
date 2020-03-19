@@ -18,10 +18,10 @@
  * \ingroup collada
  */
 
-#include "GeometryExporter.h"
 #include "AnimationExporter.h"
 #include "AnimationClipExporter.h"
 #include "BCAnimationSampler.h"
+#include "GeometryExporter.h"
 #include "MaterialExporter.h"
 #include "collada_utils.h"
 

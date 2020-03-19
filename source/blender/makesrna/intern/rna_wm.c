@@ -29,8 +29,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_workspace.h"
 #include "BKE_keyconfig.h"
+#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

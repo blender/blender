@@ -24,15 +24,15 @@
 /* Global includes */
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-#include "BLI_ghash.h"
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_camera_types.h"
@@ -40,8 +40,8 @@
 #include "BKE_camera.h"
 
 /* this module */
-#include "renderpipeline.h"
 #include "render_types.h"
+#include "renderpipeline.h"
 
 /* Own includes */
 #include "initrender.h"

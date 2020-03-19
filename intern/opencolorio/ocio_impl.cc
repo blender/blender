@@ -62,9 +62,9 @@ using namespace OCIO_NAMESPACE;
 #  include <algorithm>
 #  include <map>
 #  include <mutex>
-#  include <vector>
-#  include <string>
 #  include <set>
+#  include <string>
+#  include <vector>
 using std::map;
 using std::set;
 using std::string;

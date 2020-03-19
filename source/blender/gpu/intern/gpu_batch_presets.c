@@ -21,17 +21,17 @@
  * \ingroup gpu
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
-#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
 #include "UI_interface.h"
 
 #include "GPU_batch.h"
-#include "GPU_batch_utils.h"
 #include "GPU_batch_presets.h" /* own include */
+#include "GPU_batch_utils.h"
 #include "gpu_shader_private.h"
 
 /* Struct to store 3D Batches and their format */

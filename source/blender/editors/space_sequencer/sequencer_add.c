@@ -21,10 +21,10 @@
  * \ingroup spseq
  */
 
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
 #include <ctype.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,8 +34,8 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"

@@ -21,10 +21,10 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include "BLI_jitter_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_color.h"
-#include "BLI_jitter_2d.h"
 
 #include "BKE_movieclip.h"
 #include "BKE_node.h"

@@ -17,8 +17,8 @@
  */
 
 #include "COM_NormalizeNode.h"
-#include "COM_NormalizeOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_NormalizeOperation.h"
 
 NormalizeNode::NormalizeNode(bNode *editorNode) : Node(editorNode)
 {

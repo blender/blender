@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+#include "node_noise.h"
 #include "stdcycles.h"
 #include "vector2.h"
 #include "vector4.h"
-#include "node_noise.h"
 
 #define vector3 point
 

@@ -46,8 +46,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "util/util_projection.h"
 #include "util/util_transform.h"
+#include "util/util_projection.h"
 
 #include "util/util_boundbox.h"
 #include "util/util_math.h"

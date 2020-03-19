@@ -21,11 +21,11 @@
  * \ingroup edobj
  */
 
+#include <ctype.h>
+#include <float.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <float.h>
-#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -33,26 +33,26 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_mesh_mirror.h"
+#include "BKE_mesh_remesh_voxel.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_shrinkwrap.h"
-#include "BKE_customdata.h"
-#include "BKE_mesh_remesh_voxel.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -68,9 +68,9 @@
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "object_intern.h"  // own include
 

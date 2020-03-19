@@ -17,9 +17,9 @@
 #ifndef __UTIL_STRING_H__
 #define __UTIL_STRING_H__
 
+#include <sstream>
 #include <string.h>
 #include <string>
-#include <sstream>
 
 #include "util/util_vector.h"
 

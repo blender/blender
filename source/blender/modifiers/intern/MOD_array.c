@@ -35,12 +35,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_displist.h"
 #include "BKE_curve.h"
+#include "BKE_displist.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 
 #include "MOD_util.h"

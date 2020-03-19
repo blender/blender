@@ -26,9 +26,9 @@
 
 #include "GHOST_WindowManager.h"
 
+#include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
-#include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
 
 GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()

@@ -22,12 +22,12 @@
  * \brief Jitter offset table
  */
 
+#include "MEM_guardedalloc.h"
 #include <math.h>
 #include <string.h>
-#include "MEM_guardedalloc.h"
 
-#include "BLI_rand.h"
 #include "BLI_jitter_2d.h"
+#include "BLI_rand.h"
 
 #include "BLI_strict_flags.h"
 

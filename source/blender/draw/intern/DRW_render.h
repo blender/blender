@@ -39,23 +39,23 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_object_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
 #include "GPU_framebuffer.h"
 #include "GPU_primitive.h"
-#include "GPU_texture.h"
 #include "GPU_shader.h"
+#include "GPU_texture.h"
 
-#include "draw_common.h"
 #include "draw_cache.h"
+#include "draw_common.h"
 #include "draw_view.h"
 
-#include "draw_manager_profiling.h"
 #include "draw_debug.h"
+#include "draw_manager_profiling.h"
 
 #include "MEM_guardedalloc.h"
 

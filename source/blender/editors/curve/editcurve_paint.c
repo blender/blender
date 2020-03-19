@@ -37,10 +37,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_space_api.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
 #include "ED_curve.h"
+#include "ED_screen.h"
+#include "ED_space_api.h"
+#include "ED_view3d.h"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"

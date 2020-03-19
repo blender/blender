@@ -27,11 +27,11 @@
 
 #include "CLG_log.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -39,27 +39,27 @@
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_layer.h"
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
-#include "BKE_paint.h"
 
 #include "BLO_blend_validate.h"
 
 #include "ED_gpencil.h"
-#include "ED_render.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

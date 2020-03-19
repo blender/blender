@@ -18,32 +18,32 @@
  * \ingroup edinterface
  */
 
+#include <assert.h>
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_screen_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
-#include "BKE_animsys.h"
 
 #include "RNA_access.h"
 

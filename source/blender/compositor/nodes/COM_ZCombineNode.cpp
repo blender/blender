@@ -20,11 +20,11 @@
 
 #include "COM_ZCombineOperation.h"
 
-#include "COM_ExecutionSystem.h"
-#include "COM_SetValueOperation.h"
-#include "COM_MathBaseOperation.h"
 #include "COM_AntiAliasOperation.h"
+#include "COM_ExecutionSystem.h"
+#include "COM_MathBaseOperation.h"
 #include "COM_MixOperation.h"
+#include "COM_SetValueOperation.h"
 
 #include "DNA_material_types.h"  // the ramp types
 

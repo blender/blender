@@ -18,14 +18,14 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <limits.h>
+#include <stdlib.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_movieclip_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BLI_math.h"
@@ -70,9 +70,9 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BKE_global.h"
-#  include "BKE_report.h"
 #  include "BKE_idprop.h"
 #  include "BKE_movieclip.h"
+#  include "BKE_report.h"
 
 #  include "WM_api.h"
 

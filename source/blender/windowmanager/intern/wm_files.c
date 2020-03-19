@@ -27,9 +27,9 @@
 /* placed up here because of crappy
  * winsock stuff.
  */
+#include <errno.h>
 #include <stddef.h>
 #include <string.h>
-#include <errno.h>
 
 #include "zlib.h" /* wm_read_exotic() */
 
@@ -42,19 +42,19 @@
 #  endif
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
  * because 'near' is disabled through BLI_windstuff */
-#  include <shlobj.h>
 #  include "BLI_winstuff.h"
+#  include <shlobj.h>
 #endif
 
-#include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_utildefines.h"
-#include "BLI_timer.h"
-#include "BLI_threads.h"
 #include "BLI_system.h"
+#include "BLI_threads.h"
+#include "BLI_timer.h"
+#include "BLI_utildefines.h"
 #include BLI_SYSTEM_PID_H
 
 #include "BLT_translation.h"
@@ -62,10 +62,10 @@
 #include "BLF_api.h"
 
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
@@ -82,15 +82,15 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
-#include "BKE_sound.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_sound.h"
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
-#include "BLO_writefile.h"
 #include "BLO_undofile.h" /* to save from an undo memfile */
+#include "BLO_writefile.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -104,10 +104,10 @@
 #include "ED_image.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
+#include "ED_undo.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h"
-#include "ED_util.h"
-#include "ED_undo.h"
 
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.h"
@@ -127,14 +127,14 @@
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "wm.h"
+#include "wm_event_system.h"
 #include "wm_files.h"
 #include "wm_window.h"
-#include "wm_event_system.h"
 
 static RecentFile *wm_file_history_find(const char *filepath);
 static void wm_history_file_free(RecentFile *recent);

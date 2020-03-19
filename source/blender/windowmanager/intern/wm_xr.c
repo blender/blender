@@ -58,8 +58,8 @@
 
 #include "UI_interface.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "wm.h"
 #include "wm_surface.h"

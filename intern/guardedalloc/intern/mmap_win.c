@@ -23,11 +23,11 @@
 
 #ifdef WIN32
 
-#  include <windows.h>
 #  include <errno.h>
 #  include <io.h>
-#  include <sys/types.h>
 #  include <stdio.h>
+#  include <sys/types.h>
+#  include <windows.h>
 
 #  include "mmap_win.h"
 

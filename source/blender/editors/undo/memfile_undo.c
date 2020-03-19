@@ -20,8 +20,8 @@
  * Wrapper between 'ED_undo.h' and 'BKE_undo_system.h' API's.
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_sys_types.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_ghash.h"
 

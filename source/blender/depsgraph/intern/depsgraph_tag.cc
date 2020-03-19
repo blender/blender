@@ -25,13 +25,13 @@
 
 #include "intern/depsgraph_tag.h"
 
-#include <stdio.h>
 #include <cstring> /* required for memset */
 #include <queue>
+#include <stdio.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_math_bits.h"
 #include "BLI_task.h"
+#include "BLI_utildefines.h"
 
 extern "C" {
 #include "DNA_anim_types.h"
@@ -62,8 +62,8 @@ extern "C" {
 
 #include "intern/builder/deg_builder.h"
 #include "intern/depsgraph.h"
-#include "intern/depsgraph_update.h"
 #include "intern/depsgraph_registry.h"
+#include "intern/depsgraph_update.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/eval/deg_eval_flush.h"
 #include "intern/node/deg_node.h"

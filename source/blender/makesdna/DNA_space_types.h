@@ -25,15 +25,15 @@
 #ifndef __DNA_SPACE_TYPES_H__
 #define __DNA_SPACE_TYPES_H__
 
-#include "DNA_defs.h"
-#include "DNA_listBase.h"
 #include "DNA_color_types.h" /* for Histogram */
-#include "DNA_vec_types.h"
-#include "DNA_outliner_types.h"  /* for TreeStoreElem */
-#include "DNA_image_types.h"     /* ImageUser */
+#include "DNA_defs.h"
+#include "DNA_image_types.h" /* ImageUser */
+#include "DNA_listBase.h"
 #include "DNA_movieclip_types.h" /* MovieClipUser */
-#include "DNA_sequence_types.h"  /* SequencerScopes */
 #include "DNA_node_types.h"      /* for bNodeInstanceKey */
+#include "DNA_outliner_types.h"  /* for TreeStoreElem */
+#include "DNA_sequence_types.h"  /* SequencerScopes */
+#include "DNA_vec_types.h"
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 

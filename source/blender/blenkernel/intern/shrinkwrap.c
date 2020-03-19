@@ -21,37 +21,37 @@
  * \ingroup bke
  */
 
-#include <string.h>
+#include <assert.h>
 #include <float.h>
 #include <math.h>
 #include <memory.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
-#include <assert.h>
 
-#include "DNA_object_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_task.h"
 #include "BLI_math_solvers.h"
+#include "BLI_task.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_context.h"
-#include "BKE_shrinkwrap.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_cdderivedmesh.h"
+#include "BKE_context.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_modifier.h"
+#include "BKE_shrinkwrap.h"
 
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h" /* for OMP limits. */
-#include "BKE_subsurf.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_subsurf.h"
 
 #include "DEG_depsgraph_query.h"
 

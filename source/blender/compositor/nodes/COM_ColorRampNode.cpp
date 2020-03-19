@@ -17,10 +17,10 @@
  */
 
 #include "COM_ColorRampNode.h"
-#include "COM_ExecutionSystem.h"
 #include "BKE_node.h"
 #include "COM_ColorRampOperation.h"
 #include "COM_ConvertOperation.h"
+#include "COM_ExecutionSystem.h"
 #include "DNA_texture_types.h"
 
 ColorRampNode::ColorRampNode(bNode *editorNode) : Node(editorNode)

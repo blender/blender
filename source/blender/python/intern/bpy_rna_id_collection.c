@@ -25,8 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_bitmap.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
@@ -36,8 +36,8 @@
 #include "DNA_ID.h"
 /* Those following are only to support hack of not listing some internal
  * 'backward' pointers in generated user_map. */
-#include "DNA_object_types.h"
 #include "DNA_key_types.h"
+#include "DNA_object_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -49,8 +49,8 @@
 #include "../generic/python_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
+#include "RNA_types.h"
 
 #include "bpy_rna.h"
 

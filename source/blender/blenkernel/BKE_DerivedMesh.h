@@ -63,14 +63,14 @@
  *       as it is and stick with using BMesh and CDDM.
  */
 
-#include "DNA_defs.h"
 #include "DNA_customdata_types.h"
+#include "DNA_defs.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_compiler_attrs.h"
 
-#include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
+#include "BKE_customdata.h"
 
 #ifdef __cplusplus
 extern "C" {

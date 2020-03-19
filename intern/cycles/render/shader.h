@@ -23,8 +23,8 @@
 #  include <OSL/oslexec.h>
 #endif
 
-#include "render/attribute.h"
 #include "kernel/kernel_types.h"
+#include "render/attribute.h"
 
 #include "graph/node.h"
 

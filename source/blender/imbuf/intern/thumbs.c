@@ -26,31 +26,31 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
-#include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_hash_md5.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 #include BLI_SYSTEM_PID_H
 
 #include "DNA_space_types.h" /* For FILE_MAX_LIBEXTRA */
 
 #include "BLO_readfile.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
+#include "IMB_thumbs.h"
 
 #include <ctype.h>
-#include <string.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
@@ -61,10 +61,10 @@
 #  endif
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
  * because 'near' is disabled through BLI_windstuff */
-#  include <shlobj.h>
-#  include <direct.h> /* chdir */
 #  include "BLI_winstuff.h"
 #  include "utfconv.h"
+#  include <direct.h> /* chdir */
+#  include <shlobj.h>
 #endif
 
 #if defined(WIN32) || defined(__APPLE__)

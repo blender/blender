@@ -23,10 +23,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_rect.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
@@ -37,9 +37,9 @@
 #include "WM_types.h"
 
 #include "ED_clip.h"
+#include "ED_mask.h" /* own include */
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_mask.h" /* own include */
 
 #include "RNA_access.h"
 #include "RNA_define.h"

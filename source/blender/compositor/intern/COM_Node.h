@@ -20,9 +20,9 @@
 #define __COM_NODE_H__
 
 #include "DNA_node_types.h"
-#include <vector>
-#include <string>
 #include <algorithm>
+#include <string>
+#include <vector>
 
 /* common node includes
  * added here so node files don't have to include themselves

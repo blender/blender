@@ -20,8 +20,8 @@
 #include "COM_EllipseMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 
-#include "COM_SetValueOperation.h"
 #include "COM_ScaleOperation.h"
+#include "COM_SetValueOperation.h"
 
 EllipseMaskNode::EllipseMaskNode(bNode *editorNode) : Node(editorNode)
 {

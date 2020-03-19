@@ -21,8 +21,8 @@
  * \ingroup bke
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -34,13 +34,13 @@
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_dynamicpaint_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_fluid_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -51,11 +51,12 @@
 
 #include "PIL_time.h"
 
-#include "BKE_appdir.h"
 #include "BKE_anim.h"
+#include "BKE_appdir.h"
 #include "BKE_cloth.h"
 #include "BKE_collection.h"
 #include "BKE_dynamicpaint.h"
+#include "BKE_fluid.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -64,7 +65,6 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_fluid.h"
 #include "BKE_softbody.h"
 
 #include "BIK_api.h"

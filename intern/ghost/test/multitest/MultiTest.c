@@ -33,13 +33,13 @@
 #  pragma warning(disable : 4244 4305)
 #endif
 
+#include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <math.h>
 
-#include <GL/glew.h>
 #include "GL.h"
+#include <GL/glew.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -47,16 +47,16 @@
 
 #include "BLF_api.h"
 
-#include "Util.h"
 #include "Basic.h"
-#include "ScrollBar.h"
 #include "EventToBuf.h"
+#include "ScrollBar.h"
+#include "Util.h"
 
 #include "WindowData.h"
 
 /* GPU API. */
-#include "GPU_immediate.h"
 #include "GPU_context.h"
+#include "GPU_immediate.h"
 #include "GPU_init_exit.h"
 
 extern int datatoc_bfont_ttf_size;

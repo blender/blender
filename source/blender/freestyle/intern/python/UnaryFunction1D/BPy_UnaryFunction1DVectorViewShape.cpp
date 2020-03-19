@@ -21,8 +21,8 @@
 #include "BPy_UnaryFunction1DVectorViewShape.h"
 
 #include "../BPy_Convert.h"
-#include "../BPy_Interface1D.h"
 #include "../BPy_IntegrationType.h"
+#include "../BPy_Interface1D.h"
 
 #include "UnaryFunction1D_vector_ViewShape/BPy_GetOccludeeF1D.h"
 #include "UnaryFunction1D_vector_ViewShape/BPy_GetOccludersF1D.h"

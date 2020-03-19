@@ -27,8 +27,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_dynstr.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -37,10 +37,11 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
-#include "DNA_object_types.h"
 
+#include "BIK_api.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
@@ -50,7 +51,6 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_tracking.h"
-#include "BIK_api.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -67,8 +67,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "ED_object.h"
 #include "ED_keyframing.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"

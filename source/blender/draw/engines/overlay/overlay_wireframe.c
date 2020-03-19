@@ -33,8 +33,8 @@
 
 #include "BLI_hash.h"
 
-#include "GPU_shader.h"
 #include "DRW_render.h"
+#include "GPU_shader.h"
 
 #include "ED_view3d.h"
 

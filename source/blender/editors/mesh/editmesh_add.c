@@ -33,15 +33,15 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_mesh.h"
-#include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 #include "ED_uvedit.h"
 
 #include "mesh_intern.h" /* own include */

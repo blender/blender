@@ -25,7 +25,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_jitter_2d.h"
 #include "BLI_kdtree.h"
 #include "BLI_math.h"
@@ -33,6 +32,7 @@
 #include "BLI_rand.h"
 #include "BLI_sort.h"
 #include "BLI_task.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

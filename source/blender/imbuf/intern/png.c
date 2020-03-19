@@ -25,21 +25,21 @@
 
 #include "png.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "IMB_allocimbuf.h"
-#include "IMB_metadata.h"
 #include "IMB_filetype.h"
+#include "IMB_metadata.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"

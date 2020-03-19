@@ -27,12 +27,12 @@
 #  include <io.h>  // for open close read
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
-#include <fcntl.h> /* for open */
 #include <errno.h>
+#include <fcntl.h> /* for open */
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -49,8 +49,8 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BLO_undofile.h"
 #include "BLO_readfile.h"
+#include "BLO_undofile.h"
 #include "BLO_writefile.h"
 
 #include "DEG_depsgraph.h"

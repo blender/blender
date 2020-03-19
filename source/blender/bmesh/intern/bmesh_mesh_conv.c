@@ -70,25 +70,25 @@
  * and only editing the active shape key-block.
  */
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_key_types.h"
+#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
 #include "BLI_alloca.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_customdata.h"
 #include "BKE_multires.h"
 
-#include "BKE_main.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* For element checking. */

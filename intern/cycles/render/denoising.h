@@ -23,8 +23,8 @@
 #include "render/buffers.h"
 
 #include "util/util_string.h"
-#include "util/util_vector.h"
 #include "util/util_unique_ptr.h"
+#include "util/util_vector.h"
 
 #include <OpenImageIO/imageio.h>
 

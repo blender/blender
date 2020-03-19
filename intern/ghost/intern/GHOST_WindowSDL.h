@@ -22,8 +22,8 @@
 #ifndef __GHOST_WINDOWSDL_H__
 #define __GHOST_WINDOWSDL_H__
 
-#include "GHOST_Window.h"
 #include "GHOST_SystemSDL.h"
+#include "GHOST_Window.h"
 
 #include <map>
 

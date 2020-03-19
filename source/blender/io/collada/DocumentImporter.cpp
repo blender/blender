@@ -22,35 +22,35 @@
  * * name imported objects
  * * import object rotation as euler */
 
-#include <string>
-#include <map>
 #include <algorithm>  // sort()
+#include <map>
+#include <string>
 
-#include "COLLADAFWRoot.h"
-#include "COLLADAFWStableHeaders.h"
+#include "COLLADAFWArrayPrimitiveType.h"
+#include "COLLADAFWCamera.h"
 #include "COLLADAFWColorOrTexture.h"
 #include "COLLADAFWIndexList.h"
+#include "COLLADAFWLibraryNodes.h"
+#include "COLLADAFWLight.h"
 #include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
 #include "COLLADAFWPolygons.h"
+#include "COLLADAFWRoot.h"
 #include "COLLADAFWSampler.h"
+#include "COLLADAFWStableHeaders.h"
 #include "COLLADAFWTypes.h"
 #include "COLLADAFWVisualScene.h"
-#include "COLLADAFWArrayPrimitiveType.h"
-#include "COLLADAFWLibraryNodes.h"
-#include "COLLADAFWCamera.h"
-#include "COLLADAFWLight.h"
 
-#include "COLLADASaxFWLLoader.h"
 #include "COLLADASaxFWLIExtraDataCallbackHandler.h"
+#include "COLLADASaxFWLLoader.h"
 
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include "BLI_fileops.h"
 
 #include "BKE_camera.h"
 #include "BKE_collection.h"
@@ -58,8 +58,8 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
-#include "BKE_light.h"
 #include "BKE_lib_id.h"
+#include "BKE_light.h"
 #include "BKE_material.h"
 #include "BKE_scene.h"
 
@@ -77,14 +77,14 @@ extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ExtraHandler.h"
-#include "ErrorHandler.h"
 #include "DocumentImporter.h"
+#include "ErrorHandler.h"
+#include "ExtraHandler.h"
 #include "TransformReader.h"
 
+#include "Materials.h"
 #include "collada_internal.h"
 #include "collada_utils.h"
-#include "Materials.h"
 
 /*
  * COLLADA Importer limitations:

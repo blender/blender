@@ -19,8 +19,8 @@
 #include "COM_MovieDistortionOperation.h"
 
 extern "C" {
-#include "BKE_tracking.h"
 #include "BKE_movieclip.h"
+#include "BKE_tracking.h"
 #include "BLI_linklist.h"
 }
 

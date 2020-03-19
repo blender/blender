@@ -27,9 +27,9 @@
 
 #include "UI_resources.h"
 
-#include "BKE_object.h"
-#include "BKE_global.h"
 #include "BKE_colorband.h"
+#include "BKE_global.h"
+#include "BKE_object.h"
 
 #include "BIF_glutil.h"
 

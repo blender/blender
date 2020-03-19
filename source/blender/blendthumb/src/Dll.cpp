@@ -14,11 +14,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <new>
 #include <objbase.h>
+#include <shlobj.h>  // For SHChangeNotify
 #include <shlwapi.h>
 #include <thumbcache.h>  // For IThumbnailProvider.
-#include <shlobj.h>      // For SHChangeNotify
-#include <new>
 
 extern HRESULT CBlendThumb_CreateInstance(REFIID riid, void **ppv);
 

@@ -20,15 +20,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
+#include "IMB_filetype.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_filetype.h"
 
 #include "imbuf.h"
 

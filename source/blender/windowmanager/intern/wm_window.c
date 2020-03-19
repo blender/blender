@@ -25,8 +25,8 @@
  */
 
 #include <math.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "DNA_listBase.h"
@@ -38,8 +38,8 @@
 
 #include "GHOST_C-api.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -60,32 +60,32 @@
 #include "WM_types.h"
 #include "wm.h"
 #include "wm_draw.h"
+#include "wm_event_system.h"
 #include "wm_files.h"
 #include "wm_platform_support.h"
 #include "wm_window.h"
 #include "wm_window_private.h"
-#include "wm_event_system.h"
 
 #include "ED_anim_api.h"
+#include "ED_fileselect.h"
 #include "ED_render.h"
 #include "ED_scene.h"
 #include "ED_screen.h"
-#include "ED_fileselect.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
 #include "PIL_time.h"
 
+#include "BLF_api.h"
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
-#include "GPU_draw.h"
-#include "GPU_platform.h"
-#include "GPU_framebuffer.h"
-#include "GPU_init_exit.h"
-#include "GPU_immediate.h"
 #include "GPU_context.h"
-#include "BLF_api.h"
+#include "GPU_draw.h"
+#include "GPU_framebuffer.h"
+#include "GPU_immediate.h"
+#include "GPU_init_exit.h"
+#include "GPU_platform.h"
 
 #include "UI_resources.h"
 

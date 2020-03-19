@@ -27,16 +27,16 @@
  * this could be made into its own module, alongside creator.
  */
 
-#include <sys/types.h>
 #include <fcntl.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+#include <sys/types.h>
 
 #ifndef WIN32
-#  include <unistd.h>
 #  include <sys/times.h>
 #  include <sys/wait.h>
+#  include <unistd.h>
 #else
 #  include <io.h>
 #endif
@@ -44,30 +44,30 @@
 
 #include "PIL_time.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "BKE_image.h"
 
 #include "BIF_glutil.h"
 
 #include "GPU_context.h"
-#include "GPU_matrix.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_init_exit.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
 
+#include "BLF_api.h"
 #include "DNA_scene_types.h"
 #include "ED_datafiles.h" /* for fonts */
 #include "GHOST_C-api.h"
-#include "BLF_api.h"
 
 #include "DEG_depsgraph.h"
 

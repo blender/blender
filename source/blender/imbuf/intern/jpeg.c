@@ -22,24 +22,24 @@
  */
 
 /* This little block needed for linking to Blender... */
-#include <stdio.h>
 #include <setjmp.h>
+#include <stdio.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_fileops.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_idprop.h"
 
-#include "imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-#include "IMB_metadata.h"
 #include "IMB_filetype.h"
-#include "jpeglib.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "IMB_metadata.h"
+#include "imbuf.h"
 #include "jerror.h"
+#include "jpeglib.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"

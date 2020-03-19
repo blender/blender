@@ -37,10 +37,10 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_object.h"
-#include "BKE_report.h"
 #include "BKE_layer.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 

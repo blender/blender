@@ -23,9 +23,9 @@
 
 #include <string.h>
 
-#include "DNA_object_types.h"
-#include "DNA_lightprobe_types.h"
 #include "DNA_defaults.h"
+#include "DNA_lightprobe_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 

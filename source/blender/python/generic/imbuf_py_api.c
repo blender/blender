@@ -22,9 +22,9 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "py_capi_utils.h"
 
@@ -36,9 +36,9 @@
 #include "../../imbuf/IMB_imbuf_types.h"
 
 /* File IO */
-#include <fcntl.h>
-#include <errno.h>
 #include "BLI_fileops.h"
+#include <errno.h>
+#include <fcntl.h>
 
 static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf);
 

@@ -24,15 +24,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_ghash.h"
 
 #include "WM_types.h"
 
-#include "message_bus/wm_message_bus.h"
 #include "message_bus/intern/wm_message_bus_intern.h"
+#include "message_bus/wm_message_bus.h"
 
 /* -------------------------------------------------------------------------- */
 /** \name Public API

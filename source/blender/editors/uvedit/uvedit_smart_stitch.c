@@ -21,38 +21,38 @@
  * \ingroup eduv
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_mesh_mapping.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_mesh_mapping.h"
 
 #include "DEG_depsgraph.h"
 
 #include "UI_interface.h"
 
 #include "ED_mesh.h"
-#include "ED_uvedit.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_uvedit.h"
 
 #include "GPU_batch.h"
 #include "GPU_state.h"
@@ -63,8 +63,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_view2d.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "uvedit_intern.h"
 

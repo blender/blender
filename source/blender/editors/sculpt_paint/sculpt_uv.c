@@ -24,14 +24,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_math.h"
 #include "BLI_ghash.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
 
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -43,9 +43,9 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_screen.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -18,15 +18,15 @@
  * \ingroup bke
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_callbacks.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_types.h"
 #include "RNA_access.h"
+#include "RNA_types.h"
 
 static ListBase callback_slots[BKE_CB_EVT_TOT] = {{NULL}};
 

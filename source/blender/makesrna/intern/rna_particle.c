@@ -20,20 +20,20 @@
  * \ingroup RNA
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 
+#include "DNA_boid_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_cloth_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_boid_types.h"
 #include "DNA_texture_types.h"
 
 #include "RNA_define.h"
@@ -45,8 +45,8 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem part_from_items[] = {
@@ -149,9 +149,9 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 #  include "BLI_string_utils.h"
 
 #  include "BKE_boids.h"
-#  include "BKE_context.h"
 #  include "BKE_cloth.h"
 #  include "BKE_colortools.h"
+#  include "BKE_context.h"
 #  include "BKE_deform.h"
 #  include "BKE_effect.h"
 #  include "BKE_material.h"

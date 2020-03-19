@@ -37,17 +37,17 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "DNA_scene_types.h"
 #  include "DNA_object_types.h"
+#  include "DNA_scene_types.h"
 
-#  include "BKE_mball.h"
 #  include "BKE_main.h"
+#  include "BKE_mball.h"
 #  include "BKE_scene.h"
 
 #  include "DEG_depsgraph.h"
 
-#  include "WM_types.h"
 #  include "WM_api.h"
+#  include "WM_types.h"
 
 static int rna_Meta_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {

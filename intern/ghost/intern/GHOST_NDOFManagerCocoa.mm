@@ -19,8 +19,8 @@
 #include "GHOST_NDOFManagerCocoa.h"
 #include "GHOST_SystemCocoa.h"
 
-#include <stdint.h>
 #include <dlfcn.h>
+#include <stdint.h>
 
 #if DEBUG_NDOF_DRIVER
 #  include <cstdio>

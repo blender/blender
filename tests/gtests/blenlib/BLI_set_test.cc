@@ -1,6 +1,6 @@
-#include "testing/testing.h"
 #include "BLI_set.h"
 #include "BLI_vector.h"
+#include "testing/testing.h"
 
 using BLI::Set;
 using BLI::Vector;

@@ -1,6 +1,6 @@
-#include "testing/testing.h"
 #include "BLI_index_range.h"
 #include "BLI_vector.h"
+#include "testing/testing.h"
 
 using BLI::ArrayRef;
 using BLI::IndexRange;

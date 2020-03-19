@@ -18,13 +18,13 @@
  * \ingroup imbuf
  */
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_fileops.h"
 #include "BLI_hash_md5.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "IMB_thumbs.h"
 

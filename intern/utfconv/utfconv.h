@@ -21,9 +21,9 @@
 #ifndef __UTFCONV_H__
 #define __UTFCONV_H__
 
-#include <wchar.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <wchar.h>
 
 #ifdef __cplusplus
 extern "C" {

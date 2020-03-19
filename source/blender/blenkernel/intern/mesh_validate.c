@@ -21,10 +21,10 @@
  * \ingroup bke
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "CLG_log.h"
 
@@ -34,10 +34,10 @@
 
 #include "BLI_sys_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 #include "BKE_deform.h"

@@ -18,9 +18,9 @@
 
 #ifndef __COM_GLARESTREAKSOPERATION_H__
 #define __COM_GLARESTREAKSOPERATION_H__
+#include "COM_GlareBaseOperation.h"
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
-#include "COM_GlareBaseOperation.h"
 
 class GlareStreaksOperation : public GlareBaseOperation {
  public:

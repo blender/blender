@@ -21,19 +21,19 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "DNA_ID.h"
 #include "DNA_modifier_types.h"
-#include "DNA_space_types.h"
 #include "DNA_object_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
@@ -53,9 +53,9 @@
 #  include "BKE_icons.h"
 #  include "BKE_idcode.h"
 #  include "BKE_image.h"
-#  include "BKE_light.h"
 #  include "BKE_lattice.h"
 #  include "BKE_lib_remap.h"
+#  include "BKE_light.h"
 #  include "BKE_lightprobe.h"
 #  include "BKE_linestyle.h"
 #  include "BKE_mask.h"
@@ -81,30 +81,30 @@
 #  include "DEG_depsgraph_query.h"
 
 #  include "DNA_armature_types.h"
+#  include "DNA_brush_types.h"
 #  include "DNA_camera_types.h"
+#  include "DNA_collection_types.h"
 #  include "DNA_curve_types.h"
+#  include "DNA_gpencil_types.h"
 #  include "DNA_hair_types.h"
+#  include "DNA_lattice_types.h"
 #  include "DNA_light_types.h"
+#  include "DNA_lightprobe_types.h"
+#  include "DNA_mask_types.h"
 #  include "DNA_material_types.h"
 #  include "DNA_mesh_types.h"
-#  include "DNA_speaker_types.h"
-#  include "DNA_sound_types.h"
-#  include "DNA_lightprobe_types.h"
-#  include "DNA_text_types.h"
-#  include "DNA_texture_types.h"
-#  include "DNA_collection_types.h"
-#  include "DNA_brush_types.h"
-#  include "DNA_lattice_types.h"
 #  include "DNA_meta_types.h"
-#  include "DNA_world_types.h"
+#  include "DNA_movieclip_types.h"
+#  include "DNA_node_types.h"
 #  include "DNA_particle_types.h"
 #  include "DNA_pointcloud_types.h"
+#  include "DNA_sound_types.h"
+#  include "DNA_speaker_types.h"
+#  include "DNA_text_types.h"
+#  include "DNA_texture_types.h"
 #  include "DNA_vfont_types.h"
 #  include "DNA_volume_types.h"
-#  include "DNA_node_types.h"
-#  include "DNA_movieclip_types.h"
-#  include "DNA_mask_types.h"
-#  include "DNA_gpencil_types.h"
+#  include "DNA_world_types.h"
 
 #  include "ED_screen.h"
 

@@ -25,9 +25,9 @@
  * \note Most logic is now in 'interface_region_*.c'
  */
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
-#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"

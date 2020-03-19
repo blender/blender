@@ -26,12 +26,12 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_image_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -49,8 +49,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_util.h"
 #include "MOD_modifiertypes.h"
+#include "MOD_util.h"
 
 #include "MEM_guardedalloc.h"
 

@@ -21,11 +21,11 @@
  * \ingroup spnla
  */
 
-#include <string.h>
+#include <float.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <float.h>
+#include <string.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
@@ -37,9 +37,9 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
-#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
@@ -55,8 +55,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "nla_private.h"
 #include "nla_intern.h" /* own include */
+#include "nla_private.h"
 
 /* *********************************************** */
 /* Strips */

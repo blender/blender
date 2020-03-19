@@ -17,9 +17,9 @@
 #ifndef __NODES_H__
 #define __NODES_H__
 
+#include "graph/node.h"
 #include "render/graph.h"
 #include "render/image.h"
-#include "graph/node.h"
 
 #include "util/util_array.h"
 #include "util/util_string.h"

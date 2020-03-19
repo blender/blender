@@ -18,8 +18,8 @@
  * \ingroup edsculpt
  */
 
-#include <string.h>
 #include <limits.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -35,8 +35,8 @@
 #include "BKE_main.h"
 #include "BKE_paint.h"
 
-#include "ED_view3d.h"
 #include "ED_paint.h"
+#include "ED_view3d.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

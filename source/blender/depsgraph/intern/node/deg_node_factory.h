@@ -25,8 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "intern/node/deg_node.h"
 #include "intern/depsgraph_type.h"
+#include "intern/node/deg_node.h"
 
 struct ID;
 

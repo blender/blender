@@ -28,9 +28,9 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_sound.h"
 #  include "BKE_context.h"
 #  include "BKE_sequencer.h"
+#  include "BKE_sound.h"
 
 #  include "DEG_depsgraph.h"
 

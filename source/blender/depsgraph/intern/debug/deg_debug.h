@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "intern/depsgraph_type.h"
 #include "intern/debug/deg_time_average.h"
+#include "intern/depsgraph_type.h"
 
 #include "BKE_global.h"
 

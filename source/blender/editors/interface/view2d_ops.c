@@ -29,9 +29,9 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
@@ -43,8 +43,8 @@
 
 #include "ED_screen.h"
 
-#include "UI_view2d.h"
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "PIL_time.h" /* USER_ZOOM_CONT */
 

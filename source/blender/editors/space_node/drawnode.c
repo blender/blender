@@ -28,10 +28,10 @@
 
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
+#include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -47,9 +47,9 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
-#include "GPU_platform.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_platform.h"
 #include "GPU_state.h"
 
 #include "RNA_access.h"
@@ -67,10 +67,10 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
-#include "node_intern.h" /* own include */
 #include "NOD_composite.h"
 #include "NOD_shader.h"
 #include "NOD_texture.h"
+#include "node_intern.h" /* own include */
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 

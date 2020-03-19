@@ -23,10 +23,10 @@
  * 3D View checks and manipulation (no operators).
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
@@ -44,8 +44,8 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_object.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

@@ -23,8 +23,8 @@
 #ifndef __BLI_OPTIONAL_H__
 #define __BLI_OPTIONAL_H__
 
-#include "BLI_utildefines.h"
 #include "BLI_memory_utils_cxx.h"
+#include "BLI_utildefines.h"
 
 #include <algorithm>
 #include <memory>

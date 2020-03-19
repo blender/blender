@@ -40,17 +40,17 @@
  * \note Struct members only define their members (pointers are left as NULL set).
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_endian_switch.h"
-#include "BLI_memarena.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_defaults.h"
 
@@ -58,8 +58,8 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_image_types.h"
 #include "DNA_hair_types.h"
+#include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
@@ -81,8 +81,8 @@
 #include "DNA_cachefile_defaults.h"
 #include "DNA_camera_defaults.h"
 #include "DNA_curve_defaults.h"
-#include "DNA_image_defaults.h"
 #include "DNA_hair_defaults.h"
+#include "DNA_image_defaults.h"
 #include "DNA_lattice_defaults.h"
 #include "DNA_light_defaults.h"
 #include "DNA_lightprobe_defaults.h"

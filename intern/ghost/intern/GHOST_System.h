@@ -27,10 +27,10 @@
 
 #include "GHOST_ISystem.h"
 
-#include "GHOST_Debug.h"
 #include "GHOST_Buttons.h"
-#include "GHOST_ModifierKeys.h"
+#include "GHOST_Debug.h"
 #include "GHOST_EventManager.h"
+#include "GHOST_ModifierKeys.h"
 #ifdef GHOST_DEBUG
 #  include "GHOST_EventPrinter.h"
 #endif  // GHOST_DEBUG

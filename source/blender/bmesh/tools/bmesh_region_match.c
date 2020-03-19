@@ -33,13 +33,13 @@
 
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
-#include "BLI_listbase.h"
-#include "BLI_linklist.h"
 #include "BLI_alloca.h"
 #include "BLI_ghash.h"
-#include "BLI_mempool.h"
+#include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_listbase.h"
+#include "BLI_mempool.h"
+#include "MEM_guardedalloc.h"
 
 #include "bmesh.h"
 

@@ -23,37 +23,37 @@
 
 #include <stdlib.h> /* abort */
 #include <string.h> /* strstr */
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <wctype.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
-#include "BLI_listbase.h"
-#include "BLI_fileops.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "DNA_constraint_types.h"
+#include "DNA_material_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_object_types.h"
-#include "DNA_node_types.h"
-#include "DNA_material_types.h"
 
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_text.h"
 #include "BKE_node.h"
+#include "BKE_text.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

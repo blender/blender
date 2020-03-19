@@ -23,10 +23,10 @@
 
 #include "intern/debug/deg_debug.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_console.h"
 #include "BLI_hash.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time_utildefines.h"
 

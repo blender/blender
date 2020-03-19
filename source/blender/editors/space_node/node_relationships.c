@@ -26,9 +26,9 @@
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_easing.h"
+#include "BLI_math.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -37,8 +37,8 @@
 #include "BKE_node.h"
 
 #include "ED_node.h" /* own include */
-#include "ED_screen.h"
 #include "ED_render.h"
+#include "ED_screen.h"
 #include "ED_util.h"
 
 #include "RNA_access.h"
@@ -47,8 +47,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_view2d.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "BLT_translation.h"
 

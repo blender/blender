@@ -21,16 +21,16 @@
  * \ingroup edmesh
  */
 
-#include "DNA_scene_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 
 #include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 

@@ -23,9 +23,9 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_image.h"
@@ -33,10 +33,10 @@
 #include "BKE_node.h"
 #include "BKE_screen.h"
 
+#include "ED_image.h"
 #include "ED_node.h" /* own include */
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_image.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -52,8 +52,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "node_intern.h" /* own include */
 #include "NOD_composite.h"
+#include "node_intern.h" /* own include */
 
 /* **************** View All Operator ************** */
 

@@ -43,8 +43,8 @@
 #include "BKE_report.h"
 #include "BKE_volume.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "ED_image.h"
 #include "ED_object.h"

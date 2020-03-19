@@ -29,9 +29,9 @@
 
 #include "BKE_global.h"
 
+#include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_state.h"
-#include "GPU_extensions.h"
 
 static GLenum gpu_get_gl_blendfunction(eGPUBlendFunction blend)
 {

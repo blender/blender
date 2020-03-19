@@ -18,9 +18,9 @@
  * \ingroup edtransform
  */
 
-#include <string.h>
-#include <stddef.h>
 #include <ctype.h>
+#include <stddef.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,15 +34,15 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_curve.h"
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"

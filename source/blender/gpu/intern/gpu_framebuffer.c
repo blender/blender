@@ -24,8 +24,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 #include "GPU_batch.h"
 #include "GPU_draw.h"
@@ -34,8 +34,8 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-#include "gpu_private.h"
 #include "gpu_context_private.h"
+#include "gpu_private.h"
 
 typedef enum {
   GPU_FB_DEPTH_ATTACHMENT = 0,

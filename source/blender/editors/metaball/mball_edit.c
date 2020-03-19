@@ -27,22 +27,22 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_kdtree.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
-#include "BLI_kdtree.h"
 
 #include "DNA_defs.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "BKE_context.h"
-#include "BKE_mball.h"
 #include "BKE_layer.h"
+#include "BKE_mball.h"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"

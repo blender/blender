@@ -24,8 +24,8 @@
 #include <stdio.h>
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_kdtree.h"
+#include "BLI_math.h"
 #include "BLI_string_utils.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
@@ -74,8 +74,8 @@
 #include "DEG_depsgraph_query.h"
 
 /* for image output */
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 /* to read material/texture color */
 #include "RE_render_ext.h"

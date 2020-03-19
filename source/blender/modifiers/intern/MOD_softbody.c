@@ -25,9 +25,9 @@
 
 #include "BLI_utildefines.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_layer.h"
 #include "BKE_particle.h"

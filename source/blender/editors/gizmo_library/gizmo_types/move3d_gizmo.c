@@ -46,10 +46,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
 #include "ED_gizmo_library.h"
+#include "ED_screen.h"
 #include "ED_transform_snap_object_context.h"
+#include "ED_view3d.h"
 
 /* own includes */
 #include "../gizmo_geometry.h"

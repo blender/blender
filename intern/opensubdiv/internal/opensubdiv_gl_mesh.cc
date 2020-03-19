@@ -44,9 +44,9 @@ typedef Mesh<CpuGLVertexBuffer, StencilTable, OmpEvaluator, GLPatchTable> OsdOmp
 #endif
 // OpenCL backend.
 #ifdef OPENSUBDIV_HAS_OPENCL
+#  include "opensubdiv_device_context_opencl.h"
 #  include <opensubdiv/osd/clEvaluator.h>
 #  include <opensubdiv/osd/clGLVertexBuffer.h>
-#  include "opensubdiv_device_context_opencl.h"
 using OpenSubdiv::Osd::CLEvaluator;
 using OpenSubdiv::Osd::CLGLVertexBuffer;
 using OpenSubdiv::Osd::CLStencilTable;
@@ -57,9 +57,9 @@ static CLDeviceContext g_cl_device_context;
 #endif
 // CUDA backend.
 #ifdef OPENSUBDIV_HAS_CUDA
+#  include "opensubdiv_device_context_cuda.h"
 #  include <opensubdiv/osd/cudaEvaluator.h>
 #  include <opensubdiv/osd/cudaGLVertexBuffer.h>
-#  include "opensubdiv_device_context_cuda.h"
 using OpenSubdiv::Osd::CudaEvaluator;
 using OpenSubdiv::Osd::CudaGLVertexBuffer;
 using OpenSubdiv::Osd::CudaStencilTable;
@@ -89,12 +89,12 @@ typedef Mesh<GLVertexBuffer, GLStencilTableSSBO, GLComputeEvaluator, GLPatchTabl
 
 #include "MEM_guardedalloc.h"
 
-#include "opensubdiv_topology_refiner_capi.h"
 #include "internal/opensubdiv_gl_mesh_draw.h"
 #include "internal/opensubdiv_gl_mesh_fvar.h"
 #include "internal/opensubdiv_gl_mesh_internal.h"
 #include "internal/opensubdiv_topology_refiner_internal.h"
 #include "internal/opensubdiv_util.h"
+#include "opensubdiv_topology_refiner_capi.h"
 
 using opensubdiv_capi::vector;
 

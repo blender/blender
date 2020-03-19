@@ -26,20 +26,20 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_material_types.h"
-#include "DNA_object_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_defaults.h"
+#include "DNA_material_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -52,13 +52,13 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
-#include "BKE_idtype.h"
-#include "BKE_scene.h"
-#include "BKE_lib_id.h"
 #include "BKE_displist.h"
+#include "BKE_idtype.h"
+#include "BKE_lib_id.h"
+#include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
-#include "BKE_material.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 

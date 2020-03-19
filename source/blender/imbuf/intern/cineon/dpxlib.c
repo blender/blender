@@ -25,12 +25,12 @@
 #include "dpxlib.h"
 #include "logmemfile.h"
 
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <sys/types.h>
 #include <string.h>
+#include <sys/types.h>
+#include <time.h>
 
 #include "BLI_fileops.h"
 #include "BLI_utildefines.h"

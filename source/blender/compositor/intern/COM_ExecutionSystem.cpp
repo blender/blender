@@ -18,8 +18,8 @@
 
 #include "COM_ExecutionSystem.h"
 
-#include "PIL_time.h"
 #include "BLI_utildefines.h"
+#include "PIL_time.h"
 extern "C" {
 #include "BKE_node.h"
 }
@@ -27,12 +27,12 @@ extern "C" {
 #include "BLT_translation.h"
 
 #include "COM_Converter.h"
-#include "COM_NodeOperationBuilder.h"
-#include "COM_NodeOperation.h"
-#include "COM_ExecutionGroup.h"
-#include "COM_WorkScheduler.h"
-#include "COM_ReadBufferOperation.h"
 #include "COM_Debug.h"
+#include "COM_ExecutionGroup.h"
+#include "COM_NodeOperation.h"
+#include "COM_NodeOperationBuilder.h"
+#include "COM_ReadBufferOperation.h"
+#include "COM_WorkScheduler.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

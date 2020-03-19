@@ -33,8 +33,8 @@
 #include "render/shader.h"
 #include "render/stats.h"
 
-#include "subd/subd_split.h"
 #include "subd/subd_patch_table.h"
+#include "subd/subd_split.h"
 
 #include "kernel/osl/osl_globals.h"
 

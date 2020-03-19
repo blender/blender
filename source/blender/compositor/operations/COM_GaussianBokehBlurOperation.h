@@ -18,8 +18,8 @@
 
 #ifndef __COM_GAUSSIANBOKEHBLUROPERATION_H__
 #define __COM_GAUSSIANBOKEHBLUROPERATION_H__
-#include "COM_NodeOperation.h"
 #include "COM_BlurBaseOperation.h"
+#include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
 class GaussianBokehBlurOperation : public BlurBaseOperation {

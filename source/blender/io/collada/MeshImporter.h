@@ -25,12 +25,12 @@
 #include <vector>
 
 #include "COLLADAFWIndexList.h"
-#include "COLLADAFWPolygons.h"
 #include "COLLADAFWInstanceGeometry.h"
 #include "COLLADAFWMaterialBinding.h"
 #include "COLLADAFWMesh.h"
 #include "COLLADAFWMeshVertexData.h"
 #include "COLLADAFWNode.h"
+#include "COLLADAFWPolygons.h"
 #include "COLLADAFWTextureCoordinateBinding.h"
 #include "COLLADAFWTypes.h"
 #include "COLLADAFWUniqueId.h"

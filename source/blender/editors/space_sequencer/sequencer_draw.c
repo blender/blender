@@ -21,50 +21,50 @@
  * \ingroup spseq
  */
 
-#include <string.h>
 #include <math.h>
+#include <string.h>
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
 
-#include "DNA_scene_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_sound_types.h"
-#include "DNA_anim_types.h"
 
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
-#include "BKE_scene.h"
-#include "BKE_fcurve.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_framebuffer.h"
 #include "GPU_vertex_buffer.h"
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
-#include "ED_sequencer.h"
 #include "ED_screen.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_sequencer.h"
 #include "ED_space_api.h"
+#include "ED_time_scrub_ui.h"
 
 #include "BIF_glutil.h"
 

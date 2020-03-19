@@ -17,8 +17,8 @@
 #ifndef __UTIL_BOUNDBOX_H__
 #define __UTIL_BOUNDBOX_H__
 
-#include <math.h>
 #include <float.h>
+#include <math.h>
 
 #include "util/util_math.h"
 #include "util/util_string.h"

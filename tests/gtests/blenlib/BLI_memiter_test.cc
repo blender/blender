@@ -8,8 +8,8 @@ extern "C" {
 #include "BLI_array_utils.h"
 #include "BLI_memiter.h"
 
-#include "BLI_string.h"
 #include "BLI_ressource_strings.h"
+#include "BLI_string.h"
 }
 
 TEST(memiter, Nop)

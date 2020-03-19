@@ -21,22 +21,22 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stddef.h>
 #include <float.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_blenlib.h"
 #include "BLI_alloca.h"
+#include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
-#include "BLI_string_utils.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 

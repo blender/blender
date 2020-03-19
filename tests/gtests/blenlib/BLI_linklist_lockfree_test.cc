@@ -4,10 +4,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_linklist_lockfree.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 TEST(LockfreeLinkList, Init)
 {

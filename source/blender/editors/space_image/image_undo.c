@@ -34,16 +34,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
+#include "BLI_math.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_image_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -55,10 +55,10 @@
 
 #include "DEG_depsgraph.h"
 
+#include "ED_object.h"
 #include "ED_paint.h"
 #include "ED_undo.h"
 #include "ED_util.h"
-#include "ED_object.h"
 
 #include "GPU_draw.h"
 

@@ -21,10 +21,10 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -37,9 +37,9 @@
 #include "GPU_state.h"
 
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 

@@ -17,38 +17,37 @@
 #ifndef __ANIMATIONEXPORTER_H__
 #define __ANIMATIONEXPORTER_H__
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "BCAnimationCurve.h"
 
 extern "C" {
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_light_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_material_types.h"
-#include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_fcurve.h"
-#include "BKE_animsys.h"
-#include "BKE_scene.h"
-#include "BKE_action.h"  // pose functions
-#include "BKE_armature.h"
-#include "BKE_object.h"
-#include "BKE_constraint.h"
 #include "BIK_api.h"
+#include "BKE_action.h"  // pose functions
+#include "BKE_animsys.h"
+#include "BKE_armature.h"
+#include "BKE_constraint.h"
+#include "BKE_fcurve.h"
+#include "BKE_object.h"
+#include "BKE_scene.h"
 #include "ED_object.h"
 }
 
@@ -56,27 +55,27 @@ extern "C" {
 
 #include "RNA_access.h"
 
-#include "COLLADASWSource.h"
-#include "COLLADASWInstanceGeometry.h"
-#include "COLLADASWInputList.h"
-#include "COLLADASWPrimitves.h"
-#include "COLLADASWVertices.h"
-#include "COLLADASWLibraryAnimations.h"
-#include "COLLADASWParamTemplate.h"
-#include "COLLADASWParamBase.h"
-#include "COLLADASWSampler.h"
-#include "COLLADASWConstants.h"
 #include "COLLADASWBaseInputElement.h"
+#include "COLLADASWConstants.h"
+#include "COLLADASWInputList.h"
+#include "COLLADASWInstanceGeometry.h"
+#include "COLLADASWLibraryAnimations.h"
+#include "COLLADASWParamBase.h"
+#include "COLLADASWParamTemplate.h"
+#include "COLLADASWPrimitves.h"
+#include "COLLADASWSampler.h"
+#include "COLLADASWSource.h"
+#include "COLLADASWVertices.h"
 
-#include "EffectExporter.h"
 #include "BCAnimationSampler.h"
+#include "EffectExporter.h"
 #include "collada_internal.h"
 
 #include "IK_solver.h"
 
-#include <vector>
-#include <map>
 #include <algorithm>  // std::find
+#include <map>
+#include <vector>
 
 typedef enum BC_animation_source_type {
   BC_SOURCE_TYPE_VALUE,

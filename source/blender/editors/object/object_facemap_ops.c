@@ -25,27 +25,27 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
-#include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
-#include "BKE_object_facemap.h"
 #include "BKE_object_deform.h"
+#include "BKE_object_facemap.h"
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"

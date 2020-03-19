@@ -20,22 +20,22 @@ extern "C" {
 #include "BLI_utildefines.h"
 }
 
-#include "COM_NodeConverter.h"
 #include "COM_Converter.h"
 #include "COM_Debug.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_Node.h"
+#include "COM_NodeConverter.h"
 #include "COM_SocketProxyNode.h"
 
 #include "COM_NodeOperation.h"
 #include "COM_PreviewOperation.h"
+#include "COM_ReadBufferOperation.h"
+#include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
-#include "COM_SetColorOperation.h"
 #include "COM_SocketProxyOperation.h"
-#include "COM_ReadBufferOperation.h"
-#include "COM_WriteBufferOperation.h"
 #include "COM_ViewerOperation.h"
+#include "COM_WriteBufferOperation.h"
 
 #include "COM_NodeOperationBuilder.h" /* own include */
 

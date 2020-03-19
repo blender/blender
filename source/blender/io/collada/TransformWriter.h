@@ -25,9 +25,9 @@
 
 #include "DNA_object_types.h"
 
+#include "collada.h"
 #include "collada_internal.h"
 #include "collada_utils.h"
-#include "collada.h"
 
 class TransformWriter {
  protected:

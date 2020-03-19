@@ -28,14 +28,14 @@
 #include "GHOST_C-api.h"
 
 #include "GPU_batch_presets.h"
+#include "GPU_context.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
-#include "GPU_context.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 #include "wm.h"
 
 #include "wm_surface.h"

@@ -23,15 +23,15 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "bpy_capi_utils.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_report.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 
 #include "BLT_translation.h"
 

@@ -28,9 +28,9 @@
 extern "C" {
 #include <string.h>  // XXX: memcpy
 
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"  // XXX: BKE_pose_channel_find_name
 #include "BKE_customdata.h"

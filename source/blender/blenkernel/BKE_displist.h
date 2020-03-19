@@ -24,8 +24,8 @@
  * \ingroup bke
  * \brief display list (or rather multi purpose list) stuff.
  */
-#include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
+#include "DNA_customdata_types.h"
 
 #ifdef __cplusplus
 extern "C" {

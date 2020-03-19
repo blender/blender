@@ -21,18 +21,18 @@
  * \ingroup spseq
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "DNA_space_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_sequencer.h"
 #include "ED_markers.h"
-#include "ED_transform.h" /* transform keymap */
 #include "ED_select_utils.h"
+#include "ED_sequencer.h"
+#include "ED_transform.h" /* transform keymap */
 
 #include "BKE_sequencer.h"
 

@@ -22,46 +22,46 @@
  */
 
 #include <ctype.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_alloca.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
-#include "BLI_alloca.h"
 #include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_listBase.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
-#include "BKE_animsys.h"
-#include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
-#include "BKE_lib_id.h"
 #include "BKE_lattice.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"

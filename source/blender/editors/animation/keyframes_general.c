@@ -21,17 +21,17 @@
  * \ingroup edanimation
  */
 
+#include <float.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <float.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
-#include "BLI_string_utils.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -39,17 +39,17 @@
 
 #include "BKE_action.h"
 #include "BKE_curve.h"
-#include "BKE_fcurve.h"
-#include "BKE_report.h"
-#include "BKE_main.h"
 #include "BKE_deform.h"
+#include "BKE_fcurve.h"
+#include "BKE_main.h"
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
 #include "ED_anim_api.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+#include "ED_keyframing.h"
 
 /* This file contains code for various keyframe-editing tools which are 'destructive'
  * (i.e. they will modify the order of the keyframes, and change the size of the array).

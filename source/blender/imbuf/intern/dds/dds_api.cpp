@@ -22,13 +22,13 @@ extern "C" {
 #include "BLI_utildefines.h"
 }
 
-#include <stddef.h>
-#include <dds_api.h>
-#include <Stream.h>
 #include <DirectDrawSurface.h>
 #include <FlipDXT.h>
-#include <stdio.h>  // printf
+#include <Stream.h>
+#include <dds_api.h>
 #include <fstream>
+#include <stddef.h>
+#include <stdio.h>  // printf
 
 #if defined(WIN32)
 #  include "utfconv.h"
@@ -36,10 +36,10 @@ extern "C" {
 
 extern "C" {
 
-#include "imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "imbuf.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"

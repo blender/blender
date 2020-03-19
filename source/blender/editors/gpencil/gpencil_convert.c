@@ -22,16 +22,16 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
@@ -40,13 +40,13 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_object_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_gpencil_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_context.h"
@@ -75,11 +75,11 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_gpencil.h"
-#include "ED_view3d.h"
 #include "ED_clip.h"
+#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_object.h"
+#include "ED_view3d.h"
 
 #include "gpencil_intern.h"
 

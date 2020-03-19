@@ -30,8 +30,8 @@
 #    include "BLI_winstuff.h"
 #  endif
 
-#  include <string.h>
 #  include <errno.h>
+#  include <string.h>
 
 #  include "MEM_guardedalloc.h"
 

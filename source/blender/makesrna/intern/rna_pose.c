@@ -80,16 +80,16 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BKE_context.h"
 #  include "BKE_constraint.h"
+#  include "BKE_context.h"
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_object.h"
 #  include "ED_armature.h"
+#  include "ED_object.h"
 
 #  include "WM_api.h"
 

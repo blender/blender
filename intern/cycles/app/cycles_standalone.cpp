@@ -16,12 +16,12 @@
 
 #include <stdio.h>
 
+#include "device/device.h"
 #include "render/buffers.h"
 #include "render/camera.h"
-#include "device/device.h"
+#include "render/integrator.h"
 #include "render/scene.h"
 #include "render/session.h"
-#include "render/integrator.h"
 
 #include "util/util_args.h"
 #include "util/util_foreach.h"

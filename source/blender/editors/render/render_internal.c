@@ -22,15 +22,15 @@
  */
 
 #include <math.h>
-#include <string.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_timecode.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
+#include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
@@ -39,14 +39,14 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_blender_undo.h"
 #include "BKE_blender_version.h"
 #include "BKE_camera.h"
-#include "BKE_context.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
@@ -55,9 +55,9 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_sequencer.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
+#include "BKE_sequencer.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -68,14 +68,14 @@
 #include "ED_object.h"
 #include "ED_render.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_undo.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "BIF_glutil.h"
 
-#include "RE_pipeline.h"
 #include "RE_engine.h"
+#include "RE_pipeline.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"

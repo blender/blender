@@ -21,15 +21,15 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
 #include "DNA_packedFile_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -40,12 +40,12 @@
 
 #ifdef RNA_RUNTIME
 
-#  include <errno.h>
 #  include "BKE_image.h"
 #  include "BKE_main.h"
+#  include <errno.h>
 
-#  include "IMB_imbuf.h"
 #  include "IMB_colormanagement.h"
+#  include "IMB_imbuf.h"
 
 #  include "DNA_image_types.h"
 #  include "DNA_scene_types.h"

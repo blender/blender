@@ -36,9 +36,9 @@
 
 #include "BKE_animsys.h"
 #include "BKE_customdata.h"
-#include "BKE_idtype.h"
 #include "BKE_global.h"
 #include "BKE_hair.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"

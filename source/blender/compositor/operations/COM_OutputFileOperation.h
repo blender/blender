@@ -20,8 +20,8 @@
 #define __COM_OUTPUTFILEOPERATION_H__
 #include "COM_NodeOperation.h"
 
-#include "BLI_rect.h"
 #include "BLI_path_util.h"
+#include "BLI_rect.h"
 
 #include "DNA_color_types.h"
 

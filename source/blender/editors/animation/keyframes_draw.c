@@ -23,25 +23,25 @@
 
 /* System includes ----------------------------------------------------- */
 
+#include <float.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <float.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_dlrbTree.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_mask_types.h"
 
 #include "BKE_fcurve.h"
 

@@ -21,11 +21,11 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
 #include <float.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -33,27 +33,27 @@
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_easing.h"
-#include "BLI_threads.h"
-#include "BLI_string_utils.h"
-#include "BLI_utildefines.h"
-#include "BLI_expr_pylike_eval.h"
 #include "BLI_alloca.h"
+#include "BLI_blenlib.h"
+#include "BLI_easing.h"
+#include "BLI_expr_pylike_eval.h"
+#include "BLI_math.h"
+#include "BLI_string_utils.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
-#include "BKE_fcurve.h"
-#include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
 #include "BKE_nla.h"
+#include "BKE_object.h"
 
 #include "RNA_access.h"
 

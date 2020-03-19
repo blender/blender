@@ -21,9 +21,9 @@
 #include "BKE_image.h"
 #include "BKE_scene.h"
 
+#include "COM_ExecutionSystem.h"
 #include "COM_SplitOperation.h"
 #include "COM_ViewerOperation.h"
-#include "COM_ExecutionSystem.h"
 
 SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
 {

@@ -18,30 +18,30 @@
  * \ingroup spconsole
  */
 
+#include <ctype.h> /* ispunct */
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h> /* ispunct */
 #include <sys/stat.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_dynstr.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string.h"
-#include "BLI_dynstr.h"
-#include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_view2d.h"
 #include "ED_screen.h"
+#include "UI_view2d.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

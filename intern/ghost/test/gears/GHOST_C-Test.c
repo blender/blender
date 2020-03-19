@@ -25,10 +25,10 @@
  * in turn, is probably taken from somewhere as well.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define FALSE 0
 
@@ -36,8 +36,8 @@
 
 #if defined(WIN32) || defined(__APPLE__)
 #  ifdef WIN32
-#    include <windows.h>
 #    include <GL/gl.h>
+#    include <windows.h>
 #  else /* WIN32 */
 /* __APPLE__ is defined */
 #    include <AGL/gl.h>

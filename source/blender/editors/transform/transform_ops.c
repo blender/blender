@@ -30,10 +30,10 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "RNA_access.h"
@@ -42,8 +42,8 @@
 
 #include "WM_api.h"
 #include "WM_message.h"
-#include "WM_types.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

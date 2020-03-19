@@ -39,8 +39,8 @@
 
 #include "WM_types.h"
 
-#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+#include "ED_keyframing.h"
 
 const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
     {FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
@@ -211,8 +211,8 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 
 /* ****************************** */
 
-#  include "BKE_fcurve.h"
 #  include "BKE_animsys.h"
+#  include "BKE_fcurve.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

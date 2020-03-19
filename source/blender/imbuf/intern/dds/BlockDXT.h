@@ -51,9 +51,9 @@
 #ifndef __BLOCKDXT_H__
 #define __BLOCKDXT_H__
 
-#include <Common.h>
 #include <Color.h>
 #include <ColorBlock.h>
+#include <Common.h>
 #include <Stream.h>
 
 /// DXT1 block.

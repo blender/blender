@@ -26,13 +26,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "DNA_camera_types.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -42,14 +42,14 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "GHOST_C-api.h"
 
 #include "ED_node.h"
-#include "ED_view3d.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "GPU_draw.h"
 #include "GPU_framebuffer.h"
@@ -61,13 +61,13 @@
 #include "RE_engine.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 #include "wm.h"
 #include "wm_draw.h"
-#include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_surface.h"
+#include "wm_window.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.h"

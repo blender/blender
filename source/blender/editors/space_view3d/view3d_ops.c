@@ -21,8 +21,8 @@
  * \ingroup spview3d
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"

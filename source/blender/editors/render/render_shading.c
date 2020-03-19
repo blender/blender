@@ -36,9 +36,9 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -76,10 +76,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
+#include "ED_object.h"
 #include "ED_render.h"
 #include "ED_scene.h"
 #include "ED_screen.h"

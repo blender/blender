@@ -29,8 +29,8 @@
 #  error WIN32 only!
 #endif  // WIN32
 
-#include "GHOST_Window.h"
 #include "GHOST_TaskbarWin32.h"
+#include "GHOST_Window.h"
 #ifdef WITH_INPUT_IME
 #  include "GHOST_ImeWin32.h"
 #endif

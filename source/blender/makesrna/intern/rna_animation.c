@@ -20,8 +20,8 @@
 
 #include <stdlib.h>
 
-#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"

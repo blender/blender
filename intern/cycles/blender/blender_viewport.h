@@ -18,9 +18,9 @@
 #define __BLENDER_VIEWPORT_H__
 
 #include "MEM_guardedalloc.h"
-#include "RNA_types.h"
 #include "RNA_access.h"
 #include "RNA_blender_cpp.h"
+#include "RNA_types.h"
 
 #include "render/film.h"
 #include "util/util_param.h"

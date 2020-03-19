@@ -15,9 +15,9 @@
  */
 
 #include "render/image.h"
-#include "render/image_oiio.h"
 #include "device/device.h"
 #include "render/colorspace.h"
+#include "render/image_oiio.h"
 #include "render/scene.h"
 #include "render/stats.h"
 

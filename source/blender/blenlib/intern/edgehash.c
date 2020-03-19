@@ -23,15 +23,15 @@
  * \note The API matches BLI_ghash.c, but the implementation is different.
  */
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 #include "BLI_strict_flags.h"
+#include "BLI_utildefines.h"
 
 typedef struct _EdgeHash_Edge Edge;
 typedef struct _EdgeHash_Entry EdgeHashEntry;

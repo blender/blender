@@ -21,12 +21,12 @@
  * \ingroup spseq
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "DNA_gpencil_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -40,14 +40,14 @@
 #include "BKE_sequencer.h"
 #include "BKE_sequencer_offscreen.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h" /* only for sequencer view3d drawing callback */
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 

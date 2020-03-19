@@ -17,8 +17,8 @@
 #ifndef __SESSION_H__
 #define __SESSION_H__
 
-#include "render/buffers.h"
 #include "device/device.h"
+#include "render/buffers.h"
 #include "render/shader.h"
 #include "render/stats.h"
 #include "render/tile.h"

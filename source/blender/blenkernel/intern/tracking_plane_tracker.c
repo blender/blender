@@ -27,8 +27,8 @@
 
 #include "DNA_movieclip_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_tracking.h"
 

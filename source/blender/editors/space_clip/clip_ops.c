@@ -22,8 +22,8 @@
  */
 
 #include <errno.h>
-#include <sys/types.h>
 #include <fcntl.h>
+#include <sys/types.h>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -33,16 +33,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_userdef_types.h"
 #include "DNA_scene_types.h" /* min/max frames */
+#include "DNA_userdef_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
 #include "BLI_math.h"
+#include "BLI_path_util.h"
 #include "BLI_rect.h"
-#include "BLI_task.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -57,11 +57,11 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
-#include "ED_screen.h"
 #include "ED_clip.h"
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 

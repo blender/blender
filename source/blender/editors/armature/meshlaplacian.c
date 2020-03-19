@@ -21,16 +21,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
+#include "BLI_alloca.h"
 #include "BLI_edgehash.h"
+#include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
-#include "BLI_alloca.h"
 
 #include "BLT_translation.h"
 
@@ -39,8 +39,8 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 
-#include "ED_mesh.h"
 #include "ED_armature.h"
+#include "ED_mesh.h"
 
 #include "DEG_depsgraph.h"
 

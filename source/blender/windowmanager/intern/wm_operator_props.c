@@ -26,8 +26,8 @@
 
 #include "DNA_space_types.h"
 
-#include "BLI_rect.h"
 #include "BLI_math_base.h"
+#include "BLI_rect.h"
 
 #include "UI_resources.h"
 

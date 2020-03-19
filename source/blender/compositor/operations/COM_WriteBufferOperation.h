@@ -19,8 +19,8 @@
 #ifndef __COM_WRITEBUFFEROPERATION_H__
 #define __COM_WRITEBUFFEROPERATION_H__
 
-#include "COM_NodeOperation.h"
 #include "COM_MemoryProxy.h"
+#include "COM_NodeOperation.h"
 #include "COM_SocketReader.h"
 /**
  * \brief NodeOperation to write to a tile

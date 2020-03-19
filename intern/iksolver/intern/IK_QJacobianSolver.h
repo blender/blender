@@ -28,8 +28,8 @@
  * @date 28/6/2001
  */
 
-#include <vector>
 #include <list>
+#include <vector>
 
 #include "IK_Math.h"
 #include "IK_QJacobian.h"

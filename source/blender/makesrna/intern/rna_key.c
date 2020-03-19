@@ -21,14 +21,14 @@
 #include <stdlib.h>
 
 #include "DNA_ID.h"
-#include "DNA_scene_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 

@@ -21,8 +21,8 @@
  * \ingroup nodes
  */
 
-#include <string.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "DNA_node_types.h"
 
@@ -38,9 +38,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "NOD_common.h"
 #include "node_common.h"
 #include "node_util.h"
-#include "NOD_common.h"
 
 enum {
   REFINE_FORWARD = 1 << 0,

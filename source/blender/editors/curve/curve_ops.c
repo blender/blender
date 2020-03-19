@@ -21,8 +21,8 @@
  * \ingroup edcurve
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"

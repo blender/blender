@@ -23,17 +23,17 @@
 
 #include "RNA_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_keyconfig.h" /* own include */
 #include "BKE_idprop.h"
+#include "BKE_keyconfig.h" /* own include */
 
 #include "MEM_guardedalloc.h"
 

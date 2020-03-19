@@ -22,12 +22,12 @@
  * \ingroup blenloader
  */
 
+#include <errno.h>
+#include <fcntl.h>
+#include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <fcntl.h>
-#include <errno.h>
 
 /* open/close */
 #ifndef _WIN32
@@ -42,8 +42,8 @@
 
 #include "BLI_blenlib.h"
 
-#include "BLO_undofile.h"
 #include "BLO_readfile.h"
+#include "BLO_undofile.h"
 
 #include "BKE_main.h"
 

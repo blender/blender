@@ -3,10 +3,10 @@
 #include "testing/testing.h"
 
 extern "C" {
+#include "../../../source/blender/imbuf/IMB_imbuf.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "../../../source/blender/imbuf/IMB_imbuf.h"
 
 #ifdef _WIN32
 #  include "../../../source/blender/blenkernel/BKE_global.h"

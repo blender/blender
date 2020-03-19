@@ -4,8 +4,8 @@
 #include "intern/abc_util.h"
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 }
 
 TEST(abc_matrix, CreateRotationMatrixY_YfromZ)

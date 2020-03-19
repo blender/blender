@@ -27,16 +27,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_matrix.h"
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_fileops_types.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
@@ -50,11 +50,11 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
+#include "BKE_appdir.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_paint.h"
 #include "BKE_icons.h"
-#include "BKE_appdir.h"
+#include "BKE_paint.h"
 #include "BKE_studiolight.h"
 
 #include "IMB_imbuf.h"

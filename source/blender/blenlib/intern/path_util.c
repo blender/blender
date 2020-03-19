@@ -22,18 +22,18 @@
  * \ingroup bli
  */
 
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "DNA_listBase.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
+#include "BLI_fnmatch.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_fnmatch.h"
+#include "BLI_utildefines.h"
 
 #ifdef WIN32
 #  include "utf_winfunc.h"
@@ -43,10 +43,10 @@
 #    undef _WIN32_IE
 #  endif
 #  define _WIN32_IE 0x0501
-#  include <windows.h>
-#  include <shlobj.h>
-#  include "BLI_winstuff.h"
 #  include "BLI_alloca.h"
+#  include "BLI_winstuff.h"
+#  include <shlobj.h>
+#  include <windows.h>
 #else
 #  include "unistd.h"
 #endif /* WIN32 */

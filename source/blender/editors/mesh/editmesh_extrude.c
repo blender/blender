@@ -24,19 +24,19 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
-#include "BKE_layer.h"
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
+#include "BKE_report.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"

@@ -21,43 +21,43 @@
  * \ingroup spclip
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
-#include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_view3d_types.h" /* for pivot point */
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_movieclip.h"
-#include "BKE_tracking.h"
 #include "BKE_screen.h"
+#include "BKE_tracking.h"
 
 #include "IMB_imbuf_types.h"
 
 #include "ED_anim_api.h" /* for timeline cursor drawing */
-#include "ED_mask.h"
-#include "ED_space_api.h"
-#include "ED_screen.h"
-#include "ED_time_scrub_ui.h"
-#include "ED_select_utils.h"
 #include "ED_clip.h"
+#include "ED_mask.h"
+#include "ED_screen.h"
+#include "ED_select_utils.h"
+#include "ED_space_api.h"
+#include "ED_time_scrub_ui.h"
 #include "ED_transform.h"
 #include "ED_uvedit.h" /* just for ED_image_draw_cursor */
 
 #include "IMB_imbuf.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_glew.h"
 #include "GPU_matrix.h"
-#include "GPU_framebuffer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

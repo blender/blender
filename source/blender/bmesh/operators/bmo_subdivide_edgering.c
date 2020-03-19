@@ -33,11 +33,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
-#include "BLI_alloca.h"
-#include "BLI_math.h"
-#include "BLI_listbase.h"
 
 #include "BKE_curve.h"
 

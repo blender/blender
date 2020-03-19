@@ -21,8 +21,8 @@
  * \ingroup gpu
  */
 
-#include <string.h>
 #include "MEM_guardedalloc.h"
+#include <string.h>
 
 #include "BLI_blenlib.h"
 

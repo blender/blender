@@ -22,9 +22,9 @@ class OpenCLDevice;
 #define __COM_OPENCLDEVICE_H__
 
 #include "COM_Device.h"
-#include "clew.h"
-#include "COM_WorkScheduler.h"
 #include "COM_ReadBufferOperation.h"
+#include "COM_WorkScheduler.h"
+#include "clew.h"
 
 using std::list;
 

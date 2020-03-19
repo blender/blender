@@ -20,8 +20,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_stack.h"
 #include "BLI_math.h"
+#include "BLI_stack.h"
 
 #include "BKE_editmesh.h"
 

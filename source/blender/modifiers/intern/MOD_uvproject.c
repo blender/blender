@@ -28,9 +28,9 @@
 #include "BLI_math.h"
 #include "BLI_uvproject.h"
 
+#include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_camera.h"

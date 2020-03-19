@@ -21,8 +21,8 @@
 #include "BPy_UnaryFunction1DVoid.h"
 
 #include "../BPy_Convert.h"
-#include "../BPy_Interface1D.h"
 #include "../BPy_IntegrationType.h"
+#include "../BPy_Interface1D.h"
 
 #include "UnaryFunction1D_void/BPy_ChainingTimeStampF1D.h"
 #include "UnaryFunction1D_void/BPy_IncrementChainingTimeStampF1D.h"

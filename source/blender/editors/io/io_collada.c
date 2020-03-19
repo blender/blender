@@ -36,8 +36,8 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_screen.h"
 #  include "ED_object.h"
+#  include "ED_screen.h"
 
 #  include "RNA_access.h"
 #  include "RNA_define.h"

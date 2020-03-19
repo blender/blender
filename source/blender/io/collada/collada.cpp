@@ -28,8 +28,8 @@
 #include "collada.h"
 
 extern "C" {
-#include "BKE_scene.h"
 #include "BKE_context.h"
+#include "BKE_scene.h"
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 

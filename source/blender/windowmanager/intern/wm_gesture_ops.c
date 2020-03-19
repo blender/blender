@@ -35,12 +35,12 @@
 
 #include "BKE_context.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "wm.h"
-#include "wm_event_types.h"
 #include "wm_event_system.h"
+#include "wm_event_types.h"
 
 #include "ED_screen.h"
 #include "ED_select_utils.h"

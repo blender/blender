@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "device/device.h"
 #include "render/curves.h"
+#include "device/device.h"
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/scene.h"

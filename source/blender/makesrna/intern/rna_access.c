@@ -18,24 +18,24 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
 #include <ctype.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
-#include "DNA_scene_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -43,12 +43,12 @@
 #include "BKE_animsys.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
-#include "BKE_fcurve.h"
 #include "BKE_main.h"
-#include "BKE_report.h"
 #include "BKE_node.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
@@ -63,8 +63,8 @@
 #include "DNA_object_types.h"
 #include "WM_types.h"
 
-#include "rna_internal.h"
 #include "rna_access_internal.h"
+#include "rna_internal.h"
 
 const PointerRNA PointerRNA_NULL = {NULL};
 

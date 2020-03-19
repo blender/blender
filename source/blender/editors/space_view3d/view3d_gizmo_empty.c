@@ -22,17 +22,17 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
-#include "BKE_image.h"
 
 #include "DEG_depsgraph.h"
 
-#include "DNA_object_types.h"
 #include "DNA_light_types.h"
+#include "DNA_object_types.h"
 
-#include "ED_screen.h"
 #include "ED_gizmo_library.h"
+#include "ED_screen.h"
 
 #include "UI_resources.h"
 

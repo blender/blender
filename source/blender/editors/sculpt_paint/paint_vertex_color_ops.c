@@ -29,8 +29,8 @@
 #include "BLI_math_color.h"
 
 #include "BKE_context.h"
-#include "BKE_mesh.h"
 #include "BKE_deform.h"
+#include "BKE_mesh.h"
 
 #include "DEG_depsgraph.h"
 

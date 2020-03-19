@@ -21,9 +21,9 @@
  * \ingroup texnodes
  */
 
-#include "node_texture_util.h"
-#include "NOD_texture.h"
 #include "IMB_colormanagement.h"
+#include "NOD_texture.h"
+#include "node_texture_util.h"
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate valtorgb_in[] = {

@@ -24,14 +24,14 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
-#include "BKE_mesh.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -39,8 +39,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "MEM_guardedalloc.h"
 

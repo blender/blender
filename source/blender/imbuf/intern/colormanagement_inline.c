@@ -24,8 +24,8 @@
 #ifndef __IMB_COLORMANAGEMENT_INLINE_C__
 #define __IMB_COLORMANAGEMENT_INLINE_C__
 
-#include "IMB_colormanagement_intern.h"
 #include "BLI_math_vector.h"
+#include "IMB_colormanagement_intern.h"
 
 /* Convert a float RGB triplet to the correct luminance weighted average.
  *

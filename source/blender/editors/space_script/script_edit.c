@@ -21,11 +21,11 @@
  * \ingroup spscript
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"

@@ -24,8 +24,8 @@
 
 #include "overlay_private.h"
 
-#include "BKE_pbvh.h"
 #include "BKE_paint.h"
+#include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"
 
 void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata)

@@ -16,9 +16,9 @@
 
 #ifdef WITH_OPENCL
 
+#  include "device/opencl/device_opencl.h"
 #  include "device/device.h"
 #  include "device/device_intern.h"
-#  include "device/opencl/device_opencl.h"
 
 #  include "util/util_foreach.h"
 #  include "util/util_logging.h"

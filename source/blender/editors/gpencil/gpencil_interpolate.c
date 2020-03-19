@@ -22,18 +22,18 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_easing.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -67,8 +67,8 @@
 #include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
 #include "ED_space_api.h"
+#include "ED_view3d.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

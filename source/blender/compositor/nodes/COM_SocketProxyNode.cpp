@@ -17,13 +17,13 @@
  */
 
 #include "COM_SocketProxyNode.h"
-#include "COM_SocketProxyOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_ReadBufferOperation.h"
+#include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
-#include "COM_SetColorOperation.h"
+#include "COM_SocketProxyOperation.h"
 #include "COM_WriteBufferOperation.h"
-#include "COM_ReadBufferOperation.h"
 
 SocketProxyNode::SocketProxyNode(bNode *editorNode,
                                  bNodeSocket *editorInput,

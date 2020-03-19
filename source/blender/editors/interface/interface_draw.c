@@ -25,27 +25,27 @@
 #include <string.h>
 
 #include "DNA_color_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_movieclip_types.h"
 #include "DNA_curveprofile_types.h"
+#include "DNA_movieclip_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_math.h"
+#include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include "BLI_polyfill_2d.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
+#include "BKE_curveprofile.h"
 #include "BKE_node.h"
 #include "BKE_tracking.h"
-#include "BKE_curveprofile.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
 
 #include "BIF_glutil.h"
 

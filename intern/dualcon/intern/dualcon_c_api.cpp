@@ -14,10 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <cassert>
-#include "dualcon.h"
 #include "ModelReader.h"
+#include "dualcon.h"
 #include "octree.h"
+#include <cassert>
 
 #include <cstdio>
 #include <float.h>

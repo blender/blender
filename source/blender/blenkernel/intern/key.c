@@ -22,8 +22,8 @@
  */
 
 #include <math.h>
-#include <string.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,8 +34,8 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -47,13 +47,13 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_editmesh.h"
 #include "BKE_scene.h"
 
 #include "RNA_access.h"

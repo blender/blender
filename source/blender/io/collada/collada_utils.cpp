@@ -31,39 +31,38 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-#include "DNA_modifier_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_armature_types.h"
 
-#include "BLI_math.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
 #include "BKE_action.h"
+#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_constraint.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "ED_armature.h"
-#include "ED_screen.h"
 #include "ED_node.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "WM_api.h" /* XXX hrm, see if we can do without this */
 #include "WM_types.h"
@@ -78,9 +77,9 @@ extern "C" {
 #endif
 }
 
-#include "collada_utils.h"
-#include "ExportSettings.h"
 #include "BlenderContext.h"
+#include "ExportSettings.h"
+#include "collada_utils.h"
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, unsigned int index)
 {

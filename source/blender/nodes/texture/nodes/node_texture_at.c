@@ -21,8 +21,8 @@
  * \ingroup texnodes
  */
 
-#include "node_texture_util.h"
 #include "NOD_texture.h"
+#include "node_texture_util.h"
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Texture"), 0.0f, 0.0f, 0.0f, 1.0f},

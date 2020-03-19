@@ -18,8 +18,8 @@
  * \ingroup bli
  */
 
-#include <string.h>
 #include <stdlib.h> /* abort() */
+#include <string.h>
 
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"

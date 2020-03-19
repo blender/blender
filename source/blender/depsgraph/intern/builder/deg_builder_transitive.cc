@@ -29,9 +29,9 @@
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_operation.h"
 
+#include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_relation.h"
-#include "intern/debug/deg_debug.h"
 
 namespace DEG {
 

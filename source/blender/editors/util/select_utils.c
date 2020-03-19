@@ -18,9 +18,9 @@
  * \ingroup edutil
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_kdtree.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "ED_select_utils.h"
 

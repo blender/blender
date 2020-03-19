@@ -31,8 +31,8 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_context.h"
-#include "BKE_layer.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -45,10 +45,10 @@
 
 #include "bmesh.h"
 
-#include "ED_screen.h"
-#include "ED_mesh.h"
-#include "ED_view3d.h"
 #include "ED_gizmo_library.h"
+#include "ED_mesh.h"
+#include "ED_screen.h"
+#include "ED_view3d.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Element (Vert/Edge/Face) Pre-Select Gizmo API

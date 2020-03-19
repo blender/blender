@@ -23,8 +23,8 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_sys_types.h" /* int64_t */

@@ -23,16 +23,16 @@
  */
 
 #include "DNA_light_types.h"
-#include "DNA_node_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
-#include "DNA_linestyle_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
@@ -47,17 +47,17 @@
 
 #include "BIF_glutil.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_framebuffer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_node.h"
 #include "ED_gpencil.h"
+#include "ED_node.h"
 #include "ED_space_api.h"
 
 #include "UI_resources.h"

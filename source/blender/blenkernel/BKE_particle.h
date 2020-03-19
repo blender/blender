@@ -27,11 +27,11 @@
  * \ingroup bke
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_buffer.h"
+#include "BLI_utildefines.h"
 
-#include "DNA_particle_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 
 #include "BKE_customdata.h"
 

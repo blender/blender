@@ -21,8 +21,8 @@
  * \ingroup spinfo
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,22 +34,22 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 
-#include "UI_resources.h"
 #include "UI_interface.h"
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "info_intern.h" /* own include */
 #include "BLO_readfile.h"
 #include "GPU_framebuffer.h"
+#include "info_intern.h" /* own include */
 
 /* ******************** default callbacks for info space ***************** */
 

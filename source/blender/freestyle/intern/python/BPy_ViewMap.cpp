@@ -20,8 +20,8 @@
 
 #include "BPy_ViewMap.h"
 
-#include "BPy_Convert.h"
 #include "BPy_BBox.h"
+#include "BPy_Convert.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/BPy_ViewEdge.h"
 

@@ -26,8 +26,8 @@
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
-#include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vec_types.h"
 #include "DNA_xr_types.h"
 
 #include "DNA_ID.h"

@@ -23,8 +23,8 @@
 
 #include "intern/eval/deg_eval_runtime_backup_scene.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_scene_types.h"
 
 namespace DEG {
 

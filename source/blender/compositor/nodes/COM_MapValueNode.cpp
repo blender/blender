@@ -18,8 +18,8 @@
 
 #include "COM_MapValueNode.h"
 
-#include "COM_MapValueOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_MapValueOperation.h"
 
 MapValueNode::MapValueNode(bNode *editorNode) : Node(editorNode)
 {

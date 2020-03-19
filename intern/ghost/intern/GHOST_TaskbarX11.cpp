@@ -20,10 +20,10 @@
 
 #include "GHOST_TaskbarX11.h"
 
-#include <dlfcn.h>
-#include <cstdio>
 #include <cassert>
+#include <cstdio>
 #include <cstdlib>
+#include <dlfcn.h>
 
 typedef void *(*unity_get_entry_t)(const char *);
 typedef void (*unity_set_progress_t)(void *, double);

@@ -21,8 +21,8 @@
  * \ingroup spseq
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
@@ -40,11 +40,11 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
-#include "BKE_lib_id.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -57,12 +57,12 @@
 #include "ED_anim_api.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
 #include "ED_sequencer.h"
 #include "ED_space_api.h"
+#include "ED_transform.h"
 
-#include "UI_view2d.h"
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

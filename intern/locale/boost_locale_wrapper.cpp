@@ -17,8 +17,8 @@
  * All rights reserved.
  */
 
-#include <stdio.h>
 #include <boost/locale.hpp>
+#include <stdio.h>
 
 #include "boost_locale_wrapper.h"
 

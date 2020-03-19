@@ -33,12 +33,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_pbvh.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
+#include "BKE_pbvh.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"

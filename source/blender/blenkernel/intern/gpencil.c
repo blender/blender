@@ -21,41 +21,41 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_material_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_userdef_types.h"
+#include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_object_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
-#include "BKE_curve.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
+#include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_icons.h"

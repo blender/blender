@@ -25,10 +25,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_stack.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -39,16 +39,16 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_main.h"
 #include "BKE_brush.h"
-#include "BKE_deform.h"
-#include "BKE_image.h"
-#include "BKE_gpencil.h"
-#include "BKE_material.h"
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_deform.h"
+#include "BKE_gpencil.h"
+#include "BKE_image.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
@@ -61,9 +61,9 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
-#include "GPU_framebuffer.h"
 #include "GPU_state.h"
 
 #include "UI_interface.h"

@@ -37,8 +37,8 @@
  * but tests show this doesn't give noticeable speedup.
  */
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "BLI_utildefines.h"
 

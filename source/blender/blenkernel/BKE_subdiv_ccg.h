@@ -24,8 +24,8 @@
 #ifndef __BKE_SUBDIV_CCG_H__
 #define __BKE_SUBDIV_CCG_H__
 
-#include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_customdata.h"
 #include "BLI_bitmap.h"
 #include "BLI_sys_types.h"
 

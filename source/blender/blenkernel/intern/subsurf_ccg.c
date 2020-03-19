@@ -28,11 +28,11 @@
 #  define USE_DYNSIZE
 #endif
 
+#include <float.h>
+#include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <float.h>
 
 #include "atomic_ops.h"
 
@@ -44,7 +44,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
@@ -52,8 +51,8 @@
 #include "BLI_memarena.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_pbvh.h"
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
@@ -62,6 +61,7 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_pbvh.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 

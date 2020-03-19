@@ -30,9 +30,9 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_ghash.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #define PACK_DEBUG 0
 

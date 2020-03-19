@@ -21,8 +21,8 @@
  * \ingroup texnodes
  */
 
-#include "node_texture_util.h"
 #include "NOD_texture.h"
+#include "node_texture_util.h"
 #include <math.h>
 
 static bNodeSocketTemplate inputs[] = {

@@ -18,13 +18,13 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "DNA_ID.h"
-#include "DNA_vfont_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -93,15 +93,15 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 #  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
 
+#  include "BKE_animsys.h"
 #  include "BKE_font.h"
+#  include "BKE_global.h" /* XXX, remove me */
 #  include "BKE_idprop.h"
-#  include "BKE_lib_query.h"
 #  include "BKE_lib_override.h"
+#  include "BKE_lib_query.h"
 #  include "BKE_lib_remap.h"
 #  include "BKE_library.h"
-#  include "BKE_animsys.h"
 #  include "BKE_material.h"
-#  include "BKE_global.h" /* XXX, remove me */
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

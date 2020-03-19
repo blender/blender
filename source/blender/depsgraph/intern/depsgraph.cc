@@ -30,24 +30,24 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_console.h"
-#include "BLI_hash.h"
 #include "BLI_ghash.h"
+#include "BLI_hash.h"
+#include "BLI_utildefines.h"
 
 extern "C" {
-#include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_idcode.h"
+#include "BKE_scene.h"
 }
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
 
-#include "intern/depsgraph_update.h"
 #include "intern/depsgraph_physics.h"
-#include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_registry.h"
+#include "intern/depsgraph_relation.h"
+#include "intern/depsgraph_update.h"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 

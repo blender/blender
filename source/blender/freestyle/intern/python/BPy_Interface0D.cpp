@@ -21,14 +21,14 @@
 #include "BPy_Interface0D.h"
 
 #include "BPy_Convert.h"
+#include "BPy_Nature.h"
 #include "Interface0D/BPy_CurvePoint.h"
-#include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "Interface0D/BPy_SVertex.h"
 #include "Interface0D/BPy_ViewVertex.h"
+#include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "Interface0D/ViewVertex/BPy_NonTVertex.h"
 #include "Interface0D/ViewVertex/BPy_TVertex.h"
 #include "Interface1D/BPy_FEdge.h"
-#include "BPy_Nature.h"
 
 #ifdef __cplusplus
 extern "C" {

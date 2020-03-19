@@ -1,13 +1,13 @@
 #include "testing/testing.h"
 
 // Keep first since utildefines defines AT which conflicts with STL
-#include "intern/abc_util.h"
 #include "intern/abc_exporter.h"
+#include "intern/abc_util.h"
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BKE_main.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 #include "DNA_scene_types.h"
 }
 

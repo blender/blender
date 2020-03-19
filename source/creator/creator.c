@@ -25,8 +25,8 @@
 #include <string.h>
 
 #ifdef WIN32
-#  include <windows.h>
 #  include "utfconv.h"
+#  include <windows.h>
 #endif
 
 #if defined(WITH_TBB_MALLOC) && defined(_MSC_VER) && defined(NDEBUG)
@@ -41,10 +41,10 @@
 #include "DNA_genfile.h"
 
 #include "BLI_args.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 /* mostly init functions */
 #include "BKE_appdir.h"
@@ -55,15 +55,15 @@
 #include "BKE_context.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_idtype.h"
+#include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
-#include "BKE_gpencil_modifier.h"
 #include "BKE_node.h"
+#include "BKE_particle.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
-#include "BKE_image.h"
-#include "BKE_particle.h"
 #include "BKE_volume.h"
 
 #include "DEG_depsgraph.h"

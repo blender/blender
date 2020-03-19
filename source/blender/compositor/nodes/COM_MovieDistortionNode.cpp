@@ -18,8 +18,8 @@
 
 #include "COM_MovieDistortionNode.h"
 
-#include "COM_MovieDistortionOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_MovieDistortionOperation.h"
 #include "DNA_movieclip_types.h"
 
 MovieDistortionNode::MovieDistortionNode(bNode *editorNode) : Node(editorNode)

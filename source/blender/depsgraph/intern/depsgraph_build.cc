@@ -25,9 +25,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 #include "PIL_time_utildefines.h"
@@ -42,8 +42,8 @@ extern "C" {
 } /* extern "C" */
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_debug.h"
 
 #include "builder/deg_builder.h"
 #include "builder/deg_builder_cache.h"
@@ -59,8 +59,8 @@ extern "C" {
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
-#include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_registry.h"
+#include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_type.h"
 
 /* ****************** */

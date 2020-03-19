@@ -87,8 +87,8 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include "mathutils/mathutils.h"
 #include "generic/python_utildefines.h"
+#include "mathutils/mathutils.h"
 
 //==============================
 // C++ => Python

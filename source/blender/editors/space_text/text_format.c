@@ -27,8 +27,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_string_utils.h"
 
-#include "DNA_text_types.h"
 #include "DNA_space_types.h"
+#include "DNA_text_types.h"
 
 #include "ED_text.h"
 

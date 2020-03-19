@@ -43,8 +43,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_sys_types.h"
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 #include "BLI_heap_simple.h"
 #include "BLI_listbase.h"

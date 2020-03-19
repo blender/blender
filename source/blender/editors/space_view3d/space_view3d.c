@@ -21,15 +21,15 @@
  * \ingroup spview3d
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
+#include "DNA_defaults.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_defaults.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -51,8 +51,8 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_transform.h"
 
 #include "GPU_matrix.h"
@@ -60,9 +60,9 @@
 #include "DRW_engine.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

@@ -24,8 +24,8 @@
  * \ingroup DNA
  */
 
-#include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_listBase.h"
 
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18

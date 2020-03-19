@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "render/curves.h"
 #include "render/hair.h"
+#include "render/curves.h"
 #include "render/scene.h"
 
 CCL_NAMESPACE_BEGIN

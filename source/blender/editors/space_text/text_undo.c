@@ -18,8 +18,8 @@
  * \ingroup sptext
  */
 
-#include <string.h>
 #include <errno.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -33,17 +33,17 @@
 #include "PIL_time.h"
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_text.h"
 #include "BKE_undo_system.h"
-#include "BKE_main.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_text.h"
 #include "ED_curve.h"
 #include "ED_screen.h"
+#include "ED_text.h"
 #include "ED_undo.h"
 
 #include "UI_interface.h"
@@ -52,8 +52,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "text_intern.h"
 #include "text_format.h"
+#include "text_intern.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System

@@ -20,10 +20,10 @@
 
 #include "COM_ExecutionSystem.h"
 
-#include "COM_KeyingOperation.h"
 #include "COM_KeyingBlurOperation.h"
-#include "COM_KeyingDespillOperation.h"
 #include "COM_KeyingClipOperation.h"
+#include "COM_KeyingDespillOperation.h"
+#include "COM_KeyingOperation.h"
 
 #include "COM_MathBaseOperation.h"
 

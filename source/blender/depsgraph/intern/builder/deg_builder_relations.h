@@ -33,16 +33,16 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_map.h"
 #include "intern/builder/deg_builder_rna.h"
 #include "intern/depsgraph.h"
 #include "intern/node/deg_node.h"
-#include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
 struct Base;

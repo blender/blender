@@ -14,14 +14,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "GHOST_Debug.h"
 #include "GHOST_NDOFManager.h"
-#include "GHOST_EventNDOF.h"
+#include "GHOST_Debug.h"
 #include "GHOST_EventKey.h"
+#include "GHOST_EventNDOF.h"
 #include "GHOST_WindowManager.h"
-#include <string.h>  // for memory functions
-#include <stdio.h>   // for error/info reporting
 #include <math.h>
+#include <stdio.h>   // for error/info reporting
+#include <string.h>  // for memory functions
 
 #ifdef DEBUG_NDOF_MOTION
 // printable version of each GHOST_TProgress value

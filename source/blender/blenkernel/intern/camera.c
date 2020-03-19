@@ -21,19 +21,19 @@
  * \ingroup bke
  */
 
-#include <stdlib.h>
 #include <stddef.h>
+#include <stdlib.h>
 
+#include "DNA_ID.h"
 #include "DNA_camera_types.h"
+#include "DNA_defaults.h"
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_ID.h"
-#include "DNA_defaults.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -41,10 +41,10 @@
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
 #include "BKE_idtype.h"
-#include "BKE_object.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 

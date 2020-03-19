@@ -19,9 +19,9 @@
 
 #include "openvdb_capi.h"
 #include "openvdb_dense_convert.h"
-#include "openvdb_util.h"
 #include "openvdb_level_set.h"
 #include "openvdb_transform.h"
+#include "openvdb_util.h"
 
 int OpenVDB_getVersionHex()
 {

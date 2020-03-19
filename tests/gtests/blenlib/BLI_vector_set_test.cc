@@ -1,5 +1,5 @@
-#include "testing/testing.h"
 #include "BLI_vector_set.h"
+#include "testing/testing.h"
 
 using BLI::VectorSet;
 using IntVectorSet = VectorSet<int>;

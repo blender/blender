@@ -21,8 +21,8 @@
  * \ingroup GHOST
  */
 
-#include "GHOST_Debug.h"
 #include "GHOST_DropTargetWin32.h"
+#include "GHOST_Debug.h"
 #include <shellapi.h>
 
 #include "utf_winfunc.h"

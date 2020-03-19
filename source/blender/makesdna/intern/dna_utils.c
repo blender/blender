@@ -26,10 +26,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
 #include "BLI_assert.h"
 #include "BLI_ghash.h"
+#include "BLI_sys_types.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_memarena.h"
 

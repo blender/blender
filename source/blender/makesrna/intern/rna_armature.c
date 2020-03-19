@@ -44,8 +44,8 @@
 #  include "BKE_idprop.h"
 #  include "BKE_main.h"
 
-#  include "ED_armature.h"
 #  include "BKE_armature.h"
+#  include "ED_armature.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

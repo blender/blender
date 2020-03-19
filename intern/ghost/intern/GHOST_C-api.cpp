@@ -25,11 +25,11 @@
 
 #include <stdlib.h>
 
-#include "intern/GHOST_Debug.h"
 #include "GHOST_C-api.h"
-#include "GHOST_ISystem.h"
 #include "GHOST_IEvent.h"
 #include "GHOST_IEventConsumer.h"
+#include "GHOST_ISystem.h"
+#include "intern/GHOST_Debug.h"
 #ifdef WITH_XR_OPENXR
 #  include "GHOST_IXrContext.h"
 #endif

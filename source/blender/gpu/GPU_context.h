@@ -30,8 +30,8 @@
 extern "C" {
 #endif
 
-#include "GPU_common.h"
 #include "GPU_batch.h"
+#include "GPU_common.h"
 #include "GPU_shader_interface.h"
 
 typedef struct GPUContext GPUContext;

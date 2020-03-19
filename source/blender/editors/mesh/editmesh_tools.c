@@ -35,17 +35,17 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_heap_simple.h"
-#include "BLI_listbase.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_sort_utils.h"
 #include "BLI_string.h"
 
-#include "BKE_editmesh.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -60,8 +60,8 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"

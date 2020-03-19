@@ -25,16 +25,16 @@
 #include "CLG_log.h"
 
 #include "DNA_ID.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLT_translation.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"

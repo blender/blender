@@ -18,22 +18,22 @@
  * \ingroup draw
  */
 
-#include "DNA_scene_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_hair_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_pointcloud_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
 #include "UI_resources.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_object.h"
 #include "BKE_paint.h"

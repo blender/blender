@@ -26,8 +26,8 @@
 #ifndef __DNA_TEXT_TYPES_H__
 #define __DNA_TEXT_TYPES_H__
 
-#include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_listBase.h"
 
 typedef struct TextLine {
   struct TextLine *next, *prev;

@@ -53,10 +53,10 @@ extern "C" {
 
 //------------------------ MODULE FUNCTIONS ----------------------------------
 
-#include "FRS_freestyle.h"
-#include "RNA_access.h"
 #include "BKE_appdir.h"
 #include "DNA_scene_types.h"
+#include "FRS_freestyle.h"
+#include "RNA_access.h"
 #include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
 
 static char Freestyle_getCurrentScene___doc__[] =
@@ -228,8 +228,8 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
   return Vector_CreatePyObject(out, 4, NULL);
 }
 
-#include "DNA_color_types.h"
 #include "BKE_colortools.h" /* BKE_curvemapping_evaluateF() */
+#include "DNA_color_types.h"
 
 static char Freestyle_evaluateCurveMappingF___doc__[] =
     ".. function:: evaluateCurveMappingF(cumap, cur, value)\n"

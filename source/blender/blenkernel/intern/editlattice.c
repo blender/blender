@@ -20,15 +20,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-#include "DNA_object_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_curve_types.h"
+#include "DNA_object_types.h"
 
-#include "BLI_math_vector.h"
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_deform.h"
 #include "BKE_key.h"

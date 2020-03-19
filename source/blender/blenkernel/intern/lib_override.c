@@ -37,10 +37,10 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_types.h"

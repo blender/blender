@@ -26,8 +26,8 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -41,11 +41,11 @@
 #include "BKE_data_transfer.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
+#include "BKE_fluid.h" /* For BKE_fluid_modifier_free & BKE_fluid_modifier_create_type_data */
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
 #include "BKE_ocean.h"
-#include "BKE_fluid.h" /* For BKE_fluid_modifier_free & BKE_fluid_modifier_create_type_data */
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -577,9 +577,9 @@ const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
 };
 
 #ifdef RNA_RUNTIME
-#  include "DNA_particle_types.h"
 #  include "DNA_curve_types.h"
 #  include "DNA_fluid_types.h"
+#  include "DNA_particle_types.h"
 
 #  include "BKE_cachefile.h"
 #  include "BKE_context.h"

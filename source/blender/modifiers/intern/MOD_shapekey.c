@@ -25,8 +25,8 @@
 
 #include "BLI_math.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_key.h"
 #include "BKE_particle.h"

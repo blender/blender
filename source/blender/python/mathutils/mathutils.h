@@ -69,11 +69,11 @@ typedef struct {
 } BaseMathObject;
 
 /* types */
-#include "mathutils_Vector.h"
+#include "mathutils_Color.h"
+#include "mathutils_Euler.h"
 #include "mathutils_Matrix.h"
 #include "mathutils_Quaternion.h"
-#include "mathutils_Euler.h"
-#include "mathutils_Color.h"
+#include "mathutils_Vector.h"
 
 /* avoid checking all types */
 #define BaseMathObject_CheckExact(v) (Py_TYPE(v)->tp_dealloc == (destructor)BaseMathObject_dealloc)

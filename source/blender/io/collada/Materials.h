@@ -28,8 +28,8 @@ extern "C" {
 #include "DNA_node_types.h"
 }
 
-#include "collada_utils.h"
 #include "COLLADAFWEffectCommon.h"
+#include "collada_utils.h"
 
 typedef std::map<std::string, bNode *> NodeMap;
 

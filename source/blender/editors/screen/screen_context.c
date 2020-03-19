@@ -27,33 +27,33 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_sequence_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
-#include "BKE_object.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_layer.h"
+#include "BKE_object.h"
 #include "BKE_sequencer.h"
 
 #include "RNA_access.h"
 
+#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_gpencil.h"
-#include "ED_anim_api.h"
 
-#include "WM_api.h"
 #include "UI_interface.h"
+#include "WM_api.h"
 
 #include "screen_intern.h"
 

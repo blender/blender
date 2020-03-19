@@ -21,11 +21,11 @@
  * \ingroup spimage
  */
 
-#include <stddef.h>
-#include <string.h>
-#include <fcntl.h>
-#include <stdlib.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 #ifndef WIN32
 #  include <unistd.h>
 #else
@@ -46,31 +46,31 @@
 #include "BLT_translation.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_object_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_image_save.h"
-#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
 #include "GPU_draw.h"
-#include "GPU_state.h"
 #include "GPU_immediate.h"
+#include "GPU_state.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -90,8 +90,8 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_uvedit.h"
 #include "ED_util.h"
+#include "ED_uvedit.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

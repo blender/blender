@@ -20,15 +20,15 @@
  * \ingroup draw_engine
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_object_types.h"
 
 #include "DRW_render.h"
 

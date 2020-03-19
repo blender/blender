@@ -26,8 +26,8 @@
 
 #include "DNA_userdef_types.h"
 
-#include "ED_view3d.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "UI_resources.h"
 

@@ -24,11 +24,11 @@
 #include "BKE_layer.h"
 #include "BKE_object.h"
 
-#include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_object_types.h"
 
-#include "ED_screen.h"
 #include "ED_gizmo_library.h"
+#include "ED_screen.h"
 
 #include "UI_resources.h"
 

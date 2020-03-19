@@ -27,9 +27,9 @@
  * aren't intended to be shared between multiple data blocks as with other ID types.
  */
 
+#include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_ID.h"
 
 struct AnimData;
 struct Ipo;

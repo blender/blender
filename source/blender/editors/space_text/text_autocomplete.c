@@ -29,16 +29,16 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
+#include "BKE_screen.h"
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
-#include "BKE_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_screen.h"
 #include "ED_text.h"
 #include "ED_undo.h"
-#include "ED_screen.h"
 
 #include "UI_interface.h"
 

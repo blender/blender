@@ -25,10 +25,10 @@
  * Wraps OpenGL and FreeType.
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include <ft2build.h>
 
@@ -47,12 +47,12 @@
 
 #include "IMB_colormanagement.h"
 
-#include "GPU_shader.h"
-#include "GPU_matrix.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
+#include "GPU_shader.h"
 
-#include "blf_internal_types.h"
 #include "blf_internal.h"
+#include "blf_internal_types.h"
 
 /* Max number of font in memory.
  * Take care that now every font have a glyph cache per size/dpi,

@@ -25,8 +25,8 @@
 #endif  // WIN32
 
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <shlobj.h>
+#include <windows.h>
 
 // ITaskbarList, ITaskbarList2 and ITaskbarList3 might be missing, present here in that case.
 // Note, ITaskbarList3 is supported only since Windows 7, though. Check for that is done in

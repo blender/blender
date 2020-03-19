@@ -36,8 +36,8 @@
 #include "gpu_shader_private.h"
 #include "gpu_vertex_format_private.h"
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* necessary functions from matrix API */
 extern void GPU_matrix_bind(const GPUShaderInterface *);

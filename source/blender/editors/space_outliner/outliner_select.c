@@ -27,16 +27,16 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
-#include "DNA_gpencil_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_armature.h"
 #include "BKE_collection.h"

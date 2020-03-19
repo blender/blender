@@ -21,26 +21,26 @@
  * \ingroup render
  */
 
+#include <fcntl.h>
+#include <float.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
-#include <math.h>
-#include <float.h>
 #ifndef WIN32
 #  include <unistd.h>
 #else
 #  include <io.h>
 #endif
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 

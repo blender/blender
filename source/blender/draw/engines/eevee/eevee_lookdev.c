@@ -24,8 +24,8 @@
 #include "BKE_camera.h"
 #include "BKE_studiolight.h"
 
-#include "BLI_rect.h"
 #include "BLI_rand.h"
+#include "BLI_rect.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_world_types.h"
@@ -36,8 +36,8 @@
 
 #include "UI_resources.h"
 
-#include "eevee_private.h"
 #include "eevee_lightcache.h"
+#include "eevee_private.h"
 
 #include "draw_common.h"
 

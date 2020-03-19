@@ -28,12 +28,12 @@
 
 #include "BLI_utildefines.h"
 
-#include "RNA_types.h"
 #include "RNA_access.h"
+#include "RNA_types.h"
 
 #include "BPY_extern.h"
-#include "bpy_utils_previews.h"
 #include "bpy_rna.h"
+#include "bpy_utils_previews.h"
 
 #include "MEM_guardedalloc.h"
 

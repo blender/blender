@@ -30,13 +30,13 @@
 #include "bmesh.h"
 
 #include "bmesh_py_types.h"
-#include "bmesh_py_types_select.h"
 #include "bmesh_py_types_customdata.h"
 #include "bmesh_py_types_meshdata.h"
+#include "bmesh_py_types_select.h"
 
+#include "bmesh_py_geometry.h"
 #include "bmesh_py_ops.h"
 #include "bmesh_py_utils.h"
-#include "bmesh_py_geometry.h"
 
 #include "BKE_editmesh.h"
 

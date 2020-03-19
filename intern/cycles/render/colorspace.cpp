@@ -17,8 +17,8 @@
 #include "render/colorspace.h"
 
 #include "util/util_color.h"
-#include "util/util_image.h"
 #include "util/util_half.h"
+#include "util/util_image.h"
 #include "util/util_logging.h"
 #include "util/util_math.h"
 #include "util/util_thread.h"

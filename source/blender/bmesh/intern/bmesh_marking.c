@@ -31,8 +31,8 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
 #include "bmesh.h"
 #include "bmesh_structure.h"

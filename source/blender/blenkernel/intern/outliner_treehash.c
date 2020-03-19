@@ -23,9 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_outliner_types.h"
 

@@ -32,11 +32,11 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_array.h"
-#include "BLI_utildefines.h"
-#include "BLI_rect.h"
 #include "BLI_math.h"
-#include "BLI_timecode.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_timecode.h"
+#include "BLI_utildefines.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

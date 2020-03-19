@@ -24,27 +24,27 @@
 #include <string.h>
 
 #include "DNA_light_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_world_types.h"
-#include "DNA_linestyle_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_world_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_alloca.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_lib_id.h"
 
 #include "RNA_access.h"
 
@@ -56,8 +56,8 @@
 
 #include "node_common.h"
 #include "node_exec.h"
-#include "node_util.h"
 #include "node_shader_util.h"
+#include "node_util.h"
 
 typedef struct nTreeTags {
   float ssr_id, sss_id;

@@ -24,9 +24,9 @@
 #ifndef __DNA_PARTICLE_TYPES_H__
 #define __DNA_PARTICLE_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
 #include "DNA_boid_types.h"
+#include "DNA_defs.h"
 
 struct AnimData;
 

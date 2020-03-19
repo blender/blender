@@ -25,9 +25,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"

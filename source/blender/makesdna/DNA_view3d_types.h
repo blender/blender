@@ -34,10 +34,10 @@ struct bGPdata;
 struct wmTimer;
 
 #include "DNA_defs.h"
-#include "DNA_listBase.h"
 #include "DNA_image_types.h"
-#include "DNA_object_types.h"
+#include "DNA_listBase.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_object_types.h"
 #include "DNA_view3d_enums.h"
 
 typedef struct RegionView3D {

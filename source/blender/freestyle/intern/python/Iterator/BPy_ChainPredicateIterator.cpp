@@ -20,10 +20,10 @@
 
 #include "BPy_ChainPredicateIterator.h"
 
-#include "../BPy_Convert.h"
 #include "../BPy_BinaryPredicate1D.h"
-#include "../Interface1D/BPy_ViewEdge.h"
+#include "../BPy_Convert.h"
 #include "../BPy_UnaryPredicate1D.h"
+#include "../Interface1D/BPy_ViewEdge.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -24,10 +24,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_alloca.h"
-#include "BLI_mempool.h"
 #include "BLI_linklist.h"
+#include "BLI_mempool.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 #include "bmesh_edgenet.h" /* own include */

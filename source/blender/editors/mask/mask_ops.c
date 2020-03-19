@@ -33,9 +33,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h" /* SELECT */
+#include "DNA_scene_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

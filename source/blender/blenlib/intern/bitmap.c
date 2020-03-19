@@ -23,11 +23,11 @@
  * Utility functions for variable size bitmasks.
  */
 
-#include <string.h>
 #include <limits.h>
+#include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_bitmap.h"
+#include "BLI_utildefines.h"
 
 /** Set or clear all bits in the bitmap. */
 void BLI_bitmap_set_all(BLI_bitmap *bitmap, bool set, size_t bits)

@@ -24,8 +24,8 @@
 #ifndef __SEQUENCER_INTERN_H__
 #define __SEQUENCER_INTERN_H__
 
-#include "RNA_access.h"
 #include "DNA_sequence_types.h"
+#include "RNA_access.h"
 
 /* internal exports only */
 

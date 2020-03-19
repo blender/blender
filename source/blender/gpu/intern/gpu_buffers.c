@@ -30,22 +30,22 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_math_color.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
+#include "BLI_math.h"
+#include "BLI_math_color.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_meshdata_types.h"
 
-#include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_paint.h"
+#include "BKE_ccg.h"
 #include "BKE_mesh.h"
+#include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
-#include "GPU_buffers.h"
 #include "GPU_batch.h"
+#include "GPU_buffers.h"
 
 #include "gpu_private.h"
 

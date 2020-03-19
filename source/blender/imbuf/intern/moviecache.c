@@ -23,22 +23,22 @@
 
 #undef DEBUG_MESSAGES
 
-#include <stdlib.h> /* for qsort */
 #include <memory.h>
+#include <stdlib.h> /* for qsort */
 
-#include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
+#include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "IMB_moviecache.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #ifdef DEBUG_MESSAGES
 #  if defined __GNUC__

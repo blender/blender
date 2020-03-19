@@ -40,15 +40,15 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist_lockfree.h"
 #include "BLI_string.h"
-#include "BLI_fileops.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_icons.h"
 #include "BKE_global.h" /* only for G.background test */
+#include "BKE_icons.h"
 #include "BKE_studiolight.h"
 
 #include "BLI_sys_types.h"  // for intptr_t support

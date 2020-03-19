@@ -1,17 +1,17 @@
 /* Apache License, Version 2.0 */
 
-#include "testing/testing.h"
 #include "BLI_ressource_strings.h"
+#include "testing/testing.h"
 
 #define GHASH_INTERNAL_API
 
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 #include "PIL_time_utildefines.h"
 }
 

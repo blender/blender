@@ -12,20 +12,20 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BLI_array_utils.h"
-#include "BLI_polyfill_2d.h"
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
+#include "BLI_polyfill_2d.h"
+#include "BLI_utildefines.h"
 
 #ifdef USE_OBJ_PREVIEW
 #  include "BLI_string.h"
 #endif
 
 #ifdef USE_BEAUTIFY
-#  include "BLI_polyfill_2d_beautify.h"
-#  include "BLI_memarena.h"
 #  include "BLI_heap.h"
+#  include "BLI_memarena.h"
+#  include "BLI_polyfill_2d_beautify.h"
 #endif
 }
 

@@ -21,12 +21,12 @@
  * \ingroup bke
  */
 
+#include <ctype.h>
+#include <float.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <time.h>
-#include <float.h>
-#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,17 +34,17 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
-#include "BKE_editmesh.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
-#include "BKE_lib_id.h"
-#include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
+#include "BKE_customdata.h"
+#include "BKE_editmesh.h"
+#include "BKE_lib_id.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_remesh_voxel.h" /* own include */
+#include "BKE_mesh_runtime.h"
 
 #include "bmesh_tools.h"
 

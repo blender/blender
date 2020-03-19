@@ -35,9 +35,9 @@ struct DynamicLibrary {
 
 #ifdef WIN32
 #  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
 #  include "utf_winfunc.h"
 #  include "utfconv.h"
+#  include <windows.h>
 
 DynamicLibrary *BLI_dynlib_open(const char *name)
 {

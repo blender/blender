@@ -8,8 +8,8 @@
 extern "C" {
 #include "BLI_compiler_attrs.h"
 #include "BLI_heap.h"
-#include "BLI_utildefines.h"
 #include "BLI_rand.h"
+#include "BLI_utildefines.h"
 };
 
 #define SIZE 1024

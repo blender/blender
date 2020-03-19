@@ -21,17 +21,17 @@
  * \ingroup edobj
  */
 
-#include <string.h>
-#include <stddef.h>
-#include <math.h>
 #include <assert.h>
+#include <math.h>
+#include <stddef.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -39,24 +39,24 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.h"
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
+#include "BKE_lattice.h"
+#include "BKE_layer.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_editmesh.h"
-#include "BKE_layer.h"
 #include "BKE_modifier.h"
-#include "BKE_report.h"
-#include "BKE_object_deform.h"
 #include "BKE_object.h"
-#include "BKE_lattice.h"
+#include "BKE_object_deform.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -70,8 +70,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 
 #include "UI_resources.h"
 

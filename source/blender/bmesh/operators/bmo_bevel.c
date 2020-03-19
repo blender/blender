@@ -22,10 +22,10 @@
 
 #include "BLI_utildefines.h"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
 #include "BKE_curveprofile.h"
 #include "DNA_curveprofile_types.h"
+#include "bmesh.h"
+#include "bmesh_tools.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
 

@@ -20,14 +20,14 @@
 
 #include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_context.h"
 #include "BKE_collection.h"
+#include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -41,8 +41,8 @@
 #include "ED_screen.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

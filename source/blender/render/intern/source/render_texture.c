@@ -21,10 +21,10 @@
  * \ingroup render
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "BLI_math.h"
 #include "BLI_noise.h"
@@ -32,16 +32,16 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_object_types.h"
-#include "DNA_light_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_material_types.h"
 #include "DNA_image_types.h"
+#include "DNA_light_types.h"
+#include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
+#include "DNA_texture_types.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf_types.h"
 
 #include "BKE_image.h"
 #include "BKE_node.h"

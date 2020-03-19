@@ -23,8 +23,8 @@
 
 #include "../BPy_UnaryFunction1D.h"
 
-#include <vector>
 #include "../../view_map/ViewMap.h"
+#include <vector>
 
 #ifdef __cplusplus
 extern "C" {

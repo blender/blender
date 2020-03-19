@@ -21,22 +21,22 @@
  * \ingroup edanimation
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "BLI_sys_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_sequencer.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+#include "BKE_sequencer.h"
 
 #include "UI_view2d.h"
 

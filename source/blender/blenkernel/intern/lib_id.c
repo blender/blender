@@ -24,12 +24,12 @@
  * allocate and free of all library data
  */
 
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <assert.h>
+#include <ctype.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "CLG_log.h"
 
@@ -46,28 +46,28 @@
 #include "DNA_hair_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_light_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_light_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
-#include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
-#include "DNA_lightprobe_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_text_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_world_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -84,8 +84,8 @@
 #include "BKE_armature.h"
 #include "BKE_bpath.h"
 #include "BKE_brush.h"
-#include "BKE_camera.h"
 #include "BKE_cachefile.h"
+#include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -98,28 +98,28 @@
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
-#include "BKE_light.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
+#include "BKE_light.h"
+#include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
-#include "BKE_mesh.h"
-#include "BKE_material.h"
 #include "BKE_main.h"
-#include "BKE_mball.h"
 #include "BKE_mask.h"
+#include "BKE_material.h"
+#include "BKE_mball.h"
+#include "BKE_mesh.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.h"
-#include "BKE_lightprobe.h"
 #include "BKE_rigidbody.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
 #include "BKE_speaker.h"
-#include "BKE_scene.h"
 #include "BKE_text.h"
 #include "BKE_texture.h"
 #include "BKE_volume.h"

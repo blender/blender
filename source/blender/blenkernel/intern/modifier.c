@@ -24,12 +24,12 @@
  * \ingroup bke
  */
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <stdarg.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -38,15 +38,16 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_appdir.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
@@ -57,7 +58,6 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
-#include "BKE_DerivedMesh.h"
 
 /* may move these, only for modifier_path_relbase */
 #include "BKE_main.h"

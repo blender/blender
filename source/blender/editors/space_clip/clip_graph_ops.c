@@ -23,9 +23,9 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_tracking.h"
@@ -35,9 +35,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_clip.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_clip.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

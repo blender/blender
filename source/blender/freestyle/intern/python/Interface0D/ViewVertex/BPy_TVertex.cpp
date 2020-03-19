@@ -21,10 +21,10 @@
 #include "BPy_TVertex.h"
 
 #include "../../BPy_Convert.h"
-#include "../BPy_SVertex.h"
 #include "../../BPy_Id.h"
 #include "../../Interface1D/BPy_FEdge.h"
 #include "../../Interface1D/BPy_ViewEdge.h"
+#include "../BPy_SVertex.h"
 
 #ifdef __cplusplus
 extern "C" {

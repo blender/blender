@@ -21,10 +21,10 @@
  * \ingroup edinterface
  */
 
+#include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "DNA_brush_types.h"
 #include "DNA_screen_types.h"

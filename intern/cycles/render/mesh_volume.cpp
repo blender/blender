@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "render/mesh.h"
 #include "render/attribute.h"
+#include "render/mesh.h"
 #include "render/scene.h"
 
 #include "util/util_foreach.h"

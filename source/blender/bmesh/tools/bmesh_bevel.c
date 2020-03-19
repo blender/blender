@@ -26,8 +26,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_array.h"
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"

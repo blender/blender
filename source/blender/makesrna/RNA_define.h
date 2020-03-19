@@ -23,8 +23,8 @@
  * Functions used during preprocess and runtime, for defining the RNA.
  */
 
-#include <inttypes.h>
 #include <float.h>
+#include <inttypes.h>
 #include <limits.h>
 
 #include "DNA_listBase.h"

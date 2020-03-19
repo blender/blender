@@ -24,9 +24,9 @@
 
 #include "DRW_render.h"
 
+#include "BKE_animsys.h"
 #include "BKE_camera.h"
 #include "BKE_object.h"
-#include "BKE_animsys.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
@@ -37,8 +37,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "eevee_private.h"
 #include "GPU_texture.h"
+#include "eevee_private.h"
 
 static struct {
   /* Motion Blur */

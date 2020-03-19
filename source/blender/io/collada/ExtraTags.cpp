@@ -18,9 +18,9 @@
  * \ingroup collada
  */
 
+#include "BLI_string.h"
 #include <stddef.h>
 #include <stdlib.h>
-#include "BLI_string.h"
 
 #include <iostream>
 

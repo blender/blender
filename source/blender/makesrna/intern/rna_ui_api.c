@@ -21,8 +21,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "BLI_utildefines.h"
 
@@ -33,9 +33,9 @@
 
 #include "DNA_screen_types.h"
 
-#include "UI_resources.h"
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
+#include "UI_resources.h"
 
 #include "rna_internal.h"
 

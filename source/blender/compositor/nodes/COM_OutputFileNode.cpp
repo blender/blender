@@ -17,9 +17,9 @@
  */
 
 #include "COM_OutputFileNode.h"
-#include "COM_OutputFileOperation.h"
-#include "COM_OutputFileMultiViewOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_OutputFileMultiViewOperation.h"
+#include "COM_OutputFileOperation.h"
 
 #include "BKE_scene.h"
 

@@ -25,8 +25,8 @@
 
 #include <cstdarg>
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 extern "C" {
 #include "DNA_listBase.h"

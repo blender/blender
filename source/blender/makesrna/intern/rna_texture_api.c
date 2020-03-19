@@ -18,8 +18,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "BLI_utildefines.h"
@@ -30,11 +30,11 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "IMB_imbuf.h"
-#  include "IMB_imbuf_types.h"
-#  include "DNA_scene_types.h"
 #  include "BKE_context.h"
 #  include "BKE_global.h"
+#  include "DNA_scene_types.h"
+#  include "IMB_imbuf.h"
+#  include "IMB_imbuf_types.h"
 #  include "RE_pipeline.h"
 #  include "RE_shader_ext.h"
 

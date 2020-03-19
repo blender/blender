@@ -24,8 +24,8 @@
 #ifndef __ABC_READER_CURVES_H__
 #define __ABC_READER_CURVES_H__
 
-#include "abc_reader_object.h"
 #include "abc_reader_mesh.h"
+#include "abc_reader_object.h"
 
 struct Curve;
 

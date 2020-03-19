@@ -28,24 +28,24 @@
 #include "MEM_guardedalloc.h"
 
 #include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_string.h"
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "ED_screen.h"
 #include "ED_clip.h"
-#include "ED_mask.h"
 #include "ED_gpencil.h"
+#include "ED_mask.h"
+#include "ED_screen.h"
 
 #include "BIF_glutil.h"
 

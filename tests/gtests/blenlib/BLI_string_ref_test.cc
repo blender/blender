@@ -1,6 +1,6 @@
-#include "testing/testing.h"
 #include "BLI_string_ref.h"
 #include "BLI_vector.h"
+#include "testing/testing.h"
 
 using BLI::StringRef;
 using BLI::StringRefNull;

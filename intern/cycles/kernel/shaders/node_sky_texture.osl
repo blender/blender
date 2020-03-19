@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "node_color.h"
+#include "stdcycles.h"
 
 float sky_angle_between(float thetav, float phiv, float theta, float phi)
 {

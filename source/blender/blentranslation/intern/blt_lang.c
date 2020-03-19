@@ -33,8 +33,8 @@
 
 #include "RNA_types.h"
 
-#include "BLT_translation.h"
 #include "BLT_lang.h" /* own include */
+#include "BLT_translation.h"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"

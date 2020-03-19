@@ -25,8 +25,8 @@
 
 #ifdef WITH_INPUT_IME
 
-#  include "GHOST_C-api.h"
 #  include "GHOST_ImeWin32.h"
+#  include "GHOST_C-api.h"
 #  include "GHOST_WindowWin32.h"
 #  include "utfconv.h"
 

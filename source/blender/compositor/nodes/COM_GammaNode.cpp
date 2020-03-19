@@ -17,8 +17,8 @@
  */
 
 #include "COM_GammaNode.h"
-#include "COM_GammaOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_GammaOperation.h"
 
 GammaNode::GammaNode(bNode *editorNode) : Node(editorNode)
 {

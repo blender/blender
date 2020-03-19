@@ -20,10 +20,10 @@
 
 #include <sstream>
 
+#include "COLLADABUUtils.h"
 #include "COLLADASWPrimitves.h"
 #include "COLLADASWSource.h"
 #include "COLLADASWVertices.h"
-#include "COLLADABUUtils.h"
 
 #include "GeometryExporter.h"
 

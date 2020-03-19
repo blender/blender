@@ -29,17 +29,17 @@
 
 #include "BLT_translation.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
 
 #include "BKE_camera.h"
-#include "BKE_global.h"
 #include "BKE_colortools.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
@@ -55,16 +55,16 @@
 #  include "BPY_extern.h"
 #endif
 
+#include "RE_bake.h"
 #include "RE_engine.h"
 #include "RE_pipeline.h"
-#include "RE_bake.h"
 
 #include "DRW_engine.h"
 
 #include "initrender.h"
-#include "renderpipeline.h"
-#include "render_types.h"
 #include "render_result.h"
+#include "render_types.h"
+#include "renderpipeline.h"
 
 /* Render Engine Types */
 

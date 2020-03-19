@@ -39,10 +39,10 @@
 #include "../generic/py_capi_utils.h"
 
 #include "gpu_py_api.h"
+#include "gpu_py_batch.h" /* own include */
+#include "gpu_py_element.h"
 #include "gpu_py_shader.h"
 #include "gpu_py_vertex_buffer.h"
-#include "gpu_py_element.h"
-#include "gpu_py_batch.h" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions

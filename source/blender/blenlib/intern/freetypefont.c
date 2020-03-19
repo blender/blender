@@ -35,16 +35,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLI_vfontdata.h"
-#include "BLI_listbase.h"
-#include "BLI_ghash.h"
-#include "BLI_string.h"
-#include "BLI_math.h"
 
-#include "DNA_vfont_types.h"
-#include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_packedFile_types.h"
+#include "DNA_vfont_types.h"
 
 /* local variables */
 static FT_Library library;

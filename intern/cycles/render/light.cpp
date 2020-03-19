@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "render/background.h"
+#include "render/light.h"
 #include "device/device.h"
-#include "render/integrator.h"
+#include "render/background.h"
 #include "render/film.h"
 #include "render/graph.h"
-#include "render/light.h"
+#include "render/integrator.h"
 #include "render/mesh.h"
 #include "render/nodes.h"
 #include "render/object.h"
@@ -28,9 +28,9 @@
 
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
+#include "util/util_logging.h"
 #include "util/util_path.h"
 #include "util/util_progress.h"
-#include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 

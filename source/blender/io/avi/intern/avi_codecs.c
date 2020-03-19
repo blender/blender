@@ -26,8 +26,8 @@
 #include "AVI_avi.h"
 #include "avi_intern.h"
 
-#include "avi_rgb.h"
 #include "avi_mjpeg.h"
+#include "avi_rgb.h"
 #include "avi_rgb32.h"
 
 void *avi_format_convert(

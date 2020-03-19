@@ -22,8 +22,8 @@
  */
 
 #include "DNA_mesh_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 
@@ -35,9 +35,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "GPU_shader.h"
-#include "GPU_immediate.h"
 #include "GPU_batch.h"
+#include "GPU_immediate.h"
+#include "GPU_shader.h"
 #include "GPU_state.h"
 
 #include "ED_mesh.h"

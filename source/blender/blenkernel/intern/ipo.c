@@ -30,25 +30,25 @@
  */
 
 #include <math.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <stddef.h>
 
 /* since we have versioning code here */
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_anim_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_light_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_nla_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_world_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -57,12 +57,12 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_ipo.h"
-#include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
+#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"

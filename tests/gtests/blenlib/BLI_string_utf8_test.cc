@@ -3,9 +3,9 @@
 #include "testing/testing.h"
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
 }
 
 /* Note that 'common' utf-8 variants of string functions (like copy, etc.) are tested in

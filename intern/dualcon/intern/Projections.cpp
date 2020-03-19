@@ -18,8 +18,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
-#include <math.h>
 #include "Projections.h"
+#include <math.h>
 
 const int vertmap[8][3] = {
     {0, 0, 0},

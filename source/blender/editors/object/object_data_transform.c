@@ -32,23 +32,23 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_collection_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_collection_types.h"
-#include "DNA_lattice_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
+#include "BKE_lattice.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
-#include "BKE_armature.h"
-#include "BKE_lattice.h"
 #include "BKE_scene.h"
 
 #include "bmesh.h"
@@ -58,9 +58,9 @@
 
 #include "WM_types.h"
 
-#include "ED_object.h"
-#include "ED_mesh.h"
 #include "ED_armature.h"
+#include "ED_mesh.h"
+#include "ED_object.h"
 
 #include "MEM_guardedalloc.h"
 

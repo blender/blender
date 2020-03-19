@@ -24,13 +24,13 @@
 #ifndef __SCULPT_INTERN_H__
 #define __SCULPT_INTERN_H__
 
+#include "DNA_key_types.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "DNA_key_types.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_threads.h"
 #include "BLI_gsqueue.h"
+#include "BLI_threads.h"
 
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"

@@ -24,8 +24,8 @@
 
 #include "DRW_render.h"
 
-#include "eevee_private.h"
 #include "eevee_lightcache.h"
+#include "eevee_private.h"
 
 void EEVEE_view_layer_data_free(void *storage)
 {

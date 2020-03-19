@@ -25,8 +25,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_listbase.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
@@ -36,10 +36,10 @@
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_deform.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -47,8 +47,8 @@
 #include "MOD_modifiertypes.h"
 
 #include "BLI_array_cxx.h"
-#include "BLI_vector.h"
 #include "BLI_listbase_wrapper.h"
+#include "BLI_vector.h"
 
 using BLI::Array;
 using BLI::ArrayRef;

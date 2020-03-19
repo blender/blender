@@ -25,15 +25,15 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
-#include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_colorband.h"
@@ -50,8 +50,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_gpencil_util.h"
 #include "MOD_gpencil_modifiertypes.h"
+#include "MOD_gpencil_util.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

@@ -27,8 +27,8 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 
-#include "GHOST_ContextWGL.h" /* For shared drawing */
 #include "GHOST_ContextD3D.h"
+#include "GHOST_ContextWGL.h" /* For shared drawing */
 
 HMODULE GHOST_ContextD3D::s_d3d_lib = NULL;
 PFN_D3D11_CREATE_DEVICE GHOST_ContextD3D::s_D3D11CreateDeviceFn = NULL;

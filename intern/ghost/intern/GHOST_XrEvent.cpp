@@ -21,8 +21,8 @@
 #include <iostream>
 
 #include "GHOST_C-api.h"
-#include "GHOST_Xr_intern.h"
 #include "GHOST_XrContext.h"
+#include "GHOST_Xr_intern.h"
 
 static bool GHOST_XrEventPollNext(XrInstance instance, XrEventDataBuffer &r_event_data)
 {

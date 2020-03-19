@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#include <string.h>
 #include <limits.h>
+#include <string.h>
 
+#include "device/device.h"
+#include "render/bake.h"
 #include "render/buffers.h"
 #include "render/camera.h"
-#include "device/device.h"
 #include "render/graph.h"
 #include "render/integrator.h"
 #include "render/light.h"
@@ -27,7 +28,6 @@
 #include "render/object.h"
 #include "render/scene.h"
 #include "render/session.h"
-#include "render/bake.h"
 
 #include "util/util_foreach.h"
 #include "util/util_function.h"

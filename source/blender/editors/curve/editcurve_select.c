@@ -27,10 +27,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_math.h"
-#include "BLI_rand.h"
 #include "BLI_heap_simple.h"
 #include "BLI_kdtree.h"
+#include "BLI_math.h"
+#include "BLI_rand.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -41,12 +41,12 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_curve.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_types.h"
 #include "ED_view3d.h"
-#include "ED_curve.h"
 
 #include "curve_intern.h"
 

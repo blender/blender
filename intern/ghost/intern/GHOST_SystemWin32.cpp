@@ -21,8 +21,8 @@
  * \ingroup GHOST
  */
 
-#include "GHOST_ContextD3D.h"
 #include "GHOST_SystemWin32.h"
+#include "GHOST_ContextD3D.h"
 #include "GHOST_EventDragnDrop.h"
 
 #ifndef _WIN32_IE
@@ -30,22 +30,22 @@
 #endif
 
 #include <commctrl.h>
-#include <shlobj.h>
-#include <tlhelp32.h>
 #include <psapi.h>
 #include <shellapi.h>
+#include <shlobj.h>
+#include <tlhelp32.h>
 #include <windowsx.h>
 
-#include "utfconv.h"
 #include "utf_winfunc.h"
+#include "utfconv.h"
 
 #include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
+#include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
 

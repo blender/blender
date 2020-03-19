@@ -17,13 +17,13 @@
  */
 
 #include "COM_BokehBlurNode.h"
-#include "DNA_camera_types.h"
-#include "DNA_object_types.h"
-#include "DNA_node_types.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_BokehBlurOperation.h"
-#include "COM_VariableSizeBokehBlurOperation.h"
 #include "COM_ConvertDepthToRadiusOperation.h"
+#include "COM_ExecutionSystem.h"
+#include "COM_VariableSizeBokehBlurOperation.h"
+#include "DNA_camera_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h"
 
 BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
 {

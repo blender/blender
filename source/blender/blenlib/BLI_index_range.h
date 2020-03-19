@@ -25,8 +25,8 @@
  * cases, a separate data structure should be used.
  */
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #include "BLI_utildefines.h"

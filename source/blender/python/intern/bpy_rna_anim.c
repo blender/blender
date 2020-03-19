@@ -25,15 +25,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_scene_types.h"
 
-#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+#include "ED_keyframing.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -49,8 +49,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "bpy_rna.h"
 #include "bpy_capi_utils.h"
+#include "bpy_rna.h"
 #include "bpy_rna_anim.h"
 
 #include "../generic/python_utildefines.h"

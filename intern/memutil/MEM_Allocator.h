@@ -21,8 +21,8 @@
 #ifndef __MEM_ALLOCATOR_H__
 #define __MEM_ALLOCATOR_H__
 
-#include <stddef.h>
 #include "guardedalloc/MEM_guardedalloc.h"
+#include <stddef.h>
 
 template<typename _Tp> struct MEM_Allocator {
   typedef size_t size_type;

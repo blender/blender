@@ -24,20 +24,20 @@
 #include <float.h>
 #include <string.h>
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_anim_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_color_types.h"
 #include "DNA_light_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_anim_types.h"
 
-#include "BKE_colortools.h"
 #include "BKE_animsys.h"
+#include "BKE_colortools.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_node.h"

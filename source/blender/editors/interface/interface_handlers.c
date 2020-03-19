@@ -21,13 +21,13 @@
  * \ingroup edinterface
  */
 
+#include <assert.h>
+#include <ctype.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -36,29 +36,29 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_math.h"
-#include "BLI_listbase.h"
 #include "BLI_linklist.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_string_cursor_utf8.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_string_cursor_utf8.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 
-#include "BKE_colorband.h"
 #include "BKE_blender_undo.h"
 #include "BKE_brush.h"
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_curveprofile.h"
+#include "BKE_movieclip.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
 #include "BKE_unit.h"
-#include "BKE_paint.h"
-#include "BKE_curveprofile.h"
-#include "BKE_movieclip.h"
 
 #include "IMB_colormanagement.h"
 
@@ -79,9 +79,9 @@
 #include "wm_event_system.h"
 
 #ifdef WITH_INPUT_IME
-#  include "wm_window.h"
-#  include "BLT_translation.h"
 #  include "BLT_lang.h"
+#  include "BLT_translation.h"
+#  include "wm_window.h"
 #endif
 
 /* place the mouse at the scaled down location when un-grabbing */

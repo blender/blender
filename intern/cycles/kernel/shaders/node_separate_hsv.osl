@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "node_color.h"
+#include "stdcycles.h"
 
 shader node_separate_hsv(color Color = 0.8,
                          output float H = 0.0,

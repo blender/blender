@@ -18,15 +18,15 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "DNA_brush_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_workspace_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_math.h"
 

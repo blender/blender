@@ -21,14 +21,14 @@
 #include "BPy_Operators.h"
 
 #include "BPy_BinaryPredicate1D.h"
+#include "BPy_Convert.h"
+#include "BPy_StrokeShader.h"
 #include "BPy_UnaryPredicate0D.h"
 #include "BPy_UnaryPredicate1D.h"
+#include "Iterator/BPy_ChainingIterator.h"
+#include "Iterator/BPy_ViewEdgeIterator.h"
 #include "UnaryFunction0D/BPy_UnaryFunction0DDouble.h"
 #include "UnaryFunction1D/BPy_UnaryFunction1DVoid.h"
-#include "Iterator/BPy_ViewEdgeIterator.h"
-#include "Iterator/BPy_ChainingIterator.h"
-#include "BPy_StrokeShader.h"
-#include "BPy_Convert.h"
 
 #include <sstream>
 

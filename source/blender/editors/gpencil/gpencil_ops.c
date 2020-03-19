@@ -21,14 +21,14 @@
  * \ingroup edgpencil
  */
 
-#include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "BLI_sys_types.h"
 
-#include "BKE_context.h"
 #include "BKE_brush.h"
+#include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_paint.h"
 
@@ -39,14 +39,14 @@
 #include "DNA_space_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 
 #include "ED_gpencil.h"
-#include "ED_select_utils.h"
 #include "ED_object.h"
+#include "ED_select_utils.h"
 #include "ED_transform.h"
 
 #include "gpencil_intern.h"

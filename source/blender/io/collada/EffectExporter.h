@@ -25,9 +25,9 @@
 #include <vector>
 
 #include "COLLADASWColorOrTexture.h"
-#include "COLLADASWStreamWriter.h"
-#include "COLLADASWSampler.h"
 #include "COLLADASWLibraryEffects.h"
+#include "COLLADASWSampler.h"
+#include "COLLADASWStreamWriter.h"
 
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"

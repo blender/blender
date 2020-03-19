@@ -30,9 +30,9 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "GPU_shader.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_shader.h"
 
 #include "UI_resources.h"
 

@@ -21,32 +21,32 @@
  * \ingroup bke
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_dynamicpaint_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_fluid_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_dynamicpaint_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
+#include "BLI_linklist.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
-#include "BLI_linklist.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -59,19 +59,19 @@
 #include "BKE_colortools.h"
 #include "BKE_effect.h"
 #include "BKE_idtype.h"
-#include "BKE_main.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 
+#include "BKE_deform.h"
 #include "BKE_displist.h"
-#include "BKE_particle.h"
-#include "BKE_material.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
-#include "BKE_modifier.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_deform.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

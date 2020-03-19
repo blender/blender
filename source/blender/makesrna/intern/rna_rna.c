@@ -123,9 +123,9 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
 /** \} */
 
 #ifdef RNA_RUNTIME
-#  include "MEM_guardedalloc.h"
 #  include "BLI_ghash.h"
 #  include "BLI_string.h"
+#  include "MEM_guardedalloc.h"
 
 #  include "BKE_lib_override.h"
 

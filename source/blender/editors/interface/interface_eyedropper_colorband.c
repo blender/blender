@@ -38,8 +38,8 @@
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
 #include "BKE_colorband.h"
+#include "BKE_context.h"
 
 #include "RNA_access.h"
 

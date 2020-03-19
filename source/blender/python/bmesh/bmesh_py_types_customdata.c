@@ -26,8 +26,8 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 
@@ -35,9 +35,9 @@
 #include "bmesh_py_types_customdata.h"
 #include "bmesh_py_types_meshdata.h"
 
-#include "../mathutils/mathutils.h"
-#include "../generic/python_utildefines.h"
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
+#include "../mathutils/mathutils.h"
 
 #include "BKE_customdata.h"
 

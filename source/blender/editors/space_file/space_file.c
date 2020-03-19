@@ -21,8 +21,8 @@
  * \ingroup spfile
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -31,18 +31,18 @@
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"
-#include "BKE_screen.h"
 #include "BKE_global.h"
+#include "BKE_screen.h"
 
 #include "RNA_access.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
-#include "ED_space_api.h"
-#include "ED_screen.h"
 #include "ED_fileselect.h"
+#include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
@@ -50,10 +50,10 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "file_intern.h"  // own include
-#include "fsmenu.h"
-#include "filelist.h"
 #include "GPU_framebuffer.h"
+#include "file_intern.h"  // own include
+#include "filelist.h"
+#include "fsmenu.h"
 
 static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *ar_prev)
 {

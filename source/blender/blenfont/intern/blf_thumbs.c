@@ -30,10 +30,10 @@
 
 #include FT_FREETYPE_H
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "blf_internal.h"
 #include "blf_internal_types.h"

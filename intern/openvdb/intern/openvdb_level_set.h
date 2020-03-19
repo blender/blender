@@ -20,13 +20,13 @@
 #ifndef __OPENVDB_LEVEL_SET_H__
 #define __OPENVDB_LEVEL_SET_H__
 
-#include <openvdb/openvdb.h>
+#include "openvdb_capi.h"
 #include <openvdb/math/FiniteDifference.h>
+#include <openvdb/openvdb.h>
+#include <openvdb/tools/GridTransformer.h>
+#include <openvdb/tools/LevelSetFilter.h>
 #include <openvdb/tools/MeshToVolume.h>
 #include <openvdb/tools/VolumeToMesh.h>
-#include <openvdb/tools/LevelSetFilter.h>
-#include <openvdb/tools/GridTransformer.h>
-#include "openvdb_capi.h"
 
 struct OpenVDBLevelSet {
  private:

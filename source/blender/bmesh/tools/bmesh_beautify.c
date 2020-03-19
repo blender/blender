@@ -29,8 +29,8 @@
  * - Take face normals into account.
  */
 
-#include "BLI_math.h"
 #include "BLI_heap.h"
+#include "BLI_math.h"
 #include "BLI_polyfill_2d_beautify.h"
 
 #include "MEM_guardedalloc.h"

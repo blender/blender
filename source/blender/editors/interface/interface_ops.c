@@ -26,9 +26,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h" /* for OB_DATA_SUPPORT_ID */
 #include "DNA_screen_types.h"
 #include "DNA_text_types.h"
-#include "DNA_object_types.h" /* for OB_DATA_SUPPORT_ID */
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
@@ -69,9 +69,9 @@
 #include "ED_keyframing.h"
 
 /* only for UI_OT_editsource */
-#include "ED_screen.h"
 #include "BKE_main.h"
 #include "BLI_ghash.h"
+#include "ED_screen.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Copy Data Path Operator

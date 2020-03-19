@@ -23,13 +23,13 @@
 
 #include "GHOST_System.h"
 
-#include <time.h>
 #include <stdio.h> /* just for printf */
+#include <time.h>
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"
-#include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
+#include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
 
 #ifdef WITH_INPUT_NDOF

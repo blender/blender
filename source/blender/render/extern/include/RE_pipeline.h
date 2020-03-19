@@ -24,9 +24,9 @@
 #ifndef __RE_PIPELINE_H__
 #define __RE_PIPELINE_H__
 
+#include "DEG_depsgraph.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "DEG_depsgraph.h"
 
 struct Image;
 struct ImageFormatData;

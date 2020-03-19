@@ -32,8 +32,8 @@
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 const EnumPropertyItem rna_enum_linestyle_color_modifier_type_items[] = {
     {LS_MODIFIER_ALONG_STROKE, "ALONG_STROKE", ICON_MODIFIER, "Along Stroke", ""},

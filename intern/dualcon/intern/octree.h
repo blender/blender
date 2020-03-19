@@ -17,18 +17,18 @@
 #ifndef __OCTREE_H__
 #define __OCTREE_H__
 
+#include "GeoCommon.h"
+#include "MemoryAllocator.h"
+#include "ModelReader.h"
+#include "Projections.h"
+#include "Queue.h"
+#include "cubes.h"
+#include "dualcon.h"
+#include "manifold_table.h"
 #include <cassert>
 #include <cstring>
-#include <stdio.h>
 #include <math.h>
-#include "GeoCommon.h"
-#include "Projections.h"
-#include "ModelReader.h"
-#include "MemoryAllocator.h"
-#include "cubes.h"
-#include "Queue.h"
-#include "manifold_table.h"
-#include "dualcon.h"
+#include <stdio.h>
 
 /**
  * Main class and structures for scan-convertion, sign-generation,

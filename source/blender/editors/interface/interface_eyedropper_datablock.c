@@ -28,18 +28,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_string.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
-#include "BKE_report.h"
 #include "BKE_idcode.h"
+#include "BKE_report.h"
+#include "BKE_screen.h"
 
 #include "RNA_access.h"
 
@@ -48,13 +48,13 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_space_api.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
 #include "ED_outliner.h"
+#include "ED_screen.h"
+#include "ED_space_api.h"
+#include "ED_view3d.h"
 
-#include "interface_intern.h"
 #include "interface_eyedropper_intern.h"
+#include "interface_intern.h"
 
 /**
  * \note #DataDropper is only internal name to avoid confusion with other kinds of eye-droppers.

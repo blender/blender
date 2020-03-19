@@ -32,19 +32,19 @@
  * For now it's not a priority, so leave as-is.
  */
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_userdef_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
-#include "BLI_string.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"

@@ -26,46 +26,46 @@
 
 #include <Python.h>
 
-#include <stddef.h>
 #include <float.h> /* FLT_MIN/MAX */
+#include <stddef.h>
 
 #include "RNA_types.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_dynstr.h"
-#include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BPY_extern.h"
 #include "BPY_extern_clog.h"
 
+#include "bpy_capi_utils.h"
+#include "bpy_intern_string.h"
+#include "bpy_props.h"
 #include "bpy_rna.h"
 #include "bpy_rna_anim.h"
-#include "bpy_props.h"
-#include "bpy_capi_utils.h"
 #include "bpy_rna_callback.h"
-#include "bpy_intern_string.h"
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
 #  include "BLI_ghash.h"
 #endif
 
-#include "RNA_enum_types.h"
-#include "RNA_define.h" /* RNA_def_property_free_identifier */
 #include "RNA_access.h"
+#include "RNA_define.h" /* RNA_def_property_free_identifier */
+#include "RNA_enum_types.h"
 
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_main.h"
-#include "BKE_idcode.h"
 #include "BKE_context.h"
 #include "BKE_global.h" /* evil G.* */
-#include "BKE_report.h"
+#include "BKE_idcode.h"
 #include "BKE_idprop.h"
+#include "BKE_main.h"
+#include "BKE_report.h"
 
 /* Only for types. */
 #include "BKE_node.h"

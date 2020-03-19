@@ -24,8 +24,8 @@
 #ifndef __GHOST_SYSTEMPATHSUNIX_H__
 #define __GHOST_SYSTEMPATHSUNIX_H__
 
-#include "GHOST_SystemPaths.h"
 #include "../GHOST_Types.h"
+#include "GHOST_SystemPaths.h"
 
 class GHOST_SystemPathsUnix : public GHOST_SystemPaths {
  public:

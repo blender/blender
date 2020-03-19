@@ -24,9 +24,9 @@
 #ifndef __DNA_IMAGE_TYPES_H__
 #define __DNA_IMAGE_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
 #include "DNA_color_types.h" /* for color management */
+#include "DNA_defs.h"
 
 struct GPUTexture;
 struct MovieCache;

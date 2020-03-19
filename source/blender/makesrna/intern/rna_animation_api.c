@@ -21,8 +21,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -36,8 +36,8 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_context.h"
-#  include "BKE_report.h"
 #  include "BKE_nla.h"
+#  include "BKE_report.h"
 
 #  include "ED_keyframing.h"
 

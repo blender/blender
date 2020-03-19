@@ -21,17 +21,17 @@
  * \ingroup spview3d
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -39,20 +39,20 @@
 
 #include "BLT_translation.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
-#include "BKE_screen.h"
-#include "BKE_editmesh.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
@@ -62,8 +62,8 @@
 #include "RNA_access.h"
 
 #include "ED_armature.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"

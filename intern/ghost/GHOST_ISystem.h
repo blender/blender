@@ -27,10 +27,10 @@
 #ifndef __GHOST_ISYSTEM_H__
 #define __GHOST_ISYSTEM_H__
 
-#include "GHOST_Types.h"
 #include "GHOST_IContext.h"
 #include "GHOST_ITimerTask.h"
 #include "GHOST_IWindow.h"
+#include "GHOST_Types.h"
 
 class GHOST_IEventConsumer;
 

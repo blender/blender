@@ -24,11 +24,11 @@
 #ifndef __DNA_CAMERA_TYPES_H__
 #define __DNA_CAMERA_TYPES_H__
 
+#include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_gpu_types.h"
-#include "DNA_movieclip_types.h"
 #include "DNA_image_types.h"
-#include "DNA_ID.h"
+#include "DNA_movieclip_types.h"
 
 #ifdef __cplusplus
 extern "C" {

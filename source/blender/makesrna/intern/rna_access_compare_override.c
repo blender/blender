@@ -24,8 +24,8 @@
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 // #define DEBUG_OVERRIDE_TIMEIT
 
@@ -41,8 +41,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "rna_internal.h"
 #include "rna_access_internal.h"
+#include "rna_internal.h"
 
 int RNA_property_override_flag(PropertyRNA *prop)
 {

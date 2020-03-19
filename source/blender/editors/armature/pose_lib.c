@@ -21,8 +21,8 @@
  * \ingroup edarmature
  */
 
-#include <string.h>
 #include <math.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -63,10 +63,10 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
-#include "ED_screen.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "armature_intern.h"
 

@@ -29,8 +29,8 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_customdata_types.h"
 #include "DNA_color_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -39,13 +39,13 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
-#include "BKE_paint.h"
-#include "BKE_colortools.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 
 #include "WM_api.h"
 #include "wm_cursors.h"

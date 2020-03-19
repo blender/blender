@@ -24,8 +24,8 @@
 
 #include "BIK_api.h"
 
-#include "DNA_object_types.h"
 #include "DNA_action_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "ikplugin_api.h"

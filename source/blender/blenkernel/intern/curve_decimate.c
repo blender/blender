@@ -20,9 +20,9 @@
 
 #include "DNA_curve_types.h"
 
-#include "MEM_guardedalloc.h"
 #include "BLI_heap.h"
 #include "BLI_math_vector.h"
+#include "MEM_guardedalloc.h"
 
 #include "BKE_curve.h"
 

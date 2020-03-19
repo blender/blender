@@ -25,9 +25,9 @@
  * Copyright (C) 2001 NaN Technologies B.V.
  */
 
-#include "GHOST_Debug.h"
-#include "GHOST_C-api.h"
 #include "GHOST_CallbackEventConsumer.h"
+#include "GHOST_C-api.h"
+#include "GHOST_Debug.h"
 
 GHOST_CallbackEventConsumer::GHOST_CallbackEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
                                                          GHOST_TUserDataPtr userData)

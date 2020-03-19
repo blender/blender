@@ -18,11 +18,11 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <limits.h>
+#include <stdlib.h>
 
-#include "BKE_modifier.h"
 #include "BKE_dynamicpaint.h"
+#include "BKE_modifier.h"
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"

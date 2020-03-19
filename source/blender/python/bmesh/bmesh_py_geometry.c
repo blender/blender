@@ -31,8 +31,8 @@
 #include "../mathutils/mathutils.h"
 
 #include "bmesh.h"
-#include "bmesh_py_types.h"
 #include "bmesh_py_geometry.h" /* own include */
+#include "bmesh_py_types.h"
 
 PyDoc_STRVAR(bpy_bm_geometry_intersect_face_point_doc,
              ".. method:: intersect_face_point(face, point)\n"

@@ -21,9 +21,9 @@
 #include <cstring>
 #include <vector>
 
-#include "MEM_guardedalloc.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
+#include "MEM_guardedalloc.h"
 
 #include "ocio_impl.h"
 

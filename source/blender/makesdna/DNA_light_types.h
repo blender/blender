@@ -24,8 +24,8 @@
 #ifndef __DNA_LIGHT_TYPES_H__
 #define __DNA_LIGHT_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
+#include "DNA_defs.h"
 
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18

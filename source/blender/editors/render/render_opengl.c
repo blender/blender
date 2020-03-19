@@ -22,26 +22,26 @@
  */
 
 #include <math.h>
-#include <string.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_camera_types.h"
 #include "BLI_bitmap.h"
+#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
-#include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
-#include "BLI_threads.h"
 #include "BLI_task.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
+#include "DNA_camera_types.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
@@ -65,15 +65,15 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h"
-#include "ED_gpencil.h"
 
-#include "RE_pipeline.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "RE_pipeline.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

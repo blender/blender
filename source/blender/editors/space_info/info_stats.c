@@ -44,21 +44,21 @@
 #include "BKE_blender_version.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_editmesh.h"
+#include "BKE_gpencil.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
-#include "BKE_editmesh.h"
-#include "BKE_object.h"
-#include "BKE_gpencil.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_info.h"
 #include "ED_armature.h"
+#include "ED_info.h"
 
 #include "GPU_extensions.h"
 

@@ -17,8 +17,8 @@
  */
 
 #include "COM_ColorNode.h"
-#include "COM_SetColorOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_SetColorOperation.h"
 
 ColorNode::ColorNode(bNode *editorNode) : Node(editorNode)
 {

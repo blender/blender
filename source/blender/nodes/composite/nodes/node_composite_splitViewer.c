@@ -23,8 +23,8 @@
 
 #include "node_composite_util.h"
 
-#include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 
 /* **************** SPLIT VIEWER ******************** */
 static bNodeSocketTemplate cmp_node_splitviewer_in[] = {

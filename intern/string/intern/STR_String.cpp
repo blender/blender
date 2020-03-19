@@ -24,12 +24,12 @@
  * This file was formerly known as: GEN_StdString.cpp.
  */
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
 #include "STR_String.h"
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*-------------------------------------------------------------------------------------------------
   Construction / destruction

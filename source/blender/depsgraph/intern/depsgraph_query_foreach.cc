@@ -26,8 +26,8 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 } /* extern "C" */
 
 #include "DNA_object_types.h"

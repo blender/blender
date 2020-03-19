@@ -32,8 +32,8 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
-#include "BKE_editmesh.h"
 #include "BKE_context.h"
+#include "BKE_editmesh.h"
 #include "BKE_mask.h"
 #include "BKE_scene.h"
 
@@ -43,10 +43,10 @@
 #include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_keyframing.h"
+#include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
-#include "ED_node.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

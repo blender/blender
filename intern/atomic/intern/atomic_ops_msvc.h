@@ -37,8 +37,8 @@
 #endif
 #define WIN32_LEAN_AND_MEAN
 
-#include <windows.h>
 #include <intrin.h>
+#include <windows.h>
 
 #if defined(__clang__)
 #  pragma GCC diagnostic push

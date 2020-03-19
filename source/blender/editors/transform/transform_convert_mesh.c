@@ -29,9 +29,9 @@
 
 #include "BLI_alloca.h"
 #include "BLI_bitmap.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
-#include "BLI_linklist_stack.h"
 
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"

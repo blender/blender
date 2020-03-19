@@ -24,11 +24,11 @@
 #include <string.h>
 
 #include "BLI_buffer.h"
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_bits.h"
 #include "BLI_rect.h"
-#include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -55,8 +55,8 @@
 #include "DEG_depsgraph.h"
 
 /* own includes */
-#include "wm_gizmo_wmapi.h"
 #include "wm_gizmo_intern.h"
+#include "wm_gizmo_wmapi.h"
 
 /**
  * Store all gizmo-maps here. Anyone who wants to register a gizmo for a certain

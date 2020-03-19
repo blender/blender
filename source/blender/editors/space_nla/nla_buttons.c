@@ -21,10 +21,10 @@
  * \ingroup spnla
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "DNA_anim_types.h"
 
@@ -36,8 +36,8 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_nla.h"
 #include "BKE_screen.h"
 
 #include "WM_api.h"

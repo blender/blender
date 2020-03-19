@@ -16,11 +16,11 @@
 
 #include <stdlib.h>
 
+#include "device/device.h"
 #include "render/background.h"
 #include "render/bake.h"
 #include "render/camera.h"
 #include "render/curves.h"
-#include "device/device.h"
 #include "render/film.h"
 #include "render/integrator.h"
 #include "render/light.h"

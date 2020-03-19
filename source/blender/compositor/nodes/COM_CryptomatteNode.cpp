@@ -17,12 +17,12 @@
  */
 
 #include "COM_CryptomatteNode.h"
+#include "BLI_assert.h"
+#include "BLI_hash_mm3.h"
+#include "BLI_string.h"
+#include "COM_ConvertOperation.h"
 #include "COM_CryptomatteOperation.h"
 #include "COM_SetAlphaOperation.h"
-#include "COM_ConvertOperation.h"
-#include "BLI_string.h"
-#include "BLI_hash_mm3.h"
-#include "BLI_assert.h"
 #include <iterator>
 
 CryptomatteNode::CryptomatteNode(bNode *editorNode) : Node(editorNode)

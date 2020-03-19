@@ -23,10 +23,10 @@
  */
 
 #include "GHOST_EventPrinter.h"
-#include <iostream>
-#include "GHOST_EventKey.h"
-#include "GHOST_EventDragnDrop.h"
 #include "GHOST_Debug.h"
+#include "GHOST_EventDragnDrop.h"
+#include "GHOST_EventKey.h"
+#include <iostream>
 
 #include <stdio.h>
 

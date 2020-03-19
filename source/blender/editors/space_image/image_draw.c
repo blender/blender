@@ -27,26 +27,26 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_mask_types.h"
+#include "DNA_space_types.h"
 
 #include "PIL_time.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
-#include "BLI_threads.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
 #include "IMB_moviecache.h"
 
 #include "BKE_context.h"
@@ -72,8 +72,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "RE_pipeline.h"
 #include "RE_engine.h"
+#include "RE_pipeline.h"
 
 #include "image_intern.h"
 

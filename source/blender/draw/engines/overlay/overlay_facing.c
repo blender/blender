@@ -20,8 +20,8 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_render.h"
 #include "BKE_paint.h"
+#include "DRW_render.h"
 
 #include "overlay_private.h"
 

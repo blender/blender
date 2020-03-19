@@ -22,8 +22,8 @@
 #define __EXPORTSETTINGS_H__
 
 #ifdef __cplusplus
-#  include <vector>
 #  include "BCMath.h"
+#  include <vector>
 
 extern "C" {
 #endif

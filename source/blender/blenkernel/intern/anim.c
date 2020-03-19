@@ -25,9 +25,9 @@
 
 #include <stdlib.h>
 
+#include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_dlrbTree.h"
 
 #include "BLT_translation.h"
 
@@ -36,20 +36,20 @@
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
-#include "BKE_action.h"
 #include "BKE_curve.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_scene.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "GPU_batch.h"
 

@@ -16,6 +16,7 @@
 
 #include "render/background.h"
 #include "render/camera.h"
+#include "render/curves.h"
 #include "render/film.h"
 #include "render/graph.h"
 #include "render/integrator.h"
@@ -25,19 +26,18 @@
 #include "render/object.h"
 #include "render/scene.h"
 #include "render/shader.h"
-#include "render/curves.h"
 
 #include "device/device.h"
 
 #include "blender/blender_device.h"
-#include "blender/blender_sync.h"
 #include "blender/blender_session.h"
+#include "blender/blender_sync.h"
 #include "blender/blender_util.h"
 
 #include "util/util_debug.h"
 #include "util/util_foreach.h"
-#include "util/util_opengl.h"
 #include "util/util_hash.h"
+#include "util/util_opengl.h"
 
 CCL_NAMESPACE_BEGIN
 

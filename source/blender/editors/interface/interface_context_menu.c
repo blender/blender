@@ -38,8 +38,8 @@
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
 #include "ED_keyframing.h"
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 

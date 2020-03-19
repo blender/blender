@@ -18,11 +18,11 @@
 
 #include "COM_ScaleNode.h"
 
-#include "COM_ScaleOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "BKE_node.h"
-#include "COM_SetValueOperation.h"
+#include "COM_ExecutionSystem.h"
+#include "COM_ScaleOperation.h"
 #include "COM_SetSamplerOperation.h"
+#include "COM_SetValueOperation.h"
 
 ScaleNode::ScaleNode(bNode *editorNode) : Node(editorNode)
 {

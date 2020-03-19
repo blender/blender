@@ -26,8 +26,8 @@
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_operation.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 struct GHash;
 struct ID;

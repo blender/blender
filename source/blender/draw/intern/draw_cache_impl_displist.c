@@ -26,9 +26,9 @@
  */
 
 #include "BLI_alloca.h"
-#include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 

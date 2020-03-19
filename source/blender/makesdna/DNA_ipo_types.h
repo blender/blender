@@ -29,8 +29,8 @@
 #ifndef __DNA_IPO_TYPES_H__
 #define __DNA_IPO_TYPES_H__
 
-#include "DNA_listBase.h"
 #include "DNA_curve_types.h"
+#include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
 #include "DNA_ID.h"

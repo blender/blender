@@ -16,9 +16,9 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <string.h>
-#include "MEM_guardedalloc.h"
 #include "BLI_math.h"
+#include "MEM_guardedalloc.h"
+#include <string.h>
 extern "C" {
 #include "BLI_jitter_2d.h"
 }

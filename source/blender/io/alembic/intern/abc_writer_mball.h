@@ -21,8 +21,8 @@
 #ifndef __ABC_WRITER_MBALL_H__
 #define __ABC_WRITER_MBALL_H__
 
-#include "abc_writer_object.h"
 #include "abc_writer_mesh.h"
+#include "abc_writer_object.h"
 
 struct Main;
 struct Object;

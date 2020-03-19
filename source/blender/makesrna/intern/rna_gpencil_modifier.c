@@ -25,10 +25,10 @@
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -42,10 +42,10 @@
 #include "BKE_data_transfer.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
+#include "BKE_fluid.h" /* For BKE_fluid_modifier_free & BKE_fluid_modifier_create_type_data */
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
-#include "BKE_fluid.h" /* For BKE_fluid_modifier_free & BKE_fluid_modifier_create_type_data */
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -174,15 +174,15 @@ static const EnumPropertyItem gpencil_tint_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "DNA_particle_types.h"
 #  include "DNA_curve_types.h"
 #  include "DNA_fluid_types.h"
+#  include "DNA_particle_types.h"
 
 #  include "BKE_cachefile.h"
 #  include "BKE_context.h"
+#  include "BKE_gpencil.h"
 #  include "BKE_gpencil_modifier.h"
 #  include "BKE_object.h"
-#  include "BKE_gpencil.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

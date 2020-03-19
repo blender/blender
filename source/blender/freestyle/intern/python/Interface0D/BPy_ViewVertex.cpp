@@ -21,8 +21,8 @@
 #include "BPy_ViewVertex.h"
 
 #include "../BPy_Convert.h"
-#include "../Interface1D/BPy_ViewEdge.h"
 #include "../BPy_Nature.h"
+#include "../Interface1D/BPy_ViewEdge.h"
 
 #ifdef __cplusplus
 extern "C" {

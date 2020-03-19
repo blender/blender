@@ -26,19 +26,19 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_object_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_stack.h"
-#include "BLI_bitmap.h"
 #include "BLI_task.h"
 
+#include "BKE_brush.h"
 #include "BKE_colorband.h"
 #include "BKE_context.h"
-#include "BKE_brush.h"
 #include "BKE_image.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -48,9 +48,9 @@
 #include "ED_paint.h"
 #include "ED_screen.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

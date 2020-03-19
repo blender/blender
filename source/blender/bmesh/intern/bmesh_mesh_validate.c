@@ -26,8 +26,8 @@
 /* debug builds only */
 #ifdef DEBUG
 
-#  include "BLI_utildefines.h"
 #  include "BLI_edgehash.h"
+#  include "BLI_utildefines.h"
 
 #  include "bmesh.h"
 

@@ -33,19 +33,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_memarena.h"
 #include "BLI_alloca.h"
+#include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_sort_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_linklist_stack.h"
 #include "BLI_utildefines_stack.h"
 #ifndef NDEBUG
 #endif
 
-#include "BLI_kdopbvh.h"
 #include "BLI_buffer.h"
+#include "BLI_kdopbvh.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"

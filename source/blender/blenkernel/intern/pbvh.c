@@ -23,19 +23,19 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_math.h"
 #include "BLI_ghash.h"
-#include "BLI_task.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_task.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_pbvh.h"
 #include "BKE_ccg.h"
-#include "BKE_subdiv_ccg.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
 #include "BKE_paint.h"
+#include "BKE_pbvh.h"
+#include "BKE_subdiv_ccg.h"
 
 #include "PIL_time.h"
 

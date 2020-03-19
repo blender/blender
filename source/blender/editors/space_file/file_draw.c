@@ -21,14 +21,14 @@
  * \ingroup spfile
  */
 
+#include <errno.h>
 #include <math.h>
 #include <string.h>
-#include <errno.h>
 
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"

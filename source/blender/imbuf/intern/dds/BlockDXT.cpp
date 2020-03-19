@@ -48,10 +48,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+#include <BlockDXT.h>
+#include <ColorBlock.h>
 #include <Common.h>
 #include <Stream.h>
-#include <ColorBlock.h>
-#include <BlockDXT.h>
 
 /* ---------------------------------------------------------------------------
  * BlockDXT1

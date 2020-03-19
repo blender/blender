@@ -20,17 +20,17 @@
 #include "GHOST_SystemCocoa.h"
 
 #include "GHOST_DisplayManagerCocoa.h"
-#include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
-#include "GHOST_EventWheel.h"
-#include "GHOST_EventTrackpad.h"
 #include "GHOST_EventDragnDrop.h"
+#include "GHOST_EventKey.h"
 #include "GHOST_EventString.h"
+#include "GHOST_EventTrackpad.h"
+#include "GHOST_EventWheel.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
-#include "GHOST_WindowManager.h"
 #include "GHOST_WindowCocoa.h"
+#include "GHOST_WindowManager.h"
 
 #if defined(WITH_GL_EGL)
 #  include "GHOST_ContextEGL.h"
@@ -49,9 +49,9 @@
 /* For the currently not ported to Cocoa keyboard layout functions (64bit & 10.6 compatible) */
 #include <Carbon/Carbon.h>
 
+#include <sys/sysctl.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/sysctl.h>
 
 #pragma mark KeyMap, mouse converters
 

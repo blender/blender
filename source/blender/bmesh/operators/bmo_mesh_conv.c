@@ -22,9 +22,9 @@
  * into a Bmesh, and back again.
  */
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_key_types.h"
 
 #include "BLI_math.h"
 

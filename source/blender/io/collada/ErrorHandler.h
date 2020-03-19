@@ -21,10 +21,10 @@
 #ifndef __ERRORHANDLER_H__
 #define __ERRORHANDLER_H__
 
-#include <string>
-#include <map>
-#include <vector>
 #include <algorithm>  // sort()
+#include <map>
+#include <string>
+#include <vector>
 
 #include "COLLADASaxFWLIErrorHandler.h"
 

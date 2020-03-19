@@ -22,9 +22,9 @@
 #include "COLLADASWImage.h"
 
 extern "C" {
-#include "DNA_texture_types.h"
 #include "DNA_image_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_global.h"

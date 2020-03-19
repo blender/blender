@@ -17,12 +17,12 @@
  */
 
 #include "COM_DilateErodeNode.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_DilateErodeOperation.h"
+#include "BLI_math.h"
 #include "COM_AntiAliasOperation.h"
+#include "COM_DilateErodeOperation.h"
+#include "COM_ExecutionSystem.h"
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
-#include "BLI_math.h"
 
 DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
 {

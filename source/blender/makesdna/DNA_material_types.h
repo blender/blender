@@ -24,8 +24,8 @@
 #ifndef __DNA_MATERIAL_TYPES_H__
 #define __DNA_MATERIAL_TYPES_H__
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 #ifndef MAX_MTEX

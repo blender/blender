@@ -24,8 +24,8 @@
 #include "utf_winfunc.h"
 #include "utfconv.h"
 #include <io.h>
-#include <windows.h>
 #include <wchar.h>
+#include <windows.h>
 
 FILE *ufopen(const char *filename, const char *mode)
 {

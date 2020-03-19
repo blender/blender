@@ -26,8 +26,8 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_view2d_types.h"
 #include "DNA_vec_types.h"
+#include "DNA_view2d_types.h"
 
 #include "DNA_ID.h"
 

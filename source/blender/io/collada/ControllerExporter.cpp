@@ -41,9 +41,9 @@ extern "C" {
 
 #include "BLI_listbase.h"
 
-#include "GeometryExporter.h"
 #include "ArmatureExporter.h"
 #include "ControllerExporter.h"
+#include "GeometryExporter.h"
 #include "SceneExporter.h"
 
 #include "collada_utils.h"

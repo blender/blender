@@ -21,32 +21,32 @@
  * \ingroup spview3d
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <float.h>
 #include <assert.h>
+#include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_meta_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_tracking_types.h"
-#include "DNA_gpencil_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"
 #include "BLI_bitmap.h"
-#include "BLI_math.h"
 #include "BLI_lasso_2d.h"
-#include "BLI_rect.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -55,20 +55,20 @@
 #endif
 
 /* vertex box select */
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_editmesh.h"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
 #include "BKE_workspace.h"
@@ -84,16 +84,16 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_gpencil.h"
 #include "ED_lattice.h"
-#include "ED_particle.h"
+#include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
+#include "ED_particle.h"
 #include "ED_screen.h"
-#include "ED_select_utils.h"
 #include "ED_sculpt.h"
-#include "ED_mball.h"
-#include "ED_gpencil.h"
+#include "ED_select_utils.h"
 
 #include "UI_interface.h"
 

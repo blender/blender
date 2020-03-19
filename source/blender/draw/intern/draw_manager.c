@@ -45,31 +45,31 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
 #include "BKE_volume.h"
 
-#include "draw_manager.h"
 #include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_world_types.h"
+#include "draw_manager.h"
 
-#include "ED_space_api.h"
-#include "ED_screen.h"
 #include "ED_gpencil.h"
+#include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_view3d.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_uniformbuffer.h"
 #include "GPU_viewport.h"
-#include "GPU_matrix.h"
 
 #include "IMB_colormanagement.h"
 
@@ -81,20 +81,20 @@
 #include "WM_api.h"
 #include "wm_window.h"
 
-#include "draw_manager_text.h"
-#include "draw_manager_profiling.h"
 #include "draw_color_management.h"
+#include "draw_manager_profiling.h"
+#include "draw_manager_text.h"
 
 /* only for callbacks */
 #include "draw_cache_impl.h"
 
-#include "engines/eevee/eevee_engine.h"
 #include "engines/basic/basic_engine.h"
-#include "engines/workbench/workbench_engine.h"
+#include "engines/eevee/eevee_engine.h"
 #include "engines/external/external_engine.h"
 #include "engines/gpencil/gpencil_engine.h"
-#include "engines/select/select_engine.h"
 #include "engines/overlay/overlay_engine.h"
+#include "engines/select/select_engine.h"
+#include "engines/workbench/workbench_engine.h"
 
 #include "GPU_context.h"
 

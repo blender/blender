@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "util/util_md5.h"
 #include "util/util_path.h"
+#include "util/util_md5.h"
 #include "util/util_string.h"
 
 #include <OpenImageIO/filesystem.h>
@@ -36,8 +36,8 @@ OIIO_NAMESPACE_USING
 #  define DIR_SEP '/'
 #  include <dirent.h>
 #  include <pwd.h>
-#  include <unistd.h>
 #  include <sys/types.h>
+#  include <unistd.h>
 #endif
 
 #ifdef HAVE_SHLWAPI_H

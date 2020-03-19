@@ -25,8 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_kdtree.h"
+#include "BLI_utildefines.h"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"

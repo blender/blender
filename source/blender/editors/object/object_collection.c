@@ -40,8 +40,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

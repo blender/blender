@@ -18,10 +18,10 @@
  * \ingroup bke
  */
 
+#include "DNA_defaults.h"
 #include "DNA_object_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
-#include "DNA_defaults.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"

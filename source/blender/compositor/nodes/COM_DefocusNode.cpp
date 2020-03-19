@@ -17,18 +17,18 @@
  */
 
 #include "COM_DefocusNode.h"
-#include "DNA_scene_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_object_types.h"
-#include "DNA_node_types.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_ConvertDepthToRadiusOperation.h"
-#include "COM_VariableSizeBokehBlurOperation.h"
 #include "COM_BokehImageOperation.h"
+#include "COM_ConvertDepthToRadiusOperation.h"
+#include "COM_ExecutionSystem.h"
+#include "COM_FastGaussianBlurOperation.h"
+#include "COM_GammaCorrectOperation.h"
 #include "COM_MathBaseOperation.h"
 #include "COM_SetValueOperation.h"
-#include "COM_GammaCorrectOperation.h"
-#include "COM_FastGaussianBlurOperation.h"
+#include "COM_VariableSizeBokehBlurOperation.h"
+#include "DNA_camera_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 DefocusNode::DefocusNode(bNode *editorNode) : Node(editorNode)
 {

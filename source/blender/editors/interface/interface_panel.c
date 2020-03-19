@@ -24,10 +24,10 @@
 /* a full doc with API notes can be found in
  * bf-blender/trunk/blender/doc/guides/interface_API.txt */
 
+#include <ctype.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -51,10 +51,10 @@
 
 #include "ED_screen.h"
 
-#include "UI_view2d.h"
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"

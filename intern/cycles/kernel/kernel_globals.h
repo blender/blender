@@ -22,8 +22,8 @@
 #include "kernel/kernel_profiling.h"
 
 #ifdef __KERNEL_CPU__
-#  include "util/util_vector.h"
 #  include "util/util_map.h"
+#  include "util/util_vector.h"
 #endif
 
 #ifdef __KERNEL_OPENCL__

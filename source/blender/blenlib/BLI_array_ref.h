@@ -35,15 +35,15 @@
  * Since array references do not own any memory, it is generally not save to store them.
  */
 
-#include <vector>
-#include <array>
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <string>
+#include <vector>
 
-#include "BLI_utildefines.h"
-#include "BLI_memory_utils_cxx.h"
 #include "BLI_index_range.h"
+#include "BLI_memory_utils_cxx.h"
+#include "BLI_utildefines.h"
 
 namespace BLI {
 

@@ -21,8 +21,8 @@
 #include "BPy_UnaryFunction1DVec2f.h"
 
 #include "../BPy_Convert.h"
-#include "../BPy_Interface1D.h"
 #include "../BPy_IntegrationType.h"
+#include "../BPy_Interface1D.h"
 
 #include "UnaryFunction1D_Vec2f/BPy_Normal2DF1D.h"
 #include "UnaryFunction1D_Vec2f/BPy_Orientation2DF1D.h"

@@ -21,24 +21,24 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
-#include "BLI_memarena.h"
 
 #include "BKE_global.h"
 

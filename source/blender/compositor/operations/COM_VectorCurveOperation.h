@@ -18,8 +18,8 @@
 
 #ifndef __COM_VECTORCURVEOPERATION_H__
 #define __COM_VECTORCURVEOPERATION_H__
-#include "COM_NodeOperation.h"
 #include "COM_CurveBaseOperation.h"
+#include "COM_NodeOperation.h"
 
 class VectorCurveOperation : public CurveBaseOperation {
  private:

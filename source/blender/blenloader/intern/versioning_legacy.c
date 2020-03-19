@@ -26,10 +26,10 @@
 #ifndef WIN32
 #  include <unistd.h>  // for read close
 #else
-#  include <zlib.h> /* odd include order-issue */
-#  include <io.h>   // for open close read
-#  include "winsock2.h"
 #  include "BLI_winstuff.h"
+#  include "winsock2.h"
+#  include <io.h>   // for open close read
+#  include <zlib.h> /* odd include order-issue */
 #endif
 
 /* allow readfile to use deprecated functionality */
@@ -50,20 +50,20 @@
 #include "DNA_node_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"

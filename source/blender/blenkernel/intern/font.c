@@ -21,41 +21,41 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <string.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <wctype.h>
 
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_path_util.h"
-#include "BLI_listbase.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_math.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 #include "BLI_vfontdata.h"
 
 #include "BLT_translation.h"
 
-#include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_vfont_types.h"
 #include "DNA_object_types.h"
+#include "DNA_packedFile_types.h"
+#include "DNA_vfont_types.h"
 
-#include "BKE_packedFile.h"
-#include "BKE_lib_id.h"
+#include "BKE_anim.h"
+#include "BKE_curve.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_anim.h"
-#include "BKE_curve.h"
+#include "BKE_packedFile.h"
 
 static CLG_LogRef LOG = {"bke.data_transfer"};
 static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;

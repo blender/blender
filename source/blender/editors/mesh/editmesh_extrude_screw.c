@@ -32,8 +32,8 @@
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_types.h"
 

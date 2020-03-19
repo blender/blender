@@ -21,13 +21,13 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 
@@ -36,8 +36,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_layer.h"
 #include "BKE_gpencil.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 
@@ -72,8 +72,8 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_global.h"
 #  include "BKE_layer.h"
 #  include "BKE_main.h"
-#  include "BKE_mesh.h"
 #  include "BKE_mball.h"
+#  include "BKE_mesh.h"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
 #  include "BKE_report.h"

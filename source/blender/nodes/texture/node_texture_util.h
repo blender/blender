@@ -29,8 +29,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_color_types.h"
 #include "DNA_ID.h"
+#include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -38,8 +38,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -53,13 +53,13 @@
 #include "BKE_node.h"
 #include "BKE_texture.h"
 
-#include "node_util.h"
 #include "NOD_texture.h"
+#include "node_util.h"
 
 #include "BLT_translation.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"

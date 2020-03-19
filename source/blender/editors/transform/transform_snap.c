@@ -21,36 +21,36 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "PIL_time.h"
 
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
 #include "DNA_meshdata_types.h" /* Temporary, for snapping to other unselected meshes */
 #include "DNA_node_types.h"
-#include "DNA_space_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "BKE_layer.h"
-#include "BKE_object.h"
 #include "BKE_anim.h" /* for duplis */
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
-#include "BKE_sequencer.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
+#include "BKE_sequencer.h"
 
 #include "RNA_access.h"
 
@@ -59,9 +59,9 @@
 #include "ED_image.h"
 #include "ED_markers.h"
 #include "ED_node.h"
+#include "ED_transform_snap_object_context.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
-#include "ED_transform_snap_object_context.h"
 
 #include "DEG_depsgraph.h"
 

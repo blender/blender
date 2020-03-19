@@ -22,26 +22,26 @@
  */
 
 #include "DNA_camera_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
-#include "BLI_linklist.h"
 
 #include "BKE_action.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
-#include "BKE_idprop.h"
-#include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -51,8 +51,8 @@
 #include "UI_resources.h"
 
 #include "GPU_glew.h"
-#include "GPU_select.h"
 #include "GPU_matrix.h"
+#include "GPU_select.h"
 #include "GPU_state.h"
 
 #include "WM_api.h"

@@ -26,23 +26,23 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
-#include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_shader_fx_types.h"
 
+#include "BKE_gpencil.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_gpencil.h"
-#include "BKE_shader_fx.h"
 #include "BKE_object.h"
+#include "BKE_shader_fx.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

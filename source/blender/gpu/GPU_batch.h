@@ -27,10 +27,10 @@
 #ifndef __GPU_BATCH_H__
 #define __GPU_BATCH_H__
 
-#include "GPU_vertex_buffer.h"
 #include "GPU_element.h"
-#include "GPU_shader_interface.h"
 #include "GPU_shader.h"
+#include "GPU_shader_interface.h"
+#include "GPU_vertex_buffer.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -32,8 +32,8 @@ extern "C" {
 #include "BKE_effect.h"
 }
 
-#include "implicit.h"
 #include "eigen_utils.h"
+#include "implicit.h"
 
 /* ================ Volumetric Hair Interaction ================
  * adapted from

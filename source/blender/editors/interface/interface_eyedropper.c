@@ -21,8 +21,8 @@
  * \ingroup edinterface
  */
 
-#include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_blenlib.h"
 

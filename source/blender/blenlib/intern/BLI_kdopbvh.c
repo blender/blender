@@ -42,13 +42,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_alloca.h"
-#include "BLI_stack.h"
+#include "BLI_heap_simple.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
+#include "BLI_stack.h"
 #include "BLI_task.h"
-#include "BLI_heap_simple.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_strict_flags.h"
 

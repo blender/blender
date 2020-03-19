@@ -25,23 +25,23 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
 #include <limits.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_light_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
-#include "DNA_linestyle_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -63,10 +63,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "NOD_socket.h"
 #include "NOD_common.h"
 #include "NOD_composite.h"
 #include "NOD_shader.h"
+#include "NOD_socket.h"
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.h"

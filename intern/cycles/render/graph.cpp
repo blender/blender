@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "render/attribute.h"
 #include "render/graph.h"
+#include "render/attribute.h"
+#include "render/constant_fold.h"
 #include "render/nodes.h"
 #include "render/scene.h"
 #include "render/shader.h"
-#include "render/constant_fold.h"
 
 #include "util/util_algorithm.h"
 #include "util/util_foreach.h"

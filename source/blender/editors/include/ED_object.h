@@ -54,8 +54,8 @@ struct wmOperator;
 struct wmOperatorType;
 struct wmWindowManager;
 
-#include "DNA_object_enums.h"
 #include "BLI_compiler_attrs.h"
+#include "DNA_object_enums.h"
 
 /* object_edit.c */
 /* context.object */

@@ -23,21 +23,21 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_bitmap.h"
-#include "BLI_listbase.h"
+#include "BLI_heap.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_bits.h"
 #include "BLI_rand.h"
-#include "BLI_array.h"
-#include "BLI_heap.h"
 #include "BLI_utildefines_stack.h"
 
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -46,11 +46,11 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
 #include "ED_select_utils.h"
+#include "ED_transform.h"
 #include "ED_view3d.h"
 
 #include "DNA_mesh_types.h"

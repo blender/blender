@@ -17,17 +17,17 @@
  */
 
 #include "COM_ImageNode.h"
+#include "BKE_node.h"
+#include "BLI_utildefines.h"
+#include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_ImageOperation.h"
 #include "COM_MultilayerImageOperation.h"
-#include "COM_ConvertOperation.h"
-#include "BKE_node.h"
-#include "BLI_utildefines.h"
 
+#include "COM_SeparateColorNode.h"
+#include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
-#include "COM_SetColorOperation.h"
-#include "COM_SeparateColorNode.h"
 
 ImageNode::ImageNode(bNode *editorNode) : Node(editorNode)
 {

@@ -32,12 +32,12 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_clip.h"
+#include "ED_image.h"
+#include "ED_mask.h"   /* own include */
+#include "ED_object.h" /* ED_keymap_proportional_maskmode only */
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_mask.h" /* own include */
-#include "ED_image.h"
-#include "ED_object.h" /* ED_keymap_proportional_maskmode only */
-#include "ED_clip.h"
 #include "ED_sequencer.h"
 #include "ED_transform.h"
 

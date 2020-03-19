@@ -22,12 +22,12 @@
 #ifndef __GHOST_SYSTEMSDL_H__
 #define __GHOST_SYSTEMSDL_H__
 
-#include "GHOST_System.h"
 #include "../GHOST_Types.h"
 #include "GHOST_DisplayManagerSDL.h"
+#include "GHOST_Event.h"
+#include "GHOST_System.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowSDL.h"
-#include "GHOST_Event.h"
 
 extern "C" {
 #include "SDL.h"

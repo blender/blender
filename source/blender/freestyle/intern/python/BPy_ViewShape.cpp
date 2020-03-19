@@ -21,9 +21,9 @@
 #include "BPy_ViewShape.h"
 
 #include "BPy_Convert.h"
+#include "BPy_SShape.h"
 #include "Interface0D/BPy_ViewVertex.h"
 #include "Interface1D/BPy_ViewEdge.h"
-#include "BPy_SShape.h"
 
 #ifdef __cplusplus
 extern "C" {

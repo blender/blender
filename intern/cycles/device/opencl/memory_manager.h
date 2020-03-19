@@ -19,8 +19,8 @@
 #include "device/device.h"
 
 #include "util/util_map.h"
-#include "util/util_vector.h"
 #include "util/util_string.h"
+#include "util/util_vector.h"
 
 #include "clew.h"
 

@@ -25,9 +25,9 @@
 #include <string>
 
 #include "GHOST_Types.h"
-#include "GHOST_Xr_intern.h"
 #include "GHOST_XrException.h"
 #include "GHOST_XrSession.h"
+#include "GHOST_Xr_intern.h"
 
 #include "GHOST_XrContext.h"
 

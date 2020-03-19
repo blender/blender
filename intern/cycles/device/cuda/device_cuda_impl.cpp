@@ -39,8 +39,8 @@
 #  include "util/util_path.h"
 #  include "util/util_string.h"
 #  include "util/util_system.h"
-#  include "util/util_types.h"
 #  include "util/util_time.h"
+#  include "util/util_types.h"
 #  include "util/util_windows.h"
 
 #  include "kernel/split/kernel_split_data_types.h"

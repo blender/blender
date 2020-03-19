@@ -23,26 +23,26 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_rand.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_rand.h"
+#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "RNA_access.h"
 
-#include "BKE_context.h"
-#include "BKE_paint.h"
 #include "BKE_brush.h"
-#include "BKE_curve.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_image.h"
+#include "BKE_paint.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

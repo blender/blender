@@ -21,8 +21,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -39,8 +39,8 @@
 #ifdef RNA_RUNTIME
 
 /* #include "DNA_anim_types.h" */
-#  include "DNA_action_types.h" /* bPose */
 #  include "BKE_armature.h"
+#  include "DNA_action_types.h" /* bPose */
 
 static float rna_PoseBone_do_envelope(bPoseChannel *chan, float *vec)
 {

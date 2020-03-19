@@ -24,9 +24,9 @@
 #include "BLI_math.h"
 #include "BLI_sort.h"
 
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_material_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -47,9 +47,9 @@
 #include "../generic/python_utildefines.h"
 
 #include "bmesh_py_types.h" /* own include */
-#include "bmesh_py_types_select.h"
 #include "bmesh_py_types_customdata.h"
 #include "bmesh_py_types_meshdata.h"
+#include "bmesh_py_types_select.h"
 
 static void bm_dealloc_editmode_warn(BPy_BMesh *self);
 

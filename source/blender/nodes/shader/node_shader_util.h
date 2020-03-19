@@ -24,15 +24,15 @@
 #ifndef __NODE_SHADER_UTIL_H__
 #define __NODE_SHADER_UTIL_H__
 
-#include <math.h>
 #include <float.h>
+#include <math.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_color_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -40,8 +40,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"

@@ -19,8 +19,8 @@
 #include "blender/CCL_api.h"
 
 #include "blender/blender_device.h"
-#include "blender/blender_sync.h"
 #include "blender/blender_session.h"
+#include "blender/blender_sync.h"
 #include "blender/blender_util.h"
 
 #include "render/denoising.h"
@@ -38,8 +38,8 @@
 #ifdef WITH_OSL
 #  include "render/osl.h"
 
-#  include <OSL/oslquery.h>
 #  include <OSL/oslconfig.h>
+#  include <OSL/oslquery.h>
 #endif
 
 #ifdef WITH_OPENCL

@@ -21,12 +21,12 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"

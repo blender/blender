@@ -101,9 +101,9 @@ All instructions on how to use this code are in the accompanying header file.
 #include "util/util_sky_model_data.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 CCL_NAMESPACE_BEGIN
 

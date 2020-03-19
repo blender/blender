@@ -31,9 +31,9 @@
 
 #include "BLI_utildefines.h"
 
+#include "bpy_capi_utils.h"
 #include "bpy_props.h"
 #include "bpy_rna.h"
-#include "bpy_capi_utils.h"
 
 #include "BKE_idprop.h"
 

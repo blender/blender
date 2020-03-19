@@ -19,9 +19,9 @@
 #ifndef __COM_READBUFFEROPERATION_H__
 #define __COM_READBUFFEROPERATION_H__
 
-#include "COM_NodeOperation.h"
-#include "COM_MemoryProxy.h"
 #include "COM_MemoryBuffer.h"
+#include "COM_MemoryProxy.h"
+#include "COM_NodeOperation.h"
 
 class ReadBufferOperation : public NodeOperation {
  private:

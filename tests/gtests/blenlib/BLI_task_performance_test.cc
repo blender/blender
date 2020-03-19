@@ -1,7 +1,7 @@
 /* Apache License, Version 2.0 */
 
-#include "testing/testing.h"
 #include "BLI_ressource_strings.h"
+#include "testing/testing.h"
 
 #include "atomic_ops.h"
 

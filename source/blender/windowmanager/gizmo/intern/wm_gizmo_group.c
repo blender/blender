@@ -52,8 +52,8 @@
 #include "ED_undo.h"
 
 /* own includes */
-#include "wm_gizmo_wmapi.h"
 #include "wm_gizmo_intern.h"
+#include "wm_gizmo_wmapi.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

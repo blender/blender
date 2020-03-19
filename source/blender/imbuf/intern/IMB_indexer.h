@@ -25,9 +25,9 @@
 #  include <io.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
 #include "IMB_anim.h"
+#include <stdio.h>
+#include <stdlib.h>
 /*
  * separate animation index files to solve the following problems:
  *

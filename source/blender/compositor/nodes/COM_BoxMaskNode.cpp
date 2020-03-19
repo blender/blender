@@ -20,8 +20,8 @@
 #include "COM_BoxMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 
-#include "COM_SetValueOperation.h"
 #include "COM_ScaleOperation.h"
+#include "COM_SetValueOperation.h"
 
 BoxMaskNode::BoxMaskNode(bNode *editorNode) : Node(editorNode)
 {

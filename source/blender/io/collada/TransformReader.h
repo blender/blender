@@ -21,17 +21,17 @@
 #ifndef __TRANSFORMREADER_H__
 #define __TRANSFORMREADER_H__
 
+#include "COLLADAFWMatrix.h"
 #include "COLLADAFWNode.h"
-#include "COLLADAFWTransformation.h"
-#include "COLLADAFWTranslate.h"
 #include "COLLADAFWRotate.h"
 #include "COLLADAFWScale.h"
-#include "COLLADAFWMatrix.h"
+#include "COLLADAFWTransformation.h"
+#include "COLLADAFWTranslate.h"
 #include "COLLADAFWUniqueId.h"
 #include "Math/COLLADABUMathVector3.h"
 
-#include "DNA_object_types.h"
 #include "BLI_math.h"
+#include "DNA_object_types.h"
 
 #include "collada_internal.h"
 

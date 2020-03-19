@@ -27,8 +27,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "BLI_utildefines.h"
 #include "BLI_stack.h"
+#include "BLI_utildefines.h"
 
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"

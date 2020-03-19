@@ -21,11 +21,11 @@
  * \ingroup edcurve
  */
 
+#include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
 #include <wchar.h>
-#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -36,9 +36,9 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"

@@ -17,8 +17,8 @@
  */
 
 #include "COM_ValueNode.h"
-#include "COM_SetValueOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_SetValueOperation.h"
 
 ValueNode::ValueNode(bNode *editorNode) : Node(editorNode)
 {

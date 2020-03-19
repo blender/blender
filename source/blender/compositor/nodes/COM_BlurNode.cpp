@@ -17,17 +17,17 @@
  */
 
 #include "COM_BlurNode.h"
-#include "DNA_node_types.h"
-#include "COM_GaussianXBlurOperation.h"
-#include "COM_GaussianYBlurOperation.h"
+#include "COM_ExecutionSystem.h"
+#include "COM_FastGaussianBlurOperation.h"
+#include "COM_GammaCorrectOperation.h"
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_GaussianBokehBlurOperation.h"
-#include "COM_FastGaussianBlurOperation.h"
+#include "COM_GaussianXBlurOperation.h"
+#include "COM_GaussianYBlurOperation.h"
 #include "COM_MathBaseOperation.h"
 #include "COM_SetValueOperation.h"
-#include "COM_GammaCorrectOperation.h"
+#include "DNA_node_types.h"
 
 BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {

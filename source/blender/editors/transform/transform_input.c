@@ -18,8 +18,8 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "DNA_screen_types.h"
 
@@ -28,8 +28,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "transform.h"
 

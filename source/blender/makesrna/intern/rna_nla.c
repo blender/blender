@@ -20,8 +20,8 @@
 
 #include <stdlib.h>
 
-#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
@@ -39,8 +39,8 @@
 
 #ifdef RNA_RUNTIME
 
-#  include <stdio.h>
 #  include <math.h>
+#  include <stdio.h>
 
 /* needed for some of the validation stuff... */
 #  include "BKE_animsys.h"
@@ -51,8 +51,8 @@
 
 #  include "ED_anim_api.h"
 
-#  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph_build.h"
 
 /* temp constant defined for these funcs only... */
 #  define NLASTRIP_MIN_LEN_THRESH 0.1f

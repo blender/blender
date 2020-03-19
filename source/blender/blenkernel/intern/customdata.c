@@ -29,19 +29,19 @@
 /* Since we have versioning code here (CustomData_verify_versions()). */
 #define DNA_DEPRECATED_ALLOW
 
+#include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 #include "DNA_hair_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
-#include "DNA_ID.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_string_utils.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_mempool.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 

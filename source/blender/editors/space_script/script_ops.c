@@ -21,8 +21,8 @@
  * \ingroup spscript
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "WM_api.h"
 

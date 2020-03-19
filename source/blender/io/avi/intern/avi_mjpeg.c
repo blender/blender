@@ -32,8 +32,8 @@
 
 #include "IMB_imbuf.h"
 
-#include "jpeglib.h"
 #include "jerror.h"
+#include "jpeglib.h"
 
 #include "avi_mjpeg.h"
 

@@ -31,9 +31,9 @@
  */
 
 /* dna-savable wmStructs here */
+#include "BLI_compiler_attrs.h"
 #include "DNA_windowmanager_types.h"
 #include "WM_keymap.h"
-#include "BLI_compiler_attrs.h"
 
 #ifdef __cplusplus
 extern "C" {

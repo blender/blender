@@ -53,10 +53,10 @@
  * \endcode
  */
 
+#include "MEM_Allocator.h"
 #include <list>
 #include <queue>
 #include <vector>
-#include "MEM_Allocator.h"
 
 template<class T> class MEM_CacheLimiter;
 

@@ -18,10 +18,10 @@
 
 #include "COM_TranslateNode.h"
 
+#include "COM_ExecutionSystem.h"
 #include "COM_TranslateOperation.h"
 #include "COM_WrapOperation.h"
 #include "COM_WriteBufferOperation.h"
-#include "COM_ExecutionSystem.h"
 
 TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode)
 {

@@ -31,19 +31,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_sequence_types.h"
-#include "DNA_movieclip_types.h"
-#include "DNA_mask_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_mask_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_math.h"
 #include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -59,18 +59,18 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_mask.h"
+#include "BKE_movieclip.h"
+#include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_sequencer_offscreen.h"
-#include "BKE_movieclip.h"
-#include "BKE_fcurve.h"
-#include "BKE_scene.h"
-#include "BKE_mask.h"
-#include "BKE_lib_id.h"
-#include "BKE_idprop.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -81,9 +81,9 @@
 
 #include <pthread.h>
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
 #include "IMB_metadata.h"
 
 #include "BKE_context.h"

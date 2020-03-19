@@ -41,8 +41,8 @@
 #include "util/util_progress.h"
 #include "util/util_time.h"
 
-#include "blender/blender_sync.h"
 #include "blender/blender_session.h"
+#include "blender/blender_sync.h"
 #include "blender/blender_util.h"
 
 CCL_NAMESPACE_BEGIN

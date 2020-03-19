@@ -71,22 +71,22 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 
 #  include "BKE_colorband.h"
 #  include "BKE_context.h"
-#  include "BKE_main.h"
 #  include "BKE_gpencil.h"
+#  include "BKE_main.h"
 #  include "BKE_material.h"
-#  include "BKE_texture.h"
 #  include "BKE_node.h"
 #  include "BKE_paint.h"
 #  include "BKE_scene.h"
+#  include "BKE_texture.h"
 #  include "BKE_workspace.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_node.h"
-#  include "ED_image.h"
-#  include "ED_screen.h"
 #  include "ED_gpencil.h"
+#  include "ED_image.h"
+#  include "ED_node.h"
+#  include "ED_screen.h"
 
 static void rna_Material_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {

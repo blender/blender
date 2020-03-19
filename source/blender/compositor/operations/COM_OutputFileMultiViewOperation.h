@@ -21,8 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "COM_OutputFileOperation.h"
 
-#include "BLI_rect.h"
 #include "BLI_path_util.h"
+#include "BLI_rect.h"
 
 #include "DNA_color_types.h"
 

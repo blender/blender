@@ -21,8 +21,8 @@
  * \ingroup shdnodes
  */
 
-#include "node_shader_util.h"
 #include "IMB_colormanagement.h"
+#include "node_shader_util.h"
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate sh_node_valtorgb_in[] = {

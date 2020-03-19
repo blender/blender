@@ -20,10 +20,10 @@
  * \ingroup spgraph
  */
 
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -32,8 +32,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"

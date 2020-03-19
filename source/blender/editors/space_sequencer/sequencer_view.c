@@ -30,8 +30,8 @@
 
 #include "BKE_context.h"
 #include "BKE_main.h"
-#include "BKE_sequencer.h"
 #include "BKE_screen.h"
+#include "BKE_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -40,9 +40,9 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
 
 #include "UI_view2d.h"
 

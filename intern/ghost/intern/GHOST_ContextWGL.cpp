@@ -27,8 +27,8 @@
 
 #include <tchar.h>
 
-#include <cstdio>
 #include <cassert>
+#include <cstdio>
 #include <vector>
 
 HGLRC GHOST_ContextWGL::s_sharedHGLRC = NULL;

@@ -25,11 +25,11 @@ extern "C" {
 
 #include "BKE_scene.h"
 
-#include "COM_compositor.h"
 #include "COM_ExecutionSystem.h"
-#include "COM_WorkScheduler.h"
-#include "clew.h"
 #include "COM_MovieDistortionOperation.h"
+#include "COM_WorkScheduler.h"
+#include "COM_compositor.h"
+#include "clew.h"
 
 static ThreadMutex s_compositorMutex;
 static bool is_compositorMutex_init = false;

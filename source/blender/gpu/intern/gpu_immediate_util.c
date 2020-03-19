@@ -23,8 +23,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

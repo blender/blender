@@ -21,10 +21,10 @@
 #include "ED_screen.h"
 
 #include "GPU_batch_presets.h"
-#include "GPU_platform.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_platform.h"
 #include "GPU_state.h"
 
 #include "BLI_listbase.h"

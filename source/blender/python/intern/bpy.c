@@ -24,26 +24,26 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
-#include "BKE_global.h" /* XXX, G_MAIN only */
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
+#include "BKE_global.h" /* XXX, G_MAIN only */
 
-#include "RNA_types.h"
 #include "RNA_access.h"
+#include "RNA_types.h"
 
 #include "bpy.h"
-#include "bpy_capi_utils.h"
-#include "bpy_rna.h"
 #include "bpy_app.h"
-#include "bpy_rna_id_collection.h"
-#include "bpy_rna_gizmo.h"
-#include "bpy_props.h"
+#include "bpy_capi_utils.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
+#include "bpy_props.h"
+#include "bpy_rna.h"
+#include "bpy_rna_gizmo.h"
+#include "bpy_rna_id_collection.h"
 #include "bpy_utils_previews.h"
 #include "bpy_utils_units.h"
 

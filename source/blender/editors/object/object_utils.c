@@ -23,10 +23,10 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_collection_types.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"

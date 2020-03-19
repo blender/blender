@@ -43,8 +43,8 @@
 
 #include "BKE_global.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "IMB_filetype.h"
 

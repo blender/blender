@@ -23,11 +23,11 @@
 
 #include "intern/node/deg_node_component.h"
 
-#include <stdio.h>
 #include <cstring> /* required for STREQ later on. */
+#include <stdio.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 extern "C" {
 #include "DNA_object_types.h"
@@ -35,8 +35,8 @@ extern "C" {
 #include "BKE_action.h"
 } /* extern "C" */
 
-#include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_factory.h"
+#include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
 namespace DEG {

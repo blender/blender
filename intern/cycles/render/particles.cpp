@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "device/device.h"
 #include "render/particles.h"
+#include "device/device.h"
 #include "render/scene.h"
 
 #include "util/util_foreach.h"

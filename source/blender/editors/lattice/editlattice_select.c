@@ -25,11 +25,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_rand.h"
-#include "BLI_bitmap.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -43,13 +43,13 @@
 
 #include "BKE_context.h"
 #include "BKE_lattice.h"
-#include "BKE_report.h"
 #include "BKE_layer.h"
+#include "BKE_report.h"
 
+#include "ED_lattice.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_lattice.h"
 #include "ED_view3d.h"
 
 #include "WM_api.h"

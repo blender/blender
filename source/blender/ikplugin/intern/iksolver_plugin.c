@@ -32,10 +32,10 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 
-#include "DNA_object_types.h"
 #include "DNA_action_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 
 #include "IK_solver.h"
 #include "iksolver_plugin.h"

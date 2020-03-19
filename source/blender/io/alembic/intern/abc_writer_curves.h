@@ -24,8 +24,8 @@
 #ifndef __ABC_WRITER_CURVES_H__
 #define __ABC_WRITER_CURVES_H__
 
-#include "abc_writer_object.h"
 #include "abc_writer_mesh.h"
+#include "abc_writer_object.h"
 
 class AbcCurveWriter : public AbcObjectWriter {
   Alembic::AbcGeom::OCurvesSchema m_schema;

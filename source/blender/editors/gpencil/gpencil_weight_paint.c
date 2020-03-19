@@ -38,9 +38,9 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_main.h"
-#include "DNA_meshdata_types.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
+#include "DNA_meshdata_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

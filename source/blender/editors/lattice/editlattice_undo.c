@@ -21,16 +21,16 @@
  * \ingroup edlattice
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_array_utils.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -44,13 +44,13 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_object.h"
 #include "ED_lattice.h"
+#include "ED_object.h"
 #include "ED_undo.h"
 #include "ED_util.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "lattice_intern.h"
 

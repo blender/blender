@@ -21,8 +21,8 @@
  * \ingroup edrend
  */
 
-#include <string.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -31,11 +31,11 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
-#include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 
 #include "BLT_translation.h"
 

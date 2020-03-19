@@ -10,10 +10,10 @@
 #include <vector>
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 }
 
 using std::initializer_list;

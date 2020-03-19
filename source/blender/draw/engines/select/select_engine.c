@@ -32,8 +32,8 @@
 #include "draw_cache_impl.h"
 #include "draw_manager.h"
 
-#include "select_private.h"
 #include "select_engine.h"
+#include "select_private.h"
 
 #define SELECT_ENGINE "SELECT_ENGINE"
 

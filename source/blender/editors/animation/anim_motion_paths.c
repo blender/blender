@@ -22,16 +22,16 @@
 
 #include <stdlib.h>
 
+#include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_dlrbTree.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 

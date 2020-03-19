@@ -21,14 +21,14 @@
  * \ingroup spgraph
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -38,10 +38,10 @@
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_transform.h"
-#include "ED_object.h"
 
 #include "graph_intern.h"
 

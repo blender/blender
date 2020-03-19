@@ -18,9 +18,9 @@
 
 #ifndef __COM_CALCULATESTANDARDDEVIATIONOPERATION_H__
 #define __COM_CALCULATESTANDARDDEVIATIONOPERATION_H__
+#include "COM_CalculateMeanOperation.h"
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
-#include "COM_CalculateMeanOperation.h"
 /**
  * \brief base class of CalculateStandardDeviation,
  * implementing the simple CalculateStandardDeviation.

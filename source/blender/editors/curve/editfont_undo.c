@@ -23,8 +23,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_array_utils.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -36,11 +36,11 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_object.h"
 #include "ED_curve.h"
+#include "ED_object.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #define USE_ARRAY_STORE
 

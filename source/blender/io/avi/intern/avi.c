@@ -23,11 +23,11 @@
  * This is external code.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -35,9 +35,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_fileops.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
-#include "BLI_fileops.h"
 
 #include "AVI_avi.h"
 #include "avi_intern.h"

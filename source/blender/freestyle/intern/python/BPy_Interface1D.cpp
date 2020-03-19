@@ -21,13 +21,13 @@
 #include "BPy_Interface1D.h"
 
 #include "BPy_Convert.h"
-#include "Interface1D/BPy_FrsCurve.h"
-#include "Interface1D/Curve/BPy_Chain.h"
 #include "Interface1D/BPy_FEdge.h"
-#include "Interface1D/FEdge/BPy_FEdgeSharp.h"
-#include "Interface1D/FEdge/BPy_FEdgeSmooth.h"
+#include "Interface1D/BPy_FrsCurve.h"
 #include "Interface1D/BPy_Stroke.h"
 #include "Interface1D/BPy_ViewEdge.h"
+#include "Interface1D/Curve/BPy_Chain.h"
+#include "Interface1D/FEdge/BPy_FEdgeSharp.h"
+#include "Interface1D/FEdge/BPy_FEdgeSmooth.h"
 
 #include "BPy_MediumType.h"
 

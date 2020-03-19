@@ -25,27 +25,27 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
 #include "DNA_mesh_types.h"
 
 #include "BKE_context.h"
+#include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
-#include "BKE_editmesh.h"
 #include "BKE_unit.h"
-#include "BKE_layer.h"
 
 #include "UI_interface.h"
 
+#include "ED_mesh.h"
+#include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
-#include "ED_mesh.h"
-#include "ED_numinput.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -25,20 +25,20 @@
 #include <string>
 //#include <vector>
 
-#include "COLLADASWStreamWriter.h"
-#include "COLLADASWLibraryControllers.h"
 #include "COLLADASWInputList.h"
+#include "COLLADASWLibraryControllers.h"
 #include "COLLADASWNode.h"
+#include "COLLADASWStreamWriter.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
 
-#include "TransformWriter.h"
 #include "InstanceWriter.h"
+#include "TransformWriter.h"
 
 #include "ExportSettings.h"
 

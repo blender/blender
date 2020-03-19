@@ -21,11 +21,11 @@
 #include <map>
 #include <set>
 
-#include "COLLADASWEffectProfile.h"
 #include "COLLADAFWColorOrTexture.h"
+#include "COLLADASWEffectProfile.h"
 
-#include "EffectExporter.h"
 #include "DocumentExporter.h"
+#include "EffectExporter.h"
 #include "MaterialExporter.h"
 
 #include "collada_internal.h"
@@ -37,8 +37,8 @@ extern "C" {
 
 #include "BKE_collection.h"
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
 }
 
 static std::string getActiveUVLayerName(Object *ob)

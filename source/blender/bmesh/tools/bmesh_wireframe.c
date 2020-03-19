@@ -28,8 +28,8 @@
 
 #include "bmesh.h"
 
-#include "BKE_deform.h"
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 
 #include "bmesh_wireframe.h"
 

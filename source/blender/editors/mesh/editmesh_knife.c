@@ -29,14 +29,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_array.h"
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_smallhash.h"
 #include "BLI_memarena.h"
+#include "BLI_smallhash.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
@@ -50,10 +50,10 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
+#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
-#include "ED_mesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

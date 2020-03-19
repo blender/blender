@@ -18,10 +18,10 @@
  * \ingroup pythonintern
  */
 
-#include <Python.h>
-#include "BLI_utildefines.h"
 #include "BLI_timer.h"
+#include "BLI_utildefines.h"
 #include "PIL_time.h"
+#include <Python.h>
 
 #include "BPY_extern.h"
 #include "bpy_app_timers.h"

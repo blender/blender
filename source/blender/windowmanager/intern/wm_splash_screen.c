@@ -34,8 +34,8 @@
 #include "CLG_log.h"
 
 #include "DNA_ID.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -49,8 +49,8 @@
 
 #include "BLF_api.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "ED_screen.h"
 

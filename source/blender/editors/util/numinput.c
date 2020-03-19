@@ -20,11 +20,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 #include "BLI_string_cursor_utf8.h"
+#include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_scene.h"

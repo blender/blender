@@ -21,31 +21,31 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_sys_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
 
 #include "DNA_gpencil_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_object_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -60,8 +60,8 @@
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
 #include "ED_space_api.h"
+#include "ED_view3d.h"
 
 #include "UI_interface_icons.h"
 #include "UI_resources.h"

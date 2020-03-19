@@ -47,10 +47,10 @@
 #ifndef __ATOMIC_OPS_UTILS_H__
 #define __ATOMIC_OPS_UTILS_H__
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdlib.h>
 #include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 #include <assert.h>
 

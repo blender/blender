@@ -26,11 +26,11 @@
 #include "GHOST_ContextCGL.h"
 
 #include <Cocoa/Cocoa.h>
-#include <QuartzCore/QuartzCore.h>
 #include <Metal/Metal.h>
+#include <QuartzCore/QuartzCore.h>
 
-#include <vector>
 #include <cassert>
+#include <vector>
 
 static void ghost_fatal_error_dialog(const char *msg)
 {

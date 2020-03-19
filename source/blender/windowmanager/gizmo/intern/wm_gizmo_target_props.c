@@ -28,8 +28,8 @@
 #include "RNA_access.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "wm.h"
 
@@ -38,8 +38,8 @@
 #include "ED_view3d.h"
 
 /* own includes */
-#include "wm_gizmo_wmapi.h"
 #include "wm_gizmo_intern.h"
+#include "wm_gizmo_wmapi.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Property Definition

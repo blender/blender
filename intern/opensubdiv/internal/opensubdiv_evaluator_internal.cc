@@ -39,7 +39,6 @@
 
 #include "internal/opensubdiv_topology_refiner_internal.h"
 #include "internal/opensubdiv_util.h"
-#include "internal/opensubdiv_util.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
 using OpenSubdiv::Far::PatchMap;

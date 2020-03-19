@@ -30,9 +30,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 extern "C" {
 #include "DNA_anim_types.h"
@@ -50,11 +50,11 @@ extern "C" {
 #include "DEG_depsgraph_build.h"
 
 #include "intern/builder/deg_builder.h"
+#include "intern/depsgraph_type.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_operation.h"
-#include "intern/depsgraph_type.h"
 
 namespace DEG {
 

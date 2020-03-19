@@ -35,15 +35,15 @@
 
 #include <cstring>
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
-#include "BLI_threads.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_curve.h"
 #include "BKE_global.h"
-#include "BKE_idprop.h"
 #include "BKE_gpencil.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_scene.h"
@@ -59,20 +59,20 @@ extern "C" {
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
 
 #include "DRW_engine.h"
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 #  include "DNA_curve_types.h"
 #  include "DNA_key_types.h"
-#  include "DNA_light_types.h"
 #  include "DNA_lattice_types.h"
+#  include "DNA_light_types.h"
 #  include "DNA_linestyle_types.h"
 #  include "DNA_material_types.h"
 #  include "DNA_meta_types.h"
@@ -93,9 +93,9 @@ extern "C" {
 #include "BKE_sound.h"
 }
 
-#include "intern/depsgraph.h"
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_nodes.h"
+#include "intern/depsgraph.h"
 #include "intern/eval/deg_eval_runtime_backup.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_id.h"

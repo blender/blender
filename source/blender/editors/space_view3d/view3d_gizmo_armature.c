@@ -22,18 +22,18 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
 
-#include "DNA_object_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
 
 #include "ED_armature.h"
-#include "ED_screen.h"
 #include "ED_gizmo_library.h"
+#include "ED_screen.h"
 
 #include "UI_resources.h"
 

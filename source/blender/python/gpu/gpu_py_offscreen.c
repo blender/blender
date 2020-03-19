@@ -36,8 +36,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_scene.h"
 
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
 #include "GPU_framebuffer.h"

@@ -25,8 +25,8 @@
 #ifndef __PIL_TIME_UTILDEFINES_H__
 #define __PIL_TIME_UTILDEFINES_H__
 
-#include "PIL_time.h"        /* for PIL_check_seconds_timer */
 #include "BLI_utildefines.h" /* for AT */
+#include "PIL_time.h"        /* for PIL_check_seconds_timer */
 
 #define TIMEIT_START(var) \
   { \

@@ -27,11 +27,11 @@
 
 #include "DEG_depsgraph.h"
 
-#include "DNA_object_types.h"
 #include "DNA_light_types.h"
+#include "DNA_object_types.h"
 
-#include "ED_screen.h"
 #include "ED_gizmo_library.h"
+#include "ED_screen.h"
 
 #include "UI_resources.h"
 

@@ -22,8 +22,8 @@
 #include "util/util_time.h"
 #include "util/util_unique_ptr.h"
 
-#include <OpenImageIO/imageio.h>
 #include <OpenImageIO/filesystem.h>
+#include <OpenImageIO/imageio.h>
 
 OIIO_NAMESPACE_USING
 

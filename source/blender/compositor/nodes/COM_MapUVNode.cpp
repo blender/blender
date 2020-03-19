@@ -17,8 +17,8 @@
  */
 
 #include "COM_MapUVNode.h"
-#include "COM_MapUVOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_MapUVOperation.h"
 
 MapUVNode::MapUVNode(bNode *editorNode) : Node(editorNode)
 {

@@ -23,25 +23,25 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_key_types.h"
 
-#include "BLI_math.h"
 #include "BLI_alloca.h"
 #include "BLI_buffer.h"
 #include "BLI_kdtree.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
+#include "BKE_editmesh.h"
+#include "BKE_editmesh_bvh.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_report.h"
-#include "BKE_editmesh.h"
-#include "BKE_editmesh_bvh.h"
-#include "BKE_global.h"
 
 #include "DEG_depsgraph.h"
 

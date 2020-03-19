@@ -23,25 +23,25 @@
 
 #include <math.h>
 
+#include "BLI_jitter_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
-#include "BLI_jitter_2d.h"
 
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_scene.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_scene.h"
 #include "BKE_studiolight.h"
 #include "BKE_unit.h"
 
@@ -62,8 +62,8 @@
 #include "DRW_select_buffer.h"
 
 #include "ED_armature.h"
-#include "ED_keyframing.h"
 #include "ED_gpencil.h"
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_transform.h"
@@ -74,13 +74,13 @@
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_draw.h"
-#include "GPU_matrix.h"
+#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_material.h"
-#include "GPU_viewport.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_framebuffer.h"
+#include "GPU_viewport.h"
 
 #include "MEM_guardedalloc.h"
 

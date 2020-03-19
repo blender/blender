@@ -21,23 +21,23 @@
 #ifndef __GEOMETRYEXPORTER_H__
 #define __GEOMETRYEXPORTER_H__
 
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
-#include "COLLADASWStreamWriter.h"
-#include "COLLADASWLibraryGeometries.h"
 #include "COLLADASWInputList.h"
+#include "COLLADASWLibraryGeometries.h"
+#include "COLLADASWStreamWriter.h"
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_key_types.h"
 
+#include "BKE_key.h"
+#include "BlenderContext.h"
 #include "ExportSettings.h"
 #include "collada_utils.h"
-#include "BlenderContext.h"
-#include "BKE_key.h"
 
 class Normal {
  public:

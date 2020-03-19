@@ -24,14 +24,14 @@
 #include <map>
 #include <vector>
 
-#include "COLLADAFWUniqueId.h"
-#include "COLLADAFWTypes.h"
 #include "COLLADAFWNode.h"
 #include "COLLADAFWSkinController.h"
 #include "COLLADAFWSkinControllerData.h"
+#include "COLLADAFWTypes.h"
+#include "COLLADAFWUniqueId.h"
 
-#include "DNA_object_types.h"
 #include "BKE_context.h"
+#include "DNA_object_types.h"
 
 #include "TransformReader.h"
 #include "collada_internal.h"

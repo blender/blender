@@ -18,8 +18,8 @@
  * \ingroup bke
  */
 
-#include "BLI_math.h"
 #include "BKE_ocean.h"
+#include "BLI_math.h"
 #include "ocean_intern.h"
 
 #ifdef WITH_OCEANSIM

@@ -18,8 +18,8 @@
 
 #include <stdlib.h>
 
-#include "COM_DoubleEdgeMaskOperation.h"
 #include "BLI_math.h"
+#include "COM_DoubleEdgeMaskOperation.h"
 #include "DNA_node_types.h"
 #include "MEM_guardedalloc.h"
 

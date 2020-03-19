@@ -21,10 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
-#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -33,8 +33,8 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_scene.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #include "DNA_object_types.h"

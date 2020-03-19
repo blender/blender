@@ -20,9 +20,9 @@
  * \ingroup bke
  */
 
-#include "DNA_shader_fx_types.h" /* needed for all enum typdefs */
-#include "BLI_compiler_attrs.h"
 #include "BKE_customdata.h"
+#include "BLI_compiler_attrs.h"
+#include "DNA_shader_fx_types.h" /* needed for all enum typdefs */
 
 #ifdef __cplusplus
 extern "C" {

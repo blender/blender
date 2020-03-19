@@ -20,8 +20,8 @@
  * Fill in geometry with the attributes of their adjacent data.
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 

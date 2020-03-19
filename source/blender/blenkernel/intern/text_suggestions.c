@@ -21,16 +21,16 @@
  * \ingroup bke
  */
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
 
-#include "DNA_text_types.h"
 #include "BKE_text_suggestions.h" /* Own include. */
+#include "DNA_text_types.h"
 
 /**********************/
 /* Static definitions */

@@ -20,10 +20,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_kdtree_impl.h"
-#include "BLI_utildefines.h"
+#include "BLI_math.h"
 #include "BLI_strict_flags.h"
+#include "BLI_utildefines.h"
 
 #define _CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
 #define _CONCAT(MACRO_ARG1, MACRO_ARG2) _CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)

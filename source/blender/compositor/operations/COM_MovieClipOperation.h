@@ -19,9 +19,9 @@
 #ifndef __COM_MOVIECLIPOPERATION_H__
 #define __COM_MOVIECLIPOPERATION_H__
 
+#include "BLI_listbase.h"
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
-#include "BLI_listbase.h"
 #include "IMB_imbuf_types.h"
 
 /**

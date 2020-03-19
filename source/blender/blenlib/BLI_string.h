@@ -24,8 +24,8 @@
  * \ingroup bli
  */
 
-#include <stdarg.h>
 #include <inttypes.h>
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {

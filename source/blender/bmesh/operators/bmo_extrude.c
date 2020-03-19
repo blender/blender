@@ -24,8 +24,8 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BLI_math.h"
 #include "BLI_buffer.h"
+#include "BLI_math.h"
 
 #include "BKE_customdata.h"
 

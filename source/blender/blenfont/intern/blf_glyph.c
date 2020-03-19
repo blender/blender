@@ -23,10 +23,10 @@
  * Glyph rendering, texturing and caching. Wraps Freetype and OpenGL functions.
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include <ft2build.h>
 
@@ -37,8 +37,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vec_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
@@ -46,14 +46,14 @@
 
 #include "BLF_api.h"
 
-#include "GPU_immediate.h"
 #include "GPU_extensions.h"
+#include "GPU_immediate.h"
 
-#include "blf_internal_types.h"
 #include "blf_internal.h"
+#include "blf_internal_types.h"
 
-#include "BLI_strict_flags.h"
 #include "BLI_math_vector.h"
+#include "BLI_strict_flags.h"
 
 KerningCacheBLF *blf_kerning_cache_find(FontBLF *font)
 {

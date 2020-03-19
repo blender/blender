@@ -30,8 +30,8 @@
 
 #include "GPU_extensions.h"
 #include "GPU_platform.h"
-#include "intern/gpu_shader_private.h"
 #include "intern/gpu_primitive_private.h"
+#include "intern/gpu_shader_private.h"
 
 #ifdef USE_GPU_SELECT
 #  include "GPU_select.h"

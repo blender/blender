@@ -21,9 +21,9 @@
  * \ingroup edcurve
  */
 
+#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_anim_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -42,10 +42,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_curve.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_curve.h"
 
 #include "curve_intern.h"
 

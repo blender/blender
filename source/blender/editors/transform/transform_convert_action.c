@@ -30,8 +30,8 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
-#include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_nla.h"
 #include "BKE_report.h"
 
 #include "ED_anim_api.h"

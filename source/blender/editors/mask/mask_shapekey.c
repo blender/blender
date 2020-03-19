@@ -23,15 +23,15 @@
 
 #include <stdlib.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
 
-#include "DNA_object_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.h"

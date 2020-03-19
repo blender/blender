@@ -24,14 +24,14 @@
  */
 
 #include <float.h>
-#include <string.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -44,9 +44,9 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_brush.h"
 #include "BKE_colorband.h"
 #include "BKE_context.h"
-#include "BKE_brush.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -67,9 +67,9 @@
 #include "ED_view3d.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

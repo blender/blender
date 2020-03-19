@@ -21,8 +21,8 @@
  * \ingroup sptext
  */
 
-#include <string.h>
 #include <errno.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -44,9 +44,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_text.h"
 #include "ED_curve.h"
 #include "ED_screen.h"
+#include "ED_text.h"
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -57,8 +57,8 @@
 #  include "BPY_extern.h"
 #endif
 
-#include "text_intern.h"
 #include "text_format.h"
+#include "text_intern.h"
 
 static void txt_screen_clamp(SpaceText *st, ARegion *region);
 

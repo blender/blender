@@ -21,8 +21,8 @@
  * \ingroup spscript
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -32,8 +32,8 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -44,8 +44,8 @@
 #ifdef WITH_PYTHON
 #endif
 
-#include "script_intern.h"  // own include
 #include "GPU_framebuffer.h"
+#include "script_intern.h"  // own include
 
 // static script_run_python(char *funcname, )
 

@@ -21,8 +21,8 @@
 #include "BPy_UnaryFunction1DDouble.h"
 
 #include "../BPy_Convert.h"
-#include "../BPy_Interface1D.h"
 #include "../BPy_IntegrationType.h"
+#include "../BPy_Interface1D.h"
 
 #include "UnaryFunction1D_double/BPy_Curvature2DAngleF1D.h"
 #include "UnaryFunction1D_double/BPy_DensityF1D.h"

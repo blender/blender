@@ -27,9 +27,9 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 
-#include "BKE_sound.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_sound.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

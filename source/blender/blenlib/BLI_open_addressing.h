@@ -33,10 +33,10 @@
 
 #include <cmath>
 
-#include "BLI_utildefines.h"
-#include "BLI_memory_utils_cxx.h"
-#include "BLI_math_base.h"
 #include "BLI_allocator.h"
+#include "BLI_math_base.h"
+#include "BLI_memory_utils_cxx.h"
+#include "BLI_utildefines.h"
 
 namespace BLI {
 

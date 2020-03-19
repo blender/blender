@@ -17,8 +17,8 @@
  */
 
 #include "COM_SetAlphaNode.h"
-#include "COM_SetAlphaOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_SetAlphaOperation.h"
 
 void SetAlphaNode::convertToOperations(NodeConverter &converter,
                                        const CompositorContext & /*context*/) const

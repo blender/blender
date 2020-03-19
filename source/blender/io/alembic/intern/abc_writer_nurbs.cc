@@ -19,8 +19,8 @@
  */
 
 #include "abc_writer_nurbs.h"
-#include "abc_writer_transform.h"
 #include "abc_util.h"
+#include "abc_writer_transform.h"
 
 extern "C" {
 #include "DNA_curve_types.h"

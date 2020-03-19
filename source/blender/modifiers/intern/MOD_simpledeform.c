@@ -29,12 +29,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_deform.h"
 
 #include "DEG_depsgraph_query.h"
 

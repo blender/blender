@@ -23,21 +23,21 @@
  * \ingroup GHOST
  */
 
-#include <X11/Xatom.h>
-#include <X11/keysym.h>
 #include <X11/XKBlib.h> /* allow detectable autorepeate */
+#include <X11/Xatom.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 
-#include "GHOST_SystemX11.h"
-#include "GHOST_WindowX11.h"
-#include "GHOST_WindowManager.h"
-#include "GHOST_TimerManager.h"
-#include "GHOST_EventCursor.h"
-#include "GHOST_EventKey.h"
-#include "GHOST_EventButton.h"
-#include "GHOST_EventWheel.h"
 #include "GHOST_DisplayManagerX11.h"
+#include "GHOST_EventButton.h"
+#include "GHOST_EventCursor.h"
 #include "GHOST_EventDragnDrop.h"
+#include "GHOST_EventKey.h"
+#include "GHOST_EventWheel.h"
+#include "GHOST_SystemX11.h"
+#include "GHOST_TimerManager.h"
+#include "GHOST_WindowManager.h"
+#include "GHOST_WindowX11.h"
 #ifdef WITH_INPUT_NDOF
 #  include "GHOST_NDOFManagerUnix.h"
 #endif
@@ -74,10 +74,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include <iostream>
-#include <vector>
-#include <stdio.h> /* for fprintf only */
 #include <cstdlib> /* for exit */
+#include <iostream>
+#include <stdio.h> /* for fprintf only */
+#include <vector>
 
 /* for debugging - so we can breakpoint X11 errors */
 // #define USE_X11_ERROR_HANDLERS

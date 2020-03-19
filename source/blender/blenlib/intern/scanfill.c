@@ -31,11 +31,11 @@
  * which uses ear clipping, but has no hole support.
  */
 
-#include <stdio.h>
+#include <limits.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 

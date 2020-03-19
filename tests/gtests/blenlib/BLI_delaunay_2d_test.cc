@@ -12,8 +12,8 @@ extern "C" {
 #include "BLI_delaunay_2d.h"
 }
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 #define DO_REGULAR_TESTS 1

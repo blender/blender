@@ -28,9 +28,9 @@
 #define __MATH_BASE_INLINE_C__
 
 #include <float.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 
 #ifdef __SSE2__
 #  include <emmintrin.h>

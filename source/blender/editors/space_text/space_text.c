@@ -29,14 +29,14 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_global.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_screen.h"
 #include "BKE_text.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -47,9 +47,9 @@
 
 #include "RNA_access.h"
 
+#include "GPU_framebuffer.h"
 #include "text_format.h"
 #include "text_intern.h" /* own include */
-#include "GPU_framebuffer.h"
 
 /* ******************** default callbacks for text space ***************** */
 

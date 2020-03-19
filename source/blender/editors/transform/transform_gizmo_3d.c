@@ -22,58 +22,58 @@
  * Used for 3D View
  */
 
+#include <float.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <float.h>
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_array_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_global.h"
-#include "BKE_layer.h"
-#include "BKE_particle.h"
-#include "BKE_pointcache.h"
 #include "BKE_editmesh.h"
-#include "BKE_lattice.h"
+#include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_scene.h"
-#include "BKE_workspace.h"
+#include "BKE_lattice.h"
+#include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
+#include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 #include "wm.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_object.h"
-#include "ED_particle.h"
-#include "ED_view3d.h"
-#include "ED_gpencil.h"
-#include "ED_screen.h"
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
+#include "ED_gpencil.h"
+#include "ED_object.h"
+#include "ED_particle.h"
+#include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

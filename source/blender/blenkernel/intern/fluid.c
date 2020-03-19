@@ -59,8 +59,8 @@
 #  include "DNA_scene_types.h"
 
 #  include "BLI_kdopbvh.h"
-#  include "BLI_threads.h"
 #  include "BLI_kdtree.h"
+#  include "BLI_threads.h"
 #  include "BLI_voxel.h"
 
 #  include "BKE_bvhutils.h"

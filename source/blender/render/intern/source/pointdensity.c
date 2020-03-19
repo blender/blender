@@ -22,17 +22,17 @@
  */
 
 #include <math.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_noise.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_utildefines.h"
+#include "BLI_math.h"
+#include "BLI_noise.h"
 #include "BLI_task.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -43,12 +43,12 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_colorband.h"
+#include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_lattice.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_colortools.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

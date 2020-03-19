@@ -20,14 +20,14 @@
  * \ingroup imbcineon
  */
 
+#include "logImageCore.h"
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
-#include "logImageCore.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_filetype.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"

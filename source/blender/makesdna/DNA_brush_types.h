@@ -25,8 +25,8 @@
 #define __DNA_BRUSH_TYPES_H__
 
 #include "DNA_ID.h"
-#include "DNA_texture_types.h" /* for MTex */
 #include "DNA_curve_types.h"
+#include "DNA_texture_types.h" /* for MTex */
 
 //#ifndef MAX_MTEX // XXX Not used?
 //#define MAX_MTEX  18

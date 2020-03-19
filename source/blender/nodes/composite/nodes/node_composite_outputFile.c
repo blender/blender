@@ -21,9 +21,9 @@
  * \ingroup cmpnodes
  */
 
-#include <string.h>
-#include "BLI_utildefines.h"
 #include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
+#include <string.h>
 
 #include "BKE_context.h"
 

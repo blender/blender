@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "node_ramp_util.h"
+#include "stdcycles.h"
 
 shader node_vector_curves(color ramp[] = {0.0},
                           float min_x = 0.0,

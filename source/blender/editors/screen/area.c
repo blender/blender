@@ -21,18 +21,18 @@
  * \ingroup edscr
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
-#include "BLI_linklist_stack.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -44,20 +44,20 @@
 #include "RNA_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
 #include "ED_time_scrub_ui.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_framebuffer.h"
 
 #include "BLF_api.h"
 

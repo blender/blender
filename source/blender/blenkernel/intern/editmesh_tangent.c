@@ -21,14 +21,14 @@
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "DNA_defs.h"
 #include "DNA_customdata_types.h"
+#include "DNA_defs.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_mesh.h"
-#include "BKE_mesh_tangent.h" /* for utility functions */
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_tangent.h"
+#include "BKE_mesh.h"
+#include "BKE_mesh_tangent.h" /* for utility functions */
 
 #include "MEM_guardedalloc.h"
 

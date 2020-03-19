@@ -21,8 +21,8 @@
  * \ingroup spaction
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "DNA_action_types.h"
 #include "DNA_collection_types.h"
@@ -42,21 +42,21 @@
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_space_api.h"
-#include "ED_screen.h"
 #include "ED_anim_api.h"
 #include "ED_markers.h"
+#include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_time_scrub_ui.h"
 
-#include "action_intern.h" /* own include */
 #include "GPU_framebuffer.h"
+#include "action_intern.h" /* own include */
 
 /* ******************** default callbacks for action space ***************** */
 

@@ -21,10 +21,10 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <string.h>
 #include <fcntl.h>
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
 #ifndef WIN32
 #  include <unistd.h>
 #else
@@ -38,26 +38,26 @@
 #include "MEM_guardedalloc.h"
 
 #include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "IMB_moviecache.h"
+#include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
+#include "IMB_moviecache.h"
 
 #ifdef WITH_OPENEXR
 #  include "intern/openexr/openexr_multi.h"
 #endif
 
-#include "DNA_packedFile_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_defaults.h"
+#include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_light_types.h"
+#include "DNA_object_types.h"
+#include "DNA_packedFile_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
-#include "DNA_defaults.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
@@ -76,10 +76,10 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_node.h"
 #include "BKE_sequencer.h" /* seq_foreground_frame_get() */
 #include "BKE_workspace.h"
 
@@ -99,8 +99,8 @@
 
 /* for image user iteration */
 #include "DNA_node_types.h"
-#include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 static CLG_LogRef LOG = {"bke.image"};

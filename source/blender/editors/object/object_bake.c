@@ -25,40 +25,40 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
-#include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_blender.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_modifier.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
+#include "RE_multires_bake.h"
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
-#include "RE_multires_bake.h"
 
 #include "PIL_time.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "GPU_draw.h" /* GPU_free_image */
 

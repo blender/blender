@@ -22,16 +22,16 @@
  * and only included for the cases where the performance is acceptable.
  * Use with care.
  */
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.h"
 
+#include "BLI_alloca.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
-#include "BLI_alloca.h"
 
 #include "BLI_strict_flags.h"
 

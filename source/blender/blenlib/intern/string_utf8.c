@@ -23,12 +23,12 @@
  * \ingroup bli
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
 #include <wcwidth.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "BLI_utildefines.h"
 

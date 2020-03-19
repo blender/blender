@@ -21,40 +21,40 @@
  * \ingroup eduv
  */
 
-#include <string.h>
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_modifier_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_alloca.h"
 #include "BLI_math.h"
-#include "BLI_uvproject.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
+#include "BLI_uvproject.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_subsurf.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_image.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
 #include "BKE_editmesh.h"
+#include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
 

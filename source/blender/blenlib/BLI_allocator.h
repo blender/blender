@@ -29,13 +29,13 @@
  * job good enough.
  */
 
-#include <stdlib.h>
 #include <algorithm>
+#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 namespace BLI {
 

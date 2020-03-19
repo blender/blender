@@ -22,8 +22,8 @@
  */
 
 #include "IndexedFaceSet.h"
-#include "NodeViewLayer.h"
 #include "NodeCamera.h"
+#include "NodeViewLayer.h"
 #include "SceneVisitor.h"
 
 #include "BLI_sys_types.h"

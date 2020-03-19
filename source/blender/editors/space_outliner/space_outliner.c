@@ -21,23 +21,23 @@
  * \ingroup spoutliner
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_mempool.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
-#include "BKE_screen.h"
-#include "BKE_scene.h"
 #include "BKE_outliner_treehash.h"
+#include "BKE_scene.h"
+#include "BKE_screen.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "WM_api.h"
 #include "WM_message.h"
@@ -45,14 +45,14 @@
 
 #include "RNA_access.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "outliner_intern.h"
 #include "GPU_framebuffer.h"
+#include "outliner_intern.h"
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 {

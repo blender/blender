@@ -30,10 +30,10 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"

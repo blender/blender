@@ -17,28 +17,28 @@
  * All rights reserved.
  */
 
-#include <vector>
-#include <map>
 #include <algorithm>  // std::find
+#include <map>
+#include <vector>
 
-#include "ExportSettings.h"
 #include "BCAnimationCurve.h"
 #include "BCAnimationSampler.h"
-#include "collada_utils.h"
 #include "BCMath.h"
+#include "ExportSettings.h"
+#include "collada_utils.h"
 
 extern "C" {
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_key.h"
-#include "BKE_main.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BLI_listbase.h"
 #include "DNA_anim_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_key_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_key_types.h"
+#include "DNA_scene_types.h"
 #include "ED_object.h"
 }
 

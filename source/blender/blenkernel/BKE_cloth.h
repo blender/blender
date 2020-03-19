@@ -23,8 +23,8 @@
  * \ingroup bke
  */
 
-#include <float.h>
 #include "BLI_math_inline.h"
+#include <float.h>
 
 #ifdef __cplusplus
 extern "C" {

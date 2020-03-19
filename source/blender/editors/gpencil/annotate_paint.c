@@ -21,18 +21,18 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
+#include <math.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_geom.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -48,17 +48,17 @@
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
 
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "UI_view2d.h"
 
+#include "ED_clip.h"
 #include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_clip.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

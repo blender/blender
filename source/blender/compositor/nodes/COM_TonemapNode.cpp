@@ -17,8 +17,8 @@
  */
 
 #include "COM_TonemapNode.h"
-#include "COM_TonemapOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_TonemapOperation.h"
 
 TonemapNode::TonemapNode(bNode *editorNode) : Node(editorNode)
 {

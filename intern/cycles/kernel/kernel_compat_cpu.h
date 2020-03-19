@@ -35,11 +35,11 @@
 #  define __NODES_FEATURES__ NODE_FEATURE_ALL
 #endif
 
+#include "util/util_half.h"
 #include "util/util_math.h"
 #include "util/util_simd.h"
-#include "util/util_half.h"
-#include "util/util_types.h"
 #include "util/util_texture.h"
+#include "util/util_types.h"
 
 #define ccl_addr_space
 

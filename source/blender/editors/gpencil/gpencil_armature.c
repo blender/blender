@@ -23,17 +23,17 @@
  * Operators for dealing with armatures and GP data-blocks.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -42,13 +42,13 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_main.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_main.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
@@ -60,8 +60,8 @@
 #include "RNA_enum_types.h"
 
 #include "ED_gpencil.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

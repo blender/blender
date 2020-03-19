@@ -1,12 +1,12 @@
 /* Apache License, Version 2.0 */
 
 #include "testing/testing.h"
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 extern "C" {
-#include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
+#include "BLI_utildefines.h"
 }
 
 #define VALUE_1 POINTER_FROM_INT(1)

@@ -18,11 +18,11 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "DNA_curveprofile_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curveprofile_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_utildefines.h"
@@ -50,10 +50,10 @@
 #  include "BKE_colorband.h"
 #  include "BKE_curveprofile.h"
 #  include "BKE_image.h"
+#  include "BKE_linestyle.h"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.h"
 #  include "BKE_sequencer.h"
-#  include "BKE_linestyle.h"
 
 #  include "DEG_depsgraph.h"
 

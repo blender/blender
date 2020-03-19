@@ -24,19 +24,19 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_material_types.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_color.h"
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -60,13 +60,13 @@
 #include "GPU_state.h"
 
 #include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h"
 
-#include "ED_view3d.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "BLI_sys_types.h"
 #include "ED_mesh.h" /* for face mask functions */

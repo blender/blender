@@ -18,10 +18,10 @@
 
 #ifndef __COM_VIEWEROPERATION_H__
 #define __COM_VIEWEROPERATION_H__
+#include "BKE_global.h"
+#include "BLI_rect.h"
 #include "COM_NodeOperation.h"
 #include "DNA_image_types.h"
-#include "BLI_rect.h"
-#include "BKE_global.h"
 
 class ViewerOperation : public NodeOperation {
  private:

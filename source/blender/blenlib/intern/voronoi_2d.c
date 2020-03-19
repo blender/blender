@@ -28,8 +28,8 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_voronoi_2d.h"
 #include "BLI_utildefines.h"
+#include "BLI_voronoi_2d.h"
 
 #define VORONOI_EPS 1e-2f
 

@@ -25,8 +25,8 @@
  * attributes.
  */
 
-#include <OSL/oslexec.h>
 #include <OSL/oslclosure.h>
+#include <OSL/oslexec.h>
 
 #ifdef WITH_PTEX
 class PtexCache;

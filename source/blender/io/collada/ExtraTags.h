@@ -21,8 +21,8 @@
 #ifndef __EXTRATAGS_H__
 #define __EXTRATAGS_H__
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
 
 /** \brief Class for saving \<extra\> tags for a specific UniqueId.

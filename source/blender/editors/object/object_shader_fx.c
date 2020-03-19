@@ -28,9 +28,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_types.h"
-#include "DNA_shader_fx_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_shader_fx_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string_utf8.h"
@@ -40,9 +40,9 @@
 
 #include "BKE_context.h"
 #include "BKE_main.h"
-#include "BKE_shader_fx.h"
-#include "BKE_report.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
+#include "BKE_shader_fx.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

@@ -23,8 +23,8 @@
 
 /* global includes */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifndef WIN32
@@ -34,37 +34,37 @@
 #endif
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 
 #include "BLO_readfile.h"
 
-#include "DNA_world_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_light_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_appdir.h"
 #include "BKE_brush.h"
-#include "BKE_context.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
-#include "BKE_icons.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_light.h"
-#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
@@ -73,8 +73,8 @@
 #include "BKE_world.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -82,11 +82,11 @@
 
 #include "BIF_glutil.h"
 
-#include "GPU_shader.h"
 #include "GPU_glew.h"
+#include "GPU_shader.h"
 
-#include "RE_pipeline.h"
 #include "RE_engine.h"
+#include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
 #include "WM_api.h"

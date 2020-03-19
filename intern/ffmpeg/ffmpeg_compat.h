@@ -37,9 +37,9 @@
 #endif
 
 #include <libavcodec/avcodec.h>
-#include <libavutil/rational.h>
-#include <libavutil/opt.h>
 #include <libavutil/mathematics.h>
+#include <libavutil/opt.h>
+#include <libavutil/rational.h>
 
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || \
     ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))

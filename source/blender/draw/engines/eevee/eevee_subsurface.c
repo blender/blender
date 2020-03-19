@@ -28,9 +28,9 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "eevee_private.h"
-#include "GPU_texture.h"
 #include "GPU_extensions.h"
+#include "GPU_texture.h"
+#include "eevee_private.h"
 
 static struct {
   struct GPUShader *sss_sh[3];

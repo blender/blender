@@ -28,15 +28,15 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
 #include "BKE_layer.h"
+#include "BKE_mesh.h"
+#include "BKE_report.h"
 
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_scene.h"
 #include "ED_screen.h"
 #include "ED_transform.h"

@@ -22,15 +22,15 @@
 
 #include "BPy_Convert.h"
 #include "Iterator/BPy_AdjacencyIterator.h"
-#include "Iterator/BPy_Interface0DIterator.h"
-#include "Iterator/BPy_CurvePointIterator.h"
-#include "Iterator/BPy_StrokeVertexIterator.h"
-#include "Iterator/BPy_SVertexIterator.h"
-#include "Iterator/BPy_orientedViewEdgeIterator.h"
-#include "Iterator/BPy_ViewEdgeIterator.h"
-#include "Iterator/BPy_ChainingIterator.h"
 #include "Iterator/BPy_ChainPredicateIterator.h"
 #include "Iterator/BPy_ChainSilhouetteIterator.h"
+#include "Iterator/BPy_ChainingIterator.h"
+#include "Iterator/BPy_CurvePointIterator.h"
+#include "Iterator/BPy_Interface0DIterator.h"
+#include "Iterator/BPy_SVertexIterator.h"
+#include "Iterator/BPy_StrokeVertexIterator.h"
+#include "Iterator/BPy_ViewEdgeIterator.h"
+#include "Iterator/BPy_orientedViewEdgeIterator.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -19,11 +19,11 @@
 #include "COM_ViewerNode.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BLI_listbase.h"
 #include "BKE_scene.h"
+#include "BLI_listbase.h"
 
-#include "COM_ViewerOperation.h"
 #include "COM_ExecutionSystem.h"
+#include "COM_ViewerOperation.h"
 
 ViewerNode::ViewerNode(bNode *editorNode) : Node(editorNode)
 {

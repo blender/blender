@@ -20,24 +20,24 @@
 
 #ifdef COM_DEBUG
 
-#  include <typeinfo>
 #  include <map>
+#  include <typeinfo>
 #  include <vector>
 
 extern "C" {
-#  include "BLI_sys_types.h"
 #  include "BLI_fileops.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
+#  include "BLI_sys_types.h"
 
-#  include "DNA_node_types.h"
 #  include "BKE_appdir.h"
 #  include "BKE_node.h"
+#  include "DNA_node_types.h"
 }
 
-#  include "COM_Node.h"
-#  include "COM_ExecutionSystem.h"
 #  include "COM_ExecutionGroup.h"
+#  include "COM_ExecutionSystem.h"
+#  include "COM_Node.h"
 
 #  include "COM_ReadBufferOperation.h"
 #  include "COM_ViewerOperation.h"

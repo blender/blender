@@ -22,9 +22,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
-#include "BLI_math.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"

@@ -22,13 +22,13 @@
 
 #include "CLG_log.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_anim_types.h"
 
+#include "BLI_array_utils.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_array_utils.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -40,11 +40,11 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_undo.h"
 #include "ED_curve.h"
+#include "ED_undo.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "curve_intern.h"
 

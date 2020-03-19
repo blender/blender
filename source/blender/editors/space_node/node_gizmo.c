@@ -20,17 +20,17 @@
 
 #include <math.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 
-#include "ED_screen.h"
 #include "ED_gizmo_library.h"
+#include "ED_screen.h"
 
 #include "IMB_imbuf_types.h"
 

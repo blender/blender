@@ -25,9 +25,9 @@
 #ifndef __GHOST_IWINDOW_H__
 #define __GHOST_IWINDOW_H__
 
-#include "STR_String.h"
 #include "GHOST_Rect.h"
 #include "GHOST_Types.h"
+#include "STR_String.h"
 
 /**
  * Interface for GHOST windows.

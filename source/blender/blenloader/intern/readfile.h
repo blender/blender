@@ -25,10 +25,10 @@
 #ifndef __READFILE_H__
 #define __READFILE_H__
 
-#include "zlib.h"
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h" /* for ReportType */
+#include "zlib.h"
 
 struct IDNameLib_Map;
 struct GSet;

@@ -32,8 +32,8 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "gpu_py_vertex_format.h"
 #include "gpu_py_vertex_buffer.h" /* own include */
+#include "gpu_py_vertex_format.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions

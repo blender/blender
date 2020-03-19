@@ -24,10 +24,10 @@
 #ifndef __DNA_CURVE_TYPES_H__
 #define __DNA_CURVE_TYPES_H__
 
+#include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "DNA_ID.h"
 
 #define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "node_fresnel.h"
+#include "stdcycles.h"
 
 shader node_glass_bsdf(color Color = 0.8,
                        string distribution = "sharp",

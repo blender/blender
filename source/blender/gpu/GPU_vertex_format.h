@@ -26,9 +26,9 @@
 #ifndef __GPU_VERTEX_FORMAT_H__
 #define __GPU_VERTEX_FORMAT_H__
 
-#include "GPU_common.h"
-#include "BLI_compiler_compat.h"
 #include "BLI_assert.h"
+#include "BLI_compiler_compat.h"
+#include "GPU_common.h"
 
 #ifdef __cplusplus
 extern "C" {

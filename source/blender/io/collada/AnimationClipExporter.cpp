@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "GeometryExporter.h"
 #include "AnimationClipExporter.h"
+#include "GeometryExporter.h"
 #include "MaterialExporter.h"
 
 void AnimationClipExporter::exportAnimationClips(Scene *sce)

@@ -21,19 +21,19 @@
  * \ingroup bke
  */
 
-#include <stdlib.h>
 #include "atomic_ops.h"
+#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h" /* SELECT */
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
-#include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"

@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include "intern/node/deg_node.h"
 #include "BLI_sys_types.h"
 #include "DNA_ID.h"
+#include "intern/node/deg_node.h"
 
 struct GHash;
 

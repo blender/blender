@@ -21,11 +21,11 @@
  * \ingroup edmask
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -40,8 +40,8 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
-#include "ED_mask.h" /* own include */
 #include "ED_markers.h"
+#include "ED_mask.h" /* own include */
 
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:

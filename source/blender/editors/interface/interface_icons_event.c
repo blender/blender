@@ -34,8 +34,8 @@
 #include "GPU_state.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
@@ -48,8 +48,8 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
-#include "BKE_icons.h"
 #include "BKE_appdir.h"
+#include "BKE_icons.h"
 #include "BKE_studiolight.h"
 
 #include "IMB_imbuf.h"

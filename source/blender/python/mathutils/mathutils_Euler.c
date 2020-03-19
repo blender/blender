@@ -22,10 +22,10 @@
 
 #include "mathutils.h"
 
+#include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "../generic/python_utildefines.h"
-#include "../generic/py_capi_utils.h"
 
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"

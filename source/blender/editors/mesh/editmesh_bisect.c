@@ -29,22 +29,22 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_global.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_gizmo_utils.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_gizmo_utils.h"
 
 #include "UI_resources.h"
 

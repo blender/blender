@@ -42,8 +42,8 @@
 #include "ED_undo.h"
 #include "ED_util.h"
 
-#include "WM_types.h"
 #include "WM_api.h"
+#include "WM_types.h"
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.armature"};

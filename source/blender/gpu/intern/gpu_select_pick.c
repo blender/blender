@@ -23,20 +23,20 @@
  * Custom select code for picking small regions (not efficient for large regions).
  * `gpu_select_pick_*` API.
  */
-#include <string.h>
-#include <stdlib.h>
 #include <float.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "GPU_immediate.h"
 #include "GPU_draw.h"
+#include "GPU_glew.h"
+#include "GPU_immediate.h"
 #include "GPU_select.h"
 #include "GPU_state.h"
-#include "GPU_glew.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_rect.h"
 #include "BLI_listbase.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "gpu_select_private.h"

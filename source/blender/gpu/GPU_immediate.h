@@ -26,12 +26,12 @@
 #ifndef __GPU_IMMEDIATE_H__
 #define __GPU_IMMEDIATE_H__
 
-#include "GPU_vertex_format.h"
-#include "GPU_primitive.h"
-#include "GPU_shader_interface.h"
 #include "GPU_batch.h"
 #include "GPU_immediate_util.h"
+#include "GPU_primitive.h"
 #include "GPU_shader.h"
+#include "GPU_shader_interface.h"
+#include "GPU_vertex_format.h"
 
 #ifdef __cplusplus
 extern "C" {

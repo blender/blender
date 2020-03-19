@@ -21,8 +21,8 @@
  * \ingroup sptopbar
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -47,8 +47,8 @@
 #include "RNA_access.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 /* ******************** default callbacks for topbar space ***************** */
 

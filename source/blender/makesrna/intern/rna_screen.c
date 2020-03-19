@@ -18,16 +18,16 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_workspace_types.h"
 
 const EnumPropertyItem rna_enum_region_type_items[] = {
@@ -55,8 +55,8 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BKE_global.h"
-#  include "BKE_workspace.h"
 #  include "BKE_screen.h"
+#  include "BKE_workspace.h"
 
 #  include "DEG_depsgraph.h"
 

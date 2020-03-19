@@ -20,9 +20,9 @@
 
 #ifndef WITH_PYTHON_MODULE
 
+#  include <errno.h>
 #  include <stdlib.h>
 #  include <string.h>
-#  include <errno.h>
 
 #  include "MEM_guardedalloc.h"
 
@@ -33,15 +33,15 @@
 #  endif
 
 #  include "BLI_args.h"
-#  include "BLI_threads.h"
-#  include "BLI_utildefines.h"
+#  include "BLI_fileops.h"
 #  include "BLI_listbase.h"
+#  include "BLI_mempool.h"
+#  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
-#  include "BLI_path_util.h"
-#  include "BLI_fileops.h"
-#  include "BLI_mempool.h"
 #  include "BLI_system.h"
+#  include "BLI_threads.h"
+#  include "BLI_utildefines.h"
 
 #  include "BLO_readfile.h" /* only for BLO_has_bfile_extension */
 

@@ -25,9 +25,9 @@
 
 #include <stdio.h>
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLI_timecode.h" /* own include */
 

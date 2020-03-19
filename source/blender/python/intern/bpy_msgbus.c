@@ -21,8 +21,8 @@
 
 #include <Python.h>
 
-#include "../generic/python_utildefines.h"
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
 #include "BLI_utildefines.h"
@@ -30,17 +30,17 @@
 #include "BKE_context.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
+#include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "bpy_capi_utils.h"
-#include "bpy_rna.h"
-#include "bpy_intern_string.h"
 #include "bpy_gizmo_wrap.h" /* own include */
+#include "bpy_intern_string.h"
+#include "bpy_rna.h"
 
 #include "bpy_msgbus.h" /* own include */
 

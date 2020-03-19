@@ -25,8 +25,8 @@
 #include "render/object.h"
 #include "render/scene.h"
 
-#include "subd/subd_split.h"
 #include "subd/subd_patch_table.h"
+#include "subd/subd_split.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"

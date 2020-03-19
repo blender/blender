@@ -21,8 +21,8 @@
  * \ingroup edobj
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -37,9 +37,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_object.h"
 
 #include "DEG_depsgraph.h"
 

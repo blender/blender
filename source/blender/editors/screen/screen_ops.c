@@ -26,25 +26,25 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_object_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_mesh_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_node_types.h"
-#include "DNA_workspace_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
@@ -77,8 +77,8 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_sequencer.h"
-#include "ED_util.h"
 #include "ED_undo.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "RNA_access.h"

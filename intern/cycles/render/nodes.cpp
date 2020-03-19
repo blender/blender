@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
+#include "render/nodes.h"
 #include "render/colorspace.h"
+#include "render/constant_fold.h"
 #include "render/film.h"
 #include "render/image.h"
 #include "render/integrator.h"
 #include "render/light.h"
 #include "render/mesh.h"
-#include "render/nodes.h"
+#include "render/osl.h"
 #include "render/scene.h"
 #include "render/svm.h"
-#include "render/osl.h"
-#include "render/constant_fold.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"

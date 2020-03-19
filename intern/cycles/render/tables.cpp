@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "render/tables.h"
 #include "device/device.h"
 #include "render/scene.h"
-#include "render/tables.h"
 
 #include "util/util_logging.h"
 

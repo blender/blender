@@ -21,9 +21,9 @@
  * \ingroup bke
  */
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -36,12 +36,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_constraint_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_utildefines.h"
@@ -57,15 +57,15 @@
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
+#include "BKE_image.h" /* openanim */
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
-#include "BKE_image.h" /* openanim */
 #include "BKE_tracking.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 #include "IMB_moviecache.h"
 
 #include "DEG_depsgraph.h"

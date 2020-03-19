@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include "stdcycles.h"
 #include "oslutil.h"
+#include "stdcycles.h"
 
 shader node_wireframe(string bump_offset = "center",
                       int use_pixel_size = 0,

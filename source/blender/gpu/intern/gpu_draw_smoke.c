@@ -28,8 +28,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_modifier_types.h"
 #include "DNA_fluid_types.h"
+#include "DNA_modifier_types.h"
 
 #include "MEM_guardedalloc.h"
 
