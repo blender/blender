@@ -247,7 +247,7 @@ enum {
    *     object 1 transform before solver ---> solver ------> object 1 final transform
    *     object 2 transform before solver -----^     \------> object 2 final transform
    */
-  DEG_FOREACH_COMPONENT_IGNORE_TRANSFORM_SOLVERS,
+  DEG_FOREACH_COMPONENT_IGNORE_TRANSFORM_SOLVERS = (1 << 0),
 };
 void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
                                         const ID *id,
