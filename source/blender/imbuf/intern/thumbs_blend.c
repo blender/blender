@@ -29,7 +29,7 @@
 #include "BLO_readfile.h"
 
 #include "BKE_icons.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_main.h"
 
 #include "DNA_ID.h" /* For preview images... */
@@ -47,7 +47,7 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
   if (blen_group && blen_id) {
     LinkNode *ln, *names, *lp, *previews = NULL;
     struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, NULL);
-    int idcode = BKE_idcode_from_name(blen_group);
+    int idcode = BKE_idtype_idcode_from_name(blen_group);
     int i, nprevs, nnames;
 
     if (libfiledata == NULL) {

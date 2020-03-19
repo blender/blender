@@ -122,8 +122,8 @@
 #include "BKE_global.h"  // for G
 #include "BKE_gpencil_modifier.h"
 #include "BKE_hair.h"
-#include "BKE_idcode.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
@@ -629,7 +629,8 @@ static void read_file_bhead_idname_map_create(FileData *fd)
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
-      is_link = BKE_idcode_is_valid(code_prev) ? BKE_idcode_is_linkable(code_prev) : false;
+      is_link = BKE_idtype_idcode_is_valid(code_prev) ? BKE_idtype_idcode_is_linkable(code_prev) :
+                                                        false;
     }
 
     if (is_link) {
@@ -644,7 +645,8 @@ static void read_file_bhead_idname_map_create(FileData *fd)
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
-      is_link = BKE_idcode_is_valid(code_prev) ? BKE_idcode_is_linkable(code_prev) : false;
+      is_link = BKE_idtype_idcode_is_valid(code_prev) ? BKE_idtype_idcode_is_linkable(code_prev) :
+                                                        false;
     }
 
     if (is_link) {
@@ -11781,7 +11783,7 @@ static ID *link_named_part(
   const bool use_placeholders = (flag & BLO_LIBLINK_USE_PLACEHOLDERS) != 0;
   const bool force_indirect = (flag & BLO_LIBLINK_FORCE_INDIRECT) != 0;
 
-  BLI_assert(BKE_idcode_is_linkable(idcode) && BKE_idcode_is_valid(idcode));
+  BLI_assert(BKE_idtype_idcode_is_linkable(idcode) && BKE_idtype_idcode_is_valid(idcode));
 
   if (bhead) {
     id = is_yet_read(fd, mainl, bhead);
@@ -11840,9 +11842,9 @@ int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const uint64_t id_t
       break;
     }
 
-    if (BKE_idcode_is_valid(bhead->code) && BKE_idcode_is_linkable(bhead->code) &&
+    if (BKE_idtype_idcode_is_valid(bhead->code) && BKE_idtype_idcode_is_linkable(bhead->code) &&
         (id_types_mask == 0 ||
-         (BKE_idcode_to_idfilter((short)bhead->code) & id_types_mask) != 0)) {
+         (BKE_idtype_idcode_to_idfilter((short)bhead->code) & id_types_mask) != 0)) {
       read_libblock(fd, mainl, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, false, &id);
       num_directly_linked++;
     }
@@ -12154,7 +12156,8 @@ static void read_library_linked_id(
     ReportList *reports, FileData *fd, Main *mainvar, ID *id, ID **r_id)
 {
   BHead *bhead = NULL;
-  const bool is_valid = BKE_idcode_is_linkable(GS(id->name)) || ((id->tag & LIB_TAG_EXTERN) == 0);
+  const bool is_valid = BKE_idtype_idcode_is_linkable(GS(id->name)) ||
+                        ((id->tag & LIB_TAG_EXTERN) == 0);
 
   if (fd) {
     bhead = find_bhead_from_idname(fd, id->name);
@@ -12165,7 +12168,7 @@ static void read_library_linked_id(
                      RPT_ERROR,
                      TIP_("LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a "
                           "non-linkable data type"),
-                     BKE_idcode_to_name(GS(id->name)),
+                     BKE_idtype_idcode_to_name(GS(id->name)),
                      id->name + 2,
                      mainvar->curlib->filepath,
                      library_parent_filepath(mainvar->curlib));
@@ -12183,7 +12186,7 @@ static void read_library_linked_id(
     blo_reportf_wrap(reports,
                      RPT_WARNING,
                      TIP_("LIB: %s: '%s' missing from '%s', parent '%s'"),
-                     BKE_idcode_to_name(GS(id->name)),
+                     BKE_idtype_idcode_to_name(GS(id->name)),
                      id->name + 2,
                      mainvar->curlib->filepath,
                      library_parent_filepath(mainvar->curlib));

@@ -56,7 +56,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BLO_readfile.h"
 
@@ -2454,14 +2454,14 @@ static int groupname_to_code(const char *group)
     lslash[0] = '\0';
   }
 
-  return buf[0] ? BKE_idcode_from_name(buf) : 0;
+  return buf[0] ? BKE_idtype_idcode_from_name(buf) : 0;
 }
 
 static uint64_t groupname_to_filter_id(const char *group)
 {
   int id_code = groupname_to_code(group);
 
-  return BKE_idcode_to_idfilter(id_code);
+  return BKE_idtype_idcode_to_idfilter(id_code);
 }
 
 /**

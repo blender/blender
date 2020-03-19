@@ -37,7 +37,7 @@
 
 extern "C" {
 #include "BKE_global.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_scene.h"
 }
 
@@ -135,7 +135,7 @@ IDNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
     BLI_ghash_insert(id_hash, id, id_node);
     id_nodes.push_back(id_node);
 
-    id_type_exist[BKE_idcode_to_index(GS(id->name))] = 1;
+    id_type_exist[BKE_idtype_idcode_to_index(GS(id->name))] = 1;
   }
   return id_node;
 }

@@ -44,8 +44,8 @@
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
-#include "BKE_idcode.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
@@ -6116,7 +6116,7 @@ char *RNA_path_full_ID_py(Main *bmain, ID *id)
   BLI_strescape(id_esc, id->name + 2, sizeof(id_esc));
 
   return BLI_sprintfN("bpy.data.%s[\"%s\"]%s%s",
-                      BKE_idcode_to_name_plural(GS(id->name)),
+                      BKE_idtype_idcode_to_name_plural(GS(id->name)),
                       id_esc,
                       path[0] ? "." : "",
                       path);

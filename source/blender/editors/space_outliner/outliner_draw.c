@@ -46,7 +46,7 @@
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
@@ -2827,7 +2827,7 @@ int tree_element_id_type_to_index(TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
-  const int id_index = tselem->type == 0 ? BKE_idcode_to_index(te->idcode) : INDEX_ID_GR;
+  const int id_index = tselem->type == 0 ? BKE_idtype_idcode_to_index(te->idcode) : INDEX_ID_GR;
   if (id_index < INDEX_ID_OB) {
     return id_index;
   }

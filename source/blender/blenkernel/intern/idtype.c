@@ -24,6 +24,8 @@
  * \ingroup bke
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -34,13 +36,13 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_idcode.h"
+#include "BKE_main.h"
 
 #include "BKE_idtype.h"
 
 // static CLG_LogRef LOG = {"bke.idtype"};
 
-static IDTypeInfo *id_types[INDEX_ID_MAX] = {NULL};
+static IDTypeInfo *id_types[MAX_LIBARRAY] = {NULL};
 
 static void id_type_init(void)
 {
@@ -91,6 +93,10 @@ static void id_type_init(void)
   INIT_TYPE(ID_PT);
   INIT_TYPE(ID_VO);
 
+  /* Special naughty boy... */
+  BLI_assert(IDType_ID_LINK_PLACEHOLDER.main_listbase_index == INDEX_ID_NULL);
+  id_types[INDEX_ID_NULL] = &IDType_ID_LINK_PLACEHOLDER;
+
 #undef INIT_TYPE
 }
 
@@ -102,9 +108,9 @@ void BKE_idtype_init(void)
 
 const IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code)
 {
-  int id_index = BKE_idcode_to_index(id_code);
+  int id_index = BKE_idtype_idcode_to_index(id_code);
 
-  if (id_index >= 0 && id_index < INDEX_ID_MAX && id_types[id_index] != NULL &&
+  if (id_index >= 0 && id_index < ARRAY_SIZE(id_types) && id_types[id_index] != NULL &&
       id_types[id_index]->name[0] != '\0') {
     return id_types[id_index];
   }
@@ -116,4 +122,330 @@ const IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code)
 const IDTypeInfo *BKE_idtype_get_info_from_id(const ID *id)
 {
   return BKE_idtype_get_info_from_idcode(GS(id->name));
+}
+
+static const IDTypeInfo *idtype_get_info_from_name(const char *str)
+{
+  for (int i = ARRAY_SIZE(id_types); i--;) {
+    if (id_types[i] != NULL && STREQ(str, id_types[i]->name)) {
+      return id_types[i];
+    }
+  }
+
+  return NULL;
+}
+
+/* Various helpers/wrappers around IDTypeInfo structure. */
+
+/**
+ * Convert an idcode into a name.
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the name of
+ * the code.
+ */
+const char *BKE_idtype_idcode_to_name(const short idcode)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
+  BLI_assert(id_type != NULL);
+  return id_type != NULL ? id_type->name : NULL;
+}
+
+/**
+ * Convert an idcode into a name (plural).
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the name of
+ * the code.
+ */
+const char *BKE_idtype_idcode_to_name_plural(const short idcode)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
+  BLI_assert(id_type != NULL);
+  return id_type != NULL ? id_type->name_plural : NULL;
+}
+
+/**
+ * Convert an idcode into its translations' context.
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the i18n context of the code.
+ */
+const char *BKE_idtype_idcode_to_translation_context(const short idcode)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
+  BLI_assert(id_type != NULL);
+  return id_type != NULL ? id_type->translation_context : BLT_I18NCONTEXT_DEFAULT;
+}
+
+/**
+ * Convert a name into an idcode (ie. ID_SCE)
+ *
+ * \param name: The name to convert.
+ * \return The code for the name, or 0 if invalid.
+ */
+short BKE_idtype_idcode_from_name(const char *name)
+{
+  const IDTypeInfo *id_type = idtype_get_info_from_name(name);
+  BLI_assert(id_type);
+  return id_type != NULL ? id_type->id_code : 0;
+}
+
+/**
+ * Return if the ID code is a valid ID code.
+ *
+ * \param idcode: The code to check.
+ * \return Boolean, 0 when invalid.
+ */
+bool BKE_idtype_idcode_is_valid(const short idcode)
+{
+  return BKE_idtype_get_info_from_idcode(idcode) != NULL ? true : false;
+}
+
+/**
+ * Return non-zero when an ID type is linkable.
+ *
+ * \param idcode: The code to check.
+ * \return Boolean, 0 when non linkable.
+ */
+bool BKE_idtype_idcode_is_linkable(const short idcode)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
+  BLI_assert(id_type != NULL);
+  return id_type != NULL ? (id_type->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0 : false;
+}
+
+/**
+ * Convert an idcode into an idfilter (e.g. ID_OB -> FILTER_ID_OB).
+ */
+uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
+{
+#define CASE_IDFILTER(_id) \
+  case ID_##_id: \
+    return FILTER_ID_##_id
+
+  switch (idcode) {
+    CASE_IDFILTER(AC);
+    CASE_IDFILTER(AR);
+    CASE_IDFILTER(BR);
+    CASE_IDFILTER(CA);
+    CASE_IDFILTER(CF);
+    CASE_IDFILTER(CU);
+    CASE_IDFILTER(GD);
+    CASE_IDFILTER(GR);
+    CASE_IDFILTER(HA);
+    CASE_IDFILTER(IM);
+    CASE_IDFILTER(LA);
+    CASE_IDFILTER(LS);
+    CASE_IDFILTER(LT);
+    CASE_IDFILTER(MA);
+    CASE_IDFILTER(MB);
+    CASE_IDFILTER(MC);
+    CASE_IDFILTER(ME);
+    CASE_IDFILTER(MSK);
+    CASE_IDFILTER(NT);
+    CASE_IDFILTER(OB);
+    CASE_IDFILTER(PA);
+    CASE_IDFILTER(PAL);
+    CASE_IDFILTER(PC);
+    CASE_IDFILTER(PT);
+    CASE_IDFILTER(LP);
+    CASE_IDFILTER(SCE);
+    CASE_IDFILTER(SPK);
+    CASE_IDFILTER(SO);
+    CASE_IDFILTER(TE);
+    CASE_IDFILTER(TXT);
+    CASE_IDFILTER(VF);
+    CASE_IDFILTER(VO);
+    CASE_IDFILTER(WO);
+    CASE_IDFILTER(WS);
+    default:
+      return 0;
+  }
+
+#undef CASE_IDFILTER
+}
+
+/**
+ * Convert an idfilter into an idcode (e.g. FILTER_ID_OB -> ID_OB).
+ */
+short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
+{
+#define CASE_IDFILTER(_id) \
+  case FILTER_ID_##_id: \
+    return ID_##_id
+
+  switch (idfilter) {
+    CASE_IDFILTER(AC);
+    CASE_IDFILTER(AR);
+    CASE_IDFILTER(BR);
+    CASE_IDFILTER(CA);
+    CASE_IDFILTER(CF);
+    CASE_IDFILTER(CU);
+    CASE_IDFILTER(GD);
+    CASE_IDFILTER(GR);
+    CASE_IDFILTER(HA);
+    CASE_IDFILTER(IM);
+    CASE_IDFILTER(LA);
+    CASE_IDFILTER(LS);
+    CASE_IDFILTER(LT);
+    CASE_IDFILTER(MA);
+    CASE_IDFILTER(MB);
+    CASE_IDFILTER(MC);
+    CASE_IDFILTER(ME);
+    CASE_IDFILTER(MSK);
+    CASE_IDFILTER(NT);
+    CASE_IDFILTER(OB);
+    CASE_IDFILTER(PA);
+    CASE_IDFILTER(PAL);
+    CASE_IDFILTER(PC);
+    CASE_IDFILTER(PT);
+    CASE_IDFILTER(LP);
+    CASE_IDFILTER(SCE);
+    CASE_IDFILTER(SPK);
+    CASE_IDFILTER(SO);
+    CASE_IDFILTER(TE);
+    CASE_IDFILTER(TXT);
+    CASE_IDFILTER(VF);
+    CASE_IDFILTER(VO);
+    CASE_IDFILTER(WO);
+    default:
+      return 0;
+  }
+
+#undef CASE_IDFILTER
+}
+
+/**
+ * Convert an idcode into an index (e.g. ID_OB -> INDEX_ID_OB).
+ */
+int BKE_idtype_idcode_to_index(const short idcode)
+{
+#define CASE_IDINDEX(_id) \
+  case ID_##_id: \
+    return INDEX_ID_##_id
+
+  switch ((ID_Type)idcode) {
+    CASE_IDINDEX(AC);
+    CASE_IDINDEX(AR);
+    CASE_IDINDEX(BR);
+    CASE_IDINDEX(CA);
+    CASE_IDINDEX(CF);
+    CASE_IDINDEX(CU);
+    CASE_IDINDEX(GD);
+    CASE_IDINDEX(GR);
+    CASE_IDINDEX(HA);
+    CASE_IDINDEX(IM);
+    CASE_IDINDEX(IP);
+    CASE_IDINDEX(KE);
+    CASE_IDINDEX(LA);
+    CASE_IDINDEX(LI);
+    CASE_IDINDEX(LS);
+    CASE_IDINDEX(LT);
+    CASE_IDINDEX(MA);
+    CASE_IDINDEX(MB);
+    CASE_IDINDEX(MC);
+    CASE_IDINDEX(ME);
+    CASE_IDINDEX(MSK);
+    CASE_IDINDEX(NT);
+    CASE_IDINDEX(OB);
+    CASE_IDINDEX(PA);
+    CASE_IDINDEX(PAL);
+    CASE_IDINDEX(PC);
+    CASE_IDINDEX(PT);
+    CASE_IDINDEX(LP);
+    CASE_IDINDEX(SCE);
+    CASE_IDINDEX(SCR);
+    CASE_IDINDEX(SPK);
+    CASE_IDINDEX(SO);
+    CASE_IDINDEX(TE);
+    CASE_IDINDEX(TXT);
+    CASE_IDINDEX(VF);
+    CASE_IDINDEX(VO);
+    CASE_IDINDEX(WM);
+    CASE_IDINDEX(WO);
+    CASE_IDINDEX(WS);
+  }
+
+  /* Special naughty boy... */
+  if (idcode == ID_LINK_PLACEHOLDER) {
+    return INDEX_ID_NULL;
+  }
+
+  return -1;
+
+#undef CASE_IDINDEX
+}
+
+/**
+ * Get an idcode from an index (e.g. INDEX_ID_OB -> ID_OB).
+ */
+short BKE_idtype_idcode_from_index(const int index)
+{
+#define CASE_IDCODE(_id) \
+  case INDEX_ID_##_id: \
+    return ID_##_id
+
+  switch (index) {
+    CASE_IDCODE(AC);
+    CASE_IDCODE(AR);
+    CASE_IDCODE(BR);
+    CASE_IDCODE(CA);
+    CASE_IDCODE(CF);
+    CASE_IDCODE(CU);
+    CASE_IDCODE(GD);
+    CASE_IDCODE(GR);
+    CASE_IDCODE(HA);
+    CASE_IDCODE(IM);
+    CASE_IDCODE(IP);
+    CASE_IDCODE(KE);
+    CASE_IDCODE(LA);
+    CASE_IDCODE(LI);
+    CASE_IDCODE(LS);
+    CASE_IDCODE(LT);
+    CASE_IDCODE(MA);
+    CASE_IDCODE(MB);
+    CASE_IDCODE(MC);
+    CASE_IDCODE(ME);
+    CASE_IDCODE(MSK);
+    CASE_IDCODE(NT);
+    CASE_IDCODE(OB);
+    CASE_IDCODE(PA);
+    CASE_IDCODE(PAL);
+    CASE_IDCODE(PC);
+    CASE_IDCODE(PT);
+    CASE_IDCODE(LP);
+    CASE_IDCODE(SCE);
+    CASE_IDCODE(SCR);
+    CASE_IDCODE(SPK);
+    CASE_IDCODE(SO);
+    CASE_IDCODE(TE);
+    CASE_IDCODE(TXT);
+    CASE_IDCODE(VF);
+    CASE_IDCODE(VO);
+    CASE_IDCODE(WM);
+    CASE_IDCODE(WO);
+    CASE_IDCODE(WS);
+  }
+
+  /* Special naughty boy... */
+  if (index == INDEX_ID_NULL) {
+    return ID_LINK_PLACEHOLDER;
+  }
+
+  return -1;
+
+#undef CASE_IDCODE
+}
+
+/**
+ * Return an ID code and steps the index forward 1.
+ *
+ * \param index: start as 0.
+ * \return the code, 0 when all codes have been returned.
+ */
+short BKE_idtype_idcode_iter_step(int *index)
+{
+  printf("%d: %d\n", *index, BKE_idtype_idcode_from_index((*index)));
+  return (*index < ARRAY_SIZE(id_types)) ? BKE_idtype_idcode_from_index((*index)++) : 0;
 }

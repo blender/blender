@@ -158,7 +158,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"  // for G
 #include "BKE_gpencil_modifier.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
@@ -3861,7 +3861,7 @@ static void write_libraries(WriteData *wd, Main *main)
           if (id->us > 0 &&
               ((id->tag & LIB_TAG_EXTERN) ||
                ((id->tag & LIB_TAG_INDIRECT) && (id->flag & LIB_INDIRECT_WEAK_LINK)))) {
-            if (!BKE_idcode_is_linkable(GS(id->name))) {
+            if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
               printf(
                   "ERROR: write file: data-block '%s' from lib '%s' is not linkable "
                   "but is flagged as directly linked",

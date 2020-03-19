@@ -59,7 +59,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -687,7 +687,7 @@ static const char *template_id_browse_tip(const StructRNA *type)
 static const char *template_id_context(StructRNA *type)
 {
   if (type) {
-    return BKE_idcode_to_translation_context(RNA_type_to_ID_code(type));
+    return BKE_idtype_idcode_to_translation_context(RNA_type_to_ID_code(type));
   }
   return BLT_I18NCONTEXT_DEFAULT;
 }
@@ -2779,7 +2779,7 @@ void uiTemplatePreview(uiLayout *layout,
 
   if (!preview_id || (preview_id[0] == '\0')) {
     /* If no identifier given, generate one from ID type. */
-    BLI_snprintf(_preview_id, UI_MAX_NAME_STR, "uiPreview_%s", BKE_idcode_to_name(GS(id->name)));
+    BLI_snprintf(_preview_id, UI_MAX_NAME_STR, "uiPreview_%s", BKE_idtype_idcode_to_name(GS(id->name)));
     preview_id = _preview_id;
   }
 

@@ -34,7 +34,7 @@ extern "C" {
 
 #include "BKE_action.h"  // XXX: BKE_pose_channel_find_name
 #include "BKE_customdata.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_main.h"
 
 } /* extern "C" */
@@ -78,7 +78,7 @@ float DEG_get_ctime(const Depsgraph *graph)
 bool DEG_id_type_updated(const Depsgraph *graph, short id_type)
 {
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
-  return deg_graph->id_type_updated[BKE_idcode_to_index(id_type)] != 0;
+  return deg_graph->id_type_updated[BKE_idtype_idcode_to_index(id_type)] != 0;
 }
 
 bool DEG_id_type_any_updated(const Depsgraph *graph)
@@ -98,7 +98,7 @@ bool DEG_id_type_any_updated(const Depsgraph *graph)
 bool DEG_id_type_any_exists(const Depsgraph *depsgraph, short id_type)
 {
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
-  return deg_graph->id_type_exist[BKE_idcode_to_index(id_type)] != 0;
+  return deg_graph->id_type_exist[BKE_idtype_idcode_to_index(id_type)] != 0;
 }
 
 uint32_t DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)

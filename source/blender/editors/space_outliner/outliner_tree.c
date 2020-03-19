@@ -59,7 +59,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -1237,7 +1237,7 @@ static void outliner_add_seq_dup(SpaceOutliner *soops, Sequence *seq, TreeElemen
 
 static const char *outliner_idcode_to_plural(short idcode)
 {
-  const char *propname = BKE_idcode_to_name_plural(idcode);
+  const char *propname = BKE_idtype_idcode_to_name_plural(idcode);
   PropertyRNA *prop = RNA_struct_type_find_property(&RNA_BlendData, propname);
   return (prop) ? RNA_property_ui_name(prop) : "UNKNOWN";
 }

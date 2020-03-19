@@ -74,7 +74,7 @@
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
 #include "BKE_unit.h"
 
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 
 #include "BLF_api.h"
 
@@ -1256,7 +1256,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
       BKE_reportf(op->reports,
                   RPT_ERROR,
                   "Cannot read %s '%s': %s",
-                  BKE_idcode_to_name(idcode),
+                  BKE_idtype_idcode_to_name(idcode),
                   path,
                   errno ? strerror(errno) : TIP_("unsupported format"));
       return NULL;
@@ -1278,7 +1278,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
     RNA_string_get(op->ptr, "name", name);
     id = BKE_libblock_find_name(bmain, idcode, name);
     if (!id) {
-      BKE_reportf(op->reports, RPT_ERROR, "%s '%s' not found", BKE_idcode_to_name(idcode), name);
+      BKE_reportf(op->reports, RPT_ERROR, "%s '%s' not found", BKE_idtype_idcode_to_name(idcode), name);
       return NULL;
     }
     id_us_plus(id);
@@ -3511,12 +3511,12 @@ static int previews_clear_exec(bContext *C, wmOperator *op)
     printf("%s: %d, %d, %d -> %d\n",
            id->name,
            GS(id->name),
-           BKE_idcode_to_idfilter(GS(id->name)),
+           BKE_idtype_idcode_to_idfilter(GS(id->name)),
            id_filters,
-           BKE_idcode_to_idfilter(GS(id->name)) & id_filters);
+           BKE_idtype_idcode_to_idfilter(GS(id->name)) & id_filters);
 #endif
 
-    if (!(BKE_idcode_to_idfilter(GS(id->name)) & id_filters)) {
+    if (!(BKE_idtype_idcode_to_idfilter(GS(id->name)) & id_filters)) {
       continue;
     }
 

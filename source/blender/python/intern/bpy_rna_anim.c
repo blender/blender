@@ -39,7 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_report.h"
 
@@ -473,7 +473,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
             RPT_WARNING,
             "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'",
             strip->name,
-            BKE_idcode_to_name(GS(id->name)),
+            BKE_idtype_idcode_to_name(GS(id->name)),
             id->name + 2);
       }
       else {

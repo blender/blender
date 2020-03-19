@@ -35,7 +35,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -246,9 +246,9 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   }
   else {
     int i = 0, code;
-    while ((code = BKE_idcode_iter_step(&i))) {
-      if (BKE_idcode_is_linkable(code)) {
-        const char *name_plural = BKE_idcode_to_name_plural(code);
+    while ((code = BKE_idtype_idcode_iter_step(&i))) {
+      if (BKE_idtype_idcode_is_linkable(code)) {
+        const char *name_plural = BKE_idtype_idcode_to_name_plural(code);
         PyObject *str = PyUnicode_FromString(name_plural);
         PyObject *item;
 
@@ -332,9 +332,9 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 
   {
     int idcode_step = 0, idcode;
-    while ((idcode = BKE_idcode_iter_step(&idcode_step))) {
-      if (BKE_idcode_is_linkable(idcode) && (idcode != ID_WS || do_append)) {
-        const char *name_plural = BKE_idcode_to_name_plural(idcode);
+    while ((idcode = BKE_idtype_idcode_iter_step(&idcode_step))) {
+      if (BKE_idtype_idcode_is_linkable(idcode) && (idcode != ID_WS || do_append)) {
+        const char *name_plural = BKE_idtype_idcode_to_name_plural(idcode);
         PyObject *ls = PyDict_GetItemString(self->dict, name_plural);
         // printf("lib: %s\n", name_plural);
         if (ls && PyList_Check(ls)) {
@@ -419,9 +419,9 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 #ifdef USE_RNA_DATABLOCKS
     {
       int idcode_step = 0, idcode;
-      while ((idcode = BKE_idcode_iter_step(&idcode_step))) {
-        if (BKE_idcode_is_linkable(idcode) && (idcode != ID_WS || do_append)) {
-          const char *name_plural = BKE_idcode_to_name_plural(idcode);
+      while ((idcode = BKE_idtype_idcode_iter_step(&idcode_step))) {
+        if (BKE_idtype_idcode_is_linkable(idcode) && (idcode != ID_WS || do_append)) {
+          const char *name_plural = BKE_idtype_idcode_to_name_plural(idcode);
           PyObject *ls = PyDict_GetItemString(self->dict, name_plural);
           if (ls && PyList_Check(ls)) {
             Py_ssize_t size = PyList_GET_SIZE(ls);

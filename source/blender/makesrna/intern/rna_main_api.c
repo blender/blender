@@ -51,7 +51,7 @@
 #  include "BKE_gpencil.h"
 #  include "BKE_hair.h"
 #  include "BKE_icons.h"
-#  include "BKE_idcode.h"
+#  include "BKE_idtype.h"
 #  include "BKE_image.h"
 #  include "BKE_lattice.h"
 #  include "BKE_lib_remap.h"
@@ -135,7 +135,7 @@ static void rna_Main_ID_remove(Main *bmain,
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is outside of main database and can not be removed from it",
-                BKE_idcode_to_name(GS(id->name)),
+                BKE_idtype_idcode_to_name(GS(id->name)),
                 id->name + 2);
     return;
   }
@@ -157,7 +157,7 @@ static void rna_Main_ID_remove(Main *bmain,
         reports,
         RPT_ERROR,
         "%s '%s' must have zero users to be removed, found %d (try with do_unlink=True parameter)",
-        BKE_idcode_to_name(GS(id->name)),
+        BKE_idtype_idcode_to_name(GS(id->name)),
         id->name + 2,
         ID_REAL_USERS(id));
   }

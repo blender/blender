@@ -25,7 +25,7 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_main_idmap.h" /* own include */
@@ -110,7 +110,7 @@ struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
   while (index < MAX_LIBARRAY) {
     struct IDNameLib_TypeMap *type_map = &id_map->type_maps[index];
     type_map->map = NULL;
-    type_map->id_type = BKE_idcode_iter_step(&index);
+    type_map->id_type = BKE_idtype_idcode_iter_step(&index);
     BLI_assert(type_map->id_type != 0);
   }
   BLI_assert(index == MAX_LIBARRAY);

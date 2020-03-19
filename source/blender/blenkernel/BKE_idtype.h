@@ -166,6 +166,8 @@ extern IDTypeInfo IDType_ID_HA;
 extern IDTypeInfo IDType_ID_PT;
 extern IDTypeInfo IDType_ID_VO;
 
+extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
+
 /* ********** Helpers/Utils API. ********** */
 
 /* Module initialization. */
@@ -174,6 +176,22 @@ void BKE_idtype_init(void);
 /* General helpers. */
 const struct IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code);
 const struct IDTypeInfo *BKE_idtype_get_info_from_id(const struct ID *id);
+
+const char *BKE_idtype_idcode_to_name(const short idcode);
+const char *BKE_idtype_idcode_to_name_plural(const short idcode);
+const char *BKE_idtype_idcode_to_translation_context(const short idcode);
+bool BKE_idtype_idcode_is_linkable(const short idcode);
+bool BKE_idtype_idcode_is_valid(const short idcode);
+
+short BKE_idtype_idcode_from_name(const char *name);
+
+uint64_t BKE_idtype_idcode_to_idfilter(const short idcode);
+short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter);
+
+int BKE_idtype_idcode_to_index(const short idcode);
+short BKE_idtype_idcode_from_index(const int index);
+
+short BKE_idtype_idcode_iter_step(int *index);
 
 #ifdef __cplusplus
 }

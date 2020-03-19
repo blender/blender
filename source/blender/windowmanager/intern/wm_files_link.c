@@ -56,7 +56,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -304,11 +304,11 @@ static bool wm_link_append_item_poll(ReportList *reports,
     return false;
   }
 
-  idcode = BKE_idcode_from_name(group);
+  idcode = BKE_idtype_idcode_from_name(group);
 
   /* XXX For now, we do a nasty exception for workspace, forbid linking them.
    *     Not nice, ultimately should be solved! */
-  if (!BKE_idcode_is_linkable(idcode) && (do_append || idcode != ID_WS)) {
+  if (!BKE_idtype_idcode_is_linkable(idcode) && (do_append || idcode != ID_WS)) {
     if (reports) {
       if (do_append) {
         BKE_reportf(reports,
@@ -444,7 +444,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
         lib_idx = POINTER_AS_INT(BLI_ghash_lookup(libraries, libname));
 
-        item = wm_link_append_data_item_add(lapp_data, name, BKE_idcode_from_name(group), NULL);
+        item = wm_link_append_data_item_add(
+            lapp_data, name, BKE_idtype_idcode_from_name(group), NULL);
         BLI_BITMAP_ENABLE(item->libraries, lib_idx);
       }
     }
@@ -456,7 +457,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     WMLinkAppendDataItem *item;
 
     wm_link_append_data_library_add(lapp_data, libname);
-    item = wm_link_append_data_item_add(lapp_data, name, BKE_idcode_from_name(group), NULL);
+    item = wm_link_append_data_item_add(lapp_data, name, BKE_idtype_idcode_from_name(group), NULL);
     BLI_BITMAP_ENABLE(item->libraries, 0);
   }
 
@@ -703,7 +704,7 @@ static void lib_relocate_do(Main *bmain,
     ID *id = lbarray[lba_idx]->first;
     const short idcode = id ? GS(id->name) : 0;
 
-    if (!id || !BKE_idcode_is_linkable(idcode)) {
+    if (!id || !BKE_idtype_idcode_is_linkable(idcode)) {
       /* No need to reload non-linkable datatypes,
        * those will get relinked with their 'users ID'. */
       continue;

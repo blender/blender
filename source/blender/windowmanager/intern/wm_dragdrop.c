@@ -37,7 +37,7 @@
 #include "BIF_glutil.h"
 
 #include "BKE_context.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 
 #include "GPU_glew.h"
 #include "GPU_shader.h"
@@ -357,7 +357,7 @@ static const char *wm_drag_name(wmDrag *drag)
         return id->name + 2;
       }
       else if (id) {
-        return BKE_idcode_to_name_plural(GS(id->name));
+        return BKE_idtype_idcode_to_name_plural(GS(id->name));
       }
       break;
     }

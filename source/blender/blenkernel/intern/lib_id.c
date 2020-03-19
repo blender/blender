@@ -93,7 +93,6 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_hair.h"
-#include "BKE_idcode.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -138,6 +137,23 @@
 #endif
 
 static CLG_LogRef LOG = {.identifier = "bke.lib_id"};
+
+/* Empty shell mostly, but needed for read code. */
+IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
+    .id_code = ID_LINK_PLACEHOLDER,
+    .id_filter = 0,
+    .main_listbase_index = INDEX_ID_NULL,
+    .struct_size = sizeof(ID),
+    .name = "LinkPlaceholder",
+    .name_plural = "link_placeholders",
+    .translation_context = BLT_I18NCONTEXT_ID_ID,
+    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_MAKELOCAL,
+
+    .init_data = NULL,
+    .copy_data = NULL,
+    .free_data = NULL,
+    .make_local = NULL,
+};
 
 /* GS reads the memory pointed at in a specific ordering.
  * only use this definition, makes little and big endian systems
@@ -204,7 +220,7 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
 void id_lib_extern(ID *id)
 {
   if (id && ID_IS_LINKED(id)) {
-    BLI_assert(BKE_idcode_is_linkable(GS(id->name)));
+    BLI_assert(BKE_idtype_idcode_is_linkable(GS(id->name)));
     if (id->tag & LIB_TAG_INDIRECT) {
       id->tag &= ~LIB_TAG_INDIRECT;
       id->flag &= ~LIB_INDIRECT_WEAK_LINK;
@@ -217,7 +233,7 @@ void id_lib_extern(ID *id)
 void id_lib_indirect_weak_link(ID *id)
 {
   if (id && ID_IS_LINKED(id)) {
-    BLI_assert(BKE_idcode_is_linkable(GS(id->name)));
+    BLI_assert(BKE_idtype_idcode_is_linkable(GS(id->name)));
     if (id->tag & LIB_TAG_INDIRECT) {
       id->flag |= LIB_INDIRECT_WEAK_LINK;
     }
@@ -355,7 +371,8 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
    * (through drivers)...
    * Just skip it, shape key can only be either indirectly linked, or fully local, period.
    * And let's curse one more time that stupid useless shapekey ID type! */
-  if (*id_pointer && *id_pointer != id_self && BKE_idcode_is_linkable(GS((*id_pointer)->name))) {
+  if (*id_pointer && *id_pointer != id_self &&
+      BKE_idtype_idcode_is_linkable(GS((*id_pointer)->name))) {
     id_lib_extern(*id_pointer);
   }
 
@@ -1154,7 +1171,7 @@ void *BKE_id_new(Main *bmain, const short type, const char *name)
   BLI_assert(bmain != NULL);
 
   if (name == NULL) {
-    name = DATA_(BKE_idcode_to_name(type));
+    name = DATA_(BKE_idtype_idcode_to_name(type));
   }
 
   ID *id = BKE_libblock_alloc(bmain, type, name, 0);
@@ -1171,7 +1188,7 @@ void *BKE_id_new(Main *bmain, const short type, const char *name)
 void *BKE_id_new_nomain(const short type, const char *name)
 {
   if (name == NULL) {
-    name = DATA_(BKE_idcode_to_name(type));
+    name = DATA_(BKE_idtype_idcode_to_name(type));
   }
 
   ID *id = BKE_libblock_alloc(NULL,
@@ -1670,7 +1687,7 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
 
   if (name[0] == '\0') {
     /* Disallow empty names. */
-    BLI_strncpy(name, DATA_(BKE_idcode_to_name(GS(id->name))), sizeof(name));
+    BLI_strncpy(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))), sizeof(name));
   }
   else {
     /* disallow non utf8 chars,
@@ -1875,7 +1892,7 @@ void BKE_library_make_local(Main *bmain,
 
     /* Do not explicitly make local non-linkable IDs (shapekeys, in fact),
      * they are assumed to be handled by real data-blocks responsible of them. */
-    const bool do_skip = (id && !BKE_idcode_is_linkable(GS(id->name)));
+    const bool do_skip = (id && !BKE_idtype_idcode_is_linkable(GS(id->name)));
 
     for (; id; id = id->next) {
       ID *ntree = (ID *)ntreeFromID(id);

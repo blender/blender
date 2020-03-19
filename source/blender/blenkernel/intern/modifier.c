@@ -51,7 +51,7 @@
 #include "BKE_appdir.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
-#include "BKE_idcode.h"
+#include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
