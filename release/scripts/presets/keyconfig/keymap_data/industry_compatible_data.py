@@ -3951,6 +3951,14 @@ def km_image_editor_tool_uv_select(params):
     )
 
 
+def km_3d_view_tool_edit_gpencil_select(params):
+    return (
+        "3D View Tool: Edit Gpencil, Tweak",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": _template_items_tool_select(params, "gpencil.select", extend="toggle")},
+    )
+
+
 # Fallback for gizmos that don't have custom a custom key-map.
 
 
@@ -4088,6 +4096,7 @@ def generate_keymaps_impl(params=None):
         # Tool System.
         km_3d_view_tool_select(params),
         km_image_editor_tool_uv_select(params),
+        km_3d_view_tool_edit_gpencil_select(params),
     ]
 
 
