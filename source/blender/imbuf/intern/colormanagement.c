@@ -2293,7 +2293,7 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
   for (int y = 0; y < height; y++) {
     const size_t in_offset = (offset_y + y) * ibuf->x + offset_x;
     const size_t out_offset = y * width;
-    const float *in = in_buffer + in_offset * 4;
+    const float *in = in_buffer + in_offset * in_channels;
     float *out = out_buffer + out_offset * 4;
 
     if (in_channels == 1) {
