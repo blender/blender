@@ -294,7 +294,7 @@ class RENDER_PT_eevee_volumetric_shadows(RenderButtonsPanel, Panel):
         props = scene.eevee
 
         layout.active = props.use_volumetric_shadows
-        layout.prop(props, "volumetric_shadow_samples", text="Shadow Samples")
+        layout.prop(props, "volumetric_shadow_samples", text="Samples")
 
 
 class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):
