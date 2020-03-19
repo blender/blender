@@ -218,6 +218,7 @@ bool multires_reshape_context_create_from_subdivide(MultiresReshapeContext *resh
 
   Mesh *base_mesh = (Mesh *)object->data;
 
+  reshape_context->mmd = mmd;
   reshape_context->base_mesh = base_mesh;
 
   reshape_context->subdiv = multires_reshape_create_subdiv(NULL, object, mmd);

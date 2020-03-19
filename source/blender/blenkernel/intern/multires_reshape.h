@@ -39,6 +39,7 @@ typedef struct MultiresReshapeContext {
   /* NOTE: Only available when context is initialized from object. */
   struct Depsgraph *depsgraph;
   struct Object *object;
+
   struct MultiresModifierData *mmd;
 
   /* Base mesh from original object.
