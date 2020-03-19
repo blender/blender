@@ -822,7 +822,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
   if (treedata->tree == NULL) {
     /* Operators only update the editmesh looptris of the original mesh. */
     BLI_assert(sod->treedata_editmesh.em == BKE_editmesh_from_object(DEG_get_original_object(ob)));
-    BMEditMesh *em = sod->treedata_editmesh.em;
+    em = sod->treedata_editmesh.em;
 
     if (sctx->callbacks.edit_mesh.test_face_fn) {
       BMesh *bm = em->bm;
@@ -910,7 +910,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
         retval = true;
 
         if (r_index) {
-          BMEditMesh *em = sod->treedata_editmesh.em;
+          em = sod->treedata_editmesh.em;
 
           *r_index = BM_elem_index_get(em->looptris[hit.index][0]->f);
         }
