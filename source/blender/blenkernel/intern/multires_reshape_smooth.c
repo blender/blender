@@ -454,14 +454,7 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
                                   const int num_polygons)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
-  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-
-  const int resolution = get_reshape_level_resolution(reshape_context);
-  const int num_subdiv_vertices_per_base_edge = resolution - 2;
-
-  const Mesh *base_mesh = reshape_context->base_mesh;
-  const int num_base_edges = base_mesh->totedge;
-  const int max_edges = num_base_edges * (num_subdiv_vertices_per_base_edge + 1);
+  const int max_edges = reshape_smooth_context->geometry.max_edges;
 
   /* NOTE: Calloc so the counters are re-set to 0 "for free". */
   reshape_smooth_context->geometry.num_vertices = num_vertices;
@@ -662,6 +655,7 @@ void foreach_edge(const struct SubdivForeachContext *foreach_context,
                   const int subdiv_v2)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
   /* Ignore all inner face edges as they have sharpness of zero. */
   if (coarse_edge_index == ORIGINDEX_NONE) {
@@ -671,8 +665,12 @@ void foreach_edge(const struct SubdivForeachContext *foreach_context,
   if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, coarse_edge_index)) {
     return;
   }
-
-  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+  /* Edges without crease are to be ignored as well. */
+  const Mesh *base_mesh = reshape_context->base_mesh;
+  const MEdge *base_edge = &base_mesh->medge[coarse_edge_index];
+  if (base_edge->crease == 0) {
+    return;
+  }
 
   /* This is a bit overhead to use atomics in such a simple function called from many threads,
    * but this allows to save quite measurable amount of memory. */
@@ -682,9 +680,6 @@ void foreach_edge(const struct SubdivForeachContext *foreach_context,
   Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
   edge->v1 = subdiv_v1;
   edge->v2 = subdiv_v2;
-
-  const Mesh *base_mesh = reshape_context->base_mesh;
-  const MEdge *base_edge = &base_mesh->medge[coarse_edge_index];
   edge->sharpness = BKE_subdiv_edge_crease_to_sharpness_char(base_edge->crease);
 }
 
@@ -694,17 +689,29 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
   const Mesh *base_mesh = reshape_context->base_mesh;
   const MPoly *base_mpoly = base_mesh->mpoly;
   const MLoop *base_mloop = base_mesh->mloop;
+  const MEdge *base_edge = base_mesh->medge;
 
   reshape_smooth_context->non_loose_base_edge_map = BLI_BITMAP_NEW(base_mesh->totedge,
-                                                                   "edges used map");
+                                                                   "non_loose_base_edge_map");
 
-  for (int poly_index = 0; poly_index < base_mesh->totpoly; poly_index++) {
+  int num_used_edges = 0;
+  for (int poly_index = 0; poly_index < base_mesh->totpoly; ++poly_index) {
     const MPoly *base_poly = &base_mpoly[poly_index];
     for (int corner = 0; corner < base_poly->totloop; corner++) {
       const MLoop *loop = &base_mloop[base_poly->loopstart + corner];
-      BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, loop->e);
+      if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, loop->e)) {
+        BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, loop->e);
+        if (base_edge[loop->e].crease != 0) {
+          ++num_used_edges;
+        }
+      }
     }
   }
+
+  const int resolution = get_reshape_level_resolution(reshape_context);
+  const int num_subdiv_vertices_per_base_edge = resolution - 2;
+  reshape_smooth_context->geometry.max_edges = num_used_edges *
+                                               (num_subdiv_vertices_per_base_edge + 1);
 }
 
 static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context)
