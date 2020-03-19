@@ -24,6 +24,10 @@
 #ifndef __OBJECT_INTERN_H__
 #define __OBJECT_INTERN_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Object;
 struct StructRNA;
 struct bContext;
@@ -292,5 +296,9 @@ void OBJECT_OT_quadriflow_remesh(struct wmOperatorType *ot);
 /* object_transfer_data.c */
 void OBJECT_OT_data_transfer(struct wmOperatorType *ot);
 void OBJECT_OT_datalayout_transfer(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __OBJECT_INTERN_H__ */
