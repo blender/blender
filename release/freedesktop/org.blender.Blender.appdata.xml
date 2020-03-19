@@ -71,8 +71,8 @@
                     <li>Cycles denoising with OpenImageDenoise and NVIDIA RTX support</li>
                     <li>Library overrides to make local overrides to linked characters and other data</li>
                 </ul>
-                <ul>
                 <p>Enhancements:</p>
+                <ul>
                     <li>Eevee shadows, transparency and bump mapping redesigned</li>
                     <li>Viewport options for look development with Cycles and Eevee</li>
                     <li>Finer control over rotations and scale in bones, constraints and drivers</li>
