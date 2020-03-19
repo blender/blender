@@ -435,8 +435,23 @@ static void sculpt_visibility_sync_vertex_to_face_sets(SculptSession *ss, int in
 
 void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
 {
-  for (int i = 0; i < ss->totvert; i++) {
-    sculpt_visibility_sync_vertex_to_face_sets(ss, i);
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    for (int i = 0; i < ss->totpoly; i++) {
+      MPoly *poly = &ss->mpoly[i];
+      bool poly_visible = true;
+      for (int l = 0; l < poly->totloop; l++) {
+        MLoop *loop = &ss->mloop[poly->loopstart + l];
+        if (!SCULPT_vertex_visible_get(ss, (int)loop->v)) {
+          poly_visible = false;
+        }
+      }
+      if (poly_visible) {
+        ss->face_sets[i] = abs(ss->face_sets[i]);
+      }
+      else {
+        ss->face_sets[i] = -abs(ss->face_sets[i]);
+      }
+    }
   }
 }
 
