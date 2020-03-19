@@ -48,7 +48,7 @@ Attribute::Attribute(
 Attribute::~Attribute()
 {
   /* For voxel data, we need to free the image handle. */
-  if (element == ATTR_ELEMENT_VOXEL) {
+  if (element == ATTR_ELEMENT_VOXEL && buffer.size()) {
     ImageHandle &handle = data_voxel();
     handle.~ImageHandle();
   }

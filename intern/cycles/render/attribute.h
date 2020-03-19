@@ -59,7 +59,11 @@ class Attribute {
             AttributeElement element,
             Geometry *geom,
             AttributePrimitive prim);
+  Attribute(Attribute &&other) = default;
+  Attribute(const Attribute &other) = delete;
+  Attribute &operator=(const Attribute &other) = delete;
   ~Attribute();
+
   void set(ustring name, TypeDesc type, AttributeElement element);
   void resize(Geometry *geom, AttributePrimitive prim, bool reserve_only);
   void resize(size_t num_elements);

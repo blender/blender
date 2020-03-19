@@ -119,6 +119,9 @@ void ImageHandle::clear()
   foreach (const int slot, tile_slots) {
     manager->remove_image_user(slot);
   }
+
+  tile_slots.clear();
+  manager = NULL;
 }
 
 bool ImageHandle::empty()
