@@ -943,6 +943,7 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
   glDisable(GL_SCISSOR_TEST);
   GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
   GPU_framebuffer_bind(ofs_fb);
+  glDisable(GL_FRAMEBUFFER_SRGB);
 }
 
 void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)

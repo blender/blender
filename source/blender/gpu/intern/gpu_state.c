@@ -218,6 +218,7 @@ typedef struct {
   uint is_sample_alpha_to_coverage : 1;
   uint is_scissor_test : 1;
   uint is_stencil_test : 1;
+  uint is_framebuffer_srgb : 1;
 
   bool is_clip_plane[6];
 
@@ -294,6 +295,7 @@ void gpuPushAttr(eGPUAttrMask mask)
   if ((mask & GPU_VIEWPORT_BIT) != 0) {
     glGetDoublev(GL_DEPTH_RANGE, (GLdouble *)&Attr.near_far);
     glGetIntegerv(GL_VIEWPORT, (GLint *)&Attr.viewport);
+    Attr.is_framebuffer_srgb = glIsEnabled(GL_FRAMEBUFFER_SRGB);
   }
 
   if ((mask & GPU_BLEND_BIT) != 0) {
@@ -352,6 +354,7 @@ void gpuPopAttr(void)
   if ((mask & GPU_VIEWPORT_BIT) != 0) {
     glViewport(Attr.viewport[0], Attr.viewport[1], Attr.viewport[2], Attr.viewport[3]);
     glDepthRange(Attr.near_far[0], Attr.near_far[1]);
+    restore_mask(GL_FRAMEBUFFER_SRGB, Attr.is_framebuffer_srgb);
   }
 
   if ((mask & GPU_SCISSOR_BIT) != 0) {

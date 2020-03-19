@@ -855,7 +855,7 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *region, View3D *v3d, bo
   WM_draw_region_viewport_ensure(region, SPACE_VIEW3D);
   WM_draw_region_viewport_bind(region);
 
-  GPUViewport *viewport = WM_draw_region_get_viewport(region, 0);
+  GPUViewport *viewport = WM_draw_region_get_viewport(region);
   /* When Blender is starting, a click event can trigger a depth test while the viewport is not
    * yet available. */
   if (viewport != NULL) {
@@ -2216,7 +2216,7 @@ void ED_view3d_backbuf_depth_validate(ViewContext *vc)
     Object *obact_eval = DEG_get_evaluated_object(vc->depsgraph, vc->obact);
 
     if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE_DEPSGRAPH) != 0)) {
-      GPUViewport *viewport = WM_draw_region_get_viewport(region, 0);
+      GPUViewport *viewport = WM_draw_region_get_viewport(region);
       DRW_draw_depth_object(vc->region, vc->v3d, viewport, obact_eval);
     }
 
@@ -2279,7 +2279,7 @@ void view3d_update_depths_rect(ARegion *region, ViewDepths *d, rcti *rect)
   }
 
   if (d->damaged) {
-    GPUViewport *viewport = WM_draw_region_get_viewport(region, 0);
+    GPUViewport *viewport = WM_draw_region_get_viewport(region);
     view3d_opengl_read_Z_pixels(viewport, rect, d->depths);
     glGetDoublev(GL_DEPTH_RANGE, d->depth_range);
     d->damaged = false;
@@ -2308,7 +2308,7 @@ void ED_view3d_depth_update(ARegion *region)
     }
 
     if (d->damaged) {
-      GPUViewport *viewport = WM_draw_region_get_viewport(region, 0);
+      GPUViewport *viewport = WM_draw_region_get_viewport(region);
       rcti r = {
           .xmin = 0,
           .xmax = d->w,
@@ -2355,7 +2355,7 @@ void ED_view3d_draw_depth_gpencil(Depsgraph *depsgraph, Scene *scene, ARegion *r
 
   GPU_depth_test(true);
 
-  GPUViewport *viewport = WM_draw_region_get_viewport(region, 0);
+  GPUViewport *viewport = WM_draw_region_get_viewport(region);
   DRW_draw_depth_loop_gpencil(depsgraph, region, v3d, viewport);
 
   GPU_depth_test(false);

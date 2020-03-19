@@ -646,8 +646,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
    * old context since we now use it for drawing the entire area. */
   gpu_batch_presets_reset();
 
-  GPUViewport *viewport =
-      region->draw_buffer->viewport[region->draw_buffer->stereo ? sima->iuser.multiview_eye : 0];
+  GPUViewport *viewport = region->draw_buffer->viewport;
   DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
   GPU_framebuffer_bind(fbl->default_fb);
   GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);

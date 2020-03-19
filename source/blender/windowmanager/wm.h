@@ -82,8 +82,6 @@ void wm_autosave_location(char *filepath);
 void WM_OT_splash(wmOperatorType *ot);
 
 /* wm_stereo.c */
-void wm_stereo3d_draw_interlace(wmWindow *win, struct ARegion *region);
-void wm_stereo3d_draw_anaglyph(wmWindow *win, struct ARegion *region);
 void wm_stereo3d_draw_sidebyside(wmWindow *win, int view);
 void wm_stereo3d_draw_topbottom(wmWindow *win, int view);
 

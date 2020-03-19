@@ -40,6 +40,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_texture.h"
 #include "GPU_viewport.h"
 #include "GPU_uniformbuffer.h"
@@ -68,7 +69,10 @@ struct GPUViewport {
   int size[2];
   int flag;
 
-  /* If engine_handles mismatch we free all ViewportEngineData in this viewport */
+  /* Set the active view (for stereoscoptic viewport rendering). */
+  int active_view;
+
+  /* If engine_handles mismatch we free all ViewportEngineData in this viewport. */
   struct {
     void *handle;
     ViewportEngineData *data;
@@ -80,9 +84,10 @@ struct GPUViewport {
   ViewportMemoryPool vmempool;           /* Used for rendering data structure. */
   struct DRWInstanceDataList *idatalist; /* Used for rendering data structure. */
 
-  ListBase tex_pool; /* ViewportTempTexture list : Temporary textures shared across draw engines */
+  ListBase
+      tex_pool; /* ViewportTempTexture list : Temporary textures shared across draw engines. */
 
-  /* Profiling data */
+  /* Profiling data. */
   double cache_time;
 
   /* Color management. */
@@ -96,12 +101,11 @@ struct GPUViewport {
 
 enum {
   DO_UPDATE = (1 << 0),
+  GPU_VIEWPORT_STEREO = (1 << 1),
 };
 
-static void gpu_viewport_buffers_free(FramebufferList *fbl,
-                                      int fbl_len,
-                                      TextureList *txl,
-                                      int txl_len);
+static void gpu_viewport_buffers_free(
+    FramebufferList *fbl, int fbl_len, TextureList *txl, TextureList *txl_stereo, int txl_len);
 static void gpu_viewport_storage_free(StorageList *stl, int stl_len);
 static void gpu_viewport_passes_free(PassList *psl, int psl_len);
 static void gpu_viewport_texture_pool_free(GPUViewport *viewport);
@@ -125,10 +129,87 @@ GPUViewport *GPU_viewport_create(void)
   viewport->txl = MEM_callocN(sizeof(DefaultTextureList), "TextureList");
   viewport->idatalist = DRW_instance_data_list_create();
   viewport->do_color_management = false;
-
   viewport->size[0] = viewport->size[1] = -1;
-
+  viewport->active_view = -1;
   return viewport;
+}
+
+GPUViewport *GPU_viewport_stereo_create(void)
+{
+  GPUViewport *viewport = GPU_viewport_create();
+  viewport->flag = GPU_VIEWPORT_STEREO;
+  return viewport;
+}
+
+static void gpu_viewport_framebuffer_view_set(GPUViewport *viewport, int view)
+{
+  /* Early check if the view is the latest requested. */
+  if (viewport->active_view == view) {
+    return;
+  }
+  DefaultFramebufferList *dfbl = viewport->fbl;
+  DefaultTextureList *dtxl = viewport->txl;
+
+  /* Only swap the texture when this is a Stereo Viewport. */
+  if (((viewport->flag & GPU_VIEWPORT_STEREO) != 0)) {
+    SWAP(GPUTexture *, dtxl->color, dtxl->color_stereo);
+    SWAP(GPUTexture *, dtxl->color_overlay, dtxl->color_overlay_stereo);
+
+    for (int i = 0; i < MAX_ENABLE_ENGINE; i++) {
+      if (viewport->engine_data[i].handle != NULL) {
+        ViewportEngineData *data = viewport->engine_data[i].data;
+        SWAP(StorageList *, data->stl, data->stl_stereo);
+        SWAP(TextureList *, data->txl, data->txl_stereo);
+      }
+      else {
+        break;
+      }
+    }
+  }
+
+  GPU_framebuffer_ensure_config(&dfbl->default_fb,
+                                {
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->color),
+                                });
+
+  GPU_framebuffer_ensure_config(&dfbl->overlay_fb,
+                                {
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
+                                });
+
+  GPU_framebuffer_ensure_config(&dfbl->depth_only_fb,
+                                {
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+                                    GPU_ATTACHMENT_NONE,
+                                });
+
+  GPU_framebuffer_ensure_config(&dfbl->color_only_fb,
+                                {
+                                    GPU_ATTACHMENT_NONE,
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->color),
+                                });
+
+  GPU_framebuffer_ensure_config(&dfbl->overlay_only_fb,
+                                {
+                                    GPU_ATTACHMENT_NONE,
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
+                                });
+
+  if (((viewport->flag & GPU_VIEWPORT_STEREO) != 0)) {
+    GPU_framebuffer_ensure_config(&dfbl->stereo_comp_fb,
+                                  {
+                                      GPU_ATTACHMENT_NONE,
+                                      GPU_ATTACHMENT_TEXTURE(dtxl->color),
+                                      GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
+                                  });
+  }
+  else {
+    dfbl->stereo_comp_fb = NULL;
+  }
+
+  viewport->active_view = view;
 }
 
 void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
@@ -144,6 +225,13 @@ void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
   data->txl = MEM_callocN((sizeof(void *) * txl_len) + sizeof(TextureList), "TextureList");
   data->psl = MEM_callocN((sizeof(void *) * psl_len) + sizeof(PassList), "PassList");
   data->stl = MEM_callocN((sizeof(void *) * stl_len) + sizeof(StorageList), "StorageList");
+
+  if ((viewport->flag & GPU_VIEWPORT_STEREO) != 0) {
+    data->txl_stereo = MEM_callocN((sizeof(void *) * txl_len) + sizeof(TextureList),
+                                   "TextureList");
+    data->stl_stereo = MEM_callocN((sizeof(void *) * stl_len) + sizeof(StorageList),
+                                   "StorageList");
+  }
 
   for (int i = 0; i < MAX_ENABLE_ENGINE; i++) {
     if (viewport->engine_data[i].handle == NULL) {
@@ -166,7 +254,7 @@ static void gpu_viewport_engines_data_free(GPUViewport *viewport)
 
     DRW_engine_viewport_data_size_get(data->engine_type, &fbl_len, &txl_len, &psl_len, &stl_len);
 
-    gpu_viewport_buffers_free(data->fbl, fbl_len, data->txl, txl_len);
+    gpu_viewport_buffers_free(data->fbl, fbl_len, data->txl, data->txl_stereo, txl_len);
     gpu_viewport_passes_free(data->psl, psl_len);
     gpu_viewport_storage_free(data->stl, stl_len);
 
@@ -175,6 +263,11 @@ static void gpu_viewport_engines_data_free(GPUViewport *viewport)
     MEM_freeN(data->psl);
     MEM_freeN(data->stl);
 
+    if ((viewport->flag & GPU_VIEWPORT_STEREO) != 0) {
+      gpu_viewport_storage_free(data->stl_stereo, stl_len);
+      MEM_freeN(data->txl_stereo);
+      MEM_freeN(data->stl_stereo);
+    }
     /* We could handle this in the DRW module */
     if (data->text_draw_cache) {
       extern void DRW_text_cache_destroy(struct DRWTextStore * dt);
@@ -211,6 +304,16 @@ ViewportMemoryPool *GPU_viewport_mempool_get(GPUViewport *viewport)
 struct DRWInstanceDataList *GPU_viewport_instance_data_list_get(GPUViewport *viewport)
 {
   return viewport->idatalist;
+}
+
+/* Note this function is only allowed to be called from `DRW_notify_view_update`. The rest
+ * should bind the correct viewport.
+ *
+ * The reason is that DRW_notify_view_update can be called from a different thread, but needs
+ * access to the engine data. */
+void GPU_viewport_active_view_set(GPUViewport *viewport, int view)
+{
+  gpu_viewport_framebuffer_view_set(viewport, view);
 }
 
 void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport)
@@ -347,6 +450,10 @@ static void gpu_viewport_default_fb_create(GPUViewport *viewport)
 
   dtxl->color = GPU_texture_create_2d(size[0], size[1], GPU_RGBA16F, NULL, NULL);
   dtxl->color_overlay = GPU_texture_create_2d(size[0], size[1], GPU_SRGB8_A8, NULL, NULL);
+  if (((viewport->flag & GPU_VIEWPORT_STEREO) != 0)) {
+    dtxl->color_stereo = GPU_texture_create_2d(size[0], size[1], GPU_RGBA16F, NULL, NULL);
+    dtxl->color_overlay_stereo = GPU_texture_create_2d(size[0], size[1], GPU_SRGB8_A8, NULL, NULL);
+  }
 
   /* Can be shared with GPUOffscreen. */
   if (dtxl->depth == NULL) {
@@ -358,42 +465,16 @@ static void gpu_viewport_default_fb_create(GPUViewport *viewport)
     goto cleanup;
   }
 
-  GPU_framebuffer_ensure_config(&dfbl->default_fb,
-                                {
-                                    GPU_ATTACHMENT_TEXTURE(dtxl->depth),
-                                    GPU_ATTACHMENT_TEXTURE(dtxl->color),
-                                });
-
-  GPU_framebuffer_ensure_config(&dfbl->overlay_fb,
-                                {
-                                    GPU_ATTACHMENT_TEXTURE(dtxl->depth),
-                                    GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
-                                });
-
-  GPU_framebuffer_ensure_config(&dfbl->depth_only_fb,
-                                {
-                                    GPU_ATTACHMENT_TEXTURE(dtxl->depth),
-                                    GPU_ATTACHMENT_NONE,
-                                });
-
-  GPU_framebuffer_ensure_config(&dfbl->color_only_fb,
-                                {
-                                    GPU_ATTACHMENT_NONE,
-                                    GPU_ATTACHMENT_TEXTURE(dtxl->color),
-                                });
-
-  GPU_framebuffer_ensure_config(&dfbl->overlay_only_fb,
-                                {
-                                    GPU_ATTACHMENT_NONE,
-                                    GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
-                                });
+  gpu_viewport_framebuffer_view_set(viewport, 0);
 
   ok = ok && GPU_framebuffer_check_valid(dfbl->default_fb, NULL);
   ok = ok && GPU_framebuffer_check_valid(dfbl->overlay_fb, NULL);
   ok = ok && GPU_framebuffer_check_valid(dfbl->color_only_fb, NULL);
   ok = ok && GPU_framebuffer_check_valid(dfbl->depth_only_fb, NULL);
   ok = ok && GPU_framebuffer_check_valid(dfbl->overlay_only_fb, NULL);
-
+  if (((viewport->flag & GPU_VIEWPORT_STEREO) != 0)) {
+    ok = ok && GPU_framebuffer_check_valid(dfbl->stereo_comp_fb, NULL);
+  }
 cleanup:
   if (!ok) {
     GPU_viewport_free(viewport);
@@ -404,7 +485,7 @@ cleanup:
   GPU_framebuffer_restore();
 }
 
-void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
+void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
 {
   DefaultFramebufferList *dfbl = viewport->fbl;
   int fbl_len, txl_len;
@@ -421,15 +502,17 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
       gpu_viewport_buffers_free((FramebufferList *)viewport->fbl,
                                 default_fbl_len,
                                 (TextureList *)viewport->txl,
+                                NULL,
                                 default_txl_len);
 
       for (int i = 0; i < MAX_ENABLE_ENGINE && viewport->engine_data[i].handle; i++) {
         ViewportEngineData *data = viewport->engine_data[i].data;
         DRW_engine_viewport_data_size_get(data->engine_type, &fbl_len, &txl_len, NULL, NULL);
-        gpu_viewport_buffers_free(data->fbl, fbl_len, data->txl, txl_len);
+        gpu_viewport_buffers_free(data->fbl, fbl_len, data->txl, data->txl_stereo, txl_len);
       }
 
       gpu_viewport_texture_pool_free(viewport);
+      viewport->active_view = -1;
     }
   }
 
@@ -440,6 +523,7 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
   if (!dfbl->default_fb) {
     gpu_viewport_default_fb_create(viewport);
   }
+  gpu_viewport_framebuffer_view_set(viewport, view);
 }
 
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen *ofs)
@@ -472,6 +556,74 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   memcpy(&viewport->display_settings, display_settings, sizeof(*display_settings));
   viewport->dither = dither;
   viewport->do_color_management = true;
+}
+
+/* Merge the stereo textures. `color` and `overlay` texture will be modified. */
+void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo_format)
+{
+  if (!ELEM(stereo_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
+    /* Early Exit: the other display modes need access to the full screen and cannot be
+     * done from a single viewport. See `wm_stereo.c` */
+    return;
+  }
+  gpu_viewport_framebuffer_view_set(viewport, 0);
+  DefaultTextureList *dtxl = viewport->txl;
+  DefaultFramebufferList *dfbl = viewport->fbl;
+
+  GPUVertFormat *vert_format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  GPU_framebuffer_bind(dfbl->stereo_comp_fb);
+  GPU_matrix_push();
+  GPU_matrix_push_projection();
+  GPU_matrix_identity_set();
+  GPU_matrix_identity_projection_set();
+  immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE);
+  immUniform1i("imageTexture", 0);
+  immUniform1i("overlayTexture", 1);
+  int settings = stereo_format->display_mode;
+  if (settings == S3D_DISPLAY_ANAGLYPH) {
+    switch (stereo_format->anaglyph_type) {
+      case S3D_ANAGLYPH_REDCYAN:
+        glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_TRUE);
+        break;
+      case S3D_ANAGLYPH_GREENMAGENTA:
+        glColorMask(GL_TRUE, GL_FALSE, GL_TRUE, GL_TRUE);
+        break;
+      case S3D_ANAGLYPH_YELLOWBLUE:
+        glColorMask(GL_FALSE, GL_FALSE, GL_TRUE, GL_TRUE);
+        break;
+    }
+  }
+  else if (settings == S3D_DISPLAY_INTERLACE) {
+    settings |= stereo_format->interlace_type << 3;
+    SET_FLAG_FROM_TEST(settings, stereo_format->flag & S3D_INTERLACE_SWAP, 1 << 6);
+  }
+  immUniform1i("stereoDisplaySettings", settings);
+
+  GPU_texture_bind(dtxl->color_stereo, 0);
+  GPU_texture_bind(dtxl->color_overlay_stereo, 1);
+
+  immBegin(GPU_PRIM_TRI_STRIP, 4);
+
+  immVertex2f(pos, -1.0f, -1.0f);
+  immVertex2f(pos, 1.0f, -1.0f);
+  immVertex2f(pos, -1.0f, 1.0f);
+  immVertex2f(pos, 1.0f, 1.0f);
+
+  immEnd();
+
+  GPU_texture_unbind(dtxl->color_stereo);
+  GPU_texture_unbind(dtxl->color_overlay_stereo);
+
+  immUnbindProgram();
+  GPU_matrix_pop_projection();
+  GPU_matrix_pop();
+
+  if (settings == S3D_DISPLAY_ANAGLYPH) {
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  }
+
+  GPU_framebuffer_restore();
 }
 
 static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
@@ -537,9 +689,11 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
  * transform should be performed.
  */
 void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
+                                    int view,
                                     const rcti *rect,
                                     bool display_colorspace)
 {
+  gpu_viewport_framebuffer_view_set(viewport, view);
   DefaultFramebufferList *dfbl = viewport->fbl;
   DefaultTextureList *dtxl = viewport->txl;
   GPUTexture *color = dtxl->color;
@@ -594,9 +748,9 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
  * \param rect: Coordinates to draw into. By swapping min and max values, drawing can be done with
  *              inversed axis coordinates (upside down or sideways).
  */
-void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
+void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *rect)
 {
-  GPU_viewport_draw_to_screen_ex(viewport, rect, true);
+  GPU_viewport_draw_to_screen_ex(viewport, view, rect, true);
 }
 
 /**
@@ -642,22 +796,25 @@ void GPU_viewport_unbind(GPUViewport *UNUSED(viewport))
   DRW_opengl_context_disable();
 }
 
-GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport)
+GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport, int view)
 {
   DefaultFramebufferList *dfbl = viewport->fbl;
 
   if (dfbl->default_fb) {
     DefaultTextureList *dtxl = viewport->txl;
-    return dtxl->color;
+    if (viewport->active_view == view) {
+      return dtxl->color;
+    }
+    else {
+      return dtxl->color_stereo;
+    }
   }
 
   return NULL;
 }
 
-static void gpu_viewport_buffers_free(FramebufferList *fbl,
-                                      int fbl_len,
-                                      TextureList *txl,
-                                      int txl_len)
+static void gpu_viewport_buffers_free(
+    FramebufferList *fbl, int fbl_len, TextureList *txl, TextureList *txl_stereo, int txl_len)
 {
   for (int i = 0; i < fbl_len; i++) {
     GPUFrameBuffer *fb = fbl->framebuffers[i];
@@ -671,6 +828,15 @@ static void gpu_viewport_buffers_free(FramebufferList *fbl,
     if (tex) {
       GPU_texture_free(tex);
       txl->textures[i] = NULL;
+    }
+  }
+  if (txl_stereo != NULL) {
+    for (int i = 0; i < txl_len; i++) {
+      GPUTexture *tex = txl_stereo->textures[i];
+      if (tex) {
+        GPU_texture_free(tex);
+        txl_stereo->textures[i] = NULL;
+      }
     }
   }
 }
@@ -699,6 +865,7 @@ void GPU_viewport_free(GPUViewport *viewport)
   gpu_viewport_buffers_free((FramebufferList *)viewport->fbl,
                             default_fbl_len,
                             (TextureList *)viewport->txl,
+                            NULL,
                             default_txl_len);
 
   gpu_viewport_texture_pool_free(viewport);
