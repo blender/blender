@@ -1951,7 +1951,7 @@ static void rna_def_editor(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, SEQ_CACHE_COST_MAX, 0.1f, 1);
   RNA_def_property_float_sdna(prop, NULL, "recycle_max_cost");
   RNA_def_property_ui_text(
-      prop, "Recycle Up to Cost", "Only frames with cost lower than this value will be recycled");
+      prop, "Recycle Up To Cost", "Only frames with cost lower than this value will be recycled");
 }
 
 static void rna_def_filter_video(StructRNA *srna)

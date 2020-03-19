@@ -192,6 +192,8 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
 
 #  include "BLF_api.h"
 
+#  include "BLI_path_util.h"
+
 #  include "MEM_guardedalloc.h"
 #  include "MEM_CacheLimiterC-Api.h"
 
@@ -533,6 +535,19 @@ static void rna_Userdef_memcache_update(Main *UNUSED(bmain),
                                         PointerRNA *UNUSED(ptr))
 {
   MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
+  USERDEF_TAG_DIRTY;
+}
+
+static void rna_Userdef_disk_cache_dir_update(Main *UNUSED(bmain),
+                                              Scene *UNUSED(scene),
+                                              PointerRNA *UNUSED(ptr))
+{
+  if (U.sequencer_disk_cache_dir[0] != '\0') {
+    BLI_path_abs(U.sequencer_disk_cache_dir, BKE_main_blendfile_path_from_global());
+    BLI_add_slash(U.sequencer_disk_cache_dir);
+    BLI_path_make_safe(U.sequencer_disk_cache_dir);
+  }
+
   USERDEF_TAG_DIRTY;
 }
 
@@ -3064,10 +3079,9 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Effect Strip", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "transition_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, NULL, "transition");
+  prop = RNA_def_property(srna, "color_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Transition Strip", "");
+  RNA_def_property_ui_text(prop, "Color Strip", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "meta_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -3076,9 +3090,25 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Meta Strip", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "mask_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, NULL, "mask");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Mask Strip", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   prop = RNA_def_property(srna, "text_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Text Strip", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "active_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Active Strip", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "selected_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Selected Strips", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -5126,6 +5156,25 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem seq_disk_cache_compression_levels[] = {
+      {USER_SEQ_DISK_CACHE_COMPRESSION_NONE,
+       "NONE",
+       0,
+       "None",
+       "Requires fast storage, but uses minimum CPU resources"},
+      {USER_SEQ_DISK_CACHE_COMPRESSION_LOW,
+       "LOW",
+       0,
+       "Low",
+       "Doesn't require fast storage and uses less CPU resources"},
+      {USER_SEQ_DISK_CACHE_COMPRESSION_HIGH,
+       "HIGH",
+       0,
+       "High",
+       "Works on slower storage devices and uses most CPU resources"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "PreferencesSystem", NULL);
   RNA_def_struct_sdna(srna, "UserDef");
   RNA_def_struct_nested(brna, srna, "Preferences");
@@ -5167,6 +5216,31 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, max_memory_in_megabytes_int());
   RNA_def_property_ui_text(prop, "Memory Cache Limit", "Memory cache limit (in megabytes)");
   RNA_def_property_update(prop, 0, "rna_Userdef_memcache_update");
+
+  /* Sequencer disk cache */
+
+  prop = RNA_def_property(srna, "use_sequencer_disk_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "sequencer_disk_cache_flag", SEQ_CACHE_DISK_CACHE_ENABLE);
+  RNA_def_property_ui_text(prop, "Use Disk Cache", "Store cached images to disk");
+
+  prop = RNA_def_property(srna, "sequencer_disk_cache_dir", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, NULL, "sequencer_disk_cache_dir");
+  RNA_def_property_update(prop, 0, "rna_Userdef_disk_cache_dir_update");
+  RNA_def_property_ui_text(prop, "Disk Cache Directory", "Override default directory");
+
+  prop = RNA_def_property(srna, "sequencer_disk_cache_size_limit", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "sequencer_disk_cache_size_limit");
+  RNA_def_property_range(prop, 0, INT_MAX);
+  RNA_def_property_ui_text(prop, "Disk Cache Limit", "Disk cache limit (in gigabytes)");
+
+  prop = RNA_def_property(srna, "sequencer_disk_cache_compression", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, seq_disk_cache_compression_levels);
+  RNA_def_property_enum_sdna(prop, NULL, "sequencer_disk_cache_compression");
+  RNA_def_property_ui_text(
+      prop,
+      "Disk Cache Compression Level",
+      "Smaller compression will result in larger files, but less decoding overhead");
 
   prop = RNA_def_property(srna, "scrollback", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "scrollback");

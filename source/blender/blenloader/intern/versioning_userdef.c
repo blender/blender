@@ -207,6 +207,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    */
   {
     /* Keep this block, even when empty. */
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.active_strip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.selected_strip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.color_strip);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

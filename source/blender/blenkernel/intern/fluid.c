@@ -1834,7 +1834,6 @@ static void sample_mesh(FluidFlowSettings *mfs,
   BVHTreeNearest nearest = {0};
 
   float volume_factor = 0.0f;
-  float emission_strength = 0.0f;
 
   hit.index = -1;
   hit.dist = PHI_MAX;
@@ -1848,6 +1847,10 @@ static void sample_mesh(FluidFlowSettings *mfs,
 
   bool is_gas_flow = (mfs->type == FLUID_FLOW_TYPE_SMOKE || mfs->type == FLUID_FLOW_TYPE_FIRE ||
                       mfs->type == FLUID_FLOW_TYPE_SMOKEFIRE);
+
+  /* Emission strength for gases will be computed below.
+   * For liquids it's not needed. Just set to non zero value to allow initial velocity computation */
+  float emission_strength = (is_gas_flow) ? 0.0f : 1.0f;
 
   /* Emission inside the flow object. */
   if (is_gas_flow && mfs->volume_density) {

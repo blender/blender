@@ -806,14 +806,6 @@ void BKE_sequence_calc_disp(Scene *scene, Sequence *seq)
   seq->startdisp = seq->start + seq->startofs - seq->startstill;
   seq->enddisp = seq->start + seq->len - seq->endofs + seq->endstill;
 
-  seq->handsize = 10.0; /* 10 frames */
-  if (seq->enddisp - seq->startdisp < 10) {
-    seq->handsize = (float)(0.5 * (seq->enddisp - seq->startdisp));
-  }
-  else if (seq->enddisp - seq->startdisp > 250) {
-    seq->handsize = (float)((seq->enddisp - seq->startdisp) / 25);
-  }
-
   if (seq->type == SEQ_TYPE_META) {
     seq_update_sound_bounds_recursive(scene, seq);
   }
@@ -3081,7 +3073,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
 
         if (i != context->view_id) {
           BKE_sequencer_cache_put(
-              &localcontext, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibufs_arr[i], 0);
+              &localcontext, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibufs_arr[i], 0, false);
         }
       }
     }
@@ -3201,7 +3193,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
       }
       if (i != context->view_id) {
         BKE_sequencer_cache_put(
-            &localcontext, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf_arr[i], 0);
+            &localcontext, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf_arr[i], 0, false);
       }
     }
 
@@ -3600,7 +3592,8 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
       }
 
       if (i != context->view_id) {
-        BKE_sequencer_cache_put(&localcontext, seq, cfra, SEQ_CACHE_STORE_RAW, ibufs_arr[i], 0);
+        BKE_sequencer_cache_put(
+            &localcontext, seq, cfra, SEQ_CACHE_STORE_RAW, ibufs_arr[i], 0, false);
       }
 
       RE_ReleaseResultImage(re);
@@ -3813,10 +3806,10 @@ static ImBuf *seq_render_strip(const SeqRenderData *context,
 
   clock_t begin = seq_estimate_render_cost_begin();
 
-  ibuf = BKE_sequencer_cache_get(context, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED);
+  ibuf = BKE_sequencer_cache_get(context, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, false);
 
   if (ibuf == NULL) {
-    ibuf = BKE_sequencer_cache_get(context, seq, cfra, SEQ_CACHE_STORE_RAW);
+    ibuf = BKE_sequencer_cache_get(context, seq, cfra, SEQ_CACHE_STORE_RAW, false);
     if (ibuf == NULL) {
       /* MOVIECLIPs have their own proxy management */
       if (seq->type != SEQ_TYPE_MOVIECLIP) {
@@ -3852,7 +3845,7 @@ static ImBuf *seq_render_strip(const SeqRenderData *context,
 
     if (use_preprocess) {
       float cost = seq_estimate_render_cost_end(context->scene, begin);
-      BKE_sequencer_cache_put(context, seq, cfra, SEQ_CACHE_STORE_RAW, ibuf, cost);
+      BKE_sequencer_cache_put(context, seq, cfra, SEQ_CACHE_STORE_RAW, ibuf, cost, false);
 
       /* reset timer so we can get partial render time */
       begin = seq_estimate_render_cost_begin();
@@ -3860,7 +3853,7 @@ static ImBuf *seq_render_strip(const SeqRenderData *context,
     }
 
     float cost = seq_estimate_render_cost_end(context->scene, begin);
-    BKE_sequencer_cache_put(context, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf, cost);
+    BKE_sequencer_cache_put(context, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf, cost, false);
   }
   return ibuf;
 }
@@ -3954,7 +3947,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
     int early_out;
     Sequence *seq = seq_arr[i];
 
-    out = BKE_sequencer_cache_get(context, seq, cfra, SEQ_CACHE_STORE_COMPOSITE);
+    out = BKE_sequencer_cache_get(context, seq, cfra, SEQ_CACHE_STORE_COMPOSITE, false);
 
     if (out) {
       break;
@@ -3986,7 +3979,8 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
           out = seq_render_strip_stack_apply_effect(context, seq, cfra, ibuf1, ibuf2);
 
           float cost = seq_estimate_render_cost_end(context->scene, begin);
-          BKE_sequencer_cache_put(context, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE, out, cost);
+          BKE_sequencer_cache_put(
+              context, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE, out, cost, false);
 
           IMB_freeImBuf(ibuf1);
           IMB_freeImBuf(ibuf2);
@@ -4014,7 +4008,8 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
     }
 
     float cost = seq_estimate_render_cost_end(context->scene, begin);
-    BKE_sequencer_cache_put(context, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE, out, cost);
+    BKE_sequencer_cache_put(
+        context, seq_arr[i], cfra, SEQ_CACHE_STORE_COMPOSITE, out, cost, false);
   }
 
   return out;
@@ -4053,7 +4048,8 @@ ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int cha
   count = get_shown_sequences(seqbasep, cfra, chanshown, seq_arr);
 
   if (count) {
-    out = BKE_sequencer_cache_get(context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT);
+    out = BKE_sequencer_cache_get(
+        context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
   }
 
   BKE_sequencer_cache_free_temp_cache(context->scene, context->task_id, cfra);
@@ -4068,11 +4064,11 @@ ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int cha
 
     if (context->is_prefetch_render) {
       BKE_sequencer_cache_put(
-          context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT, out, cost);
+          context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT, out, cost, false);
     }
     else {
       BKE_sequencer_cache_put_if_possible(
-          context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT, out, cost);
+          context, seq_arr[count - 1], cfra, SEQ_CACHE_STORE_FINAL_OUT, out, cost, false);
     }
     BLI_mutex_unlock(&seq_render_mutex);
   }
@@ -5294,7 +5290,7 @@ Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type)
 
   seq->strip = seq_strip_alloc(type);
   seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format");
-  seq->cache_flag = SEQ_CACHE_ALL_TYPES;
+  seq->cache_flag = SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE;
 
   return seq;
 }
