@@ -274,7 +274,7 @@ static void draw_modifier__generator(uiLayout *layout,
 
         /* 'x' param (and '+' if necessary) */
         if (i == 0) {
-          BLI_strncpy(xval, "", sizeof(xval));
+          BLI_strncpy(xval, " ", sizeof(xval));
         }
         else if (i == 1) {
           BLI_strncpy(xval, "x", sizeof(xval));
