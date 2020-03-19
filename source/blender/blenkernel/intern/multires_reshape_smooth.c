@@ -394,6 +394,18 @@ static int get_reshape_level_resolution(const MultiresReshapeContext *reshape_co
   return (1 << reshape_context->reshape.level) + 1;
 }
 
+/* Get crease which will be used for communication to OpenSubdiv topology.
+ * Note that simple subdivision treats all base edges as infinitely sharp. */
+static char get_effective_edge_crease_char(
+    const MultiresReshapeSmoothContext *reshape_smooth_context, const MEdge *base_edge)
+{
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+  if (reshape_context->mmd->simple) {
+    return 255;
+  }
+  return base_edge->crease;
+}
+
 static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
                          const MultiresReshapeContext *reshape_context)
 {
@@ -668,7 +680,8 @@ void foreach_edge(const struct SubdivForeachContext *foreach_context,
   /* Edges without crease are to be ignored as well. */
   const Mesh *base_mesh = reshape_context->base_mesh;
   const MEdge *base_edge = &base_mesh->medge[coarse_edge_index];
-  if (base_edge->crease == 0) {
+  const char crease = get_effective_edge_crease_char(reshape_smooth_context, base_edge);
+  if (crease == 0) {
     return;
   }
 
@@ -680,7 +693,7 @@ void foreach_edge(const struct SubdivForeachContext *foreach_context,
   Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
   edge->v1 = subdiv_v1;
   edge->v2 = subdiv_v2;
-  edge->sharpness = BKE_subdiv_edge_crease_to_sharpness_char(base_edge->crease);
+  edge->sharpness = BKE_subdiv_edge_crease_to_sharpness_char(crease);
 }
 
 static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshape_smooth_context)
@@ -701,7 +714,10 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
       const MLoop *loop = &base_mloop[base_poly->loopstart + corner];
       if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, loop->e)) {
         BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, loop->e);
-        if (base_edge[loop->e].crease != 0) {
+
+        const char crease = get_effective_edge_crease_char(reshape_smooth_context,
+                                                           &base_edge[loop->e]);
+        if (crease != 0) {
           ++num_used_edges;
         }
       }
