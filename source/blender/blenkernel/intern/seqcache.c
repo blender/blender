@@ -262,17 +262,12 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
 
 static DiskCacheFile *seq_disk_cache_get_oldest_file(SeqDiskCache *disk_cache)
 {
-  DiskCacheFile *cache_file = disk_cache->files.first;
-  if (!cache_file) {
+  DiskCacheFile *oldest_file = disk_cache->files.first;
+  if (oldest_file == NULL) {
     return NULL;
   }
-
-  DiskCacheFile *oldest_file = cache_file;
-  __time64_t oldest_timestamp = cache_file->fstat.st_mtime;
-
-  for (; cache_file; cache_file = cache_file->next) {
-    if (cache_file->fstat.st_mtime < oldest_timestamp) {
-      oldest_timestamp = cache_file->fstat.st_mtime;
+  for (DiskCacheFile *cache_file = oldest_file->next; cache_file; cache_file = cache_file->next) {
+    if (cache_file->fstat.st_mtime < oldest_file->fstat.st_mtime) {
       oldest_file = cache_file;
     }
   }
