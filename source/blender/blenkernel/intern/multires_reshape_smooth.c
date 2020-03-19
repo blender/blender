@@ -32,6 +32,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_customdata.h"
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
@@ -72,6 +73,13 @@ typedef struct Face {
   int num_corners;
 } Face;
 
+typedef struct Edge {
+  int v1;
+  int v2;
+
+  float sharpness;
+} Edge;
+
 typedef struct MultiresReshapeSmoothContext {
   const MultiresReshapeContext *reshape_context;
 
@@ -79,6 +87,9 @@ typedef struct MultiresReshapeSmoothContext {
   struct {
     int num_vertices;
     Vertex *vertices;
+
+    int num_edges;
+    Edge *edges;
 
     int num_corners;
     Corner *corners;
@@ -372,6 +383,8 @@ static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
 
   reshape_smooth_context->geometry.num_vertices = 0;
   reshape_smooth_context->geometry.vertices = NULL;
+  reshape_smooth_context->geometry.num_edges = 0;
+  reshape_smooth_context->geometry.edges = NULL;
   reshape_smooth_context->geometry.num_corners = 0;
   reshape_smooth_context->geometry.corners = NULL;
   reshape_smooth_context->geometry.num_faces = 0;
@@ -391,6 +404,7 @@ static void context_free_geometry(MultiresReshapeSmoothContext *reshape_smooth_c
   MEM_SAFE_FREE(reshape_smooth_context->geometry.vertices);
   MEM_SAFE_FREE(reshape_smooth_context->geometry.corners);
   MEM_SAFE_FREE(reshape_smooth_context->geometry.faces);
+  MEM_SAFE_FREE(reshape_smooth_context->geometry.edges);
 }
 
 static void context_free_subdiv(MultiresReshapeSmoothContext *reshape_smooth_context)
@@ -410,7 +424,7 @@ static void context_free(MultiresReshapeSmoothContext *reshape_smooth_context)
 
 static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
                                   const int num_vertices,
-                                  const int UNUSED(num_edges),
+                                  const int num_edges,
                                   const int num_loops,
                                   const int num_polygons)
 {
@@ -420,6 +434,10 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
   reshape_smooth_context->geometry.num_vertices = num_vertices;
   reshape_smooth_context->geometry.vertices = MEM_calloc_arrayN(
       sizeof(Vertex), num_vertices, "smooth vertices");
+
+  reshape_smooth_context->geometry.num_edges = num_edges;
+  reshape_smooth_context->geometry.edges = MEM_malloc_arrayN(
+      sizeof(Edge), num_edges, "smooth edges");
 
   reshape_smooth_context->geometry.num_corners = num_loops;
   reshape_smooth_context->geometry.corners = MEM_malloc_arrayN(
@@ -603,6 +621,30 @@ static void foreach_vertex_of_loose_edge(const struct SubdivForeachContext *fore
   }
 }
 
+void foreach_edge(const struct SubdivForeachContext *foreach_context,
+                  void *tls,
+                  const int coarse_edge_index,
+                  const int subdiv_edge_index,
+                  const int subdiv_v1,
+                  const int subdiv_v2)
+{
+  const MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+
+  Edge *edge = &reshape_smooth_context->geometry.edges[subdiv_edge_index];
+  edge->v1 = subdiv_v1;
+  edge->v2 = subdiv_v2;
+
+  if (coarse_edge_index == ORIGINDEX_NONE) {
+    edge->sharpness = 0.0f;
+    return;
+  }
+
+  const Mesh *base_mesh = reshape_context->base_mesh;
+  const MEdge *base_edge = &base_mesh->medge[coarse_edge_index];
+  edge->sharpness = BKE_subdiv_edge_crease_to_sharpness_char(base_edge->crease);
+}
+
 static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
@@ -615,6 +657,7 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
       .loop = foreach_loop,
       .poly = foreach_poly,
       .vertex_of_loose_edge = foreach_vertex_of_loose_edge,
+      .edge = foreach_edge,
       .user_data = reshape_smooth_context,
   };
 
@@ -697,10 +740,33 @@ static void get_face_vertices(const OpenSubdiv_Converter *converter,
   }
 }
 
+static int get_num_edges(const struct OpenSubdiv_Converter *converter)
+{
+  const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
+  return reshape_smooth_context->geometry.num_edges;
+}
+
+static void get_edge_vertices(const OpenSubdiv_Converter *converter,
+                              const int edge_index,
+                              int edge_vertices[2])
+{
+  const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
+  const Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
+  edge_vertices[0] = edge->v1;
+  edge_vertices[1] = edge->v2;
+}
+
+static float get_edge_sharpness(const OpenSubdiv_Converter *converter, const int edge_index)
+{
+  const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
+  const Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
+  return edge->sharpness;
+}
+
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter, int vertex_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
-  Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
+  const Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
 
   return vertex->is_infinite_sharp;
 }
@@ -714,17 +780,17 @@ static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_co
   converter->specifiesFullTopology = specifies_full_topology;
 
   converter->getNumFaces = get_num_faces;
-  converter->getNumEdges = NULL;
+  converter->getNumEdges = get_num_edges;
   converter->getNumVertices = get_num_vertices;
 
   converter->getNumFaceVertices = get_num_face_vertices;
   converter->getFaceVertices = get_face_vertices;
   converter->getFaceEdges = NULL;
 
-  converter->getEdgeVertices = NULL;
+  converter->getEdgeVertices = get_edge_vertices;
   converter->getNumEdgeFaces = NULL;
   converter->getEdgeFaces = NULL;
-  converter->getEdgeSharpness = NULL;
+  converter->getEdgeSharpness = get_edge_sharpness;
 
   converter->getNumVertexEdges = NULL;
   converter->getVertexEdges = NULL;
