@@ -374,6 +374,8 @@ static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
   reshape_smooth_context->geometry.vertices = NULL;
   reshape_smooth_context->geometry.num_corners = 0;
   reshape_smooth_context->geometry.corners = NULL;
+  reshape_smooth_context->geometry.num_faces = 0;
+  reshape_smooth_context->geometry.faces = NULL;
 
   reshape_smooth_context->reshape_subdiv = NULL;
   reshape_smooth_context->base_surface_grids = NULL;
