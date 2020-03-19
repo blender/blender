@@ -446,7 +446,14 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
       const float constraint_distance = constraint->length +
                                         (cloth_sim->length_constraint_tweak[v1] * 0.5f) +
                                         (cloth_sim->length_constraint_tweak[v2] * 0.5f);
-      mul_v3_v3fl(correction_vector, v1_to_v2, 1.0f - (constraint_distance / current_distance));
+
+      if (current_distance > 0.0f) {
+        mul_v3_v3fl(correction_vector, v1_to_v2, 1.0f - (constraint_distance / current_distance));
+      }
+      else {
+        copy_v3_v3(correction_vector, v1_to_v2);
+      }
+
       mul_v3_v3fl(correction_vector_half, correction_vector, 0.5f);
 
       const float mask_v1 = (1.0f - SCULPT_vertex_mask_get(ss, v1)) *
