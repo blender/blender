@@ -456,7 +456,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 /* clamp handles to defined size in pixel space */
 float sequence_handle_size_get_clamped(Sequence *seq, const float pixelx)
 {
-  const float maxhandle = pixelx * SEQ_HANDLE_SIZE;
+  const float maxhandle = (pixelx * SEQ_HANDLE_SIZE) * U.pixelsize;
 
   /* ensure we're not greater than half width */
   return min_ff(maxhandle, ((float)(seq->enddisp - seq->startdisp) / 2.0f) / pixelx);
