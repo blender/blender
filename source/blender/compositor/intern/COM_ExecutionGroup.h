@@ -19,6 +19,10 @@
 #ifndef __COM_EXECUTIONGROUP_H__
 #define __COM_EXECUTIONGROUP_H__
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
 #include "BLI_rect.h"
 #include "COM_CompositorContext.h"
 #include "COM_Device.h"
