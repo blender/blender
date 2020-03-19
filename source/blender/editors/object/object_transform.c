@@ -45,6 +45,7 @@
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_idcode.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"

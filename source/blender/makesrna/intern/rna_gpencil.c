@@ -138,6 +138,7 @@ static EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #  include "BKE_action.h"
 #  include "BKE_animsys.h"
 #  include "BKE_gpencil.h"
+#  include "BKE_gpencil_geom.h"
 #  include "BKE_icons.h"
 
 #  include "DEG_depsgraph.h"

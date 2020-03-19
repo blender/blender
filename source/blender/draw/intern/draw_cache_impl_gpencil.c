@@ -27,6 +27,7 @@
 
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 
 #include "DRW_engine.h"
 #include "DRW_render.h"

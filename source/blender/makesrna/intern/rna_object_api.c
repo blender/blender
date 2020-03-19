@@ -36,7 +36,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"

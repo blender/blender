@@ -51,6 +51,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object.h"

@@ -64,7 +64,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_hair.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"

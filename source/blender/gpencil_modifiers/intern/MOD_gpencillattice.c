@@ -33,7 +33,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_deform.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"

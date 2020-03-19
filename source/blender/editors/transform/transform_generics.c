@@ -69,7 +69,7 @@
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
 #include "BKE_fcurve.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"

@@ -83,6 +83,7 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_hair.h"
 #include "BKE_icons.h"
