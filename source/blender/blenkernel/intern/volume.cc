@@ -681,7 +681,7 @@ bool BKE_volume_load(Volume *volume, Main *bmain)
   }
 
   /* Add grids read from file to own vector, filtering out any NULL pointers. */
-  for (const openvdb::GridBase::Ptr vdb_grid : vdb_grids) {
+  for (const openvdb::GridBase::Ptr &vdb_grid : vdb_grids) {
     if (vdb_grid) {
       VolumeFileCache::Entry template_entry(grids.filepath, vdb_grid);
       grids.emplace_back(template_entry);
