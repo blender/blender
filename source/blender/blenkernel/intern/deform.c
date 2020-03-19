@@ -888,7 +888,7 @@ float BKE_defvert_multipaint_collective_weight(const struct MDeformVert *dv,
 /**
  * Computes the display weight for the lock relative weight paint mode.
  *
- * @return weight divided by 1-locked_weight with division by zero check
+ * \return weight divided by 1-locked_weight with division by zero check
  */
 float BKE_defvert_calc_lock_relative_weight(float weight,
                                             float locked_weight,
@@ -922,7 +922,7 @@ float BKE_defvert_calc_lock_relative_weight(float weight,
 /**
  * Computes the display weight for the lock relative weight paint mode, using weight data.
  *
- * @return weight divided by unlocked, or 1-locked_weight with division by zero check
+ * \return weight divided by unlocked, or 1-locked_weight with division by zero check.
  */
 float BKE_defvert_lock_relative_weight(float weight,
                                        const struct MDeformVert *dv,
