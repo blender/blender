@@ -446,6 +446,5 @@ short BKE_idtype_idcode_from_index(const int index)
  */
 short BKE_idtype_idcode_iter_step(int *index)
 {
-  printf("%d: %d\n", *index, BKE_idtype_idcode_from_index((*index)));
   return (*index < ARRAY_SIZE(id_types)) ? BKE_idtype_idcode_from_index((*index)++) : 0;
 }
