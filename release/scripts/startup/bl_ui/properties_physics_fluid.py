@@ -173,7 +173,6 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col = flow.column()
             col.enabled = not domain.has_cache_baked_guide
             col.prop(domain, "resolution_max", text="Resolution Divisions")
-            col = flow.column()
             col.prop(domain, "time_scale", text="Time Scale")
             col.prop(domain, "cfl_condition", text="CFL Number")
 
@@ -192,6 +191,8 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
                 sub.prop(domain, "gravity", text="Using Scene Gravity", icon='SCENE_DATA')
             else:
                 col.prop(domain, "gravity", text="Gravity")
+
+            col = flow.column()
             col.prop(domain, "clipping", text="Empty Space")
 
             if domain.cache_type == 'MODULAR':
@@ -421,14 +422,16 @@ class PHYSICS_PT_fire(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "burning_rate", text="Reaction Speed")
-        col = flow.column(align=True)
-        col.prop(domain, "flame_smoke", text="Flame Smoke")
-        col.prop(domain, "flame_vorticity", text="Vorticity")
+        row = col.row()
+        sub = row.column(align=True)
+        sub.prop(domain, "flame_smoke", text="Flame Smoke")
+        sub.prop(domain, "flame_vorticity", text="Vorticity")
+
         col = flow.column(align=True)
         col.prop(domain, "flame_max_temp", text="Temperature Maximum")
         col.prop(domain, "flame_ignition", text="Minimum")
-        col = flow.column()
-        col.prop(domain, "flame_smoke_color", text="Flame Color")
+        row = col.row()
+        row.prop(domain, "flame_smoke_color", text="Flame Color")
 
 
 class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
@@ -468,21 +471,23 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop(domain, "simulation_method", expand=False)
         col.prop(domain, "flip_ratio", text="FLIP Ratio")
-        col.prop(domain, "particle_radius", text="Particle Radius")
+        row = col.row()
+        sub = row.column(align=True)
+        sub.prop(domain, "particle_radius", text="Particle Radius")
+        sub.prop(domain, "particle_number", text="Sampling")
+        sub.prop(domain, "particle_randomness", text="Randomness")
 
         col = flow.column()
-        col.prop(domain, "particle_max", text="Particles Maximum")
-        col.prop(domain, "particle_min", text="Minimum")
-
-        col = flow.column()
-        col.prop(domain, "particle_number", text="Particle Sampling")
+        row = col.row()
+        sub = row.column(align=True)
+        sub.prop(domain, "particle_max", text="Particles Maximum")
+        sub.prop(domain, "particle_min", text="Minimum")
         col.prop(domain, "particle_band_width", text="Narrow Band Width")
-        col.prop(domain, "particle_randomness", text="Particle Randomness")
-
-        col = flow.column()
-        col.prop(domain, "use_fractions", text="Fractional Obstacles")
-        col.active = domain.use_fractions
-        col.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
+        row = col.row()
+        sub = row.column(align=True)
+        sub.prop(domain, "use_fractions", text="Fractional Obstacles")
+        sub.active = domain.use_fractions
+        sub.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
 
 
 class PHYSICS_PT_flow_source(PhysicButtonsPanel, Panel):
@@ -1123,35 +1128,37 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
         col.prop(domain, "cache_type", expand=False)
         col.enabled = not is_baking_any
 
-        col = flow.column(align=True)
         col.separator()
 
+        row = col.row()
+        col = row.column(align=True)
         col.prop(domain, "cache_frame_start", text="Frame Start")
         col.prop(domain, "cache_frame_end", text="End")
-        col.enabled = not is_baking_any
+        row.enabled = not is_baking_any
 
         col.separator()
 
         col = flow.column()
-        col.enabled = not is_baking_any and not has_baked_data
-        col.prop(domain, "cache_data_format", text="Data File Format")
+        row = col.row()
+        row.enabled = not is_baking_any and not has_baked_data
+        row.prop(domain, "cache_data_format", text="Data File Format")
 
         if md.domain_settings.domain_type in {'GAS'}:
             if domain.use_noise:
-                col = flow.column()
-                col.enabled = not is_baking_any and not has_baked_noise
-                col.prop(domain, "cache_noise_format", text="Noise File Format")
+                row = col.row()
+                row.enabled = not is_baking_any and not has_baked_noise
+                row.prop(domain, "cache_noise_format", text="Noise File Format")
 
         if md.domain_settings.domain_type in {'LIQUID'}:
             # File format for all particle systemes (FLIP and secondary)
-            col = flow.column()
-            col.enabled = not is_baking_any and not has_baked_particles and not has_baked_data
-            col.prop(domain, "cache_particle_format", text="Particle File Format")
+            row = col.row()
+            row.enabled = not is_baking_any and not has_baked_particles and not has_baked_data
+            row.prop(domain, "cache_particle_format", text="Particle File Format")
 
             if domain.use_mesh:
-                col = flow.column()
-                col.enabled = not is_baking_any and not has_baked_mesh
-                col.prop(domain, "cache_mesh_format", text="Mesh File Format")
+                row = col.row()
+                row.enabled = not is_baking_any and not has_baked_mesh
+                row.prop(domain, "cache_mesh_format", text="Mesh File Format")
 
         if domain.cache_type == 'FINAL':
 
