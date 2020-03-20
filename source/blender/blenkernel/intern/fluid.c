@@ -110,21 +110,23 @@ struct Scene;
 #  define ADD_IF_LOWER_NEG(a, b) (max_ff((a) + (b), min_ff((a), (b))))
 #  define ADD_IF_LOWER(a, b) (((b) > 0) ? ADD_IF_LOWER_POS((a), (b)) : ADD_IF_LOWER_NEG((a), (b)))
 
-void BKE_fluid_reallocate_fluid(FluidDomainSettings *mds, int res[3], int free_old)
+bool BKE_fluid_reallocate_fluid(FluidDomainSettings *mds, int res[3], int free_old)
 {
   if (free_old && mds->fluid) {
     manta_free(mds->fluid);
   }
   if (!min_iii(res[0], res[1], res[2])) {
     mds->fluid = NULL;
-    return;
+  }
+  else {
+    mds->fluid = manta_init(res, mds->mmd);
+
+    mds->res_noise[0] = res[0] * mds->noise_scale;
+    mds->res_noise[1] = res[1] * mds->noise_scale;
+    mds->res_noise[2] = res[2] * mds->noise_scale;
   }
 
-  mds->fluid = manta_init(res, mds->mmd);
-
-  mds->res_noise[0] = res[0] * mds->noise_scale;
-  mds->res_noise[1] = res[1] * mds->noise_scale;
-  mds->res_noise[2] = res[2] * mds->noise_scale;
+  return (mds->fluid != NULL);
 }
 
 void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *mds,
@@ -538,12 +540,10 @@ static bool BKE_fluid_modifier_init(
     mds->time_per_frame = 0;
     mds->time_total = (scene_framenr - 1) * mds->frame_length;
 
-    /* Allocate fluid. */
-    BKE_fluid_reallocate_fluid(mds, mds->res, 0);
-
     mmd->time = scene_framenr;
 
-    return true;
+    /* Allocate fluid. */
+    return BKE_fluid_reallocate_fluid(mds, mds->res, 0);
   }
   else if (mmd->type & MOD_FLUID_TYPE_FLOW) {
     if (!mmd->flow) {
@@ -3705,8 +3705,13 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
    * or if timeline gets reset to startframe */
   if (!mds->fluid) {
     BKE_fluid_modifier_reset_ex(mmd, false);
-    BKE_fluid_modifier_init(mmd, depsgraph, ob, scene, me);
+
+    /* Fluid domain init must not fail in order to continue modifier evaluation. */
+    if (!BKE_fluid_modifier_init(mmd, depsgraph, ob, scene, me)) {
+      return;
+    }
   }
+  BLI_assert(mds->fluid);
 
   /* Guiding parent res pointer needs initialization */
   guide_parent = mds->guide_parent;

@@ -52,7 +52,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
                              struct FluidModifierData *tmmd,
                              const int flag);
 
-void BKE_fluid_reallocate_fluid(struct FluidDomainSettings *mds, int res[3], int free_old);
+bool BKE_fluid_reallocate_fluid(struct FluidDomainSettings *mds, int res[3], int free_old);
 void BKE_fluid_reallocate_copy_fluid(struct FluidDomainSettings *mds,
                                      int o_res[3],
                                      int n_res[3],
