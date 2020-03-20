@@ -592,7 +592,7 @@ class I18nSettings:
                 # Assume it is already real JSon string...
                 self.from_json(fname)
                 return
-            with open(fname) as f:
+            with open(fname, encoding="utf8") as f:
                 self.from_json(f.read())
         # Else assume fname is already a file(like) object!
         else:
@@ -600,7 +600,7 @@ class I18nSettings:
 
     def save(self, fname):
         if isinstance(fname, str):
-            with open(fname, 'w') as f:
+            with open(fname, 'w', encoding="utf8") as f:
                 f.write(self.to_json())
         # Else assume fname is already a file(like) object!
         else:

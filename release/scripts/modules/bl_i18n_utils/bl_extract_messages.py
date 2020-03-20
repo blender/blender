@@ -765,7 +765,7 @@ def dump_src_messages(msgs, reports, settings):
             }
 
         data = ""
-        with open(path) as f:
+        with open(path, encoding="utf8") as f:
             data = f.read()
         for srch in pygettexts:
             m = srch(data)
@@ -798,7 +798,7 @@ def dump_src_messages(msgs, reports, settings):
     forbidden = set()
     forced = set()
     if os.path.isfile(settings.SRC_POTFILES):
-        with open(settings.SRC_POTFILES) as src:
+        with open(settings.SRC_POTFILES, encoding="utf8") as src:
             for l in src:
                 if l[0] == '-':
                     forbidden.add(l[1:].rstrip('\n'))
