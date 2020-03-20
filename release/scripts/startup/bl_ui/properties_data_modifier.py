@@ -665,7 +665,19 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "offset_v")
 
     def MULTIRES(self, layout, ob, md):
-        layout.row().prop(md, "subdivision_type", expand=True)
+        # Changing some of the properties can not be done once there is an
+        # actual displacement stored for this multires modifier. This check
+        # will disallow those properties from change.
+        # This is a bit stupid check but should be sufficient for the usual
+        # multires usage. It might become less strict and only disallow
+        # modifications if there is CD_MDISPS layer, or if there is actual
+        # non-zero displacement but such checks will be too slow to be done
+        # on every redraw.
+        have_displacement = (md.total_levels != 0)
+
+        row = layout.row()
+        row.enabled = not have_displacement
+        row.prop(md, "subdivision_type", expand=True)
 
         split = layout.split()
         col = split.column()
@@ -673,7 +685,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         # TODO(sergey): Expose it again after T58473 is solved.
         # col.prop(md, "sculpt_levels", text="Sculpt")
         col.prop(md, "render_levels", text="Render")
-        col.prop(md, "quality")
+
+        row = col.row()
+        row.enabled = not have_displacement
+        row.prop(md, "quality")
 
         col = split.column()
 
