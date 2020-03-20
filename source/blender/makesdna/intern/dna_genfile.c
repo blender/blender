@@ -81,15 +81,15 @@
  *     <typenr><nr_of_elems> <typenr><namenr> <typenr><namenr> ...
  * \endcode
  *
- *  **Remember to read/write integer and short aligned!**
+ * **Remember to read/write integer and short aligned!**
  *
- *  While writing a file, the names of a struct is indicated with a type number,
- *  to be found with: ``type = DNA_struct_find_nr(SDNA *, const char *)``
- *  The value of ``type`` corresponds with the index within the structs array
+ * While writing a file, the names of a struct is indicated with a type number,
+ * to be found with: ``type = DNA_struct_find_nr(SDNA *, const char *)``
+ * The value of ``type`` corresponds with the index within the structs array
  *
- *  For the moment: the complete DNA file is included in a .blend file. For
- *  the future we can think of smarter methods, like only included the used
- *  structs. Only needed to keep a file short though...
+ * For the moment: the complete DNA file is included in a .blend file. For
+ * the future we can think of smarter methods, like only included the used
+ * structs. Only needed to keep a file short though...
  *
  * ALLOWED AND TESTED CHANGES IN STRUCTS:
  *  - Type change (a char to float will be divided by 255).

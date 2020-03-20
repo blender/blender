@@ -741,8 +741,8 @@ static void default_get_tarmat_full_bbone(struct Depsgraph *UNUSED(depsgraph),
 
 /* This following macro should be used for all standard single-target *_get_tars functions
  * to save typing and reduce maintenance woes.
- * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
- *  really just to help this code easier to read)
+ * (Hopefully all compilers will be happy with the lines with just a space on them.
+ * Those are really just to help this code easier to read).
  */
 // TODO: cope with getting rotation order...
 #define SINGLETARGET_GET_TARS(con, datatar, datasubtarget, ct, list) \

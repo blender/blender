@@ -18,7 +18,7 @@
  */
 
 /** \file
- *  \ingroup bke
+ * \ingroup bke
  */
 
 #include <errno.h>

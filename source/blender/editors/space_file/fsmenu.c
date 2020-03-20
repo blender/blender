@@ -182,12 +182,12 @@ static void fsmenu_xdg_user_dirs_free(GHash *xdg_map)
 }
 
 /**
- *  Add fsmenu entry for system folders on linux.
- *  - Check if a path is stored in the GHash generated from user-dirs.dirs
- *  - If not, check for a default path in $HOME
+ * Add fsmenu entry for system folders on linux.
+ * - Check if a path is stored in the GHash generated from user-dirs.dirs
+ * - If not, check for a default path in $HOME
  *
- *  \param key: Use `user-dirs.dirs` format "XDG_EXAMPLE_DIR"
- *  \param default_path: Directory name to check in $HOME, also used for the menu entry name.
+ * \param key: Use `user-dirs.dirs` format "XDG_EXAMPLE_DIR"
+ * \param default_path: Directory name to check in $HOME, also used for the menu entry name.
  */
 static void fsmenu_xdg_insert_entry(GHash *xdg_map,
                                     struct FSMenu *fsmenu,

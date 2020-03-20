@@ -1278,7 +1278,8 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
     RNA_string_get(op->ptr, "name", name);
     id = BKE_libblock_find_name(bmain, idcode, name);
     if (!id) {
-      BKE_reportf(op->reports, RPT_ERROR, "%s '%s' not found", BKE_idtype_idcode_to_name(idcode), name);
+      BKE_reportf(
+          op->reports, RPT_ERROR, "%s '%s' not found", BKE_idtype_idcode_to_name(idcode), name);
       return NULL;
     }
     id_us_plus(id);

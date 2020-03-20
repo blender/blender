@@ -18,7 +18,7 @@
  */
 
 /** \file
- *  \ingroup edphys
+ * \ingroup edphys
  */
 
 #include <math.h>

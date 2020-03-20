@@ -6919,13 +6919,14 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
 
 /**
  * Assume we have a situation like:
- *
+ * <pre>
  * a                 d
  *  \               /
  * A \             / C
  *    \ th1    th2/
  *     b---------c
  *          B
+ * </pre>
  *
  * where edges are A, B, and C, following a face around vertices a, b, c, d.
  * th1 is angle abc and th2 is angle bcd;
