@@ -493,6 +493,36 @@ ccl_device void bsdf_principled_hair_blur(ShaderClosure *sc, float roughness)
   bsdf->m0_roughness = fmaxf(roughness, bsdf->m0_roughness);
 }
 
+/* Hair Albedo */
+
+ccl_device_inline float bsdf_principled_hair_albedo_roughness_scale(
+    const float azimuthal_roughness)
+{
+  const float x = azimuthal_roughness;
+  return (((((0.245f * x) + 5.574f) * x - 10.73f) * x + 2.532f) * x - 0.215f) * x + 5.969f;
+}
+
+ccl_device float3 bsdf_principled_hair_albedo(ShaderClosure *sc)
+{
+  PrincipledHairBSDF *bsdf = (PrincipledHairBSDF *)sc;
+  return exp3(-sqrt(bsdf->sigma) * bsdf_principled_hair_albedo_roughness_scale(bsdf->v));
+}
+
+ccl_device_inline float3
+bsdf_principled_hair_sigma_from_reflectance(const float3 color, const float azimuthal_roughness)
+{
+  const float3 sigma = log3(color) /
+                       bsdf_principled_hair_albedo_roughness_scale(azimuthal_roughness);
+  return sigma * sigma;
+}
+
+ccl_device_inline float3 bsdf_principled_hair_sigma_from_concentration(const float eumelanin,
+                                                                       const float pheomelanin)
+{
+  return eumelanin * make_float3(0.506f, 0.841f, 1.653f) +
+         pheomelanin * make_float3(0.343f, 0.733f, 1.924f);
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __BSDF_HAIR_PRINCIPLED_H__ */

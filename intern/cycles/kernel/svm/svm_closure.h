@@ -16,23 +16,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Hair Melanin */
-
-ccl_device_inline float3 sigma_from_concentration(float eumelanin, float pheomelanin)
-{
-  return eumelanin * make_float3(0.506f, 0.841f, 1.653f) +
-         pheomelanin * make_float3(0.343f, 0.733f, 1.924f);
-}
-
-ccl_device_inline float3 sigma_from_reflectance(float3 color, float azimuthal_roughness)
-{
-  float x = azimuthal_roughness;
-  float roughness_fac = (((((0.245f * x) + 5.574f) * x - 10.73f) * x + 2.532f) * x - 0.215f) * x +
-                        5.969f;
-  float3 sigma = log3(color) / roughness_fac;
-  return sigma * sigma;
-}
-
 /* Closure Nodes */
 
 ccl_device void svm_node_glass_setup(
@@ -868,24 +851,26 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
             /* Benedikt Bitterli's melanin ratio remapping. */
             float eumelanin = melanin * (1.0f - melanin_redness);
             float pheomelanin = melanin * melanin_redness;
-            float3 melanin_sigma = sigma_from_concentration(eumelanin, pheomelanin);
+            float3 melanin_sigma = bsdf_principled_hair_sigma_from_concentration(eumelanin,
+                                                                                 pheomelanin);
 
             /* Optional tint. */
             float3 tint = stack_load_float3(stack, tint_ofs);
-            float3 tint_sigma = sigma_from_reflectance(tint, radial_roughness);
+            float3 tint_sigma = bsdf_principled_hair_sigma_from_reflectance(tint,
+                                                                            radial_roughness);
 
             bsdf->sigma = melanin_sigma + tint_sigma;
             break;
           }
           case NODE_PRINCIPLED_HAIR_REFLECTANCE: {
             float3 color = stack_load_float3(stack, color_ofs);
-            bsdf->sigma = sigma_from_reflectance(color, radial_roughness);
+            bsdf->sigma = bsdf_principled_hair_sigma_from_reflectance(color, radial_roughness);
             break;
           }
           default: {
             /* Fallback to brownish hair, same as defaults for melanin. */
             kernel_assert(!"Invalid Principled Hair parametrization!");
-            bsdf->sigma = sigma_from_concentration(0.0f, 0.8054375f);
+            bsdf->sigma = bsdf_principled_hair_sigma_from_concentration(0.0f, 0.8054375f);
             break;
           }
         }

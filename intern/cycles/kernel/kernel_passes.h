@@ -87,6 +87,9 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
       PrincipledSheenBsdf *bsdf = (PrincipledSheenBsdf *)sc;
       closure_albedo *= bsdf->avg_value;
     }
+    else if (sc->type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
+      closure_albedo *= bsdf_principled_hair_albedo(sc);
+    }
 
     if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
       diffuse_albedo += closure_albedo;
