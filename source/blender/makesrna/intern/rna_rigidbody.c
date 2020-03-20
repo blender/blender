@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup rna
+ * \ingroup RNA
  * \brief RNA property definitions for Rigid Body datatypes
  */
 

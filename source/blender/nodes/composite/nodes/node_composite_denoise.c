@@ -20,7 +20,7 @@
  */
 
 /** \file
- *  \ingroup cmpnodes
+ * \ingroup cmpnodes
  */
 
 #include "node_composite_util.h"

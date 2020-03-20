@@ -18,7 +18,7 @@
  */
 
 /** \file
- *  \ingroup modifiers
+ * \ingroup modifiers
  */
 
 #include <stdio.h>

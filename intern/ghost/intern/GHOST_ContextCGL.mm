@@ -18,7 +18,7 @@
  */
 
 /** \file
- *  \ingroup GHOST
+ * \ingroup GHOST
  *
  * Definition of GHOST_ContextCGL class.
  */

@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -14,18 +12,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Contributor(s): Brecht Van Lommel.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __BKE_VOLUME_RENDER_H__
 #define __BKE_VOLUME_RENDER_H__
 
-/** \file BKE_volume_render.h
- *  \ingroup bke
- *  \brief Volume datablock rendering and viewport drawing utilities.
+/** \file
+ * \ingroup bke
+ * \brief Volume data-block rendering and viewport drawing utilities.
  */
 
 #include "BLI_sys_types.h"
