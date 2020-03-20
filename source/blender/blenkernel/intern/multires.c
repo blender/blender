@@ -90,9 +90,14 @@ void multires_customdata_delete(Mesh *me)
      * as non-external for further free-ing, so zero element count
      * looks safer than em->totface */
     CustomData_external_remove(&em->bm->ldata, &me->id, CD_MDISPS, 0);
-    BM_data_layer_free(em->bm, &em->bm->ldata, CD_MDISPS);
 
-    BM_data_layer_free(em->bm, &em->bm->ldata, CD_GRID_PAINT_MASK);
+    if (CustomData_has_layer(&em->bm->ldata, CD_MDISPS)) {
+      BM_data_layer_free(em->bm, &em->bm->ldata, CD_MDISPS);
+    }
+
+    if (CustomData_has_layer(&em->bm->ldata, CD_GRID_PAINT_MASK)) {
+      BM_data_layer_free(em->bm, &em->bm->ldata, CD_GRID_PAINT_MASK);
+    }
   }
   else {
     CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
