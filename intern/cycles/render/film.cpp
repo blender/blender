@@ -203,9 +203,10 @@ void Pass::add(PassType type, vector<Pass> &passes, const char *name)
 
   passes.push_back(pass);
 
-  /* order from by components, to ensure alignment so passes with size 4
-   * come first and then passes with size 1 */
-  sort(&passes[0], &passes[0] + passes.size(), compare_pass_order);
+  /* Order from by components, to ensure alignment so passes with size 4
+   * come first and then passes with size 1. Note this must use stable sort
+   * so cryptomatte passes remain in the right order. */
+  stable_sort(&passes[0], &passes[0] + passes.size(), compare_pass_order);
 
   if (pass.divide_type != PASS_NONE)
     Pass::add(pass.divide_type, passes);
