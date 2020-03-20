@@ -1917,7 +1917,6 @@ class CYCLES_RENDER_PT_bake_influence(CyclesButtonsPanel, Panel):
             flow.prop(cbk, "use_pass_diffuse")
             flow.prop(cbk, "use_pass_glossy")
             flow.prop(cbk, "use_pass_transmission")
-            flow.prop(cbk, "use_pass_subsurface")
             flow.prop(cbk, "use_pass_ambient_occlusion")
             flow.prop(cbk, "use_pass_emit")
 
