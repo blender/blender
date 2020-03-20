@@ -1553,8 +1553,10 @@ static void renderresult_stampinfo(Render *re)
   for (rv = re->result->views.first; rv; rv = rv->next, nr++) {
     RE_SetActiveRenderView(re, rv->name);
     RE_AcquireResultImage(re, &rres, nr);
+
+    Object *ob_camera_eval = DEG_get_evaluated_object(re->pipeline_depsgraph, RE_GetCamera(re));
     BKE_image_stamp_buf(re->scene,
-                        RE_GetCamera(re),
+                        ob_camera_eval,
                         (re->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : NULL,
                         (unsigned char *)rres.rect32,
                         rres.rectf,
@@ -1696,7 +1698,6 @@ static void do_render_seq(Render *re)
 /* main loop: doing sequence + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
-  Object *camera;
   bool render_seq = false;
 
   re->current_scene_update(re->suh, re->scene);
@@ -1732,10 +1733,10 @@ static void do_render_all_options(Render *re)
 
   /* save render result stamp if needed */
   if (re->result != NULL) {
-    camera = RE_GetCamera(re);
     /* sequence rendering should have taken care of that already */
     if (!(render_seq && (re->r.stamp & R_STAMP_STRIPMETA))) {
-      BKE_render_result_stamp_info(re->scene, camera, re->result, false);
+      Object *ob_camera_eval = DEG_get_evaluated_object(re->pipeline_depsgraph, RE_GetCamera(re));
+      BKE_render_result_stamp_info(re->scene, ob_camera_eval, re->result, false);
     }
 
     /* stamp image info here */
