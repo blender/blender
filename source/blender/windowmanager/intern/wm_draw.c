@@ -140,6 +140,12 @@ static bool wm_draw_region_stereo_set(Main *bmain,
       if (region->regiontype == RGN_TYPE_WINDOW) {
         View3D *v3d = sa->spacedata.first;
         if (v3d->camera && v3d->camera->type == OB_CAMERA) {
+          RegionView3D *rv3d = region->regiondata;
+          RenderEngine *engine = rv3d->render_engine;
+          if (engine && !(engine->type->flag & RE_USE_STEREO_VIEWPORT)) {
+            return false;
+          }
+
           Camera *cam = v3d->camera->data;
           CameraBGImage *bgpic = cam->bg_images.first;
           v3d->multiview_eye = sview;

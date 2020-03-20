@@ -59,6 +59,7 @@ struct bNodeTree;
 #define RE_USE_SAVE_BUFFERS 32
 #define RE_USE_SHADING_NODES_CUSTOM 64
 #define RE_USE_SPHERICAL_STEREO 128
+#define RE_USE_STEREO_VIEWPORT 256
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION 1

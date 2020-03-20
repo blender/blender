@@ -885,6 +885,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(prop, "Use Spherical Stereo", "Support spherical stereo camera models");
 
+  prop = RNA_def_property(srna, "bl_use_stereo_viewport", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_STEREO_VIEWPORT);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop, "Use Stereo Viewport", "Support rendering stereo 3D viewport");
+
   RNA_define_verify_sdna(1);
 }
 

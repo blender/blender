@@ -286,7 +286,7 @@ RenderEngineType DRW_engine_viewport_external_type = {
     NULL,
     EXTERNAL_ENGINE,
     N_("External"),
-    RE_INTERNAL,
+    RE_INTERNAL | RE_USE_STEREO_VIEWPORT,
     NULL,
     NULL,
     NULL,
