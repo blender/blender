@@ -1996,16 +1996,21 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "normalize_opacity")
-        if md.normalize_opacity is True:
-            text="Strength"
-        else:
-            text="Opacity Factor"
-
-        col.prop(md, "factor", text=text)
         col.prop(md, "modify_color")
 
-        self.gpencil_masking(layout, ob, md, True, True)
+        if md.modify_color == 'HARDENESS':
+            col.prop(md, "hardeness")
+            show = False
+        else:
+            col.prop(md, "normalize_opacity")
+            if md.normalize_opacity is True:
+                text="Strength"
+            else:
+                text="Opacity Factor"
+
+            col.prop(md, "factor", text=text)
+            show = True
+        self.gpencil_masking(layout, ob, md, show, show)
 
     def GP_ARRAY(self, layout, ob, md):
         col = layout.column()

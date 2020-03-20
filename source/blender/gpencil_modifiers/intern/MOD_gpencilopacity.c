@@ -51,6 +51,7 @@ static void initData(GpencilModifierData *md)
   OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
   gpmd->pass_index = 0;
   gpmd->factor = 1.0f;
+  gpmd->hardeness = 1.0f;
   gpmd->layername[0] = '\0';
   gpmd->materialname[0] = '\0';
   gpmd->vgname[0] = '\0';
@@ -101,6 +102,14 @@ static void deformStroke(GpencilModifierData *md,
                                       mmd->flag & GP_OPACITY_INVERT_PASS,
                                       mmd->flag & GP_OPACITY_INVERT_LAYERPASS,
                                       mmd->flag & GP_OPACITY_INVERT_MATERIAL)) {
+    return;
+  }
+
+  /* Hardeness (at stroke level). */
+  if (mmd->modify_color == GP_MODIFY_COLOR_HARDENESS) {
+    gps->hardeness *= mmd->hardeness;
+    CLAMP(gps->hardeness, 0.0f, 1.0f);
+
     return;
   }
 

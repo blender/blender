@@ -215,6 +215,7 @@ typedef enum eModifyColorGpencil_Flag {
   GP_MODIFY_COLOR_BOTH = 0,
   GP_MODIFY_COLOR_STROKE = 1,
   GP_MODIFY_COLOR_FILL = 2,
+  GP_MODIFY_COLOR_HARDENESS = 3,
 } eModifyColorGpencil_Flag;
 
 typedef enum eOpacityModesGpencil_Flag {
@@ -272,7 +273,7 @@ typedef struct OpacityGpencilModifierData {
   /** Custom index for passes. */
   int layer_pass;
 
-  char _pad1[4];
+  float hardeness;
   struct CurveMapping *curve_intensity;
 } OpacityGpencilModifierData;
 
