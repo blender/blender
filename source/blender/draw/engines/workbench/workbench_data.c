@@ -203,7 +203,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
      * But this is a workaround for a missing update tagging from operators. */
     if (scene->display.shading.type != wpd->shading.type ||
-        (v3d && (XRAY_ENABLED(v3d) != XRAY_ENABLED(&scene->display)))) {
+        (v3d && (XRAY_ENABLED(v3d) != XRAY_ENABLED(&scene->display))) ||
+        (scene->display.shading.flag != wpd->shading.flag)) {
       wpd->view_updated = true;
     }
 
@@ -229,7 +230,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   else {
     /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
      * But this is a workaround for a missing update tagging from operators. */
-    if (v3d->shading.type != wpd->shading.type || XRAY_ENABLED(v3d) != XRAY_ENABLED(wpd)) {
+    if (v3d->shading.type != wpd->shading.type || XRAY_ENABLED(v3d) != XRAY_ENABLED(wpd) ||
+        v3d->shading.flag != wpd->shading.flag) {
       wpd->view_updated = true;
     }
 
