@@ -19,6 +19,7 @@
 /** \file
  * \ingroup draw_engine
  */
+#include "DRW_render.h"
 
 #include "workbench_private.h"
 
@@ -206,6 +207,13 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
   wpd->volumes_do = false;
   BLI_listbase_clear(&wpd->smoke_domains);
+
+  /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
+   * But this is a workaround for a missing update tagging. */
+  if ((rv3d != NULL) && (rv3d->rflag & RV3D_GPULIGHT_UPDATE)) {
+    wpd->view_updated = true;
+    rv3d->rflag &= ~RV3D_GPULIGHT_UPDATE;
+  }
 
   if (!v3d || (v3d->shading.type == OB_RENDER && BKE_scene_uses_blender_workbench(scene))) {
     /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
