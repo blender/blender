@@ -28,8 +28,8 @@
 
 class GHOST_XrContext;
 class GHOST_XrSwapchain;
-struct OpenXRSessionData;
 struct GHOST_XrDrawInfo;
+struct OpenXRSessionData;
 
 class GHOST_XrSession {
  public:

@@ -598,8 +598,8 @@ typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, GHOST_T
 
 #ifdef WITH_XR_OPENXR
 
-struct GHOST_XrError;
 struct GHOST_XrDrawViewInfo;
+struct GHOST_XrError;
 /**
  * The XR view (i.e. the OpenXR runtime) may require a different graphics library than OpenGL. An
  * offscreen texture of the viewport will then be drawn into using OpenGL, but the final texture

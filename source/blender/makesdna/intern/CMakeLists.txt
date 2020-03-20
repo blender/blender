@@ -134,8 +134,8 @@ set(SRC
   ../DNA_camera_defaults.h
   ../DNA_curve_defaults.h
   ../DNA_defaults.h
-  ../DNA_image_defaults.h
   ../DNA_hair_defaults.h
+  ../DNA_image_defaults.h
   ../DNA_lattice_defaults.h
   ../DNA_light_defaults.h
   ../DNA_lightprobe_defaults.h

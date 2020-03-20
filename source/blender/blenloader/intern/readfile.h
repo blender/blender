@@ -30,8 +30,8 @@
 #include "DNA_windowmanager_types.h" /* for ReportType */
 #include "zlib.h"
 
-struct IDNameLib_Map;
 struct GSet;
+struct IDNameLib_Map;
 struct Key;
 struct MemFile;
 struct Object;

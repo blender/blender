@@ -32,7 +32,6 @@ struct ModifierData;
 struct PTCacheEdit;
 struct ParticleSystem;
 
-struct bGPdata;
 struct Curve;
 struct Hair;
 struct Lattice;
@@ -40,6 +39,7 @@ struct Mesh;
 struct MetaBall;
 struct PointCloud;
 struct Volume;
+struct bGPdata;
 
 /* Expose via BKE callbacks */
 void DRW_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);

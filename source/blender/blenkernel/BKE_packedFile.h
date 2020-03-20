@@ -36,8 +36,8 @@ struct Main;
 struct PackedFile;
 struct ReportList;
 struct VFont;
-struct bSound;
 struct Volume;
+struct bSound;
 
 enum ePF_FileCompare {
   PF_CMP_EQUAL = 0,
