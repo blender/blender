@@ -997,58 +997,19 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
  */
 size_t BKE_libblock_get_alloc_info(short type, const char **name)
 {
-#define CASE_RETURN(id_code, type) \
-  case id_code: \
-    do { \
-      if (name != NULL) { \
-        *name = #type; \
-      } \
-      return sizeof(type); \
-    } while (0)
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(type);
 
-  switch ((ID_Type)type) {
-    CASE_RETURN(ID_SCE, Scene);
-    CASE_RETURN(ID_LI, Library);
-    CASE_RETURN(ID_OB, Object);
-    CASE_RETURN(ID_ME, Mesh);
-    CASE_RETURN(ID_CU, Curve);
-    CASE_RETURN(ID_MB, MetaBall);
-    CASE_RETURN(ID_MA, Material);
-    CASE_RETURN(ID_TE, Tex);
-    CASE_RETURN(ID_IM, Image);
-    CASE_RETURN(ID_LT, Lattice);
-    CASE_RETURN(ID_LA, Light);
-    CASE_RETURN(ID_CA, Camera);
-    CASE_RETURN(ID_IP, Ipo);
-    CASE_RETURN(ID_KE, Key);
-    CASE_RETURN(ID_WO, World);
-    CASE_RETURN(ID_SCR, bScreen);
-    CASE_RETURN(ID_VF, VFont);
-    CASE_RETURN(ID_TXT, Text);
-    CASE_RETURN(ID_SPK, Speaker);
-    CASE_RETURN(ID_LP, LightProbe);
-    CASE_RETURN(ID_SO, bSound);
-    CASE_RETURN(ID_GR, Collection);
-    CASE_RETURN(ID_AR, bArmature);
-    CASE_RETURN(ID_AC, bAction);
-    CASE_RETURN(ID_NT, bNodeTree);
-    CASE_RETURN(ID_BR, Brush);
-    CASE_RETURN(ID_PA, ParticleSettings);
-    CASE_RETURN(ID_WM, wmWindowManager);
-    CASE_RETURN(ID_GD, bGPdata);
-    CASE_RETURN(ID_MC, MovieClip);
-    CASE_RETURN(ID_MSK, Mask);
-    CASE_RETURN(ID_LS, FreestyleLineStyle);
-    CASE_RETURN(ID_PAL, Palette);
-    CASE_RETURN(ID_PC, PaintCurve);
-    CASE_RETURN(ID_CF, CacheFile);
-    CASE_RETURN(ID_WS, WorkSpace);
-    CASE_RETURN(ID_HA, Hair);
-    CASE_RETURN(ID_PT, PointCloud);
-    CASE_RETURN(ID_VO, Volume);
+  if (id_type == NULL) {
+    if (name != NULL) {
+      *name = NULL;
+    }
+    return 0;
   }
-  return 0;
-#undef CASE_RETURN
+
+  if (name != NULL) {
+    *name = id_type->name;
+  }
+  return id_type->struct_size;
 }
 
 /**
