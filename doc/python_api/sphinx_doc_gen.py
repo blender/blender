@@ -1073,6 +1073,7 @@ context_type_map = {
     "visible_pose_bones": ("PoseBone", True),
     "visible_fcurves": ("FCurve", True),
     "weight_paint_object": ("Object", False),
+    "volume": ("Volume", False),
     "world": ("World", False),
 }
 
