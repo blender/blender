@@ -47,6 +47,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
@@ -1149,17 +1150,19 @@ static void recalcData_sequencer(TransInfo *t)
 static void recalcData_gpencil_strokes(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
-  bGPDstroke *gps_prev = NULL;
+  GHash *strokes = BLI_ghash_ptr_new(__func__);
 
   TransData *td = tc->data;
   for (int i = 0; i < tc->data_len; i++, td++) {
     bGPDstroke *gps = td->extra;
-    if ((gps != NULL) && (gps != gps_prev)) {
+
+    if ((gps != NULL) && (!BLI_ghash_haskey(strokes, gps))) {
+      BLI_ghash_insert(strokes, gps, gps);
       /* Calc geometry data. */
       BKE_gpencil_stroke_geometry_update(gps);
-      gps_prev = gps;
     }
   }
+  BLI_ghash_free(strokes, NULL, NULL);
 }
 
 static void recalcData_sculpt(TransInfo *t)
