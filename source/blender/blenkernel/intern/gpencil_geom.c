@@ -51,8 +51,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-static CLG_LogRef LOG = {"bke_geom.gpencil"};
-
 /* GP Object - Boundbox Support */
 /**
  * Get min/max coordinate bounds for single stroke

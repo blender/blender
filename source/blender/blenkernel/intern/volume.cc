@@ -52,7 +52,9 @@
 
 #include "CLG_log.h"
 
+#ifdef WITH_OPENVDB
 static CLG_LogRef LOG = {"bke.volume"};
+#endif
 
 #define VOLUME_FRAME_NONE INT_MAX
 
@@ -590,6 +592,7 @@ static int volume_sequence_frame(const Depsgraph *depsgraph, const Volume *volum
   return frame;
 }
 
+#ifdef WITH_OPENVDB
 static void volume_filepath_get(const Main *bmain, const Volume *volume, char r_filepath[FILE_MAX])
 {
   BLI_strncpy(r_filepath, volume->filepath, FILE_MAX);
@@ -603,6 +606,7 @@ static void volume_filepath_get(const Main *bmain, const Volume *volume, char r_
     BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
   }
 }
+#endif
 
 /* File Load */
 

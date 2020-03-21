@@ -659,12 +659,12 @@ static void foreach_vertex_of_loose_edge(const struct SubdivForeachContext *fore
   }
 }
 
-void foreach_edge(const struct SubdivForeachContext *foreach_context,
-                  void *tls,
-                  const int coarse_edge_index,
-                  const int UNUSED(subdiv_edge_index),
-                  const int subdiv_v1,
-                  const int subdiv_v2)
+static void foreach_edge(const struct SubdivForeachContext *foreach_context,
+                         void *UNUSED(tls),
+                         const int coarse_edge_index,
+                         const int UNUSED(subdiv_edge_index),
+                         const int subdiv_v1,
+                         const int subdiv_v2)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
