@@ -91,6 +91,7 @@ void GPENCIL_engine_init(void *ved)
   stl->pd->gp_layer_pool = vldata->gp_layer_pool;
   stl->pd->gp_vfx_pool = vldata->gp_vfx_pool;
   stl->pd->scene = ctx->scene;
+  stl->pd->v3d = ctx->v3d;
   stl->pd->last_light_pool = NULL;
   stl->pd->last_material_pool = NULL;
   stl->pd->tobjects.first = NULL;
@@ -905,6 +906,11 @@ void GPENCIL_draw_scene(void *ved)
 
   /* Fade 3D objects. */
   if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f)) {
+    float background_color[3];
+    ED_view3d_background_color_get(pd->scene, pd->v3d, background_color);
+    /* Blend color. */
+    interp_v3_v3v3(clear_cols[0], background_color, clear_cols[0], pd->fade_3d_object_opacity);
+
     mul_v4_fl(clear_cols[1], pd->fade_3d_object_opacity);
   }
 

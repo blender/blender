@@ -309,6 +309,8 @@ typedef struct GPENCIL_PrivateData {
   Object *camera;
   /* Copy of draw_ctx->scene for convenience. */
   struct Scene *scene;
+  /* Copy of draw_ctx->vie3d for convenience. */
+  struct View3D *v3d;
 
   /* Active object. */
   Object *obact;
