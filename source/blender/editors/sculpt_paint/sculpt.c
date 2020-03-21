@@ -11180,6 +11180,349 @@ static void SCULPT_OT_face_sets_create(wmOperatorType *ot)
       ot->srna, "mode", prop_sculpt_face_set_create_types, SCULPT_FACE_SET_MASKED, "Mode", "");
 }
 
+typedef enum eSculptFaceSetsInitMode {
+  SCULPT_FACE_SETS_FROM_LOOSE_PARTS = 0,
+  SCULPT_FACE_SETS_FROM_MATERIALS = 1,
+  SCULPT_FACE_SETS_FROM_NORMALS = 2,
+  SCULPT_FACE_SETS_FROM_UV_SEAMS = 3,
+  SCULPT_FACE_SETS_FROM_CREASES = 4,
+  SCULPT_FACE_SETS_FROM_SHARP_EDGES = 5,
+  SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT = 6,
+  SCULPT_FACE_SETS_FROM_FACE_MAPS = 7,
+} eSculptFaceSetsInitMode;
+
+static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
+    {
+        SCULPT_FACE_SETS_FROM_LOOSE_PARTS,
+        "LOOSE_PARTS",
+        0,
+        "Face Sets From Loose Parts",
+        "Create a Face Set per loose part in the mesh",
+    },
+    {
+        SCULPT_FACE_SETS_FROM_MATERIALS,
+        "MATERIALS",
+        0,
+        "Face Sets From Material Slots",
+        "Create a Face Set per Material Slot",
+    },
+    {
+        SCULPT_FACE_SETS_FROM_NORMALS,
+        "NORMALS",
+        0,
+        "Face Sets From Mesh Normals",
+        "Create Face Sets for Faces that have similar normal",
+    },
+    {
+        SCULPT_FACE_SETS_FROM_UV_SEAMS,
+        "UV_SEAMS",
+        0,
+        "Face Sets From UV Seams",
+        "Create Face Sets using UV Seams as boundaries",
+    },
+    {
+        SCULPT_FACE_SETS_FROM_CREASES,
+        "CREASES",
+        0,
+        "Face Sets From Edge Creases",
+        "Create Face Sets using Edge Creases as boundaries",
+    },
+    {
+        SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT,
+        "BEVEL_WEIGHT",
+        0,
+        "Face Sets From Bevel Weight",
+        "Create Face Sets using Bevel Weights as boundaries",
+    },
+    {
+        SCULPT_FACE_SETS_FROM_SHARP_EDGES,
+        "SHARP_EDGES",
+        0,
+        "Face Sets From Sharp Edges",
+        "Create Face Sets using Sharp Edges as boundaries",
+    },
+    {
+        SCULPT_FACE_SETS_FROM_FACE_MAPS,
+        "FACE_MAPS",
+        0,
+        "Face Sets From Face Maps",
+        "Create a Face Set per Face Map",
+    },
+    {0, NULL, 0, NULL, NULL},
+};
+
+typedef bool (*face_sets_flood_fill_test)(
+    BMesh *bm, BMFace *from_f, BMEdge *from_e, BMFace *to_f, const float threshold);
+
+static bool sculpt_face_sets_init_loose_parts_test(BMesh *UNUSED(bm),
+                                                   BMFace *UNUSED(from_f),
+                                                   BMEdge *UNUSED(from_e),
+                                                   BMFace *UNUSED(to_f),
+                                                   const float UNUSED(threshold))
+{
+  return true;
+}
+
+static bool sculpt_face_sets_init_normals_test(
+    BMesh *UNUSED(bm), BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float threshold)
+{
+  return fabsf(dot_v3v3(from_f->no, to_f->no)) > threshold;
+}
+
+static bool sculpt_face_sets_init_uv_seams_test(BMesh *UNUSED(bm),
+                                                BMFace *UNUSED(from_f),
+                                                BMEdge *from_e,
+                                                BMFace *UNUSED(to_f),
+                                                const float UNUSED(threshold))
+{
+  return !BM_elem_flag_test(from_e, BM_ELEM_SEAM);
+}
+
+static bool sculpt_face_sets_init_crease_test(
+    BMesh *bm, BMFace *UNUSED(from_f), BMEdge *from_e, BMFace *UNUSED(to_f), const float threshold)
+{
+  return BM_elem_float_data_get(&bm->edata, from_e, CD_CREASE) < threshold;
+}
+
+static bool sculpt_face_sets_init_bevel_weight_test(
+    BMesh *bm, BMFace *UNUSED(from_f), BMEdge *from_e, BMFace *UNUSED(to_f), const float threshold)
+{
+  return BM_elem_float_data_get(&bm->edata, from_e, CD_BWEIGHT) < threshold;
+}
+
+static bool sculpt_face_sets_init_sharp_edges_test(BMesh *UNUSED(bm),
+                                                   BMFace *UNUSED(from_f),
+                                                   BMEdge *from_e,
+                                                   BMFace *UNUSED(to_f),
+                                                   const float UNUSED(threshold))
+{
+  return BM_elem_flag_test(from_e, BM_ELEM_SMOOTH);
+}
+
+static void sculpt_face_sets_init_flood_fill(Object *ob,
+                                             face_sets_flood_fill_test test,
+                                             const float threshold)
+{
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = ob->data;
+  BMesh *bm;
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
+  bm = BM_mesh_create(&allocsize,
+                      &((struct BMeshCreateParams){
+                          .use_toolflags = true,
+                      }));
+
+  BM_mesh_bm_from_me(bm,
+                     mesh,
+                     (&(struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+
+  bool *visited_faces = MEM_callocN(sizeof(bool) * mesh->totpoly, "visited faces");
+  const int totfaces = mesh->totpoly;
+
+  int *face_sets = ss->face_sets;
+
+  BM_mesh_elem_table_init(bm, BM_FACE);
+  BM_mesh_elem_table_ensure(bm, BM_FACE);
+
+  int next_face_set = 1;
+
+  for (int i = 0; i < totfaces; i++) {
+    if (!visited_faces[i]) {
+      GSQueue *queue;
+      queue = BLI_gsqueue_new(sizeof(int));
+
+      face_sets[i] = next_face_set;
+      visited_faces[i] = true;
+      BLI_gsqueue_push(queue, &i);
+
+      while (!BLI_gsqueue_is_empty(queue)) {
+        int from_f;
+        BLI_gsqueue_pop(queue, &from_f);
+
+        BMFace *f, *f_neighbor;
+        BMEdge *ed;
+        BMIter iter_a, iter_b;
+
+        f = BM_face_at_index(bm, from_f);
+
+        BM_ITER_ELEM (ed, &iter_a, f, BM_EDGES_OF_FACE) {
+          BM_ITER_ELEM (f_neighbor, &iter_b, ed, BM_FACES_OF_EDGE) {
+            if (f_neighbor != f) {
+              int neighbor_face_index = BM_elem_index_get(f_neighbor);
+              if (!visited_faces[neighbor_face_index]) {
+                if (test(bm, f, ed, f_neighbor, threshold)) {
+                  face_sets[neighbor_face_index] = next_face_set;
+                  visited_faces[neighbor_face_index] = true;
+                  BLI_gsqueue_push(queue, &neighbor_face_index);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      next_face_set += 1;
+
+      BLI_gsqueue_free(queue);
+    }
+  }
+
+  MEM_SAFE_FREE(visited_faces);
+
+  BM_mesh_free(bm);
+}
+
+static void sculpt_face_sets_init_loop(Object *ob, const int mode)
+{
+  Mesh *mesh = ob->data;
+  SculptSession *ss = ob->sculpt;
+  BMesh *bm;
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
+  bm = BM_mesh_create(&allocsize,
+                      &((struct BMeshCreateParams){
+                          .use_toolflags = true,
+                      }));
+
+  BM_mesh_bm_from_me(bm,
+                     mesh,
+                     (&(struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+  BMIter iter;
+  BMFace *f;
+
+  const int cd_fmaps_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
+      ss->face_sets[BM_elem_index_get(f)] = (int)(f->mat_nr + 1);
+    }
+    else if (mode == SCULPT_FACE_SETS_FROM_FACE_MAPS) {
+      if (cd_fmaps_offset != -1) {
+        ss->face_sets[BM_elem_index_get(f)] = BM_ELEM_CD_GET_INT(f, cd_fmaps_offset) + 2;
+      }
+      else {
+        ss->face_sets[BM_elem_index_get(f)] = 1;
+      }
+    }
+  }
+  BM_mesh_free(bm);
+}
+
+static int sculpt_face_set_init_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  ARegion *region = CTX_wm_region(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+
+  const int mode = RNA_enum_get(op->ptr, "mode");
+
+  /* Dyntopo and Multires not supported for now. */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false);
+
+  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+
+  if (!nodes) {
+    return OPERATOR_CANCELLED;
+  }
+
+  SCULPT_undo_push_begin("face set change");
+  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+
+  switch (mode) {
+    case SCULPT_FACE_SETS_FROM_LOOSE_PARTS:
+      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_loose_parts_test, threshold);
+      break;
+    case SCULPT_FACE_SETS_FROM_MATERIALS:
+      sculpt_face_sets_init_loop(ob, SCULPT_FACE_SETS_FROM_MATERIALS);
+      break;
+    case SCULPT_FACE_SETS_FROM_NORMALS:
+      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_normals_test, threshold);
+      break;
+    case SCULPT_FACE_SETS_FROM_UV_SEAMS:
+      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_uv_seams_test, threshold);
+      break;
+    case SCULPT_FACE_SETS_FROM_CREASES:
+      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_crease_test, threshold);
+      break;
+    case SCULPT_FACE_SETS_FROM_SHARP_EDGES:
+      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_sharp_edges_test, threshold);
+      break;
+    case SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT:
+      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_bevel_weight_test, threshold);
+      break;
+    case SCULPT_FACE_SETS_FROM_FACE_MAPS:
+      sculpt_face_sets_init_loop(ob, SCULPT_FACE_SETS_FROM_FACE_MAPS);
+      break;
+  }
+
+  SCULPT_undo_push_end();
+
+  /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
+  SCULPT_visibility_sync_all_face_sets_to_vertices(ss);
+
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_update_visibility(nodes[i]);
+  }
+
+  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+
+  MEM_SAFE_FREE(nodes);
+
+  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
+    BKE_mesh_flush_hidden_from_verts(ob->data);
+  }
+
+  ED_region_tag_redraw(region);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+
+  View3D *v3d = CTX_wm_view3d(C);
+  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_face_sets_init(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Init Face Sets";
+  ot->idname = "SCULPT_OT_face_sets_init";
+  ot->description = "Initializes all Face Sets in the mesh";
+
+  /* api callbacks */
+  ot->invoke = sculpt_face_set_init_invoke;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(
+      ot->srna, "mode", prop_sculpt_face_sets_init_types, SCULPT_FACE_SET_MASKED, "Mode", "");
+  RNA_def_float(
+      ot->srna,
+      "threshold",
+      0.5f,
+      0.0f,
+      1.0f,
+      "Threshold",
+      "Minimum value to consider a certain atribute a boundary when creating the Face Sets",
+      0.0f,
+      1.0f);
+}
+
 typedef enum eSculptFaceGroupVisibilityModes {
   SCULPT_FACE_SET_VISIBILITY_TOGGLE = 0,
   SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE = 1,
@@ -11454,4 +11797,5 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_create);
   WM_operatortype_append(SCULPT_OT_face_sets_change_visibility);
   WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
+  WM_operatortype_append(SCULPT_OT_face_sets_init);
 }
