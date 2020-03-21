@@ -80,25 +80,14 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
                                            const char *passname,
                                            int rres_index,
                                            eNodeSocketDatatype type,
-                                           int is_rlayers,
+                                           int UNUSED(is_rlayers),
                                            LinkNodePair *available_sockets,
                                            int *prev_index)
 {
-  bNodeSocket *sock;
-  int sock_index = BLI_findstringindex(&node->outputs, name, offsetof(bNodeSocket, name));
+  bNodeSocket *sock = BLI_findstring(&node->outputs, name, offsetof(bNodeSocket, name));
 
-  if (sock_index < 0) {
-    /* The first 31 sockets always are the legacy hardcoded sockets.
-     * Any dynamically allocated sockets follow afterwards,
-     * and are sorted in the order in which they were stored in the RenderResult.
-     * Therefore, we remember the index of the last matched socket.
-     * New sockets are placed behind the previously traversed one,
-     * but always after the first 31. */
-    int after_index = *prev_index;
-    if (is_rlayers && after_index < MAX_LEGACY_SOCKET_INDEX) {
-      after_index = MAX_LEGACY_SOCKET_INDEX;
-    }
-
+  /* Create socket if it doesn't exist yet. */
+  if (sock == NULL) {
     if (rres_index >= 0) {
       sock = node_add_socket_from_template(
           ntree, node, &cmp_node_rlayers_out[rres_index], SOCK_OUT);
@@ -109,26 +98,20 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
     /* extra socket info */
     NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
     sock->storage = sockdata;
+  }
 
+  NodeImageLayer *sockdata = sock->storage;
+  if (sockdata) {
     BLI_strncpy(sockdata->pass_name, passname, sizeof(sockdata->pass_name));
+  }
 
-    sock_index = BLI_listbase_count(&node->outputs) - 1;
-    if (sock_index != after_index + 1) {
-      bNodeSocket *after_sock = BLI_findlink(&node->outputs, after_index);
-      BLI_remlink(&node->outputs, sock);
-      BLI_insertlinkafter(&node->outputs, after_sock, sock);
-    }
-  }
-  else {
-    sock = BLI_findlink(&node->outputs, sock_index);
-    NodeImageLayer *sockdata = sock->storage;
-    if (sockdata) {
-      BLI_strncpy(sockdata->pass_name, passname, sizeof(sockdata->pass_name));
-    }
-  }
+  /* Reorder sockets according to order that passes are added. */
+  const int after_index = (*prev_index)++;
+  bNodeSocket *after_sock = BLI_findlink(&node->outputs, after_index);
+  BLI_remlink(&node->outputs, sock);
+  BLI_insertlinkafter(&node->outputs, after_sock, sock);
 
   BLI_linklist_append(available_sockets, sock);
-  *prev_index = sock_index;
 }
 
 static void cmp_node_image_create_outputs(bNodeTree *ntree,
