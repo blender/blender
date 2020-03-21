@@ -89,8 +89,7 @@ class OpenCLInfo {
   static bool platform_version_check(cl_platform_id platform, string *error = NULL);
   static bool device_version_check(cl_device_id device, string *error = NULL);
   static string get_hardware_id(const string &platform_name, cl_device_id device_id);
-  static void get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices,
-                                 bool force_all = false);
+  static void get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices);
 
   /* ** Some handy shortcuts to low level cl*GetInfo() functions. ** */
 
