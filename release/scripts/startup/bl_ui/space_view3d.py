@@ -3134,6 +3134,9 @@ class VIEW3D_MT_face_sets(Menu):
 
         op = layout.operator("sculpt.face_sets_create", text='Face Set From Visible')
         op.mode = 'VISIBLE'
+        
+        op = layout.operator("sculpt.face_sets_create", text='Face Set From Edit Mode Selection')
+        op.mode = 'SELECTION'
 
         layout.separator()
         

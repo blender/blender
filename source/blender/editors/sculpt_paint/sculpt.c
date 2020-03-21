@@ -11067,6 +11067,7 @@ typedef enum eSculptFaceGroupsCreateModes {
   SCULPT_FACE_SET_MASKED = 0,
   SCULPT_FACE_SET_VISIBLE = 1,
   SCULPT_FACE_SET_ALL = 2,
+  SCULPT_FACE_SET_SELECTION = 3,
 } eSculptFaceGroupsCreateModes;
 
 static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
@@ -11090,6 +11091,13 @@ static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
         0,
         "Face Set Full Mesh",
         "Create an unique Face Set with all faces in the sculpt",
+    },
+    {
+        SCULPT_FACE_SET_SELECTION,
+        "SELECTION",
+        0,
+        "Face Set From Edit Mode Selection",
+        "Create an Face Set corresponding to the Edit Mode face selection",
     },
     {0, NULL, 0, NULL, NULL},
 };
@@ -11147,6 +11155,31 @@ static int sculpt_face_set_create_invoke(bContext *C, wmOperator *op, const wmEv
     for (int i = 0; i < tot_vert; i++) {
       SCULPT_vertex_face_set_set(ss, i, next_face_set);
     }
+  }
+
+  if (mode == SCULPT_FACE_SET_SELECTION) {
+    Mesh *mesh = ob->data;
+    BMesh *bm;
+    const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
+    bm = BM_mesh_create(&allocsize,
+                        &((struct BMeshCreateParams){
+                            .use_toolflags = true,
+                        }));
+
+    BM_mesh_bm_from_me(bm,
+                       mesh,
+                       (&(struct BMeshFromMeshParams){
+                           .calc_face_normal = true,
+                       }));
+
+    BMIter iter;
+    BMFace *f;
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+        ss->face_sets[BM_elem_index_get(f)] = next_face_set;
+      }
+    }
+    BM_mesh_free(bm);
   }
 
   for (int i = 0; i < totnode; i++) {
