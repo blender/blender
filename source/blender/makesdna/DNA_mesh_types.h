@@ -134,9 +134,13 @@ typedef struct Mesh {
   struct MLoopCol *mloopcol;
   /* END BMESH ONLY */
 
-  /* mface stores the tessellation (triangulation) of the mesh,
-   * real faces are now stored in nface.*/
-  /** Array of mesh object mode faces for tessellation. */
+  /**
+   * Legacy face storage (quads & tries only),
+   * faces are now stored in #Mesh.mpoly & #Mesh.mloop arrays.
+   *
+   * \note This would be marked deprecated however the particles still use this at run-time
+   * for placing particles on the mesh (something which should be eventually upgraded).
+   */
   struct MFace *mface;
   /** Store tessellation face UV's and texture here. */
   struct MTFace *mtface;

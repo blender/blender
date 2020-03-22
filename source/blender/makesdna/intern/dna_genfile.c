@@ -591,7 +591,7 @@ SDNA *DNA_sdna_from_data(const void *data,
 }
 
 /**
- * Using globals is acceptable here,
+ * Using a global is acceptable here,
  * the data is read-only and only changes between Blender versions.
  *
  * So it is safe to create once and reuse.

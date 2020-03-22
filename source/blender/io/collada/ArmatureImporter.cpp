@@ -551,8 +551,8 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
    */
 
   /**
-   * Pseudocode:
-   *
+   * Pseudo-code:
+   * <pre>
    * find_node_in_tree(node, root_joint)
    *
    * skin::find_root_joints(root_joints):
@@ -575,6 +575,7 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
    * }
    *
    * endloop:
+   * </pre>
    */
 
   SkinInfo *a = &skin;

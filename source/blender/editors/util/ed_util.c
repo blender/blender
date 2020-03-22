@@ -127,7 +127,7 @@ void ED_editors_init(bContext *C)
     }
     else if (ob->type == OB_GPENCIL) {
       /* For multi-edit mode we may already have mode data (grease pencil does not need it).
-       * However we may have a non-active object stuck in a greasepencil edit mode. */
+       * However we may have a non-active object stuck in a grease-pencil edit mode. */
       if (ob != obact) {
         ob->mode = OB_MODE_OBJECT;
         DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);

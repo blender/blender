@@ -56,7 +56,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   /* Returns true if the data to be written is actually supported. This would, for example, allow a
    * hypothetical camera writer accept a perspective camera but reject an orthogonal one.
    *
-   * Returning false from a transform writer will prevent the object and all its decendants from
+   * Returning false from a transform writer will prevent the object and all its descendants from
    * being exported. Returning false from a data writer (object data, hair, or particles) will
    * only prevent that data from being written (and thus cause the object to be exported as an
    * Empty). */

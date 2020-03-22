@@ -2937,10 +2937,10 @@ bool ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks
   if (autokeyframe_cfra_can_key(scene, &ob->id)) {
     ListBase dsources = {NULL, NULL};
 
-    /* now insert the keyframe(s) using the Keying Set
-     * 1) add datasource override for the Object
-     * 2) insert keyframes
-     * 3) free the extra info
+    /* Now insert the key-frame(s) using the Keying Set:
+     * 1) Add data-source override for the Object.
+     * 2) Insert key-frames.
+     * 3) Free the extra info.
      */
     ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL);
     ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
@@ -2959,10 +2959,10 @@ bool ED_autokeyframe_pchan(
   if (autokeyframe_cfra_can_key(scene, &ob->id)) {
     ListBase dsources = {NULL, NULL};
 
-    /* now insert the keyframe(s) using the Keying Set
-     * 1) add datasource override for the PoseChannel
-     * 2) insert keyframes
-     * 3) free the extra info
+    /* Now insert the keyframe(s) using the Keying Set:
+     * 1) Add data-source override for the pose-channel.
+     * 2) Insert key-frames.
+     * 3) Free the extra info.
      */
     ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan);
     ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
