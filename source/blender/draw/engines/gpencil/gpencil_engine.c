@@ -693,7 +693,7 @@ void GPENCIL_cache_finish(void *ved)
                                         GPU_ATTACHMENT_TEXTURE(pd->color_layer_tx),
                                         GPU_ATTACHMENT_TEXTURE(pd->reveal_layer_tx),
                                     });
-    };
+    }
 
     if (pd->use_object_fb) {
       pd->color_object_tx = DRW_texture_pool_query_2d(

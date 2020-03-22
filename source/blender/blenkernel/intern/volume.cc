@@ -88,7 +88,7 @@ static CLG_LogRef LOG = {"bke.volume"};
  * out of file descriptors or prevent other applications from writing to it.
  */
 
-struct VolumeFileCache {
+static struct VolumeFileCache {
   /* Cache Entry */
   struct Entry {
     Entry(const std::string &filepath, const openvdb::GridBase::Ptr &grid)

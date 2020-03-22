@@ -1321,7 +1321,7 @@ static void rna_def_userdef_theme_ui_panel(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }
 
-const EnumPropertyItem rna_enum_userdef_theme_background_types_items[] = {
+static const EnumPropertyItem rna_enum_userdef_theme_background_types_items[] = {
     {TH_BACKGROUND_SINGLE_COLOR,
      "SINGLE_COLOR",
      0,

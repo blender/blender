@@ -40,7 +40,7 @@ static struct {
 
 extern char datatoc_effect_bloom_frag_glsl[];
 
-const bool use_highres = true;
+static const bool use_highres = true;
 
 static void eevee_create_shader_bloom(void)
 {

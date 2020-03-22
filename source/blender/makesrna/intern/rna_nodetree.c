@@ -122,7 +122,7 @@ const EnumPropertyItem rna_enum_mapping_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_vector_rotate_type_items[] = {
+static const EnumPropertyItem rna_enum_vector_rotate_type_items[] = {
     {NODE_VECTOR_ROTATE_TYPE_AXIS,
      "AXIS_ANGLE",
      0,
