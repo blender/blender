@@ -123,6 +123,11 @@ cflCond_s$ID$      = $CFL$\n\
 timestepsMin_s$ID$ = $TIMESTEPS_MIN$\n\
 timestepsMax_s$ID$ = $TIMESTEPS_MAX$\n\
 \n\
+# Start and stop for simulation\n\
+current_frame_s$ID$ = $CURRENT_FRAME$\n\
+start_frame_s$ID$   = $START_FRAME$\n\
+end_frame_s$ID$     = $END_FRAME$\n\
+\n\
 # Fluid diffusion / viscosity\n\
 domainSize_s$ID$ = $FLUID_DOMAIN_SIZE$ # longest domain side in meters\n\
 viscosity_s$ID$ = $FLUID_VISCOSITY$ / (domainSize_s$ID$*domainSize_s$ID$) # kinematic viscosity in m^2/s\n\
@@ -208,6 +213,8 @@ def fluid_adapt_time_step_$ID$():\n\
     # time params are animatable\n\
     s$ID$.frameLength = frameLength_s$ID$\n\
     s$ID$.cfl         = cflCond_s$ID$\n\
+    s$ID$.timestepMin  = s$ID$.frameLength / max(1, timestepsMax_s$ID$)\n\
+    s$ID$.timestepMax  = s$ID$.frameLength / max(1, timestepsMin_s$ID$)\n\
     \n\
     # ensure that vel grid is full (remember: adaptive domain can reallocate solver)\n\
     copyRealToVec3(sourceX=x_vel_s$ID$, sourceY=y_vel_s$ID$, sourceZ=z_vel_s$ID$, target=vel_s$ID$)\n\
@@ -225,7 +232,7 @@ const std::string fluid_alloc =
 mantaMsg('Fluid alloc data')\n\
 flags_s$ID$       = s$ID$.create(FlagGrid)\n\
 vel_s$ID$         = s$ID$.create(MACGrid)\n\
-velC_s$ID$        = s$ID$.create(MACGrid)\n\
+velTmp_s$ID$      = s$ID$.create(MACGrid)\n\
 x_vel_s$ID$       = s$ID$.create(RealGrid)\n\
 y_vel_s$ID$       = s$ID$.create(RealGrid)\n\
 z_vel_s$ID$       = s$ID$.create(RealGrid)\n\
@@ -247,7 +254,7 @@ phiIn_s$ID$.setConst(9999)\n\
 phiOut_s$ID$.setConst(9999)\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
-fluid_data_dict_final_s$ID$  = dict(vel=vel_s$ID$)\n\
+fluid_data_dict_final_s$ID$  = dict(vel=vel_s$ID$, velTmp=velTmp_s$ID$)\n\
 fluid_data_dict_resume_s$ID$ = dict(phiObs=phiObs_s$ID$, phiIn=phiIn_s$ID$, phiOut=phiOut_s$ID$, flags=flags_s$ID$)\n";
 
 const std::string fluid_alloc_obstacle =
@@ -493,7 +500,8 @@ def bake_fluid_process_data_$ID$(framenr, format_data, format_particles, format_
     mantaMsg('Bake fluid data')\n\
     \n\
     s$ID$.frame = framenr\n\
-    # Must not set 'timeTotal' here. Remember, this function is called from manta.c while-loop\n\
+    s$ID$.frameLength = frameLength_s$ID$\n\
+    s$ID$.timeTotal = timeTotal_s$ID$\n\
     \n\
     start_time = time.time()\n\
     if using_smoke_s$ID$:\n\
@@ -514,9 +522,9 @@ def bake_noise_process_$ID$(framenr, format_data, format_noise, path_data, path_
     mantaMsg('Bake fluid noise')\n\
     \n\
     sn$ID$.frame = framenr\n\
-    sn$ID$.timeTotal = (framenr-1) * frameLength_s$ID$\n\
-    sn$ID$.timestep  = dt0_s$ID$\n\
-    mantaMsg('sn$ID$.timeTotal: ' + str(sn$ID$.timeTotal))\n\
+    sn$ID$.frameLength = frameLength_s$ID$\n\
+    sn$ID$.timeTotal = abs(framenr - start_frame_s$ID$) * frameLength_s$ID$\n\
+    sn$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for noise\n\
     \n\
     smoke_step_noise_$ID$(framenr)\n\
     smoke_save_noise_$ID$(path_noise, framenr, format_noise, resumable)\n\
@@ -533,8 +541,9 @@ def bake_mesh_process_$ID$(framenr, format_data, format_mesh, format_particles, 
     mantaMsg('Bake fluid mesh')\n\
     \n\
     sm$ID$.frame = framenr\n\
-    sm$ID$.timeTotal = (framenr-1) * frameLength_s$ID$\n\
-    sm$ID$.timestep  = dt0_s$ID$\n\
+    sm$ID$.frameLength = frameLength_s$ID$\n\
+    sm$ID$.timeTotal = abs(framenr - start_frame_s$ID$) * frameLength_s$ID$\n\
+    sm$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for mesh\n\
     \n\
     #if using_smoke_s$ID$:\n\
         # TODO (sebbas): Future update could include smoke mesh (vortex sheets)\n\
@@ -556,8 +565,9 @@ def bake_particles_process_$ID$(framenr, format_data, format_particles, path_dat
     mantaMsg('Bake secondary particles')\n\
     \n\
     sp$ID$.frame = framenr\n\
-    sp$ID$.timeTotal = (framenr-1) * frameLength_s$ID$\n\
-    sp$ID$.timestep  = dt0_s$ID$\n\
+    sp$ID$.frameLength = frameLength_s$ID$\n\
+    sp$ID$.timeTotal = abs(framenr - start_frame_s$ID$) * frameLength_s$ID$\n\
+    sp$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for particles\n\
     \n\
     #if using_smoke_s$ID$:\n\
         # TODO (sebbas): Future update could include smoke particles (e.g. fire sparks)\n\
@@ -710,28 +720,24 @@ file_format_noise     = '$CACHE_NOISE_FORMAT$'\n\
 file_format_particles = '$CACHE_PARTICLE_FORMAT$'\n\
 file_format_mesh      = '$CACHE_MESH_FORMAT$'\n\
 \n\
-# Start and stop for simulation\n\
-current_frame  = $CURRENT_FRAME$\n\
-end_frame      = $END_FRAME$\n\
-\n\
 # How many frame to load from cache\n\
 from_cache_cnt = 100\n\
 \n\
 loop_cnt = 0\n\
-while current_frame <= end_frame:\n\
+while current_frame_s$ID$ <= end_frame_s$ID$:\n\
     \n\
     # Load already simulated data from cache:\n\
     if loop_cnt < from_cache_cnt:\n\
-        load(current_frame, cache_resumable)\n\
+        load(current_frame_s$ID$, cache_resumable)\n\
     \n\
     # Otherwise simulate new data\n\
     else:\n\
-        while(s$ID$.frame <= current_frame):\n\
+        while(s$ID$.frame <= current_frame_s$ID$):\n\
             if using_adaptTime_s$ID$:\n\
                 fluid_adapt_time_step_$ID$()\n\
-            step(current_frame)\n\
+            step(current_frame_s$ID$)\n\
     \n\
-    current_frame += 1\n\
+    current_frame_s$ID$ += 1\n\
     loop_cnt += 1\n\
     \n\
     if gui:\n\
