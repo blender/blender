@@ -422,6 +422,7 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
    * If TAA accumulation is finished, we only blit the result.
    */
 
+  const bool taa_finished = (wpd->taa_sample >= wpd->taa_sample_len) && wpd->taa_sample_len > 1;
   if (wpd->taa_sample == 0) {
     /* In playback mode, we are sure the next redraw will not use the same viewmatrix.
      * In this case no need to save the depth buffer. */
@@ -439,6 +440,9 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
     GPU_framebuffer_blit(fbl->antialiasing_fb, 0, dfbl->default_fb, 0, GPU_DEPTH_BIT);
     if (workbench_in_front_history_needed(vedata)) {
       GPU_framebuffer_blit(fbl->antialiasing_in_front_fb, 0, dfbl->in_front_fb, 0, GPU_DEPTH_BIT);
+    }
+    if (taa_finished) {
+      return;
     }
   }
 
