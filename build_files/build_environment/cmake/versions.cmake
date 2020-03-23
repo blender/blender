@@ -146,8 +146,8 @@ set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTH
 set(PYTHON_HASH d33e4aae66097051c2eca45ee3604803)
 
 set(TBB_VERSION 2019_U9)
-set(TBB_URI https://github.com/01org/tbb/archive/${TBB_VERSION}.tar.gz)
-set(TBB_HASH 584edbec127c508f2cd5b6e79ad200fc)
+set(TBB_URI https://github.com/oneapi-src/oneTBB/archive/${TBB_VERSION}.tar.gz)
+set(TBB_HASH 26263622e9187212ec240dcf01b66207)
 
 set(OPENVDB_VERSION 7.0.0)
 set(OPENVDB_URI https://github.com/dreamworksanimation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz)
