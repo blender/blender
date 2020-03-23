@@ -98,6 +98,7 @@ static void OVERLAY_engine_init(void *vedata)
   OVERLAY_image_init(vedata);
   OVERLAY_outline_init(vedata);
   OVERLAY_wireframe_init(vedata);
+  OVERLAY_paint_init(vedata);
 }
 
 static void OVERLAY_cache_init(void *vedata)

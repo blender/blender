@@ -317,6 +317,9 @@ typedef struct OVERLAY_PrivateData {
     bool do_pose_fade_geom;
   } armature;
   struct {
+    bool in_front;
+  } painting;
+  struct {
     DRWCallBuffer *handle[2];
   } mball;
 } OVERLAY_PrivateData; /* Transient data */
@@ -524,6 +527,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
                                     bool init_dupli);
 void OVERLAY_outline_draw(OVERLAY_Data *vedata);
 
+void OVERLAY_paint_init(OVERLAY_Data *vedata);
 void OVERLAY_paint_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_paint_texture_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_paint_vertex_cache_populate(OVERLAY_Data *vedata, Object *ob);

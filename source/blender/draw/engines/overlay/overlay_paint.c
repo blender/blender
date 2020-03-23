@@ -28,6 +28,15 @@
 
 #include "overlay_private.h"
 
+void OVERLAY_paint_init(OVERLAY_Data *vedata)
+{
+  OVERLAY_StorageList *stl = vedata->stl;
+  OVERLAY_PrivateData *pd = stl->pd;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+
+  pd->painting.in_front = draw_ctx->obact && (draw_ctx->obact->dtx & OB_DRAWXRAY);
+}
+
 void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -194,12 +203,15 @@ void OVERLAY_paint_weight_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
 void OVERLAY_paint_draw(OVERLAY_Data *vedata)
 {
+  OVERLAY_StorageList *stl = vedata->stl;
+  OVERLAY_PrivateData *pd = stl->pd;
+
   OVERLAY_PassList *psl = vedata->psl;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   if (DRW_state_is_fbo()) {
     /* Pain overlay needs final color because of multiply blend mode. */
-    GPU_framebuffer_bind(dfbl->default_fb);
+    GPU_framebuffer_bind(pd->painting.in_front ? dfbl->in_front_fb : dfbl->default_fb);
   }
 
   if (psl->paint_color_ps) {

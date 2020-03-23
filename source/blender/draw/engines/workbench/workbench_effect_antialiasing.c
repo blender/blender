@@ -133,6 +133,32 @@ void workbench_antialiasing_view_updated(WORKBENCH_Data *vedata)
   }
 }
 
+/* This function checks if the overlay engine should need center in front depth's.
+ * When that is the case the in front depth are stored and restored. Otherwise it
+ * will be filled with the current sample data. */
+static bool workbench_in_front_history_needed(WORKBENCH_Data *vedata)
+{
+  WORKBENCH_StorageList *stl = vedata->stl;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const View3D *v3d = draw_ctx->v3d;
+  const Object *obact = draw_ctx->obact;
+
+  if (!v3d || (v3d->flag2 & V3D_HIDE_OVERLAYS)) {
+    return false;
+  }
+
+  if (stl->wpd->is_playback) {
+    return false;
+  }
+
+  if (!obact || draw_ctx->object_mode != OB_MODE_WEIGHT_PAINT ||
+      v3d->overlay.weight_paint_mode_opacity == 0.0) {
+    return false;
+  }
+
+  return true;
+}
+
 void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
 {
   WORKBENCH_FramebufferList *fbl = vedata->fbl;
@@ -168,6 +194,13 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
 
     DRW_texture_ensure_fullscreen_2d(&txl->history_buffer_tx, GPU_RGBA16F, DRW_TEX_FILTER);
     DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, 0);
+    const bool in_front_history = workbench_in_front_history_needed(vedata);
+    if (in_front_history) {
+      DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_in_front_tx, GPU_DEPTH24_STENCIL8, 0);
+    }
+    else {
+      DRW_TEXTURE_FREE_SAFE(txl->depth_buffer_in_front_tx);
+    }
 
     wpd->smaa_edge_tx = DRW_texture_pool_query_fullscreen(GPU_RG8, owner);
     wpd->smaa_weight_tx = DRW_texture_pool_query_fullscreen(GPU_RGBA8, owner);
@@ -177,6 +210,12 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
                                       GPU_ATTACHMENT_TEXTURE(txl->depth_buffer_tx),
                                       GPU_ATTACHMENT_TEXTURE(txl->history_buffer_tx),
                                   });
+    if (in_front_history) {
+      GPU_framebuffer_ensure_config(&fbl->antialiasing_in_front_fb,
+                                    {
+                                        GPU_ATTACHMENT_TEXTURE(txl->depth_buffer_in_front_tx),
+                                    });
+    }
 
     GPU_framebuffer_ensure_config(&fbl->smaa_edge_fb,
                                   {
@@ -227,6 +266,7 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
     /* Cleanup */
     DRW_TEXTURE_FREE_SAFE(txl->history_buffer_tx);
     DRW_TEXTURE_FREE_SAFE(txl->depth_buffer_tx);
+    DRW_TEXTURE_FREE_SAFE(txl->depth_buffer_in_front_tx);
     DRW_TEXTURE_FREE_SAFE(txl->smaa_search_tx);
     DRW_TEXTURE_FREE_SAFE(txl->smaa_area_tx);
   }
@@ -387,6 +427,9 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
      * In this case no need to save the depth buffer. */
     eGPUFrameBufferBits bits = GPU_COLOR_BIT | (!wpd->is_playback ? GPU_DEPTH_BIT : 0);
     GPU_framebuffer_blit(dfbl->default_fb, 0, fbl->antialiasing_fb, 0, bits);
+    if (workbench_in_front_history_needed(vedata)) {
+      GPU_framebuffer_blit(dfbl->in_front_fb, 0, fbl->antialiasing_in_front_fb, 0, GPU_DEPTH_BIT);
+    }
   }
   else {
     /* Accumulate result to the TAA buffer. */
@@ -394,6 +437,9 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
     DRW_draw_pass(psl->aa_accum_ps);
     /* Copy back the saved depth buffer for correct overlays. */
     GPU_framebuffer_blit(fbl->antialiasing_fb, 0, dfbl->default_fb, 0, GPU_DEPTH_BIT);
+    if (workbench_in_front_history_needed(vedata)) {
+      GPU_framebuffer_blit(fbl->antialiasing_in_front_fb, 0, dfbl->in_front_fb, 0, GPU_DEPTH_BIT);
+    }
   }
 
   if (!DRW_state_is_image_render() || wpd->taa_sample + 1 == wpd->taa_sample_len) {

@@ -88,6 +88,7 @@ typedef struct WORKBENCH_FramebufferList {
   struct GPUFrameBuffer *dof_blur2_fb;
 
   struct GPUFrameBuffer *antialiasing_fb;
+  struct GPUFrameBuffer *antialiasing_in_front_fb;
   struct GPUFrameBuffer *smaa_edge_fb;
   struct GPUFrameBuffer *smaa_weight_fb;
 } WORKBENCH_FramebufferList;
@@ -97,6 +98,7 @@ typedef struct WORKBENCH_TextureList {
   struct GPUTexture *coc_halfres_tx;
   struct GPUTexture *history_buffer_tx;
   struct GPUTexture *depth_buffer_tx;
+  struct GPUTexture *depth_buffer_in_front_tx;
   struct GPUTexture *smaa_search_tx;
   struct GPUTexture *smaa_area_tx;
   struct GPUTexture *dummy_image_tx;
