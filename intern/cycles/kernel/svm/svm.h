@@ -231,6 +231,8 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
     uint4 node = read_node(kg, &offset);
 
     switch (node.x) {
+      case NODE_END:
+        return;
 #if NODES_GROUP(NODE_GROUP_LEVEL_0)
       case NODE_SHADER_JUMP: {
         if (type == SHADER_TYPE_SURFACE)
@@ -539,8 +541,6 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
         svm_node_aov_value(kg, sd, stack, node, buffer);
         break;
 #endif /* NODES_GROUP(NODE_GROUP_LEVEL_4) */
-      case NODE_END:
-        return;
       default:
         kernel_assert(!"Unknown node type was passed to the SVM machine");
         return;
