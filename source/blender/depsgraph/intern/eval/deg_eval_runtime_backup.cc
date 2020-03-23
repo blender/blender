@@ -32,7 +32,8 @@
 namespace DEG {
 
 RuntimeBackup::RuntimeBackup(const Depsgraph *depsgraph)
-    : animation_backup(depsgraph),
+    : have_backup(nullptr),
+      animation_backup(depsgraph),
       scene_backup(depsgraph),
       sound_backup(depsgraph),
       object_backup(depsgraph),
@@ -48,6 +49,7 @@ void RuntimeBackup::init_from_id(ID *id)
   if (!deg_copy_on_write_is_expanded(id)) {
     return;
   }
+  have_backup = true;
 
   animation_backup.init_from_id(id);
 
@@ -83,6 +85,10 @@ void RuntimeBackup::init_from_id(ID *id)
 
 void RuntimeBackup::restore_to_id(ID *id)
 {
+  if (!have_backup) {
+    return;
+  }
+
   animation_backup.restore_to_id(id);
 
   const ID_Type id_type = GS(id->name);
