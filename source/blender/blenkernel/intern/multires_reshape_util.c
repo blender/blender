@@ -128,7 +128,7 @@ static void context_init_commoon(MultiresReshapeContext *reshape_context)
   BLI_assert(reshape_context->subdiv != NULL);
   BLI_assert(reshape_context->base_mesh != NULL);
 
-  reshape_context->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(reshape_context->subdiv),
+  reshape_context->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(reshape_context->subdiv);
 
   context_init_lookup(reshape_context);
   context_init_grid_pointers(reshape_context);
