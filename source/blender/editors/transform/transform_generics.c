@@ -855,6 +855,7 @@ static void recalcData_objects(TransInfo *t)
 
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
+        BLI_assert(DEG_is_original_object(tc->obedit));
         BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
         EDBM_mesh_normals_update(em);
         BKE_editmesh_looptri_calc(em);

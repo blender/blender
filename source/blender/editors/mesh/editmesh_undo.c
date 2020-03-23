@@ -40,6 +40,7 @@
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -600,6 +601,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *
                          .active_shapekey = um->shapenr,
                      }));
 
+  BLI_assert(DEG_is_original_object(ob));
   em_tmp = BKE_editmesh_create(bm, true);
   *em = *em_tmp;
 

@@ -82,6 +82,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -618,6 +619,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
     em = BKE_editmesh_from_object(ob);
     if (LIKELY(em)) {
+      BLI_assert(DEG_is_original_object(ob));
       /* order doesn't matter */
       EDBM_mesh_normals_update(em);
       BKE_editmesh_looptri_calc(em);
