@@ -283,6 +283,60 @@ static bNodeSocket *ntree_shader_node_find_output(bNode *node, const char *ident
   return ntree_shader_node_find_socket(&node->outputs, identifier);
 }
 
+/* Return true on success. */
+static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
+                                               bNode *node,
+                                               bNodeSocket *socket)
+{
+  bNode *value_node;
+  bNodeSocket *value_socket;
+  bNodeSocketValueVector *src_vector;
+  bNodeSocketValueRGBA *src_rgba, *dst_rgba;
+  bNodeSocketValueFloat *src_float, *dst_float;
+  bNodeSocketValueInt *src_int;
+
+  switch (socket->type) {
+    case SOCK_VECTOR:
+      value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
+      value_socket = ntree_shader_node_find_output(value_node, "Color");
+      BLI_assert(value_socket != NULL);
+      src_vector = socket->default_value;
+      dst_rgba = value_socket->default_value;
+      copy_v3_v3(dst_rgba->value, src_vector->value);
+      dst_rgba->value[3] = 1.0f; /* should never be read */
+      break;
+    case SOCK_RGBA:
+      value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
+      value_socket = ntree_shader_node_find_output(value_node, "Color");
+      BLI_assert(value_socket != NULL);
+      src_rgba = socket->default_value;
+      dst_rgba = value_socket->default_value;
+      copy_v4_v4(dst_rgba->value, src_rgba->value);
+      break;
+    case SOCK_INT:
+      /* HACK: Support as float. */
+      value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
+      value_socket = ntree_shader_node_find_output(value_node, "Value");
+      BLI_assert(value_socket != NULL);
+      src_int = socket->default_value;
+      dst_float = value_socket->default_value;
+      dst_float->value = (float)(src_int->value);
+      break;
+    case SOCK_FLOAT:
+      value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
+      value_socket = ntree_shader_node_find_output(value_node, "Value");
+      BLI_assert(value_socket != NULL);
+      src_float = socket->default_value;
+      dst_float = value_socket->default_value;
+      dst_float->value = src_float->value;
+      break;
+    default:
+      return false;
+  }
+  nodeAddLink(localtree, value_node, value_socket, node, socket);
+  return true;
+}
+
 static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSocket *isock)
 {
   bNodeTree *group_ntree = (bNodeTree *)group_node->id;
@@ -313,84 +367,41 @@ static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSoc
  * To fix this, link value/rgba nodes into the sockets and copy the group sockets values. */
 static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 {
-  bNode *value_node, *group_node;
-  bNodeSocket *value_socket;
-  bNodeSocketValueVector *src_vector;
-  bNodeSocketValueRGBA *src_rgba, *dst_rgba;
-  bNodeSocketValueFloat *src_float, *dst_float;
-  bNodeSocketValueInt *src_int;
   bool link_added = false;
 
-  for (group_node = localtree->nodes.first; group_node; group_node = group_node->next) {
+  LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
+    const bool is_group = ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && (node->id != NULL);
+    const bool is_group_output = node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT);
 
-    if (!(ELEM(group_node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) || group_node->id == NULL) {
-      continue;
+    if (is_group) {
+      /* Do it recursively. */
+      ntree_shader_groups_expand_inputs((bNodeTree *)node->id);
     }
 
-    /* Do it recursively. */
-    ntree_shader_groups_expand_inputs((bNodeTree *)group_node->id);
-
-    bNodeSocket *group_socket = group_node->inputs.first;
-    for (; group_socket; group_socket = group_socket->next) {
-
-      if (group_socket->link != NULL) {
-        bNodeLink *link = group_socket->link;
-        /* Fix the case where the socket is actually converting the data. (see T71374)
-         * We only do the case of lossy conversion to float.*/
-        if ((group_socket->type == SOCK_FLOAT) && (link->fromsock->type != link->tosock->type)) {
-          bNode *node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGBTOBW);
-          nodeAddLink(localtree, link->fromnode, link->fromsock, node, node->inputs.first);
-          nodeAddLink(localtree, node, node->outputs.first, group_node, group_socket);
-        }
-        continue;
-      }
-
-      /* Detect the case where an input is plugged into a hidden value socket.
-       * In this case we should just remove the link to trigger the socket default override. */
-      ntree_shader_unlink_hidden_value_sockets(group_node, group_socket);
-
-      switch (group_socket->type) {
-        case SOCK_VECTOR:
-          value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
-          value_socket = ntree_shader_node_find_output(value_node, "Color");
-          BLI_assert(value_socket != NULL);
-          src_vector = group_socket->default_value;
-          dst_rgba = value_socket->default_value;
-          copy_v3_v3(dst_rgba->value, src_vector->value);
-          dst_rgba->value[3] = 1.0f; /* should never be read */
-          break;
-        case SOCK_RGBA:
-          value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
-          value_socket = ntree_shader_node_find_output(value_node, "Color");
-          BLI_assert(value_socket != NULL);
-          src_rgba = group_socket->default_value;
-          dst_rgba = value_socket->default_value;
-          copy_v4_v4(dst_rgba->value, src_rgba->value);
-          break;
-        case SOCK_INT:
-          /* HACK: Support as float. */
-          value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
-          value_socket = ntree_shader_node_find_output(value_node, "Value");
-          BLI_assert(value_socket != NULL);
-          src_int = group_socket->default_value;
-          dst_float = value_socket->default_value;
-          dst_float->value = (float)(src_int->value);
-          break;
-        case SOCK_FLOAT:
-          value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
-          value_socket = ntree_shader_node_find_output(value_node, "Value");
-          BLI_assert(value_socket != NULL);
-          src_float = group_socket->default_value;
-          dst_float = value_socket->default_value;
-          dst_float->value = src_float->value;
-          break;
-        default:
+    if (is_group || is_group_output) {
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+        if (socket->link != NULL) {
+          bNodeLink *link = socket->link;
+          /* Fix the case where the socket is actually converting the data. (see T71374)
+           * We only do the case of lossy conversion to float.*/
+          if ((socket->type == SOCK_FLOAT) && (link->fromsock->type != link->tosock->type)) {
+            bNode *tmp = nodeAddStaticNode(NULL, localtree, SH_NODE_RGBTOBW);
+            nodeAddLink(localtree, link->fromnode, link->fromsock, tmp, tmp->inputs.first);
+            nodeAddLink(localtree, tmp, tmp->outputs.first, node, socket);
+          }
           continue;
+        }
+
+        if (is_group) {
+          /* Detect the case where an input is plugged into a hidden value socket.
+           * In this case we should just remove the link to trigger the socket default override. */
+          ntree_shader_unlink_hidden_value_sockets(node, socket);
+        }
+
+        if (ntree_shader_expand_socket_default(localtree, node, socket)) {
+          link_added = true;
+        }
       }
-
-      nodeAddLink(localtree, value_node, value_socket, group_node, group_socket);
-
-      link_added = true;
     }
   }
 
