@@ -554,7 +554,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 
   /* When there is already object in the dependency graph accumulate visibility an linked state
    * flags. Only do it on the object itself (apart from very special cases) and leave dealing with
-   * visibility of dependnecies to the visibility flush step which happens at the end of the build
+   * visibility of dependencies to the visibility flush step which happens at the end of the build
    * process. */
   if (has_object) {
     IDNode *id_node = find_id_node(&object->id);

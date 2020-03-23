@@ -3992,7 +3992,7 @@ static bool region_toggle_poll(bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
 
-  /* don't flip anything around in topbar */
+  /* Don't flip anything around in top-bar. */
   if (area && area->spacetype == SPACE_TOPBAR) {
     CTX_wm_operator_poll_msg_set(C, "Toggling regions in the Top-bar is not allowed");
     return 0;
@@ -4060,7 +4060,7 @@ static bool region_flip_poll(bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
 
-  /* don't flip anything around in topbar */
+  /* Don't flip anything around in top-bar. */
   if (area && area->spacetype == SPACE_TOPBAR) {
     CTX_wm_operator_poll_msg_set(C, "Flipping regions in the Top-bar is not allowed");
     return 0;
@@ -4191,7 +4191,7 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 
   uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
 
-  /* file browser should be fullscreen all the time, topbar should
+  /* File browser should be fullscreen all the time, top-bar should
    * never be. But other regions can be maximized/restored... */
   if (!ELEM(sa->spacetype, SPACE_FILE, SPACE_TOPBAR)) {
     uiItemS(layout);

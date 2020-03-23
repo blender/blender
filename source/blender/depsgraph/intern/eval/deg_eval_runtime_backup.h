@@ -51,7 +51,7 @@ class RuntimeBackup {
    * copied-on-write. In this case there is no need to backup or restore anything.
    *
    * It also allows to have restore() logic to be symmetrical to init() without need to worry
-   * that init() might not have happenned.
+   * that init() might not have happened.
    *
    * In practice this is used by audio system to lock audio while scene is going through
    * copy-on-write mechanism. */

@@ -862,7 +862,7 @@ void BLI_threaded_malloc_end(void)
 #if 0  /* UNUSED */
 static bool check_is_threadripper2_alike_topology(void)
 {
-  /* NOTE: We hope operating system does not support CPU hotswap to
+  /* NOTE: We hope operating system does not support CPU hot-swap to
    * a different brand. And that SMP of different types is also not
    * encouraged by the system. */
   static bool is_initialized = false;

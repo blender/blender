@@ -932,8 +932,8 @@ void BKE_curveprofile_initialize(CurveProfile *profile, short segments_len)
 }
 
 /**
- * Gives the distance to the next point in the widget's sampled table, in other words the length
- * of the ith edge of the table.
+ * Gives the distance to the next point in the widgets sampled table, in other words the length
+ * of the \a 'i' edge of the table.
  *
  * \note Requires curveprofile_initialize or #BKE_curveprofile_update call before to fill table.
  */
