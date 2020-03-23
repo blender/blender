@@ -351,7 +351,6 @@ static bool object_hook_index_array(Main *bmain,
 
       em = me->edit_mesh;
 
-      BLI_assert(DEG_is_original_object(obedit));
       EDBM_mesh_normals_update(em);
       BKE_editmesh_looptri_calc(em);
 

@@ -314,7 +314,6 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
-#  include "DEG_depsgraph_query.h"
 
 #  include "ED_curve.h"
 #  include "ED_lattice.h"
@@ -443,7 +442,6 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *UNUSED(scene), Po
 
         DEG_id_tag_update(&me->id, 0);
 
-        BLI_assert(DEG_is_original_object(ob));
         EDBM_mesh_normals_update(em);
         BKE_editmesh_looptri_calc(em);
         break;

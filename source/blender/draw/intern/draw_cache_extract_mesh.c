@@ -66,8 +66,6 @@
 #include "ED_mesh.h"
 #include "ED_uvedit.h"
 
-#include "DEG_depsgraph_query.h"
-
 #include "draw_cache_impl.h"
 #include "draw_cache_inline.h"
 
@@ -104,7 +102,7 @@ typedef struct MeshRenderData {
   /* HACK not supposed to be there but it's needed. */
   struct MeshBatchCache *cache;
   /** Edit Mesh */
-  BMEditMesh *edit_bmesh_orig;
+  BMEditMesh *edit_bmesh;
   BMesh *bm;
   EditMeshData *edit_data;
   int *v_origindex, *e_origindex, *p_origindex;
@@ -151,7 +149,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
   if (is_editmode) {
     BLI_assert(me->edit_mesh->mesh_eval_cage && me->edit_mesh->mesh_eval_final);
     mr->bm = me->edit_mesh->bm;
-    mr->edit_bmesh_orig = ((Mesh *)DEG_get_original_id(&me->id))->edit_mesh;
+    mr->edit_bmesh = me->edit_mesh;
     mr->edit_data = me->runtime.edit_data;
     mr->me = (do_final) ? me->edit_mesh->mesh_eval_final : me->edit_mesh->mesh_eval_cage;
     bool use_mapped = !do_uvedit && mr->me && !mr->me->runtime.is_original;
@@ -161,7 +159,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
     BM_mesh_elem_index_ensure(mr->bm, bm_ensure_types);
     BM_mesh_elem_table_ensure(mr->bm, bm_ensure_types & ~BM_LOOP);
 
-    mr->efa_act_uv = EDBM_uv_active_face_get(mr->edit_bmesh_orig, false, false);
+    mr->efa_act_uv = EDBM_uv_active_face_get(mr->edit_bmesh, false, false);
     mr->efa_act = BM_mesh_active_face_get(mr->bm, false, true);
     mr->eed_act = BM_mesh_active_edge_get(mr->bm);
     mr->eve_act = BM_mesh_active_vert_get(mr->bm);
@@ -192,7 +190,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
   }
   else {
     mr->me = me;
-    mr->edit_bmesh_orig = NULL;
+    mr->edit_bmesh = NULL;
     mr->extract_type = MR_EXTRACT_MESH;
   }
 
@@ -318,7 +316,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
     }
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
       /* Edit mode ensures this is valid, no need to calculate. */
-      BLI_assert((bm->totloop == 0) || (mr->edit_bmesh_orig->looptris != NULL));
+      BLI_assert((bm->totloop == 0) || (mr->edit_bmesh->looptris != NULL));
     }
     if (iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) {
       int elem_id;
@@ -1904,7 +1902,7 @@ static void extract_tan_ex(const MeshRenderData *mr, GPUVertBuf *vbo, const bool
     short tangent_mask = 0;
     bool calc_active_tangent = false;
     if (mr->extract_type == MR_EXTRACT_BMESH) {
-      BKE_editmesh_loop_tangent_calc(mr->edit_bmesh_orig,
+      BKE_editmesh_loop_tangent_calc(mr->edit_bmesh,
                                      calc_active_tangent,
                                      tangent_names,
                                      tan_len,
@@ -3259,7 +3257,7 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
   const float min = statvis->overhang_min / (float)M_PI;
   const float max = statvis->overhang_max / (float)M_PI;
   const char axis = statvis->overhang_axis;
-  BMEditMesh *em = mr->edit_bmesh_orig;
+  BMEditMesh *em = mr->edit_bmesh;
   BMIter iter;
   BMesh *bm = em->bm;
   BMFace *f;
@@ -3328,7 +3326,7 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
   const float eps_offset = 0.00002f; /* values <= 0.00001 give errors */
   /* cheating to avoid another allocation */
   float *face_dists = r_thickness + (mr->loop_len - mr->poly_len);
-  BMEditMesh *em = mr->edit_bmesh_orig;
+  BMEditMesh *em = mr->edit_bmesh;
   const float scale = 1.0f / mat4_to_scale(mr->obmat);
   const MeshStatVis *statvis = &mr->toolsettings->statvis;
   const float min = statvis->thickness_min * scale;
@@ -3483,7 +3481,7 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(
 
 static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
 {
-  BMEditMesh *em = mr->edit_bmesh_orig;
+  BMEditMesh *em = mr->edit_bmesh;
 
   for (int l = 0; l < mr->loop_len; l++) {
     r_intersect[l] = -1.0f;
@@ -3562,7 +3560,7 @@ BLI_INLINE float distort_remap(float fac, float min, float UNUSED(max), float mi
 
 static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
 {
-  BMEditMesh *em = mr->edit_bmesh_orig;
+  BMEditMesh *em = mr->edit_bmesh;
   const MeshStatVis *statvis = &mr->toolsettings->statvis;
   const float min = statvis->distort_min;
   const float max = statvis->distort_max;
@@ -3651,7 +3649,7 @@ BLI_INLINE float sharp_remap(float fac, float min, float UNUSED(max), float minm
 
 static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
 {
-  BMEditMesh *em = mr->edit_bmesh_orig;
+  BMEditMesh *em = mr->edit_bmesh;
   const MeshStatVis *statvis = &mr->toolsettings->statvis;
   const float min = statvis->sharp_min;
   const float max = statvis->sharp_max;
@@ -3749,7 +3747,7 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
 
 static void extract_mesh_analysis_finish(const MeshRenderData *mr, void *buf, void *UNUSED(data))
 {
-  BLI_assert(mr->edit_bmesh_orig);
+  BLI_assert(mr->edit_bmesh);
 
   GPUVertBuf *vbo = buf;
   float *l_weight = (float *)vbo->data;
@@ -4412,7 +4410,7 @@ BLI_INLINE void mesh_extract_iter(const MeshRenderData *mr,
       if (iter_type & MR_ITER_LOOPTRI) {
         int t_end = min_ii(mr->tri_len, end);
         for (int t = start; t < t_end; t++) {
-          BMLoop **elt = &mr->edit_bmesh_orig->looptris[t][0];
+          BMLoop **elt = &mr->edit_bmesh->looptris[t][0];
           extract->iter_looptri_bm(mr, t, elt, user_data);
         }
       }

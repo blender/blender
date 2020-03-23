@@ -613,7 +613,6 @@ void update_mesh_edit_mode_pointers(const ID *id_orig, ID *id_cow)
     return;
   }
   mesh_cow->edit_mesh = (BMEditMesh *)MEM_dupallocN(mesh_orig->edit_mesh);
-  mesh_cow->edit_mesh->looptris = nullptr;
   mesh_cow->edit_mesh->mesh_eval_cage = nullptr;
   mesh_cow->edit_mesh->mesh_eval_final = nullptr;
 }
@@ -995,7 +994,6 @@ void discard_mesh_edit_mode_pointers(ID *id_cow)
   if (mesh_cow->edit_mesh == nullptr) {
     return;
   }
-  BLI_assert(mesh_cow->edit_mesh->looptris == nullptr);
   BKE_editmesh_free_derivedmesh(mesh_cow->edit_mesh);
   MEM_freeN(mesh_cow->edit_mesh);
   mesh_cow->edit_mesh = nullptr;
