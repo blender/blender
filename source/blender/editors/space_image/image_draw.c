@@ -576,12 +576,13 @@ static void draw_image_buffer(const bContext *C,
                               float zoomy)
 {
   int x, y;
+  int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
 
   /* find window pixel coordinates of origin */
   UI_view2d_view_to_region(&region->v2d, fx, fy, &x, &y);
 
   /* this part is generic image display */
-  if (sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
+  if (sima_flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
     if (ibuf->zbuf) {
       sima_draw_zbuf_pixels(x, y, ibuf->x, ibuf->y, ibuf->zbuf, zoomx, zoomy);
     }
@@ -597,7 +598,7 @@ static void draw_image_buffer(const bContext *C,
     UI_view2d_view_to_region(
         &region->v2d, region->v2d.cur.xmax, region->v2d.cur.ymax, &clip_max_x, &clip_max_y);
 
-    if (sima->flag & SI_USE_ALPHA) {
+    if (sima_flag & SI_USE_ALPHA) {
       imm_draw_box_checker_2d(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 
       GPU_blend(true);
@@ -606,7 +607,7 @@ static void draw_image_buffer(const bContext *C,
     }
 
     /* If RGBA display with color management */
-    if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B | SI_SHOW_ALPHA)) == 0) {
+    if ((sima_flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B | SI_SHOW_ALPHA)) == 0) {
 
       ED_draw_imbuf_ctx_clipping(
           C, ibuf, x, y, GL_NEAREST, 0, 0, clip_max_x, clip_max_y, zoomx, zoomy);
@@ -618,16 +619,16 @@ static void draw_image_buffer(const bContext *C,
       ColorManagedViewSettings *view_settings;
       ColorManagedDisplaySettings *display_settings;
 
-      if (sima->flag & SI_SHOW_R) {
+      if (sima_flag & SI_SHOW_R) {
         shuffle[0] = 1.0f;
       }
-      else if (sima->flag & SI_SHOW_G) {
+      else if (sima_flag & SI_SHOW_G) {
         shuffle[1] = 1.0f;
       }
-      else if (sima->flag & SI_SHOW_B) {
+      else if (sima_flag & SI_SHOW_B) {
         shuffle[2] = 1.0f;
       }
-      else if (sima->flag & SI_SHOW_ALPHA) {
+      else if (sima_flag & SI_SHOW_ALPHA) {
         shuffle[3] = 1.0f;
       }
 
@@ -661,7 +662,7 @@ static void draw_image_buffer(const bContext *C,
       IMB_display_buffer_release(cache_handle);
     }
 
-    if (sima->flag & SI_USE_ALPHA) {
+    if (sima_flag & SI_USE_ALPHA) {
       GPU_blend(false);
     }
   }

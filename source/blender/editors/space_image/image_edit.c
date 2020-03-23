@@ -175,6 +175,30 @@ void ED_space_image_release_buffer(SpaceImage *sima, ImBuf *ibuf, void *lock)
   }
 }
 
+/* Get the SpaceImage flag that is valid for the given ibuf. */
+int ED_space_image_get_display_channel_mask(ImBuf *ibuf)
+{
+  int result = (SI_USE_ALPHA | SI_SHOW_ALPHA | SI_SHOW_ZBUF | SI_SHOW_R | SI_SHOW_G | SI_SHOW_B);
+  if (!ibuf) {
+    return result;
+  }
+
+  const bool color = ibuf->channels >= 3;
+  const bool alpha = ibuf->channels == 4;
+  const bool zbuf = ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1);
+
+  if (!alpha) {
+    result &= ~(SI_USE_ALPHA | SI_SHOW_ALPHA);
+  }
+  if (!zbuf) {
+    result &= ~(SI_SHOW_ZBUF);
+  }
+  if (!color) {
+    result &= ~(SI_SHOW_R | SI_SHOW_G | SI_SHOW_B);
+  }
+  return result;
+}
+
 bool ED_space_image_has_buffer(SpaceImage *sima)
 {
   ImBuf *ibuf;

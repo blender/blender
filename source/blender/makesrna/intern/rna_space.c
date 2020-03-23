@@ -1491,40 +1491,49 @@ static const EnumPropertyItem *rna_SpaceImageEditor_display_channels_itemf(
   EnumPropertyItem *item = NULL;
   ImBuf *ibuf;
   void *lock;
-  int zbuf, alpha, totitem = 0;
+  int totitem = 0;
 
   ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
-
-  alpha = ibuf && (ibuf->channels == 4);
-  zbuf = ibuf && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1));
-
+  int mask = ED_space_image_get_display_channel_mask(ibuf);
   ED_space_image_release_buffer(sima, ibuf, lock);
 
-  if (alpha && zbuf) {
-    return display_channels_items;
-  }
-
-  if (alpha) {
+  if (mask & SI_USE_ALPHA) {
     RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_USE_ALPHA);
-    RNA_enum_items_add_value(&item, &totitem, display_channels_items, 0);
+  }
+  RNA_enum_items_add_value(&item, &totitem, display_channels_items, 0);
+  if (mask & SI_SHOW_ALPHA) {
     RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_SHOW_ALPHA);
   }
-  else if (zbuf) {
-    RNA_enum_items_add_value(&item, &totitem, display_channels_items, 0);
+  if (mask & SI_SHOW_ZBUF) {
     RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_SHOW_ZBUF);
   }
-  else {
-    RNA_enum_items_add_value(&item, &totitem, display_channels_items, 0);
+  if (mask & SI_SHOW_R) {
+    RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_SHOW_R);
   }
-
-  RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_SHOW_R);
-  RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_SHOW_G);
-  RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_SHOW_B);
+  if (mask & SI_SHOW_G) {
+    RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_SHOW_G);
+  }
+  if (mask & SI_SHOW_B) {
+    RNA_enum_items_add_value(&item, &totitem, display_channels_items, SI_SHOW_B);
+  }
 
   RNA_enum_item_end(&item, &totitem);
   *r_free = true;
 
   return item;
+}
+
+static int rna_SpaceImageEditor_display_channels_get(PointerRNA *ptr)
+{
+  SpaceImage *sima = (SpaceImage *)ptr->data;
+  ImBuf *ibuf;
+  void *lock;
+
+  ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
+  int mask = ED_space_image_get_display_channel_mask(ibuf);
+  ED_space_image_release_buffer(sima, ibuf, lock);
+
+  return sima->flag & mask;
 }
 
 static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
@@ -4519,7 +4528,10 @@ static void rna_def_space_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "display_channels", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
   RNA_def_property_enum_items(prop, display_channels_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceImageEditor_display_channels_itemf");
+  RNA_def_property_enum_funcs(prop,
+                              "rna_SpaceImageEditor_display_channels_get",
+                              NULL,
+                              "rna_SpaceImageEditor_display_channels_itemf");
   RNA_def_property_ui_text(prop, "Display Channels", "Channels of the image to draw");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 

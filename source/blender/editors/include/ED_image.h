@@ -61,6 +61,7 @@ bool ED_space_image_color_sample(struct SpaceImage *sima,
                                  int mval[2],
                                  float r_col[3]);
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock, int tile);
+int ED_space_image_get_display_channel_mask(struct ImBuf *ibuf);
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock);
 bool ED_space_image_has_buffer(struct SpaceImage *sima);
 
