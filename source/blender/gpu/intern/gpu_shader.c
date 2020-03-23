@@ -1014,7 +1014,7 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
         },
     [GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE] =
         {
-            .vert = datatoc_gpu_shader_2D_image_vert_glsl,
+            .vert = datatoc_gpu_shader_2D_vert_glsl,
             .frag = datatoc_gpu_shader_image_overlays_stereo_merge_frag_glsl,
         },
     [GPU_SHADER_2D_IMAGE] =
