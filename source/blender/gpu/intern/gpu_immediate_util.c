@@ -29,6 +29,8 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 
+#include "UI_resources.h"
+
 static const float cube_coords[8][3] = {
     {-1, -1, -1},
     {-1, -1, +1},
@@ -362,11 +364,17 @@ void imm_draw_box_wire_3d(uint pos, float x1, float y1, float x2, float y2)
 void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
+  float checker_primary[4];
+  float checker_secondary[4];
+  int checker_size = UI_GetThemeValue(TH_TRANSPARENT_CHECKER_SIZE);
 
-  immUniform4f("color1", 0.15f, 0.15f, 0.15f, 1.0f);
-  immUniform4f("color2", 0.2f, 0.2f, 0.2f, 1.0f);
-  immUniform1i("size", 8);
+  immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
+  UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_PRIMARY, checker_primary);
+  UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_SECONDARY, checker_secondary);
+
+  immUniform4fv("color1", checker_primary);
+  immUniform4fv("color2", checker_secondary);
+  immUniform1i("size", checker_size);
 
   immRectf(pos, x1, y1, x2, y2);
 

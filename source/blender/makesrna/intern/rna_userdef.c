@@ -1533,6 +1533,28 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
       prop, "Text Cursor", "Color of the interface widgets text insertion cursor (caret)");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  /* Transparent Grid */
+  prop = RNA_def_property(srna, "transparent_checker_primary", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, NULL, "transparent_checker_primary");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(
+      prop, "Primary Color", "Primary color of checkerboard pattern indicating transparent areas");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "transparent_checker_secondary", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, NULL, "transparent_checker_secondary");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop,
+                           "Secondary Color",
+                           "Secondary color of checkerboard pattern indicating transparent areas");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "transparent_checker_size", PROP_INT, PROP_PIXEL);
+  RNA_def_property_ui_text(
+      prop, "Checkerboard Size", "Size of checkerboard pattern indicating transparent areas");
+  RNA_def_property_range(prop, 2, 48);
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   /* axis */
   prop = RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "xaxis");

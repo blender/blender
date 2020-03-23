@@ -169,7 +169,11 @@ typedef struct ThemeUI {
   short menu_shadow_width;
 
   unsigned char editor_outline[4];
-  char _pad0[2];
+
+  /* Transparent Grid */
+  unsigned char transparent_checker_primary[4], transparent_checker_secondary[4];
+  unsigned char transparent_checker_size;
+  char _pad1[1];
 
   float icon_alpha;
   float icon_saturation;

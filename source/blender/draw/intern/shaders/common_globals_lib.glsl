@@ -45,8 +45,8 @@ layout(std140) uniform globalsBlock
 
   vec4 colorBackground;
   vec4 colorBackgroundGradient;
-  vec4 colorCheckerLow;
-  vec4 colorCheckerHigh;
+  vec4 colorCheckerPrimary;
+  vec4 colorCheckerSecondary;
   vec4 colorClippingBorder;
   vec4 colorEditMeshMiddle;
 
@@ -116,6 +116,7 @@ layout(std140) uniform globalsBlock
   float sizeEdge;
   float sizeEdgeFix;
   float sizeFaceDot;
+  float sizeChecker;
 
   float pad_globalsBlock;
 };

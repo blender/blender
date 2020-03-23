@@ -82,8 +82,8 @@ typedef struct GlobalsUboStorage {
 
   float colorBackground[4];
   float colorBackgroundGradient[4];
-  float colorCheckerLow[4];
-  float colorCheckerHigh[4];
+  float colorCheckerPrimary[4];
+  float colorCheckerSecondary[4];
   float colorClippingBorder[4];
   float colorEditMeshMiddle[4];
 
@@ -148,8 +148,9 @@ typedef struct GlobalsUboStorage {
   float sizePixel, pixelFac;
   float sizeObjectCenter, sizeLightCenter, sizeLightCircle, sizeLightCircleShadow;
   float sizeVertex, sizeEdge, sizeEdgeFix, sizeFaceDot;
+  float sizeChecker;
 
-  float pad_globalsBlock[2];
+  float pad_globalsBlock;
 } GlobalsUboStorage;
 /* Keep in sync with globalsBlock in shaders */
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)

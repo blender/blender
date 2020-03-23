@@ -897,6 +897,23 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
         flow.prop(ui, "widget_emboss")
 
 
+class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMixIn, Panel):
+    bl_label = "Transparent Checkerboard"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "USERPREF_PT_theme_user_interface"
+
+    def draw_centered(self, context, layout):
+        theme = context.preferences.themes[0]
+        ui = theme.user_interface
+
+        flow = layout.grid_flow(
+            row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(ui, "transparent_checker_primary")
+        flow.prop(ui, "transparent_checker_secondary")
+        flow.prop(ui, "transparent_checker_size")
+
+
 class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Axis & Gizmo Colors"
     bl_options = {'DEFAULT_CLOSED'}
@@ -2219,6 +2236,7 @@ classes = (
     USERPREF_PT_theme_interface_state,
     USERPREF_PT_theme_interface_styles,
     USERPREF_PT_theme_interface_gizmos,
+    USERPREF_PT_theme_interface_transparent_checker,
     USERPREF_PT_theme_interface_icons,
     USERPREF_PT_theme_text_style,
     USERPREF_PT_theme_bone_color_sets,

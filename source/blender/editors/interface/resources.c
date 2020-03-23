@@ -899,6 +899,18 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_WIDGET_TEXT_CURSOR:
           cp = btheme->tui.widget_text_cursor;
           break;
+
+        case TH_TRANSPARENT_CHECKER_PRIMARY:
+          cp = btheme->tui.transparent_checker_primary;
+          break;
+        case TH_TRANSPARENT_CHECKER_SECONDARY:
+          cp = btheme->tui.transparent_checker_secondary;
+          break;
+        case TH_TRANSPARENT_CHECKER_SIZE:
+          cp = &btheme->tui.transparent_checker_size;
+          break;
+
+
         case TH_AXIS_X:
           cp = btheme->tui.xaxis;
           break;

@@ -91,8 +91,9 @@ void DRW_globals_update(void)
   UI_GetThemeColor4fv(TH_SKIN_ROOT, gb->colorSkinRoot);
   UI_GetThemeColor4fv(TH_BACK, gb->colorBackground);
   UI_GetThemeColor4fv(TH_BACK_GRAD, gb->colorBackgroundGradient);
-  UI_COLOR_RGBA_FROM_U8(0x26, 0x26, 0x26, 0xFF, gb->colorCheckerLow);
-  UI_COLOR_RGBA_FROM_U8(0x33, 0x33, 0x33, 0xFF, gb->colorCheckerHigh);
+  UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_PRIMARY, gb->colorCheckerPrimary);
+  UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_SECONDARY, gb->colorCheckerSecondary);
+  gb->sizeChecker = UI_GetThemeValuef(TH_TRANSPARENT_CHECKER_SIZE);
   UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, gb->colorClippingBorder);
 
   /* Custom median color to slightly affect the edit mesh colors. */
