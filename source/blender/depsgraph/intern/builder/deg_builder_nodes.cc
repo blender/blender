@@ -551,21 +551,28 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     object->proxy->proxy_from = object;
   }
   const bool has_object = built_map_.checkIsBuiltAndTag(object);
-  /* Skip rest of components if the ID node was already there. */
+
+  /* When there is already object in the dependency graph accumulate visibility an linked state
+   * flags. Only do it on the object itself (apart from very special cases) and leave dealing with
+   * visibility of dependnecies to the visibility flush step which happens at the end of the build
+   * process. */
   if (has_object) {
     IDNode *id_node = find_id_node(&object->id);
-    /* We need to build some extra stuff if object becomes linked
-     * directly. */
     if (id_node->linked_state == DEG_ID_LINKED_INDIRECTLY) {
       build_object_flags(base_index, object, linked_state);
     }
     id_node->linked_state = max(id_node->linked_state, linked_state);
-    if (id_node->linked_state == DEG_ID_LINKED_DIRECTLY) {
-      id_node->is_directly_visible |= is_visible;
-    }
+    id_node->is_directly_visible |= is_visible;
     id_node->has_base |= (base_index != -1);
+
+    /* There is no relation path which will connect current object with all the ones which come
+     * via the instanced collection, so build the collection again. Note that it will do check
+     * whether visibility update is needed on its own. */
+    build_object_instance_collection(object, is_visible);
+
     return;
   }
+
   /* Create ID node for object and begin init. */
   IDNode *id_node = add_id_node(&object->id);
   Object *object_cow = get_cow_datablock(object);
@@ -636,10 +643,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   build_object_proxy_group(object, is_visible);
   /* Object dupligroup. */
   if (object->instance_collection != nullptr) {
-    const bool is_current_parent_collection_visible = is_parent_collection_visible_;
-    is_parent_collection_visible_ = is_visible;
-    build_collection(nullptr, object->instance_collection);
-    is_parent_collection_visible_ = is_current_parent_collection_visible;
+    build_object_instance_collection(object, is_visible);
     OperationNode *op_node = add_operation_node(
         &object->id, NodeType::DUPLI, OperationCode::DUPLI);
     op_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
@@ -688,6 +692,17 @@ void DepsgraphNodeBuilder::build_object_proxy_group(Object *object, bool is_visi
     return;
   }
   build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, is_visible);
+}
+
+void DepsgraphNodeBuilder::build_object_instance_collection(Object *object, bool is_object_visible)
+{
+  if (object->instance_collection == nullptr) {
+    return;
+  }
+  const bool is_current_parent_collection_visible = is_parent_collection_visible_;
+  is_parent_collection_visible_ = is_object_visible;
+  build_collection(nullptr, object->instance_collection);
+  is_parent_collection_visible_ = is_current_parent_collection_visible;
 }
 
 void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visible)
