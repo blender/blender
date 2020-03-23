@@ -2806,6 +2806,10 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
     // For each node in the driver group, try to connect it to another node
     // in the same group without creating any cycles.
     int num_drivers = prefix_group.second.size();
+    if (num_drivers < 2) {
+      // A relation requires two drivers.
+      continue;
+    }
     for (int from_index = 0; from_index < num_drivers; ++from_index) {
       Node *op_from = prefix_group.second[from_index];
 
