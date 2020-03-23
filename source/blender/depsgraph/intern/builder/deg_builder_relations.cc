@@ -2810,7 +2810,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
       Node *op_from = prefix_group.second[from_index];
 
       // Start by trying the next node in the group.
-      for (int to_offset = 1; to_offset < num_drivers - 1; ++to_offset) {
+      for (int to_offset = 1; to_offset < num_drivers; ++to_offset) {
         int to_index = (from_index + to_offset) % num_drivers;
         Node *op_to = prefix_group.second[to_index];
 
