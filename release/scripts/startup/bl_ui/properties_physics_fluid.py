@@ -194,6 +194,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
 
             col = flow.column()
             col.prop(domain, "clipping", text="Empty Space")
+            col.prop(domain, "delete_in_obstacle", text="Delete In Obstacle")
 
             if domain.cache_type == 'MODULAR':
                 col.separator()
@@ -272,7 +273,6 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
 
             col.prop(effector_settings, "use_effector", text="Use Effector")
             col.prop(effector_settings, "use_plane_init", text="Is Planar")
-            col.prop(effector_settings, "delete_in_obstacle", text="Delete In Obstacle")
 
             if effector_settings.effector_type == 'GUIDE':
                 col.prop(effector_settings, "velocity_factor", text="Velocity Factor")
