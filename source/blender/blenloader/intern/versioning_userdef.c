@@ -205,6 +205,12 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
   }
 
+  if (!USER_VERSION_ATLEAST(283, 11)) {
+    FROM_DEFAULT_V4_UCHAR(tui.transparent_checker_primary);
+    FROM_DEFAULT_V4_UCHAR(tui.transparent_checker_secondary);
+    btheme->tui.transparent_checker_size = U_theme_default.tui.transparent_checker_size;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -216,9 +222,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    */
   {
     /* Keep this block, even when empty. */
-    FROM_DEFAULT_V4_UCHAR(tui.transparent_checker_primary);
-    FROM_DEFAULT_V4_UCHAR(tui.transparent_checker_secondary);
-    btheme->tui.transparent_checker_size = U_theme_default.tui.transparent_checker_size;
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
