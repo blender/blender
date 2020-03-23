@@ -910,7 +910,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = &btheme->tui.transparent_checker_size;
           break;
 
-
         case TH_AXIS_X:
           cp = btheme->tui.xaxis;
           break;

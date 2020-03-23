@@ -340,7 +340,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
     {
       bool *face_singularity = MEM_calloc_arrayN(
           numPolys, sizeof(*face_singularity), "face_sides_arr in solidify");
-      
+
       ed = orig_medge;
       for (uint i = 0; i < numEdges; i++, ed++) {
         if (edge_adj_faces_len[i] > 0) {
@@ -372,7 +372,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
             if (do_shell) {
               numNewLoops -= edge_adj_faces_len[i] * 2;
             }
-            
+
             edge_adj_faces_len[i] = 0;
             MEM_freeN(edge_adj_faces[i]->faces);
             MEM_freeN(edge_adj_faces[i]->faces_reversed);
@@ -412,7 +412,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
               }
             }
           }
-          
+
           if (do_shell) {
             numNewLoops -= edge_adj_faces_len[i] * 2;
           }
@@ -820,7 +820,8 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
             }
           }
 
-          /* an edge group will always contain min 2 edges so max edge group count can be calculated */
+          /* An edge group will always contain min 2 edges
+           * so max edge group count can be calculated. */
           uint edge_groups_len = unassigned_edges_len / 2;
           edge_groups = MEM_calloc_arrayN(
               edge_groups_len + 1, sizeof(*edge_groups), "edge_groups in solidify");
@@ -837,8 +838,9 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
             found_edge = NULL;
             insert_at_start = false;
             if (eg_index >= 0 && edge_groups[eg_index].edges_len == 0) {
-              /* called everytime a new group was started in the last iteration */
-              /* find an unused edge to start the next group and setup variables to start creating it */
+              /* Called every time a new group was started in the last iteration. */
+              /* Find an unused edge to start the next group
+               * and setup variables to start creating it. */
               uint j = 0;
               NewEdgeRef *edge = NULL;
               while (!edge && j < unassigned_edges_len) {
@@ -990,7 +992,8 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
 
           MEM_freeN(unassigned_edges);
 
-          /* TODO reshape the edge_groups array to its actual size after writing is finished to save on memory */
+          /* TODO reshape the edge_groups array to its actual size
+           * after writing is finished to save on memory. */
         }
 
         /* Split of long self intersection groups */
@@ -1816,7 +1819,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
     MEM_freeN(singularity_edges);
   }
 
-  /* DEBUG CODE FOR BUGFIXING (can not be removed because every bugfix needs this badly!). */
+  /* DEBUG CODE FOR BUG-FIXING (can not be removed because every bug-fix needs this badly!). */
 #if 0
   {
     /* this code will output the content of orig_vert_groups_arr.
@@ -1832,7 +1835,8 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
     /* Debug output format:
      * <original vertex id>:
      * {
-     *   { <old edge id>/<new edge id>, } (tg:<topology group id>)(s:<is split group>,c:<is closed group (before splitting)>)
+     *   { <old edge id>/<new edge id>, } \
+     *     (tg:<topology group id>)(s:<is split group>,c:<is closed group (before splitting)>)
      * }
      */
     gs_ptr = orig_vert_groups_arr;
