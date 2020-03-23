@@ -550,6 +550,16 @@ void BKE_sound_destroy_scene(Scene *scene)
   }
 }
 
+void BKE_sound_lock_scene(struct Scene *scene)
+{
+  AUD_Device_lock(sound_device);
+}
+
+void BKE_sound_unlock_scene(struct Scene *scene)
+{
+  AUD_Device_unlock(sound_device);
+}
+
 void BKE_sound_reset_scene_specs(Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
@@ -1149,6 +1159,12 @@ void BKE_sound_create_scene(Scene *UNUSED(scene))
 {
 }
 void BKE_sound_destroy_scene(Scene *UNUSED(scene))
+{
+}
+void BKE_sound_lock_scene(Scene *UNUSED(scene))
+{
+}
+void BKE_sound_unlock_scene(Scene *UNUSED(scene))
 {
 }
 void BKE_sound_reset_scene_specs(Scene *UNUSED(scene))
