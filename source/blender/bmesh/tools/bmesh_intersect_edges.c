@@ -943,6 +943,8 @@ bool BM_mesh_intersect_edges(
                     !BM_elem_flag_test(e_test->v2, BM_ELEM_TAG)) {
                   continue;
                 }
+                /* Avoids endless loop. */
+                BM_elem_flag_enable(e_test, BM_ELEM_TAG);
               }
               else if (!BM_edge_is_wire(e_net)) {
                 continue;
