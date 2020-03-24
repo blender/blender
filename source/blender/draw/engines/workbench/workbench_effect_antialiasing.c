@@ -422,6 +422,9 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
    * If TAA accumulation is finished, we only blit the result.
    */
 
+  const bool last_sample = wpd->taa_sample + 1 == wpd->taa_sample_len;
+  const bool taa_finished = wpd->taa_sample >= wpd->taa_sample_len;
+
   if (wpd->taa_sample == 0) {
     /* In playback mode, we are sure the next redraw will not use the same viewmatrix.
      * In this case no need to save the depth buffer. */
@@ -432,9 +435,11 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
     }
   }
   else {
-    /* Accumulate result to the TAA buffer. */
-    GPU_framebuffer_bind(fbl->antialiasing_fb);
-    DRW_draw_pass(psl->aa_accum_ps);
+    if (!taa_finished) {
+      /* Accumulate result to the TAA buffer. */
+      GPU_framebuffer_bind(fbl->antialiasing_fb);
+      DRW_draw_pass(psl->aa_accum_ps);
+    }
     /* Copy back the saved depth buffer for correct overlays. */
     GPU_framebuffer_blit(fbl->antialiasing_fb, 0, dfbl->default_fb, 0, GPU_DEPTH_BIT);
     if (workbench_in_front_history_needed(vedata)) {
@@ -442,10 +447,10 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
     }
   }
 
-  if (!DRW_state_is_image_render() || wpd->taa_sample + 1 == wpd->taa_sample_len) {
+  if (!DRW_state_is_image_render() || last_sample) {
     /* After a certain point SMAA is no longer necessary. */
     wpd->smaa_mix_factor = 1.0f - clamp_f(wpd->taa_sample / 4.0f, 0.0f, 1.0f);
-    wpd->taa_sample_inv = 1.0f / (wpd->taa_sample + 1);
+    wpd->taa_sample_inv = 1.0f / min_ii(wpd->taa_sample + 1, wpd->taa_sample_len);
 
     if (wpd->smaa_mix_factor > 0.0f) {
       GPU_framebuffer_bind(fbl->smaa_edge_fb);
@@ -459,7 +464,9 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
     DRW_draw_pass(psl->aa_resolve_ps);
   }
 
-  wpd->taa_sample++;
+  if (!taa_finished) {
+    wpd->taa_sample++;
+  }
 
   if (!DRW_state_is_image_render() && wpd->taa_sample < wpd->taa_sample_len) {
     DRW_viewport_request_redraw();
