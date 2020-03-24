@@ -679,19 +679,18 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   SpaceSeq *sseq = sa->spacedata.first;
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  const bool show_split = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) &&
-                           (sseq->mainb == SEQ_DRAW_IMG_IMBUF));
+  const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW));
 
   /* XXX temp fix for wrong setting in sseq->mainb */
   if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
     sseq->mainb = SEQ_DRAW_IMG_IMBUF;
   }
 
-  if (!show_split || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE) {
+  if (!draw_overlay || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE) {
     sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, false);
   }
 
-  if (show_split && sseq->overlay_type != SEQ_DRAW_OVERLAY_CURRENT) {
+  if (draw_overlay && sseq->overlay_type != SEQ_DRAW_OVERLAY_CURRENT) {
     int over_cfra;
 
     if (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) {
