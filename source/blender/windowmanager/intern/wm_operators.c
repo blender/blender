@@ -1675,7 +1675,7 @@ static int wm_operator_defaults_exec(bContext *C, wmOperator *op)
 /* used by operator preset menu. pre-2.65 this was a 'Reset' button */
 static void WM_OT_operator_defaults(wmOperatorType *ot)
 {
-  ot->name = "Restore Defaults";
+  ot->name = "Restore Operator Defaults";
   ot->idname = "WM_OT_operator_defaults";
   ot->description = "Set the active operator to its default values";
 

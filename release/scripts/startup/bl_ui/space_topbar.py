@@ -243,6 +243,10 @@ class TOPBAR_MT_app(Menu):
         layout.operator("preferences.app_template_install",
                         text="Install Application Template...")
 
+        layout.separator()
+
+        layout.menu("TOPBAR_MT_app_system")
+
 
 class TOPBAR_MT_file_cleanup(Menu):
     bl_label = "Clean Up"
@@ -440,6 +444,26 @@ class TOPBAR_MT_app_support(Menu):
         layout.operator(
             "wm.url_open", text="Blender Store", icon='URL',
         ).url = "https://store.blender.org"
+
+
+# Include technical operators here which would otherwise have no way for users to access.
+class TOPBAR_MT_app_system(Menu):
+    bl_label = "System"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("script.reload")
+
+        layout.separator()
+
+        layout.operator("wm.memory_statistics")
+        layout.operator("wm.debug_menu")
+        layout.operator_menu_enum("wm.redraw_timer", "type")
+
+        layout.separator()
+
+        layout.operator("screen.spacedata_cleanup")
 
 
 class TOPBAR_MT_templates_more(Menu):
@@ -828,6 +852,7 @@ classes = (
     TOPBAR_MT_editor_menus,
     TOPBAR_MT_app,
     TOPBAR_MT_app_about,
+    TOPBAR_MT_app_system,
     TOPBAR_MT_app_support,
     TOPBAR_MT_file,
     TOPBAR_MT_file_new,
