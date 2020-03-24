@@ -122,7 +122,7 @@ void main()
   gl_Position.xy += wofs.xy * sizeViewportInv.xy * gl_Position.w;
 
   /* Push the vertex towards the camera. Helps a bit. */
-  gl_Position.z -= facing_ratio * curvature * 4.0e-5;
+  gl_Position.z -= facing_ratio * curvature * 1.0e-5 * gl_Position.w;
 
   /* Convert to screen position [0..sizeVp]. */
   edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
