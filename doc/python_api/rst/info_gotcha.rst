@@ -205,15 +205,15 @@ Support Overview
 
    * - Usage
      - :class:`bpy.types.MeshPolygon`
-     - :class:`bpy.types.MeshTessFace`
+     - :class:`bpy.types.MeshLoopTriangle`
      - :class:`bmesh.types.BMFace`
    * - Import/Create
      - Poor *(inflexible)*
-     - Good *(supported as upgrade path)*
+     - Unusable *(read-only)*.
      - Best
    * - Manipulate
      - Poor *(inflexible)*
-     - Poor *(loses ngons)*
+     - Unusable *(read-only)*.
      - Best
    * - Export/Output
      - Good *(ngon support)*
