@@ -52,8 +52,12 @@ struct Tex;
  */
 #define MOD_WVG_ZEROFLOOR 1.0e-32f
 
-void weightvg_do_map(
-    int num, float *new_w, short mode, struct CurveMapping *cmap, struct RNG *rng);
+void weightvg_do_map(int num,
+                     float *new_w,
+                     short mode,
+                     const bool do_invert,
+                     struct CurveMapping *cmap,
+                     struct RNG *rng);
 
 void weightvg_do_mask(const ModifierEvalContext *ctx,
                       const int num,

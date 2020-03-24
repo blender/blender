@@ -54,20 +54,22 @@
  * mapping to the real vertex index (in case the weight tables do not cover the whole vertices...).
  * cmap might be NULL, in which case curve mapping mode will return unmodified data.
  */
-void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cmap, RNG *rng)
+void weightvg_do_map(
+    int num, float *new_w, short falloff_type, const bool do_invert, CurveMapping *cmap, RNG *rng)
 {
   int i;
 
   /* Return immediately, if we have nothing to do! */
   /* Also security checks... */
-  if (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == NULL)) || !ELEM(falloff_type,
-                                                                           MOD_WVG_MAPPING_CURVE,
-                                                                           MOD_WVG_MAPPING_SHARP,
-                                                                           MOD_WVG_MAPPING_SMOOTH,
-                                                                           MOD_WVG_MAPPING_ROOT,
-                                                                           MOD_WVG_MAPPING_SPHERE,
-                                                                           MOD_WVG_MAPPING_RANDOM,
-                                                                           MOD_WVG_MAPPING_STEP)) {
+  if (!do_invert && (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == NULL)) ||
+                     !ELEM(falloff_type,
+                           MOD_WVG_MAPPING_CURVE,
+                           MOD_WVG_MAPPING_SHARP,
+                           MOD_WVG_MAPPING_SMOOTH,
+                           MOD_WVG_MAPPING_ROOT,
+                           MOD_WVG_MAPPING_SPHERE,
+                           MOD_WVG_MAPPING_RANDOM,
+                           MOD_WVG_MAPPING_STEP))) {
     return;
   }
 
@@ -103,9 +105,14 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
       case MOD_WVG_MAPPING_STEP:
         fac = (fac >= 0.5f) ? 1.0f : 0.0f;
         break;
+      case MOD_WVG_MAPPING_NONE:
+        BLI_assert(do_invert);
+        break;
+      default:
+        BLI_assert(0);
     }
 
-    new_w[i] = fac;
+    new_w[i] = do_invert ? 1.0f - fac : fac;
   }
 }
 

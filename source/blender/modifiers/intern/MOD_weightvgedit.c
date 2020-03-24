@@ -230,27 +230,20 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   }
 
   /* Do mapping. */
-  if (wmd->falloff_type != MOD_WVG_MAPPING_NONE) {
+  const bool do_invert_mapping = (wmd->edit_flags & MOD_WVG_INVERT_FALLOFF) != 0;
+  if (do_invert_mapping || wmd->falloff_type != MOD_WVG_MAPPING_NONE) {
     RNG *rng = NULL;
 
     if (wmd->falloff_type == MOD_WVG_MAPPING_RANDOM) {
       rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ctx->object->id.name + 2));
     }
 
-    weightvg_do_map(numVerts, new_w, wmd->falloff_type, wmd->cmap_curve, rng);
+    weightvg_do_map(numVerts, new_w, wmd->falloff_type, do_invert_mapping, wmd->cmap_curve, rng);
 
     if (rng) {
       BLI_rng_free(rng);
     }
   }
-
-  /* Invert resulting weights */
-  if ((wmd->edit_flags & MOD_WVG_INVERT_FALLOFF) != 0) {
-    for (i = 0; i < numVerts; i++) {
-      new_w[i] = 1.0f - new_w[i];
-    }
-  }
-
 
   /* Do masking. */
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);

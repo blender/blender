@@ -1542,6 +1542,7 @@ enum {
   /* Use nearest faces of target obj, in MOD_WVG_PROXIMITY_GEOMETRY mode. */
   MOD_WVG_PROXIMITY_GEOM_FACES = (1 << 2),
   MOD_WVG_PROXIMITY_INVERT_VGROUP_MASK = (1 << 3),
+  MOD_WVG_PROXIMITY_INVERT_FALLOFF = (1 << 4),
 };
 
 /* Defines common to all WeightVG modifiers. */

@@ -1410,7 +1410,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "max_dist")
 
         layout.separator()
-        layout.prop(md, "falloff_type")
+        row = layout.row(align=True)
+        row.prop(md, "falloff_type")
+        row.prop(md, "invert_falloff", text="", icon='ARROW_LEFTRIGHT')
 
         # Common mask options
         layout.separator()

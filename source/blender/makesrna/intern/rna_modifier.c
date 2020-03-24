@@ -4802,6 +4802,16 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "invert_falloff", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_INVERT_FALLOFF);
+  RNA_def_property_ui_text(prop, "Invert Falloff", "Invert the resulting falloff weight");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "map_curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "cmap_curve");
+  RNA_def_property_ui_text(prop, "Mapping Curve", "Custom mapping curve");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "use_add", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_ADD2VG);
   RNA_def_property_ui_text(prop,
@@ -4825,11 +4835,6 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
                            "Default Weight",
                            "Default weight a vertex will have if "
                            "it is not in the vgroup");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-  prop = RNA_def_property(srna, "map_curve", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "cmap_curve");
-  RNA_def_property_ui_text(prop, "Mapping Curve", "Custom mapping curve");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "add_threshold", PROP_FLOAT, PROP_NONE);
@@ -4861,11 +4866,6 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "invert_mask_vertex_group", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_INVERT_VGROUP_MASK);
   RNA_def_property_ui_text(prop, "Invert", "Invert vertex group mask influence");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-  prop = RNA_def_property(srna, "invert_falloff", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_INVERT_FALLOFF);
-  RNA_def_property_ui_text(prop, "Invert Falloff", "Invert the resulting falloff weight");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -5063,6 +5063,11 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, weightvg_proximity_falloff_type_items);
   RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to their new values");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "invert_falloff", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_INVERT_FALLOFF);
+  RNA_def_property_ui_text(prop, "Invert Falloff", "Invert the resulting falloff weight");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   /* Common masking properties. */
