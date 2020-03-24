@@ -111,8 +111,6 @@ static_assert((ADAPTIVE_SAMPLE_STEP & (ADAPTIVE_SAMPLE_STEP - 1)) == 0,
 #ifndef __KERNEL_AO_PREVIEW__
 #  define __SVM__
 #  define __EMISSION__
-#  define __TEXTURES__
-#  define __EXTRA_NODES__
 #  define __HOLDOUT__
 #  define __MULTI_CLOSURE__
 #  define __TRANSPARENT_SHADOWS__
