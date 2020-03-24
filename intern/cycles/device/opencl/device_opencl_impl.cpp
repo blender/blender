@@ -1896,6 +1896,17 @@ string OpenCLDevice::kernel_build_options(const string *debug_src)
 {
   string build_options = "-cl-no-signed-zeros -cl-mad-enable ";
 
+  /* Build with OpenCL 2.0 if available, this improves performance
+   * with AMD OpenCL drivers on Windows and Linux (legacy drivers).
+   * Note that OpenCL selects the highest 1.x version by default,
+   * only for 2.0 do we need the explicit compiler flag. */
+  int version_major, version_minor;
+  if (OpenCLInfo::get_device_version(cdDevice, &version_major, &version_minor)) {
+    if (version_major >= 2) {
+      build_options += "-cl-std=CL2.0 ";
+    }
+  }
+
   if (platform_name == "NVIDIA CUDA") {
     build_options +=
         "-D__KERNEL_OPENCL_NVIDIA__ "
