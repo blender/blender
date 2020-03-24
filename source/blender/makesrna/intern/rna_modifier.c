@@ -4862,6 +4862,11 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_INVERT_VGROUP_MASK);
   RNA_def_property_ui_text(prop, "Invert", "Invert vertex group mask influence");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "invert_falloff", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_INVERT_FALLOFF);
+  RNA_def_property_ui_text(prop, "Invert Falloff", "Invert the resulting falloff weight");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_weightvgmix(BlenderRNA *brna)

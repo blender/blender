@@ -1397,7 +1397,8 @@ typedef struct WeightVGEditModifierData {
 
 /* WeightVGEdit flags. */
 enum {
-  /* (1 << 0) and (1 << 1) are free for future use! */
+  /* (1 << 0) is free for future use! */
+  MOD_WVG_INVERT_FALLOFF = (1 << 1),
   MOD_WVG_EDIT_INVERT_VGROUP_MASK = (1 << 2),
   /** Add vertices with higher weight than threshold to vgroup. */
   MOD_WVG_EDIT_ADD2VG = (1 << 3),

@@ -244,6 +244,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     }
   }
 
+  /* Invert resulting weights */
+  if ((wmd->edit_flags & MOD_WVG_INVERT_FALLOFF) != 0) {
+    for (i = 0; i < numVerts; i++) {
+      new_w[i] = 1.0f - new_w[i];
+    }
+  }
+
+
   /* Do masking. */
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   weightvg_do_mask(ctx,

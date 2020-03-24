@@ -1350,7 +1350,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.separator()
 
-        layout.prop(md, "falloff_type")
+        row = layout.row(align=True)
+        row.prop(md, "falloff_type")
+        row.prop(md, "invert_falloff", text="", icon='ARROW_LEFTRIGHT')
         if md.falloff_type == 'CURVE':
             layout.template_curve_mapping(md, "map_curve")
 
