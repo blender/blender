@@ -6,9 +6,6 @@ if %ERRORLEVEL% EQU 0 goto DetectionComplete
 call "%~dp0\detect_msvc2019.cmd"
 if %ERRORLEVEL% EQU 0 goto DetectionComplete
 
-call "%~dp0\detect_msvc2015.cmd"
-if %ERRORLEVEL% EQU 0 goto DetectionComplete
-
 echo Compiler Detection failed. Use verbose switch for more information. 
 exit /b 1
 

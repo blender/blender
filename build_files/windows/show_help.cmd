@@ -27,11 +27,13 @@ echo - builddir [newdir] ^(override default build folder^)
 echo - 2017 ^(build with visual studio 2017^)
 echo - 2017pre ^(build with visual studio 2017 pre-release^)
 echo - 2017b ^(build with visual studio 2017 Build Tools^)
+echo - 2019 ^(build with visual studio 2019^)
+echo - 2019pre ^(build with visual studio 2019 pre-release^)
+echo - 2019b ^(build with visual studio 2019 Build Tools^)
 
 echo.
 echo Experimental options
 echo - with_opengl_tests ^(enable both the render and draw opengl test suites^)
-echo - 2015 ^(build with visual studio 2015^)
 echo - clang ^(enable building with clang^)
 echo - asan ^(enable asan when building with clang^)
 echo - ninja ^(enable building with ninja instead of msbuild^)
