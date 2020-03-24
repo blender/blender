@@ -44,9 +44,11 @@
 #  include "BKE_mesh_tangent.h"
 #  include "ED_mesh.h"
 
-static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, struct Mesh *mesh2)
+static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh,
+                                              struct Mesh *mesh2,
+                                              float threshold)
 {
-  const char *ret = BKE_mesh_cmp(mesh, mesh2, FLT_EPSILON * 60);
+  const char *ret = BKE_mesh_cmp(mesh, mesh2, threshold);
 
   if (!ret) {
     ret = "Same";
@@ -317,6 +319,15 @@ void RNA_api_mesh(StructRNA *srna)
 
   func = RNA_def_function(srna, "unit_test_compare", "rna_Mesh_unit_test_compare");
   RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to compare to");
+  RNA_def_float_factor(func,
+                       "threshold",
+                       FLT_EPSILON * 60,
+                       0.0f,
+                       FLT_MAX,
+                       "Threshold",
+                       "Comparison tolerance threshold",
+                       0.0f,
+                       FLT_MAX);
   /* return value */
   parm = RNA_def_string(
       func, "result", "nothing", 64, "Return value", "String description of result of comparison");
