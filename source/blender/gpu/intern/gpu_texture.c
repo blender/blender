@@ -463,7 +463,7 @@ static GLenum gpu_format_to_gl_internalformat(eGPUTextureFormat format)
     case GPU_R8UI:
       return GL_R8UI;
     case GPU_R8I:
-      GL_R8I;
+      return GL_R8I;
     case GPU_R8:
       return GL_R8;
     case GPU_R32UI:
@@ -507,7 +507,7 @@ static GLenum gpu_format_to_gl_internalformat(eGPUTextureFormat format)
   }
 }
 
-static eGPUTextureFormat gl_internalformat_to_gpu_format(const GLenum glformat)
+static eGPUTextureFormat gl_internalformat_to_gpu_format(const GLint glformat)
 {
   /* You can add any of the available type to this list
    * For available types see GPU_texture.h */
@@ -556,7 +556,7 @@ static eGPUTextureFormat gl_internalformat_to_gpu_format(const GLenum glformat)
     case GL_R8UI:
       return GPU_R8UI;
     case GL_R8I:
-      GPU_R8I;
+      return GPU_R8I;
     case GL_R8:
       return GPU_R8;
     case GL_R32UI:
@@ -596,8 +596,8 @@ static eGPUTextureFormat gl_internalformat_to_gpu_format(const GLenum glformat)
       return GPU_DEPTH_COMPONENT16;
     default:
       BLI_assert(!"Internal format incorrect or unsupported\n");
-      return -1;
   }
+  return -1;
 }
 
 static GLenum gpu_get_gl_datatype(eGPUDataFormat format)
@@ -1195,8 +1195,8 @@ GPUTexture *GPU_texture_from_bindcode(int textarget, int bindcode)
     GPU_print_error_debug("Blender Texture Not Loaded");
   }
   else {
-    GLint w, h;
-    GLenum gettarget, gl_format;
+    GLint w, h, gl_format;
+    GLenum gettarget;
     gettarget = (textarget == GL_TEXTURE_CUBE_MAP) ? GL_TEXTURE_CUBE_MAP_POSITIVE_X : textarget;
 
     glBindTexture(textarget, tex->bindcode);
