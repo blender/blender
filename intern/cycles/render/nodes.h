@@ -197,6 +197,11 @@ class OutputAOVNode : public ShaderNode {
 
   ustring name;
 
+  virtual int get_group()
+  {
+    return NODE_GROUP_LEVEL_4;
+  }
+
   /* Don't allow output node de-duplication. */
   virtual bool equals(const ShaderNode & /*other*/)
   {
@@ -339,7 +344,7 @@ class PointDensityTextureNode : public ShaderNode {
   SHADER_NODE_NO_CLONE_CLASS(PointDensityTextureNode)
   virtual int get_group()
   {
-    return NODE_GROUP_LEVEL_3;
+    return NODE_GROUP_LEVEL_4;
   }
 
   ~PointDensityTextureNode();

@@ -459,17 +459,6 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
       case NODE_IES:
         svm_node_ies(kg, sd, stack, node, &offset);
         break;
-      case NODE_AOV_START:
-        if (!svm_node_aov_check(state, buffer)) {
-          return;
-        }
-        break;
-      case NODE_AOV_COLOR:
-        svm_node_aov_color(kg, sd, stack, node, buffer);
-        break;
-      case NODE_AOV_VALUE:
-        svm_node_aov_value(kg, sd, stack, node, buffer);
-        break;
 #endif /* NODES_GROUP(NODE_GROUP_LEVEL_2) */
 
 #if NODES_GROUP(NODE_GROUP_LEVEL_3)
@@ -522,11 +511,6 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
       case NODE_CLAMP:
         svm_node_clamp(kg, sd, stack, node.y, node.z, node.w, &offset);
         break;
-#  if NODES_FEATURE(NODE_FEATURE_VOLUME)
-      case NODE_TEX_VOXEL:
-        svm_node_tex_voxel(kg, sd, stack, node, &offset);
-        break;
-#  endif /* NODES_FEATURE(NODE_FEATURE_VOLUME) */
 #  ifdef __SHADER_RAYTRACE__
       case NODE_BEVEL:
         svm_node_bevel(kg, sd, state, stack, node);
@@ -536,6 +520,25 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg,
         break;
 #  endif /* __SHADER_RAYTRACE__ */
 #endif   /* NODES_GROUP(NODE_GROUP_LEVEL_3) */
+
+#if NODES_GROUP(NODE_GROUP_LEVEL_4)
+#  if NODES_FEATURE(NODE_FEATURE_VOLUME)
+      case NODE_TEX_VOXEL:
+        svm_node_tex_voxel(kg, sd, stack, node, &offset);
+        break;
+#  endif /* NODES_FEATURE(NODE_FEATURE_VOLUME) */
+      case NODE_AOV_START:
+        if (!svm_node_aov_check(state, buffer)) {
+          return;
+        }
+        break;
+      case NODE_AOV_COLOR:
+        svm_node_aov_color(kg, sd, stack, node, buffer);
+        break;
+      case NODE_AOV_VALUE:
+        svm_node_aov_value(kg, sd, stack, node, buffer);
+        break;
+#endif /* NODES_GROUP(NODE_GROUP_LEVEL_4) */
       case NODE_END:
         return;
       default:
