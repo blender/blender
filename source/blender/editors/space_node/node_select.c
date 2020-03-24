@@ -1131,7 +1131,7 @@ static void node_find_cb(const struct bContext *C,
       else {
         BLI_strncpy(name, node->name, 256);
       }
-      if (false == UI_search_item_add(items, name, node, 0)) {
+      if (!UI_search_item_add(items, name, node, ICON_NONE, 0)) {
         break;
       }
     }
@@ -1178,7 +1178,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
                        0,
                        0,
                        "");
-  UI_but_func_search_set(but, NULL, node_find_cb, op->type, false, node_find_call_cb, NULL);
+  UI_but_func_search_set(but, NULL, node_find_cb, op->type, NULL, node_find_call_cb, NULL);
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
   /* fake button, it holds space for search items */

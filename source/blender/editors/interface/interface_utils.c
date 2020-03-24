@@ -445,7 +445,7 @@ void ui_rna_collection_search_cb(const struct bContext *C,
 
   /* add search items from temporary list */
   for (cis = items_list->first; cis; cis = cis->next) {
-    if (UI_search_item_add(items, cis->name, cis->data, cis->iconid) == false) {
+    if (!UI_search_item_add(items, cis->name, cis->data, cis->iconid, 0)) {
       break;
     }
   }

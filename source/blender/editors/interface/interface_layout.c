@@ -2610,7 +2610,7 @@ void ui_but_add_search(
                            ui_searchbox_create_generic,
                            ui_rna_collection_search_cb,
                            coll_search,
-                           true,
+                           MEM_freeN,
                            NULL,
                            NULL);
   }

@@ -203,8 +203,8 @@ struct uiBut {
 
   uiButSearchCreateFunc search_create_func;
   uiButSearchFunc search_func;
-  bool free_search_arg;
   void *search_arg;
+  uiButSearchArgFreeFunc search_arg_free_func;
 
   uiButHandleRenameFunc rename_func;
   void *rename_arg1;
@@ -649,6 +649,8 @@ ColorPicker *ui_block_colorpicker_create(struct uiBlock *block);
 /* Searchbox for string button */
 ARegion *ui_searchbox_create_generic(struct bContext *C, struct ARegion *butregion, uiBut *but);
 ARegion *ui_searchbox_create_operator(struct bContext *C, struct ARegion *butregion, uiBut *but);
+ARegion *ui_searchbox_create_menu(struct bContext *C, struct ARegion *butregion, uiBut *but);
+
 bool ui_searchbox_inside(struct ARegion *region, int x, int y);
 int ui_searchbox_find_index(struct ARegion *region, const char *name);
 void ui_searchbox_update(struct bContext *C, struct ARegion *region, uiBut *but, const bool reset);

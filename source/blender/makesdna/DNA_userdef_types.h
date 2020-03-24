@@ -619,7 +619,9 @@ typedef struct UserDef_FileSpaceData {
 
 typedef struct UserDef_Experimental {
   char use_undo_speedup;
-  char _pad0[7]; /* makesdna does not allow empty structs. */
+  char use_menu_search;
+  /** `makesdna` does not allow empty structs. */
+  char _pad0[6];
 } UserDef_Experimental;
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) \

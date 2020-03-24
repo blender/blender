@@ -73,6 +73,7 @@ struct uiSearchItems {
   char **names;
   void **pointers;
   int *icons;
+  int *states;
 
   AutoComplete *autocpl;
   void *active;
@@ -95,9 +96,18 @@ typedef struct uiSearchboxData {
 
 #define SEARCH_ITEMS 10
 
-/* exported for use by search callbacks */
-/* returns zero if nothing to add */
-bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid)
+/**
+ * Public function exported for functions that use #UI_BTYPE_SEARCH_MENU.
+ *
+ * \param items: Stores the items.
+ * \param name: Text to display for the item.
+ * \param poin: Opaque pointer (for use by the caller).
+ * \param iconid: The icon, #ICON_NONE for no icon.
+ * \param state: The buttons state flag, compatible with #uiBut.flag,
+ * typically #UI_BUT_DISABLED / #UI_BUT_INACTIVE.
+ * \return false if there is nothing to add.
+ */
+bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid, int state)
 {
   /* hijack for autocomplete */
   if (items->autocpl) {
@@ -133,6 +143,13 @@ bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int 
   }
   if (items->icons) {
     items->icons[items->totitem] = iconid;
+  }
+
+  /* Limit flags that can be set so flags such as 'UI_SELECT' aren't accidentally set
+   * which will cause problems, add others as needed. */
+  BLI_assert((state & ~(UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT)) == 0);
+  if (items->states) {
+    items->states[items->totitem] = state;
   }
 
   items->totitem++;
@@ -421,17 +438,16 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
     if (data->preview) {
       /* draw items */
       for (a = 0; a < data->items.totitem; a++) {
+        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+
         /* ensure icon is up-to-date */
         ui_icon_ensure_deferred(C, data->items.icons[a], data->preview);
 
         ui_searchbox_butrect(&rect, data, a);
 
         /* widget itself */
-        ui_draw_preview_item(&data->fstyle,
-                             &rect,
-                             data->items.names[a],
-                             data->items.icons[a],
-                             (a == data->active) ? UI_ACTIVE : 0);
+        ui_draw_preview_item(
+            &data->fstyle, &rect, data->items.names[a], data->items.icons[a], state);
       }
 
       /* indicate more */
@@ -451,6 +467,8 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
     else {
       /* draw items */
       for (a = 0; a < data->items.totitem; a++) {
+        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+
         ui_searchbox_butrect(&rect, data, a);
 
         /* widget itself */
@@ -458,7 +476,7 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
                           &rect,
                           data->items.names[a],
                           data->items.icons[a],
-                          (a == data->active) ? UI_ACTIVE : 0,
+                          state,
                           data->use_sep);
       }
       /* indicate more */
@@ -490,6 +508,7 @@ static void ui_searchbox_region_free_cb(ARegion *region)
   MEM_freeN(data->items.names);
   MEM_freeN(data->items.pointers);
   MEM_freeN(data->items.icons);
+  MEM_freeN(data->items.states);
 
   MEM_freeN(data);
   region->regiondata = NULL;
@@ -657,6 +676,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
   data->items.names = MEM_callocN(data->items.maxitem * sizeof(void *), "search names");
   data->items.pointers = MEM_callocN(data->items.maxitem * sizeof(void *), "search pointers");
   data->items.icons = MEM_callocN(data->items.maxitem * sizeof(int), "search icons");
+  data->items.states = MEM_callocN(data->items.maxitem * sizeof(int), "search flags");
   for (i = 0; i < data->items.maxitem; i++) {
     data->items.names[i] = MEM_callocN(but->hardmax + 1, "search pointers");
   }
@@ -718,9 +738,9 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
       /* widget itself */
       /* NOTE: i18n messages extracting tool does the same, please keep it in sync. */
       {
-        wmOperatorType *ot = data->items.pointers[a];
+        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
 
-        int state = (a == data->active) ? UI_ACTIVE : 0;
+        wmOperatorType *ot = data->items.pointers[a];
         char text_pre[128];
         char *text_pre_p = strstr(ot->idname, "_OT_");
         if (text_pre_p == NULL) {
@@ -778,6 +798,25 @@ ARegion *ui_searchbox_create_operator(bContext *C, ARegion *butregion, uiBut *bu
 void ui_searchbox_free(bContext *C, ARegion *region)
 {
   ui_region_temp_remove(C, CTX_wm_screen(C), region);
+}
+
+static void ui_searchbox_region_draw_cb__menu(const bContext *UNUSED(C), ARegion *UNUSED(region))
+{
+  /* Currently unused. */
+}
+
+ARegion *ui_searchbox_create_menu(bContext *C, ARegion *butregion, uiBut *but)
+{
+  ARegion *region;
+
+  UI_but_drawflag_enable(but, UI_BUT_HAS_SHORTCUT);
+  region = ui_searchbox_create_generic(C, butregion, but);
+
+  if (false) {
+    region->type->draw = ui_searchbox_region_draw_cb__menu;
+  }
+
+  return region;
 }
 
 /* sets red alert if button holds a string it can't find */

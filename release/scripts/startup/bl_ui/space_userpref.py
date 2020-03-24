@@ -2134,6 +2134,21 @@ class ExperimentalPanel:
 
     url_prefix = "https://developer.blender.org/"
 
+    def _draw_items(self, context, items):
+        prefs = context.preferences
+        experimental = prefs.experimental
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        for prop_keywords, task in items:
+            split = layout.split(factor=0.66)
+            col = split.split()
+            col.prop(experimental, **prop_keywords)
+            col = split.split()
+            col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
+
 """
 # Example panel, leave it here so we always have a template to follow even
 # after the features are gone from the experimental panel.
@@ -2142,46 +2157,34 @@ class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
     bl_label = "Virtual Reality"
 
     def draw(self, context):
-        prefs = context.preferences
-        experimental = prefs.experimental
-
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        task = "T71347"
-        split = layout.split(factor=0.66)
-        col = split.split()
-        col.prop(experimental, "use_virtual_reality_scene_inspection", text="Scene Inspection")
-        col = split.split()
-        col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
-
-        task = "T71348"
-        split = layout.split(factor=0.66)
-        col = split.column()
-        col.prop(experimental, "use_virtual_reality_immersive_drawing", text="Continuous Immersive Drawing")
-        col = split.column()
-        col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
+        self._draw_items(
+            context, (
+                ({"property": "use_virtual_reality_scene_inspection"}, "T71347"),
+                ({"property": "use_virtual_reality_immersive_drawing"}, "T71348"),
+            )
+        )
 """
+
+class USERPREF_PT_experimental_ui(ExperimentalPanel, Panel):
+    bl_label = "UI"
+
+    def draw(self, context):
+        self._draw_items(
+            context, (
+                ({"property": "use_menu_search"}, "T74157"),
+            ),
+        )
 
 
 class USERPREF_PT_experimental_system(ExperimentalPanel, Panel):
     bl_label = "System"
 
     def draw(self, context):
-        prefs = context.preferences
-        experimental = prefs.experimental
-
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        task = "T60695"
-        split = layout.split(factor=0.66)
-        col = split.split()
-        col.prop(experimental, "use_undo_speedup")
-        col = split.split()
-        col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
+        self._draw_items(
+            context, (
+                ({"property": "use_undo_speedup"}, "T60695"),
+            ),
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -2274,6 +2277,7 @@ classes = (
     # Popovers.
     USERPREF_PT_ndof_settings,
 
+    USERPREF_PT_experimental_ui,
     USERPREF_PT_experimental_system,
 
     # Add dynamically generated editor theme panels last,

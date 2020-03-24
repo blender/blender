@@ -506,6 +506,9 @@ typedef void (*uiButSearchFunc)(const struct bContext *C,
                                 void *arg,
                                 const char *str,
                                 uiSearchItems *items);
+
+typedef void (*uiButSearchArgFreeFunc)(void *arg);
+
 /* Must return allocated string. */
 typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *tip);
 typedef int (*uiButPushedStateFunc)(struct bContext *C, void *arg);
@@ -1565,13 +1568,13 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
                                      const bool compact);
 
 /* use inside searchfunc to add items */
-bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid);
+bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid, int state);
 /* bfunc gets search item *poin as arg2, or if NULL the old string */
 void UI_but_func_search_set(uiBut *but,
                             uiButSearchCreateFunc cfunc,
                             uiButSearchFunc sfunc,
                             void *arg,
-                            bool free_arg,
+                            uiButSearchArgFreeFunc search_arg_free_func,
                             uiButHandleFunc bfunc,
                             void *active);
 /* height in pixels, it's using hardcoded values still */
@@ -2035,6 +2038,10 @@ void uiTemplateImageInfo(uiLayout *layout,
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void UI_but_func_operator_search(uiBut *but);
 void uiTemplateOperatorSearch(uiLayout *layout);
+
+void UI_but_func_menu_search(uiBut *but);
+void uiTemplateMenuSearch(uiLayout *layout);
+
 eAutoPropButsReturn uiTemplateOperatorPropertyButs(const struct bContext *C,
                                                    uiLayout *layout,
                                                    struct wmOperator *op,
