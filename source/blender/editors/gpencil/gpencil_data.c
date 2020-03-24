@@ -211,8 +211,6 @@ void GPENCIL_OT_data_unlink(wmOperatorType *ot)
 static int gp_layer_add_exec(bContext *C, wmOperator *op)
 {
   const bool is_annotation = STREQ(op->idname, "GPENCIL_OT_layer_annotation_add");
-  ScrArea *sa = CTX_wm_area(C);
-  const bool is_dopesheet = (sa->spacetype == SPACE_ACTION);
 
   PointerRNA gpd_owner = {NULL};
   Main *bmain = CTX_data_main(C);
@@ -242,8 +240,10 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
     if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
       gpd = (bGPdata *)ob->data;
       bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
+      ScrArea *sa = CTX_wm_area(C);
+
       /* In dopesheet add a new frame. */
-      if ((gpl != NULL) && (is_dopesheet)) {
+      if ((gpl != NULL) && (sa->spacetype == SPACE_ACTION)) {
         gpl->actframe = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_NEW);
       }
     }
