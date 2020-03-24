@@ -9694,21 +9694,29 @@ static int ui_handle_menu_event(bContext *C,
                 /* Apply scroll operation. */
                 if (scrolltype == MENU_SCROLL_DOWN) {
                   but = ui_but_next(but);
-                  if (but == NULL) {
-                    but = ui_but_first(block);
-                  }
                 }
                 else if (scrolltype == MENU_SCROLL_UP) {
                   but = ui_but_prev(but);
-                  if (but == NULL) {
-                    but = ui_but_last(block);
-                  }
                 }
                 else if (scrolltype == MENU_SCROLL_TOP) {
                   but = ui_but_first(block);
                 }
                 else if (scrolltype == MENU_SCROLL_BOTTOM) {
                   but = ui_but_last(block);
+                }
+              }
+
+              if (!but) {
+                /* wrap button or no active button*/
+                uiBut *but_wrap = NULL;
+                if (ELEM(scrolltype, MENU_SCROLL_UP, MENU_SCROLL_BOTTOM)) {
+                  but_wrap = ui_but_last(block);
+                }
+                else if (ELEM(scrolltype, MENU_SCROLL_DOWN, MENU_SCROLL_TOP)) {
+                  but_wrap = ui_but_first(block);
+                }
+                if (but_wrap) {
+                  but = but_wrap;
                 }
               }
 
