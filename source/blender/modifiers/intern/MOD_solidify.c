@@ -70,11 +70,13 @@ static void requiredDataMask(Object *UNUSED(ob),
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   const SolidifyModifierData *smd = (SolidifyModifierData *)md;
-  if (smd->mode == MOD_SOLIDIFY_MODE_EXTRUDE) {
-    return MOD_solidify_extrude_applyModifier(md, ctx, mesh);
-  }
-  else if (smd->mode == MOD_SOLIDIFY_MODE_NONMANIFOLD) {
-    return MOD_solidify_nonmanifold_applyModifier(md, ctx, mesh);
+  switch (smd->mode) {
+    case MOD_SOLIDIFY_MODE_EXTRUDE:
+      return MOD_solidify_extrude_applyModifier(md, ctx, mesh);
+    case MOD_SOLIDIFY_MODE_NONMANIFOLD:
+      return MOD_solidify_nonmanifold_applyModifier(md, ctx, mesh);
+    default:
+      BLI_assert(0);
   }
   return mesh;
 }
