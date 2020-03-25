@@ -168,6 +168,10 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(Object *object,
     BLI_assert(0);
   }
 
+  if (shgrp == NULL) {
+    return NULL;
+  }
+
   /* TODO optimize this. Only bind the ones GPUMaterial needs. */
   for (int i = 0; i < hair_cache->num_uv_layers; i++) {
     for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->uv_layer_names[i][n][0] != '\0'; n++) {

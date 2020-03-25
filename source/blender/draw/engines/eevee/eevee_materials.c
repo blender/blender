@@ -939,6 +939,45 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene,
   return mat;
 }
 
+static struct GPUMaterial *EEVEE_material_hair_depth_get(struct Scene *scene,
+                                                         Material *ma,
+                                                         bool use_hashed_alpha,
+                                                         bool is_shadow)
+{
+  const void *engine = &DRW_engine_viewport_eevee_type;
+  int options = VAR_MAT_MESH | VAR_MAT_HAIR;
+
+  SET_FLAG_FROM_TEST(options, use_hashed_alpha, VAR_MAT_HASH);
+  SET_FLAG_FROM_TEST(options, !use_hashed_alpha, VAR_MAT_CLIP);
+  SET_FLAG_FROM_TEST(options, is_shadow, VAR_MAT_SHADOW);
+
+  GPUMaterial *mat = DRW_shader_find_from_material(ma, engine, options, true);
+  if (mat) {
+    return mat;
+  }
+
+  char *defines = eevee_get_defines(options);
+
+  char *frag_str = BLI_string_joinN(e_data.frag_shader_lib, datatoc_prepass_frag_glsl);
+
+  mat = DRW_shader_create_from_material(scene,
+                                        ma,
+                                        engine,
+                                        options,
+                                        false,
+                                        (is_shadow) ? e_data.vert_shadow_shader_str :
+                                                      e_data.vert_shader_str,
+                                        NULL,
+                                        frag_str,
+                                        defines,
+                                        false);
+
+  MEM_freeN(frag_str);
+  MEM_freeN(defines);
+
+  return mat;
+}
+
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma)
 {
   const void *engine = &DRW_engine_viewport_eevee_type;
@@ -1741,31 +1780,92 @@ static void eevee_hair_cache_populate(EEVEE_Data *vedata,
 
   DRWShadingGroup *shgrp = NULL;
   Material *ma = eevee_object_material_get(ob, matnr - 1);
+  const bool holdout = (ob->base_flag & BASE_HOLDOUT) != 0;
+  const bool use_gpumat = ma->use_nodes && ma->nodetree && !holdout;
+  const bool use_alpha_hash = (ma->blend_method == MA_BM_HASHED);
+  const bool use_alpha_clip = (ma->blend_method == MA_BM_CLIP);
+  const bool use_ssr = ((stl->effects->enabled_effects & EFFECT_SSR) != 0);
+
+  GPUMaterial *gpumat = use_gpumat ? EEVEE_material_hair_get(scene, ma) : NULL;
+  eGPUMaterialStatus status_mat_surface = gpumat ? GPU_material_status(gpumat) : GPU_MAT_SUCCESS;
 
   float *color_p = &ma->r;
   float *metal_p = &ma->metallic;
   float *spec_p = &ma->spec;
   float *rough_p = &ma->roughness;
 
-  bool use_ssr = ((stl->effects->enabled_effects & EFFECT_SSR) != 0);
-  const bool holdout = (ob->base_flag & BASE_HOLDOUT) != 0;
+  /* Depth prepass. */
+  if (use_gpumat && (use_alpha_clip || use_alpha_hash)) {
+    GPUMaterial *gpumat_depth = EEVEE_material_hair_depth_get(scene, ma, use_alpha_hash, false);
 
-  shgrp = DRW_shgroup_hair_create(ob, psys, md, psl->depth_pass, e_data.default_hair_prepass_sh);
+    eGPUMaterialStatus status_mat_depth = GPU_material_status(gpumat_depth);
 
-  shgrp = DRW_shgroup_hair_create(
-      ob, psys, md, psl->depth_pass_clip, e_data.default_hair_prepass_clip_sh);
+    if (status_mat_depth != GPU_MAT_SUCCESS) {
+      /* Mixing both flags. If depth shader fails, show it to the user by not using
+       * the surface shader. */
+      status_mat_surface = status_mat_depth;
+    }
+    else {
+      const bool use_diffuse = GPU_material_flag_get(gpumat_depth, GPU_MATFLAG_DIFFUSE);
+      const bool use_glossy = GPU_material_flag_get(gpumat_depth, GPU_MATFLAG_GLOSSY);
+      const bool use_refract = GPU_material_flag_get(gpumat_depth, GPU_MATFLAG_REFRACT);
+
+      for (int i = 0; i < 2; i++) {
+        DRWPass *pass = (i == 0) ? psl->depth_pass : psl->depth_pass_clip;
+
+        shgrp = DRW_shgroup_material_hair_create(ob, psys, md, pass, gpumat_depth);
+
+        add_standard_uniforms(shgrp,
+                              sldata,
+                              vedata,
+                              NULL,
+                              NULL,
+                              use_diffuse,
+                              use_glossy,
+                              use_refract,
+                              false,
+                              false,
+                              DEFAULT_RENDER_PASS_FLAG);
+
+        /* Unfortunately needed for correctness but not 99% of the time not needed.
+         * TODO detect when needed? */
+        DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
+        DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
+        DRW_shgroup_uniform_block(shgrp, "planar_block", sldata->planar_ubo);
+        DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
+        DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
+        DRW_shgroup_uniform_block(
+            shgrp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
+        DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
+        DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
+
+        if (use_alpha_clip) {
+          DRW_shgroup_uniform_float(shgrp, "alphaThreshold", &ma->alpha_threshold, 1);
+        }
+      }
+    }
+  }
+
+  /* Fallback to default shader */
+  if (shgrp == NULL) {
+    for (int i = 0; i < 2; i++) {
+      DRWPass *depth_pass = (i == 0) ? psl->depth_pass : psl->depth_pass_clip;
+      struct GPUShader *depth_sh = (i == 0) ? e_data.default_hair_prepass_sh :
+                                              e_data.default_hair_prepass_clip_sh;
+      DRW_shgroup_hair_create(ob, psys, md, depth_pass, depth_sh);
+    }
+  }
 
   shgrp = NULL;
 
-  if (ma->use_nodes && ma->nodetree && !holdout) {
+  if (gpumat) {
     static int ssr_id;
     ssr_id = (use_ssr) ? 1 : -1;
     static float half = 0.5f;
     static float error_col[3] = {1.0f, 0.0f, 1.0f};
     static float compile_col[3] = {0.5f, 0.5f, 0.5f};
-    struct GPUMaterial *gpumat = EEVEE_material_hair_get(scene, ma);
 
-    switch (GPU_material_status(gpumat)) {
+    switch (status_mat_surface) {
       case GPU_MAT_SUCCESS: {
         bool use_diffuse = GPU_material_flag_get(gpumat, GPU_MATFLAG_DIFFUSE);
         bool use_glossy = GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY);
@@ -1860,8 +1960,38 @@ static void eevee_hair_cache_populate(EEVEE_Data *vedata,
   }
 
   /* Shadows */
-  DRW_shgroup_hair_create(ob, psys, md, psl->shadow_pass, e_data.default_hair_prepass_sh);
-  *cast_shadow = true;
+  char blend_shadow = use_gpumat ? ma->blend_shadow : MA_BS_SOLID;
+  const bool shadow_alpha_hash = (blend_shadow == MA_BS_HASHED);
+  switch (blend_shadow) {
+    case MA_BS_SOLID:
+      DRW_shgroup_hair_create(ob, psys, md, psl->shadow_pass, e_data.default_hair_prepass_sh);
+      *cast_shadow = true;
+      break;
+    case MA_BS_CLIP:
+    case MA_BS_HASHED:
+      gpumat = EEVEE_material_hair_depth_get(scene, ma, shadow_alpha_hash, true);
+      shgrp = DRW_shgroup_material_hair_create(ob, psys, md, psl->shadow_pass, gpumat);
+      /* Unfortunately needed for correctness but not 99% of the time not needed.
+       * TODO detect when needed? */
+      DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
+      DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
+      DRW_shgroup_uniform_block(shgrp, "planar_block", sldata->planar_ubo);
+      DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
+      DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
+      DRW_shgroup_uniform_block(
+          shgrp, "renderpass_block", EEVEE_material_default_render_pass_ubo_get(sldata));
+      DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
+      DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
+
+      if (!shadow_alpha_hash) {
+        DRW_shgroup_uniform_float(shgrp, "alphaThreshold", &ma->alpha_threshold, 1);
+      }
+      *cast_shadow = true;
+      break;
+    case MA_BS_NONE:
+    default:
+      break;
+  }
 }
 
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
