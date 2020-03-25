@@ -529,8 +529,9 @@
 #  define SMAATexturePass2D(tex) tex
 #  define SMAASampleLevelZero(tex, coord) tex2Dlod(tex, float4(coord, 0.0, 0.0))
 #  define SMAASampleLevelZeroPoint(tex, coord) tex2Dlod(tex, float4(coord, 0.0, 0.0))
-#  define SMAASampleLevelZeroOffset(tex, coord, offset) \
-    tex2Dlod(tex, float4(coord + offset * SMAA_RT_METRICS.xy, 0.0, 0.0))
+/* clang-format off */
+#  define SMAASampleLevelZeroOffset(tex, coord, offset) tex2Dlod(tex, float4(coord + offset * SMAA_RT_METRICS.xy, 0.0, 0.0))
+/* clang-format on */
 #  define SMAASample(tex, coord) tex2D(tex, coord)
 #  define SMAASamplePoint(tex, coord) tex2D(tex, coord)
 #  define SMAASampleOffset(tex, coord, offset) tex2D(tex, coord + offset * SMAA_RT_METRICS.xy)
@@ -554,8 +555,9 @@ SamplerState PointSampler
 #  define SMAATexturePass2D(tex) tex
 #  define SMAASampleLevelZero(tex, coord) tex.SampleLevel(LinearSampler, coord, 0)
 #  define SMAASampleLevelZeroPoint(tex, coord) tex.SampleLevel(PointSampler, coord, 0)
-#  define SMAASampleLevelZeroOffset(tex, coord, offset) \
-    tex.SampleLevel(LinearSampler, coord, 0, offset)
+/* clang-format off */
+#  define SMAASampleLevelZeroOffset(tex, coord, offset) tex.SampleLevel(LinearSampler, coord, 0, offset)
+/* clang-format on */
 #  define SMAASample(tex, coord) tex.Sample(LinearSampler, coord)
 #  define SMAASamplePoint(tex, coord) tex.Sample(PointSampler, coord)
 #  define SMAASampleOffset(tex, coord, offset) tex.Sample(LinearSampler, coord, offset)
@@ -597,10 +599,11 @@ SamplerState PointSampler
 #  define bool4 bvec4
 #endif
 
-#if !defined(SMAA_HLSL_3) && !defined(SMAA_HLSL_4) && !defined(SMAA_HLSL_4_1) && \
-    !defined(SMAA_GLSL_3) && !defined(SMAA_GLSL_4) && !defined(SMAA_CUSTOM_SL)
+/* clang-format off */
+#if !defined(SMAA_HLSL_3) && !defined(SMAA_HLSL_4) && !defined(SMAA_HLSL_4_1) && !defined(SMAA_GLSL_3) && !defined(SMAA_GLSL_4) && !defined(SMAA_CUSTOM_SL)
 #  error you must define the shading language: SMAA_HLSL_*, SMAA_GLSL_* or SMAA_CUSTOM_SL
 #endif
+/* clang-format on */
 
 //-----------------------------------------------------------------------------
 // Misc functions
