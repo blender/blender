@@ -31,20 +31,6 @@ struct wmOperatorType;
 /* internal exports only */
 
 /* mask_add.c */
-bool ED_mask_find_nearest_diff_point(const struct bContext *C,
-                                     struct Mask *mask,
-                                     const float normal_co[2],
-                                     int threshold,
-                                     bool feather,
-                                     float tangent[2],
-                                     const bool use_deform,
-                                     const bool use_project,
-                                     struct MaskLayer **r_mask_layer,
-                                     struct MaskSpline **r_spline,
-                                     struct MaskSplinePoint **r_point,
-                                     float *r_u,
-                                     float *r_score);
-
 void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
 void MASK_OT_primitive_circle_add(struct wmOperatorType *ot);
@@ -71,25 +57,6 @@ void MASK_OT_switch_direction(struct wmOperatorType *ot);
 void MASK_OT_normals_make_consistent(struct wmOperatorType *ot);
 
 void MASK_OT_handle_type_set(struct wmOperatorType *ot);
-
-bool ED_mask_feather_find_nearest(const struct bContext *C,
-                                  struct Mask *mask,
-                                  const float normal_co[2],
-                                  const float threshold,
-                                  struct MaskLayer **r_mask_layer,
-                                  struct MaskSpline **r_spline,
-                                  struct MaskSplinePoint **r_point,
-                                  struct MaskSplinePointUW **r_uw,
-                                  float *r_score);
-
-struct MaskSplinePoint *ED_mask_point_find_nearest(const struct bContext *C,
-                                                   struct Mask *mask,
-                                                   const float normal_co[2],
-                                                   const float threshold,
-                                                   struct MaskLayer **r_mask_layer,
-                                                   struct MaskSpline **r_spline,
-                                                   eMaskWhichHandle *r_which_handle,
-                                                   float *r_score);
 
 void MASK_OT_layer_move(struct wmOperatorType *ot);
 
@@ -125,6 +92,38 @@ void ED_mask_select_flush_all(struct Mask *mask);
 /* mask_editor.c */
 bool ED_maskedit_poll(struct bContext *C);
 bool ED_maskedit_mask_poll(struct bContext *C);
+
+/* mask_query.c */
+bool ED_mask_find_nearest_diff_point(const struct bContext *C,
+                                     struct Mask *mask,
+                                     const float normal_co[2],
+                                     int threshold,
+                                     bool feather,
+                                     float tangent[2],
+                                     const bool use_deform,
+                                     const bool use_project,
+                                     struct MaskLayer **r_mask_layer,
+                                     struct MaskSpline **r_spline,
+                                     struct MaskSplinePoint **r_point,
+                                     float *r_u,
+                                     float *r_score);
+bool ED_mask_feather_find_nearest(const struct bContext *C,
+                                  struct Mask *mask,
+                                  const float normal_co[2],
+                                  const float threshold,
+                                  struct MaskLayer **r_mask_layer,
+                                  struct MaskSpline **r_spline,
+                                  struct MaskSplinePoint **r_point,
+                                  struct MaskSplinePointUW **r_uw,
+                                  float *r_score);
+struct MaskSplinePoint *ED_mask_point_find_nearest(const struct bContext *C,
+                                                   struct Mask *mask,
+                                                   const float normal_co[2],
+                                                   const float threshold,
+                                                   struct MaskLayer **r_mask_layer,
+                                                   struct MaskSpline **r_spline,
+                                                   eMaskWhichHandle *r_which_handle,
+                                                   float *r_score);
 
 /* mask_shapekey.c */
 void MASK_OT_shape_key_insert(struct wmOperatorType *ot);
