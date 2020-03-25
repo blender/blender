@@ -300,7 +300,13 @@ static void wm_xr_draw_data_populate(const wmXrSessionState *state,
 
   wm_xr_base_pose_calc(scene, settings, &r_draw_data->base_pose);
 
-  if (position_tracking_toggled || !state->is_view_data_set) {
+  /* Set the eye position offset, it's used to offset the base pose when changing positional
+   * tracking. */
+  if (!state->is_view_data_set) {
+    /* Always use the exact base pose with no offset when starting the session. */
+    copy_v3_fl(r_draw_data->eye_position_ofs, 0.0f);
+  }
+  else if (position_tracking_toggled) {
     if (use_position_tracking) {
       copy_v3_fl(r_draw_data->eye_position_ofs, 0.0f);
     }
