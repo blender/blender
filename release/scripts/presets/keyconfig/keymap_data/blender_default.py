@@ -4323,6 +4323,7 @@ def km_sculpt(params):
         ("sculpt.set_detail_size", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         # Remesh
         ("object.voxel_remesh", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
+        ("object.voxel_size_edit", {"type": 'R', "value": 'PRESS', "shift": True}, None),
         ("object.quadriflow_remesh", {"type": 'R', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         # Brush properties
         ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS'},

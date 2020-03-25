@@ -265,6 +265,8 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_hide_collection);
 
   WM_operatortype_append(OBJECT_OT_voxel_remesh);
+  WM_operatortype_append(OBJECT_OT_voxel_size_edit);
+
   WM_operatortype_append(OBJECT_OT_quadriflow_remesh);
 }
 

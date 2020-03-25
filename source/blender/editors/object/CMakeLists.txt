@@ -18,6 +18,7 @@
 set(INC
   ../include
   ../../blenkernel
+  ../../blenfont
   ../../blenlib
   ../../blentranslation
   ../../bmesh
