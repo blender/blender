@@ -578,16 +578,16 @@ ImageTile *BKE_image_get_tile_from_iuser(Image *ima, ImageUser *iuser)
 
 int BKE_image_get_tile_from_pos(struct Image *ima,
                                 const float uv[2],
-                                float new_uv[2],
-                                float ofs[2])
+                                float r_uv[2],
+                                float r_ofs[2])
 {
   float local_ofs[2];
-  if (ofs == NULL) {
-    ofs = local_ofs;
+  if (r_ofs == NULL) {
+    r_ofs = local_ofs;
   }
 
-  copy_v2_v2(new_uv, uv);
-  zero_v2(ofs);
+  copy_v2_v2(r_uv, uv);
+  zero_v2(r_ofs);
 
   if ((ima->source != IMA_SRC_TILED) || uv[0] < 0.0f || uv[1] < 0.0f || uv[0] >= 10.0f) {
     return 0;
@@ -600,9 +600,9 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
   if (BKE_image_get_tile(ima, tile_number) == NULL) {
     return 0;
   }
-  ofs[0] = ix;
-  ofs[1] = iy;
-  sub_v2_v2(new_uv, ofs);
+  r_ofs[0] = ix;
+  r_ofs[1] = iy;
+  sub_v2_v2(r_uv, r_ofs);
 
   return tile_number;
 }
@@ -5341,7 +5341,7 @@ bool BKE_image_has_alpha(struct Image *image)
   }
 }
 
-void BKE_image_get_size(Image *image, ImageUser *iuser, int *width, int *height)
+void BKE_image_get_size(Image *image, ImageUser *iuser, int *r_width, int *r_height)
 {
   ImBuf *ibuf = NULL;
   void *lock;
@@ -5351,22 +5351,22 @@ void BKE_image_get_size(Image *image, ImageUser *iuser, int *width, int *height)
   }
 
   if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
-    *width = ibuf->x;
-    *height = ibuf->y;
+    *r_width = ibuf->x;
+    *r_height = ibuf->y;
   }
   else if (image != NULL && image->type == IMA_TYPE_R_RESULT && iuser != NULL &&
            iuser->scene != NULL) {
     Scene *scene = iuser->scene;
-    *width = (scene->r.xsch * scene->r.size) / 100;
-    *height = (scene->r.ysch * scene->r.size) / 100;
+    *r_width = (scene->r.xsch * scene->r.size) / 100;
+    *r_height = (scene->r.ysch * scene->r.size) / 100;
     if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-      *width *= BLI_rctf_size_x(&scene->r.border);
-      *height *= BLI_rctf_size_y(&scene->r.border);
+      *r_width *= BLI_rctf_size_x(&scene->r.border);
+      *r_height *= BLI_rctf_size_y(&scene->r.border);
     }
   }
   else {
-    *width = IMG_SIZE_FALLBACK;
-    *height = IMG_SIZE_FALLBACK;
+    *r_width = IMG_SIZE_FALLBACK;
+    *r_height = IMG_SIZE_FALLBACK;
   }
 
   if (image != NULL) {
@@ -5374,25 +5374,25 @@ void BKE_image_get_size(Image *image, ImageUser *iuser, int *width, int *height)
   }
 }
 
-void BKE_image_get_size_fl(Image *image, ImageUser *iuser, float size[2])
+void BKE_image_get_size_fl(Image *image, ImageUser *iuser, float r_size[2])
 {
   int width, height;
   BKE_image_get_size(image, iuser, &width, &height);
 
-  size[0] = (float)width;
-  size[1] = (float)height;
+  r_size[0] = (float)width;
+  r_size[1] = (float)height;
 }
 
-void BKE_image_get_aspect(Image *image, float *aspx, float *aspy)
+void BKE_image_get_aspect(Image *image, float *r_aspx, float *r_aspy)
 {
-  *aspx = 1.0;
+  *r_aspx = 1.0;
 
   /* x is always 1 */
   if (image) {
-    *aspy = image->aspy / image->aspx;
+    *r_aspy = image->aspy / image->aspx;
   }
   else {
-    *aspy = 1.0f;
+    *r_aspy = 1.0f;
   }
 }
 

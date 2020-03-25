@@ -544,7 +544,7 @@ static bool slide_check_corners(float (*corners)[2])
 }
 
 MovieTrackingTrack *tracking_marker_check_slide(
-    bContext *C, const wmEvent *event, int *area_r, int *action_r, int *corner_r)
+    bContext *C, const wmEvent *event, int *r_area, int *r_action, int *r_corner)
 {
   const float distance_clip_squared = 12.0f * 12.0f;
   SpaceClip *sc = CTX_wm_space_clip(C);
@@ -657,14 +657,14 @@ MovieTrackingTrack *tracking_marker_check_slide(
   }
 
   if (global_min_distance_squared < distance_clip_squared / sc->zoom) {
-    if (area_r) {
-      *area_r = min_area;
+    if (r_area) {
+      *r_area = min_area;
     }
-    if (action_r) {
-      *action_r = min_action;
+    if (r_action) {
+      *r_action = min_action;
     }
-    if (corner_r) {
-      *corner_r = min_corner;
+    if (r_corner) {
+      *r_corner = min_corner;
     }
     return min_track;
   }

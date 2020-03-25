@@ -291,7 +291,7 @@ static bool allow_parenting_without_modifier_key(SpaceOutliner *soops)
 static bool parent_drop_poll(bContext *C,
                              wmDrag *drag,
                              const wmEvent *event,
-                             const char **UNUSED(tooltip))
+                             const char **UNUSED(r_tooltip))
 {
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
@@ -430,7 +430,7 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 static bool parent_clear_poll(bContext *C,
                               wmDrag *drag,
                               const wmEvent *event,
-                              const char **UNUSED(tooltip))
+                              const char **UNUSED(r_tooltip))
 {
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
 
@@ -516,7 +516,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 static bool scene_drop_poll(bContext *C,
                             wmDrag *drag,
                             const wmEvent *event,
-                            const char **UNUSED(tooltip))
+                            const char **UNUSED(r_tooltip))
 {
   /* Ensure item under cursor is valid drop target */
   Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
@@ -585,7 +585,7 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 static bool material_drop_poll(bContext *C,
                                wmDrag *drag,
                                const wmEvent *event,
-                               const char **UNUSED(tooltip))
+                               const char **UNUSED(r_tooltip))
 {
   /* Ensure item under cursor is valid drop target */
   Material *ma = (Material *)WM_drag_ID(drag, ID_MA);
@@ -721,7 +721,7 @@ static bool collection_drop_init(bContext *C,
 static bool collection_drop_poll(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event,
-                                 const char **tooltip)
+                                 const char **r_tooltip)
 {
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
@@ -734,7 +734,7 @@ static bool collection_drop_poll(bContext *C,
     if (!data.from || event->ctrl) {
       tselem->flag |= TSE_DRAG_INTO;
       changed = true;
-      *tooltip = TIP_("Link inside Collection");
+      *r_tooltip = TIP_("Link inside Collection");
     }
     else {
       switch (data.insert_type) {
@@ -742,26 +742,26 @@ static bool collection_drop_poll(bContext *C,
           tselem->flag |= TSE_DRAG_BEFORE;
           changed = true;
           if (te->prev && outliner_is_collection_tree_element(te->prev)) {
-            *tooltip = TIP_("Move between collections");
+            *r_tooltip = TIP_("Move between collections");
           }
           else {
-            *tooltip = TIP_("Move before collection");
+            *r_tooltip = TIP_("Move before collection");
           }
           break;
         case TE_INSERT_AFTER:
           tselem->flag |= TSE_DRAG_AFTER;
           changed = true;
           if (te->next && outliner_is_collection_tree_element(te->next)) {
-            *tooltip = TIP_("Move between collections");
+            *r_tooltip = TIP_("Move between collections");
           }
           else {
-            *tooltip = TIP_("Move after collection");
+            *r_tooltip = TIP_("Move after collection");
           }
           break;
         case TE_INSERT_INTO:
           tselem->flag |= TSE_DRAG_INTO;
           changed = true;
-          *tooltip = TIP_("Move inside collection (Ctrl to link, Shift to parent)");
+          *r_tooltip = TIP_("Move inside collection (Ctrl to link, Shift to parent)");
           break;
       }
     }

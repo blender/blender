@@ -360,15 +360,15 @@ void PyC_StackSpit(void)
   }
 }
 
-void PyC_FileAndNum(const char **filename, int *lineno)
+void PyC_FileAndNum(const char **r_filename, int *r_lineno)
 {
   PyFrameObject *frame;
 
-  if (filename) {
-    *filename = NULL;
+  if (r_filename) {
+    *r_filename = NULL;
   }
-  if (lineno) {
-    *lineno = -1;
+  if (r_lineno) {
+    *r_lineno = -1;
   }
 
   if (!(frame = PyThreadState_GET()->frame)) {
@@ -376,13 +376,13 @@ void PyC_FileAndNum(const char **filename, int *lineno)
   }
 
   /* when executing a script */
-  if (filename) {
-    *filename = _PyUnicode_AsString(frame->f_code->co_filename);
+  if (r_filename) {
+    *r_filename = _PyUnicode_AsString(frame->f_code->co_filename);
   }
 
   /* when executing a module */
-  if (filename && *filename == NULL) {
-    /* try an alternative method to get the filename - module based
+  if (r_filename && *r_filename == NULL) {
+    /* try an alternative method to get the r_filename - module based
      * references below are all borrowed (double checked) */
     PyObject *mod_name = PyDict_GetItemString(PyEval_GetGlobals(), "__name__");
     if (mod_name) {
@@ -390,7 +390,7 @@ void PyC_FileAndNum(const char **filename, int *lineno)
       if (mod) {
         PyObject *mod_file = PyModule_GetFilenameObject(mod);
         if (mod_file) {
-          *filename = _PyUnicode_AsString(mod_name);
+          *r_filename = _PyUnicode_AsString(mod_name);
           Py_DECREF(mod_file);
         }
         else {
@@ -399,24 +399,24 @@ void PyC_FileAndNum(const char **filename, int *lineno)
       }
 
       /* unlikely, fallback */
-      if (*filename == NULL) {
-        *filename = _PyUnicode_AsString(mod_name);
+      if (*r_filename == NULL) {
+        *r_filename = _PyUnicode_AsString(mod_name);
       }
     }
   }
 
-  if (lineno) {
-    *lineno = PyFrame_GetLineNumber(frame);
+  if (r_lineno) {
+    *r_lineno = PyFrame_GetLineNumber(frame);
   }
 }
 
-void PyC_FileAndNum_Safe(const char **filename, int *lineno)
+void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno)
 {
   if (!PyC_IsInterpreterActive()) {
     return;
   }
 
-  PyC_FileAndNum(filename, lineno);
+  PyC_FileAndNum(r_filename, r_lineno);
 }
 
 /* Would be nice if python had this built in */

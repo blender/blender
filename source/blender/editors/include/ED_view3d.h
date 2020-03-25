@@ -674,8 +674,10 @@ bool ED_view3d_distance_set_from_location(struct RegionView3D *rv3d,
                                           const float dist_co[3],
                                           const float dist_min);
 
-float ED_scene_grid_scale(const struct Scene *scene, const char **grid_unit);
-float ED_view3d_grid_scale(const struct Scene *scene, struct View3D *v3d, const char **grid_unit);
+float ED_scene_grid_scale(const struct Scene *scene, const char **r_grid_unit);
+float ED_view3d_grid_scale(const struct Scene *scene,
+                           struct View3D *v3d,
+                           const char **r_grid_unit);
 void ED_view3d_grid_steps(const struct Scene *scene,
                           struct View3D *v3d,
                           struct RegionView3D *rv3d,
@@ -683,7 +685,7 @@ void ED_view3d_grid_steps(const struct Scene *scene,
 float ED_view3d_grid_view_scale(struct Scene *scene,
                                 struct View3D *v3d,
                                 struct RegionView3D *rv3d,
-                                const char **grid_unit);
+                                const char **r_grid_unit);
 
 void ED_scene_draw_fps(const struct Scene *scene, int xoffset, int *yoffset);
 

@@ -605,7 +605,7 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 static bool clip_drop_poll(bContext *UNUSED(C),
                            wmDrag *drag,
                            const wmEvent *UNUSED(event),
-                           const char **UNUSED(tooltip))
+                           const char **UNUSED(r_tooltip))
 {
   if (drag->type == WM_DRAG_PATH) {
     /* rule might not work? */

@@ -789,18 +789,18 @@ void colormanage_cache_free(ImBuf *ibuf)
 
 void IMB_colormanagement_display_settings_from_ctx(
     const bContext *C,
-    ColorManagedViewSettings **view_settings_r,
-    ColorManagedDisplaySettings **display_settings_r)
+    ColorManagedViewSettings **r_view_settings,
+    ColorManagedDisplaySettings **r_display_settings)
 {
   Scene *scene = CTX_data_scene(C);
   SpaceImage *sima = CTX_wm_space_image(C);
 
-  *view_settings_r = &scene->view_settings;
-  *display_settings_r = &scene->display_settings;
+  *r_view_settings = &scene->view_settings;
+  *r_display_settings = &scene->display_settings;
 
   if (sima && sima->image) {
     if ((sima->image->flag & IMA_VIEW_AS_RENDER) == 0) {
-      *view_settings_r = NULL;
+      *r_view_settings = NULL;
     }
   }
 }

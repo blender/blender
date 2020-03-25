@@ -819,7 +819,7 @@ static int edit_node_invoke_properties(bContext *C, wmOperator *op)
 }
 
 static void edit_node_properties_get(
-    wmOperator *op, bNodeTree *ntree, bNode **rnode, bNodeSocket **rsock, int *rin_out)
+    wmOperator *op, bNodeTree *ntree, bNode **r_node, bNodeSocket **r_sock, int *r_in_out)
 {
   bNode *node;
   bNodeSocket *sock = NULL;
@@ -842,14 +842,14 @@ static void edit_node_properties_get(
       break;
   }
 
-  if (rnode) {
-    *rnode = node;
+  if (r_node) {
+    *r_node = node;
   }
-  if (rsock) {
-    *rsock = sock;
+  if (r_sock) {
+    *r_sock = sock;
   }
-  if (rin_out) {
-    *rin_out = in_out;
+  if (r_in_out) {
+    *r_in_out = in_out;
   }
 }
 #endif

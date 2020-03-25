@@ -47,7 +47,7 @@
  * seq->depth must be set before running this function so we know if the strips
  * are root level or not
  */
-static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count, int *flag)
+static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_recursive, int *r_count, int *r_flag)
 {
   /* for extend we need to do some tricks */
   if (t->mode == TFM_TIME_EXTEND) {
@@ -60,51 +60,51 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
     int right = BKE_sequence_tx_get_final_right(seq, true);
 
     if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
-      *recursive = false;
-      *count = 0;
-      *flag = 0;
+      *r_recursive = false;
+      *r_count = 0;
+      *r_flag = 0;
     }
     else if (seq->type == SEQ_TYPE_META) {
 
       /* for meta's we only ever need to extend their children, no matter what depth
        * just check the meta's are in the bounds */
       if (t->frame_side == 'R' && right <= cfra) {
-        *recursive = false;
+        *r_recursive = false;
       }
       else if (t->frame_side == 'L' && left >= cfra) {
-        *recursive = false;
+        *r_recursive = false;
       }
       else {
-        *recursive = true;
+        *r_recursive = true;
       }
 
-      *count = 1;
-      *flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
+      *r_count = 1;
+      *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
     }
     else {
 
-      *recursive = false; /* not a meta, so no thinking here */
-      *count = 1;         /* unless its set to 0, extend will never set 2 handles at once */
-      *flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
+      *r_recursive = false; /* not a meta, so no thinking here */
+      *r_count = 1;         /* unless its set to 0, extend will never set 2 handles at once */
+      *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 
       if (t->frame_side == 'R') {
         if (right <= cfra) {
-          *count = *flag = 0;
+          *r_count = *r_flag = 0;
         } /* ignore */
         else if (left > cfra) {
         } /* keep the selection */
         else {
-          *flag |= SEQ_RIGHTSEL;
+          *r_flag |= SEQ_RIGHTSEL;
         }
       }
       else {
         if (left >= cfra) {
-          *count = *flag = 0;
+          *r_count = *r_flag = 0;
         } /* ignore */
         else if (right < cfra) {
         } /* keep the selection */
         else {
-          *flag |= SEQ_LEFTSEL;
+          *r_flag |= SEQ_LEFTSEL;
         }
       }
     }
@@ -121,28 +121,28 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
       /* Non nested strips (resect selection and handles) */
       if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK)) {
-        *recursive = false;
-        *count = 0;
-        *flag = 0;
+        *r_recursive = false;
+        *r_count = 0;
+        *r_flag = 0;
       }
       else {
         if ((seq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == (SEQ_LEFTSEL | SEQ_RIGHTSEL)) {
-          *flag = seq->flag;
-          *count = 2; /* we need 2 transdata's */
+          *r_flag = seq->flag;
+          *r_count = 2; /* we need 2 transdata's */
         }
         else {
-          *flag = seq->flag;
-          *count = 1; /* selected or with a handle selected */
+          *r_flag = seq->flag;
+          *r_count = 1; /* selected or with a handle selected */
         }
 
         /* Recursive */
 
         if ((seq->type == SEQ_TYPE_META) && ((seq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == 0)) {
           /* if any handles are selected, don't recurse */
-          *recursive = true;
+          *r_recursive = true;
         }
         else {
-          *recursive = false;
+          *r_recursive = false;
         }
       }
     }
@@ -150,23 +150,23 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
       /* Nested, different rules apply */
 
 #ifdef SEQ_TX_NESTED_METAS
-      *flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
-      *count = 1; /* ignore the selection for nested */
-      *recursive = (seq->type == SEQ_TYPE_META);
+      *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
+      *r_count = 1; /* ignore the selection for nested */
+      *r_recursive = (seq->type == SEQ_TYPE_META);
 #else
       if (seq->type == SEQ_TYPE_META) {
         /* Meta's can only directly be moved between channels since they
          * don't have their start and length set directly (children affect that)
          * since this Meta is nested we don't need any of its data in fact.
          * BKE_sequence_calc() will update its settings when run on the top-level meta. */
-        *flag = 0;
-        *count = 0;
-        *recursive = true;
+        *r_flag = 0;
+        *r_count = 0;
+        *r_recursive = true;
       }
       else {
-        *flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
-        *count = 1; /* ignore the selection for nested */
-        *recursive = false;
+        *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
+        *r_count = 1; /* ignore the selection for nested */
+        *r_recursive = false;
       }
 #endif
     }

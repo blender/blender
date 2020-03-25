@@ -5092,23 +5092,23 @@ static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key
 static bool foreach_attr_type(BPy_PropertyRNA *self,
                               const char *attr,
                               /* Values to assign. */
-                              RawPropertyType *raw_type,
-                              int *attr_tot,
-                              bool *attr_signed)
+                              RawPropertyType *r_raw_type,
+                              int *r_attr_tot,
+                              bool *r_attr_signed)
 {
   PropertyRNA *prop;
   bool attr_ok = true;
-  *raw_type = PROP_RAW_UNSET;
-  *attr_tot = 0;
-  *attr_signed = false;
+  *r_raw_type = PROP_RAW_UNSET;
+  *r_attr_tot = 0;
+  *r_attr_signed = false;
 
   /* Note: this is fail with zero length lists, so don't let this get caled in that case. */
   RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop) {
     prop = RNA_struct_find_property(&itemptr, attr);
     if (prop) {
-      *raw_type = RNA_property_raw_type(prop);
-      *attr_tot = RNA_property_array_length(&itemptr, prop);
-      *attr_signed = (RNA_property_subtype(prop) != PROP_UNSIGNED);
+      *r_raw_type = RNA_property_raw_type(prop);
+      *r_attr_tot = RNA_property_array_length(&itemptr, prop);
+      *r_attr_signed = (RNA_property_subtype(prop) != PROP_UNSIGNED);
     }
     else {
       attr_ok = false;
@@ -5125,53 +5125,53 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                               PyObject *args,
 
                               /* Values to assign. */
-                              const char **attr,
-                              PyObject **seq,
-                              int *tot,
-                              int *size,
-                              RawPropertyType *raw_type,
-                              int *attr_tot,
-                              bool *attr_signed)
+                              const char **r_attr,
+                              PyObject **r_seq,
+                              int *r_tot,
+                              int *r_size,
+                              RawPropertyType *r_raw_type,
+                              int *r_attr_tot,
+                              bool *r_attr_signed)
 {
 #if 0
   int array_tot;
   int target_tot;
 #endif
 
-  *size = *attr_tot = 0;
-  *attr_signed = false;
-  *raw_type = PROP_RAW_UNSET;
+  *r_size = *r_attr_tot = 0;
+  *r_attr_signed = false;
+  *r_raw_type = PROP_RAW_UNSET;
 
-  if (!PyArg_ParseTuple(args, "sO:foreach_get/set", attr, seq)) {
+  if (!PyArg_ParseTuple(args, "sO:foreach_get/set", r_attr, r_seq)) {
     return -1;
   }
 
-  if (!PySequence_Check(*seq) && PyObject_CheckBuffer(*seq)) {
+  if (!PySequence_Check(*r_seq) && PyObject_CheckBuffer(*r_seq)) {
     PyErr_Format(
         PyExc_TypeError,
         "foreach_get/set expected second argument to be a sequence or buffer, not a %.200s",
-        Py_TYPE(*seq)->tp_name);
+        Py_TYPE(*r_seq)->tp_name);
     return -1;
   }
 
   /* TODO - buffer may not be a sequence! array.array() is though. */
-  *tot = PySequence_Size(*seq);
+  *r_tot = PySequence_Size(*r_seq);
 
-  if (*tot > 0) {
-    if (!foreach_attr_type(self, *attr, raw_type, attr_tot, attr_signed)) {
+  if (*r_tot > 0) {
+    if (!foreach_attr_type(self, *r_attr, r_raw_type, r_attr_tot, r_attr_signed)) {
       PyErr_Format(PyExc_AttributeError,
                    "foreach_get/set '%.200s.%200s[...]' elements have no attribute '%.200s'",
                    RNA_struct_identifier(self->ptr.type),
                    RNA_property_identifier(self->prop),
-                   *attr);
+                   *r_attr);
       return -1;
     }
-    *size = RNA_raw_type_sizeof(*raw_type);
+    *r_size = RNA_raw_type_sizeof(*r_raw_type);
 
 #if 0 /* Works fine, but not strictly needed. \
        * we could allow RNA_property_collection_raw_* to do the checks */
-    if ((*attr_tot) < 1) {
-      *attr_tot = 1;
+    if ((*r_attr_tot) < 1) {
+      *r_attr_tot = 1;
     }
 
     if (RNA_property_type(self->prop) == PROP_COLLECTION) {
@@ -5181,23 +5181,23 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
       array_tot = RNA_property_array_length(&self->ptr, self->prop);
     }
 
-    target_tot = array_tot * (*attr_tot);
+    target_tot = array_tot * (*r_attr_tot);
 
     /* rna_access.c - rna_raw_access(...) uses this same method. */
-    if (target_tot != (*tot)) {
+    if (target_tot != (*r_tot)) {
       PyErr_Format(PyExc_TypeError,
                    "foreach_get(attr, sequence) sequence length mismatch given %d, needed %d",
-                   *tot,
+                   *r_tot,
                    target_tot);
       return -1;
     }
 #endif
   }
 
-  /* Check 'attr_tot' otherwise we don't know if any values were set.
+  /* Check 'r_attr_tot' otherwise we don't know if any values were set.
    * This isn't ideal because it means running on an empty list may
    * fail silently when it's not compatible. */
-  if (*size == 0 && *attr_tot != 0) {
+  if (*r_size == 0 && *r_attr_tot != 0) {
     PyErr_SetString(PyExc_AttributeError, "attribute does not support foreach method");
     return -1;
   }

@@ -211,7 +211,7 @@ static bool uvedit_have_selection_multi(const Scene *scene,
 }
 
 void ED_uvedit_get_aspect(
-    const Scene *UNUSED(scene), Object *ob, BMesh *bm, float *aspx, float *aspy)
+    const Scene *UNUSED(scene), Object *ob, BMesh *bm, float *r_aspx, float *r_aspy)
 {
   bool sloppy = true;
   bool selected = false;
@@ -223,11 +223,11 @@ void ED_uvedit_get_aspect(
   if (efa) {
     ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL, NULL);
 
-    ED_image_get_uv_aspect(ima, NULL, aspx, aspy);
+    ED_image_get_uv_aspect(ima, NULL, r_aspx, r_aspy);
   }
   else {
-    *aspx = 1.0f;
-    *aspy = 1.0f;
+    *r_aspx = 1.0f;
+    *r_aspy = 1.0f;
   }
 }
 
@@ -422,21 +422,21 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
   return handle;
 }
 
-static void texface_from_original_index(BMFace *efa,
+static void texface_from_original_index(const Scene *scene,
+                                        const int cd_loop_uv_offset,
+                                        BMFace *efa,
                                         int index,
-                                        float **uv,
-                                        ParamBool *pin,
-                                        ParamBool *select,
-                                        const Scene *scene,
-                                        const int cd_loop_uv_offset)
+                                        float **r_uv,
+                                        ParamBool *r_pin,
+                                        ParamBool *r_select)
 {
   BMLoop *l;
   BMIter liter;
   MLoopUV *luv;
 
-  *uv = NULL;
-  *pin = 0;
-  *select = 1;
+  *r_uv = NULL;
+  *r_pin = 0;
+  *r_select = 1;
 
   if (index == ORIGINDEX_NONE) {
     return;
@@ -445,9 +445,9 @@ static void texface_from_original_index(BMFace *efa,
   BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
     if (BM_elem_index_get(l->v) == index) {
       luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      *uv = luv->uv;
-      *pin = (luv->flag & MLOOPUV_PINNED) ? 1 : 0;
-      *select = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
+      *r_uv = luv->uv;
+      *r_pin = (luv->flag & MLOOPUV_PINNED) ? 1 : 0;
+      *r_select = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
       break;
     }
   }
@@ -595,34 +595,34 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
     /* This is where all the magic is done.
      * If the vertex exists in the, we pass the original uv pointer to the solver, thus
      * flushing the solution to the edit mesh. */
-    texface_from_original_index(origFace,
+    texface_from_original_index(scene,
+                                cd_loop_uv_offset,
+                                origFace,
                                 origVertIndices[mloop[0].v],
                                 &uv[0],
                                 &pin[0],
-                                &select[0],
-                                scene,
-                                cd_loop_uv_offset);
-    texface_from_original_index(origFace,
+                                &select[0]);
+    texface_from_original_index(scene,
+                                cd_loop_uv_offset,
+                                origFace,
                                 origVertIndices[mloop[1].v],
                                 &uv[1],
                                 &pin[1],
-                                &select[1],
-                                scene,
-                                cd_loop_uv_offset);
-    texface_from_original_index(origFace,
+                                &select[1]);
+    texface_from_original_index(scene,
+                                cd_loop_uv_offset,
+                                origFace,
                                 origVertIndices[mloop[2].v],
                                 &uv[2],
                                 &pin[2],
-                                &select[2],
-                                scene,
-                                cd_loop_uv_offset);
-    texface_from_original_index(origFace,
+                                &select[2]);
+    texface_from_original_index(scene,
+                                cd_loop_uv_offset,
+                                origFace,
                                 origVertIndices[mloop[3].v],
                                 &uv[3],
                                 &pin[3],
-                                &select[3],
-                                scene,
-                                cd_loop_uv_offset);
+                                &select[3]);
 
     param_face_add(handle, key, 4, vkeys, co, uv, pin, select);
   }

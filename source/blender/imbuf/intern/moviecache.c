@@ -479,10 +479,10 @@ void IMB_moviecache_cleanup(MovieCache *cache,
 
 /* get segments of cached frames. useful for debugging cache policies */
 void IMB_moviecache_get_cache_segments(
-    MovieCache *cache, int proxy, int render_flags, int *totseg_r, int **points_r)
+    MovieCache *cache, int proxy, int render_flags, int *r_totseg, int **r_points)
 {
-  *totseg_r = 0;
-  *points_r = NULL;
+  *r_totseg = 0;
+  *r_points = NULL;
 
   if (!cache->getdatafp) {
     return;
@@ -497,8 +497,8 @@ void IMB_moviecache_get_cache_segments(
   }
 
   if (cache->points) {
-    *totseg_r = cache->totseg;
-    *points_r = cache->points;
+    *r_totseg = cache->totseg;
+    *r_points = cache->points;
   }
   else {
     int totframe = BLI_ghash_len(cache->hash);
@@ -555,8 +555,8 @@ void IMB_moviecache_get_cache_segments(
         }
       }
 
-      *totseg_r = totseg;
-      *points_r = points;
+      *r_totseg = totseg;
+      *r_points = points;
 
       cache->totseg = totseg;
       cache->points = points;

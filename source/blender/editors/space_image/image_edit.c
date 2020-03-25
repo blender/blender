@@ -212,7 +212,7 @@ bool ED_space_image_has_buffer(SpaceImage *sima)
   return has_buffer;
 }
 
-void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
+void ED_space_image_get_size(SpaceImage *sima, int *r_width, int *r_height)
 {
   Scene *scene = sima->iuser.scene;
   ImBuf *ibuf;
@@ -222,94 +222,94 @@ void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
   ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
 
   if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
-    *width = ibuf->x;
-    *height = ibuf->y;
+    *r_width = ibuf->x;
+    *r_height = ibuf->y;
   }
   else if (sima->image && sima->image->type == IMA_TYPE_R_RESULT && scene) {
     /* not very important, just nice */
-    *width = (scene->r.xsch * scene->r.size) / 100;
-    *height = (scene->r.ysch * scene->r.size) / 100;
+    *r_width = (scene->r.xsch * scene->r.size) / 100;
+    *r_height = (scene->r.ysch * scene->r.size) / 100;
 
     if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-      *width *= BLI_rctf_size_x(&scene->r.border);
-      *height *= BLI_rctf_size_y(&scene->r.border);
+      *r_width *= BLI_rctf_size_x(&scene->r.border);
+      *r_height *= BLI_rctf_size_y(&scene->r.border);
     }
   }
   /* I know a bit weak... but preview uses not actual image size */
-  // XXX else if (image_preview_active(sima, width, height));
+  // XXX else if (image_preview_active(sima, r_width, r_height));
   else {
-    *width = IMG_SIZE_FALLBACK;
-    *height = IMG_SIZE_FALLBACK;
+    *r_width = IMG_SIZE_FALLBACK;
+    *r_height = IMG_SIZE_FALLBACK;
   }
 
   ED_space_image_release_buffer(sima, ibuf, lock);
 }
 
-void ED_space_image_get_size_fl(SpaceImage *sima, float size[2])
+void ED_space_image_get_size_fl(SpaceImage *sima, float r_size[2])
 {
   int size_i[2];
   ED_space_image_get_size(sima, &size_i[0], &size_i[1]);
-  size[0] = size_i[0];
-  size[1] = size_i[1];
+  r_size[0] = size_i[0];
+  r_size[1] = size_i[1];
 }
 
-void ED_space_image_get_aspect(SpaceImage *sima, float *aspx, float *aspy)
+void ED_space_image_get_aspect(SpaceImage *sima, float *r_aspx, float *r_aspy)
 {
   Image *ima = sima->image;
   if ((ima == NULL) || (ima->aspx == 0.0f || ima->aspy == 0.0f)) {
-    *aspx = *aspy = 1.0;
+    *r_aspx = *r_aspy = 1.0;
   }
   else {
-    BKE_image_get_aspect(ima, aspx, aspy);
+    BKE_image_get_aspect(ima, r_aspx, r_aspy);
   }
 }
 
-void ED_space_image_get_zoom(SpaceImage *sima, ARegion *region, float *zoomx, float *zoomy)
+void ED_space_image_get_zoom(SpaceImage *sima, ARegion *region, float *r_zoomx, float *r_zoomy)
 {
   int width, height;
 
   ED_space_image_get_size(sima, &width, &height);
 
-  *zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
-           (float)(BLI_rctf_size_x(&region->v2d.cur) * width);
-  *zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) /
-           (float)(BLI_rctf_size_y(&region->v2d.cur) * height);
+  *r_zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
+             (float)(BLI_rctf_size_x(&region->v2d.cur) * width);
+  *r_zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) /
+             (float)(BLI_rctf_size_y(&region->v2d.cur) * height);
 }
 
-void ED_space_image_get_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
+void ED_space_image_get_uv_aspect(SpaceImage *sima, float *r_aspx, float *r_aspy)
 {
   int w, h;
 
-  ED_space_image_get_aspect(sima, aspx, aspy);
+  ED_space_image_get_aspect(sima, r_aspx, r_aspy);
   ED_space_image_get_size(sima, &w, &h);
 
-  *aspx *= (float)w;
-  *aspy *= (float)h;
+  *r_aspx *= (float)w;
+  *r_aspy *= (float)h;
 
-  if (*aspx < *aspy) {
-    *aspy = *aspy / *aspx;
-    *aspx = 1.0f;
+  if (*r_aspx < *r_aspy) {
+    *r_aspy = *r_aspy / *r_aspx;
+    *r_aspx = 1.0f;
   }
   else {
-    *aspx = *aspx / *aspy;
-    *aspy = 1.0f;
+    *r_aspx = *r_aspx / *r_aspy;
+    *r_aspy = 1.0f;
   }
 }
 
-void ED_image_get_uv_aspect(Image *ima, ImageUser *iuser, float *aspx, float *aspy)
+void ED_image_get_uv_aspect(Image *ima, ImageUser *iuser, float *r_aspx, float *r_aspy)
 {
   if (ima) {
     int w, h;
 
-    BKE_image_get_aspect(ima, aspx, aspy);
+    BKE_image_get_aspect(ima, r_aspx, r_aspy);
     BKE_image_get_size(ima, iuser, &w, &h);
 
-    *aspx *= (float)w;
-    *aspy *= (float)h;
+    *r_aspx *= (float)w;
+    *r_aspy *= (float)h;
   }
   else {
-    *aspx = 1.0f;
-    *aspy = 1.0f;
+    *r_aspx = 1.0f;
+    *r_aspy = 1.0f;
   }
 }
 
@@ -340,7 +340,8 @@ void ED_image_view_center_to_point(SpaceImage *sima, float x, float y)
   sima->yof = (y - 0.5f) * height * aspy;
 }
 
-void ED_image_point_pos(SpaceImage *sima, ARegion *region, float x, float y, float *xr, float *yr)
+void ED_image_point_pos(
+    SpaceImage *sima, ARegion *region, float x, float y, float *r_x, float *r_y)
 {
   int sx, sy, width, height;
   float zoomx, zoomy;
@@ -350,8 +351,8 @@ void ED_image_point_pos(SpaceImage *sima, ARegion *region, float x, float y, flo
 
   UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
-  *xr = ((x - sx) / zoomx) / width;
-  *yr = ((y - sy) / zoomy) / height;
+  *r_x = ((x - sx) / zoomx) / width;
+  *r_y = ((y - sy) / zoomy) / height;
 }
 
 void ED_image_point_pos__reverse(SpaceImage *sima,

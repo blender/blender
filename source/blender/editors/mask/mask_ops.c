@@ -69,10 +69,10 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
                                             Mask *mask_orig,
                                             const float normal_co[2],
                                             const float threshold,
-                                            MaskLayer **mask_layer_r,
-                                            MaskSpline **spline_r,
-                                            eMaskWhichHandle *which_handle_r,
-                                            float *score)
+                                            MaskLayer **r_mask_layer,
+                                            MaskSpline **r_spline,
+                                            eMaskWhichHandle *r_which_handle,
+                                            float *r_score)
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -185,35 +185,35 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   }
 
   if (len_sq < threshold_sq) {
-    if (mask_layer_r) {
-      *mask_layer_r = point_mask_layer;
+    if (r_mask_layer) {
+      *r_mask_layer = point_mask_layer;
     }
 
-    if (spline_r) {
-      *spline_r = point_spline;
+    if (r_spline) {
+      *r_spline = point_spline;
     }
 
-    if (which_handle_r) {
-      *which_handle_r = which_handle;
+    if (r_which_handle) {
+      *r_which_handle = which_handle;
     }
 
-    if (score) {
-      *score = sqrtf(len_sq);
+    if (r_score) {
+      *r_score = sqrtf(len_sq);
     }
 
     return point;
   }
 
-  if (mask_layer_r) {
-    *mask_layer_r = NULL;
+  if (r_mask_layer) {
+    *r_mask_layer = NULL;
   }
 
-  if (spline_r) {
-    *spline_r = NULL;
+  if (r_spline) {
+    *r_spline = NULL;
   }
 
-  if (which_handle_r) {
-    *which_handle_r = MASK_WHICH_HANDLE_NONE;
+  if (r_which_handle) {
+    *r_which_handle = MASK_WHICH_HANDLE_NONE;
   }
 
   return NULL;
@@ -223,11 +223,11 @@ bool ED_mask_feather_find_nearest(const bContext *C,
                                   Mask *mask_orig,
                                   const float normal_co[2],
                                   const float threshold,
-                                  MaskLayer **mask_layer_r,
-                                  MaskSpline **spline_r,
-                                  MaskSplinePoint **point_r,
-                                  MaskSplinePointUW **uw_r,
-                                  float *score)
+                                  MaskLayer **r_mask_layer,
+                                  MaskSpline **r_spline,
+                                  MaskSplinePoint **r_point,
+                                  MaskSplinePointUW **r_uw,
+                                  float *r_score)
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -306,39 +306,39 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   }
 
   if (len < threshold_sq) {
-    if (mask_layer_r) {
-      *mask_layer_r = point_mask_layer;
+    if (r_mask_layer) {
+      *r_mask_layer = point_mask_layer;
     }
 
-    if (spline_r) {
-      *spline_r = point_spline;
+    if (r_spline) {
+      *r_spline = point_spline;
     }
 
-    if (point_r) {
-      *point_r = point;
+    if (r_point) {
+      *r_point = point;
     }
 
-    if (uw_r) {
-      *uw_r = uw;
+    if (r_uw) {
+      *r_uw = uw;
     }
 
-    if (score) {
-      *score = sqrtf(len);
+    if (r_score) {
+      *r_score = sqrtf(len);
     }
 
     return true;
   }
 
-  if (mask_layer_r) {
-    *mask_layer_r = NULL;
+  if (r_mask_layer) {
+    *r_mask_layer = NULL;
   }
 
-  if (spline_r) {
-    *spline_r = NULL;
+  if (r_spline) {
+    *r_spline = NULL;
   }
 
-  if (point_r) {
-    *point_r = NULL;
+  if (r_point) {
+    *r_point = NULL;
   }
 
   return false;
@@ -549,8 +549,8 @@ static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], const float c
 static bool spline_under_mouse_get(const bContext *C,
                                    Mask *mask,
                                    const float co[2],
-                                   MaskLayer **mask_layer_r,
-                                   MaskSpline **mask_spline_r)
+                                   MaskLayer **r_mask_layer,
+                                   MaskSpline **r_mask_spline)
 {
   const float threshold = 19.0f;
   ScrArea *sa = CTX_wm_area(C);
@@ -561,8 +561,8 @@ static bool spline_under_mouse_get(const bContext *C,
   MaskLayer *closest_layer = NULL;
   MaskSpline *closest_spline = NULL;
   bool undistort = false;
-  *mask_layer_r = NULL;
-  *mask_spline_r = NULL;
+  *r_mask_layer = NULL;
+  *r_mask_spline = NULL;
   ED_mask_get_size(sa, &width, &height);
   pixel_co[0] = co[0] * width;
   pixel_co[1] = co[1] * height;
@@ -634,8 +634,8 @@ static bool spline_under_mouse_get(const bContext *C,
       }
     }
 
-    *mask_layer_r = closest_layer;
-    *mask_spline_r = closest_spline;
+    *r_mask_layer = closest_layer;
+    *r_mask_spline = closest_spline;
     return true;
   }
   return false;

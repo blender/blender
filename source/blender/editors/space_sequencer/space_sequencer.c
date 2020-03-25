@@ -363,7 +363,7 @@ static void sequencer_listener(wmWindow *UNUSED(win),
 static bool image_drop_poll(bContext *C,
                             wmDrag *drag,
                             const wmEvent *event,
-                            const char **UNUSED(tooltip))
+                            const char **UNUSED(r_tooltip))
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -383,7 +383,7 @@ static bool image_drop_poll(bContext *C,
 static bool movie_drop_poll(bContext *C,
                             wmDrag *drag,
                             const wmEvent *event,
-                            const char **UNUSED(tooltip))
+                            const char **UNUSED(r_tooltip))
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -402,7 +402,7 @@ static bool movie_drop_poll(bContext *C,
 static bool sound_drop_poll(bContext *C,
                             wmDrag *drag,
                             const wmEvent *event,
-                            const char **UNUSED(tooltip))
+                            const char **UNUSED(r_tooltip))
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);

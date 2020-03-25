@@ -38,8 +38,8 @@ PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *
 
 void PyC_Err_PrintWithFunc(PyObject *py_func);
 
-void PyC_FileAndNum(const char **filename, int *lineno);
-void PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
+void PyC_FileAndNum(const char **r_filename, int *r_lineno);
+void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno); /* checks python is running */
 int PyC_AsArray_FAST(void *array,
                      PyObject *value_fast,
                      const Py_ssize_t length,

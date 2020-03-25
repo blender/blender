@@ -515,7 +515,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
   return 1.0f;
 }
 
-static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prevfra)
+static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_prevfra)
 {
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
@@ -594,17 +594,17 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
   /* any success? */
   if (doneprev || donenext) {
     if (doneprev) {
-      *prevfra = cfraprev;
+      *r_prevfra = cfraprev;
     }
     else {
-      *prevfra = CFRA - (cfranext - CFRA);
+      *r_prevfra = CFRA - (cfranext - CFRA);
     }
 
     if (donenext) {
-      *nextfra = cfranext;
+      *r_nextfra = cfranext;
     }
     else {
-      *nextfra = CFRA + (CFRA - cfraprev);
+      *r_nextfra = CFRA + (CFRA - cfraprev);
     }
 
     return true;

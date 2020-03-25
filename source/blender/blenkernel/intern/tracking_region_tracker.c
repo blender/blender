@@ -75,8 +75,8 @@ static void uint8_rgba_to_float_gray(const unsigned char *rgba,
 static float *track_get_search_floatbuf(ImBuf *ibuf,
                                         MovieTrackingTrack *track,
                                         MovieTrackingMarker *marker,
-                                        int *width_r,
-                                        int *height_r)
+                                        int *r_width,
+                                        int *r_height)
 {
   ImBuf *searchibuf;
   float *gray_pixels;
@@ -85,8 +85,8 @@ static float *track_get_search_floatbuf(ImBuf *ibuf,
   searchibuf = BKE_tracking_get_search_imbuf(ibuf, track, marker, false, true);
 
   if (!searchibuf) {
-    *width_r = 0;
-    *height_r = 0;
+    *r_width = 0;
+    *r_height = 0;
     return NULL;
   }
 
@@ -106,8 +106,8 @@ static float *track_get_search_floatbuf(ImBuf *ibuf,
 
   IMB_freeImBuf(searchibuf);
 
-  *width_r = width;
-  *height_r = height;
+  *r_width = width;
+  *r_height = height;
 
   return gray_pixels;
 }
@@ -138,7 +138,7 @@ static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip,
                                                   MovieTrackingTrack *track,
                                                   int curfra,
                                                   bool backwards,
-                                                  MovieTrackingMarker **marker_keyed_r)
+                                                  MovieTrackingMarker **r_marker_keyed)
 {
   MovieTrackingMarker *marker_keyed;
   int keyed_framenr;
@@ -150,7 +150,7 @@ static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip,
 
   keyed_framenr = marker_keyed->framenr;
 
-  *marker_keyed_r = marker_keyed;
+  *r_marker_keyed = marker_keyed;
 
   return tracking_context_get_frame_ibuf(clip, user, clip_flag, keyed_framenr);
 }

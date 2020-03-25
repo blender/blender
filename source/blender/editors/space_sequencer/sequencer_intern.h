@@ -83,10 +83,10 @@ void recurs_sel_seq(struct Sequence *seqm);
 int seq_effect_find_selected(struct Scene *scene,
                              struct Sequence *activeseq,
                              int type,
-                             struct Sequence **selseq1,
-                             struct Sequence **selseq2,
-                             struct Sequence **selseq3,
-                             const char **error_str);
+                             struct Sequence **r_selseq1,
+                             struct Sequence **r_selseq2,
+                             struct Sequence **r_selseq3,
+                             const char **r_error_str);
 
 /* operator helpers */
 bool sequencer_edit_poll(struct bContext *C);

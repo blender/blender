@@ -199,8 +199,8 @@ void IMB_colormanagement_buffer_make_display_space(
 
 void IMB_colormanagement_display_settings_from_ctx(
     const struct bContext *C,
-    struct ColorManagedViewSettings **view_settings_r,
-    struct ColorManagedDisplaySettings **display_settings_r);
+    struct ColorManagedViewSettings **r_view_settings,
+    struct ColorManagedDisplaySettings **r_display_settings);
 
 const char *IMB_colormanagement_get_display_colorspace_name(
     const struct ColorManagedViewSettings *view_settings,

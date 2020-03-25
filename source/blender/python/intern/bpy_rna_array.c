@@ -262,7 +262,7 @@ static int validate_array_length(PyObject *rvalue,
                                  PointerRNA *ptr,
                                  PropertyRNA *prop,
                                  int lvalue_dim,
-                                 int *totitem,
+                                 int *r_totitem,
                                  const char *error_prefix)
 {
   int dimsize[MAX_ARRAY_DIMENSION];
@@ -296,7 +296,7 @@ static int validate_array_length(PyObject *rvalue,
         return -1;
       }
 #else
-      *totitem = tot;
+      *r_totitem = tot;
       return 0;
 
 #endif
@@ -346,7 +346,7 @@ static int validate_array_length(PyObject *rvalue,
     }
   }
 
-  *totitem = len;
+  *r_totitem = len;
 
   return 0;
 }
@@ -357,7 +357,7 @@ static int validate_array(PyObject *rvalue,
                           int lvalue_dim,
                           ItemTypeCheckFunc check_item_type,
                           const char *item_type_str,
-                          int *totitem,
+                          int *r_totitem,
                           const char *error_prefix)
 {
   int dimsize[MAX_ARRAY_DIMENSION];
@@ -405,7 +405,7 @@ static int validate_array(PyObject *rvalue,
         return -1;
       }
       else {
-        *totitem = dimsize[0] * dimsize[1];
+        *r_totitem = dimsize[0] * dimsize[1];
         return 0;
       }
     }
@@ -425,7 +425,7 @@ static int validate_array(PyObject *rvalue,
       return -1;
     }
 
-    return validate_array_length(rvalue, ptr, prop, lvalue_dim, totitem, error_prefix);
+    return validate_array_length(rvalue, ptr, prop, lvalue_dim, r_totitem, error_prefix);
   }
 }
 

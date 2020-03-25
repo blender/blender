@@ -55,11 +55,11 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
                                      float tangent[2],
                                      const bool use_deform,
                                      const bool use_project,
-                                     MaskLayer **mask_layer_r,
-                                     MaskSpline **spline_r,
-                                     MaskSplinePoint **point_r,
-                                     float *u_r,
-                                     float *score_r)
+                                     MaskLayer **r_mask_layer,
+                                     MaskSpline **r_spline,
+                                     MaskSplinePoint **r_point,
+                                     float *r_u,
+                                     float *r_score)
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -156,44 +156,44 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   }
 
   if (point && dist_best_sq < threshold) {
-    if (mask_layer_r) {
-      *mask_layer_r = point_mask_layer;
+    if (r_mask_layer) {
+      *r_mask_layer = point_mask_layer;
     }
 
-    if (spline_r) {
-      *spline_r = point_spline;
+    if (r_spline) {
+      *r_spline = point_spline;
     }
 
-    if (point_r) {
-      *point_r = point;
+    if (r_point) {
+      *r_point = point;
     }
 
-    if (u_r) {
+    if (r_u) {
       /* TODO(sergey): Projection fails in some weirdo cases.. */
       if (use_project) {
         u = BKE_mask_spline_project_co(point_spline, point, u, normal_co, MASK_PROJ_ANY);
       }
 
-      *u_r = u;
+      *r_u = u;
     }
 
-    if (score_r) {
-      *score_r = dist_best_sq;
+    if (r_score) {
+      *r_score = dist_best_sq;
     }
 
     return true;
   }
 
-  if (mask_layer_r) {
-    *mask_layer_r = NULL;
+  if (r_mask_layer) {
+    *r_mask_layer = NULL;
   }
 
-  if (spline_r) {
-    *spline_r = NULL;
+  if (r_spline) {
+    *r_spline = NULL;
   }
 
-  if (point_r) {
-    *point_r = NULL;
+  if (r_point) {
+    *r_point = NULL;
   }
 
   return false;

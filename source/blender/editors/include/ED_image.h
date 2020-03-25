@@ -65,14 +65,14 @@ int ED_space_image_get_display_channel_mask(struct ImBuf *ibuf);
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock);
 bool ED_space_image_has_buffer(struct SpaceImage *sima);
 
-void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height);
-void ED_space_image_get_size_fl(struct SpaceImage *sima, float size[2]);
-void ED_space_image_get_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
+void ED_space_image_get_size(struct SpaceImage *sima, int *r_width, int *r_height);
+void ED_space_image_get_size_fl(struct SpaceImage *sima, float r_size[2]);
+void ED_space_image_get_aspect(struct SpaceImage *sima, float *r_aspx, float *r_aspy);
 void ED_space_image_get_zoom(struct SpaceImage *sima,
                              struct ARegion *region,
-                             float *zoomx,
-                             float *zoomy);
-void ED_space_image_get_uv_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
+                             float *r_zoomx,
+                             float *r_zoomy);
+void ED_space_image_get_uv_aspect(struct SpaceImage *sima, float *r_aspx, float *r_aspy);
 
 void ED_space_image_scopes_update(const struct bContext *C,
                                   struct SpaceImage *sima,
@@ -83,14 +83,17 @@ void ED_space_image_paint_update(struct Main *bmain,
                                  struct wmWindowManager *wm,
                                  struct Scene *scene);
 
-void ED_image_get_uv_aspect(struct Image *ima, struct ImageUser *iuser, float *aspx, float *aspy);
+void ED_image_get_uv_aspect(struct Image *ima,
+                            struct ImageUser *iuser,
+                            float *r_aspx,
+                            float *r_aspy);
 void ED_image_mouse_pos(struct SpaceImage *sima,
                         struct ARegion *region,
                         const int mval[2],
                         float co[2]);
 void ED_image_view_center_to_point(struct SpaceImage *sima, float x, float y);
 void ED_image_point_pos(
-    struct SpaceImage *sima, struct ARegion *region, float x, float y, float *xr, float *yr);
+    struct SpaceImage *sima, struct ARegion *region, float x, float y, float *r_x, float *r_y);
 void ED_image_point_pos__reverse(struct SpaceImage *sima,
                                  struct ARegion *region,
                                  const float co[2],

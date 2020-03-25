@@ -1557,7 +1557,7 @@ void VIEW3D_OT_localview_remove_from(wmOperatorType *ot)
 
 static uint free_localcollection_bit(Main *bmain,
                                      unsigned short local_collections_uuid,
-                                     bool *reset)
+                                     bool *r_reset)
 {
   ScrArea *sa;
   bScreen *sc;
@@ -1587,7 +1587,7 @@ static uint free_localcollection_bit(Main *bmain,
   /* Otherwise get the first free available. */
   for (int i = 0; i < 16; i++) {
     if ((local_view_bits & (1 << i)) == 0) {
-      *reset = true;
+      *r_reset = true;
       return (1 << i);
     }
   }

@@ -86,7 +86,7 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip, int framenr)
   return tot;
 }
 
-static void track_init_markers(SpaceClip *sc, MovieClip *clip, int framenr, int *frames_limit_r)
+static void track_init_markers(SpaceClip *sc, MovieClip *clip, int framenr, int *r_frames_limit)
 {
   ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
   int frames_limit = 0;
@@ -109,7 +109,7 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip, int framenr, int 
       }
     }
   }
-  *frames_limit_r = frames_limit;
+  *r_frames_limit = frames_limit;
 }
 
 static bool track_markers_check_direction(int backwards, int curfra, int efra)

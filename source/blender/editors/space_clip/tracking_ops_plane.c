@@ -122,7 +122,7 @@ static float mouse_to_plane_slide_zone_distance_squared(const float co[2],
 
 static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
                                                                   const wmEvent *event,
-                                                                  int *corner_r)
+                                                                  int *r_corner)
 {
   const float distance_clip_squared = 12.0f * 12.0f;
   SpaceClip *sc = CTX_wm_space_clip(C);
@@ -162,8 +162,8 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
   }
 
   if (min_distance_squared < distance_clip_squared / sc->zoom) {
-    if (corner_r != NULL) {
-      *corner_r = min_corner;
+    if (r_corner != NULL) {
+      *r_corner = min_corner;
     }
     return min_plane_track;
   }

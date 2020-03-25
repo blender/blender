@@ -471,7 +471,7 @@ static bool view3d_drop_id_in_main_region_poll(bContext *C,
 static bool view3d_ob_drop_poll(bContext *C,
                                 wmDrag *drag,
                                 const wmEvent *event,
-                                const char **UNUSED(tooltip))
+                                const char **UNUSED(r_tooltip))
 {
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_OB);
 }
@@ -479,7 +479,7 @@ static bool view3d_ob_drop_poll(bContext *C,
 static bool view3d_collection_drop_poll(bContext *C,
                                         wmDrag *drag,
                                         const wmEvent *event,
-                                        const char **UNUSED(tooltip))
+                                        const char **UNUSED(r_tooltip))
 {
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_GR);
 }
@@ -487,7 +487,7 @@ static bool view3d_collection_drop_poll(bContext *C,
 static bool view3d_mat_drop_poll(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event,
-                                 const char **UNUSED(tooltip))
+                                 const char **UNUSED(r_tooltip))
 {
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_MA);
 }
@@ -495,7 +495,7 @@ static bool view3d_mat_drop_poll(bContext *C,
 static bool view3d_ima_drop_poll(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event,
-                                 const char **UNUSED(tooltip))
+                                 const char **UNUSED(r_tooltip))
 {
   if (ED_region_overlap_isect_any_xy(CTX_wm_area(C), &event->x)) {
     return false;
@@ -524,9 +524,9 @@ static bool view3d_ima_bg_is_camera_view(bContext *C)
 static bool view3d_ima_bg_drop_poll(bContext *C,
                                     wmDrag *drag,
                                     const wmEvent *event,
-                                    const char **tooltip)
+                                    const char **r_tooltip)
 {
-  if (!view3d_ima_drop_poll(C, drag, event, tooltip)) {
+  if (!view3d_ima_drop_poll(C, drag, event, r_tooltip)) {
     return false;
   }
 
@@ -540,9 +540,9 @@ static bool view3d_ima_bg_drop_poll(bContext *C,
 static bool view3d_ima_empty_drop_poll(bContext *C,
                                        wmDrag *drag,
                                        const wmEvent *event,
-                                       const char **tooltip)
+                                       const char **r_tooltip)
 {
-  if (!view3d_ima_drop_poll(C, drag, event, tooltip)) {
+  if (!view3d_ima_drop_poll(C, drag, event, r_tooltip)) {
     return false;
   }
 
@@ -562,7 +562,7 @@ static bool view3d_ima_empty_drop_poll(bContext *C,
 static bool view3d_volume_drop_poll(bContext *UNUSED(C),
                                     wmDrag *drag,
                                     const wmEvent *UNUSED(event),
-                                    const char **UNUSED(tooltip))
+                                    const char **UNUSED(r_tooltip))
 {
   return (drag->type == WM_DRAG_PATH) && (drag->icon == ICON_FILE_VOLUME);
 }

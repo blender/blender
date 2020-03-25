@@ -178,7 +178,7 @@ void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 
 /* tracking_ops.c */
 struct MovieTrackingTrack *tracking_marker_check_slide(
-    struct bContext *C, const struct wmEvent *event, int *area_r, int *action_r, int *corner_r);
+    struct bContext *C, const struct wmEvent *event, int *r_area, int *r_action, int *r_corner);
 
 void CLIP_OT_add_marker(struct wmOperatorType *ot);
 void CLIP_OT_add_marker_at_click(struct wmOperatorType *ot);

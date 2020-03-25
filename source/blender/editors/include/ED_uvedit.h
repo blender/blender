@@ -188,7 +188,7 @@ bool ED_uvedit_nearest_uv_multi(const struct Scene *scene,
                                 float r_uv[2]);
 
 void ED_uvedit_get_aspect(
-    const struct Scene *scene, struct Object *ob, struct BMesh *em, float *aspx, float *aspy);
+    const struct Scene *scene, struct Object *ob, struct BMesh *em, float *r_aspx, float *r_aspy);
 
 /* uvedit_unwrap_ops.c */
 void ED_uvedit_live_unwrap_begin(struct Scene *scene, struct Object *obedit);

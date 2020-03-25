@@ -881,7 +881,7 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *region, View3D *v3d, bo
 /* ******************** other elements ***************** */
 
 /** could move this elsewhere, but tied into #ED_view3d_grid_scale */
-float ED_scene_grid_scale(const Scene *scene, const char **grid_unit)
+float ED_scene_grid_scale(const Scene *scene, const char **r_grid_unit)
 {
   /* apply units */
   if (scene->unit.system) {
@@ -892,8 +892,8 @@ float ED_scene_grid_scale(const Scene *scene, const char **grid_unit)
 
     if (usys) {
       int i = bUnit_GetBaseUnit(usys);
-      if (grid_unit) {
-        *grid_unit = bUnit_GetNameDisplay(usys, i);
+      if (r_grid_unit) {
+        *r_grid_unit = bUnit_GetNameDisplay(usys, i);
       }
       return (float)bUnit_GetScaler(usys, i) / scene->unit.scale_length;
     }
@@ -902,9 +902,9 @@ float ED_scene_grid_scale(const Scene *scene, const char **grid_unit)
   return 1.0f;
 }
 
-float ED_view3d_grid_scale(const Scene *scene, View3D *v3d, const char **grid_unit)
+float ED_view3d_grid_scale(const Scene *scene, View3D *v3d, const char **r_grid_unit)
 {
-  return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
+  return v3d->grid * ED_scene_grid_scale(scene, r_grid_unit);
 }
 
 #define STEPS_LEN 8
@@ -958,7 +958,7 @@ void ED_view3d_grid_steps(const Scene *scene,
 float ED_view3d_grid_view_scale(Scene *scene,
                                 View3D *v3d,
                                 RegionView3D *rv3d,
-                                const char **grid_unit)
+                                const char **r_grid_unit)
 {
   float grid_scale;
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
@@ -977,18 +977,18 @@ float ED_view3d_grid_view_scale(Scene *scene,
       }
     }
 
-    if (grid_unit) {
+    if (r_grid_unit) {
       const void *usys;
       int len;
       bUnit_GetSystem(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
 
       if (usys) {
-        *grid_unit = bUnit_GetNameDisplay(usys, len - i - 1);
+        *r_grid_unit = bUnit_GetNameDisplay(usys, len - i - 1);
       }
     }
   }
   else {
-    grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
+    grid_scale = ED_view3d_grid_scale(scene, v3d, r_grid_unit);
   }
 
   return grid_scale;

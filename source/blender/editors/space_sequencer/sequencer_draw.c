@@ -1368,68 +1368,68 @@ static void seq_prefetch_wm_notify(const bContext *C, Scene *scene)
 }
 
 static void *sequencer_OCIO_transform_ibuf(
-    const bContext *C, ImBuf *ibuf, bool *glsl_used, int *format, int *type)
+    const bContext *C, ImBuf *ibuf, bool *r_glsl_used, int *r_format, int *r_type)
 {
   void *display_buffer;
   void *cache_handle = NULL;
   bool force_fallback = false;
-  *glsl_used = false;
+  *r_glsl_used = false;
   force_fallback |= (ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL);
   force_fallback |= (ibuf->dither != 0.0f);
 
   if (force_fallback) {
     /* Fallback to CPU based color space conversion */
-    *glsl_used = false;
-    *format = GL_RGBA;
-    *type = GL_UNSIGNED_BYTE;
+    *r_glsl_used = false;
+    *r_format = GL_RGBA;
+    *r_type = GL_UNSIGNED_BYTE;
     display_buffer = NULL;
   }
   else if (ibuf->rect_float) {
     display_buffer = ibuf->rect_float;
 
     if (ibuf->channels == 4) {
-      *format = GL_RGBA;
+      *r_format = GL_RGBA;
     }
     else if (ibuf->channels == 3) {
-      *format = GL_RGB;
+      *r_format = GL_RGB;
     }
     else {
       BLI_assert(!"Incompatible number of channels for float buffer in sequencer");
-      *format = GL_RGBA;
+      *r_format = GL_RGBA;
       display_buffer = NULL;
     }
 
-    *type = GL_FLOAT;
+    *r_type = GL_FLOAT;
 
     if (ibuf->float_colorspace) {
-      *glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(
+      *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(
           C, ibuf->float_colorspace, ibuf->dither, true);
     }
     else {
-      *glsl_used = IMB_colormanagement_setup_glsl_draw_ctx(C, ibuf->dither, true);
+      *r_glsl_used = IMB_colormanagement_setup_glsl_draw_ctx(C, ibuf->dither, true);
     }
   }
   else if (ibuf->rect) {
     display_buffer = ibuf->rect;
-    *format = GL_RGBA;
-    *type = GL_UNSIGNED_BYTE;
+    *r_format = GL_RGBA;
+    *r_type = GL_UNSIGNED_BYTE;
 
-    *glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(
+    *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(
         C, ibuf->rect_colorspace, ibuf->dither, false);
   }
   else {
-    *format = GL_RGBA;
-    *type = GL_UNSIGNED_BYTE;
+    *r_format = GL_RGBA;
+    *r_type = GL_UNSIGNED_BYTE;
     display_buffer = NULL;
   }
 
   /* there's a data to be displayed, but GLSL is not initialized
    * properly, in this case we fallback to CPU-based display transform
    */
-  if ((ibuf->rect || ibuf->rect_float) && !*glsl_used) {
+  if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-    *format = GL_RGBA;
-    *type = GL_UNSIGNED_BYTE;
+    *r_format = GL_RGBA;
+    *r_type = GL_UNSIGNED_BYTE;
   }
   if (cache_handle) {
     IMB_display_buffer_release(cache_handle);
