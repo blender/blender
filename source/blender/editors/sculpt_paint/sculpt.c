@@ -9198,9 +9198,10 @@ static EnumPropertyItem prop_mesh_filter_deform_axis_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static bool sculpt_mesh_filter_needs_pmap(int filter_type)
+static bool sculpt_mesh_filter_needs_pmap(int filter_type, bool use_face_sets)
 {
-  return ELEM(filter_type, MESH_FILTER_SMOOTH, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS);
+  return use_face_sets ||
+         ELEM(filter_type, MESH_FILTER_SMOOTH, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS);
 }
 
 static void mesh_filter_task_cb(void *__restrict userdata,
@@ -9360,6 +9361,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   int filter_type = RNA_enum_get(op->ptr, "type");
   float filter_strength = RNA_float_get(op->ptr, "strength");
+  const bool use_face_sets = RNA_boolean_get(op->ptr, "use_face_sets");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     sculpt_filter_cache_free(ss);
@@ -9377,7 +9379,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
 
   SCULPT_vertex_random_access_init(ss);
 
-  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type);
+  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type, use_face_sets);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false);
 
   SculptThreadedTaskData data = {
@@ -9432,9 +9434,11 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
   }
 
+  const bool use_face_sets = RNA_boolean_get(op->ptr, "use_face_sets");
+
   SCULPT_vertex_random_access_init(ss);
 
-  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type);
+  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type, use_face_sets);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false);
 
   if (BKE_pbvh_type(pbvh) == PBVH_FACES && needs_pmap && !ob->sculpt->pmap) {
@@ -9445,7 +9449,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   sculpt_filter_cache_init(ob, sd);
 
-  if (RNA_boolean_get(op->ptr, "use_face_sets")) {
+  if (use_face_sets) {
     ss->filter_cache->active_face_set = SCULPT_vertex_face_set_get(ss,
                                                                    SCULPT_active_vertex_get(ss));
   }
