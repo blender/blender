@@ -61,7 +61,9 @@ bool transdata_check_local_center(TransInfo *t, short around)
            (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE))));
 }
 
-/* ************************** TRANSFORM LOCKS **************************** */
+/* -------------------------------------------------------------------- */
+/** \name Transform Locks
+ * \{ */
 
 void protectedTransBits(short protectflag, float vec[3])
 {
@@ -211,7 +213,11 @@ static void protectedSizeBits(short protectflag, float size[3])
   }
 }
 
-/* ******************* TRANSFORM LIMITS ********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Limits
+ * \{ */
 
 void constraintTransLim(TransInfo *t, TransData *td)
 {
@@ -1104,9 +1110,7 @@ void doAnimEdit_SnapFrame(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Transform Mode API */
-
-/** \name Transform Frame Utils
+/** \name Transform Mode Initialization
  * \{ */
 
 void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)

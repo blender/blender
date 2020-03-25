@@ -4796,9 +4796,9 @@ static void SCREEN_OT_box_select(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 /** \name Full Screen Back Operator
+ *
+ * Use for generic full-screen 'back' button.
  * \{ */
-
-/* *********************** generic fullscreen 'back' button *************** */
 
 static int fullscreen_back_exec(bContext *C, wmOperator *op)
 {

@@ -77,6 +77,10 @@
 #include "uvedit_intern.h"
 #include "uvedit_parametrizer.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Utility Functions
+ * \{ */
+
 static void modifier_unwrap_state(Object *obedit, const Scene *scene, bool *r_use_subsurf)
 {
   ModifierData *md;
@@ -133,13 +137,21 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
   return 1;
 }
 
-/****************** Parametrizer Conversion ***************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Parametrizer Conversion
+ * \{ */
 
 typedef struct UnwrapOptions {
-  bool topology_from_uvs; /* Connectivity based on UV coordinates instead of seams. */
-  bool only_selected;     /* Only affect selected faces. */
-  bool fill_holes;        /* Fill holes to better preserve shape. */
-  bool correct_aspect;    /* Correct for mapped image texture aspect ratio. */
+  /** Connectivity based on UV coordinates instead of seams. */
+  bool topology_from_uvs;
+  /** Only affect selected faces. */
+  bool only_selected;
+  /** Fill holes to better preserve shape. */
+  bool fill_holes;
+  /** Correct for mapped image texture aspect ratio. */
+  bool correct_aspect;
 } UnwrapOptions;
 
 static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const UnwrapOptions *options)
@@ -635,7 +647,11 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   return handle;
 }
 
-/* ******************** Minimize Stretch operator **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Minimize Stretch Operator
+ * \{ */
 
 typedef struct MinStretch {
   const Scene *scene;
@@ -908,7 +924,11 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
               100);
 }
 
-/* ******************** Pack Islands operator **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pack UV Islands Operator
+ * \{ */
 
 static void uvedit_pack_islands(const Scene *scene, Object *ob, BMesh *bm)
 {
@@ -1006,7 +1026,11 @@ void UV_OT_pack_islands(wmOperatorType *ot)
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
-/* ******************** Average Islands Scale operator **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Average UV Islands Scale Operator
+ * \{ */
 
 static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1065,7 +1089,11 @@ void UV_OT_average_islands_scale(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit;
 }
 
-/**************** Live Unwrap *****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Live UV Unwrap
+ * \{ */
 
 static struct {
   ParamHandle **handles;
@@ -1144,7 +1172,11 @@ void ED_uvedit_live_unwrap_end(short cancel)
   }
 }
 
-/*************** UV Map Common Transforms *****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UV Map Common Transforms
+ * \{ */
 
 #define VIEW_ON_EQUATOR 0
 #define VIEW_ON_POLES 1
@@ -1427,7 +1459,18 @@ static void correct_uv_aspect(const Scene *scene, Object *ob, BMEditMesh *em)
   }
 }
 
-/******************** Map Clip & Correct ******************/
+#undef VIEW_ON_EQUATOR
+#undef VIEW_ON_POLES
+#undef ALIGN_TO_OBJECT
+
+#undef POLAR_ZX
+#undef POLAR_ZY
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UV Map Clip & Correct
+ * \{ */
 
 static void uv_map_clip_correct_properties(wmOperatorType *ot)
 {
@@ -1542,7 +1585,11 @@ static void uv_map_clip_correct(const Scene *scene, Object *ob, wmOperator *op)
   uv_map_clip_correct_multi(scene, &ob, 1, op);
 }
 
-/* ******************** Unwrap operator **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UV Unwrap Operator
+ * \{ */
 
 /* Assumes UV Map exists, doesn't run update funcs. */
 static void uvedit_unwrap(const Scene *scene, Object *obedit, const UnwrapOptions *options)
@@ -1783,7 +1830,12 @@ void UV_OT_unwrap(wmOperatorType *ot)
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
-/**************** Project From View operator **************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Project UV From View Operator
+ * \{ */
+
 static int uv_from_view_exec(bContext *C, wmOperator *op);
 
 static int uv_from_view_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -1969,7 +2021,11 @@ void UV_OT_project_from_view(wmOperatorType *ot)
   uv_map_clip_correct_properties(ot);
 }
 
-/********************** Reset operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reset UV Operator
+ * \{ */
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2017,7 +2073,11 @@ void UV_OT_reset(wmOperatorType *ot)
   ot->poll = ED_operator_uvmap;
 }
 
-/****************** Sphere Project operator ***************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sphere UV Project Operator
+ * \{ */
 
 static void uv_sphere_project(float target[2],
                               const float source[3],
@@ -2144,7 +2204,11 @@ void UV_OT_sphere_project(wmOperatorType *ot)
   uv_map_clip_correct_properties(ot);
 }
 
-/***************** Cylinder Project operator **************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cylinder UV Project Operator
+ * \{ */
 
 static void uv_cylinder_project(float target[2],
                                 const float source[3],
@@ -2238,7 +2302,9 @@ void UV_OT_cylinder_project(wmOperatorType *ot)
   uv_map_clip_correct_properties(ot);
 }
 
-/******************* Cube Project operator ****************/
+/* -------------------------------------------------------------------- */
+/** \name Cube UV Project Operator
+ * \{ */
 
 static void uvedit_unwrap_cube_project(BMesh *bm,
                                        float cube_size,
@@ -2367,7 +2433,11 @@ void UV_OT_cube_project(wmOperatorType *ot)
   uv_map_clip_correct_properties(ot);
 }
 
-/************************* Simple UVs for texture painting *****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Simple UVs for Texture Painting
+ * \{ */
 
 void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 {
@@ -2403,3 +2473,5 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
     scene->toolsettings->uv_flag |= UV_SYNC_SELECTION;
   }
 }
+
+/** \} */

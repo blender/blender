@@ -96,7 +96,9 @@ void transform_around_single_fallback(TransInfo *t)
   }
 }
 
-/* ************************** Functions *************************** */
+/* -------------------------------------------------------------------- */
+/** \name Proportional Editing
+ * \{ */
 
 static int trans_data_compare_dist(const void *a, const void *b)
 {
@@ -333,7 +335,11 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
   MEM_freeN(td_table);
 }
 
-/* ********************* pose mode ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Mode
+ * \{ */
 
 static short apply_targetless_ik(Object *ob)
 {
@@ -506,7 +512,11 @@ int count_set_pose_transflags(Object *ob,
   return total;
 }
 
-/* -------- Auto-IK ---------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Mode (Auto-IK)
+ * \{ */
 
 /* adjust pose-channel's auto-ik chainlen */
 static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
@@ -631,7 +641,11 @@ static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
   }
 }
 
-/* ********************* curve/surface ********* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Curve Surface
+ * \{ */
 
 void calc_distanceCurveVerts(TransData *head, TransData *tail)
 {
@@ -701,7 +715,11 @@ TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTr
   return hdata;
 }
 
-/* ********************* UV ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UV Coordinates
+ * \{ */
 
 bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
 {
@@ -787,7 +805,11 @@ void clipUVData(TransInfo *t)
   }
 }
 
-/* ********************* ANIMATION EDITORS (GENERAL) ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Editors (General)
+ * \{ */
 
 /**
  * For modal operation: `t->center_global` may not have been set yet.
@@ -828,7 +850,11 @@ bool FrameOnMouseSide(char side, float frame, float cframe)
   }
 }
 
-/* ********************* ACTION EDITOR ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Editor
+ * \{ */
 
 static int masklay_shape_cmp_frame(void *thunk, const void *a, const void *b)
 {
@@ -1088,7 +1114,11 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* ********************* GRAPH EDITOR ************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Graph Editor
+ * \{ */
 
 /* struct for use in re-sorting BezTriples during Graph Editor transform */
 typedef struct BeztMap {
@@ -1259,6 +1289,12 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, BeztMap *bezms, int totve
   MEM_freeN(adjusted);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Utilities
+ * \{ */
+
 /* This function is called by recalcData during the Transform loop to recalculate
  * the handles of curves and sort the keyframes so that the curves draw correctly.
  * It is only called if some keyframes have moved out of order.
@@ -1296,8 +1332,6 @@ void remake_graph_transdata(TransInfo *t, ListBase *anim_data)
     }
   }
 }
-
-/* *********************** Transform data ******************* */
 
 /* Little helper function for ObjectToTransData used to give certain
  * constraints (ChildOf, FollowPath, and others that may be added)
@@ -1383,6 +1417,12 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
   /* no appropriate candidates found */
   return false;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Auto-Keyframing)
+ * \{ */
 
 /**
  * Auto-keyframing feature - for objects
@@ -1681,6 +1721,12 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (After-Transform Update)
+ * \{ */
 
 /* Return if we need to update motion paths, only if they already exist,
  * and we will insert a keyframe at the end of transform. */
@@ -2383,6 +2429,10 @@ int special_transform_moving(TransInfo *t)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Transform Data Create
+ * \{ */
+
 static int countAndCleanTransDataContainer(TransInfo *t)
 {
   BLI_assert(ELEM(t->data_len_all, 0, -1));
@@ -2777,3 +2827,5 @@ void createTransData(bContext *C, TransInfo *t)
 
   BLI_assert((!(t->flag & T_EDIT)) == (!(t->obedit_type != -1)));
 }
+
+/** \} */

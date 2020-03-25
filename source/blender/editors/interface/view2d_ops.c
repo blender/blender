@@ -62,7 +62,7 @@ static bool view2d_poll(bContext *C)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Pan Operator
+/** \name View Pan Shared Utilities
  * \{ */
 
 /**
@@ -74,9 +74,9 @@ static bool view2d_poll(bContext *C)
  * - `deltax, deltay` - define how much to move view by (relative to zoom-correction factor)
  */
 
-/* ------------------ Shared 'core' stuff ---------------------- */
-
-/* temp customdata for operator */
+/**
+ * Temporary custom-data for operator.
+ */
 typedef struct v2dViewPanData {
   /** screen where view pan was initiated */
   bScreen *sc;
@@ -209,7 +209,11 @@ static void view_pan_exit(wmOperator *op)
   }
 }
 
-/* ------------------ Modal Drag Version (1) ---------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Pan Operator (modal drag-pan)
+ * \{ */
 
 /* for 'redo' only, with no user input */
 static int view_pan_exec(bContext *C, wmOperator *op)
@@ -350,7 +354,11 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
   RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
 }
 
-/* ------------------ Scrollwheel Versions (2) ---------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Pan Operator (single step)
+ * \{ */
 
 /* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrollright_exec(bContext *C, wmOperator *op)
@@ -541,7 +549,7 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Zoom Operator (single-step)
+/** \name View Zoom Shared Utilities
  * \{ */
 
 /**
@@ -558,9 +566,9 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
  *   amount to enlarge 'cur' by.
  */
 
-/* ------------------ 'Shared' stuff ------------------------ */
-
-/* temp customdata for operator */
+/**
+ * Temporary custom-data for operator.
+ */
 typedef struct v2dViewZoomData {
   View2D *v2d; /* view2d we're operating in */
   ARegion *region;
@@ -768,7 +776,11 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
       C, vzd, zoom_to_pos, RNA_float_get(op->ptr, "zoomfacx"), RNA_float_get(op->ptr, "zoomfacy"));
 }
 
-/* --------------- Individual Operators ------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Zoom Operator (single step)
+ * \{ */
 
 /* cleanup temp customdata  */
 static void view_zoomstep_exit(wmOperator *op)
@@ -1400,6 +1412,12 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
   WM_operator_properties_gesture_box_zoom(ot);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NDOF Pan/Zoom Operator
+ * \{ */
+
 #ifdef WITH_INPUT_NDOF
 static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -1730,8 +1748,6 @@ enum {
   SCROLLHANDLE_MIN_OUTSIDE,
   SCROLLHANDLE_MAX_OUTSIDE,
 } /*eV2DScrollerHandle_Zone*/;
-
-/* ------------------------ */
 
 /**
  * Check if mouse is within scroller handle.

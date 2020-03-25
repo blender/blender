@@ -35,13 +35,17 @@
 
 #include "MEM_guardedalloc.h"
 
-/* ************************** INPUT FROM MOUSE *************************** */
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for #MouseInput.apply
+ * \{ */
 
+/** Callback for #INPUT_VECTOR */
 static void InputVector(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   convertViewVec(t, output, mval[0] - mi->imval[0], mval[1] - mi->imval[1]);
 }
 
+/** Callback for #INPUT_SPRING */
 static void InputSpring(TransInfo *UNUSED(t),
                         MouseInput *mi,
                         const double mval[2],
@@ -57,6 +61,7 @@ static void InputSpring(TransInfo *UNUSED(t),
   output[0] = ratio;
 }
 
+/** Callback for #INPUT_SPRING_FLIP */
 static void InputSpringFlip(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   InputSpring(t, mi, mval, output);
@@ -70,12 +75,14 @@ static void InputSpringFlip(TransInfo *t, MouseInput *mi, const double mval[2], 
   }
 }
 
+/** Callback for #INPUT_SPRING_DELTA */
 static void InputSpringDelta(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   InputSpring(t, mi, mval, output);
   output[0] -= 1.0f;
 }
 
+/** Callback for #INPUT_TRACKBALL */
 static void InputTrackBall(TransInfo *UNUSED(t),
                            MouseInput *mi,
                            const double mval[2],
@@ -88,6 +95,7 @@ static void InputTrackBall(TransInfo *UNUSED(t),
   output[1] *= mi->factor;
 }
 
+/** Callback for #INPUT_HORIZONTAL_RATIO */
 static void InputHorizontalRatio(TransInfo *t,
                                  MouseInput *mi,
                                  const double mval[2],
@@ -98,6 +106,7 @@ static void InputHorizontalRatio(TransInfo *t,
   output[0] = ((mval[0] - mi->imval[0]) / winx) * 2.0f;
 }
 
+/** Callback for #INPUT_HORIZONTAL_ABSOLUTE */
 static void InputHorizontalAbsolute(TransInfo *t,
                                     MouseInput *mi,
                                     const double mval[2],
@@ -119,6 +128,7 @@ static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const double mval[2
   output[0] = ((mval[1] - mi->imval[1]) / winy) * -2.0f;
 }
 
+/** Callback for #INPUT_VERTICAL_ABSOLUTE */
 static void InputVerticalAbsolute(TransInfo *t,
                                   MouseInput *mi,
                                   const double mval[2],
@@ -133,38 +143,7 @@ static void InputVerticalAbsolute(TransInfo *t,
   output[0] = dot_v3v3(t->viewinv[1], vec) * -2.0f;
 }
 
-void setCustomPoints(TransInfo *UNUSED(t),
-                     MouseInput *mi,
-                     const int mval_start[2],
-                     const int mval_end[2])
-{
-  int *data;
-
-  mi->data = MEM_reallocN(mi->data, sizeof(int) * 4);
-
-  data = mi->data;
-
-  data[0] = mval_start[0];
-  data[1] = mval_start[1];
-  data[2] = mval_end[0];
-  data[3] = mval_end[1];
-}
-
-void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2])
-{
-  BLI_ASSERT_UNIT_V2(dir);
-  const int win_axis = t->region ? ((abs((int)(t->region->winx * dir[0])) +
-                                     abs((int)(t->region->winy * dir[1]))) /
-                                    2) :
-                                   1;
-  const int mval_start[2] = {
-      mi->imval[0] + dir[0] * win_axis,
-      mi->imval[1] + dir[1] * win_axis,
-  };
-  const int mval_end[2] = {mi->imval[0], mi->imval[1]};
-  setCustomPoints(t, mi, mval_start, mval_end);
-}
-
+/** Callback for #INPUT_CUSTOM_RATIO_FLIP */
 static void InputCustomRatioFlip(TransInfo *UNUSED(t),
                                  MouseInput *mi,
                                  const double mval[2],
@@ -191,6 +170,7 @@ static void InputCustomRatioFlip(TransInfo *UNUSED(t),
   }
 }
 
+/** Callback for #INPUT_CUSTOM_RATIO */
 static void InputCustomRatio(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   InputCustomRatioFlip(t, mi, mval, output);
@@ -202,6 +182,7 @@ struct InputAngle_Data {
   double mval_prev[2];
 };
 
+/** Callback for #INPUT_ANGLE */
 static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const double mval[2], float output[3])
 {
   struct InputAngle_Data *data = mi->data;
@@ -269,6 +250,53 @@ static void InputAngleSpring(TransInfo *t, MouseInput *mi, const double mval[2],
 
   output[1] = toutput[0];
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom 2D Start/End Coordinate API
+ *
+ * - #INPUT_CUSTOM_RATIO
+ * - #INPUT_CUSTOM_RATIO_FLIP
+ * \{ */
+
+void setCustomPoints(TransInfo *UNUSED(t),
+                     MouseInput *mi,
+                     const int mval_start[2],
+                     const int mval_end[2])
+{
+  int *data;
+
+  mi->data = MEM_reallocN(mi->data, sizeof(int) * 4);
+
+  data = mi->data;
+
+  data[0] = mval_start[0];
+  data[1] = mval_start[1];
+  data[2] = mval_end[0];
+  data[3] = mval_end[1];
+}
+
+void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2])
+{
+  BLI_ASSERT_UNIT_V2(dir);
+  const int win_axis = t->region ? ((abs((int)(t->region->winx * dir[0])) +
+                                     abs((int)(t->region->winy * dir[1]))) /
+                                    2) :
+                                   1;
+  const int mval_start[2] = {
+      mi->imval[0] + dir[0] * win_axis,
+      mi->imval[1] + dir[1] * win_axis,
+  };
+  const int mval_end[2] = {mi->imval[0], mi->imval[1]};
+  setCustomPoints(t, mi, mval_start, mval_end);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Setup & Handle Mouse Input
+ * \{ */
 
 void initMouseInput(TransInfo *UNUSED(t),
                     MouseInput *mi,
@@ -494,3 +522,5 @@ eRedrawFlag handleMouseInput(TransInfo *t, MouseInput *mi, const wmEvent *event)
 
   return redraw;
 }
+
+/** \} */
