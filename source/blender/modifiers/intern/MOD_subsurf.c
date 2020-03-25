@@ -58,7 +58,7 @@ static void initData(ModifierData *md)
   smd->renderLevels = 2;
   smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
   smd->quality = 3;
-  smd->flags |= eSubsurfModifierFlag_UseCrease;
+  smd->flags |= (eSubsurfModifierFlag_UseCrease | eSubsurfModifierFlag_ControlEdges);
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
