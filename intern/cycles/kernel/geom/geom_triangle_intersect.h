@@ -690,16 +690,20 @@ ccl_device_inline float3 triangle_refine_local(KernelGlobals *kg,
                                                const Intersection *isect,
                                                const Ray *ray)
 {
+#ifdef __KERNEL_OPTIX__
+  /* isect->t is always in world space with OptiX. */
+  return triangle_refine(kg, sd, isect, ray);
+#else
   float3 P = ray->P;
   float3 D = ray->D;
   float t = isect->t;
 
   if (isect->object != OBJECT_NONE) {
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
     Transform tfm = sd->ob_itfm;
-#else
+#  else
     Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
-#endif
+#  endif
 
     P = transform_point(&tfm, P);
     D = transform_direction(&tfm, D);
@@ -708,7 +712,7 @@ ccl_device_inline float3 triangle_refine_local(KernelGlobals *kg,
 
   P = P + D * t;
 
-#ifdef __INTERSECTION_REFINE__
+#  ifdef __INTERSECTION_REFINE__
   const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, isect->prim);
   const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0),
                tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1),
@@ -728,19 +732,20 @@ ccl_device_inline float3 triangle_refine_local(KernelGlobals *kg,
     float rt = dot(edge2, qvec) / det;
     P = P + D * rt;
   }
-#endif /* __INTERSECTION_REFINE__ */
+#  endif /* __INTERSECTION_REFINE__ */
 
   if (isect->object != OBJECT_NONE) {
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
     Transform tfm = sd->ob_tfm;
-#else
+#  else
     Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
-#endif
+#  endif
 
     P = transform_point(&tfm, P);
   }
 
   return P;
+#endif
 }
 
 CCL_NAMESPACE_END
