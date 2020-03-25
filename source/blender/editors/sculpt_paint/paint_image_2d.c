@@ -1609,7 +1609,9 @@ void paint_2d_stroke(void *ps,
     copy_v2_v2(last_uv, old_uv);
   }
 
-  float uv_brush_size[2] = {base_size / s->tiles[0].size[0], base_size / s->tiles[0].size[1]};
+  const float uv_brush_size[2] = {
+      (s->symmetry & PAINT_TILE_X) ? FLT_MAX : base_size / s->tiles[0].size[0],
+      (s->symmetry & PAINT_TILE_Y) ? FLT_MAX : base_size / s->tiles[0].size[1]};
 
   for (int i = 0; i < s->num_tiles; i++) {
     ImagePaintTile *tile = &s->tiles[i];
@@ -1640,7 +1642,8 @@ void paint_2d_stroke(void *ps,
     paint_2d_uv_to_coord(tile, last_uv, tile->last_paintpos);
 
     /* Second check in pixel coordinates. */
-    const float pixel_brush_size[] = {size, size};
+    const float pixel_brush_size[] = {(s->symmetry & PAINT_TILE_X) ? FLT_MAX : size,
+                                      (s->symmetry & PAINT_TILE_Y) ? FLT_MAX : size};
     if (!(is_inside_tile(tile->size, new_coord, pixel_brush_size) ||
           is_inside_tile(tile->size, old_coord, pixel_brush_size))) {
       continue;
