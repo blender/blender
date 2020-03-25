@@ -4064,7 +4064,9 @@ void IMAGE_OT_clear_render_border(wmOperatorType *ot)
 
 /** \} */
 
-/* ********************* Add tile operator ****************** */
+/* -------------------------------------------------------------------- */
+/** \name Add Tile Operator
+ * \{ */
 
 static bool do_fill_tile(PointerRNA *ptr, Image *ima, ImageTile *tile)
 {
@@ -4287,7 +4289,11 @@ void IMAGE_OT_tile_add(wmOperatorType *ot)
   def_fill_tile(ot->srna);
 }
 
-/* ********************* Remove tile operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Tile Operator
+ * \{ */
 
 static bool tile_remove_poll(bContext *C)
 {
@@ -4328,7 +4334,11 @@ void IMAGE_OT_tile_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************* Fill tile operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Fill Tile Operator
+ * \{ */
 
 static bool tile_fill_poll(bContext *C)
 {

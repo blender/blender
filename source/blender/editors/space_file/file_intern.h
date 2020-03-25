@@ -75,14 +75,6 @@ void FILE_OT_smoothscroll(struct wmOperatorType *ot);
 void FILE_OT_filepath_drop(struct wmOperatorType *ot);
 void FILE_OT_start_filter(struct wmOperatorType *ot);
 
-int file_exec(bContext *C, struct wmOperator *exec_op);
-int file_cancel_exec(bContext *C, struct wmOperator *unused);
-int file_parent_exec(bContext *C, struct wmOperator *unused);
-int file_previous_exec(bContext *C, struct wmOperator *unused);
-int file_next_exec(bContext *C, struct wmOperator *unused);
-int file_directory_new_exec(bContext *C, struct wmOperator *unused);
-int file_delete_exec(bContext *C, struct wmOperator *unused);
-
 void file_directory_enter_handle(bContext *C, void *arg_unused, void *arg_but);
 void file_filename_enter_handle(bContext *C, void *arg_unused, void *arg_but);
 

@@ -61,7 +61,10 @@
 
 #include "armature_intern.h"
 
-/* ************************** Object Tools Exports ******************************* */
+/* -------------------------------------------------------------------- */
+/** \name Object Tools Public API
+ * \{ */
+
 /* NOTE: these functions are exported to the Object module to be called from the tools there */
 
 /**
@@ -178,7 +181,11 @@ void ED_armature_origin_set(
   }
 }
 
-/* ********************************* Roll ******************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bone Roll Calculate Operator
+ * \{ */
 
 /* adjust bone roll to align Z axis with vector
  * vec is in local space and is normalized
@@ -549,7 +556,11 @@ void ARMATURE_OT_roll_clear(wmOperatorType *ot)
                          DEG2RADF(360.0f));
 }
 
-/* ******************************** Chain-Based Tools ********************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Chain-Based Tool Utilities
+ * \{ */
 
 /* temporary data-structure for merge/fill bones */
 typedef struct EditBonePoint {
@@ -616,7 +627,11 @@ static void chains_find_tips(ListBase *edbo, ListBase *list)
   }
 }
 
-/* --------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Fill Operator
+ * \{ */
 
 static void fill_add_joint(EditBone *ebo, short eb_tail, ListBase *points)
 {
@@ -871,7 +886,11 @@ void ARMATURE_OT_fill(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* --------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Merge Operator
+ * \{ */
 
 /* this function merges between two bones, removes them and those in-between,
  * and adjusts the parent relationships for those in-between
@@ -1074,13 +1093,15 @@ void ARMATURE_OT_merge(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
 }
 
-/* --------------------- */
+/** \} */
 
-/* Switch Direction operator:
+/* -------------------------------------------------------------------- */
+/** \name Switch Direction Operator
+ *
  * Currently, this does not use context loops, as context loops do not make it
  * easy to retrieve any hierarchical/chain relationships which are necessary for
  * this to be done easily.
- */
+ * \{ */
 
 /* helper to clear BONE_TRANSFORM flags */
 static void armature_clear_swap_done_flags(bArmature *arm)
@@ -1210,7 +1231,11 @@ void ARMATURE_OT_switch_direction(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************* Align ******************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Align Operator
+ * \{ */
 
 /* helper to fix a ebone position if its parent has moved due to alignment*/
 static void fix_connected_bone(EditBone *ebone)
@@ -1354,7 +1379,11 @@ void ARMATURE_OT_align(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************* Split ******************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split Operator
+ * \{ */
 
 static int armature_split_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1400,7 +1429,11 @@ void ARMATURE_OT_split(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************* Delete ******************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Operator
+ * \{ */
 
 static bool armature_delete_ebone_cb(const char *bone_name, void *arm_p)
 {
@@ -1658,7 +1691,11 @@ void ARMATURE_OT_dissolve(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************* Show/Hide ******************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide Operator
+ * \{ */
 
 static int armature_hide_exec(bContext *C, wmOperator *op)
 {
@@ -1719,6 +1756,12 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reveal Operator
+ * \{ */
+
 static int armature_reveal_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1771,3 +1814,5 @@ void ARMATURE_OT_reveal(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
+
+/** \} */
