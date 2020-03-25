@@ -393,7 +393,7 @@ class _draw_tool_settings_context_mode:
         }:
             # is_paint = False
             pass
-        elif tool.idname == "Cutter":
+        elif tool.idname == "builtin.cutter":
             row = layout.row(align=True)
             row.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
             return False
