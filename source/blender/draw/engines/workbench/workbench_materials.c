@@ -267,7 +267,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
   }
 
   if (tex == NULL) {
-    printf("Image not foudn\n");
+    printf("Image not found\n");
     tex = wpd->dummy_image_tx;
   }
 
