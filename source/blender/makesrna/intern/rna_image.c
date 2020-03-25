@@ -57,7 +57,7 @@ static const EnumPropertyItem image_source_items[] = {
     {IMA_SRC_MOVIE, "MOVIE", 0, "Movie", "Movie file"},
     {IMA_SRC_GENERATED, "GENERATED", 0, "Generated", "Generated image"},
     {IMA_SRC_VIEWER, "VIEWER", 0, "Viewer", "Compositing node viewer"},
-    {IMA_SRC_TILED, "TILED", 0, "Tiled", "Tiled image texture"},
+    {IMA_SRC_TILED, "TILED", 0, "UDIM Tiles", "Tiled UDIM image texture"},
     {0, NULL, 0, NULL, NULL},
 };
 
