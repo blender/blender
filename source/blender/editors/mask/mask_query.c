@@ -207,8 +207,8 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   return false;
 }
 
-static void mask_point_scaled_handle(/*const*/ MaskSplinePoint *point,
-                                     /*const*/ eMaskWhichHandle which_handle,
+static void mask_point_scaled_handle(const MaskSplinePoint *point,
+                                     const eMaskWhichHandle which_handle,
                                      const float scalex,
                                      const float scaley,
                                      float handle[2])
@@ -265,9 +265,9 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
 
       for (int i = 0; i < spline_orig->tot_point; i++) {
         MaskSplinePoint *cur_point_orig = &spline_orig->points[i];
-        MaskSplinePoint *cur_point_deform_eval = &points_array[i];
+        const MaskSplinePoint *cur_point_deform_eval = &points_array[i];
         eMaskWhichHandle cur_which_handle = MASK_WHICH_HANDLE_NONE;
-        BezTriple *bezt = &cur_point_deform_eval->bezt;
+        const BezTriple *bezt = &cur_point_deform_eval->bezt;
         float cur_len_sq, vec[2];
 
         vec[0] = bezt->vec[1][0] * scalex;
@@ -630,9 +630,9 @@ bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2])
     for (MaskSpline *spline = mask_layer->splines.first; spline != NULL; spline = spline->next) {
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
       for (int i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *point = &spline->points[i];
-        MaskSplinePoint *deform_point = &points_array[i];
-        BezTriple *bezt = &point->bezt;
+        const MaskSplinePoint *point = &spline->points[i];
+        const MaskSplinePoint *deform_point = &points_array[i];
+        const BezTriple *bezt = &point->bezt;
         float handle[2];
         if (!MASKPOINT_ISSEL_ANY(point)) {
           continue;
