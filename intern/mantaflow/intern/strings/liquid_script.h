@@ -361,7 +361,8 @@ def liquid_step_particles_$ID$():\n\
         interpolateGrid(target=phi_sp$ID$, source=phiTmp_s$ID$)\n\
         interpolateGrid(target=phiOut_sp$ID$, source=phiOut_s$ID$)\n\
     \n\
-    setObstacleFlags(flags=flags_sp$ID$, phiObs=phiObs_sp$ID$, phiOut=None, phiIn=None) # phiIn not needed\n\
+    # phiIn not needed, bwidth to 0 because we are omitting flags.initDomain()\n\
+    setObstacleFlags(flags=flags_sp$ID$, phiObs=phiObs_sp$ID$, phiOut=None, phiIn=None, boundaryWidth=0)\n\
     flags_sp$ID$.updateFromLevelset(levelset=phi_sp$ID$)\n\
     \n\
     # Actual secondary particle simulation\n\
