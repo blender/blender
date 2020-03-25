@@ -94,7 +94,9 @@
 
 static void modifier_skin_customdata_delete(struct Object *ob);
 
-/******************************** API ****************************/
+/* ------------------------------------------------------------------- */
+/** \name Public Api
+ * \{ */
 
 static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *ob)
 {
@@ -841,7 +843,11 @@ int ED_object_modifier_copy(ReportList *UNUSED(reports), Object *ob, ModifierDat
   return 1;
 }
 
-/************************ add modifier operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Add Modifier Operator
+ * \{ */
 
 static int modifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -933,7 +939,13 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-/********** generic functions for operators using mod names and data context *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Generic Functions For Operators
+ *
+ * Using modifier names and data context.
+ * \{ */
 
 bool edit_modifier_poll_generic(bContext *C,
                                 StructRNA *rna_type,
@@ -1015,7 +1027,11 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
   return md;
 }
 
-/************************ remove modifier operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Remove Modifier Operator
+ * \{ */
 
 static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
@@ -1067,7 +1083,11 @@ void OBJECT_OT_modifier_remove(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************************ move up modifier operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Move Up Modifier Operator
+ * \{ */
 
 static int modifier_move_up_exec(bContext *C, wmOperator *op)
 {
@@ -1109,7 +1129,11 @@ void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************************ move down modifier operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Move Down Modifier Operator
+ * \{ */
 
 static int modifier_move_down_exec(bContext *C, wmOperator *op)
 {
@@ -1151,7 +1175,11 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************************ apply modifier operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Apply Modifier Operator
+ * \{ */
 
 static bool modifier_apply_poll(bContext *C)
 {
@@ -1241,7 +1269,11 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************************ convert modifier operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Convert Modifier Operator
+ * \{ */
 
 static int modifier_convert_exec(bContext *C, wmOperator *op)
 {
@@ -1288,7 +1320,11 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************************ copy modifier operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Copy Modifier Operator
+ * \{ */
 
 static int modifier_copy_exec(bContext *C, wmOperator *op)
 {
@@ -1330,7 +1366,11 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************* multires delete higher levels operator ****************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Multires Delete Higher Levels Operator
+ * \{ */
 
 static bool multires_poll(bContext *C)
 {
@@ -1385,7 +1425,11 @@ void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/****************** multires subdivide operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Multires Subdivide Operator
+ * \{ */
 
 static int multires_subdivide_exec(bContext *C, wmOperator *op)
 {
@@ -1438,7 +1482,11 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/****************** multires reshape operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Multires Reshape Operator
+ * \{ */
 
 static int multires_reshape_exec(bContext *C, wmOperator *op)
 {
@@ -1505,7 +1553,11 @@ void OBJECT_OT_multires_reshape(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/****************** multires save external operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Multires Save External Operator
+ * \{ */
 
 static int multires_external_save_exec(bContext *C, wmOperator *op)
 {
@@ -1594,7 +1646,11 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/****************** multires pack operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Multires Pack Operator
+ * \{ */
 
 static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1624,7 +1680,12 @@ void OBJECT_OT_multires_external_pack(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* multires apply base ***********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Multires Apply Base
+ * \{ */
+
 static int multires_base_apply_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -1669,7 +1730,11 @@ void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************************** skin modifier ***********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Skin Modifier
+ * \{ */
 
 static void modifier_skin_customdata_delete(Object *ob)
 {
@@ -2041,7 +2106,11 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
 }
-/************************ delta mush bind operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Delta Mesh Bind Operator
+ * \{ */
 
 static bool correctivesmooth_poll(bContext *C)
 {
@@ -2119,7 +2188,11 @@ void OBJECT_OT_correctivesmooth_bind(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************************ mdef bind operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Mesh Deform Bind Operator
+ * \{ */
 
 static bool meshdeform_poll(bContext *C)
 {
@@ -2192,7 +2265,11 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/****************** explode refresh operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Explode Refresh Operator
+ * \{ */
 
 static bool explode_poll(bContext *C)
 {
@@ -2242,7 +2319,11 @@ void OBJECT_OT_explode_refresh(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/****************** ocean bake operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Ocean Bake Operator
+ * \{ */
 
 static bool ocean_bake_poll(bContext *C)
 {
@@ -2444,7 +2525,11 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "free", false, "Free", "Free the bake, rather than generating it");
 }
 
-/************************ LaplacianDeform bind operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Laplaciandeform Bind Operator
+ * \{ */
 
 static bool laplaciandeform_poll(bContext *C)
 {
@@ -2519,7 +2604,11 @@ void OBJECT_OT_laplaciandeform_bind(wmOperatorType *ot)
   edit_modifier_properties(ot);
 }
 
-/************************ sdef bind operator *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Surface Deform Bind Operator
+ * \{ */
 
 static bool surfacedeform_bind_poll(bContext *C)
 {
@@ -2583,3 +2672,5 @@ void OBJECT_OT_surfacedeform_bind(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
 }
+
+/** \} */

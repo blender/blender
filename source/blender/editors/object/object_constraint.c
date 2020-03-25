@@ -76,7 +76,9 @@
 
 #include "object_intern.h"
 
-/* -------------- Get Active Constraint Data ---------------------- */
+/* ------------------------------------------------------------------- */
+/** \name Constraint Data Accessors
+ * \{ */
 
 /* if object in posemode, active bone constraints, else object constraints */
 ListBase *get_active_constraints(Object *ob)
@@ -146,9 +148,13 @@ bConstraint *get_active_constraint(Object *ob)
   return BKE_constraints_active_get(get_active_constraints(ob));
 }
 
-/* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name PyConstraints (Unused)
+ * \{ */
+
 #ifdef WITH_PYTHON
-/* ------------- PyConstraints ------------------ */
 
 /* this callback sets the text-file to be used for selected menu item */
 static void validate_pyconstraint_cb(Main *bmain, void *arg1, void *arg2)
@@ -231,6 +237,12 @@ static void update_pyconstraint_cb(void *arg1, void *arg2)
 }
 #endif  // UNUSED
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Add Constraint Utilities
+ * \{ */
+
 /* helper function for add_constriant - sets the last target for the active constraint */
 static void set_constraint_nth_target(bConstraint *con,
                                       Object *target,
@@ -272,7 +284,11 @@ static void set_constraint_nth_target(bConstraint *con,
   }
 }
 
-/* ------------- Constraint Sanity Testing ------------------- */
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Constraint Sanity Testing
+ * \{ */
 
 static void test_constraint(
     Main *bmain, Object *owner, bPoseChannel *pchan, bConstraint *con, int type)
@@ -626,7 +642,11 @@ static void object_test_constraint(Main *bmain, Object *owner, bConstraint *con)
   }
 }
 
-/*** generic functions for operators using constraint names and data context *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Generic Functions for Operators Using Constraint Names and Data Context
+ * \{ */
 
 #define EDIT_CONSTRAINT_OWNER_OBJECT 0
 #define EDIT_CONSTRAINT_OWNER_BONE 1
@@ -766,10 +786,13 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
   return con;
 }
 
-/* ********************** CONSTRAINT-SPECIFIC STUFF ********************* */
+/** \} */
 
-/* ---------- Distance-Dependent Constraints ---------- */
-/* StretchTo, Limit Distance */
+/* ------------------------------------------------------------------- */
+/** \name Stretch-To/Limit-Distance Constraint (Reset Original Length Operator)
+ *
+ * For Stretch-To & Limit-Distance constraints.
+ * \{ */
 
 static int stretchto_reset_exec(bContext *C, wmOperator *op)
 {
@@ -820,6 +843,14 @@ void CONSTRAINT_OT_stretchto_reset(wmOperatorType *ot)
   edit_constraint_properties(ot);
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Distance Constraint (Reset Operator)
+ *
+ * For Limit-Distance constraint.
+ * \{ */
+
 static int limitdistance_reset_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -869,7 +900,11 @@ void CONSTRAINT_OT_limitdistance_reset(wmOperatorType *ot)
   edit_constraint_properties(ot);
 }
 
-/* ------------- Child-Of Constraint ------------------ */
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Child-Of Constraint (Set Inverse Operator)
+ * \{ */
 
 /* Force evaluation so that the 'set inverse' flag is handled.
  * No-op when the constraint is enabled, as in such cases the evaluation will happen anyway.
@@ -996,7 +1031,11 @@ void CONSTRAINT_OT_childof_clear_inverse(wmOperatorType *ot)
   edit_constraint_properties(ot);
 }
 
-/* --------------- Follow Path Constraint ------------------ */
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Follow Path Constraint (Auto Animate Path Operator)
+ * \{ */
 
 static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 {
@@ -1138,7 +1177,11 @@ void CONSTRAINT_OT_followpath_path_animate(wmOperatorType *ot)
               MAXFRAME);
 }
 
-/* ------------- Object Solver Constraint ------------------ */
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Object Solver Constraint (Set Inverse Operator)
+ * \{ */
 
 static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 {
@@ -1198,6 +1241,12 @@ void CONSTRAINT_OT_objectsolver_set_inverse(wmOperatorType *ot)
   edit_constraint_properties(ot);
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Object Solver Constraint (Clear Inverse Operator)
+ * \{ */
+
 static int objectsolver_clear_inverse_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1250,7 +1299,11 @@ void CONSTRAINT_OT_objectsolver_clear_inverse(wmOperatorType *ot)
   edit_constraint_properties(ot);
 }
 
-/***************************** BUTTONS ****************************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Constraint Management Utilities
+ * \{ */
 
 void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 {
@@ -1344,6 +1397,12 @@ static bool constraint_poll(bContext *C)
   return (ptr.owner_id && ptr.data);
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Delete Constraint Operator
+ * \{ */
+
 static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
@@ -1387,6 +1446,12 @@ void CONSTRAINT_OT_delete(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Move Down Constraint Operator
+ * \{ */
 
 static int constraint_move_down_exec(bContext *C, wmOperator *op)
 {
@@ -1438,6 +1503,12 @@ void CONSTRAINT_OT_move_down(wmOperatorType *ot)
   edit_constraint_properties(ot);
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Move Up Constraint Operator
+ * \{ */
+
 static int constraint_move_up_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_active_context(C);
@@ -1486,9 +1557,11 @@ void CONSTRAINT_OT_move_up(wmOperatorType *ot)
   edit_constraint_properties(ot);
 }
 
-/***************************** OPERATORS ****************************/
+/** \} */
 
-/************************ remove constraint operators *********************/
+/* ------------------------------------------------------------------- */
+/** \name Clear Pose Constraints Operator
+ * \{ */
 
 static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1549,6 +1622,12 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Clear Object Constraints Operator
+ * \{ */
+
 void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1561,7 +1640,11 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
   ot->poll = ED_operator_object_active_editable;
 }
 
-/************************ copy all constraints operators *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Copy Pose Constraints Operator
+ * \{ */
 
 static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 {
@@ -1616,6 +1699,12 @@ void POSE_OT_constraints_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Copy Object Constraints Operator
+ * \{ */
+
 static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
@@ -1655,7 +1744,11 @@ void OBJECT_OT_constraints_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ add constraint operators *********************/
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Add Constraints Operator
+ * \{ */
 
 /* get the Object and/or PoseChannel to use as target */
 static bool get_new_constraint_target(
@@ -2013,6 +2106,12 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
   ot->prop = prop;
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Add Constraints With Targets Operator
+ * \{ */
+
 void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -2078,8 +2177,14 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_constraint_type_items, 0, "Type", "");
 }
 
-/************************ IK Constraint operators *********************/
-/* NOTE: only for Pose-Channels */
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Add IK to Bone Operator
+ *
+ * \note Only for pose-channels.
+ * \{ */
+
 // TODO: should these be here, or back in editors/armature/poseobject.c again?
 
 /* present menu with options + validation for targets to use */
@@ -2178,9 +2283,14 @@ void POSE_OT_ik_add(wmOperatorType *ot)
                   "Assign IK Constraint with targets derived from the select bones/objects");
 }
 
-/* ------------------ */
+/** \} */
 
-/* remove IK constraints from selected bones */
+/* ------------------------------------------------------------------- */
+/** \name Clear IK from Bone Operator
+ *
+ * Remove IK constraints from selected bones.
+ * \{ */
+
 static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *prev_ob = NULL;
@@ -2228,3 +2338,5 @@ void POSE_OT_ik_clear(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
