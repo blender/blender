@@ -304,12 +304,10 @@ if(WITH_MEM_JEMALLOC)
   )
 endif()
 
-if(WITH_INTERNATIONAL)
-  list(APPEND BLENDER_TEXT_FILES
-    ${CMAKE_SOURCE_DIR}/release/datafiles/LICENSE-droidsans.ttf.txt
-    ${CMAKE_SOURCE_DIR}/release/datafiles/LICENSE-bmonofont-i18n.ttf.txt
-  )
-endif()
+list(APPEND BLENDER_TEXT_FILES
+  ${CMAKE_SOURCE_DIR}/release/datafiles/LICENSE-droidsans.ttf.txt
+  ${CMAKE_SOURCE_DIR}/release/datafiles/LICENSE-bmonofont-i18n.ttf.txt
+)
 
 
 # -----------------------------------------------------------------------------
@@ -387,14 +385,15 @@ if(WITH_PYTHON)
   unset(FREESTYLE_EXCLUDE_CONDITIONAL)
 endif()
 
+# fonts
+install(
+  DIRECTORY
+    ${CMAKE_SOURCE_DIR}/release/datafiles/fonts
+  DESTINATION ${TARGETDIR_VER}/datafiles
+)
+
 # localization
 if(WITH_INTERNATIONAL)
-  install(
-    DIRECTORY
-      ${CMAKE_SOURCE_DIR}/release/datafiles/fonts
-    DESTINATION ${TARGETDIR_VER}/datafiles
-  )
-
   set(_locale_dir "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
   set(_locale_target_dir ${TARGETDIR_VER}/datafiles/locale)
 
