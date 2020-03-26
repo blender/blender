@@ -60,6 +60,7 @@ op_blacklist = (
     "*.*_import",
     "ed.undo",
     "ed.undo_push",
+    "preferences.studiolight_new",
     "script.autoexec_warn_clear",
     "screen.delete",           # already used for random screens
     "wm.blenderplayer_start",
@@ -90,6 +91,21 @@ op_blacklist = (
     "wm.keymap_restore",        # another annoying one
     "wm.addon_*",               # harmless, but dont change state
     "console.*",                # just annoying - but harmless
+    "wm.url_open_preset",       # Annoying but harmless (opens web pages).
+
+    # FIXME:
+    # Crashes with non-trivial fixes.
+    #
+
+    # Expects undo stack.
+    "object.voxel_remesh",
+    "mesh.paint_mask_slice",
+    "paint.mask_flood_fill",
+    "sculpt.dirty_mask",
+    # TODO: use empty temp dir to avoid behavior depending on local setup.
+    "view3d.pastebuffer",
+    # Needs active window.
+    "scene.new",
 )
 
 
@@ -386,6 +402,10 @@ def ctx_object_pose():
     bpy.ops.pose.select_all(action='SELECT')
 
 
+def ctx_object_volume():
+    bpy.ops.object.add(type='VOLUME')
+
+
 def ctx_object_paint_weight():
     bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
 
@@ -474,6 +494,7 @@ def main():
         run_ops(operators_test, setup_func=ctx_editmode_mball)
         run_ops(operators_test, setup_func=ctx_editmode_text)
         run_ops(operators_test, setup_func=ctx_editmode_lattice)
+        run_ops(operators_test, setup_func=ctx_object_volume)
 
         if not operators_test:
             print("All setup functions run fine!")
