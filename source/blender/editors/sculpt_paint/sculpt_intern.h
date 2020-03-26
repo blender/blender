@@ -441,6 +441,7 @@ typedef struct SculptThreadedTaskData {
 /*************** Brush testing declarations ****************/
 typedef struct SculptBrushTest {
   float radius_squared;
+  float radius;
   float location[3];
   float dist;
   int mirror_symmetry_pass;

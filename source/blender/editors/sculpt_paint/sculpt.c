@@ -1301,6 +1301,8 @@ void SCULPT_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 
   test->radius_squared = ss->cache ? ss->cache->radius_squared :
                                      ss->cursor_radius * ss->cursor_radius;
+  test->radius = sqrtf(test->radius_squared);
+
   if (ss->cache) {
     copy_v3_v3(test->location, ss->cache->location);
     test->mirror_symmetry_pass = ss->cache->mirror_symmetry_pass;
@@ -1866,6 +1868,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
     if (!(ss->cache && data->brush->sculpt_tool == SCULPT_TOOL_LAYER)) {
       test_radius *= data->brush->normal_radius_factor;
     }
+    normal_test.radius = test_radius;
     normal_test.radius_squared = test_radius * test_radius;
   }
 
@@ -1886,6 +1889,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
         test_radius *= data->brush->normal_radius_factor;
       }
     }
+    area_test.radius = test_radius;
     area_test.radius_squared = test_radius * test_radius;
   }
 
@@ -1919,10 +1923,26 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
 
         flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
         if (use_area_cos && area_test_r) {
+          /* Weight the coordinates towards the center. */
+          float p = 1.0f - (sqrtf(area_test.dist) / area_test.radius);
+          float afactor = 3.0f * p * p - 2.0f * p * p * p;
+          CLAMP(afactor, 0.0f, 1.0f);
+
+          float disp[3];
+          sub_v3_v3v3(disp, co, area_test.location);
+          mul_v3_fl(disp, 1.0f - afactor);
+          add_v3_v3v3(co, area_test.location, disp);
           add_v3_v3(anctd->area_cos[flip_index], co);
+
           anctd->count_co[flip_index] += 1;
         }
         if (use_area_nos && normal_test_r) {
+          /* Weight the normals towards the center. */
+          float p = 1.0f - (sqrtf(normal_test.dist) / normal_test.radius);
+          float nfactor = 3.0f * p * p - 2.0f * p * p * p;
+          CLAMP(nfactor, 0.0f, 1.0f);
+          mul_v3_fl(no, nfactor);
+
           add_v3_v3(anctd->area_nos[flip_index], no);
           anctd->count_no[flip_index] += 1;
         }
@@ -1932,54 +1952,73 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   else {
     BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
     {
-      const float *co;
+      float co[3];
+
       /* For bm_vert only. */
-      const short *no_s;
+      short no_s[3];
 
       if (use_original) {
         if (unode->bm_entry) {
-          BM_log_original_vert_data(ss->bm_log, vd.bm_vert, &co, &no_s);
+          const float *temp_co;
+          const short *temp_no_s;
+          BM_log_original_vert_data(ss->bm_log, vd.bm_vert, &temp_co, &temp_no_s);
+          copy_v3_v3(co, temp_co);
+          copy_v3_v3_short(no_s, temp_no_s);
         }
         else {
-          co = unode->co[vd.i];
-          no_s = unode->no[vd.i];
+          copy_v3_v3(co, unode->co[vd.i]);
+          copy_v3_v3_short(no_s, unode->no[vd.i]);
         }
       }
       else {
-        co = vd.co;
+        copy_v3_v3(co, vd.co);
       }
 
       normal_test_r = sculpt_brush_normal_test_sq_fn(&normal_test, co);
       area_test_r = sculpt_brush_area_test_sq_fn(&area_test, co);
 
       if (normal_test_r || area_test_r) {
-        float no_buf[3];
-        const float *no;
+        float no[3];
         int flip_index;
 
         data->any_vertex_sampled = true;
 
         if (use_original) {
-          normal_short_to_float_v3(no_buf, no_s);
-          no = no_buf;
+          normal_short_to_float_v3(no, no_s);
         }
         else {
           if (vd.no) {
-            normal_short_to_float_v3(no_buf, vd.no);
-            no = no_buf;
+            normal_short_to_float_v3(no, vd.no);
           }
           else {
-            no = vd.fno;
+            copy_v3_v3(no, vd.fno);
           }
         }
 
         flip_index = (dot_v3v3(ss->cache ? ss->cache->view_normal : ss->cursor_view_normal, no) <=
                       0.0f);
+
         if (use_area_cos && area_test_r) {
+          /* Weight the coordinates towards the center. */
+          float p = 1.0f - (sqrtf(area_test.dist) / area_test.radius);
+          float afactor = 3.0f * p * p - 2.0f * p * p * p;
+          CLAMP(afactor, 0.0f, 1.0f);
+
+          float disp[3];
+          sub_v3_v3v3(disp, co, area_test.location);
+          mul_v3_fl(disp, 1.0f - afactor);
+          add_v3_v3v3(co, area_test.location, disp);
+
           add_v3_v3(anctd->area_cos[flip_index], co);
           anctd->count_co[flip_index] += 1;
         }
         if (use_area_nos && normal_test_r) {
+          /* Weight the normals towards the center. */
+          float p = 1.0f - (sqrtf(normal_test.dist) / normal_test.radius);
+          float nfactor = 3.0f * p * p - 2.0f * p * p * p;
+          CLAMP(nfactor, 0.0f, 1.0f);
+          mul_v3_fl(no, nfactor);
+
           add_v3_v3(anctd->area_nos[flip_index], no);
           anctd->count_no[flip_index] += 1;
         }
