@@ -857,8 +857,7 @@ void SCULPT_floodfill_execute(
     int from_v;
     BLI_gsqueue_pop(flood->queue, &from_v);
     SculptVertexNeighborIter ni;
-    sculpt_vertex_duplicates_and_neighbors_iter_begin(ss, from_v, ni)
-    {
+    SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
       const int to_v = ni.index;
       if (flood->visited_vertices[to_v] == 0 && SCULPT_vertex_visible_get(ss, to_v)) {
         flood->visited_vertices[to_v] = 1;
@@ -868,7 +867,7 @@ void SCULPT_floodfill_execute(
         }
       }
     }
-    sculpt_vertex_neighbors_iter_end(ni);
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 }
 
@@ -1683,13 +1682,12 @@ static float *sculpt_boundary_edges_automasking_init(Object *ob,
     for (int i = 0; i < totvert; i++) {
       if (edge_distance[i] == EDGE_DISTANCE_INF) {
         SculptVertexNeighborIter ni;
-        sculpt_vertex_neighbors_iter_begin(ss, i, ni)
-        {
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
           if (edge_distance[ni.index] == propagation_it) {
             edge_distance[i] = propagation_it + 1;
           }
         }
-        sculpt_vertex_neighbors_iter_end(ni);
+        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
       }
     }
   }
@@ -2866,12 +2864,11 @@ static void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], i
   int total = 0;
 
   SculptVertexNeighborIter ni;
-  sculpt_vertex_neighbors_iter_begin(ss, index, ni)
-  {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
     add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.index));
     total++;
   }
-  sculpt_vertex_neighbors_iter_end(ni);
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (total > 0) {
     mul_v3_v3fl(result, avg, 1.0f / (float)total);
@@ -2887,12 +2884,11 @@ static float grids_neighbor_average_mask(SculptSession *ss, int index)
   int total = 0;
 
   SculptVertexNeighborIter ni;
-  sculpt_vertex_neighbors_iter_begin(ss, index, ni)
-  {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
     avg += SCULPT_vertex_mask_get(ss, ni.index);
     total++;
   }
-  sculpt_vertex_neighbors_iter_end(ni);
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (total > 0) {
     return avg / (float)total;
@@ -3289,12 +3285,11 @@ static void surface_smooth_displace_step(SculptSession *ss,
   float b_current_vertex[3];
   int total = 0;
   SculptVertexNeighborIter ni;
-  sculpt_vertex_neighbors_iter_begin(ss, v_index, ni)
-  {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_index, ni) {
     add_v3_v3(b_avg, laplacian_disp[ni.index]);
     total++;
   }
-  sculpt_vertex_neighbors_iter_end(ni);
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   if (total > 0) {
     mul_v3_v3fl(b_current_vertex, b_avg, (1.0f - beta) / (float)total);
     madd_v3_v3fl(b_current_vertex, laplacian_disp[v_index], beta);
@@ -3786,8 +3781,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
       normalize_v3_v3(current_disp_norm, current_disp);
       mul_v3_v3fl(current_disp, current_disp_norm, ss->cache->bstrength);
       SculptVertexNeighborIter ni;
-      sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
-      {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
         float vertex_disp[3];
         float vertex_disp_norm[3];
         sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.index), vd.co);
@@ -3796,7 +3790,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
           madd_v3_v3fl(final_disp, vertex_disp_norm, dot_v3v3(current_disp, vertex_disp));
         }
       }
-      sculpt_vertex_neighbors_iter_end(ni);
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
       mul_v3_v3fl(proxy[vd.i], final_disp, fade);
 
@@ -3820,15 +3814,14 @@ void SCULPT_relax_vertex(SculptSession *ss,
   zero_v3(smooth_pos);
 
   SculptVertexNeighborIter ni;
-  sculpt_vertex_neighbors_iter_begin(ss, vd->index, ni)
-  {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->index, ni) {
     if (!filter_boundary_face_sets ||
         (filter_boundary_face_sets && !sculpt_vertex_has_unique_face_set(ss, ni.index))) {
       add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.index));
       count++;
     }
   }
-  sculpt_vertex_neighbors_iter_end(ni);
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (count > 0) {
     mul_v3_fl(smooth_pos, 1.0f / (float)count);
@@ -5770,10 +5763,10 @@ static void do_clay_thumb_brush_task_cb_ex(void *__restrict userdata,
 static float sculpt_clay_thumb_get_stabilized_pressure(StrokeCache *cache)
 {
   float final_pressure = 0.0f;
-  for (int i = 0; i < CLAY_STABILIZER_LEN; i++) {
+  for (int i = 0; i < SCULPT_CLAY_STABILIZER_LEN; i++) {
     final_pressure += cache->clay_pressure_stabilizer[i];
   }
-  return final_pressure / (float)CLAY_STABILIZER_LEN;
+  return final_pressure / (float)SCULPT_CLAY_STABILIZER_LEN;
 }
 
 static void do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -7248,7 +7241,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   /* Clay stabilized pressure. */
   if (brush->sculpt_tool == SCULPT_TOOL_CLAY_THUMB) {
     if (ss->cache->first_time) {
-      for (int i = 0; i < CLAY_STABILIZER_LEN; i++) {
+      for (int i = 0; i < SCULPT_CLAY_STABILIZER_LEN; i++) {
         ss->cache->clay_pressure_stabilizer[i] = 0.0f;
       }
       ss->cache->clay_pressure_stabilizer_index = 0;
@@ -7256,7 +7249,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     else {
       cache->clay_pressure_stabilizer[cache->clay_pressure_stabilizer_index] = cache->pressure;
       cache->clay_pressure_stabilizer_index += 1;
-      if (cache->clay_pressure_stabilizer_index >= CLAY_STABILIZER_LEN) {
+      if (cache->clay_pressure_stabilizer_index >= SCULPT_CLAY_STABILIZER_LEN) {
         cache->clay_pressure_stabilizer_index = 0;
       }
     }
@@ -9029,12 +9022,11 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, int mx, int my)
   float edge_length = 0.0f;
   int tot = 0;
   SculptVertexNeighborIter ni;
-  sculpt_vertex_neighbors_iter_begin(ss, active_vertex, ni)
-  {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
     edge_length += len_v3v3(active_vertex_co, SCULPT_vertex_co_get(ss, ni.index));
     tot += 1;
   }
-  sculpt_vertex_neighbors_iter_end(ni);
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   if (tot > 0) {
     mesh->remesh_voxel_size = edge_length / (float)tot;
   }
@@ -9385,10 +9377,10 @@ static EnumPropertyItem prop_mesh_filter_deform_axis_items[] = {
 static bool sculpt_mesh_filter_needs_pmap(int filter_type, bool use_face_sets)
 {
   return use_face_sets || ELEM(filter_type,
-              MESH_FILTER_SMOOTH,
-              MESH_FILTER_RELAX,
-              MESH_FILTER_RELAX_FACE_SETS,
-              MESH_FILTER_SURFACE_SMOOTH);
+                               MESH_FILTER_SMOOTH,
+                               MESH_FILTER_RELAX,
+                               MESH_FILTER_RELAX_FACE_SETS,
+                               MESH_FILTER_SURFACE_SMOOTH);
 }
 
 static void mesh_filter_task_cb(void *__restrict userdata,
@@ -9865,26 +9857,24 @@ static void mask_filter_task_cb(void *__restrict userdata,
       }
       case MASK_FILTER_GROW:
         max = 0.0f;
-        sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
-        {
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
           float vmask_f = data->prev_mask[ni.index];
           if (vmask_f > max) {
             max = vmask_f;
           }
         }
-        sculpt_vertex_neighbors_iter_end(ni);
+        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
         *vd.mask = max;
         break;
       case MASK_FILTER_SHRINK:
         min = 1.0f;
-        sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
-        {
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
           float vmask_f = data->prev_mask[ni.index];
           if (vmask_f < min) {
             min = vmask_f;
           }
         }
-        sculpt_vertex_neighbors_iter_end(ni);
+        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
         *vd.mask = min;
         break;
       case MASK_FILTER_CONTRAST_INCREASE:
@@ -10035,15 +10025,14 @@ static float neighbor_dirty_mask(SculptSession *ss, PBVHVertexIter *vd)
   zero_v3(avg);
 
   SculptVertexNeighborIter ni;
-  sculpt_vertex_neighbors_iter_begin(ss, vd->index, ni)
-  {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->index, ni) {
     float normalized[3];
     sub_v3_v3v3(normalized, SCULPT_vertex_co_get(ss, ni.index), vd->co);
     normalize_v3(normalized);
     add_v3_v3(avg, normalized);
     total++;
   }
-  sculpt_vertex_neighbors_iter_end(ni);
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (total > 0) {
     mul_v3_fl(avg, 1.0f / total);
@@ -10592,11 +10581,10 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
       for (int i = 0; i < vertex_count; i++) {
         float avg = 0.0f;
         SculptVertexNeighborIter ni;
-        sculpt_vertex_neighbors_iter_begin(ss, i, ni)
-        {
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
           avg += ss->filter_cache->normal_factor[ni.index];
         }
-        sculpt_vertex_neighbors_iter_end(ni);
+        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
         ss->filter_cache->normal_factor[i] = avg / ni.size;
       }
     }
@@ -10721,8 +10709,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
     int from_v;
     BLI_gsqueue_pop(not_visited_vertices, &from_v);
     SculptVertexNeighborIter ni;
-    sculpt_vertex_neighbors_iter_begin(ss, from_v, ni)
-    {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
       if (totpoints + (ni.size * 2) < max_preview_vertices) {
         int to_v = ni.index;
         ss->preview_vert_index_list[totpoints] = from_v;
@@ -10738,7 +10725,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
         }
       }
     }
-    sculpt_vertex_neighbors_iter_end(ni);
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
   BLI_gsqueue_free(not_visited_vertices);

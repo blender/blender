@@ -145,12 +145,11 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
       int tot_indices = 0;
       build_indices[tot_indices] = vd.index;
       tot_indices++;
-      sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
-      {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
         build_indices[tot_indices] = ni.index;
         tot_indices++;
       }
-      sculpt_vertex_neighbors_iter_end(ni);
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
       /* As we don't know the order of the neighbor vertices, we create all possible combinations
        * between the neighbor and the original vertex as length constraints. */

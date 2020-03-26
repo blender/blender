@@ -209,12 +209,11 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
     float max = 0.0f;
 
     /* Grow the factor. */
-    sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
-    {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
       float vmask_f = data->prev_mask[ni.index];
       max = MAX2(vmask_f, max);
     }
-    sculpt_vertex_neighbors_iter_end(ni);
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
     /* Keep the count of the vertices that where added to the factors in this grow iteration. */
     if (max > data->prev_mask[vd.index]) {
@@ -442,12 +441,11 @@ static void pose_brush_init_task_cb_ex(void *__restrict userdata,
     SculptVertexNeighborIter ni;
     float avg = 0.0f;
     int total = 0;
-    sculpt_vertex_neighbors_iter_begin(ss, vd.index, ni)
-    {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
       avg += data->pose_factor[ni.index];
       total++;
     }
-    sculpt_vertex_neighbors_iter_end(ni);
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
     if (total > 0) {
       data->pose_factor[vd.index] = avg / total;
