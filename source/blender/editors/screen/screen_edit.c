@@ -1666,7 +1666,7 @@ Scene *ED_screen_scene_find_with_window(const bScreen *screen,
     }
   }
 
-  BLI_assert(0);
+  /* Can by NULL when accessing a screen that isn't active. */
   return NULL;
 }
 

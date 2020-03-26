@@ -859,7 +859,12 @@ static void rna_SpaceView3D_use_local_camera_set(PointerRNA *ptr, bool value)
 
   if (!value) {
     Scene *scene = ED_screen_scene_find(sc, G_MAIN->wm.first);
-    v3d->camera = scene->camera;
+    /* NULL if the screen isn't in an active window (happens when setting from Python).
+     * This could be moved to the update function, in that case the scene wont relate to the screen
+     * so keep it working this way. */
+    if (scene != NULL) {
+      v3d->camera = scene->camera;
+    }
   }
 }
 
@@ -868,8 +873,13 @@ static float rna_View3DOverlay_GridScaleUnit_get(PointerRNA *ptr)
   View3D *v3d = (View3D *)(ptr->data);
   bScreen *screen = (bScreen *)ptr->owner_id;
   Scene *scene = ED_screen_scene_find(screen, G_MAIN->wm.first);
-
-  return ED_view3d_grid_scale(scene, v3d, NULL);
+  if (scene != NULL) {
+    return ED_view3d_grid_scale(scene, v3d, NULL);
+  }
+  else {
+    /* When accessed from non-active screen. */
+    return 1.0f;
+  }
 }
 
 static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
