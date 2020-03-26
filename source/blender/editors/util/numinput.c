@@ -340,6 +340,21 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
     }
   }
 
+#ifdef USE_FAKE_EDIT
+  /* XXX Hack around keyboards without direct access to '=' nor '*'... */
+  if (ELEM(event->ascii, '=', '*')) {
+    if (!(n->flag & NUM_EDIT_FULL)) {
+      n->flag |= NUM_EDIT_FULL;
+      n->val_flag[idx] |= NUM_EDITED;
+      return true;
+    }
+    else if (event->ctrl) {
+      n->flag &= ~NUM_EDIT_FULL;
+      return true;
+    }
+  }
+#endif
+
   switch (event->type) {
     case EVT_MODAL_MAP:
       if (ELEM(event->val, NUM_MODAL_INCREMENT_UP, NUM_MODAL_INCREMENT_DOWN)) {
@@ -522,21 +537,6 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
     utf8_buf = event->utf8_buf;
     ascii[0] = event->ascii;
   }
-
-#ifdef USE_FAKE_EDIT
-  /* XXX Hack around keyboards without direct access to '=' nor '*'... */
-  if (ELEM(ascii[0], '=', '*')) {
-    if (!(n->flag & NUM_EDIT_FULL)) {
-      n->flag |= NUM_EDIT_FULL;
-      n->val_flag[idx] |= NUM_EDITED;
-      return true;
-    }
-    else if (event->ctrl) {
-      n->flag &= ~NUM_EDIT_FULL;
-      return true;
-    }
-  }
-#endif
 
   /* Up to this point, if we have a ctrl modifier, skip.
    * This allows to still access most of modals' shortcuts even in numinput mode.
