@@ -1348,6 +1348,9 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->spacing = 5;
       br->alpha = 0.7f;
+      br->surface_smooth_shape_preservation = 0.5f;
+      br->surface_smooth_current_vertex = 0.5f;
+      br->surface_smooth_iterations = 4;
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;

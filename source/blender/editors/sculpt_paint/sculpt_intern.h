@@ -618,6 +618,10 @@ typedef struct StrokeCache {
   float initial_normal[3];
   float true_initial_normal[3];
 
+  /* Surface Smooth Brush */
+  /* Stores the displacement produced by the laplacian step of HC smooth. */
+  float (*surface_smooth_laplacian_disp)[3];
+
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;
 
@@ -649,6 +653,11 @@ typedef struct FilterCache {
   /* Used for alternating between filter operations in filters that need to apply different ones to
    * achieve certain effects. */
   int iteration_count;
+
+  /* Stores the displacement produced by the laplacian step of HC smooth. */
+  float (*surface_smooth_laplacian_disp)[3];
+  float surface_smooth_shape_preservation;
+  float surface_smooth_current_vertex;
 
   /* unmasked nodes */
   PBVHNode **nodes;

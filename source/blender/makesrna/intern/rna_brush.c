@@ -1794,6 +1794,20 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_smooth_deform_type_items[] = {
+      {BRUSH_SMOOTH_DEFORM_LAPLACIAN,
+       "LAPLACIAN",
+       0,
+       "Laplacian",
+       "Smooths the surface and the volume"},
+      {BRUSH_SMOOTH_DEFORM_SURFACE,
+       "SURFACE",
+       0,
+       "Surface",
+       "Smooths the surface of the mesh, preserving the volue"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "Brush", "ID");
   RNA_def_struct_ui_text(
       srna, "Brush", "Brush data-block for storing brush settings for painting and sculpting");
@@ -1907,6 +1921,11 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, brush_cloth_force_falloff_type_items);
   RNA_def_property_ui_text(
       prop, "Force Falloff", "Shape used in the brush to apply force to the cloth");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "smooth_deform_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_smooth_deform_type_items);
+  RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "jitter_unit", PROP_ENUM, PROP_NONE); /* as an enum */
@@ -2099,6 +2118,29 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 2.0f);
   RNA_def_property_ui_text(
       prop, "Pose Origin Offset", "Offset of the pose origin in relation to the brush radius");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "surface_smooth_shape_preservation", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "surface_smooth_shape_preservation");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(
+      prop, "Shape Preservation", "How much of the original shape is preserved when smoothing");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "surface_smooth_current_vertex", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "surface_smooth_current_vertex");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(
+      prop,
+      "Per Vertex Displacement",
+      "How much the position of each individual vertex influences the final result");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "surface_smooth_iterations", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "surface_smooth_iterations");
+  RNA_def_property_range(prop, 1, 10);
+  RNA_def_property_ui_range(prop, 1, 10, 1, 3);
+  RNA_def_property_ui_text(prop, "Iterations", "Number of smoothing iterations per brush step");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "multiplane_scrape_angle", PROP_FLOAT, PROP_FACTOR);

@@ -665,6 +665,14 @@ def brush_settings(layout, context, brush, popover=False):
             col.prop(brush, "use_multiplane_scrape_dynamic")
             col.prop(brush, "show_multiplane_scrape_planes_preview")
 
+        if brush.sculpt_tool == 'SMOOTH':
+            col = layout.column()
+            col.prop(brush, "smooth_deform_type")
+            if brush.smooth_deform_type == 'SURFACE':
+                col.prop(brush, "surface_smooth_shape_preservation")
+                col.prop(brush, "surface_smooth_current_vertex")
+                col.prop(brush, "surface_smooth_iterations")
+
         if brush.sculpt_tool == 'MASK':
             layout.row().prop(brush, "mask_tool", expand=True)
 

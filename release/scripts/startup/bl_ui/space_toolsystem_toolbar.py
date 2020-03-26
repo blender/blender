@@ -1031,6 +1031,9 @@ class _defs_sculpt:
             layout.prop(props, "strength")
             layout.prop(props, "deform_axis")
             layout.prop(props, "use_face_sets")
+            if (props.type == "SURFACE_SMOOTH"):
+                layout.prop(props, "surface_smooth_shape_preservation", expand=False)
+                layout.prop(props, "surface_smooth_current_vertex", expand=False)
 
         return dict(
             idname="builtin.mesh_filter",
