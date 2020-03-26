@@ -20,10 +20,6 @@
 
 # Xcode and system configuration for Apple.
 
-# require newer cmake on osx because of version handling,
-# older cmake cannot handle 2 digit subversion!
-cmake_minimum_required(VERSION 3.0.0)
-
 if(NOT CMAKE_OSX_ARCHITECTURES)
   set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
     "Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
