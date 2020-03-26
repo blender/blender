@@ -1044,7 +1044,10 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   GHOST_TKey key = system->hardKey(raw, &keyDown, &vk);
   GHOST_EventKey *event;
 
-  if (key != GHOST_kKeyUnknown) {
+  /* We used to check `if (key != GHOST_kKeyUnknown)`, but since the message
+   * values `WM_SYSKEYUP`, `WM_KEYUP` and `WM_CHAR` are ignored, we capture
+   * those events here as well. */
+  {
     char utf8_char[6] = {0};
     char ascii = 0;
     bool is_repeat = false;
@@ -1101,9 +1104,6 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
                                is_repeat);
 
     // GHOST_PRINTF("%c\n", ascii); // we already get this info via EventPrinter
-  }
-  else {
-    event = NULL;
   }
   return event;
 }
