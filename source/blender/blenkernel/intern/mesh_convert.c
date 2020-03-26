@@ -1304,7 +1304,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
   const ModifierTypeInfo *mti = modifierType_getInfo(md_eval->type);
   Mesh *result;
   KeyBlock *kb;
-  ModifierEvalContext mectx = {depsgraph, ob_eval, 0};
+  ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_BASE_MESH};
 
   if (!(md_eval->mode & eModifierMode_Realtime)) {
     return NULL;

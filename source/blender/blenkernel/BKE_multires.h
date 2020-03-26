@@ -197,7 +197,8 @@ void BKE_multires_subdiv_mesh_settings_init(struct SubdivToMeshSettings *mesh_se
                                             const struct Object *object,
                                             const struct MultiresModifierData *mmd,
                                             const bool use_render_params,
-                                            const bool ignore_simplify);
+                                            const bool ignore_simplify,
+                                            const bool ignore_control_edges);
 
 /* General helpers. */
 

@@ -119,11 +119,17 @@ static Mesh *multires_as_mesh(MultiresModifierData *mmd,
   Mesh *result = mesh;
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
   const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY);
+  const bool ignore_control_edges = (ctx->flag & MOD_APPLY_TO_BASE_MESH);
   const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Object *object = ctx->object;
   SubdivToMeshSettings mesh_settings;
-  BKE_multires_subdiv_mesh_settings_init(
-      &mesh_settings, scene, object, mmd, use_render_params, ignore_simplify);
+  BKE_multires_subdiv_mesh_settings_init(&mesh_settings,
+                                         scene,
+                                         object,
+                                         mmd,
+                                         use_render_params,
+                                         ignore_simplify,
+                                         ignore_control_edges);
   if (mesh_settings.resolution < 3) {
     return result;
   }
