@@ -116,7 +116,7 @@ static void reduce_stroke_points(bGPDstroke *gps,
 {
   bGPDspoint *new_points = MEM_callocN(sizeof(bGPDspoint) * num_points, __func__);
   MDeformVert *new_dvert = NULL;
-  if (gps->dvert != NULL) {
+  if ((gps->dvert != NULL) && (num_points > 0)) {
     new_dvert = MEM_callocN(sizeof(MDeformVert) * num_points, __func__);
   }
 
@@ -130,7 +130,7 @@ static void reduce_stroke_points(bGPDstroke *gps,
     {
       /* copy over point data */
       memcpy(new_points, gps->points, sizeof(bGPDspoint) * num_points);
-      if (gps->dvert != NULL) {
+      if ((gps->dvert != NULL) && (num_points > 0)) {
         memcpy(new_dvert, gps->dvert, sizeof(MDeformVert) * num_points);
 
         /* free unused point weights */
@@ -151,7 +151,7 @@ static void reduce_stroke_points(bGPDstroke *gps,
 
       /* copy over point data */
       memcpy(new_points, gps->points + offset, sizeof(bGPDspoint) * num_points);
-      if (gps->dvert != NULL) {
+      if ((gps->dvert != NULL) && (num_points > 0)) {
         memcpy(new_dvert, gps->dvert + offset, sizeof(MDeformVert) * num_points);
 
         /* free unused weights */
