@@ -292,6 +292,14 @@ static void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       for (int i = 0; i < ss->totpoly; i++) {
+
+        /* This can run on geometry without a face set assigned, so its ID sign can't be changed to
+         * modify the visibility. Force that geometry to the ID 1 to enable changing the visibility
+         * here. */
+        if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
+          ss->face_sets[i] = 1;
+        }
+
         if (visible) {
           ss->face_sets[i] = abs(ss->face_sets[i]);
         }
@@ -11015,19 +11023,25 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
 
   if (mode == SCULPT_FACE_SET_VISIBILITY_TOGGLE) {
     bool hidden_vertex = false;
-    for (int i = 0; i < tot_vert; i++) {
-      if (!SCULPT_vertex_visible_get(ss, i)) {
+
+    /* This can fail with regular meshes with non-manifold geometry as the visibility state can't
+     * be synced from face sets to non-manifold vertices. */
+    if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+      for (int i = 0; i < tot_vert; i++) {
+        if (!SCULPT_vertex_visible_get(ss, i)) {
+          hidden_vertex = true;
+          break;
+        }
+      }
+    }
+
+    for (int i = 0; i < ss->totpoly; i++) {
+      if (ss->face_sets[i] <= 0) {
         hidden_vertex = true;
         break;
       }
     }
 
-    for (int i = 0; i < ss->totpoly; i++) {
-      if (ss->face_sets[i] < 0) {
-        hidden_vertex = true;
-        break;
-      }
-    }
     if (hidden_vertex) {
       SCULPT_face_sets_visibility_all_set(ss, true);
     }
