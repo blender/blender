@@ -183,9 +183,11 @@ void OVERLAY_antialiasing_cache_finish(OVERLAY_Data *vedata)
                                    GPU_ATTACHMENT_TEXTURE(txl->overlay_line_tx)});
   }
 
-  pd->antialiasing.do_depth_copy = !DRW_pass_is_empty(psl->wireframe_ps) ||
+  pd->antialiasing.do_depth_copy = !(psl->wireframe_ps == NULL ||
+                                     DRW_pass_is_empty(psl->wireframe_ps)) ||
                                    (pd->xray_enabled && pd->xray_opacity > 0.0f);
-  pd->antialiasing.do_depth_infront_copy = !DRW_pass_is_empty(psl->wireframe_xray_ps);
+  pd->antialiasing.do_depth_infront_copy = !(psl->wireframe_xray_ps == NULL ||
+                                             DRW_pass_is_empty(psl->wireframe_xray_ps));
 
   const bool do_wireframe = pd->antialiasing.do_depth_copy ||
                             pd->antialiasing.do_depth_infront_copy;
