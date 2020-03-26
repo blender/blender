@@ -1558,7 +1558,7 @@ void device_optix_info(vector<DeviceInfo> &devices)
     }
 
     // Only add devices with RTX support
-    if (rtcore_version == 0)
+    if (rtcore_version == 0 && !getenv("CYCLES_OPTIX_TEST"))
       it = cuda_devices.erase(it);
     else
       ++it;
