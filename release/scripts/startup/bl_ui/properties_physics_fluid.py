@@ -176,11 +176,12 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col.prop(domain, "time_scale", text="Time Scale")
             col.prop(domain, "cfl_condition", text="CFL Number")
 
-            col = flow.column(align=True)
+            col = flow.column()
             col.prop(domain, "use_adaptive_timesteps")
-            col.active = domain.use_adaptive_timesteps
-            col.prop(domain, "timesteps_max", text="Timesteps Maximum")
-            col.prop(domain, "timesteps_min", text="Minimum")
+            sub = col.column(align=True)
+            sub.active = domain.use_adaptive_timesteps
+            sub.prop(domain, "timesteps_max", text="Timesteps Maximum")
+            sub.prop(domain, "timesteps_min", text="Minimum")
 
             col.separator()
 
@@ -471,21 +472,24 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop(domain, "simulation_method", expand=False)
         col.prop(domain, "flip_ratio", text="FLIP Ratio")
-        row = col.row()
-        sub = row.column(align=True)
-        sub.prop(domain, "particle_radius", text="Particle Radius")
-        sub.prop(domain, "particle_number", text="Sampling")
-        sub.prop(domain, "particle_randomness", text="Randomness")
+        col = col.column(align=True)
+        col.prop(domain, "particle_radius", text="Particle Radius")
+        col.prop(domain, "particle_number", text="Sampling")
+        col.prop(domain, "particle_randomness", text="Randomness")
 
         col = flow.column()
-        row = col.row()
-        sub = row.column(align=True)
-        sub.prop(domain, "particle_max", text="Particles Maximum")
-        sub.prop(domain, "particle_min", text="Minimum")
+        col = col.column(align=True)
+        col.prop(domain, "particle_max", text="Particles Maximum")
+        col.prop(domain, "particle_min", text="Minimum")
+
+        col.separator()
+
+        col = col.column()
         col.prop(domain, "particle_band_width", text="Narrow Band Width")
-        row = col.row()
-        sub = row.column(align=True)
-        sub.prop(domain, "use_fractions", text="Fractional Obstacles")
+
+        col = col.column()
+        col.prop(domain, "use_fractions", text="Fractional Obstacles")
+        sub = col.column()
         sub.active = domain.use_fractions
         sub.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
 
@@ -860,13 +864,15 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
         flow.enabled = not is_baking_any
 
         sndparticle_combined_export = domain.sndparticle_combined_export
-        row = flow.row()
+        col = flow.column()
+        row = col.row()
         row.enabled = sndparticle_combined_export in {'OFF', 'FOAM + BUBBLES'}
         row.prop(domain, "use_spray_particles", text="Spray")
         row.prop(domain, "use_foam_particles", text="Foam")
         row.prop(domain, "use_bubble_particles", text="Bubbles")
 
-        col = flow.column()
+        col.separator()
+
         col.prop(domain, "sndparticle_combined_export")
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
