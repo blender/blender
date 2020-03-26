@@ -2340,7 +2340,7 @@ static void rna_Stereo3dFormat_update(Main *bmain, Scene *UNUSED(scene), Pointer
 static ViewLayer *rna_ViewLayer_new(ID *id, Scene *UNUSED(sce), Main *bmain, const char *name)
 {
   Scene *scene = (Scene *)id;
-  ViewLayer *view_layer = BKE_view_layer_add(scene, name);
+  ViewLayer *view_layer = BKE_view_layer_add(scene, name, NULL, VIEWLAYER_ADD_NEW);
 
   DEG_id_tag_update(&scene->id, 0);
   DEG_relations_tag_update(bmain);

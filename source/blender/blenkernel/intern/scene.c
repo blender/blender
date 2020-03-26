@@ -211,7 +211,7 @@ static void scene_init_data(ID *id)
   /* Master Collection */
   scene->master_collection = BKE_collection_master_add();
 
-  BKE_view_layer_add(scene, "View Layer");
+  BKE_view_layer_add(scene, "View Layer", NULL, VIEWLAYER_ADD_NEW);
 }
 
 static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)

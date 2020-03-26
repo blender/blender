@@ -178,27 +178,70 @@ static ViewLayer *view_layer_add(const char *name)
   return view_layer;
 }
 
+static void layer_collection_exclude_all(LayerCollection *layer_collection)
+{
+  LayerCollection *sub_collection = layer_collection->layer_collections.first;
+  for (; sub_collection != NULL; sub_collection = sub_collection->next) {
+    sub_collection->flag |= LAYER_COLLECTION_EXCLUDE;
+    layer_collection_exclude_all(sub_collection);
+  }
+}
+
 /**
  * Add a new view layer
  * by default, a view layer has the master collection
  */
-ViewLayer *BKE_view_layer_add(Scene *scene, const char *name)
+ViewLayer *BKE_view_layer_add(Scene *scene,
+                              const char *name,
+                              ViewLayer *view_layer_source,
+                              const int type)
 {
-  ViewLayer *view_layer = view_layer_add(name);
+  ViewLayer *view_layer_new;
 
-  BLI_addtail(&scene->view_layers, view_layer);
+  if (view_layer_source) {
+    name = view_layer_source->name;
+  }
+
+  switch (type) {
+    default:
+    case VIEWLAYER_ADD_NEW: {
+      view_layer_new = view_layer_add(name);
+      BLI_addtail(&scene->view_layers, view_layer_new);
+      BKE_layer_collection_sync(scene, view_layer_new);
+      break;
+    }
+    case VIEWLAYER_ADD_COPY: {
+      /* Allocate and copy view layer data */
+      view_layer_new = MEM_callocN(sizeof(ViewLayer), "View Layer");
+      BLI_addtail(&scene->view_layers, view_layer_new);
+      BKE_view_layer_copy_data(scene, scene, view_layer_new, view_layer_source, 0);
+
+      BLI_strncpy_utf8(view_layer_new->name, name, sizeof(view_layer_new->name));
+      break;
+    }
+    case VIEWLAYER_ADD_EMPTY: {
+      view_layer_new = view_layer_add(name);
+      BLI_addtail(&scene->view_layers, view_layer_new);
+
+      /* Initialise layercollections */
+      BKE_layer_collection_sync(scene, view_layer_new);
+      layer_collection_exclude_all(view_layer_new->layer_collections.first);
+
+      /* Update collections after changing visibility */
+      BKE_layer_collection_sync(scene, view_layer_new);
+      break;
+    }
+  }
 
   /* unique name */
   BLI_uniquename(&scene->view_layers,
-                 view_layer,
+                 view_layer_new,
                  DATA_("ViewLayer"),
                  '.',
                  offsetof(ViewLayer, name),
-                 sizeof(view_layer->name));
+                 sizeof(view_layer_new->name));
 
-  BKE_layer_collection_sync(scene, view_layer);
-
-  return view_layer;
+  return view_layer_new;
 }
 
 void BKE_view_layer_free(ViewLayer *view_layer)

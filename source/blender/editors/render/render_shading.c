@@ -814,14 +814,16 @@ void WORLD_OT_new(wmOperatorType *ot)
 
 /********************** render layer operators *********************/
 
-static int view_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int view_layer_add_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = BKE_view_layer_add(scene, NULL);
+  ViewLayer *view_layer_current = WM_window_get_active_view_layer(win);
+  ViewLayer *view_layer_new = BKE_view_layer_add(
+      scene, view_layer_current->name, view_layer_current, RNA_enum_get(op->ptr, "type"));
 
   if (win) {
-    WM_window_set_active_view_layer(win, view_layer);
+    WM_window_set_active_view_layer(win, view_layer_new);
   }
 
   DEG_id_tag_update(&scene->id, 0);
@@ -833,6 +835,17 @@ static int view_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 void SCENE_OT_view_layer_add(wmOperatorType *ot)
 {
+  static EnumPropertyItem type_items[] = {
+      {VIEWLAYER_ADD_NEW, "NEW", 0, "New", "Add a new view layer"},
+      {VIEWLAYER_ADD_COPY, "COPY", 0, "Copy Settings", "Copy settings of current view layer"},
+      {VIEWLAYER_ADD_EMPTY,
+       "EMPTY",
+       0,
+       "Blank",
+       "Add a new view layer with all collections disabled"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* identifiers */
   ot->name = "Add View Layer";
   ot->idname = "SCENE_OT_view_layer_add";
@@ -840,9 +853,13 @@ void SCENE_OT_view_layer_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = view_layer_add_exec;
+  ot->invoke = WM_menu_invoke;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  /* properties */
+  ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
 static bool view_layer_remove_poll(bContext *C)

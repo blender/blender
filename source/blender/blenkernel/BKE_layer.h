@@ -44,10 +44,19 @@ struct Scene;
 struct View3D;
 struct ViewLayer;
 
+typedef enum eViewLayerCopyMethod {
+  VIEWLAYER_ADD_NEW = 0,
+  VIEWLAYER_ADD_EMPTY = 1,
+  VIEWLAYER_ADD_COPY = 2,
+} eViewLayerCopyMethod;
+
 struct ViewLayer *BKE_view_layer_default_view(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_default_render(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_find(const struct Scene *scene, const char *layer_name);
-struct ViewLayer *BKE_view_layer_add(struct Scene *scene, const char *name);
+struct ViewLayer *BKE_view_layer_add(Scene *scene,
+                                     const char *name,
+                                     ViewLayer *view_layer_source,
+                                     const int type);
 
 /* DEPRECATED */
 struct ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const struct Scene *scene);

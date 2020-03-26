@@ -462,7 +462,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
   const bool need_default_renderlayer = scene->r.layers.first == NULL;
 
   for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
-    ViewLayer *view_layer = BKE_view_layer_add(scene, srl->name);
+    ViewLayer *view_layer = BKE_view_layer_add(scene, srl->name, NULL, VIEWLAYER_ADD_NEW);
 
     if (srl->layflag & SCE_LAY_DISABLE) {
       view_layer->flag &= ~VIEW_LAYER_RENDER;
@@ -528,7 +528,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
   /* If render layers included overrides, or there are no render layers,
    * we also create a vanilla viewport layer. */
   if (have_override || need_default_renderlayer) {
-    ViewLayer *view_layer = BKE_view_layer_add(scene, "Viewport");
+    ViewLayer *view_layer = BKE_view_layer_add(scene, "Viewport", NULL, VIEWLAYER_ADD_NEW);
 
     /* If we ported all the original render layers,
      * we don't need to make the viewport layer renderable. */
