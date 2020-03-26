@@ -73,7 +73,7 @@ struct bToolRef *WM_toolsystem_ref_from_context(struct bContext *C)
   WorkSpace *workspace = CTX_wm_workspace(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   ScrArea *sa = CTX_wm_area(C);
-  if (((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) == 0) {
+  if ((sa == NULL) || ((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) == 0) {
     return NULL;
   }
   const bToolKey tkey = {
