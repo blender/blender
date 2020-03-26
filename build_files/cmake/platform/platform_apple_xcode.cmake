@@ -68,10 +68,26 @@ if(${CMAKE_GENERATOR} MATCHES "Xcode")
     set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
     message(STATUS "Setting compiler to: " ${CMAKE_XCODE_ATTRIBUTE_GCC_VERSION})
   endif()
-else() # unix makefile generator does not fill XCODE_VERSION var, so we get it with a command
+else()
+  # Unix makefile generator does not fill XCODE_VERSION var, so we get it with a command.
+  # Note that `xcodebuild -version` gives output in two lines: first line will include
+  # Xcode version, second one will include build number. We are only interested in the
+  # former one. Here is an example of the output:
+  #   Xcode 11.4
+  #   Build version 11E146
+  # The expected XCODE_VERSION in this case is 11.4.
+
   execute_process(COMMAND xcodebuild -version OUTPUT_VARIABLE XCODE_VERS_BUILD_NR)
-  string(SUBSTRING "${XCODE_VERS_BUILD_NR}" 6 3 XCODE_VERSION) # truncate away build-nr
+
+  # Convert output to a single line by replacling newlines with spaces.
+  # This is needed because regex replace can not operate through the newline character
+  # and applies substitutions for each individual lines.
+  string(REPLACE "\n" " " XCODE_VERS_BUILD_NR_SINGLE_LINE "${XCODE_VERS_BUILD_NR}")
+
+  string(REGEX REPLACE "(.*)Xcode ([0-9\\.]+).*" "\\2" XCODE_VERSION "${XCODE_VERS_BUILD_NR_SINGLE_LINE}")
+
   unset(XCODE_VERS_BUILD_NR)
+  unset(XCODE_VERS_BUILD_NR_SINGLE_LINE)
 endif()
 
 message(STATUS "Detected OS X ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_BUNDLE}")
