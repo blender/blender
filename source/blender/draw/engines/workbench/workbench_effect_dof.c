@@ -326,7 +326,7 @@ void workbench_dof_cache_init(WORKBENCH_Data *vedata)
     /* We reuse the same noise texture. Ensure it is up to date. */
     workbench_cavity_samples_ubo_ensure(wpd);
 
-    float offset = wpd->taa_sample / wpd->taa_sample_len;
+    float offset = wpd->taa_sample / (float)max_ii(1, wpd->taa_sample_len);
     DRWShadingGroup *grp = DRW_shgroup_create(blur1_sh, psl->dof_blur1_ps);
     DRW_shgroup_uniform_block(grp, "dofSamplesBlock", wpd->vldata->dof_sample_ubo);
     DRW_shgroup_uniform_texture(grp, "noiseTex", wpd->vldata->cavity_jitter_tx);
