@@ -2502,7 +2502,9 @@ static const EnumPropertyItem *rna_UnitSettings_itemf_wrapper(const int system,
     }
   }
 
+  RNA_enum_item_end(&items, &totitem);
   *r_free = true;
+
   return items;
 }
 
