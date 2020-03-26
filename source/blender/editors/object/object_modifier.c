@@ -1192,7 +1192,7 @@ static bool modifier_apply_poll(bContext *C)
   Object *ob = (ptr.owner_id != NULL) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   ModifierData *md = ptr.data; /* May be NULL. */
 
-  if (ID_REAL_USERS(ob->data) > 1) {
+  if ((ob->data != NULL) && ID_REAL_USERS(ob->data) > 1) {
     CTX_wm_operator_poll_msg_set(C, "Modifiers cannot be applied to multi-user data");
     return false;
   }

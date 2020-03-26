@@ -1755,7 +1755,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
 static bool image_to_gpencil_poll(bContext *C)
 {
   SpaceLink *sl = CTX_wm_space_data(C);
-  if (sl->spacetype == SPACE_IMAGE) {
+  if ((sl != NULL) && (sl->spacetype == SPACE_IMAGE)) {
     return true;
   }
 

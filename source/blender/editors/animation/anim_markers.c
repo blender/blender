@@ -235,6 +235,9 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *
 static bool ED_operator_markers_region_active(bContext *C)
 {
   ScrArea *sa = CTX_wm_area(C);
+  if (sa == NULL) {
+    return false;
+  }
 
   switch (sa->spacetype) {
     case SPACE_ACTION: {

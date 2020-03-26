@@ -64,6 +64,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
@@ -6201,11 +6202,12 @@ void PAINT_OT_project_image(wmOperatorType *ot)
 
 static bool texture_paint_image_from_view_poll(bContext *C)
 {
-  if (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) == NULL) {
+  bScreen *screen = CTX_wm_screen(C);
+  if (!(screen && BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0))) {
     CTX_wm_operator_poll_msg_set(C, "No 3D viewport found to create image from");
     return false;
   }
-  if (!GPU_is_initialized()) {
+  if (G.background || !GPU_is_initialized()) {
     return false;
   }
   return true;
@@ -6754,7 +6756,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = texture_paint_add_texture_paint_slot_invoke;
   ot->exec = texture_paint_add_texture_paint_slot_exec;
-  ot->poll = ED_operator_object_active;
+  ot->poll = ED_operator_object_active_editable_mesh;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;

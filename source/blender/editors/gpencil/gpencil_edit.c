@@ -1379,7 +1379,8 @@ void GPENCIL_OT_copy(wmOperatorType *ot)
 
 static bool gp_strokes_paste_poll(bContext *C)
 {
-  if (CTX_wm_area(C)->spacetype != SPACE_VIEW3D) {
+  ScrArea *sa = CTX_wm_area(C);
+  if (!((sa != NULL) && (sa->spacetype == SPACE_VIEW3D))) {
     return false;
   }
   /* 1) Must have GP datablock to paste to

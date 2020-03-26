@@ -3142,7 +3142,7 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
   ot->poll = ED_operator_screenactive;
 
   /* rna */
-  RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+  RNA_def_int(ot->srna, "delta", 1, -1, 1, "Delta", "", -1, 1);
 }
 
 /** \} */
