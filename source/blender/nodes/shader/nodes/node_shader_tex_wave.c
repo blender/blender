@@ -27,6 +27,7 @@ static bNodeSocketTemplate sh_node_tex_wave_in[] = {
     {SOCK_FLOAT, N_("Distortion"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
     {SOCK_FLOAT, N_("Detail"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
     {SOCK_FLOAT, N_("Detail Scale"), 1.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+    {SOCK_FLOAT, N_("Detail Roughness"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_FLOAT, N_("Phase Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
     {-1, ""},
 };

@@ -24,9 +24,10 @@ float wave(point p_input,
            string bands_direction,
            string rings_direction,
            string profile,
-           float detail,
            float distortion,
+           float detail,
            float dscale,
+           float droughness,
            float phase)
 {
   /* Prevent precision issues on unit coordinates. */
@@ -67,7 +68,7 @@ float wave(point p_input,
   n += phase;
 
   if (distortion != 0.0) {
-    n = n + (distortion * (fractal_noise(p * dscale, detail) * 2.0 - 1.0));
+    n = n + (distortion * (fractal_noise(p * dscale, detail, droughness) * 2.0 - 1.0));
   }
 
   if (profile == "sine") {
@@ -93,6 +94,7 @@ shader node_wave_texture(int use_mapping = 0,
                          float Distortion = 0.0,
                          float Detail = 2.0,
                          float DetailScale = 1.0,
+                         float DetailRoughness = 0.5,
                          float PhaseOffset = 0.0,
                          point Vector = P,
                          output float Fac = 0.0,
@@ -108,9 +110,10 @@ shader node_wave_texture(int use_mapping = 0,
              bands_direction,
              rings_direction,
              profile,
-             Detail,
              Distortion,
+             Detail,
              DetailScale,
+             DetailRoughness,
              PhaseOffset);
   Color = Fac;
 }

@@ -230,7 +230,7 @@ class NoiseTextureNode : public TextureNode {
   SHADER_NODE_CLASS(NoiseTextureNode)
 
   int dimensions;
-  float w, scale, detail, distortion;
+  float w, scale, detail, roughness, distortion;
   float3 vector;
 };
 
@@ -291,7 +291,7 @@ class WaveTextureNode : public TextureNode {
   NodeWaveRingsDirection rings_direction;
   NodeWaveProfile profile;
 
-  float scale, distortion, detail, detail_scale, phase;
+  float scale, distortion, detail, detail_scale, detail_roughness, phase;
   float3 vector;
 };
 

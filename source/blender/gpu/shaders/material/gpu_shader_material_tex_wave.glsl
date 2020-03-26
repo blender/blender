@@ -2,6 +2,7 @@ float calc_wave(vec3 p,
                 float distortion,
                 float detail,
                 float detail_scale,
+                float detail_roughness,
                 float phase,
                 int wave_type,
                 int bands_dir,
@@ -46,7 +47,7 @@ float calc_wave(vec3 p,
   n += phase;
 
   if (distortion != 0.0) {
-    n += distortion * (fractal_noise(p * detail_scale, detail) * 2.0 - 1.0);
+    n += distortion * (fractal_noise(p * detail_scale, detail, detail_roughness) * 2.0 - 1.0);
   }
 
   if (wave_profile == 0) { /* profile sin */
@@ -67,6 +68,7 @@ void node_tex_wave(vec3 co,
                    float distortion,
                    float detail,
                    float detail_scale,
+                   float detail_roughness,
                    float phase,
                    float wave_type,
                    float bands_dir,
@@ -80,6 +82,7 @@ void node_tex_wave(vec3 co,
                 distortion,
                 detail,
                 detail_scale,
+                detail_roughness,
                 phase,
                 int(wave_type),
                 int(bands_dir),

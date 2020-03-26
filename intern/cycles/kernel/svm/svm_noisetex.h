@@ -50,24 +50,34 @@ ccl_device_inline float4 random_float4_offset(float seed)
                      100.0f + hash_float2_to_float(make_float2(seed, 3.0f)) * 100.0f);
 }
 
-ccl_device void noise_texture_1d(
-    float co, float detail, float distortion, bool color_is_needed, float *value, float3 *color)
+ccl_device void noise_texture_1d(float co,
+                                 float detail,
+                                 float roughness,
+                                 float distortion,
+                                 bool color_is_needed,
+                                 float *value,
+                                 float3 *color)
 {
   float p = co;
   if (distortion != 0.0f) {
     p += snoise_1d(p + random_float_offset(0.0f)) * distortion;
   }
 
-  *value = fractal_noise_1d(p, detail);
+  *value = fractal_noise_1d(p, detail, roughness);
   if (color_is_needed) {
     *color = make_float3(*value,
-                         fractal_noise_1d(p + random_float_offset(1.0f), detail),
-                         fractal_noise_1d(p + random_float_offset(2.0f), detail));
+                         fractal_noise_1d(p + random_float_offset(1.0f), detail, roughness),
+                         fractal_noise_1d(p + random_float_offset(2.0f), detail, roughness));
   }
 }
 
-ccl_device void noise_texture_2d(
-    float2 co, float detail, float distortion, bool color_is_needed, float *value, float3 *color)
+ccl_device void noise_texture_2d(float2 co,
+                                 float detail,
+                                 float roughness,
+                                 float distortion,
+                                 bool color_is_needed,
+                                 float *value,
+                                 float3 *color)
 {
   float2 p = co;
   if (distortion != 0.0f) {
@@ -75,16 +85,21 @@ ccl_device void noise_texture_2d(
                      snoise_2d(p + random_float2_offset(1.0f)) * distortion);
   }
 
-  *value = fractal_noise_2d(p, detail);
+  *value = fractal_noise_2d(p, detail, roughness);
   if (color_is_needed) {
     *color = make_float3(*value,
-                         fractal_noise_2d(p + random_float2_offset(2.0f), detail),
-                         fractal_noise_2d(p + random_float2_offset(3.0f), detail));
+                         fractal_noise_2d(p + random_float2_offset(2.0f), detail, roughness),
+                         fractal_noise_2d(p + random_float2_offset(3.0f), detail, roughness));
   }
 }
 
-ccl_device void noise_texture_3d(
-    float3 co, float detail, float distortion, bool color_is_needed, float *value, float3 *color)
+ccl_device void noise_texture_3d(float3 co,
+                                 float detail,
+                                 float roughness,
+                                 float distortion,
+                                 bool color_is_needed,
+                                 float *value,
+                                 float3 *color)
 {
   float3 p = co;
   if (distortion != 0.0f) {
@@ -93,16 +108,21 @@ ccl_device void noise_texture_3d(
                      snoise_3d(p + random_float3_offset(2.0f)) * distortion);
   }
 
-  *value = fractal_noise_3d(p, detail);
+  *value = fractal_noise_3d(p, detail, roughness);
   if (color_is_needed) {
     *color = make_float3(*value,
-                         fractal_noise_3d(p + random_float3_offset(3.0f), detail),
-                         fractal_noise_3d(p + random_float3_offset(4.0f), detail));
+                         fractal_noise_3d(p + random_float3_offset(3.0f), detail, roughness),
+                         fractal_noise_3d(p + random_float3_offset(4.0f), detail, roughness));
   }
 }
 
-ccl_device void noise_texture_4d(
-    float4 co, float detail, float distortion, bool color_is_needed, float *value, float3 *color)
+ccl_device void noise_texture_4d(float4 co,
+                                 float detail,
+                                 float roughness,
+                                 float distortion,
+                                 bool color_is_needed,
+                                 float *value,
+                                 float3 *color)
 {
   float4 p = co;
   if (distortion != 0.0f) {
@@ -112,11 +132,11 @@ ccl_device void noise_texture_4d(
                      snoise_4d(p + random_float4_offset(3.0f)) * distortion);
   }
 
-  *value = fractal_noise_4d(p, detail);
+  *value = fractal_noise_4d(p, detail, roughness);
   if (color_is_needed) {
     *color = make_float3(*value,
-                         fractal_noise_4d(p + random_float4_offset(4.0f), detail),
-                         fractal_noise_4d(p + random_float4_offset(5.0f), detail));
+                         fractal_noise_4d(p + random_float4_offset(4.0f), detail, roughness),
+                         fractal_noise_4d(p + random_float4_offset(5.0f), detail, roughness));
   }
 }
 
@@ -128,21 +148,27 @@ ccl_device void svm_node_tex_noise(KernelGlobals *kg,
                                    uint offsets2,
                                    int *offset)
 {
-  uint vector_stack_offset, w_stack_offset, scale_stack_offset, detail_stack_offset;
-  uint distortion_stack_offset, value_stack_offset, color_stack_offset;
+  uint vector_stack_offset, w_stack_offset, scale_stack_offset;
+  uint detail_stack_offset, roughness_stack_offset, distortion_stack_offset;
+  uint value_stack_offset, color_stack_offset;
 
   svm_unpack_node_uchar4(
       offsets1, &vector_stack_offset, &w_stack_offset, &scale_stack_offset, &detail_stack_offset);
-  svm_unpack_node_uchar3(
-      offsets2, &distortion_stack_offset, &value_stack_offset, &color_stack_offset);
+  svm_unpack_node_uchar4(offsets2,
+                         &roughness_stack_offset,
+                         &distortion_stack_offset,
+                         &value_stack_offset,
+                         &color_stack_offset);
 
-  uint4 defaults = read_node(kg, offset);
+  uint4 defaults1 = read_node(kg, offset);
+  uint4 defaults2 = read_node(kg, offset);
 
   float3 vector = stack_load_float3(stack, vector_stack_offset);
-  float w = stack_load_float_default(stack, w_stack_offset, defaults.x);
-  float scale = stack_load_float_default(stack, scale_stack_offset, defaults.y);
-  float detail = stack_load_float_default(stack, detail_stack_offset, defaults.z);
-  float distortion = stack_load_float_default(stack, distortion_stack_offset, defaults.w);
+  float w = stack_load_float_default(stack, w_stack_offset, defaults1.x);
+  float scale = stack_load_float_default(stack, scale_stack_offset, defaults1.y);
+  float detail = stack_load_float_default(stack, detail_stack_offset, defaults1.z);
+  float roughness = stack_load_float_default(stack, roughness_stack_offset, defaults1.w);
+  float distortion = stack_load_float_default(stack, distortion_stack_offset, defaults2.x);
 
   vector *= scale;
   w *= scale;
@@ -151,11 +177,13 @@ ccl_device void svm_node_tex_noise(KernelGlobals *kg,
   float3 color;
   switch (dimensions) {
     case 1:
-      noise_texture_1d(w, detail, distortion, stack_valid(color_stack_offset), &value, &color);
+      noise_texture_1d(
+          w, detail, roughness, distortion, stack_valid(color_stack_offset), &value, &color);
       break;
     case 2:
       noise_texture_2d(make_float2(vector.x, vector.y),
                        detail,
+                       roughness,
                        distortion,
                        stack_valid(color_stack_offset),
                        &value,
@@ -163,11 +191,12 @@ ccl_device void svm_node_tex_noise(KernelGlobals *kg,
       break;
     case 3:
       noise_texture_3d(
-          vector, detail, distortion, stack_valid(color_stack_offset), &value, &color);
+          vector, detail, roughness, distortion, stack_valid(color_stack_offset), &value, &color);
       break;
     case 4:
       noise_texture_4d(make_float4(vector.x, vector.y, vector.z, w),
                        detail,
+                       roughness,
                        distortion,
                        stack_valid(color_stack_offset),
                        &value,
