@@ -104,10 +104,12 @@ endif()
 set(OSX_SDK_PATH)
 set(OSX_SDK_FOUND FALSE)
 set(OSX_SDK_PREFIX ${OSX_SYSROOT_PREFIX}/Developer/SDKs)
+set(OSX_SDKROOT)
 foreach(OSX_SDK_VERSION ${OSX_SDK_TEST_VERSIONS})
   set(CURRENT_OSX_SDK_PATH "${OSX_SDK_PREFIX}/MacOSX${OSX_SDK_VERSION}.sdk")
   if(EXISTS ${CURRENT_OSX_SDK_PATH})
     set(OSX_SDK_PATH "${CURRENT_OSX_SDK_PATH}")
+    set(OSX_SDKROOT macosx${OSX_SDK_VERSION})
     set(OSX_SDK_FOUND TRUE)
     break()
   endif()
@@ -127,8 +129,9 @@ unset(OSX_SDK_FOUND)
 
 if(${CMAKE_GENERATOR} MATCHES "Xcode")
   # to silence sdk not found warning, just overrides CMAKE_OSX_SYSROOT
-  set(CMAKE_XCODE_ATTRIBUTE_SDKROOT macosx${OSX_SYSTEM})
+  set(CMAKE_XCODE_ATTRIBUTE_SDKROOT ${OSX_SDKROOT})
 endif()
+unset(OSX_SDKROOT)
 
 # 10.11 is our min. target, if you use higher sdk, weak linking happens
 if(CMAKE_OSX_DEPLOYMENT_TARGET)
