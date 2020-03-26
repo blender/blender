@@ -37,8 +37,11 @@ typedef unsigned long long uint64_t;
 typedef unsigned short half;
 typedef unsigned long long CUtexObject;
 
-#define FLT_MIN 1.175494350822287507969e-38f
-#define FLT_MAX 340282346638528859811704183484516925440.0f
+#ifdef CYCLES_CUBIN_CC
+#  define FLT_MIN 1.175494350822287507969e-38f
+#  define FLT_MAX 340282346638528859811704183484516925440.0f
+#  define FLT_EPSILON 1.192092896e-07F
+#endif
 
 __device__ half __float2half(const float f)
 {

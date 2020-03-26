@@ -43,7 +43,8 @@ template<typename T> std::string to_string(const T &n)
 
 class CompilationSettings {
  public:
-  CompilationSettings() : target_arch(0), bits(64), verbose(false), fast_math(false)
+  CompilationSettings()
+      : target_arch(0), bits(64), verbose(false), fast_math(false), ptx_only(false)
   {
   }
 
@@ -57,12 +58,13 @@ class CompilationSettings {
   int bits;
   bool verbose;
   bool fast_math;
+  bool ptx_only;
 };
 
 static bool compile_cuda(CompilationSettings &settings)
 {
-  const char *headers[] = {"stdlib.h", "float.h", "math.h", "stdio.h"};
-  const char *header_content[] = {"\n", "\n", "\n", "\n"};
+  const char *headers[] = {"stdlib.h", "float.h", "math.h", "stdio.h", "stddef.h"};
+  const char *header_content[] = {"\n", "\n", "\n", "\n", "\n"};
 
   printf("Building %s\n", settings.input_file.c_str());
 
@@ -83,6 +85,8 @@ static bool compile_cuda(CompilationSettings &settings)
   options.push_back("-D__KERNEL_CUDA_VERSION__=" + std::to_string(cuewNvrtcVersion()));
   options.push_back("-arch=compute_" + std::to_string(settings.target_arch));
   options.push_back("--device-as-default-execution-space");
+  options.push_back("-DCYCLES_CUBIN_CC");
+  options.push_back("--std=c++11");
   if (settings.fast_math)
     options.push_back("--use_fast_math");
 
@@ -134,10 +138,14 @@ static bool compile_cuda(CompilationSettings &settings)
     fprintf(stderr, "Error: nvrtcGetPTX failed (%d)\n\n", (int)result);
     return false;
   }
-
-  /* Write a file in the temp folder with the ptx code. */
-  settings.ptx_file = OIIO::Filesystem::temp_directory_path() + "/" +
-                      OIIO::Filesystem::unique_path();
+  if (settings.ptx_only) {
+    settings.ptx_file = settings.output_file;
+  }
+  else {
+    /* Write a file in the temp folder with the ptx code. */
+    settings.ptx_file = OIIO::Filesystem::temp_directory_path() + "/" +
+                        OIIO::Filesystem::unique_path();
+  }
   FILE *f = fopen(settings.ptx_file.c_str(), "wb");
   fwrite(&ptx_code[0], 1, ptx_size, f);
   fclose(f);
@@ -249,6 +257,9 @@ static bool parse_parameters(int argc, const char **argv, CompilationSettings &s
              "-D %L",
              &settings.defines,
              "Add additional defines",
+             "-ptx",
+             &settings.ptx_only,
+             "emit PTX code",
              "-v",
              &settings.verbose,
              "Use verbose logging",
@@ -303,8 +314,10 @@ int main(int argc, const char **argv)
     exit(EXIT_FAILURE);
   }
 
-  if (!link_ptxas(settings)) {
-    exit(EXIT_FAILURE);
+  if (!settings.ptx_only) {
+    if (!link_ptxas(settings)) {
+      exit(EXIT_FAILURE);
+    }
   }
 
   return 0;

@@ -452,7 +452,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
       endif()
 
       add_custom_command(
-        OUTPUT ${cuda_cubin}
+        OUTPUT ${cuda_file}
         COMMAND ${CUBIN_CC_ENV}
             "$<TARGET_FILE:cycles_cubin_cc>"
             -target ${CUDA_ARCH}
@@ -461,7 +461,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
             -v
             -cuda-toolkit-dir "${CUDA_TOOLKIT_ROOT_DIR}"
         DEPENDS ${kernel_sources} cycles_cubin_cc)
-      set(cuda_file ${cuda_cubin})
     else()
       add_custom_command(
         OUTPUT ${cuda_file}
@@ -517,7 +516,6 @@ if(WITH_CYCLES_DEVICE_OPTIX)
       -I "${OPTIX_INCLUDE_DIR}"
       -I "${CMAKE_CURRENT_SOURCE_DIR}/.."
       -I "${CMAKE_CURRENT_SOURCE_DIR}/kernels/cuda"
-      -arch=sm_30
       --use_fast_math
       -o ${output})
 
@@ -525,25 +523,62 @@ if(WITH_CYCLES_DEVICE_OPTIX)
       set(cuda_flags ${cuda_flags}
         -D __KERNEL_DEBUG__)
     endif()
+    if(WITH_CYCLES_CUBIN_COMPILER)
 
-    add_custom_command(
-      OUTPUT
-        ${output}
-      DEPENDS
-        ${input}
-        ${SRC_HEADERS}
-        ${SRC_KERNELS_CUDA_HEADERS}
-        ${SRC_KERNELS_OPTIX_HEADERS}
-        ${SRC_BVH_HEADERS}
-        ${SRC_SVM_HEADERS}
-        ${SRC_GEOM_HEADERS}
-        ${SRC_CLOSURE_HEADERS}
-        ${SRC_UTIL_HEADERS}
-      COMMAND
-        ${CUDA_NVCC_EXECUTABLE} --ptx ${cuda_flags} ${input}
-      WORKING_DIRECTORY
-        "${CMAKE_CURRENT_SOURCE_DIR}")
+      # Needed to find libnvrtc-builtins.so. Can't do it from inside
+      # cycles_cubin_cc since the env variable is read before main()
+      if(APPLE)
+        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
+          -E env DYLD_LIBRARY_PATH="${CUDA_TOOLKIT_ROOT_DIR}/lib")
+      elseif(UNIX)
+        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
+          -E env LD_LIBRARY_PATH="${CUDA_TOOLKIT_ROOT_DIR}/lib64")
+      endif()
 
+      add_custom_command(
+        OUTPUT ${output}
+        DEPENDS
+          ${input}
+          ${SRC_HEADERS}
+          ${SRC_KERNELS_CUDA_HEADERS}
+          ${SRC_KERNELS_OPTIX_HEADERS}
+          ${SRC_BVH_HEADERS}
+          ${SRC_SVM_HEADERS}
+          ${SRC_GEOM_HEADERS}
+          ${SRC_CLOSURE_HEADERS}
+          ${SRC_UTIL_HEADERS}
+        COMMAND ${CUBIN_CC_ENV}
+            "$<TARGET_FILE:cycles_cubin_cc>"
+            -target 30
+            -ptx
+            -i ${CMAKE_CURRENT_SOURCE_DIR}/${input}
+            ${cuda_flags}
+            -v
+            -cuda-toolkit-dir "${CUDA_TOOLKIT_ROOT_DIR}"
+        DEPENDS ${kernel_sources} cycles_cubin_cc)
+    else()
+      add_custom_command(
+        OUTPUT
+          ${output}
+        DEPENDS
+          ${input}
+          ${SRC_HEADERS}
+          ${SRC_KERNELS_CUDA_HEADERS}
+          ${SRC_KERNELS_OPTIX_HEADERS}
+          ${SRC_BVH_HEADERS}
+          ${SRC_SVM_HEADERS}
+          ${SRC_GEOM_HEADERS}
+          ${SRC_CLOSURE_HEADERS}
+          ${SRC_UTIL_HEADERS}
+        COMMAND
+          ${CUDA_NVCC_EXECUTABLE}
+          --ptx
+          -arch=sm_30
+          ${cuda_flags}
+          ${input}
+        WORKING_DIRECTORY
+          "${CMAKE_CURRENT_SOURCE_DIR}")
+    endif()
     list(APPEND optix_ptx ${output})
 
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${output}" ${CYCLES_INSTALL_PATH}/lib)
