@@ -48,9 +48,7 @@ void FRS_set_context(struct bContext *C);
 int FRS_is_freestyle_enabled(struct ViewLayer *view_layer);
 void FRS_init_stroke_renderer(struct Render *re);
 void FRS_begin_stroke_rendering(struct Render *re);
-struct Render *FRS_do_stroke_rendering(struct Render *re,
-                                       struct ViewLayer *view_layer,
-                                       int render);
+void FRS_do_stroke_rendering(struct Render *re, struct ViewLayer *view_layer);
 void FRS_end_stroke_rendering(struct Render *re);
 void FRS_free_view_map_cache(void);
 void FRS_composite_result(struct Render *re,

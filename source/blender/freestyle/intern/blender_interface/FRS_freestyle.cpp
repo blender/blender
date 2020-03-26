@@ -637,14 +637,8 @@ void FRS_begin_stroke_rendering(Render *re)
   init_camera(re);
 }
 
-Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
+void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
 {
-  Render *freestyle_render = NULL;
-
-  if (!render) {
-    return controller->RenderStrokes(re, false);
-  }
-
   RenderMonitor monitor(re);
   controller->setRenderMonitor(&monitor);
   controller->setViewMapCache(
@@ -685,6 +679,7 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
       re->i.infostr = NULL;
       g_freestyle.scene = DEG_get_evaluated_scene(depsgraph);
       int strokeCount = controller->DrawStrokes();
+      Render *freestyle_render = NULL;
       if (strokeCount > 0) {
         freestyle_render = controller->RenderStrokes(re, true);
       }
@@ -694,15 +689,12 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
       // composite result
       if (freestyle_render) {
         FRS_composite_result(re, view_layer, freestyle_render);
-        RE_FreeRenderResult(freestyle_render->result);
-        freestyle_render->result = NULL;
+        RE_FreeRender(freestyle_render);
       }
     }
   }
 
   DEG_graph_free(depsgraph);
-
-  return freestyle_render;
 }
 
 void FRS_end_stroke_rendering(Render * /*re*/)

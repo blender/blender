@@ -123,11 +123,6 @@ struct Render {
   Depsgraph *pipeline_depsgraph;
   Scene *pipeline_scene_eval;
 
-#ifdef WITH_FREESTYLE
-  struct Main *freestyle_bmain;
-  ListBase freestyle_renders;
-#endif
-
   /* callbacks */
   void (*display_init)(void *handle, RenderResult *rr);
   void *dih;

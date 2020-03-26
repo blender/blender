@@ -32,19 +32,19 @@ extern "C" {
 
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_listBase.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_listBase.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_customdata.h"
-#include "BKE_idprop.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h" /* free_libblock */
 #include "BKE_material.h"
@@ -76,7 +76,16 @@ const char *BlenderStrokeRenderer::uvNames[] = {"along_stroke", "along_stroke_ti
 
 BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
 {
-  freestyle_bmain = re->freestyle_bmain;
+  freestyle_bmain = BKE_main_new();
+
+  /* We use the same window manager for freestyle bmain as
+   * real bmain uses. This is needed because freestyle's
+   * bmain could be used to tag scenes for update, which
+   * implies call of ED_render_scene_update in some cases
+   * and that function requires proper window manager
+   * to present (sergey)
+   */
+  freestyle_bmain->wm = re->main->wm;
 
   // for stroke mesh generation
   _width = re->winx;
@@ -170,50 +179,18 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
 {
-  // The freestyle_scene object is not released here.  Instead,
-  // the scene is released in free_all_freestyle_renders() in
-  // source/blender/render/intern/source/pipeline.c, after the
-  // compositor has finished.
-
-  // release objects and data blocks
-  Base *base_next = NULL;
-  ViewLayer *view_layer = (ViewLayer *)freestyle_scene->view_layers.first;
-  for (Base *b = (Base *)view_layer->object_bases.first; b; b = base_next) {
-    base_next = b->next;
-    Object *ob = b->object;
-    char *name = ob->id.name;
-#if 0
-    if (G.debug & G_DEBUG_FREESTYLE) {
-      cout << "removing " << name[0] << name[1] << ":" << (name + 2) << endl;
-    }
-#endif
-    switch (ob->type) {
-      case OB_CAMERA:
-        freestyle_scene->camera = NULL;
-        ATTR_FALLTHROUGH;
-      case OB_MESH:
-        BKE_scene_collections_object_remove(freestyle_bmain, freestyle_scene, ob, true);
-        break;
-      default:
-        cerr << "Warning: unexpected object in the scene: " << name[0] << name[1] << ":"
-             << (name + 2) << endl;
-    }
-  }
-
-  // release materials
-  Link *lnk = (Link *)freestyle_bmain->materials.first;
-
-  while (lnk) {
-    Material *ma = (Material *)lnk;
-    lnk = lnk->next;
-    BKE_id_free(freestyle_bmain, ma);
-  }
-
   BLI_ghash_free(_nodetree_hash, NULL, NULL);
 
   DEG_graph_free(freestyle_depsgraph);
 
   FreeStrokeGroups();
+
+  /* detach the window manager from freestyle bmain (see comments
+   * in add_freestyle() for more detail)
+   */
+  BLI_listbase_clear(&freestyle_bmain->wm);
+
+  BKE_main_free(freestyle_bmain);
 }
 
 float BlenderStrokeRenderer::get_stroke_vertex_z(void) const

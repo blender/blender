@@ -1149,14 +1149,6 @@ void RE_AddObject(Render *UNUSED(re), Object *UNUSED(ob))
 }
 #endif
 
-/* *************************************** */
-
-#ifdef WITH_FREESTYLE
-static void init_freestyle(Render *re);
-static void add_freestyle(Render *re, int render);
-static void free_all_freestyle_renders(void);
-#endif
-
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
 static void do_render_3d(Render *re)
@@ -1365,87 +1357,6 @@ static void render_composit_stats(void *arg, const char *str)
   re->stats_draw(re->sdh, &i);
 }
 
-#ifdef WITH_FREESTYLE
-/* init Freestyle renderer */
-static void init_freestyle(Render *re)
-{
-  re->freestyle_bmain = BKE_main_new();
-
-  /* We use the same window manager for freestyle bmain as
-   * real bmain uses. This is needed because freestyle's
-   * bmain could be used to tag scenes for update, which
-   * implies call of ED_render_scene_update in some cases
-   * and that function requires proper window manager
-   * to present (sergey)
-   */
-  re->freestyle_bmain->wm = re->main->wm;
-
-  FRS_init_stroke_renderer(re);
-}
-
-/* invokes Freestyle stroke rendering */
-static void add_freestyle(Render *re, int render)
-{
-  ViewLayer *view_layer, *active_view_layer;
-  LinkData *link;
-  Render *r;
-
-  active_view_layer = BLI_findlink(&re->view_layers, re->active_view_layer);
-
-  FRS_begin_stroke_rendering(re);
-
-  for (view_layer = (ViewLayer *)re->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
-    link = (LinkData *)MEM_callocN(sizeof(LinkData), "LinkData to Freestyle render");
-    BLI_addtail(&re->freestyle_renders, link);
-
-    if ((re->r.scemode & R_SINGLE_LAYER) && view_layer != active_view_layer) {
-      continue;
-    }
-    if (FRS_is_freestyle_enabled(view_layer)) {
-      r = FRS_do_stroke_rendering(re, view_layer, render);
-      link->data = (void *)r;
-    }
-  }
-
-  FRS_end_stroke_rendering(re);
-}
-
-/* releases temporary scenes and renders for Freestyle stroke rendering */
-static void free_all_freestyle_renders(void)
-{
-  Render *re1;
-  LinkData *link;
-
-  for (re1 = RenderGlobal.renderlist.first; re1; re1 = re1->next) {
-    for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
-      Render *freestyle_render = (Render *)link->data;
-
-      if (freestyle_render) {
-        Scene *freestyle_scene = freestyle_render->scene;
-        RE_FreeRender(freestyle_render);
-
-        if (freestyle_scene) {
-          BKE_libblock_unlink(re1->freestyle_bmain, freestyle_scene, false, false);
-          BKE_id_free(re1->freestyle_bmain, freestyle_scene);
-        }
-      }
-    }
-    BLI_freelistN(&re1->freestyle_renders);
-
-    if (re1->freestyle_bmain) {
-      /* detach the window manager from freestyle bmain (see comments
-       * in add_freestyle() for more detail)
-       */
-      BLI_listbase_clear(&re1->freestyle_bmain->wm);
-
-      BKE_main_free(re1->freestyle_bmain);
-      re1->freestyle_bmain = NULL;
-    }
-  }
-}
-#endif
-
 /* returns fully composited render-result on given time step (in RenderData) */
 static void do_render_composite(Render *re)
 {
@@ -1530,10 +1441,6 @@ static void do_render_composite(Render *re)
       }
     }
   }
-
-#ifdef WITH_FREESTYLE
-  free_all_freestyle_renders();
-#endif
 
   /* weak... the display callback wants an active renderlayer pointer... */
   if (re->result != NULL) {
@@ -2181,15 +2088,30 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render
 
 void RE_RenderFreestyleExternal(Render *re)
 {
-  if (!re->test_break(re->tbh)) {
-    RenderView *rv;
+  if (re->test_break(re->tbh)) {
+    return;
+  }
 
-    init_freestyle(re);
+  FRS_init_stroke_renderer(re);
 
-    for (rv = re->result->views.first; rv; rv = rv->next) {
-      RE_SetActiveRenderView(re, rv->name);
-      add_freestyle(re, 1);
+  for (RenderView *rv = re->result->views.first; rv; rv = rv->next) {
+    RE_SetActiveRenderView(re, rv->name);
+
+    ViewLayer *active_view_layer = BLI_findlink(&re->view_layers, re->active_view_layer);
+    FRS_begin_stroke_rendering(re);
+
+    for (ViewLayer *view_layer = (ViewLayer *)re->view_layers.first; view_layer;
+         view_layer = view_layer->next) {
+      if ((re->r.scemode & R_SINGLE_LAYER) && view_layer != active_view_layer) {
+        continue;
+      }
+
+      if (FRS_is_freestyle_enabled(view_layer)) {
+        FRS_do_stroke_rendering(re, view_layer);
+      }
     }
+
+    FRS_end_stroke_rendering(re);
   }
 }
 #endif
