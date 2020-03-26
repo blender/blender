@@ -74,7 +74,7 @@ class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "material"
     _property_type = bpy.types.Material
 
