@@ -67,8 +67,8 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
 
 BLI_INLINE int clamp_float_to_int(const float f)
 {
-  const float min = INT_MIN;
-  const float max = INT_MAX;
+  const float min = (float) INT_MIN;
+  const float max = (float) INT_MAX;
 
   if (UNLIKELY(f < min)) {
     return min;
