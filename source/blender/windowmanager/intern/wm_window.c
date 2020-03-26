@@ -414,7 +414,7 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
   wmWindow *win_other;
-  const bool is_dialog = GHOST_IsDialogWindow(win->ghostwin);
+  const bool is_dialog = (G.background == false) ? GHOST_IsDialogWindow(win->ghostwin) : false;
 
   /* First check if there is another main window remaining. */
   for (win_other = wm->windows.first; win_other; win_other = win_other->next) {
@@ -434,9 +434,13 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
     if (iter_win->parent == win) {
       wm_window_close(C, wm, iter_win);
     }
-    else if (is_dialog && iter_win != win && iter_win->parent &&
-             (GHOST_GetWindowState(iter_win->ghostwin) != GHOST_kWindowStateMinimized)) {
-      wm_window_raise(iter_win);
+    else {
+      if (G.background == false) {
+        if (is_dialog && iter_win != win && iter_win->parent &&
+            (GHOST_GetWindowState(iter_win->ghostwin) != GHOST_kWindowStateMinimized)) {
+          wm_window_raise(iter_win);
+        }
+      }
     }
   }
 
