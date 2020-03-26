@@ -79,8 +79,52 @@ endif()
 # so i use a selfcomposed bundlepath here
 set(OSX_SYSROOT_PREFIX ${XCODE_BUNDLE}/Contents/Developer/Platforms/MacOSX.platform)
 message(STATUS "OSX_SYSROOT_PREFIX: " ${OSX_SYSROOT_PREFIX})
-set(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk
-set(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
+
+# Collect list of OSX system versions which will be used to detect path to corresponding SDK.
+# Start with macOS SDK version reported by xcodebuild and include possible extra ones.
+#
+# The reason for need of extra ones is because it's possible that xcodebuild will report
+# SDK version in the full manner (aka major.minor.patch), but the actual path will only
+# include major.minor.
+#
+# This happens, for example, on macOS Catalina 10.15.4 and Xcode 11.4: xcodebuild on this
+# system outputs "10.15.4", but the actual SDK path is MacOSX10.15.sdk.
+#
+# This should be safe from picking wrong SDK version because (a) xcodebuild reports full semantic
+# SDK version, so such SDK does exist on the system. And if it doesn't exist with full version
+# in the path, what SDK is in the major.minor folder then.
+set(OSX_SDK_TEST_VERSIONS ${OSX_SYSTEM})
+if(OSX_SYSTEM MATCHES "([0-9]+)\\.([0-9]+)\\.([0-9]+)")
+  string(REGEX REPLACE "([0-9]+)\\.([0-9]+)\\.([0-9]+)" "\\1.\\2" OSX_SYSTEM_NO_PATCH "${OSX_SYSTEM}")
+  list(APPEND OSX_SDK_TEST_VERSIONS ${OSX_SYSTEM_NO_PATCH})
+  unset(OSX_SYSTEM_NO_PATCH)
+endif()
+
+# Loop through all possible versions and pick the first one which resolves to a valid SDK path.
+set(OSX_SDK_PATH)
+set(OSX_SDK_FOUND FALSE)
+set(OSX_SDK_PREFIX ${OSX_SYSROOT_PREFIX}/Developer/SDKs)
+foreach(OSX_SDK_VERSION ${OSX_SDK_TEST_VERSIONS})
+  set(CURRENT_OSX_SDK_PATH "${OSX_SDK_PREFIX}/MacOSX${OSX_SDK_VERSION}.sdk")
+  if(EXISTS ${CURRENT_OSX_SDK_PATH})
+    set(OSX_SDK_PATH "${CURRENT_OSX_SDK_PATH}")
+    set(OSX_SDK_FOUND TRUE)
+    break()
+  endif()
+endforeach()
+unset(OSX_SDK_PREFIX)
+unset(OSX_SDK_TEST_VERSIONS)
+
+if(NOT OSX_SDK_FOUND)
+  message(FATAL_ERROR "Unable to find SDK for macOS version ${OSX_SYSTEM}")
+endif()
+
+message(STATUS "Detected OSX_SYSROOT: ${OSX_SDK_PATH}")
+
+set(CMAKE_OSX_SYSROOT ${OSX_SDK_PATH} CACHE PATH "" FORCE)
+unset(OSX_SDK_PATH)
+unset(OSX_SDK_FOUND)
+
 if(${CMAKE_GENERATOR} MATCHES "Xcode")
   # to silence sdk not found warning, just overrides CMAKE_OSX_SYSROOT
   set(CMAKE_XCODE_ATTRIBUTE_SDKROOT macosx${OSX_SYSTEM})
