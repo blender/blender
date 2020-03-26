@@ -168,9 +168,9 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
 
   wpd->view = NULL;
 
-  /* reset complete drawing when navigating. */
+  /* reset complete drawing when navigating or during viewport playback. */
   if (wpd->taa_sample != 0) {
-    if (wpd->is_navigating) {
+    if (wpd->is_navigating || wpd->is_playback) {
       wpd->taa_sample = 0;
     }
   }
@@ -424,7 +424,6 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
 
   const bool last_sample = wpd->taa_sample + 1 == wpd->taa_sample_len;
   const bool taa_finished = wpd->taa_sample >= wpd->taa_sample_len;
-
   if (wpd->taa_sample == 0) {
     /* In playback mode, we are sure the next redraw will not use the same viewmatrix.
      * In this case no need to save the depth buffer. */
