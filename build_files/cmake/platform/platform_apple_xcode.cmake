@@ -41,30 +41,7 @@ execute_process(
     OUTPUT_VARIABLE XCODE_CHECK OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REPLACE "/Contents/Developer" "" XCODE_BUNDLE ${XCODE_CHECK}) # truncate to bundlepath in any case
 
-if(${CMAKE_GENERATOR} MATCHES "Xcode")
-
-  # earlier xcode has no bundled developer dir, no sense in getting xcode path from
-  if(${XCODE_VERSION} VERSION_GREATER 4.2)
-    # reduce to XCode name without dp extension
-    string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME)
-    if(${DP_NAME} MATCHES Xcode5)
-      set(XCODE_VERSION 5)
-    endif()
-  endif()
-
-  ##### cmake incompatibility with xcode  4.3 and higher #####
-  if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
-    message(FATAL_ERROR "Xcode 4.3 and higher must be used with cmake 2.8-8 or higher")
-  endif()
-  ### end cmake incompatibility with xcode 4.3 and higher ###
-
-  if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4 AND ${XCODE_VERSION} VERSION_LESS 4.3)
-    # Xcode 4 defaults to the Apple LLVM Compiler.
-    # Override the default compiler selection because Blender only compiles with gcc up to xcode 4.2
-    set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
-    message(STATUS "Setting compiler to: " ${CMAKE_XCODE_ATTRIBUTE_GCC_VERSION})
-  endif()
-else()
+if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")
   # Unix makefile generator does not fill XCODE_VERSION var, so we get it with a command.
   # Note that `xcodebuild -version` gives output in two lines: first line will include
   # Xcode version, second one will include build number. We are only interested in the
@@ -88,21 +65,25 @@ endif()
 
 message(STATUS "Detected OS X ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_BUNDLE}")
 
-if(${XCODE_VERSION} VERSION_LESS 4.3)
-  # use guaranteed existing sdk
-  set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk CACHE PATH "" FORCE)
-else()
-  # note: xcode-select path could be ambiguous,
-  # cause /Applications/Xcode.app/Contents/Developer or /Applications/Xcode.app would be allowed
-  # so i use a selfcomposed bundlepath here
-  set(OSX_SYSROOT_PREFIX ${XCODE_BUNDLE}/Contents/Developer/Platforms/MacOSX.platform)
-  message(STATUS "OSX_SYSROOT_PREFIX: " ${OSX_SYSROOT_PREFIX})
-  set(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk
-  set(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
-  if(${CMAKE_GENERATOR} MATCHES "Xcode")
-    # to silence sdk not found warning, just overrides CMAKE_OSX_SYSROOT
-    set(CMAKE_XCODE_ATTRIBUTE_SDKROOT macosx${OSX_SYSTEM})
-  endif()
+# Older Xcode versions had different approach to the directory hiearchy.
+# Require newer Xcode which is also have better chances of being able to compile with the
+# required deployment target.
+#
+# NOTE: Xcode version 8.2 is the latest one which runs on macOS 10.11.
+if(${XCODE_VERSION} VERSION_LESS 8.2)
+  message(FATAL_ERROR "Only Xcode version 8.2 and newer is supported")
+endif()
+
+# note: xcode-select path could be ambiguous,
+# cause /Applications/Xcode.app/Contents/Developer or /Applications/Xcode.app would be allowed
+# so i use a selfcomposed bundlepath here
+set(OSX_SYSROOT_PREFIX ${XCODE_BUNDLE}/Contents/Developer/Platforms/MacOSX.platform)
+message(STATUS "OSX_SYSROOT_PREFIX: " ${OSX_SYSROOT_PREFIX})
+set(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk
+set(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
+if(${CMAKE_GENERATOR} MATCHES "Xcode")
+  # to silence sdk not found warning, just overrides CMAKE_OSX_SYSROOT
+  set(CMAKE_XCODE_ATTRIBUTE_SDKROOT macosx${OSX_SYSTEM})
 endif()
 
 # 10.11 is our min. target, if you use higher sdk, weak linking happens
