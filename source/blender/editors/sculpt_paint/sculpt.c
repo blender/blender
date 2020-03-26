@@ -8298,6 +8298,22 @@ static void sculpt_dynamic_topology_disable_ex(
   }
   else {
     BKE_sculptsession_bm_to_me(ob, true);
+
+    /* Reset Face Sets as they are no longer valid. */
+    if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
+      CustomData_add_layer(&me->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, me->totpoly);
+    }
+    ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+    for (int i = 0; i < me->totpoly; i++) {
+      ss->face_sets[i] = 1;
+    }
+    me->face_sets_color_default = 1;
+
+    /* Sync the visibility to vertices manually as the pmap is still not initialized. */
+    for (int i = 0; i < me->totvert; i++) {
+      me->mvert[i].flag &= ~ME_HIDE;
+      me->mvert[i].flag |= ME_VERT_PBVH_UPDATE;
+    }
   }
 
   /* Clear data. */
