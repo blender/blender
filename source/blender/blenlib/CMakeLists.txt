@@ -277,6 +277,13 @@ if(WIN32)
   )
 endif()
 
+
+if(APPLE)
+  list(APPEND SRC
+    intern/storage_apple.mm
+  )
+endif()
+
 if(UNIX AND NOT APPLE)
   list(APPEND LIB
     bf_intern_libc_compat

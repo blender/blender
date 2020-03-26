@@ -1634,7 +1634,9 @@ static int file_exec(bContext *C, wmOperator *exec_op)
       BLI_path_append(sfile->params->dir, sizeof(sfile->params->dir) - 1, file->relpath);
       BLI_add_slash(sfile->params->dir);
     }
-
+    if (file->redirection_path) {
+      STRNCPY(sfile->params->dir, file->redirection_path);
+    }
     ED_file_change_dir(C);
   }
   /* opening file - sends events now, so things get handled on windowqueue level */

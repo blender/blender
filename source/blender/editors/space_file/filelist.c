@@ -210,12 +210,13 @@ typedef struct FileListInternEntry {
   int blentype;
 
   char *relpath;
+  /** Optional argument for shortcuts, aliases etc. */
+  char *redirection_path;
   /** not strictly needed, but used during sorting, avoids to have to recompute it there... */
   char *name;
 
   /** Defined in BLI_fileops.h */
   eFileAttributes attributes;
-
   BLI_stat_t st;
 } FileListInternEntry;
 
@@ -961,12 +962,12 @@ ImBuf *filelist_getimage(struct FileList *filelist, const int index)
   return file->image;
 }
 
-static ImBuf *filelist_geticon_image_ex(const unsigned int typeflag, const char *relpath)
+static ImBuf *filelist_geticon_image_ex(FileDirEntry *file)
 {
   ImBuf *ibuf = NULL;
 
-  if (typeflag & FILE_TYPE_DIR) {
-    if (FILENAME_IS_PARENT(relpath)) {
+  if (file->typeflag & FILE_TYPE_DIR) {
+    if (FILENAME_IS_PARENT(file->relpath)) {
       ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
     }
     else {
@@ -983,8 +984,7 @@ static ImBuf *filelist_geticon_image_ex(const unsigned int typeflag, const char 
 ImBuf *filelist_geticon_image(struct FileList *filelist, const int index)
 {
   FileDirEntry *file = filelist_geticon_get_file(filelist, index);
-
-  return filelist_geticon_image_ex(file->typeflag, file->relpath);
+  return filelist_geticon_image_ex(file);
 }
 
 static int filelist_geticon_ex(FileDirEntry *file,
@@ -1170,6 +1170,9 @@ static void filelist_entry_clear(FileDirEntry *entry)
   if (entry->relpath) {
     MEM_freeN(entry->relpath);
   }
+  if (entry->redirection_path) {
+    MEM_freeN(entry->redirection_path);
+  }
   if (entry->image) {
     IMB_freeImBuf(entry->image);
   }
@@ -1238,6 +1241,9 @@ static void filelist_intern_entry_free(FileListInternEntry *entry)
 {
   if (entry->relpath) {
     MEM_freeN(entry->relpath);
+  }
+  if (entry->redirection_path) {
+    MEM_freeN(entry->redirection_path);
   }
   if (entry->name) {
     MEM_freeN(entry->name);
@@ -1690,6 +1696,9 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   ret->blentype = entry->blentype;
   ret->typeflag = entry->typeflag;
   ret->attributes = entry->attributes;
+  if (entry->redirection_path) {
+    ret->redirection_path = BLI_strdup(entry->redirection_path);
+  }
   BLI_addtail(&cache->cached_entries, ret);
   return ret;
 }
@@ -2523,6 +2532,16 @@ static int filelist_readjob_list_dir(const char *root,
 
       /* Set file attributes. */
       entry->attributes = BLI_file_attributes(path);
+      if (entry->attributes & FILE_ATTR_ALIAS) {
+        entry->redirection_path = MEM_callocN(FILE_MAXDIR, __func__);
+        if (BLI_file_alias_target(entry->redirection_path, path)) {
+          if (BLI_is_dir(entry->redirection_path)) {
+            entry->typeflag = FILE_TYPE_DIR;
+          }
+          else
+            entry->typeflag = ED_path_extension_type(entry->redirection_path);
+        }
+      }
 
 #ifndef WIN32
       /* Set linux-style dot files hidden too. */

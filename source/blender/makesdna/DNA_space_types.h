@@ -955,7 +955,10 @@ typedef struct FileDirEntry {
   /** ID type, in case typeflag has FILE_TYPE_BLENDERLIB set. */
   int blentype;
 
+  /* Path to item that is relative to current folder root. */
   char *relpath;
+  /** Optional argument for shortcuts, aliases etc. */
+  char *redirection_path;
 
   /** TODO: make this a real ID pointer? */
   void *poin;

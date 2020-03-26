@@ -147,6 +147,7 @@ int BLI_access(const char *filename, int mode) ATTR_WARN_UNUSED_RESULT ATTR_NONN
 
 bool BLI_file_is_writable(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool BLI_file_touch(const char *file) ATTR_NONNULL();
+bool BLI_file_alias_target(char *target, const char *filepath);
 
 #if 0 /* UNUSED */
 int BLI_file_gzip(const char *from, const char *to) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
