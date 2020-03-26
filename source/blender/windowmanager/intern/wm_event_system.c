@@ -1864,6 +1864,8 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
                                                       const wmEvent *event)
 {
   for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+    /* Should already be handled by #wm_user_modal_keymap_set_items. */
+    BLI_assert(kmi->propvalue_str[0] == '\0');
     if (wm_eventmatch(event, kmi)) {
       if ((keymap->poll_modal_item == NULL) || (keymap->poll_modal_item(op, kmi->propvalue))) {
         return kmi;

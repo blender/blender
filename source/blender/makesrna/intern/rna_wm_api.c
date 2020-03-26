@@ -392,9 +392,27 @@ static PointerRNA rna_KeyMap_item_match_event(ID *id, wmKeyMap *km, bContext *C,
   return kmi_ptr;
 }
 
-static wmKeyMap *rna_keymap_new(
-    wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid, bool modal, bool tool)
+static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf,
+                                ReportList *reports,
+                                const char *idname,
+                                int spaceid,
+                                int regionid,
+                                bool modal,
+                                bool tool)
 {
+  if (modal) {
+    /* Sanity check: Don't allow add-ons to override internal modal key-maps
+     * because this isn't supported, the restriction can be removed when
+     * add-ons can define modal key-maps.
+     * Currently this is only useful for add-ons to override built-in modal keymaps
+     * which is not the intended use for add-on keymaps. */
+    wmWindowManager *wm = G_MAIN->wm.first;
+    if (keyconf == wm->addonconf) {
+      BKE_reportf(reports, RPT_ERROR, "Modal key-maps not supported for add-on key-config");
+      return NULL;
+    }
+  }
+
   wmKeyMap *keymap;
 
   if (modal == 0) {
@@ -1180,6 +1198,7 @@ void RNA_api_keymaps(StructRNA *srna)
   PropertyRNA *parm;
 
   func = RNA_def_function(srna, "new", "rna_keymap_new"); /* add_keymap */
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");

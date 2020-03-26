@@ -1900,6 +1900,8 @@ void WM_keyconfig_update(wmWindowManager *wm)
     addonmap = WM_keymap_list_find(&wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
     usermap = WM_keymap_list_find(&U.user_keymaps, km->idname, km->spaceid, km->regionid);
 
+    /* For now only the default map defines modal key-maps,
+     * if we support modal keymaps for 'addonmap', these will need to be enabled too. */
     wm_user_modal_keymap_set_items(wm, defaultmap);
 
     /* add */
