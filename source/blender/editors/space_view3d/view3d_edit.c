@@ -627,14 +627,14 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Rotate Modal");
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Rotate Modal");
 
   /* this function is called for each spacetype, only needs to add map once */
   if (keymap && keymap->modal_items) {
     return;
   }
 
-  keymap = WM_modalkeymap_add(keyconf, "View3D Rotate Modal", modal_items);
+  keymap = WM_modalkeymap_ensure(keyconf, "View3D Rotate Modal", modal_items);
 
   /* disabled mode switching for now, can re-implement better, later on */
 #if 0
@@ -1702,14 +1702,14 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Move Modal");
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Move Modal");
 
   /* this function is called for each spacetype, only needs to add map once */
   if (keymap && keymap->modal_items) {
     return;
   }
 
-  keymap = WM_modalkeymap_add(keyconf, "View3D Move Modal", modal_items);
+  keymap = WM_modalkeymap_ensure(keyconf, "View3D Move Modal", modal_items);
 
   /* items for modal map */
   WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
@@ -1901,14 +1901,14 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Zoom Modal");
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Zoom Modal");
 
   /* this function is called for each spacetype, only needs to add map once */
   if (keymap && keymap->modal_items) {
     return;
   }
 
-  keymap = WM_modalkeymap_add(keyconf, "View3D Zoom Modal", modal_items);
+  keymap = WM_modalkeymap_ensure(keyconf, "View3D Zoom Modal", modal_items);
 
   /* disabled mode switching for now, can re-implement better, later on */
 #if 0
@@ -2472,14 +2472,14 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Dolly Modal");
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Dolly Modal");
 
   /* this function is called for each spacetype, only needs to add map once */
   if (keymap && keymap->modal_items) {
     return;
   }
 
-  keymap = WM_modalkeymap_add(keyconf, "View3D Dolly Modal", modal_items);
+  keymap = WM_modalkeymap_ensure(keyconf, "View3D Dolly Modal", modal_items);
 
   /* disabled mode switching for now, can re-implement better, later on */
 #if 0

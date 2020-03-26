@@ -7694,14 +7694,14 @@ wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf)
   };
   static const char *keymap_name = "Custom Normals Modal Map";
 
-  wmKeyMap *keymap = WM_modalkeymap_get(keyconf, keymap_name);
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, keymap_name);
 
   /* We only need to add map once */
   if (keymap && keymap->modal_items) {
     return NULL;
   }
 
-  keymap = WM_modalkeymap_add(keyconf, keymap_name, modal_items);
+  keymap = WM_modalkeymap_ensure(keyconf, keymap_name, modal_items);
 
   WM_modalkeymap_assign(keymap, "MESH_OT_point_normals");
 

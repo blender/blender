@@ -419,7 +419,7 @@ static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf,
     keymap = WM_keymap_ensure(keyconf, idname, spaceid, regionid);
   }
   else {
-    keymap = WM_modalkeymap_add(keyconf, idname, NULL); /* items will be lazy init */
+    keymap = WM_modalkeymap_ensure(keyconf, idname, NULL); /* items will be lazy init */
   }
 
   if (keymap && tool) {

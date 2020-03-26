@@ -665,14 +665,14 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *kc)
   };
 
   STRNCPY(name, "Generic Gizmo Tweak Modal Map");
-  keymap = WM_modalkeymap_get(kc, name);
+  keymap = WM_modalkeymap_find(kc, name);
 
   /* this function is called for each spacetype, only needs to add map once */
   if (keymap && keymap->modal_items) {
     return NULL;
   }
 
-  keymap = WM_modalkeymap_add(kc, name, modal_items);
+  keymap = WM_modalkeymap_ensure(kc, name, modal_items);
 
   /* items for modal map */
   WM_modalkeymap_add_item(keymap, EVT_ESCKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_CANCEL);

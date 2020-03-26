@@ -690,14 +690,14 @@ wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Bevel Modal Map");
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Bevel Modal Map");
 
   /* This function is called for each spacetype, only needs to add map once */
   if (keymap && keymap->modal_items) {
     return NULL;
   }
 
-  keymap = WM_modalkeymap_add(keyconf, "Bevel Modal Map", modal_items);
+  keymap = WM_modalkeymap_ensure(keyconf, "Bevel Modal Map", modal_items);
 
   WM_modalkeymap_assign(keymap, "MESH_OT_bevel");
 

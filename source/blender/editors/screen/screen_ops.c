@@ -5517,7 +5517,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
   wmKeyMap *keymap;
 
   /* Standard Modal keymap ------------------------------------------------ */
-  keymap = WM_modalkeymap_add(keyconf, "Standard Modal Map", modal_items);
+  keymap = WM_modalkeymap_ensure(keyconf, "Standard Modal Map", modal_items);
 
   WM_modalkeymap_assign(keymap, "SCREEN_OT_area_move");
 }

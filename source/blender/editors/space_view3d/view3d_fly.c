@@ -125,14 +125,14 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
       {0, NULL, 0, NULL, NULL},
   };
 
-  wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Fly Modal");
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Fly Modal");
 
   /* this function is called for each spacetype, only needs to add map once */
   if (keymap && keymap->modal_items) {
     return;
   }
 
-  keymap = WM_modalkeymap_add(keyconf, "View3D Fly Modal", modal_items);
+  keymap = WM_modalkeymap_ensure(keyconf, "View3D Fly Modal", modal_items);
 
   /* assign map to operators */
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_fly");

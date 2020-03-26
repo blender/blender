@@ -1103,11 +1103,11 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 
   static const char *name = "Paint Stroke Modal";
 
-  struct wmKeyMap *keymap = WM_modalkeymap_get(keyconf, name);
+  struct wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
 
   /* this function is called for each spacetype, only needs to add map once */
   if (!keymap) {
-    keymap = WM_modalkeymap_add(keyconf, name, modal_items);
+    keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
   }
 
   return keymap;

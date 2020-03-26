@@ -135,10 +135,10 @@ char *WM_modalkeymap_operator_items_to_string_buf(struct wmOperatorType *ot,
                                                   int *r_available_len,
                                                   char **r_result);
 
-wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf,
-                             const char *idname,
-                             const struct EnumPropertyItem *items);
-wmKeyMap *WM_modalkeymap_get(struct wmKeyConfig *keyconf, const char *idname);
+wmKeyMap *WM_modalkeymap_ensure(struct wmKeyConfig *keyconf,
+                                const char *idname,
+                                const struct EnumPropertyItem *items);
+wmKeyMap *WM_modalkeymap_find(struct wmKeyConfig *keyconf, const char *idname);
 wmKeyMapItem *WM_modalkeymap_add_item(
     struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
 wmKeyMapItem *WM_modalkeymap_add_item_str(
