@@ -543,18 +543,18 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
                                               int index,
                                               SculptVertexNeighborIter *iter)
 {
-  MeshElemMap *vert_map = &ss->pmap[(int)index];
+  MeshElemMap *vert_map = &ss->pmap[index];
   iter->size = 0;
   iter->num_duplicates = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
 
-  for (int i = 0; i < ss->pmap[(int)index].count; i++) {
+  for (int i = 0; i < ss->pmap[index].count; i++) {
     const MPoly *p = &ss->mpoly[vert_map->indices[i]];
     uint f_adj_v[2];
-    if (poly_get_adj_loops_from_vert(p, ss->mloop, (int)index, f_adj_v) != -1) {
+    if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
       for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
-        if (f_adj_v[j] != (int)index) {
+        if (f_adj_v[j] != index) {
           sculpt_vertex_neighbor_add(iter, f_adj_v[j]);
         }
       }

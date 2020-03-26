@@ -856,7 +856,7 @@ void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, co
     volume->runtime.grids = grids;
   }
 #else
-  UNUSED_VARS(volume, grids);
+  UNUSED_VARS(volume, grids, filepath);
 #endif
 }
 
@@ -967,7 +967,7 @@ void BKE_volume_grid_unload(const Volume *volume, VolumeGrid *grid)
   const char *volume_name = volume->id.name + 2;
   grid->unload(volume_name);
 #else
-  UNUSED_VARS(grid);
+  UNUSED_VARS(volume, grid);
 #endif
 }
 
