@@ -93,6 +93,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *outlines_detect_ps;
   DRWPass *outlines_resolve_ps;
   DRWPass *paint_color_ps;
+  DRWPass *paint_depth_ps;
   DRWPass *paint_overlay_ps;
   DRWPass *particle_ps;
   DRWPass *pointcloud_ps;
@@ -245,6 +246,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *motion_path_points_grp;
   DRWShadingGroup *outlines_grp;
   DRWShadingGroup *outlines_gpencil_grp;
+  DRWShadingGroup *paint_depth_grp;
   DRWShadingGroup *paint_surf_grp;
   DRWShadingGroup *paint_wire_grp;
   DRWShadingGroup *paint_wire_selected_grp;
@@ -318,6 +320,7 @@ typedef struct OVERLAY_PrivateData {
   } armature;
   struct {
     bool in_front;
+    bool alpha_blending;
   } painting;
   struct {
     DRWCallBuffer *handle[2];
