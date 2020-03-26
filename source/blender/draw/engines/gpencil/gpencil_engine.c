@@ -905,7 +905,8 @@ void GPENCIL_draw_scene(void *ved)
   float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
 
   /* Fade 3D objects. */
-  if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f)) {
+  if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f) && (pd->obact != NULL) &&
+      (pd->obact->type == OB_GPENCIL)) {
     float background_color[3];
     ED_view3d_background_color_get(pd->scene, pd->v3d, background_color);
     /* Blend color. */
