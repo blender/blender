@@ -779,6 +779,9 @@ static int brush_select_exec(bContext *C, wmOperator *op)
   }
 
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
+  if (paint == NULL) {
+    return OPERATOR_CANCELLED;
+  }
   const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
   RNA_enum_name_from_value(items, tool, &tool_name);
 
