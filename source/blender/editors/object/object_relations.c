@@ -417,7 +417,12 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
      * TODO(sergey): We really need to get rid of this bi-directional links
      * in proxies with something like library overrides.
      */
-    newob->proxy->proxy_from = newob;
+    if (newob->proxy != NULL) {
+      newob->proxy->proxy_from = newob;
+    }
+    else {
+      BKE_report(op->reports, RPT_ERROR, "Unable to assign proxy");
+    }
 
     /* depsgraph flushes are needed for the new data */
     DEG_relations_tag_update(bmain);
