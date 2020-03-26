@@ -1120,8 +1120,11 @@ static void subdiv_mesh_vertex_of_loose_edge(const struct SubdivForeachContext *
    * it. Maybe even using vertex varying attributes. */
   subdiv_vertex->bweight = 0.0f;
   /* Reset normal, initialize it in a similar way as edit mode does for a
-   * vertices adjacent to a loose edges. */
-  normal_float_to_short_v3(subdiv_vertex->no, subdiv_vertex->co);
+   * vertices adjacent to a loose edges.
+   * See `mesh_evaluate#mesh_calc_normals_vert_fallback` */
+  float no[3];
+  normalize_v3_v3(no, subdiv_vertex->co);
+  normal_float_to_short_v3(subdiv_vertex->no, no);
 }
 
 /* =============================================================================
