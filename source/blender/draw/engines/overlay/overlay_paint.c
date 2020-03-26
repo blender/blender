@@ -39,14 +39,15 @@ static bool paint_object_is_rendered_transparent(View3D *v3d, Object *ob)
       return true;
     }
 
-    if (v3d->shading.color_type == V3D_SHADING_OBJECT_COLOR) {
+    if (ob && v3d->shading.color_type == V3D_SHADING_OBJECT_COLOR) {
       return ob->color[3] < 1.0f;
     }
-    else if (v3d->shading.color_type == V3D_SHADING_MATERIAL_COLOR) {
+    else if (ob && ob->type == OB_MESH && ob->data &&
+             v3d->shading.color_type == V3D_SHADING_MATERIAL_COLOR) {
       Mesh *me = ob->data;
       for (int i = 0; i < me->totcol; i++) {
         Material *mat = me->mat[i];
-        if (mat->a < 1.0f) {
+        if (mat && mat->a < 1.0f) {
           return true;
         }
       }
