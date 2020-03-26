@@ -716,7 +716,8 @@ static bool brush_generic_tool_set(bContext *C,
     brush = brush_tool_cycle(bmain, paint, brush_orig, tool);
   }
 
-  if (!brush && brush_tool(brush_orig, paint->runtime.tool_offset) != tool && create_missing) {
+  if (((brush == NULL) && create_missing) &&
+      ((brush_orig == NULL) || brush_tool(brush_orig, paint->runtime.tool_offset) != tool)) {
     brush = BKE_brush_add(bmain, tool_name, paint->runtime.ob_mode);
     id_us_min(&brush->id); /* fake user only */
     brush_tool_set(brush, paint->runtime.tool_offset, tool);
