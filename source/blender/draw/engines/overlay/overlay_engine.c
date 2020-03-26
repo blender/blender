@@ -466,6 +466,8 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_xray_fade_draw(vedata);
   OVERLAY_grid_draw(vedata);
 
+  OVERLAY_xray_depth_infront_copy(vedata);
+
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_line_in_front_fb);
   }

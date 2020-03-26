@@ -51,6 +51,7 @@ void OVERLAY_wireframe_init(OVERLAY_Data *vedata)
 void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
+  OVERLAY_TextureList *txl = vedata->txl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   DRWShadingGroup *grp = NULL;
@@ -66,12 +67,14 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
 
   const bool use_select = (DRW_state_is_select() || DRW_state_is_depth());
   GPUShader *wires_sh = use_select ? OVERLAY_shader_wireframe_select() :
-                                     OVERLAY_shader_wireframe();
+                                     OVERLAY_shader_wireframe(pd->antialiasing.enabled);
 
   for (int xray = 0; xray < (is_material_shmode ? 1 : 2); xray++) {
     DRWState state = DRW_STATE_FIRST_VERTEX_CONVENTION | DRW_STATE_WRITE_COLOR |
                      DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     DRWPass *pass;
+    GPUTexture **depth_tx = (pd->xray_enabled || pd->xray_opacity > 0.0f) ? &txl->temp_depth_tx :
+                                                                            &txl->dummy_depth_tx;
 
     if (xray == 0) {
       DRW_PASS_CREATE(psl->wireframe_ps, state | pd->clipping_state);
@@ -85,6 +88,7 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
     for (int use_coloring = 0; use_coloring < 2; use_coloring++) {
       pd->wires_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);
       DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+      DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tx);
       DRW_shgroup_uniform_float_copy(grp, "wireStepParam", pd->shdata.wire_step_param);
       DRW_shgroup_uniform_bool_copy(grp, "useColoring", use_coloring);
       DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
@@ -92,10 +96,12 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_bool_copy(grp, "isRandomColor", is_random_color);
 
       pd->wires_all_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);
+      DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tx);
       DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 1.0f);
     }
 
     pd->wires_sculpt_grp[xray] = grp = DRW_shgroup_create(wires_sh, pass);
+    DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tx);
     DRW_shgroup_uniform_float_copy(grp, "wireStepParam", 10.0f);
     DRW_shgroup_uniform_bool_copy(grp, "useColoring", false);
   }
