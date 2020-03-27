@@ -299,6 +299,23 @@ typedef enum {
   SCULPT_UNDO_FACE_SETS,
 } SculptUndoType;
 
+/* Storage of geometry for the undo node.
+ * Is used as a storage for either original or modified geometry. */
+typedef struct SculptUndoNodeGeometry {
+  /* Is used for sanity check, helping with ensuring that two and only two
+   * geometry pushes happenned in the undo stack. */
+  bool is_initialized;
+
+  CustomData vdata;
+  CustomData edata;
+  CustomData ldata;
+  CustomData pdata;
+  int totvert;
+  int totedge;
+  int totloop;
+  int totpoly;
+} SculptUndoNodeGeometry;
+
 typedef struct SculptUndoNode {
   struct SculptUndoNode *next, *prev;
 
@@ -332,15 +349,17 @@ typedef struct SculptUndoNode {
   /* shape keys */
   char shapeName[sizeof(((KeyBlock *)0))->name];
 
-  /* geometry modification operations and bmesh enter data */
-  CustomData geom_vdata;
-  CustomData geom_edata;
-  CustomData geom_ldata;
-  CustomData geom_pdata;
-  int geom_totvert;
-  int geom_totedge;
-  int geom_totloop;
-  int geom_totpoly;
+  /* Geometry modification operations.
+   *
+   * Original geometry is stored before some modification is run and is used to restore state of
+   * the object when undoing the operation
+   *
+   * Modified geometry is stored after the modification and is used to redo the modification. */
+  SculptUndoNodeGeometry geometry_original;
+  SculptUndoNodeGeometry geometry_modified;
+
+  /* Geometry at the bmesh enter moment. */
+  SculptUndoNodeGeometry geometry_bmesh_enter;
 
   /* pivot */
   float pivot_pos[3];
