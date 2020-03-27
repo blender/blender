@@ -620,8 +620,12 @@ GHOST_TSuccess GHOST_SystemWin32::exit()
   return GHOST_System::exit();
 }
 
-GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, int *keyDown, char *vk)
+GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
+                                      bool *r_keyDown,
+                                      bool *r_is_repeated_modifier)
 {
+  bool is_repeated_modifier = false;
+
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
   GHOST_TKey key = GHOST_kKeyUnknown;
   GHOST_ModifierKeys modifiers;
@@ -630,7 +634,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, int *keyDown, char *v
   // RI_KEY_BREAK doesn't work for sticky keys release, so we also
   // check for the up message
   unsigned int msg = raw.data.keyboard.Message;
-  *keyDown = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
+  *r_keyDown = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
 
   key = this->convertKey(raw.data.keyboard.VKey,
                          raw.data.keyboard.MakeCode,
@@ -642,32 +646,32 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, int *keyDown, char *v
     GHOST_TModifierKeyMask modifier;
     switch (key) {
       case GHOST_kKeyLeftShift: {
-        changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != (bool)*keyDown);
+        changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != *r_keyDown);
         modifier = GHOST_kModifierKeyLeftShift;
         break;
       }
       case GHOST_kKeyRightShift: {
-        changed = (modifiers.get(GHOST_kModifierKeyRightShift) != (bool)*keyDown);
+        changed = (modifiers.get(GHOST_kModifierKeyRightShift) != *r_keyDown);
         modifier = GHOST_kModifierKeyRightShift;
         break;
       }
       case GHOST_kKeyLeftControl: {
-        changed = (modifiers.get(GHOST_kModifierKeyLeftControl) != (bool)*keyDown);
+        changed = (modifiers.get(GHOST_kModifierKeyLeftControl) != *r_keyDown);
         modifier = GHOST_kModifierKeyLeftControl;
         break;
       }
       case GHOST_kKeyRightControl: {
-        changed = (modifiers.get(GHOST_kModifierKeyRightControl) != (bool)*keyDown);
+        changed = (modifiers.get(GHOST_kModifierKeyRightControl) != *r_keyDown);
         modifier = GHOST_kModifierKeyRightControl;
         break;
       }
       case GHOST_kKeyLeftAlt: {
-        changed = (modifiers.get(GHOST_kModifierKeyLeftAlt) != (bool)*keyDown);
+        changed = (modifiers.get(GHOST_kModifierKeyLeftAlt) != *r_keyDown);
         modifier = GHOST_kModifierKeyLeftAlt;
         break;
       }
       case GHOST_kKeyRightAlt: {
-        changed = (modifiers.get(GHOST_kModifierKeyRightAlt) != (bool)*keyDown);
+        changed = (modifiers.get(GHOST_kModifierKeyRightAlt) != *r_keyDown);
         modifier = GHOST_kModifierKeyRightAlt;
         break;
       }
@@ -676,17 +680,15 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, int *keyDown, char *v
     }
 
     if (changed) {
-      modifiers.set(modifier, (bool)*keyDown);
+      modifiers.set(modifier, *r_keyDown);
       system->storeModifierKeys(modifiers);
     }
     else {
-      key = GHOST_kKeyUnknown;
+      is_repeated_modifier = true;
     }
   }
 
-  if (vk)
-    *vk = raw.data.keyboard.VKey;
-
+  *r_is_repeated_modifier = is_repeated_modifier;
   return key;
 }
 
@@ -1038,16 +1040,17 @@ void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wPar
 
 GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RAWINPUT const &raw)
 {
-  int keyDown = 0;
-  char vk;
+  bool keyDown = false;
+  bool is_repeated_modifier = false;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-  GHOST_TKey key = system->hardKey(raw, &keyDown, &vk);
+  GHOST_TKey key = system->hardKey(raw, &keyDown, &is_repeated_modifier);
   GHOST_EventKey *event;
 
   /* We used to check `if (key != GHOST_kKeyUnknown)`, but since the message
    * values `WM_SYSKEYUP`, `WM_KEYUP` and `WM_CHAR` are ignored, we capture
    * those events here as well. */
-  {
+  if (!is_repeated_modifier) {
+    char vk = raw.data.keyboard.VKey;
     char utf8_char[6] = {0};
     char ascii = 0;
     bool is_repeat = false;
@@ -1105,6 +1108,10 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
 
     // GHOST_PRINTF("%c\n", ascii); // we already get this info via EventPrinter
   }
+  else {
+    event = NULL;
+  }
+
   return event;
 }
 

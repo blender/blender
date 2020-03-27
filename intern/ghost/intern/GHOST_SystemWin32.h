@@ -278,7 +278,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param vk        Pointer to virtual key
    * \return The GHOST key (GHOST_kKeyUnknown if no match).
    */
-  GHOST_TKey hardKey(RAWINPUT const &raw, int *keyDown, char *vk);
+  GHOST_TKey hardKey(RAWINPUT const &raw, bool *r_keyDown, bool *r_is_repeated_modifier);
 
   /**
    * Creates mouse button event.
