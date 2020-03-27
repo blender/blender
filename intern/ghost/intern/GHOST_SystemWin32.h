@@ -66,6 +66,20 @@ class GHOST_SystemWin32 : public GHOST_System {
    ***************************************************************************************/
 
   /**
+   * This method converts performance counter measurements into milliseconds since the start of the
+   * system process.
+   * \return The number of milliseconds since the start of the system process.
+   */
+  GHOST_TUns64 performanceCounterToMillis(__int64 perf_ticks) const;
+
+  /**
+   * This method converts system ticks into milliseconds since the start of the
+   * system process.
+   * \return The number of milliseconds since the start of the system process.
+   */
+  GHOST_TUns64 tickCountToMillis(__int64 ticks) const;
+
+  /**
    * Returns the system time.
    * Returns the number of milliseconds since the start of the system process.
    * This overloaded method uses the high frequency timer if available.
@@ -426,6 +440,8 @@ class GHOST_SystemWin32 : public GHOST_System {
   __int64 m_freq;
   /** High frequency timer variable. */
   __int64 m_start;
+  /** Low frequency timer variable. */
+  __int64 m_lfstart;
   /** AltGr on current keyboard layout. */
   bool m_hasAltGr;
   /** language identifier. */

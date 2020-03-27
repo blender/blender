@@ -184,7 +184,8 @@ typedef enum MONITOR_DPI_TYPE {
 typedef HRESULT(API *GHOST_WIN32_SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS);
 typedef BOOL(API *GHOST_WIN32_EnableNonClientDpiScaling)(HWND);
 
-GHOST_SystemWin32::GHOST_SystemWin32() : m_hasPerformanceCounter(false), m_freq(0), m_start(0)
+GHOST_SystemWin32::GHOST_SystemWin32()
+    : m_hasPerformanceCounter(false), m_freq(0), m_start(0), m_lfstart(0)
 {
   m_displayManager = new GHOST_DisplayManagerWin32();
   GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
@@ -223,22 +224,32 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
   toggleConsole(1);
 }
 
+GHOST_TUns64 GHOST_SystemWin32::performanceCounterToMillis(__int64 perf_ticks) const
+{
+  // Calculate the time passed since system initialization.
+  __int64 delta = (perf_ticks - m_start) * 1000;
+
+  GHOST_TUns64 t = (GHOST_TUns64)(delta / m_freq);
+  return t;
+}
+
+GHOST_TUns64 GHOST_SystemWin32::tickCountToMillis(__int64 ticks) const
+{
+  return ticks - m_lfstart;
+}
+
 GHOST_TUns64 GHOST_SystemWin32::getMilliSeconds() const
 {
   // Hardware does not support high resolution timers. We will use GetTickCount instead then.
   if (!m_hasPerformanceCounter) {
-    return ::GetTickCount();
+    return tickCountToMillis(::GetTickCount());
   }
 
   // Retrieve current count
   __int64 count = 0;
   ::QueryPerformanceCounter((LARGE_INTEGER *)&count);
 
-  // Calculate the time passed since system initialization.
-  __int64 delta = 1000 * (count - m_start);
-
-  GHOST_TUns64 t = (GHOST_TUns64)(delta / m_freq);
-  return t;
+  return performanceCounterToMillis(count);
 }
 
 GHOST_TUns8 GHOST_SystemWin32::getNumDisplays() const
@@ -570,6 +581,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
   FreeLibrary(user32);
   initRawInput();
 
+  m_lfstart = ::GetTickCount();
   // Determine whether this system has a high frequency performance counter. */
   m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER *)&m_freq) == TRUE;
   if (m_hasPerformanceCounter) {
