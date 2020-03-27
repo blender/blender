@@ -115,12 +115,22 @@
 #  define WM_DPICHANGED 0x02E0
 #endif  // WM_DPICHANGED
 
+// WM_POINTER API messages minimum Windows 7
+#ifndef WM_POINTERENTER
+#  define WM_POINTERENTER 0x0249
+#endif  // WM_POINTERENTER
+#ifndef WM_POINTERDOWN
+#  define WM_POINTERDOWN 0x0246
+#endif  // WM_POINTERDOWN
 #ifndef WM_POINTERUPDATE
 #  define WM_POINTERUPDATE 0x0245
 #endif  // WM_POINTERUPDATE
-
-#define WM_POINTERDOWN 0x0246
-#define WM_POINTERUP 0x0247
+#ifndef WM_POINTERUP
+#  define WM_POINTERUP 0x0247
+#endif  // WM_POINTERUP
+#ifndef WM_POINTERLEAVE
+#  define WM_POINTERLEAVE 0x024A
+#endif  // WM_POINTERLEAVE
 
 /* Workaround for some laptop touchpads, some of which seems to
  * have driver issues which makes it so window function receives
@@ -928,9 +938,13 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
     window->updateMouseCapture(MouseReleased);
   }
 
-  if (window->useTabletAPI(GHOST_kTabletNative)) {
-    window->setTabletData(NULL);
+  if (window->m_tabletInRange) {
+    if (window->useTabletAPI(GHOST_kTabletNative)) {
+      // Win32 Pointer processing handles input while in-range and in-contact events.
+      return NULL;
+    }
   }
+
   return new GHOST_EventButton(
       system->getMilliSeconds(), type, window, mask, window->getTabletData());
 }
@@ -938,57 +952,81 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
 void GHOST_SystemWin32::processPointerEvents(
     UINT type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
 {
-  GHOST_PointerInfoWin32 pointerInfo;
+  std::vector<GHOST_PointerInfoWin32> pointerInfo;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
   if (!window->useTabletAPI(GHOST_kTabletNative)) {
     return;
   }
 
-  if (window->getPointerInfo(&pointerInfo, wParam, lParam) != GHOST_kSuccess) {
+  if (window->getPointerInfo(pointerInfo, wParam, lParam) != GHOST_kSuccess) {
     return;
   }
 
-  if (!pointerInfo.isPrimary) {
+  if (!pointerInfo[0].isPrimary) {
     eventHandled = true;
     return;  // For multi-touch displays we ignore these events
   }
 
-  system->setCursorPosition(pointerInfo.pixelLocation.x, pointerInfo.pixelLocation.y);
-
   switch (type) {
+    case WM_POINTERENTER:
+      window->m_tabletInRange = true;
+      system->pushEvent(new GHOST_EventCursor(pointerInfo[0].time,
+                                              GHOST_kEventCursorMove,
+                                              window,
+                                              pointerInfo[0].pixelLocation.x,
+                                              pointerInfo[0].pixelLocation.y,
+                                              pointerInfo[0].tabletData));
+      break;
     case WM_POINTERDOWN:
-      /* Update window tablet data to be included in event. */
-      window->setTabletData(&pointerInfo.tabletData);
-      system->pushEvent(new GHOST_EventButton(system->getMilliSeconds(),
+      // Move cursor to point of contact because GHOST_EventButton does not include position.
+      system->pushEvent(new GHOST_EventCursor(pointerInfo[0].time,
+                                              GHOST_kEventCursorMove,
+                                              window,
+                                              pointerInfo[0].pixelLocation.x,
+                                              pointerInfo[0].pixelLocation.y,
+                                              pointerInfo[0].tabletData));
+      system->pushEvent(new GHOST_EventButton(pointerInfo[0].time,
                                               GHOST_kEventButtonDown,
                                               window,
-                                              pointerInfo.buttonMask,
-                                              pointerInfo.tabletData));
+                                              pointerInfo[0].buttonMask,
+                                              pointerInfo[0].tabletData));
       window->updateMouseCapture(MousePressed);
       break;
     case WM_POINTERUPDATE:
-      /* Update window tablet data to be included in event. */
-      system->pushEvent(GHOST_EventCursor(system->getMilliSeconds(),
-                                          GHOST_kEventCursorMove,
-                                          window,
-                                          pointerInfo.pixelLocation.x,
-                                          pointerInfo.pixelLocation.y,
-                                          pointerInfo.tabletData));
+      // Coalesced pointer events are reverse chronological order, reorder chronologically.
+      // Only contiguous move events are coalesced.
+      for (GHOST_TUns32 i = pointerInfo.size(); i-- > 0;) {
+        system->pushEvent(new GHOST_EventCursor(pointerInfo[i].time,
+                                                GHOST_kEventCursorMove,
+                                                window,
+                                                pointerInfo[i].pixelLocation.x,
+                                                pointerInfo[i].pixelLocation.y,
+                                                pointerInfo[i].tabletData));
+      }
       break;
     case WM_POINTERUP:
-      system->pushEvent(new GHOST_EventButton(system->getMilliSeconds(),
+      system->pushEvent(new GHOST_EventButton(pointerInfo[0].time,
                                               GHOST_kEventButtonUp,
                                               window,
-                                              pointerInfo.buttonMask,
-                                              window->getTabletData()));
+                                              pointerInfo[0].buttonMask,
+                                              pointerInfo[0].tabletData));
       window->updateMouseCapture(MouseReleased);
+      break;
+    case WM_POINTERLEAVE:
+      window->m_tabletInRange = false;
+      system->pushEvent(new GHOST_EventButton(pointerInfo[0].time,
+                                              GHOST_kEventCursorMove,
+                                              window,
+                                              pointerInfo[0].buttonMask,
+                                              pointerInfo[0].tabletData));
       break;
     default:
       break;
   }
 
   eventHandled = true;
+  system->setCursorPosition(pointerInfo[0].pixelLocation.x, pointerInfo[0].pixelLocation.y);
 }
 
 GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
@@ -996,12 +1034,18 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
   GHOST_TInt32 x_screen, y_screen;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
+  if (window->m_tabletInRange) {
+    if (window->useTabletAPI(GHOST_kTabletNative)) {
+      // Tablet input handled in WM_POINTER* events. WM_MOUSEMOVE events in response to tablet
+      // input aren't normally generated when using WM_POINTER events, but manually moving the
+      // system cursor as we do in WM_POINTER handling does.
+      return NULL;
+    }
+  }
+
   system->getCursorPosition(x_screen, y_screen);
 
-  /* TODO: CHECK IF THIS IS A TABLET EVENT */
-  bool is_tablet = false;
-
-  if (is_tablet == false && window->getCursorGrabModeIsWarp()) {
+  if (window->getCursorGrabModeIsWarp() && !window->m_tabletInRange) {
     GHOST_TInt32 x_new = x_screen;
     GHOST_TInt32 y_new = y_screen;
     GHOST_TInt32 x_accum, y_accum;
@@ -1424,9 +1468,11 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         ////////////////////////////////////////////////////////////////////////
         // Pointer events, processed
         ////////////////////////////////////////////////////////////////////////
+        case WM_POINTERENTER:
         case WM_POINTERDOWN:
         case WM_POINTERUPDATE:
         case WM_POINTERUP:
+        case WM_POINTERLEAVE:
           processPointerEvents(msg, window, wParam, lParam, eventHandled);
           break;
         ////////////////////////////////////////////////////////////////////////
