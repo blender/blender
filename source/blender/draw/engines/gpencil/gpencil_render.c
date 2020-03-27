@@ -51,8 +51,7 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
 
   struct Object *camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
-  float frame = BKE_scene_frame_get(scene);
-  RE_GetCameraWindow(engine->re, camera, frame, winmat);
+  RE_GetCameraWindow(engine->re, camera, winmat);
   RE_GetCameraModelMatrix(engine->re, camera, viewinv);
 
   invert_m4_m4(viewmat, viewinv);

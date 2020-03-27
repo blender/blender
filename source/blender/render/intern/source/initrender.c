@@ -211,9 +211,8 @@ void RE_SetCamera(Render *re, Object *cam_ob)
   re_camera_params_get(re, &params);
 }
 
-void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[4][4])
+void RE_GetCameraWindow(struct Render *re, struct Object *camera, float mat[4][4])
 {
-  re->r.cfra = frame;
   RE_SetCamera(re, camera);
   copy_m4_m4(mat, re->winmat);
 }

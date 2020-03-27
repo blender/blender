@@ -135,9 +135,8 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
   struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
-  float frame = BKE_scene_frame_get(scene);
 
-  RE_GetCameraWindow(engine->re, ob_camera_eval, frame, winmat);
+  RE_GetCameraWindow(engine->re, ob_camera_eval, winmat);
   RE_GetCameraWindowWithOverscan(engine->re, winmat, g_data->overscan);
   RE_GetCameraModelMatrix(engine->re, ob_camera_eval, viewinv);
 

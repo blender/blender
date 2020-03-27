@@ -52,14 +52,12 @@ static void workbench_render_cache(void *vedata,
 static void workbench_render_matrices_init(RenderEngine *engine, Depsgraph *depsgraph)
 {
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
-  Scene *scene = DEG_get_evaluated_scene(depsgraph);
   struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
-  float frame = BKE_scene_frame_get(scene);
 
   /* Set the persective, view and window matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
 
-  RE_GetCameraWindow(engine->re, ob_camera_eval, frame, winmat);
+  RE_GetCameraWindow(engine->re, ob_camera_eval, winmat);
   RE_GetCameraModelMatrix(engine->re, ob_camera_eval, viewinv);
 
   invert_m4_m4(viewmat, viewinv);
