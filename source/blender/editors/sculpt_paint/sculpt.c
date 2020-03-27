@@ -426,7 +426,8 @@ void SCULPT_visibility_sync_all_face_sets_to_vertices(SculptSession *ss)
   }
 }
 
-static void sculpt_visibility_sync_vertex_to_face_sets(SculptSession *ss, int index)
+static void UNUSED_FUNCTION(sculpt_visibility_sync_vertex_to_face_sets)(SculptSession *ss,
+                                                                        int index)
 {
   MeshElemMap *vert_map = &ss->pmap[index];
   const bool visible = SCULPT_vertex_visible_get(ss, index);
