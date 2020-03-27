@@ -456,7 +456,6 @@ class ToolSelectPanelHelper:
         if km is None:
             km = kc.keymaps.new(km_idname, **km_kwargs)
             keymap_fn[0](km)
-            print(len(km.keymap_items))
             if km.keymap_items:
                 print(km.keymap_items[0].to_string())
         keymap_fn[0] = km.name
