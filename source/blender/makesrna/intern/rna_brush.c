@@ -2177,7 +2177,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cloth_mass", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "cloth_mass");
   RNA_def_property_range(prop, 0.01f, 2.0f);
-  RNA_def_property_ui_text(prop, "Cloth mass", "Mass of each simulation particle");
+  RNA_def_property_ui_text(prop, "Cloth Mass", "Mass of each simulation particle");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "cloth_damping", PROP_FLOAT, PROP_FACTOR);
