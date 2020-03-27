@@ -196,21 +196,15 @@ float SCULPT_vertex_mask_get(SculptSession *ss, int index)
   return 0.0f;
 }
 
-static int SCULPT_active_vertex_get(SculptSession *ss)
+int SCULPT_active_vertex_get(SculptSession *ss)
 {
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      return ss->active_vertex_index;
-    case PBVH_BMESH:
-      return ss->active_vertex_index;
-    case PBVH_GRIDS:
-      return ss->active_vertex_index;
+  if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH, PBVH_GRIDS)) {
+    return ss->active_vertex_index;
   }
-
   return 0;
 }
 
-static const float *SCULPT_active_vertex_co_get(SculptSession *ss)
+const float *SCULPT_active_vertex_co_get(SculptSession *ss)
 {
   return SCULPT_vertex_co_get(ss, SCULPT_active_vertex_get(ss));
 }
@@ -373,7 +367,7 @@ static void SCULPT_vertex_face_set_set(SculptSession *ss, int index, int face_se
   }
 }
 
-static int SCULPT_vertex_face_set_get(SculptSession *ss, int index)
+int SCULPT_vertex_face_set_get(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -394,7 +388,7 @@ static int SCULPT_vertex_face_set_get(SculptSession *ss, int index)
   return 0;
 }
 
-static bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_set)
+bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_set)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -464,7 +458,7 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
   }
 }
 
-static bool sculpt_vertex_has_unique_face_set(SculptSession *ss, int index)
+bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -819,9 +813,33 @@ void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
   flood->visited_vertices = MEM_callocN(vertex_count * sizeof(char), "visited vertices");
 }
 
-static void sculpt_floodfill_add_initial(SculptFloodFill *flood, int index)
+void sculpt_floodfill_add_initial(SculptFloodFill *flood, int index)
 {
   BLI_gsqueue_push(flood->queue, &index);
+}
+
+void SCULPT_floodfill_add_initial_with_symmetry(
+    Sculpt *sd, Object *ob, SculptSession *ss, SculptFloodFill *flood, int index, float radius)
+{
+  /* Add active vertex and symmetric vertices to the queue. */
+  const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  for (char i = 0; i <= symm; ++i) {
+    if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
+      int v = -1;
+      if (i == 0) {
+        v = index;
+      }
+      else if (radius > 0.0f) {
+        float radius_squared = (radius == FLT_MAX) ? FLT_MAX : radius * radius;
+        float location[3];
+        flip_v3_v3(location, SCULPT_vertex_co_get(ss, index), i);
+        v = SCULPT_nearest_vertex_get(sd, ob, location, radius_squared, false);
+      }
+      if (v != -1) {
+        sculpt_floodfill_add_initial(flood, v);
+      }
+    }
+  }
 }
 
 void SCULPT_floodfill_add_active(
@@ -3639,7 +3657,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      if (relax_face_sets != sculpt_vertex_has_unique_face_set(ss, vd.index)) {
+      if (relax_face_sets != SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
         const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                     brush,
                                                                     vd.co,
@@ -3856,7 +3874,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->index, ni) {
     if (!filter_boundary_face_sets ||
-        (filter_boundary_face_sets && !sculpt_vertex_has_unique_face_set(ss, ni.index))) {
+        (filter_boundary_face_sets && !SCULPT_vertex_has_unique_face_set(ss, ni.index))) {
       add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.index));
       count++;
     }
@@ -9478,7 +9496,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       /* Skip the edges of the face set when relaxing or smoothing. There is a relax face set
        * option to relax the boindaries independently. */
       if (filter_type == MESH_FILTER_RELAX) {
-        if (!sculpt_vertex_has_unique_face_set(ss, vd.index)) {
+        if (!SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
           continue;
         }
       }
@@ -9492,7 +9510,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     }
 
     if (filter_type == MESH_FILTER_RELAX_FACE_SETS) {
-      if (relax_face_sets == sculpt_vertex_has_unique_face_set(ss, vd.index)) {
+      if (relax_face_sets == SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
         continue;
       }
     }

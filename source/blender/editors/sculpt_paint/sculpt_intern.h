@@ -125,6 +125,9 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
   } \
   ((void)0)
 
+int SCULPT_active_vertex_get(SculptSession *ss);
+const float *SCULPT_active_vertex_co_get(SculptSession *ss);
+
 /* Sculpt Original Data */
 typedef struct {
   struct BMLog *bm_log;
@@ -142,6 +145,11 @@ typedef struct {
 
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node);
 void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter);
+
+/* Face Sets */
+int SCULPT_vertex_face_set_get(SculptSession *ss, int index);
+bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_set);
+bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, int index);
 
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);
@@ -196,6 +204,13 @@ void SCULPT_floodfill_add_active(struct Sculpt *sd,
                                  struct SculptSession *ss,
                                  SculptFloodFill *flood,
                                  float radius);
+void SCULPT_floodfill_add_initial_with_symmetry(struct Sculpt *sd,
+                                                struct Object *ob,
+                                                struct SculptSession *ss,
+                                                SculptFloodFill *flood,
+                                                int index,
+                                                float radius);
+void sculpt_floodfill_add_initial(SculptFloodFill *flood, int index);
 void SCULPT_floodfill_execute(
     struct SculptSession *ss,
     SculptFloodFill *flood,
