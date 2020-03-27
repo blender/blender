@@ -1324,6 +1324,11 @@ typedef struct WarpModifierData {
 
   struct Object *object_from;
   struct Object *object_to;
+  /** Optional name of bone target, MAX_ID_NAME-2. */
+  char bone_from[64];
+  /** Optional name of bone target, MAX_ID_NAME-2. */
+  char bone_to[64];
+
   struct CurveMapping *curfalloff;
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char defgrp_name[64];

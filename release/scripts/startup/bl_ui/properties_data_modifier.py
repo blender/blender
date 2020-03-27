@@ -1173,11 +1173,27 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="From:")
         col.prop(md, "object_from", text="")
 
-        col.prop(md, "use_volume_preserve")
-
         col = split.column()
         col.label(text="To:")
         col.prop(md, "object_to", text="")
+
+        split = layout.split()
+        col = split.column()
+        obj = md.object_from
+        if obj and obj.type == 'ARMATURE':
+            col.label(text="Bone:")
+            col.prop_search(md, "bone_from", obj.data, "bones", text="")
+
+        col = split.column()
+        obj = md.object_to
+        if obj and obj.type == 'ARMATURE':
+            col.label(text="Bone:")
+            col.prop_search(md, "bone_to", obj.data, "bones", text="")
+
+        split = layout.split()
+        col = split.column()
+        col.prop(md, "use_volume_preserve")
+        col = split.column()
         row = col.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         row.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')

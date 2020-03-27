@@ -1795,15 +1795,27 @@ static void rna_def_modifier_warp(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_MOD_WARP);
 
   prop = RNA_def_property(srna, "object_from", PROP_POINTER, PROP_NONE);
-  RNA_def_property_ui_text(prop, "From", "Object to transform from");
+  RNA_def_property_pointer_sdna(prop, NULL, "object_from");
+  RNA_def_property_ui_text(prop, "Object From", "Object to transform from");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
+  prop = RNA_def_property(srna, "bone_from", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "bone_from");
+  RNA_def_property_ui_text(prop, "Bone From", "Bone to transform from");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
   prop = RNA_def_property(srna, "object_to", PROP_POINTER, PROP_NONE);
-  RNA_def_property_ui_text(prop, "To", "Object to transform to");
+  RNA_def_property_pointer_sdna(prop, NULL, "object_to");
+  RNA_def_property_ui_text(prop, "Object To", "Object to transform to");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "bone_to", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "bone_to");
+  RNA_def_property_ui_text(prop, "Bone To", "Bone defining offset");
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
   prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
