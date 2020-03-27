@@ -885,7 +885,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
          * eraser region  (either within stroke painted, or on its lines)
          *  - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(mval, mvalo, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
+        if (gp_stroke_inside_circle(mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
           if ((gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
               (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false)) {
             /* Edge is affected - Check individual points now */

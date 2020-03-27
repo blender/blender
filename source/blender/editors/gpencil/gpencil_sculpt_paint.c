@@ -1495,8 +1495,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
          * brush region  (either within stroke painted, or on its lines)
          * - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(
-                gso->mval, gso->mval_prev, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
+        if (gp_stroke_inside_circle(gso->mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
           /* Apply operation to these points */
           bool ok = false;
 

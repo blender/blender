@@ -353,7 +353,7 @@ static void gp_get_3d_reference(tGPsdata *p, float vec[3])
   if (p->ownerPtr.type == &RNA_Object) {
     ob = (Object *)p->ownerPtr.data;
   }
-  ED_gpencil_drawing_reference_get(p->scene, ob, p->gpl, *p->align_flag, vec);
+  ED_gpencil_drawing_reference_get(p->scene, ob, *p->align_flag, vec);
 }
 
 /* Stroke Editing ---------------------------- */
@@ -1356,7 +1356,6 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
                                       bGPDframe *gpf,
                                       bGPDstroke *gps,
                                       const float mval[2],
-                                      const float mvalo[2],
                                       const int radius,
                                       const rcti *rect)
 {
@@ -1475,7 +1474,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
          * eraser region  (either within stroke painted, or on its lines)
          * - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(mval, mvalo, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
+        if (gp_stroke_inside_circle(mval, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
           if ((gp_stroke_eraser_is_occluded(p, pt0, pc0[0], pc0[1]) == false) ||
               (gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
               (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false)) {
@@ -1632,7 +1631,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
        * (e.g. 2D space strokes in the 3D view, if the same datablock is shared)
        */
       if (ED_gpencil_stroke_can_use_direct(p->sa, gps)) {
-        gp_stroke_eraser_dostroke(p, gpf, gps, p->mval, p->mvalo, calc_radius, &rect);
+        gp_stroke_eraser_dostroke(p, gpf, gps, p->mval, calc_radius, &rect);
       }
     }
   }

@@ -494,8 +494,7 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
  * \param x0, y0: The screen-space x and y coordinates of the start of the stroke segment
  * \param x1, y1: The screen-space x and y coordinates of the end of the stroke segment
  */
-bool gp_stroke_inside_circle(
-    const float mval[2], const float UNUSED(mvalo[2]), int rad, int x0, int y0, int x1, int y1)
+bool gp_stroke_inside_circle(const float mval[2], int rad, int x0, int y0, int x1, int y1)
 {
   /* simple within-radius check for now */
   const float screen_co_a[2] = {x0, y0};
@@ -869,8 +868,7 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
   const RegionView3D *rv3d = gsc->region->regiondata;
   float rvec[3];
 
-  ED_gpencil_drawing_reference_get(
-      scene, gsc->ob, gsc->gpl, scene->toolsettings->gpencil_v3d_align, rvec);
+  ED_gpencil_drawing_reference_get(scene, gsc->ob, scene->toolsettings->gpencil_v3d_align, rvec);
 
   float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
@@ -905,7 +903,6 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
 void gp_stroke_convertcoords_tpoint(Scene *scene,
                                     ARegion *region,
                                     Object *ob,
-                                    bGPDlayer *gpl,
                                     const tGPspoint *point2D,
                                     float *depth,
                                     float r_out[3])
@@ -929,7 +926,7 @@ void gp_stroke_convertcoords_tpoint(Scene *scene,
     /* Current method just converts each point in screen-coordinates to
      * 3D-coordinates using the 3D-cursor as reference.
      */
-    ED_gpencil_drawing_reference_get(scene, ob, gpl, ts->gpencil_v3d_align, rvec);
+    ED_gpencil_drawing_reference_get(scene, ob, ts->gpencil_v3d_align, rvec);
     zfac = ED_view3d_calc_zfac(region->regiondata, rvec, NULL);
 
     if (ED_view3d_project_float_global(region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
@@ -948,8 +945,10 @@ void gp_stroke_convertcoords_tpoint(Scene *scene,
  * Get drawing reference point for conversion or projection of the stroke
  * \param[out] r_vec : Reference point found
  */
-void ED_gpencil_drawing_reference_get(
-    const Scene *scene, const Object *ob, bGPDlayer *UNUSED(gpl), char align_flag, float r_vec[3])
+void ED_gpencil_drawing_reference_get(const Scene *scene,
+                                      const Object *ob,
+                                      char align_flag,
+                                      float r_vec[3])
 {
   const float *fp = scene->cursor.location;
 

@@ -3546,7 +3546,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
                  GP_REPROJECT_TOP,
                  GP_REPROJECT_CURSOR)) {
           if (mode != GP_REPROJECT_CURSOR) {
-            ED_gpencil_drawing_reference_get(scene, ob, gpl, ts->gpencil_v3d_align, origin);
+            ED_gpencil_drawing_reference_get(scene, ob, ts->gpencil_v3d_align, origin);
           }
           else {
             copy_v3_v3(origin, scene->cursor.location);

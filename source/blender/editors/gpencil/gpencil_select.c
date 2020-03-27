@@ -925,7 +925,7 @@ static bool gp_stroke_do_circle_sel(bGPdata *UNUSED(gpd),
          * eraser region  (either within stroke painted, or on its lines)
          * - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(mval, mvalo, radius, x0, y0, x1, y1)) {
+        if (gp_stroke_inside_circle(mval, radius, x0, y0, x1, y1)) {
           /* change selection of stroke, and then of both points
            * (as the last point otherwise wouldn't get selected
            * as we only do n-1 loops through).

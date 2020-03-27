@@ -257,8 +257,7 @@ typedef struct GP_SpaceConversion {
   float mat[4][4]; /* transform matrix on the strokes (introduced in [b770964]) */
 } GP_SpaceConversion;
 
-bool gp_stroke_inside_circle(
-    const float mval[2], const float UNUSED(mvalo[2]), int rad, int x0, int y0, int x1, int y1);
+bool gp_stroke_inside_circle(const float mval[2], int rad, int x0, int y0, int x1, int y1);
 
 void gp_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
 
@@ -304,7 +303,6 @@ bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc,
 void gp_stroke_convertcoords_tpoint(struct Scene *scene,
                                     struct ARegion *region,
                                     struct Object *ob,
-                                    bGPDlayer *gpl,
                                     const struct tGPspoint *point2D,
                                     float *depth,
                                     float out[3]);

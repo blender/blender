@@ -152,7 +152,6 @@ static const EnumPropertyItem *rna_GPConvert_mode_items(bContext *UNUSED(C),
  * - assumes that the active space is the 3D-View
  */
 static void gp_strokepoint_convertcoords(bContext *C,
-                                         bGPdata *UNUSED(gpd),
                                          bGPDlayer *gpl,
                                          bGPDstroke *gps,
                                          bGPDspoint *source_pt,
@@ -633,7 +632,6 @@ static void gp_stroke_to_path_add_point(tGpTimingData *gtd,
 }
 
 static void gp_stroke_to_path(bContext *C,
-                              bGPdata *gpd,
                               bGPDlayer *gpl,
                               bGPDstroke *gps,
                               Curve *cu,
@@ -708,7 +706,7 @@ static void gp_stroke_to_path(bContext *C,
     bp = &nu->bp[old_nbp - 1];
 
     /* First point */
-    gp_strokepoint_convertcoords(C, gpd, gpl, gps, gps->points, p, subrect);
+    gp_strokepoint_convertcoords(C, gpl, gps, gps->points, p, subrect);
     if (prev_bp) {
       interp_v3_v3v3(p1, bp->vec, prev_bp->vec, -GAP_DFAC);
       if (do_gtd) {
@@ -737,7 +735,7 @@ static void gp_stroke_to_path(bContext *C,
     /* Second point */
     /* Note dt2 is always negative, which marks the gap. */
     if (gps->totpoints > 1) {
-      gp_strokepoint_convertcoords(C, gpd, gpl, gps, gps->points + 1, next_p, subrect);
+      gp_strokepoint_convertcoords(C, gpl, gps, gps->points + 1, next_p, subrect);
       interp_v3_v3v3(p2, p, next_p, -GAP_DFAC);
       if (do_gtd) {
         dt2 = interpf(gps->points[1].time, gps->points[0].time, -GAP_DFAC);
@@ -759,9 +757,9 @@ static void gp_stroke_to_path(bContext *C,
     float p[3], next_p[3];
     float dt = 0.0f;
 
-    gp_strokepoint_convertcoords(C, gpd, gpl, gps, gps->points, p, subrect);
+    gp_strokepoint_convertcoords(C, gpl, gps, gps->points, p, subrect);
     if (gps->totpoints > 1) {
-      gp_strokepoint_convertcoords(C, gpd, gpl, gps, gps->points + 1, next_p, subrect);
+      gp_strokepoint_convertcoords(C, gpl, gps, gps->points + 1, next_p, subrect);
       interp_v3_v3v3(p, p, next_p, -GAP_DFAC);
       if (do_gtd) {
         dt = interpf(gps->points[1].time, gps->points[0].time, -GAP_DFAC);
@@ -794,7 +792,7 @@ static void gp_stroke_to_path(bContext *C,
     float width = pt->pressure * (gps->thickness + gpl->line_change) * WIDTH_CORR_FAC;
 
     /* get coordinates to add at */
-    gp_strokepoint_convertcoords(C, gpd, gpl, gps, pt, p, subrect);
+    gp_strokepoint_convertcoords(C, gpl, gps, pt, p, subrect);
 
     gp_stroke_to_path_add_point(gtd,
                                 bp,
@@ -882,7 +880,6 @@ static void gp_stroke_to_bezier_add_point(tGpTimingData *gtd,
 }
 
 static void gp_stroke_to_bezier(bContext *C,
-                                bGPdata *gpd,
                                 bGPDlayer *gpl,
                                 bGPDstroke *gps,
                                 Curve *cu,
@@ -934,13 +931,12 @@ static void gp_stroke_to_bezier(bContext *C,
   /* get initial coordinates */
   pt = gps->points;
   if (tot) {
-    gp_strokepoint_convertcoords(C, gpd, gpl, gps, pt, (stitch) ? p3d_prev : p3d_cur, subrect);
+    gp_strokepoint_convertcoords(C, gpl, gps, pt, (stitch) ? p3d_prev : p3d_cur, subrect);
     if (tot > 1) {
-      gp_strokepoint_convertcoords(
-          C, gpd, gpl, gps, pt + 1, (stitch) ? p3d_cur : p3d_next, subrect);
+      gp_strokepoint_convertcoords(C, gpl, gps, pt + 1, (stitch) ? p3d_cur : p3d_next, subrect);
     }
     if (stitch && tot > 2) {
-      gp_strokepoint_convertcoords(C, gpd, gpl, gps, pt + 2, p3d_next, subrect);
+      gp_strokepoint_convertcoords(C, gpl, gps, pt + 2, p3d_next, subrect);
     }
   }
 
@@ -1106,7 +1102,7 @@ static void gp_stroke_to_bezier(bContext *C,
     copy_v3_v3(p3d_cur, p3d_next);
 
     if (i + 2 < tot) {
-      gp_strokepoint_convertcoords(C, gpd, gpl, gps, pt + 2, p3d_next, subrect);
+      gp_strokepoint_convertcoords(C, gpl, gps, pt + 2, p3d_next, subrect);
     }
 
     prev_bezt = bezt;
@@ -1334,7 +1330,6 @@ static void gp_layer_to_curve(bContext *C,
     switch (mode) {
       case GP_STROKECONVERT_PATH:
         gp_stroke_to_path(C,
-                          gpd,
                           gpl,
                           gps,
                           cu,
@@ -1350,7 +1345,6 @@ static void gp_layer_to_curve(bContext *C,
       case GP_STROKECONVERT_CURVE:
       case GP_STROKECONVERT_POLY: /* convert after */
         gp_stroke_to_bezier(C,
-                            gpd,
                             gpl,
                             gps,
                             cu,

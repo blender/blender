@@ -1143,7 +1143,6 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
     gp_stroke_convertcoords_tpoint(tgpf->scene,
                                    tgpf->region,
                                    tgpf->ob,
-                                   tgpf->gpl,
                                    point2D,
                                    tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
                                    &pt->x);
@@ -1186,8 +1185,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   if ((tgpf->lock_axis > GP_LOCKAXIS_VIEW) &&
       ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0)) {
     float origin[3];
-    ED_gpencil_drawing_reference_get(
-        tgpf->scene, tgpf->ob, tgpf->gpl, ts->gpencil_v3d_align, origin);
+    ED_gpencil_drawing_reference_get(tgpf->scene, tgpf->ob, ts->gpencil_v3d_align, origin);
     ED_gp_project_stroke_to_plane(
         tgpf->scene, tgpf->ob, tgpf->rv3d, gps, origin, tgpf->lock_axis - 1);
   }

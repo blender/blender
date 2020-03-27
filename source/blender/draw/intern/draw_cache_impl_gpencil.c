@@ -544,7 +544,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
     float origin[3];
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
     ToolSettings *ts = scene->toolsettings;
-    ED_gpencil_drawing_reference_get(scene, ob, gpl, ts->gpencil_v3d_align, origin);
+    ED_gpencil_drawing_reference_get(scene, ob, ts->gpencil_v3d_align, origin);
 
     for (int i = 0; i < vert_len; i++) {
       ED_gpencil_tpoint_to_point(region, origin, &tpoints[i], &gps->points[i]);

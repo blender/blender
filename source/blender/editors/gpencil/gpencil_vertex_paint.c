@@ -897,8 +897,7 @@ static void gp_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
          * brush region  (either within stroke painted, or on its lines)
          * - this assumes that linewidth is irrelevant
          */
-        if (gp_stroke_inside_circle(
-                gso->mval, gso->mval_prev, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
+        if (gp_stroke_inside_circle(gso->mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
 
           /* To each point individually... */
           pt = &gps->points[i];
