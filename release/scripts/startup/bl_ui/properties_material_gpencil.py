@@ -191,7 +191,6 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
         col.enabled = not gpcolor.lock
         col.prop(gpcolor, "fill_style", text="Style")
 
-
         if gpcolor.fill_style == 'SOLID':
             col.prop(gpcolor, "fill_color", text="Base Color")
 
@@ -200,19 +199,23 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
 
             col.prop(gpcolor, "fill_color", text="Base Color")
             col.prop(gpcolor, "mix_color", text="Secondary Color")
-            col.prop(gpcolor, "mix_factor", text="Blend in Fill Gradient", slider=True)
+            col.prop(gpcolor, "mix_factor", text="Blend", slider=True)
             col.prop(gpcolor, "flip", text="Flip Colors")
 
             col.prop(gpcolor, "texture_offset", text="Location")
+
+            row = col.row()
+            row.enabled = gpcolor.gradient_type == 'LINEAR'
+            row.prop(gpcolor, "texture_angle", text="Rotation")
+
             col.prop(gpcolor, "texture_scale", text="Scale")
-            if gpcolor.gradient_type == 'LINEAR':
-                col.prop(gpcolor, "texture_angle", text="Rotation")
 
         elif gpcolor.fill_style == 'TEXTURE':
+            col.prop(gpcolor, "fill_color", text="Base Color")
+
             col.template_ID(gpcolor, "fill_image", open="image.open")
 
-            col.prop(gpcolor, "fill_color", text="Base Color")
-            col.prop(gpcolor, "mix_factor", text="Blend in Fill Texture", slider=True)
+            col.prop(gpcolor, "mix_factor", text="Blend", slider=True)
 
             col.prop(gpcolor, "texture_offset", text="Location")
             col.prop(gpcolor, "texture_angle", text="Rotation")
