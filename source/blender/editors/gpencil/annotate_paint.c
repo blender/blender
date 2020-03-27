@@ -816,7 +816,6 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
                                       bGPDframe *gpf,
                                       bGPDstroke *gps,
                                       const float mval[2],
-                                      const float mvalo[2],
                                       const int radius,
                                       const rcti *rect)
 {
@@ -938,7 +937,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
      * (e.g. 2D space strokes in the 3D view, if the same datablock is shared)
      */
     if (ED_gpencil_stroke_can_use_direct(p->sa, gps)) {
-      gp_stroke_eraser_dostroke(p, gpf, gps, p->mval, p->mvalo, p->radius, &rect);
+      gp_stroke_eraser_dostroke(p, gpf, gps, p->mval, p->radius, &rect);
     }
   }
 }

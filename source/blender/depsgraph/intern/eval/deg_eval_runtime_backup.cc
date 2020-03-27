@@ -32,7 +32,7 @@
 namespace DEG {
 
 RuntimeBackup::RuntimeBackup(const Depsgraph *depsgraph)
-    : have_backup(nullptr),
+    : have_backup(false),
       animation_backup(depsgraph),
       scene_backup(depsgraph),
       sound_backup(depsgraph),

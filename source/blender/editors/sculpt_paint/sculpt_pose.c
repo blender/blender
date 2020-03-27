@@ -420,11 +420,11 @@ static bool pose_face_sets_floodfill_cb(
     if (sculpt_pose_brush_is_vertex_inside_brush_radius(
             co, data->pose_initial_co, data->radius, data->symm)) {
       const int visited_face_set = SCULPT_vertex_face_set_get(ss, index);
-      BLI_gset_add(data->visited_face_sets, visited_face_set);
+      BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(visited_face_set));
     }
     else if (symmetry_check) {
       data->current_face_set = SCULPT_vertex_face_set_get(ss, index);
-      BLI_gset_add(data->visited_face_sets, data->current_face_set);
+      BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(data->current_face_set));
     }
     return true;
   }
@@ -436,7 +436,7 @@ static bool pose_face_sets_floodfill_cb(
   if (data->is_first_iteration) {
     GSetIterator gs_iter;
     GSET_ITER (gs_iter, data->visited_face_sets) {
-      const int visited_face_set = BLI_gsetIterator_getKey(&gs_iter);
+      const int visited_face_set = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
       is_vertex_valid |= SCULPT_vertex_has_face_set(ss, index, visited_face_set);
     }
   }
@@ -470,7 +470,7 @@ static bool pose_face_sets_floodfill_cb(
 
         /* Check if we can get a valid face set for the next iteration from this neighbor. */
         if (SCULPT_vertex_has_unique_face_set(ss, ni.index) &&
-            !BLI_gset_haskey(data->visited_face_sets, next_face_set_candidate)) {
+            !BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(next_face_set_candidate))) {
           if (!data->next_face_set_found) {
             data->next_face_set = next_face_set_candidate;
             data->next_vertex = ni.index;
@@ -603,7 +603,7 @@ static void pose_ik_chain_origin_heads_init(SculptPoseIKChain *ik_chain,
   }
 }
 
-SculptPoseIKChain *SCULPT_pose_ik_chain_init_topology(Sculpt *sd,
+static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
                                                       Object *ob,
                                                       SculptSession *ss,
                                                       Brush *br,
@@ -682,7 +682,7 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init_topology(Sculpt *sd,
   return ik_chain;
 }
 
-SculptPoseIKChain *SCULPT_pose_ik_chain_init_face_sets(
+static SculptPoseIKChain *pose_ik_chain_init_face_sets(
     Sculpt *sd, Object *ob, SculptSession *ss, Brush *br, const float radius)
 {
 
@@ -705,7 +705,7 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init_face_sets(
     SCULPT_floodfill_init(ss, &flood);
     SCULPT_floodfill_add_initial_with_symmetry(sd, ob, ss, &flood, current_vertex, FLT_MAX);
 
-    BLI_gset_add(visited_face_sets, current_face_set);
+    BLI_gset_add(visited_face_sets, POINTER_FROM_INT(current_face_set));
 
     PoseFloodFillData fdata = {
         .radius = radius,
@@ -761,10 +761,10 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
 {
   switch (br->pose_origin_type) {
     case BRUSH_POSE_ORIGIN_TOPOLOGY:
-      return SCULPT_pose_ik_chain_init_topology(sd, ob, ss, br, initial_location, radius);
+      return pose_ik_chain_init_topology(sd, ob, ss, br, initial_location, radius);
       break;
     case BRUSH_POSE_ORIGIN_FACE_SETS:
-      return SCULPT_pose_ik_chain_init_face_sets(sd, ob, ss, br, radius);
+      return pose_ik_chain_init_face_sets(sd, ob, ss, br, radius);
       break;
   }
   return NULL;

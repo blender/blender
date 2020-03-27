@@ -114,13 +114,6 @@ typedef enum eDrawStrokeFlags {
 /* ----- Tool Buffer Drawing ------ */
 /* helper functions to set color of buffer point */
 
-static void gp_set_point_uniform_color(const bGPDspoint *pt, const float ink[4])
-{
-  float alpha = ink[3] * pt->strength;
-  CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
-  immUniformColor3fvAlpha(ink, alpha);
-}
-
 static void gp_set_point_varying_color(const bGPDspoint *pt,
                                        const float ink[4],
                                        uint attr_id,
@@ -134,30 +127,6 @@ static void gp_set_point_varying_color(const bGPDspoint *pt,
   immAttr4ub(attr_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
 
-/* --------- 2D Stroke Drawing Helpers --------- */
-/* change in parameter list */
-static void gp_calc_2d_stroke_fxy(
-    const float pt[3], short sflag, int offsx, int offsy, int winx, int winy, float r_co[2])
-{
-  if (sflag & GP_STROKE_2DSPACE) {
-    r_co[0] = pt[0];
-    r_co[1] = pt[1];
-  }
-  else if (sflag & GP_STROKE_2DIMAGE) {
-    const float x = (float)((pt[0] * winx) + offsx);
-    const float y = (float)((pt[1] * winy) + offsy);
-
-    r_co[0] = x;
-    r_co[1] = y;
-  }
-  else {
-    const float x = (float)(pt[0] / 100 * winx) + offsx;
-    const float y = (float)(pt[1] / 100 * winy) + offsy;
-
-    r_co[0] = x;
-    r_co[1] = y;
-  }
-}
 /* ----------- Volumetric Strokes --------------- */
 
 /* draw a 3D stroke in "volumetric" style */
