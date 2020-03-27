@@ -2364,7 +2364,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_automasking_boundary_edges", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BOUNDARY_EDGES);
-  RNA_def_property_ui_text(prop, "Edges Automasking", "Do not affect non manifold boundary edges");
+  RNA_def_property_ui_text(prop, "Edges Auto-masking", "Do not affect non manifold boundary edges");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_scene_spacing", PROP_ENUM, PROP_NONE);
