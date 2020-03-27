@@ -206,6 +206,13 @@ struct GHOST_PointerInfoWin32 {
   GHOST_TabletData tabletData;
 };
 
+typedef enum {
+  MousePressed,
+  MouseReleased,
+  OperatorGrab,
+  OperatorUngrab
+} GHOST_MouseCaptureEventWin32;
+
 /**
  * GHOST window on M$ Windows OSs.
  */
@@ -364,17 +371,14 @@ class GHOST_WindowWin32 : public GHOST_Window {
   GHOST_TSuccess endProgressBar();
 
   /**
-   * Register a mouse click event (should be called
+   * Register a mouse capture state (should be called
    * for any real button press, controls mouse
    * capturing).
    *
-   * \param press
-   *      0 - mouse pressed
-   *      1 - mouse released
-   *      2 - operator grab
-   *      3 - operator ungrab
+   * \param event Whether mouse was pressed and released, or an operator grabbed or ungrabbed the
+   * mouse
    */
-  void registerMouseClickEvent(int press);
+  void updateMouseCapture(GHOST_MouseCaptureEventWin32 event);
 
   /**
    * Inform the window that it has lost mouse capture,
@@ -418,6 +422,12 @@ class GHOST_WindowWin32 : public GHOST_Window {
   }
 
   GHOST_TUns16 getDPIHint() override;
+
+  /**
+   * Get whether there are currently any mouse buttons pressed
+   * \return    True if there are any currently pressed mouse buttons
+   */
+  bool getMousePressed() const;
 
   GHOST_TSuccess getPointerInfo(GHOST_PointerInfoWin32 *pointerInfo, WPARAM wParam, LPARAM lParam);
 

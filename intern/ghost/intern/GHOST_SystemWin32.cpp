@@ -920,6 +920,14 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
                                                          GHOST_TButtonMask mask)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
+
+  if (type == GHOST_kEventButtonDown) {
+    window->updateMouseCapture(MousePressed);
+  }
+  else if (type == GHOST_kEventButtonUp) {
+    window->updateMouseCapture(MouseReleased);
+  }
+
   if (window->useTabletAPI(GHOST_kTabletNative)) {
     window->setTabletData(NULL);
   }
@@ -927,63 +935,63 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
       system->getMilliSeconds(), type, window, mask, window->getTabletData());
 }
 
-GHOST_Event *GHOST_SystemWin32::processPointerEvent(GHOST_TEventType type,
-                                                    GHOST_WindowWin32 *window,
-                                                    WPARAM wParam,
-                                                    LPARAM lParam,
-                                                    bool &eventHandled)
+void GHOST_SystemWin32::processPointerEvents(
+    UINT type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
 {
   GHOST_PointerInfoWin32 pointerInfo;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
   if (!window->useTabletAPI(GHOST_kTabletNative)) {
-    return NULL;
+    return;
   }
 
   if (window->getPointerInfo(&pointerInfo, wParam, lParam) != GHOST_kSuccess) {
-    return NULL;
+    return;
   }
 
   if (!pointerInfo.isPrimary) {
     eventHandled = true;
-    return NULL;  // For multi-touch displays we ignore these events
+    return;  // For multi-touch displays we ignore these events
   }
 
   system->setCursorPosition(pointerInfo.pixelLocation.x, pointerInfo.pixelLocation.y);
 
   switch (type) {
-    case GHOST_kEventButtonDown:
+    case WM_POINTERDOWN:
       /* Update window tablet data to be included in event. */
       window->setTabletData(&pointerInfo.tabletData);
-      eventHandled = true;
-      return new GHOST_EventButton(system->getMilliSeconds(),
-                                   GHOST_kEventButtonDown,
-                                   window,
-                                   pointerInfo.buttonMask,
-                                   pointerInfo.tabletData);
-    case GHOST_kEventButtonUp:
-      eventHandled = true;
-      return new GHOST_EventButton(system->getMilliSeconds(),
-                                   GHOST_kEventButtonUp,
-                                   window,
-                                   pointerInfo.buttonMask,
-                                   window->getTabletData());
-    case GHOST_kEventCursorMove:
+      system->pushEvent(new GHOST_EventButton(system->getMilliSeconds(),
+                                              GHOST_kEventButtonDown,
+                                              window,
+                                              pointerInfo.buttonMask,
+                                              pointerInfo.tabletData));
+      window->updateMouseCapture(MousePressed);
+      break;
+    case WM_POINTERUPDATE:
       /* Update window tablet data to be included in event. */
-      eventHandled = true;
-      return new GHOST_EventCursor(system->getMilliSeconds(),
-                                   GHOST_kEventCursorMove,
-                                   window,
-                                   pointerInfo.pixelLocation.x,
-                                   pointerInfo.pixelLocation.y,
-                                   pointerInfo.tabletData);
+      system->pushEvent(GHOST_EventCursor(system->getMilliSeconds(),
+                                          GHOST_kEventCursorMove,
+                                          window,
+                                          pointerInfo.pixelLocation.x,
+                                          pointerInfo.pixelLocation.y,
+                                          pointerInfo.tabletData));
+      break;
+    case WM_POINTERUP:
+      system->pushEvent(new GHOST_EventButton(system->getMilliSeconds(),
+                                              GHOST_kEventButtonUp,
+                                              window,
+                                              pointerInfo.buttonMask,
+                                              window->getTabletData()));
+      window->updateMouseCapture(MouseReleased);
+      break;
     default:
-      return NULL;
+      break;
   }
+
+  eventHandled = true;
 }
 
-GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type,
-                                                         GHOST_WindowWin32 *window)
+GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
 {
   GHOST_TInt32 x_screen, y_screen;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
@@ -1417,39 +1425,23 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         // Pointer events, processed
         ////////////////////////////////////////////////////////////////////////
         case WM_POINTERDOWN:
-          event = processPointerEvent(
-              GHOST_kEventButtonDown, window, wParam, lParam, eventHandled);
-          if (event && eventHandled) {
-            window->registerMouseClickEvent(0);
-          }
-          break;
-        case WM_POINTERUP:
-          event = processPointerEvent(GHOST_kEventButtonUp, window, wParam, lParam, eventHandled);
-          if (event && eventHandled) {
-            window->registerMouseClickEvent(1);
-          }
-          break;
         case WM_POINTERUPDATE:
-          event = processPointerEvent(
-              GHOST_kEventCursorMove, window, wParam, lParam, eventHandled);
+        case WM_POINTERUP:
+          processPointerEvents(msg, window, wParam, lParam, eventHandled);
           break;
         ////////////////////////////////////////////////////////////////////////
         // Mouse events, processed
         ////////////////////////////////////////////////////////////////////////
         case WM_LBUTTONDOWN:
-          window->registerMouseClickEvent(0);
           event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft);
           break;
         case WM_MBUTTONDOWN:
-          window->registerMouseClickEvent(0);
           event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskMiddle);
           break;
         case WM_RBUTTONDOWN:
-          window->registerMouseClickEvent(0);
           event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight);
           break;
         case WM_XBUTTONDOWN:
-          window->registerMouseClickEvent(0);
           if ((short)HIWORD(wParam) == XBUTTON1) {
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
           }
@@ -1458,19 +1450,15 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           }
           break;
         case WM_LBUTTONUP:
-          window->registerMouseClickEvent(1);
           event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
           break;
         case WM_MBUTTONUP:
-          window->registerMouseClickEvent(1);
           event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskMiddle);
           break;
         case WM_RBUTTONUP:
-          window->registerMouseClickEvent(1);
           event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight);
           break;
         case WM_XBUTTONUP:
-          window->registerMouseClickEvent(1);
           if ((short)HIWORD(wParam) == XBUTTON1) {
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
           }
@@ -1479,7 +1467,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           }
           break;
         case WM_MOUSEMOVE:
-          event = processCursorEvent(GHOST_kEventCursorMove, window);
+          event = processCursorEvent(window);
           break;
         case WM_MOUSEWHEEL: {
           /* The WM_MOUSEWHEEL message is sent to the focus window
