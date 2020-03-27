@@ -622,12 +622,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
   if (lb->first) {
     unode = lb->first;
-    if (unode->type == SCULPT_UNDO_GEOMETRY) {
-      sculpt_undo_geometry_restore(unode, ob);
-      BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
-      return;
-    }
-    else if (unode->type == SCULPT_UNDO_FACE_SETS) {
+    if (unode->type == SCULPT_UNDO_FACE_SETS) {
       sculpt_undo_restore_face_sets(C, unode);
 
       rebuild = true;
@@ -653,10 +648,18 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
+  if (lb->first != NULL) {
+    /* Only do early object update for edits if first node needs this.
+     * Undo steps like geometry does not need object to be updated before they run and will
+     * ensure object is updated after the node is handled. */
+    const SculptUndoNode *first_unode = (const SculptUndoNode *)lb->first;
+    if (first_unode->type != SCULPT_UNDO_GEOMETRY) {
+      BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
+    }
 
-  if (lb->first && sculpt_undo_bmesh_restore(C, lb->first, ob, ss)) {
-    return;
+    if (sculpt_undo_bmesh_restore(C, lb->first, ob, ss)) {
+      return;
+    }
   }
 
   char *undo_modified_grids = NULL;
@@ -705,12 +708,15 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_FACE_SETS:
         break;
 
+      case SCULPT_UNDO_GEOMETRY:
+        sculpt_undo_geometry_restore(unode, ob);
+        BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
+        break;
+
       case SCULPT_UNDO_DYNTOPO_BEGIN:
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
         BLI_assert(!"Dynamic topology should've already been handled");
-        break;
-      case SCULPT_UNDO_GEOMETRY:
         break;
     }
   }
