@@ -520,13 +520,6 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Offset", "Shift Texture in 2d Space");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
-  /* Texture opacity size */
-  prop = RNA_def_property(srna, "texture_opacity", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "texture_opacity");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Opacity", "Texture Opacity");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
-
   /* texture pixsize factor (used for UV along the stroke) */
   prop = RNA_def_property(srna, "pixel_size", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "texture_pixsize");
