@@ -1052,8 +1052,7 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
   rect.ymax = my + radius;
 
   /* find visible strokes, and select if hit */
-  GP_EVALUATED_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
-  {
+  GP_EVALUATED_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     changed |= gp_stroke_do_circle_sel(gpd,
                                        gpl,
                                        gps,
@@ -1180,8 +1179,7 @@ static int gpencil_generic_select_exec(bContext *C,
   }
 
   /* select/deselect points */
-  GP_EVALUATED_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
-  {
+  GP_EVALUATED_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
 
     bGPDspoint *pt;
@@ -1473,8 +1471,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
   /* First Pass: Find stroke point which gets hit */
   /* XXX: maybe we should go from the top of the stack down instead... */
-  GP_EVALUATED_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
-  {
+  GP_EVALUATED_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
     bGPDspoint *pt;
     int i;

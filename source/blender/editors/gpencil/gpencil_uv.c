@@ -176,8 +176,7 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op, const bool is
   float center[3] = {0.0f};
   int i = 0;
   /* Need use evaluated to get the viewport final position. */
-  GP_EVALUATED_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
-  {
+  GP_EVALUATED_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     if (gps->flag & GP_STROKE_SELECT) {
       float r_center[3];
       gpencil_stroke_center(gps, r_center);

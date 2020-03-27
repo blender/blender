@@ -134,7 +134,8 @@ extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
   render_pass_index_ += 1; \
   } \
   } \
-  }
+  } \
+  ((void)0)
 
 /* *********** FUNCTIONS *********** */
 
@@ -1562,21 +1563,22 @@ static void material_opaque(Material *ma,
           }
         }
 
-        RENDER_PASS_ITER_BEGIN(stl->g_data->render_passes, render_pass_index, render_pass_flag)
-        emsg->material_accum_grp[render_pass_index] = DRW_shgroup_material_create(
-            *gpumat, psl->material_accum_pass[render_pass_index]);
-        add_standard_uniforms(emsg->material_accum_grp[render_pass_index],
-                              sldata,
-                              vedata,
-                              ssr_id,
-                              &ma->refract_depth,
-                              use_diffuse,
-                              use_glossy,
-                              use_refract,
-                              use_ssrefract,
-                              false,
-                              render_pass_flag);
-        RENDER_PASS_ITER_END(render_pass_index)
+        RENDER_PASS_ITER_BEGIN (stl->g_data->render_passes, render_pass_index, render_pass_flag) {
+          emsg->material_accum_grp[render_pass_index] = DRW_shgroup_material_create(
+              *gpumat, psl->material_accum_pass[render_pass_index]);
+          add_standard_uniforms(emsg->material_accum_grp[render_pass_index],
+                                sldata,
+                                vedata,
+                                ssr_id,
+                                &ma->refract_depth,
+                                use_diffuse,
+                                use_glossy,
+                                use_refract,
+                                use_ssrefract,
+                                false,
+                                render_pass_flag);
+        }
+        RENDER_PASS_ITER_END(render_pass_index);
 
         break;
       }
@@ -1605,21 +1607,22 @@ static void material_opaque(Material *ma,
     DRW_shgroup_uniform_float(emsg->shading_grp, "specular", spec_p, 1);
     DRW_shgroup_uniform_float(emsg->shading_grp, "roughness", rough_p, 1);
 
-    RENDER_PASS_ITER_BEGIN(stl->g_data->render_passes, render_pass_index, render_pass_flag)
-    DRWShadingGroup *shgrp = EEVEE_default_render_pass_shading_group_get(
-        sldata,
-        vedata,
-        holdout,
-        use_ssr,
-        psl->material_accum_pass[render_pass_index],
-        render_pass_flag);
+    RENDER_PASS_ITER_BEGIN (stl->g_data->render_passes, render_pass_index, render_pass_flag) {
+      DRWShadingGroup *shgrp = EEVEE_default_render_pass_shading_group_get(
+          sldata,
+          vedata,
+          holdout,
+          use_ssr,
+          psl->material_accum_pass[render_pass_index],
+          render_pass_flag);
 
-    DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
-    DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
-    DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
-    DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
-    emsg->material_accum_grp[render_pass_index] = shgrp;
-    RENDER_PASS_ITER_END(render_pass_index)
+      DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
+      DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
+      DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
+      DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
+      emsg->material_accum_grp[render_pass_index] = shgrp;
+    }
+    RENDER_PASS_ITER_END(render_pass_index);
   }
 
   /* Fallback default depth prepass */
@@ -1893,28 +1896,29 @@ static void eevee_hair_cache_populate(EEVEE_Data *vedata,
                               DEFAULT_RENDER_PASS_FLAG);
 
         /* Add the hair to all the render_passes that are enabled */
-        RENDER_PASS_ITER_BEGIN(stl->g_data->render_passes, render_pass_index, render_pass_flag)
-        shgrp = DRW_shgroup_material_hair_create(
-            ob, psys, md, psl->material_accum_pass[render_pass_index], gpumat);
-        if (!use_diffuse && !use_glossy && !use_refract) {
-          /* Small hack to avoid issue when utilTex is needed for
-           * world_normals_get and none of the bsdfs that need it are present.
-           * This binds `utilTex` even if not needed. */
-          DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
-        }
+        RENDER_PASS_ITER_BEGIN (stl->g_data->render_passes, render_pass_index, render_pass_flag) {
+          shgrp = DRW_shgroup_material_hair_create(
+              ob, psys, md, psl->material_accum_pass[render_pass_index], gpumat);
+          if (!use_diffuse && !use_glossy && !use_refract) {
+            /* Small hack to avoid issue when utilTex is needed for
+             * world_normals_get and none of the bsdfs that need it are present.
+             * This binds `utilTex` even if not needed. */
+            DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
+          }
 
-        add_standard_uniforms(shgrp,
-                              sldata,
-                              vedata,
-                              &ssr_id,
-                              NULL,
-                              use_diffuse,
-                              use_glossy,
-                              use_refract,
-                              false,
-                              false,
-                              render_pass_flag);
-        RENDER_PASS_ITER_END(render_pass_index)
+          add_standard_uniforms(shgrp,
+                                sldata,
+                                vedata,
+                                &ssr_id,
+                                NULL,
+                                use_diffuse,
+                                use_glossy,
+                                use_refract,
+                                false,
+                                false,
+                                render_pass_flag);
+        }
+        RENDER_PASS_ITER_END(render_pass_index);
 
         break;
       }
@@ -1940,23 +1944,24 @@ static void eevee_hair_cache_populate(EEVEE_Data *vedata,
     DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
     DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
 
-    RENDER_PASS_ITER_BEGIN(stl->g_data->render_passes, render_pass_index, render_pass_flag)
-    shgrp = EEVEE_default_hair_render_pass_shading_group_get(
-        sldata,
-        vedata,
-        ob,
-        psys,
-        md,
-        holdout,
-        use_ssr,
-        psl->material_accum_pass[render_pass_index],
-        render_pass_flag);
+    RENDER_PASS_ITER_BEGIN (stl->g_data->render_passes, render_pass_index, render_pass_flag) {
+      shgrp = EEVEE_default_hair_render_pass_shading_group_get(
+          sldata,
+          vedata,
+          ob,
+          psys,
+          md,
+          holdout,
+          use_ssr,
+          psl->material_accum_pass[render_pass_index],
+          render_pass_flag);
 
-    DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
-    DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
-    DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
-    DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
-    RENDER_PASS_ITER_END(render_pass_index)
+      DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
+      DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
+      DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);
+      DRW_shgroup_uniform_float(shgrp, "roughness", rough_p, 1);
+    }
+    RENDER_PASS_ITER_END(render_pass_index);
   }
 
   /* Shadows */

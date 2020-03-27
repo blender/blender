@@ -436,8 +436,7 @@ static void mesh_batch_cache_check_vertex_group(MeshBatchCache *cache,
                                                 const struct DRW_MeshWeightState *wstate)
 {
   if (!drw_mesh_weight_state_compare(&cache->weight_state, wstate)) {
-    FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
-    {
+    FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
       GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.weights);
     }
     GPU_BATCH_CLEAR_SAFE(cache->batch.surface_weights);
@@ -460,8 +459,7 @@ static void mesh_batch_cache_discard_shaded_batches(MeshBatchCache *cache)
 
 static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 {
-  FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
-  {
+  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.pos_nor);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.tan);
@@ -478,8 +476,7 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 
 static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 {
-  FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
-  {
+  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.stretch_angle);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.stretch_area);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv);
@@ -517,8 +514,7 @@ static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 
 static void mesh_batch_cache_discard_uvedit_select(MeshBatchCache *cache)
 {
-  FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
-  {
+  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_data);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_edituv_data);
     GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_tris);
@@ -544,8 +540,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
   }
   switch (mode) {
     case BKE_MESH_BATCH_DIRTY_SELECT:
-      FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
-      {
+      FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
         GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edit_data);
         GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_nor);
       }
@@ -568,8 +563,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
     case BKE_MESH_BATCH_DIRTY_SELECT_PAINT:
       /* Paint mode selection flag is packed inside the nor attrib.
        * Note that it can be slow if auto smooth is enabled. (see T63946) */
-      FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
-      {
+      FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
         GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.lines_paint_mask);
         GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.pos_nor);
         GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.lnor);
@@ -595,8 +589,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
       mesh_batch_cache_discard_uvedit(cache);
       break;
     case BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT:
-      FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
-      {
+      FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
         GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_data);
         GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_edituv_data);
       }
@@ -619,8 +612,7 @@ static void mesh_batch_cache_clear(Mesh *me)
   if (!cache) {
     return;
   }
-  FOREACH_MESH_BUFFER_CACHE(cache, mbufcache)
-  {
+  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
     GPUVertBuf **vbos = (GPUVertBuf **)&mbufcache->vbo;
     GPUIndexBuf **ibos = (GPUIndexBuf **)&mbufcache->ibo;
     for (int i = 0; i < sizeof(mbufcache->vbo) / sizeof(void *); i++) {
@@ -1060,8 +1052,7 @@ void DRW_mesh_batch_cache_create_requested(
    * index ranges initialized. So discard ibo.tris in order to recreate it.
    * This needs to happen before saved_elem_ranges is populated. */
   if ((batch_requested & MBC_SURF_PER_MAT) != 0 && (cache->batch_ready & MBC_SURF_PER_MAT) == 0) {
-    FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
-    {
+    FOREACH_MESH_BUFFER_CACHE (cache, mbuffercache) {
       GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.tris);
     }
     /* Clear all batches that reference ibo.tris. */
@@ -1098,8 +1089,7 @@ void DRW_mesh_batch_cache_create_requested(
      * material. */
     bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_used, cache->cd_needed);
     if (cd_overlap == false) {
-      FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
-      {
+      FOREACH_MESH_BUFFER_CACHE (cache, mbuffercache) {
         if ((cache->cd_used.uv & cache->cd_needed.uv) != cache->cd_needed.uv) {
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.uv);
           cd_uv_update = true;
@@ -1145,8 +1135,7 @@ void DRW_mesh_batch_cache_create_requested(
     const bool is_uvsyncsel = ts && (ts->uv_flag & UV_SYNC_SELECTION);
     if (cd_uv_update || (cache->is_uvsyncsel != is_uvsyncsel)) {
       cache->is_uvsyncsel = is_uvsyncsel;
-      FOREACH_MESH_BUFFER_CACHE(cache, mbuffercache)
-      {
+      FOREACH_MESH_BUFFER_CACHE (cache, mbuffercache) {
         GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.edituv_data);
         GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.fdots_uv);
         GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_tris);

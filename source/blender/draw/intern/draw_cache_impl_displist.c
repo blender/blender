@@ -406,7 +406,7 @@ static void displist_vertbuf_attr_set_tri_pos_nor_uv(GPUVertBufRaw *pos_step,
   }
 }
 
-#define SURFACE_QUAD_ITER_START(dl) \
+#define SURFACE_QUAD_ITER_BEGIN(dl) \
   { \
     uint quad[4]; \
     int quad_index = 0; \
@@ -446,8 +446,7 @@ static void displist_surf_fnors_ensure(const DispList *dl, float (**fnors)[3])
   float(*nor_flat)[3] = MEM_mallocN(sizeof(float) * 3 * u_len * v_len, __func__);
   *fnors = nor_flat;
 
-  SURFACE_QUAD_ITER_START(dl)
-  {
+  SURFACE_QUAD_ITER_BEGIN (dl) {
     normal_quad_v3(*nor_flat, verts[quad[0]], verts[quad[1]], verts[quad[2]], verts[quad[3]]);
     nor_flat++;
   }
@@ -570,8 +569,7 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
           BKE_displist_tangent_calc(dl, fnors, &tangents);
         }
 
-        SURFACE_QUAD_ITER_START(dl)
-        {
+        SURFACE_QUAD_ITER_BEGIN (dl) {
           if (vbo_uv) {
             surf_uv_quad(dl, quad, uv);
           }
