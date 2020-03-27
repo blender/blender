@@ -212,7 +212,6 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.template_ID(gpcolor, "fill_image", open="image.open")
 
             col.prop(gpcolor, "fill_color", text="Base Color")
-            col.prop(gpcolor, "texture_opacity", slider=True)
             col.prop(gpcolor, "mix_factor", text="Blend in Fill Texture", slider=True)
 
             col.prop(gpcolor, "texture_offset", text="Location")
