@@ -36,6 +36,8 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 
+#include "BKE_deform.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
@@ -110,6 +112,8 @@ typedef struct SDefDeformData {
   const SDefVert *const bind_verts;
   float (*const targetCos)[3];
   float (*const vertexCos)[3];
+  float(*const weights);
+  float const strength;
 } SDefDeformData;
 
 /* Bind result values */
@@ -136,6 +140,19 @@ static void initData(ModifierData *md)
   smd->verts = NULL;
   smd->flags = 0;
   smd->falloff = 4.0f;
+  smd->strength = 1.0f;
+}
+
+static void requiredDataMask(Object *UNUSED(ob),
+                             ModifierData *md,
+                             CustomData_MeshMasks *r_cddata_masks)
+{
+  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+
+  /* Ask for vertex groups if we need them. */
+  if (smd->defgrp_name[0] != '\0') {
+    r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+  }
 }
 
 static void freeData(ModifierData *md)
@@ -1123,9 +1140,16 @@ static void deformVert(void *__restrict userdata,
   const SDefBind *sdbind = data->bind_verts[index].binds;
   const int num_binds = data->bind_verts[index].numbinds;
   float *const vertexCos = data->vertexCos[index];
-  float norm[3], temp[3];
+  float norm[3], temp[3], offset[3];
+  const float weight = (data->weights != NULL) ? data->weights[index] : 1.0f;
 
-  zero_v3(vertexCos);
+  /* Check if this vertex will be deformed. If it is not deformed we return and avoid
+   * unneccessary calculations. */
+  if (weight == 0.0f) {
+    return;
+  }
+
+  zero_v3(offset);
 
   /* Allocate a `coords_buffer` that fits all the temp-data. */
   int max_verts = 0;
@@ -1170,8 +1194,13 @@ static void deformVert(void *__restrict userdata,
     /* Apply normal offset (generic for all modes) */
     madd_v3_v3fl(temp, norm, sdbind->normal_dist);
 
-    madd_v3_v3fl(vertexCos, temp, sdbind->influence);
+    madd_v3_v3fl(offset, temp, sdbind->influence);
   }
+  /* Subtract the vertex coord to get the deformation offset. */
+  sub_v3_v3(offset, vertexCos);
+
+  /* Add the offset to start coord multiplied by the strength and weight values. */
+  madd_v3_v3fl(vertexCos, offset, data->strength * weight);
   MEM_freeN(coords_buffer);
 }
 
@@ -1179,7 +1208,8 @@ static void surfacedeformModifier_do(ModifierData *md,
                                      const ModifierEvalContext *ctx,
                                      float (*vertexCos)[3],
                                      uint numverts,
-                                     Object *ob)
+                                     Object *ob,
+                                     Mesh *mesh)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
   Mesh *target;
@@ -1238,11 +1268,44 @@ static void surfacedeformModifier_do(ModifierData *md,
     return;
   }
 
+  /* Early out if modifier would not affect input at all - still *after* the sanity checks (and
+   * potential binding) above.
+   */
+  if (smd->strength == 0.0f) {
+    return;
+  }
+
+  int defgrp_index;
+  MDeformVert *dvert;
+  MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
+  float *weights = NULL;
+  const bool invert_group = (smd->flags & MOD_SDEF_INVERT_VGROUP) != 0;
+
+  if (defgrp_index != -1) {
+    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, mesh->totvert);
+    /* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
+    if (dvert == NULL) {
+      /* Add a valid data layer! */
+      dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, mesh->totvert);
+    }
+
+    if (dvert) {
+      weights = MEM_calloc_arrayN((size_t)numverts, sizeof(*weights), __func__);
+      MDeformVert *dv = dvert;
+      for (uint i = 0; i < numverts; i++, dv++) {
+        weights[i] = invert_group ? (1.0f - BKE_defvert_find_weight(dv, defgrp_index)) :
+                                    BKE_defvert_find_weight(dv, defgrp_index);
+      }
+    }
+  }
+
   /* Actual vertex location update starts here */
   SDefDeformData data = {
       .bind_verts = smd->verts,
       .targetCos = MEM_malloc_arrayN(tnumverts, sizeof(float[3]), "SDefTargetVertArray"),
       .vertexCos = vertexCos,
+      .weights = weights,
+      .strength = smd->strength,
   };
 
   if (data.targetCos != NULL) {
@@ -1259,25 +1322,51 @@ static void surfacedeformModifier_do(ModifierData *md,
 
     MEM_freeN(data.targetCos);
   }
+
+  MEM_SAFE_FREE(weights);
 }
 
 static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
-                        Mesh *UNUSED(mesh),
+                        Mesh *mesh,
                         float (*vertexCos)[3],
                         int numVerts)
 {
-  surfacedeformModifier_do(md, ctx, vertexCos, numVerts, ctx->object);
+  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  Mesh *mesh_src = NULL;
+
+  if (smd->defgrp_name[0] != '\0') {
+    /* Only need to use mesh_src when a vgroup is used. */
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  }
+
+  surfacedeformModifier_do(md, ctx, vertexCos, numVerts, ctx->object, mesh_src);
+
+  if (!ELEM(mesh_src, NULL, mesh)) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *UNUSED(editData),
-                          Mesh *UNUSED(mesh),
+                          struct BMEditMesh *em,
+                          Mesh *mesh,
                           float (*vertexCos)[3],
                           int numVerts)
 {
-  surfacedeformModifier_do(md, ctx, vertexCos, numVerts, ctx->object);
+  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+  Mesh *mesh_src = NULL;
+
+  if (smd->defgrp_name[0] != '\0') {
+    /* Only need to use mesh_src when a vgroup is used. */
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
+  }
+
+  surfacedeformModifier_do(md, ctx, vertexCos, numVerts, ctx->object, mesh_src);
+
+  if (!ELEM(mesh_src, NULL, mesh)) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
 static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
@@ -1309,7 +1398,7 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
     /* applyModifier */ NULL,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
+    /* requiredDataMask */ requiredDataMask,
     /* freeData */ freeData,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
