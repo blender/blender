@@ -1072,6 +1072,17 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.active = md.use_rim
         row.prop(md, "material_offset_rim", text="Rim")
 
+        col.separator()
+
+        row = col.row(align=True)
+        row.label(text="Shell Vertex Group:")
+        row = col.row(align=True)
+        row.prop_search(md, "shell_vertex_group", ob, "vertex_groups", text="")
+        row = col.row(align=True)
+        row.label(text="Rim Vertex Group:")
+        row = col.row(align=True)
+        row.prop_search(md, "rim_vertex_group", ob, "vertex_groups", text="")
+
     def SUBSURF(self, layout, ob, md):
         from bpy import context
         layout.row().prop(md, "subdivision_type", expand=True)

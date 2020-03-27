@@ -1148,6 +1148,8 @@ typedef struct SolidifyModifierData {
 
   /** Name of vertex group to use, MAX_VGROUP_NAME. */
   char defgrp_name[64];
+  char shell_defgrp_name[64];
+  char rim_defgrp_name[64];
   /** New surface offset leve.l*/
   float offset;
   /** Midpoint of the offset . */

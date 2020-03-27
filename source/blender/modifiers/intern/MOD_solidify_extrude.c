@@ -240,6 +240,9 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
   MDeformVert *dvert;
   const bool defgrp_invert = (smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0;
   int defgrp_index;
+  const int shell_defgrp_index = BKE_object_defgroup_name_index(ctx->object,
+                                                                smd->shell_defgrp_name);
+  const int rim_defgrp_index = BKE_object_defgroup_name_index(ctx->object, smd->rim_defgrp_name);
 
   /* array size is doubled in case of using a shell */
   const uint stride = do_shell ? 2 : 1;
@@ -886,6 +889,36 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
     }
   }
 
+  /* Add vertex weights for rim and shell vgroups. */
+  if (shell_defgrp_index != -1 || rim_defgrp_index != -1) {
+    dvert = CustomData_duplicate_referenced_layer(&result->vdata, CD_MDEFORMVERT, result->totvert);
+    /* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
+    if (dvert == NULL) {
+      /* Add a valid data layer! */
+      dvert = CustomData_add_layer(
+          &result->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, result->totvert);
+    }
+    /* Ultimate security check. */
+    if (!dvert) {
+      return result;
+    }
+    result->dvert = dvert;
+
+    if (rim_defgrp_index != -1) {
+      for (uint i = 0; i < rimVerts; i++) {
+        BKE_defvert_ensure_index(&result->dvert[new_vert_arr[i]], rim_defgrp_index)->weight = 1.0f;
+        BKE_defvert_ensure_index(&result->dvert[(do_shell ? new_vert_arr[i] : i) + numVerts],
+                                 rim_defgrp_index)
+            ->weight = 1.0f;
+      }
+    }
+
+    if (shell_defgrp_index != -1) {
+      for (uint i = numVerts; i < result->totvert; i++) {
+        BKE_defvert_ensure_index(&result->dvert[i], shell_defgrp_index)->weight = 1.0f;
+      }
+    }
+  }
   if (smd->flag & MOD_SOLIDIFY_RIM) {
     uint i;
 
