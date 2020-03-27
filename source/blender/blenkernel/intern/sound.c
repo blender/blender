@@ -550,12 +550,12 @@ void BKE_sound_destroy_scene(Scene *scene)
   }
 }
 
-void BKE_sound_lock_scene(struct Scene *scene)
+void BKE_sound_lock_scene(struct Scene *UNUSED(scene))
 {
   AUD_Device_lock(sound_device);
 }
 
-void BKE_sound_unlock_scene(struct Scene *scene)
+void BKE_sound_unlock_scene(struct Scene *UNUSED(scene))
 {
   AUD_Device_unlock(sound_device);
 }
