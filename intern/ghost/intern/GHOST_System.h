@@ -238,7 +238,7 @@ class GHOST_System : public GHOST_ISystem {
    * Set which tablet API to use. Only affects Windows, other platforms have a single API.
    * \param api Enum indicating which API to use.
    */
-  void setTabletAPI(GHOST_TTabletAPI api);
+  virtual void setTabletAPI(GHOST_TTabletAPI api);
   GHOST_TTabletAPI getTabletAPI(void);
 
 #ifdef WITH_INPUT_NDOF
