@@ -38,10 +38,6 @@
 #include "BLT_translation.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_node_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
@@ -52,8 +48,6 @@
 #include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
-#include "BKE_node.h"
-#include "BKE_sequencer.h"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph_build.h"

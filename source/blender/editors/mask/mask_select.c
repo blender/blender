@@ -38,7 +38,6 @@
 
 #include "ED_clip.h"
 #include "ED_mask.h" /* own include */
-#include "ED_screen.h"
 #include "ED_select_utils.h"
 
 #include "RNA_access.h"

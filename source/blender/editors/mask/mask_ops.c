@@ -31,7 +31,6 @@
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h" /* SELECT */

@@ -54,8 +54,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "mask_intern.h" /* own include */
-
 static void mask_spline_color_get(MaskLayer *mask_layer,
                                   MaskSpline *spline,
                                   const bool is_sel,
