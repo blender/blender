@@ -308,6 +308,7 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(struct Depsgraph *dep
 
   Object object_for_eval = *object_eval;
   object_for_eval.data = object->data;
+  object_for_eval.sculpt = NULL;
 
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   ModifierEvalContext mesh_eval_context = {depsgraph, &object_for_eval, 0};
