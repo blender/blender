@@ -542,7 +542,6 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
 
     /* Get origin to reproject points. */
     float origin[3];
-    bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
     ToolSettings *ts = scene->toolsettings;
     ED_gpencil_drawing_reference_get(scene, ob, ts->gpencil_v3d_align, origin);
 
