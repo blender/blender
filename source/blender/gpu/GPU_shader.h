@@ -107,10 +107,6 @@ typedef enum eGPUBuiltinShader {
   GPU_SHADER_TEXT,
   GPU_SHADER_KEYFRAME_DIAMOND,
   GPU_SHADER_SIMPLE_LIGHTING,
-  GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR,
-  GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR,
-  GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR_ALPHA,
-
   /* for simple 2D drawing */
   /**
    * Take a single color for all the vertices and a 2D position for each vertex.
@@ -133,7 +129,6 @@ typedef enum eGPUBuiltinShader {
    * \param pos: in vec2
    */
   GPU_SHADER_2D_SMOOTH_COLOR,
-  GPU_SHADER_2D_SMOOTH_COLOR_DITHER,
   GPU_SHADER_2D_IMAGE,
   GPU_SHADER_2D_IMAGE_COLOR,
   GPU_SHADER_2D_IMAGE_DESATURATE_COLOR,
@@ -141,14 +136,6 @@ typedef enum eGPUBuiltinShader {
   GPU_SHADER_2D_IMAGE_ALPHA,
   GPU_SHADER_2D_IMAGE_RECT_COLOR,
   GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR,
-  GPU_SHADER_2D_IMAGE_MULTISAMPLE_2,
-  GPU_SHADER_2D_IMAGE_MULTISAMPLE_4,
-  GPU_SHADER_2D_IMAGE_MULTISAMPLE_8,
-  GPU_SHADER_2D_IMAGE_MULTISAMPLE_16,
-  GPU_SHADER_2D_IMAGE_MULTISAMPLE_2_DEPTH_TEST,
-  GPU_SHADER_2D_IMAGE_MULTISAMPLE_4_DEPTH_TEST,
-  GPU_SHADER_2D_IMAGE_MULTISAMPLE_8_DEPTH_TEST,
-  GPU_SHADER_2D_IMAGE_MULTISAMPLE_16_DEPTH_TEST,
   GPU_SHADER_2D_CHECKER,
   GPU_SHADER_2D_DIAG_STRIPES,
   /* for simple 3D drawing */
@@ -159,8 +146,6 @@ typedef enum eGPUBuiltinShader {
    * \param pos: in vec3
    */
   GPU_SHADER_3D_UNIFORM_COLOR,
-  /* Sets Z-depth to 1.0 (draw onto background). */
-  GPU_SHADER_3D_UNIFORM_COLOR_BACKGROUND,
   /**
    * Take a 3D position and color for each vertex without color interpolation.
    *
@@ -196,18 +181,6 @@ typedef enum eGPUBuiltinShader {
    * \param pos: in vec3
    */
   GPU_SHADER_3D_IMAGE_MODULATE_ALPHA,
-  /**
-   * Draw linearized depth texture relate to near and far distances.
-   * Take a 3D position and a 2D texture coordinate for each vertex.
-   *
-   * \param znear: uniform float
-   * \param zfar: uniform float
-   * \param image: uniform sampler2D
-   * \param texCoord: in vec2
-   * \param pos: in vec3
-   */
-  GPU_SHADER_3D_IMAGE_DEPTH,
-  GPU_SHADER_3D_IMAGE_DEPTH_COPY,
   /* points */
   /**
    * Draw round points with a hardcoded size.
