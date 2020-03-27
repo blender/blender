@@ -1919,6 +1919,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'PAINT': [
             _defs_texture_paint.generate_from_brushes,
+            None,
+            *_tools_annotate,
         ],
     }
 
