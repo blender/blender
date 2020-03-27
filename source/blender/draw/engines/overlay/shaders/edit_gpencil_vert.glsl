@@ -21,11 +21,11 @@ void discard_vert()
   gl_Position = vec4(0.0, 0.0, -3e36, 0.0);
 }
 
-#define GP_EDIT_POINT_SELECTED (1u << 0u)
-#define GP_EDIT_STROKE_SELECTED (1u << 1u)
-#define GP_EDIT_MULTIFRAME (1u << 2u)
-#define GP_EDIT_STROKE_START (1u << 3u)
-#define GP_EDIT_STROKE_END (1u << 4u)
+#define GP_EDIT_POINT_SELECTED 1u  /* 1 << 0 */
+#define GP_EDIT_STROKE_SELECTED 2u /* 1 << 1 */
+#define GP_EDIT_MULTIFRAME 4u      /* 1 << 2 */
+#define GP_EDIT_STROKE_START 8u    /* 1 << 3 */
+#define GP_EDIT_STROKE_END 16u     /* 1 << 4 */
 
 #ifdef USE_POINTS
 #  define colorUnselect colorGpencilVertex
