@@ -121,13 +121,20 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   }
 }
 
-bool BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv,
-                                      const Mesh *mesh,
-                                      const float (*coarse_vertex_cos)[3])
+bool BKE_subdiv_eval_begin_from_mesh(Subdiv *subdiv,
+                                     const Mesh *mesh,
+                                     const float (*coarse_vertex_cos)[3])
 {
   if (!BKE_subdiv_eval_begin(subdiv)) {
     return false;
   }
+  return BKE_subdiv_eval_refine_from_mesh(subdiv, mesh, coarse_vertex_cos);
+}
+
+bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
+                                      const Mesh *mesh,
+                                      const float (*coarse_vertex_cos)[3])
+{
   if (subdiv->evaluator == NULL) {
     /* NOTE: This situation is supposed to be handled by begin(). */
     BLI_assert(!"Is not supposed to happen");

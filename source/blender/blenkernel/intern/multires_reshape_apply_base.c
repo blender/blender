@@ -177,7 +177,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
 
 void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context)
 {
-  BKE_subdiv_eval_update_from_mesh(reshape_context->subdiv, reshape_context->base_mesh, NULL);
+  BKE_subdiv_eval_refine_from_mesh(reshape_context->subdiv, reshape_context->base_mesh, NULL);
 }
 
 void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *reshape_context)
@@ -192,7 +192,7 @@ void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *resh
   float(*deformed_verts)[3] = BKE_multires_create_deformed_base_mesh_vert_coords(
       depsgraph, object, mmd, NULL);
 
-  BKE_subdiv_eval_update_from_mesh(
+  BKE_subdiv_eval_refine_from_mesh(
       reshape_context->subdiv, reshape_context->base_mesh, deformed_verts);
 
   MEM_freeN(deformed_verts);

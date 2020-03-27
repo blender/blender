@@ -38,7 +38,10 @@ bool BKE_subdiv_eval_begin(struct Subdiv *subdiv);
 
 /* coarse_vertex_cos is an optional argument which allows to override coordinates of the coarse
  * mesh. */
-bool BKE_subdiv_eval_update_from_mesh(struct Subdiv *subdiv,
+bool BKE_subdiv_eval_begin_from_mesh(struct Subdiv *subdiv,
+                                     const struct Mesh *mesh,
+                                     const float (*coarse_vertex_cos)[3]);
+bool BKE_subdiv_eval_refine_from_mesh(struct Subdiv *subdiv,
                                       const struct Mesh *mesh,
                                       const float (*coarse_vertex_cos)[3]);
 
