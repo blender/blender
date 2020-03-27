@@ -499,7 +499,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
 #ifdef WITH_X11_XINPUT
   refreshXInputDevices();
 
-  m_tabletData = GHOST_TABLET_DATA_DEFAULT;
+  m_tabletData = GHOST_TABLET_DATA_NONE;
 #endif
 
   /* now set up the rendering context. */

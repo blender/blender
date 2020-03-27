@@ -395,7 +395,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
   setTitle(title);
 
-  m_tablet = GHOST_TABLET_DATA_DEFAULT;
+  m_tablet = GHOST_TABLET_DATA_NONE;
 
   CocoaWindowDelegate *windowDelegate = [[CocoaWindowDelegate alloc] init];
   [windowDelegate setSystemAndWindowCocoa:systemCocoa windowCocoa:this];

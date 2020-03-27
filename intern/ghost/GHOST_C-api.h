@@ -762,13 +762,6 @@ extern unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windwHa
 extern void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api);
 
 /**
- * Returns the status of the tablet
- * \param windowhandle The handle to the window
- * \return Status of tablet
- */
-extern const GHOST_TabletData *GHOST_GetTabletData(GHOST_WindowHandle windowhandle);
-
-/**
  * Access to rectangle width.
  * \param rectanglehandle The handle to the rectangle
  * \return width of the rectangle

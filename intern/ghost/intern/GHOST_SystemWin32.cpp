@@ -911,7 +911,8 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
   if (window->useTabletAPI(GHOST_kTabletNative)) {
     window->setTabletData(NULL);
   }
-  return new GHOST_EventButton(system->getMilliSeconds(), type, window, mask);
+  return new GHOST_EventButton(
+      system->getMilliSeconds(), type, window, mask, window->getTabletData());
 }
 
 GHOST_Event *GHOST_SystemWin32::processPointerEvent(GHOST_TEventType type,
@@ -943,21 +944,27 @@ GHOST_Event *GHOST_SystemWin32::processPointerEvent(GHOST_TEventType type,
       /* Update window tablet data to be included in event. */
       window->setTabletData(&pointerInfo.tabletData);
       eventHandled = true;
-      return new GHOST_EventButton(
-          system->getMilliSeconds(), GHOST_kEventButtonDown, window, pointerInfo.buttonMask);
+      return new GHOST_EventButton(system->getMilliSeconds(),
+                                   GHOST_kEventButtonDown,
+                                   window,
+                                   pointerInfo.buttonMask,
+                                   pointerInfo.tabletData);
     case GHOST_kEventButtonUp:
       eventHandled = true;
-      return new GHOST_EventButton(
-          system->getMilliSeconds(), GHOST_kEventButtonUp, window, pointerInfo.buttonMask);
+      return new GHOST_EventButton(system->getMilliSeconds(),
+                                   GHOST_kEventButtonUp,
+                                   window,
+                                   pointerInfo.buttonMask,
+                                   window->getTabletData());
     case GHOST_kEventCursorMove:
       /* Update window tablet data to be included in event. */
-      window->setTabletData(&pointerInfo.tabletData);
       eventHandled = true;
       return new GHOST_EventCursor(system->getMilliSeconds(),
                                    GHOST_kEventCursorMove,
                                    window,
                                    pointerInfo.pixelLocation.x,
-                                   pointerInfo.pixelLocation.y);
+                                   pointerInfo.pixelLocation.y,
+                                   pointerInfo.tabletData);
     default:
       return NULL;
   }
@@ -1001,12 +1008,17 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type,
                                    GHOST_kEventCursorMove,
                                    window,
                                    x_screen + x_accum,
-                                   y_screen + y_accum);
+                                   y_screen + y_accum,
+                                   window->getTabletData());
     }
   }
   else {
-    return new GHOST_EventCursor(
-        system->getMilliSeconds(), GHOST_kEventCursorMove, window, x_screen, y_screen);
+    return new GHOST_EventCursor(system->getMilliSeconds(),
+                                 GHOST_kEventCursorMove,
+                                 window,
+                                 x_screen,
+                                 y_screen,
+                                 window->getTabletData());
   }
   return NULL;
 }

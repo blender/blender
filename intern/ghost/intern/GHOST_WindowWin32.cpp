@@ -90,7 +90,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 {
   // Initialize tablet variables
   memset(&m_wintab, 0, sizeof(m_wintab));
-  m_tabletData = GHOST_TABLET_DATA_DEFAULT;
+  m_tabletData = GHOST_TABLET_DATA_NONE;
 
   // Create window
   if (state != GHOST_kWindowStateFullScreen) {
@@ -1101,7 +1101,7 @@ void GHOST_WindowWin32::setTabletData(GHOST_TabletData *pTabletData)
     m_tabletData = *pTabletData;
   }
   else {
-    m_tabletData = GHOST_TABLET_DATA_DEFAULT;
+    m_tabletData = GHOST_TABLET_DATA_NONE;
   }
 }
 

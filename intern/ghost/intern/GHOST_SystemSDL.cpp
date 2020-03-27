@@ -390,22 +390,31 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
             SDL_WarpMouseInWindow(sdl_win, x_new - x_win, y_new - y_win);
           }
 
-          g_event = new GHOST_EventCursor(
-              getMilliSeconds(), GHOST_kEventCursorMove, window, x_new, y_new);
+          g_event = new GHOST_EventCursor(getMilliSeconds(),
+                                          GHOST_kEventCursorMove,
+                                          window,
+                                          x_new,
+                                          y_new,
+                                          GHOST_TABLET_DATA_NONE);
         }
         else {
           g_event = new GHOST_EventCursor(getMilliSeconds(),
                                           GHOST_kEventCursorMove,
                                           window,
                                           x_root + x_accum,
-                                          y_root + y_accum);
+                                          y_root + y_accum,
+                                          GHOST_TABLET_DATA_NONE);
         }
       }
       else
 #endif
       {
-        g_event = new GHOST_EventCursor(
-            getMilliSeconds(), GHOST_kEventCursorMove, window, x_root, y_root);
+        g_event = new GHOST_EventCursor(getMilliSeconds(),
+                                        GHOST_kEventCursorMove,
+                                        window,
+                                        x_root,
+                                        y_root,
+                                        GHOST_TABLET_DATA_NONE);
       }
       break;
     }
@@ -435,7 +444,8 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       else
         break;
 
-      g_event = new GHOST_EventButton(getMilliSeconds(), type, window, gbmask);
+      g_event = new GHOST_EventButton(
+          getMilliSeconds(), type, window, gbmask, GHOST_TABLET_DATA_NONE);
       break;
     }
     case SDL_MOUSEWHEEL: {

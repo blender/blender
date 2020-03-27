@@ -243,16 +243,6 @@ class GHOST_IWindow {
 
   virtual bool isDialog() const = 0;
 
-  /**
-   * Returns the tablet data (pressure etc).
-   * \return The tablet data (pressure etc).
-   */
-  virtual const GHOST_TabletData &GetTabletData()
-  {
-    /* Default state when no tablet is used, for systems without tablet support. */
-    return GHOST_TABLET_DATA_DEFAULT;
-  }
-
   /***************************************************************************************
    * Progress bar functionality
    ***************************************************************************************/
