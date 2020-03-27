@@ -441,12 +441,45 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
             min_coord = min_ff(min_coord, prev_bezt->vec[1][1]);
           }
           else {
-            float step_size = (bezt->vec[1][0] - prev_bezt->vec[1][0]) / resol;
-            for (int j = 0; j <= resol; j++) {
-              float eval_time = prev_bezt->vec[1][0] + step_size * j;
-              float eval_value = evaluate_fcurve_only_curve(fcu, eval_time);
-              max_coord = max_ff(max_coord, eval_value);
-              min_coord = min_ff(min_coord, eval_value);
+            if (!ELEM(prev_bezt->ipo, BEZT_IPO_BACK, BEZT_IPO_ELASTIC)) {
+              /* Calculate min/max using bezier forward differencing. */
+              float data[120];
+              float v1[2], v2[2], v3[2], v4[2];
+
+              v1[0] = prev_bezt->vec[1][0];
+              v1[1] = prev_bezt->vec[1][1];
+              v2[0] = prev_bezt->vec[2][0];
+              v2[1] = prev_bezt->vec[2][1];
+
+              v3[0] = bezt->vec[0][0];
+              v3[1] = bezt->vec[0][1];
+              v4[0] = bezt->vec[1][0];
+              v4[1] = bezt->vec[1][1];
+
+              correct_bezpart(v1, v2, v3, v4);
+
+              BKE_curve_forward_diff_bezier(
+                  v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float) * 3);
+              BKE_curve_forward_diff_bezier(
+                  v1[1], v2[1], v3[1], v4[1], data + 1, resol, sizeof(float) * 3);
+
+              for (int j = 0; j <= resol; ++j) {
+                const float *fp = &data[j * 3];
+                max_coord = max_ff(max_coord, fp[1]);
+                min_coord = min_ff(min_coord, fp[1]);
+              }
+            }
+            else {
+              /* Calculate min/max using full fcurve evaluation.
+               * [slower than bezier forward differencing but evaluates Back/Elastic interpolation
+               * as well].*/
+              float step_size = (bezt->vec[1][0] - prev_bezt->vec[1][0]) / resol;
+              for (int j = 0; j <= resol; j++) {
+                float eval_time = prev_bezt->vec[1][0] + step_size * j;
+                float eval_value = evaluate_fcurve_only_curve(fcu, eval_time);
+                max_coord = max_ff(max_coord, eval_value);
+                min_coord = min_ff(min_coord, eval_value);
+              }
             }
           }
         }
