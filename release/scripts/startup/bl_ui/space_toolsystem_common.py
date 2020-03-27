@@ -449,19 +449,27 @@ class ToolSelectPanelHelper:
         return context.button_operator.name
 
     @classmethod
-    def _km_action_simple(cls, kc, context_descr, label, keymap_fn):
+    def _km_action_simple(cls, kc_default, kc, context_descr, label, keymap_fn):
         km_idname = f"{cls.keymap_prefix:s} {context_descr:s}, {label:s}"
         km = kc.keymaps.get(km_idname)
+        km_kwargs = dict(space_type=cls.bl_space_type, region_type='WINDOW', tool=True)
         if km is None:
-            km = kc.keymaps.new(km_idname, space_type=cls.bl_space_type, region_type='WINDOW', tool=True)
+            km = kc.keymaps.new(km_idname, **km_kwargs)
             keymap_fn[0](km)
+            print(len(km.keymap_items))
+            if km.keymap_items:
+                print(km.keymap_items[0].to_string())
         keymap_fn[0] = km.name
+
+        # Ensure we have a default key map, so the add-ons keymap is properly overlayed.
+        if kc_default is not kc:
+            kc_default.keymaps.new(km_idname, **km_kwargs)
 
     @classmethod
     def register(cls):
         wm = bpy.context.window_manager
         # Write into defaults, users may modify in preferences.
-        kc = wm.keyconfigs.default
+        kc_default = wm.keyconfigs.default
 
         # Track which tool-group was last used for non-active groups.
         # Blender stores the active tool-group index.
@@ -470,7 +478,7 @@ class ToolSelectPanelHelper:
         cls._tool_group_active = {}
 
         # ignore in background mode
-        if kc is None:
+        if kc_default is None:
             return
 
         for context_mode, tools in cls.tools_all():
@@ -482,7 +490,7 @@ class ToolSelectPanelHelper:
             for item in cls._tools_flatten_with_keymap(tools):
                 keymap_data = item.keymap
                 if callable(keymap_data[0]):
-                    cls._km_action_simple(kc, context_descr, item.label, keymap_data)
+                    cls._km_action_simple(kc_default, kc_default, context_descr, item.label, keymap_data)
 
     @classmethod
     def keymap_ui_hierarchy(cls, context_mode):

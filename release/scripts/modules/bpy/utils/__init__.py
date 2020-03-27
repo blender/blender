@@ -830,9 +830,13 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
                 context_descr = context_mode.replace("_", " ").title()
             from bpy import context
             wm = context.window_manager
-            kc = wm.keyconfigs.default
+            keyconfigs = wm.keyconfigs
+            kc_default = keyconfigs.default
+            # Note that Blender's default tools use the default key-config for both.
+            # We need to use the add-ons for 3rd party tools so reloading the key-map doesn't clear them.
+            kc = keyconfigs.addon
             if callable(keymap_data[0]):
-                cls._km_action_simple(kc, context_descr, tool_def.label, keymap_data)
+                cls._km_action_simple(kc_default, kc, context_descr, tool_def.label, keymap_data)
         return tool_def
 
     tool_converted = tool_from_class(tool_cls)
@@ -955,12 +959,13 @@ def unregister_tool(tool_cls):
     if keymap_data is not None:
         from bpy import context
         wm = context.window_manager
-        kc = wm.keyconfigs.default
-        km = kc.keymaps.get(keymap_data[0])
-        if km is None:
-            print("Warning keymap {keymap_data[0]!r} not found!")
-        else:
-            kc.keymaps.remove(km)
+        keyconfigs = wm.keyconfigs
+        for kc in (keyconfigs.default, keyconfigs.addon):
+            km = kc.keymaps.get(keymap_data[0])
+            if km is None:
+                print(f"Warning keymap {keymap_data[0]!r} not found in {kc.name!r}!")
+            else:
+                kc.keymaps.remove(km)
 
 
 # -----------------------------------------------------------------------------
