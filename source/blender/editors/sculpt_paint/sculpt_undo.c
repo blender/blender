@@ -677,11 +677,18 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   }
 
   if (use_multires_undo) {
-    int max_grid;
-    unode = lb->first;
-    max_grid = unode->maxgrid;
-    undo_modified_grids = MEM_callocN(sizeof(char) * max_grid, "undo_grids");
     for (unode = lb->first; unode; unode = unode->next) {
+      if (!STREQ(unode->idname, ob->id.name)) {
+        continue;
+      }
+      if (unode->maxgrid == 0) {
+        continue;
+      }
+
+      if (undo_modified_grids == NULL) {
+        undo_modified_grids = MEM_callocN(sizeof(char) * unode->maxgrid, "undo_grids");
+      }
+
       for (int i = 0; i < unode->totgrid; i++) {
         undo_modified_grids[unode->grids[i]] = 1;
       }
