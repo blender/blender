@@ -102,14 +102,18 @@ void OVERLAY_outline_init(OVERLAY_Data *vedata)
 
     if (pd->antialiasing.enabled) {
       GPU_framebuffer_ensure_config(&fbl->outlines_resolve_fb,
-                                    {GPU_ATTACHMENT_NONE,
-                                     GPU_ATTACHMENT_TEXTURE(txl->overlay_color_tx),
-                                     GPU_ATTACHMENT_TEXTURE(txl->overlay_line_tx)});
+                                    {
+                                        GPU_ATTACHMENT_NONE,
+                                        GPU_ATTACHMENT_TEXTURE(txl->overlay_color_tx),
+                                        GPU_ATTACHMENT_TEXTURE(txl->overlay_line_tx),
+                                    });
     }
     else {
-      GPU_framebuffer_ensure_config(
-          &fbl->outlines_resolve_fb,
-          {GPU_ATTACHMENT_TEXTURE(txl->temp_depth_tx), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
+      GPU_framebuffer_ensure_config(&fbl->outlines_resolve_fb,
+                                    {
+                                        GPU_ATTACHMENT_NONE,
+                                        GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
+                                    });
     }
   }
 }
