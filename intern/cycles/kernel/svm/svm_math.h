@@ -51,7 +51,7 @@ ccl_device void svm_node_vector_math(KernelGlobals *kg,
 
   float3 a = stack_load_float3(stack, a_stack_offset);
   float3 b = stack_load_float3(stack, b_stack_offset);
-  float3 c = make_float3(0.0f);
+  float3 c = make_float3(0.0f, 0.0f, 0.0f);
   float scale = stack_load_float(stack, scale_stack_offset);
 
   float value;
