@@ -1741,7 +1741,7 @@ static float *sculpt_boundary_edges_automasking_init(Object *ob,
   for (int i = 0; i < totvert; i++) {
     if (edge_distance[i] != EDGE_DISTANCE_INF) {
       const float p = 1.0f - ((float)edge_distance[i] / (float)propagation_steps);
-      const float edge_boundary_automask = 3.0f * p * p - 2.0f * p * p * p;
+      const float edge_boundary_automask = pow2f(p);
       automask_factor[i] *= (1.0f - edge_boundary_automask);
     }
   }
