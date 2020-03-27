@@ -222,12 +222,10 @@ if(WITH_OPENCOLLADA)
     -lMathMLSolver
     -lGeneratedSaxParser
     -lbuffer -lftoa -lUTF
-    ${OPENCOLLADA_LIBPATH}/libxml2.a
   )
-  # PCRE is bundled with openCollada
-  # set(PCRE ${LIBDIR}/pcre)
-  # set(PCRE_LIBPATH ${PCRE}/lib)
+  # PCRE and XML2 are bundled with OpenCollada.
   set(PCRE_LIBRARIES pcre)
+  set(XML2_LIBRARIES xml2)
 endif()
 
 if(WITH_SDL)

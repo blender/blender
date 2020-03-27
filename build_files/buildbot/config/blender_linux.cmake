@@ -24,11 +24,5 @@ set(LIBDIR "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/${LIBDIR_NAME}" CACHE STRI
 
 # Platform specific configuration, to ensure static linking against everything.
 
-# We need to link OpenCOLLADA against PCRE library. Even though it is not installed
-# on /usr, we do not really care -- all we care is PCRE_FOUND be TRUE and its
-# library pointing to a valid one.
-set(PCRE_INCLUDE_DIR          "/usr/include"                        CACHE STRING "" FORCE)
-set(PCRE_LIBRARY              "${LIBDIR}/opencollada/lib/libpcre.a" CACHE STRING "" FORCE)
-
 # Additional linking libraries
 set(CMAKE_EXE_LINKER_FLAGS   "-lrt -static-libstdc++ -no-pie"  CACHE STRING "" FORCE)
