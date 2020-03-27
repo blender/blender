@@ -87,7 +87,7 @@ typedef struct MaterialGPencilStyle {
   /** Factor to shift texture in 2d space. */
   float texture_offset[2];
   /** Texture opacity. */
-  float texture_opacity;
+  float texture_opacity DNA_DEPRECATED;
   /** Pixel size for uv along the stroke. */
   float texture_pixsize;
   /** Drawing mode (line or dots). */

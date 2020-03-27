@@ -232,90 +232,6 @@ static void gp_draw_stroke_volumetric_3d(const bGPDspoint *points,
   GPU_program_point_size(false);
 }
 
-/* --------------- Stroke Fills ----------------- */
-/* add a new fill point and texture coordinates to vertex buffer */
-static void gp_add_filldata_tobuffer(const bGPDspoint *pt,
-                                     uint pos,
-                                     uint texcoord,
-                                     short flag,
-                                     int offsx,
-                                     int offsy,
-                                     int winx,
-                                     int winy,
-                                     const float diff_mat[4][4])
-{
-  float fpt[3];
-  float co[2];
-
-  mul_v3_m4v3(fpt, diff_mat, &pt->x);
-  /* if 2d, need conversion */
-  if (!(flag & GP_STROKE_3DSPACE)) {
-    gp_calc_2d_stroke_fxy(fpt, flag, offsx, offsy, winx, winy, co);
-    copy_v2_v2(fpt, co);
-    fpt[2] = 0.0f; /* 2d always is z=0.0f */
-  }
-
-  immAttr2f(texcoord, pt->uv_fill[0], pt->uv_fill[1]); /* texture coordinates */
-  immVertex3fv(pos, fpt);                              /* position */
-}
-
-/* draw fills for shapes */
-static void gp_draw_stroke_fill(bGPdata *gpd,
-                                bGPDstroke *gps,
-                                int offsx,
-                                int offsy,
-                                int winx,
-                                int winy,
-                                const float diff_mat[4][4],
-                                const float color[4])
-{
-  BLI_assert(gps->totpoints >= 3);
-  BLI_assert(gps->tot_triangles >= 1);
-  const bool use_mat = (gpd->mat != NULL);
-
-  Material *ma = (use_mat) ? gpd->mat[gps->mat_nr] : BKE_material_default_gpencil();
-  MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
-
-  GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  uint texcoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_GPENCIL_FILL);
-
-  immUniformColor4fv(color);
-  immUniform4fv("color2", gp_style->mix_rgba);
-  immUniform1i("fill_type", gp_style->fill_style);
-  immUniform1f("mix_factor", gp_style->mix_factor);
-
-  immUniform1f("texture_angle", gp_style->texture_angle);
-  immUniform2fv("texture_scale", gp_style->texture_scale);
-  immUniform2fv("texture_offset", gp_style->texture_offset);
-  immUniform1f("texture_opacity", gp_style->texture_opacity);
-  immUniform1i("t_mix", (gp_style->flag & GP_MATERIAL_FILL_TEX_MIX) != 0);
-  immUniform1i("t_flip", (gp_style->flag & GP_MATERIAL_FLIP_FILL) != 0);
-
-  /* Draw all triangles for filling the polygon (cache must be calculated before) */
-  immBegin(GPU_PRIM_TRIS, gps->tot_triangles * 3);
-  /* TODO: use batch instead of immediate mode, to share vertices */
-
-  const bGPDtriangle *stroke_triangle = gps->triangles;
-  for (int i = 0; i < gps->tot_triangles; i++, stroke_triangle++) {
-    for (int j = 0; j < 3; j++) {
-      gp_add_filldata_tobuffer(&gps->points[stroke_triangle->verts[j]],
-                               pos,
-                               texcoord,
-                               gps->flag,
-                               offsx,
-                               offsy,
-                               winx,
-                               winy,
-                               diff_mat);
-    }
-  }
-
-  immEnd();
-  immUnbindProgram();
-}
-
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
 
 /* draw a given stroke - just a single dot (only one point) */
@@ -691,7 +607,6 @@ static bool gp_can_draw_stroke(const bGPDstroke *gps, const int dflag)
 static void gp_draw_strokes(tGPDdraw *tgpw)
 {
   float tcolor[4];
-  float tfill[4];
   short sthickness;
   float ink[4];
   const bool is_unique = (tgpw->gps != NULL);
@@ -748,37 +663,6 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
         bglPolygonOffset(1.0f, 1.0f);
       }
 
-      /* 3D Fill */
-      // if ((dflag & GP_DRAWDATA_FILL) && (gps->totpoints >= 3)) {
-      if ((gps->totpoints >= 3) && (tgpw->disable_fill != 1)) {
-        /* set color using material, tint color and opacity */
-        interp_v3_v3v3(tfill, gp_style->fill_rgba, tgpw->tintcolor, tgpw->tintcolor[3]);
-        tfill[3] = gp_style->fill_rgba[3] * tgpw->opacity;
-        if ((tfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0)) {
-          const float *color;
-          if (!tgpw->onion) {
-            color = tfill;
-          }
-          else {
-            if (tgpw->custonion) {
-              color = tgpw->tintcolor;
-            }
-            else {
-              ARRAY_SET_ITEMS(tfill, UNPACK3(gp_style->fill_rgba), tgpw->tintcolor[3]);
-              color = tfill;
-            }
-          }
-          gp_draw_stroke_fill(tgpw->gpd,
-                              gps,
-                              tgpw->offsx,
-                              tgpw->offsy,
-                              tgpw->winx,
-                              tgpw->winy,
-                              tgpw->diff_mat,
-                              color);
-        }
-      }
-
       /* 3D Stroke */
       /* set color using material tint color and opacity */
       if (!tgpw->onion) {
@@ -811,21 +695,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
       }
       else {
         /* 3D Lines - OpenGL primitives-based */
-        if (gps->totpoints == 1) {
-          if (tgpw->disable_fill != 1) {
-            gp_draw_stroke_point(gps->points,
-                                 sthickness,
-                                 tgpw->dflag,
-                                 gps->flag,
-                                 tgpw->offsx,
-                                 tgpw->offsy,
-                                 tgpw->winx,
-                                 tgpw->winy,
-                                 tgpw->diff_mat,
-                                 ink);
-          }
-        }
-        else {
+        if (gps->totpoints > 1) {
           tgpw->gps = gps;
           gp_draw_stroke_3d(tgpw, sthickness, ink, gps->flag & GP_STROKE_CYCLIC);
         }
@@ -835,97 +705,6 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
         GPU_depth_test(false);
 
         bglPolygonOffset(0.0, 0.0);
-      }
-    }
-    else {
-      /* 2D - Fill */
-      if (gps->totpoints >= 3) {
-        /* set color using material, tint color and opacity */
-        interp_v3_v3v3(tfill, gp_style->fill_rgba, tgpw->tintcolor, tgpw->tintcolor[3]);
-        tfill[3] = gp_style->fill_rgba[3] * tgpw->opacity;
-        if ((tfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0)) {
-          const float *color;
-          if (!tgpw->onion) {
-            color = tfill;
-          }
-          else {
-            if (tgpw->custonion) {
-              color = tgpw->tintcolor;
-            }
-            else {
-              ARRAY_SET_ITEMS(tfill, UNPACK3(gp_style->fill_rgba), tgpw->tintcolor[3]);
-              color = tfill;
-            }
-          }
-          gp_draw_stroke_fill(tgpw->gpd,
-                              gps,
-                              tgpw->offsx,
-                              tgpw->offsy,
-                              tgpw->winx,
-                              tgpw->winy,
-                              tgpw->diff_mat,
-                              color);
-        }
-      }
-
-      /* 2D Strokes... */
-      /* set color using material, tint color and opacity */
-      if (!tgpw->onion) {
-        interp_v3_v3v3(tcolor, gp_style->stroke_rgba, tgpw->tintcolor, tgpw->tintcolor[3]);
-        tcolor[3] = gp_style->stroke_rgba[3] * tgpw->opacity;
-        copy_v4_v4(ink, tcolor);
-      }
-      else {
-        if (tgpw->custonion) {
-          copy_v4_v4(ink, tgpw->tintcolor);
-        }
-        else {
-          ARRAY_SET_ITEMS(tcolor, UNPACK3(gp_style->stroke_rgba), tgpw->opacity);
-          copy_v4_v4(ink, tcolor);
-        }
-      }
-      if (gp_style->mode == GP_MATERIAL_MODE_DOT) {
-        /* blob/disk-based "volumetric" drawing */
-        gp_draw_stroke_volumetric_2d(gps->points,
-                                     gps->totpoints,
-                                     sthickness,
-                                     tgpw->dflag,
-                                     gps->flag,
-                                     tgpw->offsx,
-                                     tgpw->offsy,
-                                     tgpw->winx,
-                                     tgpw->winy,
-                                     tgpw->diff_mat,
-                                     ink);
-      }
-      else {
-        /* normal 2D strokes */
-        if (gps->totpoints == 1) {
-          gp_draw_stroke_point(gps->points,
-                               sthickness,
-                               tgpw->dflag,
-                               gps->flag,
-                               tgpw->offsx,
-                               tgpw->offsy,
-                               tgpw->winx,
-                               tgpw->winy,
-                               tgpw->diff_mat,
-                               ink);
-        }
-        else {
-          gp_draw_stroke_2d(gps->points,
-                            gps->totpoints,
-                            sthickness,
-                            tgpw->dflag,
-                            gps->flag,
-                            false,
-                            tgpw->offsx,
-                            tgpw->offsy,
-                            tgpw->winx,
-                            tgpw->winy,
-                            tgpw->diff_mat,
-                            ink);
-        }
       }
     }
     /* if only one stroke, exit from loop */

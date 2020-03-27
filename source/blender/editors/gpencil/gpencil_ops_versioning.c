@@ -134,7 +134,6 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
         ARRAY_SET_ITEMS(gp_style->mix_rgba, 1.0f, 1.0f, 1.0f, 0.2f);
         ARRAY_SET_ITEMS(gp_style->gradient_scale, 1.0f, 1.0f);
         ARRAY_SET_ITEMS(gp_style->texture_scale, 1.0f, 1.0f);
-        gp_style->texture_opacity = 1.0f;
         gp_style->texture_pixsize = 100.0f;
 
         gp_style->flag |= GP_MATERIAL_STROKE_SHOW;
