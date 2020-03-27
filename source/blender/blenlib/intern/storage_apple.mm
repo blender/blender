@@ -87,7 +87,7 @@ eFileAttributes BLI_file_attributes(const char *path)
     if (is_readable && !is_writable) {
       ret |= FILE_ATTR_READONLY;
     }
-    if (is_readable) {
+    if (!is_readable) {
       ret |= FILE_ATTR_SYSTEM;
     }
   }
