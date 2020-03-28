@@ -464,12 +464,12 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
     }
 
     UndoStep *us = MEM_callocN(ut->step_size, __func__);
-    CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, name, ut->name);
     if (name != NULL) {
       BLI_strncpy(us->name, name, sizeof(us->name));
     }
     us->type = ut;
     ustack->step_init = us;
+    CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
     ut->step_encode_init(C, us);
     undosys_stack_validate(ustack, false);
     return us;
@@ -551,6 +551,8 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack,
     }
     us->type = ut;
     /* Initialized, not added yet. */
+
+    CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 
     if (!undosys_step_encode(C, G_MAIN, ustack, us)) {
       MEM_freeN(us);
