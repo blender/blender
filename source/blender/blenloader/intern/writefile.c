@@ -734,11 +734,6 @@ static void write_iddata(WriteData *wd, ID *id)
       }
     }
   }
-
-  /* Clear the accumulated recalc flags in case of undo step saving. */
-  if (wd->use_memfile) {
-    id->recalc_undo_accumulated = 0;
-  }
 }
 
 static void write_previews(WriteData *wd, const PreviewImage *prv_orig)
@@ -2213,6 +2208,7 @@ static void write_mesh(WriteData *wd, Mesh *mesh)
     mesh->mface = NULL;
     mesh->totface = 0;
     memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+    memset(&mesh->runtime, 0, sizeof(mesh->runtime));
 
     /* Reduce xdata layers, fill xlayers with layers to be written.
      * This makes xdata invalid for Blender, which is why we made a
@@ -4142,6 +4138,9 @@ static bool write_file_handle(Main *mainvar,
           /* Very important to do it after every ID write now, otherwise we cannot know whether a
            * specific ID changed or not. */
           mywrite_flush(wd);
+
+          /* Clear the accumulated recalc flags in case of undo step saving. */
+          id->recalc_undo_accumulated = 0;
         }
       }
 
