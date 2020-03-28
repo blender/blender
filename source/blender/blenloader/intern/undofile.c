@@ -92,6 +92,14 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
   BLO_memfile_free(first);
 }
 
+/* Clear is_identical_future before adding next memfile. */
+void BLO_memfile_clear_future(MemFile *memfile)
+{
+  for (MemFileChunk *chunk = memfile->chunks.first; chunk; chunk = chunk->next) {
+    chunk->is_identical_future = false;
+  }
+}
+
 void memfile_chunk_add(MemFile *memfile, const char *buf, uint size, MemFileChunk **compchunk_step)
 {
   MemFileChunk *curchunk = MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");

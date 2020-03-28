@@ -60,6 +60,7 @@ extern void memfile_chunk_add(MemFile *memfile,
 /* exports */
 extern void BLO_memfile_free(MemFile *memfile);
 extern void BLO_memfile_merge(MemFile *first, MemFile *second);
+extern void BLO_memfile_clear_future(MemFile *memfile);
 
 /* utilities */
 extern struct Main *BLO_memfile_main_get(struct MemFile *memfile,

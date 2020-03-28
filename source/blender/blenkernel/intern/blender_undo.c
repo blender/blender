@@ -124,6 +124,9 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
   }
   else {
     MemFile *prevfile = (mfu_prev) ? &(mfu_prev->memfile) : NULL;
+    if (prevfile) {
+      BLO_memfile_clear_future(prevfile);
+    }
     /* success = */ /* UNUSED */ BLO_write_file_mem(bmain, prevfile, &mfu->memfile, G.fileflags);
     mfu->undo_size = mfu->memfile.size;
   }
