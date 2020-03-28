@@ -1805,6 +1805,7 @@ static void rna_def_brush(BlenderRNA *brna)
        0,
        "Surface",
        "Smooths the surface of the mesh, preserving the volue"},
+      {0, NULL, 0, NULL, NULL},
   };
 
   static const EnumPropertyItem brush_pose_origin_type_items[] = {
