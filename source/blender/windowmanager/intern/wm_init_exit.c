@@ -217,10 +217,10 @@ static void sound_jack_sync_callback(Main *bmain, int mode, float time)
     if (depsgraph == NULL) {
       continue;
     }
-    BKE_sound_lock_scene(scene);
+    BKE_sound_lock();
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     BKE_sound_jack_scene_update(scene_eval, mode, time);
-    BKE_sound_unlock_scene(scene);
+    BKE_sound_unlock();
   }
 }
 

@@ -46,7 +46,7 @@ void SceneBackup::reset()
 
 void SceneBackup::init_from_scene(Scene *scene)
 {
-  BKE_sound_lock_scene(scene);
+  BKE_sound_lock();
 
   sound_scene = scene->sound_scene;
   playback_handle = scene->playback_handle;
@@ -80,7 +80,7 @@ void SceneBackup::restore_to_scene(Scene *scene)
 
   sequencer_backup.restore_to_scene(scene);
 
-  BKE_sound_unlock_scene(scene);
+  BKE_sound_unlock();
 
   reset();
 }
