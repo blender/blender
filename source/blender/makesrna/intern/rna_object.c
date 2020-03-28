@@ -760,6 +760,24 @@ static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
       ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef - 1));
 }
 
+static void rna_Object_active_vertex_group_set(PointerRNA *ptr,
+                                               PointerRNA value,
+                                               struct ReportList *reports)
+{
+  Object *ob = (Object *)ptr->owner_id;
+  int index = BLI_findindex(&ob->defbase, value.data);
+  if (index == -1) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "VertexGroup '%s' not found in object '%s'",
+                ((bDeformGroup *)value.data)->name,
+                ob->id.name + 2);
+    return;
+  }
+
+  ob->actdef = index + 1;
+}
+
 static int rna_Object_active_vertex_group_index_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
@@ -2333,6 +2351,7 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
                                  "rna_Object_active_vertex_group_set",
                                  NULL,
                                  NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object");
   RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Object_internal_update_data");
 
