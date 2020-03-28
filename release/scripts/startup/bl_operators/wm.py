@@ -1147,22 +1147,26 @@ rna_property = StringProperty(
 
 rna_min = FloatProperty(
     name="Min",
+    description="Minimum value of the property",
     default=-10000.0,
     precision=3,
 )
 
 rna_max = FloatProperty(
     name="Max",
+    description="Maximum value of the property",
     default=10000.0,
     precision=3,
 )
 
 rna_use_soft_limits = BoolProperty(
     name="Use Soft Limits",
+    description="Limits the Property Value slider to a range, values outside the range must be inputed numerically",
 )
 
 rna_is_overridable_library = BoolProperty(
     name="Is Library Overridable",
+    description="Allow the property to be overridden when the Data-Block is linked",
     default=False,
 )
 
@@ -1177,6 +1181,7 @@ rna_vector_subtype_items = (
 
 
 class WM_OT_properties_edit(Operator):
+    """Edit the attributes of the property"""
     bl_idname = "wm.properties_edit"
     bl_label = "Edit Property"
     # register only because invoke_props_popup requires.
@@ -1468,6 +1473,7 @@ class WM_OT_properties_edit(Operator):
 
 
 class WM_OT_properties_add(Operator):
+    """Add your own property to the data-block"""
     bl_idname = "wm.properties_add"
     bl_label = "Add Property"
     bl_options = {'UNDO', 'INTERNAL'}
