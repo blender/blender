@@ -227,7 +227,7 @@ def point_cache_ui(self, cache, enabled, cachetype):
             col.operator("ptcache.bake", text="Bake").bake = True
 
         sub = col.row()
-        sub.enabled = (cache.is_frame_skip or cache.is_outdated) and enabled
+        sub.enabled = enabled
         sub.operator("ptcache.bake", text="Calculate To Frame").bake = False
 
         sub = col.column()
