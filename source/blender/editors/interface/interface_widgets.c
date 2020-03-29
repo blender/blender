@@ -2520,6 +2520,13 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     }
   }
   else if (but->drawflag & UI_BUT_TEXT_LEFT) {
+
+    /* Reduce the left padding for labels without an icon. */
+    if ((but->type == UI_BTYPE_LABEL) && !(but->flag & UI_HAS_ICON) &&
+        !ui_block_is_menu(but->block)) {
+      text_padding /= 2;
+    }
+
     rect->xmin += text_padding;
   }
   else if (but->drawflag & UI_BUT_TEXT_RIGHT) {
