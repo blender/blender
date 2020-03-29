@@ -3134,12 +3134,12 @@ class VIEW3D_MT_face_sets(Menu):
 
         op = layout.operator("sculpt.face_sets_create", text='Face Set From Visible')
         op.mode = 'VISIBLE'
-        
+
         op = layout.operator("sculpt.face_sets_create", text='Face Set From Edit Mode Selection')
         op.mode = 'SELECTION'
 
         layout.separator()
-        
+
         layout.menu("VIEW3D_MT_face_sets_init", text="Init Face Sets")
 
         layout.separator()
@@ -3859,8 +3859,8 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
     _extrude_funcs = {
         'VERT': lambda layout:
-        layout.operator("mesh.extrude_repeat", text="Extrude Array") |
-        layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices"),
+        layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices") |
+        layout.operator("mesh.extrude_repeat", text="Extrude Array"),
         'EDGE': lambda layout:
         layout.operator("mesh.extrude_edges_move", text="Extrude Edges"),
         'REGION': lambda layout:
