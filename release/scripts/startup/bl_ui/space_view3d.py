@@ -3859,6 +3859,7 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
     _extrude_funcs = {
         'VERT': lambda layout:
+        layout.operator("mesh.extrude_repeat", text="Extrude Array") |
         layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices"),
         'EDGE': lambda layout:
         layout.operator("mesh.extrude_edges_move", text="Extrude Edges"),
@@ -3924,6 +3925,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("transform.vert_slide", text="Slide Vertices")
         layout.operator_context = 'EXEC_DEFAULT'
         layout.operator("mesh.vertices_smooth", text="Smooth Vertices").factor = 0.5
+        layout.operator("mesh.vertices_smooth_laplacian", text="Smooth Vertices (Laplacian)")
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.separator()
@@ -3993,6 +3995,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout.operator("mesh.extrude_edges_move", text="Extrude Edges")
         layout.operator("mesh.bevel", text="Bevel Edges").vertex_only = False
         layout.operator("mesh.bridge_edge_loops")
+        layout.operator("mesh.screw")
 
         layout.separator()
 
