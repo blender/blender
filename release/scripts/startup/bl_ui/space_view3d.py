@@ -3859,8 +3859,7 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
     _extrude_funcs = {
         'VERT': lambda layout:
-        layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices") |
-        layout.operator("mesh.extrude_repeat", text="Extrude Array"),
+        layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices"),
         'EDGE': lambda layout:
         layout.operator("mesh.extrude_edges_move", text="Extrude Edges"),
         'REGION': lambda layout:
@@ -3894,6 +3893,10 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
         for menu_id in self.extrude_options(context):
             self._extrude_funcs[menu_id](layout)
+
+        layout.separator()
+
+        layout.operator("mesh.extrude_repeat", text="Extrude Array")
 
 
 class VIEW3D_MT_edit_mesh_vertices(Menu):
