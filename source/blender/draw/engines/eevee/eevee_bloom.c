@@ -323,8 +323,8 @@ void EEVEE_bloom_draw(EEVEE_Data *vedata)
     /* Upsample and accumulate */
     for (int i = effects->bloom_iteration_len - 2; i >= 0; i--) {
       copy_v2_v2(effects->unf_source_texel_size, effects->downsamp_texel_size[i]);
-      effects->unf_source_buffer = effects->bloom_downsample[i];
-      effects->unf_base_buffer = last;
+      effects->unf_source_buffer = last;
+      effects->unf_base_buffer = effects->bloom_downsample[i];
 
       GPU_framebuffer_bind(fbl->bloom_accum_fb[i]);
       DRW_draw_pass(psl->bloom_upsample);
