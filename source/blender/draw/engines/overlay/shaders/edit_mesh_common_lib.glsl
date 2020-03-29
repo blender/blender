@@ -20,7 +20,7 @@ vec4 EDIT_MESH_edge_color_inner(int edge_flag)
   color = ((edge_flag & EDGE_SELECTED) != 0) ? color_select : color;
   color = ((edge_flag & EDGE_ACTIVE) != 0) ? colorEditMeshActive : color;
 
-  color.a = (selectEdges || (edge_flag & (EDGE_SELECTED | EDGE_ACTIVE)) != 0) ? 1.0 : 0.4;
+  color.a = (selectEdges || (edge_flag & (EDGE_SELECTED | EDGE_ACTIVE)) != 0) ? 1.0 : 0.7;
   return color;
 }
 
@@ -32,7 +32,7 @@ vec4 EDIT_MESH_edge_vertex_color(int vertex_flag)
   bool edge_selected = (vertex_flag & (VERT_ACTIVE | VERT_SELECTED)) != 0;
   color = (edge_selected) ? color_select : color;
 
-  color.a = (selectEdges || edge_selected) ? 1.0 : 0.4;
+  color.a = (selectEdges || edge_selected) ? 1.0 : 0.7;
   return color;
 }
 
