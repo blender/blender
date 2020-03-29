@@ -299,7 +299,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
     mul_m3_v3(tmat, dvec);
 
     for (a = 0; a < steps; a++) {
-      edbm_extrude_ex(obedit, em, BM_ALL_NOLOOP, BM_ELEM_SELECT, false, false, false);
+      edbm_extrude_ex(obedit, em, BM_ALL_NOLOOP, BM_ELEM_SELECT, false, false, true);
 
       BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS, "translate vec=%v verts=%hv", dvec, BM_ELEM_SELECT);
     }
