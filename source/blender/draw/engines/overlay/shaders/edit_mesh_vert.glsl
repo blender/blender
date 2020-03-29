@@ -69,6 +69,10 @@ void main()
   float bweight = float(m_data.w) / 255.0;
   finalColorOuter = EDIT_MESH_edge_color_outer(m_data.y, m_data.x, crease, bweight);
 
+  if (finalColorOuter.a > 0.0) {
+    gl_Position.z -= 5e-7 * abs(gl_Position.w);
+  }
+
   bool occluded = false; /* Done in fragment shader */
 
 #elif defined(FACE)
