@@ -4852,6 +4852,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         wm->xr.session_settings.flag = XR_SESSION_USE_POSITION_TRACKING;
       }
     }
+
+    /* Surface deform modifier strength*/
+    if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "float", "strength")) {
+      for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+        for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+          if (md->type == eModifierType_SurfaceDeform) {
+            SurfaceDeformModifierData *sdmd = (SurfaceDeformModifierData *)md;
+            sdmd->strength = 1.0f;
+          }
+        }
+      }
+    }
   }
 
   /**
