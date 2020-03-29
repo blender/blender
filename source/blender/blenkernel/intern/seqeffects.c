@@ -2499,15 +2499,14 @@ static ImBuf *do_transform_effect(const SeqRenderData *context,
 /*********************** Glow *************************/
 
 static void RVBlurBitmap2_float(float *map, int width, int height, float blur, int quality)
-/*  MUUUCCH better than the previous blur. */
-/*  We do the blurring in two passes which is a whole lot faster. */
-/*  I changed the math around to implement an actual Gaussian */
-/*  distribution. */
-/* */
-/*  Watch out though, it tends to misbehaven with large blur values on */
-/*  a small bitmap.  Avoid avoid avoid. */
-/*=============================== */
 {
+  /* Much better than the previous blur!
+   * We do the blurring in two passes which is a whole lot faster.
+   * I changed the math around to implement an actual Gaussian distribution.
+   *
+   * Watch out though, it tends to misbehave with large blur values on
+   * a small bitmap. Avoid avoid! */
+
   float *temp = NULL, *swap;
   float *filter = NULL;
   int x, y, i, fx, fy;

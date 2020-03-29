@@ -4249,7 +4249,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
             if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
               continue;
             }
-            /*  separate selected strokes */
+            /* Separate selected strokes. */
             if (gps->flag & GP_STROKE_SELECT) {
               /* add layer if not created before */
               if (gpl_dst == NULL) {
@@ -4422,7 +4422,7 @@ static int gp_stroke_split_exec(bContext *C, wmOperator *UNUSED(op))
           if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
             continue;
           }
-          /*  split selected strokes */
+          /* Split selected strokes. */
           if (gps->flag & GP_STROKE_SELECT) {
             /* make copy of source stroke */
             bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps, true);

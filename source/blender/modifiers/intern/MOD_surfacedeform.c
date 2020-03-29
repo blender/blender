@@ -1144,7 +1144,7 @@ static void deformVert(void *__restrict userdata,
   const float weight = (data->weights != NULL) ? data->weights[index] : 1.0f;
 
   /* Check if this vertex will be deformed. If it is not deformed we return and avoid
-   * unneccessary calculations. */
+   * unnecessary calculations. */
   if (weight == 0.0f) {
     return;
   }

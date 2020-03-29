@@ -1047,8 +1047,8 @@ void wm_homefile_read(bContext *C,
   }
 
   if (use_userdef) {
-    /*  Clear keymaps because the current default keymap may have been initialized
-     *  from user preferences, which have been reset. */
+    /* Clear keymaps because the current default keymap may have been initialized
+     * from user preferences, which have been reset. */
     for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
       if (wm->defaultconf) {
         wm->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
@@ -1532,7 +1532,7 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
     }
   }
   else {
-    /*  save as regular blend file */
+    /* Save as regular blend file. */
     int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
 
     ED_editors_flush_edits(bmain);
@@ -1665,7 +1665,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
   ED_editors_flush_edits(bmain);
 
-  /*  force save as regular blend file */
+  /* Force save as regular blend file. */
   fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
 
   if (BLO_write_file(bmain, filepath, fileflags, op->reports, NULL) == 0) {

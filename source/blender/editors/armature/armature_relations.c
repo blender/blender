@@ -280,7 +280,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
   float mat[4][4], oimat[4][4];
   bool ok = false;
 
-  /*  Ensure we're not in editmode and that the active object is an armature*/
+  /* Ensure we're not in edit-mode and that the active object is an armature. */
   if (!ob_active || ob_active->type != OB_ARMATURE) {
     return OPERATOR_CANCELLED;
   }

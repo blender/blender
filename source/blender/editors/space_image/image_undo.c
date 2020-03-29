@@ -714,7 +714,7 @@ static UndoImageBuf *ubuf_lookup_from_reference(ImageUndoStep *us_prev,
                                                 int tile_number,
                                                 const UndoImageBuf *ubuf)
 {
-  /* Use name lookup because because the pointer is cleared for previous steps. */
+  /* Use name lookup because the pointer is cleared for previous steps. */
   UndoImageHandle *uh_prev = uhandle_lookup_by_name(&us_prev->handles, image, tile_number);
   if (uh_prev != NULL) {
     UndoImageBuf *ubuf_reference = uhandle_lookup_ubuf(uh_prev, image, ubuf->ibuf_name);

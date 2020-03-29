@@ -93,7 +93,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "UV_WARP",
      ICON_MOD_UVPROJECT,
      "UV Warp",
-     "Transform the UV map using the the difference between two objects"},
+     "Transform the UV map using the difference between two objects"},
     {eModifierType_WeightVGEdit,
      "VERTEX_WEIGHT_EDIT",
      ICON_MOD_VERTEX_WEIGHT,

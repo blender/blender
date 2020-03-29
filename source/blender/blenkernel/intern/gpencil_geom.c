@@ -430,7 +430,7 @@ bool BKE_gpencil_stroke_sample(bGPDstroke *gps, const float dist, const bool sel
     stroke_interpolate_deform_weights(gps, 0, 0, 0, &new_dv[0]);
   }
 
-  /*  the rest */
+  /* The rest. */
   while ((next_point_index = stroke_march_next_point(gps,
                                                      next_point_index,
                                                      last_coord,

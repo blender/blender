@@ -1003,7 +1003,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
     CTX_DATA_END;
   }
 
-  /*  Set the flags */
+  /* Set the flags. */
   CTX_DATA_BEGIN (C, EditBone *, ebone, visible_bones) {
     /* ignore bone if selection can't change */
     switch (action) {

@@ -460,7 +460,7 @@ static bool pose_face_sets_floodfill_cb(
 
     if (symmetry_check && !SCULPT_vertex_has_unique_face_set(ss, index)) {
 
-      /* We only add coordiates for calculating the origin when it is possible to go from this
+      /* We only add coordinates for calculating the origin when it is possible to go from this
        * vertex to another vertex in a valid face set for the next iteration. */
       bool count_as_boundary = false;
 

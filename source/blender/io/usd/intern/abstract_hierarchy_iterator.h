@@ -69,7 +69,7 @@ struct HierarchyContext {
    * have weak_export=true, this object (and by recursive reasoning all its descendants) will be
    * excluded from the export.
    *
-   * The export hierarchy is kept as close to the the hierarchy in Blender as possible. As such, an
+   * The export hierarchy is kept as close to the hierarchy in Blender as possible. As such, an
    * object that serves as a parent for another object, but which should NOT be exported itself, is
    * exported only as transform (i.e. as empty). This happens with objects that are part of a
    * holdout collection (which prevents them from being exported) but also parent of an exported

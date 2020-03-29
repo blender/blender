@@ -952,7 +952,7 @@ static void do_key(const int start,
   k3 = key_block_get_data(key, actkb, k[2], &freek3);
   k4 = key_block_get_data(key, actkb, k[3], &freek4);
 
-  /*  test for more or less points (per key!) */
+  /* Test for more or less points (per key!) */
   if (tot != k[0]->totelem) {
     k1tot = 0.0;
     flagflo |= 1;

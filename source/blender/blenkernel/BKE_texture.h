@@ -39,7 +39,7 @@ struct Tex;
 struct TexMapping;
 struct TexResult;
 
-/*  in ColorBand struct */
+/** #ColorBand.data length. */
 #define MAXCOLORBAND 32
 
 void BKE_texture_default(struct Tex *tex);

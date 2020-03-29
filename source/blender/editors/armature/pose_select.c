@@ -497,7 +497,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 
   Object *ob_prev = NULL;
 
-  /*  Set the flags */
+  /* Set the flags. */
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
     bArmature *arm = ob->data;
     pose_do_bone_select(pchan, action);

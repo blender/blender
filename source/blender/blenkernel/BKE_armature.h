@@ -61,7 +61,7 @@ typedef struct PoseTree {
   int stretch;                 /* disable stretching */
 } PoseTree;
 
-/*  Core armature functionality */
+/* Core armature functionality. */
 
 struct bArmature *BKE_armature_add(struct Main *bmain, const char *name);
 struct bArmature *BKE_armature_from_object(struct Object *ob);

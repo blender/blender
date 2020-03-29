@@ -144,7 +144,7 @@ static int face_to_vert_index(SGLSLDisplistToTangent *dlt,
     v += 1;
   }
 
-  /*  Cyclic correction. */
+  /* Cyclic correction. */
   u = u % dlt->dl->nr;
   v = v % dlt->dl->parts;
 

@@ -66,7 +66,7 @@ typedef struct SubdivSettings {
 
   /* This refers to an adaptive isolation when creating patches for the subdivided surface.
    *
-   * When is set to to false (aka uniform subdivision) fixed depth of isolation is used, which
+   * When is set to false (aka uniform subdivision) fixed depth of isolation is used, which
    * allows to iteratively add more subdivisions (uniform subdivision level 2 = uniform subdivision
    * level 1 + uniform subdivision level 1). Uniform subdivisions will progressively go to a limit
    * surface.

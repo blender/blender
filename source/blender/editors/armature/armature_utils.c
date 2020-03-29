@@ -562,7 +562,7 @@ static EditBone *make_boneList_rec(ListBase *edbo,
 
     BLI_addtail(edbo, eBone);
 
-    /*  Add children if necessary */
+    /* Add children if necessary. */
     if (curBone->childbase.first) {
       eBoneTest = make_boneList_rec(edbo, &curBone->childbase, eBone, actBone);
       if (eBoneTest) {
@@ -721,7 +721,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     }
   }
 
-  /*  Copy the bones from the editData into the armature */
+  /* Copy the bones from the edit-data into the armature. */
   for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
     newBone = MEM_callocN(sizeof(Bone), "bone");
     eBone->temp.bone = newBone; /* Associate the real Bones with the EditBones */
@@ -819,7 +819,7 @@ void ED_armature_edit_free(struct bArmature *arm)
 {
   EditBone *eBone;
 
-  /*  Clear the editbones list */
+  /* Clear the edit-bones list. */
   if (arm->edbo) {
     if (arm->edbo->first) {
       for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {

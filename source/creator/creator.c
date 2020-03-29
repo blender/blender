@@ -108,7 +108,7 @@
 
 #include "creator_intern.h" /* own include */
 
-/*  Local Function prototypes */
+/* Local Function prototypes. */
 #ifdef WITH_PYTHON_MODULE
 int main_python_enter(int argc, const char **argv);
 void main_python_exit(void);

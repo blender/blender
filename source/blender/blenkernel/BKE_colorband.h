@@ -29,7 +29,7 @@ extern "C" {
 
 struct ColorBand;
 
-/*  in ColorBand struct */
+/** #ColorBand.data length. */
 #define MAXCOLORBAND 32
 
 void BKE_colorband_init(struct ColorBand *coba, bool rangetype);

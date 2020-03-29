@@ -472,9 +472,9 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 
   /* derive the rotation from the average normal:
    * - code taken from transform_gizmo.c,
-   *   calc_gizmo_stats, V3D_ORIENT_NORMAL case
-   */
-  /*  we need the transpose of the inverse for a normal... */
+   *   calc_gizmo_stats, V3D_ORIENT_NORMAL case */
+
+  /* We need the transpose of the inverse for a normal. */
   copy_m3_m4(imat, ob->obmat);
 
   invert_m3_m3(tmat, imat);
@@ -577,7 +577,7 @@ static void constraint_target_to_mat4(Object *ob,
     copy_m4_m4(mat, ob->obmat);
     BKE_constraint_mat_convertspace(ob, NULL, mat, from, to, false);
   }
-  /*  Case VERTEXGROUP */
+  /* Case VERTEXGROUP */
   /* Current method just takes the average location of all the points in the
    * VertexGroup, and uses that as the location value of the targets. Where
    * possible, the orientation will also be calculated, by calculating an

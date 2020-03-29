@@ -244,7 +244,7 @@ static void image_camera_background_matrix_get(const Camera *cam,
   unit_m4(scale);
   unit_m4(translate);
 
-  /*  Normalized Object space camera frame corners. */
+  /* Normalized Object space camera frame corners. */
   float cam_corners[4][3];
   BKE_camera_view_frame(draw_ctx->scene, cam, cam_corners);
   float cam_width = fabsf(cam_corners[0][0] - cam_corners[3][0]);
