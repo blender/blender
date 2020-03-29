@@ -26,9 +26,6 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
-/* stupid... could easily be solved */
-#include "DNA_view2d_types.h"
-
 struct Ipo;
 struct PackedFile;
 
@@ -104,7 +101,7 @@ typedef enum eSound_Type {
 } eSound_Type;
 #endif
 
-/* bSound->flags */
+/** #bSound.flags */
 enum {
 #ifdef DNA_DEPRECATED_ALLOW
   /* deprecated! used for sound actuator loading */
@@ -114,13 +111,11 @@ enum {
   SOUND_FLAGS_MONO = (1 << 5),
 };
 
-/* bSound->tags */
+/** #bSound.tags */
 enum {
   /* Do not free/reset waveform on sound load, only used by undo code. */
   SOUND_TAGS_WAVEFORM_NO_RELOAD = 1 << 0,
   SOUND_TAGS_WAVEFORM_LOADING = (1 << 6),
 };
 
-/* to DNA_sound_types.h*/
-
-#endif
+#endif /* __DNA_SOUND_TYPES_H__ */
