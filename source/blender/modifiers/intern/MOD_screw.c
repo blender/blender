@@ -352,12 +352,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
    * Note! smaller then `FLT_EPSILON * 100`
    * gives problems with float precision so its never closed. */
   if (fabsf(screw_ofs) <= (FLT_EPSILON * 100.0f) &&
-      fabsf(fabsf(angle) - ((float)M_PI * 2.0f)) <= (FLT_EPSILON * 100.0f)) {
+      fabsf(fabsf(angle) - ((float)M_PI * 2.0f)) <= (FLT_EPSILON * 100.0f) && step_tot > 3) {
     close = 1;
     step_tot--;
-    if (step_tot < 3) {
-      step_tot = 3;
-    }
 
     maxVerts = totvert * step_tot;    /* -1 because we're joining back up */
     maxEdges = (totvert * step_tot) + /* these are the edges between new verts */
@@ -368,8 +365,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   }
   else {
     close = 0;
-    if (step_tot < 3) {
-      step_tot = 3;
+    if (step_tot < 2) {
+      step_tot = 2;
     }
 
     maxVerts = totvert * step_tot;          /* -1 because we're joining back up */
