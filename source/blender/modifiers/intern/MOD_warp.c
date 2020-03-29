@@ -90,7 +90,9 @@ static void matrix_from_obj_pchan(float mat[4][4], float obinv[4][4], Object *ob
 {
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bonename);
   if (pchan) {
-    mul_m4_m4m4(mat, obinv, pchan->pose_mat);
+    float mat_bone_world[4][4];
+    mul_m4_m4m4(mat_bone_world, ob->obmat, pchan->pose_mat);
+    mul_m4_m4m4(mat, obinv, mat_bone_world);
   }
   else {
     mul_m4_m4m4(mat, obinv, ob->obmat);
