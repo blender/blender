@@ -36,6 +36,7 @@
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_rigidbody_types.h"
 
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
@@ -642,6 +643,11 @@ static bool is_static_object(Object *ob)
              eModifierType_Softbody)) {
       return false;
     }
+  }
+
+  /* Active rigid body objects considered to be dynamic fluid objects. */
+  if (ob->rigidbody_object && ob->rigidbody_object->type == RBO_TYPE_ACTIVE) {
+    return false;
   }
 
   /* Finally, check if the object has animation data. If so, it is considered dynamic. */
