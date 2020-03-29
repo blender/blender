@@ -3739,12 +3739,7 @@ static void ui_do_but_textedit(
 
       if (utf8_buf && utf8_buf[0]) {
         int utf8_buf_len = BLI_str_utf8_size(utf8_buf);
-        /* keep this printf until utf8 is well tested */
-        if (utf8_buf_len != 1) {
-          printf("%s: utf8 char '%.*s'\n", __func__, utf8_buf_len, utf8_buf);
-        }
-
-        // strcpy(utf8_buf, "12345");
+        BLI_assert(utf8_buf_len != -1);
         changed = ui_textedit_insert_buf(but, data, event->utf8_buf, utf8_buf_len);
       }
       else {
