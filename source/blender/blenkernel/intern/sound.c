@@ -1161,10 +1161,10 @@ void BKE_sound_create_scene(Scene *UNUSED(scene))
 void BKE_sound_destroy_scene(Scene *UNUSED(scene))
 {
 }
-void BKE_sound_lock()
+void BKE_sound_lock(void)
 {
 }
-void BKE_sound_unlock()
+void BKE_sound_unlock(void)
 {
 }
 void BKE_sound_reset_scene_specs(Scene *UNUSED(scene))
