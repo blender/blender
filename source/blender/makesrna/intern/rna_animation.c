@@ -1322,6 +1322,12 @@ static void rna_def_animdata(BlenderRNA *brna)
       prop, "Use NLA Tweak Mode", "Whether to enable or disable tweak mode in NLA");
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, "rna_AnimData_update");
 
+  prop = RNA_def_property(srna, "use_pin", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ADT_CURVES_ALWAYS_VISIBLE);
+  RNA_def_property_ui_text(prop, "Pin in Graph Editor", "");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+
   /* Animation Data API */
   RNA_api_animdata(srna);
 }
