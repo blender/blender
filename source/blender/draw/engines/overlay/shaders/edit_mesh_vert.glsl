@@ -48,10 +48,10 @@ void main()
   gl_PointSize = sizeVertex * 2.0;
   /* Make selected and active vertex always on top. */
   if ((data.x & VERT_SELECTED) != 0) {
-    gl_Position.z -= 1e-7;
+    gl_Position.z -= 5e-7 * abs(gl_Position.w);
   }
   if ((data.x & VERT_ACTIVE) != 0) {
-    gl_Position.z -= 1e-7;
+    gl_Position.z -= 5e-7 * abs(gl_Position.w);
   }
 
   bool occluded = test_occlusion();
