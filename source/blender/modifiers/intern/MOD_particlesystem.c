@@ -189,7 +189,7 @@ static void deformVerts(ModifierData *md,
     BKE_mesh_tessface_ensure(psmd->mesh_original);
   }
 
-  if (mesh_src != psmd->mesh_final && mesh_src != mesh) {
+  if (!ELEM(mesh_src, NULL, mesh, psmd->mesh_final)) {
     BKE_id_free(NULL, mesh_src);
   }
 

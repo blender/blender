@@ -513,7 +513,7 @@ static void deformVertsEM(ModifierData *md,
     sphere_do(cmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
   }
 
-  if (mesh_src != mesh) {
+  if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
   }
 }

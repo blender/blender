@@ -234,7 +234,7 @@ static void deformMatrices(ModifierData *md,
                         amd->defgrp_name,
                         NULL);
 
-  if (mesh_src != mesh) {
+  if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
   }
 }
