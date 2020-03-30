@@ -27,6 +27,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -88,6 +89,7 @@ const char *screen_context_dir[] = {
     "sequences",
     "selected_sequences",
     "selected_editable_sequences", /* sequencer */
+    "selected_nla_strips", /* nla editor */
     "gpencil_data",
     "gpencil_data_owner", /* grease pencil data */
     "annotation_data",
@@ -499,6 +501,28 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
           CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
         }
       }
+      CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+      return 1;
+    }
+  }
+  else if (CTX_data_equals(member, "selected_nla_strips")) {
+     bAnimContext ac;
+    if (ANIM_animdata_get_context(C, &ac) != 0) {
+      ListBase anim_data = {NULL, NULL};
+      bAnimListElem *ale;
+
+      ANIM_animdata_filter(&ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac.data, ac.datatype);
+      for (ale = anim_data.first; ale; ale = ale->next) {
+        NlaTrack *nlt = (NlaTrack *)ale->data;
+        NlaStrip *strip;
+        for (strip = nlt->strips.first; strip; strip = strip->next) {
+          if (strip->flag & NLASTRIP_FLAG_SELECT) {
+            CTX_data_list_add(result, &scene->id, &RNA_NlaStrip, strip);
+          }
+        }
+      }
+      ANIM_animdata_freelist(&anim_data);
+
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
       return 1;
     }
