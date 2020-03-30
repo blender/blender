@@ -2771,7 +2771,7 @@ static uiBut *ui_item_menu(uiLayout *layout,
   }
   else if (icon) {
     but = uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, tip);
-    if (force_menu) {
+    if (force_menu && name[0]) {
       UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
     }
   }
