@@ -530,6 +530,12 @@ void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, Object *
   unit_m4(flip_mtx);
   flip_mtx[0][0] = -1;
 
+  for (bPoseChannel *pchan_orig = ob->pose->chanbase.first; pchan_orig;
+       pchan_orig = pchan_orig->next) {
+    /* Clear the MIRROR flag from previous runs. */
+    pchan_orig->bone->flag &= ~BONE_TRANSFORM_MIRROR;
+  }
+
   bPose *pose = ob->pose;
   PoseInitData_Mirror *pid = NULL;
   if ((t->mode != TFM_BONESIZE) && (pose->flag & POSE_MIRROR_RELATIVE)) {
@@ -564,6 +570,9 @@ void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, Object *
       mul_m4_m4m4(pchan_mtx_final, pid->offset_mtx, pchan_mtx_final);
     }
     BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
+
+    /* Set flag to let autokeyframe know to keyframe the mirrred bone. */
+    pchan->bone->flag |= BONE_TRANSFORM_MIRROR;
 
     /* In this case we can do target-less IK grabbing. */
     if (t->mode == TFM_TRANSLATION) {
