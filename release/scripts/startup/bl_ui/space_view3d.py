@@ -3896,7 +3896,7 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.extrude_repeat", text="Extrude Array")
+        layout.operator("mesh.extrude_repeat")
 
 
 class VIEW3D_MT_edit_mesh_vertices(Menu):
