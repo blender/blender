@@ -5217,9 +5217,6 @@ void CURVE_OT_spin(wmOperatorType *ot)
 
 static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
 {
-  Nurb *nu = NULL;
-  Nurb *nu_last = NULL;
-
   bool changed = false;
 
   Nurb *cu_actnu;
@@ -5234,211 +5231,168 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
   }
 
   BKE_curve_nurb_vert_active_get(cu, &cu_actnu, &cu_actvert.p);
-  BKE_curve_nurb_vert_active_set(cu, NULL, NULL);
+  int act_offset = 0;
 
-  /* first pass (endpoints) */
-  for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
-
-    if ((nu->flagu & CU_NURB_CYCLIC) && (nu->pntsu > 1)) {
-      continue;
-    }
-
+  for (Nurb *nu = editnurb->nurbs.first; nu; nu = nu->next) {
+    BLI_assert(nu->pntsu > 0);
+    int i;
+    int pnt_len = nu->pntsu;
+    int new_points = 0;
+    int offset = 0;
+    bool is_prev_selected = false;
     if (nu->type == CU_BEZIER) {
-
-      /* Check to see if the first bezier point is selected */
-      if (nu->pntsu > 0 && nu->bezt != NULL) {
-        BezTriple *nu_bezt_old = nu->bezt;
-        BezTriple *bezt = nu->bezt;
-
-        if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-          BezTriple *bezt_new;
-          BEZT_DESEL_ALL(bezt);
-
-          bezt_new = MEM_mallocN((nu->pntsu + 1) * sizeof(BezTriple), __func__);
-          ED_curve_beztcpy(editnurb, bezt_new + 1, bezt, nu->pntsu);
-          *bezt_new = *bezt;
-
-          MEM_freeN(nu->bezt);
-          nu->bezt = bezt_new;
-
-          nu->pntsu += 1;
-
-          if (ARRAY_HAS_ITEM(cu_actvert.bezt, nu_bezt_old, nu->pntsu - 1)) {
-            cu_actvert.bezt = (cu_actvert.bezt == bezt) ?
-                                  bezt_new :
-                                  &nu->bezt[(cu_actvert.bezt - nu_bezt_old) + 1];
-            BKE_curve_nurb_vert_active_set(cu, nu, cu_actvert.bezt);
-          }
-
-          BEZT_SEL_ALL(bezt_new);
-          changed = true;
+      BezTriple *bezt, *bezt_prev = NULL;
+      bool is_cyclic = false;
+      if (pnt_len == 1) {
+        /* Single point extrusion.
+         * Keep `is_prev_selected` false to force extrude. */
+        bezt_prev = &nu->bezt[0];
+      }
+      else if (nu->flagu & CU_NURB_CYCLIC) {
+        is_cyclic = true;
+        bezt_prev = &nu->bezt[pnt_len - 1];
+        is_prev_selected = BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt_prev);
+      }
+      i = pnt_len;
+      for (bezt = &nu->bezt[0]; i--; bezt++) {
+        bool is_selected = BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt);
+        if (bezt_prev && is_prev_selected != is_selected) {
+          new_points++;
         }
+        if (bezt == cu_actvert.bezt) {
+          act_offset = new_points;
+        }
+        bezt_prev = bezt;
+        is_prev_selected = is_selected;
       }
 
-      /* Check to see if the last bezier point is selected */
-      if (nu->pntsu > 1) {
-        BezTriple *nu_bezt_old = nu->bezt;
-        BezTriple *bezt = &nu->bezt[nu->pntsu - 1];
-
-        if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-          BezTriple *bezt_new;
-          BEZT_DESEL_ALL(bezt);
-
-          bezt_new = MEM_mallocN((nu->pntsu + 1) * sizeof(BezTriple), __func__);
-          ED_curve_beztcpy(editnurb, bezt_new, nu->bezt, nu->pntsu);
-          bezt_new[nu->pntsu] = *bezt;
-
-          MEM_freeN(nu->bezt);
-          nu->bezt = bezt_new;
-
-          bezt_new += nu->pntsu;
-          nu->pntsu += 1;
-
-          if (ARRAY_HAS_ITEM(cu_actvert.bezt, nu_bezt_old, nu->pntsu - 1)) {
-            cu_actvert.bezt = (cu_actvert.bezt == bezt) ? bezt_new :
-                                                          &nu->bezt[cu_actvert.bezt - nu_bezt_old];
-            BKE_curve_nurb_vert_active_set(cu, nu, cu_actvert.bezt);
-          }
-
-          BEZT_SEL_ALL(bezt_new);
-          changed = true;
+      if (new_points) {
+        if (pnt_len == 1) {
+          /* Single point extrusion.
+           * Set `is_prev_selected` as false to force extrude. */
+          BLI_assert(bezt_prev == &nu->bezt[0]);
+          is_prev_selected = false;
         }
+        else if (is_cyclic) {
+          BLI_assert(bezt_prev == &nu->bezt[pnt_len - 1]);
+          BLI_assert(is_prev_selected == BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt_prev));
+        }
+        else {
+          bezt_prev = NULL;
+        }
+        BezTriple *bezt_src, *bezt_dst, *bezt_src_iter, *bezt_dst_iter;
+        bezt_src = nu->bezt;
+        bezt_dst = MEM_mallocN((pnt_len + new_points) * sizeof(BezTriple), __func__);
+        bezt_src_iter = &bezt_src[0];
+        bezt_dst_iter = &bezt_dst[0];
+        i = 0;
+        for (bezt = &nu->bezt[0]; i < pnt_len; i++, bezt++) {
+          bool is_selected = BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt);
+          if (bezt_prev && is_prev_selected != is_selected) {
+            int count = i - offset + 1;
+            if (is_prev_selected) {
+              ED_curve_beztcpy(editnurb, bezt_dst_iter, bezt_src_iter, count - 1);
+              ED_curve_beztcpy(editnurb, &bezt_dst_iter[count - 1], bezt_prev, 1);
+            }
+            else {
+              ED_curve_beztcpy(editnurb, bezt_dst_iter, bezt_src_iter, count);
+            }
+            ED_curve_beztcpy(editnurb, &bezt_dst_iter[count], bezt, 1);
+            BEZT_DESEL_ALL(&bezt_dst_iter[count - 1]);
+
+            bezt_dst_iter += count + 1;
+            bezt_src_iter += count;
+            offset = i + 1;
+          }
+          bezt_prev = bezt;
+          is_prev_selected = is_selected;
+        }
+
+        int remain = pnt_len - offset;
+        if (remain) {
+          ED_curve_beztcpy(editnurb, bezt_dst_iter, bezt_src_iter, pnt_len - offset);
+        }
+
+        MEM_freeN(nu->bezt);
+        nu->bezt = bezt_dst;
+        nu->pntsu += new_points;
+        changed = true;
       }
     }
     else {
-
-      /* Check to see if the first bpoint is selected */
-      if (nu->pntsu > 0 && nu->bp != NULL) {
-        BPoint *nu_bp_old = nu->bp;
-        BPoint *bp = nu->bp;
-
-        if (bp->f1 & SELECT) {
-          BPoint *bp_new;
-          bp->f1 &= ~SELECT;
-
-          bp_new = MEM_mallocN((nu->pntsu + 1) * sizeof(BPoint), __func__);
-          ED_curve_bpcpy(editnurb, bp_new + 1, bp, nu->pntsu);
-          *bp_new = *bp;
-
-          MEM_freeN(nu->bp);
-          nu->bp = bp_new;
-
-          nu->pntsu += 1;
-          BKE_nurb_knot_calc_u(nu);
-
-          if (ARRAY_HAS_ITEM(cu_actvert.bp, nu_bp_old, nu->pntsu - 1)) {
-            cu_actvert.bp = (cu_actvert.bp == bp) ? bp_new :
-                                                    &nu->bp[(cu_actvert.bp - nu_bp_old) + 1];
-            BKE_curve_nurb_vert_active_set(cu, nu, cu_actvert.bp);
-          }
-
-          bp_new->f1 |= SELECT;
-          changed = true;
+      BPoint *bp, *bp_prev = NULL;
+      if (pnt_len == 1) {
+        /* Single point extrusion.
+         * Reference a `prev_bp` to force extrude. */
+        bp_prev = &nu->bp[0];
+      }
+      i = pnt_len;
+      for (bp = &nu->bp[0]; i--; bp++) {
+        bool is_selected = (bp->f1 & SELECT) != 0;
+        if (bp_prev && is_prev_selected != is_selected) {
+          new_points++;
         }
+        if (bp == cu_actvert.bp) {
+          act_offset = new_points;
+        }
+        bp_prev = bp;
+        is_prev_selected = is_selected;
       }
 
-      /* Check to see if the last bpoint is selected */
-      if (nu->pntsu > 1) {
-        BPoint *nu_bp_old = nu->bp;
-        BPoint *bp = &nu->bp[nu->pntsu - 1];
-
-        if (bp->f1 & SELECT) {
-          BPoint *bp_new;
-          bp->f1 &= ~SELECT;
-
-          bp_new = MEM_mallocN((nu->pntsu + 1) * sizeof(BPoint), __func__);
-          ED_curve_bpcpy(editnurb, bp_new, nu->bp, nu->pntsu);
-          bp_new[nu->pntsu] = *bp;
-
-          MEM_freeN(nu->bp);
-          nu->bp = bp_new;
-
-          bp_new += nu->pntsu;
-          nu->pntsu += 1;
-
-          if (ARRAY_HAS_ITEM(cu_actvert.bp, nu_bp_old, nu->pntsu - 1)) {
-            cu_actvert.bp = (cu_actvert.bp == bp) ? bp_new : &nu->bp[cu_actvert.bp - nu_bp_old];
-            BKE_curve_nurb_vert_active_set(cu, nu, cu_actvert.bp);
-          }
-
-          BKE_nurb_knot_calc_u(nu);
-
-          bp_new->f1 |= SELECT;
-          changed = true;
+      if (new_points) {
+        BPoint *bp_src, *bp_dst, *bp_src_iter, *bp_dst_iter;
+        is_prev_selected = false;
+        if (pnt_len == 1) {
+          /* Single point extrusion.
+           * Keep `is_prev_selected` false to force extrude. */
+          BLI_assert(bp_prev == &nu->bp[0]);
         }
+        else {
+          bp_prev = NULL;
+        }
+        bp_src = nu->bp;
+        bp_dst = MEM_mallocN((pnt_len + new_points) * sizeof(BPoint), __func__);
+        bp_src_iter = &bp_src[0];
+        bp_dst_iter = &bp_dst[0];
+        i = 0;
+        for (bp = &nu->bp[0]; i < pnt_len; i++, bp++) {
+          bool is_selected = (bp->f1 & SELECT) != 0;
+          if (bp_prev && is_prev_selected != is_selected) {
+            int count = i - offset + 1;
+            if (is_prev_selected) {
+              ED_curve_bpcpy(editnurb, bp_dst_iter, bp_src_iter, count - 1);
+              ED_curve_bpcpy(editnurb, &bp_dst_iter[count - 1], bp_prev, 1);
+            }
+            else {
+              ED_curve_bpcpy(editnurb, bp_dst_iter, bp_src_iter, count);
+            }
+            ED_curve_bpcpy(editnurb, &bp_dst_iter[count], bp, 1);
+            bp_dst_iter[count - 1].f1 &= ~SELECT;
+
+            bp_dst_iter += count + 1;
+            bp_src_iter += count;
+            offset = i + 1;
+          }
+          bp_prev = bp;
+          is_prev_selected = is_selected;
+        }
+
+        int remain = pnt_len - offset;
+        if (remain) {
+          ED_curve_bpcpy(editnurb, bp_dst_iter, bp_src_iter, pnt_len - offset);
+        }
+
+        MEM_freeN(nu->bp);
+        nu->bp = bp_dst;
+        nu->pntsu += new_points;
+
+        BKE_nurb_knot_calc_u(nu);
+        changed = true;
       }
     }
   }
 
-  /* second pass (interior points) */
-  nu_last = editnurb->nurbs.last;
-  for (nu = editnurb->nurbs.first; (nu != nu_last->next); nu = nu->next) {
-    int i, i_end;
-
-    if ((nu->flagu & CU_NURB_CYCLIC) && (nu->pntsu > 1)) {
-      /* all points are interior */
-      i = 0;
-      i_end = nu->pntsu;
-    }
-    else {
-      /* skip endpoints */
-      i = 1;
-      i_end = nu->pntsu - 1;
-    }
-
-    if (nu->type == CU_BEZIER) {
-      BezTriple *bezt;
-
-      for (bezt = &nu->bezt[i]; i < i_end; i++, bezt++) {
-        if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-          Nurb *nurb_new;
-          BezTriple *bezt_new;
-
-          BEZT_DESEL_ALL(bezt);
-          nurb_new = BKE_nurb_copy(nu, 1, 1);
-          nurb_new->flagu &= ~CU_NURB_CYCLIC;
-          BLI_addtail(&editnurb->nurbs, nurb_new);
-          bezt_new = nurb_new->bezt;
-          ED_curve_beztcpy(editnurb, bezt_new, bezt, 1);
-          BEZT_SEL_ALL(bezt_new);
-
-          if (cu_actvert.bezt == bezt || cu_actnu == NULL) {
-            BKE_curve_nurb_vert_active_set(cu, nurb_new, bezt_new);
-          }
-
-          changed = true;
-        }
-      }
-    }
-    else {
-      BPoint *bp;
-
-      for (bp = &nu->bp[i]; i < i_end; i++, bp++) {
-        if (bp->f1 & SELECT) {
-          Nurb *nurb_new;
-          BPoint *bp_new;
-
-          bp->f1 &= ~SELECT;
-          nurb_new = BKE_nurb_copy(nu, 1, 1);
-          nurb_new->flagu &= ~CU_NURB_CYCLIC;
-          BLI_addtail(&editnurb->nurbs, nurb_new);
-          bp_new = nurb_new->bp;
-          ED_curve_bpcpy(editnurb, bp_new, bp, 1);
-          bp_new->f1 |= SELECT;
-
-          if (cu_actvert.bp == bp || cu_actnu == NULL) {
-            BKE_curve_nurb_vert_active_set(cu, nurb_new, bp_new);
-          }
-
-          changed = true;
-        }
-      }
-    }
-  }
-
-  if (changed == false) {
-    BKE_curve_nurb_vert_active_set(cu, cu_actnu, cu_actvert.p);
-  }
+  cu->actvert += act_offset;
 
   return changed;
 }
