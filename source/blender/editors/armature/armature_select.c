@@ -297,66 +297,89 @@ void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel, Base **r_ba
 
 static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  bArmature *arm;
-  EditBone *bone, *curBone, *next;
-  const bool sel = !RNA_boolean_get(op->ptr, "deselect");
+  const bool select = !RNA_boolean_get(op->ptr, "deselect");
+  /* true: select all connected bones traveling up & down forks.
+   * false: select all parents and all children, but not the children of the root bone. */
+  const bool all_forks = RNA_boolean_get(op->ptr, "all_forks");
 
   view3d_operator_needs_opengl(C);
   BKE_object_update_select_id(CTX_data_main(C));
 
   Base *base = NULL;
-  bone = get_nearest_bone(C, event->mval, true, &base);
+  EditBone *ebone_active = get_nearest_bone(C, event->mval, true, &base);
+  bArmature *arm = base->object->data;
 
-  if (!bone) {
+  if (ebone_active == NULL || !EBONE_SELECTABLE(arm, ebone_active)) {
     return OPERATOR_CANCELLED;
   }
 
-  arm = base->object->data;
+  enum {
+    /* Bone has been walked over, it's LINK value can be read. */
+    TOUCH = (1 << 0),
+    /* When TOUCH has been set, this flag can be checked to see if the bone is connected. */
+    LINK = (1 << 1),
+  };
 
-  /* Select parents */
-  for (curBone = bone; curBone; curBone = next) {
-    if ((curBone->flag & BONE_UNSELECTABLE) == 0) {
-      if (sel) {
-        curBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+  for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+    ebone->temp.i = 0;
+  }
+
+#define CHECK_PARENT(ebone) \
+  (((ebone)->flag & BONE_CONNECTED) && \
+   ((ebone)->parent ? EBONE_SELECTABLE(arm, (ebone)->parent) : false))
+
+  /* Select parents. */
+  for (EditBone *ebone = ebone_active; ebone; ebone = CHECK_PARENT(ebone) ? ebone->parent : NULL) {
+    if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
+      ED_armature_ebone_select_set(ebone, select);
+      if (all_forks) {
+        ebone->temp.i = (TOUCH | LINK);
       }
       else {
-        curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+        ebone->temp.i = TOUCH;
       }
-    }
-
-    if (curBone->flag & BONE_CONNECTED) {
-      next = curBone->parent;
-    }
-    else {
-      next = NULL;
     }
   }
 
-  /* Select children */
-  while (bone) {
-    for (curBone = arm->edbo->first; curBone; curBone = next) {
-      next = curBone->next;
-      if ((curBone->parent == bone) && (curBone->flag & BONE_UNSELECTABLE) == 0) {
-        if (curBone->flag & BONE_CONNECTED) {
-          if (sel) {
-            curBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-          }
-          else {
-            curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-          }
-          bone = curBone;
-          break;
-        }
-        else {
-          bone = NULL;
-          break;
+  if (all_forks == false) {
+    ebone_active->temp.i = LINK;
+  }
+
+  /* Select children.
+   *
+   * Implementation note, this flood-fills selected bones with the 'TOUCH' flag,
+   * even though this is a loop-within a loop, walking up the parent chain only touches new bones.
+   * Bones that have been touched are skipped, so the complexity is OK. */
+  for (EditBone *ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
+    /* No need to 'touch' this bone as it won't be walked over when scanning up the chain. */
+    if (!CHECK_PARENT(ebone_iter)) {
+      continue;
+    }
+    if (ebone_iter->temp.i & TOUCH) {
+      continue;
+    }
+
+    /* First check if we're marked. */
+    EditBone *ebone_touched_parent = NULL;
+    for (EditBone *ebone = ebone_iter; ebone; ebone = CHECK_PARENT(ebone) ? ebone->parent : NULL) {
+      if (ebone->temp.i & TOUCH) {
+        ebone_touched_parent = ebone;
+        break;
+      }
+      ebone->temp.i |= TOUCH;
+    }
+
+    if ((ebone_touched_parent != NULL) && (ebone_touched_parent->temp.i & LINK)) {
+      for (EditBone *ebone = ebone_iter; ebone != ebone_touched_parent; ebone = ebone->parent) {
+        if ((ebone->temp.i & LINK) == 0) {
+          ebone->temp.i |= LINK;
+          ED_armature_ebone_select_set(ebone, select);
         }
       }
     }
-    if (!curBone) {
-      bone = NULL;
-    }
   }
+
+#undef CHECK_PARENT
 
   ED_outliner_select_sync_from_edit_bone_tag(C);
 
@@ -389,6 +412,8 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+  /* Leave disabled by default as this matches pose mode. */
+  RNA_def_boolean(ot->srna, "all_forks", 0, "All Forks", "Follow forks in the parents chain");
 }
 
 /* utility function for get_nearest_editbonepoint */
