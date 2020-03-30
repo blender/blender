@@ -71,6 +71,13 @@ typedef struct GpencilBatchCache {
 static bool gpencil_batch_cache_valid(GpencilBatchCache *cache, bGPdata *gpd, int cfra)
 {
   bool valid = true;
+
+  /* Needs to be first to consume the flag. */
+  if (gpd->flag & GP_DATA_PYTHON_UPDATED) {
+    gpd->flag &= ~GP_DATA_PYTHON_UPDATED;
+    valid = false;
+  }
+
   if (cache == NULL) {
     return false;
   }
@@ -80,10 +87,6 @@ static bool gpencil_batch_cache_valid(GpencilBatchCache *cache, bGPdata *gpd, in
     valid = false;
   }
   else if (gpd->flag & GP_DATA_CACHE_IS_DIRTY) {
-    valid = false;
-  }
-  else if (gpd->flag & GP_DATA_PYTHON_UPDATED) {
-    gpd->flag &= ~GP_DATA_PYTHON_UPDATED;
     valid = false;
   }
   else if (cache->is_dirty) {
