@@ -1635,24 +1635,27 @@ static void extract_lnor_hq_loop_bmesh(const MeshRenderData *mr, int l, BMLoop *
 static void extract_lnor_hq_loop_mesh(
     const MeshRenderData *mr, int l, const MLoop *mloop, int p, const MPoly *mpoly, void *data)
 {
+  gpuHQNor *lnor_data = &((gpuHQNor *)data)[l];
   if (mr->loop_normals) {
-    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, mr->loop_normals[l]);
+    normal_float_to_short_v3(&lnor_data->x, mr->loop_normals[l]);
   }
   else if (mpoly->flag & ME_SMOOTH) {
-    copy_v3_v3_short(&((gpuHQNor *)data)[l].x, mr->mvert[mloop->v].no);
+    copy_v3_v3_short(&lnor_data->x, mr->mvert[mloop->v].no);
   }
   else {
-    normal_float_to_short_v3(&((gpuHQNor *)data)[l].x, mr->poly_normals[p]);
+    normal_float_to_short_v3(&lnor_data->x, mr->poly_normals[p]);
   }
+
   /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE) {
-    ((gpuHQNor *)data)[l].w = -1;
+  if (mpoly->flag & ME_HIDE ||
+      (mr->extract_type == MR_EXTRACT_MAPPED && mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
+    lnor_data->w = -1;
   }
   else if (mpoly->flag & ME_FACE_SEL) {
-    ((gpuHQNor *)data)[l].w = 1;
+    lnor_data->w = 1;
   }
   else {
-    ((gpuHQNor *)data)[l].w = 0;
+    lnor_data->w = 0;
   }
 }
 
@@ -1708,24 +1711,27 @@ static void extract_lnor_loop_bmesh(const MeshRenderData *mr, int l, BMLoop *loo
 static void extract_lnor_loop_mesh(
     const MeshRenderData *mr, int l, const MLoop *mloop, int p, const MPoly *mpoly, void *data)
 {
+  GPUPackedNormal *lnor_data = &((GPUPackedNormal *)data)[l];
   if (mr->loop_normals) {
-    ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(mr->loop_normals[l]);
+    *lnor_data = GPU_normal_convert_i10_v3(mr->loop_normals[l]);
   }
   else if (mpoly->flag & ME_SMOOTH) {
-    ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_s3(mr->mvert[mloop->v].no);
+    *lnor_data = GPU_normal_convert_i10_s3(mr->mvert[mloop->v].no);
   }
   else {
-    ((GPUPackedNormal *)data)[l] = GPU_normal_convert_i10_v3(mr->poly_normals[p]);
+    *lnor_data = GPU_normal_convert_i10_v3(mr->poly_normals[p]);
   }
+
   /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE) {
-    ((GPUPackedNormal *)data)[l].w = -1;
+  if (mpoly->flag & ME_HIDE ||
+      (mr->extract_type == MR_EXTRACT_MAPPED && mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
+    lnor_data->w = -1;
   }
   else if (mpoly->flag & ME_FACE_SEL) {
-    ((GPUPackedNormal *)data)[l].w = 1;
+    lnor_data->w = 1;
   }
   else {
-    ((GPUPackedNormal *)data)[l].w = 0;
+    lnor_data->w = 0;
   }
 }
 
