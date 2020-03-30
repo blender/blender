@@ -4575,7 +4575,6 @@ def km_armature(params):
         ("armature.extrude_forked", {"type": 'E', "value": 'PRESS', "shift": True}, None),
         ("armature.click_extrude", {"type": params.action_mouse, "value": 'CLICK', "ctrl": True}, None),
         ("armature.fill", {"type": 'F', "value": 'PRESS'}, None),
-        ("armature.merge", {"type": 'M', "value": 'PRESS', "alt": True}, None),
         ("armature.split", {"type": 'Y', "value": 'PRESS'}, None),
         ("armature.separate", {"type": 'P', "value": 'PRESS'}, None),
         # Set flags.

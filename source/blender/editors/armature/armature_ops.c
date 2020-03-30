@@ -68,7 +68,6 @@ void ED_operatortypes_armature(void)
   WM_operatortype_append(ARMATURE_OT_reveal);
   WM_operatortype_append(ARMATURE_OT_click_extrude);
   WM_operatortype_append(ARMATURE_OT_fill);
-  WM_operatortype_append(ARMATURE_OT_merge);
   WM_operatortype_append(ARMATURE_OT_separate);
   WM_operatortype_append(ARMATURE_OT_split);
 

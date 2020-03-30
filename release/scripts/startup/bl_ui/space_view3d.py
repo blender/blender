@@ -4636,7 +4636,6 @@ class VIEW3D_MT_edit_armature(Menu):
             layout.operator("armature.extrude_forked")
 
         layout.operator("armature.duplicate_move")
-        layout.operator("armature.merge")
         layout.operator("armature.fill")
         layout.operator("armature.split")
         layout.operator("armature.separate")
@@ -4710,7 +4709,6 @@ class VIEW3D_MT_armature_context_menu(Menu):
         # Remove
         layout.operator("armature.split")
         layout.operator("armature.separate")
-        layout.operator("armature.merge")
         layout.operator("armature.dissolve")
         layout.operator("armature.delete")
 
