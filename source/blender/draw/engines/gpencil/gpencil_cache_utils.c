@@ -314,12 +314,12 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
         break;
       case eGplBlendMode_Multiply:
       case eGplBlendMode_Divide:
-      case eGplBlendMode_Overlay:
+      case eGplBlendMode_HardLight:
         state |= DRW_STATE_BLEND_MUL;
         break;
     }
 
-    if (ELEM(gpl->blend_mode, eGplBlendMode_Subtract, eGplBlendMode_Overlay)) {
+    if (ELEM(gpl->blend_mode, eGplBlendMode_Subtract, eGplBlendMode_HardLight)) {
       /* For these effect to propagate, we need a signed floating point buffer. */
       pd->use_signed_fb = true;
     }
@@ -336,7 +336,7 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
     DRW_shgroup_stencil_mask(grp, 0xFF);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
-    if (gpl->blend_mode == eGplBlendMode_Overlay) {
+    if (gpl->blend_mode == eGplBlendMode_HardLight) {
       /* We cannot do custom blending on MultiTarget framebuffers.
        * Workaround by doing 2 passes. */
       grp = DRW_shgroup_create(sh, tgp_layer->blend_ps);

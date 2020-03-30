@@ -77,12 +77,12 @@ layout(std140) uniform gpLightBlock
 
 /* Must match eGPLayerBlendModes */
 #define MODE_REGULAR 0
-#define MODE_OVERLAY 1
+#define MODE_HARDLIGHT 1
 #define MODE_ADD 2
 #define MODE_SUB 3
 #define MODE_MULTIPLY 4
 #define MODE_DIVIDE 5
-#define MODE_OVERLAY_SECOND_PASS 999
+#define MODE_HARDLIGHT_SECOND_PASS 999
 
 void blend_mode_output(
     int blend_mode, vec4 color, float opacity, out vec4 frag_color, out vec4 frag_revealage)
@@ -104,7 +104,7 @@ void blend_mode_output(
       color.a *= opacity;
       frag_revealage = frag_color = clamp(1.0 / max(vec4(1e-6), 1.0 - color * color.a), 0.0, 1e18);
       break;
-    case MODE_OVERLAY:
+    case MODE_HARDLIGHT:
       /* Reminder: Blending func is multiply blend (dst.rgba * src.rgba).*/
       /**
        * We need to separate the overlay equation into 2 term (one mul and one add).
@@ -122,7 +122,7 @@ void blend_mode_output(
       frag_revealage = frag_color = 2.0 * s + 2.0 * color * (1.0 - s * 2.0);
       frag_revealage = max(vec4(0.0), frag_revealage);
       break;
-    case MODE_OVERLAY_SECOND_PASS:
+    case MODE_HARDLIGHT_SECOND_PASS:
       /* Reminder: Blending func is additive blend (dst.rgba + src.rgba).*/
       color = mix(vec4(0.5), color, color.a * opacity);
       frag_revealage = frag_color = (-1.0 + 2.0 * color) * step(-0.5, -color);
