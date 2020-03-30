@@ -478,6 +478,7 @@ typedef struct SculptUndoNode {
    * the object when undoing the operation
    *
    * Modified geometry is stored after the modification and is used to redo the modification. */
+  bool geometry_clear_pbvh;
   SculptUndoNodeGeometry geometry_original;
   SculptUndoNodeGeometry geometry_modified;
 

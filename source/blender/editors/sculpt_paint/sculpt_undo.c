@@ -55,6 +55,9 @@
 #include "BKE_subsurf.h"
 #include "BKE_undo_system.h"
 
+// XXX: Ideally should be no direct call to such low level things.
+#include "BKE_subdiv_eval.h"
+
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
@@ -552,7 +555,9 @@ static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
 
 static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
 {
-  SCULPT_pbvh_clear(object);
+  if (unode->geometry_clear_pbvh) {
+    SCULPT_pbvh_clear(object);
+  }
 
   if (unode->applied) {
     sculpt_undo_geometry_restore_data(&unode->geometry_modified, object);
@@ -738,6 +743,10 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         undo_modified_grids[unode->grids[i]] = 1;
       }
     }
+  }
+
+  if (subdiv_ccg != NULL) {
+    BKE_subdiv_eval_refine_from_mesh(subdiv_ccg->subdiv, ob->data, NULL);
   }
 
   if (update || rebuild) {
@@ -1079,6 +1088,7 @@ static SculptUndoNode *sculpt_undo_geometry_push(Object *object, SculptUndoType 
 {
   SculptUndoNode *unode = sculpt_undo_find_or_alloc_node_type(object, type);
   unode->applied = false;
+  unode->geometry_clear_pbvh = true;
 
   SculptUndoNodeGeometry *geometry = sculpt_undo_geometry_get(unode);
   sculpt_undo_geometry_store_data(geometry, object);
@@ -1507,6 +1517,88 @@ static UndoSculpt *sculpt_undo_get_nodes(void)
   UndoStack *ustack = ED_undo_stack_get();
   UndoStep *us = BKE_undosys_stack_init_or_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
   return sculpt_undosys_step_get_nodes(us);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Undo for changes happening on a base mesh for multires sculpting.
+ *
+ * Use this for multires operators which changes base mesh and which are to be
+ * possible. Example of such operators is Apply Base.
+ *
+ * Usage:
+ *
+ *   static int operator_exec((bContext *C, wmOperator *op) {
+ *
+ *      ED_sculpt_undo_push_mixed_begin(C, op->type->name);
+ *      // Modify base mesh.
+ *      ED_sculpt_undo_push_mixed_end(C, op->type->name);
+ *
+ *      return OPERATOR_FINISHED;
+ *   }
+ *
+ * If object is not in sculpt mode or sculpt does not happen on multires then
+ * regular ED_undo_push() is used.
+ * *
+ * \{ */
+
+static bool sculpt_undo_use_multires_mesh(bContext *C)
+{
+  if (BKE_paintmode_get_active_from_context(C) != PAINT_MODE_SCULPT) {
+    return false;
+  }
+
+  Object *object = CTX_data_active_object(C);
+  SculptSession *sculpt_session = object->sculpt;
+
+  return sculpt_session->multires.active;
+}
+
+static void sculpt_undo_push_all_grids(Object *object)
+{
+  SculptSession *ss = object->sculpt;
+  PBVHNode **nodes;
+  int totnodes;
+
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnodes);
+  for (int i = 0; i < totnodes; i++) {
+    SculptUndoNode *unode = SCULPT_undo_push_node(object, nodes[i], SCULPT_UNDO_COORDS);
+    unode->node = NULL;
+  }
+
+  MEM_SAFE_FREE(nodes);
+}
+
+void ED_sculpt_undo_push_multires_mesh_begin(bContext *C, const char *str)
+{
+  if (!sculpt_undo_use_multires_mesh(C)) {
+    return;
+  }
+
+  Object *object = CTX_data_active_object(C);
+
+  SCULPT_undo_push_begin(str);
+
+  SculptUndoNode *geometry_unode = SCULPT_undo_push_node(object, NULL, SCULPT_UNDO_GEOMETRY);
+  geometry_unode->geometry_clear_pbvh = false;
+
+  sculpt_undo_push_all_grids(object);
+}
+
+void ED_sculpt_undo_push_multires_mesh_end(bContext *C, const char *str)
+{
+  if (!sculpt_undo_use_multires_mesh(C)) {
+    ED_undo_push(C, str);
+    return;
+  }
+
+  Object *object = CTX_data_active_object(C);
+
+  SculptUndoNode *geometry_unode = SCULPT_undo_push_node(object, NULL, SCULPT_UNDO_GEOMETRY);
+  geometry_unode->geometry_clear_pbvh = false;
+
+  SCULPT_undo_push_end();
 }
 
 /** \} */

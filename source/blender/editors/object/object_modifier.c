@@ -86,6 +86,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1697,7 +1698,11 @@ static int multires_base_apply_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  ED_sculpt_undo_push_multires_mesh_begin(C, op->type->name);
+
   multiresModifier_base_apply(depsgraph, object, mmd);
+
+  ED_sculpt_undo_push_multires_mesh_end(C, op->type->name);
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
@@ -1726,7 +1731,7 @@ void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
   ot->exec = multires_base_apply_exec;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
 }
 
