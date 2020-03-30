@@ -574,6 +574,7 @@ void fill_vertex()
   finalUvs = rot_scale * uv1.xy + loc;
 #  endif
 
+  strokeHardeness = 1.0;
   strokeThickness = 1e18;
   strokeAspect = vec2(1.0);
   strokePt1 = strokePt2 = vec2(0.0);
