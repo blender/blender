@@ -40,7 +40,7 @@ void main()
   }
   else {
     nor = norAndFlag.xyz;
-    if (all(equal(nor, vec3(0.0)))) {
+    if (all(equal(nor, vec3(0)))) {
       finalColor = vec4(0.0);
       return;
     }
