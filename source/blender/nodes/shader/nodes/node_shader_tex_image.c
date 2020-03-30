@@ -154,6 +154,12 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 
         /* equivalent to normal_world_to_object */
         GPU_link(mat, "normal_transform_transposed_m4v3", vnor, ob_mat, &norm);
+        {
+          /* See SHD_PROJ_FLAT for explanation. */
+          GPU_link(mat, "set_rgb", *texco, texco);
+          GPU_link(mat, "set_rgb", *texco, &input_coords);
+          in[0].link = input_coords;
+        }
         GPU_link(
             mat, gpu_node_name, *texco, norm, GPU_image(mat, ima, iuser), &col1, &col2, &col3);
         GPU_stack_link(
