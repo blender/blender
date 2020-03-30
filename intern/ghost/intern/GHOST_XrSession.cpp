@@ -76,6 +76,9 @@ GHOST_XrSession::~GHOST_XrSession()
   if (m_oxr->reference_space != XR_NULL_HANDLE) {
     CHECK_XR_ASSERT(xrDestroySpace(m_oxr->reference_space));
   }
+  if (m_oxr->view_space != XR_NULL_HANDLE) {
+    CHECK_XR_ASSERT(xrDestroySpace(m_oxr->view_space));
+  }
   if (m_oxr->session != XR_NULL_HANDLE) {
     CHECK_XR_ASSERT(xrDestroySession(m_oxr->session));
   }
