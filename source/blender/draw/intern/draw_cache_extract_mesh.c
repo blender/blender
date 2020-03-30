@@ -191,7 +191,17 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
   else {
     mr->me = me;
     mr->edit_bmesh = NULL;
-    mr->extract_type = MR_EXTRACT_MESH;
+
+    bool use_mapped = mr->me && !mr->me->runtime.is_original;
+    if (use_mapped) {
+      mr->v_origindex = CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX);
+      mr->e_origindex = CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX);
+      mr->p_origindex = CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX);
+
+      use_mapped = (mr->v_origindex || mr->e_origindex || mr->p_origindex);
+    }
+
+    mr->extract_type = use_mapped ? MR_EXTRACT_MAPPED : MR_EXTRACT_MESH;
   }
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
@@ -924,10 +934,14 @@ static void extract_lines_paint_mask_loop_mesh(const MeshRenderData *mr,
                                                void *_data)
 {
   MeshExtract_LinePaintMask_Data *data = (MeshExtract_LinePaintMask_Data *)_data;
-  if (!(mr->use_hide && (mpoly->flag & ME_HIDE))) {
+  const int edge_idx = mloop->e;
+  const MEdge *medge = &mr->medge[edge_idx];
+  if (!((mr->use_hide && (medge->flag & ME_HIDE)) ||
+        ((mr->extract_type == MR_EXTRACT_MAPPED) &&
+         (mr->e_origindex[edge_idx] == ORIGINDEX_NONE)))) {
+
     int loopend = mpoly->totloop + mpoly->loopstart - 1;
     int other_loop = (l == loopend) ? mpoly->loopstart : (l + 1);
-    int edge_idx = mloop->e;
     if (mpoly->flag & ME_FACE_SEL) {
       if (BLI_BITMAP_TEST_AND_SET_ATOMIC(data->select_map, edge_idx)) {
         /* Hide edge as it has more than 2 selected loop. */
@@ -944,6 +958,9 @@ static void extract_lines_paint_mask_loop_mesh(const MeshRenderData *mr,
         GPU_indexbuf_set_line_verts(&data->elb, edge_idx, l, other_loop);
       }
     }
+  }
+  else {
+    GPU_indexbuf_set_line_restart(&data->elb, edge_idx);
   }
 }
 static void extract_lines_paint_mask_finish(const MeshRenderData *UNUSED(mr),
@@ -1500,7 +1517,8 @@ static void extract_pos_nor_loop_mesh(const MeshRenderData *mr,
   copy_v3_v3(vert->pos, mvert->co);
   vert->nor = data->packed_nor[mloop->v];
   /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE || mvert->flag & ME_HIDE) {
+  if (mpoly->flag & ME_HIDE || mvert->flag & ME_HIDE ||
+      ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex[mloop->v] == ORIGINDEX_NONE))) {
     vert->nor.w = -1;
   }
   else if (mvert->flag & SELECT) {
