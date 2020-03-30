@@ -124,15 +124,17 @@ Device_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 }
 
 PyDoc_STRVAR(M_aud_Device_lock_doc,
-			 "lock()\n\n"
-			 "Locks the device so that it's guaranteed, that no samples are "
-			 "read from the streams until :meth:`unlock` is called.\n"
-			 "This is useful if you want to do start/stop/pause/resume some "
-			 "sounds at the same time.\n\n"
-			 ".. note:: The device has to be unlocked as often as locked to be "
-			 "able to continue playback.\n\n"
-			 ".. warning:: Make sure the time between locking and unlocking is "
-			 "as short as possible to avoid clicks.");
+			 ".. classmethod:: lock()\n\n"
+			 "   Locks the device so that it's guaranteed, that no samples are\n"
+			 "   read from the streams until :meth:`unlock` is called.\n"
+			 "   This is useful if you want to do start/stop/pause/resume some\n"
+			 "   sounds at the same time.\n\n"
+			 "   .. note::\n\n"
+			 "      The device has to be unlocked as often as locked to be\n"
+			 "      able to continue playback.\n\n"
+			 "   .. warning::\n\n"
+			 "      Make sure the time between locking and unlocking is\n"
+			 "      as short as possible to avoid clicks.");
 
 static PyObject *
 Device_lock(Device* self)
@@ -150,15 +152,15 @@ Device_lock(Device* self)
 }
 
 PyDoc_STRVAR(M_aud_Device_play_doc,
-			 "play(sound, keep=False)\n\n"
-			 "Plays a sound.\n\n"
-			 ":arg sound: The sound to play.\n"
-			 ":type sound: :class:`Sound`\n"
-			 ":arg keep: See :attr:`Handle.keep`.\n"
-			 ":type keep: bool\n"
-			 ":return: The playback handle with which playback can be "
-			 "controlled with.\n"
-			 ":rtype: :class:`Handle`");
+			 ".. classmethod:: play(sound, keep=False)\n\n"
+			 "   Plays a sound.\n\n"
+			 "   :arg sound: The sound to play.\n"
+			 "   :type sound: :class:`Sound`\n"
+			 "   :arg keep: See :attr:`Handle.keep`.\n"
+			 "   :type keep: bool\n"
+			 "   :return: The playback handle with which playback can be\n"
+			 "      controlled with.\n"
+			 "   :rtype: :class:`Handle`");
 
 static PyObject *
 Device_play(Device* self, PyObject* args, PyObject* kwds)
@@ -210,8 +212,8 @@ Device_play(Device* self, PyObject* args, PyObject* kwds)
 }
 
 PyDoc_STRVAR(M_aud_Device_stopAll_doc,
-			 "stopAll()\n\n"
-			 "Stops all playing and paused sounds.");
+			 ".. classmethod:: stopAll()\n\n"
+			 "   Stops all playing and paused sounds.");
 
 static PyObject *
 Device_stopAll(Device* self)
@@ -229,9 +231,9 @@ Device_stopAll(Device* self)
 }
 
 PyDoc_STRVAR(M_aud_Device_unlock_doc,
-			 "unlock()\n\n"
-			 "Unlocks the device after a lock call, see :meth:`lock` for "
-			 "details.");
+			 ".. classmethod:: unlock()\n\n"
+			 "   Unlocks the device after a lock call, see :meth:`lock` for\n"
+			 "   details.");
 
 static PyObject *
 Device_unlock(Device* self)
@@ -284,7 +286,7 @@ Device_get_channels(Device* self, void* nothing)
 
 PyDoc_STRVAR(M_aud_Device_distance_model_doc,
 			 "The distance model of the device.\n\n"
-			 ".. seealso:: http://connect.creativelabs.com/openal/Documentation/OpenAL%201.1%20Specification.htm#_Toc199835864");
+			 ".. seealso:: `OpenAL Documentation <https://www.openal.org/documentation/>`__");
 
 static PyObject *
 Device_get_distance_model(Device* self, void* nothing)

@@ -99,18 +99,18 @@ Sequence_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 }
 
 PyDoc_STRVAR(M_aud_Sequence_add_doc,
-			 "add()\n\n"
-			 "Adds a new entry to the sequence.\n\n"
-			 ":arg sound: The sound this entry should play.\n"
-			 ":type sound: :class:`Sound`\n"
-			 ":arg begin: The start time.\n"
-			 ":type begin: float\n"
-			 ":arg end: The end time or a negative value if determined by the sound.\n"
-			 ":type end: float\n"
-			 ":arg skip: How much seconds should be skipped at the beginning.\n"
-			 ":type skip: float\n"
-			 ":return: The entry added.\n"
-			 ":rtype: :class:`SequenceEntry`");
+			 ".. classmethod:: add()\n\n"
+			 "   Adds a new entry to the sequence.\n\n"
+			 "   :arg sound: The sound this entry should play.\n"
+			 "   :type sound: :class:`Sound`\n"
+			 "   :arg begin: The start time.\n"
+			 "   :type begin: float\n"
+			 "   :arg end: The end time or a negative value if determined by the sound.\n"
+			 "   :type end: float\n"
+			 "   :arg skip: How much seconds should be skipped at the beginning.\n"
+			 "   :type skip: float\n"
+			 "   :return: The entry added.\n"
+			 "   :rtype: :class:`SequenceEntry`");
 
 static PyObject *
 Sequence_add(Sequence* self, PyObject* args, PyObject* kwds)
@@ -151,10 +151,10 @@ Sequence_add(Sequence* self, PyObject* args, PyObject* kwds)
 }
 
 PyDoc_STRVAR(M_aud_Sequence_remove_doc,
-			 "remove()\n\n"
-			 "Removes an entry from the sequence.\n\n"
-			 ":arg entry: The entry to remove.\n"
-			 ":type entry: :class:`SequenceEntry`\n");
+			 ".. classmethod:: remove()\n\n"
+			 "   Removes an entry from the sequence.\n\n"
+			 "   :arg entry: The entry to remove.\n"
+			 "   :type entry: :class:`SequenceEntry`\n");
 
 static PyObject *
 Sequence_remove(Sequence* self, PyObject* args)
@@ -183,16 +183,16 @@ Sequence_remove(Sequence* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_Sequence_setAnimationData_doc,
-			 "setAnimationData()\n\n"
-			 "Writes animation data to a sequence.\n\n"
-			 ":arg type: The type of animation data.\n"
-			 ":type type: int\n"
-			 ":arg frame: The frame this data is for.\n"
-			 ":type frame: int\n"
-			 ":arg data: The data to write.\n"
-			 ":type data: sequence of float\n"
-			 ":arg animated: Whether the attribute is animated.\n"
-			 ":type animated: bool");
+			 ".. classmethod:: setAnimationData()\n\n"
+			 "   Writes animation data to a sequence.\n\n"
+			 "   :arg type: The type of animation data.\n"
+			 "   :type type: int\n"
+			 "   :arg frame: The frame this data is for.\n"
+			 "   :type frame: int\n"
+			 "   :arg data: The data to write.\n"
+			 "   :type data: sequence of float\n"
+			 "   :arg animated: Whether the attribute is animated.\n"
+			 "   :type animated: bool");
 
 static PyObject *
 Sequence_setAnimationData(Sequence* self, PyObject* args)
@@ -325,7 +325,7 @@ Sequence_set_channels(Sequence* self, PyObject* args, void* nothing)
 
 PyDoc_STRVAR(M_aud_Sequence_distance_model_doc,
 			 "The distance model of the sequence.\n\n"
-			 ".. seealso:: http://connect.creativelabs.com/openal/Documentation/OpenAL%201.1%20Specification.htm#_Toc199835864");
+			  ".. seealso:: `OpenAL Documentation <https://www.openal.org/documentation/>`__");
 
 static PyObject *
 Sequence_get_distance_model(Sequence* self, void* nothing)
