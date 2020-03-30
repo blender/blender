@@ -1875,6 +1875,13 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
   if (context->user_data_tls_free != NULL) {
     parallel_range_settings.func_finalize = subdiv_foreach_finalize;
   }
+
+  /* TODO(sergey): Possible optimization is to have a single pool and push all
+   * the tasks into it.
+   * NOTE: Watch out for callbacks which needs to run for loose geometry as they
+   * currently are relying on the fact that face/grid callbacks will tag non-
+   * loose geomtry. */
+
   BLI_task_parallel_range(
       0, coarse_mesh->totpoly, &ctx, subdiv_foreach_task, &parallel_range_settings);
   if (context->vertex_loose != NULL) {

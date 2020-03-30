@@ -216,7 +216,10 @@ typedef struct SubdivCCG {
   } dirty;
 } SubdivCCG;
 
-/* Create real hi-res CCG from subdivision.
+/* Create CCG representation of subdivision surface.
+ *
+ * NOTE: CCG stores dense verticies in a grid-like storage. There is no edges or
+ * polygons informations for the high-poly surface.
  *
  * NOTE: Subdiv is expected to be refined and ready for evaluation.
  * NOTE: CCG becomes an owner of subdiv.
