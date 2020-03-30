@@ -72,12 +72,6 @@ static bool gpencil_batch_cache_valid(GpencilBatchCache *cache, bGPdata *gpd, in
 {
   bool valid = true;
 
-  /* Needs to be first to consume the flag. */
-  if (gpd->flag & GP_DATA_PYTHON_UPDATED) {
-    gpd->flag &= ~GP_DATA_PYTHON_UPDATED;
-    valid = false;
-  }
-
   if (cache == NULL) {
     return false;
   }

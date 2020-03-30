@@ -642,7 +642,6 @@ static void rna_GPencil_stroke_point_add(
     /* Calc geometry data. */
     BKE_gpencil_stroke_geometry_update(stroke);
 
-    gpd->flag |= GP_DATA_PYTHON_UPDATED;
     DEG_id_tag_update(&gpd->id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 
@@ -704,7 +703,6 @@ static void rna_GPencil_stroke_point_pop(ID *id,
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(stroke);
 
-  gpd->flag |= GP_DATA_PYTHON_UPDATED;
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
