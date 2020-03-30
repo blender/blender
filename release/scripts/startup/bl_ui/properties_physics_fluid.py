@@ -194,7 +194,8 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
                 col.prop(domain, "gravity", text="Gravity")
 
             col = flow.column()
-            col.prop(domain, "clipping", text="Empty Space")
+            if PhysicButtonsPanel.poll_gas_domain(context):
+                col.prop(domain, "clipping", text="Empty Space")
             col.prop(domain, "delete_in_obstacle", text="Delete In Obstacle")
 
             if domain.cache_type == 'MODULAR':
