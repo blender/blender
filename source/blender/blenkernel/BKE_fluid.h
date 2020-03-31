@@ -75,6 +75,9 @@ void BKE_fluid_particle_system_create(struct Main *bmain,
                                       const int psys_type);
 void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_type);
 
+void BKE_fluid_cache_startframe_set(struct FluidDomainSettings *settings, int value);
+void BKE_fluid_cache_endframe_set(struct FluidDomainSettings *settings, int value);
+
 void BKE_fluid_cachetype_mesh_set(struct FluidDomainSettings *settings, int cache_mesh_format);
 void BKE_fluid_cachetype_data_set(struct FluidDomainSettings *settings, int cache_data_format);
 void BKE_fluid_cachetype_particle_set(struct FluidDomainSettings *settings,
