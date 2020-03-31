@@ -92,6 +92,10 @@
 /* TODO(sebpa): unstable, can lead to unrecoverable errors. */
 // #define USE_MESH_CURVATURE
 
+/* -------------------------------------------------------------------- */
+/** \name Voxel Remesh Operator
+ * \{ */
+
 static bool object_remesh_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -202,6 +206,12 @@ void OBJECT_OT_voxel_remesh(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Voxel Size Operator
+ * \{ */
 
 #define VOXEL_SIZE_EDIT_MAX_GRIDS_LINES 500
 #define VOXEL_SIZE_EDIT_MAX_STR_LEN 20
@@ -590,7 +600,11 @@ void OBJECT_OT_voxel_size_edit(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/****************** quadriflow remesh operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Quadriflow Remesh Operator
+ * \{ */
 
 #define QUADRIFLOW_MIRROR_BISECT_TOLERANCE 0.005f
 
@@ -1166,3 +1180,5 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
               0,
               255);
 }
+
+/** \} */
