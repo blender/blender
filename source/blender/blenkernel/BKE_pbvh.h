@@ -219,6 +219,8 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               int totgrid,
                               int gridsize);
 
+void BKE_pbvh_sync_face_sets_to_grids(PBVH *bvh);
+
 /* multires level, only valid for type == PBVH_GRIDS */
 const struct CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh);
 
@@ -298,6 +300,8 @@ void BKE_pbvh_grids_update(PBVH *bvh,
                            void **gridfaces,
                            struct DMFlagMat *flagmats,
                            unsigned int **grid_hidden);
+void BKE_pbvh_subdiv_cgg_set(PBVH *bvh, struct SubdivCCG *subdiv_ccg);
+void BKE_pbvh_face_sets_set(PBVH *bvh, int *face_sets);
 
 void BKE_pbvh_face_sets_color_set(PBVH *bvh, int seed, int color_default);
 

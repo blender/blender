@@ -48,6 +48,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
@@ -335,8 +336,11 @@ static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
-  SculptSession *ss = ob->sculpt;
-  memcpy(ss->face_sets, unode->face_sets, ss->totpoly * sizeof(int));
+  Mesh *me = BKE_object_get_original_mesh(ob);
+  int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+  for (int i = 0; i < me->totpoly; i++) {
+    face_sets[i] = unode->face_sets[i];
+  }
   return false;
 }
 
@@ -542,7 +546,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       return;
     }
     else if (unode->type == SCULPT_UNDO_FACE_SETS) {
-
       sculpt_undo_restore_face_sets(C, unode);
 
       rebuild = true;
@@ -551,14 +554,15 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       BKE_sculpt_update_object_for_edit(depsgraph, ob, true, need_mask);
 
       SCULPT_visibility_sync_all_face_sets_to_vertices(ss);
+
       BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
 
       if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
         BKE_mesh_flush_hidden_from_verts(ob->data);
       }
 
+      DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
       if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
-        DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
 
@@ -983,8 +987,6 @@ static SculptUndoNode *sculpt_undo_geometry_push(Object *ob, SculptUndoType type
 static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
-  SculptSession *ss = ob->sculpt;
-
   SculptUndoNode *unode = usculpt->nodes.first;
 
   unode = MEM_callocN(sizeof(*unode), __func__);
@@ -993,8 +995,14 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
   unode->type = type;
   unode->applied = true;
 
-  unode->face_sets = MEM_callocN(ss->totpoly * sizeof(int), "sculpt face sets");
-  memcpy(unode->face_sets, ss->face_sets, ss->totpoly * sizeof(int));
+  Mesh *me = BKE_object_get_original_mesh(ob);
+
+  unode->face_sets = MEM_callocN(me->totpoly * sizeof(int), "sculpt face sets");
+
+  int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+  for (int i = 0; i < me->totpoly; i++) {
+    unode->face_sets[i] = face_sets[i];
+  }
 
   BLI_addtail(&usculpt->nodes, unode);
 

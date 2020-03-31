@@ -296,6 +296,7 @@ typedef struct SculptSession {
   int *pmap_mem;
 
   /* Mesh Face Sets */
+  int totfaces;
   int *face_sets;
 
   /* BMesh for dynamic topology sculpting */

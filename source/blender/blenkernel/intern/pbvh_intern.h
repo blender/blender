@@ -138,6 +138,7 @@ struct PBVH {
 
   int face_sets_color_seed;
   int face_sets_color_default;
+  int *face_sets;
 
   /* Grid Data */
   CCGKey gridkey;
@@ -168,6 +169,7 @@ struct PBVH {
   int cd_face_node_offset;
 
   struct BMLog *bm_log;
+  struct SubdivCCG *subdiv_ccg;
 };
 
 /* pbvh.c */

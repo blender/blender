@@ -383,6 +383,25 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
   return totquad;
 }
 
+void BKE_pbvh_sync_face_sets_to_grids(PBVH *bvh)
+{
+  const int gridsize = bvh->gridkey.grid_size;
+  for (int i = 0; i < bvh->totgrid; i++) {
+    BLI_bitmap *gh = bvh->grid_hidden[i];
+    const int face_index = BKE_subdiv_cgg_grid_to_face_index(bvh->subdiv_ccg, i);
+    if (!gh && bvh->face_sets[face_index] < 0) {
+      gh = bvh->grid_hidden[i] = BLI_BITMAP_NEW(bvh->gridkey.grid_area, "partialvis_update_grids");
+    }
+    if (gh) {
+      for (int y = 0; y < gridsize; y++) {
+        for (int x = 0; x < gridsize; x++) {
+          BLI_BITMAP_SET(gh, y * gridsize + x, bvh->face_sets[face_index] < 0);
+        }
+      }
+    }
+  }
+}
+
 static void build_grid_leaf_node(PBVH *bvh, PBVHNode *node)
 {
   int totquads = BKE_pbvh_count_grid_quads(
@@ -1289,10 +1308,14 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
     switch (bvh->type) {
       case PBVH_GRIDS:
         GPU_pbvh_grid_buffers_update(node->draw_buffers,
+                                     bvh->subdiv_ccg,
                                      bvh->grids,
                                      bvh->grid_flag_mats,
                                      node->prim_indices,
                                      node->totprim,
+                                     bvh->face_sets,
+                                     bvh->face_sets_color_seed,
+                                     bvh->face_sets_color_default,
                                      &bvh->gridkey,
                                      update_flags);
         break;
@@ -2973,4 +2996,14 @@ MVert *BKE_pbvh_get_verts(const PBVH *bvh)
 {
   BLI_assert(bvh->type == PBVH_FACES);
   return bvh->verts;
+}
+
+void BKE_pbvh_subdiv_cgg_set(PBVH *bvh, SubdivCCG *subdiv_ccg)
+{
+  bvh->subdiv_ccg = subdiv_ccg;
+}
+
+void BKE_pbvh_face_sets_set(PBVH *bvh, int *face_sets)
+{
+  bvh->face_sets = face_sets;
 }
