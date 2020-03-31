@@ -67,6 +67,45 @@
 #include "bmesh.h"
 #include "sculpt_intern.h"
 
+/* Implementation of undo system for objects in sculpt mode.
+ *
+ * Each undo step in sculpt mode consists of list of nodes, each node contains:
+ *  - Node type
+ *  - Data for this type.
+ *
+ * Node type used for undo depends on specific operation and active sculpt mode
+ * ("regular" or dynamic topology).
+ *
+ * Regular sculpt brushes will use COORDS, HIDDEN or MASK nodes. These nodes are
+ * created for every BVH node which is affected by the brush. The undo push for
+ * the node happens BEFORE modifications. This makes the operation undo to work
+ * in the following way: for every node in the undo step swap happens between
+ * node in the undo stack and the corresponding value in the BVH. This is how
+ * redo is possible after undo.
+ *
+ * The COORDS, HIDDEN or MASK type of nodes contains arrays of the corresponding
+ * values.
+ *
+ * Operations like Symmetrize are using GEOMETRY type of nodes which pushes the
+ * entire state of the mesh to the undo stack. This node contains all CustomData
+ * layers.
+ *
+ * The tricky aspect of this undo node type is that it stores mesh before and
+ * after modification. This allows the undo system to both undo and redo the
+ * symmetrize operation within the pre-modified-push of other node type
+ * behavior, but it uses more memory that it seems it should be.
+ *
+ * The dynamic topology undo nodes are handled somewhat separately from all
+ * other ones and the idea there is to store log of operations: which verticies
+ * and faces have been added or removed.
+ *
+ * Begin of dynamic topology sculpting mode have own node type. It contains an
+ * entire copy of mesh since just enabling the dynamic topology mode already
+ * does modifications on it.
+ *
+ * End of dynamic topology and symmetrize in this mode are handled in a special
+ * manner as well. */
+
 typedef struct UndoSculpt {
   ListBase nodes;
 
