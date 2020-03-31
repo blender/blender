@@ -168,10 +168,17 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
 
   wpd->view = NULL;
 
-  /* reset complete drawing when navigating or during viewport playback. */
+  /* Reset complete drawing when navigating or during viewport playback or when
+   * leaving one of those states. In case of multires modifier the navigation
+   * mesh differs from the viewport mesh, so we need to be sure to restart. */
   if (wpd->taa_sample != 0) {
     if (wpd->is_navigating || wpd->is_playback) {
       wpd->taa_sample = 0;
+      wpd->reset_next_sample = true;
+    }
+    else if (wpd->reset_next_sample) {
+      wpd->taa_sample = 0;
+      wpd->reset_next_sample = false;
     }
   }
 

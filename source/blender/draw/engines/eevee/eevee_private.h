@@ -600,6 +600,7 @@ typedef struct EEVEE_EffectsInfo {
   int taa_total_sample;
   float taa_alpha;
   bool prev_drw_support;
+  bool prev_is_navigating;
   float prev_drw_persmat[4][4];
   struct DRWView *taa_view;
   /* Ambient Occlusion */

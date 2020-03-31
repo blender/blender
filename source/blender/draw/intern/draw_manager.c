@@ -2575,6 +2575,15 @@ bool DRW_state_is_playback(void)
 }
 
 /**
+ * Is the user navigating the region.
+ */
+bool DRW_state_is_navigating(void)
+{
+  const RegionView3D *rv3d = DST.draw_ctx.rv3d;
+  return (rv3d) && (rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING));
+}
+
+/**
  * Should text draw in this mode?
  */
 bool DRW_state_show_text(void)

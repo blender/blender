@@ -182,7 +182,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   WORKBENCH_ViewLayerData *vldata = workbench_view_layer_data_ensure_ex(draw_ctx->view_layer);
 
   wpd->is_playback = DRW_state_is_playback();
-  wpd->is_navigating = rv3d && (rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING));
+  wpd->is_navigating = DRW_state_is_navigating();
 
   wpd->ctx_mode = CTX_data_mode_enum_ex(
       draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);

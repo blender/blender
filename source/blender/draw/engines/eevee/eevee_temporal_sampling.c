@@ -244,8 +244,10 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
     copy_m4_m4(effects->prev_drw_persmat, persmat);
 
     /* Prevent ghosting from probe data. */
-    view_is_valid = view_is_valid && (effects->prev_drw_support == DRW_state_draw_support());
+    view_is_valid = view_is_valid && (effects->prev_drw_support == DRW_state_draw_support()) &&
+                    (effects->prev_is_navigating == DRW_state_is_navigating());
     effects->prev_drw_support = DRW_state_draw_support();
+    effects->prev_is_navigating = DRW_state_is_navigating();
 
     if (((effects->taa_total_sample == 0) ||
          (effects->taa_current_sample < effects->taa_total_sample)) ||

@@ -333,6 +333,7 @@ typedef struct WORKBENCH_PrivateData {
   bool dof_enabled;
   bool is_playback;
   bool is_navigating;
+  bool reset_next_sample;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_ObjectData {
