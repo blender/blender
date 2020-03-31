@@ -1569,7 +1569,13 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
   }
 
   /* Try to get layer */
-  target_layer = BLI_findlink(&gpd->layers, layer_num);
+  if (layer_num > -1) {
+    target_layer = BLI_findlink(&gpd->layers, layer_num);
+  }
+  else {
+    /* Create a new layer. */
+    target_layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true);
+  }
 
   if (target_layer == NULL) {
     /* back autolock status */
@@ -1655,7 +1661,8 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* GPencil layer to use. */
-  ot->prop = RNA_def_int(ot->srna, "layer", 0, 0, INT_MAX, "Grease Pencil Layer", "", 0, INT_MAX);
+  ot->prop = RNA_def_int(
+      ot->srna, "layer", 0, -1, INT_MAX, "Grease Pencil Layer", "", -1, INT_MAX);
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

@@ -332,7 +332,7 @@ class GPENCIL_MT_move_to_layer(Menu):
 
             layout.separator()
 
-        layout.operator("gpencil.layer_add", text="New Layer", icon='ADD')
+        layout.operator("gpencil.move_to_layer", text="New Layer", icon='ADD').layer = -1
 
 
 class GPENCIL_MT_layer_active(Menu):
