@@ -59,6 +59,7 @@ void ARMATURE_OT_select_mirror(struct wmOperatorType *ot);
 void ARMATURE_OT_select_more(struct wmOperatorType *ot);
 void ARMATURE_OT_select_less(struct wmOperatorType *ot);
 void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
+void ARMATURE_OT_select_linked_pick(struct wmOperatorType *ot);
 void ARMATURE_OT_select_linked(struct wmOperatorType *ot);
 void ARMATURE_OT_select_similar(struct wmOperatorType *ot);
 void ARMATURE_OT_shortest_path_pick(struct wmOperatorType *ot);

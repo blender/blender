@@ -56,6 +56,7 @@ void ED_operatortypes_armature(void)
   WM_operatortype_append(ARMATURE_OT_select_less);
   WM_operatortype_append(ARMATURE_OT_select_hierarchy);
   WM_operatortype_append(ARMATURE_OT_select_linked);
+  WM_operatortype_append(ARMATURE_OT_select_linked_pick);
   WM_operatortype_append(ARMATURE_OT_select_similar);
   WM_operatortype_append(ARMATURE_OT_shortest_path_pick);
 

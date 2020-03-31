@@ -3535,7 +3535,7 @@ def km_armature(params):
         ("armature.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS'}, None),
 
         ("armature.select_similar", {"type": 'G', "value": 'PRESS', "shift": True}, None),
-        ("armature.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
+        ("armature.select_linked_pick", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("deselect", False)]}),
 
         ("armature.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True, "shift": True}, None),
@@ -3791,7 +3791,7 @@ def km_object_non_modal(params):
          {"properties": [("mode", 'PAINT_GPENCIL')]}),
         ("object.mode_set",{"type": 'FIVE', "value": 'PRESS'},
          {"properties": [("mode", 'WEIGHT_GPENCIL')]}),
-        
+
     ])
 
     return keymap

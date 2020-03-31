@@ -1859,6 +1859,10 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.separator()
 
+        layout.operator("armature.select_linked", text="Linked")
+
+        layout.separator()
+
         props = layout.operator("armature.select_hierarchy", text="Parent")
         props.extend = False
         props.direction = 'PARENT'
