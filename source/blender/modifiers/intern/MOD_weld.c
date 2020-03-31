@@ -1489,6 +1489,8 @@ static void customdata_weld(
     return;
   }
 
+  CustomData_interp(source, dest, (const int *)src_indices, NULL, NULL, count, dest_index);
+
   int src_i, dest_i;
   int j;
 
@@ -1544,7 +1546,8 @@ static void customdata_weld(
         }
       }
       else if (CustomData_layer_has_interp(dest, dest_i)) {
-        CustomData_interp(source, dest, (const int *)src_indices, NULL, NULL, count, dest_index);
+        /* Already calculated.
+         * TODO: Optimize by exposing `typeInfo->interp`. */
       }
       else if (CustomData_layer_has_math(dest, dest_i)) {
         const int size = CustomData_sizeof(type);
