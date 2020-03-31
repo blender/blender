@@ -700,10 +700,10 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
       return &RNA_MeshCacheModifier;
     case eModifierType_LaplacianDeform:
       return &RNA_LaplacianDeformModifier;
-    case eModifierType_Wireframe:
-      return &RNA_WireframeModifier;
     case eModifierType_Weld:
       return &RNA_WeldModifier;
+    case eModifierType_Wireframe:
+      return &RNA_WireframeModifier;
     case eModifierType_DataTransfer:
       return &RNA_DataTransferModifier;
     case eModifierType_NormalEdit:
@@ -5782,6 +5782,45 @@ static void rna_def_modifier_laplaciandeform(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
+static void rna_def_modifier_weld(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "WeldModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Weld Modifier", "Weld modifier");
+  RNA_def_struct_sdna(srna, "WeldModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_AUTOMERGE_OFF);
+
+  prop = RNA_def_property(srna, "merge_threshold", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, NULL, "merge_dist");
+  RNA_def_property_range(prop, 0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0, 1, 0.001, 6);
+  RNA_def_property_ui_text(prop, "Merge Distance", "Limit below which to merge vertices");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "max_interactions", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "max_interactions");
+  RNA_def_property_ui_text(
+      prop,
+      "Duplicate Limit",
+      "For a better performance, limits the number of elements found per vertex. "
+      "(0 makes it infinite)");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
+  RNA_def_property_ui_text(
+      prop, "Vertex Group", "Vertex group name for selecting the affected areas");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeldModifier_defgrp_name_set");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WELD_INVERT_VGROUP);
+  RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 static void rna_def_modifier_wireframe(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -5861,45 +5900,6 @@ static void rna_def_modifier_wireframe(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WIREFRAME_INVERT_VGROUP);
-  RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-}
-
-static void rna_def_modifier_weld(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "WeldModifier", "Modifier");
-  RNA_def_struct_ui_text(srna, "Weld Modifier", "Weld modifier");
-  RNA_def_struct_sdna(srna, "WeldModifierData");
-  RNA_def_struct_ui_icon(srna, ICON_AUTOMERGE_OFF);
-
-  prop = RNA_def_property(srna, "merge_threshold", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_float_sdna(prop, NULL, "merge_dist");
-  RNA_def_property_range(prop, 0, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0, 1, 0.001, 6);
-  RNA_def_property_ui_text(prop, "Merge Distance", "Limit below which to merge vertices");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-  prop = RNA_def_property(srna, "max_interactions", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "max_interactions");
-  RNA_def_property_ui_text(
-      prop,
-      "Duplicate Limit",
-      "For a better performance, limits the number of elements found per vertex. "
-      "(0 makes it infinite)");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-  prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
-  RNA_def_property_ui_text(
-      prop, "Vertex Group", "Vertex group name for selecting the affected areas");
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeldModifier_defgrp_name_set");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-  prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WELD_INVERT_VGROUP);
   RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
@@ -6629,8 +6629,8 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_triangulate(brna);
   rna_def_modifier_meshcache(brna);
   rna_def_modifier_laplaciandeform(brna);
-  rna_def_modifier_wireframe(brna);
   rna_def_modifier_weld(brna);
+  rna_def_modifier_wireframe(brna);
   rna_def_modifier_datatransfer(brna);
   rna_def_modifier_normaledit(brna);
   rna_def_modifier_meshseqcache(brna);
