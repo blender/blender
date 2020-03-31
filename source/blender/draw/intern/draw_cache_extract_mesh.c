@@ -606,7 +606,7 @@ static void extract_lines_loop_mesh(const MeshRenderData *mr,
 {
   const MEdge *medge = &mr->medge[mloop->e];
   if (!((mr->use_hide && (medge->flag & ME_HIDE)) ||
-        ((mr->extract_type == MR_EXTRACT_MAPPED) &&
+        ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->e_origindex) &&
          (mr->e_origindex[mloop->e] == ORIGINDEX_NONE)))) {
     int loopend = mpoly->totloop + mpoly->loopstart - 1;
     int other_loop = (l == loopend) ? mpoly->loopstart : (l + 1);
@@ -639,7 +639,7 @@ static void extract_lines_ledge_mesh(const MeshRenderData *mr,
   int ledge_idx = mr->edge_len + e;
   int edge_idx = mr->ledges[e];
   if (!((mr->use_hide && (medge->flag & ME_HIDE)) ||
-        ((mr->extract_type == MR_EXTRACT_MAPPED) &&
+        ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->e_origindex) &&
          (mr->e_origindex[edge_idx] == ORIGINDEX_NONE)))) {
     int l = mr->loop_len + e * 2;
     GPU_indexbuf_set_line_verts(elb, ledge_idx, l, l + 1);
@@ -765,7 +765,7 @@ BLI_INLINE void vert_set_mesh(GPUIndexBufBuilder *elb,
 {
   const MVert *mvert = &mr->mvert[vert_idx];
   if (!((mr->use_hide && (mvert->flag & ME_HIDE)) ||
-        ((mr->extract_type == MR_EXTRACT_MAPPED) &&
+        ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex) &&
          (mr->v_origindex[vert_idx] == ORIGINDEX_NONE)))) {
     GPU_indexbuf_set_point_vert(elb, vert_idx, loop);
   }
@@ -937,7 +937,7 @@ static void extract_lines_paint_mask_loop_mesh(const MeshRenderData *mr,
   const int edge_idx = mloop->e;
   const MEdge *medge = &mr->medge[edge_idx];
   if (!((mr->use_hide && (medge->flag & ME_HIDE)) ||
-        ((mr->extract_type == MR_EXTRACT_MAPPED) &&
+        ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->e_origindex) &&
          (mr->e_origindex[edge_idx] == ORIGINDEX_NONE)))) {
 
     int loopend = mpoly->totloop + mpoly->loopstart - 1;
@@ -1333,7 +1333,7 @@ static void extract_edituv_points_loop_mesh(const MeshRenderData *mr,
                                             const MPoly *mpoly,
                                             void *data)
 {
-  const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED &&
+  const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
                           mr->v_origindex[mloop->v] != ORIGINDEX_NONE);
   edituv_point_add(
       data, ((mpoly->flag & ME_HIDE) != 0) || !real_vert, (mpoly->flag & ME_FACE_SEL) != 0, l);
@@ -1407,7 +1407,7 @@ static void extract_edituv_fdots_loop_mesh(const MeshRenderData *mr,
                                            const MPoly *mpoly,
                                            void *data)
 {
-  const bool real_fdot = (mr->extract_type == MR_EXTRACT_MAPPED &&
+  const bool real_fdot = (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
                           mr->p_origindex[p] != ORIGINDEX_NONE);
   const bool subd_fdot = (!mr->use_subsurf_fdots ||
                           (mr->mvert[mloop->v].flag & ME_VERT_FACEDOT) != 0);
@@ -1518,7 +1518,8 @@ static void extract_pos_nor_loop_mesh(const MeshRenderData *mr,
   vert->nor = data->packed_nor[mloop->v];
   /* Flag for paint mode overlay. */
   if (mpoly->flag & ME_HIDE || mvert->flag & ME_HIDE ||
-      ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex[mloop->v] == ORIGINDEX_NONE))) {
+      ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex) &&
+       (mr->v_origindex[mloop->v] == ORIGINDEX_NONE))) {
     vert->nor.w = -1;
   }
   else if (mvert->flag & SELECT) {
@@ -1647,8 +1648,8 @@ static void extract_lnor_hq_loop_mesh(
   }
 
   /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE ||
-      (mr->extract_type == MR_EXTRACT_MAPPED && mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
+  if (mpoly->flag & ME_HIDE || (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
+                                mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
     lnor_data->w = -1;
   }
   else if (mpoly->flag & ME_FACE_SEL) {
@@ -1723,8 +1724,8 @@ static void extract_lnor_loop_mesh(
   }
 
   /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE ||
-      (mr->extract_type == MR_EXTRACT_MAPPED && mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
+  if (mpoly->flag & ME_HIDE || (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
+                                mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
     lnor_data->w = -1;
   }
   else if (mpoly->flag & ME_FACE_SEL) {
@@ -3914,8 +3915,8 @@ static void extract_fdots_nor_finish(const MeshRenderData *mr, void *buf, void *
     for (int f = 0; f < mr->poly_len; f++) {
       efa = BM_face_at_index(mr->bm, f);
       const bool is_face_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden ||
-          (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex[f] == ORIGINDEX_NONE)) {
+      if (is_face_hidden || (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
+                             mr->p_origindex[f] == ORIGINDEX_NONE)) {
         nor[f] = GPU_normal_convert_i10_v3(invalid_normal);
         nor[f].w = NOR_AND_FLAG_HIDDEN;
       }
@@ -3932,8 +3933,8 @@ static void extract_fdots_nor_finish(const MeshRenderData *mr, void *buf, void *
     for (int f = 0; f < mr->poly_len; f++) {
       efa = bm_original_face_get(mr, f);
       const bool is_face_hidden = efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
-      if (is_face_hidden ||
-          (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex[f] == ORIGINDEX_NONE)) {
+      if (is_face_hidden || (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
+                             mr->p_origindex[f] == ORIGINDEX_NONE)) {
         nor[f] = GPU_normal_convert_i10_v3(invalid_normal);
         nor[f].w = NOR_AND_FLAG_HIDDEN;
       }
