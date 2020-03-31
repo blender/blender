@@ -436,6 +436,7 @@ void SCULPT_visibility_sync_all_face_sets_to_vertices(SculptSession *ss)
       for (int i = 0; i < ss->totvert; i++) {
         sculpt_visibility_sync_face_sets_to_vertex(ss, i);
       }
+      break;
     }
     case PBVH_GRIDS: {
       BKE_pbvh_sync_face_sets_to_grids(ss->pbvh);
