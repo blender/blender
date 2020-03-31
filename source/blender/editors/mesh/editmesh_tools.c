@@ -1771,8 +1771,93 @@ void MESH_OT_face_make_planar(wmOperatorType *ot)
 /** \name Split Edge Operator
  * \{ */
 
+static bool edbm_edge_split_selected_edges(wmOperator *op, Object *obedit, BMEditMesh *em)
+{
+  BMesh *bm = em->bm;
+  if (bm->totedgesel == 0) {
+    return false;
+  }
+  if (!EDBM_op_call_and_selectf(
+          em, op, "edges.out", false, "split_edges edges=%he", BM_ELEM_SELECT)) {
+    return false;
+  }
+
+  EDBM_select_flush(em);
+  EDBM_update_generic(obedit->data, true, true);
+
+  return true;
+}
+
+static bool edbm_edge_split_selected_verts(wmOperator *op, Object *obedit, BMEditMesh *em)
+{
+  BMesh *bm = em->bm;
+
+  /* Note that tracking vertices through the 'split_edges' operator is complicated.
+   * Instead, tag loops for selection. */
+  if (bm->totvertsel == 0) {
+    return false;
+  }
+
+  /* Flush from vertices to edges. */
+  BMIter iter;
+  BMEdge *eed;
+  BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+    BM_elem_flag_disable(eed, BM_ELEM_TAG);
+    if (eed->l != NULL) {
+      if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
+          (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+           BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))) {
+        BM_elem_flag_enable(eed, BM_ELEM_TAG);
+      }
+      /* Store selection in loop tags. */
+      BMLoop *l_iter = eed->l;
+      do {
+        BM_elem_flag_set(l_iter, BM_ELEM_TAG, BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT));
+      } while ((l_iter = l_iter->radial_next) != eed->l);
+    }
+  }
+
+  if (!EDBM_op_callf(em,
+                     op,
+                     "split_edges edges=%he verts=%hv use_verts=%b",
+                     BM_ELEM_TAG,
+                     BM_ELEM_SELECT,
+                     true)) {
+    return false;
+  }
+
+  BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+    if (eed->l != NULL) {
+      BMLoop *l_iter = eed->l;
+      do {
+        if (BM_elem_flag_test(l_iter, BM_ELEM_TAG)) {
+          BM_vert_select_set(em->bm, l_iter->v, true);
+        }
+      } while ((l_iter = l_iter->radial_next) != eed->l);
+    }
+    else {
+      /* Split out wire. */
+      for (int i = 0; i < 2; i++) {
+        BMVert *v = *(&eed->v1 + i);
+        if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+          if (eed != BM_DISK_EDGE_NEXT(eed, v)) {
+            BM_vert_separate(bm, v, &eed, 1, true, NULL, NULL);
+          }
+        }
+      }
+    }
+  }
+
+  EDBM_select_flush(em);
+  EDBM_update_generic(obedit->data, true, true);
+
+  return true;
+}
+
 static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 {
+  const int type = RNA_enum_get(op->ptr, "type");
+
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -1780,20 +1865,21 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    if (em->bm->totedgesel == 0) {
-      continue;
-    }
 
-    if (!EDBM_op_call_and_selectf(
-            em, op, "edges.out", false, "split_edges edges=%he", BM_ELEM_SELECT)) {
-      continue;
+    switch (type) {
+      case BM_VERT:
+        if (!edbm_edge_split_selected_verts(op, obedit, em)) {
+          continue;
+        }
+        break;
+      case BM_EDGE:
+        if (!edbm_edge_split_selected_edges(op, obedit, em)) {
+          continue;
+        }
+        break;
+      default:
+        BLI_assert(0);
     }
-
-    if (em->selectmode == SCE_SELECT_FACE) {
-      EDBM_select_flush(em);
-    }
-
-    EDBM_update_generic(obedit->data, true, true);
   }
   MEM_freeN(objects);
 
@@ -1813,6 +1899,20 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  static const EnumPropertyItem merge_type_items[] = {
+      {BM_EDGE, "EDGE", 0, "Edges", "Split along selected edges"},
+      {BM_VERT,
+       "VERT",
+       0,
+       "Edges from Vertices",
+       "Split all edges connected to selected vertices"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", merge_type_items, BM_EDGE, "Type", "Method to use for splitting");
 }
 
 /** \} */
