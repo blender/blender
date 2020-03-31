@@ -4878,5 +4878,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Remesh Modifier Voxel Mode. */
+    if (!DNA_struct_elem_find(fd->filesdna, "RemeshModifierData", "float", "voxel_size")) {
+      for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+        for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+          if (md->type == eModifierType_Remesh) {
+            RemeshModifierData *rmd = (RemeshModifierData *)md;
+            rmd->voxel_size = 0.1f;
+            rmd->adaptivity = 0.0f;
+          }
+        }
+      }
+    }
   }
 }

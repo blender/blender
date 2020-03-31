@@ -34,6 +34,7 @@
 #include "MOD_modifiertypes.h"
 
 #include "BKE_mesh.h"
+#include "BKE_mesh_remesh_voxel.h"
 #include "BKE_mesh_runtime.h"
 
 #include <assert.h>
@@ -54,8 +55,10 @@ static void initData(ModifierData *md)
   rmd->depth = 4;
   rmd->hermite_num = 1;
   rmd->flag = MOD_REMESH_FLOOD_FILL;
-  rmd->mode = MOD_REMESH_SHARP_FEATURES;
+  rmd->mode = MOD_REMESH_VOXEL;
   rmd->threshold = 1;
+  rmd->voxel_size = 0.1f;
+  rmd->adaptivity = 0.0f;
 }
 
 #ifdef WITH_MOD_REMESH
@@ -144,36 +147,50 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *UNUSED(c
 
   rmd = (RemeshModifierData *)md;
 
-  init_dualcon_mesh(&input, mesh);
-
-  if (rmd->flag & MOD_REMESH_FLOOD_FILL) {
-    flags |= DUALCON_FLOOD_FILL;
+  if (rmd->mode == MOD_REMESH_VOXEL) {
+    /* OpenVDB modes. */
+    if (rmd->voxel_size == 0.0f) {
+      return NULL;
+    }
+    result = BKE_mesh_remesh_voxel_to_mesh_nomain(mesh, rmd->voxel_size, rmd->adaptivity, 0.0f);
   }
+  else {
+    /* Dualcon modes. */
+    init_dualcon_mesh(&input, mesh);
 
-  switch (rmd->mode) {
-    case MOD_REMESH_CENTROID:
-      mode = DUALCON_CENTROID;
-      break;
-    case MOD_REMESH_MASS_POINT:
-      mode = DUALCON_MASS_POINT;
-      break;
-    case MOD_REMESH_SHARP_FEATURES:
-      mode = DUALCON_SHARP_FEATURES;
-      break;
+    if (rmd->flag & MOD_REMESH_FLOOD_FILL) {
+      flags |= DUALCON_FLOOD_FILL;
+    }
+
+    switch (rmd->mode) {
+      case MOD_REMESH_CENTROID:
+        mode = DUALCON_CENTROID;
+        break;
+      case MOD_REMESH_MASS_POINT:
+        mode = DUALCON_MASS_POINT;
+        break;
+      case MOD_REMESH_SHARP_FEATURES:
+        mode = DUALCON_SHARP_FEATURES;
+        break;
+      case MOD_REMESH_VOXEL:
+        /* Should have been processed before as an OpenVDB operation. */
+        BLI_assert(false);
+        break;
+    }
+
+    output = dualcon(&input,
+                     dualcon_alloc_output,
+                     dualcon_add_vert,
+                     dualcon_add_quad,
+                     flags,
+                     mode,
+                     rmd->threshold,
+                     rmd->hermite_num,
+                     rmd->scale,
+                     rmd->depth);
+    result = output->mesh;
+    MEM_freeN(output);
   }
-
-  output = dualcon(&input,
-                   dualcon_alloc_output,
-                   dualcon_add_vert,
-                   dualcon_add_quad,
-                   flags,
-                   mode,
-                   rmd->threshold,
-                   rmd->hermite_num,
-                   rmd->scale,
-                   rmd->depth);
-  result = output->mesh;
-  MEM_freeN(output);
 
   if (rmd->flag & MOD_REMESH_SMOOTH_SHADING) {
     MPoly *mpoly = result->mpoly;

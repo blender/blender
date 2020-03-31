@@ -5128,6 +5128,11 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
        0,
        "Sharp",
        "Output a surface that reproduces sharp edges and corners from the input mesh"},
+      {MOD_REMESH_VOXEL,
+       "VOXEL",
+       0,
+       "Voxel",
+       "Output a mesh corresponding to the volume of the original mesh"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -5179,6 +5184,25 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
       "Sharpness",
       "Tolerance for outliers; lower values filter noise while higher values will reproduce "
       "edges closer to the input");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "voxel_size", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, NULL, "voxel_size");
+  RNA_def_property_ui_range(prop, 0.0001, 2, 0.1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Voxel Size",
+                           "Size of the voxel in object space used for volume evaluation. Lower "
+                           "values preserve finer details");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "adaptivity", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, NULL, "adaptivity");
+  RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop,
+      "Adaptivity",
+      "Reduces the final face count by simplifying geometry where detail is not needed, "
+      "generating triangles. A value greater than 0 disables Fix Poles");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_remove_disconnected", PROP_BOOLEAN, PROP_NONE);

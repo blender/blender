@@ -1317,17 +1317,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.prop(md, "mode")
 
         row = layout.row()
-        row.prop(md, "octree_depth")
-        row.prop(md, "scale")
+        if md.mode == 'VOXEL':
+            layout.prop(md, "voxel_size")
+            layout.prop(md, "adaptivity")
+        else: 
+            row.prop(md, "octree_depth")
+            row.prop(md, "scale")
 
-        if md.mode == 'SHARP':
-            layout.prop(md, "sharpness")
+            if md.mode == 'SHARP':
+                layout.prop(md, "sharpness")
+
+            layout.prop(md, "use_remove_disconnected")
+            row = layout.row()
+            row.active = md.use_remove_disconnected
+            row.prop(md, "threshold")
 
         layout.prop(md, "use_smooth_shade")
-        layout.prop(md, "use_remove_disconnected")
-        row = layout.row()
-        row.active = md.use_remove_disconnected
-        row.prop(md, "threshold")
 
     @staticmethod
     def vertex_weight_mask(layout, ob, md):
