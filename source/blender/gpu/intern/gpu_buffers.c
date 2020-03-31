@@ -525,8 +525,8 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
  * \{ */
 
 static void gpu_pbvh_grid_fill_index_buffers(GPU_PBVH_Buffers *buffers,
-                                             SubdivCCG *subdiv_ccg,
-                                             const int *face_sets,
+                                             SubdivCCG *UNUSED(subdiv_ccg),
+                                             const int *UNUSED(face_sets),
                                              int *grid_indices,
                                              uint visible_quad_len,
                                              int totgrid,
