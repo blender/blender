@@ -800,6 +800,33 @@ static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter *iter,
   iter->mloop = mloop;
   iter->loop_map = loop_map;
   iter->group = group_buffer;
+  if (group_buffer) {
+    /* First loop group needs more attention. */
+    uint loop_start, loop_end, l;
+    loop_start = iter->loop_start;
+    loop_end = l = iter->loop_end;
+    while (l >= loop_start) {
+      const uint loop_ctx = loop_map[l];
+      if (loop_ctx != OUT_OF_CONTEXT) {
+        const WeldLoop *wl = &wloop[loop_ctx];
+        if (wl->flag == ELEM_COLLAPSED) {
+          l--;
+          continue;
+        }
+      }
+      break;
+    }
+    if (l != loop_end) {
+      iter->group_len = iter->loop_end - l;
+      int i = 0;
+      while (l < loop_end) {
+        iter->group[i++] = ++l;
+      }
+    }
+  }
+  else {
+    iter->group_len = 0;
+  }
 
   iter->l_next = iter->loop_start;
 #ifdef USE_WELD_DEBUG
@@ -813,8 +840,13 @@ static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter *iter)
   uint loop_end = iter->loop_end;
   const WeldLoop *wloop = iter->wloop;
   const uint *loop_map = iter->loop_map;
-  iter->group_len = 0;
   uint l = iter->l_curr = iter->l_next;
+  if (l == iter->loop_start) {
+    /* `grupo_len` is already calculated in the first loop */
+  }
+  else {
+    iter->group_len = 0;
+  }
   while (l <= loop_end) {
     uint l_next = l + 1;
     const uint loop_ctx = loop_map[l];
@@ -825,20 +857,6 @@ static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter *iter)
       }
       if (wl->flag == ELEM_COLLAPSED) {
         if (iter->group) {
-          if (l == iter->loop_start) {
-            uint l_prev = loop_end;
-            const uint loop_ctx_end = loop_map[l_prev];
-            if (loop_ctx_end != OUT_OF_CONTEXT) {
-              const WeldLoop *wl_prev = &wloop[loop_ctx_end];
-              while (wl_prev->flag == ELEM_COLLAPSED) {
-                iter->group[iter->group_len++] = l_prev--;
-                wl_prev--;
-                if (wl_prev->loop_orig != l_prev) {
-                  break;
-                }
-              }
-            }
-          }
           iter->group[iter->group_len++] = l;
         }
         l = l_next;
@@ -1503,16 +1521,7 @@ static void customdata_weld(
     if (dest->layers[dest_i].type == type) {
       void *src_data = source->layers[src_i].data;
 
-      if (CustomData_layer_has_math(dest, dest_i)) {
-        const int size = CustomData_sizeof(type);
-        void *dst_data = dest->layers[dest_i].data;
-        void *v_dst = POINTER_OFFSET(dst_data, (size_t)dest_index * size);
-        for (j = 0; j < count; j++) {
-          CustomData_data_add(
-              type, v_dst, POINTER_OFFSET(src_data, (size_t)src_indices[j] * size));
-        }
-      }
-      else if (type == CD_MVERT) {
+      if (type == CD_MVERT) {
         for (j = 0; j < count; j++) {
           MVert *mv_src = &((MVert *)src_data)[src_indices[j]];
           add_v3_v3(co, mv_src->co);
@@ -1534,6 +1543,18 @@ static void customdata_weld(
           flag |= me_src->flag;
         }
       }
+      else if (CustomData_layer_has_interp(dest, dest_i)) {
+        CustomData_interp(source, dest, (const int *)src_indices, NULL, NULL, count, dest_index);
+      }
+      else if (CustomData_layer_has_math(dest, dest_i)) {
+        const int size = CustomData_sizeof(type);
+        void *dst_data = dest->layers[dest_i].data;
+        void *v_dst = POINTER_OFFSET(dst_data, (size_t)dest_index * size);
+        for (j = 0; j < count; j++) {
+          CustomData_data_add(
+              type, v_dst, POINTER_OFFSET(src_data, (size_t)src_indices[j] * size));
+        }
+      }
       else {
         CustomData_copy_layer_type_data(source, dest, type, src_indices[0], dest_index, 1);
       }
@@ -1551,13 +1572,7 @@ static void customdata_weld(
   for (dest_i = 0; dest_i < dest->totlayer; dest_i++) {
     CustomDataLayer *layer_dst = &dest->layers[dest_i];
     const int type = layer_dst->type;
-    if (CustomData_layer_has_math(dest, dest_i)) {
-      const int size = CustomData_sizeof(type);
-      void *dst_data = layer_dst->data;
-      void *v_dst = POINTER_OFFSET(dst_data, (size_t)dest_index * size);
-      CustomData_data_multiply(type, v_dst, fac);
-    }
-    else if (type == CD_MVERT) {
+    if (type == CD_MVERT) {
       MVert *mv = &((MVert *)layer_dst->data)[dest_index];
       mul_v3_fl(co, fac);
       bweight *= fac;
@@ -1585,6 +1600,15 @@ static void customdata_weld(
       me->crease = (char)crease;
       me->bweight = (char)bweight;
       me->flag = flag;
+    }
+    else if (CustomData_layer_has_interp(dest, dest_i)) {
+      /* Already calculated. */
+    }
+    else if (CustomData_layer_has_math(dest, dest_i)) {
+      const int size = CustomData_sizeof(type);
+      void *dst_data = layer_dst->data;
+      void *v_dst = POINTER_OFFSET(dst_data, (size_t)dest_index * size);
+      CustomData_data_multiply(type, v_dst, fac);
     }
   }
 }
