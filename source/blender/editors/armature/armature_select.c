@@ -59,7 +59,9 @@
 #define EBONE_PREV_FLAG_GET(ebone) ((void)0, (ebone)->temp.i)
 #define EBONE_PREV_FLAG_SET(ebone, val) ((ebone)->temp.i = val)
 
-/* **************** PoseMode & EditMode Selection Buffer Queries *************************** */
+/* -------------------------------------------------------------------- */
+/** \name Select Buffer Queries for PoseMode & EditMode
+ * \{ */
 
 Base *ED_armature_base_and_ebone_from_select_buffer(Base **bases,
                                                     uint bases_len,
@@ -292,6 +294,8 @@ void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel, Base **r_ba
   }
   return NULL;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Select Linked Implementation
@@ -526,6 +530,10 @@ void ARMATURE_OT_select_linked_pick(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Select Buffer Queries EditMode
+ * \{ */
+
 /* utility function for get_nearest_editbonepoint */
 static int selectbuffer_ret_hits_12(unsigned int *UNUSED(buffer), const int hits12)
 {
@@ -730,6 +738,12 @@ cache_end:
   return NULL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Utility Functions
+ * \{ */
+
 bool ED_armature_edit_deselect_all(Object *obedit)
 {
   bArmature *arm = obedit->data;
@@ -795,6 +809,12 @@ bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
   MEM_freeN(bases);
   return changed_multi;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Picking API
+ * \{ */
 
 /* accounts for connected parents */
 static int ebone_select_flag(EditBone *ebone)
@@ -934,6 +954,8 @@ bool ED_armature_edit_select_pick(
 
   return false;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Select Op From Tagged
@@ -1119,7 +1141,9 @@ bool ED_armature_edit_select_op_from_tagged(bArmature *arm, const int sel_op)
 
 /** \} */
 
-/* ****************  Selections  ******************/
+/* -------------------------------------------------------------------- */
+/** \name (De)Select All Operator
+ * \{ */
 
 static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 {
@@ -1198,7 +1222,11 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
-/**************** Select more/less **************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select More/Less Implementation
+ * \{ */
 
 static void armature_select_more(bArmature *arm, EditBone *ebone)
 {
@@ -1285,6 +1313,12 @@ static void armature_select_more_less(Object *ob, bool more)
   ED_armature_edit_sync_selection(arm->edbo);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select More Operator
+ * \{ */
+
 static int armature_de_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1318,6 +1352,12 @@ void ARMATURE_OT_select_more(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Less Operator
+ * \{ */
+
 static int armature_de_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1350,6 +1390,12 @@ void ARMATURE_OT_select_less(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Similar
+ * \{ */
 
 enum {
   SIMEDBONE_CHILDREN = 1,
@@ -1766,7 +1812,11 @@ void ARMATURE_OT_select_similar(wmOperatorType *ot)
   RNA_def_float(ot->srna, "threshold", 0.1f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);
 }
 
-/* ********************* select hierarchy operator ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Hierarchy Operator
+ * \{ */
 
 /* No need to convert to multi-objects. Just like we keep the non-active bones
  * selected we then keep the non-active objects untouched (selected/unselected). */
@@ -1872,7 +1922,11 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
-/****************** Mirror Select ****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Mirror Operator
+ * \{ */
 
 /**
  * \note clone of #pose_select_mirror_exec keep in sync
@@ -1957,7 +2011,11 @@ void ARMATURE_OT_select_mirror(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
-/****************** Select Path ****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Path Operator
+ * \{ */
 
 static bool armature_shortest_path_select(
     bArmature *arm, EditBone *ebone_parent, EditBone *ebone_child, bool use_parent, bool is_test)
@@ -2083,3 +2141,5 @@ void ARMATURE_OT_shortest_path_pick(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
