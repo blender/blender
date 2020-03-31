@@ -3711,6 +3711,8 @@ static void wm_xr_session_update_screen(Main *bmain, const wmXrData *xr_data)
       }
     }
   }
+
+  WM_main_add_notifier(NC_WM | ND_XR_DATA_CHANGED, NULL);
 }
 
 static void wm_xr_session_update_screen_on_exit_cb(const wmXrData *xr_data)
