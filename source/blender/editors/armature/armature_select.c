@@ -816,18 +816,6 @@ bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
 /** \name Cursor Picking API
  * \{ */
 
-/* accounts for connected parents */
-static int ebone_select_flag(EditBone *ebone)
-{
-  if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-    return ((ebone->parent->flag & BONE_TIPSEL) ? BONE_ROOTSEL : 0) |
-           (ebone->flag & (BONE_SELECTED | BONE_TIPSEL));
-  }
-  else {
-    return ebone->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
-  }
-}
-
 /* context: editmode armature in view3d */
 bool ED_armature_edit_select_pick(
     bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
@@ -939,7 +927,7 @@ bool ED_armature_edit_select_pick(
     ED_armature_edit_sync_selection(arm->edbo);
 
     /* then now check for active status */
-    if (ebone_select_flag(nearBone)) {
+    if (ED_armature_ebone_selectflag_get(nearBone)) {
       arm->act_edbone = nearBone;
     }
 
