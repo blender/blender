@@ -2627,7 +2627,7 @@ static int filelist_readjob_list_lib(const char *root, ListBase *entries, const 
 /* Kept for reference here, in case we want to add back that feature later.
  * We do not need it currently. */
 /* Code ***NOT*** updated for job stuff! */
-static void filelist_readjob_main_rec(Main *bmain, FileList *filelist)
+static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
 {
   ID *id;
   FileDirEntry *files, *firstlib = NULL;

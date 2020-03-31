@@ -752,10 +752,10 @@ static int metaseq_end(Sequence *metaseq)
   return metaseq->start + metaseq->len - metaseq->endofs;
 }
 
-static void seq_update_sound_bounds_recursive_rec(Scene *scene,
-                                                  Sequence *metaseq,
-                                                  int start,
-                                                  int end)
+static void seq_update_sound_bounds_recursive_impl(Scene *scene,
+                                                   Sequence *metaseq,
+                                                   int start,
+                                                   int end)
 {
   Sequence *seq;
 
@@ -763,7 +763,7 @@ static void seq_update_sound_bounds_recursive_rec(Scene *scene,
    * since sound is played outside of evaluating the imbufs, */
   for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
-      seq_update_sound_bounds_recursive_rec(
+      seq_update_sound_bounds_recursive_impl(
           scene, seq, max_ii(start, metaseq_start(seq)), min_ii(end, metaseq_end(seq)));
     }
     else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
@@ -790,7 +790,7 @@ static void seq_update_sound_bounds_recursive_rec(Scene *scene,
 
 static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
 {
-  seq_update_sound_bounds_recursive_rec(
+  seq_update_sound_bounds_recursive_impl(
       scene, metaseq, metaseq_start(metaseq), metaseq_end(metaseq));
 }
 

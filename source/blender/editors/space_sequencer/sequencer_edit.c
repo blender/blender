@@ -1429,7 +1429,7 @@ static void transseq_restore(TransSeq *ts, Sequence *seq)
   seq->len = ts->len;
 }
 
-static int slip_add_sequences_rec(
+static int slip_add_sequences_recursive(
     ListBase *seqbasep, Sequence **seq_array, bool *trim, int offset, bool do_trim)
 {
   Sequence *seq;
@@ -1443,7 +1443,7 @@ static int slip_add_sequences_rec(
 
       if (seq->type == SEQ_TYPE_META) {
         /* trim the sub-sequences */
-        num_items += slip_add_sequences_rec(
+        num_items += slip_add_sequences_recursive(
             &seq->seqbase, seq_array, trim, num_items + offset, false);
       }
       else if (seq->type & SEQ_TYPE_EFFECT) {
@@ -1455,7 +1455,7 @@ static int slip_add_sequences_rec(
   return num_items;
 }
 
-static int slip_count_sequences_rec(ListBase *seqbasep, bool first_level)
+static int slip_count_sequences_recursive(ListBase *seqbasep, bool first_level)
 {
   Sequence *seq;
   int trimmed_sequences = 0;
@@ -1466,7 +1466,7 @@ static int slip_count_sequences_rec(ListBase *seqbasep, bool first_level)
 
       if (seq->type == SEQ_TYPE_META) {
         /* trim the sub-sequences */
-        trimmed_sequences += slip_count_sequences_rec(&seq->seqbase, false);
+        trimmed_sequences += slip_count_sequences_recursive(&seq->seqbase, false);
       }
     }
   }
@@ -1484,7 +1484,7 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   View2D *v2d = UI_view2d_fromcontext(C);
 
   /* first recursively count the trimmed elements */
-  num_seq = slip_count_sequences_rec(ed->seqbasep, true);
+  num_seq = slip_count_sequences_recursive(ed->seqbasep, true);
 
   if (num_seq == 0) {
     return OPERATOR_CANCELLED;
@@ -1502,7 +1502,7 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   data->num_input.unit_sys = USER_UNIT_NONE;
   data->num_input.unit_type[0] = 0;
 
-  slip_add_sequences_rec(ed->seqbasep, data->seq_array, data->trim, 0, true);
+  slip_add_sequences_recursive(ed->seqbasep, data->seq_array, data->trim, 0, true);
 
   for (i = 0; i < num_seq; i++) {
     transseq_backup(data->ts + i, data->seq_array[i]);
@@ -1596,7 +1596,7 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
   bool success = false;
 
   /* first recursively count the trimmed elements */
-  num_seq = slip_count_sequences_rec(ed->seqbasep, true);
+  num_seq = slip_count_sequences_recursive(ed->seqbasep, true);
 
   if (num_seq == 0) {
     return OPERATOR_CANCELLED;
@@ -1608,7 +1608,7 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
   data->trim = MEM_mallocN(num_seq * sizeof(bool), "trimdata_trim");
   data->num_seq = num_seq;
 
-  slip_add_sequences_rec(ed->seqbasep, data->seq_array, data->trim, 0, true);
+  slip_add_sequences_recursive(ed->seqbasep, data->seq_array, data->trim, 0, true);
 
   for (i = 0; i < num_seq; i++) {
     transseq_backup(data->ts + i, data->seq_array[i]);
