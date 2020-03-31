@@ -76,15 +76,18 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
   DRWShadingGroup *grp;
   DRWState state;
 
-  const bool draw_contours = (pd->overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS) != 0;
+  const bool is_edit_mode = (pd->ctx_mode == CTX_MODE_EDIT_MESH);
+  const bool draw_contours = !is_edit_mode &&
+                             (pd->overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS) != 0;
   float opacity = 0.0f;
   pd->paint_depth_grp = NULL;
   psl->paint_depth_ps = NULL;
 
   switch (pd->ctx_mode) {
     case CTX_MODE_POSE:
+    case CTX_MODE_EDIT_MESH:
     case CTX_MODE_PAINT_WEIGHT: {
-      opacity = pd->overlay.weight_paint_mode_opacity;
+      opacity = is_edit_mode ? 1.0 : pd->overlay.weight_paint_mode_opacity;
       if (opacity > 0.0f) {
         state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
         state |= pd->painting.alpha_blending ? DRW_STATE_BLEND_ALPHA : DRW_STATE_BLEND_MUL;
@@ -207,11 +210,12 @@ void OVERLAY_paint_vertex_cache_populate(OVERLAY_Data *vedata, Object *ob)
   struct GPUBatch *geom = NULL;
 
   const Mesh *me_orig = DEG_get_original_object(ob)->data;
-  const bool use_wire = (pd->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE) != 0;
-  const bool use_face_sel = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  const bool use_vert_sel = (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+  const bool is_edit_mode = (pd->ctx_mode == CTX_MODE_EDIT_MESH);
+  const bool use_wire = !is_edit_mode && (pd->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE);
+  const bool use_face_sel = !is_edit_mode && (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL);
+  const bool use_vert_sel = !is_edit_mode && (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL);
 
-  if (ob->mode == OB_MODE_WEIGHT_PAINT) {
+  if (ELEM(ob->mode, OB_MODE_WEIGHT_PAINT, OB_MODE_EDIT)) {
     if (pd->paint_surf_grp) {
       geom = DRW_cache_mesh_surface_weights_get(ob);
       DRW_shgroup_call(pd->paint_surf_grp, geom, ob);

@@ -118,18 +118,6 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
     show_face_dots = true;
   }
 
-  {
-    /* TODO(fclem) Shouldn't this be going into the paint overlay? */
-    state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-    DRW_PASS_CREATE(psl->edit_mesh_weight_ps, state | pd->clipping_state);
-
-    sh = OVERLAY_shader_paint_weight();
-    pd->edit_mesh_weight_grp = grp = DRW_shgroup_create(sh, psl->edit_mesh_weight_ps);
-    DRW_shgroup_uniform_float_copy(grp, "opacity", 1.0);
-    DRW_shgroup_uniform_bool_copy(grp, "drawContours", false);
-    DRW_shgroup_uniform_texture(grp, "colorramp", G_draw.weight_ramp);
-    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
-  }
   /* Run Twice for in-front passes. */
   for (int i = 0; i < 2; i++) {
     /* Complementary Depth Pass */
@@ -283,17 +271,12 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   bool do_in_front = (ob->dtx & OB_DRAWXRAY) != 0;
   bool do_occlude_wire = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
-  bool do_show_weight = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_WEIGHT) != 0;
   bool do_show_mesh_analysis = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_STATVIS) != 0;
   bool fnormals_do = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_FACE_NORMALS) != 0;
   bool vnormals_do = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_VERT_NORMALS) != 0;
   bool lnormals_do = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_LOOP_NORMALS) != 0;
 
-  if (do_show_weight) {
-    geom = DRW_cache_mesh_surface_weights_get(ob);
-    DRW_shgroup_call_no_cull(pd->edit_mesh_weight_grp, geom, ob);
-  }
-  else if (do_show_mesh_analysis && !pd->xray_enabled) {
+  if (do_show_mesh_analysis && !pd->xray_enabled) {
     geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);
     if (geom) {
       DRW_shgroup_call_no_cull(pd->edit_mesh_analysis_grp, geom, ob);
@@ -364,7 +347,6 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
     GPU_framebuffer_bind(fbl->overlay_default_fb);
   }
 
-  DRW_draw_pass(psl->edit_mesh_weight_ps);
   DRW_draw_pass(psl->edit_mesh_analysis_ps);
 
   DRW_draw_pass(psl->edit_mesh_depth_ps[NOT_IN_FRONT]);

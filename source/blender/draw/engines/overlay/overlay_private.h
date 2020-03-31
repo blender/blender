@@ -70,7 +70,6 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_mesh_faces_cage_ps[2];
   DRWPass *edit_mesh_analysis_ps;
   DRWPass *edit_mesh_normals_ps;
-  DRWPass *edit_mesh_weight_ps;
   DRWPass *edit_particle_ps;
   DRWPass *edit_text_overlay_ps;
   DRWPass *edit_text_wire_ps[2];
@@ -235,7 +234,6 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_mesh_skin_roots_grp[2];
   DRWShadingGroup *edit_mesh_normals_grp;
   DRWShadingGroup *edit_mesh_analysis_grp;
-  DRWShadingGroup *edit_mesh_weight_grp;
   DRWShadingGroup *edit_particle_strand_grp;
   DRWShadingGroup *edit_particle_point_grp;
   DRWShadingGroup *edit_text_overlay_grp;

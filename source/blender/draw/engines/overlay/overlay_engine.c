@@ -106,10 +106,14 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_Data *data = vedata;
   OVERLAY_StorageList *stl = data->stl;
   OVERLAY_PrivateData *pd = stl->pd;
+  const bool draw_edit_weights = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_WEIGHT);
 
   switch (pd->ctx_mode) {
     case CTX_MODE_EDIT_MESH:
       OVERLAY_edit_mesh_cache_init(vedata);
+      if (draw_edit_weights) {
+        OVERLAY_paint_cache_init(vedata);
+      }
       break;
     case CTX_MODE_EDIT_SURFACE:
     case CTX_MODE_EDIT_CURVE:
@@ -251,6 +255,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                              (ob->base_flag & BASE_SELECTED);
   const bool draw_bone_selection = (ob->type == OB_MESH) && pd->armature.do_pose_fade_geom &&
                                    !is_select;
+  const bool draw_edit_weights = in_edit_mode && (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_WEIGHT);
   const bool draw_extras =
       (!pd->hide_overlays) &&
       (((pd->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS) == 0) ||
@@ -279,6 +284,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
     switch (ob->type) {
       case OB_MESH:
         OVERLAY_edit_mesh_cache_populate(vedata, ob);
+        if (draw_edit_weights) {
+          OVERLAY_paint_weight_cache_populate(vedata, ob);
+        }
         break;
       case OB_ARMATURE:
         if (draw_bones) {
@@ -495,6 +503,7 @@ static void OVERLAY_draw_scene(void *vedata)
 
   switch (pd->ctx_mode) {
     case CTX_MODE_EDIT_MESH:
+      OVERLAY_paint_draw(vedata);
       OVERLAY_edit_mesh_draw(vedata);
       break;
     case CTX_MODE_EDIT_SURFACE:
