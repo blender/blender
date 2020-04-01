@@ -1972,6 +1972,10 @@ static void write_object(WriteData *wd, Object *ob, const void *id_address)
 static void write_vfont(WriteData *wd, VFont *vf, const void *id_address)
 {
   if (vf->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    vf->data = NULL;
+    vf->temp_pf = NULL;
+
     /* write LibData */
     writestruct_at_address(wd, ID_VF, VFont, 1, id_address, vf);
     write_iddata(wd, &vf->id);
