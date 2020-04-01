@@ -2824,6 +2824,14 @@ static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
 static void write_gpencil(WriteData *wd, bGPdata *gpd, const void *id_address)
 {
   if (gpd->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    /* XXX not sure why the whole runtime data is not cleared in readcode, for now mimicking it
+     * here. */
+    gpd->runtime.sbuffer = NULL;
+    gpd->runtime.sbuffer_used = 0;
+    gpd->runtime.sbuffer_size = 0;
+    gpd->runtime.tot_cp_points = 0;
+
     /* write gpd data block to file */
     writestruct_at_address(wd, ID_GD, bGPdata, 1, id_address, gpd);
     write_iddata(wd, &gpd->id);
