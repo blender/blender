@@ -5401,6 +5401,12 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
         i = 0;
         for (bezt = &nu->bezt[0]; i < pnt_len; i++, bezt++) {
           bool is_selected = BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt);
+          /* While this gets de-selected, selecting here ensures newly created verts are selected.
+           * without this, the vertices are copied but only the handles are transformed.
+           * which seems buggy from a user perspective. */
+          if (is_selected) {
+            bezt->f2 |= SELECT;
+          }
           if (bezt_prev && is_prev_selected != is_selected) {
             int count = i - offset + 1;
             if (is_prev_selected) {
