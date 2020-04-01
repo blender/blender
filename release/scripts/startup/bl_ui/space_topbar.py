@@ -208,7 +208,7 @@ class TOPBAR_MT_editor_menus(Menu):
         layout = self.layout
 
         # Allow calling this menu directly (this might not be a header area).
-        if getattr(context.area, "show_menus"):
+        if getattr(context.area, "show_menus", False):
             layout.menu("TOPBAR_MT_app", text="", icon='BLENDER')
         else:
             layout.menu("TOPBAR_MT_app", text="Blender")

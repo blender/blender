@@ -6827,12 +6827,15 @@ static void menu_types_add_from_keymap_items(bContext *C,
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   ListBase *handlers[] = {
-      &region->handlers,
-      &sa->handlers,
+      region ? &region->handlers : NULL,
+      sa ? &sa->handlers : NULL,
       &win->handlers,
   };
 
   for (int handler_index = 0; handler_index < ARRAY_SIZE(handlers); handler_index++) {
+    if (handlers[handler_index] == NULL) {
+      continue;
+    }
     LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers[handler_index]) {
       /* During this loop, ui handlers for nested menus can tag multiple handlers free. */
       if (handler_base->flag & WM_HANDLER_DO_FREE) {
@@ -7092,11 +7095,15 @@ static struct MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           menu_items_from_ui_create_item_from_button(data, memarena, mt, drawstr_submenu, sub_but);
         }
 
-        BLI_remlink(&region->uiblocks, sub_block);
+        if (region) {
+          BLI_remlink(&region->uiblocks, sub_block);
+        }
         UI_block_free(NULL, sub_block);
       }
     }
-    BLI_remlink(&region->uiblocks, block);
+    if (region) {
+      BLI_remlink(&region->uiblocks, block);
+    }
     UI_block_free(NULL, block);
 
     /* Add key-map items as a second pass,
