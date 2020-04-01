@@ -3272,6 +3272,14 @@ static void write_probe(WriteData *wd, LightProbe *prb, const void *id_address)
 static void write_nodetree(WriteData *wd, bNodeTree *ntree, const void *id_address)
 {
   if (ntree->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    ntree->init = 0; /* to set callbacks and force setting types */
+    ntree->is_updating = false;
+    ntree->typeinfo = NULL;
+    ntree->interface_type = NULL;
+    ntree->progress = NULL;
+    ntree->execdata = NULL;
+
     writestruct_at_address(wd, ID_NT, bNodeTree, 1, id_address, ntree);
     /* Note that trees directly used by other IDs (materials etc.) are not 'real' ID, they cannot
      * be linked, etc., so we write actual id data here only, for 'real' ID trees. */
