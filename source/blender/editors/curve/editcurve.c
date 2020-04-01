@@ -81,6 +81,10 @@ static void adduplicateflagNurb(
 static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split);
 static bool curve_delete_vertices(Object *obedit, View3D *v3d);
 
+/* -------------------------------------------------------------------- */
+/** \name Utility Functions
+ * \{ */
+
 ListBase *object_editcurve_get(Object *ob)
 {
   if (ob && ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -90,7 +94,11 @@ ListBase *object_editcurve_get(Object *ob)
   return NULL;
 }
 
-/* ******************* PRINTS ********************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Debug Printing
+ * \{ */
 
 #if 0
 void printknots(Object *obedit)
@@ -118,7 +126,11 @@ void printknots(Object *obedit)
 }
 #endif
 
-/* ********************* Shape keys *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shape keys
+ * \{ */
 
 static CVKeyIndex *init_cvKeyIndex(
     void *cv, int key_index, int nu_index, int pt_index, int vertex_index)
@@ -897,7 +909,11 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
   }
 }
 
-/* ********************* Amimation data *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Data
+ * \{ */
 
 static bool curve_is_animated(Curve *cu)
 {
@@ -1114,7 +1130,11 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
   return 1;
 }
 
-/* ********************* LOAD and MAKE *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Mode Conversion (Make & Load)
+ * \{ */
 
 static int *initialize_index_map(Object *obedit, int *r_old_totvert)
 {
@@ -1354,7 +1374,11 @@ void ED_curve_editnurb_free(Object *obedit)
   BKE_curve_editNurb_free(cu);
 }
 
-/******************** separate operator ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Separate Operator
+ * \{ */
 
 static int separate_exec(bContext *C, wmOperator *op)
 {
@@ -1495,7 +1519,11 @@ void CURVE_OT_separate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/******************** split operator ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split Operator
+ * \{ */
 
 static int curve_split_exec(bContext *C, wmOperator *op)
 {
@@ -1563,7 +1591,11 @@ void CURVE_OT_split(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************* FLAGS ********************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flag Utility Functions
+ * \{ */
 
 static bool isNurbselUV(const Nurb *nu, int flag, int *r_u, int *r_v)
 {
@@ -2532,7 +2564,11 @@ static void adduplicateflagNurb(
   }
 }
 
-/**************** switch direction operator ***************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Switch Direction Operator
+ * \{ */
 
 static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2591,7 +2627,11 @@ void CURVE_OT_switch_direction(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/****************** set weight operator *******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Weight Operator
+ * \{ */
 
 static int set_goal_weight_exec(bContext *C, wmOperator *op)
 {
@@ -2654,7 +2694,11 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
   RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
 }
 
-/******************* set radius operator ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Radius Operator
+ * \{ */
 
 static int set_radius_exec(bContext *C, wmOperator *op)
 {
@@ -2718,7 +2762,11 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
       ot->srna, "radius", 1.0f, 0.0f, OBJECT_ADD_SIZE_MAXF, "Radius", "", 0.0001f, 10.0f);
 }
 
-/********************* smooth operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Smooth Vertices Operator
+ * \{ */
 
 static void smooth_single_bezt(BezTriple *bezt,
                                const BezTriple *bezt_orig_prev,
@@ -2875,12 +2923,15 @@ void CURVE_OT_smooth(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Smooth radius/weight/tilt
+/** \name Smooth Operator (Radius/Weight/Tilt) Utilities
  *
- * TODO: make smoothing distance based
- * TODO: support cyclic curves
- */
+ * To do:
+ * - Make smoothing distance based.
+ * - Support cyclic curves.
+ * \{ */
 
 static void curve_smooth_value(ListBase *editnurb, const int bezt_offsetof, const int bp_offset)
 {
@@ -3059,6 +3110,12 @@ static void curve_smooth_value(ListBase *editnurb, const int bezt_offsetof, cons
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Smooth Weight Operator
+ * \{ */
+
 static int curve_smooth_weight_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3095,6 +3152,12 @@ void CURVE_OT_smooth_weight(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Smooth Radius Operator
+ * \{ */
 
 static int curve_smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3133,6 +3196,12 @@ void CURVE_OT_smooth_radius(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Smooth Tilt Operator
+ * \{ */
+
 static int curve_smooth_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3170,7 +3239,11 @@ void CURVE_OT_smooth_tilt(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** hide operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide Operator
+ * \{ */
 
 static int hide_exec(bContext *C, wmOperator *op)
 {
@@ -3269,7 +3342,11 @@ void CURVE_OT_hide(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
-/********************** reveal operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reveal Operator
+ * \{ */
 
 static int reveal_exec(bContext *C, wmOperator *op)
 {
@@ -3345,7 +3422,11 @@ void CURVE_OT_reveal(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
-/********************** subdivide operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Subdivide Operator
+ * \{ */
 
 /**
  * Divide the line segments associated with the currently selected
@@ -3800,7 +3881,11 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/******************** find nearest ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Picking API
+ * \{ */
 
 static void ED_curve_pick_vert__doClosest(
     void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
@@ -3972,7 +4057,11 @@ static void findselectedNurbvert(
   }
 }
 
-/***************** set spline type operator *******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Spline Type Operator
+ * \{ */
 
 static int set_spline_type_exec(bContext *C, wmOperator *op)
 {
@@ -4069,7 +4158,11 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
                   "Use handles when converting bezier curves into polygons");
 }
 
-/***************** set handle type operator *******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Handle Type Operator
+ * \{ */
 
 static int set_handle_type_exec(bContext *C, wmOperator *op)
 {
@@ -4127,7 +4220,11 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", editcurve_handle_type_items, 1, "Type", "Spline type");
 }
 
-/***************** recalculate handles operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalculate Handles Operator
+ * \{ */
 
 static int curve_normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
@@ -4175,9 +4272,13 @@ void CURVE_OT_normals_make_consistent(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "calc_length", false, "Length", "Recalculate handle length");
 }
 
-/***************** make segment operator **********************/
+/** \} */
 
-/* ******************** SKINNING LOFTING!!! ******************** */
+/* -------------------------------------------------------------------- */
+/** \name Make Segment Operator
+ *
+ * Also handles skinning & lofting.
+ * \{ */
 
 static void switchdirection_knots(float *base, int tot)
 {
@@ -4877,7 +4978,11 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/***************** pick select from 3d view **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pick Select from 3D View
+ * \{ */
 
 bool ED_curve_editnurb_select_pick(
     bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
@@ -5033,7 +5138,11 @@ bool ED_curve_editnurb_select_pick(
   return false;
 }
 
-/******************** spin operator ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Spin Operator
+ * \{ */
 
 /* 'cent' is in object space and 'dvec' in worldspace.
  */
@@ -5213,7 +5322,11 @@ void CURVE_OT_spin(wmOperatorType *ot)
       ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -1.0f, 1.0f);
 }
 
-/***************** extrude vertex operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Extrude Vertex Operator
+ * \{ */
 
 static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
 {
@@ -5397,7 +5510,11 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
   return changed;
 }
 
-/***************** add vertex operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Vertex Operator
+ * \{ */
 
 static int ed_editcurve_addvert(Curve *cu,
                                 EditNurb *editnurb,
@@ -5714,7 +5831,11 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
                            1.0e4f);
 }
 
-/***************** extrude operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Extrude Operator
+ * \{ */
 
 static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -5785,7 +5906,11 @@ void CURVE_OT_extrude(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
-/***************** make cyclic operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Make Cyclic Operator
+ * \{ */
 
 static bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
 {
@@ -5951,7 +6076,11 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
                "Direction to make surface cyclic in");
 }
 
-/********************** add duplicate operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Duplicate Operator
+ * \{ */
 
 static int duplicate_exec(bContext *C, wmOperator *op)
 {
@@ -6007,7 +6136,11 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** delete operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Operator
+ * \{ */
 
 static bool curve_delete_vertices(Object *obedit, View3D *v3d)
 {
@@ -6553,6 +6686,12 @@ void CURVE_OT_delete(wmOperatorType *ot)
   ot->prop = prop;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dissolve Vertices
+ * \{ */
+
 static bool test_bezt_is_sel_any(const void *bezt_v, void *user_data)
 {
   View3D *v3d = user_data;
@@ -6685,6 +6824,12 @@ void CURVE_OT_dissolve_verts(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Decimate Operator
+ * \{ */
+
 static bool nurb_bezt_flag_any(const Nurb *nu, const char flag_test)
 {
   BezTriple *bezt = nu->bezt;
@@ -6778,7 +6923,11 @@ void CURVE_OT_decimate(wmOperatorType *ot)
   RNA_def_float_factor(ot->srna, "ratio", 1.0f, 0.0f, 1.0f, "Ratio", "", 0.0f, 1.0f);
 }
 
-/********************** shade smooth/flat operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shade Smooth/Flat Operator
+ * \{ */
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
@@ -6849,8 +6998,16 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************** join operator, to be used externally? ****************/
-/* TODO: shape keys - as with meshes */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Join Operator
+ * \{ */
+
+/**
+ * This is used externally, by #OBJECT_OT_join.
+ * TODO: shape keys - as with meshes.
+ */
 int join_curve_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -6950,7 +7107,11 @@ int join_curve_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/***************** clear tilt operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Tilt Operator
+ * \{ */
 
 static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -7052,7 +7213,11 @@ bool ED_curve_active_center(Curve *cu, float center[3])
   return true;
 }
 
-/******************** Match texture space operator ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Match Texture Space Operator
+ * \{ */
 
 static bool match_texture_space_poll(bContext *C)
 {
@@ -7122,3 +7287,5 @@ void CURVE_OT_match_texture_space(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
