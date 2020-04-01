@@ -1904,7 +1904,7 @@ static void write_shaderfxs(WriteData *wd, ListBase *fxbase)
 static void write_object(WriteData *wd, Object *ob, const void *id_address)
 {
   if (ob->id.us > 0 || wd->use_memfile) {
-    /* Clean up, important in udo case to reduce false detection of changed datablocks. */
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     BKE_object_runtime_reset(ob);
 
     /* write LibData */
@@ -2045,7 +2045,7 @@ static void write_mball(WriteData *wd, MetaBall *mb, const void *id_address)
 static void write_curve(WriteData *wd, Curve *cu, const void *id_address)
 {
   if (cu->id.us > 0 || wd->use_memfile) {
-    /* Clean up, important in udo case to reduce false detection of changed datablocks. */
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     cu->editnurb = NULL;
     cu->editfont = NULL;
     cu->batch_cache = NULL;
@@ -2562,6 +2562,12 @@ static void write_lightcache(WriteData *wd, LightCache *cache)
 
 static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
 {
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  if (sce->ed) {
+    sce->ed->cache = NULL;
+    sce->ed->prefetch_job = NULL;
+  }
+
   /* write LibData */
   writestruct_at_address(wd, ID_SCE, Scene, 1, id_address, sce);
   write_iddata(wd, &sce->id);
