@@ -2280,6 +2280,10 @@ static void write_mesh(WriteData *wd, Mesh *mesh, const void *id_address)
 static void write_lattice(WriteData *wd, Lattice *lt, const void *id_address)
 {
   if (lt->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    lt->editlatt = NULL;
+    lt->batch_cache = NULL;
+
     /* write LibData */
     writestruct_at_address(wd, ID_LT, Lattice, 1, id_address, lt);
     write_iddata(wd, &lt->id);
