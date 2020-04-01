@@ -2041,6 +2041,11 @@ static void write_mball(WriteData *wd, MetaBall *mb, const void *id_address)
 static void write_curve(WriteData *wd, Curve *cu, const void *id_address)
 {
   if (cu->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in udo case to reduce false detection of chaged datablocks. */
+    cu->editnurb = NULL;
+    cu->editfont = NULL;
+    cu->batch_cache = NULL;
+
     /* write LibData */
     writestruct_at_address(wd, ID_CU, Curve, 1, id_address, cu);
     write_iddata(wd, &cu->id);
