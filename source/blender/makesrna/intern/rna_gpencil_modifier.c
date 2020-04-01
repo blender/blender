@@ -144,7 +144,7 @@ static const EnumPropertyItem modifier_modify_opacity_items[] = {
     {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke and Fill", "Modify fill and stroke colors"},
     {GP_MODIFY_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only"},
     {GP_MODIFY_COLOR_FILL, "FILL", 0, "Fill", "Modify fill color only"},
-    {GP_MODIFY_COLOR_HARDENESS, "HARDENESS", 0, "Hardness", "Modify stroke hardness"},
+    {GP_MODIFY_COLOR_HARDNESS, "HARDNESS", 0, "Hardness", "Modify stroke hardness"},
     {0, NULL, 0, NULL, NULL},
 };
 

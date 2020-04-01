@@ -215,7 +215,7 @@ typedef enum eModifyColorGpencil_Flag {
   GP_MODIFY_COLOR_BOTH = 0,
   GP_MODIFY_COLOR_STROKE = 1,
   GP_MODIFY_COLOR_FILL = 2,
-  GP_MODIFY_COLOR_HARDENESS = 3,
+  GP_MODIFY_COLOR_HARDNESS = 3,
 } eModifyColorGpencil_Flag;
 
 typedef enum eOpacityModesGpencil_Flag {
