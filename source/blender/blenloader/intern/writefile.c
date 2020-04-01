@@ -3391,6 +3391,11 @@ static void write_movieReconstruction(WriteData *wd, MovieTrackingReconstruction
 static void write_movieclip(WriteData *wd, MovieClip *clip, const void *id_address)
 {
   if (clip->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    clip->anim = NULL;
+    clip->tracking_context = NULL;
+    clip->tracking.stats = NULL;
+
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *object;
 
