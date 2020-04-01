@@ -3225,6 +3225,12 @@ static void write_speaker(WriteData *wd, Speaker *spk, const void *id_address)
 static void write_sound(WriteData *wd, bSound *sound, const void *id_address)
 {
   if (sound->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    sound->tags = 0;
+    sound->handle = NULL;
+    sound->playback_handle = NULL;
+    sound->spinlock = NULL;
+
     /* write LibData */
     writestruct_at_address(wd, ID_SO, bSound, 1, id_address, sound);
     write_iddata(wd, &sound->id);
