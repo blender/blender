@@ -3171,6 +3171,13 @@ static void write_bone(WriteData *wd, Bone *bone)
 static void write_armature(WriteData *wd, bArmature *arm, const void *id_address)
 {
   if (arm->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    arm->bonehash = NULL;
+    arm->edbo = NULL;
+    /* Must always be cleared (armatures don't have their own edit-data). */
+    arm->needs_flush_to_id = 0;
+    arm->act_edbone = NULL;
+
     writestruct_at_address(wd, ID_AR, bArmature, 1, id_address, arm);
     write_iddata(wd, &arm->id);
 
