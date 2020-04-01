@@ -73,7 +73,9 @@
 #  include "BKE_subsurf.h"
 #endif
 
-/* ******************* paint cursor *************** */
+/* -------------------------------------------------------------------- */
+/** \name Draw Paint Cursor
+ * \{ */
 
 static void wm_paintcursor_draw(bContext *C, ScrArea *sa, ARegion *region)
 {
@@ -115,6 +117,12 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *sa, ARegion *region)
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
 
 static bool wm_draw_region_stereo_set(Main *bmain,
                                       ScrArea *sa,
@@ -183,8 +191,6 @@ static bool wm_draw_region_stereo_set(Main *bmain,
 
   return false;
 }
-
-/* ********************* drawing ****************** */
 
 static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 {
@@ -286,8 +292,13 @@ static bool wm_region_use_viewport(ScrArea *sa, ARegion *region)
   return wm_region_use_viewport_by_type(sa->spacetype, region->regiontype);
 }
 
-/********************** draw all **************************/
-/* - reference method, draw all each time                 */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Window Drawing (Draw All)
+ *
+ * Reference method, draw all each time.
+ * \{ */
 
 typedef struct WindowDrawCB {
   struct WindowDrawCB *next, *prev;
@@ -328,12 +339,16 @@ static void wm_draw_callbacks(wmWindow *win)
   }
 }
 
-/************************* Region drawing. ********************************
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Region Drawing
  *
- * Each region draws into its own framebuffer, which is then blit on the
+ * Each region draws into its own frame-buffer, which is then blit on the
  * window draw buffer. This helps with fast redrawing if only some regions
  * change. It also means we can share a single context for multiple windows,
- * so that for example VAOs can be shared between windows. */
+ * so that for example VAOs can be shared between windows.
+ * \{ */
 
 static void wm_draw_region_buffer_free(ARegion *region)
 {
@@ -866,7 +881,11 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
   wm_surface_clear_drawable();
 }
 
-/****************** main update call **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Update Call
+ * \{ */
 
 /* quick test to prevent changing window drawable */
 static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
@@ -1041,6 +1060,8 @@ void WM_redraw_windows(bContext *C)
   CTX_wm_area_set(C, area_prev);
   CTX_wm_region_set(C, ar_prev);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Region Viewport Drawing
