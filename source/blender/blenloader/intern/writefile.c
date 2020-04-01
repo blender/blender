@@ -3179,6 +3179,9 @@ static void write_text(WriteData *wd, Text *text, const void *id_address)
     text->flags &= ~TXT_ISEXT;
   }
 
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  text->compiled = NULL;
+
   /* write LibData */
   writestruct_at_address(wd, ID_TXT, Text, 1, id_address, text);
   write_iddata(wd, &text->id);
