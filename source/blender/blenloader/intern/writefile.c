@@ -2026,6 +2026,14 @@ static void write_camera(WriteData *wd, Camera *cam, const void *id_address)
 static void write_mball(WriteData *wd, MetaBall *mb, const void *id_address)
 {
   if (mb->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    BLI_listbase_clear(&mb->disp);
+    mb->editelems = NULL;
+    /* Must always be cleared (meta's don't have their own edit-data). */
+    mb->needs_flush_to_id = 0;
+    mb->lastelem = NULL;
+    mb->batch_cache = NULL;
+
     /* write LibData */
     writestruct_at_address(wd, ID_MB, MetaBall, 1, id_address, mb);
     write_iddata(wd, &mb->id);
