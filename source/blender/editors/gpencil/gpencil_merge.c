@@ -132,18 +132,8 @@ static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpo
   bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, add_frame_mode);
 
   /* stroke */
-  bGPDstroke *gps = MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
-  gps->totpoints = totpoints;
-  gps->inittime = 0.0f;
-  gps->thickness = brush->size;
-  gps->hardeness = brush->gpencil_settings->hardeness;
-  copy_v2_v2(gps->aspect_ratio, brush->gpencil_settings->aspect_ratio);
+  bGPDstroke *gps = BKE_gpencil_stroke_new(ob->actcol - 1, totpoints, brush->size);
   gps->flag |= GP_STROKE_SELECT;
-  gps->flag |= GP_STROKE_3DSPACE;
-  gps->mat_nr = ob->actcol - 1;
-
-  /* allocate memory for points */
-  gps->points = MEM_callocN(sizeof(bGPDspoint) * totpoints, "gp_stroke_points");
 
   if (cyclic) {
     gps->flag |= GP_STROKE_CYCLIC;
@@ -528,6 +518,8 @@ static int gp_stroke_merge_exec(bContext *C, wmOperator *op)
   if ((clear_point) || (clear_stroke)) {
     gpencil_dissolve_points(C);
   }
+
+  BKE_gpencil_stroke_geometry_update(gps);
 
   /* free memory */
   MEM_SAFE_FREE(original_array);
