@@ -3759,6 +3759,12 @@ static void write_linestyle(WriteData *wd, FreestyleLineStyle *linestyle, const 
 static void write_cachefile(WriteData *wd, CacheFile *cache_file, const void *id_address)
 {
   if (cache_file->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    BLI_listbase_clear(&cache_file->object_paths);
+    cache_file->handle = NULL;
+    memset(cache_file->handle_filepath, 0, sizeof(cache_file->handle_filepath));
+    cache_file->handle_readers = NULL;
+
     writestruct_at_address(wd, ID_CF, CacheFile, 1, id_address, cache_file);
 
     if (cache_file->adt) {
