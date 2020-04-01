@@ -4473,12 +4473,14 @@ void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_typ
 
 void BKE_fluid_cache_startframe_set(FluidDomainSettings *settings, int value)
 {
-  settings->cache_frame_start = (value > settings->cache_frame_end) ? settings->cache_frame_end : value;
+  settings->cache_frame_start = (value > settings->cache_frame_end) ? settings->cache_frame_end :
+                                                                      value;
 }
 
 void BKE_fluid_cache_endframe_set(FluidDomainSettings *settings, int value)
 {
-  settings->cache_frame_end = (value < settings->cache_frame_start) ? settings->cache_frame_start : value;
+  settings->cache_frame_end = (value < settings->cache_frame_start) ? settings->cache_frame_start :
+                                                                      value;
 }
 
 void BKE_fluid_cachetype_mesh_set(FluidDomainSettings *settings, int cache_mesh_format)

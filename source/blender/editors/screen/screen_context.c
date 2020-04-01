@@ -89,7 +89,7 @@ const char *screen_context_dir[] = {
     "sequences",
     "selected_sequences",
     "selected_editable_sequences", /* sequencer */
-    "selected_nla_strips", /* nla editor */
+    "selected_nla_strips",         /* nla editor */
     "gpencil_data",
     "gpencil_data_owner", /* grease pencil data */
     "annotation_data",
@@ -506,7 +506,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "selected_nla_strips")) {
-     bAnimContext ac;
+    bAnimContext ac;
     if (ANIM_animdata_get_context(C, &ac) != 0) {
       ListBase anim_data = {NULL, NULL};
       bAnimListElem *ale;

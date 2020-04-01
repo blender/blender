@@ -1346,7 +1346,9 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.001f, 1.0f);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(
-      prop, "Hardness", "Gradient from the center of Dot and Box strokes (set to 1 for a solid stroke)");
+      prop,
+      "Hardness",
+      "Gradient from the center of Dot and Box strokes (set to 1 for a solid stroke)");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
   /* gradient shape ratio */
