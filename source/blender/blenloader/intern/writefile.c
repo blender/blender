@@ -2467,6 +2467,12 @@ static void write_collection_nolib(WriteData *wd, Collection *collection)
 static void write_collection(WriteData *wd, Collection *collection, const void *id_address)
 {
   if (collection->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+    collection->tag = 0;
+    BLI_listbase_clear(&collection->object_cache);
+    BLI_listbase_clear(&collection->parents);
+
     /* write LibData */
     writestruct_at_address(wd, ID_GR, Collection, 1, id_address, collection);
     write_iddata(wd, &collection->id);
