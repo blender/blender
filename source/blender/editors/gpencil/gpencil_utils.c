@@ -2173,7 +2173,8 @@ int ED_gpencil_select_stroke_segment(bGPDlayer *gpl,
   float f = 0.0f;
   int i2 = 0;
 
-  bGPDframe *gpf = gpl->actframe;
+  bGPDlayer *gpl_orig = (gpl->runtime.gpl_orig) ? gpl->runtime.gpl_orig : gpl;
+  bGPDframe *gpf = gpl_orig->actframe;
   if (gpf == NULL) {
     return 0;
   }
