@@ -2121,6 +2121,7 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
                                     struct IsectRayPrecalc *isect_precalc,
                                     float *depth,
                                     int *r_active_vertex_index,
+                                    int *r_active_face_index,
                                     float *r_face_normal)
 {
   const MVert *vert = bvh->verts;
@@ -2166,6 +2167,7 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
           if (len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
             copy_v3_v3(nearest_vertex_co, co[j]);
             *r_active_vertex_index = mloop[lt->tri[j]].v;
+            *r_active_face_index = lt->poly;
           }
         }
       }
@@ -2183,6 +2185,7 @@ static bool pbvh_grids_node_raycast(PBVH *bvh,
                                     struct IsectRayPrecalc *isect_precalc,
                                     float *depth,
                                     int *r_active_vertex_index,
+                                    int *r_active_grid_index,
                                     float *r_face_normal)
 {
   const int totgrid = node->totprim;
@@ -2236,14 +2239,22 @@ static bool pbvh_grids_node_raycast(PBVH *bvh,
           if (r_active_vertex_index) {
             float location[3] = {0.0};
             madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
+
+            const int x_it[4] = {0, 1, 1, 0};
+            const int y_it[4] = {0, 0, 1, 1};
+
             for (int j = 0; j < 4; j++) {
               if (len_squared_v3v3(location, co[j]) <
                   len_squared_v3v3(location, nearest_vertex_co)) {
                 copy_v3_v3(nearest_vertex_co, co[j]);
-                *r_active_vertex_index = gridkey->grid_area * grid_index + y * gridkey->grid_size +
-                                         x;
+
+                *r_active_vertex_index = gridkey->grid_area * grid_index +
+                                         (y + y_it[j]) * gridkey->grid_size + (x + x_it[j]);
               }
             }
+          }
+          if (r_active_grid_index) {
+            *r_active_grid_index = grid_index;
           }
         }
       }
@@ -2266,6 +2277,7 @@ bool BKE_pbvh_node_raycast(PBVH *bvh,
                            struct IsectRayPrecalc *isect_precalc,
                            float *depth,
                            int *active_vertex_index,
+                           int *active_face_grid_index,
                            float *face_normal)
 {
   bool hit = false;
@@ -2284,6 +2296,7 @@ bool BKE_pbvh_node_raycast(PBVH *bvh,
                                      isect_precalc,
                                      depth,
                                      active_vertex_index,
+                                     active_face_grid_index,
                                      face_normal);
       break;
     case PBVH_GRIDS:
@@ -2295,6 +2308,7 @@ bool BKE_pbvh_node_raycast(PBVH *bvh,
                                      isect_precalc,
                                      depth,
                                      active_vertex_index,
+                                     active_face_grid_index,
                                      face_normal);
       break;
     case PBVH_BMESH:

@@ -216,6 +216,22 @@ static void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3])
 
 /* Sculpt Face Sets and Visibility. */
 
+static int SCULPT_active_face_set_get(SculptSession *ss)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return ss->face_sets[ss->active_face_index];
+    case PBVH_GRIDS: {
+      const int face_index = BKE_subdiv_cgg_grid_to_face_index(ss->subdiv_ccg,
+                                                               ss->active_grid_index);
+      return ss->face_sets[face_index];
+    }
+    case PBVH_BMESH:
+      return SCULPT_FACE_SET_NONE;
+  }
+  return SCULPT_FACE_SET_NONE;
+}
+
 static void SCULPT_vertex_visible_set(SculptSession *ss, int index, bool visible)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -2997,6 +3013,8 @@ typedef struct {
   int active_vertex_index;
   float *face_normal;
 
+  int active_face_grid_index;
+
   struct IsectRayPrecalc isect_precalc;
 } SculptRaycastData;
 
@@ -3641,19 +3659,49 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  vd.co,
-                                                                  sqrtf(test.dist),
-                                                                  vd.no,
-                                                                  vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
-                                                                  tls->thread_id);
+    if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+      MeshElemMap *vert_map = &ss->pmap[vd.index];
+      for (int j = 0; j < ss->pmap[vd.index].count; j++) {
+        const MPoly *p = &ss->mpoly[vert_map->indices[j]];
 
-      if (fade > 0.05f) {
-        SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
+        float poly_center[3];
+        BKE_mesh_calc_poly_center(p, &ss->mloop[p->loopstart], ss->mvert, poly_center);
+
+        if (sculpt_brush_test_sq_fn(&test, poly_center)) {
+          const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                      brush,
+                                                                      vd.co,
+                                                                      sqrtf(test.dist),
+                                                                      vd.no,
+                                                                      vd.fno,
+                                                                      vd.mask ? *vd.mask : 0.0f,
+                                                                      vd.index,
+                                                                      tls->thread_id);
+
+          if (fade > 0.05f && ss->face_sets[vert_map->indices[j]] > 0) {
+            ss->face_sets[vert_map->indices[j]] = abs(ss->cache->paint_face_set);
+          }
+        }
+      }
+    }
+
+    else if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+      {
+        if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+          const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                      brush,
+                                                                      vd.co,
+                                                                      sqrtf(test.dist),
+                                                                      vd.no,
+                                                                      vd.fno,
+                                                                      vd.mask ? *vd.mask : 0.0f,
+                                                                      vd.index,
+                                                                      tls->thread_id);
+
+          if (fade > 0.05f) {
+            SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
+          }
+        }
       }
     }
   }
@@ -3714,7 +3762,7 @@ static void do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
       ss->cache->radial_symmetry_pass == 0) {
     if (ss->cache->invert) {
       /* When inverting the brush, pick the paint face mask ID from the mesh. */
-      ss->cache->paint_face_set = SCULPT_vertex_face_set_get(ss, SCULPT_active_vertex_get(ss));
+      ss->cache->paint_face_set = SCULPT_active_face_set_get(ss);
     }
     else {
       /* By default create a new Face Sets. */
@@ -7440,6 +7488,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
                               &srd->isect_precalc,
                               &srd->depth,
                               &srd->active_vertex_index,
+                              &srd->active_face_grid_index,
                               srd->face_normal)) {
       srd->hit = true;
       *tmin = srd->depth;
@@ -7589,6 +7638,21 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   /* Update the active vertex of the SculptSession. */
   ss->active_vertex_index = srd.active_vertex_index;
   copy_v3_v3(out->active_vertex_co, SCULPT_active_vertex_co_get(ss));
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      ss->active_face_index = srd.active_face_grid_index;
+      ss->active_grid_index = 0;
+      break;
+    case PBVH_GRIDS:
+      ss->active_face_index = 0;
+      ss->active_grid_index = srd.active_face_grid_index;
+      break;
+    case PBVH_BMESH:
+      ss->active_face_index = 0;
+      ss->active_grid_index = 0;
+      break;
+  }
 
   copy_v3_v3(out->location, ray_normal);
   mul_v3_fl(out->location, srd.depth);
@@ -11710,8 +11774,7 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
   const int mode = RNA_enum_get(op->ptr, "mode");
-  int active_vertex_index = SCULPT_active_vertex_get(ss);
-  int active_face_set = SCULPT_vertex_face_set_get(ss, active_vertex_index);
+  const int active_face_set = SCULPT_active_face_set_get(ss);
 
   SCULPT_undo_push_begin("Hide area");
 

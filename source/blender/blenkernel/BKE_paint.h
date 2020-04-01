@@ -334,6 +334,9 @@ typedef struct SculptSession {
   /* Cursor data and active vertex for tools */
   int active_vertex_index;
 
+  int active_face_index;
+  int active_grid_index;
+
   float cursor_radius;
   float cursor_location[3];
   float cursor_normal[3];
