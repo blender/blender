@@ -2399,6 +2399,9 @@ static void write_material(WriteData *wd, Material *ma, const void *id_address)
 static void write_world(WriteData *wd, World *wrld, const void *id_address)
 {
   if (wrld->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    BLI_listbase_clear(&wrld->gpumaterial);
+
     /* write LibData */
     writestruct_at_address(wd, ID_WO, World, 1, id_address, wrld);
     write_iddata(wd, &wrld->id);
