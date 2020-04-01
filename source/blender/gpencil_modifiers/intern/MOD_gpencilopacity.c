@@ -105,7 +105,7 @@ static void deformStroke(GpencilModifierData *md,
     return;
   }
 
-  /* Hardeness (at stroke level). */
+  /* Hardness (at stroke level). */
   if (mmd->modify_color == GP_MODIFY_COLOR_HARDENESS) {
     gps->hardeness *= mmd->hardeness;
     CLAMP(gps->hardeness, 0.0f, 1.0f);
