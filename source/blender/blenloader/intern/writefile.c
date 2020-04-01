@@ -2361,6 +2361,10 @@ static void write_texture(WriteData *wd, Tex *tex, const void *id_address)
 static void write_material(WriteData *wd, Material *ma, const void *id_address)
 {
   if (ma->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    ma->texpaintslot = NULL;
+    BLI_listbase_clear(&ma->gpumaterial);
+
     /* write LibData */
     writestruct_at_address(wd, ID_MA, Material, 1, id_address, ma);
     write_iddata(wd, &ma->id);
