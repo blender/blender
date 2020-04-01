@@ -164,6 +164,7 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
@@ -1903,6 +1904,9 @@ static void write_shaderfxs(WriteData *wd, ListBase *fxbase)
 static void write_object(WriteData *wd, Object *ob, const void *id_address)
 {
   if (ob->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in udo case to reduce false detection of changed datablocks. */
+    BKE_object_runtime_reset(ob);
+
     /* write LibData */
     writestruct_at_address(wd, ID_OB, Object, 1, id_address, ob);
     write_iddata(wd, &ob->id);
@@ -2041,7 +2045,7 @@ static void write_mball(WriteData *wd, MetaBall *mb, const void *id_address)
 static void write_curve(WriteData *wd, Curve *cu, const void *id_address)
 {
   if (cu->id.us > 0 || wd->use_memfile) {
-    /* Clean up, important in udo case to reduce false detection of chaged datablocks. */
+    /* Clean up, important in udo case to reduce false detection of changed datablocks. */
     cu->editnurb = NULL;
     cu->editfont = NULL;
     cu->batch_cache = NULL;
