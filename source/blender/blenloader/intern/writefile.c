@@ -3849,6 +3849,9 @@ static void write_pointcloud(WriteData *wd, PointCloud *pointcloud, const void *
 static void write_volume(WriteData *wd, Volume *volume, const void *id_address)
 {
   if (volume->id.us > 0 || wd->use_memfile) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    volume->runtime.grids = 0;
+
     /* write LibData */
     writestruct_at_address(wd, ID_VO, Volume, 1, id_address, volume);
     write_iddata(wd, &volume->id);
