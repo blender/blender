@@ -1164,7 +1164,7 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object
     /* Particle system evaluation. */
     add_operation_node(psys_comp, OperationCode::PARTICLE_SYSTEM_EVAL, nullptr, psys->name);
     /* Keyed particle targets. */
-    if (part->phystype == PART_PHYS_KEYED) {
+    if (ELEM(part->phystype, PART_PHYS_KEYED, PART_PHYS_BOIDS)) {
       LISTBASE_FOREACH (ParticleTarget *, particle_target, &psys->targets) {
         if (particle_target->ob == nullptr || particle_target->ob == object) {
           continue;

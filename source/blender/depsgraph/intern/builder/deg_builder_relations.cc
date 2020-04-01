@@ -1789,7 +1789,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
       }
     }
     /* Keyed particle targets. */
-    if (part->phystype == PART_PHYS_KEYED) {
+    if (ELEM(part->phystype, PART_PHYS_KEYED, PART_PHYS_BOIDS)) {
       LISTBASE_FOREACH (ParticleTarget *, particle_target, &psys->targets) {
         if (particle_target->ob == nullptr || particle_target->ob == object) {
           continue;
