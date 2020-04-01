@@ -40,11 +40,11 @@ extern bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
 extern PyObject *pyrna_id_CreatePyObject(ID *id);
 extern bool pyrna_id_CheckPyObject(PyObject *obj);
 
-/*********************** ID Property Main Wrapper Stuff ***************/
-
-/* ----------------------------------------------------------------------------
- * static conversion functions to avoid duplicate code, no type checking.
- */
+/* -------------------------------------------------------------------- */
+/** \name Python from ID-Property (Internal Conversions)
+ *
+ * Low level conversion to avoid duplicate code, no type checking.
+ * \{ */
 
 static PyObject *idprop_py_from_idp_string(const IDProperty *prop)
 {
@@ -124,7 +124,11 @@ static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
   return seq;
 }
 
-/* -------------------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name IDProp Group Access
+ * \{ */
 
 /* use for both array and group */
 static Py_hash_t BPy_IDGroup_hash(BPy_IDProperty *self)
@@ -374,7 +378,11 @@ static const char *idp_try_read_name(PyObject *name_obj)
   return name;
 }
 
-/* -------------------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID-Property from Python (Internal Conversions)
+ * \{ */
 
 /**
  * The 'idp_from_Py*' functions expect that the input type has been checked before
@@ -658,7 +666,12 @@ static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mapping Get/Set (Internal Access)
+ * \{ */
+
 /**
  * \note group can be a pointer array or a group.
  * assume we already checked key is a string.
@@ -861,6 +874,12 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
                prop->type);
   return NULL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID-Property Group Methods
+ * \{ */
 
 PyDoc_STRVAR(
     BPy_IDGroup_pop_doc,
@@ -1142,6 +1161,12 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID-Property Group Type
+ * \{ */
+
 static PySequenceMethods BPy_IDGroup_Seq = {
     (lenfunc)BPy_IDGroup_Map_Len, /* lenfunc sq_length */
     NULL,                         /* binaryfunc sq_concat */
@@ -1223,7 +1248,11 @@ PyTypeObject BPy_IDGroup_Type = {
     BPy_IDGroup_getseters, /* struct PyGetSetDef *tp_getset; */
 };
 
-/********Array Wrapper********/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID Array Methods
+ * \{ */
 
 static PyTypeObject *idp_array_py_type(BPy_IDArray *self, bool *r_is_double)
 {
@@ -1567,6 +1596,10 @@ static PyBufferProcs BPy_IDArray_Buffer = {
     (releasebufferproc)BPy_IDArray_releasebuffer,
 };
 
+/* -------------------------------------------------------------------- */
+/** \name ID Array Type
+ * \{ */
+
 PyTypeObject BPy_IDArray_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     /*  For printing, in format "<module>.<name>" */
@@ -1648,7 +1681,11 @@ PyTypeObject BPy_IDArray_Type = {
     NULL,
 };
 
-/*********** ID Property Group iterator ********/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID-Property Group Iterator Type
+ * \{ */
 
 static PyObject *IDGroup_Iter_repr(BPy_IDGroup_Iter *self)
 {
@@ -1746,9 +1783,11 @@ void IDProp_Init_Types(void)
   PyType_Ready(&BPy_IDArray_Type);
 }
 
-/*----------------------------MODULE INIT-------------------------*/
+/** \} */
 
-/* --- */
+/* -------------------------------------------------------------------- */
+/** \name Public Module 'idprop.types'
+ * \{ */
 
 static struct PyModuleDef IDProp_types_module_def = {
     PyModuleDef_HEAD_INIT,
@@ -1784,7 +1823,11 @@ static PyObject *BPyInit_idprop_types(void)
   return submodule;
 }
 
-/* --- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Module 'idprop'
+ * \{ */
 
 static PyMethodDef IDProp_methods[] = {
     {NULL, NULL, 0, NULL},
@@ -1818,3 +1861,5 @@ PyObject *BPyInit_idprop(void)
 
   return mod;
 }
+
+/** \} */
