@@ -15,7 +15,7 @@
  */
 
 #ifndef __UTIL_AVXF_H__
-#  define __UTIL_AVXF_H__
+#define __UTIL_AVXF_H__
 
 CCL_NAMESPACE_BEGIN
 
@@ -140,6 +140,11 @@ __forceinline void dot3(const avxf &a, const avxf &b, float &den, float &den2)
 /// Unary Operators
 ////////////////////////////////////////////////////////////////////////////////
 
+__forceinline const avxf cast(const __m256i &a)
+{
+  return _mm256_castsi256_ps(a);
+}
+
 __forceinline const avxf mm256_sqrt(const avxf &a)
 {
   return _mm256_sqrt_ps(a.m256);
@@ -259,16 +264,34 @@ template<size_t i0> __forceinline const avxf shuffle(const avxf &a)
   return shuffle<i0>(a, a);
 }
 
+template<size_t i> __forceinline float extract(const avxf &a)
+{
+  return _mm256_cvtss_f32(shuffle<i, i, i, i>(a));
+}
+template<> __forceinline float extract<0>(const avxf &a)
+{
+  return _mm256_cvtss_f32(a);
+}
+
+__forceinline ssef low(const avxf &a)
+{
+  return _mm256_extractf128_ps(a, 0);
+}
+__forceinline ssef high(const avxf &a)
+{
+  return _mm256_extractf128_ps(a, 1);
+}
+
 template<int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
 __forceinline const avxf permute(const avxf &a)
 {
-#  ifdef __KERNEL_AVX2__
+#ifdef __KERNEL_AVX2__
   return _mm256_permutevar8x32_ps(a, _mm256_set_epi32(i7, i6, i5, i4, i3, i2, i1, i0));
-#  else
+#else
   float temp[8];
   _mm256_storeu_ps((float *)&temp, a);
   return avxf(temp[i7], temp[i6], temp[i5], temp[i4], temp[i3], temp[i2], temp[i1], temp[i0]);
-#  endif
+#endif
 }
 
 template<int S0, int S1, int S2, int S3, int S4, int S5, int S6, int S7>
@@ -309,39 +332,51 @@ __forceinline avxf mini(const avxf &a, const avxf &b)
 ////////////////////////////////////////////////////////////////////////////////
 __forceinline const avxf madd(const avxf &a, const avxf &b, const avxf &c)
 {
-#  ifdef __KERNEL_AVX2__
+#ifdef __KERNEL_AVX2__
   return _mm256_fmadd_ps(a, b, c);
-#  else
+#else
   return c + (a * b);
-#  endif
+#endif
 }
 
 __forceinline const avxf nmadd(const avxf &a, const avxf &b, const avxf &c)
 {
-#  ifdef __KERNEL_AVX2__
+#ifdef __KERNEL_AVX2__
   return _mm256_fnmadd_ps(a, b, c);
-#  else
+#else
   return c - (a * b);
-#  endif
+#endif
 }
 __forceinline const avxf msub(const avxf &a, const avxf &b, const avxf &c)
 {
-#  ifdef __KERNEL_AVX2__
+#ifdef __KERNEL_AVX2__
   return _mm256_fmsub_ps(a, b, c);
-#  else
+#else
   return (a * b) - c;
-#  endif
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Comparison Operators
+/// Comparison Operators + Select
 ////////////////////////////////////////////////////////////////////////////////
 __forceinline const avxb operator<=(const avxf &a, const avxf &b)
 {
   return _mm256_cmp_ps(a.m256, b.m256, _CMP_LE_OS);
 }
 
-#endif
+__forceinline const avxf select(const avxb &m, const avxf &t, const avxf &f)
+{
+  return _mm256_blendv_ps(f, t, m);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Common Functions
+////////////////////////////////////////////////////////////////////////////////
+
+__forceinline avxf mix(const avxf &a, const avxf &b, const avxf &t)
+{
+  return madd(t, b, (avxf(1.0f) - t) * a);
+}
 
 #ifndef _mm256_set_m128
 #  define _mm256_set_m128(/* __m128 */ hi, /* __m128 */ lo) \
@@ -352,3 +387,5 @@ __forceinline const avxb operator<=(const avxf &a, const avxf &b)
   _mm256_set_m128(_mm_loadu_ps(hiaddr), _mm_loadu_ps(loaddr))
 
 CCL_NAMESPACE_END
+
+#endif

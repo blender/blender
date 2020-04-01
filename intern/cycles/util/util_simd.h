@@ -75,6 +75,28 @@ static struct FalseTy {
   }
 } False ccl_maybe_unused;
 
+static struct ZeroTy {
+  __forceinline operator float() const
+  {
+    return 0;
+  }
+  __forceinline operator int() const
+  {
+    return 0;
+  }
+} zero ccl_maybe_unused;
+
+static struct OneTy {
+  __forceinline operator float() const
+  {
+    return 1;
+  }
+  __forceinline operator int() const
+  {
+    return 1;
+  }
+} one ccl_maybe_unused;
+
 static struct NegInfTy {
   __forceinline operator float() const
   {
@@ -96,6 +118,9 @@ static struct PosInfTy {
     return std::numeric_limits<int>::max();
   }
 } inf ccl_maybe_unused, pos_inf ccl_maybe_unused;
+
+static struct StepTy {
+} step ccl_maybe_unused;
 
 /* Intrinsics Functions */
 

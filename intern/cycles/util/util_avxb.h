@@ -16,7 +16,7 @@
  */
 
 #ifndef __UTIL_AVXB_H__
-#  define __UTIL_AVXB_H__
+#define __UTIL_AVXB_H__
 
 CCL_NAMESPACE_BEGIN
 
@@ -51,6 +51,10 @@ struct avxb {
   }
 
   __forceinline avxb(const __m256 input) : m256(input)
+  {
+  }
+  __forceinline avxb(const __m128 &a, const __m128 &b)
+      : m256(_mm256_insertf128_ps(_mm256_castps128_ps256(a), b, 1))
   {
   }
   __forceinline operator const __m256 &(void)const
@@ -146,9 +150,9 @@ __forceinline const avxb operator!=(const avxb &a, const avxb &b)
 }
 __forceinline const avxb operator==(const avxb &a, const avxb &b)
 {
-#  ifdef __KERNEL_AVX2__
+#ifdef __KERNEL_AVX2__
   return _mm256_castsi256_ps(_mm256_cmpeq_epi32(a, b));
-#  else
+#else
   __m128i a_lo = _mm_castps_si128(_mm256_extractf128_ps(a, 0));
   __m128i a_hi = _mm_castps_si128(_mm256_extractf128_ps(a, 1));
   __m128i b_lo = _mm_castps_si128(_mm256_extractf128_ps(b, 0));
@@ -157,16 +161,16 @@ __forceinline const avxb operator==(const avxb &a, const avxb &b)
   __m128i c_hi = _mm_cmpeq_epi32(a_hi, b_hi);
   __m256i result = _mm256_insertf128_si256(_mm256_castsi128_si256(c_lo), c_hi, 1);
   return _mm256_castsi256_ps(result);
-#  endif
+#endif
 }
 
 __forceinline const avxb select(const avxb &m, const avxb &t, const avxb &f)
 {
-#  if defined(__KERNEL_SSE41__)
+#if defined(__KERNEL_SSE41__)
   return _mm256_blendv_ps(f, t, m);
-#  else
+#else
   return _mm256_or_ps(_mm256_and_ps(m, t), _mm256_andnot_ps(m, f));
-#  endif
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -186,18 +190,18 @@ __forceinline const avxb unpackhi(const avxb &a, const avxb &b)
 /// Reduction Operations
 ////////////////////////////////////////////////////////////////////////////////
 
-#  if defined(__KERNEL_SSE41__)
+#if defined(__KERNEL_SSE41__)
 __forceinline size_t popcnt(const avxb &a)
 {
   return __popcnt(_mm256_movemask_ps(a));
 }
-#  else
+#else
 __forceinline size_t popcnt(const avxb &a)
 {
   return bool(a[0]) + bool(a[1]) + bool(a[2]) + bool(a[3]) + bool(a[4]) + bool(a[5]) + bool(a[6]) +
          bool(a[7]);
 }
-#  endif
+#endif
 
 __forceinline bool reduce_and(const avxb &a)
 {
@@ -234,8 +238,6 @@ ccl_device_inline void print_avxb(const char *label, const avxb &a)
   printf("%s: %d %d %d %d %d %d %d %d\n", label, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 }
 
-#endif
-
 CCL_NAMESPACE_END
 
-//#endif
+#endif

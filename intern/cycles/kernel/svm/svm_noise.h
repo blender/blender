@@ -65,7 +65,7 @@ ccl_device_noinline_cpu float perlin_1d(float x)
  * supported, we do a standard implementation, but if it is supported, we
  * do an implementation using SSE intrinsics.
  */
-#ifndef __KERNEL_SSE2__
+#if !defined(__KERNEL_SSE2__)
 
 /* ** Standard Implementation ** */
 
@@ -266,7 +266,7 @@ ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
   return r;
 }
 
-#else
+#else /* SSE is supported. */
 
 /* ** SSE Implementation ** */
 
@@ -298,6 +298,57 @@ ccl_device_inline ssef bi_mix(ssef p, ssef f)
 {
   ssef g = mix(p, shuffle<2, 3, 2, 3>(p), shuffle<0>(f));
   return mix(g, shuffle<1>(g), shuffle<1>(f));
+}
+
+ccl_device_inline ssef fade(const ssef &t)
+{
+  ssef a = madd(t, 6.0f, -15.0f);
+  ssef b = madd(t, a, 10.0f);
+  return (t * t) * (t * b);
+}
+
+/* Negate val if the nth bit of h is 1. */
+#  define negate_if_nth_bit(val, h, n) ((val) ^ cast(((h) & (1 << (n))) << (31 - (n))))
+
+ccl_device_inline ssef grad(const ssei &hash, const ssef &x, const ssef &y)
+{
+  ssei h = hash & 7;
+  ssef u = select(h < 4, x, y);
+  ssef v = 2.0f * select(h < 4, y, x);
+  return negate_if_nth_bit(u, h, 0) + negate_if_nth_bit(v, h, 1);
+}
+
+/* We use SSE to compute and interpolate 4 gradients at once:
+ *
+ *    Point  Offset from v0
+ *     v0       (0, 0)
+ *     v1       (0, 1)
+ *     v2       (1, 0)    (0, 1, 0, 1) = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(V, V + 1))
+ *     v3       (1, 1)         ^
+ *               |  |__________|       (0, 0, 1, 1) = shuffle<0, 0, 0, 0>(V, V + 1)
+ *               |                          ^
+ *               |__________________________|
+ *
+ */
+ccl_device_noinline float perlin_2d(float x, float y)
+{
+  ssei XY;
+  ssef fxy = floorfrac(ssef(x, y, 0.0f, 0.0f), &XY);
+  ssef uv = fade(fxy);
+
+  ssei XY1 = XY + 1;
+  ssei X = shuffle<0, 0, 0, 0>(XY, XY1);
+  ssei Y = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(XY, XY1));
+
+  ssei h = hash_ssei2(X, Y);
+
+  ssef fxy1 = fxy - 1.0f;
+  ssef fx = shuffle<0, 0, 0, 0>(fxy, fxy1);
+  ssef fy = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(fxy, fxy1));
+
+  ssef g = grad(h, fx, fy);
+
+  return extract<0>(bi_mix(g, uv));
 }
 
 /* SSE Trilinear Interpolation:
@@ -340,34 +391,12 @@ ccl_device_inline ssef tri_mix(ssef p, ssef q, ssef f)
   return mix(g, shuffle<1>(g), shuffle<2>(f));
 }
 
-/* SSE Quadrilinear Interpolation:
- *
- * Quadrilinear interpolation is as simple as a linear interpolation
- * between two trilinear interpolations.
- *
+/* 3D and 4D noise can be accelerated using AVX, so we first check if AVX
+ * is supported, that is, if __KERNEL_AVX__ is defined. If it is not
+ * supported, we do an SSE implementation, but if it is supported,
+ * we do an implementation using AVX intrinsics.
  */
-ccl_device_inline ssef quad_mix(ssef p, ssef q, ssef r, ssef s, ssef f)
-{
-  return mix(tri_mix(p, q, f), tri_mix(r, s, f), shuffle<3>(f));
-}
-
-ccl_device_inline ssef fade(const ssef &t)
-{
-  ssef a = madd(t, 6.0f, -15.0f);
-  ssef b = madd(t, a, 10.0f);
-  return (t * t) * (t * b);
-}
-
-/* Negate val if the nth bit of h is 1. */
-#  define negate_if_nth_bit(val, h, n) ((val) ^ cast(((h) & (1 << (n))) << (31 - (n))))
-
-ccl_device_inline ssef grad(const ssei &hash, const ssef &x, const ssef &y)
-{
-  ssei h = hash & 7;
-  ssef u = select(h < 4, x, y);
-  ssef v = 2.0f * select(h < 4, y, x);
-  return negate_if_nth_bit(u, h, 0) + negate_if_nth_bit(v, h, 1);
-}
+#  if !defined(__KERNEL_AVX__)
 
 ccl_device_inline ssef grad(const ssei &hash, const ssef &x, const ssef &y, const ssef &z)
 {
@@ -388,37 +417,15 @@ grad(const ssei &hash, const ssef &x, const ssef &y, const ssef &z, const ssef &
   return negate_if_nth_bit(u, h, 0) + negate_if_nth_bit(v, h, 1) + negate_if_nth_bit(s, h, 2);
 }
 
-/* We use SSE to compute and interpolate 4 gradients at once:
+/* SSE Quadrilinear Interpolation:
  *
- *    Point  Offset from v0
- *     v0       (0, 0)
- *     v1       (0, 1)
- *     v2       (1, 0)    (0, 1, 0, 1) = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(V, V + 1))
- *     v3       (1, 1)         ^
- *               |  |__________|       (0, 0, 1, 1) = shuffle<0, 0, 0, 0>(V, V + 1)
- *               |                          ^
- *               |__________________________|
+ * Quadrilinear interpolation is as simple as a linear interpolation
+ * between two trilinear interpolations.
  *
  */
-ccl_device_noinline float perlin_2d(float x, float y)
+ccl_device_inline ssef quad_mix(ssef p, ssef q, ssef r, ssef s, ssef f)
 {
-  ssei XY;
-  ssef fxy = floorfrac(ssef(x, y, 0.0f, 0.0f), &XY);
-  ssef uv = fade(fxy);
-
-  ssei XY1 = XY + 1;
-  ssei X = shuffle<0, 0, 0, 0>(XY, XY1);
-  ssei Y = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(XY, XY1));
-
-  ssei h = hash_ssei2(X, Y);
-
-  ssef fxy1 = fxy - 1.0f;
-  ssef fx = shuffle<0, 0, 0, 0>(fxy, fxy1);
-  ssef fy = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(fxy, fxy1));
-
-  ssef g = grad(h, fx, fy);
-
-  return extract<0>(bi_mix(g, uv));
+  return mix(tri_mix(p, q, f), tri_mix(r, s, f), shuffle<3>(f));
 }
 
 /* We use SSE to compute and interpolate 4 gradients at once. Since we have 8
@@ -522,6 +529,148 @@ ccl_device_noinline float perlin_4d(float x, float y, float z, float w)
 
   return extract<0>(quad_mix(g1, g2, g3, g4, uvws));
 }
+
+#  else /* AVX is supported. */
+
+/* AVX Implementation */
+
+ccl_device_inline avxf grad(const avxi &hash, const avxf &x, const avxf &y, const avxf &z)
+{
+  avxi h = hash & 15;
+  avxf u = select(h < 8, x, y);
+  avxf vt = select((h == 12) | (h == 14), x, z);
+  avxf v = select(h < 4, y, vt);
+  return negate_if_nth_bit(u, h, 0) + negate_if_nth_bit(v, h, 1);
+}
+
+ccl_device_inline avxf
+grad(const avxi &hash, const avxf &x, const avxf &y, const avxf &z, const avxf &w)
+{
+  avxi h = hash & 31;
+  avxf u = select(h < 24, x, y);
+  avxf v = select(h < 16, y, z);
+  avxf s = select(h < 8, z, w);
+  return negate_if_nth_bit(u, h, 0) + negate_if_nth_bit(v, h, 1) + negate_if_nth_bit(s, h, 2);
+}
+
+/* SSE Quadrilinear Interpolation:
+ *
+ * The interpolation is done in two steps:
+ * 1. Interpolate p and q along the w axis to get s.
+ * 2. Trilinearly interpolate (s0, s1, s2, s3) and (s4, s5, s6, s7) to get the final
+ *    value. (s0, s1, s2, s3) and (s4, s5, s6, s7) are generated by extracting the
+ *    low and high ssef from s.
+ *
+ */
+ccl_device_inline ssef quad_mix(avxf p, avxf q, ssef f)
+{
+  ssef fv = shuffle<3>(f);
+  avxf s = mix(p, q, avxf(fv, fv));
+  return tri_mix(low(s), high(s), f);
+}
+
+/* We use AVX to compute and interpolate 8 gradients at once.
+ *
+ *    Point  Offset from v0
+ *     v0      (0, 0, 0)
+ *     v1      (0, 0, 1)    The full avx type is computed by inserting the following
+ *     v2      (0, 1, 0)    sse types into both the low and high parts of the avx.
+ *     v3      (0, 1, 1)
+ *     v4      (1, 0, 0)
+ *     v5      (1, 0, 1)    (0, 1, 0, 1) = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(V, V + 1))
+ *     v6      (1, 1, 0)         ^
+ *     v7      (1, 1, 1)         |
+ *                 |  |__________|       (0, 0, 1, 1) = shuffle<1, 1, 1, 1>(V, V + 1)
+ *                 |                          ^
+ *                 |__________________________|
+ *
+ */
+ccl_device_noinline float perlin_3d(float x, float y, float z)
+{
+  ssei XYZ;
+  ssef fxyz = floorfrac(ssef(x, y, z, 0.0f), &XYZ);
+  ssef uvw = fade(fxyz);
+
+  ssei XYZ1 = XYZ + 1;
+  ssei X = shuffle<0>(XYZ);
+  ssei X1 = shuffle<0>(XYZ1);
+  ssei Y = shuffle<1, 1, 1, 1>(XYZ, XYZ1);
+  ssei Z = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(XYZ, XYZ1));
+
+  avxi h = hash_avxi3(avxi(X, X1), avxi(Y, Y), avxi(Z, Z));
+
+  ssef fxyz1 = fxyz - 1.0f;
+  ssef fx = shuffle<0>(fxyz);
+  ssef fx1 = shuffle<0>(fxyz1);
+  ssef fy = shuffle<1, 1, 1, 1>(fxyz, fxyz1);
+  ssef fz = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(fxyz, fxyz1));
+
+  avxf g = grad(h, avxf(fx, fx1), avxf(fy, fy), avxf(fz, fz));
+
+  return extract<0>(tri_mix(low(g), high(g), uvw));
+}
+
+/* We use AVX to compute and interpolate 8 gradients at once. Since we have 16
+ * gradients in 4D, we need to compute two sets of gradients at the points:
+ *
+ *    Point  Offset from v0
+ *     v0     (0, 0, 0, 0)
+ *     v1     (0, 0, 1, 0)  The full avx type is computed by inserting the following
+ *     v2     (0, 1, 0, 0)  sse types into both the low and high parts of the avx.
+ *     v3     (0, 1, 1, 0)
+ *     v4     (1, 0, 0, 0)
+ *     v5     (1, 0, 1, 0)  (0, 1, 0, 1) = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(V, V + 1))
+ *     v6     (1, 1, 0, 0)    ^
+ *     v7     (1, 1, 1, 0)    |
+ *                |  |________|    (0, 0, 1, 1) = shuffle<1, 1, 1, 1>(V, V + 1)
+ *                |                       ^
+ *                |_______________________|
+ *
+ *    Point  Offset from v0
+ *     v8     (0, 0, 0, 1)
+ *     v9     (0, 0, 1, 1)
+ *     v10    (0, 1, 0, 1)
+ *     v11    (0, 1, 1, 1)
+ *     v12    (1, 0, 0, 1)
+ *     v13    (1, 0, 1, 1)
+ *     v14    (1, 1, 0, 1)
+ *     v15    (1, 1, 1, 1)
+ *
+ */
+ccl_device_noinline float perlin_4d(float x, float y, float z, float w)
+{
+  ssei XYZW;
+  ssef fxyzw = floorfrac(ssef(x, y, z, w), &XYZW);
+  ssef uvws = fade(fxyzw);
+
+  ssei XYZW1 = XYZW + 1;
+  ssei X = shuffle<0>(XYZW);
+  ssei X1 = shuffle<0>(XYZW1);
+  ssei Y = shuffle<1, 1, 1, 1>(XYZW, XYZW1);
+  ssei Z = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(XYZW, XYZW1));
+  ssei W = shuffle<3>(XYZW);
+  ssei W1 = shuffle<3>(XYZW1);
+
+  avxi h1 = hash_avxi4(avxi(X, X1), avxi(Y, Y), avxi(Z, Z), avxi(W, W));
+  avxi h2 = hash_avxi4(avxi(X, X1), avxi(Y, Y), avxi(Z, Z), avxi(W1, W1));
+
+  ssef fxyzw1 = fxyzw - 1.0f;
+  ssef fx = shuffle<0>(fxyzw);
+  ssef fx1 = shuffle<0>(fxyzw1);
+  ssef fy = shuffle<1, 1, 1, 1>(fxyzw, fxyzw1);
+  ssef fz = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(fxyzw, fxyzw1));
+  ssef fw = shuffle<3>(fxyzw);
+  ssef fw1 = shuffle<3>(fxyzw1);
+
+  avxf g1 = grad(h1, avxf(fx, fx1), avxf(fy, fy), avxf(fz, fz), avxf(fw, fw));
+  avxf g2 = grad(h2, avxf(fx, fx1), avxf(fy, fy), avxf(fz, fz), avxf(fw1, fw1));
+
+  return extract<0>(quad_mix(g1, g2, uvws));
+}
+#  endif
+
+#  undef negate_if_nth_bit
+
 #endif
 
 /* Remap the output of noise to a predictable range [-1, 1].

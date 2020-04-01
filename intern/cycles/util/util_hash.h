@@ -312,6 +312,60 @@ ccl_device_inline ssei hash_ssei4(ssei kx, ssei ky, ssei kz, ssei kw)
   return c;
 }
 
+#  if defined(__KERNEL_AVX__)
+ccl_device_inline avxi hash_avxi(avxi kx)
+{
+  avxi a, b, c;
+  a = b = c = avxi(0xdeadbeef + (1 << 2) + 13);
+
+  a += kx;
+  final(a, b, c);
+
+  return c;
+}
+
+ccl_device_inline avxi hash_avxi2(avxi kx, avxi ky)
+{
+  avxi a, b, c;
+  a = b = c = avxi(0xdeadbeef + (2 << 2) + 13);
+
+  b += ky;
+  a += kx;
+  final(a, b, c);
+
+  return c;
+}
+
+ccl_device_inline avxi hash_avxi3(avxi kx, avxi ky, avxi kz)
+{
+  avxi a, b, c;
+  a = b = c = avxi(0xdeadbeef + (3 << 2) + 13);
+
+  c += kz;
+  b += ky;
+  a += kx;
+  final(a, b, c);
+
+  return c;
+}
+
+ccl_device_inline avxi hash_avxi4(avxi kx, avxi ky, avxi kz, avxi kw)
+{
+  avxi a, b, c;
+  a = b = c = avxi(0xdeadbeef + (4 << 2) + 13);
+
+  a += kx;
+  b += ky;
+  c += kz;
+  mix(a, b, c);
+
+  a += kw;
+  final(a, b, c);
+
+  return c;
+}
+#  endif
+
 #  undef rot
 #  undef final
 #  undef mix
