@@ -1825,7 +1825,7 @@ static float curve_calc_dist_span(Nurb *nu, int vert_src, int vert_dst)
   int i_prev, i;
   float dist = 0.0f;
 
-  BLI_assert(nu->pntsv == 1);
+  BLI_assert(nu->pntsv <= 1);
 
   i_prev = vert_src;
   i = (i_prev + 1) % u;
