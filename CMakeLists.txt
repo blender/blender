@@ -633,9 +633,10 @@ set_and_warn_dependency(WITH_BOOST WITH_OPENVDB        OFF)
 set_and_warn_dependency(WITH_BOOST WITH_OPENCOLORIO    OFF)
 set_and_warn_dependency(WITH_BOOST WITH_QUADRIFLOW     OFF)
 set_and_warn_dependency(WITH_BOOST WITH_USD            OFF)
+set_and_warn_dependency(WITH_BOOST WITH_ALEMBIC        OFF)
 
 if(WITH_BOOST AND NOT (WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
-   WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_USD))
+   WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_USD OR WITH_ALEMBIC))
   message(STATUS "No dependencies need 'WITH_BOOST' forcing WITH_BOOST=OFF")
   set(WITH_BOOST OFF)
 endif()
