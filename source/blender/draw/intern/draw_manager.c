@@ -145,11 +145,8 @@ bool DRW_object_is_renderable(const Object *ob)
 
   if (ob->type == OB_MESH) {
     if ((ob == DST.draw_ctx.object_edit) || DRW_object_is_in_edit_mode(ob)) {
-
       View3D *v3d = DST.draw_ctx.v3d;
-      const int mask = (V3D_OVERLAY_EDIT_OCCLUDE_WIRE | V3D_OVERLAY_EDIT_WEIGHT);
-
-      if (v3d && v3d->overlay.edit_flag & mask) {
+      if (v3d && v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) {
         return false;
       }
     }
