@@ -165,6 +165,35 @@ bool RenderBuffers::copy_from_device()
   return true;
 }
 
+static const float *get_sample_count_pass(const vector<Pass> &passes, device_vector<float> &buffer)
+{
+  int sample_offset = 0;
+
+  for (const Pass &pass : passes) {
+    if (pass.type != PASS_SAMPLE_COUNT) {
+      sample_offset += pass.components;
+    }
+    else {
+      return buffer.data() + sample_offset;
+    }
+  }
+
+  return NULL;
+}
+
+static float get_pixel_pass_scale(const float rcp_sample,
+                                  const float *sample_count,
+                                  const int i,
+                                  const int pass_stride)
+{
+  if (sample_count) {
+    return 1.0f / fabsf(sample_count[i * pass_stride]);
+  }
+  else {
+    return rcp_sample;
+  }
+}
+
 bool RenderBuffers::get_denoising_pass_rect(
     int type, float exposure, int sample, int components, float *pixels)
 {
@@ -260,22 +289,7 @@ bool RenderBuffers::get_pass_rect(
     return false;
   }
 
-  float *sample_count = NULL;
-  if (name == "Combined") {
-    int sample_offset = 0;
-    for (size_t j = 0; j < params.passes.size(); j++) {
-      Pass &pass = params.passes[j];
-      if (pass.type != PASS_SAMPLE_COUNT) {
-        sample_offset += pass.components;
-        continue;
-      }
-      else {
-        sample_count = buffer.data() + sample_offset;
-        break;
-      }
-    }
-  }
-
+  const float *sample_count = get_sample_count_pass(params.passes, buffer);
   int pass_offset = 0;
 
   for (size_t j = 0; j < params.passes.size(); j++) {
@@ -293,8 +307,8 @@ bool RenderBuffers::get_pass_rect(
     float *in = buffer.data() + pass_offset;
     int pass_stride = params.get_passes_size();
 
-    float scale = (pass.filter) ? 1.0f / (float)sample : 1.0f;
-    float scale_exposure = (pass.exposure) ? scale * exposure : scale;
+    const float rcp_sample = 1.0f / (float)sample;
+    const float pass_exposure = (pass.exposure) ? exposure : 1.0f;
 
     int size = params.width * params.height;
 
@@ -312,28 +326,36 @@ bool RenderBuffers::get_pass_rect(
       if (type == PASS_DEPTH) {
         for (int i = 0; i < size; i++, in += pass_stride, pixels++) {
           float f = *in;
-          pixels[0] = (f == 0.0f) ? 1e10f : f * scale_exposure;
+          pixels[0] = (f == 0.0f) ? 1e10f : f;
+        }
+      }
+      else if (type == PASS_OBJECT_ID || type == PASS_MATERIAL_ID) {
+        for (int i = 0; i < size; i++, in += pass_stride, pixels++) {
+          pixels[0] = *in;
         }
       }
       else if (type == PASS_MIST) {
         for (int i = 0; i < size; i++, in += pass_stride, pixels++) {
-          float f = *in;
-          pixels[0] = saturate(f * scale_exposure);
+          const float scale = get_pixel_pass_scale(rcp_sample, sample_count, i, pass_stride);
+          const float f = *in;
+          pixels[0] = saturate(f * scale);
         }
       }
 #ifdef WITH_CYCLES_DEBUG
       else if (type == PASS_BVH_TRAVERSED_NODES || type == PASS_BVH_TRAVERSED_INSTANCES ||
                type == PASS_BVH_INTERSECTIONS || type == PASS_RAY_BOUNCES) {
         for (int i = 0; i < size; i++, in += pass_stride, pixels++) {
-          float f = *in;
+          const float scale = get_pixel_pass_scale(rcp_sample, sample_count, i, pass_stride);
+          const float f = *in;
           pixels[0] = f * scale;
         }
       }
 #endif
       else {
         for (int i = 0; i < size; i++, in += pass_stride, pixels++) {
-          float f = *in;
-          pixels[0] = f * scale_exposure;
+          const float scale = get_pixel_pass_scale(rcp_sample, sample_count, i, pass_stride);
+          const float f = *in;
+          pixels[0] = f * scale * pass_exposure;
         }
       }
     }
@@ -367,7 +389,7 @@ bool RenderBuffers::get_pass_rect(
           float3 f = make_float3(in[0], in[1], in[2]);
           float3 f_divide = make_float3(in_divide[0], in_divide[1], in_divide[2]);
 
-          f = safe_divide_even_color(f * exposure, f_divide);
+          f = safe_divide_even_color(f * pass_exposure, f_divide);
 
           pixels[0] = f.x;
           pixels[1] = f.y;
@@ -377,7 +399,9 @@ bool RenderBuffers::get_pass_rect(
       else {
         /* RGB/vector */
         for (int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
-          float3 f = make_float3(in[0], in[1], in[2]);
+          const float scale = get_pixel_pass_scale(rcp_sample, sample_count, i, pass_stride);
+          const float scale_exposure = scale * pass_exposure;
+          const float3 f = make_float3(in[0], in[1], in[2]);
 
           pixels[0] = f.x * scale_exposure;
           pixels[1] = f.y * scale_exposure;
@@ -425,7 +449,9 @@ bool RenderBuffers::get_pass_rect(
       }
       else if (type == PASS_CRYPTOMATTE) {
         for (int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
-          float4 f = make_float4(in[0], in[1], in[2], in[3]);
+          const float scale = get_pixel_pass_scale(rcp_sample, sample_count, i, pass_stride);
+          const float4 f = make_float4(in[0], in[1], in[2], in[3]);
+
           /* x and z contain integer IDs, don't rescale them.
              y and w contain matte weights, they get scaled. */
           pixels[0] = f.x;
@@ -436,12 +462,9 @@ bool RenderBuffers::get_pass_rect(
       }
       else {
         for (int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
-          if (sample_count && sample_count[i * pass_stride] < 0.0f) {
-            scale = (pass.filter) ? -1.0f / (sample_count[i * pass_stride]) : 1.0f;
-            scale_exposure = (pass.exposure) ? scale * exposure : scale;
-          }
-
-          float4 f = make_float4(in[0], in[1], in[2], in[3]);
+          const float scale = get_pixel_pass_scale(rcp_sample, sample_count, i, pass_stride);
+          const float scale_exposure = scale * pass_exposure;
+          const float4 f = make_float4(in[0], in[1], in[2], in[3]);
 
           pixels[0] = f.x * scale_exposure;
           pixels[1] = f.y * scale_exposure;

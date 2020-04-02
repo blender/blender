@@ -76,7 +76,6 @@ void Pass::add(PassType type, vector<Pass> &passes, const char *name)
   Pass pass;
 
   pass.type = type;
-  pass.filter = true;
   pass.exposure = false;
   pass.divide_type = PASS_NONE;
   if (name) {
@@ -93,7 +92,6 @@ void Pass::add(PassType type, vector<Pass> &passes, const char *name)
       break;
     case PASS_DEPTH:
       pass.components = 1;
-      pass.filter = false;
       break;
     case PASS_MIST:
       pass.components = 1;
@@ -114,7 +112,6 @@ void Pass::add(PassType type, vector<Pass> &passes, const char *name)
     case PASS_OBJECT_ID:
     case PASS_MATERIAL_ID:
       pass.components = 1;
-      pass.filter = false;
       break;
 
     case PASS_EMISSION:

@@ -42,7 +42,6 @@ class Pass {
  public:
   PassType type;
   int components;
-  bool filter;
   bool exposure;
   PassType divide_type;
   string name;
