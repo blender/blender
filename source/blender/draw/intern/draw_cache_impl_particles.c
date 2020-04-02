@@ -339,7 +339,8 @@ static void particle_calculate_parent_mcol(ParticleSystem *psys,
   if (num != DMCACHE_NOTFOUND && num != DMCACHE_ISCHILD) {
     MFace *mface = &psmd->mesh_final->mface[num];
     for (int j = 0; j < num_col_layers; j++) {
-      psys_interpolate_mcol(mcols[j] + num, mface->v4, particle->fuv, &r_mcol[j]);
+      /* CustomDataLayer CD_MCOL has 4 structs per face. */
+      psys_interpolate_mcol(mcols[j] + num * 4, mface->v4, particle->fuv, &r_mcol[j]);
     }
   }
 }
@@ -388,6 +389,7 @@ static void particle_interpolate_children_mcol(ParticleSystem *psys,
   if (num != DMCACHE_NOTFOUND) {
     MFace *mface = &psmd->mesh_final->mface[num];
     for (int j = 0; j < num_col_layers; j++) {
+      /* CustomDataLayer CD_MCOL has 4 structs per face. */
       psys_interpolate_mcol(mcols[j] + num * 4, mface->v4, particle->fuv, &r_mcol[j]);
     }
   }
