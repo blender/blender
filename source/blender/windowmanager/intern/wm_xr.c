@@ -68,7 +68,7 @@
 struct wmXrRuntimeData *wm_xr_runtime_data_create(void);
 void wm_xr_runtime_data_free(struct wmXrRuntimeData **runtime);
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *, void *);
-void *wm_xr_session_gpu_binding_context_create();
+void *wm_xr_session_gpu_binding_context_create(void);
 void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle);
 wmSurface *wm_xr_session_surface_create(void);
 void wm_xr_pose_to_viewmat(const GHOST_XrPose *pose, float r_viewmat[4][4]);

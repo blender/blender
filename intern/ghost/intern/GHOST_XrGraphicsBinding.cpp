@@ -338,4 +338,6 @@ std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
     default:
       return nullptr;
   }
+
+  (void)context; /* Might be unused. */
 }

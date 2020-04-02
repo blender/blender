@@ -621,7 +621,7 @@ typedef void (*GHOST_XrErrorHandlerFn)(const struct GHOST_XrError *);
 
 typedef void (*GHOST_XrSessionExitFn)(void *customdata);
 
-typedef void *(*GHOST_XrGraphicsContextBindFn)();
+typedef void *(*GHOST_XrGraphicsContextBindFn)(void);
 typedef void (*GHOST_XrGraphicsContextUnbindFn)(GHOST_ContextHandle graphics_context);
 typedef void (*GHOST_XrDrawViewFn)(const struct GHOST_XrDrawViewInfo *draw_view, void *customdata);
 
