@@ -1360,7 +1360,7 @@ static void rna_def_modifier_gpencilopacity(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Opacity Factor", "Factor of Opacity");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "hardeness", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "hardness", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "hardeness");
   RNA_def_property_range(prop, 0.0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0, FLT_MAX, 0.1, 2);

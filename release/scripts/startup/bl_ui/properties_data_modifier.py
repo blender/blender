@@ -2045,8 +2045,8 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.prop(md, "modify_color")
 
-        if md.modify_color == 'HARDENESS':
-            col.prop(md, "hardeness")
+        if md.modify_color == 'HARDNESS':
+            col.prop(md, "hardness")
             show = False
         else:
             col.prop(md, "normalize_opacity")
