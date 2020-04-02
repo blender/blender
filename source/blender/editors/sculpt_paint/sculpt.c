@@ -5083,7 +5083,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
 
       mul_v3_v3fl(val, offset, *disp);
 
-      if (!ss->multires && !ss->bm && ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
+      if (!ss->multires.active && !ss->bm && ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
         int index = vd.vert_indices[vd.i];
 
         /* Persistent base. */
@@ -6758,7 +6758,7 @@ static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
   Brush *brush = BKE_paint_brush(&sd->paint);
   MTex *mtex = &brush->mtex;
 
-  if (ss->multires && mtex->tex && mtex->tex->type == TEX_NOISE) {
+  if (ss->multires.active && mtex->tex && mtex->tex->type == TEX_NOISE) {
     multires_stitch_grids(ob);
   }
 }
@@ -7096,7 +7096,7 @@ static void sculpt_update_cache_invariants(
   /* Initialize layer brush displacements and persistent coords. */
   if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
     /* Not supported yet for multires or dynamic topology. */
-    if (!ss->multires && !ss->bm && !ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
+    if (!ss->multires.active && !ss->bm && !ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
       if (!ss->layer_co) {
         ss->layer_co = MEM_mallocN(sizeof(float) * 3 * ss->totvert, "sculpt mesh vertices copy");
       }
@@ -7862,7 +7862,7 @@ static void sculpt_flush_update_step(bContext *C, SculptUpdateType update_flags)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   ARegion *region = CTX_wm_region(C);
-  MultiresModifierData *mmd = ss->multires;
+  MultiresModifierData *mmd = ss->multires.modifier;
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 

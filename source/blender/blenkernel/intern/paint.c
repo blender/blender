@@ -1522,7 +1522,9 @@ static void sculpt_update_object(
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
    * so no extra checks is needed here. */
   if (mmd) {
-    ss->multires = mmd;
+    ss->multires.active = true;
+    ss->multires.modifier = mmd;
+    ss->multires.level = mmd->sculptlvl;
     ss->totvert = me_eval->totvert;
     ss->totpoly = me_eval->totpoly;
     ss->totfaces = me->totpoly;
@@ -1537,7 +1539,9 @@ static void sculpt_update_object(
     ss->mvert = me->mvert;
     ss->mpoly = me->mpoly;
     ss->mloop = me->mloop;
-    ss->multires = NULL;
+    ss->multires.active = false;
+    ss->multires.modifier = NULL;
+    ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
   }
 

@@ -400,7 +400,7 @@ static char get_effective_edge_crease_char(
     const MultiresReshapeSmoothContext *reshape_smooth_context, const MEdge *base_edge)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  if (reshape_context->mmd->simple) {
+  if (reshape_context->subdiv->settings.is_simple) {
     return 255;
   }
   return base_edge->crease;

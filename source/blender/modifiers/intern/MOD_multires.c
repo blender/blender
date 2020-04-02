@@ -211,7 +211,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     if (ctx->object->sculpt != NULL) {
       SculptSession *sculpt_session = ctx->object->sculpt;
       sculpt_session->subdiv_ccg = result->runtime.subdiv_ccg;
-      sculpt_session->multires = mmd;
+      sculpt_session->multires.active = true;
+      sculpt_session->multires.modifier = mmd;
+      sculpt_session->multires.level = mmd->sculptlvl;
       sculpt_session->totvert = mesh->totvert;
       sculpt_session->totpoly = mesh->totpoly;
       sculpt_session->mvert = NULL;

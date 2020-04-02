@@ -283,7 +283,11 @@ typedef struct SculptClothSimulation {
 
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
-  struct MultiresModifierData *multires; /* Special handling for multires meshes */
+  struct { /* Special handling for multires meshes */
+    bool active;
+    struct MultiresModifierData *modifier;
+    int level;
+  } multires;
   struct MVert *mvert;
   struct MPoly *mpoly;
   struct MLoop *mloop;
