@@ -332,6 +332,7 @@ typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),
   BRUSH_AUTOMASKING_FACE_SETS = (1 << 1),
   BRUSH_AUTOMASKING_BOUNDARY_EDGES = (1 << 2),
+  BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS = (1 << 3),
 } eAutomasking_flag;
 
 typedef struct Brush {

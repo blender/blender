@@ -823,8 +823,9 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         # face masks automasking
         layout.prop(brush, "use_automasking_face_sets")
         
-        # boundary edges automasking
+        # boundary edges/face sets automasking
         layout.prop(brush, "use_automasking_boundary_edges")
+        layout.prop(brush, "use_automasking_boundary_face_sets")
         layout.prop(brush, "automasking_boundary_edges_propagation_steps")
 
 

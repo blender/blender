@@ -1601,6 +1601,9 @@ static bool sculpt_automasking_enabled(SculptSession *ss, const Brush *br)
   if (br->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
     return true;
   }
+  if (br->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+    return true;
+  }
   return false;
 }
 
@@ -1719,9 +1722,15 @@ static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *a
 
 #define EDGE_DISTANCE_INF -1
 
-static float *sculpt_boundary_edges_automasking_init(Object *ob,
-                                                     int propagation_steps,
-                                                     float *automask_factor)
+typedef enum eBoundaryAutomaskMode {
+  AUTOMASK_INIT_BOUNDARY_EDGES = 1,
+  AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
+} eBoundaryAutomaskMode;
+
+static float *sculpt_boundary_automasking_init(Object *ob,
+                                               eBoundaryAutomaskMode mode,
+                                               int propagation_steps,
+                                               float *automask_factor)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1735,8 +1744,17 @@ static float *sculpt_boundary_edges_automasking_init(Object *ob,
 
   for (int i = 0; i < totvert; i++) {
     edge_distance[i] = EDGE_DISTANCE_INF;
-    if (!sculpt_vertex_is_boundary(ss, i)) {
-      edge_distance[i] = 0;
+    switch (mode) {
+      case AUTOMASK_INIT_BOUNDARY_EDGES:
+        if (!sculpt_vertex_is_boundary(ss, i)) {
+          edge_distance[i] = 0;
+        }
+        break;
+      case AUTOMASK_INIT_BOUNDARY_FACE_SETS:
+        if (!SCULPT_vertex_has_unique_face_set(ss, i)) {
+          edge_distance[i] = 0;
+        }
+        break;
     }
   }
 
@@ -1794,8 +1812,17 @@ static void sculpt_automasking_init(Sculpt *sd, Object *ob)
 
   if (brush->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
     SCULPT_vertex_random_access_init(ss);
-    sculpt_boundary_edges_automasking_init(
-        ob, brush->automasking_boundary_edges_propagation_steps, ss->cache->automask);
+    sculpt_boundary_automasking_init(ob,
+                                     AUTOMASK_INIT_BOUNDARY_EDGES,
+                                     brush->automasking_boundary_edges_propagation_steps,
+                                     ss->cache->automask);
+  }
+  if (brush->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+    SCULPT_vertex_random_access_init(ss);
+    sculpt_boundary_automasking_init(ob,
+                                     AUTOMASK_INIT_BOUNDARY_FACE_SETS,
+                                     brush->automasking_boundary_edges_propagation_steps,
+                                     ss->cache->automask);
   }
 }
 
@@ -9871,7 +9898,8 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     for (int i = 0; i < totvert; i++) {
       ss->filter_cache->automask[i] = 1.0f;
     }
-    sculpt_boundary_edges_automasking_init(ob, 1, ss->filter_cache->automask);
+    sculpt_boundary_automasking_init(
+        ob, AUTOMASK_INIT_BOUNDARY_EDGES, 1, ss->filter_cache->automask);
   }
 
   WM_event_add_modal_handler(C, op);
