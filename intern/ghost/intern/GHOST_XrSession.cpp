@@ -45,7 +45,7 @@ struct OpenXRSessionData {
   XrSpace reference_space;
   XrSpace view_space;
   std::vector<XrView> views;
-  std::vector<std::unique_ptr<GHOST_XrSwapchain>> swapchains;
+  std::vector<GHOST_XrSwapchain> swapchains;
 };
 
 struct GHOST_XrDrawInfo {
@@ -267,8 +267,7 @@ void GHOST_XrSession::prepareDrawing()
            "Failed to get count of view configurations.");
 
   for (const XrViewConfigurationView &view_config : view_configs) {
-    m_oxr->swapchains.push_back(std::unique_ptr<GHOST_XrSwapchain>(
-        new GHOST_XrSwapchain(*m_gpu_binding, m_oxr->session, view_config)));
+    m_oxr->swapchains.emplace_back(*m_gpu_binding, m_oxr->session, view_config);
   }
 
   m_oxr->views.resize(view_count, {XR_TYPE_VIEW});
@@ -443,7 +442,7 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
   r_proj_layer_views.resize(view_count);
 
   for (uint32_t view_idx = 0; view_idx < view_count; view_idx++) {
-    drawView(*m_oxr->swapchains[view_idx],
+    drawView(m_oxr->swapchains[view_idx],
              r_proj_layer_views[view_idx],
              view_location,
              m_oxr->views[view_idx],

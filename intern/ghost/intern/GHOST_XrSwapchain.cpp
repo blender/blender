@@ -92,9 +92,19 @@ GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
   m_oxr->swapchain_images = swapchain_images_create(m_oxr->swapchain, gpu_binding);
 }
 
+GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_XrSwapchain &&other)
+    : m_oxr(std::move(other.m_oxr)),
+      m_image_width(other.m_image_width),
+      m_image_height(other.m_image_height)
+{
+  /* Prevent xrDestroySwapchain call for the moved out item. */
+  other.m_oxr = nullptr;
+}
+
 GHOST_XrSwapchain::~GHOST_XrSwapchain()
 {
-  if (m_oxr->swapchain != XR_NULL_HANDLE) {
+  /* m_oxr may be NULL after move. */
+  if (m_oxr && m_oxr->swapchain != XR_NULL_HANDLE) {
     CHECK_XR_ASSERT(xrDestroySwapchain(m_oxr->swapchain));
   }
 }

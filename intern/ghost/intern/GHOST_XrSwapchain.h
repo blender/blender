@@ -30,6 +30,7 @@ class GHOST_XrSwapchain {
   GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
                     const XrSession &session,
                     const XrViewConfigurationView &view_config);
+  GHOST_XrSwapchain(GHOST_XrSwapchain &&other);
   ~GHOST_XrSwapchain();
 
   XrSwapchainImageBaseHeader *acquireDrawableSwapchainImage();
