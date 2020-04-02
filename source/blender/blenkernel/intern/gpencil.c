@@ -541,7 +541,12 @@ bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness)
   gps->flag = GP_STROKE_3DSPACE;
 
   gps->totpoints = totpoints;
-  gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+  if (gps->totpoints > 0) {
+    gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+  }
+  else {
+    gps->points = NULL;
+  }
 
   /* initialize triangle memory to dummy data */
   gps->triangles = NULL;

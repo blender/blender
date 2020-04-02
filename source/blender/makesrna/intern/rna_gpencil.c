@@ -710,10 +710,7 @@ static void rna_GPencil_stroke_point_pop(ID *id,
 
 static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame)
 {
-  bGPDstroke *stroke = MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
-  stroke->hardeness = 1.0f;
-  ARRAY_SET_ITEMS(stroke->aspect_ratio, 1.0f, 1.0f);
-  stroke->uv_scale = 1.0f;
+  bGPDstroke *stroke = BKE_gpencil_stroke_new(0, 0, 1.0f);
   BLI_addtail(&frame->strokes, stroke);
 
   return stroke;
