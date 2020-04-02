@@ -877,12 +877,13 @@ void BKE_undosys_print(UndoStack *ustack)
          BLI_listbase_count(&ustack->steps));
   int index = 0;
   for (UndoStep *us = ustack->steps.first; us; us = us->next) {
-    printf("[%c%c%c%c] %3d type='%s', name='%s'\n",
+    printf("[%c%c%c%c] %3d {%p} type='%s', name='%s'\n",
            (us == ustack->step_active) ? '*' : ' ',
            us->is_applied ? '#' : ' ',
            (us == ustack->step_active_memfile) ? 'M' : ' ',
            us->skip ? 'S' : ' ',
            index,
+           (void *)us,
            us->type->name,
            us->name);
     index++;
