@@ -1929,7 +1929,9 @@ static int arg_handle_python_use_system_env_set(int UNUSED(argc),
                                                 const char **UNUSED(argv),
                                                 void *UNUSED(data))
 {
+#  ifdef WITH_PYTHON
   BPY_python_use_system_env();
+#  endif
   return 0;
 }
 
