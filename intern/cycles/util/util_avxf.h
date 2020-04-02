@@ -266,7 +266,8 @@ template<size_t i0> __forceinline const avxf shuffle(const avxf &a)
 
 template<size_t i> __forceinline float extract(const avxf &a)
 {
-  return _mm256_cvtss_f32(shuffle<i, i, i, i>(a).m256);
+  __m256 b = shuffle<i, i, i, i>(a).m256;
+  return _mm256_cvtss_f32(b);
 }
 template<> __forceinline float extract<0>(const avxf &a)
 {

@@ -588,6 +588,13 @@ __forceinline __m128 _mm_round_ps_emu(__m128 value, const int flags)
 
 #    endif /* !(defined(__KERNEL_SSE41__) || defined(__SSE4_1__) || defined(__SSE4_2__)) */
 
+/* Older GCC versions do not have _mm256_cvtss_f32 yet, so define it ourselves.
+ * _mm256_castps256_ps128 generates no instructions so this is jus as efficient. */
+#    ifdef __KERNEL_AVX__
+#      undef _mm256_cvtss_f32
+#      define _mm256_cvtss_f32(a) (_mm_cvtss_f32(_mm256_castps256_ps128(a)))
+#    endif
+
 #  else /* __KERNEL_SSE2__ */
 
 /* This section is for utility functions which operates on non-register data
