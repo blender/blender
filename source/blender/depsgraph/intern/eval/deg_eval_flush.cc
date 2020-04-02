@@ -172,15 +172,16 @@ BLI_INLINE void flush_handle_component_node(IDNode *id_node,
  */
 BLI_INLINE OperationNode *flush_schedule_children(OperationNode *op_node, FlushQueue *queue)
 {
+  if (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
+    IDNode *id_node = op_node->owner->owner;
+    id_node->is_user_modified = true;
+  }
+
   OperationNode *result = nullptr;
   for (Relation *rel : op_node->outlinks) {
     /* Flush is forbidden, completely. */
     if (rel->flag & RELATION_FLAG_NO_FLUSH) {
       continue;
-    }
-    if (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
-      IDNode *id_node = op_node->owner->owner;
-      id_node->is_user_modified = true;
     }
     /* Relation only allows flushes on user changes, but the node was not
      * affected by user. */
