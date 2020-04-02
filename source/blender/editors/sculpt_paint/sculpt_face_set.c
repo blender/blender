@@ -922,8 +922,8 @@ static int sculpt_face_sets_randomize_colors_invoke(bContext *C,
   SculptSession *ss = ob->sculpt;
   ARegion *region = CTX_wm_region(C);
 
-  /* Dyntopo and Multires not supported for now. */
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+  /* Dyntopo not supported. */
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     return OPERATOR_CANCELLED;
   }
 
