@@ -24,10 +24,10 @@
 #ifndef MANTA_A_H
 #define MANTA_A_H
 
-#include <string>
-#include <vector>
 #include <atomic>
 #include <cassert>
+#include <string>
+#include <vector>
 
 struct MANTA {
  public:
@@ -77,32 +77,32 @@ struct MANTA {
   void updatePointers();
 
   // Write cache
-  int writeConfiguration(FluidModifierData *mmd, int framenr);
-  int writeData(FluidModifierData *mmd, int framenr);
+  bool writeConfiguration(FluidModifierData *mmd, int framenr);
+  bool writeData(FluidModifierData *mmd, int framenr);
   // write call for noise, mesh and particles were left in bake calls for now
 
   // Read cache (via Manta save/load)
-  int readConfiguration(FluidModifierData *mmd, int framenr);
-  int readData(FluidModifierData *mmd, int framenr);
-  int readNoise(FluidModifierData *mmd, int framenr);
-  int readMesh(FluidModifierData *mmd, int framenr);
-  int readParticles(FluidModifierData *mmd, int framenr);
-  int readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain);
+  bool readConfiguration(FluidModifierData *mmd, int framenr);
+  bool readData(FluidModifierData *mmd, int framenr);
+  bool readNoise(FluidModifierData *mmd, int framenr);
+  bool readMesh(FluidModifierData *mmd, int framenr);
+  bool readParticles(FluidModifierData *mmd, int framenr);
+  bool readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain);
 
   // Read cache (via file read functions in MANTA - e.g. read .bobj.gz meshes, .uni particles)
-  int updateMeshStructures(FluidModifierData *mmd, int framenr);
-  int updateFlipStructures(FluidModifierData *mmd, int framenr);
-  int updateParticleStructures(FluidModifierData *mmd, int framenr);
-  int updateSmokeStructures(FluidModifierData *mmd, int framenr);
-  int updateNoiseStructures(FluidModifierData *mmd, int framenr);
-  void updateVariables(FluidModifierData *mmd);
+  bool updateMeshStructures(FluidModifierData *mmd, int framenr);
+  bool updateFlipStructures(FluidModifierData *mmd, int framenr);
+  bool updateParticleStructures(FluidModifierData *mmd, int framenr);
+  bool updateSmokeStructures(FluidModifierData *mmd, int framenr);
+  bool updateNoiseStructures(FluidModifierData *mmd, int framenr);
+  bool updateVariables(FluidModifierData *mmd);
 
   // Bake cache
-  int bakeData(FluidModifierData *mmd, int framenr);
-  int bakeNoise(FluidModifierData *mmd, int framenr);
-  int bakeMesh(FluidModifierData *mmd, int framenr);
-  int bakeParticles(FluidModifierData *mmd, int framenr);
-  int bakeGuiding(FluidModifierData *mmd, int framenr);
+  bool bakeData(FluidModifierData *mmd, int framenr);
+  bool bakeNoise(FluidModifierData *mmd, int framenr);
+  bool bakeMesh(FluidModifierData *mmd, int framenr);
+  bool bakeParticles(FluidModifierData *mmd, int framenr);
+  bool bakeGuiding(FluidModifierData *mmd, int framenr);
 
   // IO for Mantaflow scene script
   void exportSmokeScript(struct FluidModifierData *mmd);
@@ -401,7 +401,6 @@ struct MANTA {
     return mPhi;
   }
 
-  static std::atomic<bool> mantaInitialized;
   static std::atomic<int> solverID;
   static int with_debug;  // on or off (1 or 0), also sets manta debug level
 
@@ -858,20 +857,20 @@ struct MANTA {
   void initSmokeNoise(struct FluidModifierData *mmd);
   void initializeMantaflow();
   void terminateMantaflow();
-  void runPythonString(std::vector<std::string> commands);
+  bool runPythonString(std::vector<std::string> commands);
   std::string getRealValue(const std::string &varName, FluidModifierData *mmd);
   std::string parseLine(const std::string &line, FluidModifierData *mmd);
   std::string parseScript(const std::string &setup_string, FluidModifierData *mmd = NULL);
-  void updateMeshFromBobj(const char *filename);
-  void updateMeshFromObj(const char *filename);
-  void updateMeshFromUni(const char *filename);
-  void updateParticlesFromUni(const char *filename, bool isSecondarySys, bool isVelData);
-  int updateGridFromUni(const char *filename, float *grid, bool isNoise);
-  int updateGridFromVDB(const char *filename, float *grid, bool isNoise);
-  int updateGridFromRaw(const char *filename, float *grid, bool isNoise);
-  void updateMeshFromFile(const char *filename);
-  void updateParticlesFromFile(const char *filename, bool isSecondarySys, bool isVelData);
-  int updateGridFromFile(const char *filename, float *grid, bool isNoise);
+  bool updateMeshFromBobj(const char *filename);
+  bool updateMeshFromObj(const char *filename);
+  bool updateMeshFromUni(const char *filename);
+  bool updateParticlesFromUni(const char *filename, bool isSecondarySys, bool isVelData);
+  bool updateGridFromUni(const char *filename, float *grid, bool isNoise);
+  bool updateGridFromVDB(const char *filename, float *grid, bool isNoise);
+  bool updateGridFromRaw(const char *filename, float *grid, bool isNoise);
+  bool updateMeshFromFile(const char *filename);
+  bool updateParticlesFromFile(const char *filename, bool isSecondarySys, bool isVelData);
+  bool updateGridFromFile(const char *filename, float *grid, bool isNoise);
 };
 
 #endif
