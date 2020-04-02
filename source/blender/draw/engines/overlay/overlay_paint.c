@@ -266,5 +266,7 @@ void OVERLAY_paint_draw(OVERLAY_Data *vedata)
   if (psl->paint_color_ps) {
     DRW_draw_pass(psl->paint_color_ps);
   }
-  DRW_draw_pass(psl->paint_overlay_ps);
+  if (psl->paint_overlay_ps) {
+    DRW_draw_pass(psl->paint_overlay_ps);
+  }
 }
