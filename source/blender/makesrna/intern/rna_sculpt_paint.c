@@ -815,6 +815,34 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
+  prop = RNA_def_property(srna, "use_automasking_topology", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_TOPOLOGY);
+  RNA_def_property_ui_text(prop,
+                           "Topology Auto-masking",
+                           "Affect only vertices connected to the active vertex under the brush");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_face_sets", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_FACE_SETS);
+  RNA_def_property_ui_text(prop,
+                           "Face Sets Auto-masking",
+                           "Affect only vertices that share Face Sets with the active vertex");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_boundary_edges", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BOUNDARY_EDGES);
+  RNA_def_property_ui_text(
+      prop, "Mesh Boundary Auto-masking", "Do not affect non manifold boundary edges");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "use_automasking_boundary_face_sets", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS);
+  RNA_def_property_ui_text(prop,
+                           "Face Sets Boundary Auto-masking",
+                           "Do not affect vertices that belong to a Face Set boundary");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
   prop = RNA_def_property(srna, "symmetrize_direction", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_symmetrize_direction_items);
   RNA_def_property_ui_text(prop, "Direction", "Source and destination for symmetrize operator");

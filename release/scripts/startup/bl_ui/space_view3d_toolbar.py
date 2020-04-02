@@ -905,6 +905,13 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col = flow.column()
         col.prop(sculpt, "use_deform_only")
 
+        col = flow.column()
+        col.separator()
+        col.prop(sculpt, "use_automasking_topology")
+        col.prop(sculpt, "use_automasking_face_sets")
+        col.prop(sculpt, "use_automasking_boundary_edges")
+        col.prop(sculpt, "use_automasking_boundary_face_sets")
+
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)

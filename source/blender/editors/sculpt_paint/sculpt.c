@@ -1587,21 +1587,28 @@ static bool sculpt_brush_test_cyl(SculptBrushTest *test,
 
 /* Automasking */
 
-static bool sculpt_automasking_enabled(SculptSession *ss, const Brush *br)
+static bool sculpt_is_automasking_mode_enabled(const Sculpt *sd,
+                                               const Brush *br,
+                                               const eAutomasking_flag mode)
+{
+  return br->automasking_flags & mode || sd->automasking_flags & mode;
+}
+
+static bool sculpt_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br)
 {
   if (sculpt_stroke_is_dynamic_topology(ss, br)) {
     return false;
   }
-  if (br->automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
+  if (sculpt_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_TOPOLOGY)) {
     return true;
   }
-  if (br->automasking_flags & BRUSH_AUTOMASKING_FACE_SETS) {
+  if (sculpt_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_FACE_SETS)) {
     return true;
   }
-  if (br->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
+  if (sculpt_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
     return true;
   }
-  if (br->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+  if (sculpt_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
     return true;
   }
   return false;
@@ -1662,7 +1669,7 @@ static float *sculpt_topology_automasking_init(Sculpt *sd, Object *ob, float *au
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (!sculpt_automasking_enabled(ss, brush)) {
+  if (!sculpt_automasking_enabled(sd, ss, brush)) {
     return NULL;
   }
 
@@ -1700,7 +1707,7 @@ static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *a
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (!sculpt_automasking_enabled(ss, brush)) {
+  if (!sculpt_automasking_enabled(sd, ss, brush)) {
     return NULL;
   }
 
@@ -1790,7 +1797,7 @@ static void sculpt_automasking_init(Sculpt *sd, Object *ob)
   Brush *brush = BKE_paint_brush(&sd->paint);
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  if (!sculpt_automasking_enabled(ss, brush)) {
+  if (!sculpt_automasking_enabled(sd, ss, brush)) {
     return;
   }
 
@@ -1801,23 +1808,23 @@ static void sculpt_automasking_init(Sculpt *sd, Object *ob)
     ss->cache->automask[i] = 1.0f;
   }
 
-  if (brush->automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
+  if (sculpt_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_init(ss);
     sculpt_topology_automasking_init(sd, ob, ss->cache->automask);
   }
-  if (brush->automasking_flags & BRUSH_AUTOMASKING_FACE_SETS) {
+  if (sculpt_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
     SCULPT_vertex_random_access_init(ss);
     sculpt_face_sets_automasking_init(sd, ob, ss->cache->automask);
   }
 
-  if (brush->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
+  if (sculpt_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
     SCULPT_vertex_random_access_init(ss);
     sculpt_boundary_automasking_init(ob,
                                      AUTOMASK_INIT_BOUNDARY_EDGES,
                                      brush->automasking_boundary_edges_propagation_steps,
                                      ss->cache->automask);
   }
-  if (brush->automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
+  if (sculpt_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
     SCULPT_vertex_random_access_init(ss);
     sculpt_boundary_automasking_init(ob,
                                      AUTOMASK_INIT_BOUNDARY_FACE_SETS,
@@ -6293,7 +6300,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     }
 
     if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0) {
-      if (sculpt_automasking_enabled(ss, brush)) {
+      if (sculpt_automasking_enabled(sd, ss, brush)) {
         sculpt_automasking_init(sd, ob);
       }
     }
@@ -7460,9 +7467,12 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 /* Returns true if any of the smoothing modes are active (currently
  * one of smooth brush, autosmooth, mask smooth, or shift-key
  * smooth). */
-static bool sculpt_needs_connectivity_info(const Brush *brush, SculptSession *ss, int stroke_mode)
+static bool sculpt_needs_connectivity_info(const Sculpt *sd,
+                                           const Brush *brush,
+                                           SculptSession *ss,
+                                           int stroke_mode)
 {
-  if (ss && ss->pbvh && sculpt_automasking_enabled(ss, brush)) {
+  if (ss && ss->pbvh && sculpt_automasking_enabled(sd, ss, brush)) {
     return true;
   }
   return ((stroke_mode == BRUSH_STROKE_SMOOTH) || (ss && ss->cache && ss->cache->alt_smooth) ||
@@ -7478,8 +7488,9 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob, const B
 {
   SculptSession *ss = ob->sculpt;
   View3D *v3d = CTX_wm_view3d(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-  bool need_pmap = sculpt_needs_connectivity_info(brush, ss, 0);
+  bool need_pmap = sculpt_needs_connectivity_info(sd, brush, ss, 0);
   if (ss->shapekey_active || ss->deform_modifiers_active ||
       (!BKE_sculptsession_use_pbvh_draw(ob, v3d) && need_pmap)) {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -7853,7 +7864,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   view3d_operator_needs_opengl(C);
   sculpt_brush_init_tex(scene, sd, ss);
 
-  is_smooth = sculpt_needs_connectivity_info(brush, ss, mode);
+  is_smooth = sculpt_needs_connectivity_info(sd, brush, ss, mode);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, is_smooth, need_mask);
 }
 
@@ -8153,7 +8164,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
       }
     }
 
-    if (sculpt_automasking_enabled(ss, brush)) {
+    if (sculpt_automasking_enabled(sd, ss, brush)) {
       sculpt_automasking_end(ob);
     }
 
