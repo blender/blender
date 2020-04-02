@@ -172,7 +172,8 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
   }
 
   std::string requirement_str;
-  m_gpu_binding = GHOST_XrGraphicsBindingCreateFromType(m_context->getGraphicsBindingType());
+  m_gpu_binding = GHOST_XrGraphicsBindingCreateFromType(m_context->getGraphicsBindingType(),
+                                                        m_gpu_ctx);
   if (!m_gpu_binding->checkVersionRequirements(
           m_gpu_ctx, m_context->getInstance(), m_oxr->system_id, &requirement_str)) {
     std::ostringstream strstream;
@@ -456,6 +457,11 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
   return layer;
 }
 
+bool GHOST_XrSession::needsUpsideDownDrawing() const
+{
+  return m_gpu_binding && m_gpu_binding->needsUpsideDownDrawing(*m_gpu_ctx);
+}
+
 /** \} */ /* Drawing */
 
 /* -------------------------------------------------------------------- */
@@ -495,16 +501,14 @@ void GHOST_XrSession::bindGraphicsContext()
 {
   const GHOST_XrCustomFuncs &custom_funcs = m_context->getCustomFuncs();
   assert(custom_funcs.gpu_ctx_bind_fn);
-  m_gpu_ctx = static_cast<GHOST_Context *>(
-      custom_funcs.gpu_ctx_bind_fn(m_context->getGraphicsBindingType()));
+  m_gpu_ctx = static_cast<GHOST_Context *>(custom_funcs.gpu_ctx_bind_fn());
 }
 
 void GHOST_XrSession::unbindGraphicsContext()
 {
   const GHOST_XrCustomFuncs &custom_funcs = m_context->getCustomFuncs();
   if (custom_funcs.gpu_ctx_unbind_fn) {
-    custom_funcs.gpu_ctx_unbind_fn(m_context->getGraphicsBindingType(),
-                                   (GHOST_ContextHandle)m_gpu_ctx);
+    custom_funcs.gpu_ctx_unbind_fn((GHOST_ContextHandle)m_gpu_ctx);
   }
   m_gpu_ctx = nullptr;
 }

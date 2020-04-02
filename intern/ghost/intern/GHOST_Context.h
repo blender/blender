@@ -120,9 +120,9 @@ class GHOST_Context : public GHOST_IContext {
   }
 
   /**
-   * Returns if the window is rendered upside down compared to OpenGL.
+   * Returns if the context is rendered upside down compared to OpenGL.
    */
-  inline bool isUpsideDown() const
+  virtual inline bool isUpsideDown() const
   {
     return false;
   }

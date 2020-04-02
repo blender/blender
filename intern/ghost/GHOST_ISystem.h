@@ -267,12 +267,6 @@ class GHOST_ISystem {
   virtual GHOST_IContext *createOffscreenContext() = 0;
 
   /**
-   * Overload to allow requesting a different context type. By default only OpenGL is supported.
-   * However by explicitly overloading this a system may add support for others.
-   */
-  virtual GHOST_IContext *createOffscreenContext(GHOST_TDrawingContextType type) = 0;
-
-  /**
    * Dispose of a context.
    * \param   context Pointer to the context to be disposed.
    * \return  Indication of success.

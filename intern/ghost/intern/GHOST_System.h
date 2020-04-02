@@ -119,12 +119,6 @@ class GHOST_System : public GHOST_ISystem {
   virtual GHOST_IContext *createOffscreenContext() = 0;
 
   /**
-   * Overload to allow requesting a different context type. By default only OpenGL is supported.
-   * However by explicitly overloading this a system may add support for others.
-   */
-  GHOST_IContext *createOffscreenContext(GHOST_TDrawingContextType type);
-
-  /**
    * Returns whether a window is valid.
    * \param   window Pointer to the window to be checked.
    * \return  Indication of validity.

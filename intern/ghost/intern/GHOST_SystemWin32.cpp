@@ -411,9 +411,9 @@ GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
  * Never explicitly delete the window, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
-GHOST_IContext *GHOST_SystemWin32::createOffscreenContextD3D()
+GHOST_ContextD3D *GHOST_SystemWin32::createOffscreenContextD3D()
 {
-  GHOST_Context *context;
+  GHOST_ContextD3D *context;
 
   HWND wnd = CreateWindowA("STATIC",
                            "Blender XR",
@@ -435,16 +435,11 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContextD3D()
   return context;
 }
 
-GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_TDrawingContextType type)
+GHOST_TSuccess GHOST_SystemWin32::disposeContextD3D(GHOST_ContextD3D *context)
 {
-  switch (type) {
-    case GHOST_kDrawingContextTypeOpenGL:
-      return createOffscreenContext();
-    case GHOST_kDrawingContextTypeD3D:
-      return createOffscreenContextD3D();
-    default:
-      return NULL;
-  }
+  delete context;
+
+  return GHOST_kSuccess;
 }
 
 bool GHOST_SystemWin32::processEvents(bool waitForEvent)

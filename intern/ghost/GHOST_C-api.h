@@ -214,25 +214,6 @@ extern GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemha
 extern GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
                                                  GHOST_ContextHandle contexthandle);
 
-#ifdef WIN32
-/**
- * Create a new offscreen context.
- * Never explicitly delete the context, use disposeContext() instead.
- * \param systemhandle The handle to the system
- * \return A handle to the new context ( == NULL if creation failed).
- */
-GHOST_ContextHandle GHOST_CreateDirectXContext(GHOST_SystemHandle systemhandle);
-
-/**
- * Dispose of a context.
- * \param systemhandle The handle to the system
- * \param contexthandle Handle to the context to be disposed.
- * \return Indication of success.
- */
-GHOST_TSuccess GHOST_DisposeDirectXContext(GHOST_SystemHandle systemhandle,
-                                           GHOST_ContextHandle contexthandle);
-#endif
-
 /**
  * Returns the window user data.
  * \param windowhandle The handle to the window
@@ -1077,6 +1058,13 @@ void GHOST_XrSessionDrawViews(GHOST_XrContextHandle xr_context, void *customdata
  * (https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html#session_running).
  */
 int GHOST_XrSessionIsRunning(const GHOST_XrContextHandle xr_context);
+
+/**
+ * Check if \a xr_context has a session that requrires an upside-down framebuffer (compared to
+ * OpenGL). If true, the render result should be flipped vertically for correct output.
+ * \note: Only to be called after session start, may otherwise result in a false negative.
+ */
+int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_XrContextHandle xr_context);
 
 /* events */
 /**

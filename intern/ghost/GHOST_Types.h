@@ -621,9 +621,8 @@ typedef void (*GHOST_XrErrorHandlerFn)(const struct GHOST_XrError *);
 
 typedef void (*GHOST_XrSessionExitFn)(void *customdata);
 
-typedef void *(*GHOST_XrGraphicsContextBindFn)(enum GHOST_TXrGraphicsBinding graphics_lib);
-typedef void (*GHOST_XrGraphicsContextUnbindFn)(enum GHOST_TXrGraphicsBinding graphics_lib,
-                                                GHOST_ContextHandle graphics_context);
+typedef void *(*GHOST_XrGraphicsContextBindFn)();
+typedef void (*GHOST_XrGraphicsContextUnbindFn)(GHOST_ContextHandle graphics_context);
 typedef void (*GHOST_XrDrawViewFn)(const struct GHOST_XrDrawViewInfo *draw_view, void *customdata);
 
 /* An array of GHOST_TXrGraphicsBinding items defining the candidate bindings to use. The first

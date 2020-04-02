@@ -42,6 +42,7 @@ class GHOST_EventWheel;
 class GHOST_EventWindow;
 class GHOST_EventDragnDrop;
 
+class GHOST_ContextD3D;
 class GHOST_WindowWin32;
 
 /**
@@ -131,18 +132,28 @@ class GHOST_SystemWin32 : public GHOST_System {
   GHOST_IContext *createOffscreenContext();
 
   /**
-   * Create a new offscreen context.
-   * Never explicitly delete the window, use disposeContext() instead.
-   * \return  The new context (or 0 if creation failed).
-   */
-  GHOST_IContext *createOffscreenContext(GHOST_TDrawingContextType type);
-
-  /**
    * Dispose of a context.
    * \param   context Pointer to the context to be disposed.
    * \return  Indication of success.
    */
   GHOST_TSuccess disposeContext(GHOST_IContext *context);
+
+  /**
+   * Create a new offscreen DirectX context.
+   * Never explicitly delete the context, use disposeContext() instead.
+   * This is for GHOST internal, Win32 specific use, so it can be called statically.
+   *
+   * \return  The new context (or 0 if creation failed).
+   */
+  static GHOST_ContextD3D *createOffscreenContextD3D();
+
+  /**
+   * Dispose of a DirectX context.
+   * This is for GHOST internal, Win32 specific use, so it can be called statically.
+   * \param   context Pointer to the context to be disposed.
+   * \return  Indication of success.
+   */
+  static GHOST_TSuccess disposeContextD3D(GHOST_ContextD3D *context);
 
   /***************************************************************************************
    ** Event management functionality
@@ -254,13 +265,6 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \return A success value.
    */
   GHOST_TSuccess exit();
-
-  /**
-   * Create a new offscreen DirectX context.
-   * Never explicitly delete the window, use disposeContext() instead.
-   * \return  The new context (or 0 if creation failed).
-   */
-  GHOST_IContext *createOffscreenContextD3D();
 
   /**
    * Converts raw WIN32 key codes from the wndproc to GHOST keys.

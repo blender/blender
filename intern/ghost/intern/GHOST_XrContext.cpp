@@ -512,6 +512,13 @@ void GHOST_XrContext::setDrawViewFunc(GHOST_XrDrawViewFn draw_view_fn)
   m_custom_funcs.draw_view_fn = draw_view_fn;
 }
 
+bool GHOST_XrContext::needsUpsideDownDrawing() const
+{
+  /* Must only be called after the session was started */
+  assert(m_session);
+  return m_session->needsUpsideDownDrawing();
+}
+
 /** \} */ /* Public Accessors and Mutators */
 
 /* -------------------------------------------------------------------- */

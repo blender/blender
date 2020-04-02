@@ -150,25 +150,6 @@ GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
   return system->disposeContext(context);
 }
 
-#ifdef WIN32
-GHOST_ContextHandle GHOST_CreateDirectXContext(GHOST_SystemHandle systemhandle)
-{
-  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
-
-  return (GHOST_ContextHandle)system->createOffscreenContext(GHOST_kDrawingContextTypeD3D);
-}
-
-GHOST_TSuccess GHOST_DisposeDirectXContext(GHOST_SystemHandle systemhandle,
-                                           GHOST_ContextHandle contexthandle)
-{
-  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
-  GHOST_IContext *context = (GHOST_IContext *)contexthandle;
-
-  return system->disposeContext(context);
-}
-
-#endif
-
 GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       const char *title,
                                       GHOST_TInt32 left,
@@ -716,13 +697,6 @@ unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contex
   return context->getDefaultFramebuffer();
 }
 
-int GHOST_isUpsideDownContext(GHOST_ContextHandle contexthandle)
-{
-  GHOST_IContext *context = (GHOST_IContext *)contexthandle;
-
-  return context->isUpsideDown();
-}
-
 unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
@@ -989,6 +963,14 @@ void GHOST_XrDrawViewFunc(GHOST_XrContextHandle xr_contexthandle, GHOST_XrDrawVi
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
   GHOST_XR_CAPI_CALL(xr_context->setDrawViewFunc(draw_view_fn), xr_context);
+}
+
+int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_XrContextHandle xr_contexthandle)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+
+  GHOST_XR_CAPI_CALL_RET(xr_context->needsUpsideDownDrawing(), xr_context);
+  return 0; /* Only reached if exception is thrown. */
 }
 
 #endif

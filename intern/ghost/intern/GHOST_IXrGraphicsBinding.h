@@ -61,6 +61,7 @@ class GHOST_IXrGraphicsBinding {
       uint32_t image_count) = 0;
   virtual void submitToSwapchainImage(XrSwapchainImageBaseHeader *swapchain_image,
                                       const GHOST_XrDrawViewInfo *draw_info) = 0;
+  virtual bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const = 0;
 
  protected:
   /* Use GHOST_XrGraphicsBindingCreateFromType! */
@@ -68,6 +69,6 @@ class GHOST_IXrGraphicsBinding {
 };
 
 std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
-    GHOST_TXrGraphicsBinding type);
+    GHOST_TXrGraphicsBinding type, GHOST_Context *ghost_ctx);
 
 #endif /* __GHOST_IXRGRAPHICSBINDING_H__ */

@@ -68,9 +68,9 @@
 struct wmXrRuntimeData *wm_xr_runtime_data_create(void);
 void wm_xr_runtime_data_free(struct wmXrRuntimeData **runtime);
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *, void *);
-void *wm_xr_session_gpu_binding_context_create(GHOST_TXrGraphicsBinding);
-void wm_xr_session_gpu_binding_context_destroy(GHOST_TXrGraphicsBinding, GHOST_ContextHandle);
-wmSurface *wm_xr_session_surface_create(wmWindowManager *, unsigned int);
+void *wm_xr_session_gpu_binding_context_create();
+void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle);
+wmSurface *wm_xr_session_surface_create(void);
 void wm_xr_pose_to_viewmat(const GHOST_XrPose *pose, float r_viewmat[4][4]);
 
 /* -------------------------------------------------------------------- */
@@ -109,11 +109,8 @@ typedef struct wmXrDrawData {
 } wmXrDrawData;
 
 typedef struct {
-  GHOST_TXrGraphicsBinding gpu_binding_type;
   GPUOffScreen *offscreen;
   GPUViewport *viewport;
-
-  GHOST_ContextHandle secondary_ghost_ctx;
 } wmXrSurfaceData;
 
 typedef struct {
@@ -412,10 +409,9 @@ bool WM_xr_session_state_viewer_pose_matrix_info_get(const wmXrData *xr,
  *
  * \{ */
 
-void *wm_xr_session_gpu_binding_context_create(GHOST_TXrGraphicsBinding graphics_binding)
+void *wm_xr_session_gpu_binding_context_create(void)
 {
-  wmSurface *surface = wm_xr_session_surface_create(G_MAIN->wm.first, graphics_binding);
-  wmXrSurfaceData *data = surface->customdata;
+  wmSurface *surface = wm_xr_session_surface_create();
 
   wm_surface_add(surface);
 
@@ -423,11 +419,10 @@ void *wm_xr_session_gpu_binding_context_create(GHOST_TXrGraphicsBinding graphics
    * and running. */
   WM_main_add_notifier(NC_WM | ND_XR_DATA_CHANGED, NULL);
 
-  return data->secondary_ghost_ctx ? data->secondary_ghost_ctx : surface->ghost_ctx;
+  return surface->ghost_ctx;
 }
 
-void wm_xr_session_gpu_binding_context_destroy(GHOST_TXrGraphicsBinding UNUSED(graphics_lib),
-                                               GHOST_ContextHandle UNUSED(context))
+void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle UNUSED(context))
 {
   if (g_xr_surface) { /* Might have been freed already */
     wm_surface_remove(g_xr_surface);
@@ -532,13 +527,6 @@ static void wm_xr_session_free_data(wmSurface *surface)
 {
   wmXrSurfaceData *data = surface->customdata;
 
-  if (data->secondary_ghost_ctx) {
-#ifdef WIN32
-    if (data->gpu_binding_type == GHOST_kXrGraphicsD3D11) {
-      WM_directx_context_dispose(data->secondary_ghost_ctx);
-    }
-#endif
-  }
   if (data->viewport) {
     GPU_viewport_free(data->viewport);
   }
@@ -591,7 +579,7 @@ static bool wm_xr_session_surface_offscreen_ensure(const GHOST_XrDrawViewInfo *d
   return true;
 }
 
-wmSurface *wm_xr_session_surface_create(wmWindowManager *UNUSED(wm), unsigned int gpu_binding_type)
+wmSurface *wm_xr_session_surface_create(void)
 {
   if (g_xr_surface) {
     BLI_assert(false);
@@ -601,29 +589,12 @@ wmSurface *wm_xr_session_surface_create(wmWindowManager *UNUSED(wm), unsigned in
   wmSurface *surface = MEM_callocN(sizeof(*surface), __func__);
   wmXrSurfaceData *data = MEM_callocN(sizeof(*data), "XrSurfaceData");
 
-#ifndef WIN32
-  BLI_assert(gpu_binding_type == GHOST_kXrGraphicsOpenGL);
-#endif
-
   surface->draw = wm_xr_session_surface_draw;
   surface->free_data = wm_xr_session_free_data;
-
-  data->gpu_binding_type = gpu_binding_type;
-  surface->customdata = data;
-
   surface->ghost_ctx = DRW_xr_opengl_context_get();
-
-  switch (gpu_binding_type) {
-    case GHOST_kXrGraphicsOpenGL:
-      break;
-#ifdef WIN32
-    case GHOST_kXrGraphicsD3D11:
-      data->secondary_ghost_ctx = WM_directx_context_create();
-      break;
-#endif
-  }
-
   surface->gpu_ctx = DRW_xr_gpu_context_get();
+
+  surface->customdata = data;
 
   g_xr_surface = surface;
 
@@ -679,10 +650,11 @@ static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
 }
 
 static void wm_xr_draw_viewport_buffers_to_active_framebuffer(
-    const wmXrSurfaceData *surface_data, const GHOST_XrDrawViewInfo *draw_view)
+    const wmXrRuntimeData *runtime_data,
+    const wmXrSurfaceData *surface_data,
+    const GHOST_XrDrawViewInfo *draw_view)
 {
-  const bool is_upside_down = surface_data->secondary_ghost_ctx &&
-                              GHOST_isUpsideDownContext(surface_data->secondary_ghost_ctx);
+  const bool is_upside_down = GHOST_XrSessionNeedsUpsideDownDrawing(runtime_data->context);
   rcti rect = {.xmin = 0, .ymin = 0, .xmax = draw_view->width - 1, .ymax = draw_view->height - 1};
 
   wmViewport(&rect);
@@ -759,7 +731,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
 
   GPU_offscreen_bind(surface_data->offscreen, false);
 
-  wm_xr_draw_viewport_buffers_to_active_framebuffer(surface_data, draw_view);
+  wm_xr_draw_viewport_buffers_to_active_framebuffer(wm->xr.runtime, surface_data, draw_view);
 }
 
 /** \} */ /* XR Drawing */
