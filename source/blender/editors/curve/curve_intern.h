@@ -142,14 +142,6 @@ void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
 struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
 void ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
 
-bool ED_curve_pick_vert(struct ViewContext *vc,
-                        short sel,
-                        struct Nurb **r_nurb,
-                        struct BezTriple **r_bezt,
-                        struct BPoint **r_bp,
-                        short *r_handle,
-                        struct Base **r_base);
-
 /* helper functions */
 void ed_editnurb_translate_flag(struct ListBase *editnurb, short flag, const float vec[3]);
 bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, const short flag);
@@ -188,6 +180,17 @@ void SURFACE_OT_primitive_nurbs_surface_surface_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_cylinder_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_sphere_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_torus_add(struct wmOperatorType *ot);
+
+/* editcurve_query.c */
+bool ED_curve_pick_vert(struct ViewContext *vc,
+                        short sel,
+                        struct Nurb **r_nurb,
+                        struct BezTriple **r_bezt,
+                        struct BPoint **r_bp,
+                        short *r_handle,
+                        struct Base **r_base);
+void ED_curve_nurb_vert_selected_find(
+    Curve *cu, View3D *v3d, Nurb **r_nu, BezTriple **r_bezt, BPoint **r_bp);
 
 /* editcurve_paint.c */
 void CURVE_OT_draw(struct wmOperatorType *ot);
