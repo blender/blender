@@ -136,7 +136,7 @@ static void sequencer_init_preview_region(ARegion *region)
 static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 {
   ARegion *region;
-  ARegion *ar_main;
+  ARegion *region_main;
 
   if (sl) {
     /* first channels for ipo action nla... */
@@ -205,14 +205,14 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
         region->alignment = RGN_ALIGN_TOP;
         break;
       case SPACE_SEQ:
-        ar_main = (ARegion *)lb->first;
-        for (; ar_main; ar_main = ar_main->next) {
-          if (ar_main->regiontype == RGN_TYPE_WINDOW) {
+        region_main = (ARegion *)lb->first;
+        for (; region_main; region_main = region_main->next) {
+          if (region_main->regiontype == RGN_TYPE_WINDOW) {
             break;
           }
         }
         region = MEM_callocN(sizeof(ARegion), "preview area for sequencer");
-        BLI_insertlinkbefore(lb, ar_main, region);
+        BLI_insertlinkbefore(lb, region_main, region);
         sequencer_init_preview_region(region);
         break;
       case SPACE_VIEW3D:
@@ -1235,7 +1235,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
           for (sl = sa->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_SEQ) {
               ARegion *region;
-              ARegion *ar_main;
+              ARegion *region_main;
               ListBase *regionbase;
               SpaceSeq *sseq = (SpaceSeq *)sl;
 
@@ -1253,14 +1253,14 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
                 sseq->mainb = SEQ_DRAW_IMG_IMBUF;
               }
 
-              ar_main = (ARegion *)regionbase->first;
-              for (; ar_main; ar_main = ar_main->next) {
-                if (ar_main->regiontype == RGN_TYPE_WINDOW) {
+              region_main = (ARegion *)regionbase->first;
+              for (; region_main; region_main = region_main->next) {
+                if (region_main->regiontype == RGN_TYPE_WINDOW) {
                   break;
                 }
               }
               region = MEM_callocN(sizeof(ARegion), "preview area for sequencer");
-              BLI_insertlinkbefore(regionbase, ar_main, region);
+              BLI_insertlinkbefore(regionbase, region_main, region);
               sequencer_init_preview_region(region);
             }
           }
@@ -1433,7 +1433,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         for (sa = screen->areabase.first; sa; sa = sa->next) {
           for (sl = sa->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_SEQ) {
-              ARegion *ar_preview;
+              ARegion *region_preview;
               ListBase *regionbase;
 
               if (sl == sa->spacedata.first) {
@@ -1443,14 +1443,14 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
                 regionbase = &sl->regionbase;
               }
 
-              ar_preview = (ARegion *)regionbase->first;
-              for (; ar_preview; ar_preview = ar_preview->next) {
-                if (ar_preview->regiontype == RGN_TYPE_PREVIEW) {
+              region_preview = (ARegion *)regionbase->first;
+              for (; region_preview; region_preview = region_preview->next) {
+                if (region_preview->regiontype == RGN_TYPE_PREVIEW) {
                   break;
                 }
               }
-              if (ar_preview && (ar_preview->regiontype == RGN_TYPE_PREVIEW)) {
-                sequencer_init_preview_region(ar_preview);
+              if (region_preview && (region_preview->regiontype == RGN_TYPE_PREVIEW)) {
+                sequencer_init_preview_region(region_preview);
               }
             }
           }

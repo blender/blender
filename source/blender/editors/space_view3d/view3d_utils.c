@@ -866,7 +866,7 @@ void view3d_boxview_copy(ScrArea *sa, ARegion *region)
 /* 'clip' is used to know if our clip setting has changed */
 void ED_view3d_quadview_update(ScrArea *sa, ARegion *region, bool do_clip)
 {
-  ARegion *ar_sync = NULL;
+  ARegion *region_sync = NULL;
   RegionView3D *rv3d = region->regiondata;
   short viewlock;
   /* this function copies flags from the first of the 3 other quadview
@@ -892,15 +892,15 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *region, bool do_clip)
         rv3d->rflag &= ~RV3D_BOXCLIP;
       }
 
-      /* use ar_sync so we sync with one of the aligned views below
+      /* use region_sync so we sync with one of the aligned views below
        * else the view jumps on changing view settings like 'clip'
        * since it copies from the perspective view */
-      ar_sync = region;
+      region_sync = region;
     }
   }
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
-    view3d_boxview_sync(sa, ar_sync ? ar_sync : sa->regionbase.last);
+    view3d_boxview_sync(sa, region_sync ? region_sync : sa->regionbase.last);
   }
 
   /* ensure locked regions have an axis, locked user views don't make much sense */

@@ -558,11 +558,11 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
     struct Scene *scene = CTX_data_scene(C);
 
     /* keep in sync with logic in view3d_panel_operator_redo() */
-    ARegion *ar_orig = CTX_wm_region(C);
-    ARegion *ar_win = BKE_area_find_region_active_win(CTX_wm_area(C));
+    ARegion *region_orig = CTX_wm_region(C);
+    ARegion *region_win = BKE_area_find_region_active_win(CTX_wm_area(C));
 
-    if (ar_win) {
-      CTX_wm_region_set(C, ar_win);
+    if (region_win) {
+      CTX_wm_region_set(C, region_win);
     }
 
     if ((WM_operator_repeat_check(C, op)) && (WM_operator_poll(C, op->type)) &&
@@ -585,9 +585,9 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
       if (op->type->check) {
         if (op->type->check(C, op)) {
           /* check for popup and re-layout buttons */
-          ARegion *ar_menu = CTX_wm_menu(C);
-          if (ar_menu) {
-            ED_region_tag_refresh_ui(ar_menu);
+          ARegion *region_menu = CTX_wm_menu(C);
+          if (region_menu) {
+            ED_region_tag_refresh_ui(region_menu);
           }
         }
       }
@@ -610,7 +610,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
     }
 
     /* set region back */
-    CTX_wm_region_set(C, ar_orig);
+    CTX_wm_region_set(C, region_orig);
   }
   else {
     CLOG_WARN(&LOG, "called with NULL 'op'");

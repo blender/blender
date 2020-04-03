@@ -560,10 +560,10 @@ bool edge_inside_circle(const float cent[2],
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
 bool ED_view3d_context_user_region(struct bContext *C,
                                    struct View3D **r_v3d,
-                                   struct ARegion **r_ar);
+                                   struct ARegion **r_region);
 bool ED_view3d_area_user_region(const struct ScrArea *sa,
                                 const struct View3D *v3d,
-                                struct ARegion **r_ar);
+                                struct ARegion **r_region);
 bool ED_operator_rv3d_user_region_poll(struct bContext *C);
 
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);

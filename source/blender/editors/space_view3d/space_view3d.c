@@ -101,12 +101,12 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 
 /* ideally would return an rv3d but in some cases the region is needed too
  * so return that, the caller can then access the region->regiondata */
-bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
+bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_region)
 {
   ScrArea *sa = CTX_wm_area(C);
 
   *r_v3d = NULL;
-  *r_ar = NULL;
+  *r_region = NULL;
 
   if (sa && sa->spacetype == SPACE_VIEW3D) {
     ARegion *region = CTX_wm_region(C);
@@ -117,11 +117,11 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
       if ((region->regiontype == RGN_TYPE_WINDOW) && (rv3d = region->regiondata) &&
           (rv3d->viewlock & RV3D_LOCK_ROTATION) == 0) {
         *r_v3d = v3d;
-        *r_ar = region;
+        *r_region = region;
         return true;
       }
       else {
-        if (ED_view3d_area_user_region(sa, v3d, r_ar)) {
+        if (ED_view3d_area_user_region(sa, v3d, r_region)) {
           *r_v3d = v3d;
           return true;
         }
@@ -136,11 +136,11 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_ar)
  * Similar to #ED_view3d_context_user_region() but does not use context. Always performs a lookup.
  * Also works if \a v3d is not the active space.
  */
-bool ED_view3d_area_user_region(const ScrArea *sa, const View3D *v3d, ARegion **r_ar)
+bool ED_view3d_area_user_region(const ScrArea *sa, const View3D *v3d, ARegion **r_region)
 {
   RegionView3D *rv3d = NULL;
-  ARegion *ar_unlock_user = NULL;
-  ARegion *ar_unlock = NULL;
+  ARegion *region_unlock_user = NULL;
+  ARegion *region_unlock = NULL;
   const ListBase *region_list = (v3d == sa->spacedata.first) ? &sa->regionbase : &v3d->regionbase;
 
   BLI_assert(v3d->spacetype == SPACE_VIEW3D);
@@ -150,9 +150,9 @@ bool ED_view3d_area_user_region(const ScrArea *sa, const View3D *v3d, ARegion **
     if (region->regiondata && region->regiontype == RGN_TYPE_WINDOW) {
       rv3d = region->regiondata;
       if ((rv3d->viewlock & RV3D_LOCK_ROTATION) == 0) {
-        ar_unlock = region;
+        region_unlock = region;
         if (rv3d->persp == RV3D_PERSP || rv3d->persp == RV3D_CAMOB) {
-          ar_unlock_user = region;
+          region_unlock_user = region;
           break;
         }
       }
@@ -160,13 +160,13 @@ bool ED_view3d_area_user_region(const ScrArea *sa, const View3D *v3d, ARegion **
   }
 
   /* camera/perspective view get priority when the active region is locked */
-  if (ar_unlock_user) {
-    *r_ar = ar_unlock_user;
+  if (region_unlock_user) {
+    *r_region = region_unlock_user;
     return true;
   }
 
-  if (ar_unlock) {
-    *r_ar = ar_unlock;
+  if (region_unlock) {
+    *r_region = region_unlock;
     return true;
   }
 

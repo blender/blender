@@ -759,7 +759,7 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
   if (!BLI_listbase_is_single(&wm->windows)) {
     wmWindow *win_prev = CTX_wm_window(C);
     ScrArea *area_prev = CTX_wm_area(C);
-    ARegion *ar_prev = CTX_wm_region(C);
+    ARegion *region_prev = CTX_wm_region(C);
 
     for (wmWindow *win = wm->windows.first; win; win = win->next) {
       if (win != win_prev) {
@@ -772,7 +772,7 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
 
           CTX_wm_window_set(C, win_prev);
           CTX_wm_area_set(C, area_prev);
-          CTX_wm_region_set(C, ar_prev);
+          CTX_wm_region_set(C, region_prev);
         }
       }
     }

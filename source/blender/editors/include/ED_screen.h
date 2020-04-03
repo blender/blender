@@ -184,7 +184,7 @@ void ED_area_tag_refresh(ScrArea *sa);
 void ED_area_do_refresh(struct bContext *C, ScrArea *sa);
 struct AZone *ED_area_azones_update(ScrArea *sa, const int mouse_xy[]);
 void ED_area_status_text(ScrArea *sa, const char *str);
-void ED_area_newspace(struct bContext *C, ScrArea *sa, int type, const bool skip_ar_exit);
+void ED_area_newspace(struct bContext *C, ScrArea *sa, int type, const bool skip_region_exit);
 void ED_area_prevspace(struct bContext *C, ScrArea *sa);
 void ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
 int ED_area_headersize(void);
@@ -442,7 +442,7 @@ bool ED_region_overlap_isect_xy_with_margin(const ARegion *region,
                                             const int event_xy[2],
                                             const int margin);
 
-bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_ar_gutter);
+bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_region_gutter);
 bool ED_region_panel_category_gutter_isect_xy(const ARegion *region, const int event_xy[2]);
 
 bool ED_region_contains_xy(const struct ARegion *region, const int event_xy[2]);

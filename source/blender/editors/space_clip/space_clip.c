@@ -645,11 +645,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
   wmWindow *window = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   SpaceClip *sc = (SpaceClip *)sa->spacedata.first;
-  ARegion *ar_main = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-  ARegion *ar_tools = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
-  ARegion *ar_preview = ED_clip_has_preview_region(C, sa);
-  ARegion *ar_properties = ED_clip_has_properties_region(sa);
-  ARegion *ar_channels = ED_clip_has_channels_region(sa);
+  ARegion *region_main = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  ARegion *region_tools = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+  ARegion *region_preview = ED_clip_has_preview_region(C, sa);
+  ARegion *region_properties = ED_clip_has_properties_region(sa);
+  ARegion *region_channels = ED_clip_has_channels_region(sa);
   bool main_visible = false, preview_visible = false, tools_visible = false;
   bool properties_visible = false, channels_visible = false;
   bool view_changed = false;
@@ -669,7 +669,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
       properties_visible = false;
       channels_visible = false;
 
-      reinit_preview_region(C, ar_preview);
+      reinit_preview_region(C, region_preview);
       break;
     case SC_VIEW_DOPESHEET:
       main_visible = false;
@@ -678,128 +678,128 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
       properties_visible = false;
       channels_visible = true;
 
-      reinit_preview_region(C, ar_preview);
+      reinit_preview_region(C, region_preview);
       break;
   }
 
   if (main_visible) {
-    if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
-      ar_main->flag &= ~RGN_FLAG_HIDDEN;
-      ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
+    if (region_main && (region_main->flag & RGN_FLAG_HIDDEN)) {
+      region_main->flag &= ~RGN_FLAG_HIDDEN;
+      region_main->v2d.flag &= ~V2D_IS_INITIALISED;
       view_changed = true;
     }
 
-    if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
-      ar_main->alignment = RGN_ALIGN_NONE;
+    if (region_main && region_main->alignment != RGN_ALIGN_NONE) {
+      region_main->alignment = RGN_ALIGN_NONE;
       view_changed = true;
     }
   }
   else {
-    if (ar_main && !(ar_main->flag & RGN_FLAG_HIDDEN)) {
-      ar_main->flag |= RGN_FLAG_HIDDEN;
-      ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-      WM_event_remove_handlers((bContext *)C, &ar_main->handlers);
+    if (region_main && !(region_main->flag & RGN_FLAG_HIDDEN)) {
+      region_main->flag |= RGN_FLAG_HIDDEN;
+      region_main->v2d.flag &= ~V2D_IS_INITIALISED;
+      WM_event_remove_handlers((bContext *)C, &region_main->handlers);
       view_changed = true;
     }
-    if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
-      ar_main->alignment = RGN_ALIGN_NONE;
+    if (region_main && region_main->alignment != RGN_ALIGN_NONE) {
+      region_main->alignment = RGN_ALIGN_NONE;
       view_changed = true;
     }
   }
 
   if (properties_visible) {
-    if (ar_properties && (ar_properties->flag & RGN_FLAG_HIDDEN)) {
-      ar_properties->flag &= ~RGN_FLAG_HIDDEN;
-      ar_properties->v2d.flag &= ~V2D_IS_INITIALISED;
+    if (region_properties && (region_properties->flag & RGN_FLAG_HIDDEN)) {
+      region_properties->flag &= ~RGN_FLAG_HIDDEN;
+      region_properties->v2d.flag &= ~V2D_IS_INITIALISED;
       view_changed = true;
     }
-    if (ar_properties && ar_properties->alignment != RGN_ALIGN_RIGHT) {
-      ar_properties->alignment = RGN_ALIGN_RIGHT;
+    if (region_properties && region_properties->alignment != RGN_ALIGN_RIGHT) {
+      region_properties->alignment = RGN_ALIGN_RIGHT;
       view_changed = true;
     }
   }
   else {
-    if (ar_properties && !(ar_properties->flag & RGN_FLAG_HIDDEN)) {
-      ar_properties->flag |= RGN_FLAG_HIDDEN;
-      ar_properties->v2d.flag &= ~V2D_IS_INITIALISED;
-      WM_event_remove_handlers((bContext *)C, &ar_properties->handlers);
+    if (region_properties && !(region_properties->flag & RGN_FLAG_HIDDEN)) {
+      region_properties->flag |= RGN_FLAG_HIDDEN;
+      region_properties->v2d.flag &= ~V2D_IS_INITIALISED;
+      WM_event_remove_handlers((bContext *)C, &region_properties->handlers);
       view_changed = true;
     }
-    if (ar_properties && ar_properties->alignment != RGN_ALIGN_NONE) {
-      ar_properties->alignment = RGN_ALIGN_NONE;
+    if (region_properties && region_properties->alignment != RGN_ALIGN_NONE) {
+      region_properties->alignment = RGN_ALIGN_NONE;
       view_changed = true;
     }
   }
 
   if (tools_visible) {
-    if (ar_tools && (ar_tools->flag & RGN_FLAG_HIDDEN)) {
-      ar_tools->flag &= ~RGN_FLAG_HIDDEN;
-      ar_tools->v2d.flag &= ~V2D_IS_INITIALISED;
+    if (region_tools && (region_tools->flag & RGN_FLAG_HIDDEN)) {
+      region_tools->flag &= ~RGN_FLAG_HIDDEN;
+      region_tools->v2d.flag &= ~V2D_IS_INITIALISED;
       view_changed = true;
     }
-    if (ar_tools && ar_tools->alignment != RGN_ALIGN_LEFT) {
-      ar_tools->alignment = RGN_ALIGN_LEFT;
+    if (region_tools && region_tools->alignment != RGN_ALIGN_LEFT) {
+      region_tools->alignment = RGN_ALIGN_LEFT;
       view_changed = true;
     }
   }
   else {
-    if (ar_tools && !(ar_tools->flag & RGN_FLAG_HIDDEN)) {
-      ar_tools->flag |= RGN_FLAG_HIDDEN;
-      ar_tools->v2d.flag &= ~V2D_IS_INITIALISED;
-      WM_event_remove_handlers((bContext *)C, &ar_tools->handlers);
+    if (region_tools && !(region_tools->flag & RGN_FLAG_HIDDEN)) {
+      region_tools->flag |= RGN_FLAG_HIDDEN;
+      region_tools->v2d.flag &= ~V2D_IS_INITIALISED;
+      WM_event_remove_handlers((bContext *)C, &region_tools->handlers);
       view_changed = true;
     }
-    if (ar_tools && ar_tools->alignment != RGN_ALIGN_NONE) {
-      ar_tools->alignment = RGN_ALIGN_NONE;
+    if (region_tools && region_tools->alignment != RGN_ALIGN_NONE) {
+      region_tools->alignment = RGN_ALIGN_NONE;
       view_changed = true;
     }
   }
 
   if (preview_visible) {
-    if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
-      ar_preview->flag &= ~RGN_FLAG_HIDDEN;
-      ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-      ar_preview->v2d.cur = ar_preview->v2d.tot;
+    if (region_preview && (region_preview->flag & RGN_FLAG_HIDDEN)) {
+      region_preview->flag &= ~RGN_FLAG_HIDDEN;
+      region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+      region_preview->v2d.cur = region_preview->v2d.tot;
       view_changed = true;
     }
-    if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
-      ar_preview->alignment = RGN_ALIGN_NONE;
+    if (region_preview && region_preview->alignment != RGN_ALIGN_NONE) {
+      region_preview->alignment = RGN_ALIGN_NONE;
       view_changed = true;
     }
   }
   else {
-    if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
-      ar_preview->flag |= RGN_FLAG_HIDDEN;
-      ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-      WM_event_remove_handlers((bContext *)C, &ar_preview->handlers);
+    if (region_preview && !(region_preview->flag & RGN_FLAG_HIDDEN)) {
+      region_preview->flag |= RGN_FLAG_HIDDEN;
+      region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+      WM_event_remove_handlers((bContext *)C, &region_preview->handlers);
       view_changed = true;
     }
-    if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
-      ar_preview->alignment = RGN_ALIGN_NONE;
+    if (region_preview && region_preview->alignment != RGN_ALIGN_NONE) {
+      region_preview->alignment = RGN_ALIGN_NONE;
       view_changed = true;
     }
   }
 
   if (channels_visible) {
-    if (ar_channels && (ar_channels->flag & RGN_FLAG_HIDDEN)) {
-      ar_channels->flag &= ~RGN_FLAG_HIDDEN;
-      ar_channels->v2d.flag &= ~V2D_IS_INITIALISED;
+    if (region_channels && (region_channels->flag & RGN_FLAG_HIDDEN)) {
+      region_channels->flag &= ~RGN_FLAG_HIDDEN;
+      region_channels->v2d.flag &= ~V2D_IS_INITIALISED;
       view_changed = true;
     }
-    if (ar_channels && ar_channels->alignment != RGN_ALIGN_LEFT) {
-      ar_channels->alignment = RGN_ALIGN_LEFT;
+    if (region_channels && region_channels->alignment != RGN_ALIGN_LEFT) {
+      region_channels->alignment = RGN_ALIGN_LEFT;
       view_changed = true;
     }
   }
   else {
-    if (ar_channels && !(ar_channels->flag & RGN_FLAG_HIDDEN)) {
-      ar_channels->flag |= RGN_FLAG_HIDDEN;
-      ar_channels->v2d.flag &= ~V2D_IS_INITIALISED;
-      WM_event_remove_handlers((bContext *)C, &ar_channels->handlers);
+    if (region_channels && !(region_channels->flag & RGN_FLAG_HIDDEN)) {
+      region_channels->flag |= RGN_FLAG_HIDDEN;
+      region_channels->v2d.flag &= ~V2D_IS_INITIALISED;
+      WM_event_remove_handlers((bContext *)C, &region_channels->handlers);
       view_changed = true;
     }
-    if (ar_channels && ar_channels->alignment != RGN_ALIGN_NONE) {
-      ar_channels->alignment = RGN_ALIGN_NONE;
+    if (region_channels && region_channels->alignment != RGN_ALIGN_NONE) {
+      region_channels->alignment = RGN_ALIGN_NONE;
       view_changed = true;
     }
   }

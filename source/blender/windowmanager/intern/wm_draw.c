@@ -213,7 +213,7 @@ static void wm_region_test_gizmo_do_draw(bContext *C,
        gzgroup = gzgroup->next) {
     if (tag_redraw && (gzgroup->type->flag & WM_GIZMOGROUPTYPE_VR_REDRAWS)) {
       ScrArea *ctx_sa = CTX_wm_area(C);
-      ARegion *ctx_ar = CTX_wm_region(C);
+      ARegion *ctx_region = CTX_wm_region(C);
 
       CTX_wm_area_set(C, sa);
       CTX_wm_region_set(C, region);
@@ -224,7 +224,7 @@ static void wm_region_test_gizmo_do_draw(bContext *C,
 
       /* Reset. */
       CTX_wm_area_set(C, ctx_sa);
-      CTX_wm_region_set(C, ctx_ar);
+      CTX_wm_region_set(C, ctx_region);
     }
 
     for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
@@ -1052,13 +1052,13 @@ void WM_redraw_windows(bContext *C)
 {
   wmWindow *win_prev = CTX_wm_window(C);
   ScrArea *area_prev = CTX_wm_area(C);
-  ARegion *ar_prev = CTX_wm_region(C);
+  ARegion *region_prev = CTX_wm_region(C);
 
   wm_draw_update(C);
 
   CTX_wm_window_set(C, win_prev);
   CTX_wm_area_set(C, area_prev);
-  CTX_wm_region_set(C, ar_prev);
+  CTX_wm_region_set(C, region_prev);
 }
 
 /** \} */

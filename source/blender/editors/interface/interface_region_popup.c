@@ -526,7 +526,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
 {
   wmWindow *ctx_win = CTX_wm_window(C);
   ScrArea *ctx_sa = CTX_wm_area(C);
-  ARegion *ctx_ar = CTX_wm_region(C);
+  ARegion *ctx_region = CTX_wm_region(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = ctx_win;
@@ -551,7 +551,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
   /* Reset context (area and region were NULL'ed when chaning context window). */
   CTX_wm_window_set(C, ctx_win);
   CTX_wm_area_set(C, ctx_sa);
-  CTX_wm_region_set(C, ctx_ar);
+  CTX_wm_region_set(C, ctx_region);
 
   /* reset to region cursor (only if there's not another menu open) */
   if (BLI_listbase_is_empty(&sc->regionbase)) {

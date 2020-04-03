@@ -223,88 +223,88 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *window = CTX_wm_window(C);
   SpaceSeq *sseq = (SpaceSeq *)sa->spacedata.first;
-  ARegion *ar_main = sequencer_find_region(sa, RGN_TYPE_WINDOW);
-  ARegion *ar_preview = sequencer_find_region(sa, RGN_TYPE_PREVIEW);
+  ARegion *region_main = sequencer_find_region(sa, RGN_TYPE_WINDOW);
+  ARegion *region_preview = sequencer_find_region(sa, RGN_TYPE_PREVIEW);
   bool view_changed = false;
 
   switch (sseq->view) {
     case SEQ_VIEW_SEQUENCE:
-      if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
-        ar_main->flag &= ~RGN_FLAG_HIDDEN;
-        ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
+      if (region_main && (region_main->flag & RGN_FLAG_HIDDEN)) {
+        region_main->flag &= ~RGN_FLAG_HIDDEN;
+        region_main->v2d.flag &= ~V2D_IS_INITIALISED;
         view_changed = true;
       }
-      if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
-        ar_preview->flag |= RGN_FLAG_HIDDEN;
-        ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-        WM_event_remove_handlers((bContext *)C, &ar_preview->handlers);
+      if (region_preview && !(region_preview->flag & RGN_FLAG_HIDDEN)) {
+        region_preview->flag |= RGN_FLAG_HIDDEN;
+        region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+        WM_event_remove_handlers((bContext *)C, &region_preview->handlers);
         view_changed = true;
       }
-      if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
-        ar_main->alignment = RGN_ALIGN_NONE;
+      if (region_main && region_main->alignment != RGN_ALIGN_NONE) {
+        region_main->alignment = RGN_ALIGN_NONE;
         view_changed = true;
       }
-      if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
-        ar_preview->alignment = RGN_ALIGN_NONE;
+      if (region_preview && region_preview->alignment != RGN_ALIGN_NONE) {
+        region_preview->alignment = RGN_ALIGN_NONE;
         view_changed = true;
       }
       break;
     case SEQ_VIEW_PREVIEW:
-      if (ar_main && !(ar_main->flag & RGN_FLAG_HIDDEN)) {
-        ar_main->flag |= RGN_FLAG_HIDDEN;
-        ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-        WM_event_remove_handlers((bContext *)C, &ar_main->handlers);
+      if (region_main && !(region_main->flag & RGN_FLAG_HIDDEN)) {
+        region_main->flag |= RGN_FLAG_HIDDEN;
+        region_main->v2d.flag &= ~V2D_IS_INITIALISED;
+        WM_event_remove_handlers((bContext *)C, &region_main->handlers);
         view_changed = true;
       }
-      if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
-        ar_preview->flag &= ~RGN_FLAG_HIDDEN;
-        ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-        ar_preview->v2d.cur = ar_preview->v2d.tot;
+      if (region_preview && (region_preview->flag & RGN_FLAG_HIDDEN)) {
+        region_preview->flag &= ~RGN_FLAG_HIDDEN;
+        region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+        region_preview->v2d.cur = region_preview->v2d.tot;
         view_changed = true;
       }
-      if (ar_main && ar_main->alignment != RGN_ALIGN_NONE) {
-        ar_main->alignment = RGN_ALIGN_NONE;
+      if (region_main && region_main->alignment != RGN_ALIGN_NONE) {
+        region_main->alignment = RGN_ALIGN_NONE;
         view_changed = true;
       }
-      if (ar_preview && ar_preview->alignment != RGN_ALIGN_NONE) {
-        ar_preview->alignment = RGN_ALIGN_NONE;
+      if (region_preview && region_preview->alignment != RGN_ALIGN_NONE) {
+        region_preview->alignment = RGN_ALIGN_NONE;
         view_changed = true;
       }
       break;
     case SEQ_VIEW_SEQUENCE_PREVIEW:
-      if (ar_main && ar_preview) {
+      if (region_main && region_preview) {
         /* Get available height (without DPI correction). */
         const float height = (sa->winy - ED_area_headersize()) / UI_DPI_FAC;
 
         /* We reuse hidden region's size, allows to find same layout as before if we just switch
          * between one 'full window' view and the combined one. This gets lost if we switch to both
          * 'full window' views before, though... Better than nothing. */
-        if (ar_main->flag & RGN_FLAG_HIDDEN) {
-          ar_main->flag &= ~RGN_FLAG_HIDDEN;
-          ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-          ar_preview->sizey = (int)(height - ar_main->sizey);
+        if (region_main->flag & RGN_FLAG_HIDDEN) {
+          region_main->flag &= ~RGN_FLAG_HIDDEN;
+          region_main->v2d.flag &= ~V2D_IS_INITIALISED;
+          region_preview->sizey = (int)(height - region_main->sizey);
           view_changed = true;
         }
-        if (ar_preview->flag & RGN_FLAG_HIDDEN) {
-          ar_preview->flag &= ~RGN_FLAG_HIDDEN;
-          ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-          ar_preview->v2d.cur = ar_preview->v2d.tot;
-          ar_main->sizey = (int)(height - ar_preview->sizey);
+        if (region_preview->flag & RGN_FLAG_HIDDEN) {
+          region_preview->flag &= ~RGN_FLAG_HIDDEN;
+          region_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+          region_preview->v2d.cur = region_preview->v2d.tot;
+          region_main->sizey = (int)(height - region_preview->sizey);
           view_changed = true;
         }
-        if (ar_main->alignment != RGN_ALIGN_NONE) {
-          ar_main->alignment = RGN_ALIGN_NONE;
+        if (region_main->alignment != RGN_ALIGN_NONE) {
+          region_main->alignment = RGN_ALIGN_NONE;
           view_changed = true;
         }
-        if (ar_preview->alignment != RGN_ALIGN_TOP) {
-          ar_preview->alignment = RGN_ALIGN_TOP;
+        if (region_preview->alignment != RGN_ALIGN_TOP) {
+          region_preview->alignment = RGN_ALIGN_TOP;
           view_changed = true;
         }
         /* Final check that both preview and main height are reasonable! */
-        if (ar_preview->sizey < 10 || ar_main->sizey < 10 ||
-            ar_preview->sizey + ar_main->sizey > height) {
-          ar_preview->sizey = (int)(height * 0.4f + 0.5f);
-          ar_main->sizey = (int)(height - ar_preview->sizey);
+        if (region_preview->sizey < 10 || region_main->sizey < 10 ||
+            region_preview->sizey + region_main->sizey > height) {
+          region_preview->sizey = (int)(height * 0.4f + 0.5f);
+          region_main->sizey = (int)(height - region_preview->sizey);
           view_changed = true;
         }
       }

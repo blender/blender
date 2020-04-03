@@ -9275,7 +9275,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
 
   /* Set context to 3D view. */
   ScrArea *prev_sa = CTX_wm_area(C);
-  ARegion *prev_ar = CTX_wm_region(C);
+  ARegion *prev_region = CTX_wm_region(C);
   CTX_wm_area_set(C, sa);
   CTX_wm_region_set(C, region);
 
@@ -9295,7 +9295,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
     case SAMPLE_DETAIL_DYNTOPO:
       if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
         CTX_wm_area_set(C, prev_sa);
-        CTX_wm_region_set(C, prev_ar);
+        CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
       }
       sample_detail_dyntopo(C, &vc, region, mx, my);
@@ -9303,7 +9303,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
     case SAMPLE_DETAIL_VOXEL:
       if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
         CTX_wm_area_set(C, prev_sa);
-        CTX_wm_region_set(C, prev_ar);
+        CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
       }
       sample_detail_voxel(C, &vc, mx, my);
@@ -9312,7 +9312,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
 
   /* Restore context. */
   CTX_wm_area_set(C, prev_sa);
-  CTX_wm_region_set(C, prev_ar);
+  CTX_wm_region_set(C, prev_region);
 
   return OPERATOR_FINISHED;
 }

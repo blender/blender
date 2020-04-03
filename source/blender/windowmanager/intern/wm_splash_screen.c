@@ -71,8 +71,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *arg_u
 
 static void wm_block_splash_refreshmenu(bContext *C, void *UNUSED(arg_block), void *UNUSED(arg))
 {
-  ARegion *ar_menu = CTX_wm_menu(C);
-  ED_region_tag_refresh_ui(ar_menu);
+  ARegion *region_menu = CTX_wm_menu(C);
+  ED_region_tag_refresh_ui(region_menu);
 }
 
 static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, int *y)

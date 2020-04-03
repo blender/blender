@@ -748,19 +748,19 @@ ARegion *BKE_area_find_region_active_win(ScrArea *sa)
 
 ARegion *BKE_area_find_region_xy(ScrArea *sa, const int regiontype, int x, int y)
 {
-  ARegion *ar_found = NULL;
+  ARegion *region_found = NULL;
   if (sa) {
     ARegion *region;
     for (region = sa->regionbase.first; region; region = region->next) {
       if ((regiontype == RGN_TYPE_ANY) || (region->regiontype == regiontype)) {
         if (BLI_rcti_isect_pt(&region->winrct, x, y)) {
-          ar_found = region;
+          region_found = region;
           break;
         }
       }
     }
   }
-  return ar_found;
+  return region_found;
 }
 
 /**
@@ -768,16 +768,16 @@ ARegion *BKE_area_find_region_xy(ScrArea *sa, const int regiontype, int x, int y
  */
 ARegion *BKE_screen_find_region_xy(bScreen *sc, const int regiontype, int x, int y)
 {
-  ARegion *ar_found = NULL;
+  ARegion *region_found = NULL;
   for (ARegion *region = sc->regionbase.first; region; region = region->next) {
     if ((regiontype == RGN_TYPE_ANY) || (region->regiontype == regiontype)) {
       if (BLI_rcti_isect_pt(&region->winrct, x, y)) {
-        ar_found = region;
+        region_found = region;
         break;
       }
     }
   }
-  return ar_found;
+  return region_found;
 }
 
 /**

@@ -1874,7 +1874,7 @@ static bool ui_but_drag_init(bContext *C,
 #ifdef USE_DRAG_TOGGLE
     if (ui_drag_toggle_but_is_supported(but)) {
       uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
-      ARegion *ar_prev;
+      ARegion *region_prev;
 
       /* call here because regular mouse-up event wont run,
        * typically 'button_activate_exit()' handles this */
@@ -1887,7 +1887,7 @@ static bool ui_but_drag_init(bContext *C,
       copy_v2_v2_int(drag_info->xy_last, &event->x);
 
       /* needed for toggle drag on popups */
-      ar_prev = CTX_wm_region(C);
+      region_prev = CTX_wm_region(C);
       CTX_wm_region_set(C, data->region);
 
       WM_event_add_ui_handler(C,
@@ -1897,7 +1897,7 @@ static bool ui_but_drag_init(bContext *C,
                               drag_info,
                               WM_HANDLER_BLOCKING);
 
-      CTX_wm_region_set(C, ar_prev);
+      CTX_wm_region_set(C, region_prev);
 
       /* Initialize alignment for single row/column regions,
        * otherwise we use the relative position of the first other button dragged over. */
@@ -1906,13 +1906,13 @@ static bool ui_but_drag_init(bContext *C,
                RGN_TYPE_HEADER,
                RGN_TYPE_TOOL_HEADER,
                RGN_TYPE_FOOTER)) {
-        const int ar_alignment = RGN_ALIGN_ENUM_FROM_MASK(data->region->alignment);
+        const int region_alignment = RGN_ALIGN_ENUM_FROM_MASK(data->region->alignment);
         int lock_axis = -1;
 
-        if (ELEM(ar_alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
+        if (ELEM(region_alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
           lock_axis = 0;
         }
-        else if (ELEM(ar_alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
+        else if (ELEM(region_alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
           lock_axis = 1;
         }
         if (lock_axis != -1) {
@@ -8326,16 +8326,16 @@ void UI_context_active_but_prop_handle(bContext *C)
 
 wmOperator *UI_context_active_operator_get(const struct bContext *C)
 {
-  ARegion *ar_ctx = CTX_wm_region(C);
+  ARegion *region_ctx = CTX_wm_region(C);
   uiBlock *block;
 
   /* background mode */
-  if (ar_ctx == NULL) {
+  if (region_ctx == NULL) {
     return NULL;
   }
 
   /* scan active regions ui */
-  for (block = ar_ctx->uiblocks.first; block; block = block->next) {
+  for (block = region_ctx->uiblocks.first; block; block = block->next) {
     if (block->ui_operator) {
       return block->ui_operator;
     }
@@ -8347,7 +8347,7 @@ wmOperator *UI_context_active_operator_get(const struct bContext *C)
     ARegion *region;
 
     for (region = sc->regionbase.first; region; region = region->next) {
-      if (region == ar_ctx) {
+      if (region == region_ctx) {
         continue;
       }
       for (block = region->uiblocks.first; block; block = block->next) {
@@ -8470,10 +8470,10 @@ void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
   event.customdata = but;
   event.customdatafree = false;
 
-  ARegion *ar_ctx = CTX_wm_region(C);
+  ARegion *region_ctx = CTX_wm_region(C);
   CTX_wm_region_set(C, region);
   ui_do_button(C, but->block, but, &event);
-  CTX_wm_region_set(C, ar_ctx);
+  CTX_wm_region_set(C, region_ctx);
 }
 
 /**

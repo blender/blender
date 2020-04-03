@@ -55,7 +55,7 @@
 #include "filelist.h"
 #include "fsmenu.h"
 
-static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *ar_prev)
+static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *region_prev)
 {
   ARegion *region;
 
@@ -64,7 +64,7 @@ static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *ar_prev)
   }
 
   region = MEM_callocN(sizeof(ARegion), "execute region for file");
-  BLI_insertlinkafter(&sa->regionbase, ar_prev, region);
+  BLI_insertlinkafter(&sa->regionbase, region_prev, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM;
   region->flag = RGN_FLAG_DYNAMIC_SIZE;
@@ -72,7 +72,7 @@ static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *ar_prev)
   return region;
 }
 
-static ARegion *file_tool_props_region_ensure(ScrArea *sa, ARegion *ar_prev)
+static ARegion *file_tool_props_region_ensure(ScrArea *sa, ARegion *region_prev)
 {
   ARegion *region;
 
@@ -82,7 +82,7 @@ static ARegion *file_tool_props_region_ensure(ScrArea *sa, ARegion *ar_prev)
 
   /* add subdiv level; after execute region */
   region = MEM_callocN(sizeof(ARegion), "tool props for file");
-  BLI_insertlinkafter(&sa->regionbase, ar_prev, region);
+  BLI_insertlinkafter(&sa->regionbase, region_prev, region);
   region->regiontype = RGN_TYPE_TOOL_PROPS;
   region->alignment = RGN_ALIGN_RIGHT;
 
@@ -232,31 +232,31 @@ static void file_ensure_valid_region_state(bContext *C,
                                            SpaceFile *sfile,
                                            FileSelectParams *params)
 {
-  ARegion *ar_ui = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-  ARegion *ar_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
-  ARegion *ar_execute = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE);
+  ARegion *region_ui = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+  ARegion *region_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
+  ARegion *region_execute = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE);
   bool needs_init = false; /* To avoid multiple ED_area_initialize() calls. */
 
   /* If there's an file-operation, ensure we have the option and execute region */
-  if (sfile->op && (ar_props == NULL)) {
-    ar_execute = file_execute_region_ensure(sa, ar_ui);
-    ar_props = file_tool_props_region_ensure(sa, ar_execute);
+  if (sfile->op && (region_props == NULL)) {
+    region_execute = file_execute_region_ensure(sa, region_ui);
+    region_props = file_tool_props_region_ensure(sa, region_execute);
 
     if (params->flag & FILE_HIDE_TOOL_PROPS) {
-      ar_props->flag |= RGN_FLAG_HIDDEN;
+      region_props->flag |= RGN_FLAG_HIDDEN;
     }
     else {
-      ar_props->flag &= ~RGN_FLAG_HIDDEN;
+      region_props->flag &= ~RGN_FLAG_HIDDEN;
     }
 
     needs_init = true;
   }
   /* If there's _no_ file-operation, ensure we _don't_ have the option and execute region */
-  else if ((sfile->op == NULL) && (ar_props != NULL)) {
-    BLI_assert(ar_execute != NULL);
+  else if ((sfile->op == NULL) && (region_props != NULL)) {
+    BLI_assert(region_execute != NULL);
 
-    ED_region_remove(C, sa, ar_props);
-    ED_region_remove(C, sa, ar_execute);
+    ED_region_remove(C, sa, region_props);
+    ED_region_remove(C, sa, region_execute);
     needs_init = true;
   }
 

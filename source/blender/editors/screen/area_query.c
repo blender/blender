@@ -73,19 +73,19 @@ bool ED_region_overlap_isect_any_xy(const ScrArea *area, const int event_xy[2])
   return false;
 }
 
-bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_ar_gutter)
+bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_region_gutter)
 {
-  *r_ar_gutter = region->winrct;
+  *r_region_gutter = region->winrct;
   if (UI_panel_category_is_visible(region)) {
     const int category_tabs_width = round_fl_to_int(UI_view2d_scale_get_x(&region->v2d) *
                                                     UI_PANEL_CATEGORY_MARGIN_WIDTH);
     const int alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
 
     if (alignment == RGN_ALIGN_LEFT) {
-      r_ar_gutter->xmax = r_ar_gutter->xmin + category_tabs_width;
+      r_region_gutter->xmax = r_region_gutter->xmin + category_tabs_width;
     }
     else if (alignment == RGN_ALIGN_RIGHT) {
-      r_ar_gutter->xmin = r_ar_gutter->xmax - category_tabs_width;
+      r_region_gutter->xmin = r_region_gutter->xmax - category_tabs_width;
     }
     else {
       BLI_assert(!"Unsupported alignment");
@@ -97,9 +97,9 @@ bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_ar
 
 bool ED_region_panel_category_gutter_isect_xy(const ARegion *region, const int event_xy[2])
 {
-  rcti ar_gutter;
-  if (ED_region_panel_category_gutter_calc_rect(region, &ar_gutter)) {
-    return BLI_rcti_isect_pt_v(&ar_gutter, event_xy);
+  rcti region_gutter;
+  if (ED_region_panel_category_gutter_calc_rect(region, &region_gutter)) {
+    return BLI_rcti_isect_pt_v(&region_gutter, event_xy);
   }
   return false;
 }

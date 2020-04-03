@@ -119,7 +119,7 @@ void WM_tooltip_init(bContext *C, wmWindow *win)
 
   {
     ScrArea *area_prev = CTX_wm_area(C);
-    ARegion *ar_prev = CTX_wm_region(C);
+    ARegion *region_prev = CTX_wm_region(C);
     CTX_wm_area_set(C, screen->tool_tip->area_from);
     CTX_wm_region_set(C, screen->tool_tip->region_from);
     screen->tool_tip->region = screen->tool_tip->init(C,
@@ -128,7 +128,7 @@ void WM_tooltip_init(bContext *C, wmWindow *win)
                                                       &pass_delay,
                                                       &screen->tool_tip->exit_on_event);
     CTX_wm_area_set(C, area_prev);
-    CTX_wm_region_set(C, ar_prev);
+    CTX_wm_region_set(C, region_prev);
   }
 
   copy_v2_v2_int(screen->tool_tip->event_xy, &win->eventstate->x);

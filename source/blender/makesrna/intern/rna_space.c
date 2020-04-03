@@ -576,31 +576,31 @@ static ScrArea *rna_area_from_space(PointerRNA *ptr)
 static void area_region_from_regiondata(bScreen *sc,
                                         void *regiondata,
                                         ScrArea **r_sa,
-                                        ARegion **r_ar)
+                                        ARegion **r_region)
 {
   ScrArea *sa;
   ARegion *region;
 
   *r_sa = NULL;
-  *r_ar = NULL;
+  *r_region = NULL;
 
   for (sa = sc->areabase.first; sa; sa = sa->next) {
     for (region = sa->regionbase.first; region; region = region->next) {
       if (region->regiondata == regiondata) {
         *r_sa = sa;
-        *r_ar = region;
+        *r_region = region;
         return;
       }
     }
   }
 }
 
-static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **r_sa, ARegion **r_ar)
+static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **r_sa, ARegion **r_region)
 {
   bScreen *sc = (bScreen *)ptr->owner_id;
   void *regiondata = ptr->data;
 
-  area_region_from_regiondata(sc, regiondata, r_sa, r_ar);
+  area_region_from_regiondata(sc, regiondata, r_sa, r_region);
 }
 
 /* -------------------------------------------------------------------- */
@@ -680,9 +680,9 @@ static void rna_Space_show_region_header_set(PointerRNA *ptr, bool value)
   bool value_for_tool_header = value;
   if (value == true) {
     ScrArea *sa = rna_area_from_space(ptr);
-    ARegion *ar_tool_header = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_HEADER);
-    if (ar_tool_header != NULL) {
-      value_for_tool_header = !(ar_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER);
+    ARegion *region_tool_header = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_HEADER);
+    if (region_tool_header != NULL) {
+      value_for_tool_header = !(region_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER);
     }
   }
   rna_Space_bool_from_region_flag_set_by_type(

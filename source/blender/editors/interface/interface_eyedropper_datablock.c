@@ -155,7 +155,7 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
   ScrArea *sa = BKE_screen_find_area_xy(screen, -1, mx, my);
 
   ScrArea *area_prev = CTX_wm_area(C);
-  ARegion *ar_prev = CTX_wm_region(C);
+  ARegion *region_prev = CTX_wm_region(C);
 
   ddr->name[0] = '\0';
 
@@ -208,7 +208,7 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
   }
 
   CTX_wm_area_set(C, area_prev);
-  CTX_wm_region_set(C, ar_prev);
+  CTX_wm_region_set(C, region_prev);
 }
 
 /* sets the ID, returns success */

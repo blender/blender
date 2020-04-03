@@ -3201,13 +3201,13 @@ static void redraw_timer_step(bContext *C,
     CTX_wm_menu_set(C, NULL);
 
     for (sa_iter = screen->areabase.first; sa_iter; sa_iter = sa_iter->next) {
-      ARegion *ar_iter;
+      ARegion *region_iter;
       CTX_wm_area_set(C, sa_iter);
 
-      for (ar_iter = sa_iter->regionbase.first; ar_iter; ar_iter = ar_iter->next) {
-        if (ar_iter->visible) {
-          CTX_wm_region_set(C, ar_iter);
-          wm_draw_region_test(C, sa_iter, ar_iter);
+      for (region_iter = sa_iter->regionbase.first; region_iter; region_iter = region_iter->next) {
+        if (region_iter->visible) {
+          CTX_wm_region_set(C, region_iter);
+          wm_draw_region_test(C, sa_iter, region_iter);
         }
       }
     }

@@ -2641,11 +2641,11 @@ static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
 
   if ((rmd->region->flag & RGN_FLAG_HIDDEN) == 0) {
     if (rmd->region->regiontype == RGN_TYPE_HEADER) {
-      ARegion *ar_tool_header = BKE_area_find_region_type(rmd->sa, RGN_TYPE_TOOL_HEADER);
-      if (ar_tool_header != NULL) {
-        if ((ar_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER) == 0 &&
-            (ar_tool_header->flag & RGN_FLAG_HIDDEN) != 0) {
-          region_toggle_hidden(C, ar_tool_header, 0);
+      ARegion *region_tool_header = BKE_area_find_region_type(rmd->sa, RGN_TYPE_TOOL_HEADER);
+      if (region_tool_header != NULL) {
+        if ((region_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER) == 0 &&
+            (region_tool_header->flag & RGN_FLAG_HIDDEN) != 0) {
+          region_toggle_hidden(C, region_tool_header, 0);
         }
       }
     }
@@ -3848,17 +3848,17 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
     region->alignment = 0;
 
     if (sa->spacetype == SPACE_VIEW3D) {
-      ARegion *ar_iter;
+      ARegion *region_iter;
       RegionView3D *rv3d = region->regiondata;
 
       /* if this is a locked view, use settings from 'User' view */
       if (rv3d->viewlock) {
         View3D *v3d_user;
-        ARegion *ar_user;
+        ARegion *region_user;
 
-        if (ED_view3d_context_user_region(C, &v3d_user, &ar_user)) {
-          if (region != ar_user) {
-            SWAP(void *, region->regiondata, ar_user->regiondata);
+        if (ED_view3d_context_user_region(C, &v3d_user, &region_user)) {
+          if (region != region_user) {
+            SWAP(void *, region->regiondata, region_user->regiondata);
             rv3d = region->regiondata;
           }
         }
@@ -3869,9 +3869,9 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
       rv3d->rflag &= ~RV3D_CLIPPING;
 
       /* Accumulate locks, in case they're mixed. */
-      for (ar_iter = sa->regionbase.first; ar_iter; ar_iter = ar_iter->next) {
-        if (ar_iter->regiontype == RGN_TYPE_WINDOW) {
-          RegionView3D *rv3d_iter = ar_iter->regiondata;
+      for (region_iter = sa->regionbase.first; region_iter; region_iter = region_iter->next) {
+        if (region_iter->regiontype == RGN_TYPE_WINDOW) {
+          RegionView3D *rv3d_iter = region_iter->regiondata;
           rv3d->viewlock_quad |= rv3d_iter->viewlock;
         }
       }
@@ -4140,9 +4140,9 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
       uiItemR(layout, &ptr, "show_region_header", 0, IFACE_("Show Header"), ICON_NONE);
     }
 
-    ARegion *ar_header = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+    ARegion *region_header = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
     uiLayout *col = uiLayoutColumn(layout, 0);
-    uiLayoutSetActive(col, (ar_header->flag & RGN_FLAG_HIDDEN) == 0);
+    uiLayoutSetActive(col, (region_header->flag & RGN_FLAG_HIDDEN) == 0);
 
     if (BKE_area_find_region_type(sa, RGN_TYPE_TOOL_HEADER)) {
       uiItemR(col, &ptr, "show_region_tool_header", 0, IFACE_("Show Tool Settings"), ICON_NONE);
@@ -5070,7 +5070,7 @@ static void SCREEN_OT_delete(wmOperatorType *ot)
 
 typedef struct RegionAlphaInfo {
   ScrArea *sa;
-  ARegion *region, *child_ar; /* other region */
+  ARegion *region, *child_region; /* other region */
   int hidden;
 } RegionAlphaInfo;
 
@@ -5107,8 +5107,8 @@ static void region_blend_end(bContext *C, ARegion *region, const bool is_running
 
   /* always send redraw */
   ED_region_tag_redraw(region);
-  if (rgi->child_ar) {
-    ED_region_tag_redraw(rgi->child_ar);
+  if (rgi->child_region) {
+    ED_region_tag_redraw(rgi->child_region);
   }
 
   /* if running timer was hiding, the flag toggle went wrong */
@@ -5159,7 +5159,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *sa, ARegi
 
   if (region->next) {
     if (region->next->alignment & RGN_SPLIT_PREV) {
-      rgi->child_ar = region->next;
+      rgi->child_region = region->next;
     }
   }
 
@@ -5183,8 +5183,8 @@ static int region_blend_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
 
   /* always send redraws */
   ED_region_tag_redraw(rgi->region);
-  if (rgi->child_ar) {
-    ED_region_tag_redraw(rgi->child_ar);
+  if (rgi->child_region) {
+    ED_region_tag_redraw(rgi->child_region);
   }
 
   /* end timer? */

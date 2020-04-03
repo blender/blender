@@ -615,17 +615,18 @@ static void sync_viewport_camera_smoothview(bContext *C,
           if (v3d->scenelock) {
             ListBase *lb = (space_link == area->spacedata.first) ? &area->regionbase :
                                                                    &space_link->regionbase;
-            for (ARegion *other_ar = lb->first; other_ar != NULL; other_ar = other_ar->next) {
-              if (other_ar->regiontype == RGN_TYPE_WINDOW) {
-                if (other_ar->regiondata) {
-                  RegionView3D *other_rv3d = other_ar->regiondata;
+            for (ARegion *other_region = lb->first; other_region != NULL;
+                 other_region = other_region->next) {
+              if (other_region->regiontype == RGN_TYPE_WINDOW) {
+                if (other_region->regiondata) {
+                  RegionView3D *other_rv3d = other_region->regiondata;
                   if (other_rv3d->persp == RV3D_CAMOB) {
                     Object *other_camera_old = other_v3d->camera;
                     other_v3d->camera = ob;
                     ED_view3d_lastview_store(other_rv3d);
                     ED_view3d_smooth_view(C,
                                           other_v3d,
-                                          other_ar,
+                                          other_region,
                                           smooth_viewtx,
                                           &(const V3D_SmoothParams){
                                               .camera_old = other_camera_old,
@@ -704,9 +705,9 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 bool ED_operator_rv3d_user_region_poll(bContext *C)
 {
   View3D *v3d_dummy;
-  ARegion *ar_dummy;
+  ARegion *region_dummy;
 
-  return ED_view3d_context_user_region(C, &v3d_dummy, &ar_dummy);
+  return ED_view3d_context_user_region(C, &v3d_dummy, &region_dummy);
 }
 
 void VIEW3D_OT_object_as_camera(wmOperatorType *ot)

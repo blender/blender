@@ -75,14 +75,14 @@ static bool last_redo_poll(const bContext *C, short region_type)
      * wrong context.
      */
     ScrArea *sa = CTX_wm_area(C);
-    ARegion *ar_op = (region_type != -1) ? BKE_area_find_region_type(sa, region_type) : NULL;
-    ARegion *ar_prev = CTX_wm_region(C);
-    CTX_wm_region_set((bContext *)C, ar_op);
+    ARegion *region_op = (region_type != -1) ? BKE_area_find_region_type(sa, region_type) : NULL;
+    ARegion *region_prev = CTX_wm_region(C);
+    CTX_wm_region_set((bContext *)C, region_op);
 
     if (WM_operator_repeat_check(C, op) && WM_operator_check_ui_empty(op->type) == false) {
       success = WM_operator_poll((bContext *)C, op->type);
     }
-    CTX_wm_region_set((bContext *)C, ar_prev);
+    CTX_wm_region_set((bContext *)C, region_prev);
   }
   return success;
 }
@@ -253,9 +253,9 @@ ARegionType *ED_area_type_hud(int space_type)
 static ARegion *hud_region_add(ScrArea *sa)
 {
   ARegion *region = MEM_callocN(sizeof(ARegion), "area region");
-  ARegion *ar_win = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-  if (ar_win) {
-    BLI_insertlinkbefore(&sa->regionbase, ar_win, region);
+  ARegion *region_win = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  if (region_win) {
+    BLI_insertlinkbefore(&sa->regionbase, region_win, region);
   }
   else {
     BLI_addtail(&sa->regionbase, region);
@@ -265,10 +265,10 @@ static ARegion *hud_region_add(ScrArea *sa)
   region->overlap = true;
   region->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
-  if (ar_win) {
+  if (region_win) {
     float x, y;
 
-    UI_view2d_scroller_size_get(&ar_win->v2d, &x, &y);
+    UI_view2d_scroller_size_get(&region_win->v2d, &x, &y);
     region->runtime.offset_x = x;
     region->runtime.offset_y = y;
   }
@@ -316,9 +316,9 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 
   bool init = false;
   bool was_hidden = region == NULL || region->visible == false;
-  ARegion *ar_op = CTX_wm_region(C);
-  BLI_assert((ar_op == NULL) || (ar_op->regiontype != RGN_TYPE_HUD));
-  if (!last_redo_poll(C, ar_op ? ar_op->regiontype : -1)) {
+  ARegion *region_op = CTX_wm_region(C);
+  BLI_assert((region_op == NULL) || (region_op->regiontype != RGN_TYPE_HUD));
+  if (!last_redo_poll(C, region_op ? region_op->regiontype : -1)) {
     if (region) {
       ED_region_tag_redraw(region);
       hud_region_hide(region);
@@ -350,8 +350,8 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
       hrd = MEM_callocN(sizeof(*hrd), __func__);
       region->regiondata = hrd;
     }
-    if (ar_op) {
-      hrd->regionid = ar_op->regiontype;
+    if (region_op) {
+      hrd->regionid = region_op->regiontype;
     }
     else {
       hrd->regionid = -1;
@@ -380,7 +380,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
   /* We shouldn't need to do this every time :S */
   /* XXX, this is evil! - it also makes the menu show on first draw. :( */
   if (region->visible) {
-    ARegion *ar_prev = CTX_wm_region(C);
+    ARegion *region_prev = CTX_wm_region(C);
     CTX_wm_region_set((bContext *)C, region);
     hud_region_layout(C, region);
     if (was_hidden) {
@@ -391,7 +391,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
           .ymax = region->winy,
       };
     }
-    CTX_wm_region_set((bContext *)C, ar_prev);
+    CTX_wm_region_set((bContext *)C, region_prev);
   }
 
   region->visible = !((region->flag & RGN_FLAG_HIDDEN) || (region->flag & RGN_FLAG_TOO_SMALL));

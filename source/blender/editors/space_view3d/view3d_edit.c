@@ -529,10 +529,10 @@ static void viewops_data_create(bContext *C,
         negate_v3_v3(rv3d->ofs, dvec);
       }
       else {
-        const float mval_ar_mid[2] = {(float)vod->region->winx / 2.0f,
-                                      (float)vod->region->winy / 2.0f};
+        const float mval_region_mid[2] = {(float)vod->region->winx / 2.0f,
+                                          (float)vod->region->winy / 2.0f};
 
-        ED_view3d_win_to_3d(vod->v3d, vod->region, vod->dyn_ofs, mval_ar_mid, rv3d->ofs);
+        ED_view3d_win_to_3d(vod->v3d, vod->region, vod->dyn_ofs, mval_region_mid, rv3d->ofs);
         negate_v3(rv3d->ofs);
       }
       negate_v3(vod->dyn_ofs);

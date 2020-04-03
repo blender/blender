@@ -2076,9 +2076,9 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 }
 
 /**
- * \param skip_ar_exit: Skip calling area exit callback. Set for opening temp spaces.
+ * \param skip_region_exit: Skip calling area exit callback. Set for opening temp spaces.
  */
-void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exit)
+void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region_exit)
 {
   wmWindow *win = CTX_wm_window(C);
 
@@ -2104,14 +2104,14 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 
     /* in some cases (opening temp space) we don't want to
      * call area exit callback, so we temporarily unset it */
-    if (skip_ar_exit && sa->type) {
+    if (skip_region_exit && sa->type) {
       sa->type->exit = NULL;
     }
 
     ED_area_exit(C, sa);
 
     /* restore old area exit callback */
-    if (skip_ar_exit && sa->type) {
+    if (skip_region_exit && sa->type) {
       sa->type->exit = sa_exit;
     }
 

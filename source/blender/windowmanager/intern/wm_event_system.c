@@ -839,7 +839,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
       /* FIXME, temp setting window, see other call to UI_popup_menu_reports for why */
       wmWindow *win_prev = CTX_wm_window(C);
       ScrArea *area_prev = CTX_wm_area(C);
-      ARegion *ar_prev = CTX_wm_region(C);
+      ARegion *region_prev = CTX_wm_region(C);
 
       if (win_prev == NULL) {
         CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
@@ -849,7 +849,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
 
       CTX_wm_window_set(C, win_prev);
       CTX_wm_area_set(C, area_prev);
-      CTX_wm_region_set(C, ar_prev);
+      CTX_wm_region_set(C, region_prev);
     }
   }
 
@@ -2296,7 +2296,7 @@ static int wm_handler_fileselect_do(bContext *C,
            * it can be removed without breaking anything but then no linking errors - campbell */
           wmWindow *win_prev = CTX_wm_window(C);
           ScrArea *area_prev = CTX_wm_area(C);
-          ARegion *ar_prev = CTX_wm_region(C);
+          ARegion *region_prev = CTX_wm_region(C);
 
           if (win_prev == NULL) {
             CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
@@ -2314,7 +2314,7 @@ static int wm_handler_fileselect_do(bContext *C,
 
           CTX_wm_window_set(C, win_prev);
           CTX_wm_area_set(C, area_prev);
-          CTX_wm_region_set(C, ar_prev);
+          CTX_wm_region_set(C, region_prev);
         }
 
         /* for WM_operator_pystring only, custom report handling is done above */
