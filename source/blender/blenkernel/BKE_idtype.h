@@ -183,7 +183,7 @@ const char *BKE_idtype_idcode_to_translation_context(const short idcode);
 bool BKE_idtype_idcode_is_linkable(const short idcode);
 bool BKE_idtype_idcode_is_valid(const short idcode);
 
-short BKE_idtype_idcode_from_name(const char *name);
+short BKE_idtype_idcode_from_name(const char *idtype_name);
 
 uint64_t BKE_idtype_idcode_to_idfilter(const short idcode);
 short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter);

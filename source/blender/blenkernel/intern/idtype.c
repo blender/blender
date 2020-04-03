@@ -124,10 +124,10 @@ const IDTypeInfo *BKE_idtype_get_info_from_id(const ID *id)
   return BKE_idtype_get_info_from_idcode(GS(id->name));
 }
 
-static const IDTypeInfo *idtype_get_info_from_name(const char *str)
+static const IDTypeInfo *idtype_get_info_from_name(const char *idtype_name)
 {
   for (int i = ARRAY_SIZE(id_types); i--;) {
-    if (id_types[i] != NULL && STREQ(str, id_types[i]->name)) {
+    if (id_types[i] != NULL && STREQ(idtype_name, id_types[i]->name)) {
       return id_types[i];
     }
   }
@@ -179,14 +179,14 @@ const char *BKE_idtype_idcode_to_translation_context(const short idcode)
 }
 
 /**
- * Convert a name into an idcode (ie. ID_SCE)
+ * Convert an IDType name into an idcode (ie. ID_SCE)
  *
- * \param name: The name to convert.
- * \return The code for the name, or 0 if invalid.
+ * \param idtype_name: The IDType's 'user visible name' to convert.
+ * \return The idcode for the name, or 0 if invalid.
  */
-short BKE_idtype_idcode_from_name(const char *name)
+short BKE_idtype_idcode_from_name(const char *idtype_name)
 {
-  const IDTypeInfo *id_type = idtype_get_info_from_name(name);
+  const IDTypeInfo *id_type = idtype_get_info_from_name(idtype_name);
   BLI_assert(id_type);
   return id_type != NULL ? id_type->id_code : 0;
 }
