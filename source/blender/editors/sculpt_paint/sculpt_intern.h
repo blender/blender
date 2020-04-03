@@ -128,6 +128,33 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
 int SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
 
+/* Sculpt Visibility API */
+
+void SCULPT_vertex_visible_set(SculptSession *ss, int index, bool visible);
+bool SCULPT_vertex_visible_get(SculptSession *ss, int index);
+
+void SCULPT_visibility_sync_all_face_sets_to_vertices(struct SculptSession *ss);
+void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
+
+/* Face Sets API */
+
+int SCULPT_active_face_set_get(SculptSession *ss);
+int SCULPT_vertex_face_set_get(SculptSession *ss, int index);
+void SCULPT_vertex_face_set_set(SculptSession *ss, int index, int face_set);
+
+bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_set);
+bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, int index);
+
+int SCULPT_face_set_next_available_get(SculptSession *ss);
+
+void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible);
+bool SCULPT_vertex_all_face_sets_visible_get(SculptSession *ss, int index);
+bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, int index);
+
+void SCULPT_face_sets_visibility_invert(SculptSession *ss);
+void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
+
+
 /* Sculpt Original Data */
 typedef struct {
   struct BMLog *bm_log;
@@ -145,11 +172,6 @@ typedef struct {
 
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node);
 void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter);
-
-/* Face Sets */
-int SCULPT_vertex_face_set_get(SculptSession *ss, int index);
-bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_set);
-bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, int index);
 
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);
@@ -274,6 +296,8 @@ void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
                                            SculptSession *ss,
                                            const float outline_col[3],
                                            const float outline_alpha);
+/* Draw Face Sets Brush. */
+void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
 /* Slide/Relax */
 void SCULPT_relax_vertex(struct SculptSession *ss,
@@ -282,9 +306,8 @@ void SCULPT_relax_vertex(struct SculptSession *ss,
                          bool filter_boundary_face_sets,
                          float *r_final_pos);
 
-/* Sculpt Visibility API */
-void SCULPT_visibility_sync_all_face_sets_to_vertices(struct SculptSession *ss);
-void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
+
+
 
 /* Undo */
 
@@ -736,5 +759,15 @@ bool SCULPT_get_redraw_rect(struct ARegion *region,
                             struct RegionView3D *rv3d,
                             Object *ob,
                             rcti *rect);
+
+
+/* Operators */
+
+/* Face Sets */
+void SCULPT_OT_face_sets_randomize_colors(struct wmOperatorType *ot);
+void SCULPT_OT_face_sets_change_visibility(struct wmOperatorType *ot);
+void SCULPT_OT_face_sets_init(struct wmOperatorType *ot);
+void SCULPT_OT_face_sets_create(struct wmOperatorType *ot);
+
 
 #endif
