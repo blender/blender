@@ -24,8 +24,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_hash.h"
+#include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
@@ -222,7 +222,6 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
     BKE_pbvh_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
   }
 }
-
 
 /* Face Sets Operators */
 

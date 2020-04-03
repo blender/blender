@@ -3676,7 +3676,6 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BKE_pbvh_parallel_range(0, totnode, &data, do_draw_brush_task_cb_ex, &settings);
 }
 
-
 static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
                                            const int n,
                                            const TaskParallelTLS *__restrict tls)
@@ -11109,7 +11108,6 @@ static void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
                 0.0f,
                 10000.0f);
 }
-
 
 void ED_operatortypes_sculpt(void)
 {

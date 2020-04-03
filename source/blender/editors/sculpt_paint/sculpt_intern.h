@@ -154,7 +154,6 @@ bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, int index);
 void SCULPT_face_sets_visibility_invert(SculptSession *ss);
 void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
 
-
 /* Sculpt Original Data */
 typedef struct {
   struct BMLog *bm_log;
@@ -305,9 +304,6 @@ void SCULPT_relax_vertex(struct SculptSession *ss,
                          float factor,
                          bool filter_boundary_face_sets,
                          float *r_final_pos);
-
-
-
 
 /* Undo */
 
@@ -760,7 +756,6 @@ bool SCULPT_get_redraw_rect(struct ARegion *region,
                             Object *ob,
                             rcti *rect);
 
-
 /* Operators */
 
 /* Face Sets */
@@ -768,6 +763,5 @@ void SCULPT_OT_face_sets_randomize_colors(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_change_visibility(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_init(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(struct wmOperatorType *ot);
-
 
 #endif
