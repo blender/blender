@@ -290,6 +290,7 @@ void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel, Base **r_ba
         bases, bases_len, vc.obedit != NULL, buffer, hits, findunsel, true, r_base);
 
     MEM_freeN(bases);
+
     return bone;
   }
   return NULL;
@@ -484,9 +485,13 @@ static int armature_select_linked_pick_invoke(bContext *C, wmOperator *op, const
 
   Base *base = NULL;
   EditBone *ebone_active = get_nearest_bone(C, event->mval, true, &base);
-  bArmature *arm = base->object->data;
 
-  if (ebone_active == NULL || !EBONE_SELECTABLE(arm, ebone_active)) {
+  if (ebone_active == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  bArmature *arm = base->object->data;
+  if (!EBONE_SELECTABLE(arm, ebone_active)) {
     return OPERATOR_CANCELLED;
   }
 
