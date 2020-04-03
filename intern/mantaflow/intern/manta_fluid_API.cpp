@@ -192,6 +192,41 @@ int manta_bake_guiding(MANTA *fluid, FluidModifierData *mmd, int framenr)
   return fluid->bakeGuiding(mmd, framenr);
 }
 
+int manta_has_data(MANTA *fluid, FluidModifierData *mmd, int framenr)
+{
+  if (!fluid || !mmd)
+    return 0;
+  return fluid->hasData(mmd, framenr);
+}
+
+int manta_has_noise(MANTA *fluid, FluidModifierData *mmd, int framenr)
+{
+  if (!fluid || !mmd)
+    return 0;
+  return fluid->hasNoise(mmd, framenr);
+}
+
+int manta_has_mesh(MANTA *fluid, FluidModifierData *mmd, int framenr)
+{
+  if (!fluid || !mmd)
+    return 0;
+  return fluid->hasMesh(mmd, framenr);
+}
+
+int manta_has_particles(MANTA *fluid, FluidModifierData *mmd, int framenr)
+{
+  if (!fluid || !mmd)
+    return 0;
+  return fluid->hasParticles(mmd, framenr);
+}
+
+int manta_has_guiding(MANTA *fluid, FluidModifierData *mmd, int framenr, bool domain)
+{
+  if (!fluid || !mmd)
+    return 0;
+  return fluid->hasGuiding(mmd, framenr, domain);
+}
+
 void manta_update_variables(MANTA *fluid, FluidModifierData *mmd)
 {
   if (!fluid)

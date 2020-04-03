@@ -108,6 +108,14 @@ struct MANTA {
   void exportSmokeScript(struct FluidModifierData *mmd);
   void exportLiquidScript(struct FluidModifierData *mmd);
 
+  // Check cache status by frame
+  bool hasConfig(FluidModifierData *mmd, int framenr);
+  bool hasData(FluidModifierData *mmd, int framenr);
+  bool hasNoise(FluidModifierData *mmd, int framenr);
+  bool hasMesh(FluidModifierData *mmd, int framenr);
+  bool hasParticles(FluidModifierData *mmd, int framenr);
+  bool hasGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain);
+
   inline size_t getTotalCells()
   {
     return mTotalCells;
@@ -861,16 +869,22 @@ struct MANTA {
   std::string getRealValue(const std::string &varName, FluidModifierData *mmd);
   std::string parseLine(const std::string &line, FluidModifierData *mmd);
   std::string parseScript(const std::string &setup_string, FluidModifierData *mmd = NULL);
-  bool updateMeshFromBobj(const char *filename);
-  bool updateMeshFromObj(const char *filename);
-  bool updateMeshFromUni(const char *filename);
-  bool updateParticlesFromUni(const char *filename, bool isSecondarySys, bool isVelData);
-  bool updateGridFromUni(const char *filename, float *grid, bool isNoise);
-  bool updateGridFromVDB(const char *filename, float *grid, bool isNoise);
-  bool updateGridFromRaw(const char *filename, float *grid, bool isNoise);
-  bool updateMeshFromFile(const char *filename);
-  bool updateParticlesFromFile(const char *filename, bool isSecondarySys, bool isVelData);
-  bool updateGridFromFile(const char *filename, float *grid, bool isNoise);
+  bool updateMeshFromBobj(std::string filename);
+  bool updateMeshFromObj(std::string filename);
+  bool updateMeshFromUni(std::string filename);
+  bool updateParticlesFromUni(std::string filename, bool isSecondarySys, bool isVelData);
+  bool updateGridFromUni(std::string filename, float *grid, bool isNoise);
+  bool updateGridFromVDB(std::string filename, float *grid, bool isNoise);
+  bool updateGridFromRaw(std::string filename, float *grid, bool isNoise);
+  bool updateMeshFromFile(std::string filename);
+  bool updateParticlesFromFile(std::string filename, bool isSecondarySys, bool isVelData);
+  bool updateGridFromFile(std::string filename, float *grid, bool isNoise);
+  std::string getDirectory(struct FluidModifierData *mmd, std::string subdirectory);
+  std::string getFile(struct FluidModifierData *mmd,
+                      std::string subdirectory,
+                      std::string fname,
+                      std::string extension,
+                      int framenr);
 };
 
 #endif

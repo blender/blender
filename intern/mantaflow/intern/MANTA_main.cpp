@@ -595,19 +595,19 @@ static std::string getCacheFileEnding(char cache_format)
 
   switch (cache_format) {
     case FLUID_DOMAIN_FILE_UNI:
-      return ".uni";
+      return FLUID_DOMAIN_EXTENSION_UNI;
     case FLUID_DOMAIN_FILE_OPENVDB:
-      return ".vdb";
+      return FLUID_DOMAIN_EXTENSION_OPENVDB;
     case FLUID_DOMAIN_FILE_RAW:
-      return ".raw";
+      return FLUID_DOMAIN_EXTENSION_RAW;
     case FLUID_DOMAIN_FILE_BIN_OBJECT:
-      return ".bobj.gz";
+      return FLUID_DOMAIN_EXTENSION_BINOBJ;
     case FLUID_DOMAIN_FILE_OBJECT:
-      return ".obj";
+      return FLUID_DOMAIN_EXTENSION_OBJ;
     default:
       std::cerr << "Fluid Error -- Could not find file extension. Using default file extension."
                 << std::endl;
-      return ".uni";
+      return FLUID_DOMAIN_EXTENSION_UNI;
   }
 }
 
@@ -1054,38 +1054,27 @@ bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
   int result = 0;
   int expected = 0; /* Expected number of read successes for this frame. */
 
-  // Ensure empty data structures at start
-  if (mFlipParticleData)
-    mFlipParticleData->clear();
-  if (mFlipParticleVelocity)
-    mFlipParticleVelocity->clear();
+  /* Ensure empty data structures at start. */
+  if (!mFlipParticleData || !mFlipParticleVelocity)
+    return false;
 
-  std::ostringstream ss;
-  char cacheDir[FILE_MAX], targetFile[FILE_MAX];
-  cacheDir[0] = '\0';
-  targetFile[0] = '\0';
+  mFlipParticleData->clear();
+  mFlipParticleVelocity->clear();
 
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
-  BLI_path_join(
-      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
+  std::string file = getFile(
+      mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_PP, pformat.c_str(), framenr);
 
   expected += 1;
-  ss.str("");
-  ss << "pp_####" << pformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateParticlesFromFile(targetFile, false, false);
+  if (BLI_exists(file.c_str())) {
+    result += updateParticlesFromFile(file, false, false);
     assert(result == expected);
   }
 
+  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_PVEL, pformat.c_str(), framenr);
   expected += 1;
-  ss.str("");
-  ss << "pVel_####" << pformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateParticlesFromFile(targetFile, false, true);
+  if (BLI_exists(file.c_str())) {
+    result += updateParticlesFromFile(file, false, true);
     assert(result == expected);
   }
 
@@ -1108,42 +1097,29 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
   int result = 0;
   int expected = 0; /* Expected number of read successes for this frame. */
 
-  // Ensure empty data structures at start
-  if (mMeshNodes)
-    mMeshNodes->clear();
-  if (mMeshTriangles)
-    mMeshTriangles->clear();
-  if (mMeshVelocities)
-    mMeshVelocities->clear();
+  /* Ensure empty data structures at start. */
+  if (!mMeshNodes || !mMeshTriangles || !mMeshVelocities)
+    return false;
 
-  std::ostringstream ss;
-  char cacheDir[FILE_MAX], targetFile[FILE_MAX];
-  cacheDir[0] = '\0';
-  targetFile[0] = '\0';
+  mMeshNodes->clear();
+  mMeshTriangles->clear();
+  mMeshVelocities->clear();
 
   std::string mformat = getCacheFileEnding(mmd->domain->cache_mesh_format);
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  BLI_path_join(
-      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_MESH, nullptr);
+  std::string file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_DOMAIN_FILE_MESH, mformat, framenr);
 
   expected += 1;
-  ss.str("");
-  ss << "lMesh_####" << mformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateMeshFromFile(targetFile);
+  if (BLI_exists(file.c_str())) {
+    result += updateMeshFromFile(file);
     assert(result == expected);
   }
 
   if (mUsingMVel) {
+    file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_DOMAIN_FILE_MESHVEL, dformat, framenr);
     expected += 1;
-    ss.str("");
-    ss << "lVelMesh_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateMeshFromFile(targetFile);
+    if (BLI_exists(file.c_str())) {
+      result += updateMeshFromFile(file);
       assert(result == expected);
     }
   }
@@ -1167,53 +1143,35 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
   int result = 0;
   int expected = 0; /* Expected number of read successes for this frame. */
 
-  // Ensure empty data structures at start
-  if (mSndParticleData)
-    mSndParticleData->clear();
-  if (mSndParticleVelocity)
-    mSndParticleVelocity->clear();
-  if (mSndParticleLife)
-    mSndParticleLife->clear();
+  /* Ensure empty data structures at start. */
+  if (!mSndParticleData || !mSndParticleVelocity || !mSndParticleLife)
+    return false;
 
-  std::ostringstream ss;
-  char cacheDir[FILE_MAX], targetFile[FILE_MAX];
-  cacheDir[0] = '\0';
-  targetFile[0] = '\0';
+  mSndParticleData->clear();
+  mSndParticleVelocity->clear();
+  mSndParticleLife->clear();
 
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
-  BLI_path_join(cacheDir,
-                sizeof(cacheDir),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_PARTICLES,
-                nullptr);
+  std::string file = getFile(
+      mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PPSND, pformat, framenr);
 
   expected += 1;
-  ss.str("");
-  ss << "ppSnd_####" << pformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateParticlesFromFile(targetFile, true, false);
+  if (BLI_exists(file.c_str())) {
+    result += updateParticlesFromFile(file, true, false);
     assert(result == expected);
   }
 
+  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PVELSND, pformat, framenr);
   expected += 1;
-  ss.str("");
-  ss << "pVelSnd_####" << pformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateParticlesFromFile(targetFile, true, true);
+  if (BLI_exists(file.c_str())) {
+    result += updateParticlesFromFile(file, true, true);
     assert(result == expected);
   }
 
+  file = getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PLIFESND, pformat, framenr);
   expected += 1;
-  ss.str("");
-  ss << "pLifeSnd_####" << pformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateParticlesFromFile(targetFile, true, false);
+  if (BLI_exists(file.c_str())) {
+    result += updateParticlesFromFile(file, true, false);
     assert(result == expected);
   }
 
@@ -1236,103 +1194,70 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
   int result = 0;
   int expected = 0; /* Expected number of read successes for this frame. */
 
-  std::ostringstream ss;
-  char cacheDir[FILE_MAX], targetFile[FILE_MAX];
-  cacheDir[0] = '\0';
-  targetFile[0] = '\0';
-
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  BLI_path_join(
-      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
+  std::string file = getFile(
+      mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_DENSITY, dformat, framenr);
 
   expected += 1;
-  ss.str("");
-  ss << "density_####" << dformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateGridFromFile(targetFile, mDensity, false);
+  if (BLI_exists(file.c_str())) {
+    result += updateGridFromFile(file, mDensity, false);
     assert(result == expected);
   }
 
+  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_SHADOW, dformat, framenr);
   expected += 1;
-  ss.str("");
-  ss << "shadow_####" << dformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateGridFromFile(targetFile, mShadow, false);
+  if (BLI_exists(file.c_str())) {
+    result += updateGridFromFile(file, mShadow, false);
     assert(result == expected);
   }
 
   if (mUsingHeat) {
+    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_HEAT, dformat, framenr);
     expected += 1;
-    ss.str("");
-    ss << "heat_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mHeat, false);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mHeat, false);
       assert(result == expected);
     }
   }
 
   if (mUsingColors) {
+    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORR, dformat, framenr);
     expected += 3;
-    ss.str("");
-    ss << "color_r_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mColorR, false);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mColorR, false);
       assert(result == expected);
     }
 
-    ss.str("");
-    ss << "color_g_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mColorG, false);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORG, dformat, framenr);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mColorG, false);
       assert(result == expected);
     }
 
-    ss.str("");
-    ss << "color_b_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mColorB, false);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORB, dformat, framenr);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mColorB, false);
       assert(result == expected);
     }
   }
 
   if (mUsingFire) {
+    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_FLAME, dformat, framenr);
     expected += 3;
-    ss.str("");
-    ss << "flame_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mFlame, false);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mFlame, false);
       assert(result == expected);
     }
 
-    ss.str("");
-    ss << "fuel_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mFuel, false);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_FUEL, dformat, framenr);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mFuel, false);
       assert(result == expected);
     }
 
-    ss.str("");
-    ss << "react_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mReact, false);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_REACT, dformat, framenr);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mReact, false);
       assert(result == expected);
     }
   }
@@ -1356,101 +1281,62 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
   int result = 0;
   int expected = 0; /* Expected number of read successes for this frame. */
 
-  std::ostringstream ss;
-  char cacheDirData[FILE_MAX], cacheDirNoise[FILE_MAX], targetFile[FILE_MAX];
-  cacheDirData[0] = '\0';
-  cacheDirNoise[0] = '\0';
-  targetFile[0] = '\0';
-
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
   std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
-  BLI_path_join(cacheDirData,
-                sizeof(cacheDirData),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_DATA,
-                nullptr);
-  BLI_path_join(cacheDirNoise,
-                sizeof(cacheDirNoise),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_NOISE,
-                nullptr);
+  std::string file = getFile(
+      mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_DENSITYNOISE, nformat, framenr);
 
   expected += 1;
-  ss.str("");
-  ss << "density_noise_####" << nformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirNoise, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateGridFromFile(targetFile, mDensityHigh, true);
+  if (BLI_exists(file.c_str())) {
+    result += updateGridFromFile(file, mDensityHigh, true);
     assert(result == expected);
   }
 
+  file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_SHADOW, dformat, framenr);
   expected += 1;
-  ss.str("");
-  ss << "shadow_####" << dformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirData, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (BLI_exists(targetFile)) {
-    result += updateGridFromFile(targetFile, mShadow, false);
+  if (BLI_exists(file.c_str())) {
+    result += updateGridFromFile(file, mShadow, false);
     assert(result == expected);
   }
 
   if (mUsingColors) {
+    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORRNOISE, nformat, framenr);
     expected += 3;
-    ss.str("");
-    ss << "color_r_noise_####" << nformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirNoise, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mColorRHigh, true);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mColorRHigh, true);
       assert(result == expected);
     }
 
-    ss.str("");
-    ss << "color_g_noise_####" << nformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirNoise, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mColorGHigh, true);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORGNOISE, nformat, framenr);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mColorGHigh, true);
       assert(result == expected);
     }
 
-    ss.str("");
-    ss << "color_b_noise_####" << nformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirNoise, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mColorBHigh, true);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORBNOISE, nformat, framenr);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mColorBHigh, true);
       assert(result == expected);
     }
   }
 
   if (mUsingFire) {
+    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_FLAMENOISE, nformat, framenr);
     expected += 3;
-    ss.str("");
-    ss << "flame_noise_####" << nformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirNoise, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mFlameHigh, true);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mFlameHigh, true);
       assert(result == expected);
     }
 
-    ss.str("");
-    ss << "fuel_noise_####" << nformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirNoise, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mFuelHigh, true);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_FUELNOISE, nformat, framenr);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mFuelHigh, true);
       assert(result == expected);
     }
 
-    ss.str("");
-    ss << "react_noise_####" << nformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirNoise, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (BLI_exists(targetFile)) {
-      result += updateGridFromFile(targetFile, mReactHigh, true);
+    file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_REACTNOISE, nformat, framenr);
+    if (BLI_exists(file.c_str())) {
+      result += updateGridFromFile(file, mReactHigh, true);
       assert(result == expected);
     }
   }
@@ -1479,26 +1365,18 @@ bool MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
     std::cout << "MANTA::writeConfiguration()" << std::endl;
 
   FluidDomainSettings *mds = mmd->domain;
-  std::ostringstream ss;
-  char cacheDir[FILE_MAX], targetFile[FILE_MAX];
-  cacheDir[0] = '\0';
-  targetFile[0] = '\0';
 
-  std::string dformat = ".uni";
+  std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_CONFIG);
+  std::string format = FLUID_DOMAIN_EXTENSION_UNI;
+  std::string file = getFile(
+      mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_DOMAIN_FILE_CONFIG, format, framenr);
 
-  BLI_path_join(
-      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_CONFIG, nullptr);
-  BLI_path_make_safe(cacheDir);
-  BLI_dir_create_recursive(cacheDir); /* Create 'config' subdir if it does not exist already */
+  /* Create 'config' subdir if it does not exist already. */
+  BLI_dir_create_recursive(directory.c_str());
 
-  ss.str("");
-  ss << "config_####" << dformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-
-  gzFile gzf = (gzFile)BLI_gzopen(targetFile, "wb1");  // do some compression
+  gzFile gzf = (gzFile)BLI_gzopen(file.c_str(), "wb1");  // do some compression
   if (!gzf) {
-    std::cerr << "Fluid Error -- Cannot open file " << targetFile << std::endl;
+    std::cerr << "Fluid Error -- Cannot open file " << file << std::endl;
     return false;
   }
 
@@ -1528,37 +1406,28 @@ bool MANTA::writeData(FluidModifierData *mmd, int framenr)
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
 
-  char cacheDirData[FILE_MAX];
-  cacheDirData[0] = '\0';
-
+  std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_DATA);
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
 
   bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
-  BLI_path_join(cacheDirData,
-                sizeof(cacheDirData),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_DATA,
-                nullptr);
-  BLI_path_make_safe(cacheDirData);
-
   ss.str("");
-  ss << "fluid_save_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', " << framenr
+  ss << "fluid_save_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
      << ", '" << dformat << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   if (mUsingSmoke) {
     ss.str("");
-    ss << "smoke_save_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "', " << resumable_cache << ")";
+    ss << "smoke_save_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+       << ", '" << dformat << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   if (mUsingLiquid) {
     ss.str("");
-    ss << "liquid_save_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "', " << resumable_cache << ")";
+    ss << "liquid_save_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+       << ", '" << dformat << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   return runPythonString(pythonCommands);
@@ -1570,29 +1439,19 @@ bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
     std::cout << "MANTA::readConfiguration()" << std::endl;
 
   FluidDomainSettings *mds = mmd->domain;
-  std::ostringstream ss;
-  char cacheDir[FILE_MAX], targetFile[FILE_MAX];
-  cacheDir[0] = '\0';
-  targetFile[0] = '\0';
   float dummy;
 
-  std::string dformat = ".uni";
+  std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_CONFIG);
+  std::string format = FLUID_DOMAIN_EXTENSION_UNI;
+  std::string file = getFile(
+      mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_DOMAIN_FILE_CONFIG, format, framenr);
 
-  BLI_path_join(
-      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_CONFIG, nullptr);
-  BLI_path_make_safe(cacheDir);
-
-  ss.str("");
-  ss << "config_####" << dformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDir, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-
-  if (!BLI_exists(targetFile))
+  if (!hasConfig(mmd, framenr))
     return false;
 
-  gzFile gzf = (gzFile)BLI_gzopen(targetFile, "rb");  // do some compression
+  gzFile gzf = (gzFile)BLI_gzopen(file.c_str(), "rb");  // do some compression
   if (!gzf) {
-    std::cerr << "Fluid Error -- Cannot open file " << targetFile << std::endl;
+    std::cerr << "Fluid Error -- Cannot open file " << file << std::endl;
     return false;
   }
 
@@ -1625,60 +1484,39 @@ bool MANTA::readData(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  bool result = true;
 
-  char cacheDirData[FILE_MAX], targetFile[FILE_MAX];
-  cacheDirData[0] = '\0';
-  targetFile[0] = '\0';
-
+  std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_DATA);
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
 
   bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
-  BLI_path_join(cacheDirData,
-                sizeof(cacheDirData),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_DATA,
-                nullptr);
-  BLI_path_make_safe(cacheDirData);
-
-  /* Exit early if there is nothing present in the cache for this frame */
-  ss.str("");
-  if (mUsingSmoke) {
-    ss << "density_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirData, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (!BLI_exists(targetFile))
-      return false;
-  }
-  if (mUsingLiquid) {
-    ss << "phi_####" << dformat;
-    BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirData, ss.str().c_str());
-    BLI_path_frame(targetFile, framenr, 0);
-    if (!BLI_exists(targetFile))
-      return false;
-  }
+  /* Sanity check: Are cache files present? */
+  if (!hasData(mmd, framenr))
+    return false;
 
   ss.str("");
-  ss << "fluid_load_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', " << framenr
+  ss << "fluid_load_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
      << ", '" << dformat << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   if (mUsingSmoke) {
     ss.str("");
-    ss << "smoke_load_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "', " << resumable_cache << ")";
+    ss << "smoke_load_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+       << ", '" << dformat << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
+    result &= runPythonString(pythonCommands);
   }
   if (mUsingLiquid) {
-    /* Exit early if there is nothing present in the cache for this frame */
     ss.str("");
-    ss << "liquid_load_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', "
-       << framenr << ", '" << dformat << "', " << resumable_cache << ")";
+    ss << "liquid_load_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+       << ", '" << dformat << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
+    result &= runPythonString(pythonCommands);
   }
-  return runPythonString(pythonCommands);
+  return result;
 }
 
 bool MANTA::readNoise(FluidModifierData *mmd, int framenr)
@@ -1692,33 +1530,19 @@ bool MANTA::readNoise(FluidModifierData *mmd, int framenr)
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
 
-  char cacheDirNoise[FILE_MAX], targetFile[FILE_MAX];
-  cacheDirNoise[0] = '\0';
-  targetFile[0] = '\0';
-
+  std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
   std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
 
   bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
-  BLI_path_join(cacheDirNoise,
-                sizeof(cacheDirNoise),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_NOISE,
-                nullptr);
-  BLI_path_make_safe(cacheDirNoise);
-
-  /* Exit early if there is nothing present in the cache for this frame */
-  ss.str("");
-  ss << "density_noise_####" << nformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirNoise, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (!BLI_exists(targetFile))
+  /* Sanity check: Are cache files present? */
+  if (!hasNoise(mmd, framenr))
     return false;
 
   ss.str("");
-  ss << "smoke_load_noise_" << mCurrentID << "('" << escapeSlashes(cacheDirNoise) << "', "
-     << framenr << ", '" << nformat << "', " << resumable_cache << ")";
+  ss << "smoke_load_noise_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+     << ", '" << nformat << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -1738,36 +1562,22 @@ bool MANTA::readMesh(FluidModifierData *mmd, int framenr)
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
 
-  char cacheDirMesh[FILE_MAX], targetFile[FILE_MAX];
-  cacheDirMesh[0] = '\0';
-  targetFile[0] = '\0';
-
+  std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_MESH);
   std::string mformat = getCacheFileEnding(mmd->domain->cache_mesh_format);
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
 
-  BLI_path_join(cacheDirMesh,
-                sizeof(cacheDirMesh),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_MESH,
-                nullptr);
-  BLI_path_make_safe(cacheDirMesh);
-
-  /* Exit early if there is nothing present in the cache for this frame */
-  ss.str("");
-  ss << "lMesh_####" << mformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirMesh, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (!BLI_exists(targetFile))
+  /* Sanity check: Are cache files present? */
+  if (!hasMesh(mmd, framenr))
     return false;
 
   ss.str("");
-  ss << "liquid_load_mesh_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', "
-     << framenr << ", '" << mformat << "')";
+  ss << "liquid_load_mesh_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+     << ", '" << mformat << "')";
   pythonCommands.push_back(ss.str());
 
   if (mUsingMVel) {
     ss.str("");
-    ss << "liquid_load_meshvel_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', "
+    ss << "liquid_load_meshvel_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
        << framenr << ", '" << dformat << "')";
     pythonCommands.push_back(ss.str());
   }
@@ -1791,32 +1601,18 @@ bool MANTA::readParticles(FluidModifierData *mmd, int framenr)
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
 
-  char cacheDirParticles[FILE_MAX], targetFile[FILE_MAX];
-  cacheDirParticles[0] = '\0';
-  targetFile[0] = '\0';
-
+  std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_PARTICLES);
   std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
 
   bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
-  BLI_path_join(cacheDirParticles,
-                sizeof(cacheDirParticles),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_PARTICLES,
-                nullptr);
-  BLI_path_make_safe(cacheDirParticles);
-
-  /* Exit early if there is nothing present in the cache for this frame */
-  ss.str("");
-  ss << "ppSnd_####" << pformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirParticles, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (!BLI_exists(targetFile))
+  /* Sanity check: Are cache files present? */
+  if (!hasParticles(mmd, framenr))
     return false;
 
   ss.str("");
-  ss << "liquid_load_particles_" << mCurrentID << "('" << escapeSlashes(cacheDirParticles) << "', "
+  ss << "liquid_load_particles_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
      << framenr << ", '" << pformat << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
@@ -1836,33 +1632,22 @@ bool MANTA::readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
 
-  char cacheDirGuiding[FILE_MAX], targetFile[FILE_MAX];
-  cacheDirGuiding[0] = '\0';
-  targetFile[0] = '\0';
-
+  std::string directory = (sourceDomain) ? getDirectory(mmd, FLUID_DOMAIN_DIR_DATA) :
+                                           getDirectory(mmd, FLUID_DOMAIN_DIR_GUIDE);
   std::string gformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  const char *subdir = (sourceDomain) ? FLUID_DOMAIN_DIR_DATA : FLUID_DOMAIN_DIR_GUIDE;
 
-  BLI_path_join(
-      cacheDirGuiding, sizeof(cacheDirGuiding), mmd->domain->cache_directory, subdir, nullptr);
-  BLI_path_make_safe(cacheDirGuiding);
-
-  /* Exit early if there is nothing present in the cache for this frame */
-  ss.str("");
-  ss << (sourceDomain ? "vel_####" : "guidevel_####") << gformat;
-  BLI_join_dirfile(targetFile, sizeof(targetFile), cacheDirGuiding, ss.str().c_str());
-  BLI_path_frame(targetFile, framenr, 0);
-  if (!BLI_exists(targetFile))
+  /* Sanity check: Are cache files present? */
+  if (!hasGuiding(mmd, framenr, sourceDomain))
     return false;
 
   if (sourceDomain) {
     ss.str("");
-    ss << "fluid_load_vel_" << mCurrentID << "('" << escapeSlashes(cacheDirGuiding) << "', "
-       << framenr << ", '" << gformat << "')";
+    ss << "fluid_load_vel_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+       << ", '" << gformat << "')";
   }
   else {
     ss.str("");
-    ss << "fluid_load_guiding_" << mCurrentID << "('" << escapeSlashes(cacheDirGuiding) << "', "
+    ss << "fluid_load_guiding_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
        << framenr << ", '" << gformat << "')";
   }
   pythonCommands.push_back(ss.str());
@@ -2453,7 +2238,7 @@ void MANTA::adaptTimestep()
   runPythonString(pythonCommands);
 }
 
-bool MANTA::updateMeshFromFile(const char *filename)
+bool MANTA::updateMeshFromFile(std::string filename)
 {
   std::string fname(filename);
   std::string::size_type idx;
@@ -2479,14 +2264,14 @@ bool MANTA::updateMeshFromFile(const char *filename)
   return false;
 }
 
-bool MANTA::updateMeshFromBobj(const char *filename)
+bool MANTA::updateMeshFromBobj(std::string filename)
 {
   if (with_debug)
     std::cout << "MANTA::updateMeshFromBobj()" << std::endl;
 
   gzFile gzf;
 
-  gzf = (gzFile)BLI_gzopen(filename, "rb1");  // do some compression
+  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");  // do some compression
   if (!gzf) {
     std::cerr << "Fluid Error -- updateMeshFromBobj(): Unable to open file: " << filename
               << std::endl;
@@ -2660,7 +2445,7 @@ bool MANTA::updateMeshFromBobj(const char *filename)
   return (gzclose(gzf) == Z_OK);
 }
 
-bool MANTA::updateMeshFromObj(const char *filename)
+bool MANTA::updateMeshFromObj(std::string filename)
 {
   if (with_debug)
     std::cout << "MANTA::updateMeshFromObj()" << std::endl;
@@ -2750,7 +2535,7 @@ bool MANTA::updateMeshFromObj(const char *filename)
   return true;
 }
 
-bool MANTA::updateMeshFromUni(const char *filename)
+bool MANTA::updateMeshFromUni(std::string filename)
 {
   if (with_debug)
     std::cout << "MANTA::updateMeshFromUni()" << std::endl;
@@ -2759,7 +2544,7 @@ bool MANTA::updateMeshFromUni(const char *filename)
   float fbuffer[4];
   int ibuffer[4];
 
-  gzf = (gzFile)BLI_gzopen(filename, "rb1");  // do some compression
+  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");  // do some compression
   if (!gzf) {
     std::cerr << "Fluid Error -- updateMeshFromUni(): Unable to open file: " << filename
               << std::endl;
@@ -2831,7 +2616,7 @@ bool MANTA::updateMeshFromUni(const char *filename)
   return (gzclose(gzf) == Z_OK);
 }
 
-bool MANTA::updateParticlesFromFile(const char *filename, bool isSecondarySys, bool isVelData)
+bool MANTA::updateParticlesFromFile(std::string filename, bool isSecondarySys, bool isVelData)
 {
   if (with_debug)
     std::cout << "MANTA::updateParticlesFromFile()" << std::endl;
@@ -2857,7 +2642,7 @@ bool MANTA::updateParticlesFromFile(const char *filename, bool isSecondarySys, b
   }
 }
 
-bool MANTA::updateParticlesFromUni(const char *filename, bool isSecondarySys, bool isVelData)
+bool MANTA::updateParticlesFromUni(std::string filename, bool isSecondarySys, bool isVelData)
 {
   if (with_debug)
     std::cout << "MANTA::updateParticlesFromUni()" << std::endl;
@@ -2865,7 +2650,7 @@ bool MANTA::updateParticlesFromUni(const char *filename, bool isSecondarySys, bo
   gzFile gzf;
   int ibuffer[4];
 
-  gzf = (gzFile)BLI_gzopen(filename, "rb1");  // do some compression
+  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");  // do some compression
   if (!gzf) {
     std::cerr << "Fluid Error -- updateParticlesFromUni(): Unable to open file: " << filename
               << std::endl;
@@ -3063,7 +2848,7 @@ bool MANTA::updateParticlesFromUni(const char *filename, bool isSecondarySys, bo
   return (gzclose(gzf) == Z_OK);
 }
 
-bool MANTA::updateGridFromFile(const char *filename, float *grid, bool isNoise)
+bool MANTA::updateGridFromFile(std::string filename, float *grid, bool isNoise)
 {
   if (with_debug)
     std::cout << "MANTA::updateGridFromFile()" << std::endl;
@@ -3102,7 +2887,7 @@ bool MANTA::updateGridFromFile(const char *filename, float *grid, bool isNoise)
   }
 }
 
-bool MANTA::updateGridFromUni(const char *filename, float *grid, bool isNoise)
+bool MANTA::updateGridFromUni(std::string filename, float *grid, bool isNoise)
 {
   if (with_debug)
     std::cout << "MANTA::updateGridFromUni()" << std::endl;
@@ -3110,7 +2895,7 @@ bool MANTA::updateGridFromUni(const char *filename, float *grid, bool isNoise)
   gzFile gzf;
   int ibuffer[4];
 
-  gzf = (gzFile)BLI_gzopen(filename, "rb1");
+  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb1");
   if (!gzf) {
     std::cerr << "Fluid Error -- updateGridFromUni(): Unable to open file: " << filename
               << std::endl;
@@ -3194,7 +2979,7 @@ bool MANTA::updateGridFromUni(const char *filename, float *grid, bool isNoise)
 }
 
 #if OPENVDB == 1
-bool MANTA::updateGridFromVDB(const char *filename, float *grid, bool isNoise)
+bool MANTA::updateGridFromVDB(std::string filename, float *grid, bool isNoise)
 {
   if (with_debug)
     std::cout << "MANTA::updateGridFromVDB()" << std::endl;
@@ -3238,7 +3023,7 @@ bool MANTA::updateGridFromVDB(const char *filename, float *grid, bool isNoise)
 }
 #endif
 
-bool MANTA::updateGridFromRaw(const char *filename, float *grid, bool isNoise)
+bool MANTA::updateGridFromRaw(std::string filename, float *grid, bool isNoise)
 {
   if (with_debug)
     std::cout << "MANTA::updateGridFromRaw()" << std::endl;
@@ -3246,7 +3031,7 @@ bool MANTA::updateGridFromRaw(const char *filename, float *grid, bool isNoise)
   gzFile gzf;
   int expectedBytes, readBytes;
 
-  gzf = (gzFile)BLI_gzopen(filename, "rb");
+  gzf = (gzFile)BLI_gzopen(filename.c_str(), "rb");
   if (!gzf) {
     std::cout << "MANTA::updateGridFromRaw(): unable to open file" << std::endl;
     return false;
@@ -3405,4 +3190,72 @@ void MANTA::updatePointers()
   mParticlesFromFile = false;
   mSmokeFromFile = false;
   mNoiseFromFile = false;
+}
+
+bool MANTA::hasConfig(FluidModifierData *mmd, int framenr)
+{
+  std::string extension = getCacheFileEnding(mmd->domain->cache_data_format);
+  return BLI_exists(
+      getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_DOMAIN_FILE_CONFIG, extension, framenr).c_str());
+}
+
+bool MANTA::hasData(FluidModifierData *mmd, int framenr)
+{
+  std::string filename = (mUsingSmoke) ? FLUID_DOMAIN_FILE_DENSITY : FLUID_DOMAIN_FILE_PHI;
+  std::string extension = getCacheFileEnding(mmd->domain->cache_data_format);
+  return BLI_exists(getFile(mmd, FLUID_DOMAIN_DIR_DATA, filename, extension, framenr).c_str());
+}
+
+bool MANTA::hasNoise(FluidModifierData *mmd, int framenr)
+{
+  std::string extension = getCacheFileEnding(mmd->domain->cache_noise_format);
+  return BLI_exists(
+      getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_DENSITYNOISE, extension, framenr)
+          .c_str());
+}
+
+bool MANTA::hasMesh(FluidModifierData *mmd, int framenr)
+{
+  std::string extension = getCacheFileEnding(mmd->domain->cache_mesh_format);
+  return BLI_exists(
+      getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_DOMAIN_FILE_MESH, extension, framenr).c_str());
+}
+
+bool MANTA::hasParticles(FluidModifierData *mmd, int framenr)
+{
+  std::string extension = getCacheFileEnding(mmd->domain->cache_particle_format);
+  return BLI_exists(
+      getFile(mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PPSND, extension, framenr)
+          .c_str());
+}
+
+bool MANTA::hasGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
+{
+  std::string subdirectory = (sourceDomain) ? FLUID_DOMAIN_DIR_DATA : FLUID_DOMAIN_DIR_GUIDE;
+  std::string filename = (sourceDomain) ? FLUID_DOMAIN_FILE_VEL : FLUID_DOMAIN_FILE_GUIDEVEL;
+  std::string extension = getCacheFileEnding(mmd->domain->cache_data_format);
+  return BLI_exists(getFile(mmd, subdirectory, filename, extension, framenr).c_str());
+}
+
+std::string MANTA::getDirectory(FluidModifierData *mmd, std::string subdirectory)
+{
+  char directory[FILE_MAX];
+  BLI_path_join(
+      directory, sizeof(directory), mmd->domain->cache_directory, subdirectory.c_str(), nullptr);
+  BLI_path_make_safe(directory);
+  return directory;
+}
+
+std::string MANTA::getFile(FluidModifierData *mmd,
+                           std::string subdirectory,
+                           std::string fname,
+                           std::string extension,
+                           int framenr)
+{
+  char targetFile[FILE_MAX];
+  std::string path = getDirectory(mmd, subdirectory);
+  std::string filename = fname + extension;
+  BLI_join_dirfile(targetFile, sizeof(targetFile), path.c_str(), filename.c_str());
+  BLI_path_frame(targetFile, framenr, 0);
+  return targetFile;
 }

@@ -3673,8 +3673,14 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   uint numobj = 0;
   FluidModifierData *mmd_parent = NULL;
 
-  bool is_startframe;
+  bool is_startframe, has_advanced;
   is_startframe = (scene_framenr == mds->cache_frame_start);
+  has_advanced = (scene_framenr == mmd->time + 1);
+
+  /* Do not process modifier if current frame is out of cache range. */
+  if (scene_framenr < mds->cache_frame_start || scene_framenr > mds->cache_frame_end) {
+    return;
+  }
 
   /* Reset fluid if no fluid present. */
   if (!mds->fluid) {
@@ -3766,6 +3772,20 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   read_cache = false;
   bake_cache = baking_data || baking_noise || baking_mesh || baking_particles || baking_guide;
 
+  bool next_data, next_noise, next_mesh, next_particles, next_guide;
+  next_data = manta_has_data(mds->fluid, mmd, scene_framenr + 1);
+  next_noise = manta_has_noise(mds->fluid, mmd, scene_framenr + 1);
+  next_mesh = manta_has_mesh(mds->fluid, mmd, scene_framenr + 1);
+  next_particles = manta_has_particles(mds->fluid, mmd, scene_framenr + 1);
+  next_guide = manta_has_guiding(mds->fluid, mmd, scene_framenr + 1, guide_parent);
+
+  bool prev_data, prev_noise, prev_mesh, prev_particles, prev_guide;
+  prev_data = manta_has_data(mds->fluid, mmd, scene_framenr - 1);
+  prev_noise = manta_has_noise(mds->fluid, mmd, scene_framenr - 1);
+  prev_mesh = manta_has_mesh(mds->fluid, mmd, scene_framenr - 1);
+  prev_particles = manta_has_particles(mds->fluid, mmd, scene_framenr - 1);
+  prev_guide = manta_has_guiding(mds->fluid, mmd, scene_framenr - 1, guide_parent);
+
   bool with_gdomain;
   with_gdomain = (mds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);
 
@@ -3824,6 +3844,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
     default:
       /* Always trying to read the cache in replay mode. */
       read_cache = true;
+      bake_cache = false;
       break;
   }
 
@@ -3908,7 +3929,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
           BKE_fluid_reallocate_fluid(mds, mds->res, 1);
         }
         /* Read data cache */
-        if (!baking_data && !baking_particles && !baking_mesh && !mode_replay) {
+        if (!baking_data && !baking_particles && !baking_mesh && next_data) {
           has_data = manta_update_smoke_structures(mds->fluid, mmd, data_frame);
         }
         else {
@@ -3933,18 +3954,21 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       break;
     case FLUID_DOMAIN_CACHE_REPLAY:
     default:
-      baking_data = !has_data;
+      baking_data = !has_data && (is_startframe || prev_data);
       if (with_smoke && with_noise) {
-        baking_noise = !has_noise;
+        baking_noise = !has_noise && (is_startframe || prev_noise);
       }
       if (with_liquid && with_mesh) {
-        baking_mesh = !has_mesh;
+        baking_mesh = !has_mesh && (is_startframe || prev_mesh);
       }
       if (with_liquid && with_particles) {
-        baking_particles = !has_particles;
+        baking_particles = !has_particles && (is_startframe || prev_particles);
       }
 
-      bake_cache = baking_data || baking_noise || baking_mesh || baking_particles;
+      /* Only bake if time advanced by one frame. */
+      if (is_startframe || has_advanced) {
+        bake_cache = baking_data || baking_noise || baking_mesh || baking_particles;
+      }
       break;
   }
 

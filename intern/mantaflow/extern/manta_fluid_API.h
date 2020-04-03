@@ -62,6 +62,15 @@ int manta_bake_noise(struct MANTA *fluid, struct FluidModifierData *mmd, int fra
 int manta_bake_mesh(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_bake_particles(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_bake_guiding(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_has_data(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_has_noise(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_has_mesh(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_has_particles(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_has_guiding(struct MANTA *fluid,
+                      struct FluidModifierData *mmd,
+                      int framenr,
+                      bool domain);
+
 void manta_update_variables(struct MANTA *fluid, struct FluidModifierData *mmd);
 int manta_get_frame(struct MANTA *fluid);
 float manta_get_timestep(struct MANTA *fluid);
