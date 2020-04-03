@@ -49,7 +49,7 @@
 
 #include "PIL_time.h"
 
-#include "BKE_anim.h" /* needed for where_on_path */
+#include "BKE_anim_path.h" /* needed for where_on_path */
 #include "BKE_bvhutils.h"
 #include "BKE_collection.h"
 #include "BKE_collision.h"

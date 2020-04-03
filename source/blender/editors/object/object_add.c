@@ -53,7 +53,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_camera.h"
@@ -62,6 +61,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_duplilist.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_gpencil_geom.h"

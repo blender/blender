@@ -45,7 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_anim.h"
+#include "BKE_anim_path.h"
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"

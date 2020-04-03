@@ -63,7 +63,6 @@ static const EnumPropertyItem space_items[] = {
 
 #  include "BLI_math.h"
 
-#  include "BKE_anim.h"
 #  include "BKE_bvhutils.h"
 #  include "BKE_constraint.h"
 #  include "BKE_context.h"

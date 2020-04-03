@@ -52,7 +52,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_anim.h"
+#include "BKE_anim_visualization.h"
 #include "BKE_image.h"
 #include "BKE_main.h"  // for Main
 #include "BKE_mesh.h"  // for ME_ defines (patching)

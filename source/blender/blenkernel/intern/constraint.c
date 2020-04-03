@@ -52,7 +52,7 @@
 #include "DNA_tracking_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim.h" /* for the curve calculation part */
+#include "BKE_anim_path.h"
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"
 #include "BKE_cachefile.h"

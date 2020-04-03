@@ -51,7 +51,6 @@
 
 #include "PIL_time.h"
 
-#include "BKE_anim.h"
 #include "BKE_appdir.h"
 #include "BKE_cloth.h"
 #include "BKE_collection.h"

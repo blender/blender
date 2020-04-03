@@ -40,7 +40,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_anim.h"
 #include "BKE_blender_version.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"

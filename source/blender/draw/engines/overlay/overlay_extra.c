@@ -24,7 +24,7 @@
 
 #include "UI_resources.h"
 
-#include "BKE_anim.h"
+#include "BKE_anim_path.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"

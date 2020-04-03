@@ -40,9 +40,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_collection.h"
+#include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_font.h"
 #include "BKE_global.h"

@@ -32,7 +32,7 @@
 #include <pxr/base/tf/stringUtils.h>
 
 extern "C" {
-#include "BKE_anim.h"
+#include "BKE_duplilist.h"
 
 #include "BLI_assert.h"
 

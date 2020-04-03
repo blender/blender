@@ -54,7 +54,7 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "BKE_anim.h"
+#include "BKE_anim_visualization.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"

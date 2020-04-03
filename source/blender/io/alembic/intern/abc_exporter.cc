@@ -51,7 +51,7 @@ extern "C" {
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BKE_anim.h"
+#include "BKE_duplilist.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"

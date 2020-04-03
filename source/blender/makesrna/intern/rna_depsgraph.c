@@ -43,7 +43,7 @@
 #  include "BLI_iterator.h"
 #  include "BLI_math.h"
 
-#  include "BKE_anim.h"
+#  include "BKE_duplilist.h"
 #  include "BKE_object.h"
 #  include "BKE_scene.h"
 

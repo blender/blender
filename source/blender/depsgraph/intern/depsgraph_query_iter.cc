@@ -29,7 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-#include "BKE_anim.h"
+#include "BKE_duplilist.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_node.h"

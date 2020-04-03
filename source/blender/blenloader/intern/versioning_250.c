@@ -61,7 +61,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_anim.h"
+#include "BKE_anim_visualization.h"
 #include "BKE_armature.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"  // for G

@@ -32,7 +32,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
-#include "BKE_anim.h"
+#include "BKE_duplilist.h"
 
 #include "GPU_batch.h"
 #include "GPU_shader.h"

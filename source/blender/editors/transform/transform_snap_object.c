@@ -38,10 +38,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_anim.h" /* for duplis */
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"
 #include "BKE_curve.h"
+#include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"

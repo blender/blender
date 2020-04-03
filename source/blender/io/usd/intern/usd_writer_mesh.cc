@@ -27,7 +27,6 @@ extern "C" {
 #include "BLI_assert.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_anim.h"
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"

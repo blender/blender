@@ -22,8 +22,8 @@
 
 #include "draw_manager.h"
 
-#include "BKE_anim.h"
 #include "BKE_curve.h"
+#include "BKE_duplilist.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_mesh.h"

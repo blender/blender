@@ -50,7 +50,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_anim.h"
+#include "BKE_anim_path.h"
 #include "BKE_animsys.h"
 
 #include "BKE_boids.h"

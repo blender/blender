@@ -48,7 +48,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BKE_anim.h"
+#include "BKE_anim_path.h"
 #include "BKE_curve.h"
 #include "BKE_font.h"
 #include "BKE_global.h"

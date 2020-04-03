@@ -70,8 +70,9 @@ set(SRC
   intern/DerivedMesh.c
   intern/action.c
   intern/addon.c
-  intern/anim.c
+  intern/anim_path.c
   intern/anim_sys.c
+  intern/anim_visualization.c
   intern/appdir.c
   intern/armature.c
   intern/armature_update.c
@@ -250,7 +251,8 @@ set(SRC
   BKE_DerivedMesh.h
   BKE_action.h
   BKE_addon.h
-  BKE_anim.h
+  BKE_anim_path.h
+  BKE_anim_visualization.h
   BKE_animsys.h
   BKE_appdir.h
   BKE_armature.h
@@ -286,6 +288,7 @@ set(SRC
   BKE_deform.h
   BKE_displist.h
   BKE_displist_tangent.h
+  BKE_duplilist.h
   BKE_dynamicpaint.h
   BKE_editlattice.h
   BKE_editmesh.h

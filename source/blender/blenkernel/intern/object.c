@@ -68,7 +68,8 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
-#include "BKE_anim.h"
+#include "BKE_anim_path.h"
+#include "BKE_anim_visualization.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_camera.h"
@@ -77,6 +78,7 @@
 #include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
+#include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
