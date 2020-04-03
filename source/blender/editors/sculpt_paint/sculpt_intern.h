@@ -24,6 +24,7 @@
 #ifndef __SCULPT_INTERN_H__
 #define __SCULPT_INTERN_H__
 
+#include "DNA_brush_types.h"
 #include "DNA_key_types.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -132,6 +133,8 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
 int SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
 
+bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index);
+
 /* Sculpt Visibility API */
 
 void SCULPT_vertex_visible_set(SculptSession *ss, int index, bool visible);
@@ -197,11 +200,16 @@ int SCULPT_plane_point_side(const float co[3], const float plane[4]);
 int SCULPT_plane_trim(const struct StrokeCache *cache,
                       const struct Brush *brush,
                       const float val[3]);
+void SCULPT_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3]);
 
 float SCULPT_brush_plane_offset_get(Sculpt *sd, SculptSession *ss);
 
 ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3]);
 bool SCULPT_check_vertex_pivot_symmetry(const float vco[3], const float pco[3], const char symm);
+bool SCULPT_is_vertex_inside_brush_radius_symm(const float vertex[3],
+                                               const float br_co[3],
+                                               float radius,
+                                               char symm);
 bool SCULPT_is_symmetry_iteration_valid(char i, char symm);
 void SCULPT_flip_v3_by_symm_area(float v[3],
                                  const ePaintSymmetryFlags symm,
@@ -230,7 +238,7 @@ void SCULPT_floodfill_add_initial_with_symmetry(struct Sculpt *sd,
                                                 SculptFloodFill *flood,
                                                 int index,
                                                 float radius);
-void sculpt_floodfill_add_initial(SculptFloodFill *flood, int index);
+void SCULPT_floodfill_add_initial(SculptFloodFill *flood, int index);
 void SCULPT_floodfill_execute(
     struct SculptSession *ss,
     SculptFloodFill *flood,
@@ -242,9 +250,27 @@ void SCULPT_floodfill_free(SculptFloodFill *flood);
 void sculpt_pbvh_clear(Object *ob);
 void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
 void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
+bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
 
 /* Automasking. */
 float SCULPT_automasking_factor_get(SculptSession *ss, int vert);
+
+void SCULPT_automasking_init(Sculpt *sd, Object *ob);
+void SCULPT_automasking_end(Object *ob);
+
+bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
+                                        const Brush *br,
+                                        const eAutomasking_flag mode);
+bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br);
+
+typedef enum eBoundaryAutomaskMode {
+  AUTOMASK_INIT_BOUNDARY_EDGES = 1,
+  AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
+} eBoundaryAutomaskMode;
+float *SCULPT_boundary_automasking_init(Object *ob,
+                                        eBoundaryAutomaskMode mode,
+                                        int propagation_steps,
+                                        float *automask_factor);
 
 /* Filters. */
 void SCULPT_filter_cache_init(Object *ob, Sculpt *sd);
@@ -305,6 +331,41 @@ void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
                                            const float outline_alpha);
 /* Draw Face Sets Brush. */
 void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+
+/* Smooth Brush. */
+
+void SCULPT_neighbor_average(SculptSession *ss, float avg[3], uint vert);
+void SCULPT_bmesh_neighbor_average(float avg[3], struct BMVert *v);
+
+void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], struct BMVert *v);
+
+void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], int index);
+float SCULPT_neighbor_mask_average(SculptSession *ss, int index);
+
+void SCULPT_smooth(Sculpt *sd,
+                   Object *ob,
+                   PBVHNode **nodes,
+                   const int totnode,
+                   float bstrength,
+                   const bool smooth_mask);
+void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+
+/* Surface Smooth Brush. */
+
+void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
+                                          float *disp,
+                                          const float co[3],
+                                          float (*laplacian_disp)[3],
+                                          const int v_index,
+                                          const float origco[3],
+                                          const float alpha);
+void SCULPT_surface_smooth_displace_step(SculptSession *ss,
+                                         float *co,
+                                         float (*laplacian_disp)[3],
+                                         const int v_index,
+                                         const float beta,
+                                         const float fade);
+void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
 /* Slide/Relax */
 void SCULPT_relax_vertex(struct SculptSession *ss,
@@ -764,15 +825,18 @@ bool SCULPT_get_redraw_rect(struct ARegion *region,
                             Object *ob,
                             rcti *rect);
 
-/* Operators */
+/* Operators. */
 
-/* Face Sets */
+/* Face Sets. */
 void SCULPT_OT_face_sets_randomize_colors(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_change_visibility(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_init(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(struct wmOperatorType *ot);
 
-/* Transform */
+/* Transform. */
 void SCULPT_OT_set_pivot_position(struct wmOperatorType *ot);
+
+/* Mesh Filter. */
+void SCULPT_OT_mesh_filter(struct wmOperatorType *ot);
 
 #endif

@@ -674,7 +674,7 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
   }
 }
 
-static bool sculpt_vertex_is_boundary(SculptSession *ss, const int index)
+bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -824,10 +824,10 @@ bool SCULPT_is_symmetry_iteration_valid(char i, char symm)
 }
 
 /* Checks if a vertex is inside the brush radius from any of its mirrored axis. */
-static bool sculpt_is_vertex_inside_brush_radius_symm(const float vertex[3],
-                                                      const float br_co[3],
-                                                      float radius,
-                                                      char symm)
+bool SCULPT_is_vertex_inside_brush_radius_symm(const float vertex[3],
+                                               const float br_co[3],
+                                               float radius,
+                                               char symm)
 {
   for (char i = 0; i <= symm; ++i) {
     if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
@@ -854,7 +854,7 @@ void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
   flood->visited_vertices = MEM_callocN(vertex_count * sizeof(char), "visited vertices");
 }
 
-void sculpt_floodfill_add_initial(SculptFloodFill *flood, int index)
+void SCULPT_floodfill_add_initial(SculptFloodFill *flood, int index)
 {
   BLI_gsqueue_push(flood->queue, &index);
 }
@@ -877,7 +877,7 @@ void SCULPT_floodfill_add_initial_with_symmetry(
         v = SCULPT_nearest_vertex_get(sd, ob, location, radius_squared, false);
       }
       if (v != -1) {
-        sculpt_floodfill_add_initial(flood, v);
+        SCULPT_floodfill_add_initial(flood, v);
       }
     }
   }
@@ -901,7 +901,7 @@ void SCULPT_floodfill_add_active(
         v = SCULPT_nearest_vertex_get(sd, ob, location, radius_squared, false);
       }
       if (v != -1) {
-        sculpt_floodfill_add_initial(flood, v);
+        SCULPT_floodfill_add_initial(flood, v);
       }
     }
   }
@@ -1196,7 +1196,7 @@ static void sculpt_project_v3(const SculptProjectVector *spvc, const float vec[3
  * Factors: some brushes like grab cannot do dynamic topology.
  * Others, like smooth, are better without. Same goes for alt-
  * key smoothing. */
-static bool sculpt_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
+bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
 {
   return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
 
@@ -1585,254 +1585,6 @@ static bool sculpt_brush_test_cyl(SculptBrushTest *test,
 
 #endif
 
-/* Automasking */
-
-static bool sculpt_is_automasking_mode_enabled(const Sculpt *sd,
-                                               const Brush *br,
-                                               const eAutomasking_flag mode)
-{
-  return br->automasking_flags & mode || sd->automasking_flags & mode;
-}
-
-static bool sculpt_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br)
-{
-  if (sculpt_stroke_is_dynamic_topology(ss, br)) {
-    return false;
-  }
-  if (sculpt_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_TOPOLOGY)) {
-    return true;
-  }
-  if (sculpt_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_FACE_SETS)) {
-    return true;
-  }
-  if (sculpt_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
-    return true;
-  }
-  if (sculpt_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
-    return true;
-  }
-  return false;
-}
-
-float SCULPT_automasking_factor_get(SculptSession *ss, int vert)
-{
-  if (ss->cache->automask) {
-    return ss->cache->automask[vert];
-  }
-  else {
-    return 1.0f;
-  }
-}
-
-static void sculpt_automasking_end(Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-  if (ss->cache && ss->cache->automask) {
-    MEM_freeN(ss->cache->automask);
-  }
-}
-
-static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
-{
-  /* 2D falloff is not constrained by radius. */
-  if (br->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-    return false;
-  }
-
-  if (ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)) {
-    return true;
-  }
-  return false;
-}
-
-typedef struct AutomaskFloodFillData {
-  float *automask_factor;
-  float radius;
-  bool use_radius;
-  float location[3];
-  char symm;
-} AutomaskFloodFillData;
-
-static bool automask_floodfill_cb(
-    SculptSession *ss, int UNUSED(from_v), int to_v, bool UNUSED(is_duplicate), void *userdata)
-{
-  AutomaskFloodFillData *data = userdata;
-
-  data->automask_factor[to_v] = 1.0f;
-  return (!data->use_radius ||
-          sculpt_is_vertex_inside_brush_radius_symm(
-              SCULPT_vertex_co_get(ss, to_v), data->location, data->radius, data->symm));
-}
-
-static float *sculpt_topology_automasking_init(Sculpt *sd, Object *ob, float *automask_factor)
-{
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-
-  if (!sculpt_automasking_enabled(sd, ss, brush)) {
-    return NULL;
-  }
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"Topology masking: pmap missing");
-    return NULL;
-  }
-
-  const int totvert = SCULPT_vertex_count_get(ss);
-  for (int i = 0; i < totvert; i++) {
-    ss->cache->automask[i] = 0.0f;
-  }
-
-  /* Flood fill automask to connected vertices. Limited to vertices inside
-   * the brush radius if the tool requires it. */
-  SculptFloodFill flood;
-  SCULPT_floodfill_init(ss, &flood);
-  SCULPT_floodfill_add_active(sd, ob, ss, &flood, ss->cache->radius);
-
-  AutomaskFloodFillData fdata = {
-      .automask_factor = automask_factor,
-      .radius = ss->cache->radius,
-      .use_radius = sculpt_automasking_is_constrained_by_radius(brush),
-      .symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL,
-  };
-  copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
-  SCULPT_floodfill_execute(ss, &flood, automask_floodfill_cb, &fdata);
-  SCULPT_floodfill_free(&flood);
-
-  return automask_factor;
-}
-
-static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *automask_factor)
-{
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-
-  if (!sculpt_automasking_enabled(sd, ss, brush)) {
-    return NULL;
-  }
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"Face Sets automasking: pmap missing");
-    return NULL;
-  }
-
-  int tot_vert = SCULPT_vertex_count_get(ss);
-  int active_face_set = SCULPT_vertex_face_set_get(ss, SCULPT_active_vertex_get(ss));
-  for (int i = 0; i < tot_vert; i++) {
-    if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
-      automask_factor[i] *= 0.0f;
-    }
-  }
-
-  return automask_factor;
-}
-
-#define EDGE_DISTANCE_INF -1
-
-typedef enum eBoundaryAutomaskMode {
-  AUTOMASK_INIT_BOUNDARY_EDGES = 1,
-  AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
-} eBoundaryAutomaskMode;
-
-static float *sculpt_boundary_automasking_init(Object *ob,
-                                               eBoundaryAutomaskMode mode,
-                                               int propagation_steps,
-                                               float *automask_factor)
-{
-  SculptSession *ss = ob->sculpt;
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"Boundary Edges masking: pmap missing");
-    return NULL;
-  }
-
-  const int totvert = SCULPT_vertex_count_get(ss);
-  int *edge_distance = MEM_callocN(sizeof(int) * totvert, "automask_factor");
-
-  for (int i = 0; i < totvert; i++) {
-    edge_distance[i] = EDGE_DISTANCE_INF;
-    switch (mode) {
-      case AUTOMASK_INIT_BOUNDARY_EDGES:
-        if (!sculpt_vertex_is_boundary(ss, i)) {
-          edge_distance[i] = 0;
-        }
-        break;
-      case AUTOMASK_INIT_BOUNDARY_FACE_SETS:
-        if (!SCULPT_vertex_has_unique_face_set(ss, i)) {
-          edge_distance[i] = 0;
-        }
-        break;
-    }
-  }
-
-  for (int propagation_it = 0; propagation_it < propagation_steps; propagation_it++) {
-    for (int i = 0; i < totvert; i++) {
-      if (edge_distance[i] == EDGE_DISTANCE_INF) {
-        SculptVertexNeighborIter ni;
-        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
-          if (edge_distance[ni.index] == propagation_it) {
-            edge_distance[i] = propagation_it + 1;
-          }
-        }
-        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-      }
-    }
-  }
-
-  for (int i = 0; i < totvert; i++) {
-    if (edge_distance[i] != EDGE_DISTANCE_INF) {
-      const float p = 1.0f - ((float)edge_distance[i] / (float)propagation_steps);
-      const float edge_boundary_automask = pow2f(p);
-      automask_factor[i] *= (1.0f - edge_boundary_automask);
-    }
-  }
-
-  MEM_SAFE_FREE(edge_distance);
-  return automask_factor;
-}
-
-static void sculpt_automasking_init(Sculpt *sd, Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-  const int totvert = SCULPT_vertex_count_get(ss);
-
-  if (!sculpt_automasking_enabled(sd, ss, brush)) {
-    return;
-  }
-
-  ss->cache->automask = MEM_callocN(sizeof(float) * SCULPT_vertex_count_get(ss),
-                                    "automask_factor");
-
-  for (int i = 0; i < totvert; i++) {
-    ss->cache->automask[i] = 1.0f;
-  }
-
-  if (sculpt_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
-    SCULPT_vertex_random_access_init(ss);
-    sculpt_topology_automasking_init(sd, ob, ss->cache->automask);
-  }
-  if (sculpt_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
-    SCULPT_vertex_random_access_init(ss);
-    sculpt_face_sets_automasking_init(sd, ob, ss->cache->automask);
-  }
-
-  if (sculpt_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
-    SCULPT_vertex_random_access_init(ss);
-    sculpt_boundary_automasking_init(ob,
-                                     AUTOMASK_INIT_BOUNDARY_EDGES,
-                                     brush->automasking_boundary_edges_propagation_steps,
-                                     ss->cache->automask);
-  }
-  if (sculpt_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
-    SCULPT_vertex_random_access_init(ss);
-    sculpt_boundary_automasking_init(ob,
-                                     AUTOMASK_INIT_BOUNDARY_FACE_SETS,
-                                     brush->automasking_boundary_edges_propagation_steps,
-                                     ss->cache->automask);
-  }
-}
-
 /* ===== Sculpting =====
  */
 static void flip_v3(float v[3], const ePaintSymmetryFlags symm)
@@ -2146,7 +1898,7 @@ static void calc_area_center(
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
-  const bool has_bm_orco = ss->bm && sculpt_stroke_is_dynamic_topology(ss, brush);
+  const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
   int n;
 
   /* Intentionally set 'sd' to NULL since we share logic with vertex paint. */
@@ -2205,7 +1957,7 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
                                   float r_area_no[3])
 {
   SculptSession *ss = ob->sculpt;
-  const bool has_bm_orco = ss->bm && sculpt_stroke_is_dynamic_topology(ss, brush);
+  const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
 
   /* Intentionally set 'sd' to NULL since this is used for vertex paint too. */
   SculptThreadedTaskData data = {
@@ -2245,7 +1997,7 @@ static void calc_area_normal_and_center(
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
-  const bool has_bm_orco = ss->bm && sculpt_stroke_is_dynamic_topology(ss, brush);
+  const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
   int n;
 
   /* Intentionally set 'sd' to NULL since this is used for vertex paint too. */
@@ -2607,7 +2359,7 @@ bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v)
 }
 
 /* Handles clipping against a mirror modifier and SCULPT_LOCK axis flags. */
-static void sculpt_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
+void SCULPT_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
 {
   for (int i = 0; i < 3; i++) {
     if (sd->flags & (SCULPT_LOCK_X << i)) {
@@ -2812,225 +2564,6 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   }
 }
 
-/* For the smooth brush, uses the neighboring vertices around vert to calculate
- * a smoothed location for vert. Skips corner vertices (used by only one
- * polygon). */
-static void neighbor_average(SculptSession *ss, float avg[3], uint vert)
-{
-  const MeshElemMap *vert_map = &ss->pmap[vert];
-  const MVert *mvert = ss->mvert;
-  float(*deform_co)[3] = ss->deform_cos;
-
-  /* Don't modify corner vertices. */
-  if (vert_map->count > 1) {
-    int total = 0;
-
-    zero_v3(avg);
-
-    for (int i = 0; i < vert_map->count; i++) {
-      const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-      uint f_adj_v[2];
-
-      if (poly_get_adj_loops_from_vert(p, ss->mloop, vert, f_adj_v) != -1) {
-        for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
-          if (vert_map->count != 2 || ss->pmap[f_adj_v[j]].count <= 2) {
-            add_v3_v3(avg, deform_co ? deform_co[f_adj_v[j]] : mvert[f_adj_v[j]].co);
-
-            total++;
-          }
-        }
-      }
-    }
-
-    if (total > 0) {
-      mul_v3_fl(avg, 1.0f / total);
-      return;
-    }
-  }
-
-  copy_v3_v3(avg, deform_co ? deform_co[vert] : mvert[vert].co);
-}
-
-/* Similar to neighbor_average(), but returns an averaged mask value
- * instead of coordinate. Also does not restrict based on border or
- * corner vertices. */
-static float neighbor_average_mask(SculptSession *ss, uint vert)
-{
-  const float *vmask = ss->vmask;
-  float avg = 0.0f;
-  int total = 0;
-
-  for (int i = 0; i < ss->pmap[vert].count; i++) {
-    const MPoly *p = &ss->mpoly[ss->pmap[vert].indices[i]];
-    uint f_adj_v[2];
-
-    if (poly_get_adj_loops_from_vert(p, ss->mloop, vert, f_adj_v) != -1) {
-      for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
-        avg += vmask[f_adj_v[j]];
-        total++;
-      }
-    }
-  }
-
-  if (total > 0) {
-    return avg / (float)total;
-  }
-  else {
-    return vmask[vert];
-  }
-}
-
-/* Same logic as neighbor_average(), but for bmesh rather than mesh. */
-static void bmesh_neighbor_average(float avg[3], BMVert *v)
-{
-  /* logic for 3 or more is identical. */
-  const int vfcount = BM_vert_face_count_at_most(v, 3);
-
-  /* Don't modify corner vertices. */
-  if (vfcount > 1) {
-    BMIter liter;
-    BMLoop *l;
-    int total = 0;
-
-    zero_v3(avg);
-
-    BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-      const BMVert *adj_v[2] = {l->prev->v, l->next->v};
-
-      for (int i = 0; i < ARRAY_SIZE(adj_v); i++) {
-        const BMVert *v_other = adj_v[i];
-        if (vfcount != 2 || BM_vert_face_count_at_most(v_other, 2) <= 2) {
-          add_v3_v3(avg, v_other->co);
-          total++;
-        }
-      }
-    }
-
-    if (total > 0) {
-      mul_v3_fl(avg, 1.0f / total);
-      return;
-    }
-  }
-
-  copy_v3_v3(avg, v->co);
-}
-
-/* For bmesh: Average surrounding verts based on an orthogonality measure.
- * Naturally converges to a quad-like structure. */
-static void bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
-{
-
-  float avg_co[3] = {0.0f, 0.0f, 0.0f};
-  float tot_co = 0.0f;
-
-  BMIter eiter;
-  BMEdge *e;
-
-  BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-    if (BM_edge_is_boundary(e)) {
-      copy_v3_v3(avg, v->co);
-      return;
-    }
-    BMVert *v_other = (e->v1 == v) ? e->v2 : e->v1;
-    float vec[3];
-    sub_v3_v3v3(vec, v_other->co, v->co);
-    madd_v3_v3fl(vec, v->no, -dot_v3v3(vec, v->no));
-    normalize_v3(vec);
-
-    /* fac is a measure of how orthogonal or parallel the edge is
-     * relative to the direction. */
-    float fac = dot_v3v3(vec, direction);
-    fac = fac * fac - 0.5f;
-    fac *= fac;
-    madd_v3_v3fl(avg_co, v_other->co, fac);
-    tot_co += fac;
-  }
-
-  /* In case vert has no Edge s. */
-  if (tot_co > 0.0f) {
-    mul_v3_v3fl(avg, avg_co, 1.0f / tot_co);
-
-    /* Preserve volume. */
-    float vec[3];
-    sub_v3_v3(avg, v->co);
-    mul_v3_v3fl(vec, v->no, dot_v3v3(avg, v->no));
-    sub_v3_v3(avg, vec);
-    add_v3_v3(avg, v->co);
-  }
-  else {
-    zero_v3(avg);
-  }
-}
-
-/* Same logic as neighbor_average_mask(), but for bmesh rather than mesh. */
-static float bmesh_neighbor_average_mask(BMVert *v, const int cd_vert_mask_offset)
-{
-  BMIter liter;
-  BMLoop *l;
-  float avg = 0.0f;
-  int total = 0;
-
-  BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-    /* Skip this vertex. */
-    const BMVert *adj_v[2] = {l->prev->v, l->next->v};
-
-    for (int i = 0; i < ARRAY_SIZE(adj_v); i++) {
-      const BMVert *v_other = adj_v[i];
-      const float *vmask = BM_ELEM_CD_GET_VOID_P(v_other, cd_vert_mask_offset);
-      avg += (*vmask);
-      total++;
-    }
-  }
-
-  if (total > 0) {
-    return avg / (float)total;
-  }
-  else {
-    const float *vmask = BM_ELEM_CD_GET_VOID_P(v, cd_vert_mask_offset);
-    return (*vmask);
-  }
-}
-
-static void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], int index)
-{
-  float avg[3] = {0.0f, 0.0f, 0.0f};
-  int total = 0;
-
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.index));
-    total++;
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  if (total > 0) {
-    mul_v3_v3fl(result, avg, 1.0f / (float)total);
-  }
-  else {
-    copy_v3_v3(result, SCULPT_vertex_co_get(ss, index));
-  }
-}
-
-static float grids_neighbor_average_mask(SculptSession *ss, int index)
-{
-  float avg = 0.0f;
-  int total = 0;
-
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    avg += SCULPT_vertex_mask_get(ss, ni.index);
-    total++;
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  if (total > 0) {
-    return avg / (float)total;
-  }
-  else {
-    return SCULPT_vertex_mask_get(ss, index);
-  }
-}
-
 /* Note: uses after-struct allocated mem to store actual cache... */
 typedef struct SculptDoBrushSmoothGridDataChunk {
   size_t tmpgrid_size;
@@ -3069,119 +2602,6 @@ typedef struct {
   float dist_sq_to_ray;
   bool original;
 } SculptFindNearestToRayData;
-
-static void do_smooth_brush_mesh_task_cb_ex(void *__restrict userdata,
-                                            const int n,
-                                            const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  Sculpt *sd = data->sd;
-  const Brush *brush = data->brush;
-  const bool smooth_mask = data->smooth_mask;
-  float bstrength = data->strength;
-
-  PBVHVertexIter vd;
-
-  CLAMP(bstrength, 0.0f, 1.0f);
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(
-                                         ss,
-                                         brush,
-                                         vd.co,
-                                         sqrtf(test.dist),
-                                         vd.no,
-                                         vd.fno,
-                                         smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
-                                         vd.index,
-                                         tls->thread_id);
-      if (smooth_mask) {
-        float val = neighbor_average_mask(ss, vd.vert_indices[vd.i]) - *vd.mask;
-        val *= fade * bstrength;
-        *vd.mask += val;
-        CLAMP(*vd.mask, 0.0f, 1.0f);
-      }
-      else {
-        float avg[3], val[3];
-
-        neighbor_average(ss, avg, vd.vert_indices[vd.i]);
-        sub_v3_v3v3(val, avg, vd.co);
-
-        madd_v3_v3v3fl(val, vd.co, val, fade);
-
-        sculpt_clip(sd, ss, vd.co, val);
-      }
-
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-static void do_smooth_brush_bmesh_task_cb_ex(void *__restrict userdata,
-                                             const int n,
-                                             const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  Sculpt *sd = data->sd;
-  const Brush *brush = data->brush;
-  const bool smooth_mask = data->smooth_mask;
-  float bstrength = data->strength;
-
-  PBVHVertexIter vd;
-
-  CLAMP(bstrength, 0.0f, 1.0f);
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  vd.co,
-                                                                  sqrtf(test.dist),
-                                                                  vd.no,
-                                                                  vd.fno,
-                                                                  smooth_mask ? 0.0f : *vd.mask,
-                                                                  vd.index,
-                                                                  tls->thread_id);
-      if (smooth_mask) {
-        float val = bmesh_neighbor_average_mask(vd.bm_vert, vd.cd_vert_mask_offset) - *vd.mask;
-        val *= fade * bstrength;
-        *vd.mask += val;
-        CLAMP(*vd.mask, 0.0f, 1.0f);
-      }
-      else {
-        float avg[3], val[3];
-
-        bmesh_neighbor_average(avg, vd.bm_vert);
-        sub_v3_v3v3(val, avg, vd.co);
-
-        madd_v3_v3v3fl(val, vd.co, val, fade);
-
-        sculpt_clip(sd, ss, vd.co, val);
-      }
-
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-}
 
 static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
                                               const int n,
@@ -3231,13 +2651,13 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
       float avg[3], val[3];
 
-      bmesh_four_neighbor_average(avg, direction, vd.bm_vert);
+      SCULPT_bmesh_four_neighbor_average(avg, direction, vd.bm_vert);
 
       sub_v3_v3v3(val, avg, vd.co);
 
       madd_v3_v3v3fl(val, vd.co, val, fade);
 
-      sculpt_clip(sd, ss, vd.co, val);
+      SCULPT_clip(sd, ss, vd.co, val);
 
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -3245,111 +2665,6 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
-}
-
-static void do_smooth_brush_multires_task_cb_ex(void *__restrict userdata,
-                                                const int n,
-                                                const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  Sculpt *sd = data->sd;
-  const Brush *brush = data->brush;
-  const bool smooth_mask = data->smooth_mask;
-  float bstrength = data->strength;
-
-  PBVHVertexIter vd;
-
-  CLAMP(bstrength, 0.0f, 1.0f);
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(
-                                         ss,
-                                         brush,
-                                         vd.co,
-                                         sqrtf(test.dist),
-                                         vd.no,
-                                         vd.fno,
-                                         smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
-                                         vd.index,
-                                         tls->thread_id);
-      if (smooth_mask) {
-        float val = grids_neighbor_average_mask(ss, vd.index) - *vd.mask;
-        val *= fade * bstrength;
-        *vd.mask += val;
-        CLAMP(*vd.mask, 0.0f, 1.0f);
-      }
-      else {
-        float avg[3], val[3];
-        SCULPT_neighbor_coords_average(ss, avg, vd.index);
-        sub_v3_v3v3(val, avg, vd.co);
-        madd_v3_v3v3fl(val, vd.co, val, fade);
-        sculpt_clip(sd, ss, vd.co, val);
-      }
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-static void smooth(Sculpt *sd,
-                   Object *ob,
-                   PBVHNode **nodes,
-                   const int totnode,
-                   float bstrength,
-                   const bool smooth_mask)
-{
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-
-  const int max_iterations = 4;
-  const float fract = 1.0f / max_iterations;
-  PBVHType type = BKE_pbvh_type(ss->pbvh);
-  int iteration, count;
-  float last;
-
-  CLAMP(bstrength, 0.0f, 1.0f);
-
-  count = (int)(bstrength * max_iterations);
-  last = max_iterations * (bstrength - count * fract);
-
-  if (type == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"sculpt smooth: pmap missing");
-    return;
-  }
-
-  for (iteration = 0; iteration <= count; iteration++) {
-    const float strength = (iteration != count) ? 1.0f : last;
-
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-        .smooth_mask = smooth_mask,
-        .strength = strength,
-    };
-
-    PBVHParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-
-    switch (type) {
-      case PBVH_GRIDS:
-        BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_multires_task_cb_ex, &settings);
-        break;
-      case PBVH_FACES:
-        BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_mesh_task_cb_ex, &settings);
-        break;
-      case PBVH_BMESH:
-        BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_bmesh_task_cb_ex, &settings);
-        break;
-    }
-  }
 }
 
 static void bmesh_topology_rake(
@@ -3378,160 +2693,6 @@ static void bmesh_topology_rake(
     BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
 
     BKE_pbvh_parallel_range(0, totnode, &data, do_topology_rake_bmesh_task_cb_ex, &settings);
-  }
-}
-
-static void do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
-{
-  SculptSession *ss = ob->sculpt;
-  smooth(sd, ob, nodes, totnode, ss->cache->bstrength, false);
-}
-/* HC Smooth Algorithm. */
-/* From: Improved Laplacian Smoothing of Noisy Surface Meshes */
-
-static void surface_smooth_laplacian_step(SculptSession *ss,
-                                          float *disp,
-                                          const float co[3],
-                                          float (*laplacian_disp)[3],
-                                          const int v_index,
-                                          const float origco[3],
-                                          const float alpha)
-{
-  float laplacian_smooth_co[3];
-  float weigthed_o[3], weigthed_q[3], d[3];
-  SCULPT_neighbor_coords_average(ss, laplacian_smooth_co, v_index);
-
-  mul_v3_v3fl(weigthed_o, origco, alpha);
-  mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
-  add_v3_v3v3(d, weigthed_o, weigthed_q);
-  sub_v3_v3v3(laplacian_disp[v_index], laplacian_smooth_co, d);
-
-  sub_v3_v3v3(disp, laplacian_smooth_co, co);
-}
-
-static void surface_smooth_displace_step(SculptSession *ss,
-                                         float *co,
-                                         float (*laplacian_disp)[3],
-                                         const int v_index,
-                                         const float beta,
-                                         const float fade)
-{
-  float b_avg[3] = {0.0f, 0.0f, 0.0f};
-  float b_current_vertex[3];
-  int total = 0;
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_index, ni) {
-    add_v3_v3(b_avg, laplacian_disp[ni.index]);
-    total++;
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-  if (total > 0) {
-    mul_v3_v3fl(b_current_vertex, b_avg, (1.0f - beta) / (float)total);
-    madd_v3_v3fl(b_current_vertex, laplacian_disp[v_index], beta);
-    mul_v3_fl(b_current_vertex, clamp_f(fade, 0.0f, 1.0f));
-    sub_v3_v3(co, b_current_vertex);
-  }
-}
-
-static void do_surface_smooth_brush_laplacian_task_cb_ex(void *__restrict userdata,
-                                                         const int n,
-                                                         const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
-  const float bstrength = ss->cache->bstrength;
-  float alpha = brush->surface_smooth_shape_preservation;
-
-  PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
-
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade =
-          bstrength *
-          SCULPT_brush_strength_factor(
-              ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, vd.index, tls->thread_id);
-
-      float disp[3];
-      surface_smooth_laplacian_step(ss,
-                                    disp,
-                                    vd.co,
-                                    ss->cache->surface_smooth_laplacian_disp,
-                                    vd.index,
-                                    orig_data.co,
-                                    alpha);
-      madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
-    }
-    BKE_pbvh_vertex_iter_end;
-  }
-}
-
-static void do_surface_smooth_brush_displace_task_cb_ex(void *__restrict userdata,
-                                                        const int n,
-                                                        const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
-  const float bstrength = ss->cache->bstrength;
-  const float beta = brush->surface_smooth_current_vertex;
-
-  PBVHVertexIter vd;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade =
-          bstrength *
-          SCULPT_brush_strength_factor(
-              ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, vd.index, tls->thread_id);
-      surface_smooth_displace_step(
-          ss, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.index, beta, fade);
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-static void do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
-{
-  Brush *brush = BKE_paint_brush(&sd->paint);
-  SculptSession *ss = ob->sculpt;
-
-  if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0 &&
-      ss->cache->radial_symmetry_pass == 0) {
-    BLI_assert(ss->cache->surface_smooth_laplacian_disp == NULL);
-    ss->cache->surface_smooth_laplacian_disp = MEM_callocN(
-        SCULPT_vertex_count_get(ss) * 3 * sizeof(float), "HC smooth laplacian b");
-  }
-
-  /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
-
-  PBVHParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  for (int i = 0; i < brush->surface_smooth_iterations; i++) {
-    BKE_pbvh_parallel_range(
-        0, totnode, &data, do_surface_smooth_brush_laplacian_task_cb_ex, &settings);
-    BKE_pbvh_parallel_range(
-        0, totnode, &data, do_surface_smooth_brush_displace_task_cb_ex, &settings);
   }
 }
 
@@ -3599,7 +2760,7 @@ static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       do_mask_brush_draw(sd, ob, nodes, totnode);
       break;
     case BRUSH_MASK_SMOOTH:
-      smooth(sd, ob, nodes, totnode, ss->cache->bstrength, true);
+      SCULPT_smooth(sd, ob, nodes, totnode, ss->cache->bstrength, true);
       break;
   }
 }
@@ -4977,7 +4138,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
         add_v3_v3(val, orig_data.co);
       }
 
-      sculpt_clip(sd, ss, vd.co, val);
+      SCULPT_clip(sd, ss, vd.co, val);
 
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -6150,8 +5311,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     }
 
     if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0) {
-      if (sculpt_automasking_enabled(sd, ss, brush)) {
-        sculpt_automasking_init(sd, ob);
+      if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
+        SCULPT_automasking_init(sd, ob);
       }
     }
 
@@ -6169,10 +5330,10 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         break;
       case SCULPT_TOOL_SMOOTH:
         if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-          do_smooth_brush(sd, ob, nodes, totnode);
+          SCULPT_do_smooth_brush(sd, ob, nodes, totnode);
         }
         else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
-          do_surface_smooth_brush(sd, ob, nodes, totnode);
+          SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
         }
         break;
       case SCULPT_TOOL_CREASE:
@@ -6262,15 +5423,15 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
         brush->autosmooth_factor > 0) {
       if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
-        smooth(sd,
-               ob,
-               nodes,
-               totnode,
-               brush->autosmooth_factor * (1.0f - ss->cache->pressure),
-               false);
+        SCULPT_smooth(sd,
+                      ob,
+                      nodes,
+                      totnode,
+                      brush->autosmooth_factor * (1.0f - ss->cache->pressure),
+                      false);
       }
       else {
-        smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, false);
+        SCULPT_smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, false);
       }
     }
 
@@ -6364,7 +5525,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
       add_v3_v3(val, proxies[p].co[vd.i]);
     }
 
-    sculpt_clip(sd, ss, vd.co, val);
+    SCULPT_clip(sd, ss, vd.co, val);
 
     if (ss->deform_modifiers_active) {
       sculpt_flush_pbvhvert_deform(ob, &vd);
@@ -7322,7 +6483,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
                                            SculptSession *ss,
                                            int stroke_mode)
 {
-  if (ss && ss->pbvh && sculpt_automasking_enabled(sd, ss, brush)) {
+  if (ss && ss->pbvh && SCULPT_is_automasking_enabled(sd, ss, brush)) {
     return true;
   }
   return ((stroke_mode == BRUSH_STROKE_SMOOTH) || (ss && ss->cache && ss->cache->alt_smooth) ||
@@ -7931,7 +7092,7 @@ static void sculpt_stroke_update_step(bContext *C,
                                        (float)(sd->detail_size * U.pixelsize) / 0.4f);
   }
 
-  if (sculpt_stroke_is_dynamic_topology(ss, brush)) {
+  if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {
     do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
   }
 
@@ -8014,8 +7175,8 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
       }
     }
 
-    if (sculpt_automasking_enabled(sd, ss, brush)) {
-      sculpt_automasking_end(ob);
+    if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
+      SCULPT_automasking_end(ob);
     }
 
     SCULPT_cache_free(ss->cache);
@@ -8104,7 +7265,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 
   /* XXX Canceling strokes that way does not work with dynamic topology,
    *     user will have to do real undo for now. See T46456. */
-  if (ss->cache && !sculpt_stroke_is_dynamic_topology(ss, brush)) {
+  if (ss->cache && !SCULPT_stroke_is_dynamic_topology(ss, brush)) {
     paint_mesh_restore_co(sd, ob);
   }
 
@@ -9301,527 +8462,6 @@ static void SCULPT_OT_set_detail_size(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-static void filter_cache_init_task_cb(void *__restrict userdata,
-                                      const int i,
-                                      const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  SculptThreadedTaskData *data = userdata;
-  PBVHNode *node = data->nodes[i];
-
-  SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
-}
-
-void SCULPT_filter_cache_init(Object *ob, Sculpt *sd)
-{
-  SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ob->sculpt->pbvh;
-
-  ss->filter_cache = MEM_callocN(sizeof(FilterCache), "filter cache");
-
-  ss->filter_cache->random_seed = rand();
-
-  float center[3] = {0.0f};
-  SculptSearchSphereData search_data = {
-      .original = true,
-      .center = center,
-      .radius_squared = FLT_MAX,
-      .ignore_fully_masked = true,
-
-  };
-  BKE_pbvh_search_gather(pbvh,
-                         SCULPT_search_sphere_cb,
-                         &search_data,
-                         &ss->filter_cache->nodes,
-                         &ss->filter_cache->totnode);
-
-  for (int i = 0; i < ss->filter_cache->totnode; i++) {
-    BKE_pbvh_node_mark_normals_update(ss->filter_cache->nodes[i]);
-  }
-
-  /* mesh->runtime.subdiv_ccg is not available. Updating of the normals is done during drawing.
-   * Filters can't use normals in multires. */
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
-    BKE_pbvh_update_normals(ss->pbvh, NULL);
-  }
-
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .nodes = ss->filter_cache->nodes,
-  };
-
-  PBVHParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(
-      &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
-  BKE_pbvh_parallel_range(
-      0, ss->filter_cache->totnode, &data, filter_cache_init_task_cb, &settings);
-}
-
-void SCULPT_filter_cache_free(SculptSession *ss)
-{
-  if (ss->filter_cache->nodes) {
-    MEM_freeN(ss->filter_cache->nodes);
-  }
-  if (ss->filter_cache->mask_update_it) {
-    MEM_freeN(ss->filter_cache->mask_update_it);
-  }
-  if (ss->filter_cache->prev_mask) {
-    MEM_freeN(ss->filter_cache->prev_mask);
-  }
-  if (ss->filter_cache->normal_factor) {
-    MEM_freeN(ss->filter_cache->normal_factor);
-  }
-  if (ss->filter_cache->prev_face_set) {
-    MEM_freeN(ss->filter_cache->prev_face_set);
-  }
-  if (ss->filter_cache->automask) {
-    MEM_freeN(ss->filter_cache->automask);
-  }
-  if (ss->filter_cache->surface_smooth_laplacian_disp) {
-    MEM_freeN(ss->filter_cache->surface_smooth_laplacian_disp);
-  }
-  MEM_freeN(ss->filter_cache);
-  ss->filter_cache = NULL;
-}
-
-typedef enum eSculptMeshFilterTypes {
-  MESH_FILTER_SMOOTH = 0,
-  MESH_FILTER_SCALE = 1,
-  MESH_FILTER_INFLATE = 2,
-  MESH_FILTER_SPHERE = 3,
-  MESH_FILTER_RANDOM = 4,
-  MESH_FILTER_RELAX = 5,
-  MESH_FILTER_RELAX_FACE_SETS = 6,
-  MESH_FILTER_SURFACE_SMOOTH = 7,
-} eSculptMeshFilterTypes;
-
-static EnumPropertyItem prop_mesh_filter_types[] = {
-    {MESH_FILTER_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth mesh"},
-    {MESH_FILTER_SCALE, "SCALE", 0, "Scale", "Scale mesh"},
-    {MESH_FILTER_INFLATE, "INFLATE", 0, "Inflate", "Inflate mesh"},
-    {MESH_FILTER_SPHERE, "SPHERE", 0, "Sphere", "Morph into sphere"},
-    {MESH_FILTER_RANDOM, "RANDOM", 0, "Random", "Randomize vertex positions"},
-    {MESH_FILTER_RELAX, "RELAX", 0, "Relax", "Relax mesh"},
-    {MESH_FILTER_RELAX_FACE_SETS,
-     "RELAX_FACE_SETS",
-     0,
-     "Relax Face Sets",
-     "Smooth the edges of all the Face Sets"},
-    {MESH_FILTER_SURFACE_SMOOTH,
-     "SURFACE_SMOOTH",
-     0,
-     "Surface Smooth",
-     "Smooth the surface of the mesh, preserving the volume"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-typedef enum eMeshFilterDeformAxis {
-  MESH_FILTER_DEFORM_X = 1 << 0,
-  MESH_FILTER_DEFORM_Y = 1 << 1,
-  MESH_FILTER_DEFORM_Z = 1 << 2,
-} eMeshFilterDeformAxis;
-
-static EnumPropertyItem prop_mesh_filter_deform_axis_items[] = {
-    {MESH_FILTER_DEFORM_X, "X", 0, "X", "Deform in the X axis"},
-    {MESH_FILTER_DEFORM_Y, "Y", 0, "Y", "Deform in the Y axis"},
-    {MESH_FILTER_DEFORM_Z, "Z", 0, "Z", "Deform in the Z axis"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static bool sculpt_mesh_filter_needs_pmap(int filter_type, bool use_face_sets)
-{
-  return use_face_sets || ELEM(filter_type,
-                               MESH_FILTER_SMOOTH,
-                               MESH_FILTER_RELAX,
-                               MESH_FILTER_RELAX_FACE_SETS,
-                               MESH_FILTER_SURFACE_SMOOTH);
-}
-
-static void mesh_filter_task_cb(void *__restrict userdata,
-                                const int i,
-                                const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
-
-  const int filter_type = data->filter_type;
-
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
-
-  /* When using the relax face sets mehs filter, each 3 iterations, do a whole mesh relax to smooth
-   * the contents of the Face Set. */
-  /* This produces better results as the relax operation is no completely focused on the
-   * boundaries. */
-  const bool relax_face_sets = !(ss->filter_cache->iteration_count % 3 == 0);
-
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
-    float orig_co[3], val[3], avg[3], normal[3], disp[3], disp2[3], transform[3][3], final_pos[3];
-    float fade = vd.mask ? *vd.mask : 0.0f;
-    fade = 1.0f - fade;
-    fade *= data->filter_strength;
-
-    if (fade == 0.0f) {
-      continue;
-    }
-
-    if (ss->filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
-      if (!SCULPT_vertex_has_face_set(ss, vd.index, ss->filter_cache->active_face_set)) {
-        continue;
-      }
-      /* Skip the edges of the face set when relaxing or smoothing. There is a relax face set
-       * option to relax the boindaries independently. */
-      if (filter_type == MESH_FILTER_RELAX) {
-        if (!SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
-          continue;
-        }
-      }
-    }
-
-    if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
-      copy_v3_v3(orig_co, vd.co);
-    }
-    else {
-      copy_v3_v3(orig_co, orig_data.co);
-    }
-
-    if (filter_type == MESH_FILTER_RELAX_FACE_SETS) {
-      if (relax_face_sets == SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
-        continue;
-      }
-    }
-
-    switch (filter_type) {
-      case MESH_FILTER_SMOOTH:
-        CLAMP(fade, -1.0f, 1.0f);
-        switch (BKE_pbvh_type(ss->pbvh)) {
-          case PBVH_FACES:
-            neighbor_average(ss, avg, vd.index);
-            break;
-          case PBVH_BMESH:
-            bmesh_neighbor_average(avg, vd.bm_vert);
-            break;
-          case PBVH_GRIDS:
-            SCULPT_neighbor_coords_average(ss, avg, vd.index);
-            break;
-        }
-        sub_v3_v3v3(val, avg, orig_co);
-        madd_v3_v3v3fl(val, orig_co, val, fade);
-        sub_v3_v3v3(disp, val, orig_co);
-        break;
-      case MESH_FILTER_INFLATE:
-        normal_short_to_float_v3(normal, orig_data.no);
-        mul_v3_v3fl(disp, normal, fade);
-        break;
-      case MESH_FILTER_SCALE:
-        unit_m3(transform);
-        scale_m3_fl(transform, 1.0f + fade);
-        copy_v3_v3(val, orig_co);
-        mul_m3_v3(transform, val);
-        sub_v3_v3v3(disp, val, orig_co);
-        break;
-      case MESH_FILTER_SPHERE:
-        normalize_v3_v3(disp, orig_co);
-        if (fade > 0.0f) {
-          mul_v3_v3fl(disp, disp, fade);
-        }
-        else {
-          mul_v3_v3fl(disp, disp, -fade);
-        }
-
-        unit_m3(transform);
-        if (fade > 0.0f) {
-          scale_m3_fl(transform, 1.0f - fade);
-        }
-        else {
-          scale_m3_fl(transform, 1.0f + fade);
-        }
-        copy_v3_v3(val, orig_co);
-        mul_m3_v3(transform, val);
-        sub_v3_v3v3(disp2, val, orig_co);
-
-        mid_v3_v3v3(disp, disp, disp2);
-        break;
-      case MESH_FILTER_RANDOM: {
-        normal_short_to_float_v3(normal, orig_data.no);
-        /* Index is not unique for multires, so hash by vertex coordinates. */
-        const uint *hash_co = (const uint *)orig_co;
-        const uint hash = BLI_hash_int_2d(hash_co[0], hash_co[1]) ^
-                          BLI_hash_int_2d(hash_co[2], ss->filter_cache->random_seed);
-        mul_v3_fl(normal, hash * (1.0f / (float)0xFFFFFFFF) - 0.5f);
-        mul_v3_v3fl(disp, normal, fade);
-        break;
-      }
-      case MESH_FILTER_RELAX: {
-        SCULPT_relax_vertex(
-            ss, &vd, clamp_f(fade * ss->filter_cache->automask[vd.index], 0.0f, 1.0f), false, val);
-        sub_v3_v3v3(disp, val, vd.co);
-        break;
-      }
-      case MESH_FILTER_RELAX_FACE_SETS: {
-        SCULPT_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), relax_face_sets, val);
-        sub_v3_v3v3(disp, val, vd.co);
-        break;
-      }
-      case MESH_FILTER_SURFACE_SMOOTH: {
-        surface_smooth_laplacian_step(ss,
-                                      disp,
-                                      vd.co,
-                                      ss->filter_cache->surface_smooth_laplacian_disp,
-                                      vd.index,
-                                      orig_data.co,
-                                      ss->filter_cache->surface_smooth_shape_preservation);
-        break;
-      }
-    }
-
-    for (int it = 0; it < 3; it++) {
-      if (!ss->filter_cache->enabled_axis[it]) {
-        disp[it] = 0.0f;
-      }
-    }
-
-    if (filter_type == MESH_FILTER_SURFACE_SMOOTH) {
-      madd_v3_v3v3fl(final_pos, vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
-    }
-    else {
-      add_v3_v3v3(final_pos, orig_co, disp);
-    }
-    copy_v3_v3(vd.co, final_pos);
-    if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  BKE_pbvh_node_mark_update(node);
-}
-
-static void mesh_filter_surface_smooth_displace_task_cb(
-    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
-  PBVHVertexIter vd;
-
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
-    float fade = vd.mask ? *vd.mask : 0.0f;
-    fade = 1.0f - fade;
-    fade *= data->filter_strength;
-    if (fade == 0.0f) {
-      continue;
-    }
-    surface_smooth_displace_step(ss,
-                                 vd.co,
-                                 ss->filter_cache->surface_smooth_laplacian_disp,
-                                 vd.index,
-                                 ss->filter_cache->surface_smooth_current_vertex,
-                                 clamp_f(fade, 0.0f, 1.0f));
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  SculptSession *ss = ob->sculpt;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  int filter_type = RNA_enum_get(op->ptr, "type");
-  float filter_strength = RNA_float_get(op->ptr, "strength");
-  const bool use_face_sets = RNA_boolean_get(op->ptr, "use_face_sets");
-
-  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end();
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
-    return OPERATOR_FINISHED;
-  }
-
-  if (event->type != MOUSEMOVE) {
-    return OPERATOR_RUNNING_MODAL;
-  }
-
-  float len = event->prevclickx - event->mval[0];
-  filter_strength = filter_strength * -len * 0.001f * UI_DPI_FAC;
-
-  SCULPT_vertex_random_access_init(ss);
-
-  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type, use_face_sets);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false);
-
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .nodes = ss->filter_cache->nodes,
-      .filter_type = filter_type,
-      .filter_strength = filter_strength,
-  };
-
-  PBVHParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(
-      &settings, (sd->flags & SCULPT_USE_OPENMP), ss->filter_cache->totnode);
-  BKE_pbvh_parallel_range(0, ss->filter_cache->totnode, &data, mesh_filter_task_cb, &settings);
-
-  if (filter_type == MESH_FILTER_SURFACE_SMOOTH) {
-    BKE_pbvh_parallel_range(0,
-                            ss->filter_cache->totnode,
-                            &data,
-                            mesh_filter_surface_smooth_displace_task_cb,
-                            &settings);
-  }
-
-  ss->filter_cache->iteration_count++;
-
-  if (ss->deform_modifiers_active || ss->shapekey_active) {
-    SCULPT_flush_stroke_deform(sd, ob, true);
-  }
-
-  /* The relax mesh filter needs the updated normals of the modified mesh after each iteration. */
-  if (ELEM(MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
-    BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
-  }
-
-  SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
-
-  return OPERATOR_RUNNING_MODAL;
-}
-
-static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  int filter_type = RNA_enum_get(op->ptr, "type");
-  SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ob->sculpt->pbvh;
-
-  int deform_axis = RNA_enum_get(op->ptr, "deform_axis");
-  if (deform_axis == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (RNA_boolean_get(op->ptr, "use_face_sets")) {
-    /* Update the active vertex */
-    float mouse[2];
-    SculptCursorGeometryInfo sgi;
-    mouse[0] = event->mval[0];
-    mouse[1] = event->mval[1];
-    SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
-  }
-
-  const bool use_face_sets = RNA_boolean_get(op->ptr, "use_face_sets");
-
-  SCULPT_vertex_random_access_init(ss);
-
-  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type, use_face_sets);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false);
-
-  if (BKE_pbvh_type(pbvh) == PBVH_FACES && needs_pmap && !ob->sculpt->pmap) {
-    return OPERATOR_CANCELLED;
-  }
-
-  SCULPT_undo_push_begin("Mesh filter");
-
-  SCULPT_filter_cache_init(ob, sd);
-
-  if (use_face_sets) {
-    ss->filter_cache->active_face_set = SCULPT_vertex_face_set_get(ss,
-                                                                   SCULPT_active_vertex_get(ss));
-  }
-  else {
-    ss->filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
-  }
-
-  if (RNA_enum_get(op->ptr, "type") == MESH_FILTER_SURFACE_SMOOTH) {
-    ss->filter_cache->surface_smooth_laplacian_disp = MEM_mallocN(
-        3 * sizeof(float) * SCULPT_vertex_count_get(ss), "surface smooth disp");
-    ss->filter_cache->surface_smooth_shape_preservation = RNA_float_get(
-        op->ptr, "surface_smooth_shape_preservation");
-    ss->filter_cache->surface_smooth_current_vertex = RNA_float_get(
-        op->ptr, "surface_smooth_current_vertex");
-  }
-
-  ss->filter_cache->enabled_axis[0] = deform_axis & MESH_FILTER_DEFORM_X;
-  ss->filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
-  ss->filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
-
-  if (RNA_enum_get(op->ptr, "type") == MESH_FILTER_RELAX) {
-    const int totvert = SCULPT_vertex_count_get(ss);
-    ss->filter_cache->automask = MEM_mallocN(totvert * sizeof(float),
-                                             "Relax filter edge automask");
-    for (int i = 0; i < totvert; i++) {
-      ss->filter_cache->automask[i] = 1.0f;
-    }
-    sculpt_boundary_automasking_init(
-        ob, AUTOMASK_INIT_BOUNDARY_EDGES, 1, ss->filter_cache->automask);
-  }
-
-  WM_event_add_modal_handler(C, op);
-  return OPERATOR_RUNNING_MODAL;
-}
-
-static void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
-{
-  /* Identifiers. */
-  ot->name = "Filter mesh";
-  ot->idname = "SCULPT_OT_mesh_filter";
-  ot->description = "Applies a filter to modify the current mesh";
-
-  /* API callbacks. */
-  ot->invoke = sculpt_mesh_filter_invoke;
-  ot->modal = sculpt_mesh_filter_modal;
-  ot->poll = SCULPT_mode_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  /* RNA. */
-  RNA_def_enum(ot->srna,
-               "type",
-               prop_mesh_filter_types,
-               MESH_FILTER_INFLATE,
-               "Filter type",
-               "Operation that is going to be applied to the mesh");
-  RNA_def_float(
-      ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter Strength", -10.0f, 10.0f);
-  RNA_def_enum_flag(ot->srna,
-                    "deform_axis",
-                    prop_mesh_filter_deform_axis_items,
-                    MESH_FILTER_DEFORM_X | MESH_FILTER_DEFORM_Y | MESH_FILTER_DEFORM_Z,
-                    "Deform axis",
-                    "Apply the deformation in the selected axis");
-  ot->prop = RNA_def_boolean(ot->srna,
-                             "use_face_sets",
-                             false,
-                             "Use Face Sets",
-                             "Apply the filter only to the Face Mask under the cursor");
-
-  /* Surface Smooth Mesh Filter properties. */
-  RNA_def_float(ot->srna,
-                "surface_smooth_shape_preservation",
-                0.5f,
-                0.0f,
-                1.0f,
-                "Shape Preservation",
-                "How much of the original shape is preserved when smoothing",
-                0.0f,
-                1.0f);
-  RNA_def_float(ot->srna,
-                "surface_smooth_current_vertex",
-                0.5f,
-                0.0f,
-                1.0f,
-                "Per Vertex Displacement",
-                "How much the position of each individual vertex influences the final result",
-                0.0f,
-                1.0f);
-}
 
 typedef enum eSculptMaskFilterTypes {
   MASK_FILTER_SMOOTH = 0,
@@ -9880,19 +8520,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
     switch (mode) {
       case MASK_FILTER_SMOOTH:
       case MASK_FILTER_SHARPEN: {
-        float val = 0.0f;
-
-        switch (BKE_pbvh_type(ss->pbvh)) {
-          case PBVH_FACES:
-            val = neighbor_average_mask(ss, vd.index);
-            break;
-          case PBVH_BMESH:
-            val = bmesh_neighbor_average_mask(vd.bm_vert, vd.cd_vert_mask_offset);
-            break;
-          case PBVH_GRIDS:
-            val = grids_neighbor_average_mask(ss, vd.index);
-            break;
-        }
+        float val = SCULPT_neighbor_mask_average(ss, vd.index);
 
         val -= *vd.mask;
 

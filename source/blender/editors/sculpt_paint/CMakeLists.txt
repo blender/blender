@@ -59,10 +59,13 @@ set(SRC
   paint_vertex_weight_ops.c
   paint_vertex_weight_utils.c
   sculpt.c
+  sculpt_automasking.c
   sculpt_cloth.c
   sculpt_face_set.c
+  sculpt_filter_mesh.c
   sculpt_multiplane_scrape.c
   sculpt_pose.c
+  sculpt_smooth.c
   sculpt_transform.c
   sculpt_undo.c
   sculpt_uv.c
