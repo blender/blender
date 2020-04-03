@@ -738,7 +738,7 @@ extern GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthan
 extern GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle);
 
 /**
- * Get the OpenGL framebuffer handle that serves as a default framebuffer.
+ * Get the OpenGL frame-buffer handle that serves as a default frame-buffer.
  */
 extern unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle);
 
@@ -750,7 +750,7 @@ extern unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle
 extern int GHOST_isUpsideDownContext(GHOST_ContextHandle contexthandle);
 
 /**
- * Get the OpenGL framebuffer handle that serves as a default framebuffer.
+ * Get the OpenGL frame-buffer handle that serves as a default frame-buffer.
  */
 extern unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windwHandle);
 
@@ -1060,7 +1060,7 @@ void GHOST_XrSessionDrawViews(GHOST_XrContextHandle xr_context, void *customdata
 int GHOST_XrSessionIsRunning(const GHOST_XrContextHandle xr_context);
 
 /**
- * Check if \a xr_context has a session that requrires an upside-down framebuffer (compared to
+ * Check if \a xr_context has a session that requires an upside-down frame-buffer (compared to
  * OpenGL). If true, the render result should be flipped vertically for correct output.
  * \note: Only to be called after session start, may otherwise result in a false negative.
  */

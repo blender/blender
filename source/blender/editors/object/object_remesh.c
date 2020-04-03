@@ -409,7 +409,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
     d = d * 0.0005f;
   }
   else {
-    /* Multiply d by the initial voxel size to prevent incontrolable speeds when using low voxel
+    /* Multiply d by the initial voxel size to prevent uncontrollable speeds when using low voxel
      * sizes. */
     /* When the voxel size is slower, it needs more precision. */
     d = d * min_ff(pow2f(cd->init_voxel_size), 0.1f) * 0.05f;

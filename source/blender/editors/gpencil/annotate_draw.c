@@ -353,7 +353,7 @@ static void annotation_draw_stroke_2d(const bGPDspoint *points,
 
   /* Tessellation code - draw stroke as series of connected quads
    * (triangle strips in fact) with connection edges rotated to minimize shrinking artifacts,
-   * and rounded endcaps.
+   * and rounded end-caps.
    */
   {
     const bGPDspoint *pt1, *pt2;

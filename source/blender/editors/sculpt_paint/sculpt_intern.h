@@ -303,7 +303,7 @@ typedef enum {
  * Is used as a storage for either original or modified geometry. */
 typedef struct SculptUndoNodeGeometry {
   /* Is used for sanity check, helping with ensuring that two and only two
-   * geometry pushes happenned in the undo stack. */
+   * geometry pushes happened in the undo stack. */
   bool is_initialized;
 
   CustomData vdata;
