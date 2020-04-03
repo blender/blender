@@ -1744,7 +1744,7 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip, MovieClipUser *user, I
   return result;
 }
 
-static void movieclip_selection_synchronize(MovieClip *clip_dst, const MovieClip *clip_src)
+static void movieclip_selection_sync(MovieClip *clip_dst, const MovieClip *clip_src)
 {
   BLI_assert(clip_dst != clip_src);
   MovieTracking *tracking_dst = &clip_dst->tracking, tracking_src = clip_src->tracking;
@@ -1811,5 +1811,5 @@ void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, Main *bmain, MovieCl
 void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, MovieClip *clip)
 {
   DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
-  movieclip_selection_synchronize(clip, (MovieClip *)clip->id.orig_id);
+  movieclip_selection_sync(clip, (MovieClip *)clip->id.orig_id);
 }
