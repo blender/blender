@@ -20,6 +20,8 @@
 
 /** \file
  * \ingroup edarmature
+ *
+ * This file contains functions/API's for renaming bones and/or working with them.
  */
 
 #include <string.h>
@@ -63,12 +65,11 @@
 
 #include "armature_intern.h"
 
-/* This file contains functions/API's for renaming bones and/or working with them */
+/* -------------------------------------------------------------------- */
+/** \name Unique Bone Name Utility (Edit Mode)
+ * \{ */
 
-/* ************************************************** */
-/* EditBone Names */
-
-/* note: there's a unique_bone_name() too! */
+/* note: there's a ed_armature_bone_unique_name() too! */
 static bool editbone_unique_check(void *arg, const char *name)
 {
   struct {
@@ -92,19 +93,28 @@ void ED_armature_ebone_unique_name(ListBase *edbo, char *name, EditBone *bone)
   BLI_uniquename_cb(editbone_unique_check, &data, DATA_("Bone"), '.', name, sizeof(bone->name));
 }
 
-/* ************************************************** */
-/* Bone Renaming - API */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unique Bone Name Utility (Object Mode)
+ * \{ */
 
 static bool bone_unique_check(void *arg, const char *name)
 {
   return BKE_armature_find_bone_name((bArmature *)arg, name) != NULL;
 }
 
-static void unique_bone_name(bArmature *arm, char *name)
+static void ed_armature_bone_unique_name(bArmature *arm, char *name)
 {
   BLI_uniquename_cb(
       bone_unique_check, (void *)arm, DATA_("Bone"), '.', name, sizeof(((Bone *)NULL)->name));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bone Renaming (Object & Edit Mode API)
+ * \{ */
 
 /* helper call for armature_bone_rename */
 static void constraint_bone_name_fix(Object *ob,
@@ -180,7 +190,7 @@ void ED_armature_bone_rename(Main *bmain,
       Bone *bone = BKE_armature_find_bone_name(arm, oldname);
 
       if (bone) {
-        unique_bone_name(arm, newname);
+        ed_armature_bone_unique_name(arm, newname);
 
         if (arm->bonehash) {
           BLI_assert(BLI_ghash_haskey(arm->bonehash, bone->name));
@@ -372,6 +382,12 @@ void ED_armature_bone_rename(Main *bmain,
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bone Flipping (Object & Edit Mode API)
+ * \{ */
+
 typedef struct BoneFlipNameData {
   struct BoneFlipNameData *next, *prev;
   char *name;
@@ -426,8 +442,11 @@ void ED_armature_bones_flip_names(Main *bmain,
   }
 }
 
-/* ************************************************** */
-/* Bone Renaming - EditMode */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flip Bone Names (Edit Mode Operator)
+ * \{ */
 
 static int armature_flip_names_exec(bContext *C, wmOperator *op)
 {
@@ -510,6 +529,12 @@ void ARMATURE_OT_flip_names(wmOperatorType *ot)
                   "Try to remove right-most dot-number from flipped names "
                   "(WARNING: may result in incoherent naming in some cases)");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bone Auto Side Names (Edit Mode Operator)
+ * \{ */
 
 static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 {
@@ -599,3 +624,5 @@ void ARMATURE_OT_autoside_names(wmOperatorType *ot)
   /* settings */
   ot->prop = RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
 }
+
+/** \} */
