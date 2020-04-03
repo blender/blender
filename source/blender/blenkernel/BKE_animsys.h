@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#include "BLI_sys_types.h" /* for bool */
+
 struct AnimData;
 struct Depsgraph;
 struct FCurve;

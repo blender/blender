@@ -24,6 +24,8 @@
  * These depend on compiler extensions and c11 in some cases.
  */
 
+#include "BLI_utildefines_variadic.h"
+
 /* Causes warning:
  * incompatible types when assigning to type 'Foo' from type 'Bar'
  * ... the compiler optimizes away the temp var */
