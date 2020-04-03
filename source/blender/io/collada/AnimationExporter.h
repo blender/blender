@@ -42,7 +42,6 @@ extern "C" {
 
 #include "BIK_api.h"
 #include "BKE_action.h"  // pose functions
-#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"

@@ -54,7 +54,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"

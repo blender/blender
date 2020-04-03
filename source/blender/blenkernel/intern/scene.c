@@ -59,6 +59,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_cachefile.h"

@@ -58,6 +58,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"

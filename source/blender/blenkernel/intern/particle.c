@@ -51,8 +51,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_path.h"
-#include "BKE_animsys.h"
-
 #include "BKE_boids.h"
 #include "BKE_cloth.h"
 #include "BKE_collection.h"

@@ -24,7 +24,7 @@
 #include <string>
 
 extern "C" {
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_duplilist.h"
 #include "BKE_key.h"
 #include "BKE_particle.h"

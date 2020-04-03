@@ -58,6 +58,7 @@
 
 #include "RNA_access.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"

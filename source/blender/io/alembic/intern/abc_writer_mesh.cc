@@ -28,7 +28,7 @@ extern "C" {
 #include "DNA_meshdata_types.h"
 #include "DNA_object_fluidsim_types.h"
 
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"

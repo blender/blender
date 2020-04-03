@@ -70,6 +70,7 @@ set(SRC
   intern/DerivedMesh.c
   intern/action.c
   intern/addon.c
+  intern/anim_data.c
   intern/anim_path.c
   intern/anim_sys.c
   intern/anim_visualization.c
@@ -251,6 +252,7 @@ set(SRC
   BKE_DerivedMesh.h
   BKE_action.h
   BKE_addon.h
+  BKE_anim_data.h
   BKE_anim_path.h
   BKE_anim_visualization.h
   BKE_animsys.h

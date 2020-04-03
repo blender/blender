@@ -42,7 +42,6 @@ extern "C" {
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
 #include "BLI_fileops.h"

@@ -82,7 +82,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"

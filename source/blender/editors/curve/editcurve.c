@@ -36,7 +36,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"

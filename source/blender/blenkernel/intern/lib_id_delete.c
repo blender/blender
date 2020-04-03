@@ -57,7 +57,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_action.h"
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"
 #include "BKE_cachefile.h"

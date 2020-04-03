@@ -44,7 +44,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"

@@ -38,7 +38,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_animsys.h"
 #include "BKE_camera.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"

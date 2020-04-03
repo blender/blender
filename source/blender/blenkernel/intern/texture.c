@@ -49,7 +49,6 @@
 
 #include "BKE_main.h"
 
-#include "BKE_animsys.h"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_icons.h"

@@ -39,7 +39,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_animsys.h"
 #include "BKE_cachefile.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"

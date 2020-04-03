@@ -30,7 +30,7 @@
 #include "BLI_easing.h"
 #include "BLI_math.h"
 
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"

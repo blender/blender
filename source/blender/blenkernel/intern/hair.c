@@ -30,7 +30,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_hair.h"

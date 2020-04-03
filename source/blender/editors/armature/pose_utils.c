@@ -32,7 +32,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_armature.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"

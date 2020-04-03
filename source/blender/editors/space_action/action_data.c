@@ -42,7 +42,6 @@
 #include "RNA_enum_types.h"
 
 #include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"

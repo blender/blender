@@ -491,7 +491,7 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 
-#  include "BKE_animsys.h"
+#  include "BKE_anim_data.h"
 #  include "BKE_brush.h"
 #  include "BKE_colortools.h"
 #  include "BKE_context.h"

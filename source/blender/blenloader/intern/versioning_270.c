@@ -52,6 +52,7 @@
 
 #include "DNA_genfile.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_fcurve.h"

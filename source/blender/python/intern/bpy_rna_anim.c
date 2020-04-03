@@ -35,7 +35,7 @@
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
 
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"

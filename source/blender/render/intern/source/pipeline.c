@@ -51,6 +51,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h" /* <------ should this be here?, needed for sequencer update */
 #include "BKE_callbacks.h"
 #include "BKE_camera.h"

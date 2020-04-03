@@ -39,7 +39,6 @@
 
 #  include <stddef.h>
 
-#  include "BKE_animsys.h"
 #  include "BKE_fcurve.h"
 
 #  include "BLI_math.h"

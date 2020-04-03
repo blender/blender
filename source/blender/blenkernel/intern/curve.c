@@ -46,7 +46,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"

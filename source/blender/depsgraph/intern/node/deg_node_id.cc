@@ -34,7 +34,6 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_lib_id.h"
 }
 

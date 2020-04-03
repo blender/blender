@@ -43,6 +43,7 @@
 
 #  include "DNA_anim_types.h"
 
+#  include "BKE_anim_data.h"
 #  include "BKE_animsys.h"
 #  include "BKE_node.h"
 

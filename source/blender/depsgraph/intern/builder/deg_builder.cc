@@ -37,10 +37,6 @@
 
 #include "BKE_action.h"
 
-extern "C" {
-#include "BKE_animsys.h"
-}
-
 #include "intern/builder/deg_builder_cache.h"
 #include "intern/builder/deg_builder_remove_noop.h"
 #include "intern/depsgraph.h"

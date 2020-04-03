@@ -44,7 +44,7 @@ extern "C" {
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_animsys.h"
+#include "BKE_anim_data.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_node.h"
