@@ -849,10 +849,10 @@ static int ed_mesh_mirror_topo_table_update(Object *ob, Mesh *me_eval)
 
 /** \} */
 
-static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *mesh, int index)
+static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *me_eval, int index)
 {
   Mesh *me = ob->data;
-  MVert *mvert = mesh ? mesh->mvert : me->mvert;
+  MVert *mvert = me_eval ? me_eval->mvert : me->mvert;
   float vec[3];
 
   mvert = &mvert[index];
@@ -860,7 +860,7 @@ static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *mesh, int index)
   vec[1] = mvert->co[1];
   vec[2] = mvert->co[2];
 
-  return ED_mesh_mirror_spatial_table_lookup(ob, NULL, mesh, vec);
+  return ED_mesh_mirror_spatial_table_lookup(ob, NULL, me_eval, vec);
 }
 
 static int mesh_get_x_mirror_vert_topo(Object *ob, Mesh *mesh, int index)
