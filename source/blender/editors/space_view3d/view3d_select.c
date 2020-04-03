@@ -3104,9 +3104,9 @@ static bool do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const
   qsort(vbuffer, hits, sizeof(uint[4]), opengl_bone_select_buffer_cmp);
 
   for (const uint *col = vbuffer + 3, *col_end = col + (hits * 4); col < col_end; col += 4) {
-    Bone *bone;
-    Base *base = ED_armature_base_and_bone_from_select_buffer(
-        bases, BLI_array_len(bases), *col, &bone);
+    bPoseChannel *pchan_dummy;
+    Base *base = ED_armature_base_and_pchan_from_select_buffer(
+        bases, BLI_array_len(bases), *col, &pchan_dummy);
     if (base != NULL) {
       base->object->id.tag |= LIB_TAG_DOIT;
     }

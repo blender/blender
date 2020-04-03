@@ -187,6 +187,10 @@ struct Object *ED_armature_object_and_ebone_from_select_buffer(struct Object **o
                                                                uint objects_len,
                                                                int hit,
                                                                struct EditBone **r_ebone);
+struct Base *ED_armature_base_and_pchan_from_select_buffer(struct Base **bases,
+                                                           uint bases_len,
+                                                           int hit,
+                                                           struct bPoseChannel **r_pchan);
 struct Base *ED_armature_base_and_bone_from_select_buffer(struct Base **bases,
                                                           uint bases_len,
                                                           int hit,

@@ -30,6 +30,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_string_utils.h"
 
 #include "BKE_action.h"
@@ -111,14 +112,14 @@ Object *ED_armature_object_and_ebone_from_select_buffer(Object **objects,
   return ob;
 }
 
-Base *ED_armature_base_and_bone_from_select_buffer(Base **bases,
-                                                   uint bases_len,
-                                                   int hit,
-                                                   Bone **r_bone)
+Base *ED_armature_base_and_pchan_from_select_buffer(Base **bases,
+                                                    uint bases_len,
+                                                    int hit,
+                                                    bPoseChannel **r_pchan)
 {
   const uint hit_object = hit & 0xFFFF;
   Base *base = NULL;
-  Bone *bone = NULL;
+  bPoseChannel *pchan = NULL;
   /* TODO(campbell): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     if (bases[base_index]->object->runtime.select_id == hit_object) {
@@ -129,26 +130,49 @@ Base *ED_armature_base_and_bone_from_select_buffer(Base **bases,
   if (base != NULL) {
     if (base->object->pose != NULL) {
       const uint hit_bone = (hit & ~BONESEL_ANY) >> 16;
-      bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);
-      bone = pchan ? pchan->bone : NULL;
+      /* pchan may be NULL. */
+      pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);
     }
   }
-  *r_bone = bone;
+  *r_pchan = pchan;
   return base;
 }
 
+/* For callers that don't need the pose channel. */
+Base *ED_armature_base_and_bone_from_select_buffer(Base **bases,
+                                                   uint bases_len,
+                                                   int hit,
+                                                   Bone **r_bone)
+{
+  bPoseChannel *pchan = NULL;
+  Base *base = ED_armature_base_and_pchan_from_select_buffer(bases, bases_len, hit, &pchan);
+  *r_bone = pchan ? pchan->bone : NULL;
+  return base;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Pick from Select Buffer API
+ *
+ * Internal #ed_armature_pick_bone_from_selectbuffer_impl is exposed as:
+ * - #ED_armature_pick_ebone_from_selectbuffer
+ * - #ED_armature_pick_pchan_from_selectbuffer
+ * - #ED_armature_pick_bone_from_selectbuffer
+ * \{ */
+
 /* See if there are any selected bones in this buffer */
 /* only bones from base are checked on */
-void *get_bone_from_selectbuffer(Base **bases,
-                                 uint bases_len,
-                                 bool is_editmode,
-                                 const unsigned int *buffer,
-                                 short hits,
-                                 bool findunsel,
-                                 bool do_nearest,
-                                 Base **r_base)
+static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode,
+                                                          Base **bases,
+                                                          uint bases_len,
+                                                          const uint *buffer,
+                                                          short hits,
+                                                          bool findunsel,
+                                                          bool do_nearest,
+                                                          Base **r_base)
 {
-  Bone *bone;
+  bPoseChannel *pchan;
   EditBone *ebone;
   void *firstunSel = NULL, *firstSel = NULL, *data;
   Base *firstunSel_base = NULL, *firstSel_base = NULL;
@@ -168,16 +192,17 @@ void *get_bone_from_selectbuffer(Base **bases,
         hitresult &= ~(BONESEL_ANY);
         /* Determine what the current bone is */
         if (is_editmode == false) {
-          base = ED_armature_base_and_bone_from_select_buffer(bases, bases_len, hitresult, &bone);
-          if (bone != NULL) {
+          base = ED_armature_base_and_pchan_from_select_buffer(
+              bases, bases_len, hitresult, &pchan);
+          if (pchan != NULL) {
             if (findunsel) {
-              sel = (bone->flag & BONE_SELECTED);
+              sel = (pchan->bone->flag & BONE_SELECTED);
             }
             else {
-              sel = !(bone->flag & BONE_SELECTED);
+              sel = !(pchan->bone->flag & BONE_SELECTED);
             }
 
-            data = bone;
+            data = pchan;
           }
           else {
             data = NULL;
@@ -248,10 +273,63 @@ void *get_bone_from_selectbuffer(Base **bases,
   }
 }
 
-/* used by posemode as well editmode */
-/* only checks scene->basact! */
-/* x and y are mouse coords (area space) */
-void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel, Base **r_base)
+EditBone *ED_armature_pick_ebone_from_selectbuffer(Base **bases,
+                                                   uint bases_len,
+                                                   const uint *buffer,
+                                                   short hits,
+                                                   bool findunsel,
+                                                   bool do_nearest,
+                                                   Base **r_base)
+{
+  const bool is_editmode = true;
+  return ed_armature_pick_bone_from_selectbuffer_impl(
+      is_editmode, bases, bases_len, buffer, hits, findunsel, do_nearest, r_base);
+}
+
+bPoseChannel *ED_armature_pick_pchan_from_selectbuffer(Base **bases,
+                                                       uint bases_len,
+                                                       const uint *buffer,
+                                                       short hits,
+                                                       bool findunsel,
+                                                       bool do_nearest,
+                                                       Base **r_base)
+{
+  const bool is_editmode = false;
+  return ed_armature_pick_bone_from_selectbuffer_impl(
+      is_editmode, bases, bases_len, buffer, hits, findunsel, do_nearest, r_base);
+}
+
+Bone *ED_armature_pick_bone_from_selectbuffer(Base **bases,
+                                              uint bases_len,
+                                              const uint *buffer,
+                                              short hits,
+                                              bool findunsel,
+                                              bool do_nearest,
+                                              Base **r_base)
+{
+  bPoseChannel *pchan = ED_armature_pick_pchan_from_selectbuffer(
+      bases, bases_len, buffer, hits, findunsel, do_nearest, r_base);
+  return pchan ? pchan->bone : NULL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor Pick API
+ *
+ * Internal #ed_armature_pick_bone_impl is exposed as:
+ * - #ED_armature_pick_ebone
+ * - #ED_armature_pick_pchan
+ * - #ED_armature_pick_bone
+ * \{ */
+
+/**
+ * \param xy: Cursor coordinates (area space).
+ * \return An #EditBone when is_editmode, otherwise a #bPoseChannel.
+ * \note Only checks objects in the current mode (edit-mode or pose-mode).
+ */
+static void *ed_armature_pick_bone_impl(
+    const bool is_editmode, bContext *C, const int xy[2], bool findunsel, Base **r_base)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
@@ -260,10 +338,9 @@ void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel, Base **r_ba
   short hits;
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  BLI_assert((vc.obedit != NULL) == is_editmode);
 
-  // rect.xmin = ... mouseco!
-  rect.xmin = rect.xmax = xy[0];
-  rect.ymin = rect.ymax = xy[1];
+  BLI_rcti_init_pt_radius(&rect, xy, 0);
 
   hits = view3d_opengl_select(
       &vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST, VIEW3D_SELECT_FILTER_NOP);
@@ -286,14 +363,32 @@ void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel, Base **r_ba
       bases = BKE_object_pose_base_array_get(vc.view_layer, vc.v3d, &bases_len);
     }
 
-    void *bone = get_bone_from_selectbuffer(
-        bases, bases_len, vc.obedit != NULL, buffer, hits, findunsel, true, r_base);
+    void *bone = ed_armature_pick_bone_from_selectbuffer_impl(
+        is_editmode, bases, bases_len, buffer, hits, findunsel, true, r_base);
 
     MEM_freeN(bases);
 
     return bone;
   }
   return NULL;
+}
+
+EditBone *ED_armature_pick_ebone(bContext *C, const int xy[2], bool findunsel, Base **r_base)
+{
+  const bool is_editmode = true;
+  return ed_armature_pick_bone_impl(is_editmode, C, xy, findunsel, r_base);
+}
+
+bPoseChannel *ED_armature_pick_pchan(bContext *C, const int xy[2], bool findunsel, Base **r_base)
+{
+  const bool is_editmode = false;
+  return ed_armature_pick_bone_impl(is_editmode, C, xy, findunsel, r_base);
+}
+
+Bone *ED_armature_pick_bone(bContext *C, const int xy[2], bool findunsel, Base **r_base)
+{
+  bPoseChannel *pchan = ED_armature_pick_pchan(C, xy, findunsel, r_base);
+  return pchan ? pchan->bone : NULL;
 }
 
 /** \} */
@@ -484,7 +579,7 @@ static int armature_select_linked_pick_invoke(bContext *C, wmOperator *op, const
   BKE_object_update_select_id(CTX_data_main(C));
 
   Base *base = NULL;
-  EditBone *ebone_active = get_nearest_bone(C, event->mval, true, &base);
+  EditBone *ebone_active = ED_armature_pick_ebone(C, event->mval, true, &base);
 
   if (ebone_active == NULL) {
     return OPERATOR_CANCELLED;
@@ -818,7 +913,7 @@ bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Cursor Picking API
+/** \name Select Cursor Pick API
  * \{ */
 
 /* context: editmode armature in view3d */
@@ -2052,7 +2147,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
   BKE_object_update_select_id(CTX_data_main(C));
 
   ebone_src = arm->act_edbone;
-  ebone_dst = get_nearest_bone(C, event->mval, false, &base_dst);
+  ebone_dst = ED_armature_pick_ebone(C, event->mval, false, &base_dst);
 
   /* fallback to object selection */
   if (ELEM(NULL, ebone_src, ebone_dst) || (ebone_src == ebone_dst)) {
