@@ -9413,6 +9413,26 @@ static BHead *read_libblock(FileData *fd,
 {
   /* This routine reads a libblock and its direct data. Lib link functions will
    * set points between datablocks. */
+  if (r_id) {
+    *r_id = NULL; /* In case of early return. */
+  }
+
+  /* Read libblock struct. */
+  fd->are_memchunks_identical = true;
+  ID *id = read_struct(fd, bhead, "lib block");
+  if (id == NULL) {
+    return blo_bhead_next(fd, bhead);
+  }
+
+  /* Determine ID type. */
+  const short idcode = GS(id->name);
+  ListBase *lb = which_libbase(main, idcode);
+  if (lb == NULL) {
+    /* Unknown ID type. */
+    printf("%s: unknown id code '%c%c'\n", __func__, (idcode & 0xff), (idcode >> 8));
+    MEM_freeN(id);
+    return blo_bhead_next(fd, bhead);
+  }
 
   /* In undo case, most libs and linked data should be kept as is from previous state
    * (see BLO_read_from_memfile).
@@ -9422,17 +9442,15 @@ static BHead *read_libblock(FileData *fd,
    * That means we have to carefully check whether current lib or
    * libdata already exits in old main, if it does we merely copy it over into new main area,
    * otherwise we have to do a full read of that bhead... */
-  if (fd->memfile && ELEM(bhead->code, ID_LI, ID_LINK_PLACEHOLDER)) {
-    const char *idname = blo_bhead_id_name(fd, bhead);
-
-    DEBUG_PRINTF("Checking %s...\n", idname);
+  if (fd->memfile != NULL && ELEM(bhead->code, ID_LI, ID_LINK_PLACEHOLDER)) {
+    DEBUG_PRINTF("Checking %s...\n", id->name);
 
     if (bhead->code == ID_LI) {
       Main *libmain = fd->old_mainlist->first;
       /* Skip oldmain itself... */
       for (libmain = libmain->next; libmain; libmain = libmain->next) {
         DEBUG_PRINTF("... against %s: ", libmain->curlib ? libmain->curlib->id.name : "<NULL>");
-        if (libmain->curlib && STREQ(idname, libmain->curlib->id.name)) {
+        if (libmain->curlib && STREQ(id->name, libmain->curlib->id.name)) {
           Main *oldmain = fd->old_mainlist->first;
           DEBUG_PRINTF("FOUND!\n");
           /* In case of a library, we need to re-add its main to fd->mainlist,
@@ -9445,9 +9463,7 @@ static BHead *read_libblock(FileData *fd,
           BLI_addtail(fd->mainlist, libmain);
           BLI_addtail(&main->libraries, libmain->curlib);
 
-          if (r_id) {
-            *r_id = NULL; /* Just in case... */
-          }
+          MEM_freeN(id);
           return blo_bhead_next(fd, bhead);
         }
         DEBUG_PRINTF("nothing...\n");
@@ -9457,20 +9473,18 @@ static BHead *read_libblock(FileData *fd,
       DEBUG_PRINTF("... in %s (%s): ",
                    main->curlib ? main->curlib->id.name : "<NULL>",
                    main->curlib ? main->curlib->name : "<NULL>");
-      ID *id = BKE_libblock_find_name(main, GS(idname), idname + 2);
-      if (id != NULL) {
+      ID *existing_id = BKE_libblock_find_name(main, GS(id->name), id->name + 2);
+      if (existing_id != NULL) {
         DEBUG_PRINTF("FOUND!\n");
         /* Even though we found our linked ID,
          * there is no guarantee its address is still the same. */
-        if (id != bhead->old) {
-          oldnewmap_insert(fd->libmap, bhead->old, id, GS(id->name));
+        if (existing_id != bhead->old) {
+          oldnewmap_insert(fd->libmap, bhead->old, existing_id, GS(existing_id->name));
         }
 
         /* No need to do anything else for ID_LINK_PLACEHOLDER,
          * it's assumed already present in its lib's main. */
-        if (r_id) {
-          *r_id = NULL; /* Just in case... */
-        }
+        MEM_freeN(id);
         return blo_bhead_next(fd, bhead);
       }
       DEBUG_PRINTF("nothing...\n");
@@ -9478,172 +9492,157 @@ static BHead *read_libblock(FileData *fd,
   }
 
   /* read libblock */
-  fd->are_memchunks_identical = true;
-  ID *id = read_struct(fd, bhead, "lib block");
-  const short idcode = id != NULL ? GS(id->name) : 0;
-
   BHead *id_bhead = bhead;
+
+  if (id_bhead->code != ID_LINK_PLACEHOLDER) {
+    /* need a name for the mallocN, just for debugging and sane prints on leaks */
+    const char *allocname = dataname(idcode);
+
+    /* read all data into fd->datamap */
+    /* TODO: for the undo case instead of building oldnewmap here we could just quickly check the
+     * bheads... could save some more ticks. Probably not worth it though, bottleneck is full
+     * depsgraph rebuild and evaluate, not actual file reading. */
+    bhead = read_data_into_oldnewmap(fd, id_bhead, allocname);
+  }
+
+  /* Restore existing datablocks for undo. */
+  const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
+
   /* Used when undoing from memfile, we swap changed IDs into their old addresses when found. */
   ID *id_old = NULL;
   bool do_id_swap = false;
 
-  if (id != NULL) {
-    const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
-
+  if (fd->memfile != NULL) {
     if (id_bhead->code != ID_LINK_PLACEHOLDER) {
-      /* need a name for the mallocN, just for debugging and sane prints on leaks */
-      const char *allocname = dataname(idcode);
-
-      /* read all data into fd->datamap */
-      /* TODO: instead of building oldnewmap here we could just quickly check the bheads... could
-       * save some more ticks. Probably not worth it though, bottleneck is full depsgraph rebuild
-       * and evaluate, not actual file reading. */
-      bhead = read_data_into_oldnewmap(fd, id_bhead, allocname);
-
       DEBUG_PRINTF(
           "%s: ID %s is unchanged: %d\n", __func__, id->name, fd->are_memchunks_identical);
 
-      if (fd->memfile != NULL) {
-        BLI_assert(fd->old_idmap != NULL || !do_partial_undo);
-        /* This code should only ever be reached for local data-blocks. */
-        BLI_assert(main->curlib == NULL);
+      BLI_assert(fd->old_idmap != NULL || !do_partial_undo);
+      /* This code should only ever be reached for local data-blocks. */
+      BLI_assert(main->curlib == NULL);
 
-        /* Find the 'current' existing ID we want to reuse instead of the one we would read from
-         * the undo memfile. */
-        DEBUG_PRINTF("\t Looking for ID %s with uuid %u instead of newly read one\n",
-                     id->name,
-                     id->session_uuid);
-        id_old = do_partial_undo ? BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid) :
-                                   NULL;
-        bool can_finalize_and_return = false;
+      /* Find the 'current' existing ID we want to reuse instead of the one we would read from
+       * the undo memfile. */
+      DEBUG_PRINTF("\t Looking for ID %s with uuid %u instead of newly read one\n",
+                   id->name,
+                   id->session_uuid);
+      id_old = do_partial_undo ? BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid) :
+                                 NULL;
+      bool can_finalize_and_return = false;
 
-        if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
-          /* Read WindowManager, Screen and WorkSpace IDs are never actually used during undo (see
-           * `setup_app_data()` in `blendfile.c`).
-           * So we can just abort here, just ensuring libmapping is set accordingly. */
-          can_finalize_and_return = true;
+      if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
+        /* Read WindowManager, Screen and WorkSpace IDs are never actually used during undo (see
+         * `setup_app_data()` in `blendfile.c`).
+         * So we can just abort here, just ensuring libmapping is set accordingly. */
+        can_finalize_and_return = true;
+      }
+      else if (id_old != NULL && fd->are_memchunks_identical) {
+        /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
+         * this is only for do_version-like code), but for sake of consistency, and also because
+         * it will tell us which ID is re-used from old Main, and which one is actually new. */
+        id_old->tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_UNDO_OLD_ID_REUSED;
+        id_old->lib = main->curlib;
+        id_old->us = ID_FAKE_USERS(id_old);
+        /* Do not reset id->icon_id here, memory allocated for it remains valid. */
+        /* Needed because .blend may have been saved with crap value here... */
+        id_old->newid = NULL;
+        id_old->orig_id = NULL;
+
+        /* About recalc: since that ID did not change at all, we know that its recalc fields also
+         * remained unchanged, so no need to handle neither recalc nor recalc_undo_future here.
+         */
+
+        Main *old_bmain = fd->old_mainlist->first;
+        ListBase *old_lb = which_libbase(old_bmain, idcode);
+        ListBase *new_lb = which_libbase(main, idcode);
+        BLI_remlink(old_lb, id_old);
+        BLI_addtail(new_lb, id_old);
+
+        can_finalize_and_return = true;
+      }
+
+      if (can_finalize_and_return) {
+        DEBUG_PRINTF("Re-using existing ID %s instead of newly read one\n", id_old->name);
+        oldnewmap_insert(fd->libmap, id_bhead->old, id_old, id_bhead->code);
+        oldnewmap_insert(fd->libmap, id_old, id_old, id_bhead->code);
+
+        if (r_id) {
+          *r_id = id_old;
         }
-        else if (id_old != NULL && fd->are_memchunks_identical) {
-          /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
-           * this is only for do_version-like code), but for sake of consistency, and also because
-           * it will tell us which ID is re-used from old Main, and which one is actually new. */
-          id_old->tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_UNDO_OLD_ID_REUSED;
-          id_old->lib = main->curlib;
-          id_old->us = ID_FAKE_USERS(id_old);
-          /* Do not reset id->icon_id here, memory allocated for it remains valid. */
-          /* Needed because .blend may have been saved with crap value here... */
-          id_old->newid = NULL;
-          id_old->orig_id = NULL;
 
-          /* About recalc: since that ID did not change at all, we know that its recalc fields also
-           * remained unchanged, so no need to handle neither recalc nor recalc_undo_future here.
+        if (do_partial_undo) {
+          /* Even though we re-use the old ID as-is, it does not mean that we are 100% safe from
+           * needing some depsgraph updates for it (it could depend on another ID which address
+           * did not change, but which actual content might have been re-read from the memfile).
+           * IMPORTANT: Do not fully overwrite recalc flag here, depsgraph may not have been ran
+           * yet for previous undo step(s), we do not want to erase flags set by those.
            */
-
-          Main *old_bmain = fd->old_mainlist->first;
-          ListBase *old_lb = which_libbase(old_bmain, idcode);
-          ListBase *new_lb = which_libbase(main, idcode);
-          BLI_remlink(old_lb, id_old);
-          BLI_addtail(new_lb, id_old);
-
-          can_finalize_and_return = true;
-        }
-
-        if (can_finalize_and_return) {
-          DEBUG_PRINTF("Re-using existing ID %s instead of newly read one\n", id_old->name);
-          oldnewmap_insert(fd->libmap, id_bhead->old, id_old, id_bhead->code);
-          oldnewmap_insert(fd->libmap, id_old, id_old, id_bhead->code);
-
-          if (r_id) {
-            *r_id = id_old;
+          if (fd->undo_direction < 0) {
+            /* We are coming from the future (i.e. do an actual undo, and not a redo), we use our
+             * old reused ID's 'accumulated recalc flags since last memfile undo step saving' as
+             * recalc flags. */
+            id_old->recalc |= id_old->recalc_undo_accumulated;
           }
-
-          if (do_partial_undo) {
-            /* Even though we re-use the old ID as-is, it does not mean that we are 100% safe from
-             * needing some depsgraph updates for it (it could depend on another ID which address
-             * did not change, but which actual content might have been re-read from the memfile).
-             * IMPORTANT: Do not fully overwrite recalc flag here, depsgraph may not have been ran
-             * yet for previous undo step(s), we do not want to erase flags set by those.
+          else {
+            /* We are coming from the past (i.e. do a redo), we use the saved 'accumulated recalc
+             * flags since last memfile undo step saving' from the newly read ID as recalc flags.
              */
-            if (fd->undo_direction < 0) {
-              /* We are coming from the future (i.e. do an actual undo, and not a redo), we use our
-               * old reused ID's 'accumulated recalc flags since last memfile undo step saving' as
-               * recalc flags. */
-              id_old->recalc |= id_old->recalc_undo_accumulated;
-            }
-            else {
-              /* We are coming from the past (i.e. do a redo), we use the saved 'accumulated recalc
-               * flags since last memfile undo step saving' from the newly read ID as recalc flags.
-               */
-              id_old->recalc |= id->recalc_undo_accumulated;
-            }
-            /* There is no need to flush the depsgraph's CoWs here, since that ID's data itself did
-             * not change. */
-
-            /* We need to 'accumulate' the accumulated recalc flags of all undo steps until we
-             * actually perform a depsgraph update, otherwise we'd only ever use the flags from one
-             * of the steps, and never get proper flags matching all others. */
-            id_old->recalc_undo_accumulated |= id->recalc_undo_accumulated;
+            id_old->recalc |= id->recalc_undo_accumulated;
           }
+          /* There is no need to flush the depsgraph's CoWs here, since that ID's data itself did
+           * not change. */
 
-          MEM_freeN(id);
-          oldnewmap_clear(fd->datamap);
-
-          return bhead;
+          /* We need to 'accumulate' the accumulated recalc flags of all undo steps until we
+           * actually perform a depsgraph update, otherwise we'd only ever use the flags from one
+           * of the steps, and never get proper flags matching all others. */
+          id_old->recalc_undo_accumulated |= id->recalc_undo_accumulated;
         }
+
+        MEM_freeN(id);
+        oldnewmap_clear(fd->datamap);
+
+        return bhead;
       }
     }
 
-    /* do after read_struct, for dna reconstruct */
-    ListBase *lb = which_libbase(main, idcode);
-    if (lb) {
-      /* Some re-used old IDs might also use newly read ones, so we have to check for old memory
-       * addresses for those as well. */
-      if (fd->memfile != NULL && do_partial_undo && id->lib == NULL) {
-        BLI_assert(fd->old_idmap != NULL);
-        DEBUG_PRINTF("\t Looking for ID %s with uuid %u instead of newly read one\n",
-                     id->name,
-                     id->session_uuid);
-        id_old = BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid);
-        if (id_old != NULL) {
-          BLI_assert(MEM_allocN_len(id) == MEM_allocN_len(id_old));
-          /* UI IDs are always re-used from old bmain at higher-level calling code, so never swap
-           * those. Besides maybe custom properties, no other ID should have pointers to those
-           * anyway...
-           * And linked IDs are handled separately as well. */
-          do_id_swap = !ELEM(idcode, ID_WM, ID_SCR, ID_WS) &&
-                       !(id_bhead->code == ID_LINK_PLACEHOLDER);
-        }
+    /* Some re-used old IDs might also use newly read ones, so we have to check for old memory
+     * addresses for those as well. */
+    if (do_partial_undo && id->lib == NULL) {
+      BLI_assert(fd->old_idmap != NULL);
+      DEBUG_PRINTF("\t Looking for ID %s with uuid %u instead of newly read one\n",
+                   id->name,
+                   id->session_uuid);
+      id_old = BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid);
+      if (id_old != NULL) {
+        BLI_assert(MEM_allocN_len(id) == MEM_allocN_len(id_old));
+        /* UI IDs are always re-used from old bmain at higher-level calling code, so never swap
+         * those. Besides maybe custom properties, no other ID should have pointers to those
+         * anyway...
+         * And linked IDs are handled separately as well. */
+        do_id_swap = !ELEM(idcode, ID_WM, ID_SCR, ID_WS) &&
+                     !(id_bhead->code == ID_LINK_PLACEHOLDER);
       }
+    }
 
-      /* At this point, we know we are going to keep that newly read & allocated ID, so we need to
-       * reallocate it to ensure we actually get a unique memory address for it. */
-      if (!do_id_swap) {
-        DEBUG_PRINTF("using newly-read ID %s to a new mem address\n", id->name);
-      }
-      else {
-        DEBUG_PRINTF("using newly-read ID %s to its old, already existing address\n", id->name);
-      }
-
-      /* for ID_LINK_PLACEHOLDER check */
-      ID *id_target = do_id_swap ? id_old : id;
-      oldnewmap_insert(fd->libmap, id_bhead->old, id_target, id_bhead->code);
-      oldnewmap_insert(fd->libmap, id_old, id_target, id_bhead->code);
-
-      BLI_addtail(lb, id);
+    /* At this point, we know we are going to keep that newly read & allocated ID, so we need to
+     * reallocate it to ensure we actually get a unique memory address for it. */
+    if (!do_id_swap) {
+      DEBUG_PRINTF("using newly-read ID %s to a new mem address\n", id->name);
     }
     else {
-      /* unknown ID type */
-      printf("%s: unknown id code '%c%c'\n", __func__, (idcode & 0xff), (idcode >> 8));
-      MEM_freeN(id);
-      id = NULL;
+      DEBUG_PRINTF("using newly-read ID %s to its old, already existing address\n", id->name);
     }
   }
+
+  /* for ID_LINK_PLACEHOLDER check */
+  ID *id_target = do_id_swap ? id_old : id;
+  oldnewmap_insert(fd->libmap, id_bhead->old, id_target, id_bhead->code);
+  oldnewmap_insert(fd->libmap, id_old, id_target, id_bhead->code);
+
+  BLI_addtail(lb, id);
 
   if (r_id) {
     *r_id = do_id_swap ? id_old : id;
-  }
-  if (!id) {
-    return blo_bhead_next(fd, id_bhead);
   }
 
   /* Set tag for new datablock to indicate lib linking and versioning needs
