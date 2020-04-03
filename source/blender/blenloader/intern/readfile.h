@@ -85,11 +85,6 @@ typedef struct FileData {
   const char *buffer;
   /** Variables needed for reading from memfile (undo). */
   struct MemFile *memfile;
-  /** Whether all data read from memfile so far was identical
-   * (i.e. shared with some previous undo step).
-   * Updated by `fd_read_from_memfile()`, user is responsible to reset it to true when needed.
-   * Used to detect unchanged IDs. */
-  bool are_memchunks_identical;
   /** Whether we are undoing (< 0) or redoing (> 0), used to choose which 'unchanged' flag to use
    * to detect unchanged data from memfile. */
   short undo_direction;

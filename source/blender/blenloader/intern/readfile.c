@@ -2374,9 +2374,6 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
       }
     }
 
-    if (!BHEADN_FROM_BHEAD(bh)->is_memchunk_identical) {
-      fd->are_memchunks_identical = false;
-    }
 #ifdef USE_BHEAD_READ_ON_DEMAND
     if (bh_orig != bh) {
       MEM_freeN(BHEADN_FROM_BHEAD(bh));
@@ -9377,7 +9374,8 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
   return success;
 }
 
-static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *allocname)
+/* Read all data associated with a datablock into datamap. */
+static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *allocname)
 {
   bhead = blo_bhead_next(fd, bhead);
 
@@ -9402,6 +9400,28 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
   }
 
   return bhead;
+}
+
+/* Verify if the datablock and all associated data is identical. */
+static bool read_libblock_is_identical(FileData *fd, BHead *bhead)
+{
+  /* Test ID itself. */
+  if (bhead->len && !BHEADN_FROM_BHEAD(bhead)->is_memchunk_identical) {
+    return false;
+  }
+
+  /* Test any other data that is part of ID (logic must match read_data_into_datamap). */
+  bhead = blo_bhead_next(fd, bhead);
+
+  while (bhead && bhead->code == DATA) {
+    if (bhead->len && !BHEADN_FROM_BHEAD(bhead)->is_memchunk_identical) {
+      return false;
+    }
+
+    bhead = blo_bhead_next(fd, bhead);
+  }
+
+  return true;
 }
 
 static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const ID *id)
@@ -9479,7 +9499,7 @@ static BHead *read_libblock(FileData *fd,
   }
 
   /* Read libblock struct. */
-  fd->are_memchunks_identical = true;
+  BHead *first_bhead = bhead;
   ID *id = read_struct(fd, bhead, "lib block");
   if (id == NULL) {
     return blo_bhead_next(fd, bhead);
@@ -9522,7 +9542,7 @@ static BHead *read_libblock(FileData *fd,
     /* TODO: for the undo case instead of building oldnewmap here we could just quickly check the
      * bheads... could save some more ticks. Probably not worth it though, bottleneck is full
      * depsgraph rebuild and evaluate, not actual file reading. */
-    bhead = read_data_into_oldnewmap(fd, id_bhead, allocname);
+    bhead = read_data_into_datamap(fd, id_bhead, allocname);
   }
 
   /* Restore existing datablocks for undo. */
@@ -9534,8 +9554,8 @@ static BHead *read_libblock(FileData *fd,
 
   if (fd->memfile != NULL) {
     if (id_bhead->code != ID_LINK_PLACEHOLDER) {
-      DEBUG_PRINTF(
-          "%s: ID %s is unchanged: %d\n", __func__, id->name, fd->are_memchunks_identical);
+      const bool is_identical = read_libblock_is_identical(fd, first_bhead);
+      DEBUG_PRINTF("%s: ID %s is unchanged: %d\n", __func__, id->name, is_identical);
 
       BLI_assert(fd->old_idmap != NULL || !do_partial_undo);
       /* This code should only ever be reached for local data-blocks. */
@@ -9556,7 +9576,7 @@ static BHead *read_libblock(FileData *fd,
          * So we can just abort here, just ensuring libmapping is set accordingly. */
         can_finalize_and_return = true;
       }
-      else if (id_old != NULL && fd->are_memchunks_identical) {
+      else if (id_old != NULL && is_identical) {
         /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
          * this is only for do_version-like code), but for sake of consistency, and also because
          * it will tell us which ID is re-used from old Main, and which one is actually new. */
@@ -10112,7 +10132,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   user->subversionfile = bfd->main->subversionfile;
 
   /* read all data into fd->datamap */
-  bhead = read_data_into_oldnewmap(fd, bhead, "user def");
+  bhead = read_data_into_datamap(fd, bhead, "user def");
 
   link_list(fd, &user->themes);
   link_list(fd, &user->user_keymaps);
