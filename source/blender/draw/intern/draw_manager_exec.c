@@ -1376,7 +1376,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                               0,
                               0,
                               cmd->instance.inst_count,
-                              cmd->instance.use_attribs == 0);
+                              cmd->instance.use_attrs == 0);
           break;
         case DRW_CMD_DRAW_RANGE:
           draw_call_single_do(shgroup,

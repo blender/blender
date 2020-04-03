@@ -205,7 +205,7 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
           grp = DRW_shgroup_create_sub(pd->particle_shapes_grp);
           DRW_shgroup_uniform_vec4_copy(grp, "color", color);
           shape = DRW_cache_particles_get_prim(draw_as);
-          DRW_shgroup_call_instances_with_attribs(grp, NULL, shape, geom);
+          DRW_shgroup_call_instances_with_attrs(grp, NULL, shape, geom);
           break;
       }
     }

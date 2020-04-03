@@ -21,7 +21,7 @@ void main()
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
   vec3 nor;
-  /* Select the right normal by cheking if the generic attrib is used.  */
+  /* Select the right normal by checking if the generic attribute is used. */
   if (!all(equal(lnor.xyz, vec3(0)))) {
     if (lnor.w < 0.0) {
       finalColor = vec4(0.0);

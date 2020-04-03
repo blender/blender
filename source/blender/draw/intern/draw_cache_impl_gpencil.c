@@ -174,7 +174,8 @@ static GPUVertFormat *gpencil_stroke_format(void)
     GPU_vertformat_attr_add(&format, "ma", GPU_COMP_I32, 4, GPU_FETCH_INT);
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "uv", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    /* IMPORTANT: This means having only 4 attributes to fit into GPU module limit of 16 attrib. */
+    /* IMPORTANT: This means having only 4 attributes
+     * to fit into GPU module limit of 16 attributes. */
     GPU_vertformat_multiload_enable(&format, 4);
   }
   return &format;
@@ -208,7 +209,8 @@ static GPUVertFormat *gpencil_color_format(void)
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "col", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "fcol", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    /* IMPORTANT: This means having only 4 attributes to fit into GPU module limit of 16 attrib. */
+    /* IMPORTANT: This means having only 4 attributes
+     * to fit into GPU module limit of 16 attributes. */
     GPU_vertformat_multiload_enable(&format, 4);
   }
   return &format;

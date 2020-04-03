@@ -212,7 +212,7 @@ uniform vec4 layerTint;
 uniform float layerOpacity; /* Used for onion skin. */
 uniform float strokeIndexOffset = 0.0;
 
-/* All of these attribs are quad loaded the same way
+/* All of these attributes are quad loaded the same way
  * as GL_LINES_ADJACENCY would feed a geometry shader:
  * - ma reference the previous adjacency point.
  * - ma1 reference the current line first point.
@@ -236,7 +236,7 @@ in vec4 uv2;
 in vec4 col1;
 in vec4 col2;
 in vec4 fcol1;
-/* WARNING: Max attrib count is actually 14 because OSX OpenGL implementation
+/* WARNING: Max attribute count is actually 14 because OSX OpenGL implementation
  * considers gl_VertexID and gl_InstanceID as vertex attribute. (see T74536) */
 #  define stroke_id1 ma1.y
 #  define point_id1 ma1.z
@@ -389,7 +389,7 @@ void stroke_vertex()
 
   mat4 model_mat = model_matrix_get();
 
-  /* Avoid using a vertex attrib for quad positioning. */
+  /* Avoid using a vertex attribute for quad positioning. */
   float x = float(gl_VertexID & 1) * 2.0 - 1.0; /* [-1..1] */
   float y = float(gl_VertexID & 2) - 1.0;       /* [-1..1] */
 

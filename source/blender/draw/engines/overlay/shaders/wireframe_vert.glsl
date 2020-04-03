@@ -101,8 +101,8 @@ void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
 
 void main()
 {
-  bool no_attrib = all(equal(nor, vec3(0)));
-  vec3 wnor = no_attrib ? ViewMatrixInverse[2].xyz : normalize(normal_object_to_world(nor));
+  bool no_attr = all(equal(nor, vec3(0)));
+  vec3 wnor = no_attr ? ViewMatrixInverse[2].xyz : normalize(normal_object_to_world(nor));
 
   vec3 wpos = point_object_to_world(pos);
 
@@ -152,7 +152,7 @@ void main()
 #endif
 
   /* Cull flat edges below threshold. */
-  if (!no_attrib && (get_edge_sharpness(wd) < 0.0)) {
+  if (!no_attr && (get_edge_sharpness(wd) < 0.0)) {
     edgeStart = vec2(-1.0);
   }
 

@@ -1938,12 +1938,12 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
 
           IMB_metadata_ensure(&ibuf->metadata);
           for (iter = header.begin(); iter != header.end(); iter++) {
-            const StringAttribute *attrib = file->header(0).findTypedAttribute<StringAttribute>(
+            const StringAttribute *attr = file->header(0).findTypedAttribute<StringAttribute>(
                 iter.name());
 
             /* not all attributes are string attributes so we might get some NULLs here */
-            if (attrib) {
-              IMB_metadata_set_field(ibuf->metadata, iter.name(), attrib->value().c_str());
+            if (attr) {
+              IMB_metadata_set_field(ibuf->metadata, iter.name(), attr->value().c_str());
               ibuf->flags |= IB_metadata;
             }
           }

@@ -77,12 +77,12 @@ uniform int resourceChunk;
 uniform int baseInstance;
 #  endif
 
-#  if defined(IN_PLACE_INSTANCES) || defined(INSTANCED_ATTRIB)
+#  if defined(IN_PLACE_INSTANCES) || defined(INSTANCED_ATTR)
 /* When drawing instances of an object at the same position. */
 #    define instanceId 0
 #  elif defined(GPU_DEPRECATED_AMD_DRIVER)
 /* A driver bug make it so that when using an attribute with GL_INT_2_10_10_10_REV as format,
- * the gl_InstanceID is incremented by the 2 bit component of the attrib.
+ * the gl_InstanceID is incremented by the 2 bit component of the attribute.
  * Ignore gl_InstanceID then. */
 #    define instanceId 0
 #  else
@@ -124,7 +124,7 @@ flat in int resourceIDFrag;
 
 /* Breaking this across multiple lines causes issues for some older GLSL compilers. */
 /* clang-format off */
-#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC) && !defined(INSTANCED_ATTRIB)
+#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC) && !defined(INSTANCED_ATTR)
 /* clang-format on */
 struct ObjectMatrices {
   mat4 drw_modelMatrix;

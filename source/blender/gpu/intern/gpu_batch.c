@@ -42,7 +42,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static GLuint g_default_attrib_vbo = 0;
+static GLuint g_default_attr_vbo = 0;
 
 static void batch_update_program_bindings(GPUBatch *batch, uint i_first);
 
@@ -416,7 +416,7 @@ void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *i
 
 static void create_bindings(GPUVertBuf *verts,
                             const GPUShaderInterface *interface,
-                            uint16_t *attrib_mask,
+                            uint16_t *attr_mask,
                             uint v_first,
                             const bool use_instancing)
 {
@@ -449,7 +449,7 @@ static void create_bindings(GPUVertBuf *verts,
         continue;
       }
 
-      *attrib_mask &= ~(1 << input->location);
+      *attr_mask &= ~(1 << input->location);
 
       if (a->comp_len == 16 || a->comp_len == 12 || a->comp_len == 8) {
 #if TRUST_NO_ONE
@@ -492,27 +492,27 @@ static void create_bindings(GPUVertBuf *verts,
 
 static void batch_update_program_bindings(GPUBatch *batch, uint i_first)
 {
-  uint16_t attrib_mask = batch->interface->enabled_attrib_mask;
+  uint16_t attr_mask = batch->interface->enabled_attr_mask;
 
-  /* Reverse order so first vbos have more prevalence (in term of attrib override). */
+  /* Reverse order so first VBO'S have more prevalence (in term of attribute override). */
   for (int v = GPU_BATCH_VBO_MAX_LEN - 1; v > -1; v--) {
     if (batch->verts[v] != NULL) {
-      create_bindings(batch->verts[v], batch->interface, &attrib_mask, 0, false);
+      create_bindings(batch->verts[v], batch->interface, &attr_mask, 0, false);
     }
   }
 
   for (int v = GPU_BATCH_INST_VBO_MAX_LEN - 1; v > -1; v--) {
     if (batch->inst[v]) {
-      create_bindings(batch->inst[v], batch->interface, &attrib_mask, i_first, true);
+      create_bindings(batch->inst[v], batch->interface, &attr_mask, i_first, true);
     }
   }
 
-  if (attrib_mask != 0 && GLEW_ARB_vertex_attrib_binding) {
+  if (attr_mask != 0 && GLEW_ARB_vertex_attrib_binding) {
     for (uint16_t mask = 1, a = 0; a < 16; a++, mask <<= 1) {
-      if (attrib_mask & mask) {
+      if (attr_mask & mask) {
         /* This replaces glVertexAttrib4f(a, 0.0f, 0.0f, 0.0f, 1.0f); with a more modern style.
          * Fix issues for some drivers (see T75069). */
-        glBindVertexBuffer(a, g_default_attrib_vbo, (intptr_t)0, (intptr_t)0);
+        glBindVertexBuffer(a, g_default_attr_vbo, (intptr_t)0, (intptr_t)0);
 
         glEnableVertexAttribArray(a);
         glVertexAttribFormat(a, 4, GL_FLOAT, GL_FALSE, 0);
@@ -712,8 +712,8 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
   }
 
   /* Verify there is enough data do draw. */
-  /* TODO(fclem) Nice to have but this is invalid when using procedural drawcalls.
-   * The right assert would be to check if there is an enabled attrib from each VBO
+  /* TODO(fclem) Nice to have but this is invalid when using procedural draw-calls.
+   * The right assert would be to check if there is an enabled attribute from each VBO
    * and check their length. */
   // BLI_assert(i_first + i_count <= (batch->inst ? batch->inst->vertex_len : INT_MAX));
   // BLI_assert(v_first + v_count <=
@@ -1025,11 +1025,11 @@ void GPU_batch_program_set_imm_shader(GPUBatch *batch)
 
 void gpu_batch_init(void)
 {
-  if (g_default_attrib_vbo == 0) {
-    g_default_attrib_vbo = GPU_buf_alloc();
+  if (g_default_attr_vbo == 0) {
+    g_default_attr_vbo = GPU_buf_alloc();
 
     float default_attrib_data[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-    glBindBuffer(GL_ARRAY_BUFFER, g_default_attrib_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, g_default_attr_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4, default_attrib_data, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
   }
@@ -1039,8 +1039,8 @@ void gpu_batch_init(void)
 
 void gpu_batch_exit(void)
 {
-  GPU_buf_free(g_default_attrib_vbo);
-  g_default_attrib_vbo = 0;
+  GPU_buf_free(g_default_attr_vbo);
+  g_default_attr_vbo = 0;
 
   gpu_batch_presets_exit();
 }

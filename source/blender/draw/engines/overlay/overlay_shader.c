@@ -713,7 +713,7 @@ GPUShader *OVERLAY_shader_edit_mesh_normal(void)
                                  datatoc_edit_mesh_normal_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, "#define INSTANCED_ATTRIB\n", NULL},
+        .defs = (const char *[]){sh_cfg->def, "#define INSTANCED_ATTR\n", NULL},
     });
   }
   return sh_data->edit_mesh_normals;
@@ -750,7 +750,7 @@ GPUShader *OVERLAY_shader_edit_mesh_skin_root(void)
                                  datatoc_edit_mesh_skin_root_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, "#define INSTANCED_ATTRIB\n", NULL},
+        .defs = (const char *[]){sh_cfg->def, "#define INSTANCED_ATTR\n", NULL},
     });
   }
   return sh_data->edit_mesh_skin_root;
@@ -1269,7 +1269,7 @@ GPUShader *OVERLAY_shader_particle_shape(void)
                                  datatoc_particle_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, "#define INSTANCED_ATTRIB\n", NULL},
+        .defs = (const char *[]){sh_cfg->def, "#define INSTANCED_ATTR\n", NULL},
     });
   }
   return sh_data->particle_shape;

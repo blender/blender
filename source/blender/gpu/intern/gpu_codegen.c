@@ -689,8 +689,8 @@ static char *code_generate_vertex(GPUNodeGraph *graph, const char *vert_code, bo
       BLI_dynstr_appendf(ds, "#define att%d %s\n", attr->id, attr_prefix_get(attr->type));
     }
     else {
-      char attr_safe_name[GPU_MAX_SAFE_ATTRIB_NAME];
-      GPU_vertformat_safe_attrib_name(attr->name, attr_safe_name, GPU_MAX_SAFE_ATTRIB_NAME);
+      char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
+      GPU_vertformat_safe_attr_name(attr->name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
       BLI_dynstr_appendf(ds,
                          "DEFINE_ATTR(%s, %s%s);\n",
                          gpu_data_type_to_string(attr->gputype),

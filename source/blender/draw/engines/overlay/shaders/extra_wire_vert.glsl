@@ -1,7 +1,7 @@
 
 in vec3 pos;
 in vec4 color;
-in int colorid; /* if equal 0 (i.e: Not specified) use color attrib and stippling. */
+in int colorid; /* if equal 0 (i.e: Not specified) use color attribute and stippling. */
 
 noperspective out vec2 stipple_coord;
 flat out vec2 stipple_start;

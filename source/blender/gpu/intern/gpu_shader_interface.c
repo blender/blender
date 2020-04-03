@@ -236,7 +236,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
   shaderface->name_buffer = MEM_mallocN(name_buffer_len, "name_buffer");
 
   /* Attributes */
-  shaderface->enabled_attrib_mask = 0;
+  shaderface->enabled_attr_mask = 0;
   for (uint32_t i = 0; i < attr_len; i++) {
     GPUShaderInput *input = MEM_mallocN(sizeof(GPUShaderInput), "GPUShaderInput Attr");
     GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
@@ -256,7 +256,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 
     input->location = glGetAttribLocation(program, name);
 
-    shaderface->enabled_attrib_mask |= (1 << input->location);
+    shaderface->enabled_attr_mask |= (1 << input->location);
 
     set_input_name(shaderface, input, name, name_len);
 

@@ -88,8 +88,8 @@ typedef struct GPUShaderInterface {
   char *name_buffer;
   struct GPUBatch **batches; /* references to batches using this interface */
   uint batches_len;
-  /** All enabled attribs in this shader. Used to set default values for unbound attribs. */
-  uint16_t enabled_attrib_mask;
+  /** All enabled attributes in this shader. Used to set default values for unbound attributes. */
+  uint16_t enabled_attr_mask;
 } GPUShaderInterface;
 
 GPUShaderInterface *GPU_shaderinterface_create(int32_t program_id);

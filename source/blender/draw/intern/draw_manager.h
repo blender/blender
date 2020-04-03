@@ -210,7 +210,7 @@ typedef struct DRWCommandDrawInstance {
   GPUBatch *batch;
   DRWResourceHandle handle;
   uint inst_count;
-  uint use_attribs; /* bool */
+  uint use_attrs; /* bool */
 } DRWCommandDrawInstance;
 
 typedef struct DRWCommandDrawInstanceRange {
