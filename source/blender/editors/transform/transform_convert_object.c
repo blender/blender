@@ -290,7 +290,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 static void trans_object_base_deps_flag_prepare(ViewLayer *view_layer)
 {
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     base->object->id.tag &= ~LIB_TAG_DOIT;
   }
 }
@@ -324,7 +324,7 @@ static void trans_object_base_deps_flag_finish(const TransInfo *t, ViewLayer *vi
 {
 
   if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (base->object->id.tag & LIB_TAG_DOIT) {
         base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
       }
@@ -355,7 +355,7 @@ static void set_trans_object_base_flags(TransInfo *t)
   /* Clear all flags we need. It will be used to detect dependencies. */
   trans_object_base_deps_flag_prepare(view_layer);
   /* Traverse all bases and set all possible flags. */
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     base->flag_legacy &= ~(BA_WAS_SEL | BA_TRANSFORM_LOCKED_IN_PLACE);
     if (BASE_SELECTED_EDITABLE(v3d, base)) {
       Object *ob = base->object;
@@ -422,7 +422,7 @@ static int count_proportional_objects(TransInfo *t)
   if (!((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
         (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL))) {
     /* Mark all parents. */
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (BASE_SELECTED_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
         Object *parent = base->object->parent;
         /* flag all parents */
@@ -433,7 +433,7 @@ static int count_proportional_objects(TransInfo *t)
       }
     }
     /* Mark all children. */
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       /* all base not already selected or marked that is editable */
       if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
           (base->flag & BASE_SELECTED) == 0 &&
@@ -443,7 +443,7 @@ static int count_proportional_objects(TransInfo *t)
     }
   }
   /* Flush changed flags to all dependencies. */
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     Object *ob = base->object;
     /* If base is not selected, not a parent of selection or not a child of
      * selection and it is editable and selectable.
@@ -592,7 +592,7 @@ void createTransObject(bContext *C, TransInfo *t)
     ViewLayer *view_layer = t->view_layer;
     View3D *v3d = t->view;
 
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       Object *ob = base->object;
 
       /* if base is not selected, not a parent of selection
@@ -639,7 +639,7 @@ void createTransObject(bContext *C, TransInfo *t)
 
     ViewLayer *view_layer = t->view_layer;
 
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       Object *ob = base->object;
       if (ob->parent != NULL) {
         if (ob->parent && !BLI_gset_haskey(objects_in_transdata, ob->parent) &&
@@ -669,7 +669,7 @@ void createTransObject(bContext *C, TransInfo *t)
       }
     }
 
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       Object *ob = base->object;
 
       if (BASE_XFORM_INDIRECT(base) || BLI_gset_haskey(objects_in_transdata, ob)) {

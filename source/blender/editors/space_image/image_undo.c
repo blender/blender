@@ -145,7 +145,7 @@ static void ptile_free_list(ListBase *paint_tiles)
 
 static void ptile_invalidate_list(ListBase *paint_tiles)
 {
-  for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
+  LISTBASE_FOREACH (PaintTile *, ptile, paint_tiles) {
     ptile->valid = false;
   }
 }
@@ -159,7 +159,7 @@ void *ED_image_paint_tile_find(ListBase *paint_tiles,
                                ushort **r_mask,
                                bool validate)
 {
-  for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
+  LISTBASE_FOREACH (PaintTile *, ptile, paint_tiles) {
     if (ptile->x_tile == x_tile && ptile->y_tile == y_tile) {
       if (ptile->image == image && ptile->ibuf == ibuf && ptile->iuser.tile == iuser->tile) {
         if (r_mask) {
@@ -267,7 +267,7 @@ static void ptile_restore_runtime_list(ListBase *paint_tiles)
 {
   ImBuf *tmpibuf = imbuf_alloc_temp_tile();
 
-  for (PaintTile *ptile = paint_tiles->first; ptile; ptile = ptile->next) {
+  LISTBASE_FOREACH (PaintTile *, ptile, paint_tiles) {
     Image *image = ptile->image;
     ImBuf *ibuf = BKE_image_acquire_ibuf(image, &ptile->iuser, NULL);
     const bool has_float = (ibuf->rect_float != NULL);
@@ -542,7 +542,7 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
 {
   ImBuf *tmpibuf = imbuf_alloc_temp_tile();
 
-  for (UndoImageHandle *uh = undo_handles->first; uh; uh = uh->next) {
+  LISTBASE_FOREACH (UndoImageHandle *, uh, undo_handles) {
     /* Tiles only added to second set of tiles. */
     Image *image = uh->image_ref.ptr;
 
@@ -552,7 +552,7 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
       continue;
     }
     bool changed = false;
-    for (UndoImageBuf *ubuf_iter = uh->buffers.first; ubuf_iter; ubuf_iter = ubuf_iter->next) {
+    LISTBASE_FOREACH (UndoImageBuf *, ubuf_iter, &uh->buffers) {
       UndoImageBuf *ubuf = use_init ? ubuf_iter : ubuf_iter->post;
       ubuf_ensure_compat_ibuf(ubuf, ibuf);
 
@@ -611,7 +611,7 @@ static UndoImageBuf *uhandle_lookup_ubuf(UndoImageHandle *uh,
                                          const Image *UNUSED(image),
                                          const char *ibuf_name)
 {
-  for (UndoImageBuf *ubuf = uh->buffers.first; ubuf; ubuf = ubuf->next) {
+  LISTBASE_FOREACH (UndoImageBuf *, ubuf, &uh->buffers) {
     if (STREQ(ubuf->ibuf_name, ibuf_name)) {
       return ubuf;
     }
@@ -643,7 +643,7 @@ static UndoImageHandle *uhandle_lookup_by_name(ListBase *undo_handles,
                                                const Image *image,
                                                int tile_number)
 {
-  for (UndoImageHandle *uh = undo_handles->first; uh; uh = uh->next) {
+  LISTBASE_FOREACH (UndoImageHandle *, uh, undo_handles) {
     if (STREQ(image->id.name + 2, uh->image_ref.name + 2) && uh->iuser.tile == tile_number) {
       return uh;
     }
@@ -653,7 +653,7 @@ static UndoImageHandle *uhandle_lookup_by_name(ListBase *undo_handles,
 
 static UndoImageHandle *uhandle_lookup(ListBase *undo_handles, const Image *image, int tile_number)
 {
-  for (UndoImageHandle *uh = undo_handles->first; uh; uh = uh->next) {
+  LISTBASE_FOREACH (UndoImageHandle *, uh, undo_handles) {
     if (image == uh->image_ref.ptr && uh->iuser.tile == tile_number) {
       return uh;
     }
@@ -799,8 +799,8 @@ static bool image_undosys_step_encode(struct bContext *C,
     }
     BLI_listbase_clear(&us->paint_tiles);
 
-    for (UndoImageHandle *uh = us->handles.first; uh; uh = uh->next) {
-      for (UndoImageBuf *ubuf_pre = uh->buffers.first; ubuf_pre; ubuf_pre = ubuf_pre->next) {
+    LISTBASE_FOREACH (UndoImageHandle *, uh, &us->handles) {
+      LISTBASE_FOREACH (UndoImageBuf *, ubuf_pre, &uh->buffers) {
 
         ImBuf *ibuf = BKE_image_acquire_ibuf(uh->image_ref.ptr, &uh->iuser, NULL);
 
@@ -979,7 +979,7 @@ static void image_undosys_foreach_ID_ref(UndoStep *us_p,
                                          void *user_data)
 {
   ImageUndoStep *us = (ImageUndoStep *)us_p;
-  for (UndoImageHandle *uh = us->handles.first; uh; uh = uh->next) {
+  LISTBASE_FOREACH (UndoImageHandle *, uh, &us->handles) {
     foreach_ID_ref_fn(user_data, ((UndoRefID *)&uh->image_ref));
   }
 }

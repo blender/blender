@@ -669,10 +669,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 
     if (type == SCE_COPY_FULL) {
       /* Copy Freestyle LineStyle datablocks. */
-      for (ViewLayer *view_layer_dst = sce_copy->view_layers.first; view_layer_dst;
-           view_layer_dst = view_layer_dst->next) {
-        for (FreestyleLineSet *lineset = view_layer_dst->freestyle_config.linesets.first; lineset;
-             lineset = lineset->next) {
+      LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
+        LISTBASE_FOREACH (
+            FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
           if (lineset->linestyle) {
             id_us_min(&lineset->linestyle->id);
             BKE_id_copy_ex(
@@ -732,8 +731,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
  */
 bool BKE_scene_object_find(Scene *scene, Object *ob)
 {
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     if (BLI_findptr(&view_layer->object_bases, ob, offsetof(Base, object))) {
       return true;
     }
@@ -743,9 +741,8 @@ bool BKE_scene_object_find(Scene *scene, Object *ob)
 
 Object *BKE_scene_object_find_by_name(const Scene *scene, const char *name)
 {
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (STREQ(base->object->id.name + 2, name)) {
         return base->object;
       }
@@ -773,9 +770,8 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
   }
 
   /* copy layers and flags from bases to objects */
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       ob = base->object;
       /* collection patch... */
       BKE_scene_object_base_flag_sync_from_base(base);
@@ -929,7 +925,7 @@ int BKE_scene_base_iter_next(
 Scene *BKE_scene_find_from_collection(const Main *bmain, const Collection *collection)
 {
   for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
-    for (ViewLayer *layer = scene->view_layers.first; layer; layer = layer->next) {
+    LISTBASE_FOREACH (ViewLayer *, layer, &scene->view_layers) {
       if (BKE_view_layer_has_collection(layer, collection)) {
         return scene;
       }
@@ -955,7 +951,7 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
   Object *camera = NULL;
   Object *first_camera = NULL;
 
-  for (TimeMarker *m = scene->markers.first; m; m = m->next) {
+  LISTBASE_FOREACH (TimeMarker *, m, &scene->markers) {
     if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0) {
       if ((m->frame <= cfra) && (m->frame > frame)) {
         camera = m->camera;

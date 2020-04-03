@@ -212,7 +212,7 @@ static void eyedropper_add_palette_color(bContext *C, float col_conv[4])
   }
   /* Check if the color exist already. */
   Palette *palette = paint->palette;
-  for (PaletteColor *palcolor = palette->colors.first; palcolor; palcolor = palcolor->next) {
+  LISTBASE_FOREACH (PaletteColor *, palcolor, &palette->colors) {
     if (compare_v3v3(palcolor->rgb, col_conv, 0.01f)) {
       return;
     }

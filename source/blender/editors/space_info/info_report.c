@@ -250,7 +250,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   const int select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    for (Report *report = reports->list.first; report; report = report->next) {
+    LISTBASE_FOREACH (Report *, report, &reports->list) {
       if ((report->type & report_mask) == 0) {
         continue;
       }
@@ -264,7 +264,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
   /* get the first report if none found */
   if (report_min == NULL) {
     // printf("find_min\n");
-    for (Report *report = reports->list.first; report; report = report->next) {
+    LISTBASE_FOREACH (Report *, report, &reports->list) {
       if (report->type & report_mask) {
         report_min = report;
         break;

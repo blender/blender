@@ -77,7 +77,7 @@ static void curve_render_overlay_verts_edges_len_get(ListBase *lb,
   BLI_assert(r_vert_len || r_edge_len);
   int vert_len = 0;
   int edge_len = 0;
-  for (Nurb *nu = lb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, lb) {
     if (nu->bezt) {
       vert_len += nu->pntsu * 3;
       /* 2x handles per point*/
@@ -107,7 +107,7 @@ static void curve_render_wire_verts_edges_len_get(const CurveCache *ob_curve_cac
   int vert_len = 0;
   int edge_len = 0;
   int curve_len = 0;
-  for (const BevList *bl = ob_curve_cache->bev.first; bl; bl = bl->next) {
+  LISTBASE_FOREACH (const BevList *, bl, &ob_curve_cache->bev) {
     if (bl->nr > 0) {
       const bool is_cyclic = bl->poly != -1;
       edge_len += (is_cyclic) ? bl->nr : bl->nr - 1;
@@ -115,7 +115,7 @@ static void curve_render_wire_verts_edges_len_get(const CurveCache *ob_curve_cac
       curve_len += 1;
     }
   }
-  for (const DispList *dl = ob_curve_cache->disp.first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, &ob_curve_cache->disp) {
     if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
       BLI_assert(dl->parts == 1);
       const bool is_cyclic = dl->type == DL_POLY;
@@ -315,7 +315,7 @@ static void curve_cd_calc_used_gpu_layers(int *cd_layers,
     }
 
     ListBase gpu_attrs = GPU_material_attributes(gpumat);
-    for (GPUMaterialAttribute *gpu_attr = gpu_attrs.first; gpu_attr; gpu_attr = gpu_attr->next) {
+    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       const char *name = gpu_attr->name;
       int type = gpu_attr->type;
 
@@ -566,7 +566,7 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
   GPU_vertbuf_data_alloc(vbo_curves_pos, vert_len);
 
   int v_idx = 0;
-  for (const BevList *bl = rdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
+  LISTBASE_FOREACH (const BevList *, bl, &rdata->ob_curve_cache->bev) {
     if (bl->nr <= 0) {
       continue;
     }
@@ -575,7 +575,7 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
       GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, bevp->vec);
     }
   }
-  for (const DispList *dl = rdata->ob_curve_cache->disp.first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, &rdata->ob_curve_cache->disp) {
     if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
       for (int i = 0; i < dl->nr; v_idx++, i++) {
         GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, &((float(*)[3])dl->verts)[i]);
@@ -599,7 +599,7 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
   int v_idx = 0;
-  for (const BevList *bl = rdata->ob_curve_cache->bev.first; bl; bl = bl->next) {
+  LISTBASE_FOREACH (const BevList *, bl, &rdata->ob_curve_cache->bev) {
     if (bl->nr <= 0) {
       continue;
     }
@@ -613,7 +613,7 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
     GPU_indexbuf_add_primitive_restart(&elb);
     v_idx += bl->nr;
   }
-  for (const DispList *dl = rdata->ob_curve_cache->disp.first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, &rdata->ob_curve_cache->disp) {
     if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
       const bool is_cyclic = dl->type == DL_POLY;
       if (is_cyclic) {

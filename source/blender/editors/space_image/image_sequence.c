@@ -226,7 +226,7 @@ ListBase ED_image_filesel_detect_sequences(Main *bmain, wmOperator *op, const bo
     const bool was_relative = BLI_path_is_rel(filepath);
 
     image_sequence_get_frame_ranges(op, &ranges);
-    for (ImageFrameRange *range = ranges.first; range; range = range->next) {
+    LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
       image_detect_frame_range(range, detect_udim);
       BLI_freelistN(&range->frames);
 

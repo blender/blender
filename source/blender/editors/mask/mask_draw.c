@@ -610,7 +610,7 @@ static void draw_mask_layers(const bContext *C,
       continue;
     }
 
-    for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
 
       /* draw curve itself first... */
       draw_spline_curve(C, mask_layer, spline, draw_flag, draw_type, is_active, width, height);

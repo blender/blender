@@ -2187,7 +2187,7 @@ int ED_gpencil_select_stroke_segment(bGPDlayer *gpl,
 
   /* Save list of strokes to check */
   int totstrokes = 0;
-  for (bGPDstroke *gps_iter = gpf->strokes.first; gps_iter; gps_iter = gps_iter->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps_iter, &gpf->strokes) {
     if (gps_iter->totpoints < 2) {
       continue;
     }

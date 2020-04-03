@@ -178,7 +178,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
       if (i != -1) {
         const int value = items[i].value;
         wmWindowManager *wm = bmain->wm.first;
-        for (wmWindow *win = wm->windows.first; win; win = win->next) {
+        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
           if (workspace == WM_window_get_active_workspace(win)) {
             Scene *scene = WM_window_get_active_scene(win);
             ToolSettings *ts = scene->toolsettings;
@@ -197,7 +197,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
       if (i != -1) {
         const int slot_index = items[i].value;
         wmWindowManager *wm = bmain->wm.first;
-        for (wmWindow *win = wm->windows.first; win; win = win->next) {
+        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
           if (workspace == WM_window_get_active_workspace(win)) {
             Scene *scene = WM_window_get_active_scene(win);
             BKE_paint_ensure_from_paintmode(scene, paint_mode);
@@ -279,7 +279,7 @@ void WM_toolsystem_reinit_all(struct bContext *C, wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     if (((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) == 0) {
       continue;
     }
@@ -372,7 +372,7 @@ void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToo
     return;
   }
   wmWindowManager *wm = bmain->wm.first;
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     if (workspace != WM_window_get_active_workspace(win)) {
       continue;
     }
@@ -514,13 +514,13 @@ void WM_toolsystem_refresh_active(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace = WM_window_get_active_workspace(win);
       bScreen *screen = WM_window_get_active_screen(win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
       /* Could skip loop for modes that don't depend on space type. */
       int space_type_mask_handled = 0;
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         /* Don't change the space type of the active tool, only update it's mode. */
         const int space_type_mask = (1 << area->spacetype);
         if ((space_type_mask & WM_TOOLSYSTEM_SPACE_MASK) &&
@@ -547,7 +547,7 @@ void WM_toolsystem_refresh_active(bContext *C)
       /* Refresh to ensure data is initialized.
        * This is needed because undo can load a state which no longer has the underlying DNA data
        * needed for the tool (un-initialized paint-slots for eg), see: T64339. */
-      for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+      LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
         toolsystem_refresh_ref(C, workspace, tref);
       }
     }
@@ -559,7 +559,7 @@ void WM_toolsystem_refresh_screen_area(WorkSpace *workspace, ViewLayer *view_lay
   area->runtime.tool = NULL;
   area->runtime.is_tool_set = true;
   const int mode = WM_toolsystem_mode_from_spacetype(view_layer, area, area->spacetype);
-  for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+  LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (tref->space_type == area->spacetype) {
       if (tref->mode == mode) {
         area->runtime.tool = tref;
@@ -573,15 +573,15 @@ void WM_toolsystem_refresh_screen_all(Main *bmain)
 {
   /* Update all ScrArea's tools */
   for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace = WM_window_get_active_workspace(win);
       bool space_type_has_tools[SPACE_TYPE_LAST + 1] = {0};
-      for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+      LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
         space_type_has_tools[tref->space_type] = true;
       }
       bScreen *screen = WM_window_get_active_screen(win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         area->runtime.tool = NULL;
         area->runtime.is_tool_set = true;
         if (space_type_has_tools[area->spacetype]) {
@@ -598,11 +598,11 @@ static void toolsystem_refresh_screen_from_active_tool(Main *bmain,
 {
   /* Update all ScrArea's tools */
   for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       if (workspace == WM_window_get_active_workspace(win)) {
         bScreen *screen = WM_window_get_active_screen(win);
         ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-        for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           if (area->spacetype == tref->space_type) {
             int mode = WM_toolsystem_mode_from_spacetype(view_layer, area, area->spacetype);
             if (mode == tref->mode) {
@@ -761,7 +761,7 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
     ScrArea *area_prev = CTX_wm_area(C);
     ARegion *region_prev = CTX_wm_region(C);
 
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       if (win != win_prev) {
         WorkSpace *workspace_iter = WM_window_get_active_workspace(win);
         if (workspace_iter != workspace) {

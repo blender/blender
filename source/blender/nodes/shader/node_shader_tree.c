@@ -229,7 +229,7 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
    * multiple, we prefer exact target match and active nodes. */
   bNode *output_node = NULL;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (!ELEM(node->type, SH_NODE_OUTPUT_MATERIAL, SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LIGHT)) {
       continue;
     }
@@ -344,7 +344,7 @@ static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSoc
   bool removed_link = false;
 
   for (node = group_ntree->nodes.first; node; node = node->next) {
-    for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       if ((sock->flag & SOCK_HIDE_VALUE) == 0) {
         continue;
       }
@@ -553,7 +553,7 @@ static void ntree_shader_relink_node_normal(bNodeTree *ntree,
   /* TODO(sergey): Can we do something smarter here than just a name-based
    * matching?
    */
-  for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->identifier, "Normal") && sock->link == NULL) {
       /* It's a normal input and nothing is connected to it. */
       nodeAddLink(ntree, node_from, socket_from, node, sock);

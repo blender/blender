@@ -808,10 +808,10 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
   ImagePaintSettings *imapaint = &settings->imapaint;
   bool enabled = false;
 
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     bScreen *screen = WM_window_get_active_screen(win);
 
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->spacetype == SPACE_IMAGE) {
         if (((SpaceImage *)area->spacedata.first)->mode == SI_MODE_PAINT) {
           enabled = true;

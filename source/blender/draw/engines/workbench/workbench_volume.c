@@ -291,7 +291,7 @@ void workbench_volume_draw_finish(WORKBENCH_Data *vedata)
    * modifier we don't want them to take precious VRAM if the
    * modifier is not used for display. We should share them for
    * all viewport in a redraw at least. */
-  for (LinkData *link = wpd->smoke_domains.first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &wpd->smoke_domains) {
     FluidModifierData *mmd = (FluidModifierData *)link->data;
     GPU_free_smoke(mmd);
   }

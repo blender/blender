@@ -190,7 +190,7 @@ bArmature *BKE_armature_from_object(Object *ob)
 int BKE_armature_bonelist_count(ListBase *lb)
 {
   int i = 0;
-  for (Bone *bone = lb->first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, lb) {
     i += 1 + BKE_armature_bonelist_count(&bone->childbase);
   }
 
@@ -303,7 +303,7 @@ static void armature_transform_recurse(ListBase *bonebase,
                                        const Bone *bone_parent,
                                        const float arm_mat_parent_inv[4][4])
 {
-  for (Bone *bone = bonebase->first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, bonebase) {
 
     /* Store the initial bone roll in a matrix, this is needed even for child bones
      * so any change in head/tail doesn't cause the roll to change.
@@ -424,7 +424,7 @@ Bone *BKE_armature_find_bone_name(bArmature *arm, const char *name)
 
 static void armature_bone_from_name_insert_recursive(GHash *bone_hash, ListBase *lb)
 {
-  for (Bone *bone = lb->first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, lb) {
     BLI_ghash_insert(bone_hash, bone->name, bone);
     armature_bone_from_name_insert_recursive(bone_hash, &bone->childbase);
   }
@@ -474,7 +474,7 @@ bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag)
 
 static void armature_refresh_layer_used_recursive(bArmature *arm, ListBase *bones)
 {
-  for (Bone *bone = bones->first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, bones) {
     arm->layer_used |= bone->layer;
     armature_refresh_layer_used_recursive(arm, &bone->childbase);
   }
@@ -2701,7 +2701,7 @@ static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int
  */
 void BKE_pose_clear_pointers(bPose *pose)
 {
-  for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     pchan->bone = NULL;
     pchan->child = NULL;
   }
@@ -2709,7 +2709,7 @@ void BKE_pose_clear_pointers(bPose *pose)
 
 void BKE_pose_remap_bone_pointers(bArmature *armature, bPose *pose)
 {
-  for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     pchan->bone = BKE_armature_find_bone_name(armature, pchan->name);
   }
 }

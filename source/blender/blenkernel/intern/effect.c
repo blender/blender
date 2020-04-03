@@ -247,7 +247,7 @@ ListBase *BKE_effector_relations_create(Depsgraph *depsgraph,
       add_effector_relation(relations, ob, NULL, ob->pd);
     }
 
-    for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
       ParticleSettings *part = psys->part;
 
       if (psys_check_enabled(ob, psys, for_render)) {
@@ -286,7 +286,7 @@ ListBase *BKE_effectors_create(Depsgraph *depsgraph,
     return NULL;
   }
 
-  for (EffectorRelation *relation = relations->first; relation; relation = relation->next) {
+  LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
     /* Get evaluated object. */
     Object *ob = (Object *)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
 
@@ -329,7 +329,7 @@ ListBase *BKE_effectors_create(Depsgraph *depsgraph,
 void BKE_effectors_free(ListBase *lb)
 {
   if (lb) {
-    for (EffectorCache *eff = lb->first; eff; eff = eff->next) {
+    LISTBASE_FOREACH (EffectorCache *, eff, lb) {
       if (eff->guide_data) {
         MEM_freeN(eff->guide_data);
       }

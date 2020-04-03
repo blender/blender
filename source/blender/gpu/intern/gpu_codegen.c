@@ -75,7 +75,7 @@ static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs, ListBase *
   BLI_HashMurmur2A hm2a;
   BLI_hash_mm2a_init(&hm2a, 0);
   BLI_hash_mm2a_add(&hm2a, (uchar *)frag_gen, strlen(frag_gen));
-  for (GPUMaterialAttribute *attr = attributes->first; attr; attr = attr->next) {
+  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, attributes) {
     BLI_hash_mm2a_add(&hm2a, (uchar *)attr->name, strlen(attr->name));
   }
   if (defs) {
@@ -314,12 +314,12 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
   ListBase ubo_inputs = {NULL, NULL};
 
   /* Attributes */
-  for (GPUMaterialAttribute *attr = graph->attributes.first; attr; attr = attr->next) {
+  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     BLI_dynstr_appendf(ds, "in %s var%d;\n", gpu_data_type_to_string(attr->gputype), attr->id);
   }
 
   /* Textures */
-  for (GPUMaterialTexture *tex = graph->textures.first; tex; tex = tex->next) {
+  LISTBASE_FOREACH (GPUMaterialTexture *, tex, &graph->textures) {
     if (tex->colorband) {
       BLI_dynstr_appendf(ds, "uniform sampler1DArray %s;\n", tex->sampler_name);
     }
@@ -333,7 +333,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
   }
 
   /* Volume Grids */
-  for (GPUMaterialVolumeGrid *grid = graph->volume_grids.first; grid; grid = grid->next) {
+  LISTBASE_FOREACH (GPUMaterialVolumeGrid *, grid, &graph->volume_grids) {
     BLI_dynstr_appendf(ds, "uniform sampler3D %s;\n", grid->sampler_name);
     BLI_dynstr_appendf(ds, "uniform mat4 %s = mat4(0.0);\n", grid->transform_name);
   }
@@ -381,7 +381,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material,
     /* Inputs are sorted */
     BLI_dynstr_appendf(ds, "\nlayout (std140) uniform %s {\n", GPU_UBO_BLOCK_NAME);
 
-    for (LinkData *link = ubo_inputs.first; link; link = link->next) {
+    LISTBASE_FOREACH (LinkData *, link, &ubo_inputs) {
       input = link->data;
       BLI_dynstr_appendf(ds, "\t%s unf%d;\n", gpu_data_type_to_string(input->type), input->id);
     }
@@ -673,7 +673,7 @@ static char *code_generate_vertex(GPUNodeGraph *graph, const char *vert_code, bo
                     "#define DEFINE_ATTR(type, attr) in type attr\n"
                     "#endif\n");
 
-  for (GPUMaterialAttribute *attr = graph->attributes.first; attr; attr = attr->next) {
+  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     /* XXX FIXME : see notes in mesh_render_data_create() */
     /* NOTE : Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
     if (attr->type == CD_ORCO) {
@@ -787,7 +787,7 @@ static char *code_generate_vertex(GPUNodeGraph *graph, const char *vert_code, bo
     BLI_dynstr_append(ds, "\tbarycentricPosg = position;\n");
   }
 
-  for (GPUMaterialAttribute *attr = graph->attributes.first; attr; attr = attr->next) {
+  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     if (attr->type == CD_TANGENT) {
       /* Not supported by hairs */
       BLI_dynstr_appendf(ds, "\tvar%d%s = vec4(0.0);\n", attr->id, use_geom ? "g" : "");
@@ -820,7 +820,7 @@ static char *code_generate_vertex(GPUNodeGraph *graph, const char *vert_code, bo
     BLI_dynstr_append(ds, "\tbarycentricPosg = (ModelMatrix * vec4(position, 1.0)).xyz;\n");
   }
 
-  for (GPUMaterialAttribute *attr = graph->attributes.first; attr; attr = attr->next) {
+  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     if (attr->type == CD_TANGENT) { /* silly exception */
       BLI_dynstr_appendf(ds,
                          "\tvar%d%s.xyz = transpose(mat3(ModelMatrixInverse)) * att%d.xyz;\n",
@@ -903,7 +903,7 @@ static char *code_generate_geometry(GPUNodeGraph *graph,
     }
   }
 
-  for (GPUMaterialAttribute *attr = graph->attributes.first; attr; attr = attr->next) {
+  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     BLI_dynstr_appendf(ds, "in %s var%dg[];\n", gpu_data_type_to_string(attr->gputype), attr->id);
     BLI_dynstr_appendf(ds, "out %s var%d;\n", gpu_data_type_to_string(attr->gputype), attr->id);
   }
@@ -1010,7 +1010,7 @@ static char *code_generate_geometry(GPUNodeGraph *graph,
     BLI_dynstr_append(ds, "#endif\n");
   }
 
-  for (GPUMaterialAttribute *attr = graph->attributes.first; attr; attr = attr->next) {
+  LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     /* TODO let shader choose what to do depending on what the attribute is. */
     BLI_dynstr_appendf(ds, "\tvar%d = var%dg[vert];\n", attr->id, attr->id);
   }

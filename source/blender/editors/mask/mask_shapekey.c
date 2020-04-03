@@ -53,7 +53,7 @@ static int mask_shape_key_insert_exec(bContext *C, wmOperator *UNUSED(op))
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     MaskLayerShape *mask_layer_shape;
 
     if (!ED_mask_layer_select_check(mask_layer)) {
@@ -98,7 +98,7 @@ static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     MaskLayerShape *mask_layer_shape;
 
     if (!ED_mask_layer_select_check(mask_layer)) {
@@ -146,7 +146,7 @@ static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op)
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
 
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
@@ -172,7 +172,7 @@ static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op)
           shape_ele_src = (MaskLayerShapeElem *)mask_layer_shape_reset->data;
           shape_ele_dst = (MaskLayerShapeElem *)mask_layer_shape->data;
 
-          for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+          LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
             for (int i = 0; i < spline->tot_point; i++) {
               MaskSplinePoint *point = &spline->points[i];
 
@@ -243,7 +243,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
   const bool do_feather = RNA_boolean_get(op->ptr, "feather");
   const bool do_location = RNA_boolean_get(op->ptr, "location");
 
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
@@ -324,7 +324,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
             shape_ele_src = (MaskLayerShapeElem *)mask_layer_shape_tmp->data;
             shape_ele_dst = (MaskLayerShapeElem *)mask_layer_shape_tmp_rekey->data;
 
-            for (MaskSpline *spline = mask_layer->splines.first; spline; spline = spline->next) {
+            LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
               for (int i = 0; i < spline->tot_point; i++) {
                 MaskSplinePoint *point = &spline->points[i];
 
@@ -404,7 +404,7 @@ bool ED_mask_layer_shape_auto_key_all(Mask *mask, const int frame)
 {
   bool changed = false;
 
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     ED_mask_layer_shape_auto_key(mask_layer, frame);
     changed = true;
   }
@@ -416,7 +416,7 @@ bool ED_mask_layer_shape_auto_key_select(Mask *mask, const int frame)
 {
   bool changed = false;
 
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
 
     if (!ED_mask_layer_select_check(mask_layer)) {
       continue;

@@ -466,7 +466,7 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
 
   if (tonode) {
     /* Find a selected socket that overrides the socket to connect to */
-    for (bNodeSocket *sock2 = tonode->outputs.first; sock2; sock2 = sock2->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock2, &tonode->outputs) {
       if (!nodeSocketIsHidden(sock2) && sock2->flag & SELECT) {
         sock = sock2;
         break;

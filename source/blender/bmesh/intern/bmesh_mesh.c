@@ -2593,7 +2593,7 @@ void BM_mesh_rebuild(BMesh *bm,
     }
   }
 
-  for (BMEditSelection *ese = bm->selected.first; ese; ese = ese->next) {
+  LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
     switch (ese->htype) {
       case BM_VERT:
         if (remap & BM_VERT) {

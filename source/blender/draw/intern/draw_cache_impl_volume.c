@@ -124,7 +124,7 @@ static void volume_batch_cache_clear(Volume *volume)
     return;
   }
 
-  for (DRWVolumeGrid *grid = cache->grids.first; grid; grid = grid->next) {
+  LISTBASE_FOREACH (DRWVolumeGrid *, grid, &cache->grids) {
     MEM_SAFE_FREE(grid->name);
     DRW_TEXTURE_FREE_SAFE(grid->texture);
   }

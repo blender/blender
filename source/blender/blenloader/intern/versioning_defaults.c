@@ -71,7 +71,7 @@ static ID *rename_id_for_versioning(Main *bmain,
   /* We can ignore libraries */
   ListBase *lb = which_libbase(bmain, id_type);
   ID *id = NULL;
-  for (ID *idtest = lb->first; idtest; idtest = idtest->next) {
+  LISTBASE_FOREACH (ID *, idtest, lb) {
     if (idtest->lib == NULL) {
       if (STREQ(idtest->name + 2, name_src)) {
         id = idtest;
@@ -101,8 +101,8 @@ static void blo_update_defaults_screen(bScreen *screen,
                                        const char *workspace_name)
 {
   /* For all app templates. */
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       /* Some toolbars have been saved as initialized,
        * we don't want them to have odd zoom-level or scrolling set, see: T47047 */
       if (ELEM(region->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS)) {
@@ -111,7 +111,7 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
 
     /* Set default folder. */
-    for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+    LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
       if (sl->spacetype == SPACE_FILE) {
         SpaceFile *sfile = (SpaceFile *)sl;
         if (sfile->params) {
@@ -130,8 +130,8 @@ static void blo_update_defaults_screen(bScreen *screen,
     return;
   }
 
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       /* Remove all stored panels, we want to use defaults
        * (order, open/closed) as defined by UI code here! */
       BKE_area_region_panels_free(&region->panels);
@@ -157,7 +157,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       if (saction->mode == SACTCONT_TIMELINE) {
         saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
 
-        for (ARegion *region = area->regionbase.first; region; region = region->next) {
+        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
           if (region->regiontype == RGN_TYPE_CHANNELS) {
             region->flag |= RGN_FLAG_HIDDEN;
           }
@@ -210,11 +210,11 @@ static void blo_update_defaults_screen(bScreen *screen,
 
   /* Show tool-header by default (for most cases at least, hide for others). */
   const bool hide_image_tool_header = STREQ(workspace_name, "Rendering");
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-    for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
       ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
 
-      for (ARegion *region = regionbase->first; region; region = region->next) {
+      LISTBASE_FOREACH (ARegion *, region, regionbase) {
         if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
           if ((sl->spacetype == SPACE_IMAGE) && hide_image_tool_header) {
             region->flag |= RGN_FLAG_HIDDEN;
@@ -229,8 +229,8 @@ static void blo_update_defaults_screen(bScreen *screen,
 
   /* 2D animation template. */
   if (app_template && STREQ(app_template, "2D_Animation")) {
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-      for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         if (area->spacetype == SPACE_ACTION) {
           SpaceAction *saction = area->spacedata.first;
           /* Enable Sliders. */
@@ -251,7 +251,7 @@ static void blo_update_defaults_screen(bScreen *screen,
 void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_template)
 {
   ListBase *layouts = BKE_workspace_layouts_get(workspace);
-  for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
+  LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
     if (layout->screen) {
       blo_update_defaults_screen(layout->screen, app_template, workspace->id.name + 2);
     }
@@ -270,11 +270,11 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
 
     /* For Sculpting template. */
     if (STREQ(workspace->id.name + 2, "Sculpting")) {
-      for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
+      LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
         bScreen *screen = layout->screen;
         if (screen) {
-          for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-            for (ARegion *region = area->regionbase.first; region; region = region->next) {
+          LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+            LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
               if (area->spacetype == SPACE_VIEW3D) {
                 View3D *v3d = area->spacedata.first;
                 v3d->shading.flag &= ~V3D_SHADING_CAVITY;
@@ -472,7 +472,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     ma->roughness = 0.4f;
 
     if (ma->nodetree) {
-      for (bNode *node = ma->nodetree->nodes.first; node; node = node->next) {
+      LISTBASE_FOREACH (bNode *, node, &ma->nodetree->nodes) {
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           bNodeSocketValueFloat *roughness_data = roughness_socket->default_value;

@@ -718,13 +718,11 @@ static void write_iddata(WriteData *wd, ID *id)
     writestruct(wd, DATA, IDOverrideLibrary, 1, id->override_library);
 
     writelist(wd, DATA, IDOverrideLibraryProperty, &id->override_library->properties);
-    for (IDOverrideLibraryProperty *op = id->override_library->properties.first; op;
-         op = op->next) {
+    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
       writedata(wd, DATA, strlen(op->rna_path) + 1, op->rna_path);
 
       writelist(wd, DATA, IDOverrideLibraryPropertyOperation, &op->operations);
-      for (IDOverrideLibraryPropertyOperation *opop = op->operations.first; opop;
-           opop = opop->next) {
+      LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
         if (opop->subitem_reference_name) {
           writedata(
               wd, DATA, strlen(opop->subitem_reference_name) + 1, opop->subitem_reference_name);
@@ -863,11 +861,11 @@ static void write_action(WriteData *wd, bAction *act, const void *id_address)
 
     write_fcurves(wd, &act->curves);
 
-    for (bActionGroup *grp = act->groups.first; grp; grp = grp->next) {
+    LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
       writestruct(wd, DATA, bActionGroup, 1, grp);
     }
 
-    for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
+    LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
       writestruct(wd, DATA, TimeMarker, 1, marker);
     }
   }
@@ -1231,14 +1229,14 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
 {
   writestruct(wd, USER, UserDef, 1, userdef);
 
-  for (const bTheme *btheme = userdef->themes.first; btheme; btheme = btheme->next) {
+  LISTBASE_FOREACH (const bTheme *, btheme, &userdef->themes) {
     writestruct(wd, DATA, bTheme, 1, btheme);
   }
 
-  for (const wmKeyMap *keymap = userdef->user_keymaps.first; keymap; keymap = keymap->next) {
+  LISTBASE_FOREACH (const wmKeyMap *, keymap, &userdef->user_keymaps) {
     writestruct(wd, DATA, wmKeyMap, 1, keymap);
 
-    for (const wmKeyMapDiffItem *kmdi = keymap->diff_items.first; kmdi; kmdi = kmdi->next) {
+    LISTBASE_FOREACH (const wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
       writestruct(wd, DATA, wmKeyMapDiffItem, 1, kmdi);
       if (kmdi->remove_item) {
         write_keymapitem(wd, kmdi->remove_item);
@@ -1248,21 +1246,21 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
       }
     }
 
-    for (const wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+    LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
       write_keymapitem(wd, kmi);
     }
   }
 
-  for (const wmKeyConfigPref *kpt = userdef->user_keyconfig_prefs.first; kpt; kpt = kpt->next) {
+  LISTBASE_FOREACH (const wmKeyConfigPref *, kpt, &userdef->user_keyconfig_prefs) {
     writestruct(wd, DATA, wmKeyConfigPref, 1, kpt);
     if (kpt->prop) {
       IDP_WriteProperty(kpt->prop, wd);
     }
   }
 
-  for (const bUserMenu *um = userdef->user_menus.first; um; um = um->next) {
+  LISTBASE_FOREACH (const bUserMenu *, um, &userdef->user_menus) {
     writestruct(wd, DATA, bUserMenu, 1, um);
-    for (const bUserMenuItem *umi = um->items.first; umi; umi = umi->next) {
+    LISTBASE_FOREACH (const bUserMenuItem *, umi, &um->items) {
       if (umi->type == USER_MENU_TYPE_OPERATOR) {
         const bUserMenuItem_Op *umi_op = (const bUserMenuItem_Op *)umi;
         writestruct(wd, DATA, bUserMenuItem_Op, 1, umi_op);
@@ -1284,19 +1282,18 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
     }
   }
 
-  for (const bAddon *bext = userdef->addons.first; bext; bext = bext->next) {
+  LISTBASE_FOREACH (const bAddon *, bext, &userdef->addons) {
     writestruct(wd, DATA, bAddon, 1, bext);
     if (bext->prop) {
       IDP_WriteProperty(bext->prop, wd);
     }
   }
 
-  for (const bPathCompare *path_cmp = userdef->autoexec_paths.first; path_cmp;
-       path_cmp = path_cmp->next) {
+  LISTBASE_FOREACH (const bPathCompare *, path_cmp, &userdef->autoexec_paths) {
     writestruct(wd, DATA, bPathCompare, 1, path_cmp);
   }
 
-  for (const uiStyle *style = userdef->uistyles.first; style; style = style->next) {
+  LISTBASE_FOREACH (const uiStyle *, style, &userdef->uistyles) {
     writestruct(wd, DATA, uiStyle, 1, style);
   }
 }
@@ -1416,7 +1413,7 @@ static void write_particlesettings(WriteData *wd, ParticleSettings *part, const 
       write_curvemapping(wd, part->twistcurve);
     }
 
-    for (ParticleDupliWeight *dw = part->instance_weights.first; dw; dw = dw->next) {
+    LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
       /* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
       if (dw->ob != NULL) {
         dw->index = 0;
@@ -1436,7 +1433,7 @@ static void write_particlesettings(WriteData *wd, ParticleSettings *part, const 
     if (part->boids && part->phystype == PART_PHYS_BOIDS) {
       writestruct(wd, DATA, BoidSettings, 1, part->boids);
 
-      for (BoidState *state = part->boids->states.first; state; state = state->next) {
+      LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
         write_boid_state(wd, state);
       }
     }
@@ -1621,14 +1618,14 @@ static void write_pose(WriteData *wd, bPose *pose)
 
 static void write_defgroups(WriteData *wd, ListBase *defbase)
 {
-  for (bDeformGroup *defgroup = defbase->first; defgroup; defgroup = defgroup->next) {
+  LISTBASE_FOREACH (bDeformGroup *, defgroup, defbase) {
     writestruct(wd, DATA, bDeformGroup, 1, defgroup);
   }
 }
 
 static void write_fmaps(WriteData *wd, ListBase *fbase)
 {
-  for (bFaceMap *fmap = fbase->first; fmap; fmap = fmap->next) {
+  LISTBASE_FOREACH (bFaceMap *, fmap, fbase) {
     writestruct(wd, DATA, bFaceMap, 1, fmap);
   }
 }
@@ -2001,7 +1998,7 @@ static void write_key(WriteData *wd, Key *key, const void *id_address)
     }
 
     /* direct data */
-    for (KeyBlock *kb = key->block.first; kb; kb = kb->next) {
+    LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
       writestruct(wd, DATA, KeyBlock, 1, kb);
       if (kb->data) {
         writedata(wd, DATA, kb->totelem * key->elemsize, kb->data);
@@ -2021,7 +2018,7 @@ static void write_camera(WriteData *wd, Camera *cam, const void *id_address)
       write_animdata(wd, cam->adt);
     }
 
-    for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
+    LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
       writestruct(wd, DATA, CameraBGImage, 1, bgpic);
     }
   }
@@ -2048,7 +2045,7 @@ static void write_mball(WriteData *wd, MetaBall *mb, const void *id_address)
       write_animdata(wd, mb->adt);
     }
 
-    for (MetaElem *ml = mb->elems.first; ml; ml = ml->next) {
+    LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
       writestruct(wd, DATA, MetaElem, 1, ml);
     }
   }
@@ -2079,10 +2076,10 @@ static void write_curve(WriteData *wd, Curve *cu, const void *id_address)
     }
     else {
       /* is also the order of reading */
-      for (Nurb *nu = cu->nurb.first; nu; nu = nu->next) {
+      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         writestruct(wd, DATA, Nurb, 1, nu);
       }
-      for (Nurb *nu = cu->nurb.first; nu; nu = nu->next) {
+      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         if (nu->type == CU_BEZIER) {
           writestruct(wd, DATA, BezTriple, nu->pntsu, nu->bezt);
         }
@@ -2327,7 +2324,7 @@ static void write_image(WriteData *wd, Image *ima, const void *id_address)
 
     write_previews(wd, ima->preview);
 
-    for (ImageView *iv = ima->views.first; iv; iv = iv->next) {
+    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
       writestruct(wd, DATA, ImageView, 1, iv);
     }
     writestruct(wd, DATA, Stereo3dFormat, 1, ima->stereo3d_format);
@@ -2450,11 +2447,11 @@ static void write_collection_nolib(WriteData *wd, Collection *collection)
   /* Shared function for collection data-blocks and scene master collection. */
   write_previews(wd, collection->preview);
 
-  for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     writestruct(wd, DATA, CollectionObject, 1, cob);
   }
 
-  for (CollectionChild *child = collection->children.first; child; child = child->next) {
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     writestruct(wd, DATA, CollectionChild, 1, child);
   }
 
@@ -2532,7 +2529,7 @@ static void write_paint(WriteData *wd, Paint *p)
 
 static void write_layer_collections(WriteData *wd, ListBase *lb)
 {
-  for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     writestruct(wd, DATA, LayerCollection, 1, lc);
 
     write_layer_collections(wd, &lc->layer_collections);
@@ -2548,12 +2545,11 @@ static void write_view_layer(WriteData *wd, ViewLayer *view_layer)
     IDP_WriteProperty(view_layer->id_properties, wd);
   }
 
-  for (FreestyleModuleConfig *fmc = view_layer->freestyle_config.modules.first; fmc;
-       fmc = fmc->next) {
+  LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
     writestruct(wd, DATA, FreestyleModuleConfig, 1, fmc);
   }
 
-  for (FreestyleLineSet *fls = view_layer->freestyle_config.linesets.first; fls; fls = fls->next) {
+  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
     writestruct(wd, DATA, FreestyleLineSet, 1, fls);
   }
   write_layer_collections(wd, &view_layer->layer_collections);
@@ -2739,7 +2735,7 @@ static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
     SEQ_END;
 
     /* new; meta stack too, even when its nasty restore code */
-    for (MetaStack *ms = ed->metastack.first; ms; ms = ms->next) {
+    LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
       writestruct(wd, DATA, MetaStack, 1, ms);
     }
   }
@@ -2758,17 +2754,17 @@ static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
   }
 
   /* writing dynamic list of TimeMarkers to the blend file */
-  for (TimeMarker *marker = sce->markers.first; marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
     writestruct(wd, DATA, TimeMarker, 1, marker);
   }
 
   /* writing dynamic list of TransformOrientations to the blend file */
-  for (TransformOrientation *ts = sce->transform_spaces.first; ts; ts = ts->next) {
+  LISTBASE_FOREACH (TransformOrientation *, ts, &sce->transform_spaces) {
     writestruct(wd, DATA, TransformOrientation, 1, ts);
   }
 
   /* writing MultiView to the blend file */
-  for (SceneRenderView *srv = sce->r.views.first; srv; srv = srv->next) {
+  LISTBASE_FOREACH (SceneRenderView *, srv, &sce->r.views) {
     writestruct(wd, DATA, SceneRenderView, 1, srv);
   }
 
@@ -2794,7 +2790,7 @@ static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
   write_previews(wd, sce->preview);
   write_curvemapping_curves(wd, &sce->r.mblur_shutter_curve);
 
-  for (ViewLayer *view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
     write_view_layer(wd, view_layer);
   }
 
@@ -2947,7 +2943,7 @@ static void write_soops(WriteData *wd, SpaceOutliner *so)
 
 static void write_panel_list(WriteData *wd, ListBase *lb)
 {
-  for (Panel *pa = lb->first; pa; pa = pa->next) {
+  LISTBASE_FOREACH (Panel *, pa, lb) {
     writestruct(wd, DATA, Panel, 1, pa);
     write_panel_list(wd, &pa->children);
   }
@@ -2955,27 +2951,25 @@ static void write_panel_list(WriteData *wd, ListBase *lb)
 
 static void write_area_regions(WriteData *wd, ScrArea *area)
 {
-  for (ARegion *region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     write_region(wd, region, area->spacetype);
     write_panel_list(wd, &region->panels);
 
-    for (PanelCategoryStack *pc_act = region->panels_category_active.first; pc_act;
-         pc_act = pc_act->next) {
+    LISTBASE_FOREACH (PanelCategoryStack *, pc_act, &region->panels_category_active) {
       writestruct(wd, DATA, PanelCategoryStack, 1, pc_act);
     }
 
-    for (uiList *ui_list = region->ui_lists.first; ui_list; ui_list = ui_list->next) {
+    LISTBASE_FOREACH (uiList *, ui_list, &region->ui_lists) {
       write_uilist(wd, ui_list);
     }
 
-    for (uiPreview *ui_preview = region->ui_previews.first; ui_preview;
-         ui_preview = ui_preview->next) {
+    LISTBASE_FOREACH (uiPreview *, ui_preview, &region->ui_previews) {
       writestruct(wd, DATA, uiPreview, 1, ui_preview);
     }
   }
 
-  for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
-    for (ARegion *region = sl->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+    LISTBASE_FOREACH (ARegion *, region, &sl->regionbase) {
       write_region(wd, region, sl->spacetype);
     }
 
@@ -3088,7 +3082,7 @@ static void write_area_map(WriteData *wd, ScrAreaMap *area_map)
 {
   writelist(wd, DATA, ScrVert, &area_map->vertbase);
   writelist(wd, DATA, ScrEdge, &area_map->edgebase);
-  for (ScrArea *area = area_map->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &area_map->areabase) {
     area->butspacetype = area->spacetype; /* Just for compatibility, will be reset below. */
 
     writestruct(wd, DATA, ScrArea, 1, area);
@@ -3109,7 +3103,7 @@ static void write_windowmanager(WriteData *wd, wmWindowManager *wm, const void *
   write_iddata(wd, &wm->id);
   write_wm_xr_data(wd, &wm->xr);
 
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifndef WITH_GLOBAL_AREA_WRITING
     /* Don't write global areas yet, while we make changes to them. */
     ScrAreaMap global_areas = win->global_areas;
@@ -3165,7 +3159,7 @@ static void write_bone(WriteData *wd, Bone *bone)
   }
 
   /* Write Children */
-  for (Bone *cbone = bone->childbase.first; cbone; cbone = cbone->next) {
+  LISTBASE_FOREACH (Bone *, cbone, &bone->childbase) {
     write_bone(wd, cbone);
   }
 }
@@ -3188,7 +3182,7 @@ static void write_armature(WriteData *wd, bArmature *arm, const void *id_address
     }
 
     /* Direct data */
-    for (Bone *bone = arm->bonebase.first; bone; bone = bone->next) {
+    LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
       write_bone(wd, bone);
     }
   }
@@ -3214,11 +3208,11 @@ static void write_text(WriteData *wd, Text *text, const void *id_address)
 
   if (!(text->flags & TXT_ISEXT)) {
     /* now write the text data, in two steps for optimization in the readfunction */
-    for (TextLine *tmp = text->lines.first; tmp; tmp = tmp->next) {
+    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
       writestruct(wd, DATA, TextLine, 1, tmp);
     }
 
-    for (TextLine *tmp = text->lines.first; tmp; tmp = tmp->next) {
+    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
       writedata(wd, DATA, tmp->len + 1, tmp->line);
     }
   }
@@ -3777,7 +3771,7 @@ static void write_workspace(WriteData *wd, WorkSpace *workspace, const void *id_
   writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
   writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
   writelist(wd, DATA, bToolRef, &workspace->tools);
-  for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+  LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (tref->properties) {
       IDP_WriteProperty(tref->properties, wd);
     }

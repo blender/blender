@@ -5168,7 +5168,7 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
   BKE_curve_nurb_vert_active_get(cu, &cu_actnu, &cu_actvert.p);
   int act_offset = 0;
 
-  for (Nurb *nu = editnurb->nurbs.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     BLI_assert(nu->pntsu > 0);
     int i;
     int pnt_len = nu->pntsu;
@@ -6775,7 +6775,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    for (Nurb *nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (ED_curve_nurb_select_check(v3d, nu)) {
         if (!clear) {
           nu->flag |= CU_SMOOTH;

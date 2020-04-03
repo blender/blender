@@ -113,7 +113,7 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
                                                          IDProperty *prop,
                                                          short opcontext)
 {
-  for (bUserMenuItem *umi = lb->first; umi; umi = umi->next) {
+  LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_OPERATOR) {
       bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
       if (STREQ(ot->idname, umi_op->op_idname) && (opcontext == umi_op->opcontext) &&
@@ -128,7 +128,7 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
 struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(struct ListBase *lb,
                                                               const struct MenuType *mt)
 {
-  for (bUserMenuItem *umi = lb->first; umi; umi = umi->next) {
+  LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_MENU) {
       bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)umi;
       if (STREQ(mt->idname, umi_mt->mt_idname)) {
@@ -144,7 +144,7 @@ struct bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(struct ListBase *l
                                                               const char *prop_id,
                                                               int prop_index)
 {
-  for (bUserMenuItem *umi = lb->first; umi; umi = umi->next) {
+  LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_PROP) {
       bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
       if (STREQ(context_data_path, umi_pr->context_data_path) && STREQ(prop_id, umi_pr->prop_id) &&
@@ -222,7 +222,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
     if (um == NULL) {
       continue;
     }
-    for (bUserMenuItem *umi = um->items.first; umi; umi = umi->next) {
+    LISTBASE_FOREACH (bUserMenuItem *, umi, &um->items) {
       const char *ui_name = umi->ui_name[0] ? umi->ui_name : NULL;
       if (umi->type == USER_MENU_TYPE_OPERATOR) {
         bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;

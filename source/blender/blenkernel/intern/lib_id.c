@@ -901,7 +901,7 @@ void BKE_main_id_flag_all(Main *bmain, const int flag, const bool value)
 void BKE_main_id_repair_duplicate_names_listbase(ListBase *lb)
 {
   int lb_len = 0;
-  for (ID *id = lb->first; id; id = id->next) {
+  LISTBASE_FOREACH (ID *, id, lb) {
     if (id->lib == NULL) {
       lb_len += 1;
     }
@@ -914,7 +914,7 @@ void BKE_main_id_repair_duplicate_names_listbase(ListBase *lb)
   ID **id_array = MEM_mallocN(sizeof(*id_array) * lb_len, __func__);
   GSet *gset = BLI_gset_str_new_ex(__func__, lb_len);
   int i = 0;
-  for (ID *id = lb->first; id; id = id->next) {
+  LISTBASE_FOREACH (ID *, id, lb) {
     if (id->lib == NULL) {
       id_array[i] = id;
       i++;
@@ -2218,14 +2218,14 @@ void BKE_id_ordered_list(ListBase *ordered_lb, const ListBase *lb)
 {
   BLI_listbase_clear(ordered_lb);
 
-  for (ID *id = lb->first; id; id = id->next) {
+  LISTBASE_FOREACH (ID *, id, lb) {
     BLI_addtail(ordered_lb, BLI_genericNodeN(id));
   }
 
   BLI_listbase_sort(ordered_lb, id_order_compare);
 
   int num = 0;
-  for (LinkData *link = ordered_lb->first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, ordered_lb) {
     int *order = id_order_get(link->data);
     if (order) {
       *order = num++;
@@ -2250,7 +2250,7 @@ void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after)
 
   if (after) {
     /* Insert after. */
-    for (ID *other = lb->first; other; other = other->next) {
+    LISTBASE_FOREACH (ID *, other, lb) {
       int *order = id_order_get(other);
       if (*order > relative_order) {
         (*order)++;
@@ -2261,7 +2261,7 @@ void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after)
   }
   else {
     /* Insert before. */
-    for (ID *other = lb->first; other; other = other->next) {
+    LISTBASE_FOREACH (ID *, other, lb) {
       int *order = id_order_get(other);
       if (*order < relative_order) {
         (*order)--;

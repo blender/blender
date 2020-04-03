@@ -83,7 +83,7 @@ static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc)
     view_layer->active_collection = NULL;
   }
 
-  for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
+  LISTBASE_FOREACH (LayerCollection *, nlc, &lc->layer_collections) {
     layer_collection_free(view_layer, nlc);
   }
 
@@ -109,8 +109,7 @@ static Base *object_base_new(Object *ob)
  * none linked to the workspace yet. */
 ViewLayer *BKE_view_layer_default_view(const Scene *scene)
 {
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     if (!(view_layer->flag & VIEW_LAYER_RENDER)) {
       return view_layer;
     }
@@ -123,8 +122,7 @@ ViewLayer *BKE_view_layer_default_view(const Scene *scene)
 /* Returns the default view layer to render if we need to render just one. */
 ViewLayer *BKE_view_layer_default_render(const Scene *scene)
 {
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     if (view_layer->flag & VIEW_LAYER_RENDER) {
       return view_layer;
     }
@@ -137,8 +135,7 @@ ViewLayer *BKE_view_layer_default_render(const Scene *scene)
 /* Returns view layer with matching name, or NULL if not found. */
 ViewLayer *BKE_view_layer_find(const Scene *scene, const char *layer_name)
 {
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     if (STREQ(view_layer->name, layer_name)) {
       return view_layer;
     }
@@ -262,12 +259,12 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
     BLI_ghash_free(view_layer->object_bases_hash, NULL, NULL);
   }
 
-  for (LayerCollection *lc = view_layer->layer_collections.first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, &view_layer->layer_collections) {
     layer_collection_free(view_layer, lc);
   }
   BLI_freelistN(&view_layer->layer_collections);
 
-  for (ViewLayerEngineData *sled = view_layer->drawdata.first; sled; sled = sled->next) {
+  LISTBASE_FOREACH (ViewLayerEngineData *, sled, &view_layer->drawdata) {
     if (sled->storage) {
       if (sled->free) {
         sled->free(sled->storage);
@@ -295,7 +292,7 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
  */
 void BKE_view_layer_selected_objects_tag(ViewLayer *view_layer, const int tag)
 {
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if ((base->flag & BASE_SELECTED) != 0) {
       base->object->flag |= tag;
     }
@@ -307,7 +304,7 @@ void BKE_view_layer_selected_objects_tag(ViewLayer *view_layer, const int tag)
 
 static bool find_scene_collection_in_scene_collections(ListBase *lb, const LayerCollection *lc)
 {
-  for (LayerCollection *lcn = lb->first; lcn; lcn = lcn->next) {
+  LISTBASE_FOREACH (LayerCollection *, lcn, lb) {
     if (lcn == lc) {
       return true;
     }
@@ -327,7 +324,7 @@ static bool find_scene_collection_in_scene_collections(ListBase *lb, const Layer
  */
 Object *BKE_view_layer_camera_find(ViewLayer *view_layer)
 {
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (base->object->type == OB_CAMERA) {
       return base->object;
     }
@@ -341,8 +338,7 @@ Object *BKE_view_layer_camera_find(ViewLayer *view_layer)
  */
 ViewLayer *BKE_view_layer_find_from_collection(const Scene *scene, LayerCollection *lc)
 {
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     if (find_scene_collection_in_scene_collections(&view_layer->layer_collections, lc)) {
       return view_layer;
     }
@@ -364,7 +360,7 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer)
       view_layer->object_bases_hash = BLI_ghash_new(
           BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
-      for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+      LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         if (base->object) {
           BLI_ghash_insert(view_layer->object_bases_hash, base->object, base);
         }
@@ -455,7 +451,7 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
   /* Copy layer collections and object bases. */
   /* Inline 'BLI_duplicatelist' and update the active base. */
   BLI_listbase_clear(&view_layer_dst->object_bases);
-  for (Base *base_src = view_layer_src->object_bases.first; base_src; base_src = base_src->next) {
+  LISTBASE_FOREACH (Base *, base_src, &view_layer_src->object_bases) {
     Base *base_dst = MEM_dupallocN(base_src);
     BLI_addtail(&view_layer_dst->object_bases, base_dst);
     if (view_layer_src->basact == base_src) {
@@ -506,7 +502,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
   /* WM can be missing on startup. */
   wmWindowManager *wm = bmain->wm.first;
   if (wm) {
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       if (win->scene == scene && STREQ(win->view_layer_name, oldname)) {
         STRNCPY(win->view_layer_name, view_layer->name);
       }
@@ -524,7 +520,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
  */
 static LayerCollection *collection_from_index(ListBase *lb, const int number, int *i)
 {
-  for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     if (*i == number) {
       return lc;
     }
@@ -532,7 +528,7 @@ static LayerCollection *collection_from_index(ListBase *lb, const int number, in
     (*i)++;
   }
 
-  for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     LayerCollection *lc_nested = collection_from_index(&lc->layer_collections, number, i);
     if (lc_nested) {
       return lc_nested;
@@ -635,7 +631,7 @@ LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, Lay
 static int collection_count(ListBase *lb)
 {
   int i = 0;
-  for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     i += collection_count(&lc->layer_collections) + 1;
   }
   return i;
@@ -655,7 +651,7 @@ int BKE_layer_collection_count(ViewLayer *view_layer)
  */
 static int index_from_collection(ListBase *lb, const LayerCollection *lc, int *i)
 {
-  for (LayerCollection *lcol = lb->first; lcol; lcol = lcol->next) {
+  LISTBASE_FOREACH (LayerCollection *, lcol, lb) {
     if (lcol == lc) {
       return *i;
     }
@@ -663,7 +659,7 @@ static int index_from_collection(ListBase *lb, const LayerCollection *lc, int *i
     (*i)++;
   }
 
-  for (LayerCollection *lcol = lb->first; lcol; lcol = lcol->next) {
+  LISTBASE_FOREACH (LayerCollection *, lcol, lb) {
     int i_nested = index_from_collection(&lcol->layer_collections, lc, i);
     if (i_nested != -1) {
       return i_nested;
@@ -733,7 +729,7 @@ static short layer_collection_sync(ViewLayer *view_layer,
   ListBase new_lb_layer = {NULL, NULL};
   short runtime_flag = 0;
 
-  for (const CollectionChild *child = lb_scene->first; child; child = child->next) {
+  LISTBASE_FOREACH (const CollectionChild *, child, lb_scene) {
     Collection *collection = child->collection;
     LayerCollection *lc = BLI_findptr(lb_layer, collection, offsetof(LayerCollection, collection));
 
@@ -792,7 +788,7 @@ static short layer_collection_sync(ViewLayer *view_layer,
     }
 
     /* Sync objects, except if collection was excluded. */
-    for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
       if (cob->ob == NULL) {
         continue;
       }
@@ -877,7 +873,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
   }
 
   /* Clear visible and selectable flags to be reset. */
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     base->flag &= ~g_base_collection_flags;
     base->flag_from_collection &= ~g_base_collection_flags;
   }
@@ -898,7 +894,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
                         ~(0));
 
   /* Any remaining object bases are to be removed. */
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (view_layer->basact == base) {
       view_layer->basact = NULL;
     }
@@ -911,7 +907,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
   BLI_freelistN(&view_layer->object_bases);
   view_layer->object_bases = new_object_bases;
 
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     BKE_base_eval_flags(base);
   }
 
@@ -927,8 +923,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
 void BKE_scene_collection_sync(const Scene *scene)
 {
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     BKE_layer_collection_sync(scene, view_layer);
   }
 }
@@ -951,8 +946,7 @@ void BKE_main_collection_sync_remap(const Main *bmain)
   /* TODO: try to make this faster */
 
   for (const Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
-    for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-         view_layer = view_layer->next) {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       MEM_SAFE_FREE(view_layer->object_bases_array);
 
       if (view_layer->object_bases_hash) {
@@ -988,7 +982,7 @@ bool BKE_layer_collection_objects_select(ViewLayer *view_layer, LayerCollection 
   bool changed = false;
 
   if (!(lc->flag & LAYER_COLLECTION_EXCLUDE)) {
-    for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
+    LISTBASE_FOREACH (CollectionObject *, cob, &lc->collection->gobject) {
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
       if (base) {
@@ -1008,7 +1002,7 @@ bool BKE_layer_collection_objects_select(ViewLayer *view_layer, LayerCollection 
     }
   }
 
-  for (LayerCollection *iter = lc->layer_collections.first; iter; iter = iter->next) {
+  LISTBASE_FOREACH (LayerCollection *, iter, &lc->layer_collections) {
     changed |= BKE_layer_collection_objects_select(view_layer, iter, deselect);
   }
 
@@ -1022,7 +1016,7 @@ bool BKE_layer_collection_has_selected_objects(ViewLayer *view_layer, LayerColle
   }
 
   if (!(lc->flag & LAYER_COLLECTION_EXCLUDE)) {
-    for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
+    LISTBASE_FOREACH (CollectionObject *, cob, &lc->collection->gobject) {
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
       if (base && (base->flag & BASE_SELECTED) && (base->flag & BASE_VISIBLE_DEPSGRAPH)) {
@@ -1031,7 +1025,7 @@ bool BKE_layer_collection_has_selected_objects(ViewLayer *view_layer, LayerColle
     }
   }
 
-  for (LayerCollection *iter = lc->layer_collections.first; iter; iter = iter->next) {
+  LISTBASE_FOREACH (LayerCollection *, iter, &lc->layer_collections) {
     if (BKE_layer_collection_has_selected_objects(view_layer, iter)) {
       return true;
     }
@@ -1047,8 +1041,7 @@ bool BKE_layer_collection_has_layer_collection(LayerCollection *lc_parent,
     return true;
   }
 
-  for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter;
-       lc_iter = lc_iter->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_parent->layer_collections) {
     if (BKE_layer_collection_has_layer_collection(lc_iter, lc_child)) {
       return true;
     }
@@ -1063,7 +1056,7 @@ void BKE_base_set_visible(Scene *scene, ViewLayer *view_layer, Base *base, bool 
 {
   if (!extend) {
     /* Make only one base visible. */
-    for (Base *other = view_layer->object_bases.first; other; other = other->next) {
+    LISTBASE_FOREACH (Base *, other, &view_layer->object_bases) {
       other->flag |= BASE_HIDDEN;
     }
 
@@ -1134,7 +1127,7 @@ bool BKE_object_is_visible_in_viewport(const struct View3D *v3d, const struct Ob
 static void layer_collection_flag_set_recursive(LayerCollection *lc, const int flag)
 {
   lc->flag |= flag;
-  for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc->layer_collections) {
     layer_collection_flag_set_recursive(lc_iter, flag);
   }
 }
@@ -1142,7 +1135,7 @@ static void layer_collection_flag_set_recursive(LayerCollection *lc, const int f
 static void layer_collection_flag_unset_recursive(LayerCollection *lc, const int flag)
 {
   lc->flag &= ~flag;
-  for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc->layer_collections) {
     layer_collection_flag_unset_recursive(lc_iter, flag);
   }
 }
@@ -1165,8 +1158,7 @@ void BKE_layer_collection_isolate_global(Scene *scene,
 
   if (!extend) {
     /* Hide all collections . */
-    for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter;
-         lc_iter = lc_iter->next) {
+    LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
       layer_collection_flag_set_recursive(lc_iter, LAYER_COLLECTION_HIDE);
     }
   }
@@ -1177,8 +1169,7 @@ void BKE_layer_collection_isolate_global(Scene *scene,
   }
   else {
     LayerCollection *lc_parent = lc;
-    for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter;
-         lc_iter = lc_iter->next) {
+    LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
       if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
         lc_parent = lc_iter;
         break;
@@ -1188,8 +1179,7 @@ void BKE_layer_collection_isolate_global(Scene *scene,
     while (lc_parent != lc) {
       lc_parent->flag &= ~LAYER_COLLECTION_HIDE;
 
-      for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter;
-           lc_iter = lc_iter->next) {
+      LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_parent->layer_collections) {
         if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
           lc_parent = lc_iter;
           break;
@@ -1210,8 +1200,7 @@ static void layer_collection_local_visibility_set_recursive(LayerCollection *lay
                                                             const int local_collections_uuid)
 {
   layer_collection->local_collections_bits |= local_collections_uuid;
-  for (LayerCollection *child = layer_collection->layer_collections.first; child;
-       child = child->next) {
+  LISTBASE_FOREACH (LayerCollection *, child, &layer_collection->layer_collections) {
     layer_collection_local_visibility_set_recursive(child, local_collections_uuid);
   }
 }
@@ -1220,8 +1209,7 @@ static void layer_collection_local_visibility_unset_recursive(LayerCollection *l
                                                               const int local_collections_uuid)
 {
   layer_collection->local_collections_bits &= ~local_collections_uuid;
-  for (LayerCollection *child = layer_collection->layer_collections.first; child;
-       child = child->next) {
+  LISTBASE_FOREACH (LayerCollection *, child, &layer_collection->layer_collections) {
     layer_collection_local_visibility_unset_recursive(child, local_collections_uuid);
   }
 }
@@ -1236,8 +1224,7 @@ static void layer_collection_local_sync(ViewLayer *view_layer,
   }
 
   if (visible) {
-    for (CollectionObject *cob = layer_collection->collection->gobject.first; cob;
-         cob = cob->next) {
+    LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
       BLI_assert(cob->ob);
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
       base->local_collections_bits |= local_collections_uuid;
@@ -1256,7 +1243,7 @@ void BKE_layer_collection_local_sync(ViewLayer *view_layer, View3D *v3d)
   const unsigned short local_collections_uuid = v3d->local_collections_uuid;
 
   /* Reset flags and set the bases visible by default. */
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     base->local_collections_bits &= ~local_collections_uuid;
   }
 
@@ -1280,8 +1267,7 @@ void BKE_layer_collection_isolate_local(ViewLayer *view_layer,
 
   if (!extend) {
     /* Hide all collections. */
-    for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter;
-         lc_iter = lc_iter->next) {
+    LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
       layer_collection_local_visibility_unset_recursive(lc_iter, v3d->local_collections_uuid);
     }
   }
@@ -1292,8 +1278,7 @@ void BKE_layer_collection_isolate_local(ViewLayer *view_layer,
   }
   else {
     LayerCollection *lc_parent = lc;
-    for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter;
-         lc_iter = lc_iter->next) {
+    LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
       if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
         lc_parent = lc_iter;
         break;
@@ -1303,8 +1288,7 @@ void BKE_layer_collection_isolate_local(ViewLayer *view_layer,
     while (lc_parent != lc) {
       lc_parent->local_collections_bits |= v3d->local_collections_uuid;
 
-      for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter;
-           lc_iter = lc_iter->next) {
+      LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_parent->layer_collections) {
         if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
           lc_parent = lc_iter;
           break;
@@ -1322,12 +1306,12 @@ void BKE_layer_collection_isolate_local(ViewLayer *view_layer,
 static void layer_collection_bases_show_recursive(ViewLayer *view_layer, LayerCollection *lc)
 {
   if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-    for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
+    LISTBASE_FOREACH (CollectionObject *, cob, &lc->collection->gobject) {
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
       base->flag &= ~BASE_HIDDEN;
     }
   }
-  for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc->layer_collections) {
     layer_collection_bases_show_recursive(view_layer, lc_iter);
   }
 }
@@ -1335,12 +1319,12 @@ static void layer_collection_bases_show_recursive(ViewLayer *view_layer, LayerCo
 static void layer_collection_bases_hide_recursive(ViewLayer *view_layer, LayerCollection *lc)
 {
   if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-    for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
+    LISTBASE_FOREACH (CollectionObject *, cob, &lc->collection->gobject) {
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
       base->flag |= BASE_HIDDEN;
     }
   }
-  for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc->layer_collections) {
     layer_collection_bases_hide_recursive(view_layer, lc_iter);
   }
 }
@@ -1384,7 +1368,7 @@ static LayerCollection *find_layer_collection_by_scene_collection(LayerCollectio
     return lc;
   }
 
-  for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
+  LISTBASE_FOREACH (LayerCollection *, nlc, &lc->layer_collections) {
     LayerCollection *found = find_layer_collection_by_scene_collection(nlc, collection);
     if (found) {
       return found;
@@ -1425,8 +1409,7 @@ bool BKE_view_layer_has_collection(ViewLayer *view_layer, const Collection *coll
  */
 bool BKE_scene_has_object(Scene *scene, Object *ob)
 {
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base) {
       return true;
@@ -1768,7 +1751,7 @@ static void layer_eval_view_layer(struct Depsgraph *depsgraph,
   view_layer->object_bases_array = MEM_malloc_arrayN(
       num_object_bases, sizeof(Base *), "view_layer->object_bases_array");
   int base_index = 0;
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     view_layer->object_bases_array[base_index++] = base;
   }
 }

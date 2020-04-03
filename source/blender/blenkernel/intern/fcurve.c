@@ -1944,7 +1944,7 @@ void driver_variables_copy(ListBase *dst_vars, const ListBase *src_vars)
   BLI_assert(BLI_listbase_is_empty(dst_vars));
   BLI_duplicatelist(dst_vars, src_vars);
 
-  for (DriverVar *dvar = dst_vars->first; dvar; dvar = dvar->next) {
+  LISTBASE_FOREACH (DriverVar *, dvar, dst_vars) {
     /* need to go over all targets so that we don't leave any dangling paths */
     DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
       /* make a copy of target's rna path if available */
@@ -2167,7 +2167,7 @@ static ExprPyLike_Parsed *driver_compile_simple_expr_impl(ChannelDriver *driver)
 
   names[VAR_INDEX_FRAME] = "frame";
 
-  for (DriverVar *dvar = driver->variables.first; dvar; dvar = dvar->next) {
+  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
     names[i++] = dvar->name;
   }
 
@@ -2192,7 +2192,7 @@ static bool driver_evaluate_simple_expr(ChannelDriver *driver,
 
   vars[VAR_INDEX_FRAME] = time;
 
-  for (DriverVar *dvar = driver->variables.first; dvar; dvar = dvar->next) {
+  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
     vars[i++] = driver_get_variable_value(driver, dvar);
   }
 

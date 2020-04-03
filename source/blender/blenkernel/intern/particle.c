@@ -479,7 +479,7 @@ void psys_find_group_weights(ParticleSettings *part)
     instance_collection_objects = BKE_collection_object_cache_get(part->instance_collection);
   }
 
-  for (ParticleDupliWeight *dw = part->instance_weights.first; dw; dw = dw->next) {
+  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
     if (dw->ob == NULL) {
       Base *base = BLI_findlink(&instance_collection_objects, dw->index);
       if (base != NULL) {

@@ -731,8 +731,7 @@ void gpu_select_pick_cache_load_id(void)
 #ifdef DEBUG_PRINT
   printf("%s (building depth from cache)\n", __func__);
 #endif
-  for (DepthBufCache *rect_depth = ps->cache.bufs.first; rect_depth;
-       rect_depth = rect_depth->next) {
+  LISTBASE_FOREACH (DepthBufCache *, rect_depth, &ps->cache.bufs) {
     if (rect_depth->next != NULL) {
       /* we know the buffers differ, but this sub-region may not.
        * double check before adding an id-pass */

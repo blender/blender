@@ -160,7 +160,7 @@ static int panel_aligned(const ScrArea *area, const ARegion *region)
 
 static bool panel_active_animation_changed(ListBase *lb, Panel **pa_animation, bool *no_animation)
 {
-  for (Panel *pa = lb->first; pa; pa = pa->next) {
+  LISTBASE_FOREACH (Panel *, pa, lb) {
     /* Detect panel active flag changes. */
     if (!(pa->type && pa->type->parent)) {
       if ((pa->runtime_flag & PNL_WAS_ACTIVE) && !(pa->runtime_flag & PNL_ACTIVE)) {
@@ -394,7 +394,7 @@ void UI_panel_end(
   pa->blocksizey = height;
 
   /* Compute total panel size including children. */
-  for (Panel *pachild = pa->children.first; pachild; pachild = pachild->next) {
+  LISTBASE_FOREACH (Panel *, pachild, &pa->children) {
     if (pachild->runtime_flag & PNL_ACTIVE) {
       width = max_ii(width, pachild->sizex);
       height += get_panel_real_size_y(pachild);
@@ -441,7 +441,7 @@ static void ui_offset_panel_block(uiBlock *block)
 
   int ofsy = block->panel->sizey - style->panelspace;
 
-  for (uiBut *but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     but->rect.ymin += ofsy;
     but->rect.ymax += ofsy;
   }
@@ -1006,7 +1006,7 @@ static void align_sub_panels(Panel *pa)
   /* Position sub panels. */
   int ofsy = pa->ofsy + pa->sizey - pa->blocksizey;
 
-  for (Panel *pachild = pa->children.first; pachild; pachild = pachild->next) {
+  LISTBASE_FOREACH (Panel *, pachild, &pa->children) {
     if (pachild->runtime_flag & PNL_ACTIVE) {
       pachild->ofsx = pa->ofsx;
       pachild->ofsy = ofsy - get_panel_size_y(pachild);
@@ -1200,7 +1200,7 @@ static void panel_list_clear_active(ListBase *lb)
 {
   /* set all panels as inactive, so that at the end we know
    * which ones were used */
-  for (Panel *pa = lb->first; pa; pa = pa->next) {
+  LISTBASE_FOREACH (Panel *, pa, lb) {
     if (pa->runtime_flag & PNL_ACTIVE) {
       pa->runtime_flag = PNL_WAS_ACTIVE;
     }

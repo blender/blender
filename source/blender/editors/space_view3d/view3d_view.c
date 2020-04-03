@@ -1390,7 +1390,7 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
   MEM_freeN(v3d->localvd);
   v3d->localvd = NULL;
 
-  for (ARegion *region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype == RGN_TYPE_WINDOW) {
       RegionView3D *rv3d = region->regiondata;
 

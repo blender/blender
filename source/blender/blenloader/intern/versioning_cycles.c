@@ -173,7 +173,7 @@ static void square_roughness_node_insert(bNodeTree *ntree)
   bool need_update = false;
 
   /* Update default values */
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node_has_roughness(node)) {
       bNodeSocket *roughness_input = nodeFindSocket(node, SOCK_IN, "Roughness");
       float *roughness_value = cycles_node_socket_float_value(roughness_input);
@@ -256,7 +256,7 @@ static void ambient_occlusion_node_relink(bNodeTree *ntree)
   bool need_update = false;
 
   /* Set default values. */
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_AMBIENT_OCCLUSION) {
       node->custom1 = 1; /* samples */
       node->custom2 &= ~SHD_AO_LOCAL;
@@ -338,7 +338,7 @@ static void light_emission_node_to_energy(Light *light, float *energy, float col
   }
 
   bNode *emission_node = NULL;
-  for (bNodeLink *link = ntree->links.first; link; link = link->next) {
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     if (link->tonode == output_node && link->fromnode->type == SH_NODE_EMISSION) {
       emission_node = link->fromnode;
       break;
@@ -410,7 +410,7 @@ static void update_math_node_single_operand_operators(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_MATH) {
       if (ELEM(node->custom1,
                NODE_MATH_SQRT,
@@ -459,7 +459,7 @@ static void update_vector_math_node_add_and_subtract_operators(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_VECTOR_MATH) {
       bNodeSocket *sockOutValue = nodeFindSocket(node, SOCK_OUT, "Value");
       if (socket_is_used(sockOutValue) &&
@@ -511,7 +511,7 @@ static void update_vector_math_node_dot_product_operator(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_VECTOR_MATH) {
       bNodeSocket *sockOutVector = nodeFindSocket(node, SOCK_OUT, "Vector");
       if (socket_is_used(sockOutVector) && node->custom1 == NODE_VECTOR_MATH_DOT_PRODUCT) {
@@ -550,7 +550,7 @@ static void update_vector_math_node_cross_product_operator(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_VECTOR_MATH) {
       if (node->custom1 == NODE_VECTOR_MATH_CROSS_PRODUCT) {
         bNodeSocket *sockOutVector = nodeFindSocket(node, SOCK_OUT, "Vector");
@@ -616,7 +616,7 @@ static void update_vector_math_node_normalize_operator(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_VECTOR_MATH) {
       bNodeSocket *sockOutValue = nodeFindSocket(node, SOCK_OUT, "Value");
       if (node->custom1 == NODE_VECTOR_MATH_NORMALIZE && socket_is_used(sockOutValue)) {
@@ -675,7 +675,7 @@ static void update_vector_math_node_normalize_operator(bNodeTree *ntree)
  */
 static void update_vector_math_node_operators_enum_mapping(bNodeTree *ntree)
 {
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_VECTOR_MATH) {
       switch (node->custom1) {
         case 2:
@@ -702,7 +702,7 @@ static void update_vector_math_node_average_operator(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_VECTOR_MATH) {
       /* See update_vector_math_node_operators_enum_mapping. */
       if (node->custom1 == -1) {
@@ -765,7 +765,7 @@ static void update_vector_math_node_average_operator(bNodeTree *ntree)
  */
 static void update_noise_node_dimensions(bNodeTree *ntree)
 {
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_NOISE && node->storage) {
       NodeTexNoise *tex = (NodeTexNoise *)node->storage;
       tex->dimensions = 3;
@@ -853,7 +853,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     /* If node->storage is NULL, then conversion has already taken place.
      * This can happen if a file with the new mapping node [saved from (2, 81, 8) or newer]
      * is opened in a blender version prior to (2, 81, 8) and saved from there again. */
@@ -949,7 +949,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
  */
 static void update_musgrave_node_dimensions(bNodeTree *ntree)
 {
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_MUSGRAVE && node->storage) {
       NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
       tex->dimensions = 3;
@@ -977,7 +977,7 @@ static void update_musgrave_node_color_output(bNodeTree *ntree)
  */
 static void update_voronoi_node_dimensions(bNodeTree *ntree)
 {
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       tex->dimensions = 3;
@@ -992,7 +992,7 @@ static void update_voronoi_node_dimensions(bNodeTree *ntree)
  */
 static void update_voronoi_node_f3_and_f4(bNodeTree *ntree)
 {
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       if (ELEM(tex->feature, 2, 3)) {
@@ -1010,7 +1010,7 @@ static void update_voronoi_node_f3_and_f4(bNodeTree *ntree)
  */
 static void update_voronoi_node_fac_output(bNodeTree *ntree)
 {
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_VORONOI) {
       bNodeSocket *facOutput = BLI_findlink(&node->outputs, 1);
       strcpy(facOutput->identifier, "Distance");
@@ -1040,7 +1040,7 @@ static void update_voronoi_node_crackle(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
@@ -1169,7 +1169,7 @@ static void update_voronoi_node_square_distance(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_VORONOI && node->storage) {
       NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
       bNodeSocket *sockDistance = nodeFindSocket(node, SOCK_OUT, "Distance");
@@ -1213,7 +1213,7 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
 {
   bool need_update = false;
 
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_NOISE || node->type == SH_NODE_TEX_WAVE) {
 
       bNodeSocket *sockDistortion = nodeFindSocket(node, SOCK_IN, "Distortion");
@@ -1262,7 +1262,7 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
  */
 static void update_wave_node_directions_and_offset(bNodeTree *ntree)
 {
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_WAVE) {
       NodeTexWave *tex = (NodeTexWave *)node->storage;
       tex->bands_direction = SHD_WAVE_BANDS_DIRECTION_DIAGONAL;
@@ -1351,13 +1351,13 @@ void do_versions_after_linking_cycles(Main *bmain)
 
       if (!MAIN_VERSION_ATLEAST(bmain, 273, 5)) {
         /* Euler order was ZYX in previous versions. */
-        for (bNode *node = ntree->nodes.first; node; node = node->next) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           mapping_node_order_flip(node);
         }
       }
 
       if (!MAIN_VERSION_ATLEAST(bmain, 276, 6)) {
-        for (bNode *node = ntree->nodes.first; node; node = node->next) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           vector_curve_node_remap(node);
         }
       }
@@ -1368,7 +1368,7 @@ void do_versions_after_linking_cycles(Main *bmain)
       }
 
       if (!MAIN_VERSION_ATLEAST(bmain, 279, 3)) {
-        for (bNode *node = ntree->nodes.first; node; node = node->next) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           displacement_principled_nodes(node);
         }
       }
@@ -1384,7 +1384,7 @@ void do_versions_after_linking_cycles(Main *bmain)
       }
 
       if (!MAIN_VERSION_ATLEAST(bmain, 280, 66)) {
-        for (bNode *node = ntree->nodes.first; node; node = node->next) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           image_node_colorspace(node);
         }
       }

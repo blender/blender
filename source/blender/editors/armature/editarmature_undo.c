@@ -95,7 +95,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
 
   ED_armature_ebone_listbase_temp_clear(&uarm->lb);
 
-  for (EditBone *ebone = uarm->lb.first; ebone; ebone = ebone->next) {
+  LISTBASE_FOREACH (EditBone *, ebone, &uarm->lb) {
     uarm->undo_size += sizeof(EditBone);
   }
 

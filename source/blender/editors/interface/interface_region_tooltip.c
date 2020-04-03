@@ -319,7 +319,7 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData *data,
   const int fields_len_init = data->fields_len;
   char buf[512];
 
-  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     wmOperatorType *ot = WM_operatortype_find(kmi->idname, true);
     if (ot != NULL) {
       /* Tip */
@@ -597,7 +597,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
         else if (BPY_execute_string_as_intptr(C, expr_imports, expr, true, &expr_result)) {
           if (expr_result != 0) {
             wmKeyMap *keymap = (wmKeyMap *)expr_result;
-            for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+            LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
               if (STREQ(kmi->idname, but->optype->idname)) {
                 char tool_id_test[MAX_NAME];
                 RNA_string_get(kmi->ptr, "name", tool_id_test);

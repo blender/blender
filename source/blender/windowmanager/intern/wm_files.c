@@ -236,7 +236,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
 
   /* when loading without UI, no matching needed */
   if (load_ui && (screen = CTX_wm_screen(C))) {
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace;
 
       BKE_workspace_layout_find_global(bmain, screen, &workspace);
@@ -294,8 +294,8 @@ static void wm_window_match_replace_by_file_wm(bContext *C,
   wm_window_clear_drawable(oldwm);
 
   /* only first wm in list has ghostwins */
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
-    for (wmWindow *oldwin = oldwm->windows.first; oldwin; oldwin = oldwin->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    LISTBASE_FOREACH (wmWindow *, oldwin, &oldwm->windows) {
       if (oldwin->winid == win->winid) {
         has_match = true;
 
@@ -1507,7 +1507,7 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
   WM_event_remove_timer(wm, NULL, wm->autosavetimer);
 
   /* if a modal operator is running, don't autosave, but try again in 10 seconds */
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;

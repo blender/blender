@@ -1300,7 +1300,7 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
   ListBase textures = GPU_material_textures(material);
 
   /* Bind all textures needed by the material. */
-  for (GPUMaterialTexture *tex = textures.first; tex; tex = tex->next) {
+  LISTBASE_FOREACH (GPUMaterialTexture *, tex, &textures) {
     if (tex->ima) {
       /* Image */
       if (tex->tiled_mapping_name[0]) {
@@ -1903,7 +1903,7 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
 
 bool DRW_pass_is_empty(DRWPass *pass)
 {
-  for (DRWShadingGroup *shgroup = pass->shgroups.first; shgroup; shgroup = shgroup->next) {
+  LISTBASE_FOREACH (DRWShadingGroup *, shgroup, &pass->shgroups) {
     if (!DRW_shgroup_is_empty(shgroup)) {
       return false;
     }
@@ -1930,7 +1930,7 @@ void DRW_pass_foreach_shgroup(DRWPass *pass,
                               void (*callback)(void *userData, DRWShadingGroup *shgrp),
                               void *userData)
 {
-  for (DRWShadingGroup *shgroup = pass->shgroups.first; shgroup; shgroup = shgroup->next) {
+  LISTBASE_FOREACH (DRWShadingGroup *, shgroup, &pass->shgroups) {
     callback(userData, shgroup);
   }
 }

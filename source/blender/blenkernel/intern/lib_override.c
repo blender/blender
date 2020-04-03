@@ -153,7 +153,7 @@ void BKE_lib_override_library_clear(IDOverrideLibrary *override, const bool do_i
     BLI_ghash_clear(override->runtime, NULL, NULL);
   }
 
-  for (IDOverrideLibraryProperty *op = override->properties.first; op; op = op->next) {
+  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
     lib_override_library_property_clear(op);
   }
   BLI_freelistN(&override->properties);
@@ -371,7 +371,7 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
 
   MEM_freeN(op->rna_path);
 
-  for (IDOverrideLibraryPropertyOperation *opop = op->operations.first; opop; opop = opop->next) {
+  LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
     lib_override_library_property_operation_clear(opop);
   }
   BLI_freelistN(&op->operations);

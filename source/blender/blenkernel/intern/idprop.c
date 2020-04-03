@@ -800,7 +800,7 @@ void IDP_RelinkProperty(struct IDProperty *prop)
 
   switch (prop->type) {
     case IDP_GROUP: {
-      for (IDProperty *loop = prop->data.group.first; loop; loop = loop->next) {
+      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
         IDP_RelinkProperty(loop);
       }
       break;

@@ -68,7 +68,7 @@ WorkSpaceLayout *ED_workspace_layout_duplicate(Main *bmain,
   screen_new = BKE_workspace_layout_screen_get(layout_new);
 
   if (BKE_screen_is_fullscreen_area(screen_old)) {
-    for (ScrArea *area_old = screen_old->areabase.first; area_old; area_old = area_old->next) {
+    LISTBASE_FOREACH (ScrArea *, area_old, &screen_old->areabase) {
       if (area_old->full) {
         ScrArea *area_new = (ScrArea *)screen_new->areabase.first;
         ED_area_data_copy(area_new, area_old, true);

@@ -1753,7 +1753,7 @@ static void libblock_relink_collection(Collection *collection, const bool do_col
     BKE_libblock_relink_to_newid(&cob->ob->id);
   }
 
-  for (CollectionChild *child = collection->children.first; child; child = child->next) {
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     libblock_relink_collection(child->collection, true);
   }
 }
@@ -1772,7 +1772,7 @@ static Collection *single_object_users_collection(Main *bmain,
   }
 
   /* We do not remap to new objects here, this is done in separate step. */
-  for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     Object *ob = cob->ob;
     /* an object may be in more than one collection */
     if ((ob->id.newid == NULL) && ((ob->flag & flag) == flag)) {
@@ -2106,7 +2106,7 @@ void ED_object_single_users(Main *bmain,
 
     if (scene->nodetree) {
       IDP_RelinkProperty(scene->nodetree->id.properties);
-      for (bNode *node = scene->nodetree->nodes.first; node; node = node->next) {
+      LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
         IDP_RelinkProperty(node->prop);
       }
     }
@@ -2245,7 +2245,7 @@ static void make_local_animdata_tag(AnimData *adt)
     /* TODO: need to handle the ID-targets too? */
 
     /* NLA Data */
-    for (NlaTrack *nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+    LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
       make_local_animdata_tag_strips(&nlt->strips);
     }
   }

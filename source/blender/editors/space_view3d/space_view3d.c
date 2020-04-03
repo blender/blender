@@ -146,7 +146,7 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
 
   BLI_assert(v3d->spacetype == SPACE_VIEW3D);
 
-  for (ARegion *region = region_list->first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, region_list) {
     /* find the first unlocked rv3d */
     if (region->regiondata && region->regiontype == RGN_TYPE_WINDOW) {
       rv3d = region->regiondata;

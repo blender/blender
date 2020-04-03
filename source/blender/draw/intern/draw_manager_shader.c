@@ -249,7 +249,7 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
       /* No job running, do not create a new one by calling WM_jobs_get. */
       continue;
     }
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       wmJob *wm_job = WM_jobs_get(
           wm, win, scene, "Shaders Compilation", WM_JOB_PROGRESS, WM_JOB_TYPE_SHADER_COMPILATION);
 

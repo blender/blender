@@ -913,7 +913,7 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
     }
 
     ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-    for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
       if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
         continue;
       }

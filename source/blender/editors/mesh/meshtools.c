@@ -161,7 +161,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
        */
       if (key) {
         /* if this mesh has any shapekeys, check first, otherwise just copy coordinates */
-        for (KeyBlock *kb = key->block.first; kb; kb = kb->next) {
+        LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
           /* get pointer to where to write data for this mesh in shapekey's data array */
           float(*cos)[3] = ((float(*)[3])kb->data) + *vertofs;
 
@@ -191,7 +191,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
        * - otherwise, copy across plain coordinates (no need to transform coordinates)
        */
       if (key) {
-        for (KeyBlock *kb = key->block.first; kb; kb = kb->next) {
+        LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
           /* get pointer to where to write data for this mesh in shapekey's data array */
           float(*cos)[3] = ((float(*)[3])kb->data) + *vertofs;
 
@@ -440,7 +440,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
       }
 
       /* Join this object's face maps to the base one's. */
-      for (bFaceMap *fmap = ob_iter->fmaps.first; fmap; fmap = fmap->next) {
+      LISTBASE_FOREACH (bFaceMap *, fmap, &ob_iter->fmaps) {
         /* See if this group exists in the object (if it doesn't, add it to the end) */
         if (BKE_object_facemap_find_name(ob, fmap->name) == NULL) {
           bFaceMap *fmap_new = MEM_mallocN(sizeof(bFaceMap), "join faceMap");

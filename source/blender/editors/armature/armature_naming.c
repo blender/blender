@@ -317,8 +317,7 @@ void ED_armature_bone_rename(Main *bmain,
           }
         }
 
-        for (GpencilModifierData *gp_md = ob->greasepencil_modifiers.first; gp_md;
-             gp_md = gp_md->next) {
+        LISTBASE_FOREACH (GpencilModifierData *, gp_md, &ob->greasepencil_modifiers) {
           switch (gp_md->type) {
             case eGpencilModifierType_Armature: {
               ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)gp_md;
@@ -415,7 +414,7 @@ void ED_armature_bones_flip_names(Main *bmain,
   /* First pass: generate flip names, and blindly rename.
    * If rename did not yield expected result,
    * store both bone's name and expected flipped one into temp list for second pass. */
-  for (LinkData *link = bones_names->first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, bones_names) {
     char name_flip[MAXBONENAME];
     char *name = link->data;
 
@@ -470,7 +469,7 @@ static int armature_flip_names_exec(bContext *C, wmOperator *op)
 
     ListBase bones_names = {NULL};
 
-    for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (EBONE_VISIBLE(arm, ebone)) {
         if (ebone->flag & BONE_SELECTED) {
           BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
@@ -557,7 +556,7 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (EBONE_EDITABLE(ebone)) {
 
         /* We first need to do the flipped bone, then the original one.

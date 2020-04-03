@@ -654,7 +654,7 @@ void iksolver_release_tree(struct Scene *UNUSED(scene), struct Object *ob, float
 
 void iksolver_clear_data(bPose *pose)
 {
-  for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     if ((pchan->flag & POSE_IKTREE) == 0) {
       continue;
     }

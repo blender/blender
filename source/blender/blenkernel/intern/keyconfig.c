@@ -209,7 +209,7 @@ void BKE_keyconfig_pref_filter_items(struct UserDef *userdef,
                                      bool (*filter_fn)(wmKeyMapItem *kmi, void *user_data),
                                      void *user_data)
 {
-  for (wmKeyMap *keymap = userdef->user_keymaps.first; keymap; keymap = keymap->next) {
+  LISTBASE_FOREACH (wmKeyMap *, keymap, &userdef->user_keymaps) {
     BKE_keyconfig_keymap_filter_item(keymap, params, filter_fn, user_data);
   }
 }

@@ -1159,7 +1159,7 @@ static void template_ID_tabs(bContext *C,
   ListBase ordered;
   BKE_id_ordered_list(&ordered, template->idlb);
 
-  for (LinkData *link = ordered.first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &ordered) {
     ID *id = link->data;
     const int name_width = UI_fontstyle_string_width(&style->widgetlabel, id->name + 2);
     const int but_width = name_width + UI_UNIT_X;
@@ -2428,7 +2428,7 @@ static void template_operator_redo_property_buts_draw(
     const bContext *C, wmOperator *op, uiLayout *layout, int layout_flags, bool *r_has_advanced)
 {
   if (op->type->flag & OPTYPE_MACRO) {
-    for (wmOperator *macro_op = op->macro.first; macro_op; macro_op = macro_op->next) {
+    LISTBASE_FOREACH (wmOperator *, macro_op, &op->macro) {
       template_operator_redo_property_buts_draw(C, macro_op, layout, layout_flags, r_has_advanced);
     }
   }

@@ -852,7 +852,7 @@ void EEVEE_volumes_resolve(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 void EEVEE_volumes_free_smoke_textures(void)
 {
   /* Free Smoke Textures after rendering */
-  for (LinkData *link = e_data.smoke_domains.first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &e_data.smoke_domains) {
     FluidModifierData *mmd = (FluidModifierData *)link->data;
     GPU_free_smoke(mmd);
   }

@@ -1252,7 +1252,7 @@ static bool do_outliner_range_select_recursive(ListBase *lb,
                                                TreeElement *cursor,
                                                bool selecting)
 {
-  for (TreeElement *te = lb->first; te; te = te->next) {
+  LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
 
     if (selecting) {
@@ -1496,7 +1496,7 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rctf(op, &rectf);
   UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
 
-  for (TreeElement *te = soops->tree.first; te; te = te->next) {
+  LISTBASE_FOREACH (TreeElement *, te, &soops->tree) {
     outliner_item_box_select(soops, scene, &rectf, te, select);
   }
 

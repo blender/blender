@@ -228,7 +228,7 @@ static void motionpath_get_global_framerange(ListBase *targets, int *r_sfra, int
 {
   *r_sfra = INT_MAX;
   *r_efra = INT_MIN;
-  for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
+  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
     *r_sfra = min_ii(*r_sfra, mpt->mpath->start_frame);
     *r_efra = max_ii(*r_efra, mpt->mpath->end_frame);
   }
@@ -348,7 +348,7 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
 
 static void motionpath_free_free_tree_data(ListBase *targets)
 {
-  for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
+  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
     BLI_dlrbTree_free(&mpt->keys);
   }
 }
@@ -412,7 +412,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     DEG_make_inactive(depsgraph);
   }
 
-  for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
+  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
     mpt->ob_eval = DEG_get_evaluated_object(depsgraph, mpt->ob);
 
     AnimData *adt = BKE_animdata_from_id(&mpt->ob_eval->id);
@@ -492,7 +492,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   }
 
   /* clear recalc flags from targets */
-  for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
+  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
     bMotionPath *mpath = mpt->mpath;
 
     /* get pointer to animviz settings for each target */

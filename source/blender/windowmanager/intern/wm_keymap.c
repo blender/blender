@@ -278,7 +278,7 @@ wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user
     if (keyconf == wm->defaultconf) {
       /* For default configuration, we need to keep keymap
        * modal items and poll functions intact. */
-      for (wmKeyMap *km = keyconf->keymaps.first; km; km = km->next) {
+      LISTBASE_FOREACH (wmKeyMap *, km, &keyconf->keymaps) {
         WM_keymap_clear(km);
       }
     }
@@ -328,7 +328,7 @@ bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 
 void WM_keyconfig_clear(wmKeyConfig *keyconf)
 {
-  for (wmKeyMap *km = keyconf->keymaps.first; km; km = km->next) {
+  LISTBASE_FOREACH (wmKeyMap *, km, &keyconf->keymaps) {
     WM_keymap_clear(km);
   }
 
@@ -1329,7 +1329,7 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
                                                    const bool is_strict,
                                                    const struct wmKeyMapItemFind_Params *params)
 {
-  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     /* skip disabled keymap items [T38447] */
     if (kmi->flag & KMI_INACTIVE) {
       continue;

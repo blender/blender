@@ -304,7 +304,7 @@ static void set_preview_visibility(Scene *scene,
   }
 
   /* Hide floor for icon renders. */
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (STREQ(base->object->id.name + 2, "Floor")) {
       if (pr_method == PR_ICON_RENDER) {
         base->object->restrictflag |= OB_RESTRICT_RENDER;
@@ -463,7 +463,7 @@ static Scene *preview_prepare_scene(
         sce->display.render_aa = SCE_DISPLAY_AA_OFF;
       }
 
-      for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+      LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         if (base->object->id.name[2] == 'p') {
           /* copy over object color, in case material uses it */
           copy_v4_v4(base->object->color, sp->color);
@@ -522,7 +522,7 @@ static Scene *preview_prepare_scene(
         sce->world->horb = 0.0f;
       }
 
-      for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+      LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         if (base->object->id.name[2] == 'p') {
           if (base->object->type == OB_LAMP) {
             base->object->data = la;

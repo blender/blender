@@ -1358,7 +1358,7 @@ uint evaluate_fmodifiers_storage_size_per_modifier(ListBase *modifiers)
 
   uint max_size = 0;
 
-  for (FModifier *fcm = modifiers->first; fcm; fcm = fcm->next) {
+  LISTBASE_FOREACH (FModifier *, fcm, modifiers) {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
     if (fmi == NULL) {

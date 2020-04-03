@@ -645,7 +645,7 @@ void gpu_node_graph_free(GPUNodeGraph *graph)
 {
   gpu_node_graph_free_nodes(graph);
 
-  for (GPUMaterialVolumeGrid *grid = graph->volume_grids.first; grid; grid = grid->next) {
+  LISTBASE_FOREACH (GPUMaterialVolumeGrid *, grid, &graph->volume_grids) {
     MEM_SAFE_FREE(grid->name);
   }
   BLI_freelistN(&graph->volume_grids);
@@ -679,7 +679,7 @@ static void gpu_nodes_tag(GPUNodeLink *link)
 
 void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
 {
-  for (GPUNode *node = graph->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
     node->tag = false;
   }
 

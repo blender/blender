@@ -800,7 +800,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
         /* calculate difference matrix */
         BKE_gpencil_parent_matrix_get(depsgraph, ob, gpl, diff_mat);
 
-        for (bGPDstroke *gps = gpl->actframe->strokes.first; gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpl->actframe->strokes) {
           /* skip strokes that are invalid for current view */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
@@ -883,7 +883,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
         if (use_mat_local) {
           mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
         }
-        for (EditBone *ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+        LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
           if (EBONE_VISIBLE(arm, ebo)) {
             if (ebo->flag & BONE_TIPSEL) {
               calc_tw_center_with_matrix(tbounds, ebo->tail, use_mat_local, mat_local);
@@ -977,7 +977,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
           mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
         }
 
-        for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
+        LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
           if (ml->flag & SELECT) {
             calc_tw_center_with_matrix(tbounds, &ml->x, use_mat_local, mat_local);
             totsel++;

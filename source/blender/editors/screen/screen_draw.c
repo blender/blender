@@ -547,7 +547,7 @@ static void screen_preview_scale_get(
 {
   float max_x = 0, max_y = 0;
 
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     max_x = MAX2(max_x, area->totrct.xmax);
     max_y = MAX2(max_y, area->totrct.ymax);
   }
@@ -566,7 +566,7 @@ static void screen_preview_draw_areas(const bScreen *screen,
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor4fv(col);
 
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     rctf rect = {
         .xmin = area->totrct.xmin * scale[0] + ofs_h,
         .xmax = area->totrct.xmax * scale[0] - ofs_h,

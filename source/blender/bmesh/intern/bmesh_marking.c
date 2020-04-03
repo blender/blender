@@ -1083,12 +1083,12 @@ void BM_select_history_merge_from_targetmap(
 {
 
 #ifdef DEBUG
-  for (BMEditSelection *ese = bm->selected.first; ese; ese = ese->next) {
+  LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
     BLI_assert(BM_ELEM_API_FLAG_TEST(ese->ele, _FLAG_OVERLAP) == 0);
   }
 #endif
 
-  for (BMEditSelection *ese = bm->selected.first; ese; ese = ese->next) {
+  LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
     BM_ELEM_API_FLAG_ENABLE(ese->ele, _FLAG_OVERLAP);
 
     /* Only loop when (use_chain == true). */

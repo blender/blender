@@ -531,8 +531,7 @@ void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, Object *
   unit_m4(flip_mtx);
   flip_mtx[0][0] = -1;
 
-  for (bPoseChannel *pchan_orig = ob->pose->chanbase.first; pchan_orig;
-       pchan_orig = pchan_orig->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan_orig, &ob->pose->chanbase) {
     /* Clear the MIRROR flag from previous runs. */
     pchan_orig->bone->flag &= ~BONE_TRANSFORM_MIRROR;
   }
@@ -655,7 +654,7 @@ void createTransPose(TransInfo *t)
 
     if (mirror) {
       int total_mirrored = 0;
-      for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         if ((pchan->bone->flag & BONE_TRANSFORM) &&
             BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) {
           total_mirrored++;
@@ -705,7 +704,7 @@ void createTransPose(TransInfo *t)
     }
 
     if (mirror) {
-      for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
         if (pchan->bone->flag & BONE_TRANSFORM) {
           bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name);
           if (pchan_mirror) {
@@ -727,7 +726,7 @@ void createTransPose(TransInfo *t)
 
     /* use pose channels to fill trans data */
     td = tc->data;
-    for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if (pchan->bone->flag & BONE_TRANSFORM) {
         add_pose_transdata(t, pchan, ob, tc, td);
         td++;

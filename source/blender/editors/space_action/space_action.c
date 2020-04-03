@@ -563,7 +563,7 @@ static void action_listener(wmWindow *UNUSED(win),
           ED_area_tag_redraw(area);
           break;
         case ND_FRAME_RANGE:
-          for (ARegion *region = area->regionbase.first; region; region = region->next) {
+          LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
             if (region->regiontype == RGN_TYPE_WINDOW) {
               Scene *scene = wmn->reference;
               region->v2d.tot.xmin = (float)(SFRA - 4);

@@ -551,7 +551,7 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
     for (win = wm->windows.first; win && matched_area == NULL; win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->spacetype == SPACE_IMAGE) {
           SpaceImage *sima = area->spacedata.first;
           // area->spacedata might be empty when toggling fullscreen mode.
@@ -689,7 +689,7 @@ static void render_image_restore_layer(RenderJob *rj)
     for (win = wm->windows.first; win; win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area == rj->area) {
           if (area->spacetype == SPACE_IMAGE) {
             SpaceImage *sima = area->spacedata.first;
@@ -887,7 +887,7 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
 
   /* Go over all the visible objects. */
   for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 
       for (base = view_layer->object_bases.first; base; base = base->next) {

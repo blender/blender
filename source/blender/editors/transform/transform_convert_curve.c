@@ -99,7 +99,7 @@ void createTransCurveVerts(TransInfo *t)
 
     /* count total of vertices, check identical as in 2nd loop for making transdata! */
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-    for (Nurb *nu = nurbs->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {
         for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
           if (bezt->hide == 0) {
@@ -174,7 +174,7 @@ void createTransCurveVerts(TransInfo *t)
 
     TransData *td = tc->data;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-    for (Nurb *nu = nurbs->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {
         TransData *head, *tail;
         head = tail = td;

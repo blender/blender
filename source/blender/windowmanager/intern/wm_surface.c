@@ -45,7 +45,7 @@ static wmSurface *g_drawable = NULL;
 
 void wm_surfaces_iter(bContext *C, void (*cb)(bContext *C, wmSurface *))
 {
-  for (wmSurface *surf = global_surface_list.first; surf; surf = surf->next) {
+  LISTBASE_FOREACH (wmSurface *, surf, &global_surface_list) {
     cb(C, surf);
   }
 }

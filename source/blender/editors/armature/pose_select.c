@@ -323,7 +323,7 @@ bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibil
 static bool ed_pose_is_any_selected(Object *ob, bool ignore_visibility)
 {
   bArmature *arm = ob->data;
-  for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (ignore_visibility || PBONE_VISIBLE(arm, pchan->bone)) {
       if (pchan->bone->flag & BONE_SELECTED) {
         return true;

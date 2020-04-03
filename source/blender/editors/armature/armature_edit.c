@@ -499,7 +499,7 @@ static int armature_roll_clear_exec(bContext *C, wmOperator *op)
     bArmature *arm = ob->data;
     bool changed = false;
 
-    for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
         /* Roll func is a callback which assumes that all is well. */
         ebone->roll = roll;
@@ -508,7 +508,7 @@ static int armature_roll_clear_exec(bContext *C, wmOperator *op)
     }
 
     if (arm->flag & ARM_MIRROR_EDIT) {
-      for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         if ((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
           EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
           if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
@@ -1189,13 +1189,13 @@ static int armature_split_exec(bContext *C, wmOperator *UNUSED(op))
     Object *ob = objects[ob_index];
     bArmature *arm = ob->data;
 
-    for (EditBone *bone = arm->edbo->first; bone; bone = bone->next) {
+    LISTBASE_FOREACH (EditBone *, bone, arm->edbo) {
       if (bone->parent && (bone->flag & BONE_SELECTED) != (bone->parent->flag & BONE_SELECTED)) {
         bone->parent = NULL;
         bone->flag &= ~BONE_CONNECTED;
       }
     }
-    for (EditBone *bone = arm->edbo->first; bone; bone = bone->next) {
+    LISTBASE_FOREACH (EditBone *, bone, arm->edbo) {
       ED_armature_ebone_select_set(bone, (bone->flag & BONE_SELECTED) != 0);
     }
 
@@ -1508,7 +1508,7 @@ static int armature_hide_exec(bContext *C, wmOperator *op)
     bArmature *arm = obedit->data;
     bool changed = false;
 
-    for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (EBONE_VISIBLE(arm, ebone)) {
         if ((ebone->flag & BONE_SELECTED) != invert) {
           ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
@@ -1567,7 +1567,7 @@ static int armature_reveal_exec(bContext *C, wmOperator *op)
     bArmature *arm = obedit->data;
     bool changed = false;
 
-    for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (arm->layer & ebone->layer) {
         if (ebone->flag & BONE_HIDDEN_A) {
           if (!(ebone->flag & BONE_UNSELECTABLE)) {

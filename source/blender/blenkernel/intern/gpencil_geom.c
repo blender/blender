@@ -1685,7 +1685,7 @@ static Collection *gpencil_get_parent_collection(Scene *scene, Object *ob)
 {
   Collection *mycol = NULL;
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
       if ((mycol == NULL) && (cob->ob == ob)) {
         mycol = collection;
       }
@@ -1976,7 +1976,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
   bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_COPY);
 
   /* Read all splines of the curve and create a stroke for each. */
-  for (Nurb *nu = cu->nurb.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
     gpencil_convert_spline(bmain, ob_gp, ob_cu, gpencil_lines, only_stroke, gpf, nu);
   }
 

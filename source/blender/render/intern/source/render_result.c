@@ -917,7 +917,7 @@ bool RE_WriteRenderResult(ReportList *reports,
 
   /* First add views since IMB_exr_add_channel checks number of views. */
   if (render_result_has_views(rr)) {
-    for (RenderView *rview = rr->views.first; rview; rview = rview->next) {
+    LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
       if (!view || STREQ(view, rview->name)) {
         IMB_exr_add_view(exrhandle, rview->name);
       }
@@ -926,7 +926,7 @@ bool RE_WriteRenderResult(ReportList *reports,
 
   /* Compositing result. */
   if (rr->have_combined) {
-    for (RenderView *rview = rr->views.first; rview; rview = rview->next) {
+    LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
       if (!rview->rectf) {
         continue;
       }
@@ -986,7 +986,7 @@ bool RE_WriteRenderResult(ReportList *reports,
       continue;
     }
 
-    for (RenderPass *rp = rl->passes.first; rp; rp = rp->next) {
+    LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
       /* Skip non-RGBA and Z passes if not using multi layer. */
       if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) || STREQ(rp->name, "") ||
                             (STREQ(rp->name, RE_PASSNAME_Z) && write_z))) {
@@ -1240,7 +1240,7 @@ void render_result_exr_file_begin(Render *re, RenderEngine *engine)
   char str[FILE_MAX];
 
   for (RenderResult *rr = re->result; rr; rr = rr->next) {
-    for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next) {
+    LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
       /* Get passes needed by engine. Normally we would wait for the
        * engine to create them, but for EXR file we need to know in
        * advance. */
@@ -1250,7 +1250,7 @@ void render_result_exr_file_begin(Render *re, RenderEngine *engine)
       /* Create render passes requested by engine. Only this part is
        * mutex locked to avoid deadlock with Python GIL. */
       BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-      for (RenderPass *pass = templates.first; pass; pass = pass->next) {
+      LISTBASE_FOREACH (RenderPass *, pass, &templates) {
         RE_create_render_pass(
             re->result, pass->name, pass->channels, pass->chan_id, rl->name, NULL);
       }
@@ -1271,7 +1271,7 @@ void render_result_exr_file_end(Render *re, RenderEngine *engine)
 {
   /* Close EXR files. */
   for (RenderResult *rr = re->result; rr; rr = rr->next) {
-    for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next) {
+    LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
       IMB_exr_close(rl->exrhandle);
       rl->exrhandle = NULL;
     }
@@ -1285,7 +1285,7 @@ void render_result_exr_file_end(Render *re, RenderEngine *engine)
   re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
   BLI_rw_mutex_unlock(&re->resultmutex);
 
-  for (RenderLayer *rl = re->result->layers.first; rl; rl = rl->next) {
+  LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {
     /* Get passes needed by engine. */
     ListBase templates;
     render_result_get_pass_templates(engine, re, rl, &templates);
@@ -1293,7 +1293,7 @@ void render_result_exr_file_end(Render *re, RenderEngine *engine)
     /* Create render passes requested by engine. Only this part is
      * mutex locked to avoid deadlock with Python GIL. */
     BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-    for (RenderPass *pass = templates.first; pass; pass = pass->next) {
+    LISTBASE_FOREACH (RenderPass *, pass, &templates) {
       RE_create_render_pass(re->result, pass->name, pass->channels, pass->chan_id, rl->name, NULL);
     }
 

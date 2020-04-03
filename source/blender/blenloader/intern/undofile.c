@@ -95,7 +95,7 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
 /* Clear is_identical_future before adding next memfile. */
 void BLO_memfile_clear_future(MemFile *memfile)
 {
-  for (MemFileChunk *chunk = memfile->chunks.first; chunk; chunk = chunk->next) {
+  LISTBASE_FOREACH (MemFileChunk *, chunk, &memfile->chunks) {
     chunk->is_identical_future = false;
   }
 }

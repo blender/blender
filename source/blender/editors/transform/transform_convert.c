@@ -1026,7 +1026,7 @@ static void posttrans_fcurve_clean(FCurve *fcu,
   }
   else {
     /* Compute the average values for each retained keyframe */
-    for (tRetainedKeyframe *rk = retained_keys.first; rk; rk = rk->next) {
+    LISTBASE_FOREACH (tRetainedKeyframe *, rk, &retained_keys) {
       rk->val = rk->val / (float)rk->tot_count;
     }
   }
@@ -1754,8 +1754,7 @@ static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
   ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
   /* Update coordinates of modified plane tracks. */
-  for (MovieTrackingPlaneTrack *plane_track = plane_tracks_base->first; plane_track;
-       plane_track = plane_track->next) {
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
     bool do_update = false;
     if (plane_track->flag & PLANE_TRACK_HIDDEN) {
       continue;
@@ -2078,12 +2077,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
         const int filter = ANIMFILTER_DATA_VISIBLE;
         ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-        for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+        LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
           if (ale->datatype == ALE_GPFRAME) {
             ale->id->tag |= LIB_TAG_DOIT;
           }
         }
-        for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+        LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
           if (ale->datatype == ALE_GPFRAME) {
             if (ale->id->tag & LIB_TAG_DOIT) {
               ale->id->tag &= ~LIB_TAG_DOIT;
@@ -2109,12 +2108,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
         const int filter = ANIMFILTER_DATA_VISIBLE;
         ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-        for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+        LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
           if (ale->datatype == ALE_MASKLAY) {
             ale->id->tag |= LIB_TAG_DOIT;
           }
         }
-        for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+        LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
           if (ale->datatype == ALE_MASKLAY) {
             if (ale->id->tag & LIB_TAG_DOIT) {
               ale->id->tag &= ~LIB_TAG_DOIT;

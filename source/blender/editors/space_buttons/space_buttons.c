@@ -312,7 +312,7 @@ static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *reg
 
 static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *region)
 {
-  for (PanelType *pt = region->type->paneltypes.first; pt; pt = pt->next) {
+  LISTBASE_FOREACH (PanelType *, pt, &region->type->paneltypes) {
     pt->flag |= PNL_LAYOUT_VERT_BAR;
   }
 

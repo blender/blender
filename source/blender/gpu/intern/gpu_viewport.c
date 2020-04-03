@@ -355,7 +355,7 @@ GPUTexture *GPU_viewport_texture_pool_query(
 {
   GPUTexture *tex;
 
-  for (ViewportTempTexture *tmp_tex = viewport->tex_pool.first; tmp_tex; tmp_tex = tmp_tex->next) {
+  LISTBASE_FOREACH (ViewportTempTexture *, tmp_tex, &viewport->tex_pool) {
     if ((GPU_texture_format(tmp_tex->texture) == format) &&
         (GPU_texture_width(tmp_tex->texture) == width) &&
         (GPU_texture_height(tmp_tex->texture) == height)) {
@@ -412,7 +412,7 @@ static void gpu_viewport_texture_pool_clear_users(GPUViewport *viewport)
 
 static void gpu_viewport_texture_pool_free(GPUViewport *viewport)
 {
-  for (ViewportTempTexture *tmp_tex = viewport->tex_pool.first; tmp_tex; tmp_tex = tmp_tex->next) {
+  LISTBASE_FOREACH (ViewportTempTexture *, tmp_tex, &viewport->tex_pool) {
     GPU_texture_free(tmp_tex->texture);
   }
 

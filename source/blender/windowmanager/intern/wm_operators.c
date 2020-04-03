@@ -769,7 +769,7 @@ bool WM_operator_last_properties_init(wmOperator *op)
   bool changed = false;
   if (op->type->last_properties) {
     changed |= operator_last_properties_init_impl(op, op->type->last_properties);
-    for (wmOperator *opm = op->macro.first; opm; opm = opm->next) {
+    LISTBASE_FOREACH (wmOperator *, opm, &op->macro) {
       IDProperty *idp_src = IDP_GetPropertyFromGroup(op->type->last_properties, opm->idname);
       if (idp_src) {
         changed |= operator_last_properties_init_impl(opm, idp_src);
@@ -792,7 +792,7 @@ bool WM_operator_last_properties_store(wmOperator *op)
   }
 
   if (op->macro.first != NULL) {
-    for (wmOperator *opm = op->macro.first; opm; opm = opm->next) {
+    LISTBASE_FOREACH (wmOperator *, opm, &op->macro) {
       if (opm->properties) {
         if (op->type->last_properties == NULL) {
           op->type->last_properties = IDP_New(
@@ -3689,8 +3689,8 @@ static void wm_xr_session_update_screen(Main *bmain, const wmXrData *xr_data)
   const bool session_exists = WM_xr_session_exists(xr_data);
 
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-      for (SpaceLink *slink = area->spacedata.first; slink; slink = slink->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, slink, &area->spacedata) {
         if (slink->spacetype == SPACE_VIEW3D) {
           View3D *v3d = (View3D *)slink;
 

@@ -2513,7 +2513,7 @@ static void armdef_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 
   /* Process all targets. This can't use ct->matrix, as armdef_get_tarmat is not
    * called in solve for efficiency because the constraint needs bone data anyway. */
-  for (bConstraintTarget *ct = targets->first; ct; ct = ct->next) {
+  LISTBASE_FOREACH (bConstraintTarget *, ct, targets) {
     if (ct->weight <= 0.0f) {
       continue;
     }
@@ -5497,7 +5497,7 @@ void BKE_constraints_active_set(ListBase *list, bConstraint *con)
 
 static bConstraint *constraint_list_find_from_target(ListBase *constraints, bConstraintTarget *tgt)
 {
-  for (bConstraint *con = constraints->first; con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, constraints) {
     ListBase *targets = NULL;
 
     if (con->type == CONSTRAINT_TYPE_PYTHON) {
@@ -5531,7 +5531,7 @@ bConstraint *BKE_constraint_find_from_target(Object *ob,
   }
 
   if (ob->pose != NULL) {
-    for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       result = constraint_list_find_from_target(&pchan->constraints, tgt);
 
       if (result != NULL) {

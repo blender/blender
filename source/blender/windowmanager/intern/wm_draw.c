@@ -209,8 +209,7 @@ static void wm_region_test_gizmo_do_draw(bContext *C,
   }
 
   wmGizmoMap *gzmap = region->gizmo_map;
-  for (wmGizmoGroup *gzgroup = WM_gizmomap_group_list(gzmap)->first; gzgroup;
-       gzgroup = gzgroup->next) {
+  LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, WM_gizmomap_group_list(gzmap)) {
     if (tag_redraw && (gzgroup->type->flag & WM_GIZMOGROUPTYPE_VR_REDRAWS)) {
       ScrArea *ctx_area = CTX_wm_area(C);
       ARegion *ctx_region = CTX_wm_region(C);
@@ -227,7 +226,7 @@ static void wm_region_test_gizmo_do_draw(bContext *C,
       CTX_wm_region_set(C, ctx_region);
     }
 
-    for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
+    LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
       if (gz->do_draw) {
         if (tag_redraw) {
           ED_region_tag_redraw_editor_overlays(region);
@@ -323,7 +322,7 @@ void *WM_draw_cb_activate(wmWindow *win,
 
 void WM_draw_cb_exit(wmWindow *win, void *handle)
 {
-  for (WindowDrawCB *wdc = win->drawcalls.first; wdc; wdc = wdc->next) {
+  LISTBASE_FOREACH (WindowDrawCB *, wdc, &win->drawcalls) {
     if (wdc == (WindowDrawCB *)handle) {
       BLI_remlink(&win->drawcalls, wdc);
       MEM_freeN(wdc);
@@ -334,7 +333,7 @@ void WM_draw_cb_exit(wmWindow *win, void *handle)
 
 static void wm_draw_callbacks(wmWindow *win)
 {
-  for (WindowDrawCB *wdc = win->drawcalls.first; wdc; wdc = wdc->next) {
+  LISTBASE_FOREACH (WindowDrawCB *, wdc, &win->drawcalls) {
     wdc->draw(win, wdc->customdata);
   }
 }
@@ -624,7 +623,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     CTX_wm_area_set(C, area);
 
     /* Compute UI layouts for dynamically size regions. */
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       /* Dynamic region may have been flagged as too small because their size on init is 0.
        * ARegion.visible is false then, as expected. The layout should still be created then, so
        * the region size can be updated (it may turn out to be not too small then). */
@@ -650,7 +649,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     }
 
     /* Then do actual drawing of regions. */
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region->visible && region->do_draw) {
         CTX_wm_region_set(C, region);
         bool use_viewport = wm_region_use_viewport(area, region);
@@ -694,7 +693,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
   }
 
   /* Draw menus into their own framebuffer. */
-  for (ARegion *region = screen->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     if (region->visible) {
       CTX_wm_menu_set(C, region);
 
@@ -737,7 +736,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* Blit non-overlapping area regions. */
   ED_screen_areas_iter(win, screen, area)
   {
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region->visible && region->overlap == false) {
         /* Blit from offscreen buffer. */
         wm_draw_region_blit(region, view);
@@ -749,7 +748,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   if (wm->paintcursors.first) {
     ED_screen_areas_iter(win, screen, area)
     {
-      for (ARegion *region = area->regionbase.first; region; region = region->next) {
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         if (region->visible && region == screen->active_region) {
           CTX_wm_area_set(C, area);
           CTX_wm_region_set(C, region);
@@ -769,7 +768,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* Blend in overlapping area regions */
   ED_screen_areas_iter(win, screen, area)
   {
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region->visible && region->overlap) {
         wm_draw_region_blend(region, 0, true);
       }
@@ -781,7 +780,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   wm_draw_callbacks(win);
 
   /* Blend in floating regions (menus). */
-  for (ARegion *region = screen->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     if (region->visible) {
       wm_draw_region_blend(region, 0, true);
     }
@@ -958,7 +957,7 @@ static void wm_draw_update_clear_window(bContext *C, wmWindow *win)
 
   ED_screen_areas_iter(win, screen, area)
   {
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       wm_region_test_gizmo_do_draw(C, area, region, false);
     }
   }

@@ -191,7 +191,7 @@ static void gpu_material_free_single(GPUMaterial *material)
 
 void GPU_material_free(ListBase *gpumaterial)
 {
-  for (LinkData *link = gpumaterial->first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, gpumaterial) {
     GPUMaterial *material = link->data;
     gpu_material_free_single(material);
     MEM_freeN(material);
@@ -628,7 +628,7 @@ GPUMaterial *GPU_material_from_nodetree_find(ListBase *gpumaterials,
                                              const void *engine_type,
                                              int options)
 {
-  for (LinkData *link = gpumaterials->first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, gpumaterials) {
     GPUMaterial *current_material = (GPUMaterial *)link->data;
     if (current_material->engine_type == engine_type && current_material->options == options) {
       return current_material;

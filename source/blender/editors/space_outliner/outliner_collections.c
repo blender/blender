@@ -336,8 +336,7 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
           skip = true;
         }
         else {
-          for (CollectionParent *cparent = collection->parents.first; cparent;
-               cparent = cparent->next) {
+          LISTBASE_FOREACH (CollectionParent *, cparent, &collection->parents) {
             Collection *parent = cparent->collection;
             if (ID_IS_LINKED(parent)) {
               skip = true;
@@ -848,7 +847,7 @@ static bool collections_indirect_only_clear_poll(bContext *C)
 
 static void layer_collection_flag_recursive_set(LayerCollection *lc, int flag)
 {
-  for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
+  LISTBASE_FOREACH (LayerCollection *, nlc, &lc->layer_collections) {
     if (lc->flag & flag) {
       nlc->flag |= flag;
     }
@@ -1468,14 +1467,13 @@ static int outliner_unhide_all_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* Unhide all the collections. */
   LayerCollection *lc_master = view_layer->layer_collections.first;
-  for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter;
-       lc_iter = lc_iter->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
     lc_iter->flag &= ~LAYER_COLLECTION_HIDE;
     layer_collection_flag_recursive_set(lc_iter, LAYER_COLLECTION_HIDE);
   }
 
   /* Unhide all objects. */
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     base->flag &= ~BASE_HIDDEN;
   }
 

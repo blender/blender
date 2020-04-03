@@ -669,7 +669,7 @@ void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
 
       /* In the case we have nested popups,
        * closing one may need to redraw another, see: T48874 */
-      for (ARegion *region = screen->regionbase.first; region; region = region->next) {
+      LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
         ED_region_tag_refresh_ui(region);
       }
     }
@@ -678,8 +678,8 @@ void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
 
 bool UI_popup_block_name_exists(const bScreen *screen, const char *name)
 {
-  for (const ARegion *region = screen->regionbase.first; region; region = region->next) {
-    for (const uiBlock *block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (const ARegion *, region, &screen->regionbase) {
+    LISTBASE_FOREACH (const uiBlock *, block, &region->uiblocks) {
       if (STREQ(block->name, name)) {
         return true;
       }

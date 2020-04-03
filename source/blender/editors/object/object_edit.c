@@ -166,7 +166,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
   const bool select = RNA_boolean_get(op->ptr, "select");
   bool changed = false;
 
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (base->flag & BASE_HIDDEN) {
       base->flag &= ~BASE_HIDDEN;
       changed = true;
@@ -217,7 +217,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   /* Hide selected or unselected objects. */
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (!(base->flag & BASE_VISIBLE_VIEWLAYER)) {
       continue;
     }
@@ -321,7 +321,7 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
 
   uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 
-  for (LayerCollection *lc = lc_scene->layer_collections.first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, &lc_scene->layer_collections) {
     int index = BKE_layer_collection_findindex(view_layer, lc);
     uiLayout *row = uiLayoutRow(layout, false);
 
@@ -414,7 +414,7 @@ static bool mesh_needs_keyindex(Main *bmain, const Mesh *me)
       return true;
     }
     if (ob->data == me) {
-      for (const ModifierData *md = ob->modifiers.first; md; md = md->next) {
+      LISTBASE_FOREACH (const ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Hook) {
           return true;
         }
@@ -1593,7 +1593,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  for (LinkData *link = objects.first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &objects) {
     Object *ob = link->data;
 
     if (!is_link) {

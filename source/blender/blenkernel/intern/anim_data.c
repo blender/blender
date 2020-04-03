@@ -1130,7 +1130,7 @@ bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
     /* free drivers - stored as a list of F-Curves */
     any_removed |= fcurves_path_remove_fix(prefix, &adt->drivers);
     /* NLA Data - Animation Data for Strips */
-    for (NlaTrack *nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+    LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
       any_removed |= nlastrips_path_remove_fix(prefix, &nlt->strips);
     }
   }

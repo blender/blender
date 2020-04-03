@@ -241,7 +241,7 @@ void gpu_batch_presets_reset(void)
   BLI_mutex_lock(&g_presets_3d.mutex);
   /* Reset vao caches for these every time we switch opengl context.
    * This way they will draw correctly for each window. */
-  for (LinkData *link = presets_list.first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &presets_list) {
     GPUBatch *preset = link->data;
     GPU_batch_vao_cache_clear(preset);
   }

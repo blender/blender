@@ -204,7 +204,7 @@ static void rna_Panel_unregister(Main *bmain, StructRNA *type)
 
   WM_paneltype_remove(pt);
 
-  for (LinkData *link = pt->children.first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &pt->children) {
     PanelType *child_pt = link->data;
     child_pt->parent = NULL;
   }
@@ -214,14 +214,14 @@ static void rna_Panel_unregister(Main *bmain, StructRNA *type)
   BLI_freelinkN(&art->paneltypes, pt);
 
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-      for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         if (sl->spacetype == space_type) {
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
-          for (ARegion *region = regionbase->first; region; region = region->next) {
+          LISTBASE_FOREACH (ARegion *, region, regionbase) {
             if (region->type == art) {
-              for (Panel *pa = region->panels.first; pa; pa = pa->next) {
+              LISTBASE_FOREACH (Panel *, pa, &region->panels) {
                 if (pa->type == pt) {
                   pa->type = NULL;
                 }

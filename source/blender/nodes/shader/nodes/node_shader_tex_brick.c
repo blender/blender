@@ -135,7 +135,7 @@ static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 
   node->storage = tex;
 
-  for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->name, "Mortar Smooth")) {
       ((bNodeSocketValueFloat *)sock->default_value)->value = 0.1f;
     }

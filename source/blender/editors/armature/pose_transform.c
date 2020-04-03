@@ -333,7 +333,7 @@ static void applyarmature_process_selected_recursive(bArmature *arm,
     pstate = &new_pstate;
   }
 
-  for (Bone *child = bone->childbase.first; child; child = child->next) {
+  LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
     applyarmature_process_selected_recursive(arm, pose, pose_eval, child, selected, pstate);
   }
 }
@@ -389,7 +389,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 
   if (use_selected) {
     /* The selected only mode requires a recursive walk to handle parent-child relations. */
-    for (Bone *bone = arm->bonebase.first; bone; bone = bone->next) {
+    LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
       applyarmature_process_selected_recursive(
           arm, pose, ob_eval->pose, bone, &selected_bones, NULL);
     }

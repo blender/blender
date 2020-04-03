@@ -93,11 +93,9 @@ static TaskScheduler *task_scheduler = NULL;
  *         for (go over all jobs)
  *             if (job is ready) {
  *                 if (job was not removed) {
- *                     BLI_threadpool_remove(&lb, job);
- *                 }
+ *                     BLI_threadpool_remove(&lb, job); *                 }
  *             }
- *             else cont = 1;
- *         }
+ *             else cont = 1; *         }
  *         // conditions to exit loop
  *         if (if escape loop event) {
  *             if (BLI_available_threadslots(&lb) == maxthreads) {

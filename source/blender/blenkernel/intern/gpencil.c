@@ -644,7 +644,7 @@ bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src)
 
   /* copy strokes */
   BLI_listbase_clear(&gpf_dst->strokes);
-  for (bGPDstroke *gps_src = gpf_src->strokes.first; gps_src; gps_src = gps_src->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
     /* make copy of source stroke */
     gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true);
     BLI_addtail(&gpf_dst->strokes, gps_dst);
@@ -665,7 +665,7 @@ void BKE_gpencil_frame_copy_strokes(bGPDframe *gpf_src, struct bGPDframe *gpf_ds
 
   /* copy strokes */
   BLI_listbase_clear(&gpf_dst->strokes);
-  for (bGPDstroke *gps_src = gpf_src->strokes.first; gps_src; gps_src = gps_src->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
     /* make copy of source stroke */
     gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true);
     BLI_addtail(&gpf_dst->strokes, gps_dst);

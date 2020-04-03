@@ -962,7 +962,7 @@ static int sequencer_select_side_exec(bContext *C, wmOperator *op)
 
   copy_vn_i(frame_ranges, ARRAY_SIZE(frame_ranges), frame_init);
 
-  for (Sequence *seq = ed->seqbasep->first; seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
     if (UNLIKELY(seq->machine >= MAXSEQ)) {
       continue;
     }
@@ -1037,7 +1037,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rctf(op, &rectf);
   UI_view2d_region_to_view_rctf(v2d, &rectf, &rectf);
 
-  for (Sequence *seq = ed->seqbasep->first; seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
     rctf rq;
     seq_rectf(seq, &rq);
     if (BLI_rctf_isect(&rq, &rectf, NULL)) {

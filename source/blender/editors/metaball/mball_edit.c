@@ -456,7 +456,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 
     RNG *rng = BLI_rng_new_srandom(seed_iter);
 
-    for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
+    LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
       if (BLI_rng_get_float(rng) < randfac) {
         if (select) {
           ml->flag |= SELECT;
@@ -656,7 +656,7 @@ static int reveal_metaelems_exec(bContext *C, wmOperator *op)
   const bool select = RNA_boolean_get(op->ptr, "select");
   bool changed = false;
 
-  for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
+  LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
     if (ml->flag & MB_HIDE) {
       SET_FLAG_FROM_TEST(ml->flag, select, SELECT);
       ml->flag &= ~MB_HIDE;

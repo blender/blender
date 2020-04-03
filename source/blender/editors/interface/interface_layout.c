@@ -2897,7 +2897,7 @@ void uiItemPopoverPanelFromGroup(uiLayout *layout,
     return;
   }
 
-  for (PanelType *pt = art->paneltypes.first; pt; pt = pt->next) {
+  LISTBASE_FOREACH (PanelType *, pt, &art->paneltypes) {
     /* Causes too many panels, check context. */
     if (pt->parent_id[0] == '\0') {
       if (/* (*context == '\0') || */ STREQ(pt->context, context)) {
@@ -5352,7 +5352,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
   MEM_freeN(panel);
 
   /* Draw child panels. */
-  for (LinkData *link = pt->children.first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &pt->children) {
     PanelType *child_pt = link->data;
 
     if (child_pt->poll == NULL || child_pt->poll(C, child_pt)) {

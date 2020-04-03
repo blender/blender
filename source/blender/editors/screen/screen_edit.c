@@ -415,7 +415,7 @@ static void region_cursor_set(wmWindow *win, bool swin_changed)
 
   ED_screen_areas_iter(win, screen, area)
   {
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region == screen->active_region) {
         region_cursor_set_ex(win, area, region, swin_changed);
         return;
@@ -607,14 +607,14 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 
   screen->active_region = NULL;
 
-  for (ARegion *region = screen->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     ED_region_exit(C, region);
   }
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     ED_area_exit(C, area);
   }
   /* Don't use ED_screen_areas_iter here, it skips hidden areas. */
-  for (ScrArea *area = window->global_areas.areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &window->global_areas.areabase) {
     ED_area_exit(C, area);
   }
 
@@ -912,7 +912,7 @@ void ED_screen_global_areas_sync(wmWindow *win)
 
   screen->flag &= ~SCREEN_COLLAPSE_STATUSBAR;
 
-  for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
     if (area->global->cur_fixed_height == area->global->size_min) {
       if (area->spacetype == SPACE_STATUSBAR) {
         screen->flag |= SCREEN_COLLAPSE_STATUSBAR;
@@ -978,7 +978,7 @@ bScreen *screen_change_prepare(
     wmTimer *wt = screen_old->animtimer;
 
     /* remove handlers referencing areas in old screen */
-    for (ScrArea *area = screen_old->areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen_old->areabase) {
       WM_event_remove_area_handler(&win->modalhandlers, area);
     }
 
@@ -1109,8 +1109,8 @@ void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
 
   /* Update 3D view cameras. */
   const bScreen *screen = WM_window_get_active_screen(win);
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-    for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
       if (sl->spacetype == SPACE_VIEW3D) {
         View3D *v3d = (View3D *)sl;
         screen_set_3dview_camera(scene, view_layer, area, v3d);
@@ -1249,7 +1249,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
 
     /* find old area to restore from */
     ScrArea *fullsa = NULL;
-    for (ScrArea *old = screen->areabase.first; old; old = old->next) {
+    LISTBASE_FOREACH (ScrArea *, old, &screen->areabase) {
       /* area to restore from is always first */
       if (old->full && !fullsa) {
         fullsa = old;
@@ -1270,8 +1270,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
 
     if (state == SCREENFULL) {
       /* unhide global areas */
-      for (ScrArea *glob_area = win->global_areas.areabase.first; glob_area;
-           glob_area = glob_area->next) {
+      LISTBASE_FOREACH (ScrArea *, glob_area, &win->global_areas.areabase) {
         glob_area->global->flag &= ~GLOBAL_AREA_IS_HIDDEN;
       }
       /* restore the old side panels/header visibility */
@@ -1335,8 +1334,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
 
     if (state == SCREENFULL) {
       /* temporarily hide global areas */
-      for (ScrArea *glob_area = win->global_areas.areabase.first; glob_area;
-           glob_area = glob_area->next) {
+      LISTBASE_FOREACH (ScrArea *, glob_area, &win->global_areas.areabase) {
         glob_area->global->flag |= GLOBAL_AREA_IS_HIDDEN;
       }
       /* temporarily hide the side panels/header */
@@ -1662,7 +1660,7 @@ Scene *ED_screen_scene_find_with_window(const bScreen *screen,
                                         const wmWindowManager *wm,
                                         struct wmWindow **r_window)
 {
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     if (WM_window_get_active_screen(win) == screen) {
       if (r_window) {
         *r_window = win;
@@ -1680,14 +1678,14 @@ ScrArea *ED_screen_area_find_with_spacedata(const bScreen *screen,
                                             const bool only_visible)
 {
   if (only_visible) {
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->spacedata.first == sl) {
         return area;
       }
     }
   }
   else {
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (BLI_findindex(&area->spacedata, sl) != -1) {
         return area;
       }
@@ -1703,7 +1701,7 @@ Scene *ED_screen_scene_find(const bScreen *screen, const wmWindowManager *wm)
 
 wmWindow *ED_screen_window_find(const bScreen *screen, const wmWindowManager *wm)
 {
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     if (WM_window_get_active_screen(win) == screen) {
       return win;
     }

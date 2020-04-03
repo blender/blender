@@ -110,7 +110,7 @@ static ListBase g_undo_types = {NULL, NULL};
 
 static const UndoType *BKE_undosys_type_from_context(bContext *C)
 {
-  for (const UndoType *ut = g_undo_types.first; ut; ut = ut->next) {
+  LISTBASE_FOREACH (const UndoType *, ut, &g_undo_types) {
     /* No poll means we don't check context. */
     if (ut->poll && ut->poll(C)) {
       return ut;
@@ -143,7 +143,7 @@ static void undosys_id_ref_resolve(void *user_data, UndoRefID *id_ref)
    * for now it's not too bad since it only runs when we access undo! */
   Main *bmain = user_data;
   ListBase *lb = which_libbase(bmain, GS(id_ref->name));
-  for (ID *id = lb->first; id; id = id->next) {
+  LISTBASE_FOREACH (ID *, id, lb) {
     if (STREQ(id_ref->name, id->name) && (id->lib == NULL)) {
       id_ref->ptr = id;
       break;
@@ -857,7 +857,7 @@ static void UNUSED_FUNCTION(BKE_undosys_foreach_ID_ref(UndoStack *ustack,
                                                        UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                                        void *user_data))
 {
-  for (UndoStep *us = ustack->steps.first; us; us = us->next) {
+  LISTBASE_FOREACH (UndoStep *, us, &ustack->steps) {
     const UndoType *ut = us->type;
     if (ut->step_foreach_ID_ref != NULL) {
       ut->step_foreach_ID_ref(us, foreach_ID_ref_fn, user_data);
@@ -876,7 +876,7 @@ void BKE_undosys_print(UndoStack *ustack)
   printf("Undo %d Steps (*: active, #=applied, M=memfile-active, S=skip)\n",
          BLI_listbase_count(&ustack->steps));
   int index = 0;
-  for (UndoStep *us = ustack->steps.first; us; us = us->next) {
+  LISTBASE_FOREACH (UndoStep *, us, &ustack->steps) {
     printf("[%c%c%c%c] %3d {%p} type='%s', name='%s'\n",
            (us == ustack->step_active) ? '*' : ' ',
            us->is_applied ? '#' : ' ',

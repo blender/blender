@@ -182,7 +182,7 @@ static void library_foreach_idproperty_ID_link(LibraryForeachIDData *data,
 
   switch (prop->type) {
     case IDP_GROUP: {
-      for (IDProperty *loop = prop->data.group.first; loop; loop = loop->next) {
+      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
         library_foreach_idproperty_ID_link(data, loop, flag);
       }
       break;
@@ -338,7 +338,7 @@ static void library_foreach_bone(LibraryForeachIDData *data, Bone *bone)
 {
   library_foreach_idproperty_ID_link(data, bone->prop, IDWALK_CB_USER);
 
-  for (Bone *curbone = bone->childbase.first; curbone; curbone = curbone->next) {
+  LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
     library_foreach_bone(data, curbone);
   }
 
@@ -347,7 +347,7 @@ static void library_foreach_bone(LibraryForeachIDData *data, Bone *bone)
 
 static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
 {
-  for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
      * anyway... */
     const int cb_flag = (lc->collection != NULL &&
@@ -365,13 +365,13 @@ static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBas
  */
 static void library_foreach_collection(LibraryForeachIDData *data, Collection *collection)
 {
-  for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     FOREACH_CALLBACK_INVOKE(data, cob->ob, IDWALK_CB_USER);
   }
-  for (CollectionChild *child = collection->children.first; child; child = child->next) {
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     FOREACH_CALLBACK_INVOKE(data, child->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_USER);
   }
-  for (CollectionParent *parent = collection->parents.first; parent; parent = parent->next) {
+  LISTBASE_FOREACH (CollectionParent *, parent, &collection->parents) {
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
      * anyway... */
     const int cb_flag = ((parent->collection != NULL &&
@@ -399,7 +399,7 @@ static void library_foreach_screen_area(LibraryForeachIDData *data, ScrArea *are
 {
   FOREACH_CALLBACK_INVOKE(data, area->full, IDWALK_CB_NOP);
 
-  for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+  LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
     switch (sl->spacetype) {
       case SPACE_VIEW3D: {
         View3D *v3d = (View3D *)sl;
@@ -678,7 +678,7 @@ static void library_foreach_ID_link(Main *bmain,
             CALLBACK_INVOKE(seq->mask, IDWALK_CB_USER);
             CALLBACK_INVOKE(seq->sound, IDWALK_CB_USER);
             library_foreach_idproperty_ID_link(&data, seq->prop, IDWALK_CB_USER);
-            for (SequenceModifierData *smd = seq->modifiers.first; smd; smd = smd->next) {
+            LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
               CALLBACK_INVOKE(smd->mask_id, IDWALK_CB_USER);
             }
 
@@ -699,21 +699,19 @@ static void library_foreach_ID_link(Main *bmain,
         for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
           CALLBACK_INVOKE(view_layer->mat_override, IDWALK_CB_USER);
 
-          for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+          LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
             CALLBACK_INVOKE(base->object, IDWALK_CB_NOP);
           }
 
           library_foreach_layer_collection(&data, &view_layer->layer_collections);
 
-          for (FreestyleModuleConfig *fmc = view_layer->freestyle_config.modules.first; fmc;
-               fmc = fmc->next) {
+          LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
             if (fmc->script) {
               CALLBACK_INVOKE(fmc->script, IDWALK_CB_NOP);
             }
           }
 
-          for (FreestyleLineSet *fls = view_layer->freestyle_config.linesets.first; fls;
-               fls = fls->next) {
+          LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
             if (fls->group) {
               CALLBACK_INVOKE(fls->group, IDWALK_CB_USER);
             }
@@ -724,7 +722,7 @@ static void library_foreach_ID_link(Main *bmain,
           }
         }
 
-        for (TimeMarker *marker = scene->markers.first; marker; marker = marker->next) {
+        LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
           CALLBACK_INVOKE(marker->camera, IDWALK_CB_NOP);
         }
 
@@ -881,7 +879,7 @@ static void library_foreach_ID_link(Main *bmain,
       case ID_AR: {
         bArmature *arm = (bArmature *)id;
 
-        for (Bone *bone = arm->bonebase.first; bone; bone = bone->next) {
+        LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
           library_foreach_bone(&data, bone);
         }
         break;
@@ -968,7 +966,7 @@ static void library_foreach_ID_link(Main *bmain,
       case ID_CA: {
         Camera *camera = (Camera *)id;
         CALLBACK_INVOKE(camera->dof.focus_object, IDWALK_CB_NOP);
-        for (CameraBGImage *bgpic = camera->bg_images.first; bgpic; bgpic = bgpic->next) {
+        LISTBASE_FOREACH (CameraBGImage *, bgpic, &camera->bg_images) {
           if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
             CALLBACK_INVOKE(bgpic->ima, IDWALK_CB_USER);
           }
@@ -1100,7 +1098,7 @@ static void library_foreach_ID_link(Main *bmain,
           }
         }
 
-        for (ParticleDupliWeight *dw = psett->instance_weights.first; dw; dw = dw->next) {
+        LISTBASE_FOREACH (ParticleDupliWeight *, dw, &psett->instance_weights) {
           CALLBACK_INVOKE(dw->ob, IDWALK_CB_NOP);
         }
         break;
@@ -1195,7 +1193,7 @@ static void library_foreach_ID_link(Main *bmain,
       case ID_AC: {
         bAction *act = (bAction *)id;
 
-        for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
+        LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
           CALLBACK_INVOKE(marker->camera, IDWALK_CB_NOP);
         }
         break;
@@ -1204,7 +1202,7 @@ static void library_foreach_ID_link(Main *bmain,
       case ID_WM: {
         wmWindowManager *wm = (wmWindowManager *)id;
 
-        for (wmWindow *win = wm->windows.first; win; win = win->next) {
+        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
           CALLBACK_INVOKE(win->scene, IDWALK_CB_USER_ONE);
 
           /* This pointer can be NULL during old files reading, better be safe than sorry. */
@@ -1215,7 +1213,7 @@ static void library_foreach_ID_link(Main *bmain,
             BKE_workspace_active_set(win->workspace_hook, (WorkSpace *)workspace);
           }
           if (data.flag & IDWALK_INCLUDE_UI) {
-            for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+            LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
               library_foreach_screen_area(&data, area);
             }
           }
@@ -1227,7 +1225,7 @@ static void library_foreach_ID_link(Main *bmain,
         WorkSpace *workspace = (WorkSpace *)id;
         ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
-        for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
+        LISTBASE_FOREACH (WorkSpaceLayout *, layout, layouts) {
           bScreen *screen = BKE_workspace_layout_screen_get(layout);
 
           /* CALLBACK_INVOKE expects an actual pointer, not a variable holding the pointer.
@@ -1280,7 +1278,7 @@ static void library_foreach_ID_link(Main *bmain,
         if (data.flag & IDWALK_INCLUDE_UI) {
           bScreen *screen = (bScreen *)id;
 
-          for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+          LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
             library_foreach_screen_area(&data, area);
           }
         }
@@ -1710,7 +1708,7 @@ void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
     do_loop = false;
 
     while (i--) {
-      for (ID *id = lb_array[i]->first; id; id = id->next) {
+      LISTBASE_FOREACH (ID *, id, lb_array[i]) {
         if (id->lib == NULL || id->tag & LIB_TAG_DOIT) {
           /* Local or non-indirectly-used ID (so far), no need to check it further. */
           continue;

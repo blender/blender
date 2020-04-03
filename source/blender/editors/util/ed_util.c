@@ -83,7 +83,7 @@
 void ED_editors_init_for_undo(Main *bmain)
 {
   wmWindowManager *wm = bmain->wm.first;
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
     Base *base = BASACT(view_layer);
     if (base != NULL) {

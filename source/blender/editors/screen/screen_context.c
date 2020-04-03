@@ -130,7 +130,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     return 1;
   }
   else if (CTX_data_equals(member, "visible_objects")) {
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (BASE_VISIBLE(v3d, base)) {
         CTX_data_id_list_add(result, &base->object->id);
       }
@@ -139,7 +139,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     return 1;
   }
   else if (CTX_data_equals(member, "selectable_objects")) {
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (BASE_SELECTABLE(v3d, base)) {
         CTX_data_id_list_add(result, &base->object->id);
       }
@@ -148,7 +148,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     return 1;
   }
   else if (CTX_data_equals(member, "selected_objects")) {
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (BASE_SELECTED(v3d, base)) {
         CTX_data_id_list_add(result, &base->object->id);
       }
@@ -157,7 +157,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     return 1;
   }
   else if (CTX_data_equals(member, "selected_editable_objects")) {
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (BASE_SELECTED_EDITABLE(v3d, base)) {
         CTX_data_id_list_add(result, &base->object->id);
       }
@@ -167,7 +167,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   }
   else if (CTX_data_equals(member, "editable_objects")) {
     /* Visible + Editable, but not necessarily selected */
-    for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (BASE_EDITABLE(v3d, base)) {
         CTX_data_id_list_add(result, &base->object->id);
       }
@@ -726,7 +726,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
       ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-      for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
           CTX_data_list_add(result, ale->fcurve_owner_id, &RNA_FCurve, ale->data);
         }
@@ -749,7 +749,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
       ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-      for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
           CTX_data_pointer_set(result, ale->fcurve_owner_id, &RNA_FCurve, ale->data);
           break;

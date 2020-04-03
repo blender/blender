@@ -72,7 +72,7 @@ static int dl_tri_len(const DispList *dl)
 static int curve_render_surface_vert_len_get(const ListBase *lb)
 {
   int vert_len = 0;
-  for (const DispList *dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
     vert_len += dl_vert_len(dl);
   }
   return vert_len;
@@ -81,7 +81,7 @@ static int curve_render_surface_vert_len_get(const ListBase *lb)
 static int curve_render_surface_tri_len_get(const ListBase *lb)
 {
   int tri_len = 0;
-  for (const DispList *dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
     tri_len += dl_tri_len(dl);
   }
   return tri_len;
@@ -193,7 +193,7 @@ void DRW_displist_vertbuf_create_pos_and_nor(ListBase *lb, GPUVertBuf *vbo)
   BKE_displist_normals_add(lb);
 
   int vbo_len_used = 0;
-  for (const DispList *dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
     const bool ndata_is_single = dl->type == DL_INDEX3;
     if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
       const float *fp_co = dl->verts;
@@ -263,7 +263,7 @@ void DRW_displist_indexbuf_create_triangles_in_order(ListBase *lb, GPUIndexBuf *
   GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tri_len, vert_len);
 
   int ofs = 0;
-  for (const DispList *dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
     displist_indexbufbuilder_set((SetTriIndicesFn *)GPU_indexbuf_add_tri_verts,
                                  (SetTriIndicesFn *)GPU_indexbuf_add_tri_verts,
                                  &elb,
@@ -290,7 +290,7 @@ void DRW_displist_indexbuf_create_triangles_loop_split_by_material(ListBase *lb,
 
   /* calc each index buffer builder */
   uint v_idx = 0;
-  for (const DispList *dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
     v_idx = displist_indexbufbuilder_tess_set((SetTriIndicesFn *)GPU_indexbuf_add_tri_verts,
                                               (SetTriIndicesFn *)GPU_indexbuf_add_tri_verts,
                                               &elb[dl->col],
@@ -328,7 +328,7 @@ void DRW_displist_indexbuf_create_lines_in_order(ListBase *lb, GPUIndexBuf *ibo)
   GPU_indexbuf_init(&elb, GPU_PRIM_LINES, tri_len * 3, vert_len);
 
   int ofs = 0;
-  for (const DispList *dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
     displist_indexbufbuilder_set(
         set_overlay_wires_tri_indices, set_overlay_wires_quad_tri_indices, &elb, dl, ofs);
     ofs += dl_vert_len(dl);
@@ -508,7 +508,7 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
 
   BKE_displist_normals_add(lb);
 
-  for (const DispList *dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
     const bool is_smooth = (dl->rt & CU_SMOOTH) != 0;
     if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
       const float(*verts)[3] = (float(*)[3])dl->verts;
@@ -780,7 +780,7 @@ void DRW_displist_indexbuf_create_edges_adjacency_lines(struct ListBase *lb,
   /* pack values to pass to `set_edges_adjacency_lines_indices` function. */
   void *thunk[3] = {&elb, eh, r_is_manifold};
   int v_idx = 0;
-  for (const DispList *dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
     displist_indexbufbuilder_set((SetTriIndicesFn *)set_edges_adjacency_lines_indices,
                                  (SetTriIndicesFn *)set_edges_adjacency_lines_indices,
                                  thunk,

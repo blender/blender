@@ -1333,7 +1333,7 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
   if (gp_strokes_copypastebuf.first) {
     gp_strokes_copypastebuf_colors = BLI_ghash_int_new("GPencil CopyBuf Colors");
     GHash *ma_to_name = gp_strokes_copypastebuf_colors_material_to_name_create(bmain);
-    for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+    LISTBASE_FOREACH (bGPDstroke *, gps, &gp_strokes_copypastebuf) {
       if (ED_gpencil_stroke_can_use(C, gps)) {
         Material *ma = BKE_object_material_get(ob, gps->mat_nr + 1);
         /* Avoid default material. */

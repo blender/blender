@@ -311,10 +311,10 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 {
   /* image window, compo node users */
   for (wmWindowManager *wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
-    for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       bScreen *screen = WM_window_get_active_screen(win);
 
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->spacetype == SPACE_CLIP) {
           SpaceClip *sc = area->spacedata.first;
 

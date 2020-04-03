@@ -437,7 +437,7 @@ static void box_select_elem(
         ListBase anim_data = {NULL, NULL};
         ANIM_animdata_filter(ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, ac->datatype);
 
-        for (bAnimListElem *ale2 = anim_data.first; ale2; ale2 = ale2->next) {
+        LISTBASE_FOREACH (bAnimListElem *, ale2, &anim_data) {
           box_select_elem(sel_data, ale2, xmin, xmax, true);
         }
 
@@ -675,7 +675,7 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
         ListBase anim_data = {NULL, NULL};
         ANIM_animdata_filter(ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, ac->datatype);
 
-        for (bAnimListElem *ale2 = anim_data.first; ale2; ale2 = ale2->next) {
+        LISTBASE_FOREACH (bAnimListElem *, ale2, &anim_data) {
           region_select_elem(sel_data, ale2, true);
         }
 

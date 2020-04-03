@@ -397,7 +397,7 @@ static int palette_sort_exec(bContext *C, wmOperator *op)
     color_array = MEM_calloc_arrayN(totcol, sizeof(tPaletteColorHSV), __func__);
     /* Put all colors in an array. */
     int t = 0;
-    for (PaletteColor *color = palette->colors.first; color; color = color->next) {
+    LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
       float h, s, v;
       rgb_to_hsv(color->rgb[0], color->rgb[1], color->rgb[2], &h, &s, &v);
       col_elm = &color_array[t];
@@ -543,7 +543,7 @@ static int palette_join_exec(bContext *C, wmOperator *op)
   const int totcol = BLI_listbase_count(&palette_join->colors);
 
   if (totcol > 0) {
-    for (PaletteColor *color = palette_join->colors.first; color; color = color->next) {
+    LISTBASE_FOREACH (PaletteColor *, color, &palette_join->colors) {
       PaletteColor *palcol = BKE_palette_color_add(palette);
       if (palcol) {
         copy_v3_v3(palcol->rgb, color->rgb);

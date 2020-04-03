@@ -1380,7 +1380,7 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
   int num = 0;
   Object **objects = MEM_callocN(sizeof(Object *) * maxnum, __func__);
 
-  for (CollisionRelation *relation = relations->first; relation; relation = relation->next) {
+  LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     /* Get evaluated object. */
     Object *ob = (Object *)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
 
@@ -1418,7 +1418,7 @@ ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collecti
     return NULL;
   }
 
-  for (CollisionRelation *relation = relations->first; relation; relation = relation->next) {
+  LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     /* Get evaluated object. */
     Object *ob = (Object *)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
 

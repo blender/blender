@@ -263,8 +263,7 @@ static bool parent_drop_allowed(TreeElement *te, Object *potential_child)
    * element for object it means that all displayed objects belong to
    * active scene and parenting them is allowed (sergey) */
   if (scene) {
-    for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-         view_layer = view_layer->next) {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       if (BKE_view_layer_base_find(view_layer, potential_child)) {
         return true;
       }
@@ -481,7 +480,7 @@ static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
   ListBase *lb = event->customdata;
   wmDrag *drag = lb->first;
 
-  for (wmDragID *drag_id = drag->ids.first; drag_id; drag_id = drag_id->next) {
+  LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
     if (GS(drag_id->id->name) == ID_OB) {
       Object *object = (Object *)drag_id->id;
 
@@ -548,8 +547,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 
   BKE_collection_object_add(bmain, collection, ob);
 
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-       view_layer = view_layer->next) {
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base) {
       ED_object_base_select(base, BA_SELECT);
@@ -817,7 +815,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
     TREESTORE(data.te)->flag &= ~TSE_CLOSED;
   }
 
-  for (wmDragID *drag_id = drag->ids.first; drag_id; drag_id = drag_id->next) {
+  LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
     /* Ctrl enables linking, so we don't need a from collection then. */
     Collection *from = (event->ctrl) ? NULL : collection_parent_from_ID(drag_id->from_parent);
 

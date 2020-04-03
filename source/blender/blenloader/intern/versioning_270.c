@@ -258,7 +258,7 @@ static void do_version_action_editor_properties_region(ListBase *regionbase)
 
 static void do_version_bones_super_bbone(ListBase *lb)
 {
-  for (Bone *bone = lb->first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, lb) {
     bone->scale_in_x = bone->scale_in_y = 1.0f;
     bone->scale_out_x = bone->scale_out_y = 1.0f;
 
@@ -343,7 +343,7 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
 
 static void do_versions_compositor_render_passes(bNodeTree *ntree)
 {
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == CMP_NODE_R_LAYERS) {
       /* First we make sure existing sockets have proper names.
        * This is important because otherwise verification will
@@ -392,7 +392,7 @@ static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id),
 
   /* Driver -> Driver Vars (for bbone_in/out) */
   if (fcu->driver) {
-    for (DriverVar *dvar = fcu->driver->variables.first; dvar; dvar = dvar->next) {
+    LISTBASE_FOREACH (DriverVar *, dvar, &fcu->driver->variables) {
       DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
         if (dtar->rna_path) {
           dtar->rna_path = replace_bbone_easing_rnapath(dtar->rna_path);
@@ -404,7 +404,7 @@ static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id),
 
   /* FModifiers -> Stepped (for frame_start/end) */
   if (fcu->modifiers.first) {
-    for (FModifier *fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
+    LISTBASE_FOREACH (FModifier *, fcm, &fcu->modifiers) {
       if (fcm->type == FMODIFIER_TYPE_STEPPED) {
         FMod_Stepped *data = fcm->data;
 
@@ -1153,7 +1153,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
      * otherwise they could collide with any new persistent flag we may add in the future. */
     a = set_listbasepointers(bmain, lbarray);
     while (a--) {
-      for (ID *id = lbarray[a]->first; id; id = id->next) {
+      LISTBASE_FOREACH (ID *, id, lbarray[a]) {
         id->flag &= LIB_FAKEUSER;
       }
     }
@@ -1177,15 +1177,15 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-        for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
           /* Bug: Was possible to add preview region to sequencer view by using AZones. */
           if (sl->spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
             if (sseq->view == SEQ_VIEW_SEQUENCE) {
-              for (ARegion *region = regionbase->first; region; region = region->next) {
+              LISTBASE_FOREACH (ARegion *, region, regionbase) {
                 /* remove preview region for sequencer-only view! */
                 if (region->regiontype == RGN_TYPE_PREVIEW) {
                   region->flag |= RGN_FLAG_HIDDEN;
@@ -1197,7 +1197,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
           /* Remove old deprecated region from filebrowsers */
           else if (sl->spacetype == SPACE_FILE) {
-            for (ARegion *region = regionbase->first; region; region = region->next) {
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_CHANNELS) {
                 /* Free old deprecated 'channel' region... */
                 BKE_area_region_free(NULL, region);
@@ -1245,9 +1245,9 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Adding "Properties" region to DopeSheet */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         /* handle pushed-back space data first */
-        for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_ACTION) {
             SpaceAction *saction = (SpaceAction *)sl;
             do_version_action_editor_properties_region(&saction->regionbase);
@@ -1271,7 +1271,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "scaleIn")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
         if (ob->pose) {
-          for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+          LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
             /* see do_version_bones_super_bbone()... */
             pchan->scale_in_x = pchan->scale_in_y = 1.0f;
             pchan->scale_out_x = pchan->scale_out_y = 1.0f;
@@ -1561,8 +1561,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 278, 5)) {
     /* Mask primitive adding code was not initializing correctly id_type of its points' parent. */
     for (Mask *mask = bmain->masks.first; mask; mask = mask->id.next) {
-      for (MaskLayer *mlayer = mask->masklayers.first; mlayer; mlayer = mlayer->next) {
-        for (MaskSpline *mspline = mlayer->splines.first; mspline; mspline = mspline->next) {
+      LISTBASE_FOREACH (MaskLayer *, mlayer, &mask->masklayers) {
+        LISTBASE_FOREACH (MaskSpline *, mspline, &mlayer->splines) {
           int i = 0;
           for (MaskSplinePoint *mspoint = mspline->points; i < mspline->tot_point;
                mspoint++, i++) {
@@ -1579,7 +1579,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_COMPOSIT) {
           ntreeSetTypes(NULL, ntree);
-          for (bNode *node = ntree->nodes.first; node; node = node->next) {
+          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
             if (node->type == CMP_NODE_GLARE) {
               NodeGlare *ndg = node->storage;
               switch (ndg->type) {
@@ -1601,7 +1601,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "float", "mat[4][4]")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-        for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SurfaceDeform) {
             SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
             unit_m4(smd->mat);
@@ -1652,7 +1652,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 279, 4)) {
     /* Fix for invalid state of screen due to bug in older versions. */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->full && screen->state == SCREENNORMAL) {
           area->full = NULL;
         }
@@ -1683,7 +1683,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
      * Must set previous defaults. */
     if (!DNA_struct_elem_find(fd->filesdna, "SimpleDeformModifierData", "char", "deform_axis")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-        for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SimpleDeform) {
             SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
             smd->deform_axis = 2;
@@ -1712,7 +1712,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (!DNA_struct_elem_find(
             fd->filesdna, "ParticleInstanceModifierData", "float", "particle_amount")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-        for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_ParticleInstance) {
             ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
             pimd->space = eParticleInstanceSpace_World;
@@ -1731,7 +1731,7 @@ void do_versions_after_linking_270(Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         ntreeSetTypes(NULL, ntree);
-        for (bNode *node = ntree->nodes.first; node; node = node->next) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type == CMP_NODE_HUE_SAT) {
             do_version_hue_sat_node(ntree, node);
           }

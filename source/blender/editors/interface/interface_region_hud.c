@@ -278,11 +278,11 @@ static ARegion *hud_region_add(ScrArea *area)
 
 void ED_area_type_hud_clear(wmWindowManager *wm, ScrArea *area_keep)
 {
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     bScreen *screen = WM_window_get_active_screen(win);
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area != area_keep) {
-        for (ARegion *region = area->regionbase.first; region; region = region->next) {
+        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
           if (region->regiontype == RGN_TYPE_HUD) {
             if ((region->flag & RGN_FLAG_HIDDEN) == 0) {
               hud_region_hide(region);

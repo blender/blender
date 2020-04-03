@@ -92,7 +92,7 @@ static struct ElemData_Armature *armature_coords_and_quats_get_recurse(
     const ListBase *bone_base, struct ElemData_Armature *elem_array)
 {
   struct ElemData_Armature *elem = elem_array;
-  for (const Bone *bone = bone_base->first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (const Bone *, bone, bone_base) {
 
 #define COPY_PTR(member) memcpy(elem->member, bone->member, sizeof(bone->member))
 #define COPY_VAL(member) memcpy(&elem->member, &bone->member, sizeof(bone->member))
@@ -125,7 +125,7 @@ static const struct ElemData_Armature *armature_coords_and_quats_apply_with_mat4
     ListBase *bone_base, const struct ElemData_Armature *elem_array, const float mat[4][4])
 {
   const struct ElemData_Armature *elem = elem_array;
-  for (Bone *bone = bone_base->first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, bone_base) {
 
 #define COPY_PTR(member) memcpy(bone->member, elem->member, sizeof(bone->member))
 #define COPY_VAL(member) memcpy(&bone->member, &elem->member, sizeof(bone->member))

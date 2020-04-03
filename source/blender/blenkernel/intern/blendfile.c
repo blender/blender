@@ -345,7 +345,7 @@ static void setup_app_data(bContext *C,
     wmWindowManager *wm = bmain->wm.first;
 
     if (wm) {
-      for (wmWindow *win = wm->windows.first; win; win = win->next) {
+      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
         if (win->scene && win->scene != curscene) {
           BKE_scene_set_background(bmain, win->scene);
         }

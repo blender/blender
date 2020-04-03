@@ -358,7 +358,7 @@ void ED_markers_deselect_all(ListBase *markers, int action)
     action = ED_markers_get_first_selected(markers) ? SEL_DESELECT : SEL_SELECT;
   }
 
-  for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (action == SEL_SELECT) {
       marker->flag |= SELECT;
     }
@@ -599,14 +599,14 @@ void ED_markers_draw(const bContext *C, int flag)
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
   /* Separate loops in order to draw selected markers on top */
-  for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if ((marker->flag & SELECT) == 0) {
       if (marker_is_in_frame_range(marker, clip_frame_range)) {
         draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, region->winy);
       }
     }
   }
-  for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (marker->flag & SELECT) {
       if (marker_is_in_frame_range(marker, clip_frame_range)) {
         draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, region->winy);
@@ -1156,7 +1156,7 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 
 static void deselect_markers(ListBase *markers)
 {
-  for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     marker->flag &= ~SELECT;
   }
 }
@@ -1373,7 +1373,7 @@ static int ed_marker_box_select_exec(bContext *C, wmOperator *op)
     ED_markers_deselect_all(markers, SEL_DESELECT);
   }
 
-  for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (BLI_rctf_isect_x(&rect, marker->frame)) {
       SET_FLAG_FROM_TEST(marker->flag, select, SELECT);
     }
@@ -1646,7 +1646,7 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
     BLI_addtail(markers, marker);
 
     /* deselect all others, so that the user can then move it without problems */
-    for (TimeMarker *m = markers->first; m; m = m->next) {
+    LISTBASE_FOREACH (TimeMarker *, m, markers) {
       if (m != marker) {
         m->flag &= ~SELECT;
       }

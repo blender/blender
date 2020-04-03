@@ -1275,7 +1275,7 @@ static Image *image_open_single(Main *bmain,
     if ((range->length > 1) && (ima->source == IMA_SRC_FILE)) {
       if (range->udim_tiles.first && range->offset == 1001) {
         ima->source = IMA_SRC_TILED;
-        for (LinkData *node = range->udim_tiles.first; node; node = node->next) {
+        LISTBASE_FOREACH (LinkData *, node, &range->udim_tiles) {
           BKE_image_add_tile(ima, POINTER_AS_INT(node->data), NULL);
         }
       }
@@ -1309,7 +1309,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
 
   ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
-  for (ImageFrameRange *range = ranges.first; range; range = range->next) {
+  LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     Image *ima_range = image_open_single(
         bmain, op, range, BKE_main_blendfile_path(bmain), is_relative_path, use_multiview);
 
@@ -1359,7 +1359,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
     if (iuser == NULL) {
       Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
       if (cam) {
-        for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
+        LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
           if (bgpic->ima == ima) {
             iuser = &bgpic->iuser;
             break;

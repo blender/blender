@@ -2396,7 +2396,7 @@ void ED_view3d_screen_datamask(const bContext *C,
   CustomData_MeshMasks_update(r_cddata_masks, &CD_MASK_BAREMESH);
 
   /* Check if we need tfaces & mcols due to view mode. */
-  for (const ScrArea *area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
     if (area->spacetype == SPACE_VIEW3D) {
       ED_view3d_datamask(C, scene, area->spacedata.first, r_cddata_masks);
     }

@@ -118,7 +118,7 @@ static void ui_popup_block_position(wmWindow *window,
     if (block->buttons.first) {
       BLI_rctf_init_minmax(&block->rect);
 
-      for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
         if (block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT) {
           bt->rect.xmax += UI_MENU_SUBMENU_PADDING;
         }
@@ -294,7 +294,7 @@ static void ui_popup_block_position(wmWindow *window,
   }
 
   /* Apply offset, buttons in window coords. */
-  for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
     ui_block_to_window_rctf(butregion, but->block, &bt->rect, &bt->rect);
 
     BLI_rctf_translate(&bt->rect, offset_x, offset_y);
@@ -698,7 +698,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
     /* lastly set the buttons at the center of the pie menu, ready for animation */
     if (U.pie_animation_timeout > 0) {
-      for (uiBut *but_iter = block->buttons.first; but_iter; but_iter = but_iter->next) {
+      LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
         if (but_iter->pie_dir != UI_RADIAL_NONE) {
           BLI_rctf_recenter(&but_iter->rect, UNPACK2(block->pie_data.pie_center_spawned));
         }
@@ -742,7 +742,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
     /* apply scroll offset */
     if (handle->scrolloffset != 0.0f) {
-      for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
         bt->rect.ymin += handle->scrolloffset;
         bt->rect.ymax += handle->scrolloffset;
       }
@@ -846,7 +846,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
    * then close the popover too. We could extend this to other popup types too. */
   ARegion *region = handle->popup_create_vars.butregion;
   if (region != NULL) {
-    for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
+    LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
       if (block->handle && (block->flag & UI_BLOCK_POPOVER) &&
           (block->flag & UI_BLOCK_KEEP_OPEN) == 0) {
         uiPopupBlockHandle *menu = block->handle;

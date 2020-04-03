@@ -96,7 +96,7 @@ static int volume_import_exec(bContext *C, wmOperator *op)
   bool imported = false;
 
   ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, false);
-  for (ImageFrameRange *range = ranges.first; range; range = range->next) {
+  LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     char filename[FILE_MAX];
     BLI_split_file_part(range->filepath, filename, sizeof(filename));
     BLI_path_extension_replace(filename, sizeof(filename), "");

@@ -164,7 +164,7 @@ static void text_copy_data(Main *UNUSED(bmain),
   text_dst->compiled = NULL;
 
   /* Walk down, reconstructing. */
-  for (TextLine *line_src = text_src->lines.first; line_src; line_src = line_src->next) {
+  LISTBASE_FOREACH (TextLine *, line_src, &text_src->lines) {
     TextLine *line_dst = MEM_mallocN(sizeof(*line_dst), __func__);
 
     line_dst->line = BLI_strdup(line_src->line);
@@ -1311,12 +1311,12 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
 char *txt_to_buf_for_undo(Text *text, int *r_buf_len)
 {
   int buf_len = 0;
-  for (const TextLine *l = text->lines.first; l; l = l->next) {
+  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
     buf_len += l->len + 1;
   }
   char *buf = MEM_mallocN(buf_len, __func__);
   char *buf_step = buf;
-  for (const TextLine *l = text->lines.first; l; l = l->next) {
+  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
     memcpy(buf_step, l->line, l->len);
     buf_step += l->len;
     *buf_step++ = '\n';

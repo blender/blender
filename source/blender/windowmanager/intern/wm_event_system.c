@@ -192,7 +192,7 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event)
 
 static bool wm_test_duplicate_notifier(const wmWindowManager *wm, uint type, void *reference)
 {
-  for (wmNotifier *note = wm->queue.first; note; note = note->next) {
+  LISTBASE_FOREACH (wmNotifier *, note, &wm->queue) {
     if ((note->category | note->data | note->subtype | note->action) == type &&
         note->reference == reference) {
       return 1;
@@ -329,14 +329,14 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
   }
   /* Combine datamasks so 1 win doesn't disable UV's in another [#26448]. */
   CustomData_MeshMasks win_combine_v3d_datamask = {0};
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     const Scene *scene = WM_window_get_active_scene(win);
     const bScreen *screen = WM_window_get_active_screen(win);
 
     ED_view3d_screen_datamask(C, scene, screen, &win_combine_v3d_datamask);
   }
   /* Update all the dependency graphs of visible view layers. */
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
     Main *bmain = CTX_data_main(C);
@@ -369,7 +369,7 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   /* cached: editor refresh callbacks now, they get context */
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     const bScreen *screen = WM_window_get_active_screen(win);
     ScrArea *area;
 
@@ -1867,7 +1867,7 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
                                                       wmOperator *op,
                                                       const wmEvent *event)
 {
-  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     /* Should already be handled by #wm_user_modal_keymap_set_items. */
     BLI_assert(kmi->propvalue_str[0] == '\0');
     if (wm_eventmatch(event, kmi)) {
@@ -2405,7 +2405,7 @@ static int wm_handlers_do_keymap_with_keymap_handler(
 
       PRINT("pass\n");
 
-      for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+      LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
         if (wm_eventmatch(event, kmi)) {
           struct wmEventHandler_KeymapPost keymap_post = handler->post;
 
@@ -2610,7 +2610,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
           event_test_tweak.type = EVT_TWEAK_L + (event->type - LEFTMOUSE);
           event_test_tweak.val = KM_ANY;
 
-          for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+          LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
             if ((kmi->flag & KMI_INACTIVE) == 0) {
               if (wm_eventmatch(&event_test_click, kmi) ||
                   wm_eventmatch(&event_test_click_drag, kmi) ||
@@ -2635,7 +2635,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
     if ((action & WM_HANDLER_BREAK) == 0) {
       if (WM_gizmomap_is_any_selected(gzmap)) {
         const ListBase *groups = WM_gizmomap_group_list(gzmap);
-        for (wmGizmoGroup *gzgroup = groups->first; gzgroup; gzgroup = gzgroup->next) {
+        LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, groups) {
           if (wm_gizmogroup_is_any_selected(gzgroup)) {
             wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
             action |= wm_handlers_do_keymap_with_gizmo_handler(
@@ -3614,7 +3614,7 @@ wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
     if (tref_rt->gizmo_group[0] != '\0' && tref_rt->keymap_fallback[0] != '\n') {
       wmGizmoMap *gzmap = NULL;
       wmGizmoGroup *gzgroup = NULL;
-      for (ARegion *region = area->regionbase.first; region; region = region->next) {
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         if (region->gizmo_map != NULL) {
           gzmap = region->gizmo_map;
           gzgroup = WM_gizmomap_group_find(gzmap, tref_rt->gizmo_group);
@@ -4774,7 +4774,7 @@ wmKeyMap *WM_event_get_keymap_from_handler(wmWindowManager *wm, wmEventHandler_K
 
 wmKeyMapItem *WM_event_match_keymap_item(bContext *C, wmKeyMap *keymap, const wmEvent *event)
 {
-  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     if (wm_eventmatch(event, kmi)) {
       wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
       if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
@@ -4881,7 +4881,7 @@ ScrArea *WM_window_status_area_find(wmWindow *win, bScreen *screen)
     return NULL;
   }
   ScrArea *area_statusbar = NULL;
-  for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
     if (area->spacetype == SPACE_STATUSBAR) {
       area_statusbar = area;
       break;

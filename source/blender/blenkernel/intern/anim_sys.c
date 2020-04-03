@@ -542,7 +542,7 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
                                      bool flush_to_original)
 {
   /* Calculate then execute each curve. */
-  for (FCurve *fcu = list->first; fcu; fcu = fcu->next) {
+  LISTBASE_FOREACH (FCurve *, fcu, list) {
     /* Check if this F-Curve doesn't belong to a muted group. */
     if ((fcu->grp != NULL) && (fcu->grp->flag & AGRP_MUTED)) {
       continue;
@@ -1095,7 +1095,7 @@ static void nlaeval_free(NlaEvalData *nlaeval)
   nlaeval_snapshot_free_data(&nlaeval->eval_snapshot);
 
   /* Delete channels. */
-  for (NlaEvalChannel *nec = nlaeval->channels.first; nec; nec = nec->next) {
+  LISTBASE_FOREACH (NlaEvalChannel *, nec, &nlaeval->channels) {
     nlaevalchan_free_data(nec);
   }
 
@@ -1954,7 +1954,7 @@ void nladata_flush_channels(PointerRNA *ptr,
   }
 
   /* for each channel with accumulated values, write its value on the property it affects */
-  for (NlaEvalChannel *nec = channels->channels.first; nec; nec = nec->next) {
+  LISTBASE_FOREACH (NlaEvalChannel *, nec, &channels->channels) {
     NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_find_channel(snapshot, nec);
 
     PathResolvedRNA rna = {nec->key.ptr, nec->key.prop, -1};
@@ -1985,7 +1985,7 @@ static void nla_eval_domain_action(PointerRNA *ptr,
     return;
   }
 
-  for (FCurve *fcu = act->curves.first; fcu; fcu = fcu->next) {
+  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
     /* check if this curve should be skipped */
     if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) {
       continue;
@@ -2020,7 +2020,7 @@ static void nla_eval_domain_strips(PointerRNA *ptr,
                                    ListBase *strips,
                                    GSet *touched_actions)
 {
-  for (NlaStrip *strip = strips->first; strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* check strip's action */
     if (strip->act) {
       nla_eval_domain_action(ptr, channels, strip->act, touched_actions);
@@ -2044,7 +2044,7 @@ static void animsys_evaluate_nla_domain(PointerRNA *ptr, NlaEvalData *channels, 
   }
 
   /* NLA Data - Animation Data for Strips */
-  for (NlaTrack *nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     /* solo and muting are mutually exclusive... */
     if (adt->flag & ADT_NLA_SOLO_TRACK) {
       /* skip if there is a solo track, but this isn't it */
@@ -2430,7 +2430,7 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
  */
 void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache)
 {
-  for (NlaKeyframingContext *ctx = cache->first; ctx; ctx = ctx->next) {
+  LISTBASE_FOREACH (NlaKeyframingContext *, ctx, cache) {
     MEM_SAFE_FREE(ctx->eval_strip);
     nlaeval_free(&ctx->nla_channels);
   }
@@ -2738,7 +2738,7 @@ void BKE_animsys_update_driver_array(ID *id)
     adt->driver_array = MEM_mallocN(sizeof(FCurve *) * num_drivers, "adt->driver_array");
 
     int driver_index = 0;
-    for (FCurve *fcu = adt->drivers.first; fcu; fcu = fcu->next) {
+    LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
       adt->driver_array[driver_index++] = fcu;
     }
   }

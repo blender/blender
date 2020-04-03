@@ -39,7 +39,7 @@ static void node_shader_init_displacement(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom1 = SHD_SPACE_OBJECT; /* space */
 
   /* Set default value here for backwards compatibility. */
-  for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->name, "Midlevel")) {
       ((bNodeSocketValueFloat *)sock->default_value)->value = 0.5f;
     }

@@ -269,7 +269,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
        */
       v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
       v2d->keeptot = V2D_KEEPTOT_BOUNDS;
-
       if (do_init) {
         v2d->tot.xmin = v2d->tot.ymin = 0.0f;
         v2d->tot.xmax = (float)(winx - 1);
@@ -900,7 +899,7 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 
   /* check if doing whole screen syncing (i.e. time/horizontal) */
   if ((v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) && (screen)) {
-    for (ScrArea *area_iter = screen->areabase.first; area_iter; area_iter = area_iter->next) {
+    LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
       for (region = area_iter->regionbase.first; region; region = region->next) {
         /* don't operate on self */
         if (v2dcur != &region->v2d) {

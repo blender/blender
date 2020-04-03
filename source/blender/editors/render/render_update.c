@@ -182,7 +182,7 @@ void ED_render_engine_changed(Main *bmain)
 {
   /* on changing the render engine type, clear all running render engines */
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       ED_render_engine_area_exit(bmain, area);
     }
   }
@@ -206,7 +206,7 @@ void ED_render_engine_changed(Main *bmain)
 
 void ED_render_view_layer_changed(Main *bmain, bScreen *screen)
 {
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     ED_render_engine_area_exit(bmain, area);
   }
 }

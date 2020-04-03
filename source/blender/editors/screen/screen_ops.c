@@ -681,7 +681,7 @@ static bool actionzone_area_poll(bContext *C)
     const int *xy = &win->eventstate->x;
     AZone *az;
 
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       for (az = area->actionzones.first; az; az = az->next) {
         if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
           return 1;
@@ -895,7 +895,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
 /* Finds an action-zone by position in entire screen so azones can overlap. */
 static AZone *screen_actionzone_find_xy(bScreen *screen, const int xy[2])
 {
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     AZone *az = area_actionzone_refresh_xy(area, xy, true);
     if (az != NULL) {
       return az;
@@ -907,8 +907,8 @@ static AZone *screen_actionzone_find_xy(bScreen *screen, const int xy[2])
 /* Returns the area that the azone belongs to */
 static ScrArea *screen_actionzone_area(bScreen *screen, const AZone *az)
 {
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-    for (AZone *zone = area->actionzones.first; zone; zone = zone->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    LISTBASE_FOREACH (AZone *, zone, &area->actionzones) {
       if (zone == az) {
         return area;
       }
@@ -1470,7 +1470,7 @@ static void area_move_set_limits(wmWindow *win,
 
   if (use_bigger_smaller_snap != NULL) {
     *use_bigger_smaller_snap = false;
-    for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
       int size_min = ED_area_global_min_size_y(area) - 1;
       int size_max = ED_area_global_max_size_y(area) - 1;
 
@@ -1511,7 +1511,7 @@ static void area_move_set_limits(wmWindow *win,
 
   WM_window_rect_calc(win, &window_rect);
 
-  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     if (dir == 'h') {
       int y1;
       areamin = areaminy;
@@ -1661,13 +1661,13 @@ static int area_snap_calc_location(const bScreen *screen,
         }
       }
 
-      for (const ScrVert *v1 = screen->vertbase.first; v1; v1 = v1->next) {
+      LISTBASE_FOREACH (const ScrVert *, v1, &screen->vertbase) {
         if (!v1->editflag) {
           continue;
         }
         const int v_loc = (&v1->vec.x)[!axis];
 
-        for (const ScrVert *v2 = screen->vertbase.first; v2; v2 = v2->next) {
+        LISTBASE_FOREACH (const ScrVert *, v2, &screen->vertbase) {
           if (v2->editflag) {
             continue;
           }
@@ -2504,7 +2504,7 @@ static int area_max_regionsize(ScrArea *area, ARegion *scalear, AZEdge edge)
 
     /* subtractwidth of regions on opposite side
      * prevents dragging regions into other opposite regions */
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region == scalear) {
         continue;
       }
@@ -2801,11 +2801,11 @@ static void areas_do_frame_follow(bContext *C, bool middle)
   bScreen *screen_ctx = CTX_wm_screen(C);
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  for (wmWindow *window = wm->windows.first; window; window = window->next) {
+  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
     const bScreen *screen = WM_window_get_active_screen(window);
 
-    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-      for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         /* do follow here if editor type supports it */
         if ((screen_ctx->redraws_flag & TIME_FOLLOW)) {
           if ((region->regiontype == RGN_TYPE_WINDOW &&
@@ -4595,7 +4595,7 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 /* find window that owns the animation timer */
 bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
 {
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     bScreen *screen = WM_window_get_active_screen(win);
 
     if (screen->animtimer || screen->scrubbing) {
@@ -4608,7 +4608,7 @@ bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
 
 bScreen *ED_screen_animation_no_scrub(const wmWindowManager *wm)
 {
-  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     bScreen *screen = WM_window_get_active_screen(win);
 
     if (screen->animtimer) {
@@ -5388,7 +5388,7 @@ static int space_workspace_cycle_invoke(bContext *C, wmOperator *op, const wmEve
   ListBase ordered;
   BKE_id_ordered_list(&ordered, &bmain->workspaces);
 
-  for (LinkData *link = ordered.first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &ordered) {
     if (link->data == workspace_src) {
       if (direction == SPACE_CONTEXT_CYCLE_PREV) {
         workspace_dst = (link->prev) ? link->prev->data : NULL;

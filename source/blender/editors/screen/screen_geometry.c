@@ -96,7 +96,7 @@ ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
 
   CLAMP_MIN(safety, 2);
 
-  for (ScrEdge *se = area_map->edgebase.first; se; se = se->next) {
+  LISTBASE_FOREACH (ScrEdge *, se, &area_map->edgebase) {
     if (screen_geom_edge_is_horizontal(se)) {
       if ((se->v1->vec.y > bounds_rect->ymin) && (se->v1->vec.y < (bounds_rect->ymax - 1))) {
         short min, max;
@@ -198,7 +198,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
 
     if (facy > 1) {
       /* Keep timeline small in video edit workspace. */
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->spacetype == SPACE_ACTION && area->v1->vec.y == screen_rect.ymin &&
             screen_geom_area_height(area) <= headery * facy + 1) {
           ScrEdge *se = BKE_screen_find_edge(screen, area->v2, area->v3);
@@ -222,7 +222,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
     }
     if (facy < 1) {
       /* make each window at least ED_area_headersize() high */
-      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (screen_geom_area_height(area) < headery) {
           /* lower edge */
           ScrEdge *se = BKE_screen_find_edge(screen, area->v4, area->v1);
@@ -248,7 +248,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
 
   /* Global areas have a fixed size that only changes with the DPI.
    * Here we ensure that exactly this size is set. */
-  for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
     if (area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
       continue;
     }
@@ -379,7 +379,7 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
 
   while (oneselected) {
     oneselected = false;
-    for (ScrEdge *se = screen->edgebase.first; se; se = se->next) {
+    LISTBASE_FOREACH (ScrEdge *, se, &screen->edgebase) {
       if (se->v1->flag + se->v2->flag == 1) {
         if (dir == 'h') {
           if (se->v1->vec.y == se->v2->vec.y) {

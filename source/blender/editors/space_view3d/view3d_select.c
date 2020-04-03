@@ -157,7 +157,7 @@ void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
 static bool object_deselect_all_visible(ViewLayer *view_layer, View3D *v3d)
 {
   bool changed = false;
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (base->flag & BASE_SELECTED) {
       if (BASE_SELECTABLE(v3d, base)) {
         ED_object_base_select(base, BA_DESELECT);
@@ -172,7 +172,7 @@ static bool object_deselect_all_visible(ViewLayer *view_layer, View3D *v3d)
 static bool object_deselect_all_except(ViewLayer *view_layer, Base *b)
 {
   bool changed = false;
-  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (base->flag & BASE_SELECTED) {
       if (b != base) {
         ED_object_base_select(base, BA_DESELECT);
@@ -617,7 +617,7 @@ static Base **do_pose_tag_select_op_prepare(ViewContext *vc, uint *r_bases_len)
   FOREACH_BASE_IN_MODE_BEGIN (vc->view_layer, vc->v3d, OB_ARMATURE, OB_MODE_POSE, base_iter) {
     Object *ob_iter = base_iter->object;
     bArmature *arm = ob_iter->data;
-    for (bPoseChannel *pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
       Bone *bone = pchan->bone;
       bone->flag &= ~BONE_DONE;
     }
@@ -659,7 +659,7 @@ static bool do_pose_tag_select_op_exec(Base **bases, const uint bases_len, const
     }
 
     bool changed = true;
-    for (bPoseChannel *pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
       Bone *bone = pchan->bone;
       if ((bone->flag & BONE_UNSELECTABLE) == 0) {
         const bool is_select = bone->flag & BONE_SELECTED;
@@ -3076,7 +3076,7 @@ static bool do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const
   const int hits = view3d_opengl_select(
       vc, vbuffer, 4 * (totobj + MAXPICKELEMS), rect, VIEW3D_SELECT_ALL, select_filter);
 
-  for (Base *base = vc->view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &vc->view_layer->object_bases) {
     base->object->id.tag &= ~LIB_TAG_DOIT;
   }
 
@@ -3092,7 +3092,7 @@ static bool do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const
     goto finally;
   }
 
-  for (Base *base = vc->view_layer->object_bases.first; base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &vc->view_layer->object_bases) {
     if (BASE_SELECTABLE(v3d, base)) {
       if ((base->object->runtime.select_id & 0x0000FFFF) != 0) {
         BLI_array_append(bases, base);

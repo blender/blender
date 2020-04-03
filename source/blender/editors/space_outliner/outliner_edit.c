@@ -1292,7 +1292,7 @@ static void outliner_show_active(SpaceOutliner *so, ARegion *region, TreeElement
     return;
   }
 
-  for (TreeElement *ten = te->subtree.first; ten; ten = ten->next) {
+  LISTBASE_FOREACH (TreeElement *, ten, &te->subtree) {
     outliner_show_active(so, region, ten, id);
   }
 }
@@ -1310,7 +1310,7 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
     ID *id = TREESTORE(active_element)->id;
 
     /* Expand all elements in the outliner with matching ID */
-    for (TreeElement *te = so->tree.first; te; te = te->next) {
+    LISTBASE_FOREACH (TreeElement *, te, &so->tree) {
       outliner_show_active(so, region, te, id);
     }
 

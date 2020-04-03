@@ -799,7 +799,7 @@ void ED_workspace_status_text(bContext *C, const char *str)
   }
 
   /* Redraw status bar. */
-  for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
     if (area->spacetype == SPACE_STATUSBAR) {
       ED_area_tag_redraw(area);
       break;
@@ -1824,7 +1824,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
   /* Dynamically sized regions may have changed region sizes, so we have to force azone update. */
   area_azone_initialize(win, screen, area);
 
-  for (ARegion *region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     region_subwindow(region);
 
     /* region size may have changed, init does necessary adjustments */
@@ -2176,7 +2176,7 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
     if (sync_header_alignment) {
       /* Spaces with footer. */
       if (st->spaceid == SPACE_TEXT) {
-        for (ARegion *region = area->regionbase.first; region; region = region->next) {
+        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
           if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
             region->alignment = header_alignment;
           }
@@ -2189,7 +2189,7 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
         }
       }
       else {
-        for (ARegion *region = area->regionbase.first; region; region = region->next) {
+        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
           if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
             region->alignment = header_alignment;
             break;
@@ -2440,7 +2440,7 @@ static void ed_panel_draw(const bContext *C,
 
   /* Draw child panels. */
   if (open) {
-    for (LinkData *link = pt->children.first; link; link = link->next) {
+    LISTBASE_FOREACH (LinkData *, link, &pt->children) {
       PanelType *child_pt = link->data;
       Panel *child_panel = UI_panel_find_by_type(&panel->children, child_pt);
 
@@ -2856,7 +2856,7 @@ int ED_area_headersize(void)
 
 int ED_area_header_alignment_or_fallback(const ScrArea *area, int fallback)
 {
-  for (ARegion *region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype == RGN_TYPE_HEADER) {
       return region->alignment;
     }
@@ -2877,7 +2877,7 @@ int ED_area_footersize(void)
 
 int ED_area_footer_alignment_or_fallback(const ScrArea *area, int fallback)
 {
-  for (ARegion *region = area->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype == RGN_TYPE_FOOTER) {
       return region->alignment;
     }

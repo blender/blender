@@ -341,7 +341,7 @@ void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
 
   GHash *name_map = BLI_ghash_str_new(__func__);
 
-  for (EditBone *ebone_src = editbones->first; ebone_src; ebone_src = ebone_src->next) {
+  LISTBASE_FOREACH (EditBone *, ebone_src, editbones) {
     EditBone *ebone_dst = ebone_src->temp.ebone;
     if (!ebone_dst) {
       ebone_dst = ED_armature_ebone_get_mirrored(editbones, ebone_src);
@@ -351,7 +351,7 @@ void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
     }
   }
 
-  for (EditBone *ebone_src = editbones->first; ebone_src; ebone_src = ebone_src->next) {
+  LISTBASE_FOREACH (EditBone *, ebone_src, editbones) {
     EditBone *ebone_dst = ebone_src->temp.ebone;
     if (ebone_dst) {
       bPoseChannel *pchan_src = BKE_pose_channel_find_name(ob->pose, ebone_src->name);

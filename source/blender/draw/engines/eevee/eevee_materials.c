@@ -2187,7 +2187,7 @@ void EEVEE_particle_hair_cache_populate(EEVEE_Data *vedata,
 
   if (ob->type == OB_MESH) {
     if (ob != draw_ctx->object_edit) {
-      for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type != eModifierType_ParticleSystem) {
           continue;
         }

@@ -117,9 +117,8 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
     DEG_relations_tag_update(bmain); /* added object */
 
     /* convert grease pencil palettes (version >= 2.78)  to materials and weights */
-    for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
-      for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor;
-           palcolor = palcolor->next) {
+    LISTBASE_FOREACH (const bGPDpalette *, palette, &gpd->palettes) {
+      LISTBASE_FOREACH (bGPDpalettecolor *, palcolor, &palette->colors) {
 
         /* create material slot */
         Material *ma = BKE_gpencil_object_material_new(bmain, ob, palcolor->info, NULL);
@@ -168,9 +167,8 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
   }
 
   if (is_annotation) {
-    for (const bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
-      for (bGPDpalettecolor *palcolor = palette->colors.first; palcolor;
-           palcolor = palcolor->next) {
+    LISTBASE_FOREACH (const bGPDpalette *, palette, &gpd->palettes) {
+      LISTBASE_FOREACH (bGPDpalettecolor *, palcolor, &palette->colors) {
         /* fix layers */
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           /* unlock/unhide layer */

@@ -486,7 +486,7 @@ static bool wm_keymap_item_uses_modifier(wmKeyMapItem *kmi, const int event_modi
 
 bool WM_keymap_uses_event_modifier(wmKeyMap *keymap, const int event_modifier)
 {
-  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     if ((kmi->flag & KMI_INACTIVE) == 0) {
       if (wm_keymap_item_uses_modifier(kmi, event_modifier)) {
         return true;

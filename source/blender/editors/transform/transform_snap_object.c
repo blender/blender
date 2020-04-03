@@ -1838,7 +1838,7 @@ static short snapArmature(SnapData *snapdata,
 
   bArmature *arm = ob->data;
   if (arm->edbo) {
-    for (EditBone *eBone = arm->edbo->first; eBone; eBone = eBone->next) {
+    LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
       if (eBone->layer & arm->layer) {
         /* skip hidden or moving (selected) bones */
         if ((eBone->flag & (BONE_HIDDEN_A | BONE_ROOTSEL | BONE_TIPSEL)) == 0) {
@@ -1881,7 +1881,7 @@ static short snapArmature(SnapData *snapdata,
     }
   }
   else if (ob->pose && ob->pose->chanbase.first) {
-    for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       Bone *bone = pchan->bone;
       /* skip hidden bones */
       if (bone && !(bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {

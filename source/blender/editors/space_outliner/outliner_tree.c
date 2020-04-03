@@ -1254,7 +1254,7 @@ static bool outliner_library_id_show(Library *lib, ID *id, short filter_id_type)
     Collection *collection = (Collection *)id;
     bool has_non_scene_parent = false;
 
-    for (CollectionParent *cparent = collection->parents.first; cparent; cparent = cparent->next) {
+    LISTBASE_FOREACH (CollectionParent *, cparent, &collection->parents) {
       if (!(cparent->collection->flag & COLLECTION_IS_MASTER)) {
         has_non_scene_parent = true;
       }
@@ -1387,7 +1387,7 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOutliner *soops
 static void outliner_add_layer_collection_objects(
     SpaceOutliner *soops, ListBase *tree, ViewLayer *layer, LayerCollection *lc, TreeElement *ten)
 {
-  for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
+  LISTBASE_FOREACH (CollectionObject *, cob, &lc->collection->gobject) {
     Base *base = BKE_view_layer_base_find(layer, cob->ob);
     TreeElement *te_object = outliner_add_element(soops, tree, base->object, ten, 0, 0);
     te_object->directdata = base;
@@ -1405,7 +1405,7 @@ static void outliner_add_layer_collections_recursive(SpaceOutliner *soops,
                                                      TreeElement *parent_ten,
                                                      const bool show_objects)
 {
-  for (LayerCollection *lc = layer_collections->first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, layer_collections) {
     const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
     TreeElement *ten;
 
@@ -1468,7 +1468,7 @@ BLI_INLINE void outliner_add_collection_objects(SpaceOutliner *soops,
                                                 Collection *collection,
                                                 TreeElement *parent)
 {
-  for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     outliner_add_element(soops, tree, cob->ob, parent, 0, 0);
   }
 }
@@ -1479,7 +1479,7 @@ static TreeElement *outliner_add_collection_recursive(SpaceOutliner *soops,
 {
   outliner_add_collection_init(ten, collection);
 
-  for (CollectionChild *child = collection->children.first; child; child = child->next) {
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     outliner_add_element(soops, &ten->subtree, &child->collection->id, ten, 0, 0);
   }
 
@@ -1542,7 +1542,7 @@ static void outliner_make_object_parent_hierarchy_collections(SpaceOutliner *soo
       continue;
     }
 
-    for (LinkData *link = parent_ob_tree_elements->first; link; link = link->next) {
+    LISTBASE_FOREACH (LinkData *, link, parent_ob_tree_elements) {
       TreeElement *parent_ob_tree_element = link->data;
       TreeElement *parent_ob_collection_tree_element = NULL;
       bool found = false;
@@ -1556,8 +1556,7 @@ static void outliner_make_object_parent_hierarchy_collections(SpaceOutliner *soo
         parent_ob_collection_tree_element = parent_ob_collection_tree_element->parent;
       }
 
-      for (LinkData *link_iter = child_ob_tree_elements->first; link_iter;
-           link_iter = link_iter->next) {
+      LISTBASE_FOREACH (LinkData *, link_iter, child_ob_tree_elements) {
         TreeElement *child_ob_tree_element = link_iter->data;
 
         if (child_ob_tree_element->parent == parent_ob_collection_tree_element) {
@@ -1589,7 +1588,7 @@ static void outliner_make_object_parent_hierarchy_collections(SpaceOutliner *soo
 static void outliner_object_tree_elements_lookup_create_recursive(GHash *object_tree_elements_hash,
                                                                   TreeElement *te_parent)
 {
-  for (TreeElement *te = te_parent->subtree.first; te; te = te->next) {
+  LISTBASE_FOREACH (TreeElement *, te, &te_parent->subtree) {
     TreeStoreElem *tselem = TREESTORE(te);
 
     if (tselem->type == TSE_LAYER_COLLECTION) {
@@ -2427,7 +2426,7 @@ void outliner_build_tree(
   else if (soops->outlinevis == SO_VIEW_LAYER) {
     if (soops->filter & SO_FILTER_NO_COLLECTION) {
       /* Show objects in the view layer. */
-      for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+      LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         TreeElement *te_object = outliner_add_element(
             soops, &soops->tree, base->object, NULL, 0, 0);
         te_object->directdata = base;

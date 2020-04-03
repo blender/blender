@@ -261,7 +261,7 @@ uiBut *ui_but_find_mouse_over_ex(ARegion *region, const int x, const int y, cons
   if (!ui_region_contains_point_px(region, x, y)) {
     return NULL;
   }
-  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     float mx = x, my = y;
     ui_window_to_block_fl(region, block, &mx, &my);
 
@@ -309,7 +309,7 @@ uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
   BLI_rctf_rcti_copy(&rect_px_fl, rect_px);
   uiBut *butover = NULL;
 
-  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     rctf rect_block;
     ui_window_to_block_rctf(region, block, &rect_block, &rect_px_fl);
 
@@ -340,7 +340,7 @@ uiBut *ui_list_find_mouse_over_ex(ARegion *region, int x, int y)
   if (!ui_region_contains_point_px(region, x, y)) {
     return NULL;
   }
-  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     float mx = x, my = y;
     ui_window_to_block_fl(region, block, &mx, &my);
     for (uiBut *but = block->buttons.last; but; but = but->prev) {
@@ -517,7 +517,7 @@ uiBlock *ui_block_find_mouse_over_ex(const ARegion *region,
   if (!ui_region_contains_point_px(region, x, y)) {
     return NULL;
   }
-  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     if (only_clip) {
       if ((block->flag & UI_BLOCK_CLIP_EVENTS) == 0) {
         continue;
@@ -545,8 +545,8 @@ uiBlock *ui_block_find_mouse_over(const ARegion *region, const wmEvent *event, b
 
 uiBut *ui_region_find_active_but(ARegion *region)
 {
-  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
-    for (uiBut *but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (but->active) {
         return but;
       }
@@ -558,8 +558,8 @@ uiBut *ui_region_find_active_but(ARegion *region)
 
 uiBut *ui_region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude)
 {
-  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
-    for (uiBut *but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (((but->flag & flag_include) == flag_include) && ((but->flag & flag_exclude) == 0)) {
         return but;
       }
@@ -633,7 +633,7 @@ bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px)
 /** Check if the cursor is over any popups. */
 ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, int x, int y)
 {
-  for (ARegion *region = screen->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     rcti winrct;
 
     ui_region_winrct_get_no_margin(region, &winrct);

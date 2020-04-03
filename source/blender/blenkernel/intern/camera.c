@@ -912,7 +912,7 @@ static Object *camera_multiview_advanced(const Scene *scene, Object *camera, con
   name[0] = '\0';
 
   /* we need to take the better match, thus the len_suffix_max test */
-  for (const SceneRenderView *srv = scene->r.views.first; srv; srv = srv->next) {
+  LISTBASE_FOREACH (const SceneRenderView *, srv, &scene->r.views) {
     const int len_suffix = strlen(srv->suffix);
 
     if ((len_suffix < len_suffix_max) || (len_name < len_suffix)) {

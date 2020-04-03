@@ -146,7 +146,7 @@ static int mouse_nla_channels(
         else {
           /* deselect all */
           /* TODO: should this deselect all other types of channels too? */
-          for (Base *b = view_layer->object_bases.first; b; b = b->next) {
+          LISTBASE_FOREACH (Base *, b, &view_layer->object_bases) {
             ED_object_base_select(b, BA_DESELECT);
             if (b->object->adt) {
               b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);

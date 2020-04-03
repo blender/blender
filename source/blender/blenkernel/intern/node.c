@@ -113,7 +113,7 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   /* Since source nodes and sockets are unique pointers we can put everything in a single map. */
   GHash *new_pointers = BLI_ghash_ptr_new(__func__);
 
-  for (const bNode *node_src = ntree_src->nodes.first; node_src; node_src = node_src->next) {
+  LISTBASE_FOREACH (const bNode *, node_src, &ntree_src->nodes) {
     bNode *new_node = BKE_node_copy_ex(ntree_dst, node_src, flag_subdata, true);
     BLI_ghash_insert(new_pointers, (void *)node_src, new_node);
     /* Store mapping to inputs. */
@@ -1634,7 +1634,7 @@ void nodePositionRelative(bNode *from_node,
 
 void nodePositionPropagate(bNode *node)
 {
-  for (bNodeSocket *nsock = node->inputs.first; nsock; nsock = nsock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, nsock, &node->inputs) {
     if (nsock->link != NULL) {
       bNodeLink *link = nsock->link;
       nodePositionRelative(link->fromnode, link->tonode, link->fromsock, link->tosock);
@@ -2662,7 +2662,7 @@ void ntreeInterfaceTypeUpdate(bNodeTree *ntree)
 bNode *ntreeFindType(const bNodeTree *ntree, int type)
 {
   if (ntree) {
-    for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type == type) {
         return node;
       }
@@ -3396,7 +3396,7 @@ void ntreeUpdateAllNew(Main *main)
    * might have been set in file reading or versioning. */
   FOREACH_NODETREE_BEGIN (main, ntree, owner_id) {
     if (owner_id->tag & LIB_TAG_NEW) {
-      for (bNode *node = ntree->nodes.first; node; node = node->next) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (node->typeinfo->group_update_func) {
           node->typeinfo->group_update_func(ntree, node);
         }
@@ -3414,7 +3414,7 @@ void ntreeUpdateAllUsers(Main *main, ID *ngroup)
   FOREACH_NODETREE_BEGIN (main, ntree, owner_id) {
     bool need_update = false;
 
-    for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->id == ngroup) {
         if (node->typeinfo->group_update_func) {
           node->typeinfo->group_update_func(ntree, node);
@@ -4245,7 +4245,7 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
 void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer_index)
 {
   BLI_assert(layer_index != -1);
-  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == CMP_NODE_R_LAYERS && (Scene *)node->id == scene) {
       if (node->custom1 == layer_index) {
         node->custom1 = 0;

@@ -147,7 +147,7 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
   /* Make sure we comply to the ubo alignment requirements. */
   gpu_uniformbuffer_inputs_sort(inputs);
 
-  for (LinkData *link = inputs->first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, inputs) {
     const eGPUType gputype = get_padded_gpu_type(link);
     ubo->buffer.size += gputype * sizeof(float);
   }
@@ -160,7 +160,7 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
 
   /* Now that we know the total ubo size we can start populating it. */
   float *offset = ubo->data;
-  for (LinkData *link = inputs->first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, inputs) {
     GPUInput *input = link->data;
     memcpy(offset, input->vec, input->type * sizeof(float));
     offset += get_padded_gpu_type(link);
@@ -272,7 +272,7 @@ static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
   LinkData *inputs_lookup[MAX_UBO_GPU_TYPE + 1] = {NULL};
   eGPUType cur_type = MAX_UBO_GPU_TYPE + 1;
 
-  for (LinkData *link = inputs->first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, inputs) {
     GPUInput *input = link->data;
 
     if (input->type == GPU_MAT3) {

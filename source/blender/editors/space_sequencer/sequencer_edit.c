@@ -3477,7 +3477,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
   seqbase_clipboard_frame = scene->r.cfra;
 
   /* Need to remove anything that references the current scene */
-  for (Sequence *seq = seqbase_clipboard.first; seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, &seqbase_clipboard) {
     seq_copy_del_sound(scene, seq);
   }
 

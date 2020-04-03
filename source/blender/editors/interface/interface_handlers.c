@@ -1272,7 +1272,7 @@ static void ui_multibut_states_create(uiBut *but_active, uiHandleButtonData *dat
 
   data->multi_data.bs_mbuts = UI_butstore_create(but_active->block);
 
-  for (uiBut *but = but_active->block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBut *, but, &but_active->block->buttons) {
     if (but->flag & UI_BUT_DRAG_MULTI) {
       ui_multibut_add(data, but);
     }
@@ -9241,7 +9241,7 @@ static void ui_menu_scroll_apply_offset_y(ARegion *region, uiBlock *block, float
     if (dy < 0.0f) {
       /* Stop at top item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
       float ymax = -FLT_MAX;
-      for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
         ymax = max_ff(ymax, bt->rect.ymax);
       }
       if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD) {
@@ -9251,7 +9251,7 @@ static void ui_menu_scroll_apply_offset_y(ARegion *region, uiBlock *block, float
     else {
       /* Stop at bottom item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
       float ymin = FLT_MAX;
-      for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+      LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
         ymin = min_ff(ymin, bt->rect.ymin);
       }
       if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD) {
@@ -9264,7 +9264,7 @@ static void ui_menu_scroll_apply_offset_y(ARegion *region, uiBlock *block, float
   block->handle->scrolloffset += dy;
 
   /* apply scroll offset */
-  for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
     bt->rect.ymin += dy;
     bt->rect.ymax += dy;
   }
@@ -9345,7 +9345,7 @@ static bool ui_menu_scroll_step(ARegion *region, uiBlock *block, const int scrol
 
 static void ui_region_auto_open_clear(ARegion *region)
 {
-  for (uiBlock *block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     block->auto_open = false;
   }
 }
@@ -10984,7 +10984,7 @@ void UI_screen_free_active_but(const bContext *C, bScreen *screen)
 
   ED_screen_areas_iter(win, screen, area)
   {
-    for (ARegion *region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       uiBut *but = ui_region_find_active_but(region);
       if (but) {
         uiHandleButtonData *data = but->active;
