@@ -41,6 +41,8 @@
 
 #include "BKE_mesh.h"
 
+#include "BLI_listbase.h"
+
 #include "BLT_translation.h"
 
 #include "rna_internal.h"

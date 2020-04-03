@@ -29,6 +29,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array_utils.h"
+#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"

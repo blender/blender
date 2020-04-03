@@ -33,6 +33,7 @@
 #include "BKE_global.h" /* for G.debug */
 
 #include "BLI_link_utils.h"
+#include "BLI_listbase.h"
 #include "BLI_memblock.h"
 
 #include "DNA_camera_types.h"

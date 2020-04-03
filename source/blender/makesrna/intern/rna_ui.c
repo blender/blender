@@ -27,6 +27,8 @@
 
 #include "BKE_idprop.h"
 
+#include "BLI_listbase.h"
+
 #include "RNA_define.h"
 
 #include "RNA_enum_types.h"

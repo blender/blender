@@ -28,6 +28,7 @@
 #include "DNA_volume_types.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_listbase.h"
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 

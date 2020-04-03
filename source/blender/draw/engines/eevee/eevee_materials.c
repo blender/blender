@@ -25,6 +25,7 @@
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_math_bits.h"
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"

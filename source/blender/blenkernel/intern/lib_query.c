@@ -61,6 +61,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"

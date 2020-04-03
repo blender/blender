@@ -36,6 +36,8 @@
 #include "BKE_object.h"
 #include "BKE_tracking.h"
 
+#include "BLI_listbase.h"
+
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"

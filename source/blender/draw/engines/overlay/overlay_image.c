@@ -27,6 +27,8 @@
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 
+#include "BLI_listbase.h"
+
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 

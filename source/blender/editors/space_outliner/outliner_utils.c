@@ -23,6 +23,7 @@
 
 #include <string.h>
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"

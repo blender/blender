@@ -46,6 +46,7 @@
 
 #  include "DNA_object_types.h"
 
+#  include "BLI_listbase.h"
 #  include "BLI_string_utils.h"
 
 #  include "BKE_animsys.h"

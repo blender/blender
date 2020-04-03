@@ -34,6 +34,7 @@
 
 #include "ED_text.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "DNA_action_types.h"

@@ -22,6 +22,7 @@
 
 #include "DRW_render.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "DNA_armature_types.h"

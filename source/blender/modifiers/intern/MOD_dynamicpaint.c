@@ -20,6 +20,7 @@
 
 #include <stddef.h>
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_dynamicpaint_types.h"

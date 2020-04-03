@@ -32,6 +32,7 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"

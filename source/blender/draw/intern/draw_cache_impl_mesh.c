@@ -29,6 +29,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_buffer.h"
 #include "BLI_edgehash.h"
+#include "BLI_listbase.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"

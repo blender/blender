@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "BLI_dynstr.h"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 

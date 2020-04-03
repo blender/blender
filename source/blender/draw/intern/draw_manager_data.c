@@ -38,6 +38,7 @@
 #include "BLI_alloca.h"
 #include "BLI_hash.h"
 #include "BLI_link_utils.h"
+#include "BLI_listbase.h"
 #include "BLI_memblock.h"
 #include "BLI_mempool.h"
 
