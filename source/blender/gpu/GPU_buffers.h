@@ -42,6 +42,7 @@ struct MPoly;
 struct MVert;
 struct Mesh;
 struct PBVH;
+struct SubdivCCG;
 
 /* Buffers for drawing from PBVH grids. */
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
