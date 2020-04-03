@@ -9499,7 +9499,7 @@ static BHead *read_libblock(FileData *fd,
   }
 
   /* Read libblock struct. */
-  BHead *first_bhead = bhead;
+  BHead *id_bhead = bhead;
   ID *id = read_struct(fd, bhead, "lib block");
   if (id == NULL) {
     return blo_bhead_next(fd, bhead);
@@ -9531,20 +9531,6 @@ static BHead *read_libblock(FileData *fd,
     }
   }
 
-  /* read libblock */
-  BHead *id_bhead = bhead;
-
-  if (id_bhead->code != ID_LINK_PLACEHOLDER) {
-    /* need a name for the mallocN, just for debugging and sane prints on leaks */
-    const char *allocname = dataname(idcode);
-
-    /* read all data into fd->datamap */
-    /* TODO: for the undo case instead of building oldnewmap here we could just quickly check the
-     * bheads... could save some more ticks. Probably not worth it though, bottleneck is full
-     * depsgraph rebuild and evaluate, not actual file reading. */
-    bhead = read_data_into_datamap(fd, id_bhead, allocname);
-  }
-
   /* Restore existing datablocks for undo. */
   const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
 
@@ -9553,8 +9539,8 @@ static BHead *read_libblock(FileData *fd,
   bool do_id_swap = false;
 
   if (fd->memfile != NULL) {
-    if (id_bhead->code != ID_LINK_PLACEHOLDER) {
-      const bool is_identical = read_libblock_is_identical(fd, first_bhead);
+    if (bhead->code != ID_LINK_PLACEHOLDER) {
+      const bool is_identical = read_libblock_is_identical(fd, id_bhead);
       DEBUG_PRINTF("%s: ID %s is unchanged: %d\n", __func__, id->name, is_identical);
 
       BLI_assert(fd->old_idmap != NULL || !do_partial_undo);
@@ -9603,8 +9589,8 @@ static BHead *read_libblock(FileData *fd,
 
       if (can_finalize_and_return) {
         DEBUG_PRINTF("Re-using existing ID %s instead of newly read one\n", id_old->name);
-        oldnewmap_insert(fd->libmap, id_bhead->old, id_old, id_bhead->code);
-        oldnewmap_insert(fd->libmap, id_old, id_old, id_bhead->code);
+        oldnewmap_insert(fd->libmap, bhead->old, id_old, bhead->code);
+        oldnewmap_insert(fd->libmap, id_old, id_old, bhead->code);
 
         if (r_id) {
           *r_id = id_old;
@@ -9639,9 +9625,8 @@ static BHead *read_libblock(FileData *fd,
         }
 
         MEM_freeN(id);
-        oldnewmap_clear(fd->datamap);
 
-        return bhead;
+        return blo_bhead_next(fd, bhead);
       }
     }
 
@@ -9659,8 +9644,7 @@ static BHead *read_libblock(FileData *fd,
          * those. Besides maybe custom properties, no other ID should have pointers to those
          * anyway...
          * And linked IDs are handled separately as well. */
-        do_id_swap = !ELEM(idcode, ID_WM, ID_SCR, ID_WS) &&
-                     !(id_bhead->code == ID_LINK_PLACEHOLDER);
+        do_id_swap = !ELEM(idcode, ID_WM, ID_SCR, ID_WS) && !(bhead->code == ID_LINK_PLACEHOLDER);
       }
     }
 
@@ -9676,8 +9660,8 @@ static BHead *read_libblock(FileData *fd,
 
   /* for ID_LINK_PLACEHOLDER check */
   ID *id_target = do_id_swap ? id_old : id;
-  oldnewmap_insert(fd->libmap, id_bhead->old, id_target, id_bhead->code);
-  oldnewmap_insert(fd->libmap, id_old, id_target, id_bhead->code);
+  oldnewmap_insert(fd->libmap, bhead->old, id_target, bhead->code);
+  oldnewmap_insert(fd->libmap, id_old, id_target, bhead->code);
 
   BLI_addtail(lb, id);
 
@@ -9689,8 +9673,8 @@ static BHead *read_libblock(FileData *fd,
    * to be done still. */
   int id_tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_NEW;
 
-  if (id_bhead->code == ID_LINK_PLACEHOLDER) {
-    /* Tag to get replaced by the actual linked datablock. */
+  /* Read placeholder for linked datablock. */
+  if (bhead->code == ID_LINK_PLACEHOLDER) {
     id_tag |= LIB_TAG_ID_LINK_PLACEHOLDER;
 
     if (placeholder_set_indirect_extern) {
@@ -9701,16 +9685,16 @@ static BHead *read_libblock(FileData *fd,
         id_tag |= LIB_TAG_EXTERN;
       }
     }
+
+    direct_link_id(fd, main, id_tag, id, id_old);
+    return blo_bhead_next(fd, bhead);
   }
 
-  /* Read datablock contents. */
+  /* Read datablock contents.
+   * Use convenient malloc name for debugging and better memory link prints. */
+  const char *allocname = dataname(idcode);
+  bhead = read_data_into_datamap(fd, bhead, allocname);
   const bool success = direct_link_id(fd, main, id_tag, id, id_old);
-
-  /* For placeholders we are done here. */
-  if (id_bhead->code == ID_LINK_PLACEHOLDER) {
-    return blo_bhead_next(fd, id_bhead);
-  }
-
   oldnewmap_clear(fd->datamap);
 
   if (!success) {
@@ -9755,7 +9739,7 @@ static BHead *read_libblock(FileData *fd,
                  id);
   }
 
-  return (bhead);
+  return bhead;
 }
 
 /** \} */
