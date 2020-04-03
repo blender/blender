@@ -321,14 +321,14 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
 
     if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
       gz = navgroup->gz_array[GZ_INDEX_CAMERA];
-      gz->matrix_basis[3][0] = co[0];
-      gz->matrix_basis[3][1] = co[1] - (icon_offset_mini * icon_mini_slot++);
+      gz->matrix_basis[3][0] = roundf(co[0]);
+      gz->matrix_basis[3][1] = roundf(co[1] - (icon_offset_mini * icon_mini_slot++));
       WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
 
       if (navgroup->state.rv3d.is_camera == false) {
         gz = navgroup->gz_array[rv3d->is_persp ? GZ_INDEX_PERSP : GZ_INDEX_ORTHO];
-        gz->matrix_basis[3][0] = co[0];
-        gz->matrix_basis[3][1] = co[1] - (icon_offset_mini * icon_mini_slot++);
+        gz->matrix_basis[3][0] = roundf(co[0]);
+        gz->matrix_basis[3][1] = roundf(co[1] - (icon_offset_mini * icon_mini_slot++));
         WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
       }
     }
