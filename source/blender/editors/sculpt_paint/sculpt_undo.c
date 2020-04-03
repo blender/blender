@@ -1290,6 +1290,11 @@ void SCULPT_undo_push_begin(const char *name)
 
 void SCULPT_undo_push_end(void)
 {
+  SCULPT_undo_push_end_ex(false);
+}
+
+void SCULPT_undo_push_end_ex(const bool use_nested_undo)
+{
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptUndoNode *unode;
 
@@ -1307,7 +1312,7 @@ void SCULPT_undo_push_end(void)
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
   wmWindowManager *wm = G_MAIN->wm.first;
-  if (wm->op_undo_depth == 0) {
+  if (wm->op_undo_depth == 0 || use_nested_undo) {
     UndoStack *ustack = ED_undo_stack_get();
     BKE_undosys_step_push(ustack, NULL, NULL);
     WM_file_tag_modified();

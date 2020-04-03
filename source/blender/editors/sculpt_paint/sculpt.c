@@ -11076,7 +11076,11 @@ void ED_sculpt_end_transform(struct bContext *C)
   if (ss->filter_cache) {
     sculpt_filter_cache_free(ss);
   }
-  SCULPT_undo_push_end();
+  /* Force undo push to happen even inside transform operator, since the sculpt
+   * undo system works separate from regular undo and this is require to properly
+   * finish an undo step also when cancelling. */
+  const bool use_nested_undo = true;
+  SCULPT_undo_push_end_ex(use_nested_undo);
   sculpt_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 
