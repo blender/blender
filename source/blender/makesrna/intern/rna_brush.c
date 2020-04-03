@@ -2242,7 +2242,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 1, 20, 1, 3);
   RNA_def_property_ui_text(prop,
                            "Propagation Steps",
-                           "Distance where boundary edge automaking is going to protect vertices "
+                           "Distance where boundary edge automasking is going to protect vertices "
                            "from the fully masked edge");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
