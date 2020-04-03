@@ -63,6 +63,7 @@ set(SRC
   sculpt_face_set.c
   sculpt_multiplane_scrape.c
   sculpt_pose.c
+  sculpt_transform.c
   sculpt_undo.c
   sculpt_uv.c
 

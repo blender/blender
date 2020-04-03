@@ -57,6 +57,10 @@ typedef enum SculptUpdateType {
   SCULPT_UPDATE_VISIBILITY = 1 << 2,
 } SculptUpdateType;
 
+void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags);
+void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags);
+void SCULPT_flush_stroke_deform(struct Sculpt *sd, Object *ob, bool is_proxy_used);
+
 /* Stroke */
 
 typedef struct SculptCursorGeometryInfo {
@@ -172,11 +176,6 @@ typedef struct {
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node);
 void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter);
 
-/* Dynamic topology */
-void sculpt_pbvh_clear(Object *ob);
-void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
-void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
-
 /* Utils. */
 void SCULPT_calc_brush_plane(struct Sculpt *sd,
                              struct Object *ob,
@@ -239,8 +238,17 @@ void SCULPT_floodfill_execute(
     void *userdata);
 void SCULPT_floodfill_free(SculptFloodFill *flood);
 
+/* Dynamic topology */
+void sculpt_pbvh_clear(Object *ob);
+void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
+void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
+
 /* Automasking. */
 float SCULPT_automasking_factor_get(SculptSession *ss, int vert);
+
+/* Filters. */
+void SCULPT_filter_cache_init(Object *ob, Sculpt *sd);
+void SCULPT_filter_cache_free(SculptSession *ss);
 
 /* Brushes. */
 
@@ -763,5 +771,8 @@ void SCULPT_OT_face_sets_randomize_colors(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_change_visibility(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_init(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(struct wmOperatorType *ot);
+
+/* Transform */
+void SCULPT_OT_set_pivot_position(struct wmOperatorType *ot);
 
 #endif
