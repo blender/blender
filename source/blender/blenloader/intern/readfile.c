@@ -9539,118 +9539,100 @@ static BHead *read_libblock(FileData *fd,
   }
 
   /* Restore existing datablocks for undo. */
-  const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
+  const bool do_partial_undo = (fd->memfile != NULL) &&
+                               (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0 &&
+                               (bhead->code != ID_LINK_PLACEHOLDER);
 
   /* Used when undoing from memfile, we swap changed IDs into their old addresses when found. */
   ID *id_old = NULL;
   bool do_id_swap = false;
 
-  if (fd->memfile != NULL) {
-    if (bhead->code != ID_LINK_PLACEHOLDER) {
-      const bool is_identical = read_libblock_is_identical(fd, id_bhead);
-      DEBUG_PRINTF("%s: ID %s is unchanged: %d\n", __func__, id->name, is_identical);
+  if (do_partial_undo) {
+    const bool is_identical = read_libblock_is_identical(fd, id_bhead);
+    DEBUG_PRINTF("%s: ID %s is unchanged: %d\n", __func__, id->name, is_identical);
 
-      BLI_assert(fd->old_idmap != NULL || !do_partial_undo);
-      /* This code should only ever be reached for local data-blocks. */
-      BLI_assert(main->curlib == NULL);
+    BLI_assert(fd->old_idmap != NULL || !do_partial_undo);
+    /* This code should only ever be reached for local data-blocks. */
+    BLI_assert(main->curlib == NULL);
 
-      /* Find the 'current' existing ID we want to reuse instead of the one we would read from
-       * the undo memfile. */
-      DEBUG_PRINTF("\t Looking for ID %s with uuid %u instead of newly read one\n",
-                   id->name,
-                   id->session_uuid);
-      id_old = do_partial_undo ? BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid) :
-                                 NULL;
+    /* Find the 'current' existing ID we want to reuse instead of the one we would read from
+     * the undo memfile. */
+    DEBUG_PRINTF("\t Looking for ID %s with uuid %u instead of newly read one\n",
+                 id->name,
+                 id->session_uuid);
+    id_old = BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid);
 
-      if (id_old != NULL && is_identical) {
-        /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
-         * this is only for do_version-like code), but for sake of consistency, and also because
-         * it will tell us which ID is re-used from old Main, and which one is actually new. */
-        id_old->tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_UNDO_OLD_ID_REUSED;
-        id_old->lib = main->curlib;
-        id_old->us = ID_FAKE_USERS(id_old);
-        /* Do not reset id->icon_id here, memory allocated for it remains valid. */
-        /* Needed because .blend may have been saved with crap value here... */
-        id_old->newid = NULL;
-        id_old->orig_id = NULL;
+    if (id_old != NULL && is_identical) {
+      /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
+       * this is only for do_version-like code), but for sake of consistency, and also because
+       * it will tell us which ID is re-used from old Main, and which one is actually new. */
+      id_old->tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_UNDO_OLD_ID_REUSED;
+      id_old->lib = main->curlib;
+      id_old->us = ID_FAKE_USERS(id_old);
+      /* Do not reset id->icon_id here, memory allocated for it remains valid. */
+      /* Needed because .blend may have been saved with crap value here... */
+      id_old->newid = NULL;
+      id_old->orig_id = NULL;
 
-        /* About recalc: since that ID did not change at all, we know that its recalc fields also
-         * remained unchanged, so no need to handle neither recalc nor recalc_undo_future here.
+      /* About recalc: since that ID did not change at all, we know that its recalc fields also
+       * remained unchanged, so no need to handle neither recalc nor recalc_undo_future here.
+       */
+
+      Main *old_bmain = fd->old_mainlist->first;
+      ListBase *old_lb = which_libbase(old_bmain, idcode);
+      ListBase *new_lb = which_libbase(main, idcode);
+      BLI_remlink(old_lb, id_old);
+      BLI_addtail(new_lb, id_old);
+
+      DEBUG_PRINTF("Re-using existing ID %s instead of newly read one\n", id_old->name);
+      oldnewmap_insert(fd->libmap, bhead->old, id_old, bhead->code);
+      oldnewmap_insert(fd->libmap, id_old, id_old, bhead->code);
+
+      if (r_id) {
+        *r_id = id_old;
+      }
+
+      /* Even though we re-use the old ID as-is, it does not mean that we are 100% safe from
+       * needing some depsgraph updates for it (it could depend on another ID which address
+       * did not change, but which actual content might have been re-read from the memfile).
+       * IMPORTANT: Do not fully overwrite recalc flag here, depsgraph may not have been ran
+       * yet for previous undo step(s), we do not want to erase flags set by those.
+       */
+      if (fd->undo_direction < 0) {
+        /* We are coming from the future (i.e. do an actual undo, and not a redo), we use our
+         * old reused ID's 'accumulated recalc flags since last memfile undo step saving' as
+         * recalc flags. */
+        id_old->recalc |= id_old->recalc_undo_accumulated;
+      }
+      else {
+        /* We are coming from the past (i.e. do a redo), we use the saved 'accumulated recalc
+         * flags since last memfile undo step saving' from the newly read ID as recalc flags.
          */
-
-        Main *old_bmain = fd->old_mainlist->first;
-        ListBase *old_lb = which_libbase(old_bmain, idcode);
-        ListBase *new_lb = which_libbase(main, idcode);
-        BLI_remlink(old_lb, id_old);
-        BLI_addtail(new_lb, id_old);
-
-        DEBUG_PRINTF("Re-using existing ID %s instead of newly read one\n", id_old->name);
-        oldnewmap_insert(fd->libmap, bhead->old, id_old, bhead->code);
-        oldnewmap_insert(fd->libmap, id_old, id_old, bhead->code);
-
-        if (r_id) {
-          *r_id = id_old;
-        }
-
-        if (do_partial_undo) {
-          /* Even though we re-use the old ID as-is, it does not mean that we are 100% safe from
-           * needing some depsgraph updates for it (it could depend on another ID which address
-           * did not change, but which actual content might have been re-read from the memfile).
-           * IMPORTANT: Do not fully overwrite recalc flag here, depsgraph may not have been ran
-           * yet for previous undo step(s), we do not want to erase flags set by those.
-           */
-          if (fd->undo_direction < 0) {
-            /* We are coming from the future (i.e. do an actual undo, and not a redo), we use our
-             * old reused ID's 'accumulated recalc flags since last memfile undo step saving' as
-             * recalc flags. */
-            id_old->recalc |= id_old->recalc_undo_accumulated;
-          }
-          else {
-            /* We are coming from the past (i.e. do a redo), we use the saved 'accumulated recalc
-             * flags since last memfile undo step saving' from the newly read ID as recalc flags.
-             */
-            id_old->recalc |= id->recalc_undo_accumulated;
-          }
-          /* There is no need to flush the depsgraph's CoWs here, since that ID's data itself did
-           * not change. */
-
-          /* We need to 'accumulate' the accumulated recalc flags of all undo steps until we
-           * actually perform a depsgraph update, otherwise we'd only ever use the flags from one
-           * of the steps, and never get proper flags matching all others. */
-          id_old->recalc_undo_accumulated |= id->recalc_undo_accumulated;
-        }
-
-        MEM_freeN(id);
-
-        return blo_bhead_next(fd, bhead);
+        id_old->recalc |= id->recalc_undo_accumulated;
       }
-    }
+      /* There is no need to flush the depsgraph's CoWs here, since that ID's data itself did
+       * not change. */
 
-    /* Some re-used old IDs might also use newly read ones, so we have to check for old memory
-     * addresses for those as well. */
-    if (do_partial_undo && id->lib == NULL) {
-      BLI_assert(fd->old_idmap != NULL);
-      DEBUG_PRINTF("\t Looking for ID %s with uuid %u instead of newly read one\n",
-                   id->name,
-                   id->session_uuid);
-      id_old = BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid);
-      if (id_old != NULL) {
-        BLI_assert(MEM_allocN_len(id) == MEM_allocN_len(id_old));
-        /* UI IDs are always re-used from old bmain at higher-level calling code, so never swap
-         * those. Besides maybe custom properties, no other ID should have pointers to those
-         * anyway...
-         * And linked IDs are handled separately as well. */
-        do_id_swap = !(bhead->code == ID_LINK_PLACEHOLDER);
-      }
-    }
+      /* We need to 'accumulate' the accumulated recalc flags of all undo steps until we
+       * actually perform a depsgraph update, otherwise we'd only ever use the flags from one
+       * of the steps, and never get proper flags matching all others. */
+      id_old->recalc_undo_accumulated |= id->recalc_undo_accumulated;
 
-    /* At this point, we know we are going to keep that newly read & allocated ID, so we need to
-     * reallocate it to ensure we actually get a unique memory address for it. */
-    if (!do_id_swap) {
-      DEBUG_PRINTF("using newly-read ID %s to a new mem address\n", id->name);
+      MEM_freeN(id);
+
+      return blo_bhead_next(fd, bhead);
+    }
+    else if (id_old != NULL) {
+      /* Some re-used old IDs might also use newly read ones, so we have to check for old memory
+       * addresses for those as well. */
+      DEBUG_PRINTF("using newly-read ID %s to its old, already existing address\n", id->name);
+      BLI_assert(MEM_allocN_len(id) == MEM_allocN_len(id_old));
+      do_id_swap = true;
     }
     else {
-      DEBUG_PRINTF("using newly-read ID %s to its old, already existing address\n", id->name);
+      /* At this point, we know we are going to keep that newly read & allocated ID, so we need to
+       * reallocate it to ensure we actually get a unique memory address for it. */
+      DEBUG_PRINTF("using newly-read ID %s to a new mem address\n", id->name);
     }
   }
 
