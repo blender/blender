@@ -519,11 +519,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
      * leading to corrupted files (see T39847).
      * This will always reset situation to a valid state.
      */
-    bScreen *sc;
+    bScreen *screen;
 
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -852,14 +852,14 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 273, 9)) {
-    bScreen *scr;
+    bScreen *screen;
     ScrArea *area;
     SpaceLink *sl;
     ARegion *region;
 
     /* Make sure sequencer preview area limits zoom */
-    for (scr = bmain->screens.first; scr; scr = scr->id.next) {
-      for (area = scr->areabase.first; area; area = area->next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_SEQ) {
             for (region = sl->regionbase.first; region; region = region->next) {
@@ -1650,9 +1650,9 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 279, 4)) {
     /* Fix for invalid state of screen due to bug in older versions. */
-    for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-      for (ScrArea *area = sc->areabase.first; area; area = area->next) {
-        if (area->full && sc->state == SCREENNORMAL) {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        if (area->full && screen->state == SCREENNORMAL) {
           area->full = NULL;
         }
       }

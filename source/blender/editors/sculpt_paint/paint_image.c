@@ -1159,7 +1159,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
     toggle_paint_cursor(C, 0);
   }
   else {
-    bScreen *sc;
+    bScreen *screen;
     Image *ima = NULL;
     ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
 
@@ -1183,9 +1183,9 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
     }
 
     if (ima) {
-      for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+      for (screen = bmain->screens.first; screen; screen = screen->id.next) {
         ScrArea *area;
-        for (area = sc->areabase.first; area; area = area->next) {
+        for (area = screen->areabase.first; area; area = area->next) {
           SpaceLink *sl;
           for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_IMAGE) {

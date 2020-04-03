@@ -1201,14 +1201,14 @@ finally:
 static uint free_localview_bit(Main *bmain)
 {
   ScrArea *area;
-  bScreen *sc;
+  bScreen *screen;
 
   ushort local_view_bits = 0;
 
   /* sometimes we loose a localview: when an area is closed */
   /* check all areas: which localviews are in use? */
-  for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-    for (area = sc->areabase.first; area; area = area->next) {
+  for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (area = screen->areabase.first; area; area = area->next) {
       SpaceLink *sl = area->spacedata.first;
       for (; sl; sl = sl->next) {
         if (sl->spacetype == SPACE_VIEW3D) {
@@ -1559,13 +1559,13 @@ void VIEW3D_OT_localview_remove_from(wmOperatorType *ot)
 static uint free_localcollection_bit(Main *bmain, ushort local_collections_uuid, bool *r_reset)
 {
   ScrArea *area;
-  bScreen *sc;
+  bScreen *screen;
 
   ushort local_view_bits = 0;
 
   /* Check all areas: which localviews are in use? */
-  for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-    for (area = sc->areabase.first; area; area = area->next) {
+  for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (area = screen->areabase.first; area; area = area->next) {
       SpaceLink *sl = area->spacedata.first;
       for (; sl; sl = sl->next) {
         if (sl->spacetype == SPACE_VIEW3D) {

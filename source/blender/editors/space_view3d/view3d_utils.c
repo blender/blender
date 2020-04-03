@@ -228,13 +228,13 @@ void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 
 bool ED_view3d_context_activate(bContext *C)
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region;
 
   /* area can be NULL when called from python */
   if (area == NULL || area->spacetype != SPACE_VIEW3D) {
-    area = BKE_screen_find_big_area(sc, SPACE_VIEW3D, 0);
+    area = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
   }
 
   if (area == NULL) {

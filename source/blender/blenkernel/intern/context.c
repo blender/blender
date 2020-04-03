@@ -278,7 +278,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
 
 static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
 {
-  bScreen *sc;
+  bScreen *screen;
   ScrArea *area;
   ARegion *region;
   int done = 0, recursion = C->data.recursion;
@@ -336,8 +336,8 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
       }
     }
   }
-  if (done != 1 && recursion < 4 && (sc = CTX_wm_screen(C))) {
-    bContextDataCallback cb = sc->context;
+  if (done != 1 && recursion < 4 && (screen = CTX_wm_screen(C))) {
+    bContextDataCallback cb = screen->context;
     C->data.recursion = 4;
     if (cb) {
       ret = cb(C, member, result);
@@ -543,7 +543,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
 {
   bContextDataResult result;
   ListBase lb;
-  bScreen *sc;
+  bScreen *screen;
   ScrArea *area;
   ARegion *region;
   int a;
@@ -598,8 +598,8 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
       }
     }
   }
-  if ((sc = CTX_wm_screen(C)) && sc->context) {
-    bContextDataCallback cb = sc->context;
+  if ((screen = CTX_wm_screen(C)) && screen->context) {
+    bContextDataCallback cb = screen->context;
     memset(&result, 0, sizeof(result));
     cb(C, "", &result);
 

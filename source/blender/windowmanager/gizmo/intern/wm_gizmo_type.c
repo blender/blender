@@ -134,8 +134,8 @@ static void gizmotype_free(wmGizmoType *gzt)
 static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
 {
   /* Free instances. */
-  for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-    for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
       for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
         ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
         for (ARegion *region = lb->first; region; region = region->next) {

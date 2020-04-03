@@ -2263,11 +2263,11 @@ void ED_area_prevspace(bContext *C, ScrArea *area)
 int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 {
   ScrArea *area = CTX_wm_area(C);
-  bScreen *scr = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   PointerRNA areaptr;
   int xco = 0.4 * U.widget_unit;
 
-  RNA_pointer_create(&(scr->id), &RNA_Area, area, &areaptr);
+  RNA_pointer_create(&(screen->id), &RNA_Area, area, &areaptr);
 
   uiDefButR(block,
             UI_BTYPE_MENU,

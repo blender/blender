@@ -389,7 +389,7 @@ void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizm
   region_refresh_tag_gizmomap_callback = callback;
 }
 
-void BKE_screen_gizmo_tag_refresh(struct bScreen *sc)
+void BKE_screen_gizmo_tag_refresh(struct bScreen *screen)
 {
   if (region_refresh_tag_gizmomap_callback == NULL) {
     return;
@@ -397,7 +397,7 @@ void BKE_screen_gizmo_tag_refresh(struct bScreen *sc)
 
   ScrArea *area;
   ARegion *region;
-  for (area = sc->areabase.first; area; area = area->next) {
+  for (area = screen->areabase.first; area; area = area->next) {
     for (region = area->regionbase.first; region; region = region->next) {
       if (region->gizmo_map != NULL) {
         region_refresh_tag_gizmomap_callback(region->gizmo_map);
@@ -514,19 +514,19 @@ void BKE_screen_area_map_free(ScrAreaMap *area_map)
 }
 
 /** Free (or release) any data used by this screen (does not free the screen itself). */
-void BKE_screen_free(bScreen *sc)
+void BKE_screen_free(bScreen *screen)
 {
-  screen_free_data(&sc->id);
+  screen_free_data(&screen->id);
 }
 
 /* ***************** Screen edges & verts ***************** */
 
-ScrEdge *BKE_screen_find_edge(bScreen *sc, ScrVert *v1, ScrVert *v2)
+ScrEdge *BKE_screen_find_edge(bScreen *screen, ScrVert *v1, ScrVert *v2)
 {
   ScrEdge *se;
 
   BKE_screen_sort_scrvert(&v1, &v2);
-  for (se = sc->edgebase.first; se; se = se->next) {
+  for (se = screen->edgebase.first; se; se = se->next) {
     if (se->v1 == v1 && se->v2 == v2) {
       return se;
     }
@@ -546,13 +546,13 @@ void BKE_screen_sort_scrvert(ScrVert **v1, ScrVert **v2)
   }
 }
 
-void BKE_screen_remove_double_scrverts(bScreen *sc)
+void BKE_screen_remove_double_scrverts(bScreen *screen)
 {
   ScrVert *v1, *verg;
   ScrEdge *se;
   ScrArea *area;
 
-  verg = sc->vertbase.first;
+  verg = screen->vertbase.first;
   while (verg) {
     if (verg->newv == NULL) { /* !!! */
       v1 = verg->next;
@@ -570,7 +570,7 @@ void BKE_screen_remove_double_scrverts(bScreen *sc)
   }
 
   /* replace pointers in edges and faces */
-  se = sc->edgebase.first;
+  se = screen->edgebase.first;
   while (se) {
     if (se->v1->newv) {
       se->v1 = se->v1->newv;
@@ -582,7 +582,7 @@ void BKE_screen_remove_double_scrverts(bScreen *sc)
     BKE_screen_sort_scrvert(&(se->v1), &(se->v2));
     se = se->next;
   }
-  area = sc->areabase.first;
+  area = screen->areabase.first;
   while (area) {
     if (area->v1->newv) {
       area->v1 = area->v1->newv;
@@ -600,29 +600,29 @@ void BKE_screen_remove_double_scrverts(bScreen *sc)
   }
 
   /* remove */
-  verg = sc->vertbase.first;
+  verg = screen->vertbase.first;
   while (verg) {
     v1 = verg->next;
     if (verg->newv) {
-      BLI_remlink(&sc->vertbase, verg);
+      BLI_remlink(&screen->vertbase, verg);
       MEM_freeN(verg);
     }
     verg = v1;
   }
 }
 
-void BKE_screen_remove_double_scredges(bScreen *sc)
+void BKE_screen_remove_double_scredges(bScreen *screen)
 {
   ScrEdge *verg, *se, *sn;
 
   /* compare */
-  verg = sc->edgebase.first;
+  verg = screen->edgebase.first;
   while (verg) {
     se = verg->next;
     while (se) {
       sn = se->next;
       if (verg->v1 == se->v1 && verg->v2 == se->v2) {
-        BLI_remlink(&sc->edgebase, se);
+        BLI_remlink(&screen->edgebase, se);
         MEM_freeN(se);
       }
       se = sn;
@@ -631,37 +631,37 @@ void BKE_screen_remove_double_scredges(bScreen *sc)
   }
 }
 
-void BKE_screen_remove_unused_scredges(bScreen *sc)
+void BKE_screen_remove_unused_scredges(bScreen *screen)
 {
   ScrEdge *se, *sen;
   ScrArea *area;
   int a = 0;
 
   /* sets flags when edge is used in area */
-  area = sc->areabase.first;
+  area = screen->areabase.first;
   while (area) {
-    se = BKE_screen_find_edge(sc, area->v1, area->v2);
+    se = BKE_screen_find_edge(screen, area->v1, area->v2);
     if (se == NULL) {
       printf("error: area %d edge 1 doesn't exist\n", a);
     }
     else {
       se->flag = 1;
     }
-    se = BKE_screen_find_edge(sc, area->v2, area->v3);
+    se = BKE_screen_find_edge(screen, area->v2, area->v3);
     if (se == NULL) {
       printf("error: area %d edge 2 doesn't exist\n", a);
     }
     else {
       se->flag = 1;
     }
-    se = BKE_screen_find_edge(sc, area->v3, area->v4);
+    se = BKE_screen_find_edge(screen, area->v3, area->v4);
     if (se == NULL) {
       printf("error: area %d edge 3 doesn't exist\n", a);
     }
     else {
       se->flag = 1;
     }
-    se = BKE_screen_find_edge(sc, area->v4, area->v1);
+    se = BKE_screen_find_edge(screen, area->v4, area->v1);
     if (se == NULL) {
       printf("error: area %d edge 4 doesn't exist\n", a);
     }
@@ -671,11 +671,11 @@ void BKE_screen_remove_unused_scredges(bScreen *sc)
     area = area->next;
     a++;
   }
-  se = sc->edgebase.first;
+  se = screen->edgebase.first;
   while (se) {
     sen = se->next;
     if (se->flag == 0) {
-      BLI_remlink(&sc->edgebase, se);
+      BLI_remlink(&screen->edgebase, se);
       MEM_freeN(se);
     }
     else {
@@ -685,25 +685,25 @@ void BKE_screen_remove_unused_scredges(bScreen *sc)
   }
 }
 
-void BKE_screen_remove_unused_scrverts(bScreen *sc)
+void BKE_screen_remove_unused_scrverts(bScreen *screen)
 {
   ScrVert *sv, *svn;
   ScrEdge *se;
 
   /* we assume edges are ok */
 
-  se = sc->edgebase.first;
+  se = screen->edgebase.first;
   while (se) {
     se->v1->flag = 1;
     se->v2->flag = 1;
     se = se->next;
   }
 
-  sv = sc->vertbase.first;
+  sv = screen->vertbase.first;
   while (sv) {
     svn = sv->next;
     if (sv->flag == 0) {
-      BLI_remlink(&sc->vertbase, sv);
+      BLI_remlink(&screen->vertbase, sv);
       MEM_freeN(sv);
     }
     else {
@@ -768,10 +768,10 @@ ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, int x, int
 /**
  * \note This is only for screen level regions (typically menus/popups).
  */
-ARegion *BKE_screen_find_region_xy(bScreen *sc, const int regiontype, int x, int y)
+ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, int x, int y)
 {
   ARegion *region_found = NULL;
-  for (ARegion *region = sc->regionbase.first; region; region = region->next) {
+  for (ARegion *region = screen->regionbase.first; region; region = region->next) {
     if ((regiontype == RGN_TYPE_ANY) || (region->regiontype == regiontype)) {
       if (BLI_rcti_isect_pt(&region->winrct, x, y)) {
         region_found = region;
@@ -786,11 +786,11 @@ ARegion *BKE_screen_find_region_xy(bScreen *sc, const int regiontype, int x, int
  * \note Ideally we can get the area from the context,
  * there are a few places however where this isn't practical.
  */
-ScrArea *BKE_screen_find_area_from_space(struct bScreen *sc, SpaceLink *sl)
+ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen, SpaceLink *sl)
 {
   ScrArea *area;
 
-  for (area = sc->areabase.first; area; area = area->next) {
+  for (area = screen->areabase.first; area; area = area->next) {
     if (BLI_findindex(&area->spacedata, sl) != -1) {
       break;
     }
@@ -803,12 +803,12 @@ ScrArea *BKE_screen_find_area_from_space(struct bScreen *sc, SpaceLink *sl)
  * \note Using this function is generally a last resort, you really want to be
  * using the context when you can - campbell
  */
-ScrArea *BKE_screen_find_big_area(bScreen *sc, const int spacetype, const short min)
+ScrArea *BKE_screen_find_big_area(bScreen *screen, const int spacetype, const short min)
 {
   ScrArea *area, *big = NULL;
   int size, maxsize = 0;
 
-  for (area = sc->areabase.first; area; area = area->next) {
+  for (area = screen->areabase.first; area; area = area->next) {
     if ((spacetype == SPACE_TYPE_ANY) || (area->spacetype == spacetype)) {
       if (min <= area->winx && min <= area->winy) {
         size = area->winx * area->winy;
@@ -838,9 +838,9 @@ ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap,
   }
   return NULL;
 }
-ScrArea *BKE_screen_find_area_xy(bScreen *sc, const int spacetype, int x, int y)
+ScrArea *BKE_screen_find_area_xy(bScreen *screen, const int spacetype, int x, int y)
 {
-  return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(sc), spacetype, x, y);
+  return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(screen), spacetype, x, y);
 }
 
 void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
@@ -863,11 +863,11 @@ void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
   }
 }
 
-void BKE_screen_view3d_scene_sync(bScreen *sc, Scene *scene)
+void BKE_screen_view3d_scene_sync(bScreen *screen, Scene *scene)
 {
   /* are there cameras in the views that are not in the scene? */
   ScrArea *area;
-  for (area = sc->areabase.first; area; area = area->next) {
+  for (area = screen->areabase.first; area; area = area->next) {
     SpaceLink *sl;
     for (sl = area->spacedata.first; sl; sl = sl->next) {
       if (sl->spacetype == SPACE_VIEW3D) {

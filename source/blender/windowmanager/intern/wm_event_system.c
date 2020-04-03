@@ -285,12 +285,12 @@ void WM_main_remove_notifier_reference(const void *reference)
 void WM_main_remap_editor_id_reference(ID *old_id, ID *new_id)
 {
   Main *bmain = G_MAIN;
-  bScreen *sc;
+  bScreen *screen;
 
-  for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+  for (screen = bmain->screens.first; screen; screen = screen->id.next) {
     ScrArea *area;
 
-    for (area = sc->areabase.first; area; area = area->next) {
+    for (area = screen->areabase.first; area; area = area->next) {
       SpaceLink *sl;
 
       for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -4892,8 +4892,8 @@ ScrArea *WM_window_status_area_find(wmWindow *win, bScreen *screen)
 
 void WM_window_status_area_tag_redraw(wmWindow *win)
 {
-  bScreen *sc = WM_window_get_active_screen(win);
-  ScrArea *area = WM_window_status_area_find(win, sc);
+  bScreen *screen = WM_window_get_active_screen(win);
+  ScrArea *area = WM_window_status_area_find(win, screen);
   if (area != NULL) {
     ED_area_tag_redraw(area);
   }

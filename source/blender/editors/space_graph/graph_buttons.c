@@ -113,7 +113,7 @@ static bool graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 
 static void graph_panel_cursor_header(const bContext *C, Panel *pa)
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   SpaceGraph *sipo = CTX_wm_space_graph(C);
   Scene *scene = CTX_data_scene(C);
   PointerRNA spaceptr, sceneptr;
@@ -121,7 +121,7 @@ static void graph_panel_cursor_header(const bContext *C, Panel *pa)
 
   /* get RNA pointers for use when creating the UI elements */
   RNA_id_pointer_create(&scene->id, &sceneptr);
-  RNA_pointer_create(&sc->id, &RNA_SpaceGraphEditor, sipo, &spaceptr);
+  RNA_pointer_create(&screen->id, &RNA_SpaceGraphEditor, sipo, &spaceptr);
 
   /* 2D-Cursor */
   col = uiLayoutColumn(pa->layout, false);
@@ -130,7 +130,7 @@ static void graph_panel_cursor_header(const bContext *C, Panel *pa)
 
 static void graph_panel_cursor(const bContext *C, Panel *pa)
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   SpaceGraph *sipo = CTX_wm_space_graph(C);
   Scene *scene = CTX_data_scene(C);
   PointerRNA spaceptr, sceneptr;
@@ -139,7 +139,7 @@ static void graph_panel_cursor(const bContext *C, Panel *pa)
 
   /* get RNA pointers for use when creating the UI elements */
   RNA_id_pointer_create(&scene->id, &sceneptr);
-  RNA_pointer_create(&sc->id, &RNA_SpaceGraphEditor, sipo, &spaceptr);
+  RNA_pointer_create(&screen->id, &RNA_SpaceGraphEditor, sipo, &spaceptr);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);

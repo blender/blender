@@ -1480,9 +1480,9 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
   return ui_tooltip_create_with_data(C, data, init_position, NULL, aspect);
 }
 
-void UI_tooltip_free(bContext *C, bScreen *sc, ARegion *region)
+void UI_tooltip_free(bContext *C, bScreen *screen, ARegion *region)
 {
-  ui_region_temp_remove(C, sc, region);
+  ui_region_temp_remove(C, screen, region);
 }
 
 /** \} */

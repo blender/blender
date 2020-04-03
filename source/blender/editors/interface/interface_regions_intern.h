@@ -27,7 +27,7 @@
 uint ui_popup_menu_hash(const char *str);
 
 /* interface_regions_intern.h */
-ARegion *ui_region_temp_add(bScreen *sc);
-void ui_region_temp_remove(struct bContext *C, bScreen *sc, ARegion *region);
+ARegion *ui_region_temp_add(bScreen *screen);
+void ui_region_temp_remove(struct bContext *C, bScreen *screen, ARegion *region);
 
 #endif /* __INTERFACE_REGIONS_INTERN_H__ */

@@ -56,12 +56,12 @@
 /* would use BKE_screen_find_big_area(...) but this is too specific            */
 static ScrArea *biggest_non_image_area(bContext *C)
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area, *big = NULL;
   int size, maxsize = 0, bwmaxsize = 0;
   short foundwin = 0;
 
-  for (area = sc->areabase.first; area; area = area->next) {
+  for (area = screen->areabase.first; area; area = area->next) {
     if (area->winx > 30 && area->winy > 30) {
       size = area->winx * area->winy;
       if (!area->full && area->spacetype == SPACE_PROPERTIES) {
@@ -111,12 +111,12 @@ static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow *
 
 static ScrArea *find_area_image_empty(bContext *C)
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area;
   SpaceImage *sima;
 
   /* find an imagewindow showing render result */
-  for (area = sc->areabase.first; area; area = area->next) {
+  for (area = screen->areabase.first; area; area = area->next) {
     if (area->spacetype == SPACE_IMAGE) {
       sima = area->spacedata.first;
       if ((sima->mode == SI_MODE_VIEW) && !sima->image) {
@@ -324,10 +324,10 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
     /* is there another window on current scene showing result? */
     for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
-      const bScreen *sc = WM_window_get_active_screen(win);
+      const bScreen *screen = WM_window_get_active_screen(win);
 
       if ((WM_window_is_temp_screen(win) &&
-           ((ScrArea *)sc->areabase.first)->spacetype == SPACE_IMAGE) ||
+           ((ScrArea *)screen->areabase.first)->spacetype == SPACE_IMAGE) ||
           (win == winshow && winshow != wincur)) {
         wm_window_raise(win);
         return OPERATOR_FINISHED;

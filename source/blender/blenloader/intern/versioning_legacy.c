@@ -580,9 +580,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 109) {
     /* new variable: gridlines */
-    bScreen *sc = bmain->screens.first;
-    while (sc) {
-      ScrArea *area = sc->areabase.first;
+    bScreen *screen = bmain->screens.first;
+    while (screen) {
+      ScrArea *area = screen->areabase.first;
       while (area) {
         SpaceLink *sl = area->spacedata.first;
         while (sl) {
@@ -597,7 +597,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
         area = area->next;
       }
-      sc = sc->id.next;
+      screen = screen->id.next;
     }
   }
 
@@ -694,9 +694,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 169) {
-    bScreen *sc = bmain->screens.first;
-    while (sc) {
-      ScrArea *area = sc->areabase.first;
+    bScreen *screen = bmain->screens.first;
+    while (screen) {
+      ScrArea *area = screen->areabase.first;
       while (area) {
         SpaceLink *sl = area->spacedata.first;
         while (sl) {
@@ -708,7 +708,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
         area = area->next;
       }
-      sc = sc->id.next;
+      screen = screen->id.next;
     }
   }
 
@@ -727,9 +727,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 171) {
-    bScreen *sc = bmain->screens.first;
-    while (sc) {
-      ScrArea *area = sc->areabase.first;
+    bScreen *screen = bmain->screens.first;
+    while (screen) {
+      ScrArea *area = screen->areabase.first;
       while (area) {
         SpaceLink *sl = area->spacedata.first;
         while (sl) {
@@ -741,7 +741,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
         area = area->next;
       }
-      sc = sc->id.next;
+      screen = screen->id.next;
     }
   }
 
@@ -866,7 +866,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     bSound *sound;
     Scene *sce;
     Mesh *me;
-    bScreen *sc;
+    bScreen *screen;
 
     for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
       if (sound->packedfile) {
@@ -889,10 +889,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     /* some oldfile patch, moved from set_func_space */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
 
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -907,7 +907,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 227) {
     Scene *sce;
-    bScreen *sc;
+    bScreen *screen;
     Object *ob;
 
     /* As of now, this insures that the transition from the old Track system
@@ -962,10 +962,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     /* patch for old wrong max view2d settings, allows zooming out more */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
 
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -983,7 +983,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 228) {
-    bScreen *sc;
+    bScreen *screen;
     Object *ob;
 
     /* As of now, this insures that the transition from the old Track system
@@ -1029,10 +1029,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     /* convert old mainb values for new button panels */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
 
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -1096,13 +1096,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
    */
 
   if (bmain->versionfile <= 230) {
-    bScreen *sc;
+    bScreen *screen;
 
     /* new variable blockscale, for panels in any area */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
 
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -1117,12 +1117,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 231) {
-    bScreen *sc = bmain->screens.first;
+    bScreen *screen = bmain->screens.first;
 
     /* new bit flags for showing/hiding grid floor and axes */
 
-    while (sc) {
-      ScrArea *area = sc->areabase.first;
+    while (screen) {
+      ScrArea *area = screen->areabase.first;
       while (area) {
         SpaceLink *sl = area->spacedata.first;
         while (sl) {
@@ -1140,14 +1140,14 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
         area = area->next;
       }
-      sc = sc->id.next;
+      screen = screen->id.next;
     }
   }
 
   if (bmain->versionfile <= 232) {
     Tex *tex = bmain->textures.first;
     World *wrld = bmain->worlds.first;
-    bScreen *sc;
+    bScreen *screen;
 
     while (tex) {
       if ((tex->flag & (TEX_CHECKER_ODD + TEX_CHECKER_EVEN)) == 0) {
@@ -1184,9 +1184,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* new variable blockscale, for panels in any area, do again because new
      * areas didn't initialize it to 0.7 yet
      */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           /* added: 5x better zoom in for nla */
@@ -1200,11 +1200,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 233) {
-    bScreen *sc;
+    bScreen *screen;
 
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_VIEW3D) {
@@ -1217,11 +1217,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 234) {
-    bScreen *sc;
+    bScreen *screen;
 
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_TEXT) {
@@ -1651,7 +1651,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 242) {
     Scene *sce;
-    bScreen *sc;
+    bScreen *screen;
     Object *ob;
     Curve *cu;
     Material *ma;
@@ -1663,9 +1663,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     bNodeTree *ntree;
     int a;
 
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      area = sc->areabase.first;
+      area = screen->areabase.first;
       while (area) {
         SpaceLink *sl;
 
@@ -1922,13 +1922,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 244) {
-    bScreen *sc;
+    bScreen *screen;
 
     if (bmain->versionfile != 244 || bmain->subversionfile < 2) {
       /* correct older action editors - incorrect scrolling */
-      for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+      for (screen = bmain->screens.first; screen; screen = screen->id.next) {
         ScrArea *area;
-        area = sc->areabase.first;
+        area = screen->areabase.first;
         while (area) {
           SpaceLink *sl;
 
@@ -2540,13 +2540,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile < 248 || (bmain->versionfile == 248 && bmain->subversionfile < 3)) {
-    bScreen *sc;
+    bScreen *screen;
 
     /* adjust default settings for Animation Editors */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
 
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {

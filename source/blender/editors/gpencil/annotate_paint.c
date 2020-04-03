@@ -1933,8 +1933,8 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 /* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
 static bool gpencil_area_exists(bContext *C, ScrArea *area_test)
 {
-  bScreen *sc = CTX_wm_screen(C);
-  return (BLI_findindex(&sc->areabase, area_test) != -1);
+  bScreen *screen = CTX_wm_screen(C);
+  return (BLI_findindex(&screen->areabase, area_test) != -1);
 }
 
 static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)

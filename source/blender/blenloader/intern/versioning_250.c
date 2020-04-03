@@ -1460,15 +1460,15 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile <= 251) { /* 2.5.1 had no subversions */
-    bScreen *sc;
+    bScreen *screen;
 
     /* Blender 2.5.2 - subversion 0 introduced a new setting: V3D_HIDE_OVERLAYS.
      * This bit was used in the past for V3D_TRANSFORM_SNAP, which is now deprecated.
      * Here we clear it for old files so they don't come in with V3D_HIDE_OVERLAYS set,
      * which would cause cameras, lights, etc to become invisible */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_VIEW3D) {
@@ -1547,13 +1547,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile < 252 || (bmain->versionfile == 252 && bmain->subversionfile < 5)) {
-    bScreen *sc;
+    bScreen *screen;
 
     /* Image editor scopes */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
 
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -1569,13 +1569,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile < 253) {
     Object *ob;
     Scene *scene;
-    bScreen *sc;
+    bScreen *screen;
     Tex *tex;
     Brush *brush;
 
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -1833,7 +1833,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile < 255 || (bmain->versionfile == 255 && bmain->subversionfile < 1)) {
     Brush *br;
     ParticleSettings *part;
-    bScreen *sc;
+    bScreen *screen;
 
     for (br = bmain->brushes.first; br; br = br->id.next) {
       if (br->ob_mode == 0) {
@@ -1850,9 +1850,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       part->kink_amp_clump = 1.f;      /* keep old files looking similar */
     }
 
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_INFO) {
@@ -1896,13 +1896,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile < 256) {
-    bScreen *sc;
+    bScreen *screen;
     ScrArea *area;
     Key *key;
 
     /* Fix for sample line scope initializing with no height */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      area = sc->areabase.first;
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+      area = screen->areabase.first;
       while (area) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -2040,18 +2040,18 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile < 256 || (bmain->versionfile == 256 && bmain->subversionfile < 3)) {
-    bScreen *sc;
+    bScreen *screen;
     Brush *brush;
     Object *ob;
     ParticleSettings *part;
 
     /* redraws flag in SpaceTime has been moved to Screen level */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      if (sc->redraws_flag == 0) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+      if (screen->redraws_flag == 0) {
         /* just initialize to default? */
         /* XXX: we could also have iterated through areas,
          * and taken them from the first timeline available... */
-        sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
+        screen->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
       }
     }
 

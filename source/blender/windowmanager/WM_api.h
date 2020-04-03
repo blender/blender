@@ -794,7 +794,7 @@ const char *WM_window_cursor_keymap_status_get(const struct wmWindow *win,
 void WM_window_cursor_keymap_status_refresh(struct bContext *C, struct wmWindow *win);
 
 void WM_window_status_area_tag_redraw(struct wmWindow *win);
-struct ScrArea *WM_window_status_area_find(struct wmWindow *win, struct bScreen *sc);
+struct ScrArea *WM_window_status_area_find(struct wmWindow *win, struct bScreen *screen);
 bool WM_window_modal_keymap_status_draw(struct bContext *C,
                                         struct wmWindow *win,
                                         struct uiLayout *layout);

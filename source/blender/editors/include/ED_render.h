@@ -49,7 +49,7 @@ void ED_operatortypes_render(void);
 
 void ED_render_engine_changed(struct Main *bmain);
 void ED_render_engine_area_exit(struct Main *bmain, struct ScrArea *area);
-void ED_render_view_layer_changed(struct Main *bmain, struct bScreen *sc);
+void ED_render_view_layer_changed(struct Main *bmain, struct bScreen *screen);
 
 /* Callbacks handling data update events coming from depsgraph. */
 

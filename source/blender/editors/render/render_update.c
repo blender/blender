@@ -105,13 +105,13 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
   wm = bmain->wm.first;
 
   for (win = wm->windows.first; win; win = win->next) {
-    bScreen *sc = WM_window_get_active_screen(win);
+    bScreen *screen = WM_window_get_active_screen(win);
     ScrArea *area;
     ARegion *region;
 
     CTX_wm_window_set(C, win);
 
-    for (area = sc->areabase.first; area; area = area->next) {
+    for (area = screen->areabase.first; area; area = area->next) {
       if (area->spacetype != SPACE_VIEW3D) {
         continue;
       }
@@ -127,7 +127,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
          * time of the last update) */
         if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
 
-          CTX_wm_screen_set(C, sc);
+          CTX_wm_screen_set(C, screen);
           CTX_wm_area_set(C, area);
           CTX_wm_region_set(C, region);
 
@@ -181,8 +181,8 @@ void ED_render_engine_area_exit(Main *bmain, ScrArea *area)
 void ED_render_engine_changed(Main *bmain)
 {
   /* on changing the render engine type, clear all running render engines */
-  for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-    for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
       ED_render_engine_area_exit(bmain, area);
     }
   }
@@ -204,9 +204,9 @@ void ED_render_engine_changed(Main *bmain)
   }
 }
 
-void ED_render_view_layer_changed(Main *bmain, bScreen *sc)
+void ED_render_view_layer_changed(Main *bmain, bScreen *screen)
 {
-  for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
     ED_render_engine_area_exit(bmain, area);
   }
 }

@@ -1928,13 +1928,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 6)) {
     if (DNA_struct_elem_find(fd->filesdna, "SpaceOutliner", "int", "filter") == false) {
-      bScreen *sc;
+      bScreen *screen;
       ScrArea *area;
       SpaceLink *sl;
 
       /* Update files using invalid (outdated) outlinevis Outliner values. */
-      for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-        for (area = sc->areabase.first; area; area = area->next) {
+      for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+        for (area = screen->areabase.first; area; area = area->next) {
           for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_OUTLINER) {
               SpaceOutliner *so = (SpaceOutliner *)sl;
@@ -1973,8 +1973,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-      for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
         for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_VIEW3D) {
             View3D *v3d = (View3D *)sl;
@@ -2643,8 +2643,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
     /* initialize grease pencil view data */
     if (!DNA_struct_elem_find(fd->filesdna, "SpaceView3D", "float", "vertex_opacity")) {
-      for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-        for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+        for (ScrArea *area = screen->areabase.first; area; area = area->next) {
           for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
               View3D *v3d = (View3D *)sl;

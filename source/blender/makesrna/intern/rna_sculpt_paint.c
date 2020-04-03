@@ -507,12 +507,12 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
-  bScreen *sc;
+  bScreen *screen;
   Image *ima = scene->toolsettings->imapaint.canvas;
 
-  for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+  for (screen = bmain->screens.first; screen; screen = screen->id.next) {
     ScrArea *area;
-    for (area = sc->areabase.first; area; area = area->next) {
+    for (area = screen->areabase.first; area; area = area->next) {
       SpaceLink *slink;
       for (slink = area->spacedata.first; slink; slink = slink->next) {
         if (slink->spacetype == SPACE_IMAGE) {

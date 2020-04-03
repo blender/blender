@@ -1233,7 +1233,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
  */
 void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *pa)
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   const bool has_panel_category = UI_panel_category_is_visible(region);
   const bool any_item_visible = has_panel_category;
   PointerRNA ptr;
@@ -1247,7 +1247,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *pa)
     return;
   }
 
-  RNA_pointer_create(&sc->id, &RNA_Panel, pa, &ptr);
+  RNA_pointer_create(&screen->id, &RNA_Panel, pa, &ptr);
 
   pup = UI_popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
   layout = UI_popup_menu_layout(pup);

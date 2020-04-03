@@ -155,7 +155,7 @@ typedef struct ARegionType {
   void (*message_subscribe)(const struct bContext *C,
                             struct WorkSpace *workspace,
                             struct Scene *scene,
-                            struct bScreen *sc,
+                            struct bScreen *screen,
                             struct ScrArea *area,
                             struct ARegion *region,
                             struct wmMsgBus *mbus);
@@ -357,23 +357,27 @@ void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizm
 struct ARegion *BKE_area_find_region_type(const struct ScrArea *area, int type);
 struct ARegion *BKE_area_find_region_active_win(struct ScrArea *area);
 struct ARegion *BKE_area_find_region_xy(struct ScrArea *area, const int regiontype, int x, int y);
-struct ARegion *BKE_screen_find_region_xy(struct bScreen *sc, const int regiontype, int x, int y)
-    ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+struct ARegion *BKE_screen_find_region_xy(struct bScreen *screen,
+                                          const int regiontype,
+                                          int x,
+                                          int y) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
-struct ScrArea *BKE_screen_find_area_from_space(struct bScreen *sc,
+struct ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen,
                                                 struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
-struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype, const short min);
+struct ScrArea *BKE_screen_find_big_area(struct bScreen *screen,
+                                         const int spacetype,
+                                         const short min);
 struct ScrArea *BKE_screen_area_map_find_area_xy(const struct ScrAreaMap *areamap,
                                                  const int spacetype,
                                                  int x,
                                                  int y);
-struct ScrArea *BKE_screen_find_area_xy(struct bScreen *sc, const int spacetype, int x, int y);
+struct ScrArea *BKE_screen_find_area_xy(struct bScreen *screen, const int spacetype, int x, int y);
 
-void BKE_screen_gizmo_tag_refresh(struct bScreen *sc);
+void BKE_screen_gizmo_tag_refresh(struct bScreen *screen);
 
 void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);
-void BKE_screen_view3d_scene_sync(struct bScreen *sc, struct Scene *scene);
+void BKE_screen_view3d_scene_sync(struct bScreen *screen, struct Scene *scene);
 bool BKE_screen_is_fullscreen_area(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 bool BKE_screen_is_used(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -385,15 +389,17 @@ float BKE_screen_view3d_zoom_from_fac(float zoomfac);
 void BKE_screen_view3d_shading_init(struct View3DShading *shading);
 
 /* screen */
-void BKE_screen_free(struct bScreen *sc);
+void BKE_screen_free(struct bScreen *screen);
 void BKE_screen_area_map_free(struct ScrAreaMap *area_map) ATTR_NONNULL();
 
-struct ScrEdge *BKE_screen_find_edge(struct bScreen *sc, struct ScrVert *v1, struct ScrVert *v2);
+struct ScrEdge *BKE_screen_find_edge(struct bScreen *screen,
+                                     struct ScrVert *v1,
+                                     struct ScrVert *v2);
 void BKE_screen_sort_scrvert(struct ScrVert **v1, struct ScrVert **v2);
-void BKE_screen_remove_double_scrverts(struct bScreen *sc);
-void BKE_screen_remove_double_scredges(struct bScreen *sc);
-void BKE_screen_remove_unused_scredges(struct bScreen *sc);
-void BKE_screen_remove_unused_scrverts(struct bScreen *sc);
+void BKE_screen_remove_double_scrverts(struct bScreen *screen);
+void BKE_screen_remove_double_scredges(struct bScreen *screen);
+void BKE_screen_remove_unused_scredges(struct bScreen *screen);
+void BKE_screen_remove_unused_scrverts(struct bScreen *screen);
 
 void BKE_screen_header_alignment_reset(struct bScreen *screen);
 

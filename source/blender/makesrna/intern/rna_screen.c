@@ -98,8 +98,8 @@ static int rna_region_alignment_get(PointerRNA *ptr)
 
 static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
 {
-  bScreen *sc = (bScreen *)ptr->data;
-  return (sc->state == SCREENMAXIMIZED);
+  bScreen *screen = (bScreen *)ptr->data;
+  return (screen->state == SCREENMAXIMIZED);
 }
 
 /* UI compatible list: should not be needed, but for now we need to keep EMPTY
@@ -137,7 +137,7 @@ static void rna_Area_type_set(PointerRNA *ptr, int value)
 
 static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 {
-  bScreen *sc = (bScreen *)ptr->owner_id;
+  bScreen *screen = (bScreen *)ptr->owner_id;
   ScrArea *area = (ScrArea *)ptr->data;
 
   /* Running update without having called 'set', see: T64049 */
@@ -149,7 +149,7 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
   wmWindow *win;
   /* XXX this call still use context, so we trick it to work in the right context */
   for (win = wm->windows.first; win; win = win->next) {
-    if (sc == WM_window_get_active_screen(win)) {
+    if (screen == WM_window_get_active_screen(win)) {
       wmWindow *prevwin = CTX_wm_window(C);
       ScrArea *prevsa = CTX_wm_area(C);
       ARegion *prevar = CTX_wm_region(C);

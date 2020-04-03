@@ -2470,7 +2470,7 @@ struct ARegion *UI_tooltip_create_from_button(struct bContext *C,
                                               uiBut *but,
                                               bool is_label);
 struct ARegion *UI_tooltip_create_from_gizmo(struct bContext *C, struct wmGizmo *gz);
-void UI_tooltip_free(struct bContext *C, struct bScreen *sc, struct ARegion *region);
+void UI_tooltip_free(struct bContext *C, struct bScreen *screen, struct ARegion *region);
 
 /* How long before a tool-tip shows. */
 #define UI_TOOLTIP_DELAY 0.5

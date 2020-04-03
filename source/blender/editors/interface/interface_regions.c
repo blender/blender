@@ -39,12 +39,12 @@
 
 #include "interface_regions_intern.h"
 
-ARegion *ui_region_temp_add(bScreen *sc)
+ARegion *ui_region_temp_add(bScreen *screen)
 {
   ARegion *region;
 
   region = MEM_callocN(sizeof(ARegion), "area region");
-  BLI_addtail(&sc->regionbase, region);
+  BLI_addtail(&screen->regionbase, region);
 
   region->regiontype = RGN_TYPE_TEMPORARY;
   region->alignment = RGN_ALIGN_FLOAT;
@@ -52,17 +52,17 @@ ARegion *ui_region_temp_add(bScreen *sc)
   return region;
 }
 
-void ui_region_temp_remove(bContext *C, bScreen *sc, ARegion *region)
+void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
 
   BLI_assert(region->regiontype == RGN_TYPE_TEMPORARY);
-  BLI_assert(BLI_findindex(&sc->regionbase, region) != -1);
+  BLI_assert(BLI_findindex(&screen->regionbase, region) != -1);
   if (win) {
     wm_draw_region_clear(win, region);
   }
 
   ED_region_exit(C, region);
   BKE_area_region_free(NULL, region); /* NULL: no spacetype */
-  BLI_freelinkN(&sc->regionbase, region);
+  BLI_freelinkN(&screen->regionbase, region);
 }

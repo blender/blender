@@ -7847,17 +7847,17 @@ static void lib_link_windowmanager(FileData *fd, Main *UNUSED(bmain), wmWindowMa
 
 /* note: file read without screens option G_FILE_NO_UI;
  * check lib pointers in call below */
-static void lib_link_screen(FileData *fd, Main *UNUSED(bmain), bScreen *sc)
+static void lib_link_screen(FileData *fd, Main *UNUSED(bmain), bScreen *screen)
 {
   /* deprecated, but needed for versioning (will be NULL'ed then) */
-  sc->scene = newlibadr(fd, sc->id.lib, sc->scene);
+  screen->scene = newlibadr(fd, screen->id.lib, screen->scene);
 
-  sc->animtimer = NULL; /* saved in rare cases */
-  sc->tool_tip = NULL;
-  sc->scrubbing = false;
+  screen->animtimer = NULL; /* saved in rare cases */
+  screen->tool_tip = NULL;
+  screen->scrubbing = false;
 
-  for (ScrArea *area = sc->areabase.first; area; area = area->next) {
-    lib_link_area(fd, &sc->id, area);
+  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    lib_link_area(fd, &screen->id, area);
   }
 }
 
@@ -8195,7 +8195,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
 
           scpt->script = restore_pointer_by_name(id_map, (ID *)scpt->script, USER_REAL);
 
-          /*sc->script = NULL; - 2.45 set to null, better re-run the script */
+          /*screen->script = NULL; - 2.45 set to null, better re-run the script */
           if (scpt->script) {
             SCRIPT_SET_NULL(scpt->script);
           }
@@ -8378,18 +8378,18 @@ void blo_do_versions_view3d_split_250(View3D *v3d, ListBase *regions)
   }
 }
 
-static bool direct_link_screen(FileData *fd, bScreen *sc)
+static bool direct_link_screen(FileData *fd, bScreen *screen)
 {
   bool wrong_id = false;
 
-  sc->regionbase.first = sc->regionbase.last = NULL;
-  sc->context = NULL;
-  sc->active_region = NULL;
+  screen->regionbase.first = screen->regionbase.last = NULL;
+  screen->context = NULL;
+  screen->active_region = NULL;
 
-  sc->preview = direct_link_preview_image(fd, sc->preview);
+  screen->preview = direct_link_preview_image(fd, screen->preview);
 
-  if (!direct_link_area_map(fd, AREAMAP_FROM_SCREEN(sc))) {
-    printf("Error reading Screen %s... removing it.\n", sc->id.name + 2);
+  if (!direct_link_area_map(fd, AREAMAP_FROM_SCREEN(screen))) {
+    printf("Error reading Screen %s... removing it.\n", screen->id.name + 2);
     wrong_id = true;
   }
 

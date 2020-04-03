@@ -113,7 +113,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -555,7 +555,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "annotation_data")) {
-    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)sc, area, scene);
+    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)screen, area, scene);
 
     if (gpd) {
       CTX_data_id_pointer_set(result, &gpd->id);
@@ -568,7 +568,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     PointerRNA ptr;
 
     /* Get pointer to Grease Pencil Data. */
-    gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)sc, area, scene, &ptr);
+    gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)screen, area, scene, &ptr);
 
     if (gpd_ptr) {
       CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
@@ -588,7 +588,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "active_annotation_layer")) {
-    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)sc, area, scene);
+    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)screen, area, scene);
 
     if (gpd) {
       bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);

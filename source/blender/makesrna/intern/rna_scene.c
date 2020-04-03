@@ -1679,10 +1679,10 @@ void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA
 
 static void rna_Scene_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Scene *sc = (Scene *)ptr->owner_id;
+  Scene *screen = (Scene *)ptr->owner_id;
 
   rna_Scene_glsl_update(bmain, scene, ptr);
-  WM_main_add_notifier(NC_WORLD | ND_WORLD, &sc->id);
+  WM_main_add_notifier(NC_WORLD | ND_WORLD, &screen->id);
   DEG_relations_tag_update(bmain);
 }
 

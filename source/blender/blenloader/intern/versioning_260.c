@@ -765,12 +765,12 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     {
       /* Tomato compatibility code. */
-      bScreen *sc;
+      bScreen *screen;
       MovieClip *clip;
 
-      for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+      for (screen = bmain->screens.first; screen; screen = screen->id.next) {
         ScrArea *area;
-        for (area = sc->areabase.first; area; area = area->next) {
+        for (area = screen->areabase.first; area; area = area->next) {
           SpaceLink *sl;
           for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
@@ -1188,11 +1188,11 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 2)) {
-    bScreen *sc;
+    bScreen *screen;
 
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
         for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -1368,12 +1368,12 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     {
-      bScreen *sc;
+      bScreen *screen;
 
-      for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+      for (screen = bmain->screens.first; screen; screen = screen->id.next) {
         ScrArea *area;
 
-        for (area = sc->areabase.first; area; area = area->next) {
+        for (area = screen->areabase.first; area; area = area->next) {
           SpaceLink *sl;
 
           for (sl = area->spacedata.first; sl; sl = sl->next) {
@@ -1661,11 +1661,11 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* render border for viewport */
     {
-      bScreen *sc;
+      bScreen *screen;
 
-      for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+      for (screen = bmain->screens.first; screen; screen = screen->id.next) {
         ScrArea *area;
-        for (area = sc->areabase.first; area; area = area->next) {
+        for (area = screen->areabase.first; area; area = area->next) {
           SpaceLink *sl;
           for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
@@ -1758,10 +1758,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (bmain->versionfile < 265 || (bmain->versionfile == 265 && bmain->subversionfile < 3)) {
-    bScreen *sc;
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    bScreen *screen;
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           switch (sl->spacetype) {
@@ -1943,10 +1943,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (MAIN_VERSION_OLDER(bmain, 266, 2)) {
-    bScreen *sc;
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    bScreen *screen;
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_NODE) {
@@ -2199,7 +2199,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 268, 4)) {
-    bScreen *sc;
+    bScreen *screen;
     Object *ob;
 
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -2240,9 +2240,9 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
      *
      * We moved this check to the do versions to be sure the value makes any sense.
      */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_NODE) {
@@ -2257,12 +2257,12 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 268, 5)) {
-    bScreen *sc;
+    bScreen *screen;
     ScrArea *area;
 
     /* add missing (+) expander in node editor */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      for (area = sc->areabase.first; area; area = area->next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         ARegion *region, *arnew;
 
         if (area->spacetype == SPACE_NODE) {
@@ -2338,14 +2338,14 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 269, 3)) {
-    bScreen *sc;
+    bScreen *screen;
     ScrArea *area;
     SpaceLink *sl;
     Scene *scene;
 
     /* Update files using invalid (outdated) outlinevis Outliner values. */
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      for (area = sc->areabase.first; area; area = area->next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_OUTLINER) {
             SpaceOutliner *so = (SpaceOutliner *)sl;
@@ -2542,11 +2542,11 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 269, 11)) {
-    bScreen *sc;
+    bScreen *screen;
 
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *space_link;
 
         for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {

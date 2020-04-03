@@ -7707,8 +7707,8 @@ void UI_but_tooltip_refresh(bContext *C, uiBut *but)
 {
   uiHandleButtonData *data = but->active;
   if (data) {
-    bScreen *sc = WM_window_get_active_screen(data->window);
-    if (sc->tool_tip && sc->tool_tip->region) {
+    bScreen *screen = WM_window_get_active_screen(data->window);
+    if (screen->tool_tip && screen->tool_tip->region) {
       WM_tooltip_refresh(C, data->window);
     }
   }
@@ -7768,9 +7768,9 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
         WM_tooltip_timer_init_ex(
             C, data->window, data->area, data->region, ui_but_tooltip_init, delay);
         if (is_label) {
-          bScreen *sc = WM_window_get_active_screen(data->window);
-          if (sc->tool_tip) {
-            sc->tool_tip->pass = 1;
+          bScreen *screen = WM_window_get_active_screen(data->window);
+          if (screen->tool_tip) {
+            screen->tool_tip->pass = 1;
           }
         }
       }
@@ -8056,11 +8056,11 @@ static void button_activate_init(bContext *C,
 
   if (UI_but_has_tooltip_label(but)) {
     /* Show a label for this button. */
-    bScreen *sc = WM_window_get_active_screen(data->window);
+    bScreen *screen = WM_window_get_active_screen(data->window);
     if ((PIL_check_seconds_timer() - WM_tooltip_time_closed()) < 0.1) {
       WM_tooltip_immediate_init(C, CTX_wm_window(C), data->area, region, ui_but_tooltip_init);
-      if (sc->tool_tip) {
-        sc->tool_tip->pass = 1;
+      if (screen->tool_tip) {
+        screen->tool_tip->pass = 1;
       }
     }
   }
@@ -8343,10 +8343,10 @@ wmOperator *UI_context_active_operator_get(const struct bContext *C)
 
   /* scan popups */
   {
-    bScreen *sc = CTX_wm_screen(C);
+    bScreen *screen = CTX_wm_screen(C);
     ARegion *region;
 
-    for (region = sc->regionbase.first; region; region = region->next) {
+    for (region = screen->regionbase.first; region; region = region->next) {
       if (region == region_ctx) {
         continue;
       }
@@ -10640,7 +10640,7 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(use
 
 static void ui_region_handler_remove(bContext *C, void *UNUSED(userdata))
 {
-  bScreen *sc;
+  bScreen *screen;
   ARegion *region;
 
   region = CTX_wm_region(C);
@@ -10650,15 +10650,15 @@ static void ui_region_handler_remove(bContext *C, void *UNUSED(userdata))
 
   UI_blocklist_free(C, &region->uiblocks);
 
-  sc = CTX_wm_screen(C);
-  if (sc == NULL) {
+  screen = CTX_wm_screen(C);
+  if (screen == NULL) {
     return;
   }
 
   /* delayed apply callbacks, but not for screen level regions, those
    * we rather do at the very end after closing them all, which will
    * be done in ui_region_handler/window */
-  if (BLI_findindex(&sc->regionbase, region) == -1) {
+  if (BLI_findindex(&screen->regionbase, region) == -1) {
     ui_apply_but_funcs_after(C);
   }
 }

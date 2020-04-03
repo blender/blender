@@ -144,7 +144,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
                                                            Scene *UNUSED(scene),
                                                            PointerRNA *ptr)
 {
-  bScreen *sc;
+  bScreen *screen;
   Material *ma = (Material *)ptr->owner_id;
 
   if (ma->use_nodes && ma->nodetree) {
@@ -157,8 +157,8 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
 
   if (ma->texpaintslot) {
     Image *image = ma->texpaintslot[ma->paint_active_slot].ima;
-    for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      wmWindow *win = ED_screen_window_find(sc, bmain->wm.first);
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+      wmWindow *win = ED_screen_window_find(screen, bmain->wm.first);
       if (win == NULL) {
         continue;
       }
@@ -170,7 +170,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
       }
 
       ScrArea *area;
-      for (area = sc->areabase.first; area; area = area->next) {
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
         for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_IMAGE) {

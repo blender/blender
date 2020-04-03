@@ -127,10 +127,10 @@ static int compo_get_recalc_flags(const bContext *C)
   int recalc_flags = 0;
 
   for (win = wm->windows.first; win; win = win->next) {
-    const bScreen *sc = WM_window_get_active_screen(win);
+    const bScreen *screen = WM_window_get_active_screen(win);
     ScrArea *area;
 
-    for (area = sc->areabase.first; area; area = area->next) {
+    for (area = screen->areabase.first; area; area = area->next) {
       if (area->spacetype == SPACE_IMAGE) {
         SpaceImage *sima = area->spacedata.first;
         if (sima->image) {

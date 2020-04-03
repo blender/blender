@@ -906,7 +906,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 static void ed_marker_move_apply(bContext *C, wmOperator *op)
 {
 #ifdef DURIAN_CAMERA_SWITCH
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   Scene *scene = CTX_data_scene(C);
   Object *camera = scene->camera;
 #endif
@@ -930,7 +930,7 @@ static void ed_marker_move_apply(bContext *C, wmOperator *op)
   BKE_scene_camera_switch_update(scene);
 
   if (camera != scene->camera) {
-    BKE_screen_view3d_scene_sync(sc, scene);
+    BKE_screen_view3d_scene_sync(screen, scene);
     WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
   }
 #endif
@@ -1621,7 +1621,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 
 static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   ListBase *markers = ED_context_get_markers(C);
@@ -1658,7 +1658,7 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 
   /* camera may have changes */
   BKE_scene_camera_switch_update(scene);
-  BKE_screen_view3d_scene_sync(sc, scene);
+  BKE_screen_view3d_scene_sync(screen, scene);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);

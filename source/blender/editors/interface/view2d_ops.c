@@ -79,7 +79,7 @@ static bool view2d_poll(bContext *C)
  */
 typedef struct v2dViewPanData {
   /** screen where view pan was initiated */
-  bScreen *sc;
+  bScreen *screen;
   /** area where view pan was initiated */
   ScrArea *area;
   /** region where view pan was initiated */
@@ -126,7 +126,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
   op->customdata = vpd;
 
   /* set pointers to owners */
-  vpd->sc = CTX_wm_screen(C);
+  vpd->screen = CTX_wm_screen(C);
   vpd->area = CTX_wm_area(C);
   vpd->v2d = v2d;
   vpd->region = region;
@@ -190,7 +190,7 @@ static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float 
   /* request updates to be done... */
   WM_event_add_mousemove(CTX_wm_window(C));
 
-  UI_view2d_sync(vpd->sc, vpd->area, v2d, V2D_LOCK_COPY);
+  UI_view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
 }
 
 static void view_pan_apply(bContext *C, wmOperator *op)

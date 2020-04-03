@@ -221,7 +221,7 @@ static bool rna_Object_indirect_only_get(Object *ob, bContext *C, ViewLayer *vie
   return ((base->flag & BASE_INDIRECT_ONLY) != 0);
 }
 
-static Base *rna_Object_local_view_property_helper(bScreen *sc,
+static Base *rna_Object_local_view_property_helper(bScreen *screen,
                                                    View3D *v3d,
                                                    ViewLayer *view_layer,
                                                    Object *ob,
@@ -235,7 +235,7 @@ static Base *rna_Object_local_view_property_helper(bScreen *sc,
   }
 
   if (view_layer == NULL) {
-    win = ED_screen_window_find(sc, G_MAIN->wm.first);
+    win = ED_screen_window_find(screen, G_MAIN->wm.first);
     view_layer = WM_window_get_active_view_layer(win);
   }
 
@@ -265,10 +265,10 @@ static void rna_Object_local_view_set(Object *ob,
                                       PointerRNA *v3d_ptr,
                                       bool state)
 {
-  bScreen *sc = (bScreen *)v3d_ptr->owner_id;
+  bScreen *screen = (bScreen *)v3d_ptr->owner_id;
   View3D *v3d = v3d_ptr->data;
   Scene *scene;
-  Base *base = rna_Object_local_view_property_helper(sc, v3d, NULL, ob, reports, &scene);
+  Base *base = rna_Object_local_view_property_helper(screen, v3d, NULL, ob, reports, &scene);
   if (base == NULL) {
     return; /* Error reported. */
   }
@@ -276,7 +276,7 @@ static void rna_Object_local_view_set(Object *ob,
   SET_FLAG_FROM_TEST(base->local_view_bits, state, v3d->local_view_uuid);
   if (local_view_bits_prev != base->local_view_bits) {
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
-    ScrArea *area = ED_screen_area_find_with_spacedata(sc, (SpaceLink *)v3d, true);
+    ScrArea *area = ED_screen_area_find_with_spacedata(screen, (SpaceLink *)v3d, true);
     if (area) {
       ED_area_tag_redraw(area);
     }

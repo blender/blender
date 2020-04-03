@@ -3134,19 +3134,19 @@ static void write_windowmanager(WriteData *wd, wmWindowManager *wm, const void *
   }
 }
 
-static void write_screen(WriteData *wd, bScreen *sc, const void *id_address)
+static void write_screen(WriteData *wd, bScreen *screen, const void *id_address)
 {
   /* Screens are reference counted, only saved if used by a workspace. */
-  if (sc->id.us > 0 || wd->use_memfile) {
+  if (screen->id.us > 0 || wd->use_memfile) {
     /* write LibData */
     /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
-    writestruct_at_address(wd, ID_SCRN, bScreen, 1, id_address, sc);
-    write_iddata(wd, &sc->id);
+    writestruct_at_address(wd, ID_SCRN, bScreen, 1, id_address, screen);
+    write_iddata(wd, &screen->id);
 
-    write_previews(wd, sc->preview);
+    write_previews(wd, screen->preview);
 
     /* direct data */
-    write_area_map(wd, AREAMAP_FROM_SCREEN(sc));
+    write_area_map(wd, AREAMAP_FROM_SCREEN(screen));
   }
 }
 

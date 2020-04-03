@@ -2951,7 +2951,7 @@ void SEQUENCER_OT_view_frame(wmOperatorType *ot)
 /* view_all operator */
 static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
 #if 0
   ARegion *region = CTX_wm_region(C);
@@ -2962,7 +2962,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 
   v2d->cur = v2d->tot;
   UI_view2d_curRect_validate(v2d);
-  UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
+  UI_view2d_sync(screen, area, v2d, V2D_LOCK_COPY);
 
 #if 0
   /* Like zooming on an image view */

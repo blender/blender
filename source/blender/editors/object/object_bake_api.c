@@ -1283,13 +1283,13 @@ cleanup:
 static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
 {
   bool is_save_internal;
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
 
   bkr->ob = CTX_data_active_object(C);
   bkr->main = CTX_data_main(C);
   bkr->view_layer = CTX_data_view_layer(C);
   bkr->scene = CTX_data_scene(C);
-  bkr->area = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL;
+  bkr->area = screen ? BKE_screen_find_big_area(screen, SPACE_IMAGE, 10) : NULL;
 
   bkr->pass_type = RNA_enum_get(op->ptr, "type");
   bkr->pass_filter = RNA_enum_get(op->ptr, "pass_filter");

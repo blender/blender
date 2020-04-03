@@ -1620,10 +1620,11 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 
 static int ui_button_press_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  bScreen *sc = CTX_wm_screen(C);
+  bScreen *screen = CTX_wm_screen(C);
   const bool skip_depressed = RNA_boolean_get(op->ptr, "skip_depressed");
   ARegion *region_prev = CTX_wm_region(C);
-  ARegion *region = sc ? BKE_screen_find_region_xy(sc, RGN_TYPE_ANY, event->x, event->y) : NULL;
+  ARegion *region = screen ? BKE_screen_find_region_xy(screen, RGN_TYPE_ANY, event->x, event->y) :
+                             NULL;
 
   if (region == NULL) {
     region = region_prev;

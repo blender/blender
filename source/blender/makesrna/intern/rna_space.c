@@ -568,12 +568,12 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 
 static ScrArea *rna_area_from_space(PointerRNA *ptr)
 {
-  bScreen *sc = (bScreen *)ptr->owner_id;
+  bScreen *screen = (bScreen *)ptr->owner_id;
   SpaceLink *link = (SpaceLink *)ptr->data;
-  return BKE_screen_find_area_from_space(sc, link);
+  return BKE_screen_find_area_from_space(screen, link);
 }
 
-static void area_region_from_regiondata(bScreen *sc,
+static void area_region_from_regiondata(bScreen *screen,
                                         void *regiondata,
                                         ScrArea **r_area,
                                         ARegion **r_region)
@@ -584,7 +584,7 @@ static void area_region_from_regiondata(bScreen *sc,
   *r_area = NULL;
   *r_region = NULL;
 
-  for (area = sc->areabase.first; area; area = area->next) {
+  for (area = screen->areabase.first; area; area = area->next) {
     for (region = area->regionbase.first; region; region = region->next) {
       if (region->regiondata == regiondata) {
         *r_area = area;
@@ -597,10 +597,10 @@ static void area_region_from_regiondata(bScreen *sc,
 
 static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **r_area, ARegion **r_region)
 {
-  bScreen *sc = (bScreen *)ptr->owner_id;
+  bScreen *screen = (bScreen *)ptr->owner_id;
   void *regiondata = ptr->data;
 
-  area_region_from_regiondata(sc, regiondata, r_area, r_region);
+  area_region_from_regiondata(screen, regiondata, r_area, r_region);
 }
 
 /* -------------------------------------------------------------------- */
@@ -815,10 +815,10 @@ static void rna_Space_view2d_sync_update(Main *UNUSED(bmain),
   region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   if (region) {
-    bScreen *sc = (bScreen *)ptr->owner_id;
+    bScreen *screen = (bScreen *)ptr->owner_id;
     View2D *v2d = &region->v2d;
 
-    UI_view2d_sync(sc, area, v2d, V2D_LOCK_SET);
+    UI_view2d_sync(screen, area, v2d, V2D_LOCK_SET);
   }
 }
 
@@ -853,12 +853,12 @@ static void rna_SpaceView3D_camera_update(Main *bmain, Scene *scene, PointerRNA 
 static void rna_SpaceView3D_use_local_camera_set(PointerRNA *ptr, bool value)
 {
   View3D *v3d = (View3D *)(ptr->data);
-  bScreen *sc = (bScreen *)ptr->owner_id;
+  bScreen *screen = (bScreen *)ptr->owner_id;
 
   v3d->scenelock = !value;
 
   if (!value) {
-    Scene *scene = ED_screen_scene_find(sc, G_MAIN->wm.first);
+    Scene *scene = ED_screen_scene_find(screen, G_MAIN->wm.first);
     /* NULL if the screen isn't in an active window (happens when setting from Python).
      * This could be moved to the update function, in that case the scene wont relate to the screen
      * so keep it working this way. */
@@ -1455,8 +1455,8 @@ static bool rna_SpaceImageEditor_show_paint_get(PointerRNA *ptr)
 static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
 {
   SpaceImage *sima = (SpaceImage *)(ptr->data);
-  bScreen *sc = (bScreen *)ptr->owner_id;
-  wmWindow *win = ED_screen_window_find(sc, G_MAIN->wm.first);
+  bScreen *screen = (bScreen *)ptr->owner_id;
+  wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
   return ED_space_image_show_uvedit(sima, obedit);
@@ -1465,8 +1465,8 @@ static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
 static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
 {
   SpaceImage *sima = (SpaceImage *)(ptr->data);
-  bScreen *sc = (bScreen *)ptr->owner_id;
-  wmWindow *win = ED_screen_window_find(sc, G_MAIN->wm.first);
+  bScreen *screen = (bScreen *)ptr->owner_id;
+  wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   return ED_space_image_check_show_maskedit(sima, view_layer);
 }
@@ -1476,8 +1476,8 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr,
                                            struct ReportList *UNUSED(reports))
 {
   SpaceImage *sima = (SpaceImage *)(ptr->data);
-  bScreen *sc = (bScreen *)ptr->owner_id;
-  wmWindow *win = ED_screen_window_find(sc, G_MAIN->wm.first);
+  bScreen *screen = (bScreen *)ptr->owner_id;
+  wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
 

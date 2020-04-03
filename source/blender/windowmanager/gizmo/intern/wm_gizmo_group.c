@@ -298,8 +298,8 @@ void WM_gizmo_group_remove_by_tool(bContext *C,
                                    const bToolRef *tref)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_find(&gzgt->gzmap_params);
-  for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-    for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
       if (area->runtime.tool == tref) {
         for (ARegion *region = area->regionbase.first; region; region = region->next) {
           wmGizmoMap *gzmap = region->gizmo_map;
@@ -908,8 +908,8 @@ void WM_gizmomaptype_group_init_runtime(const Main *bmain,
   }
 
   /* now create a gizmo for all existing areas */
-  for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-    for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
       for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
         ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
         for (ARegion *region = lb->first; region; region = region->next) {
@@ -963,8 +963,8 @@ void WM_gizmomaptype_group_unlink(bContext *C,
                                   const wmGizmoGroupType *gzgt)
 {
   /* Free instances. */
-  for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-    for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
       for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
         ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
         for (ARegion *region = lb->first; region; region = region->next) {
