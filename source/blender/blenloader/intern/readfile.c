@@ -9404,6 +9404,67 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
   return bhead;
 }
 
+static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const ID *id)
+{
+  /* In undo case, most libs and linked data should be kept as is from previous state
+   * (see BLO_read_from_memfile).
+   * However, some needed by the snapshot being read may have been removed in previous one,
+   * and would go missing.
+   * This leads e.g. to disappearing objects in some undo/redo case, see T34446.
+   * That means we have to carefully check whether current lib or
+   * libdata already exits in old main, if it does we merely copy it over into new main area,
+   * otherwise we have to do a full read of that bhead... */
+  DEBUG_PRINTF("UNDO: restore library %s\n", id->name);
+
+  Main *libmain = fd->old_mainlist->first;
+  /* Skip oldmain itself... */
+  for (libmain = libmain->next; libmain; libmain = libmain->next) {
+    DEBUG_PRINTF("  compare with %s -> ", libmain->curlib ? libmain->curlib->id.name : "<NULL>");
+    if (libmain->curlib && STREQ(id->name, libmain->curlib->id.name)) {
+      Main *oldmain = fd->old_mainlist->first;
+      DEBUG_PRINTF("match!\n");
+      /* In case of a library, we need to re-add its main to fd->mainlist,
+       * because if we have later a missing ID_LINK_PLACEHOLDER,
+       * we need to get the correct lib it is linked to!
+       * Order is crucial, we cannot bulk-add it in BLO_read_from_memfile()
+       * like it used to be. */
+      BLI_remlink(fd->old_mainlist, libmain);
+      BLI_remlink_safe(&oldmain->libraries, libmain->curlib);
+      BLI_addtail(fd->mainlist, libmain);
+      BLI_addtail(&main->libraries, libmain->curlib);
+      return true;
+    }
+    DEBUG_PRINTF("no match\n");
+  }
+
+  return false;
+}
+
+static bool read_libblock_undo_restore_linked(FileData *fd, Main *main, const ID *id, BHead *bhead)
+{
+  DEBUG_PRINTF("UNDO: restore linked datablock %s\n", id->name);
+  DEBUG_PRINTF("  from %s (%s): ",
+               main->curlib ? main->curlib->id.name : "<NULL>",
+               main->curlib ? main->curlib->name : "<NULL>");
+
+  ID *existing_id = BKE_libblock_find_name(main, GS(id->name), id->name + 2);
+  if (existing_id != NULL) {
+    DEBUG_PRINTF("  found!\n");
+    /* Even though we found our linked ID,
+     * there is no guarantee its address is still the same. */
+    if (existing_id != bhead->old) {
+      oldnewmap_insert(fd->libmap, bhead->old, existing_id, GS(existing_id->name));
+    }
+
+    /* No need to do anything else for ID_LINK_PLACEHOLDER,
+     * it's assumed already present in its lib's main. */
+    return true;
+  }
+
+  DEBUG_PRINTF("  not found\n");
+  return false;
+}
+
 static BHead *read_libblock(FileData *fd,
                             Main *main,
                             BHead *bhead,
@@ -9434,60 +9495,19 @@ static BHead *read_libblock(FileData *fd,
     return blo_bhead_next(fd, bhead);
   }
 
-  /* In undo case, most libs and linked data should be kept as is from previous state
-   * (see BLO_read_from_memfile).
-   * However, some needed by the snapshot being read may have been removed in previous one,
-   * and would go missing.
-   * This leads e.g. to disappearing objects in some undo/redo case, see T34446.
-   * That means we have to carefully check whether current lib or
-   * libdata already exits in old main, if it does we merely copy it over into new main area,
-   * otherwise we have to do a full read of that bhead... */
-  if (fd->memfile != NULL && ELEM(bhead->code, ID_LI, ID_LINK_PLACEHOLDER)) {
-    DEBUG_PRINTF("Checking %s...\n", id->name);
-
+  /* Restore library and linked datablocks for undo. */
+  if (fd->memfile != NULL) {
     if (bhead->code == ID_LI) {
-      Main *libmain = fd->old_mainlist->first;
-      /* Skip oldmain itself... */
-      for (libmain = libmain->next; libmain; libmain = libmain->next) {
-        DEBUG_PRINTF("... against %s: ", libmain->curlib ? libmain->curlib->id.name : "<NULL>");
-        if (libmain->curlib && STREQ(id->name, libmain->curlib->id.name)) {
-          Main *oldmain = fd->old_mainlist->first;
-          DEBUG_PRINTF("FOUND!\n");
-          /* In case of a library, we need to re-add its main to fd->mainlist,
-           * because if we have later a missing ID_LINK_PLACEHOLDER,
-           * we need to get the correct lib it is linked to!
-           * Order is crucial, we cannot bulk-add it in BLO_read_from_memfile()
-           * like it used to be. */
-          BLI_remlink(fd->old_mainlist, libmain);
-          BLI_remlink_safe(&oldmain->libraries, libmain->curlib);
-          BLI_addtail(fd->mainlist, libmain);
-          BLI_addtail(&main->libraries, libmain->curlib);
-
-          MEM_freeN(id);
-          return blo_bhead_next(fd, bhead);
-        }
-        DEBUG_PRINTF("nothing...\n");
-      }
-    }
-    else {
-      DEBUG_PRINTF("... in %s (%s): ",
-                   main->curlib ? main->curlib->id.name : "<NULL>",
-                   main->curlib ? main->curlib->name : "<NULL>");
-      ID *existing_id = BKE_libblock_find_name(main, GS(id->name), id->name + 2);
-      if (existing_id != NULL) {
-        DEBUG_PRINTF("FOUND!\n");
-        /* Even though we found our linked ID,
-         * there is no guarantee its address is still the same. */
-        if (existing_id != bhead->old) {
-          oldnewmap_insert(fd->libmap, bhead->old, existing_id, GS(existing_id->name));
-        }
-
-        /* No need to do anything else for ID_LINK_PLACEHOLDER,
-         * it's assumed already present in its lib's main. */
+      if (read_libblock_undo_restore_library(fd, main, id)) {
         MEM_freeN(id);
         return blo_bhead_next(fd, bhead);
       }
-      DEBUG_PRINTF("nothing...\n");
+    }
+    else if (bhead->code == ID_LINK_PLACEHOLDER) {
+      if (read_libblock_undo_restore_linked(fd, main, id, bhead)) {
+        MEM_freeN(id);
+        return blo_bhead_next(fd, bhead);
+      }
     }
   }
 
