@@ -646,8 +646,8 @@ void ANIM_keyingset_infos_exit(void)
     next = ksi->next;
 
     /* free extra RNA data, and remove from list */
-    if (ksi->ext.free) {
-      ksi->ext.free(ksi->ext.data);
+    if (ksi->rna_ext.free) {
+      ksi->rna_ext.free(ksi->rna_ext.data);
     }
     BLI_freelinkN(&keyingset_type_infos, ksi);
   }

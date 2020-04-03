@@ -381,7 +381,7 @@ typedef struct wmGizmoType {
   struct StructRNA *srna;
 
   /** RNA integration. */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 
   ListBase target_property_defs;
   int target_property_defs_len;
@@ -436,7 +436,7 @@ typedef struct wmGizmoGroupType {
   struct StructRNA *srna;
 
   /** RNA integration. */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 
   eWM_GizmoFlagGroupTypeFlag flag;
 

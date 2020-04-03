@@ -37,7 +37,7 @@ typedef struct wmKeyConfigPrefType_Runtime {
   char idname[64];
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } wmKeyConfigPrefType_Runtime;
 
 #else

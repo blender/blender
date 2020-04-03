@@ -6607,8 +6607,8 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
             }
             else {
               /* Not all menus are from Python. */
-              if (mt->ext.srna) {
-                const char *t = RNA_struct_ui_description(mt->ext.srna);
+              if (mt->rna_ext.srna) {
+                const char *t = RNA_struct_ui_description(mt->rna_ext.srna);
                 if (t && t[0]) {
                   tmp = BLI_strdup(t);
                 }
@@ -6625,7 +6625,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
             }
             else {
               /* Not all panels are from Python. */
-              if (pt->ext.srna) {
+              if (pt->rna_ext.srna) {
                 /* Panels don't yet have descriptions, this may be added. */
               }
             }
@@ -6644,7 +6644,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN)) {
         MenuType *mt = UI_but_menutype_get(but);
         if (mt) {
-          _tmp = RNA_struct_translation_context(mt->ext.srna);
+          _tmp = RNA_struct_translation_context(mt->rna_ext.srna);
         }
       }
       if (BLT_is_default_context(_tmp)) {

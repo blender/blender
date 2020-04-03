@@ -82,8 +82,8 @@ void WM_uilisttype_free(void)
 
   GHASH_ITER (gh_iter, uilisttypes_hash) {
     uiListType *ult = BLI_ghashIterator_getValue(&gh_iter);
-    if (ult->ext.free) {
-      ult->ext.free(ult->ext.data);
+    if (ult->rna_ext.free) {
+      ult->rna_ext.free(ult->rna_ext.data);
     }
   }
 

@@ -144,7 +144,7 @@ wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(wmGizmoMapType *gzmap_typ
  */
 static void gizmogrouptype_free(wmGizmoGroupType *gzgt)
 {
-  if (gzgt->ext.srna) { /* python gizmo group, allocs own string */
+  if (gzgt->rna_ext.srna) { /* python gizmo group, allocs own string */
     MEM_freeN((void *)gzgt->idname);
   }
 

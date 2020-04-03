@@ -206,7 +206,7 @@ void register_node_tree_type_sh(void)
   tt->get_from_context = shader_get_from_context;
   tt->validate_link = shader_validate_link;
 
-  tt->ext.srna = &RNA_ShaderNodeTree;
+  tt->rna_ext.srna = &RNA_ShaderNodeTree;
 
   ntreeTypeAdd(tt);
 }

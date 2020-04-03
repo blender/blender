@@ -104,16 +104,16 @@ static void spacetype_free(SpaceType *st)
     BLI_freelistN(&art->drawcalls);
 
     for (pt = art->paneltypes.first; pt; pt = pt->next) {
-      if (pt->ext.free) {
-        pt->ext.free(pt->ext.data);
+      if (pt->rna_ext.free) {
+        pt->rna_ext.free(pt->rna_ext.data);
       }
 
       BLI_freelistN(&pt->children);
     }
 
     for (ht = art->headertypes.first; ht; ht = ht->next) {
-      if (ht->ext.free) {
-        ht->ext.free(ht->ext.data);
+      if (ht->rna_ext.free) {
+        ht->rna_ext.free(ht->rna_ext.data);
       }
     }
 

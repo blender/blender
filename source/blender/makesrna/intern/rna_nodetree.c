@@ -681,8 +681,8 @@ static StructRNA *rna_NodeTree_refine(struct PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->data;
 
-  if (ntree->typeinfo->ext.srna) {
-    return ntree->typeinfo->ext.srna;
+  if (ntree->typeinfo->rna_ext.srna) {
+    return ntree->typeinfo->rna_ext.srna;
   }
   else {
     return &RNA_NodeTree;
@@ -699,12 +699,12 @@ static bool rna_NodeTree_poll(const bContext *C, bNodeTreeType *ntreetype)
   void *ret;
   bool visible;
 
-  RNA_pointer_create(NULL, ntreetype->ext.srna, NULL, &ptr); /* dummy */
+  RNA_pointer_create(NULL, ntreetype->rna_ext.srna, NULL, &ptr); /* dummy */
   func = &rna_NodeTree_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
-  ntreetype->ext.call((bContext *)C, &ptr, func, &list);
+  ntreetype->rna_ext.call((bContext *)C, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "visible", &ret);
   visible = *(bool *)ret;
@@ -726,7 +726,7 @@ static void rna_NodeTree_update_reg(bNodeTree *ntree)
   func = &rna_NodeTree_update_func; /* RNA_struct_find_function(&ptr, "update"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
-  ntree->typeinfo->ext.call(NULL, &ptr, func, &list);
+  ntree->typeinfo->rna_ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
@@ -741,13 +741,13 @@ static void rna_NodeTree_get_from_context(
   FunctionRNA *func;
   void *ret1, *ret2, *ret3;
 
-  RNA_pointer_create(NULL, ntreetype->ext.srna, NULL, &ptr); /* dummy */
+  RNA_pointer_create(NULL, ntreetype->rna_ext.srna, NULL, &ptr); /* dummy */
   /* RNA_struct_find_function(&ptr, "get_from_context"); */
   func = &rna_NodeTree_get_from_context_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
-  ntreetype->ext.call((bContext *)C, &ptr, func, &list);
+  ntreetype->rna_ext.call((bContext *)C, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "result_1", &ret1);
   RNA_parameter_get_lookup(&list, "result_2", &ret2);
@@ -767,7 +767,7 @@ static void rna_NodeTree_unregister(Main *UNUSED(bmain), StructRNA *type)
     return;
   }
 
-  RNA_struct_free_extension(type, &nt->ext);
+  RNA_struct_free_extension(type, &nt->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
   ntreeTypeFreeLink(nt);
@@ -812,7 +812,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   /* check if we have registered this tree type before, and remove it */
   nt = ntreeTypeFind(dummynt.idname);
   if (nt) {
-    rna_NodeTree_unregister(bmain, nt->ext.srna);
+    rna_NodeTree_unregister(bmain, nt->rna_ext.srna);
   }
 
   /* create a new node tree type */
@@ -821,14 +821,14 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
 
   nt->type = NTREE_CUSTOM;
 
-  nt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, nt->idname, &RNA_NodeTree);
-  nt->ext.data = data;
-  nt->ext.call = call;
-  nt->ext.free = free;
-  RNA_struct_blender_type_set(nt->ext.srna, nt);
+  nt->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, nt->idname, &RNA_NodeTree);
+  nt->rna_ext.data = data;
+  nt->rna_ext.call = call;
+  nt->rna_ext.free = free;
+  RNA_struct_blender_type_set(nt->rna_ext.srna, nt);
 
-  RNA_def_struct_ui_text(nt->ext.srna, nt->ui_name, nt->ui_description);
-  RNA_def_struct_ui_icon(nt->ext.srna, nt->ui_icon);
+  RNA_def_struct_ui_text(nt->rna_ext.srna, nt->ui_name, nt->ui_description);
+  RNA_def_struct_ui_icon(nt->rna_ext.srna, nt->ui_icon);
 
   nt->poll = (have_function[0]) ? rna_NodeTree_poll : NULL;
   nt->update = (have_function[1]) ? rna_NodeTree_update_reg : NULL;
@@ -839,7 +839,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 
-  return nt->ext.srna;
+  return nt->rna_ext.srna;
 }
 
 static bool rna_NodeTree_check(bNodeTree *ntree, ReportList *reports)
@@ -1323,8 +1323,8 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  if (node->typeinfo->ext.srna) {
-    return node->typeinfo->ext.srna;
+  if (node->typeinfo->rna_ext.srna) {
+    return node->typeinfo->rna_ext.srna;
   }
   else {
     return ptr->type;
@@ -1380,12 +1380,12 @@ static bool rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
   void *ret;
   bool visible;
 
-  RNA_pointer_create(NULL, ntype->ext.srna, NULL, &ptr); /* dummy */
+  RNA_pointer_create(NULL, ntype->rna_ext.srna, NULL, &ptr); /* dummy */
   func = &rna_Node_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "node_tree", &ntree);
-  ntype->ext.call(NULL, &ptr, func, &list);
+  ntype->rna_ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "visible", &ret);
   visible = *(bool *)ret;
@@ -1405,12 +1405,12 @@ static bool rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
   void *ret;
   bool visible;
 
-  RNA_pointer_create(NULL, node->typeinfo->ext.srna, node, &ptr); /* dummy */
+  RNA_pointer_create(NULL, node->typeinfo->rna_ext.srna, node, &ptr); /* dummy */
   func = &rna_Node_poll_instance_func; /* RNA_struct_find_function(&ptr, "poll_instance"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "node_tree", &ntree);
-  node->typeinfo->ext.call(NULL, &ptr, func, &list);
+  node->typeinfo->rna_ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "visible", &ret);
   visible = *(bool *)ret;
@@ -1434,11 +1434,11 @@ static void rna_Node_update_reg(bNodeTree *ntree, bNode *node)
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create((ID *)ntree, node->typeinfo->ext.srna, node, &ptr);
+  RNA_pointer_create((ID *)ntree, node->typeinfo->rna_ext.srna, node, &ptr);
   func = &rna_Node_update_func; /* RNA_struct_find_function(&ptr, "update"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
-  node->typeinfo->ext.call(NULL, &ptr, func, &list);
+  node->typeinfo->rna_ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
@@ -1451,12 +1451,12 @@ static void rna_Node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create((ID *)ntree, node->typeinfo->ext.srna, node, &ptr);
+  RNA_pointer_create((ID *)ntree, node->typeinfo->rna_ext.srna, node, &ptr);
   func = &rna_Node_insert_link_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "link", &link);
-  node->typeinfo->ext.call(NULL, &ptr, func, &list);
+  node->typeinfo->rna_ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
@@ -1472,7 +1472,7 @@ static void rna_Node_init(const bContext *C, PointerRNA *ptr)
   func = &rna_Node_init_func; /* RNA_struct_find_function(&ptr, "init"); */
 
   RNA_parameter_list_create(&list, ptr, func);
-  node->typeinfo->ext.call((bContext *)C, ptr, func, &list);
+  node->typeinfo->rna_ext.call((bContext *)C, ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
@@ -1489,7 +1489,7 @@ static void rna_Node_copy(PointerRNA *ptr, const struct bNode *copynode)
 
   RNA_parameter_list_create(&list, ptr, func);
   RNA_parameter_set_lookup(&list, "node", &copynode);
-  node->typeinfo->ext.call(NULL, ptr, func, &list);
+  node->typeinfo->rna_ext.call(NULL, ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
@@ -1505,7 +1505,7 @@ static void rna_Node_free(PointerRNA *ptr)
   func = &rna_Node_free_func; /* RNA_struct_find_function(&ptr, "free"); */
 
   RNA_parameter_list_create(&list, ptr, func);
-  node->typeinfo->ext.call(NULL, ptr, func, &list);
+  node->typeinfo->rna_ext.call(NULL, ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
@@ -1523,7 +1523,7 @@ static void rna_Node_draw_buttons(struct uiLayout *layout, bContext *C, PointerR
   RNA_parameter_list_create(&list, ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
   RNA_parameter_set_lookup(&list, "layout", &layout);
-  node->typeinfo->ext.call(C, ptr, func, &list);
+  node->typeinfo->rna_ext.call(C, ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
@@ -1541,7 +1541,7 @@ static void rna_Node_draw_buttons_ext(struct uiLayout *layout, bContext *C, Poin
   RNA_parameter_list_create(&list, ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
   RNA_parameter_set_lookup(&list, "layout", &layout);
-  node->typeinfo->ext.call(C, ptr, func, &list);
+  node->typeinfo->rna_ext.call(C, ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
@@ -1560,7 +1560,7 @@ static void rna_Node_draw_label(bNodeTree *ntree, bNode *node, char *label, int 
 
   RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
   RNA_parameter_list_create(&list, &ptr, func);
-  node->typeinfo->ext.call(NULL, &ptr, func, &list);
+  node->typeinfo->rna_ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "label", &ret);
   rlabel = (char *)ret;
@@ -1591,7 +1591,7 @@ static void rna_Node_unregister(Main *UNUSED(bmain), StructRNA *type)
     return;
   }
 
-  RNA_struct_free_extension(type, &nt->ext);
+  RNA_struct_free_extension(type, &nt->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
   /* this also frees the allocated nt pointer, no MEM_free call needed! */
@@ -1646,7 +1646,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   /* check if we have registered this node type before, and remove it */
   nt = nodeTypeFind(dummynt.idname);
   if (nt) {
-    rna_Node_unregister(bmain, nt->ext.srna);
+    rna_Node_unregister(bmain, nt->rna_ext.srna);
   }
 
   /* create a new node type */
@@ -1654,17 +1654,17 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   memcpy(nt, &dummynt, sizeof(dummynt));
   nt->free_self = (void (*)(bNodeType *))MEM_freeN;
 
-  nt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, nt->idname, basetype);
-  nt->ext.data = data;
-  nt->ext.call = call;
-  nt->ext.free = free;
-  RNA_struct_blender_type_set(nt->ext.srna, nt);
+  nt->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, nt->idname, basetype);
+  nt->rna_ext.data = data;
+  nt->rna_ext.call = call;
+  nt->rna_ext.free = free;
+  RNA_struct_blender_type_set(nt->rna_ext.srna, nt);
 
-  RNA_def_struct_ui_text(nt->ext.srna, nt->ui_name, nt->ui_description);
-  RNA_def_struct_ui_icon(nt->ext.srna, nt->ui_icon);
+  RNA_def_struct_ui_text(nt->rna_ext.srna, nt->ui_name, nt->ui_description);
+  RNA_def_struct_ui_icon(nt->rna_ext.srna, nt->ui_icon);
 
   func = RNA_def_function_runtime(
-      nt->ext.srna, "is_registered_node_type", rna_Node_is_registered_node_type_runtime);
+      nt->rna_ext.srna, "is_registered_node_type", rna_Node_is_registered_node_type_runtime);
   RNA_def_function_ui_description(func, "True if a registered node type");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_TYPE);
   parm = RNA_def_boolean(func, "result", false, "Result", "");
@@ -1716,7 +1716,7 @@ static StructRNA *rna_Node_register(Main *bmain,
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 
-  return nt->ext.srna;
+  return nt->rna_ext.srna;
 }
 
 static StructRNA *rna_ShaderNode_register(Main *bmain,
@@ -1738,7 +1738,7 @@ static StructRNA *rna_ShaderNode_register(Main *bmain,
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 
-  return nt->ext.srna;
+  return nt->rna_ext.srna;
 }
 
 static StructRNA *rna_CompositorNode_register(Main *bmain,
@@ -1760,7 +1760,7 @@ static StructRNA *rna_CompositorNode_register(Main *bmain,
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 
-  return nt->ext.srna;
+  return nt->rna_ext.srna;
 }
 
 static StructRNA *rna_TextureNode_register(Main *bmain,
@@ -1782,7 +1782,7 @@ static StructRNA *rna_TextureNode_register(Main *bmain,
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 
-  return nt->ext.srna;
+  return nt->rna_ext.srna;
 }
 
 static IDProperty *rna_Node_idprops(PointerRNA *ptr, bool create)
@@ -2845,7 +2845,7 @@ static StructRNA *rna_NodeCustomGroup_register(Main *bmain,
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 
-  return nt->ext.srna;
+  return nt->rna_ext.srna;
 }
 
 static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
@@ -2872,7 +2872,7 @@ static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
 
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 
-  return nt->ext.srna;
+  return nt->rna_ext.srna;
 }
 
 static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
@@ -2898,7 +2898,7 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
 
   WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
 
-  return nt->ext.srna;
+  return nt->rna_ext.srna;
 }
 
 static void rna_CompositorNode_tag_need_exec(bNode *node)

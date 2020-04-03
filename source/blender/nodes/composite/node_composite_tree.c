@@ -228,7 +228,7 @@ void register_node_tree_type_cmp(void)
   tt->get_from_context = composite_get_from_context;
   tt->node_add_init = composite_node_add_init;
 
-  tt->ext.srna = &RNA_CompositorNodeTree;
+  tt->rna_ext.srna = &RNA_CompositorNodeTree;
 
   ntreeTypeAdd(tt);
 }

@@ -110,7 +110,7 @@ typedef struct RenderEngineType {
   struct DrawEngineType *draw_engine;
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } RenderEngineType;
 
 typedef void (*update_render_passes_cb_t)(void *userdata,

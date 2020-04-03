@@ -3133,7 +3133,7 @@ static void node_property_update_default(Main *bmain, Scene *UNUSED(scene), Poin
 
 static void node_socket_template_properties_update(bNodeType *ntype, bNodeSocketTemplate *stemp)
 {
-  StructRNA *srna = ntype->ext.srna;
+  StructRNA *srna = ntype->rna_ext.srna;
   PropertyRNA *prop = RNA_struct_type_find_property(srna, stemp->identifier);
 
   if (prop) {

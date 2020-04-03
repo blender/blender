@@ -87,8 +87,8 @@ void RE_engines_exit(void)
     BLI_remlink(&R_engines, type);
 
     if (!(type->flag & RE_INTERNAL)) {
-      if (type->ext.free) {
-        type->ext.free(type->ext.data);
+      if (type->rna_ext.free) {
+        type->rna_ext.free(type->rna_ext.data);
       }
 
       MEM_freeN(type);

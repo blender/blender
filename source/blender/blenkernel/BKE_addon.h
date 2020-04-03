@@ -33,7 +33,7 @@ typedef struct bAddonPrefType {
   char idname[64];  // best keep the same size as BKE_ST_MAXNAME
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } bAddonPrefType;
 
 #else

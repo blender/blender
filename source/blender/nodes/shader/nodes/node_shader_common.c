@@ -238,9 +238,9 @@ void register_node_type_sh_group(void)
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;
   ntype.update_internal_links = node_update_internal_links_default;
-  ntype.ext.srna = RNA_struct_find("ShaderNodeGroup");
-  BLI_assert(ntype.ext.srna != NULL);
-  RNA_struct_blender_type_set(ntype.ext.srna, &ntype);
+  ntype.rna_ext.srna = RNA_struct_find("ShaderNodeGroup");
+  BLI_assert(ntype.rna_ext.srna != NULL);
+  RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
 
   node_type_socket_templates(&ntype, NULL, NULL);
   node_type_size(&ntype, 140, 60, 400);

@@ -268,7 +268,7 @@ typedef struct bNodeType {
   NodeGPUExecFunction gpufunc;
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } bNodeType;
 
 /* nodetype->nclass, for add-menu and themes */
@@ -350,7 +350,7 @@ typedef struct bNodeTreeType {
   void (*node_add_init)(struct bNodeTree *ntree, struct bNode *bnode);
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } bNodeTreeType;
 
 /** \} */

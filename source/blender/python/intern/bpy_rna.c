@@ -4091,7 +4091,7 @@ static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)
   if (srna_base == &RNA_Node) {
     bNodeType *nt = nodeTypeFind(id);
     if (nt) {
-      RNA_pointer_create(NULL, &RNA_Struct, nt->ext.srna, &ptr);
+      RNA_pointer_create(NULL, &RNA_Struct, nt->rna_ext.srna, &ptr);
       return pyrna_struct_CreatePyObject(&ptr);
     }
   }

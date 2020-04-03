@@ -760,7 +760,7 @@ typedef struct wmOperatorType {
   bool (*pyop_poll)(struct bContext *, struct wmOperatorType *ot) ATTR_WARN_UNUSED_RESULT;
 
   /** RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 
   /** Flag last for padding */
   short flag;

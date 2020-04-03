@@ -199,7 +199,7 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
     wm_operatortype_free_macro(ot);
   }
 
-  if (ot->ext.srna) {
+  if (ot->rna_ext.srna) {
     /* python operator, allocs own string */
     MEM_freeN((void *)ot->idname);
   }
@@ -507,9 +507,9 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
 
   RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
-  /* Use i18n context from ext.srna if possible (py operators). */
-  i18n_context = ot->ext.srna ? RNA_struct_translation_context(ot->ext.srna) :
-                                BLT_I18NCONTEXT_OPERATOR_DEFAULT;
+  /* Use i18n context from rna_ext.srna if possible (py operators). */
+  i18n_context = ot->rna_ext.srna ? RNA_struct_translation_context(ot->rna_ext.srna) :
+                                    BLT_I18NCONTEXT_OPERATOR_DEFAULT;
   RNA_def_struct_translation_context(ot->srna, i18n_context);
   ot->translation_context = i18n_context;
 

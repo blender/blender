@@ -793,7 +793,7 @@ static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
       IDPropertyTemplate val = {0};
       addon->prop = IDP_New(IDP_GROUP, &val, addon->module); /* name is unimportant  */
     }
-    return rna_pointer_inherit_refine(ptr, apt->ext.srna, addon->prop);
+    return rna_pointer_inherit_refine(ptr, apt->rna_ext.srna, addon->prop);
   }
   else {
     return PointerRNA_NULL;
@@ -808,7 +808,7 @@ static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
     return;
   }
 
-  RNA_struct_free_extension(type, &apt->ext);
+  RNA_struct_free_extension(type, &apt->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
   BKE_addon_pref_type_remove(apt);
@@ -850,8 +850,8 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
 
   /* check if we have registered this addon-pref type before, and remove it */
   apt = BKE_addon_pref_type_find(dummy_addon.module, true);
-  if (apt && apt->ext.srna) {
-    rna_AddonPref_unregister(bmain, apt->ext.srna);
+  if (apt && apt->rna_ext.srna) {
+    rna_AddonPref_unregister(bmain, apt->rna_ext.srna);
   }
 
   /* create a new addon-pref type */
@@ -859,18 +859,18 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   memcpy(apt, &dummy_apt, sizeof(dummy_apt));
   BKE_addon_pref_type_add(apt);
 
-  apt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_AddonPreferences);
-  apt->ext.data = data;
-  apt->ext.call = call;
-  apt->ext.free = free;
-  RNA_struct_blender_type_set(apt->ext.srna, apt);
+  apt->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_AddonPreferences);
+  apt->rna_ext.data = data;
+  apt->rna_ext.call = call;
+  apt->rna_ext.free = free;
+  RNA_struct_blender_type_set(apt->rna_ext.srna, apt);
 
   //  apt->draw = (have_function[0]) ? header_draw : NULL;
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
 
-  return apt->ext.srna;
+  return apt->rna_ext.srna;
 }
 
 /* placeholder, doesn't do anything useful yet */

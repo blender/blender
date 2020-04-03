@@ -198,7 +198,7 @@ typedef struct KeyingSetInfo {
   cbKeyingSet_Generate generate;
 
   /* RNA integration */
-  struct ExtensionRNA ext;
+  struct ExtensionRNA rna_ext;
 } KeyingSetInfo;
 
 /* -------- */

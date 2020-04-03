@@ -92,7 +92,7 @@ static bool script_test_modal_operators(bContext *C)
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
         if (handler->op != NULL) {
           wmOperatorType *ot = handler->op->type;
-          if (ot->ext.srna) {
+          if (ot->rna_ext.srna) {
             return true;
           }
         }

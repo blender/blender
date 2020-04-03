@@ -3625,9 +3625,9 @@ void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, 
 #define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
   case ID: \
     BLI_strncpy(ntype->idname, #Category #StructName, sizeof(ntype->idname)); \
-    ntype->ext.srna = RNA_struct_find(#Category #StructName); \
-    BLI_assert(ntype->ext.srna != NULL); \
-    RNA_struct_blender_type_set(ntype->ext.srna, ntype); \
+    ntype->rna_ext.srna = RNA_struct_find(#Category #StructName); \
+    BLI_assert(ntype->rna_ext.srna != NULL); \
+    RNA_struct_blender_type_set(ntype->rna_ext.srna, ntype); \
     break;
 
   switch (type) {
@@ -4142,8 +4142,8 @@ void free_nodesystem(void)
 {
   if (nodetypes_hash) {
     NODE_TYPES_BEGIN (nt) {
-      if (nt->ext.free) {
-        nt->ext.free(nt->ext.data);
+      if (nt->rna_ext.free) {
+        nt->rna_ext.free(nt->rna_ext.data);
       }
     }
     NODE_TYPES_END;
@@ -4169,8 +4169,8 @@ void free_nodesystem(void)
 
   if (nodetreetypes_hash) {
     NODE_TREE_TYPES_BEGIN (nt) {
-      if (nt->ext.free) {
-        nt->ext.free(nt->ext.data);
+      if (nt->rna_ext.free) {
+        nt->rna_ext.free(nt->rna_ext.data);
       }
     }
     NODE_TREE_TYPES_END;

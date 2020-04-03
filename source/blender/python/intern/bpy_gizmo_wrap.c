@@ -101,8 +101,8 @@ fail:
 
 static void gizmo_properties_init(wmGizmoType *gzt)
 {
-  PyTypeObject *py_class = gzt->ext.data;
-  RNA_struct_blender_type_set(gzt->ext.srna, gzt);
+  PyTypeObject *py_class = gzt->rna_ext.data;
+  RNA_struct_blender_type_set(gzt->rna_ext.srna, gzt);
 
   /* only call this so pyrna_deferred_register_class gives a useful error
    * WM_operatortype_append_ptr will call RNA_def_struct_identifier
@@ -160,9 +160,9 @@ void BPY_RNA_gizmo_wrapper(wmGizmoType *gzt, void *userdata)
 
   /* don't do translations here yet */
 #if 0
-  /* Use i18n context from ext.srna if possible (py gizmogroups). */
-  if (gt->ext.srna) {
-    RNA_def_struct_translation_context(gt->srna, RNA_struct_translation_context(gt->ext.srna));
+  /* Use i18n context from rna_ext.srna if possible (py gizmogroups). */
+  if (gt->rna_ext.srna) {
+    RNA_def_struct_translation_context(gt->srna, RNA_struct_translation_context(gt->rna_ext.srna));
   }
 #endif
 
@@ -179,8 +179,8 @@ void BPY_RNA_gizmo_wrapper(wmGizmoType *gzt, void *userdata)
 
 static void gizmogroup_properties_init(wmGizmoGroupType *gzgt)
 {
-  PyTypeObject *py_class = gzgt->ext.data;
-  RNA_struct_blender_type_set(gzgt->ext.srna, gzgt);
+  PyTypeObject *py_class = gzgt->rna_ext.data;
+  RNA_struct_blender_type_set(gzgt->rna_ext.srna, gzgt);
 
   /* only call this so pyrna_deferred_register_class gives a useful error
    * WM_operatortype_append_ptr will call RNA_def_struct_identifier
@@ -203,9 +203,9 @@ void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata)
 
   /* don't do translations here yet */
 #if 0
-  /* Use i18n context from ext.srna if possible (py gizmogroups). */
-  if (gzgt->ext.srna) {
-    RNA_def_struct_translation_context(gzgt->srna, RNA_struct_translation_context(gzgt->ext.srna));
+  /* Use i18n context from rna_ext.srna if possible (py gizmogroups). */
+  if (gzgt->rna_ext.srna) {
+    RNA_def_struct_translation_context(gzgt->srna, RNA_struct_translation_context(gzgt->rna_ext.srna));
   }
 #endif
 

@@ -233,7 +233,7 @@ typedef struct PanelType {
   ListBase children;
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } PanelType;
 
 /* uilist types */
@@ -271,7 +271,7 @@ typedef struct uiListType {
   uiListFilterItemsFunc filter_items;
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } uiListType;
 
 /* header types */
@@ -288,7 +288,7 @@ typedef struct HeaderType {
   void (*draw)(const struct bContext *C, struct Header *header);
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } HeaderType;
 
 typedef struct Header {
@@ -313,7 +313,7 @@ typedef struct MenuType {
   void (*draw)(const struct bContext *C, struct Menu *menu);
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } MenuType;
 
 typedef struct Menu {

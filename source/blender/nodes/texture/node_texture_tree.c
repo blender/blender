@@ -172,7 +172,7 @@ void register_node_tree_type_tex(void)
   tt->local_merge = local_merge;
   tt->get_from_context = texture_get_from_context;
 
-  tt->ext.srna = &RNA_TextureNodeTree;
+  tt->rna_ext.srna = &RNA_TextureNodeTree;
 
   ntreeTypeAdd(tt);
 }
