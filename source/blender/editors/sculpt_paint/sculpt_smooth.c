@@ -62,8 +62,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-
-
 /* For the smooth brush, uses the neighboring vertices around vert to calculate
  * a smoothed location for vert. Skips corner vertices (used by only one
  * polygon). */
@@ -185,7 +183,8 @@ void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert
   }
 }
 
-/* Generic functions for laplacian smoothing. These functions do not take boundary vertices into account. */
+/* Generic functions for laplacian smoothing. These functions do not take boundary vertices into
+ * account. */
 
 void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], int index)
 {
@@ -498,9 +497,8 @@ void SCULPT_surface_smooth_displace_step(SculptSession *ss,
   }
 }
 
-static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(void *__restrict userdata,
-                                                         const int n,
-                                                         const TaskParallelTLS *__restrict tls)
+static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
+    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -528,21 +526,20 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(void *__restrict
 
       float disp[3];
       SCULPT_surface_smooth_laplacian_step(ss,
-                                    disp,
-                                    vd.co,
-                                    ss->cache->surface_smooth_laplacian_disp,
-                                    vd.index,
-                                    orig_data.co,
-                                    alpha);
+                                           disp,
+                                           vd.co,
+                                           ss->cache->surface_smooth_laplacian_disp,
+                                           vd.index,
+                                           orig_data.co,
+                                           alpha);
       madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
     }
     BKE_pbvh_vertex_iter_end;
   }
 }
 
-static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(void *__restrict userdata,
-                                                        const int n,
-                                                        const TaskParallelTLS *__restrict tls)
+static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
+    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -599,5 +596,3 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
         0, totnode, &data, SCULPT_do_surface_smooth_brush_displace_task_cb_ex, &settings);
   }
 }
-
-

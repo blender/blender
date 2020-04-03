@@ -316,12 +316,12 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       }
       case MESH_FILTER_SURFACE_SMOOTH: {
         SCULPT_surface_smooth_laplacian_step(ss,
-                                      disp,
-                                      vd.co,
-                                      ss->filter_cache->surface_smooth_laplacian_disp,
-                                      vd.index,
-                                      orig_data.co,
-                                      ss->filter_cache->surface_smooth_shape_preservation);
+                                             disp,
+                                             vd.co,
+                                             ss->filter_cache->surface_smooth_laplacian_disp,
+                                             vd.index,
+                                             orig_data.co,
+                                             ss->filter_cache->surface_smooth_shape_preservation);
         break;
       }
     }
@@ -365,11 +365,11 @@ static void mesh_filter_surface_smooth_displace_task_cb(
       continue;
     }
     SCULPT_surface_smooth_displace_step(ss,
-                                 vd.co,
-                                 ss->filter_cache->surface_smooth_laplacian_disp,
-                                 vd.index,
-                                 ss->filter_cache->surface_smooth_current_vertex,
-                                 clamp_f(fade, 0.0f, 1.0f));
+                                        vd.co,
+                                        ss->filter_cache->surface_smooth_laplacian_disp,
+                                        vd.index,
+                                        ss->filter_cache->surface_smooth_current_vertex,
+                                        clamp_f(fade, 0.0f, 1.0f));
   }
   BKE_pbvh_vertex_iter_end;
 }

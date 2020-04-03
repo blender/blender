@@ -82,6 +82,7 @@ void SCULPT_vertex_random_access_init(struct SculptSession *ss);
 
 int SCULPT_vertex_count_get(struct SculptSession *ss);
 const float *SCULPT_vertex_co_get(struct SculptSession *ss, int index);
+void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3]);
 float SCULPT_vertex_mask_get(struct SculptSession *ss, int index);
 
 #define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
@@ -132,6 +133,7 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
 
 int SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
+void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 bool SCULPT_vertex_is_boundary(SculptSession *ss, const int index);
 
@@ -275,6 +277,9 @@ float *SCULPT_boundary_automasking_init(Object *ob,
 /* Filters. */
 void SCULPT_filter_cache_init(Object *ob, Sculpt *sd);
 void SCULPT_filter_cache_free(SculptSession *ss);
+
+void SCULPT_mask_filter_smooth_apply(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, const int smooth_iterations);
 
 /* Brushes. */
 
@@ -838,5 +843,12 @@ void SCULPT_OT_set_pivot_position(struct wmOperatorType *ot);
 
 /* Mesh Filter. */
 void SCULPT_OT_mesh_filter(struct wmOperatorType *ot);
+
+/* Mask filter and Dirty Mask. */
+void SCULPT_OT_mask_filter(struct wmOperatorType *ot);
+void SCULPT_OT_dirty_mask(struct wmOperatorType *ot);
+
+/* Mask and Face Sets Expand. */
+void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
 
 #endif

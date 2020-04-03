@@ -63,8 +63,8 @@
 #include <stdlib.h>
 
 bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
-                                               const Brush *br,
-                                               const eAutomasking_flag mode)
+                                        const Brush *br,
+                                        const eAutomasking_flag mode)
 {
   return br->automasking_flags & mode || sd->automasking_flags & mode;
 }
@@ -205,9 +205,9 @@ static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *a
 #define EDGE_DISTANCE_INF -1
 
 float *SCULPT_boundary_automasking_init(Object *ob,
-                                               eBoundaryAutomaskMode mode,
-                                               int propagation_steps,
-                                               float *automask_factor)
+                                        eBoundaryAutomaskMode mode,
+                                        int propagation_steps,
+                                        float *automask_factor)
 {
   SculptSession *ss = ob->sculpt;
 
