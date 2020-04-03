@@ -910,8 +910,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           vector<GHOST_IWindow *>::const_iterator win_end = win_vec.end();
 
           for (; win_it != win_end; ++win_it) {
-            GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
-            window->refreshXInputDevices();
+            GHOST_WindowX11 *window_xinput = static_cast<GHOST_WindowX11 *>(*win_it);
+            window_xinput->refreshXInputDevices();
           }
         }
       }

@@ -2710,8 +2710,8 @@ void MANTA::updateMeshFromUni(const char *filename)
   if (!gzf)
     std::cout << "updateMeshFromUni: unable to open file" << std::endl;
 
-  char ID[5] = {0, 0, 0, 0, 0};
-  gzread(gzf, ID, 4);
+  char file_magic[5] = {0, 0, 0, 0, 0};
+  gzread(gzf, file_magic, 4);
 
   std::vector<pVel> *velocityPointer = mMeshVelocities;
 
@@ -2744,11 +2744,11 @@ void MANTA::updateMeshFromUni(const char *filename)
   }
 
   // Reading mesh
-  if (!strcmp(ID, "MB01")) {
+  if (!strcmp(file_magic, "MB01")) {
     // TODO (sebbas): Future update could add uni mesh support
   }
   // Reading mesh data file v1 with vec3
-  else if (!strcmp(ID, "MD01")) {
+  else if (!strcmp(file_magic, "MD01")) {
     numParticles = ibuffer[0];
 
     velocityPointer->resize(numParticles);
@@ -2801,10 +2801,10 @@ void MANTA::updateParticlesFromUni(const char *filename, bool isSecondarySys, bo
   if (!gzf)
     std::cerr << "updateParticlesFromUni: unable to open file" << std::endl;
 
-  char ID[5] = {0, 0, 0, 0, 0};
-  gzread(gzf, ID, 4);
+  char file_magic[5] = {0, 0, 0, 0, 0};
+  gzread(gzf, file_magic, 4);
 
-  if (!strcmp(ID, "PB01")) {
+  if (!strcmp(file_magic, "PB01")) {
     std::cerr << "particle uni file format v01 not supported anymore" << std::endl;
     gzclose(gzf);
     return;
@@ -2860,7 +2860,7 @@ void MANTA::updateParticlesFromUni(const char *filename, bool isSecondarySys, bo
   int readStart, readEnd, readBytes;
 
   // Reading base particle system file v2
-  if (!strcmp(ID, "PB02")) {
+  if (!strcmp(file_magic, "PB02")) {
     MANTA::pData *bufferPData;
     todoParticles = numParticles;
     bufferPData = (MANTA::pData *)MEM_malloc_arrayN(
@@ -2900,7 +2900,7 @@ void MANTA::updateParticlesFromUni(const char *filename, bool isSecondarySys, bo
     MEM_freeN(bufferPData);
   }
   // Reading particle data file v1 with velocities
-  else if (!strcmp(ID, "PD01") && isVelData) {
+  else if (!strcmp(file_magic, "PD01") && isVelData) {
     MANTA::pVel *bufferPVel;
     todoParticles = numParticles;
     bufferPVel = (MANTA::pVel *)MEM_malloc_arrayN(
@@ -2939,7 +2939,7 @@ void MANTA::updateParticlesFromUni(const char *filename, bool isSecondarySys, bo
     MEM_freeN(bufferPVel);
   }
   // Reading particle data file v1 with lifetime
-  else if (!strcmp(ID, "PD01")) {
+  else if (!strcmp(file_magic, "PD01")) {
     float *bufferPLife;
     todoParticles = numParticles;
     bufferPLife = (float *)MEM_malloc_arrayN(PARTICLE_CHUNK, sizeof(float), "fluid_particle_life");
@@ -3029,22 +3029,22 @@ int MANTA::updateGridFromUni(const char *filename, float *grid, bool isNoise)
     return 0;
   }
 
-  char ID[5] = {0, 0, 0, 0, 0};
-  gzread(gzf, ID, 4);
+  char file_magic[5] = {0, 0, 0, 0, 0};
+  gzread(gzf, file_magic, 4);
 
-  if (!strcmp(ID, "DDF2")) {
+  if (!strcmp(file_magic, "DDF2")) {
     std::cout << "MANTA::updateGridFromUni(): grid uni file format DDF2 not supported anymore"
               << std::endl;
     gzclose(gzf);
     return 0;
   }
-  if (!strcmp(ID, "MNT1")) {
+  if (!strcmp(file_magic, "MNT1")) {
     std::cout << "MANTA::updateGridFromUni(): grid uni file format MNT1 not supported anymore"
               << std::endl;
     gzclose(gzf);
     return 0;
   }
-  if (!strcmp(ID, "MNT2")) {
+  if (!strcmp(file_magic, "MNT2")) {
     std::cout << "MANTA::updateGridFromUni(): grid uni file format MNT2 not supported anymore"
               << std::endl;
     gzclose(gzf);
@@ -3083,7 +3083,7 @@ int MANTA::updateGridFromUni(const char *filename, float *grid, bool isNoise)
   }
 
   // Actual data reading
-  if (!strcmp(ID, "MNT3")) {
+  if (!strcmp(file_magic, "MNT3")) {
     gzread(gzf, grid, sizeof(float) * ibuffer[0] * ibuffer[1] * ibuffer[2]);
   }
 
