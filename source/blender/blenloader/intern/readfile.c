@@ -9529,6 +9529,13 @@ static BHead *read_libblock(FileData *fd,
         return blo_bhead_next(fd, bhead);
       }
     }
+    else if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
+      /* Skip reading any UI datablocks, existing ones are kept. We don't
+       * support pointers from other datablocks to UI datablocks so those
+       * we also don't put UI datablocks in fd->libmap. */
+      MEM_freeN(id);
+      return blo_bhead_next(fd, bhead);
+    }
   }
 
   /* Restore existing datablocks for undo. */
@@ -9554,15 +9561,8 @@ static BHead *read_libblock(FileData *fd,
                    id->session_uuid);
       id_old = do_partial_undo ? BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid) :
                                  NULL;
-      bool can_finalize_and_return = false;
 
-      if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
-        /* Read WindowManager, Screen and WorkSpace IDs are never actually used during undo (see
-         * `setup_app_data()` in `blendfile.c`).
-         * So we can just abort here, just ensuring libmapping is set accordingly. */
-        can_finalize_and_return = true;
-      }
-      else if (id_old != NULL && is_identical) {
+      if (id_old != NULL && is_identical) {
         /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
          * this is only for do_version-like code), but for sake of consistency, and also because
          * it will tell us which ID is re-used from old Main, and which one is actually new. */
@@ -9584,10 +9584,6 @@ static BHead *read_libblock(FileData *fd,
         BLI_remlink(old_lb, id_old);
         BLI_addtail(new_lb, id_old);
 
-        can_finalize_and_return = true;
-      }
-
-      if (can_finalize_and_return) {
         DEBUG_PRINTF("Re-using existing ID %s instead of newly read one\n", id_old->name);
         oldnewmap_insert(fd->libmap, bhead->old, id_old, bhead->code);
         oldnewmap_insert(fd->libmap, id_old, id_old, bhead->code);
@@ -9644,7 +9640,7 @@ static BHead *read_libblock(FileData *fd,
          * those. Besides maybe custom properties, no other ID should have pointers to those
          * anyway...
          * And linked IDs are handled separately as well. */
-        do_id_swap = !ELEM(idcode, ID_WM, ID_SCR, ID_WS) && !(bhead->code == ID_LINK_PLACEHOLDER);
+        do_id_swap = !(bhead->code == ID_LINK_PLACEHOLDER);
       }
     }
 
