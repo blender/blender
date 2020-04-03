@@ -61,6 +61,8 @@ set(SRC
   sculpt.c
   sculpt_automasking.c
   sculpt_cloth.c
+  sculpt_detail.c
+  sculpt_dyntopo.c
   sculpt_face_set.c
   sculpt_filter_mask.c
   sculpt_filter_mesh.c

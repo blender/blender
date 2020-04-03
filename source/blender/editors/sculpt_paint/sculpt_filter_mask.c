@@ -264,20 +264,21 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SCULPT_mask_filter_smooth_apply(Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, const int smooth_iterations) {
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .nodes = nodes,
-        .filter_type = MASK_FILTER_SMOOTH,
-    };
+void SCULPT_mask_filter_smooth_apply(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, const int smooth_iterations)
+{
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = nodes,
+      .filter_type = MASK_FILTER_SMOOTH,
+  };
 
-    for (int i = 0; i < smooth_iterations; i++) {
-      PBVHParallelSettings settings;
-      BKE_pbvh_parallel_range_settings(
-          &settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-      BKE_pbvh_parallel_range(0, totnode, &data, mask_filter_task_cb, &settings);
-    }
+  for (int i = 0; i < smooth_iterations; i++) {
+    PBVHParallelSettings settings;
+    BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
+    BKE_pbvh_parallel_range(0, totnode, &data, mask_filter_task_cb, &settings);
+  }
 }
 
 void SCULPT_OT_mask_filter(struct wmOperatorType *ot)

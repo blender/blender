@@ -68,7 +68,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-
 static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
@@ -209,7 +208,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     /* Smooth iterations. */
     BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false);
     const int smooth_iterations = RNA_int_get(op->ptr, "smooth_iterations");
-    SCULPT_mask_filter_smooth_apply(sd, ob, ss->filter_cache->nodes, ss->filter_cache->totnode, smooth_iterations);
+    SCULPT_mask_filter_smooth_apply(
+        sd, ob, ss->filter_cache->nodes, ss->filter_cache->totnode, smooth_iterations);
 
     /* Pivot position. */
     if (RNA_boolean_get(op->ptr, "update_pivot")) {

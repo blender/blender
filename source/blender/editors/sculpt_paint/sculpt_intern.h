@@ -77,6 +77,14 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
                                         bool use_sampled_normal);
 void SCULPT_geometry_preview_lines_update(bContext *C, struct SculptSession *ss, float radius);
 
+void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush);
+float SCULPT_raycast_init(struct ViewContext *vc,
+                          const float mouse[2],
+                          float ray_start[3],
+                          float ray_end[3],
+                          float ray_normal[3],
+                          bool original);
+
 /* Sculpt PBVH abstraction API */
 void SCULPT_vertex_random_access_init(struct SculptSession *ss);
 
@@ -249,10 +257,32 @@ void SCULPT_floodfill_execute(
 void SCULPT_floodfill_free(SculptFloodFill *flood);
 
 /* Dynamic topology */
-void sculpt_pbvh_clear(Object *ob);
-void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
-void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
+
+enum eDynTopoWarnFlag {
+  DYNTOPO_WARN_VDATA = (1 << 0),
+  DYNTOPO_WARN_EDATA = (1 << 1),
+  DYNTOPO_WARN_LDATA = (1 << 2),
+  DYNTOPO_WARN_MODIFIER = (1 << 3),
+};
+
+void SCULPT_dynamic_topology_enable_ex(struct Main *bmain,
+                                       struct Depsgraph *depsgraph,
+                                       Scene *scene,
+                                       Object *ob);
+void SCULPT_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
+void sculpt_dynamic_topology_disable_with_undo(struct Main *bmain,
+                                               struct Depsgraph *depsgraph,
+                                               Scene *scene,
+                                               Object *ob);
+
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
+
+void SCULPT_dynamic_topology_triangulate(struct BMesh *bm);
+void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss);
+
+enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
+
+void SCULPT_pbvh_clear(Object *ob);
 
 /* Automasking. */
 float SCULPT_automasking_factor_get(SculptSession *ss, int vert);
@@ -850,5 +880,13 @@ void SCULPT_OT_dirty_mask(struct wmOperatorType *ot);
 
 /* Mask and Face Sets Expand. */
 void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
+
+/* Detail size. */
+void SCULPT_OT_detail_flood_fill(struct wmOperatorType *ot);
+void SCULPT_OT_sample_detail_size(struct wmOperatorType *ot);
+void SCULPT_OT_set_detail_size(struct wmOperatorType *ot);
+
+/* Dyntopo. */
+void SCULPT_OT_dynamic_topology_toggle(struct wmOperatorType *ot);
 
 #endif
