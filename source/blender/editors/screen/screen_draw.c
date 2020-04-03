@@ -41,10 +41,10 @@
  * Draw horizontal shape visualizing future joining
  * (left as well right direction of future joining).
  */
-static void draw_horizontal_join_shape(ScrArea *sa, char dir, uint pos)
+static void draw_horizontal_join_shape(ScrArea *area, char dir, uint pos)
 {
-  const float width = screen_geom_area_width(sa) - 1;
-  const float height = screen_geom_area_height(sa) - 1;
+  const float width = screen_geom_area_width(area) - 1;
+  const float height = screen_geom_area_height(area) - 1;
   vec2f points[10];
   short i;
   float w, h;
@@ -58,43 +58,43 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, uint pos)
     w = width / 4;
   }
 
-  points[0].x = sa->v1->vec.x;
-  points[0].y = sa->v1->vec.y + height / 2;
+  points[0].x = area->v1->vec.x;
+  points[0].y = area->v1->vec.y + height / 2;
 
-  points[1].x = sa->v1->vec.x;
-  points[1].y = sa->v1->vec.y;
+  points[1].x = area->v1->vec.x;
+  points[1].y = area->v1->vec.y;
 
-  points[2].x = sa->v4->vec.x - w;
-  points[2].y = sa->v4->vec.y;
+  points[2].x = area->v4->vec.x - w;
+  points[2].y = area->v4->vec.y;
 
-  points[3].x = sa->v4->vec.x - w;
-  points[3].y = sa->v4->vec.y + height / 2 - 2 * h;
+  points[3].x = area->v4->vec.x - w;
+  points[3].y = area->v4->vec.y + height / 2 - 2 * h;
 
-  points[4].x = sa->v4->vec.x - 2 * w;
-  points[4].y = sa->v4->vec.y + height / 2;
+  points[4].x = area->v4->vec.x - 2 * w;
+  points[4].y = area->v4->vec.y + height / 2;
 
-  points[5].x = sa->v4->vec.x - w;
-  points[5].y = sa->v4->vec.y + height / 2 + 2 * h;
+  points[5].x = area->v4->vec.x - w;
+  points[5].y = area->v4->vec.y + height / 2 + 2 * h;
 
-  points[6].x = sa->v3->vec.x - w;
-  points[6].y = sa->v3->vec.y;
+  points[6].x = area->v3->vec.x - w;
+  points[6].y = area->v3->vec.y;
 
-  points[7].x = sa->v2->vec.x;
-  points[7].y = sa->v2->vec.y;
+  points[7].x = area->v2->vec.x;
+  points[7].y = area->v2->vec.y;
 
-  points[8].x = sa->v4->vec.x;
-  points[8].y = sa->v4->vec.y + height / 2 - h;
+  points[8].x = area->v4->vec.x;
+  points[8].y = area->v4->vec.y + height / 2 - h;
 
-  points[9].x = sa->v4->vec.x;
-  points[9].y = sa->v4->vec.y + height / 2 + h;
+  points[9].x = area->v4->vec.x;
+  points[9].y = area->v4->vec.y + height / 2 + h;
 
   if (dir == 'l') {
     /* when direction is left, then we flip direction of arrow */
-    float cx = sa->v1->vec.x + width;
+    float cx = area->v1->vec.x + width;
     for (i = 0; i < 10; i++) {
       points[i].x -= cx;
       points[i].x = -points[i].x;
-      points[i].x += sa->v1->vec.x;
+      points[i].x += area->v1->vec.x;
     }
   }
 
@@ -122,10 +122,10 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, uint pos)
 /**
  * Draw vertical shape visualizing future joining (up/down direction).
  */
-static void draw_vertical_join_shape(ScrArea *sa, char dir, uint pos)
+static void draw_vertical_join_shape(ScrArea *area, char dir, uint pos)
 {
-  const float width = screen_geom_area_width(sa) - 1;
-  const float height = screen_geom_area_height(sa) - 1;
+  const float width = screen_geom_area_width(area) - 1;
+  const float height = screen_geom_area_height(area) - 1;
   vec2f points[10];
   short i;
   float w, h;
@@ -139,43 +139,43 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir, uint pos)
     w = width / 8;
   }
 
-  points[0].x = sa->v1->vec.x + width / 2;
-  points[0].y = sa->v3->vec.y;
+  points[0].x = area->v1->vec.x + width / 2;
+  points[0].y = area->v3->vec.y;
 
-  points[1].x = sa->v2->vec.x;
-  points[1].y = sa->v2->vec.y;
+  points[1].x = area->v2->vec.x;
+  points[1].y = area->v2->vec.y;
 
-  points[2].x = sa->v1->vec.x;
-  points[2].y = sa->v1->vec.y + h;
+  points[2].x = area->v1->vec.x;
+  points[2].y = area->v1->vec.y + h;
 
-  points[3].x = sa->v1->vec.x + width / 2 - 2 * w;
-  points[3].y = sa->v1->vec.y + h;
+  points[3].x = area->v1->vec.x + width / 2 - 2 * w;
+  points[3].y = area->v1->vec.y + h;
 
-  points[4].x = sa->v1->vec.x + width / 2;
-  points[4].y = sa->v1->vec.y + 2 * h;
+  points[4].x = area->v1->vec.x + width / 2;
+  points[4].y = area->v1->vec.y + 2 * h;
 
-  points[5].x = sa->v1->vec.x + width / 2 + 2 * w;
-  points[5].y = sa->v1->vec.y + h;
+  points[5].x = area->v1->vec.x + width / 2 + 2 * w;
+  points[5].y = area->v1->vec.y + h;
 
-  points[6].x = sa->v4->vec.x;
-  points[6].y = sa->v4->vec.y + h;
+  points[6].x = area->v4->vec.x;
+  points[6].y = area->v4->vec.y + h;
 
-  points[7].x = sa->v3->vec.x;
-  points[7].y = sa->v3->vec.y;
+  points[7].x = area->v3->vec.x;
+  points[7].y = area->v3->vec.y;
 
-  points[8].x = sa->v1->vec.x + width / 2 - w;
-  points[8].y = sa->v1->vec.y;
+  points[8].x = area->v1->vec.x + width / 2 - w;
+  points[8].y = area->v1->vec.y;
 
-  points[9].x = sa->v1->vec.x + width / 2 + w;
-  points[9].y = sa->v1->vec.y;
+  points[9].x = area->v1->vec.x + width / 2 + w;
+  points[9].y = area->v1->vec.y;
 
   if (dir == 'u') {
     /* when direction is up, then we flip direction of arrow */
-    float cy = sa->v1->vec.y + height;
+    float cy = area->v1->vec.y + height;
     for (i = 0; i < 10; i++) {
       points[i].y -= cy;
       points[i].y = -points[i].y;
-      points[i].y += sa->v1->vec.y;
+      points[i].y += area->v1->vec.y;
     }
   }
 
@@ -203,13 +203,13 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir, uint pos)
 /**
  * Draw join shape due to direction of joining.
  */
-static void draw_join_shape(ScrArea *sa, char dir, uint pos)
+static void draw_join_shape(ScrArea *area, char dir, uint pos)
 {
   if (dir == 'u' || dir == 'd') {
-    draw_vertical_join_shape(sa, dir, pos);
+    draw_vertical_join_shape(area, dir, pos);
   }
   else {
-    draw_horizontal_join_shape(sa, dir, pos);
+    draw_horizontal_join_shape(area, dir, pos);
   }
 }
 
@@ -294,26 +294,26 @@ static GPUBatch *batch_screen_edges_get(int *corner_len)
 /**
  * Draw screen area darker with arrow (visualization of future joining).
  */
-static void scrarea_draw_shape_dark(ScrArea *sa, char dir, uint pos)
+static void scrarea_draw_shape_dark(ScrArea *area, char dir, uint pos)
 {
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
   immUniformColor4ub(0, 0, 0, 50);
 
-  draw_join_shape(sa, dir, pos);
+  draw_join_shape(area, dir, pos);
 }
 
 /**
  * Draw screen area lighter with arrow shape ("eraser" of previous dark shape).
  */
-static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir), uint pos)
+static void scrarea_draw_shape_light(ScrArea *area, char UNUSED(dir), uint pos)
 {
   GPU_blend_set_func(GPU_DST_COLOR, GPU_SRC_ALPHA);
   /* value 181 was hardly computed: 181~105 */
   immUniformColor4ub(255, 255, 255, 50);
-  /* draw_join_shape(sa, dir); */
+  /* draw_join_shape(area, dir); */
 
-  immRectf(pos, sa->v1->vec.x, sa->v1->vec.y, sa->v3->vec.x, sa->v3->vec.y);
+  immRectf(pos, area->v1->vec.x, area->v1->vec.y, area->v3->vec.x, area->v3->vec.y);
 }
 
 static void drawscredge_area_draw(
@@ -350,12 +350,12 @@ static void drawscredge_area_draw(
 /**
  * \brief Screen edges drawing.
  */
-static void drawscredge_area(ScrArea *sa, int sizex, int sizey, float edge_thickness)
+static void drawscredge_area(ScrArea *area, int sizex, int sizey, float edge_thickness)
 {
-  short x1 = sa->v1->vec.x;
-  short y1 = sa->v1->vec.y;
-  short x2 = sa->v3->vec.x;
-  short y2 = sa->v3->vec.y;
+  short x1 = area->v1->vec.x;
+  short y1 = area->v1->vec.y;
+  short x2 = area->v3->vec.x;
+  short y2 = area->v3->vec.y;
 
   drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, edge_thickness);
 }
@@ -381,13 +381,13 @@ void ED_screen_draw_edges(wmWindow *win)
   float col[4], corner_scale, edge_thickness;
   int verts_per_corner = 0;
 
-  ScrArea *sa;
+  ScrArea *area;
 
   rcti scissor_rect;
   BLI_rcti_init_minmax(&scissor_rect);
-  for (sa = screen->areabase.first; sa; sa = sa->next) {
-    BLI_rcti_do_minmax_v(&scissor_rect, (int[2]){sa->v1->vec.x, sa->v1->vec.y});
-    BLI_rcti_do_minmax_v(&scissor_rect, (int[2]){sa->v3->vec.x, sa->v3->vec.y});
+  for (area = screen->areabase.first; area; area = area->next) {
+    BLI_rcti_do_minmax_v(&scissor_rect, (int[2]){area->v1->vec.x, area->v1->vec.y});
+    BLI_rcti_do_minmax_v(&scissor_rect, (int[2]){area->v3->vec.x, area->v3->vec.y});
   }
 
   if (GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
@@ -422,8 +422,8 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_batch_uniform_1f(batch, "scale", corner_scale);
   GPU_batch_uniform_4fv(batch, "color", col);
 
-  for (sa = screen->areabase.first; sa; sa = sa->next) {
-    drawscredge_area(sa, winsize_x, winsize_y, edge_thickness);
+  for (area = screen->areabase.first; area; area = area->next) {
+    drawscredge_area(area, winsize_x, winsize_y, edge_thickness);
   }
 
   GPU_blend(false);
@@ -480,7 +480,7 @@ void ED_screen_draw_join_shape(ScrArea *sa1, ScrArea *sa2)
   immUnbindProgram();
 }
 
-void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
+void ED_screen_draw_split_preview(ScrArea *area, const int dir, const float fac)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -495,10 +495,10 @@ void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
   immBegin(GPU_PRIM_LINES, 2);
 
   if (dir == 'h') {
-    const float y = (1 - fac) * sa->totrct.ymin + fac * sa->totrct.ymax;
+    const float y = (1 - fac) * area->totrct.ymin + fac * area->totrct.ymax;
 
-    immVertex2f(pos, sa->totrct.xmin, y);
-    immVertex2f(pos, sa->totrct.xmax, y);
+    immVertex2f(pos, area->totrct.xmin, y);
+    immVertex2f(pos, area->totrct.xmax, y);
 
     immEnd();
 
@@ -506,17 +506,17 @@ void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
 
     immBegin(GPU_PRIM_LINES, 2);
 
-    immVertex2f(pos, sa->totrct.xmin, y + 1);
-    immVertex2f(pos, sa->totrct.xmax, y + 1);
+    immVertex2f(pos, area->totrct.xmin, y + 1);
+    immVertex2f(pos, area->totrct.xmax, y + 1);
 
     immEnd();
   }
   else {
     BLI_assert(dir == 'v');
-    const float x = (1 - fac) * sa->totrct.xmin + fac * sa->totrct.xmax;
+    const float x = (1 - fac) * area->totrct.xmin + fac * area->totrct.xmax;
 
-    immVertex2f(pos, x, sa->totrct.ymin);
-    immVertex2f(pos, x, sa->totrct.ymax);
+    immVertex2f(pos, x, area->totrct.ymin);
+    immVertex2f(pos, x, area->totrct.ymax);
 
     immEnd();
 
@@ -524,8 +524,8 @@ void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
 
     immBegin(GPU_PRIM_LINES, 2);
 
-    immVertex2f(pos, x + 1, sa->totrct.ymin);
-    immVertex2f(pos, x + 1, sa->totrct.ymax);
+    immVertex2f(pos, x + 1, area->totrct.ymin);
+    immVertex2f(pos, x + 1, area->totrct.ymax);
 
     immEnd();
   }
@@ -547,9 +547,9 @@ static void screen_preview_scale_get(
 {
   float max_x = 0, max_y = 0;
 
-  for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-    max_x = MAX2(max_x, sa->totrct.xmax);
-    max_y = MAX2(max_y, sa->totrct.ymax);
+  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    max_x = MAX2(max_x, area->totrct.xmax);
+    max_y = MAX2(max_y, area->totrct.ymax);
   }
   r_scale[0] = (size_x * asp[0]) / max_x;
   r_scale[1] = (size_y * asp[1]) / max_y;
@@ -566,12 +566,12 @@ static void screen_preview_draw_areas(const bScreen *screen,
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor4fv(col);
 
-  for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
     rctf rect = {
-        .xmin = sa->totrct.xmin * scale[0] + ofs_h,
-        .xmax = sa->totrct.xmax * scale[0] - ofs_h,
-        .ymin = sa->totrct.ymin * scale[1] + ofs_h,
-        .ymax = sa->totrct.ymax * scale[1] - ofs_h,
+        .xmin = area->totrct.xmin * scale[0] + ofs_h,
+        .xmax = area->totrct.xmax * scale[0] - ofs_h,
+        .ymin = area->totrct.ymin * scale[1] + ofs_h,
+        .ymax = area->totrct.ymax * scale[1] - ofs_h,
     };
 
     immBegin(GPU_PRIM_TRI_FAN, 4);

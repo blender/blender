@@ -472,12 +472,12 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
  *
  * \param new_id: may be NULL to unlink \a old_id.
  */
-void ED_spacedata_id_remap(struct ScrArea *sa, struct SpaceLink *sl, ID *old_id, ID *new_id)
+void ED_spacedata_id_remap(struct ScrArea *area, struct SpaceLink *sl, ID *old_id, ID *new_id)
 {
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
 
   if (st && st->id_remap) {
-    st->id_remap(sa, sl, old_id, new_id);
+    st->id_remap(area, sl, old_id, new_id);
   }
 }
 

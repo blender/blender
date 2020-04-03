@@ -1291,7 +1291,7 @@ static Image *image_open_single(Main *bmain,
 static int image_open_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   ImageUser *iuser = NULL;
@@ -1345,8 +1345,8 @@ static int image_open_exec(bContext *C, wmOperator *op)
   if (iod->iuser) {
     iuser = iod->iuser;
   }
-  else if (sa && sa->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = sa->spacedata.first;
+  else if (area && area->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = area->spacedata.first;
     ED_space_image_set(bmain, sima, obedit, ima, false);
     iuser = &sima->iuser;
   }
@@ -3409,13 +3409,13 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     // XXX node curve integration ..
 #if 0
     {
-      ScrArea *sa, *cur = curarea;
+      ScrArea *area, *cur = curarea;
 
       node_curvemap_sample(fp); /* sends global to node editor */
-      for (sa = G.curscreen->areabase.first; sa; sa = sa->next) {
-        if (sa->spacetype == SPACE_NODE) {
-          areawinset(sa->win);
-          scrarea_do_windraw(sa);
+      for (area = G.curscreen->areabase.first; area; area = area->next) {
+        if (area->spacetype == SPACE_NODE) {
+          areawinset(area->win);
+          scrarea_do_windraw(area);
         }
       }
       node_curvemap_sample(NULL); /* clears global in node editor */

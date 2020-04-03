@@ -146,7 +146,7 @@ void ED_region_pixelspace(ARegion *region)
 
 /* only exported for WM */
 void ED_region_do_listen(
-    wmWindow *win, ScrArea *sa, ARegion *region, wmNotifier *note, const Scene *scene)
+    wmWindow *win, ScrArea *area, ARegion *region, wmNotifier *note, const Scene *scene)
 {
   /* generic notes first */
   switch (note->category) {
@@ -161,27 +161,27 @@ void ED_region_do_listen(
   }
 
   if (region->type && region->type->listener) {
-    region->type->listener(win, sa, region, note, scene);
+    region->type->listener(win, area, region, note, scene);
   }
 }
 
 /* only exported for WM */
-void ED_area_do_listen(wmWindow *win, ScrArea *sa, wmNotifier *note, Scene *scene)
+void ED_area_do_listen(wmWindow *win, ScrArea *area, wmNotifier *note, Scene *scene)
 {
   /* no generic notes? */
-  if (sa->type && sa->type->listener) {
-    sa->type->listener(win, sa, note, scene);
+  if (area->type && area->type->listener) {
+    area->type->listener(win, area, note, scene);
   }
 }
 
 /* only exported for WM */
-void ED_area_do_refresh(bContext *C, ScrArea *sa)
+void ED_area_do_refresh(bContext *C, ScrArea *area)
 {
   /* no generic notes? */
-  if (sa->type && sa->type->refresh) {
-    sa->type->refresh(C, sa);
+  if (area->type && area->type->refresh) {
+    area->type->refresh(C, area);
   }
-  sa->do_refresh = false;
+  area->do_refresh = false;
 }
 
 /**
@@ -294,16 +294,16 @@ static void region_draw_azone_tab_arrow(AZone *az)
   draw_azone_arrow((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, az->edge);
 }
 
-static void area_azone_tag_update(ScrArea *sa)
+static void area_azone_tag_update(ScrArea *area)
 {
-  sa->flag |= AREA_FLAG_ACTIONZONES_UPDATE;
+  area->flag |= AREA_FLAG_ACTIONZONES_UPDATE;
 }
 
-static void region_draw_azones(ScrArea *sa, ARegion *region)
+static void region_draw_azones(ScrArea *area, ARegion *region)
 {
   AZone *az;
 
-  if (!sa) {
+  if (!area) {
     return;
   }
 
@@ -315,7 +315,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *region)
   GPU_matrix_push();
   GPU_matrix_translate_2f(-region->winrct.xmin, -region->winrct.ymin);
 
-  for (az = sa->actionzones.first; az; az = az->next) {
+  for (az = area->actionzones.first; az; az = az->next) {
     /* test if action zone is over this region */
     rcti azrct;
     BLI_rcti_init(&azrct, az->x1, az->x2, az->y1, az->y2);
@@ -339,7 +339,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *region)
       }
     }
     if (!IS_EQF(az->alpha, 0.0f) && ELEM(az->type, AZONE_FULLSCREEN, AZONE_REGION_SCROLL)) {
-      area_azone_tag_update(sa);
+      area_azone_tag_update(area);
     }
   }
 
@@ -348,9 +348,9 @@ static void region_draw_azones(ScrArea *sa, ARegion *region)
   GPU_blend(false);
 }
 
-static void region_draw_status_text(ScrArea *sa, ARegion *region)
+static void region_draw_status_text(ScrArea *area, ARegion *region)
 {
-  bool overlap = ED_region_is_overlap(sa->spacetype, region->regiontype);
+  bool overlap = ED_region_is_overlap(area->spacetype, region->regiontype);
 
   if (overlap) {
     GPU_clear_color(0.0, 0.0, 0.0, 0.0);
@@ -421,8 +421,8 @@ void ED_area_do_msg_notify_tag_refresh(
     wmMsgSubscribeKey *UNUSED(msg_key),
     wmMsgSubscribeValue *msg_val)
 {
-  ScrArea *sa = msg_val->user_data;
-  ED_area_tag_refresh(sa);
+  ScrArea *area = msg_val->user_data;
+  ED_area_tag_refresh(area);
 }
 
 void ED_area_do_mgs_subscribe_for_tool_header(
@@ -431,7 +431,7 @@ void ED_area_do_mgs_subscribe_for_tool_header(
     struct WorkSpace *workspace,
     struct Scene *UNUSED(scene),
     struct bScreen *UNUSED(screen),
-    struct ScrArea *UNUSED(sa),
+    struct ScrArea *UNUSED(area),
     struct ARegion *region,
     struct wmMsgBus *mbus)
 {
@@ -451,7 +451,7 @@ void ED_area_do_mgs_subscribe_for_tool_ui(
     struct WorkSpace *workspace,
     struct Scene *UNUSED(scene),
     struct bScreen *UNUSED(screen),
-    struct ScrArea *UNUSED(sa),
+    struct ScrArea *UNUSED(area),
     struct ARegion *region,
     struct wmMsgBus *mbus)
 {
@@ -483,20 +483,20 @@ static bool area_is_pseudo_minimized(const ScrArea *area)
 void ED_region_do_layout(bContext *C, ARegion *region)
 {
   /* This is optional, only needed for dynamically sized regions. */
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegionType *at = region->type;
 
   if (!at->layout) {
     return;
   }
 
-  if (at->do_lock || (sa && area_is_pseudo_minimized(sa))) {
+  if (at->do_lock || (area && area_is_pseudo_minimized(area))) {
     return;
   }
 
   region->do_draw |= RGN_DRAWING;
 
-  UI_SetTheme(sa ? sa->spacetype : 0, at->regionid);
+  UI_SetTheme(area ? area->spacetype : 0, at->regionid);
   at->layout(C, region);
 }
 
@@ -504,7 +504,7 @@ void ED_region_do_layout(bContext *C, ARegion *region)
 void ED_region_do_draw(bContext *C, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegionType *at = region->type;
 
   /* see BKE_spacedata_draw_locks() */
@@ -519,16 +519,16 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   wmOrtho2_region_pixelspace(region);
 
-  UI_SetTheme(sa ? sa->spacetype : 0, at->regionid);
+  UI_SetTheme(area ? area->spacetype : 0, at->regionid);
 
-  if (sa && area_is_pseudo_minimized(sa)) {
+  if (area && area_is_pseudo_minimized(area)) {
     UI_ThemeClearColor(TH_EDITOR_OUTLINE);
     glClear(GL_COLOR_BUFFER_BIT);
     return;
   }
   /* optional header info instead? */
   else if (region->headerstr) {
-    region_draw_status_text(sa, region);
+    region_draw_status_text(area, region);
   }
   else if (at->draw) {
     at->draw(C, region);
@@ -540,7 +540,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_PIXEL);
 
-  region_draw_azones(sa, region);
+  region_draw_azones(area, region);
 
   /* for debugging unneeded area redraws and partial redraw */
   if (G.debug_value == 888) {
@@ -562,11 +562,11 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   UI_blocklist_free_inactive(C, &region->uiblocks);
 
-  if (sa) {
+  if (area) {
     const bScreen *screen = WM_window_get_active_screen(win);
 
     /* Only region emboss for top-bar */
-    if ((screen->state != SCREENFULL) && ED_area_is_global(sa)) {
+    if ((screen->state != SCREENFULL) && ED_area_is_global(area)) {
       region_draw_emboss(region, &region->winrct, (REGION_EMBOSS_LEFT | REGION_EMBOSS_RIGHT));
     }
     else if ((region->regiontype == RGN_TYPE_WINDOW) && (region->alignment == RGN_ALIGN_QSPLIT)) {
@@ -604,7 +604,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
      */
     if (ELEM(
             region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_CHANNELS, RGN_TYPE_UI, RGN_TYPE_TOOLS)) {
-      SpaceLink *sl = sa->spacedata.first;
+      SpaceLink *sl = area->spacedata.first;
 
       PointerRNA ptr;
       RNA_pointer_create(&screen->id, &RNA_Space, sl, &ptr);
@@ -618,7 +618,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
       WM_msg_subscribe_rna(mbus, &ptr, NULL, &msg_sub_value_region_tag_redraw, __func__);
     }
 
-    ED_region_message_subscribe(C, workspace, scene, screen, sa, region, mbus);
+    ED_region_message_subscribe(C, workspace, scene, screen, area, region, mbus);
   }
 }
 
@@ -705,34 +705,34 @@ void ED_region_tag_redraw_partial(ARegion *region, const rcti *rct, bool rebuild
   }
 }
 
-void ED_area_tag_redraw(ScrArea *sa)
+void ED_area_tag_redraw(ScrArea *area)
 {
   ARegion *region;
 
-  if (sa) {
-    for (region = sa->regionbase.first; region; region = region->next) {
+  if (area) {
+    for (region = area->regionbase.first; region; region = region->next) {
       ED_region_tag_redraw(region);
     }
   }
 }
 
-void ED_area_tag_redraw_no_rebuild(ScrArea *sa)
+void ED_area_tag_redraw_no_rebuild(ScrArea *area)
 {
   ARegion *region;
 
-  if (sa) {
-    for (region = sa->regionbase.first; region; region = region->next) {
+  if (area) {
+    for (region = area->regionbase.first; region; region = region->next) {
       ED_region_tag_redraw_no_rebuild(region);
     }
   }
 }
 
-void ED_area_tag_redraw_regiontype(ScrArea *sa, int regiontype)
+void ED_area_tag_redraw_regiontype(ScrArea *area, int regiontype)
 {
   ARegion *region;
 
-  if (sa) {
-    for (region = sa->regionbase.first; region; region = region->next) {
+  if (area) {
+    for (region = area->regionbase.first; region; region = region->next) {
       if (region->regiontype == regiontype) {
         ED_region_tag_redraw(region);
       }
@@ -740,26 +740,26 @@ void ED_area_tag_redraw_regiontype(ScrArea *sa, int regiontype)
   }
 }
 
-void ED_area_tag_refresh(ScrArea *sa)
+void ED_area_tag_refresh(ScrArea *area)
 {
-  if (sa) {
-    sa->do_refresh = true;
+  if (area) {
+    area->do_refresh = true;
   }
 }
 
 /* *************************************************************** */
 
 /* use NULL to disable it */
-void ED_area_status_text(ScrArea *sa, const char *str)
+void ED_area_status_text(ScrArea *area, const char *str)
 {
   ARegion *region;
 
   /* happens when running transform operators in background mode */
-  if (sa == NULL) {
+  if (area == NULL) {
     return;
   }
 
-  for (region = sa->regionbase.first; region; region = region->next) {
+  for (region = area->regionbase.first; region; region = region->next) {
     if (region->regiontype == RGN_TYPE_HEADER) {
       if (str) {
         if (region->headerstr == NULL) {
@@ -799,9 +799,9 @@ void ED_workspace_status_text(bContext *C, const char *str)
   }
 
   /* Redraw status bar. */
-  for (ScrArea *sa = win->global_areas.areabase.first; sa; sa = sa->next) {
-    if (sa->spacetype == SPACE_STATUSBAR) {
-      ED_area_tag_redraw(sa);
+  for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+    if (area->spacetype == SPACE_STATUSBAR) {
+      ED_area_tag_redraw(area);
       break;
     }
   }
@@ -809,12 +809,12 @@ void ED_workspace_status_text(bContext *C, const char *str)
 
 /* ************************************************************ */
 
-static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea *sa)
+static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea *area)
 {
   AZone *az;
 
   /* reinitialize entirely, regions and fullscreen add azones too */
-  BLI_freelistN(&sa->actionzones);
+  BLI_freelistN(&area->actionzones);
 
   if (screen->state != SCREENNORMAL) {
     return;
@@ -824,7 +824,7 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
     return;
   }
 
-  if (ED_area_is_global(sa)) {
+  if (ED_area_is_global(area)) {
     return;
   }
 
@@ -834,25 +834,25 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 
   const float coords[4][4] = {
       /* Bottom-left. */
-      {sa->totrct.xmin - U.pixelsize,
-       sa->totrct.ymin - U.pixelsize,
-       sa->totrct.xmin + AZONESPOTW,
-       sa->totrct.ymin + AZONESPOTH},
+      {area->totrct.xmin - U.pixelsize,
+       area->totrct.ymin - U.pixelsize,
+       area->totrct.xmin + AZONESPOTW,
+       area->totrct.ymin + AZONESPOTH},
       /* Bottom-right. */
-      {sa->totrct.xmax - AZONESPOTW,
-       sa->totrct.ymin - U.pixelsize,
-       sa->totrct.xmax + U.pixelsize,
-       sa->totrct.ymin + AZONESPOTH},
+      {area->totrct.xmax - AZONESPOTW,
+       area->totrct.ymin - U.pixelsize,
+       area->totrct.xmax + U.pixelsize,
+       area->totrct.ymin + AZONESPOTH},
       /* Top-left. */
-      {sa->totrct.xmin - U.pixelsize,
-       sa->totrct.ymax - AZONESPOTH,
-       sa->totrct.xmin + AZONESPOTW,
-       sa->totrct.ymax + U.pixelsize},
+      {area->totrct.xmin - U.pixelsize,
+       area->totrct.ymax - AZONESPOTH,
+       area->totrct.xmin + AZONESPOTW,
+       area->totrct.ymax + U.pixelsize},
       /* Top-right. */
-      {sa->totrct.xmax - AZONESPOTW,
-       sa->totrct.ymax - AZONESPOTH,
-       sa->totrct.xmax + U.pixelsize,
-       sa->totrct.ymax + U.pixelsize},
+      {area->totrct.xmax - AZONESPOTW,
+       area->totrct.ymax - AZONESPOTH,
+       area->totrct.xmax + U.pixelsize,
+       area->totrct.ymax + U.pixelsize},
   };
 
   for (int i = 0; i < 4; i++) {
@@ -869,7 +869,7 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 
     /* set area action zones */
     az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-    BLI_addtail(&(sa->actionzones), az);
+    BLI_addtail(&(area->actionzones), az);
     az->type = AZONE_AREA;
     az->x1 = coords[i][0];
     az->y1 = coords[i][1];
@@ -879,16 +879,16 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
   }
 }
 
-static void fullscreen_azone_initialize(ScrArea *sa, ARegion *region)
+static void fullscreen_azone_initialize(ScrArea *area, ARegion *region)
 {
   AZone *az;
 
-  if (ED_area_is_global(sa) || (region->regiontype != RGN_TYPE_WINDOW)) {
+  if (ED_area_is_global(area) || (region->regiontype != RGN_TYPE_WINDOW)) {
     return;
   }
 
   az = (AZone *)MEM_callocN(sizeof(AZone), "fullscreen action zone");
-  BLI_addtail(&(sa->actionzones), az);
+  BLI_addtail(&(area->actionzones), az);
   az->type = AZONE_FULLSCREEN;
   az->region = region;
   az->alpha = 0.0f;
@@ -942,7 +942,7 @@ static void region_azone_edge(AZone *az, ARegion *region)
 }
 
 /* region already made zero sized, in shape of edge */
-static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *region)
+static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
 {
   AZone *azt;
   int tot = 0, add;
@@ -952,7 +952,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *region)
   const float tab_size_x = 0.7f * U.widget_unit;
   const float tab_size_y = 0.4f * U.widget_unit;
 
-  for (azt = sa->actionzones.first; azt; azt = azt->next) {
+  for (azt = area->actionzones.first; azt; azt = azt->next) {
     if (azt->edge == az->edge) {
       tot++;
     }
@@ -960,7 +960,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *region)
 
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT:
-      add = (region->winrct.ymax == sa->totrct.ymin) ? 1 : 0;
+      add = (region->winrct.ymax == area->totrct.ymin) ? 1 : 0;
       az->x1 = region->winrct.xmax - ((edge_offset + 1.0f) * tab_size_x);
       az->y1 = region->winrct.ymax - add;
       az->x2 = region->winrct.xmax - (edge_offset * tab_size_x);
@@ -1003,7 +1003,7 @@ static bool region_azone_edge_poll(const ARegion *region, const bool is_fullscre
   return true;
 }
 
-static void region_azone_edge_initialize(ScrArea *sa,
+static void region_azone_edge_initialize(ScrArea *area,
                                          ARegion *region,
                                          AZEdge edge,
                                          const bool is_fullscreen)
@@ -1016,27 +1016,27 @@ static void region_azone_edge_initialize(ScrArea *sa,
   }
 
   az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-  BLI_addtail(&(sa->actionzones), az);
+  BLI_addtail(&(area->actionzones), az);
   az->type = AZONE_REGION;
   az->region = region;
   az->edge = edge;
 
   if (is_hidden) {
-    region_azone_tab_plus(sa, az, region);
+    region_azone_tab_plus(area, az, region);
   }
   else {
     region_azone_edge(az, region);
   }
 }
 
-static void region_azone_scrollbar_initialize(ScrArea *sa,
+static void region_azone_scrollbar_initialize(ScrArea *area,
                                               ARegion *region,
                                               AZScrollDirection direction)
 {
   rcti scroller_vert = (direction == AZ_SCROLL_VERT) ? region->v2d.vert : region->v2d.hor;
   AZone *az = MEM_callocN(sizeof(*az), __func__);
 
-  BLI_addtail(&sa->actionzones, az);
+  BLI_addtail(&area->actionzones, az);
   az->type = AZONE_REGION_SCROLL;
   az->region = region;
   az->direction = direction;
@@ -1057,21 +1057,21 @@ static void region_azone_scrollbar_initialize(ScrArea *sa,
   BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
-static void region_azones_scrollbars_initialize(ScrArea *sa, ARegion *region)
+static void region_azones_scrollbars_initialize(ScrArea *area, ARegion *region)
 {
   const View2D *v2d = &region->v2d;
 
   if ((v2d->scroll & V2D_SCROLL_VERTICAL) && ((v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0)) {
-    region_azone_scrollbar_initialize(sa, region, AZ_SCROLL_VERT);
+    region_azone_scrollbar_initialize(area, region, AZ_SCROLL_VERT);
   }
   if ((v2d->scroll & V2D_SCROLL_HORIZONTAL) &&
       ((v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) == 0)) {
-    region_azone_scrollbar_initialize(sa, region, AZ_SCROLL_HOR);
+    region_azone_scrollbar_initialize(area, region, AZ_SCROLL_HOR);
   }
 }
 
 /* *************************************************************** */
-static void region_azones_add_edge(ScrArea *sa,
+static void region_azones_add_edge(ScrArea *area,
                                    ARegion *region,
                                    const int alignment,
                                    const bool is_fullscreen)
@@ -1079,20 +1079,20 @@ static void region_azones_add_edge(ScrArea *sa,
 
   /* edge code (t b l r) is along which area edge azone will be drawn */
   if (alignment == RGN_ALIGN_TOP) {
-    region_azone_edge_initialize(sa, region, AE_BOTTOM_TO_TOPLEFT, is_fullscreen);
+    region_azone_edge_initialize(area, region, AE_BOTTOM_TO_TOPLEFT, is_fullscreen);
   }
   else if (alignment == RGN_ALIGN_BOTTOM) {
-    region_azone_edge_initialize(sa, region, AE_TOP_TO_BOTTOMRIGHT, is_fullscreen);
+    region_azone_edge_initialize(area, region, AE_TOP_TO_BOTTOMRIGHT, is_fullscreen);
   }
   else if (alignment == RGN_ALIGN_RIGHT) {
-    region_azone_edge_initialize(sa, region, AE_LEFT_TO_TOPRIGHT, is_fullscreen);
+    region_azone_edge_initialize(area, region, AE_LEFT_TO_TOPRIGHT, is_fullscreen);
   }
   else if (alignment == RGN_ALIGN_LEFT) {
-    region_azone_edge_initialize(sa, region, AE_RIGHT_TO_TOPLEFT, is_fullscreen);
+    region_azone_edge_initialize(area, region, AE_RIGHT_TO_TOPLEFT, is_fullscreen);
   }
 }
 
-static void region_azones_add(const bScreen *screen, ScrArea *sa, ARegion *region)
+static void region_azones_add(const bScreen *screen, ScrArea *area, ARegion *region)
 {
   const bool is_fullscreen = screen->state == SCREENFULL;
 
@@ -1102,20 +1102,20 @@ static void region_azones_add(const bScreen *screen, ScrArea *sa, ARegion *regio
     return;
   }
 
-  region_azones_add_edge(sa, region, RGN_ALIGN_ENUM_FROM_MASK(region->alignment), is_fullscreen);
+  region_azones_add_edge(area, region, RGN_ALIGN_ENUM_FROM_MASK(region->alignment), is_fullscreen);
 
   /* For a split region also continue the azone edge from the next region if this region is aligned
    * with the next */
   if ((region->alignment & RGN_SPLIT_PREV) && region->prev) {
     region_azones_add_edge(
-        sa, region, RGN_ALIGN_ENUM_FROM_MASK(region->prev->alignment), is_fullscreen);
+        area, region, RGN_ALIGN_ENUM_FROM_MASK(region->prev->alignment), is_fullscreen);
   }
 
   if (is_fullscreen) {
-    fullscreen_azone_initialize(sa, region);
+    fullscreen_azone_initialize(area, region);
   }
 
-  region_azones_scrollbars_initialize(sa, region);
+  region_azones_scrollbars_initialize(area, region);
 }
 
 /* dir is direction to check, not the splitting edge direction! */
@@ -1133,7 +1133,7 @@ static int rct_fits(const rcti *rect, char dir, int size)
 
 /* region should be overlapping */
 /* function checks if some overlapping region was defined before - on same place */
-static void region_overlap_fix(ScrArea *sa, ARegion *region)
+static void region_overlap_fix(ScrArea *area, ARegion *region)
 {
   ARegion *ar1;
   const int align = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
@@ -1168,7 +1168,7 @@ static void region_overlap_fix(ScrArea *sa, ARegion *region)
   /* translate or close */
   if (ar1) {
     if (align1 == RGN_ALIGN_LEFT) {
-      if (region->winrct.xmax + ar1->winx > sa->winx - U.widget_unit) {
+      if (region->winrct.xmax + ar1->winx > area->winx - U.widget_unit) {
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
       }
@@ -1235,7 +1235,7 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
 }
 
 static void region_rect_recursive(
-    ScrArea *sa, ARegion *region, rcti *remainder, rcti *overlap_remainder, int quad)
+    ScrArea *area, ARegion *region, rcti *remainder, rcti *overlap_remainder, int quad)
 {
   rcti *remainder_prev = remainder;
 
@@ -1259,7 +1259,7 @@ static void region_rect_recursive(
   int alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
 
   /* set here, assuming userpref switching forces to call this again */
-  region->overlap = ED_region_is_overlap(sa->spacetype, region->regiontype);
+  region->overlap = ED_region_is_overlap(area->spacetype, region->regiontype);
 
   /* clear state flags first */
   region->flag &= ~(RGN_FLAG_TOO_SMALL | RGN_FLAG_SIZE_CLAMP_X | RGN_FLAG_SIZE_CLAMP_Y);
@@ -1300,7 +1300,7 @@ static void region_rect_recursive(
   else if (region->regiontype == RGN_TYPE_FOOTER) {
     prefsizey = ED_area_footersize();
   }
-  else if (ED_area_is_global(sa)) {
+  else if (ED_area_is_global(area)) {
     prefsizey = ED_region_global_size_y();
   }
   else {
@@ -1501,7 +1501,7 @@ static void region_rect_recursive(
 
   /* exception for multiple overlapping regions on same spot */
   if (region->overlap && (alignment != RGN_ALIGN_FLOAT)) {
-    region_overlap_fix(sa, region);
+    region_overlap_fix(area, region);
   }
 
   /* set winrect for azones */
@@ -1548,7 +1548,7 @@ static void region_rect_recursive(
 
   BLI_assert(BLI_rcti_is_valid(&region->winrct));
 
-  region_rect_recursive(sa, region->next, remainder, overlap_remainder, quad);
+  region_rect_recursive(area, region->next, remainder, overlap_remainder, quad);
 
   /* Tag for redraw if size changes. */
   if (region->winx != prev_winx || region->winy != prev_winy) {
@@ -1559,42 +1559,42 @@ static void region_rect_recursive(
   memset(&region->runtime.visible_rect, 0, sizeof(region->runtime.visible_rect));
 }
 
-static void area_calc_totrct(ScrArea *sa, const rcti *window_rect)
+static void area_calc_totrct(ScrArea *area, const rcti *window_rect)
 {
   short px = (short)U.pixelsize;
 
-  sa->totrct.xmin = sa->v1->vec.x;
-  sa->totrct.xmax = sa->v4->vec.x;
-  sa->totrct.ymin = sa->v1->vec.y;
-  sa->totrct.ymax = sa->v2->vec.y;
+  area->totrct.xmin = area->v1->vec.x;
+  area->totrct.xmax = area->v4->vec.x;
+  area->totrct.ymin = area->v1->vec.y;
+  area->totrct.ymax = area->v2->vec.y;
 
   /* scale down totrct by 1 pixel on all sides not matching window borders */
-  if (sa->totrct.xmin > window_rect->xmin) {
-    sa->totrct.xmin += px;
+  if (area->totrct.xmin > window_rect->xmin) {
+    area->totrct.xmin += px;
   }
-  if (sa->totrct.xmax < (window_rect->xmax - 1)) {
-    sa->totrct.xmax -= px;
+  if (area->totrct.xmax < (window_rect->xmax - 1)) {
+    area->totrct.xmax -= px;
   }
-  if (sa->totrct.ymin > window_rect->ymin) {
-    sa->totrct.ymin += px;
+  if (area->totrct.ymin > window_rect->ymin) {
+    area->totrct.ymin += px;
   }
-  if (sa->totrct.ymax < (window_rect->ymax - 1)) {
-    sa->totrct.ymax -= px;
+  if (area->totrct.ymax < (window_rect->ymax - 1)) {
+    area->totrct.ymax -= px;
   }
   /* Although the following asserts are correct they lead to a very unstable Blender.
    * And the asserts would fail even in 2.7x
    * (they were added in 2.8x as part of the top-bar commit).
    * For more details see T54864. */
 #if 0
-  BLI_assert(sa->totrct.xmin >= 0);
-  BLI_assert(sa->totrct.xmax >= 0);
-  BLI_assert(sa->totrct.ymin >= 0);
-  BLI_assert(sa->totrct.ymax >= 0);
+  BLI_assert(area->totrct.xmin >= 0);
+  BLI_assert(area->totrct.xmax >= 0);
+  BLI_assert(area->totrct.ymin >= 0);
+  BLI_assert(area->totrct.ymax >= 0);
 #endif
 
   /* for speedup */
-  sa->winx = BLI_rcti_size_x(&sa->totrct) + 1;
-  sa->winy = BLI_rcti_size_y(&sa->totrct) + 1;
+  area->winx = BLI_rcti_size_x(&area->totrct) + 1;
+  area->winy = BLI_rcti_size_y(&area->totrct) + 1;
 }
 
 /* used for area initialize below */
@@ -1617,12 +1617,12 @@ static bool event_in_markers_region(const ARegion *region, const wmEvent *event)
 }
 
 /**
- * \param region: Region, may be NULL when adding handlers for \a sa.
+ * \param region: Region, may be NULL when adding handlers for \a area.
  */
 static void ed_default_handlers(
-    wmWindowManager *wm, ScrArea *sa, ARegion *region, ListBase *handlers, int flag)
+    wmWindowManager *wm, ScrArea *area, ARegion *region, ListBase *handlers, int flag)
 {
-  BLI_assert(region ? (&region->handlers == handlers) : (&sa->handlers == handlers));
+  BLI_assert(region ? (&region->handlers == handlers) : (&area->handlers == handlers));
 
   /* note, add-handler checks if it already exists */
 
@@ -1641,7 +1641,7 @@ static void ed_default_handlers(
       BLI_assert(&region->handlers == handlers);
       if (region->gizmo_map == NULL) {
         region->gizmo_map = WM_gizmomap_new_from_type(
-            &(const struct wmGizmoMapType_Params){sa->spacetype, region->type->regionid});
+            &(const struct wmGizmoMapType_Params){area->spacetype, region->type->regionid});
       }
       WM_gizmomap_add_handlers(region, region->gizmo_map);
     }
@@ -1668,9 +1668,9 @@ static void ed_default_handlers(
   }
   if (flag & ED_KEYMAP_TOOL) {
     WM_event_add_keymap_handler_dynamic(
-        &region->handlers, WM_event_get_keymap_from_toolsystem_fallback, sa);
+        &region->handlers, WM_event_get_keymap_from_toolsystem_fallback, area);
     WM_event_add_keymap_handler_dynamic(
-        &region->handlers, WM_event_get_keymap_from_toolsystem, sa);
+        &region->handlers, WM_event_get_keymap_from_toolsystem, area);
   }
   if (flag & ED_KEYMAP_FRAMES) {
     /* frame changing/jumping (for all spaces) */
@@ -1841,7 +1841,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
 }
 
 /* called in screen_refresh, or screens_init, also area size changes */
-void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
+void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
   const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
@@ -1850,49 +1850,49 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
   rcti rect, overlap_rect;
   rcti window_rect;
 
-  if (ED_area_is_global(sa) && (sa->global->flag & GLOBAL_AREA_IS_HIDDEN)) {
+  if (ED_area_is_global(area) && (area->global->flag & GLOBAL_AREA_IS_HIDDEN)) {
     return;
   }
   WM_window_rect_calc(win, &window_rect);
 
   /* set typedefinitions */
-  sa->type = BKE_spacetype_from_id(sa->spacetype);
+  area->type = BKE_spacetype_from_id(area->spacetype);
 
-  if (sa->type == NULL) {
-    sa->spacetype = SPACE_VIEW3D;
-    sa->type = BKE_spacetype_from_id(sa->spacetype);
+  if (area->type == NULL) {
+    area->spacetype = SPACE_VIEW3D;
+    area->type = BKE_spacetype_from_id(area->spacetype);
   }
 
-  for (region = sa->regionbase.first; region; region = region->next) {
-    region->type = BKE_regiontype_from_id_or_first(sa->type, region->regiontype);
+  for (region = area->regionbase.first; region; region = region->next) {
+    region->type = BKE_regiontype_from_id_or_first(area->type, region->regiontype);
   }
 
   /* area sizes */
-  area_calc_totrct(sa, &window_rect);
+  area_calc_totrct(area, &window_rect);
 
   /* region rect sizes */
-  rect = sa->totrct;
+  rect = area->totrct;
   overlap_rect = rect;
-  region_rect_recursive(sa, sa->regionbase.first, &rect, &overlap_rect, 0);
-  sa->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
+  region_rect_recursive(area, area->regionbase.first, &rect, &overlap_rect, 0);
+  area->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
 
   /* default area handlers */
-  ed_default_handlers(wm, sa, NULL, &sa->handlers, sa->type->keymapflag);
+  ed_default_handlers(wm, area, NULL, &area->handlers, area->type->keymapflag);
   /* checks spacedata, adds own handlers */
-  if (sa->type->init) {
-    sa->type->init(wm, sa);
+  if (area->type->init) {
+    area->type->init(wm, area);
   }
 
   /* clear all azones, add the area triangle widgets */
-  area_azone_initialize(win, screen, sa);
+  area_azone_initialize(win, screen, area);
 
   /* region windows, default and own handlers */
-  for (region = sa->regionbase.first; region; region = region->next) {
+  for (region = area->regionbase.first; region; region = region->next) {
     region_subwindow(region);
 
     if (region->visible) {
       /* default region handlers */
-      ed_default_handlers(wm, sa, region, &region->handlers, region->type->keymapflag);
+      ed_default_handlers(wm, area, region, &region->handlers, region->type->keymapflag);
       /* own handlers */
       if (region->type->init) {
         region->type->init(wm, region);
@@ -1904,18 +1904,18 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
     }
 
     /* Some AZones use View2D data which is only updated in region init, so call that first! */
-    region_azones_add(screen, sa, region);
+    region_azones_add(screen, area, region);
   }
 
   /* Avoid re-initializing tools while resizing the window. */
   if ((G.moving & G_TRANSFORM_WM) == 0) {
-    if ((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-      WM_toolsystem_refresh_screen_area(workspace, view_layer, sa);
-      sa->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
+    if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
+      WM_toolsystem_refresh_screen_area(workspace, view_layer, area);
+      area->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
     }
     else {
-      sa->runtime.tool = NULL;
-      sa->runtime.is_tool_set = true;
+      area->runtime.tool = NULL;
+      area->runtime.is_tool_set = true;
     }
   }
 }
@@ -1948,19 +1948,19 @@ void ED_region_floating_initialize(ARegion *region)
   region_update_rect(region);
 }
 
-void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *region)
+void ED_region_cursor_set(wmWindow *win, ScrArea *area, ARegion *region)
 {
   if (region != NULL) {
     if ((region->gizmo_map != NULL) && WM_gizmomap_cursor_set(region->gizmo_map, win)) {
       return;
     }
-    if (sa && region->type && region->type->cursor) {
-      region->type->cursor(win, sa, region);
+    if (area && region->type && region->type->cursor) {
+      region->type->cursor(win, area, region);
       return;
     }
   }
 
-  if (WM_cursor_set_from_tool(win, sa, region)) {
+  if (WM_cursor_set_from_tool(win, area, region)) {
     return;
   }
 
@@ -1968,29 +1968,29 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *region)
 }
 
 /* for use after changing visibility of regions */
-void ED_region_visibility_change_update(bContext *C, ScrArea *sa, ARegion *region)
+void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *region)
 {
   if (region->flag & RGN_FLAG_HIDDEN) {
     WM_event_remove_handlers(C, &region->handlers);
   }
 
-  ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-  ED_area_tag_redraw(sa);
+  ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), area);
+  ED_area_tag_redraw(area);
 }
 
 /* for quick toggle, can skip fades */
 void region_toggle_hidden(bContext *C, ARegion *region, const bool do_fade)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   region->flag ^= RGN_FLAG_HIDDEN;
 
   if (do_fade && region->overlap) {
     /* starts a timer, and in end calls the stuff below itself (region_sblend_invoke()) */
-    ED_region_visibility_change_update_animated(C, sa, region);
+    ED_region_visibility_change_update_animated(C, area, region);
   }
   else {
-    ED_region_visibility_change_update(C, sa, region);
+    ED_region_visibility_change_update(C, area, region);
   }
 }
 
@@ -2003,48 +2003,48 @@ void ED_region_toggle_hidden(bContext *C, ARegion *region)
 /**
  * we swap spaces for fullscreen to keep all allocated data area vertices were set
  */
-void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free)
+void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free)
 {
   SpaceType *st;
   ARegion *region;
-  const char spacetype = sa_dst->spacetype;
+  const char spacetype = area_dst->spacetype;
   const short flag_copy = HEADER_NO_PULLDOWN;
 
-  sa_dst->spacetype = sa_src->spacetype;
-  sa_dst->type = sa_src->type;
+  area_dst->spacetype = area_src->spacetype;
+  area_dst->type = area_src->type;
 
-  sa_dst->flag = (sa_dst->flag & ~flag_copy) | (sa_src->flag & flag_copy);
+  area_dst->flag = (area_dst->flag & ~flag_copy) | (area_src->flag & flag_copy);
 
   /* area */
   if (do_free) {
-    BKE_spacedata_freelist(&sa_dst->spacedata);
+    BKE_spacedata_freelist(&area_dst->spacedata);
   }
-  BKE_spacedata_copylist(&sa_dst->spacedata, &sa_src->spacedata);
+  BKE_spacedata_copylist(&area_dst->spacedata, &area_src->spacedata);
 
   /* Note; SPACE_EMPTY is possible on new screens */
 
   /* regions */
   if (do_free) {
     st = BKE_spacetype_from_id(spacetype);
-    for (region = sa_dst->regionbase.first; region; region = region->next) {
+    for (region = area_dst->regionbase.first; region; region = region->next) {
       BKE_area_region_free(st, region);
     }
-    BLI_freelistN(&sa_dst->regionbase);
+    BLI_freelistN(&area_dst->regionbase);
   }
-  st = BKE_spacetype_from_id(sa_src->spacetype);
-  for (region = sa_src->regionbase.first; region; region = region->next) {
+  st = BKE_spacetype_from_id(area_src->spacetype);
+  for (region = area_src->regionbase.first; region; region = region->next) {
     ARegion *newar = BKE_area_region_copy(st, region);
-    BLI_addtail(&sa_dst->regionbase, newar);
+    BLI_addtail(&area_dst->regionbase, newar);
   }
 }
 
-void ED_area_data_swap(ScrArea *sa_dst, ScrArea *sa_src)
+void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src)
 {
-  SWAP(char, sa_dst->spacetype, sa_src->spacetype);
-  SWAP(SpaceType *, sa_dst->type, sa_src->type);
+  SWAP(char, area_dst->spacetype, area_src->spacetype);
+  SWAP(SpaceType *, area_dst->type, area_src->type);
 
-  SWAP(ListBase, sa_dst->spacedata, sa_src->spacedata);
-  SWAP(ListBase, sa_dst->regionbase, sa_src->regionbase);
+  SWAP(ListBase, area_dst->spacedata, area_src->spacedata);
+  SWAP(ListBase, area_dst->regionbase, area_src->regionbase);
 }
 
 /* *********** Space switching code *********** */
@@ -2078,16 +2078,16 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 /**
  * \param skip_region_exit: Skip calling area exit callback. Set for opening temp spaces.
  */
-void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region_exit)
+void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_region_exit)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  if (sa->spacetype != type) {
+  if (area->spacetype != type) {
     SpaceType *st;
-    SpaceLink *slold = sa->spacedata.first;
+    SpaceLink *slold = area->spacedata.first;
     SpaceLink *sl;
-    /* store sa->type->exit callback */
-    void *sa_exit = sa->type ? sa->type->exit : NULL;
+    /* store area->type->exit callback */
+    void *area_exit = area->type ? area->type->exit : NULL;
     /* When the user switches between space-types from the type-selector,
      * changing the header-type is jarring (especially when using Ctrl-MouseWheel).
      *
@@ -2098,34 +2098,34 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region
      * the space type defaults to in this case instead
      * (needed for preferences to have space-type on bottom).
      */
-    int header_alignment = ED_area_header_alignment_or_fallback(sa, -1);
+    int header_alignment = ED_area_header_alignment_or_fallback(area, -1);
     const bool sync_header_alignment = ((header_alignment != -1) &&
                                         ((slold->link_flag & SPACE_FLAG_TYPE_TEMPORARY) == 0));
 
     /* in some cases (opening temp space) we don't want to
      * call area exit callback, so we temporarily unset it */
-    if (skip_region_exit && sa->type) {
-      sa->type->exit = NULL;
+    if (skip_region_exit && area->type) {
+      area->type->exit = NULL;
     }
 
-    ED_area_exit(C, sa);
+    ED_area_exit(C, area);
 
     /* restore old area exit callback */
-    if (skip_region_exit && sa->type) {
-      sa->type->exit = sa_exit;
+    if (skip_region_exit && area->type) {
+      area->type->exit = area_exit;
     }
 
     st = BKE_spacetype_from_id(type);
 
-    sa->spacetype = type;
-    sa->type = st;
+    area->spacetype = type;
+    area->type = st;
 
     /* If st->new may be called, don't use context until then. The
-     * sa->type->context() callback has changed but data may be invalid
+     * area->type->context() callback has changed but data may be invalid
      * (e.g. with properties editor) until space-data is properly created */
 
     /* check previously stored space */
-    for (sl = sa->spacedata.first; sl; sl = sl->next) {
+    for (sl = area->spacedata.first; sl; sl = sl->next) {
       if (sl->spacetype == type) {
         break;
       }
@@ -2134,7 +2134,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region
     /* old spacedata... happened during work on 2.50, remove */
     if (sl && BLI_listbase_is_empty(&sl->regionbase)) {
       st->free(sl);
-      BLI_freelinkN(&sa->spacedata, sl);
+      BLI_freelinkN(&area->spacedata, sl);
       if (slold == sl) {
         slold = NULL;
       }
@@ -2143,8 +2143,8 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region
 
     if (sl) {
       /* swap regions */
-      slold->regionbase = sa->regionbase;
-      sa->regionbase = sl->regionbase;
+      slold->regionbase = area->regionbase;
+      area->regionbase = sl->regionbase;
       BLI_listbase_clear(&sl->regionbase);
       /* SPACE_FLAG_TYPE_WAS_ACTIVE is only used to go back to a previously active space that is
        * overlapped by temporary ones. It's now properly activated, so the flag should be cleared
@@ -2152,22 +2152,22 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region
       sl->link_flag &= ~SPACE_FLAG_TYPE_WAS_ACTIVE;
 
       /* put in front of list */
-      BLI_remlink(&sa->spacedata, sl);
-      BLI_addhead(&sa->spacedata, sl);
+      BLI_remlink(&area->spacedata, sl);
+      BLI_addhead(&area->spacedata, sl);
     }
     else {
       /* new space */
       if (st) {
         /* Don't get scene from context here which may depend on space-data. */
         Scene *scene = WM_window_get_active_scene(win);
-        sl = st->new (sa, scene);
-        BLI_addhead(&sa->spacedata, sl);
+        sl = st->new (area, scene);
+        BLI_addhead(&area->spacedata, sl);
 
         /* swap regions */
         if (slold) {
-          slold->regionbase = sa->regionbase;
+          slold->regionbase = area->regionbase;
         }
-        sa->regionbase = sl->regionbase;
+        area->regionbase = sl->regionbase;
         BLI_listbase_clear(&sl->regionbase);
       }
     }
@@ -2176,7 +2176,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region
     if (sync_header_alignment) {
       /* Spaces with footer. */
       if (st->spaceid == SPACE_TEXT) {
-        for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+        for (ARegion *region = area->regionbase.first; region; region = region->next) {
           if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
             region->alignment = header_alignment;
           }
@@ -2189,7 +2189,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region
         }
       }
       else {
-        for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+        for (ARegion *region = area->regionbase.first; region; region = region->next) {
           if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
             region->alignment = header_alignment;
             break;
@@ -2198,24 +2198,24 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_region
       }
     }
 
-    ED_area_initialize(CTX_wm_manager(C), win, sa);
+    ED_area_initialize(CTX_wm_manager(C), win, area);
 
     /* tell WM to refresh, cursor types etc */
     WM_event_add_mousemove(win);
 
     /* send space change notifier */
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, sa);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, area);
 
-    ED_area_tag_refresh(sa);
+    ED_area_tag_refresh(area);
   }
 
   /* also redraw when re-used */
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
 }
 
-static SpaceLink *area_get_prevspace(ScrArea *sa)
+static SpaceLink *area_get_prevspace(ScrArea *area)
 {
-  SpaceLink *sl = sa->spacedata.first;
+  SpaceLink *sl = area->spacedata.first;
 
   /* First toggle to the next temporary space in the list. */
   for (SpaceLink *sl_iter = sl->next; sl_iter; sl_iter = sl_iter->next) {
@@ -2235,13 +2235,13 @@ static SpaceLink *area_get_prevspace(ScrArea *sa)
   return sl->next;
 }
 
-void ED_area_prevspace(bContext *C, ScrArea *sa)
+void ED_area_prevspace(bContext *C, ScrArea *area)
 {
-  SpaceLink *sl = sa->spacedata.first;
-  SpaceLink *prevspace = sl ? area_get_prevspace(sa) : NULL;
+  SpaceLink *sl = area->spacedata.first;
+  SpaceLink *prevspace = sl ? area_get_prevspace(area) : NULL;
 
   if (prevspace) {
-    ED_area_newspace(C, sa, prevspace->spacetype, false);
+    ED_area_newspace(C, area, prevspace->spacetype, false);
     /* We've exited the space, so it can't be considered temporary anymore. */
     sl->link_flag &= ~SPACE_FLAG_TYPE_TEMPORARY;
   }
@@ -2251,23 +2251,23 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
   }
   /* If this is a stacked fullscreen, changing to previous area exits it (meaning we're still in a
    * fullscreen, but not in a stacked one). */
-  sa->flag &= ~AREA_FLAG_STACKED_FULLSCREEN;
+  area->flag &= ~AREA_FLAG_STACKED_FULLSCREEN;
 
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
 
   /* send space change notifier */
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, sa);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, area);
 }
 
 /* returns offset for next button in header */
 int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   bScreen *scr = CTX_wm_screen(C);
   PointerRNA areaptr;
   int xco = 0.4 * U.widget_unit;
 
-  RNA_pointer_create(&(scr->id), &RNA_Area, sa, &areaptr);
+  RNA_pointer_create(&(scr->id), &RNA_Area, area, &areaptr);
 
   uiDefButR(block,
             UI_BTYPE_MENU,
@@ -2342,7 +2342,7 @@ BLI_INLINE bool streq_array_any(const char *s, const char *arr[])
 }
 
 static void ed_panel_draw(const bContext *C,
-                          ScrArea *sa,
+                          ScrArea *area,
                           ARegion *region,
                           ListBase *lb,
                           PanelType *pt,
@@ -2357,7 +2357,7 @@ static void ed_panel_draw(const bContext *C,
   uiBlock *block = UI_block_begin(C, region, pt->idname, UI_EMBOSS);
 
   bool open;
-  panel = UI_panel_begin(sa, region, lb, block, pt, panel, &open);
+  panel = UI_panel_begin(area, region, lb, block, pt, panel, &open);
 
   /* bad fixed values */
   int xco, yco, h = 0;
@@ -2445,12 +2445,12 @@ static void ed_panel_draw(const bContext *C,
       Panel *child_panel = UI_panel_find_by_type(&panel->children, child_pt);
 
       if (child_pt->draw && (!child_pt->poll || child_pt->poll(C, child_pt))) {
-        ed_panel_draw(C, sa, region, &panel->children, child_pt, child_panel, w, em, vertical);
+        ed_panel_draw(C, area, region, &panel->children, child_pt, child_panel, w, em, vertical);
       }
     }
   }
 
-  UI_panel_end(sa, region, block, w, h, open);
+  UI_panel_end(area, region, block, w, h, open);
 }
 
 /**
@@ -2499,7 +2499,7 @@ void ED_region_panels_layout_ex(const bContext *C,
 
   region->runtime.category = NULL;
 
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   View2D *v2d = &region->v2d;
   int x, y, w, em;
 
@@ -2508,7 +2508,7 @@ void ED_region_panels_layout_ex(const bContext *C,
   bool use_category_tabs = (category_override == NULL) &&
                            ((((1 << region->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK) ||
                              (region->regiontype == RGN_TYPE_TOOLS &&
-                              sa->spacetype == SPACE_CLIP)));
+                              area->spacetype == SPACE_CLIP)));
   /* offset panels for small vertical tab area */
   const char *category = NULL;
   const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
@@ -2584,7 +2584,7 @@ void ED_region_panels_layout_ex(const bContext *C,
       }
     }
 
-    ed_panel_draw(C, sa, region, &region->panels, pt, panel, w, em, vertical);
+    ed_panel_draw(C, area, region, &region->panels, pt, panel, w, em, vertical);
   }
 
   /* align panels and return size */
@@ -2605,7 +2605,7 @@ void ED_region_panels_layout_ex(const bContext *C,
       if ((region->sizex != size_dyn[0]) || (region->sizey != size_dyn[1])) {
         region->sizex = size_dyn[0];
         region->sizey = size_dyn[1];
-        sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+        area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
       }
       y = fabsf(region->sizey * UI_DPI_FAC - 1);
     }
@@ -2799,10 +2799,10 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
 
     if (region_layout_based && (region->sizex != new_sizex)) {
       /* region size is layout based and needs to be updated */
-      ScrArea *sa = CTX_wm_area(C);
+      ScrArea *area = CTX_wm_area(C);
 
       region->sizex = new_sizex;
-      sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+      area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
     }
 
     UI_block_end(C, block);
@@ -3575,7 +3575,7 @@ void ED_region_message_subscribe(bContext *C,
                                  struct WorkSpace *workspace,
                                  struct Scene *scene,
                                  struct bScreen *screen,
-                                 struct ScrArea *sa,
+                                 struct ScrArea *area,
                                  struct ARegion *region,
                                  struct wmMsgBus *mbus)
 {
@@ -3588,7 +3588,7 @@ void ED_region_message_subscribe(bContext *C,
   }
 
   if (region->type->message_subscribe != NULL) {
-    region->type->message_subscribe(C, workspace, scene, screen, sa, region, mbus);
+    region->type->message_subscribe(C, workspace, scene, screen, area, region, mbus);
   }
 }
 

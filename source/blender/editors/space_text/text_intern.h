@@ -41,7 +41,7 @@ void text_update_line_edited(struct TextLine *line);
 void text_update_edited(struct Text *text);
 void text_update_character_width(struct SpaceText *st);
 void text_scroll_to_cursor(struct SpaceText *st, struct ARegion *region, const bool center);
-void text_scroll_to_cursor__area(struct SpaceText *st, struct ScrArea *sa, const bool center);
+void text_scroll_to_cursor__area(struct SpaceText *st, struct ScrArea *area, const bool center);
 void text_update_cursor_moved(struct bContext *C);
 
 /* Padding around line numbers in character widths. */

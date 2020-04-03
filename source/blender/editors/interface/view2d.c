@@ -865,7 +865,6 @@ void UI_view2d_curRect_validate(View2D *v2d)
  * to make sure 'related' views stay in synchrony */
 void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 {
-  ScrArea *sa;
   ARegion *region;
 
   /* don't continue if no view syncing to be done */
@@ -900,8 +899,8 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 
   /* check if doing whole screen syncing (i.e. time/horizontal) */
   if ((v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) && (screen)) {
-    for (sa = screen->areabase.first; sa; sa = sa->next) {
-      for (region = sa->regionbase.first; region; region = region->next) {
+    for (ScrArea *area_iter = screen->areabase.first; area_iter; area_iter = area_iter->next) {
+      for (region = area_iter->regionbase.first; region; region = region->next) {
         /* don't operate on self */
         if (v2dcur != &region->v2d) {
           /* only if view has horizontal locks enabled */
@@ -1915,17 +1914,17 @@ View2D *UI_view2d_fromcontext(const bContext *C)
 /* same as above, but it returns regionwindow. Utility for pulldowns or buttons */
 View2D *UI_view2d_fromcontext_rwin(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  if (sa == NULL) {
+  if (area == NULL) {
     return NULL;
   }
   if (region == NULL) {
     return NULL;
   }
   if (region->regiontype != RGN_TYPE_WINDOW) {
-    ARegion *region_win = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+    ARegion *region_win = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     return region_win ? &(region_win->v2d) : NULL;
   }
   return &(region->v2d);

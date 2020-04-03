@@ -1013,7 +1013,7 @@ static void annotation_draw_data_all(Scene *scene,
 void ED_annotation_draw_2dimage(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
 
@@ -1026,7 +1026,7 @@ void ED_annotation_draw_2dimage(const bContext *C)
   }
 
   /* calculate rect */
-  switch (sa->spacetype) {
+  switch (area->spacetype) {
     case SPACE_IMAGE: /* image */
     case SPACE_CLIP:  /* clip */
     {
@@ -1075,7 +1075,7 @@ void ED_annotation_draw_2dimage(const bContext *C)
   }
 
   /* draw it! */
-  annotation_draw_data_all(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, sa->spacetype);
+  annotation_draw_data_all(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, area->spacetype);
 }
 
 /**
@@ -1088,13 +1088,13 @@ void ED_annotation_draw_2dimage(const bContext *C)
 void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   int dflag = 0;
 
   /* check that we have grease-pencil stuff to draw */
-  if (sa == NULL) {
+  if (area == NULL) {
     return;
   }
   bGPdata *gpd = ED_annotation_data_get_active(C);
@@ -1105,7 +1105,7 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
   /* special hack for Image Editor */
   /* FIXME: the opengl poly-strokes don't draw at right thickness when done this way,
    * so disabled. */
-  if (ELEM(sa->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
+  if (ELEM(area->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
     dflag |= GP_DRAWDATA_IEDITHACK;
   }
 
@@ -1118,7 +1118,7 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
   }
 
   annotation_draw_data_all(
-      scene, gpd, 0, 0, region->winx, region->winy, CFRA, dflag, sa->spacetype);
+      scene, gpd, 0, 0, region->winx, region->winy, CFRA, dflag, area->spacetype);
 
   /* draw status text (if in screen/pixel-space) */
   if (!onlyv2d) {

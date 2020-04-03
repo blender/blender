@@ -279,7 +279,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
 static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
 {
   bScreen *sc;
-  ScrArea *sa;
+  ScrArea *area;
   ARegion *region;
   int done = 0, recursion = C->data.recursion;
   int ret = 0;
@@ -327,10 +327,10 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
       }
     }
   }
-  if (done != 1 && recursion < 3 && (sa = CTX_wm_area(C))) {
+  if (done != 1 && recursion < 3 && (area = CTX_wm_area(C))) {
     C->data.recursion = 3;
-    if (sa->type && sa->type->context) {
-      ret = sa->type->context(C, member, result);
+    if (area->type && area->type->context) {
+      ret = area->type->context(C, member, result);
       if (ret) {
         done = -(-ret | -done);
       }
@@ -544,7 +544,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
   bContextDataResult result;
   ListBase lb;
   bScreen *sc;
-  ScrArea *sa;
+  ScrArea *area;
   ARegion *region;
   int a;
 
@@ -588,9 +588,9 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
       }
     }
   }
-  if ((sa = CTX_wm_area(C)) && sa->type && sa->type->context) {
+  if ((area = CTX_wm_area(C)) && area->type && area->type->context) {
     memset(&result, 0, sizeof(result));
-    sa->type->context(C, "", &result);
+    area->type->context(C, "", &result);
 
     if (result.dir) {
       for (a = 0; result.dir[a]; a++) {
@@ -716,8 +716,8 @@ ScrArea *CTX_wm_area(const bContext *C)
 
 SpaceLink *CTX_wm_space_data(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  return (sa) ? sa->spacedata.first : NULL;
+  ScrArea *area = CTX_wm_area(C);
+  return (area) ? area->spacedata.first : NULL;
 }
 
 ARegion *CTX_wm_region(const bContext *C)
@@ -757,19 +757,19 @@ struct ReportList *CTX_wm_reports(const bContext *C)
 
 View3D *CTX_wm_view3d(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_VIEW3D) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_VIEW3D) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 RegionView3D *CTX_wm_region_view3d(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  if (sa && sa->spacetype == SPACE_VIEW3D) {
+  if (area && area->spacetype == SPACE_VIEW3D) {
     if (region && region->regiontype == RGN_TYPE_WINDOW) {
       return region->regiondata;
     }
@@ -779,135 +779,135 @@ RegionView3D *CTX_wm_region_view3d(const bContext *C)
 
 struct SpaceText *CTX_wm_space_text(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_TEXT) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_TEXT) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceConsole *CTX_wm_space_console(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_CONSOLE) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_CONSOLE) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceImage *CTX_wm_space_image(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_IMAGE) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_IMAGE) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceProperties *CTX_wm_space_properties(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_PROPERTIES) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_PROPERTIES) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceFile *CTX_wm_space_file(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_FILE) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_FILE) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceSeq *CTX_wm_space_seq(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_SEQ) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_SEQ) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceOutliner *CTX_wm_space_outliner(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_OUTLINER) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_OUTLINER) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceNla *CTX_wm_space_nla(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_NLA) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_NLA) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceNode *CTX_wm_space_node(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_NODE) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_NODE) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceGraph *CTX_wm_space_graph(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_GRAPH) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_GRAPH) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceAction *CTX_wm_space_action(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_ACTION) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_ACTION) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceInfo *CTX_wm_space_info(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_INFO) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_INFO) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_USERPREF) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_USERPREF) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceClip *CTX_wm_space_clip(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_CLIP) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_CLIP) {
+    return area->spacedata.first;
   }
   return NULL;
 }
 
 struct SpaceTopBar *CTX_wm_space_topbar(const bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype == SPACE_TOPBAR) {
-    return sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_TOPBAR) {
+    return area->spacedata.first;
   }
   return NULL;
 }

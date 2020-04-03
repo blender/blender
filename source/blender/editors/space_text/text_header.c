@@ -42,17 +42,17 @@
 
 /************************** properties ******************************/
 
-static ARegion *text_has_properties_region(ScrArea *sa)
+static ARegion *text_has_properties_region(ScrArea *area)
 {
   ARegion *region, *arnew;
 
-  region = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+  region = BKE_area_find_region_type(area, RGN_TYPE_UI);
   if (region) {
     return region;
   }
 
   /* add subdiv level; after header */
-  region = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+  region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
   /* is error! */
   if (region == NULL) {
@@ -61,7 +61,7 @@ static ARegion *text_has_properties_region(ScrArea *sa)
 
   arnew = MEM_callocN(sizeof(ARegion), "properties region");
 
-  BLI_insertlinkafter(&sa->regionbase, region, arnew);
+  BLI_insertlinkafter(&area->regionbase, region, arnew);
   arnew->regiontype = RGN_TYPE_UI;
   arnew->alignment = RGN_ALIGN_LEFT;
 
@@ -77,8 +77,8 @@ static bool text_properties_poll(bContext *C)
 
 static int text_text_search_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *region = text_has_properties_region(sa);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = text_has_properties_region(area);
   SpaceText *st = CTX_wm_space_text(C);
 
   if (region) {

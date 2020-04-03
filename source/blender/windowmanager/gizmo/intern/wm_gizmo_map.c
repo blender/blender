@@ -577,9 +577,9 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
                                             const int hotspot)
 {
   const wmWindowManager *wm = CTX_wm_manager(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  View3D *v3d = sa->spacedata.first;
+  View3D *v3d = area->spacedata.first;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   rcti rect;
   /* Almost certainly overkill, but allow for many custom gizmos. */
@@ -966,22 +966,22 @@ void wm_gizmomap_handler_context_op(bContext *C, wmEventHandler_Op *handler)
   bScreen *screen = CTX_wm_screen(C);
 
   if (screen) {
-    ScrArea *sa;
+    ScrArea *area;
 
-    for (sa = screen->areabase.first; sa; sa = sa->next) {
-      if (sa == handler->context.area) {
+    for (area = screen->areabase.first; area; area = area->next) {
+      if (area == handler->context.area) {
         break;
       }
     }
-    if (sa == NULL) {
+    if (area == NULL) {
       /* when changing screen layouts with running modal handlers (like render display), this
        * is not an error to print */
       printf("internal error: modal gizmo-map handler has invalid area\n");
     }
     else {
       ARegion *region;
-      CTX_wm_area_set(C, sa);
-      for (region = sa->regionbase.first; region; region = region->next) {
+      CTX_wm_area_set(C, area);
+      for (region = area->regionbase.first; region; region = region->next) {
         if (region == handler->context.region) {
           break;
         }
@@ -1373,9 +1373,10 @@ void WM_gizmoconfig_update(struct Main *bmain)
 
   if (wm_gzmap_type_update_flag & WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE) {
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
           for (ARegion *region = regionbase->first; region; region = region->next) {
             wmGizmoMap *gzmap = region->gizmo_map;
             if (gzmap != NULL && gzmap->tag_remove_group) {
@@ -1410,9 +1411,9 @@ void WM_gizmoconfig_update(struct Main *bmain)
 void WM_reinit_gizmomap_all(Main *bmain)
 {
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-        ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
         for (ARegion *region = regionbase->first; region; region = region->next) {
           wmGizmoMap *gzmap = region->gizmo_map;
           if ((gzmap != NULL) && (gzmap->is_init == false)) {

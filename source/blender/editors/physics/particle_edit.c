@@ -135,10 +135,10 @@ bool PE_hair_poll(bContext *C)
 
 bool PE_poll_view3d(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  return (PE_poll(C) && (sa && sa->spacetype == SPACE_VIEW3D) &&
+  return (PE_poll(C) && (area && area->spacetype == SPACE_VIEW3D) &&
           (region && region->regiontype == RGN_TYPE_WINDOW));
 }
 

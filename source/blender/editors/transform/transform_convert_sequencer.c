@@ -379,7 +379,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
         }
 
         if (overlap) {
-          const bool use_sync_markers = (((SpaceSeq *)t->sa->spacedata.first)->flag &
+          const bool use_sync_markers = (((SpaceSeq *)t->area->spacedata.first)->flag &
                                          SEQ_MARKER_TRANS) != 0;
           ListBase *markers = &t->scene->markers;
 

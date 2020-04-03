@@ -1793,11 +1793,11 @@ enum {
  */
 static bool modify_key_op_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
 
   /* if no area or active scene */
-  if (ELEM(NULL, sa, scene)) {
+  if (ELEM(NULL, area, scene)) {
     return false;
   }
 

@@ -81,7 +81,7 @@
  * ScrArea's store a list of space data (SpaceLinks), each of unique type.
  * The first one is the displayed in the UI, others are added as needed.
  *
- * +----------------------------+  <-- sa->spacedata.first;
+ * +----------------------------+  <-- area->spacedata.first;
  * |                            |
  * |                            |---+  <-- other inactive SpaceLink's stored.
  * |                            |   |
@@ -99,8 +99,8 @@
  *
  * A common way to get the space from the ScrArea:
  * \code{.c}
- * if (sa->spacetype == SPACE_VIEW3D) {
- *     View3D *v3d = sa->spacedata.first;
+ * if (area->spacetype == SPACE_VIEW3D) {
+ *     View3D *v3d = area->spacedata.first;
  *     ...
  * }
  * \endcode

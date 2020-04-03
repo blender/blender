@@ -566,7 +566,7 @@ static Scene *preview_prepare_scene(
 
 /* new UI convention: draw is in pixel space already. */
 /* uses UI_BTYPE_ROUNDBOX button in block to get the rect */
-static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, rcti *newrect)
+static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect, rcti *newrect)
 {
   Render *re;
   RenderView *rv;
@@ -578,10 +578,10 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
   bool ok = false;
 
   if (!split || first) {
-    sprintf(name, "Preview %p", (void *)sa);
+    sprintf(name, "Preview %p", (void *)area);
   }
   else {
-    sprintf(name, "SecondPreview %p", (void *)sa);
+    sprintf(name, "SecondPreview %p", (void *)area);
   }
 
   if (split) {
@@ -661,12 +661,12 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 {
   if (idp) {
     wmWindowManager *wm = CTX_wm_manager(C);
-    ScrArea *sa = CTX_wm_area(C);
+    ScrArea *area = CTX_wm_area(C);
     ID *id = (ID *)idp;
     ID *parent = (ID *)parentp;
     MTex *slot = (MTex *)slotp;
     SpaceProperties *sbuts = CTX_wm_space_properties(C);
-    ShaderPreview *sp = WM_jobs_customdata(wm, sa);
+    ShaderPreview *sp = WM_jobs_customdata(wm, area);
     rcti newrect;
     int ok;
     int newx = BLI_rcti_size_x(rect);
@@ -678,11 +678,11 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
     newrect.ymax = rect->ymin;
 
     if (parent) {
-      ok = ed_preview_draw_rect(sa, 1, 1, rect, &newrect);
-      ok &= ed_preview_draw_rect(sa, 1, 0, rect, &newrect);
+      ok = ed_preview_draw_rect(area, 1, 1, rect, &newrect);
+      ok &= ed_preview_draw_rect(area, 1, 0, rect, &newrect);
     }
     else {
-      ok = ed_preview_draw_rect(sa, 0, 0, rect, &newrect);
+      ok = ed_preview_draw_rect(area, 0, 0, rect, &newrect);
     }
 
     if (ok) {
@@ -693,12 +693,12 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
      * if no render result was found and no preview render job is running,
      * or if the job is running and the size of preview changed */
     if ((sbuts != NULL && sbuts->preview) ||
-        (!ok && !WM_jobs_test(wm, sa, WM_JOB_TYPE_RENDER_PREVIEW)) ||
+        (!ok && !WM_jobs_test(wm, area, WM_JOB_TYPE_RENDER_PREVIEW)) ||
         (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2))) {
       if (sbuts != NULL) {
         sbuts->preview = 0;
       }
-      ED_preview_shader_job(C, sa, id, parent, slot, newx, newy, PR_BUTS_RENDER);
+      ED_preview_shader_job(C, area, id, parent, slot, newx, newy, PR_BUTS_RENDER);
     }
   }
 }

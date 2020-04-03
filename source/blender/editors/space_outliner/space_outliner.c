@@ -106,7 +106,7 @@ static void outliner_main_region_free(ARegion *UNUSED(region))
 }
 
 static void outliner_main_region_listener(wmWindow *UNUSED(win),
-                                          ScrArea *UNUSED(sa),
+                                          ScrArea *UNUSED(area),
                                           ARegion *region,
                                           wmNotifier *wmn,
                                           const Scene *UNUSED(scene))
@@ -241,11 +241,11 @@ static void outliner_main_region_message_subscribe(const struct bContext *UNUSED
                                                    struct WorkSpace *UNUSED(workspace),
                                                    struct Scene *UNUSED(scene),
                                                    struct bScreen *UNUSED(screen),
-                                                   struct ScrArea *sa,
+                                                   struct ScrArea *area,
                                                    struct ARegion *region,
                                                    struct wmMsgBus *mbus)
 {
-  SpaceOutliner *soops = sa->spacedata.first;
+  SpaceOutliner *soops = area->spacedata.first;
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,
@@ -275,7 +275,7 @@ static void outliner_header_region_free(ARegion *UNUSED(region))
 }
 
 static void outliner_header_region_listener(wmWindow *UNUSED(win),
-                                            ScrArea *UNUSED(sa),
+                                            ScrArea *UNUSED(area),
                                             ARegion *region,
                                             wmNotifier *wmn,
                                             const Scene *UNUSED(scene))
@@ -341,7 +341,7 @@ static void outliner_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
@@ -360,7 +360,7 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   return (SpaceLink *)soutlinern;
 }
 
-static void outliner_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceOutliner *so = (SpaceOutliner *)slink;
 
@@ -393,12 +393,12 @@ static void outliner_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id,
   }
 }
 
-static void outliner_deactivate(struct ScrArea *sa)
+static void outliner_deactivate(struct ScrArea *area)
 {
   /* Remove hover highlights */
-  SpaceOutliner *soops = sa->spacedata.first;
+  SpaceOutliner *soops = area->spacedata.first;
   outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED, false);
-  ED_region_tag_redraw(BKE_area_find_region_type(sa, RGN_TYPE_WINDOW));
+  ED_region_tag_redraw(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }
 
 /* only called once, from space_api/spacetypes.c */

@@ -92,7 +92,7 @@ typedef struct tGPDfill {
   /** current active gp object */
   struct Object *ob;
   /** area where painting originated */
-  struct ScrArea *sa;
+  struct ScrArea *area;
   /** region where painting originated */
   struct RegionView3D *rv3d;
   /** view3 where painting originated */
@@ -1248,8 +1248,8 @@ static bool gpencil_fill_poll(bContext *C)
   Object *obact = CTX_data_active_object(C);
 
   if (ED_operator_regionactive(C)) {
-    ScrArea *sa = CTX_wm_area(C);
-    if (sa->spacetype == SPACE_VIEW3D) {
+    ScrArea *area = CTX_wm_area(C);
+    if (area->spacetype == SPACE_VIEW3D) {
       if ((obact == NULL) || (obact->type != OB_GPENCIL) ||
           (obact->mode != OB_MODE_PAINT_GPENCIL)) {
         return false;
@@ -1283,10 +1283,10 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
   tgpf->bmain = CTX_data_main(C);
   tgpf->scene = CTX_data_scene(C);
   tgpf->ob = CTX_data_active_object(C);
-  tgpf->sa = CTX_wm_area(C);
+  tgpf->area = CTX_wm_area(C);
   tgpf->region = CTX_wm_region(C);
   tgpf->rv3d = tgpf->region->regiondata;
-  tgpf->v3d = tgpf->sa->spacedata.first;
+  tgpf->v3d = tgpf->area->spacedata.first;
   tgpf->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   tgpf->win = CTX_wm_window(C);
 

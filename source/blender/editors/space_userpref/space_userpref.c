@@ -97,7 +97,7 @@ static void userpref_free(SpaceLink *UNUSED(sl))
 }
 
 /* spacetype; init callback */
-static void userpref_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void userpref_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
@@ -185,7 +185,7 @@ static void userpref_execute_region_init(wmWindowManager *wm, ARegion *region)
 }
 
 static void userpref_main_region_listener(wmWindow *UNUSED(win),
-                                          ScrArea *UNUSED(sa),
+                                          ScrArea *UNUSED(area),
                                           ARegion *UNUSED(region),
                                           wmNotifier *UNUSED(wmn),
                                           const Scene *UNUSED(scene))
@@ -194,7 +194,7 @@ static void userpref_main_region_listener(wmWindow *UNUSED(win),
 }
 
 static void userpref_header_listener(wmWindow *UNUSED(win),
-                                     ScrArea *UNUSED(sa),
+                                     ScrArea *UNUSED(area),
                                      ARegion *UNUSED(region),
                                      wmNotifier *UNUSED(wmn),
                                      const Scene *UNUSED(scene))
@@ -209,7 +209,7 @@ static void userpref_header_listener(wmWindow *UNUSED(win),
 }
 
 static void userpref_navigation_region_listener(wmWindow *UNUSED(win),
-                                                ScrArea *UNUSED(sa),
+                                                ScrArea *UNUSED(area),
                                                 ARegion *UNUSED(region),
                                                 wmNotifier *UNUSED(wmn),
                                                 const Scene *UNUSED(scene))
@@ -218,7 +218,7 @@ static void userpref_navigation_region_listener(wmWindow *UNUSED(win),
 }
 
 static void userpref_execute_region_listener(wmWindow *UNUSED(win),
-                                             ScrArea *UNUSED(sa),
+                                             ScrArea *UNUSED(area),
                                              ARegion *UNUSED(region),
                                              wmNotifier *UNUSED(wmn),
                                              const Scene *UNUSED(scene))

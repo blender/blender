@@ -8063,8 +8063,8 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
 
   /* avoid conflicts with 2.8x branch */
   {
-    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
         if (sl->spacetype == SPACE_VIEW3D) {
           View3D *v3d = (View3D *)sl;
           ARegion *region;
@@ -8073,7 +8073,8 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
           v3d->ob_center = restore_pointer_by_name(id_map, (ID *)v3d->ob_center, USER_REAL);
 
           /* Free render engines for now. */
-          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
           for (region = regionbase->first; region; region = region->next) {
             if (region->regiontype == RGN_TYPE_WINDOW) {
               RegionView3D *rv3d = region->regiondata;

@@ -43,7 +43,7 @@ double WM_tooltip_time_closed(void)
 }
 
 void WM_tooltip_immediate_init(
-    bContext *C, wmWindow *win, ScrArea *sa, ARegion *region, wmTooltipInitFn init)
+    bContext *C, wmWindow *win, ScrArea *area, ARegion *region, wmTooltipInitFn init)
 {
   WM_tooltip_timer_clear(C, win);
 
@@ -51,14 +51,14 @@ void WM_tooltip_immediate_init(
   if (screen->tool_tip == NULL) {
     screen->tool_tip = MEM_callocN(sizeof(*screen->tool_tip), __func__);
   }
-  screen->tool_tip->area_from = sa;
+  screen->tool_tip->area_from = area;
   screen->tool_tip->region_from = region;
   screen->tool_tip->init = init;
   WM_tooltip_init(C, win);
 }
 
 void WM_tooltip_timer_init_ex(
-    bContext *C, wmWindow *win, ScrArea *sa, ARegion *region, wmTooltipInitFn init, double delay)
+    bContext *C, wmWindow *win, ScrArea *area, ARegion *region, wmTooltipInitFn init, double delay)
 {
   WM_tooltip_timer_clear(C, win);
 
@@ -67,16 +67,16 @@ void WM_tooltip_timer_init_ex(
   if (screen->tool_tip == NULL) {
     screen->tool_tip = MEM_callocN(sizeof(*screen->tool_tip), __func__);
   }
-  screen->tool_tip->area_from = sa;
+  screen->tool_tip->area_from = area;
   screen->tool_tip->region_from = region;
   screen->tool_tip->timer = WM_event_add_timer(wm, win, TIMER, delay);
   screen->tool_tip->init = init;
 }
 
 void WM_tooltip_timer_init(
-    bContext *C, wmWindow *win, ScrArea *sa, ARegion *region, wmTooltipInitFn init)
+    bContext *C, wmWindow *win, ScrArea *area, ARegion *region, wmTooltipInitFn init)
 {
-  WM_tooltip_timer_init_ex(C, win, sa, region, init, UI_TOOLTIP_DELAY);
+  WM_tooltip_timer_init_ex(C, win, area, region, init, UI_TOOLTIP_DELAY);
 }
 
 void WM_tooltip_timer_clear(bContext *C, wmWindow *win)

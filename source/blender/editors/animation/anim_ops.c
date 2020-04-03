@@ -61,7 +61,7 @@
 /* Check if the operator can be run from the current context */
 static bool change_frame_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* XXX temp? prevent changes during render */
   if (G.is_rendering) {
@@ -71,11 +71,11 @@ static bool change_frame_poll(bContext *C)
   /* although it's only included in keymaps for regions using ED_KEYMAP_ANIMATION,
    * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
    */
-  if (sa) {
-    if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
+  if (area) {
+    if (ELEM(area->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
       return true;
     }
-    else if (sa->spacetype == SPACE_GRAPH) {
+    else if (area->spacetype == SPACE_GRAPH) {
       /* NOTE: Graph Editor has special version which does some extra stuff.
        * No need to show the generic error message for that case though!
        */
@@ -151,10 +151,10 @@ static float frame_from_event(bContext *C, const wmEvent *event)
 
 static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   bScreen *screen = CTX_wm_screen(C);
-  if (sa && sa->spacetype == SPACE_SEQ) {
-    SpaceSeq *sseq = sa->spacedata.first;
+  if (area && area->spacetype == SPACE_SEQ) {
+    SpaceSeq *sseq = area->spacedata.first;
     if (ED_space_sequencer_check_show_strip(sseq)) {
       ED_sequencer_special_preview_set(C, event->mval);
     }
@@ -282,7 +282,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 
 static bool anim_set_end_frames_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* XXX temp? prevent changes during render */
   if (G.is_rendering) {
@@ -292,8 +292,8 @@ static bool anim_set_end_frames_poll(bContext *C)
   /* although it's only included in keymaps for regions using ED_KEYMAP_ANIMATION,
    * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
    */
-  if (sa) {
-    if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
+  if (area) {
+    if (ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
       return true;
     }
   }

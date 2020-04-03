@@ -94,7 +94,7 @@ static void script_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
@@ -160,7 +160,7 @@ static void script_header_region_draw(const bContext *C, ARegion *region)
 }
 
 static void script_main_region_listener(wmWindow *UNUSED(win),
-                                        ScrArea *UNUSED(sa),
+                                        ScrArea *UNUSED(area),
                                         ARegion *UNUSED(region),
                                         wmNotifier *UNUSED(wmn),
                                         const Scene *UNUSED(scene))

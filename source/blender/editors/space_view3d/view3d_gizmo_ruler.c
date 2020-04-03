@@ -110,7 +110,7 @@ typedef struct RulerInfo {
 
   /* wm state */
   wmWindow *win;
-  ScrArea *sa;
+  ScrArea *area;
   ARegion *region; /* re-assigned every modal update */
 
   /* Track changes in state. */
@@ -299,7 +299,7 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
 
 static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3], const int xy[2])
 {
-  ED_view3d_win_to_3d_int(ruler_info->sa->spacedata.first, ruler_info->region, r_co, xy, r_co);
+  ED_view3d_win_to_3d_int(ruler_info->area->spacedata.first, ruler_info->region, r_co, xy, r_co);
 }
 
 /* use for mousemove events */
@@ -323,7 +323,7 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
     view3d_ruler_item_project(ruler_info, co, mval);
     if (do_thickness && inter->co_index != 1) {
       // Scene *scene = CTX_data_scene(C);
-      // View3D *v3d = ruler_info->sa->spacedata.first;
+      // View3D *v3d = ruler_info->area->spacedata.first;
       const float mval_fl[2] = {UNPACK2(mval)};
       float ray_normal[3];
       float ray_start[3];
@@ -1064,10 +1064,10 @@ static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   ruler_info->win = win;
-  ruler_info->sa = sa;
+  ruler_info->area = area;
   ruler_info->region = region;
 
   gzgroup->customdata = ruler_info;

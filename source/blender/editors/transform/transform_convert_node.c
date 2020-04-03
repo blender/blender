@@ -109,7 +109,7 @@ void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
   const float dpi_fac = UI_DPI_FAC;
   TransData *td;
   TransData2D *td2d;
-  SpaceNode *snode = t->sa->spacedata.first;
+  SpaceNode *snode = t->area->spacedata.first;
   bNode *node;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -188,7 +188,7 @@ void flushTransNodes(TransInfo *t)
 
     /* handle intersection with noodles */
     if (tc->data_len == 1) {
-      ED_node_link_intersect_test(t->sa, 1);
+      ED_node_link_intersect_test(t->area, 1);
     }
   }
 }

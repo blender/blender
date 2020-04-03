@@ -299,9 +299,9 @@ static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
       "shift select vertices");
 
   char msg[UI_MAX_DRAW_STR];
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
-  if (sa) {
+  if (area) {
     BLI_snprintf(msg,
                  sizeof(msg),
                  str,
@@ -2438,7 +2438,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 {
   Scene *scene = CTX_data_scene(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   StitchStateContainer *ssc = (StitchStateContainer *)op->customdata;
 
@@ -2492,7 +2492,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
     MEM_freeN(objs_selection_count);
   }
 
-  if (sa) {
+  if (area) {
     ED_workspace_status_text(C, NULL);
   }
 

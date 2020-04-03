@@ -1226,7 +1226,7 @@ static bool do_lasso_select_paintface(ViewContext *vc,
 #if 0
 static void do_lasso_select_node(int mcords[][2], short moves, const eSelectOp sel_op)
 {
-  SpaceNode *snode = sa->spacedata.first;
+  SpaceNode *snode = area->spacedata.first;
 
   bNode *node;
   rcti rect;

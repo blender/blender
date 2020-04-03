@@ -582,9 +582,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* new variable: gridlines */
     bScreen *sc = bmain->screens.first;
     while (sc) {
-      ScrArea *sa = sc->areabase.first;
-      while (sa) {
-        SpaceLink *sl = sa->spacedata.first;
+      ScrArea *area = sc->areabase.first;
+      while (area) {
+        SpaceLink *sl = area->spacedata.first;
         while (sl) {
           if (sl->spacetype == SPACE_VIEW3D) {
             View3D *v3d = (View3D *)sl;
@@ -595,7 +595,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           }
           sl = sl->next;
         }
-        sa = sa->next;
+        area = area->next;
       }
       sc = sc->id.next;
     }
@@ -696,9 +696,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 169) {
     bScreen *sc = bmain->screens.first;
     while (sc) {
-      ScrArea *sa = sc->areabase.first;
-      while (sa) {
-        SpaceLink *sl = sa->spacedata.first;
+      ScrArea *area = sc->areabase.first;
+      while (area) {
+        SpaceLink *sl = area->spacedata.first;
         while (sl) {
           if (sl->spacetype == SPACE_GRAPH) {
             SpaceGraph *sipo = (SpaceGraph *)sl;
@@ -706,7 +706,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           }
           sl = sl->next;
         }
-        sa = sa->next;
+        area = area->next;
       }
       sc = sc->id.next;
     }
@@ -729,9 +729,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 171) {
     bScreen *sc = bmain->screens.first;
     while (sc) {
-      ScrArea *sa = sc->areabase.first;
-      while (sa) {
-        SpaceLink *sl = sa->spacedata.first;
+      ScrArea *area = sc->areabase.first;
+      while (area) {
+        SpaceLink *sl = area->spacedata.first;
         while (sl) {
           if (sl->spacetype == SPACE_TEXT) {
             SpaceText *st = (SpaceText *)sl;
@@ -739,7 +739,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           }
           sl = sl->next;
         }
-        sa = sa->next;
+        area = area->next;
       }
       sc = sc->id.next;
     }
@@ -890,12 +890,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* some oldfile patch, moved from set_func_space */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
+      ScrArea *area;
 
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_GRAPH) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
             sseq->v2d.keeptot = 0;
@@ -963,12 +963,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* patch for old wrong max view2d settings, allows zooming out more */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
+      ScrArea *area;
 
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_ACTION) {
             SpaceAction *sac = (SpaceAction *)sl;
             sac->v2d.max[0] = 32000;
@@ -1030,12 +1030,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* convert old mainb values for new button panels */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
+      ScrArea *area;
 
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_PROPERTIES) {
             SpaceProperties *sbuts = (SpaceProperties *)sl;
 
@@ -1100,12 +1100,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* new variable blockscale, for panels in any area */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
+      ScrArea *area;
 
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           /* added: 5x better zoom in for action */
           if (sl->spacetype == SPACE_ACTION) {
             SpaceAction *sac = (SpaceAction *)sl;
@@ -1122,9 +1122,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* new bit flags for showing/hiding grid floor and axes */
 
     while (sc) {
-      ScrArea *sa = sc->areabase.first;
-      while (sa) {
-        SpaceLink *sl = sa->spacedata.first;
+      ScrArea *area = sc->areabase.first;
+      while (area) {
+        SpaceLink *sl = area->spacedata.first;
         while (sl) {
           if (sl->spacetype == SPACE_VIEW3D) {
             View3D *v3d = (View3D *)sl;
@@ -1138,7 +1138,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           }
           sl = sl->next;
         }
-        sa = sa->next;
+        area = area->next;
       }
       sc = sc->id.next;
     }
@@ -1185,10 +1185,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
      * areas didn't initialize it to 0.7 yet
      */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           /* added: 5x better zoom in for nla */
           if (sl->spacetype == SPACE_NLA) {
             SpaceNla *snla = (SpaceNla *)sl;
@@ -1203,10 +1203,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     bScreen *sc;
 
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_VIEW3D) {
             View3D *v3d = (View3D *)sl;
             v3d->flag |= V3D_SELECT_OUTLINE;
@@ -1220,10 +1220,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     bScreen *sc;
 
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_TEXT) {
             SpaceText *st = (SpaceText *)sl;
             if (st->tabnumber == 0) {
@@ -1664,12 +1664,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     int a;
 
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      sa = sc->areabase.first;
-      while (sa) {
+      ScrArea *area;
+      area = sc->areabase.first;
+      while (area) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_VIEW3D) {
             View3D *v3d = (View3D *)sl;
             if (v3d->gridsubdiv == 0) {
@@ -1677,7 +1677,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
             }
           }
         }
-        sa = sa->next;
+        area = area->next;
       }
     }
 
@@ -1927,12 +1927,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     if (bmain->versionfile != 244 || bmain->subversionfile < 2) {
       /* correct older action editors - incorrect scrolling */
       for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-        ScrArea *sa;
-        sa = sc->areabase.first;
-        while (sa) {
+        ScrArea *area;
+        area = sc->areabase.first;
+        while (area) {
           SpaceLink *sl;
 
-          for (sl = sa->spacedata.first; sl; sl = sl->next) {
+          for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_ACTION) {
               SpaceAction *saction = (SpaceAction *)sl;
 
@@ -1943,7 +1943,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
               saction->v2d.cur.ymax = 5.0;
             }
           }
-          sa = sa->next;
+          area = area->next;
         }
       }
     }
@@ -2544,12 +2544,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* adjust default settings for Animation Editors */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
+      ScrArea *area;
 
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           switch (sl->spacetype) {
             case SPACE_ACTION: {
               SpaceAction *sact = (SpaceAction *)sl;

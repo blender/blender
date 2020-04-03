@@ -276,9 +276,9 @@ static void rna_Object_local_view_set(Object *ob,
   SET_FLAG_FROM_TEST(base->local_view_bits, state, v3d->local_view_uuid);
   if (local_view_bits_prev != base->local_view_bits) {
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
-    ScrArea *sa = ED_screen_area_find_with_spacedata(sc, (SpaceLink *)v3d, true);
-    if (sa) {
-      ED_area_tag_redraw(sa);
+    ScrArea *area = ED_screen_area_find_with_spacedata(sc, (SpaceLink *)v3d, true);
+    if (area) {
+      ED_area_tag_redraw(area);
     }
   }
 }

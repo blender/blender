@@ -152,27 +152,27 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
 {
   /* we could use some clever */
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = BKE_screen_find_area_xy(screen, -1, mx, my);
+  ScrArea *area = BKE_screen_find_area_xy(screen, -1, mx, my);
 
   ScrArea *area_prev = CTX_wm_area(C);
   ARegion *region_prev = CTX_wm_region(C);
 
   ddr->name[0] = '\0';
 
-  if (sa) {
-    if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_OUTLINER)) {
-      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+  if (area) {
+    if (ELEM(area->spacetype, SPACE_VIEW3D, SPACE_OUTLINER)) {
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
       if (region) {
         const int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
         Base *base;
 
-        CTX_wm_area_set(C, sa);
+        CTX_wm_area_set(C, area);
         CTX_wm_region_set(C, region);
 
         /* grr, always draw else we leave stale text */
         ED_region_tag_redraw(region);
 
-        if (sa->spacetype == SPACE_VIEW3D) {
+        if (area->spacetype == SPACE_VIEW3D) {
           base = ED_view3d_give_base_under_cursor(C, mval);
         }
         else {
@@ -250,11 +250,11 @@ static void datadropper_set_draw_callback_region(bContext *C,
                                                  const int my)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = BKE_screen_find_area_xy(screen, -1, mx, my);
+  ScrArea *area = BKE_screen_find_area_xy(screen, -1, mx, my);
 
-  if (sa) {
+  if (area) {
     /* If spacetype changed */
-    if (sa->spacetype != ddr->cursor_area->spacetype) {
+    if (area->spacetype != ddr->cursor_area->spacetype) {
       /* Remove old callback */
       ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
 
@@ -263,9 +263,9 @@ static void datadropper_set_draw_callback_region(bContext *C,
       ED_region_tag_redraw(region);
 
       /* Set draw callback in new region */
-      ARegionType *art = BKE_regiontype_from_id(sa->type, RGN_TYPE_WINDOW);
+      ARegionType *art = BKE_regiontype_from_id(area->type, RGN_TYPE_WINDOW);
 
-      ddr->cursor_area = sa;
+      ddr->cursor_area = area;
       ddr->art = art;
       ddr->draw_handle_pixel = ED_region_draw_cb_activate(
           art, datadropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);

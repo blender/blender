@@ -356,7 +356,7 @@ static bool fcu_test_selected(FCurve *fcu)
 static void recalcData_actedit(TransInfo *t)
 {
   ViewLayer *view_layer = t->view_layer;
-  SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
+  SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
 
   bAnimContext ac = {NULL};
   ListBase anim_data = {NULL, NULL};
@@ -369,10 +369,10 @@ static void recalcData_actedit(TransInfo *t)
   ac.scene = t->scene;
   ac.view_layer = t->view_layer;
   ac.obact = OBACT(view_layer);
-  ac.sa = t->sa;
+  ac.area = t->area;
   ac.region = t->region;
-  ac.sl = (t->sa) ? t->sa->spacedata.first : NULL;
-  ac.spacetype = (t->sa) ? t->sa->spacetype : 0;
+  ac.sl = (t->area) ? t->area->spacedata.first : NULL;
+  ac.spacetype = (t->area) ? t->area->spacetype : 0;
   ac.regiontype = (t->region) ? t->region->regiontype : 0;
 
   ANIM_animdata_context_getdata(&ac);
@@ -406,7 +406,7 @@ static void recalcData_actedit(TransInfo *t)
 /* helper for recalcData() - for Graph Editor transforms */
 static void recalcData_graphedit(TransInfo *t)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
+  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   ViewLayer *view_layer = t->view_layer;
 
   ListBase anim_data = {NULL, NULL};
@@ -422,10 +422,10 @@ static void recalcData_graphedit(TransInfo *t)
   ac.scene = t->scene;
   ac.view_layer = t->view_layer;
   ac.obact = OBACT(view_layer);
-  ac.sa = t->sa;
+  ac.area = t->area;
   ac.region = t->region;
-  ac.sl = (t->sa) ? t->sa->spacedata.first : NULL;
-  ac.spacetype = (t->sa) ? t->sa->spacetype : 0;
+  ac.sl = (t->area) ? t->area->spacedata.first : NULL;
+  ac.spacetype = (t->area) ? t->area->spacetype : 0;
   ac.regiontype = (t->region) ? t->region->regiontype : 0;
 
   ANIM_animdata_context_getdata(&ac);
@@ -474,7 +474,7 @@ static void recalcData_graphedit(TransInfo *t)
 /* helper for recalcData() - for NLA Editor transforms */
 static void recalcData_nla(TransInfo *t)
 {
-  SpaceNla *snla = (SpaceNla *)t->sa->spacedata.first;
+  SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
   Scene *scene = t->scene;
   double secf = FPS;
   int i;
@@ -718,7 +718,7 @@ static void recalcData_image(TransInfo *t)
     flushTransPaintCurve(t);
   }
   else if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
-    SpaceImage *sima = t->sa->spacedata.first;
+    SpaceImage *sima = t->area->spacedata.first;
 
     flushTransUVs(t);
     if (sima->flag & SI_LIVE_UNWRAP) {
@@ -736,7 +736,7 @@ static void recalcData_image(TransInfo *t)
 /* helper for recalcData() - for Movie Clip transforms */
 static void recalcData_spaceclip(TransInfo *t)
 {
-  SpaceClip *sc = t->sa->spacedata.first;
+  SpaceClip *sc = t->area->spacedata.first;
 
   if (ED_space_clip_check_show_trackedit(sc)) {
     MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -1375,7 +1375,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
   ToolSettings *ts = CTX_data_tool_settings(C);
   ARegion *region = CTX_wm_region(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   bGPdata *gpd = CTX_data_gpencil_data(C);
   PropertyRNA *prop;
@@ -1383,7 +1383,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   t->depsgraph = CTX_data_depsgraph_pointer(C);
   t->scene = sce;
   t->view_layer = view_layer;
-  t->sa = sa;
+  t->area = area;
   t->region = region;
   t->settings = ts;
   t->reports = op ? op->reports : NULL;
@@ -1465,17 +1465,17 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   /* Assign the space type, some exceptions for running in different mode */
-  if (sa == NULL) {
+  if (area == NULL) {
     /* background mode */
     t->spacetype = SPACE_EMPTY;
   }
-  else if ((region == NULL) && (sa->spacetype == SPACE_VIEW3D)) {
+  else if ((region == NULL) && (area->spacetype == SPACE_VIEW3D)) {
     /* running in the text editor */
     t->spacetype = SPACE_EMPTY;
   }
   else {
     /* normal operation */
-    t->spacetype = sa->spacetype;
+    t->spacetype = area->spacetype;
   }
 
   /* handle T_ALT_TRANSFORM initialization, we may use for different operators */
@@ -1491,7 +1491,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   if (t->spacetype == SPACE_VIEW3D) {
-    View3D *v3d = sa->spacedata.first;
+    View3D *v3d = area->spacedata.first;
     bScreen *animscreen = ED_screen_animation_playing(CTX_wm_manager(C));
 
     t->view = v3d;
@@ -1564,7 +1564,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = sa->spacedata.first;
+    SpaceImage *sima = area->spacedata.first;
     // XXX for now, get View2D from the active region
     t->view = &region->v2d;
     t->around = sima->around;
@@ -1589,12 +1589,12 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->around = V3D_AROUND_CENTER_BOUNDS;
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = sa->spacedata.first;
+    SpaceGraph *sipo = area->spacedata.first;
     t->view = &region->v2d;
     t->around = sipo->around;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sclip = sa->spacedata.first;
+    SpaceClip *sclip = area->spacedata.first;
     t->view = &region->v2d;
     t->around = sclip->around;
 
@@ -1876,14 +1876,14 @@ void postTrans(bContext *C, TransInfo *t)
       /* pass */
     }
     else {
-      SpaceImage *sima = t->sa->spacedata.first;
+      SpaceImage *sima = t->area->spacedata.first;
       if (sima->flag & SI_LIVE_UNWRAP) {
         ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
       }
     }
   }
   else if (t->spacetype == SPACE_VIEW3D) {
-    View3D *v3d = t->sa->spacedata.first;
+    View3D *v3d = t->area->spacedata.first;
     /* restore gizmo */
     if (t->flag & T_MODAL) {
       v3d->gizmo_flag = t->gizmo_flag;
@@ -2023,11 +2023,11 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
   const float *cursor = NULL;
 
   if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
+    SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
     cursor = sima->cursor;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *space_clip = (SpaceClip *)t->sa->spacedata.first;
+    SpaceClip *space_clip = (SpaceClip *)t->area->spacedata.first;
     cursor = space_clip->cursor;
   }
 
@@ -2036,11 +2036,11 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
       float co[2];
 
       if (t->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
+        SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
         BKE_mask_coord_from_image(sima->image, &sima->iuser, co, cursor);
       }
       else if (t->spacetype == SPACE_CLIP) {
-        SpaceClip *space_clip = (SpaceClip *)t->sa->spacedata.first;
+        SpaceClip *space_clip = (SpaceClip *)t->area->spacedata.first;
         BKE_mask_coord_from_movieclip(space_clip->clip, &space_clip->user, co, cursor);
       }
       else {
@@ -2065,7 +2065,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 
 void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2])
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
+  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   Scene *scene = t->scene;
 
   /* cursor is combination of current frame, and graph-editor cursor value */

@@ -2015,8 +2015,8 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
     Object *ob = CTX_data_active_object(C);
     const EnumPropertyItem *items = NULL;
     ePaintMode paint_mode = PAINT_MODE_INVALID;
-    ScrArea *sa = CTX_wm_area(C);
-    char space_type = sa->spacetype;
+    ScrArea *area = CTX_wm_area(C);
+    char space_type = area->spacetype;
     /* Fallback to 3D view. */
     if (space_type == SPACE_PROPERTIES) {
       space_type = SPACE_VIEW3D;
@@ -2041,8 +2041,8 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
       }
     }
     else if (space_type == SPACE_IMAGE) {
-      if (sa->spacetype == space_type) {
-        const SpaceImage *sima = sa->spacedata.first;
+      if (area->spacetype == space_type) {
+        const SpaceImage *sima = area->spacedata.first;
         if (sima->mode == SI_MODE_PAINT) {
           paint_mode = PAINT_MODE_TEXTURE_2D;
         }

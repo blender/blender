@@ -581,7 +581,7 @@ typedef struct TransInfo {
   void *view;
   /** Only valid (non null) during an operator called function. */
   struct bContext *context;
-  struct ScrArea *sa;
+  struct ScrArea *area;
   struct ARegion *region;
   struct Depsgraph *depsgraph;
   struct Scene *scene;

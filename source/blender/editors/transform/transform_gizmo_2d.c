@@ -68,10 +68,10 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
     return false;
   }
 
-  ScrArea *sa = CTX_wm_area(C);
-  switch (sa->spacetype) {
+  ScrArea *area = CTX_wm_area(C);
+  switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = sa->spacedata.first;
+      SpaceImage *sima = area->spacedata.first;
       Object *obedit = CTX_data_edit_object(C);
       if (!ED_space_image_show_uvedit(sima, obedit)) {
         return false;
@@ -86,7 +86,7 @@ static void gizmo2d_pivot_point_message_subscribe(struct wmGizmoGroup *gzgroup,
                                                   struct wmMsgBus *mbus,
                                                   /* Additional args. */
                                                   bScreen *screen,
-                                                  ScrArea *sa,
+                                                  ScrArea *area,
                                                   ARegion *region)
 {
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
@@ -95,9 +95,9 @@ static void gizmo2d_pivot_point_message_subscribe(struct wmGizmoGroup *gzgroup,
       .notify = WM_gizmo_do_msg_notify_tag_refresh,
   };
 
-  switch (sa->spacetype) {
+  switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = sa->spacedata.first;
+      SpaceImage *sima = area->spacedata.first;
       PointerRNA ptr;
       RNA_pointer_create(&screen->id, &RNA_SpaceImageEditor, sima, &ptr);
       {
@@ -214,10 +214,10 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
     r_max = max_buf;
   }
 
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   bool changed = false;
-  if (sa->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = sa->spacedata.first;
+  if (area->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = area->spacedata.first;
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Image *ima = ED_space_image(sima);
@@ -241,11 +241,11 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
 
 static bool gizmo2d_calc_center(const bContext *C, float r_center[2])
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   bool has_select = false;
   zero_v2(r_center);
-  if (sa->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = sa->spacedata.first;
+  if (area->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = area->spacedata.first;
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     ED_uvedit_center_from_pivot_ex(sima, scene, view_layer, r_center, sima->around, &has_select);
@@ -509,9 +509,9 @@ static void gizmo2d_xform_no_cage_message_subscribe(const struct bContext *C,
                                                     struct wmMsgBus *mbus)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, region);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, area, region);
 }
 
 void ED_widgetgroup_gizmo2d_xform_callbacks_set(wmGizmoGroupType *gzgt)
@@ -671,9 +671,9 @@ static void gizmo2d_resize_message_subscribe(const struct bContext *C,
                                              struct wmMsgBus *mbus)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, region);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, area, region);
 }
 
 void ED_widgetgroup_gizmo2d_resize_callbacks_set(wmGizmoGroupType *gzgt)
@@ -791,9 +791,9 @@ static void gizmo2d_rotate_message_subscribe(const struct bContext *C,
                                              struct wmMsgBus *mbus)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, sa, region);
+  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, area, region);
 }
 
 void ED_widgetgroup_gizmo2d_rotate_callbacks_set(wmGizmoGroupType *gzgt)

@@ -1812,7 +1812,7 @@ void text_scroll_to_cursor(SpaceText *st, ARegion *region, const bool center)
 }
 
 /* takes an area instead of a region, use for listeners */
-void text_scroll_to_cursor__area(SpaceText *st, ScrArea *sa, const bool center)
+void text_scroll_to_cursor__area(SpaceText *st, ScrArea *area, const bool center)
 {
   ARegion *region;
 
@@ -1820,7 +1820,7 @@ void text_scroll_to_cursor__area(SpaceText *st, ScrArea *sa, const bool center)
     return;
   }
 
-  region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   if (region) {
     text_scroll_to_cursor(st, region, center);
@@ -1829,10 +1829,10 @@ void text_scroll_to_cursor__area(SpaceText *st, ScrArea *sa, const bool center)
 
 void text_update_cursor_moved(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceText *st = CTX_wm_space_text(C);
 
-  text_scroll_to_cursor__area(st, sa, true);
+  text_scroll_to_cursor__area(st, area, true);
 }
 
 /**

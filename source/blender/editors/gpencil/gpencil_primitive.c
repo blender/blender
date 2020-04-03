@@ -240,8 +240,8 @@ static void gp_primitive_update_cps(tGPDprimitive *tgpi)
 static bool gpencil_primitive_add_poll(bContext *C)
 {
   /* only 3D view */
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa && sa->spacetype != SPACE_VIEW3D) {
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype != SPACE_VIEW3D) {
     return 0;
   }
 
@@ -1137,10 +1137,10 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   tgpi->scene = scene;
   tgpi->ob = CTX_data_active_object(C);
   tgpi->ob_eval = (Object *)DEG_get_evaluated_object(tgpi->depsgraph, tgpi->ob);
-  tgpi->sa = CTX_wm_area(C);
+  tgpi->area = CTX_wm_area(C);
   tgpi->region = CTX_wm_region(C);
   tgpi->rv3d = tgpi->region->regiondata;
-  tgpi->v3d = tgpi->sa->spacedata.first;
+  tgpi->v3d = tgpi->area->spacedata.first;
   tgpi->win = CTX_wm_window(C);
 
   /* save original type */

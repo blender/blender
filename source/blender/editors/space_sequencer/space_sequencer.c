@@ -61,20 +61,20 @@
 
 /**************************** common state *****************************/
 
-static void sequencer_scopes_tag_refresh(ScrArea *sa)
+static void sequencer_scopes_tag_refresh(ScrArea *area)
 {
-  SpaceSeq *sseq = (SpaceSeq *)sa->spacedata.first;
+  SpaceSeq *sseq = (SpaceSeq *)area->spacedata.first;
 
   sseq->scopes.reference_ibuf = NULL;
 }
 
 /* ******************** manage regions ********************* */
 
-static ARegion *sequencer_find_region(ScrArea *sa, short type)
+static ARegion *sequencer_find_region(ScrArea *area, short type)
 {
   ARegion *region = NULL;
 
-  for (region = sa->regionbase.first; region; region = region->next) {
+  for (region = area->regionbase.first; region; region = region->next) {
     if (region->regiontype == type) {
       return region;
     }
@@ -85,7 +85,7 @@ static ARegion *sequencer_find_region(ScrArea *sa, short type)
 
 /* ******************** default callbacks for sequencer space ***************** */
 
-static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
+static SpaceLink *sequencer_new(const ScrArea *UNUSED(area), const Scene *scene)
 {
   ARegion *region;
   SpaceSeq *sseq;
@@ -214,17 +214,17 @@ static void sequencer_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
-static void sequencer_refresh(const bContext *C, ScrArea *sa)
+static void sequencer_refresh(const bContext *C, ScrArea *area)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *window = CTX_wm_window(C);
-  SpaceSeq *sseq = (SpaceSeq *)sa->spacedata.first;
-  ARegion *region_main = sequencer_find_region(sa, RGN_TYPE_WINDOW);
-  ARegion *region_preview = sequencer_find_region(sa, RGN_TYPE_PREVIEW);
+  SpaceSeq *sseq = (SpaceSeq *)area->spacedata.first;
+  ARegion *region_main = sequencer_find_region(area, RGN_TYPE_WINDOW);
+  ARegion *region_preview = sequencer_find_region(area, RGN_TYPE_PREVIEW);
   bool view_changed = false;
 
   switch (sseq->view) {
@@ -274,7 +274,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
     case SEQ_VIEW_SEQUENCE_PREVIEW:
       if (region_main && region_preview) {
         /* Get available height (without DPI correction). */
-        const float height = (sa->winy - ED_area_headersize()) / UI_DPI_FAC;
+        const float height = (area->winy - ED_area_headersize()) / UI_DPI_FAC;
 
         /* We reuse hidden region's size, allows to find same layout as before if we just switch
          * between one 'full window' view and the combined one. This gets lost if we switch to both
@@ -312,8 +312,8 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
   }
 
   if (view_changed) {
-    ED_area_initialize(wm, window, sa);
-    ED_area_tag_redraw(sa);
+    ED_area_initialize(wm, window, area);
+    ED_area_tag_redraw(area);
   }
 }
 
@@ -330,7 +330,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 }
 
 static void sequencer_listener(wmWindow *UNUSED(win),
-                               ScrArea *sa,
+                               ScrArea *area,
                                wmNotifier *wmn,
                                Scene *UNUSED(scene))
 {
@@ -340,19 +340,19 @@ static void sequencer_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_FRAME:
         case ND_SEQUENCER:
-          sequencer_scopes_tag_refresh(sa);
+          sequencer_scopes_tag_refresh(area);
           break;
       }
       break;
     case NC_WINDOW:
     case NC_SPACE:
       if (wmn->data == ND_SPACE_SEQUENCER) {
-        sequencer_scopes_tag_refresh(sa);
+        sequencer_scopes_tag_refresh(area);
       }
       break;
     case NC_GPENCIL:
       if (wmn->data & ND_GPENCIL_EDITMODE) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
       }
       break;
   }
@@ -522,7 +522,7 @@ static void sequencer_main_region_draw(const bContext *C, ARegion *region)
 }
 
 static void sequencer_main_region_listener(wmWindow *UNUSED(win),
-                                           ScrArea *UNUSED(sa),
+                                           ScrArea *UNUSED(area),
                                            ARegion *region,
                                            wmNotifier *wmn,
                                            const Scene *UNUSED(scene))
@@ -570,7 +570,7 @@ static void sequencer_main_region_message_subscribe(const struct bContext *UNUSE
                                                     struct WorkSpace *UNUSED(workspace),
                                                     struct Scene *scene,
                                                     struct bScreen *UNUSED(screen),
-                                                    struct ScrArea *UNUSED(sa),
+                                                    struct ScrArea *UNUSED(area),
                                                     struct ARegion *region,
                                                     struct wmMsgBus *mbus)
 {
@@ -675,8 +675,8 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
 
 static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  SpaceSeq *sseq = sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  SpaceSeq *sseq = area->spacedata.first;
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW));
@@ -717,7 +717,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 }
 
 static void sequencer_preview_region_listener(wmWindow *UNUSED(win),
-                                              ScrArea *UNUSED(sa),
+                                              ScrArea *UNUSED(area),
                                               ARegion *region,
                                               wmNotifier *wmn,
                                               const Scene *UNUSED(scene))
@@ -787,7 +787,7 @@ static void sequencer_buttons_region_draw(const bContext *C, ARegion *region)
 }
 
 static void sequencer_buttons_region_listener(wmWindow *UNUSED(win),
-                                              ScrArea *UNUSED(sa),
+                                              ScrArea *UNUSED(area),
                                               ARegion *region,
                                               wmNotifier *wmn,
                                               const Scene *UNUSED(scene))
@@ -820,7 +820,7 @@ static void sequencer_buttons_region_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void sequencer_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+static void sequencer_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceSeq *sseq = (SpaceSeq *)slink;
 

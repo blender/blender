@@ -188,7 +188,7 @@ void WM_lib_reload(struct Library *lib, struct bContext *C, struct ReportList *r
 
 /* mouse cursors */
 void WM_cursor_set(struct wmWindow *win, int curs);
-bool WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *sa, const ARegion *region);
+bool WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *area, const ARegion *region);
 void WM_cursor_modal_set(struct wmWindow *win, int curs);
 void WM_cursor_modal_restore(struct wmWindow *win);
 void WM_cursor_wait(bool val);
@@ -841,18 +841,18 @@ typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *C,
 
 void WM_tooltip_immediate_init(struct bContext *C,
                                struct wmWindow *win,
-                               struct ScrArea *sa,
+                               struct ScrArea *area,
                                struct ARegion *region,
                                wmTooltipInitFn init);
 void WM_tooltip_timer_init_ex(struct bContext *C,
                               struct wmWindow *win,
-                              struct ScrArea *sa,
+                              struct ScrArea *area,
                               struct ARegion *region,
                               wmTooltipInitFn init,
                               double delay);
 void WM_tooltip_timer_init(struct bContext *C,
                            struct wmWindow *win,
-                           struct ScrArea *sa,
+                           struct ScrArea *area,
                            struct ARegion *region,
                            wmTooltipInitFn init);
 void WM_tooltip_timer_clear(struct bContext *C, struct wmWindow *win);

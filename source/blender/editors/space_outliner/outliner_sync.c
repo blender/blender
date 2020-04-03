@@ -95,8 +95,8 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
         if (sl->spacetype == SPACE_OUTLINER) {
           SpaceOutliner *soutliner = (SpaceOutliner *)sl;
 

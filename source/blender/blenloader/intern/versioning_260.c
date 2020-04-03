@@ -769,10 +769,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       MovieClip *clip;
 
       for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-        ScrArea *sa;
-        for (sa = sc->areabase.first; sa; sa = sa->next) {
+        ScrArea *area;
+        for (area = sc->areabase.first; area; area = area->next) {
           SpaceLink *sl;
-          for (sl = sa->spacedata.first; sl; sl = sl->next) {
+          for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
               View3D *v3d = (View3D *)sl;
               if (v3d->bundle_size == 0.0f) {
@@ -1191,17 +1191,17 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     bScreen *sc;
 
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_CLIP) {
             SpaceClip *sclip = (SpaceClip *)sl;
             ARegion *region;
             bool hide = false;
 
-            for (region = sa->regionbase.first; region; region = region->next) {
+            for (region = area->regionbase.first; region; region = region->next) {
               if (region->regiontype == RGN_TYPE_PREVIEW) {
                 if (region->alignment != RGN_ALIGN_NONE) {
                   region->flag |= RGN_FLAG_HIDDEN;
@@ -1371,12 +1371,12 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       bScreen *sc;
 
       for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-        ScrArea *sa;
+        ScrArea *area;
 
-        for (sa = sc->areabase.first; sa; sa = sa->next) {
+        for (area = sc->areabase.first; area; area = area->next) {
           SpaceLink *sl;
 
-          for (sl = sa->spacedata.first; sl; sl = sl->next) {
+          for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_CLIP) {
               SpaceClip *sclip = (SpaceClip *)sl;
 
@@ -1664,10 +1664,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       bScreen *sc;
 
       for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-        ScrArea *sa;
-        for (sa = sc->areabase.first; sa; sa = sa->next) {
+        ScrArea *area;
+        for (area = sc->areabase.first; area; area = area->next) {
           SpaceLink *sl;
-          for (sl = sa->spacedata.first; sl; sl = sl->next) {
+          for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
               View3D *v3d = (View3D *)sl;
               if (v3d->render_border.xmin == 0.0f && v3d->render_border.ymin == 0.0f &&
@@ -1760,10 +1760,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (bmain->versionfile < 265 || (bmain->versionfile == 265 && bmain->subversionfile < 3)) {
     bScreen *sc;
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           switch (sl->spacetype) {
             case SPACE_VIEW3D: {
               View3D *v3d = (View3D *)sl;
@@ -1945,10 +1945,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (MAIN_VERSION_OLDER(bmain, 266, 2)) {
     bScreen *sc;
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_NODE) {
             SpaceNode *snode = (SpaceNode *)sl;
 
@@ -2119,10 +2119,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     bNodeInstanceKey active_viewer_key = {0};
     /* simply pick the first node space and use that for the active viewer key */
     for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-      ScrArea *sa;
-      for (sa = screen->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_NODE) {
             SpaceNode *snode = (SpaceNode *)sl;
             bNodeTreePath *path = snode->treepath.last;
@@ -2241,10 +2241,10 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
      * We moved this check to the do versions to be sure the value makes any sense.
      */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_NODE) {
             SpaceNode *snode = (SpaceNode *)sl;
             if (snode->zoom < 0.02f) {
@@ -2258,22 +2258,22 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 268, 5)) {
     bScreen *sc;
-    ScrArea *sa;
+    ScrArea *area;
 
     /* add missing (+) expander in node editor */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      for (area = sc->areabase.first; area; area = area->next) {
         ARegion *region, *arnew;
 
-        if (sa->spacetype == SPACE_NODE) {
-          region = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+        if (area->spacetype == SPACE_NODE) {
+          region = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
 
           if (region) {
             continue;
           }
 
           /* add subdiv level; after header */
-          region = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+          region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
           /* is error! */
           if (region == NULL) {
@@ -2282,7 +2282,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
           arnew = MEM_callocN(sizeof(ARegion), "node tools");
 
-          BLI_insertlinkafter(&sa->regionbase, region, arnew);
+          BLI_insertlinkafter(&area->regionbase, region, arnew);
           arnew->regiontype = RGN_TYPE_TOOLS;
           arnew->alignment = RGN_ALIGN_LEFT;
 
@@ -2339,14 +2339,14 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 269, 3)) {
     bScreen *sc;
-    ScrArea *sa;
+    ScrArea *area;
     SpaceLink *sl;
     Scene *scene;
 
     /* Update files using invalid (outdated) outlinevis Outliner values. */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+      for (area = sc->areabase.first; area; area = area->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_OUTLINER) {
             SpaceOutliner *so = (SpaceOutliner *)sl;
 
@@ -2545,17 +2545,17 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     bScreen *sc;
 
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *space_link;
 
-        for (space_link = sa->spacedata.first; space_link; space_link = space_link->next) {
+        for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
           if (space_link->spacetype == SPACE_IMAGE) {
             ARegion *region;
             ListBase *lb;
 
-            if (space_link == sa->spacedata.first) {
-              lb = &sa->regionbase;
+            if (space_link == area->spacedata.first) {
+              lb = &area->regionbase;
             }
             else {
               lb = &space_link->regionbase;

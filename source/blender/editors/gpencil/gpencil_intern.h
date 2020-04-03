@@ -116,7 +116,7 @@ typedef struct tGPDinterpolate {
   /** current scene from context */
   struct Scene *scene;
   /** area where painting originated */
-  struct ScrArea *sa;
+  struct ScrArea *area;
   /** region where painting originated */
   struct ARegion *region;
   /** current GP datablock */
@@ -156,7 +156,7 @@ typedef struct tGPDprimitive {
   /** current evaluated gp object */
   struct Object *ob_eval;
   /** area where painting originated */
-  struct ScrArea *sa;
+  struct ScrArea *area;
   /** region where painting originated */
   struct RegionView3D *rv3d;
   /** view3d where painting originated */
@@ -247,7 +247,7 @@ typedef struct GP_SpaceConversion {
   struct bGPdata *gpd;
   struct bGPDlayer *gpl;
 
-  struct ScrArea *sa;
+  struct ScrArea *area;
   struct ARegion *region;
   struct View2D *v2d;
 

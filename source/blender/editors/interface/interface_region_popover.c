@@ -171,7 +171,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
     }
 
     if (!slideout) {
-      ScrArea *sa = CTX_wm_area(C);
+      ScrArea *area = CTX_wm_area(C);
       ARegion *region = CTX_wm_region(C);
 
       if (region && region->panels.first) {
@@ -180,14 +180,14 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
         UI_block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
       }
       /* Prefer popover from header to be positioned into the editor. */
-      else if (sa && region) {
+      else if (area && region) {
         if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
-          if (RGN_ALIGN_ENUM_FROM_MASK(ED_area_header_alignment(sa)) == RGN_ALIGN_BOTTOM) {
+          if (RGN_ALIGN_ENUM_FROM_MASK(ED_area_header_alignment(area)) == RGN_ALIGN_BOTTOM) {
             UI_block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
           }
         }
         if (region->regiontype == RGN_TYPE_FOOTER) {
-          if (RGN_ALIGN_ENUM_FROM_MASK(ED_area_footer_alignment(sa)) == RGN_ALIGN_BOTTOM) {
+          if (RGN_ALIGN_ENUM_FROM_MASK(ED_area_footer_alignment(area)) == RGN_ALIGN_BOTTOM) {
             UI_block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
           }
         }

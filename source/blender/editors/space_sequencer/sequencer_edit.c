@@ -185,7 +185,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Sequence *seq;
   GSet *file_list;
 
@@ -233,7 +233,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
 
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
 }
 
 /* ********************************************************************** */
@@ -1631,11 +1631,11 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
   }
 }
 
-static void sequencer_slip_update_header(Scene *scene, ScrArea *sa, SlipData *data, int offset)
+static void sequencer_slip_update_header(Scene *scene, ScrArea *area, SlipData *data, int offset)
 {
   char msg[UI_MAX_DRAW_STR];
 
-  if (sa) {
+  if (area) {
     if (hasNumInput(&data->num_input)) {
       char num_str[NUM_STR_REP_LEN];
       outputNumInput(&data->num_input, num_str, &scene->unit);
@@ -1646,7 +1646,7 @@ static void sequencer_slip_update_header(Scene *scene, ScrArea *sa, SlipData *da
     }
   }
 
-  ED_area_status_text(sa, msg);
+  ED_area_status_text(area, msg);
 }
 
 static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1654,7 +1654,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   SlipData *data = (SlipData *)op->customdata;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   const bool has_numInput = hasNumInput(&data->num_input);
   bool handled = true;
 
@@ -1663,7 +1663,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
     float offset;
     applyNumInput(&data->num_input, &offset);
 
-    sequencer_slip_update_header(scene, sa, data, (int)offset);
+    sequencer_slip_update_header(scene, area, data, (int)offset);
 
     RNA_int_set(op->ptr, "offset", offset);
 
@@ -1695,7 +1695,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
         UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
         offset = mouseloc[0] - data->init_mouseloc[0];
 
-        sequencer_slip_update_header(scene, sa, data, offset);
+        sequencer_slip_update_header(scene, area, data, offset);
 
         RNA_int_set(op->ptr, "offset", offset);
 
@@ -1714,8 +1714,8 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
       MEM_freeN(data->ts);
       MEM_freeN(data);
       op->customdata = NULL;
-      if (sa) {
-        ED_area_status_text(sa, NULL);
+      if (area) {
+        ED_area_status_text(area, NULL);
       }
       DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
       WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -1747,8 +1747,8 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
       BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
 
-      if (sa) {
-        ED_area_status_text(sa, NULL);
+      if (area) {
+        ED_area_status_text(area, NULL);
       }
 
       return OPERATOR_CANCELLED;
@@ -1777,7 +1777,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
     float offset;
     applyNumInput(&data->num_input, &offset);
 
-    sequencer_slip_update_header(scene, sa, data, (int)offset);
+    sequencer_slip_update_header(scene, area, data, (int)offset);
 
     RNA_int_set(op->ptr, "offset", offset);
 

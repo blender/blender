@@ -893,8 +893,8 @@ static bool transform_shear_poll(bContext *C)
     return false;
   }
 
-  ScrArea *sa = CTX_wm_area(C);
-  return sa && !ELEM(sa->spacetype, SPACE_ACTION);
+  ScrArea *area = CTX_wm_area(C);
+  return area && !ELEM(area->spacetype, SPACE_ACTION);
 }
 
 static void TRANSFORM_OT_shear(struct wmOperatorType *ot)

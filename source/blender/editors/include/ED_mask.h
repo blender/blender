@@ -43,22 +43,25 @@ void ED_keymap_mask(struct wmKeyConfig *keyconf);
 void ED_operatormacros_mask(void);
 
 /* mask_query.c */
-void ED_mask_get_size(struct ScrArea *sa, int *width, int *height);
-void ED_mask_zoom(struct ScrArea *sa, struct ARegion *region, float *zoomx, float *zoomy);
-void ED_mask_get_aspect(struct ScrArea *sa, struct ARegion *region, float *aspx, float *aspy);
+void ED_mask_get_size(struct ScrArea *area, int *width, int *height);
+void ED_mask_zoom(struct ScrArea *area, struct ARegion *region, float *zoomx, float *zoomy);
+void ED_mask_get_aspect(struct ScrArea *area, struct ARegion *region, float *aspx, float *aspy);
 
-void ED_mask_pixelspace_factor(struct ScrArea *sa,
+void ED_mask_pixelspace_factor(struct ScrArea *area,
                                struct ARegion *region,
                                float *scalex,
                                float *scaley);
-void ED_mask_mouse_pos(struct ScrArea *sa, struct ARegion *region, const int mval[2], float co[2]);
+void ED_mask_mouse_pos(struct ScrArea *area,
+                       struct ARegion *region,
+                       const int mval[2],
+                       float co[2]);
 
 void ED_mask_point_pos(
-    struct ScrArea *sa, struct ARegion *region, float x, float y, float *xr, float *yr);
+    struct ScrArea *area, struct ARegion *region, float x, float y, float *xr, float *yr);
 void ED_mask_point_pos__reverse(
-    struct ScrArea *sa, struct ARegion *region, float x, float y, float *xr, float *yr);
+    struct ScrArea *area, struct ARegion *region, float x, float y, float *xr, float *yr);
 
-void ED_mask_cursor_location_get(struct ScrArea *sa, float cursor[2]);
+void ED_mask_cursor_location_get(struct ScrArea *area, float cursor[2]);
 bool ED_mask_selected_minmax(const struct bContext *C, float min[2], float max[2]);
 
 /* mask_draw.c */

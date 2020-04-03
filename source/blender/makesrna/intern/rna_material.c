@@ -169,10 +169,10 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
         obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
       }
 
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_IMAGE) {
             SpaceImage *sima = (SpaceImage *)sl;
             if (!sima->pin) {

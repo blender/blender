@@ -1379,8 +1379,8 @@ void GPENCIL_OT_copy(wmOperatorType *ot)
 
 static bool gp_strokes_paste_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (!((sa != NULL) && (sa->spacetype == SPACE_VIEW3D))) {
+  ScrArea *area = CTX_wm_area(C);
+  if (!((area != NULL) && (area->spacetype == SPACE_VIEW3D))) {
     return false;
   }
   /* 1) Must have GP datablock to paste to
@@ -2606,11 +2606,11 @@ void GPENCIL_OT_dissolve(wmOperatorType *ot)
  */
 static bool gp_snap_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Object *ob = CTX_data_active_object(C);
 
   return (ob != NULL) && (ob->type == OB_GPENCIL) &&
-         ((sa != NULL) && (sa->spacetype == SPACE_VIEW3D));
+         ((area != NULL) && (area->spacetype == SPACE_VIEW3D));
 }
 
 /* --------------------------------- */
@@ -3240,9 +3240,9 @@ static void gpencil_stroke_join_strokes(bGPDstroke *gps_a,
   }
 
   /* define start and end points of each stroke */
-  float sa[3], sb[3], ea[3], eb[3];
+  float area[3], sb[3], ea[3], eb[3];
   pt = &gps_a->points[0];
-  copy_v3_v3(sa, &pt->x);
+  copy_v3_v3(area, &pt->x);
 
   pt = &gps_a->points[gps_a->totpoints - 1];
   copy_v3_v3(ea, &pt->x);
@@ -4625,7 +4625,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
                                        void *user_data)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   const float scale = ts->gp_sculpt.isect_threshold;
 
@@ -4636,7 +4636,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
   bool changed = false;
 
   /* sanity checks */
-  if (sa == NULL) {
+  if (area == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No active area");
     return OPERATOR_CANCELLED;
   }
@@ -4732,9 +4732,9 @@ static bool gpencil_cutter_poll(bContext *C)
 
 static int gpencil_cutter_exec(bContext *C, wmOperator *op)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   /* sanity checks */
-  if (sa == NULL) {
+  if (area == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No active area");
     return OPERATOR_CANCELLED;
   }

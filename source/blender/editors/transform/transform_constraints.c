@@ -171,7 +171,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
 static void viewAxisCorrectCenter(const TransInfo *t, float t_con_center[3])
 {
   if (t->spacetype == SPACE_VIEW3D) {
-    // View3D *v3d = t->sa->spacedata.first;
+    // View3D *v3d = t->area->spacedata.first;
     const float min_dist = 1.0f; /* v3d->clip_start; */
     float dir[3];
     float l;

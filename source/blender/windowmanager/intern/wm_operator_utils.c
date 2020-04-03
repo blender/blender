@@ -62,7 +62,7 @@ typedef struct ValueInteraction {
   float range[2];
 
   struct {
-    ScrArea *sa;
+    ScrArea *area;
     ARegion *region;
   } context_vars;
 } ValueInteraction;
@@ -74,7 +74,7 @@ static void interactive_value_init(bContext *C,
                                    const float range[2])
 {
 
-  inter->context_vars.sa = CTX_wm_area(C);
+  inter->context_vars.area = CTX_wm_area(C);
   inter->context_vars.region = CTX_wm_region(C);
 
   inter->init.mval[0] = event->mval[0];
@@ -97,7 +97,7 @@ static void interactive_value_init_from_property(
 
 static void interactive_value_exit(ValueInteraction *inter)
 {
-  ED_area_status_text(inter->context_vars.sa, NULL);
+  ED_area_status_text(inter->context_vars.area, NULL);
 }
 
 static bool interactive_value_update(ValueInteraction *inter,
@@ -128,7 +128,7 @@ static bool interactive_value_update(ValueInteraction *inter,
     /* set the property for the operator and call its modal function */
     char str[64];
     SNPRINTF(str, "%.4f", value_final);
-    ED_area_status_text(inter->context_vars.sa, str);
+    ED_area_status_text(inter->context_vars.area, str);
   }
 
   inter->prev.prop_value = value_final;

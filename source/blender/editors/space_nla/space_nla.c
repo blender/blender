@@ -57,7 +57,7 @@
 
 /* ******************** default callbacks for nla space ***************** */
 
-static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
+static SpaceLink *nla_new(const ScrArea *area, const Scene *scene)
 {
   ARegion *region;
   SpaceNla *snla;
@@ -105,7 +105,7 @@ static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
   region->regiontype = RGN_TYPE_WINDOW;
 
   region->v2d.tot.xmin = (float)(SFRA - 10);
-  region->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
+  region->v2d.tot.ymin = (float)(-area->winy) / 3.0f;
   region->v2d.tot.xmax = (float)(EFRA + 10);
   region->v2d.tot.ymax = 0.0f;
 
@@ -141,9 +141,9 @@ static void nla_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void nla_init(struct wmWindowManager *wm, ScrArea *sa)
+static void nla_init(struct wmWindowManager *wm, ScrArea *area)
 {
-  SpaceNla *snla = (SpaceNla *)sa->spacedata.first;
+  SpaceNla *snla = (SpaceNla *)area->spacedata.first;
 
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (snla->ads == NULL) {
@@ -151,7 +151,7 @@ static void nla_init(struct wmWindowManager *wm, ScrArea *sa)
     snla->ads->source = (ID *)WM_window_get_active_scene(wm->winactive);
   }
 
-  ED_area_tag_refresh(sa);
+  ED_area_tag_refresh(area);
 }
 
 static SpaceLink *nla_duplicate(SpaceLink *sl)
@@ -325,7 +325,7 @@ static void nla_buttons_region_draw(const bContext *C, ARegion *region)
 }
 
 static void nla_region_listener(wmWindow *UNUSED(win),
-                                ScrArea *UNUSED(sa),
+                                ScrArea *UNUSED(area),
                                 ARegion *region,
                                 wmNotifier *wmn,
                                 const Scene *UNUSED(scene))
@@ -365,7 +365,7 @@ static void nla_region_listener(wmWindow *UNUSED(win),
 }
 
 static void nla_main_region_listener(wmWindow *UNUSED(win),
-                                     ScrArea *UNUSED(sa),
+                                     ScrArea *UNUSED(area),
                                      ARegion *region,
                                      wmNotifier *wmn,
                                      const Scene *UNUSED(scene))
@@ -427,12 +427,12 @@ static void nla_main_region_message_subscribe(const struct bContext *UNUSED(C),
                                               struct WorkSpace *UNUSED(workspace),
                                               struct Scene *scene,
                                               struct bScreen *screen,
-                                              struct ScrArea *sa,
+                                              struct ScrArea *area,
                                               struct ARegion *region,
                                               struct wmMsgBus *mbus)
 {
   PointerRNA ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceNLA, sa->spacedata.first, &ptr);
+  RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
@@ -466,7 +466,7 @@ static void nla_main_region_message_subscribe(const struct bContext *UNUSED(C),
 }
 
 static void nla_channel_region_listener(wmWindow *UNUSED(win),
-                                        ScrArea *UNUSED(sa),
+                                        ScrArea *UNUSED(area),
                                         ARegion *region,
                                         wmNotifier *wmn,
                                         const Scene *UNUSED(scene))
@@ -512,12 +512,12 @@ static void nla_channel_region_message_subscribe(const struct bContext *UNUSED(C
                                                  struct WorkSpace *UNUSED(workspace),
                                                  struct Scene *UNUSED(scene),
                                                  struct bScreen *screen,
-                                                 struct ScrArea *sa,
+                                                 struct ScrArea *area,
                                                  struct ARegion *region,
                                                  struct wmMsgBus *mbus)
 {
   PointerRNA ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceNLA, sa->spacedata.first, &ptr);
+  RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
@@ -543,24 +543,27 @@ static void nla_channel_region_message_subscribe(const struct bContext *UNUSED(C
 }
 
 /* editor level listener */
-static void nla_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene))
+static void nla_listener(wmWindow *UNUSED(win),
+                         ScrArea *area,
+                         wmNotifier *wmn,
+                         Scene *UNUSED(scene))
 {
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
       // TODO: filter specific types of changes?
-      ED_area_tag_refresh(sa);
+      ED_area_tag_refresh(area);
       break;
     case NC_SCENE:
 #if 0
       switch (wmn->data) {
         case ND_OB_ACTIVE:
         case ND_OB_SELECT:
-          ED_area_tag_refresh(sa);
+          ED_area_tag_refresh(area);
           break;
       }
 #endif
-      ED_area_tag_refresh(sa);
+      ED_area_tag_refresh(area);
       break;
     case NC_OBJECT:
       switch (wmn->data) {
@@ -568,19 +571,19 @@ static void nla_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Sc
           /* do nothing */
           break;
         default:
-          ED_area_tag_refresh(sa);
+          ED_area_tag_refresh(area);
           break;
       }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_NLA) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
       }
       break;
   }
 }
 
-static void nla_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+static void nla_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceNla *snla = (SpaceNla *)slink;
 

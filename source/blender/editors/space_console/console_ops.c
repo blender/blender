@@ -353,10 +353,10 @@ static int console_move_exec(bContext *C, wmOperator *op)
   }
 
   if (done) {
-    ScrArea *sa = CTX_wm_area(C);
+    ScrArea *area = CTX_wm_area(C);
     ARegion *region = CTX_wm_region(C);
 
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
     console_scroll_bottom(region);
   }
 
@@ -860,7 +860,7 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
   ARegion *region = CTX_wm_region(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ConsoleLine *ci = console_history_verify(C);
   /* own this text in the new line, don't free */
   char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
@@ -885,7 +885,7 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
   console_select_offset(sc, ci->len - prev_len);
   console_line_cursor_set(ci, cursor);
 
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
 
   /* when calling render modally this can be NULL when calling:
    * bpy.ops.render.render('INVOKE_DEFAULT') */

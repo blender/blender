@@ -734,14 +734,14 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                   const struct TransformCalcParams *params,
                                   struct TransformBounds *tbounds)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   /* TODO(sergey): This function is used from operator's modal() and from gizmo's refresh().
    * Is it fine to possibly evaluate dependency graph here? */
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = sa->spacedata.first;
+  View3D *v3d = area->spacedata.first;
   Object *obedit = CTX_data_edit_object(C);
   RegionView3D *rv3d = region->regiondata;
   Base *base;
@@ -1244,7 +1244,7 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
                                           struct wmMsgBus *mbus,
                                           Scene *scene,
                                           bScreen *screen,
-                                          ScrArea *sa,
+                                          ScrArea *area,
                                           ARegion *region,
                                           const void *type_fn)
 {
@@ -1334,7 +1334,7 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   }
 
   PointerRNA view3d_ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceView3D, sa->spacedata.first, &view3d_ptr);
+  RNA_pointer_create(&screen->id, &RNA_SpaceView3D, area->spacedata.first, &view3d_ptr);
 
   if (type_fn == VIEW3D_GGT_xform_gizmo) {
     GizmoGroup *ggd = gzgroup->customdata;
@@ -1701,8 +1701,8 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   gzgroup->customdata = ggd;
 
   {
-    ScrArea *sa = CTX_wm_area(C);
-    const bToolRef *tref = sa->runtime.tool;
+    ScrArea *area = CTX_wm_area(C);
+    const bToolRef *tref = area->runtime.tool;
 
     ggd->twtype = 0;
     if (tref && STREQ(tref->idname, "builtin.move")) {
@@ -1737,8 +1737,8 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup *ggd = gzgroup->customdata;
   Scene *scene = CTX_data_scene(C);
-  ScrArea *sa = CTX_wm_area(C);
-  View3D *v3d = sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  View3D *v3d = area->spacedata.first;
   ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = region->regiondata;
   struct TransformBounds tbounds;
@@ -1844,17 +1844,18 @@ static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  gizmo_xform_message_subscribe(gzgroup, mbus, scene, screen, sa, region, VIEW3D_GGT_xform_gizmo);
+  gizmo_xform_message_subscribe(
+      gzgroup, mbus, scene, screen, area, region, VIEW3D_GGT_xform_gizmo);
 }
 
 static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup *ggd = gzgroup->customdata;
-  // ScrArea *sa = CTX_wm_area(C);
+  // ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  // View3D *v3d = sa->spacedata.first;
+  // View3D *v3d = area->spacedata.first;
   RegionView3D *rv3d = region->regiondata;
   float viewinv_m3[3][3];
   copy_m3_m4(viewinv_m3, rv3d->viewinv);
@@ -1997,13 +1998,13 @@ static bool WIDGETGROUP_gizmo_poll_generic(View3D *v3d)
 static bool WIDGETGROUP_gizmo_poll_context(const struct bContext *C,
                                            struct wmGizmoGroupType *UNUSED(gzgt))
 {
-  ScrArea *sa = CTX_wm_area(C);
-  View3D *v3d = sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  View3D *v3d = area->spacedata.first;
   if (!WIDGETGROUP_gizmo_poll_generic(v3d)) {
     return false;
   }
 
-  const bToolRef *tref = sa->runtime.tool;
+  const bToolRef *tref = area->runtime.tool;
   if (v3d->gizmo_flag & V3D_GIZMO_HIDE_CONTEXT) {
     return false;
   }
@@ -2025,8 +2026,8 @@ static bool WIDGETGROUP_gizmo_poll_tool(const struct bContext *C, struct wmGizmo
     return false;
   }
 
-  ScrArea *sa = CTX_wm_area(C);
-  View3D *v3d = sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  View3D *v3d = area->spacedata.first;
   if (!WIDGETGROUP_gizmo_poll_generic(v3d)) {
     return false;
   }
@@ -2247,9 +2248,9 @@ static void WIDGETGROUP_xform_cage_message_subscribe(const bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  gizmo_xform_message_subscribe(gzgroup, mbus, scene, screen, sa, region, VIEW3D_GGT_xform_cage);
+  gizmo_xform_message_subscribe(gzgroup, mbus, scene, screen, area, region, VIEW3D_GGT_xform_cage);
 }
 
 static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
@@ -2460,9 +2461,10 @@ static void WIDGETGROUP_xform_shear_message_subscribe(const bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  gizmo_xform_message_subscribe(gzgroup, mbus, scene, screen, sa, region, VIEW3D_GGT_xform_shear);
+  gizmo_xform_message_subscribe(
+      gzgroup, mbus, scene, screen, area, region, VIEW3D_GGT_xform_shear);
 }
 
 static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)

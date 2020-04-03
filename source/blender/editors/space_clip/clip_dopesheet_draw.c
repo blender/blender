@@ -292,7 +292,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
 
 void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
   View2D *v2d = &region->v2d;
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -316,7 +316,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
-  UI_view2d_sync(NULL, sa, v2d, V2D_LOCK_COPY);
+  UI_view2d_sync(NULL, area, v2d, V2D_LOCK_COPY);
 
   /* loop through channels, and set up drawing depending on their type
    * first pass: just the standard GL-drawing for backdrop + text

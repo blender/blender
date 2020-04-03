@@ -372,9 +372,9 @@ static int gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   WM_gizmo_calc_matrix_final(gz, inter->init.matrix_final);
 
   if (use_snap) {
-    ScrArea *sa = CTX_wm_area(C);
-    if (sa) {
-      switch (sa->spacetype) {
+    ScrArea *area = CTX_wm_area(C);
+    if (area) {
+      switch (area->spacetype) {
         case SPACE_VIEW3D: {
           inter->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
               CTX_data_main(C), CTX_data_scene(C), 0, CTX_wm_region(C), CTX_wm_view3d(C));

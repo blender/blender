@@ -88,10 +88,10 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
       "(%s)");
 
   char msg[UI_MAX_DRAW_STR];
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Scene *sce = CTX_data_scene(C);
 
-  if (sa) {
+  if (area) {
     char flts_str[NUM_STR_REP_LEN * 2];
     if (hasNumInput(&opdata->num_input)) {
       outputNumInput(&opdata->num_input, flts_str, &sce->unit);
@@ -111,7 +111,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
                  WM_bool_as_string(RNA_boolean_get(op->ptr, "use_boundary")),
                  WM_bool_as_string(RNA_boolean_get(op->ptr, "use_individual")));
 
-    ED_area_status_text(sa, msg);
+    ED_area_status_text(area, msg);
   }
 }
 
@@ -189,7 +189,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 static void edbm_inset_exit(bContext *C, wmOperator *op)
 {
   InsetData *opdata;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   opdata = op->customdata;
 
@@ -206,8 +206,8 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
     G.moving = 0;
   }
 
-  if (sa) {
-    ED_area_status_text(sa, NULL);
+  if (area) {
+    ED_area_status_text(area, NULL);
   }
 
   MEM_SAFE_FREE(opdata->ob_store);

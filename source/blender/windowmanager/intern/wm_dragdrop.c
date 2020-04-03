@@ -222,7 +222,7 @@ static const char *dropbox_active(bContext *C,
 static const char *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   const char *name;
 
@@ -231,7 +231,7 @@ static const char *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *e
     return name;
   }
 
-  name = dropbox_active(C, &sa->handlers, drag, event);
+  name = dropbox_active(C, &area->handlers, drag, event);
   if (name) {
     return name;
   }

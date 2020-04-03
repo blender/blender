@@ -119,7 +119,7 @@ static int ed_undo_step_impl(
   CLOG_INFO(&LOG, 1, "name='%s', step=%d", undoname, step);
   wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* undo during jobs are running can easily lead to freeing data using by jobs,
    * or they can just lead to freezing job in some other cases */
@@ -138,7 +138,7 @@ static int ed_undo_step_impl(
   if (ED_gpencil_session_active()) {
     return ED_undo_gpencil_step(C, step, undoname);
   }
-  if (sa && (sa->spacetype == SPACE_VIEW3D)) {
+  if (area && (area->spacetype == SPACE_VIEW3D)) {
     Object *obact = CTX_data_active_object(C);
     if (obact && (obact->type == OB_GPENCIL)) {
       ED_gpencil_toggle_brush_cursor(C, false, NULL);
@@ -195,7 +195,7 @@ static int ed_undo_step_impl(
     }
 
     /* Set special modes for grease pencil */
-    if (sa && (sa->spacetype == SPACE_VIEW3D)) {
+    if (area && (area->spacetype == SPACE_VIEW3D)) {
       Object *obact = CTX_data_active_object(C);
       if (obact && (obact->type == OB_GPENCIL)) {
         /* set cursor */

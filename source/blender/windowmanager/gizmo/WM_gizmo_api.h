@@ -373,7 +373,7 @@ void WM_gizmo_group_type_unlink_delayed(const char *idname);
 
 void WM_gizmo_group_unlink_delayed_ptr_from_space(struct wmGizmoGroupType *gzgt,
                                                   struct wmGizmoMapType *gzmap_type,
-                                                  struct ScrArea *sa);
+                                                  struct ScrArea *area);
 
 /* Has the result of unlinking and linking (re-initializes gizmo's). */
 void WM_gizmo_group_type_reinit_ptr_ex(struct Main *bmain,

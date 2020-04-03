@@ -258,8 +258,8 @@ static wmGizmo *rna_GizmoProperties_find_operator(PointerRNA *ptr)
   /* We could try workaruond this lookup, but not trivial. */
   for (bScreen *screen = G_MAIN->screens.first; screen; screen = screen->id.next) {
     IDProperty *properties = ptr->data;
-    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      for (ARegion *region = area->regionbase.first; region; region = region->next) {
         if (region->gizmo_map) {
           wmGizmoMap *gzmap = region->gizmo_map;
           for (wmGizmoGroup *gzgroup = WM_gizmomap_group_list(gzmap)->first; gzgroup;

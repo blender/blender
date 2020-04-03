@@ -7973,8 +7973,8 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob, SculptUpdate
 
   for (wmWindow *win = wm->windows.first; win; win = win->next) {
     bScreen *screen = WM_window_get_active_screen(win);
-    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      SpaceLink *sl = sa->spacedata.first;
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      SpaceLink *sl = area->spacedata.first;
       if (sl->spacetype == SPACE_VIEW3D) {
         View3D *v3d = (View3D *)sl;
         if (v3d != current_v3d) {
@@ -7984,7 +7984,7 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob, SculptUpdate
         /* Tag all 3D viewports for redraw now that we are done. Others
          * viewports did not get a full redraw, and anti-aliasing for the
          * current viewport was deactivated. */
-        for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+        for (ARegion *region = area->regionbase.first; region; region = region->next) {
           if (region->regiontype == RGN_TYPE_WINDOW) {
             ED_region_tag_redraw(region);
           }
@@ -9267,16 +9267,16 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
 {
   /* Find 3D view to pick from. */
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, mx, my);
-  ARegion *region = (sa) ? BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my) : NULL;
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, mx, my);
+  ARegion *region = (area) ? BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my) : NULL;
   if (region == NULL) {
     return OPERATOR_CANCELLED;
   }
 
   /* Set context to 3D view. */
-  ScrArea *prev_sa = CTX_wm_area(C);
+  ScrArea *prev_area = CTX_wm_area(C);
   ARegion *prev_region = CTX_wm_region(C);
-  CTX_wm_area_set(C, sa);
+  CTX_wm_area_set(C, area);
   CTX_wm_region_set(C, region);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -9294,7 +9294,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
   switch (mode) {
     case SAMPLE_DETAIL_DYNTOPO:
       if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-        CTX_wm_area_set(C, prev_sa);
+        CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
       }
@@ -9302,7 +9302,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
       break;
     case SAMPLE_DETAIL_VOXEL:
       if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
-        CTX_wm_area_set(C, prev_sa);
+        CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
       }
@@ -9311,7 +9311,7 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
   }
 
   /* Restore context. */
-  CTX_wm_area_set(C, prev_sa);
+  CTX_wm_area_set(C, prev_area);
   CTX_wm_region_set(C, prev_region);
 
   return OPERATOR_FINISHED;

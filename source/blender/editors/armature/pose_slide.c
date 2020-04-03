@@ -86,7 +86,7 @@ typedef struct tPoseSlideOp {
   /** current scene */
   Scene *scene;
   /** area that we're operating in (needed for modal()) */
-  ScrArea *sa;
+  ScrArea *area;
   /** region that we're operating in (needed for modal()) */
   ARegion *region;
   /** len of the PoseSlideObject array. */
@@ -197,7 +197,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   /* get info from context */
   pso->scene = CTX_data_scene(C);
-  pso->sa = CTX_wm_area(C);       /* only really needed when doing modal() */
+  pso->area = CTX_wm_area(C);     /* only really needed when doing modal() */
   pso->region = CTX_wm_region(C); /* only really needed when doing modal() */
 
   pso->cframe = pso->scene->r.cfra;
@@ -904,7 +904,7 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
                  limits_str);
   }
 
-  ED_area_status_text(pso->sa, status_str);
+  ED_area_status_text(pso->area, status_str);
 }
 
 /* common code for invoke() methods */
@@ -1071,7 +1071,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case EVT_PADENTER: {
       if (event->val == KM_PRESS) {
         /* return to normal cursor and header status */
-        ED_area_status_text(pso->sa, NULL);
+        ED_area_status_text(pso->area, NULL);
         WM_cursor_modal_restore(win);
 
         /* insert keyframes as required... */
@@ -1088,7 +1088,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case RIGHTMOUSE: {
       if (event->val == KM_PRESS) {
         /* return to normal cursor and header status */
-        ED_area_status_text(pso->sa, NULL);
+        ED_area_status_text(pso->area, NULL);
         WM_cursor_modal_restore(win);
 
         /* reset transforms back to original state */

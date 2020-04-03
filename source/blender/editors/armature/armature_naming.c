@@ -362,11 +362,11 @@ void ED_armature_bone_rename(Main *bmain,
     {
       bScreen *screen;
       for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-        ScrArea *sa;
+        ScrArea *area;
         /* add regions */
-        for (sa = screen->areabase.first; sa; sa = sa->next) {
+        for (area = screen->areabase.first; area; area = area->next) {
           SpaceLink *sl;
-          for (sl = sa->spacedata.first; sl; sl = sl->next) {
+          for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
               View3D *v3d = (View3D *)sl;
               if (v3d->ob_center && v3d->ob_center->data == arm) {

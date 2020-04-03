@@ -44,9 +44,9 @@
 
 bool ED_maskedit_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa) {
-    switch (sa->spacetype) {
+  ScrArea *area = CTX_wm_area(C);
+  if (area) {
+    switch (area->spacetype) {
       case SPACE_CLIP:
         return ED_space_clip_maskedit_poll(C);
       case SPACE_SEQ:
@@ -60,9 +60,9 @@ bool ED_maskedit_poll(bContext *C)
 
 bool ED_maskedit_mask_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa) {
-    switch (sa->spacetype) {
+  ScrArea *area = CTX_wm_area(C);
+  if (area) {
+    switch (area->spacetype) {
       case SPACE_CLIP:
         return ED_space_clip_maskedit_mask_poll(C);
       case SPACE_SEQ:

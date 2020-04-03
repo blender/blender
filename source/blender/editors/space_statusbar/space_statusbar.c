@@ -65,7 +65,7 @@ static void statusbar_free(SpaceLink *UNUSED(sl))
 }
 
 /* spacetype; init callback */
-static void statusbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void statusbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
@@ -96,7 +96,7 @@ static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
 }
 
 static void statusbar_header_region_listener(wmWindow *UNUSED(win),
-                                             ScrArea *UNUSED(sa),
+                                             ScrArea *UNUSED(area),
                                              ARegion *region,
                                              wmNotifier *wmn,
                                              const Scene *UNUSED(scene))
@@ -135,7 +135,7 @@ static void statusbar_header_region_message_subscribe(const bContext *UNUSED(C),
                                                       WorkSpace *UNUSED(workspace),
                                                       Scene *UNUSED(scene),
                                                       bScreen *UNUSED(screen),
-                                                      ScrArea *UNUSED(sa),
+                                                      ScrArea *UNUSED(area),
                                                       ARegion *region,
                                                       struct wmMsgBus *mbus)
 {

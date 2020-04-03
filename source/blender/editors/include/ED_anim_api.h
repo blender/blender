@@ -74,13 +74,13 @@ typedef struct bAnimContext {
 
   /** editor->mode */
   short mode;
-  /** sa->spacetype */
+  /** area->spacetype */
   short spacetype;
   /** active region -> type (channels or main) */
   short regiontype;
 
   /** editor host */
-  struct ScrArea *sa;
+  struct ScrArea *area;
   /** editor data */
   struct SpaceLink *sl;
   /** region within editor */
@@ -840,7 +840,7 @@ void ED_animedit_unlink_action(struct bContext *C,
                                bool force_delete);
 
 /* Drivers Editor - Utility to set up UI correctly */
-void ED_drivers_editor_init(struct bContext *C, struct ScrArea *sa);
+void ED_drivers_editor_init(struct bContext *C, struct ScrArea *area);
 
 /* ************************************************ */
 

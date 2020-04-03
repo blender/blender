@@ -1675,8 +1675,8 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 /* specialized poll callback for these operators to work in Datablocks view only */
 static bool ed_operator_outliner_datablocks_active(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if ((sa) && (sa->spacetype == SPACE_OUTLINER)) {
+  ScrArea *area = CTX_wm_area(C);
+  if ((area) && (area->spacetype == SPACE_OUTLINER)) {
     SpaceOutliner *so = CTX_wm_space_outliner(C);
     return (so->outlinevis == SO_DATA_API);
   }
@@ -2179,8 +2179,8 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 
 static bool ed_operator_outliner_id_orphans_active(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa != NULL && sa->spacetype == SPACE_OUTLINER) {
+  ScrArea *area = CTX_wm_area(C);
+  if (area != NULL && area->spacetype == SPACE_OUTLINER) {
     SpaceOutliner *so = CTX_wm_space_outliner(C);
     return (so->outlinevis == SO_ID_ORPHANS);
   }
@@ -2249,7 +2249,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
 static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   int num_tagged[INDEX_ID_MAX] = {0};
 
@@ -2276,7 +2276,7 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
    *      outliner several mouse events can be handled in one cycle without
    *      handling notifiers/redraw which leads to deleting the same object twice.
    *      cleanup tree here to prevent such cases. */
-  if ((sa != NULL) && (sa->spacetype == SPACE_OUTLINER)) {
+  if ((area != NULL) && (area->spacetype == SPACE_OUTLINER)) {
     outliner_cleanup_tree(soops);
   }
 

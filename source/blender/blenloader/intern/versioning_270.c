@@ -522,13 +522,13 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     bScreen *sc;
 
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-      ScrArea *sa;
-      for (sa = sc->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = sc->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           ARegion *region;
-          ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+          ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
 
           for (region = lb->first; region; region = region->next) {
             BLI_listbase_clear(&region->ui_previews);
@@ -853,14 +853,14 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 273, 9)) {
     bScreen *scr;
-    ScrArea *sa;
+    ScrArea *area;
     SpaceLink *sl;
     ARegion *region;
 
     /* Make sure sequencer preview area limits zoom */
     for (scr = bmain->screens.first; scr; scr = scr->id.next) {
-      for (sa = scr->areabase.first; sa; sa = sa->next) {
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+      for (area = scr->areabase.first; area; area = area->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_SEQ) {
             for (region = sl->regionbase.first; region; region = region->next) {
               if (region->regiontype == RGN_TYPE_PREVIEW) {
@@ -942,11 +942,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-      ScrArea *sa;
-      for (sa = screen->areabase.first; sa; sa = sa->next) {
+      ScrArea *area;
+      for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
 
-        for (sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (sl = area->spacedata.first; sl; sl = sl->next) {
           switch (sl->spacetype) {
             case SPACE_VIEW3D: {
               View3D *v3d = (View3D *)sl;
@@ -996,12 +996,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     if (!DNA_struct_elem_find(fd->filesdna, "FileSelectParams", "int", "thumbnail_size")) {
       for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-        ScrArea *sa;
+        ScrArea *area;
 
-        for (sa = screen->areabase.first; sa; sa = sa->next) {
+        for (area = screen->areabase.first; area; area = area->next) {
           SpaceLink *sl;
 
-          for (sl = sa->spacedata.first; sl; sl = sl->next) {
+          for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_FILE) {
               SpaceFile *sfile = (SpaceFile *)sl;
 
@@ -1064,13 +1064,13 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       bScreen *screen;
 #define RV3D_VIEW_PERSPORTHO 7
       for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-        ScrArea *sa;
-        for (sa = screen->areabase.first; sa; sa = sa->next) {
+        ScrArea *area;
+        for (area = screen->areabase.first; area; area = area->next) {
           SpaceLink *sl;
-          for (sl = sa->spacedata.first; sl; sl = sl->next) {
+          for (sl = area->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_VIEW3D) {
               ARegion *region;
-              ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+              ListBase *lb = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
               for (region = lb->first; region; region = region->next) {
                 if (region->regiontype == RGN_TYPE_WINDOW) {
                   if (region->regiondata) {
@@ -1176,9 +1176,10 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
           /* Bug: Was possible to add preview region to sequencer view by using AZones. */
           if (sl->spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
@@ -1243,9 +1244,9 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Adding "Properties" region to DopeSheet */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
         /* handle pushed-back space data first */
-        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_ACTION) {
             SpaceAction *saction = (SpaceAction *)sl;
             do_version_action_editor_properties_region(&saction->regionbase);
@@ -1253,8 +1254,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
 
         /* active spacedata info must be handled too... */
-        if (sa->spacetype == SPACE_ACTION) {
-          do_version_action_editor_properties_region(&sa->regionbase);
+        if (area->spacetype == SPACE_ACTION) {
+          do_version_action_editor_properties_region(&area->regionbase);
         }
       }
     }
@@ -1650,9 +1651,9 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 279, 4)) {
     /* Fix for invalid state of screen due to bug in older versions. */
     for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-      for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
-        if (sa->full && sc->state == SCREENNORMAL) {
-          sa->full = NULL;
+      for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+        if (area->full && sc->state == SCREENNORMAL) {
+          area->full = NULL;
         }
       }
     }

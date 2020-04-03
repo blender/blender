@@ -59,9 +59,9 @@ bool ED_gizmo_poll_or_unlink_delayed_from_tool_ex(const bContext *C,
 {
   bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
   if ((tref_rt == NULL) || !STREQ(gzgt_idname, tref_rt->gizmo_group)) {
-    ScrArea *sa = CTX_wm_area(C);
+    ScrArea *area = CTX_wm_area(C);
     wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
-    WM_gizmo_group_unlink_delayed_ptr_from_space(gzgt, gzmap_type, sa);
+    WM_gizmo_group_unlink_delayed_ptr_from_space(gzgt, gzmap_type, area);
     if (gzgt->users == 0) {
       WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
     }

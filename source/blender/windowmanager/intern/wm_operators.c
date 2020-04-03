@@ -1767,13 +1767,13 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   /* Exception for launching via spacebar */
   if (event->type == EVT_SPACEKEY) {
     bool ok = true;
-    ScrArea *sa = CTX_wm_area(C);
-    if (sa) {
-      if (sa->spacetype == SPACE_CONSOLE) {
+    ScrArea *area = CTX_wm_area(C);
+    if (area) {
+      if (area->spacetype == SPACE_CONSOLE) {
         /* So we can use the shortcut in the console. */
         ok = false;
       }
-      else if (sa->spacetype == SPACE_TEXT) {
+      else if (area->spacetype == SPACE_TEXT) {
         /* So we can use the spacebar in the text editor. */
         ok = false;
       }
@@ -2135,7 +2135,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 {
   RadialControl *rc = op->customdata;
   char msg[UI_MAX_DRAW_STR];
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
 
   if (hasNumInput(&rc->num_input)) {
@@ -2172,7 +2172,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
     }
   }
 
-  ED_area_status_text(sa, msg);
+  ED_area_status_text(area, msg);
 }
 
 static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
@@ -2788,14 +2788,14 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
 {
   RadialControl *rc = op->customdata;
   wmWindowManager *wm = CTX_wm_manager(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   if (rc->dial) {
     MEM_freeN(rc->dial);
     rc->dial = NULL;
   }
 
-  ED_area_status_text(sa, NULL);
+  ED_area_status_text(area, NULL);
 
   WM_paint_cursor_end(wm, rc->cursor);
 
@@ -3139,11 +3139,11 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 static void redraw_timer_window_swap(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *sa;
+  ScrArea *area;
   CTX_wm_menu_set(C, NULL);
 
-  for (sa = CTX_wm_screen(C)->areabase.first; sa; sa = sa->next) {
-    ED_area_tag_redraw(sa);
+  for (area = CTX_wm_screen(C)->areabase.first; area; area = area->next) {
+    ED_area_tag_redraw(area);
   }
   wm_draw_update(C);
 
@@ -3176,14 +3176,14 @@ static void redraw_timer_step(bContext *C,
                               Scene *scene,
                               struct Depsgraph *depsgraph,
                               wmWindow *win,
-                              ScrArea *sa,
+                              ScrArea *area,
                               ARegion *region,
                               const int type,
                               const int cfra)
 {
   if (type == eRTDrawRegion) {
     if (region) {
-      wm_draw_region_test(C, sa, region);
+      wm_draw_region_test(C, area, region);
     }
   }
   else if (type == eRTDrawRegionSwap) {
@@ -3196,25 +3196,26 @@ static void redraw_timer_step(bContext *C,
   }
   else if (type == eRTDrawWindow) {
     bScreen *screen = WM_window_get_active_screen(win);
-    ScrArea *sa_iter;
+    ScrArea *area_iter;
 
     CTX_wm_menu_set(C, NULL);
 
-    for (sa_iter = screen->areabase.first; sa_iter; sa_iter = sa_iter->next) {
+    for (area_iter = screen->areabase.first; area_iter; area_iter = area_iter->next) {
       ARegion *region_iter;
-      CTX_wm_area_set(C, sa_iter);
+      CTX_wm_area_set(C, area_iter);
 
-      for (region_iter = sa_iter->regionbase.first; region_iter; region_iter = region_iter->next) {
+      for (region_iter = area_iter->regionbase.first; region_iter;
+           region_iter = region_iter->next) {
         if (region_iter->visible) {
           CTX_wm_region_set(C, region_iter);
-          wm_draw_region_test(C, sa_iter, region_iter);
+          wm_draw_region_test(C, area_iter, region_iter);
         }
       }
     }
 
     CTX_wm_window_set(C, win); /* XXX context manipulation warning! */
 
-    CTX_wm_area_set(C, sa);
+    CTX_wm_area_set(C, area);
     CTX_wm_region_set(C, region);
   }
   else if (type == eRTDrawWindowSwap) {
@@ -3250,7 +3251,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   double time_start, time_delta;
@@ -3272,7 +3273,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   wm_window_make_drawable(wm, win);
 
   for (a = 0; a < iter; a++) {
-    redraw_timer_step(C, bmain, scene, depsgraph, win, sa, region, type, cfra);
+    redraw_timer_step(C, bmain, scene, depsgraph, win, area, region, type, cfra);
     iter_steps += 1;
 
     if (time_limit != 0.0) {

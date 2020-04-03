@@ -97,7 +97,7 @@ static void info_free(SpaceLink *UNUSED(sl))
 }
 
 /* spacetype; init callback */
-static void info_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void info_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
@@ -209,12 +209,12 @@ static void info_header_region_draw(const bContext *C, ARegion *region)
 }
 
 static void info_main_region_listener(wmWindow *UNUSED(win),
-                                      ScrArea *UNUSED(sa),
+                                      ScrArea *UNUSED(area),
                                       ARegion *region,
                                       wmNotifier *wmn,
                                       const Scene *UNUSED(scene))
 {
-  // SpaceInfo *sinfo = sa->spacedata.first;
+  // SpaceInfo *sinfo = area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
@@ -228,7 +228,7 @@ static void info_main_region_listener(wmWindow *UNUSED(win),
 }
 
 static void info_header_listener(wmWindow *UNUSED(win),
-                                 ScrArea *UNUSED(sa),
+                                 ScrArea *UNUSED(area),
                                  ARegion *region,
                                  wmNotifier *wmn,
                                  const Scene *UNUSED(scene))
@@ -267,7 +267,7 @@ static void info_header_region_message_subscribe(const bContext *UNUSED(C),
                                                  WorkSpace *UNUSED(workspace),
                                                  Scene *UNUSED(scene),
                                                  bScreen *UNUSED(screen),
-                                                 ScrArea *UNUSED(sa),
+                                                 ScrArea *UNUSED(area),
                                                  ARegion *region,
                                                  struct wmMsgBus *mbus)
 {

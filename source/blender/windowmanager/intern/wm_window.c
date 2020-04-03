@@ -854,7 +854,7 @@ wmWindow *WM_window_open_temp(bContext *C,
   wmWindow *win_prev = CTX_wm_window(C);
   wmWindow *win;
   bScreen *screen;
-  ScrArea *sa;
+  ScrArea *area;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -932,10 +932,10 @@ wmWindow *WM_window_open_temp(bContext *C,
    */
 
   /* ensure it shows the right spacetype editor */
-  sa = screen->areabase.first;
-  CTX_wm_area_set(C, sa);
+  area = screen->areabase.first;
+  CTX_wm_area_set(C, area);
 
-  ED_area_newspace(C, sa, space_type, false);
+  ED_area_newspace(C, area, space_type, false);
 
   ED_screen_change(C, screen);
   ED_screen_refresh(wm, win); /* test scale */

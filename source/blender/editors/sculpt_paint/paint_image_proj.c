@@ -6224,13 +6224,13 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
   int maxsize;
   char err_out[256] = "unknown";
 
-  ScrArea *sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0);
-  if (!sa) {
+  ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0);
+  if (!area) {
     BKE_report(op->reports, RPT_ERROR, "No 3D viewport found to create image from");
     return OPERATOR_CANCELLED;
   }
 
-  ARegion *region = BKE_area_find_region_active_win(sa);
+  ARegion *region = BKE_area_find_region_active_win(area);
   if (!region) {
     BKE_report(op->reports, RPT_ERROR, "No 3D viewport found to create image from");
     return OPERATOR_CANCELLED;
@@ -6250,7 +6250,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 
   /* Create a copy of the overlays where they are all turned off, except the
    * texture paint overlay opacity */
-  View3D *v3d = sa->spacedata.first;
+  View3D *v3d = area->spacedata.first;
   View3D v3d_copy = *v3d;
   v3d_copy.gridflag = 0;
   v3d_copy.flag2 = 0;

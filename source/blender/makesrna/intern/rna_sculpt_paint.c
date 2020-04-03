@@ -511,10 +511,10 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
   Image *ima = scene->toolsettings->imapaint.canvas;
 
   for (sc = bmain->screens.first; sc; sc = sc->id.next) {
-    ScrArea *sa;
-    for (sa = sc->areabase.first; sa; sa = sa->next) {
+    ScrArea *area;
+    for (area = sc->areabase.first; area; area = area->next) {
       SpaceLink *slink;
-      for (slink = sa->spacedata.first; slink; slink = slink->next) {
+      for (slink = area->spacedata.first; slink; slink = slink->next) {
         if (slink->spacetype == SPACE_IMAGE) {
           SpaceImage *sima = (SpaceImage *)slink;
 

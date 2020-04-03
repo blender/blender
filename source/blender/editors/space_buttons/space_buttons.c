@@ -110,7 +110,7 @@ static void buttons_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
@@ -219,7 +219,7 @@ static void buttons_main_region_layout(const bContext *C, ARegion *region)
 }
 
 static void buttons_main_region_listener(wmWindow *UNUSED(win),
-                                         ScrArea *UNUSED(sa),
+                                         ScrArea *UNUSED(area),
                                          ARegion *region,
                                          wmNotifier *wmn,
                                          const Scene *UNUSED(scene))
@@ -274,11 +274,11 @@ static void buttons_header_region_message_subscribe(const bContext *UNUSED(C),
                                                     WorkSpace *UNUSED(workspace),
                                                     Scene *UNUSED(scene),
                                                     bScreen *UNUSED(screen),
-                                                    ScrArea *sa,
+                                                    ScrArea *area,
                                                     ARegion *region,
                                                     struct wmMsgBus *mbus)
 {
-  SpaceProperties *sbuts = sa->spacedata.first;
+  SpaceProperties *sbuts = area->spacedata.first;
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
       .user_data = region,
@@ -326,7 +326,7 @@ static void buttons_navigation_bar_region_message_subscribe(const bContext *UNUS
                                                             WorkSpace *UNUSED(workspace),
                                                             Scene *UNUSED(scene),
                                                             bScreen *UNUSED(screen),
-                                                            ScrArea *UNUSED(sa),
+                                                            ScrArea *UNUSED(area),
                                                             ARegion *region,
                                                             struct wmMsgBus *mbus)
 {
@@ -341,96 +341,96 @@ static void buttons_navigation_bar_region_message_subscribe(const bContext *UNUS
 
 /* draw a certain button set only if properties area is currently
  * showing that button set, to reduce unnecessary drawing. */
-static void buttons_area_redraw(ScrArea *sa, short buttons)
+static void buttons_area_redraw(ScrArea *area, short buttons)
 {
-  SpaceProperties *sbuts = sa->spacedata.first;
+  SpaceProperties *sbuts = area->spacedata.first;
 
   /* if the area's current button set is equal to the one to redraw */
   if (sbuts->mainb == buttons) {
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
   }
 }
 
 /* reused! */
 static void buttons_area_listener(wmWindow *UNUSED(win),
-                                  ScrArea *sa,
+                                  ScrArea *area,
                                   wmNotifier *wmn,
                                   Scene *UNUSED(scene))
 {
-  SpaceProperties *sbuts = sa->spacedata.first;
+  SpaceProperties *sbuts = area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
     case NC_SCENE:
       switch (wmn->data) {
         case ND_RENDER_OPTIONS:
-          buttons_area_redraw(sa, BCONTEXT_RENDER);
-          buttons_area_redraw(sa, BCONTEXT_OUTPUT);
-          buttons_area_redraw(sa, BCONTEXT_VIEW_LAYER);
+          buttons_area_redraw(area, BCONTEXT_RENDER);
+          buttons_area_redraw(area, BCONTEXT_OUTPUT);
+          buttons_area_redraw(area, BCONTEXT_VIEW_LAYER);
           break;
         case ND_WORLD:
-          buttons_area_redraw(sa, BCONTEXT_WORLD);
+          buttons_area_redraw(area, BCONTEXT_WORLD);
           sbuts->preview = 1;
           break;
         case ND_FRAME:
           /* any buttons area can have animated properties so redraw all */
-          ED_area_tag_redraw(sa);
+          ED_area_tag_redraw(area);
           sbuts->preview = 1;
           break;
         case ND_OB_ACTIVE:
-          ED_area_tag_redraw(sa);
+          ED_area_tag_redraw(area);
           sbuts->preview = 1;
           break;
         case ND_KEYINGSET:
-          buttons_area_redraw(sa, BCONTEXT_SCENE);
+          buttons_area_redraw(area, BCONTEXT_SCENE);
           break;
         case ND_RENDER_RESULT:
           break;
         case ND_MODE:
         case ND_LAYER:
         default:
-          ED_area_tag_redraw(sa);
+          ED_area_tag_redraw(area);
           break;
       }
       break;
     case NC_OBJECT:
       switch (wmn->data) {
         case ND_TRANSFORM:
-          buttons_area_redraw(sa, BCONTEXT_OBJECT);
-          buttons_area_redraw(sa, BCONTEXT_DATA); /* autotexpace flag */
+          buttons_area_redraw(area, BCONTEXT_OBJECT);
+          buttons_area_redraw(area, BCONTEXT_DATA); /* autotexpace flag */
           break;
         case ND_POSE:
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
-          buttons_area_redraw(sa, BCONTEXT_BONE);
-          buttons_area_redraw(sa, BCONTEXT_BONE_CONSTRAINT);
-          buttons_area_redraw(sa, BCONTEXT_DATA);
+          buttons_area_redraw(area, BCONTEXT_BONE);
+          buttons_area_redraw(area, BCONTEXT_BONE_CONSTRAINT);
+          buttons_area_redraw(area, BCONTEXT_DATA);
           break;
         case ND_MODIFIER:
           if (wmn->action == NA_RENAME) {
-            ED_area_tag_redraw(sa);
+            ED_area_tag_redraw(area);
           }
           else {
-            buttons_area_redraw(sa, BCONTEXT_MODIFIER);
+            buttons_area_redraw(area, BCONTEXT_MODIFIER);
           }
-          buttons_area_redraw(sa, BCONTEXT_PHYSICS);
+          buttons_area_redraw(area, BCONTEXT_PHYSICS);
           break;
         case ND_CONSTRAINT:
-          buttons_area_redraw(sa, BCONTEXT_CONSTRAINT);
-          buttons_area_redraw(sa, BCONTEXT_BONE_CONSTRAINT);
+          buttons_area_redraw(area, BCONTEXT_CONSTRAINT);
+          buttons_area_redraw(area, BCONTEXT_BONE_CONSTRAINT);
           break;
         case ND_PARTICLE:
           if (wmn->action == NA_EDITED) {
-            buttons_area_redraw(sa, BCONTEXT_PARTICLE);
+            buttons_area_redraw(area, BCONTEXT_PARTICLE);
           }
           sbuts->preview = 1;
           break;
         case ND_DRAW:
-          buttons_area_redraw(sa, BCONTEXT_OBJECT);
-          buttons_area_redraw(sa, BCONTEXT_DATA);
-          buttons_area_redraw(sa, BCONTEXT_PHYSICS);
+          buttons_area_redraw(area, BCONTEXT_OBJECT);
+          buttons_area_redraw(area, BCONTEXT_DATA);
+          buttons_area_redraw(area, BCONTEXT_PHYSICS);
           /* Needed to refresh context path when changing active particle system index. */
-          buttons_area_redraw(sa, BCONTEXT_PARTICLE);
+          buttons_area_redraw(area, BCONTEXT_PARTICLE);
           break;
         case ND_SHADING:
         case ND_SHADING_DRAW:
@@ -441,7 +441,7 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
           break;
         default:
           /* Not all object RNA props have a ND_ notifier (yet) */
-          ED_area_tag_redraw(sa);
+          ED_area_tag_redraw(area);
           break;
       }
       break;
@@ -450,12 +450,12 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
         case ND_SELECT:
         case ND_DATA:
         case ND_VERTEX_GROUP:
-          ED_area_tag_redraw(sa);
+          ED_area_tag_redraw(area);
           break;
       }
       break;
     case NC_MATERIAL:
-      ED_area_tag_redraw(sa);
+      ED_area_tag_redraw(area);
       switch (wmn->data) {
         case ND_SHADING:
         case ND_SHADING_DRAW:
@@ -468,43 +468,43 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
       }
       break;
     case NC_WORLD:
-      buttons_area_redraw(sa, BCONTEXT_WORLD);
+      buttons_area_redraw(area, BCONTEXT_WORLD);
       sbuts->preview = 1;
       break;
     case NC_LAMP:
-      buttons_area_redraw(sa, BCONTEXT_DATA);
+      buttons_area_redraw(area, BCONTEXT_DATA);
       sbuts->preview = 1;
       break;
     case NC_GROUP:
-      buttons_area_redraw(sa, BCONTEXT_OBJECT);
+      buttons_area_redraw(area, BCONTEXT_OBJECT);
       break;
     case NC_BRUSH:
-      buttons_area_redraw(sa, BCONTEXT_TEXTURE);
-      buttons_area_redraw(sa, BCONTEXT_TOOL);
+      buttons_area_redraw(area, BCONTEXT_TEXTURE);
+      buttons_area_redraw(area, BCONTEXT_TOOL);
       sbuts->preview = 1;
       break;
     case NC_TEXTURE:
     case NC_IMAGE:
       if (wmn->action != NA_PAINTING) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
         sbuts->preview = 1;
       }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_PROPERTIES) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
       }
       break;
     case NC_ID:
       if (wmn->action == NA_RENAME) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
       }
       break;
     case NC_ANIMATION:
       switch (wmn->data) {
         case ND_KEYFRAME:
           if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED)) {
-            ED_area_tag_redraw(sa);
+            ED_area_tag_redraw(area);
           }
           break;
       }
@@ -513,14 +513,14 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_DATA:
           if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED, NA_SELECTED)) {
-            ED_area_tag_redraw(sa);
+            ED_area_tag_redraw(area);
           }
           break;
       }
       break;
     case NC_NODE:
       if (wmn->action == NA_SELECTED) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
         /* new active node, update texture preview */
         if (sbuts->mainb == BCONTEXT_TEXTURE) {
           sbuts->preview = 1;
@@ -530,24 +530,24 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
     /* Listener for preview render, when doing an global undo. */
     case NC_WM:
       if (wmn->data == ND_UNDO) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
         sbuts->preview = 1;
       }
       break;
 #ifdef WITH_FREESTYLE
     case NC_LINESTYLE:
-      ED_area_tag_redraw(sa);
+      ED_area_tag_redraw(area);
       sbuts->preview = 1;
       break;
 #endif
   }
 
   if (wmn->data == ND_KEYS) {
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
   }
 }
 
-static void buttons_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+static void buttons_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceProperties *sbuts = (SpaceProperties *)slink;
 

@@ -212,10 +212,11 @@ static void rna_Panel_unregister(Main *bmain, StructRNA *type)
   BLI_freelinkN(&art->paneltypes, pt);
 
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
         if (sl->spacetype == space_type) {
-          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
           for (ARegion *region = regionbase->first; region; region = region->next) {
             if (region->type == art) {
               for (Panel *pa = region->panels.first; pa; pa = pa->next) {

@@ -399,7 +399,7 @@ bool ANIM_animdata_context_getdata(bAnimContext *ac)
 bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 {
   Main *bmain = CTX_data_main(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   SpaceLink *sl = CTX_wm_space_data(C);
   Scene *scene = CTX_data_scene(C);
@@ -418,10 +418,10 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   }
   ac->view_layer = CTX_data_view_layer(C);
   ac->obact = (ac->view_layer->basact) ? ac->view_layer->basact->object : NULL;
-  ac->sa = sa;
+  ac->area = area;
   ac->region = region;
   ac->sl = sl;
-  ac->spacetype = (sa) ? sa->spacetype : 0;
+  ac->spacetype = (area) ? area->spacetype : 0;
   ac->regiontype = (region) ? region->regiontype : 0;
 
   /* initialise default y-scale factor */

@@ -36,7 +36,7 @@ struct bContextDataResult;
 #define AZONEFADEOUT (6.5f * U.widget_unit) /* when we start seeing the azone */
 
 /* area.c */
-void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free);
+void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free);
 void ED_area_data_swap(ScrArea *sa1, ScrArea *sa2);
 void region_toggle_hidden(struct bContext *C, ARegion *region, const bool do_fade);
 
@@ -50,11 +50,12 @@ bScreen *screen_change_prepare(bScreen *screen_old,
                                struct Main *bmain,
                                struct bContext *C,
                                wmWindow *win);
-ScrArea *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac, int merge);
+ScrArea *area_split(
+    const wmWindow *win, bScreen *sc, ScrArea *area, char dir, float fac, int merge);
 int screen_area_join(struct bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2);
-int area_getorientation(ScrArea *sa, ScrArea *sb);
+int area_getorientation(ScrArea *area, ScrArea *sb);
 
-struct AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2]);
+struct AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
 
 /* screen_geometry.c */
 int screen_geom_area_height(const ScrArea *area);
@@ -73,7 +74,7 @@ ScrEdge *screen_geom_find_active_scredge(const wmWindow *win,
                                          const int mx,
                                          const int my);
 void screen_geom_vertices_scale(const wmWindow *win, bScreen *sc);
-short screen_geom_find_area_split_point(const ScrArea *sa,
+short screen_geom_find_area_split_point(const ScrArea *area,
                                         const rcti *window_rect,
                                         char dir,
                                         float fac);

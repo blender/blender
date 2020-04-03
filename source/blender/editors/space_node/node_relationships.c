@@ -1446,9 +1446,12 @@ void NODE_OT_detach(wmOperatorType *ot)
 /* *********************  automatic node insert on dragging ******************* */
 
 /* prevent duplicate testing code below */
-static bool ed_node_link_conditions(ScrArea *sa, bool test, SpaceNode **r_snode, bNode **r_select)
+static bool ed_node_link_conditions(ScrArea *area,
+                                    bool test,
+                                    SpaceNode **r_snode,
+                                    bNode **r_select)
 {
-  SpaceNode *snode = sa ? sa->spacedata.first : NULL;
+  SpaceNode *snode = area ? area->spacedata.first : NULL;
   bNode *node, *select = NULL;
   bNodeLink *link;
 
@@ -1456,7 +1459,7 @@ static bool ed_node_link_conditions(ScrArea *sa, bool test, SpaceNode **r_snode,
   *r_select = NULL;
 
   /* no unlucky accidents */
-  if (sa == NULL || sa->spacetype != SPACE_NODE) {
+  if (area == NULL || area->spacetype != SPACE_NODE) {
     return false;
   }
 
@@ -1501,14 +1504,14 @@ static bool ed_node_link_conditions(ScrArea *sa, bool test, SpaceNode **r_snode,
 }
 
 /* test == 0, clear all intersect flags */
-void ED_node_link_intersect_test(ScrArea *sa, int test)
+void ED_node_link_intersect_test(ScrArea *area, int test)
 {
   bNode *select;
   SpaceNode *snode;
   bNodeLink *link, *selink = NULL;
   float dist_best = FLT_MAX;
 
-  if (!ed_node_link_conditions(sa, test, &snode, &select)) {
+  if (!ed_node_link_conditions(area, test, &snode, &select)) {
     return;
   }
 
@@ -1919,14 +1922,14 @@ void NODE_OT_insert_offset(wmOperatorType *ot)
 }
 
 /* assumes link with NODE_LINKFLAG_HILITE set */
-void ED_node_link_insert(Main *bmain, ScrArea *sa)
+void ED_node_link_insert(Main *bmain, ScrArea *area)
 {
   bNode *node, *select;
   SpaceNode *snode;
   bNodeLink *link;
   bNodeSocket *sockto;
 
-  if (!ed_node_link_conditions(sa, true, &snode, &select)) {
+  if (!ed_node_link_conditions(area, true, &snode, &select)) {
     return;
   }
 

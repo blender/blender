@@ -638,7 +638,7 @@ static void draw_mask_layers(const bContext *C,
 
 void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Mask *mask = CTX_data_edit_mask(C);
   int width, height;
 
@@ -646,7 +646,7 @@ void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type)
     return;
   }
 
-  ED_mask_get_size(sa, &width, &height);
+  ED_mask_get_size(area, &width, &height);
 
   draw_mask_layers(C, mask, draw_flag, draw_type, width, height);
 }

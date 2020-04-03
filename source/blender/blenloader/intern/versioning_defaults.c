@@ -101,8 +101,8 @@ static void blo_update_defaults_screen(bScreen *screen,
                                        const char *workspace_name)
 {
   /* For all app templates. */
-  for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-    for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    for (ARegion *region = area->regionbase.first; region; region = region->next) {
       /* Some toolbars have been saved as initialized,
        * we don't want them to have odd zoom-level or scrolling set, see: T47047 */
       if (ELEM(region->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS)) {
@@ -111,7 +111,7 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
 
     /* Set default folder. */
-    for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+    for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
       if (sl->spacetype == SPACE_FILE) {
         SpaceFile *sfile = (SpaceFile *)sl;
         if (sfile->params) {
@@ -130,8 +130,8 @@ static void blo_update_defaults_screen(bScreen *screen,
     return;
   }
 
-  for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-    for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    for (ARegion *region = area->regionbase.first; region; region = region->next) {
       /* Remove all stored panels, we want to use defaults
        * (order, open/closed) as defined by UI code here! */
       BKE_area_region_panels_free(&region->panels);
@@ -142,48 +142,48 @@ static void blo_update_defaults_screen(bScreen *screen,
       region->sizey = 0;
     }
 
-    if (sa->spacetype == SPACE_IMAGE) {
+    if (area->spacetype == SPACE_IMAGE) {
       if (STREQ(workspace_name, "UV Editing")) {
-        SpaceImage *sima = sa->spacedata.first;
+        SpaceImage *sima = area->spacedata.first;
         if (sima->mode == SI_MODE_VIEW) {
           sima->mode = SI_MODE_UV;
         }
       }
     }
-    else if (sa->spacetype == SPACE_ACTION) {
+    else if (area->spacetype == SPACE_ACTION) {
       /* Show markers region, hide channels and collapse summary in timelines. */
-      SpaceAction *saction = sa->spacedata.first;
+      SpaceAction *saction = area->spacedata.first;
       saction->flag |= SACTION_SHOW_MARKERS;
       if (saction->mode == SACTCONT_TIMELINE) {
         saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
 
-        for (ARegion *region = sa->regionbase.first; region; region = region->next) {
+        for (ARegion *region = area->regionbase.first; region; region = region->next) {
           if (region->regiontype == RGN_TYPE_CHANNELS) {
             region->flag |= RGN_FLAG_HIDDEN;
           }
         }
       }
     }
-    else if (sa->spacetype == SPACE_GRAPH) {
-      SpaceGraph *sipo = sa->spacedata.first;
+    else if (area->spacetype == SPACE_GRAPH) {
+      SpaceGraph *sipo = area->spacedata.first;
       sipo->flag |= SIPO_SHOW_MARKERS;
     }
-    else if (sa->spacetype == SPACE_NLA) {
-      SpaceNla *snla = sa->spacedata.first;
+    else if (area->spacetype == SPACE_NLA) {
+      SpaceNla *snla = area->spacedata.first;
       snla->flag |= SNLA_SHOW_MARKERS;
     }
-    else if (sa->spacetype == SPACE_SEQ) {
-      SpaceSeq *seq = sa->spacedata.first;
+    else if (area->spacetype == SPACE_SEQ) {
+      SpaceSeq *seq = area->spacedata.first;
       seq->flag |= SEQ_SHOW_MARKERS;
     }
-    else if (sa->spacetype == SPACE_TEXT) {
+    else if (area->spacetype == SPACE_TEXT) {
       /* Show syntax and line numbers in Script workspace text editor. */
-      SpaceText *stext = sa->spacedata.first;
+      SpaceText *stext = area->spacedata.first;
       stext->showsyntax = true;
       stext->showlinenrs = true;
     }
-    else if (sa->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = sa->spacedata.first;
+    else if (area->spacetype == SPACE_VIEW3D) {
+      View3D *v3d = area->spacedata.first;
       /* Screen space cavity by default for faster performance. */
       v3d->shading.cavity_type = V3D_SHADING_CAVITY_CURVATURE;
       v3d->shading.flag |= V3D_SHADING_SPECULAR_HIGHLIGHT;
@@ -202,17 +202,17 @@ static void blo_update_defaults_screen(bScreen *screen,
         copy_v3_fl(v3d->shading.background_color, 0.05f);
       }
     }
-    else if (sa->spacetype == SPACE_CLIP) {
-      SpaceClip *sclip = sa->spacedata.first;
+    else if (area->spacetype == SPACE_CLIP) {
+      SpaceClip *sclip = area->spacedata.first;
       sclip->around = V3D_AROUND_CENTER_MEDIAN;
     }
   }
 
   /* Show tool-header by default (for most cases at least, hide for others). */
   const bool hide_image_tool_header = STREQ(workspace_name, "Rendering");
-  for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-    for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-      ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+  for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+    for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+      ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
 
       for (ARegion *region = regionbase->first; region; region = region->next) {
         if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
@@ -229,15 +229,15 @@ static void blo_update_defaults_screen(bScreen *screen,
 
   /* 2D animation template. */
   if (app_template && STREQ(app_template, "2D_Animation")) {
-    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-      for (ARegion *region = sa->regionbase.first; region; region = region->next) {
-        if (sa->spacetype == SPACE_ACTION) {
-          SpaceAction *saction = sa->spacedata.first;
+    for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+      for (ARegion *region = area->regionbase.first; region; region = region->next) {
+        if (area->spacetype == SPACE_ACTION) {
+          SpaceAction *saction = area->spacedata.first;
           /* Enable Sliders. */
           saction->flag |= SACTION_SLIDERS;
         }
-        else if (sa->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = sa->spacedata.first;
+        else if (area->spacetype == SPACE_VIEW3D) {
+          View3D *v3d = area->spacedata.first;
           /* Set Material Color by default. */
           v3d->shading.color_type = V3D_SHADING_MATERIAL_COLOR;
           /* Enable Annotations. */
@@ -273,10 +273,10 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
       for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
         bScreen *screen = layout->screen;
         if (screen) {
-          for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-            for (ARegion *region = sa->regionbase.first; region; region = region->next) {
-              if (sa->spacetype == SPACE_VIEW3D) {
-                View3D *v3d = sa->spacedata.first;
+          for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+            for (ARegion *region = area->regionbase.first; region; region = region->next) {
+              if (area->spacetype == SPACE_VIEW3D) {
+                View3D *v3d = area->spacedata.first;
                 v3d->shading.flag &= ~V3D_SHADING_CAVITY;
                 copy_v3_fl(v3d->shading.single_color, 1.0f);
                 STRNCPY(v3d->shading.matcap, "basic_1");

@@ -75,12 +75,12 @@
 /* matches logic with ED_operator_posemode_context() */
 Object *ED_pose_object_from_context(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Object *ob;
 
   /* Since this call may also be used from the buttons window,
    * we need to check for where to get the object. */
-  if (sa && sa->spacetype == SPACE_PROPERTIES) {
+  if (area && area->spacetype == SPACE_PROPERTIES) {
     ob = ED_object_context(C);
   }
   else {

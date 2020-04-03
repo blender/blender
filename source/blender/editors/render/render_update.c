@@ -106,17 +106,17 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 
   for (win = wm->windows.first; win; win = win->next) {
     bScreen *sc = WM_window_get_active_screen(win);
-    ScrArea *sa;
+    ScrArea *area;
     ARegion *region;
 
     CTX_wm_window_set(C, win);
 
-    for (sa = sc->areabase.first; sa; sa = sa->next) {
-      if (sa->spacetype != SPACE_VIEW3D) {
+    for (area = sc->areabase.first; area; area = area->next) {
+      if (area->spacetype != SPACE_VIEW3D) {
         continue;
       }
-      View3D *v3d = sa->spacedata.first;
-      for (region = sa->regionbase.first; region; region = region->next) {
+      View3D *v3d = area->spacedata.first;
+      for (region = area->regionbase.first; region; region = region->next) {
         if (region->regiontype != RGN_TYPE_WINDOW) {
           continue;
         }
@@ -128,7 +128,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
         if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
 
           CTX_wm_screen_set(C, sc);
-          CTX_wm_area_set(C, sa);
+          CTX_wm_area_set(C, area);
           CTX_wm_region_set(C, region);
 
           engine->flag &= ~RE_ENGINE_DO_UPDATE;
@@ -146,7 +146,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
                 .scene = scene,
                 .view_layer = view_layer,
                 .region = region,
-                .v3d = (View3D *)sa->spacedata.first,
+                .v3d = (View3D *)area->spacedata.first,
                 .engine_type = engine_type,
             }));
           }
@@ -160,17 +160,17 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
   recursive_check = false;
 }
 
-void ED_render_engine_area_exit(Main *bmain, ScrArea *sa)
+void ED_render_engine_area_exit(Main *bmain, ScrArea *area)
 {
   /* clear all render engines in this area */
   ARegion *region;
   wmWindowManager *wm = bmain->wm.first;
 
-  if (sa->spacetype != SPACE_VIEW3D) {
+  if (area->spacetype != SPACE_VIEW3D) {
     return;
   }
 
-  for (region = sa->regionbase.first; region; region = region->next) {
+  for (region = area->regionbase.first; region; region = region->next) {
     if (region->regiontype != RGN_TYPE_WINDOW || !(region->regiondata)) {
       continue;
     }
@@ -182,8 +182,8 @@ void ED_render_engine_changed(Main *bmain)
 {
   /* on changing the render engine type, clear all running render engines */
   for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {
-    for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
-      ED_render_engine_area_exit(bmain, sa);
+    for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+      ED_render_engine_area_exit(bmain, area);
     }
   }
   RE_FreePersistentData();
@@ -206,8 +206,8 @@ void ED_render_engine_changed(Main *bmain)
 
 void ED_render_view_layer_changed(Main *bmain, bScreen *sc)
 {
-  for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
-    ED_render_engine_area_exit(bmain, sa);
+  for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+    ED_render_engine_area_exit(bmain, area);
   }
 }
 

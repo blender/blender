@@ -1219,7 +1219,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
   char err_out[256] = "unknown";
 
   /* screen if no camera found */
-  ScrArea *sa = NULL;
+  ScrArea *area = NULL;
   ARegion *region = NULL;
   View3D *v3d = NULL;
 
@@ -1235,10 +1235,10 @@ static ImBuf *blend_file_thumb(const bContext *C,
   }
 
   if ((scene->camera == NULL) && (screen != NULL)) {
-    sa = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
-    region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+    area = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
+    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     if (region) {
-      v3d = sa->spacedata.first;
+      v3d = area->spacedata.first;
     }
   }
 

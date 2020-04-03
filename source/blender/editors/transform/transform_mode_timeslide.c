@@ -82,7 +82,7 @@ static void applyTimeSlideValue(TransInfo *t, float sval, float cval)
 
   /* set value for drawing black line */
   if (t->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
+    SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
     saction->timeslide = cval;
   }
 
@@ -160,14 +160,14 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
 
   recalcData(t);
 
-  ED_area_status_text(t->sa, str);
+  ED_area_status_text(t->area, str);
 }
 
 void initTimeSlide(TransInfo *t)
 {
   /* this tool is only really available in the Action Editor... */
   if (t->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
+    SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
 
     /* set flag for drawing stuff */
     saction->flag |= SACTION_MOVING;

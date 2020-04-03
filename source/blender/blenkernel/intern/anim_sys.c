@@ -674,7 +674,7 @@ char *BKE_animdata_driver_path_hack(bContext *C,
                                     char *base_path)
 {
   ID *id = ptr->owner_id;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* get standard path which may be extended */
   char *basepath = base_path ? base_path : RNA_path_from_ID_to_property(ptr, prop);
@@ -684,7 +684,7 @@ char *BKE_animdata_driver_path_hack(bContext *C,
    * restricts the subspace of options to the 'active' data (a manageable state)
    */
   /* TODO: watch out for pinned context? */
-  if ((sa) && (sa->spacetype == SPACE_PROPERTIES)) {
+  if ((area) && (area->spacetype == SPACE_PROPERTIES)) {
     Object *ob = CTX_data_active_object(C);
 
     if (ob && id) {

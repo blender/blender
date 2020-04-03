@@ -64,7 +64,7 @@
 
 /* ******************** default callbacks for ipo space ***************** */
 
-static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
+static SpaceLink *graph_new(const ScrArea *UNUSED(area), const Scene *scene)
 {
   ARegion *region;
   SpaceGraph *sipo;
@@ -150,9 +150,9 @@ static void graph_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
+static void graph_init(struct wmWindowManager *wm, ScrArea *area)
 {
-  SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;
+  SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
 
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (sipo->ads == NULL) {
@@ -165,7 +165,7 @@ static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
    * as this is run on each region resize; setting this here will cause selection
    * state to be lost on area/region resizing. [#35744]
    */
-  ED_area_tag_refresh(sa);
+  ED_area_tag_refresh(area);
 }
 
 static SpaceLink *graph_duplicate(SpaceLink *sl)
@@ -413,7 +413,7 @@ static void graph_buttons_region_draw(const bContext *C, ARegion *region)
 }
 
 static void graph_region_listener(wmWindow *UNUSED(win),
-                                  ScrArea *UNUSED(sa),
+                                  ScrArea *UNUSED(area),
                                   ARegion *region,
                                   wmNotifier *wmn,
                                   const Scene *UNUSED(scene))
@@ -483,12 +483,12 @@ static void graph_region_message_subscribe(const struct bContext *UNUSED(C),
                                            struct WorkSpace *UNUSED(workspace),
                                            struct Scene *scene,
                                            struct bScreen *screen,
-                                           struct ScrArea *sa,
+                                           struct ScrArea *area,
                                            struct ARegion *region,
                                            struct wmMsgBus *mbus)
 {
   PointerRNA ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceGraphEditor, sa->spacedata.first, &ptr);
+  RNA_pointer_create(&screen->id, &RNA_SpaceGraphEditor, area->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = region,
@@ -556,11 +556,11 @@ static void graph_region_message_subscribe(const struct bContext *UNUSED(C),
 
 /* editor level listener */
 static void graph_listener(wmWindow *UNUSED(win),
-                           ScrArea *sa,
+                           ScrArea *area,
                            wmNotifier *wmn,
                            Scene *UNUSED(scene))
 {
-  SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;
+  SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
@@ -568,10 +568,10 @@ static void graph_listener(wmWindow *UNUSED(win),
       /* for selection changes of animation data, we can just redraw...
        * otherwise autocolor might need to be done again */
       if (ELEM(wmn->data, ND_KEYFRAME, ND_ANIMCHAN) && (wmn->action == NA_SELECTED)) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
       }
       else {
-        ED_area_tag_refresh(sa);
+        ED_area_tag_refresh(area);
       }
       break;
     case NC_SCENE:
@@ -580,11 +580,11 @@ static void graph_listener(wmWindow *UNUSED(win),
                             * (needs flag set to do syncing). */
         case ND_OB_SELECT:
           sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
-          ED_area_tag_refresh(sa);
+          ED_area_tag_refresh(area);
           break;
 
         default: /* just redrawing the view will do */
-          ED_area_tag_redraw(sa);
+          ED_area_tag_redraw(area);
           break;
       }
       break;
@@ -594,13 +594,13 @@ static void graph_listener(wmWindow *UNUSED(win),
                               * (needs flag set to do syncing). */
         case ND_BONE_ACTIVE:
           sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
-          ED_area_tag_refresh(sa);
+          ED_area_tag_refresh(area);
           break;
         case ND_TRANSFORM:
           break; /*do nothing*/
 
         default: /* just redrawing the view will do */
-          ED_area_tag_redraw(sa);
+          ED_area_tag_redraw(area);
           break;
       }
       break;
@@ -608,26 +608,26 @@ static void graph_listener(wmWindow *UNUSED(win),
       if (wmn->action == NA_SELECTED) {
         /* selection changed, so force refresh to flush (needs flag set to do syncing) */
         sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
-        ED_area_tag_refresh(sa);
+        ED_area_tag_refresh(area);
       }
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_GRAPH) {
-        ED_area_tag_redraw(sa);
+        ED_area_tag_redraw(area);
       }
       break;
     case NC_WINDOW:
       if (sipo->runtime.flag &
           (SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC | SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR)) {
         /* force redraw/refresh after undo/redo - prevents "black curve" problem */
-        ED_area_tag_refresh(sa);
+        ED_area_tag_refresh(area);
       }
       break;
 
       // XXX: restore the case below if not enough updates occur...
       // default:
       //  if (wmn->data == ND_KEYS)
-      //      ED_area_tag_redraw(sa);
+      //      ED_area_tag_redraw(area);
   }
 }
 
@@ -754,9 +754,9 @@ static void graph_refresh_fcurve_colors(const bContext *C)
   ANIM_animdata_freelist(&anim_data);
 }
 
-static void graph_refresh(const bContext *C, ScrArea *sa)
+static void graph_refresh(const bContext *C, ScrArea *area)
 {
-  SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;
+  SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
 
   /* updates to data needed depends on Graph Editor mode... */
   switch (sipo->mode) {
@@ -780,7 +780,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
   if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
     ANIM_sync_animchannels_to_data(C);
     sipo->runtime.flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
   }
 
   /* We could check 'SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR', but color is recalculated anyway. */
@@ -789,7 +789,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 #if 0 /* Done below. */
     graph_refresh_fcurve_colors(C);
 #endif
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
   }
 
   sipo->runtime.flag &= ~(SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT |
@@ -799,7 +799,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
   graph_refresh_fcurve_colors(C);
 }
 
-static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+static void graph_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceGraph *sgraph = (SpaceGraph *)slink;
 
@@ -813,15 +813,15 @@ static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID
   }
 }
 
-static int graph_space_subtype_get(ScrArea *sa)
+static int graph_space_subtype_get(ScrArea *area)
 {
-  SpaceGraph *sgraph = sa->spacedata.first;
+  SpaceGraph *sgraph = area->spacedata.first;
   return sgraph->mode;
 }
 
-static void graph_space_subtype_set(ScrArea *sa, int value)
+static void graph_space_subtype_set(ScrArea *area, int value)
 {
-  SpaceGraph *sgraph = sa->spacedata.first;
+  SpaceGraph *sgraph = area->spacedata.first;
   sgraph->mode = value;
 }
 

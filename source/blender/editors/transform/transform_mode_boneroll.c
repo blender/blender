@@ -89,7 +89,7 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
   recalcData(t);
 
-  ED_area_status_text(t->sa, str);
+  ED_area_status_text(t->area, str);
 }
 
 void initBoneRoll(TransInfo *t)

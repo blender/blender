@@ -191,7 +191,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
 
   if (t->spacetype == SPACE_NODE) {
-    SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
+    SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
 
     if ((snode->flag & SNODE_SKIP_INSOFFSET) == 0) {
       const char *str_old = BLI_strdup(str);
@@ -370,7 +370,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
   recalcData(t);
 
-  ED_area_status_text(t->sa, str);
+  ED_area_status_text(t->area, str);
 }
 
 void initTranslation(TransInfo *t)

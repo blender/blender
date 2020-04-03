@@ -137,15 +137,15 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
   /* we could use some clever */
   Main *bmain = CTX_data_main(C);
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
   const char *display_device = CTX_data_scene(C)->display_settings.display_device;
   struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 
-  if (sa) {
-    if (sa->spacetype == SPACE_IMAGE) {
-      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+  if (area) {
+    if (area->spacetype == SPACE_IMAGE) {
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
       if (region) {
-        SpaceImage *sima = sa->spacedata.first;
+        SpaceImage *sima = area->spacedata.first;
         int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
 
         if (ED_space_image_color_sample(sima, region, mval, r_col)) {
@@ -153,10 +153,10 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
         }
       }
     }
-    else if (sa->spacetype == SPACE_NODE) {
-      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+    else if (area->spacetype == SPACE_NODE) {
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
       if (region) {
-        SpaceNode *snode = sa->spacedata.first;
+        SpaceNode *snode = area->spacedata.first;
         int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
 
         if (ED_space_node_color_sample(bmain, snode, region, mval, r_col)) {
@@ -164,10 +164,10 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
         }
       }
     }
-    else if (sa->spacetype == SPACE_CLIP) {
-      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+    else if (area->spacetype == SPACE_CLIP) {
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
       if (region) {
-        SpaceClip *sc = sa->spacedata.first;
+        SpaceClip *sc = area->spacedata.first;
         int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
 
         if (ED_space_clip_color_sample(sc, region, mval, r_col)) {

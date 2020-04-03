@@ -110,7 +110,7 @@ void setTransformViewAspect(TransInfo *t, float r_aspect[3])
   copy_v3_fl(r_aspect, 1.0f);
 
   if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = t->sa->spacedata.first;
+    SpaceImage *sima = t->area->spacedata.first;
 
     if (t->options & CTX_MASK) {
       ED_space_image_get_aspect(sima, &r_aspect[0], &r_aspect[1]);
@@ -123,7 +123,7 @@ void setTransformViewAspect(TransInfo *t, float r_aspect[3])
     }
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sclip = t->sa->spacedata.first;
+    SpaceClip *sclip = t->area->spacedata.first;
 
     if (t->options & CTX_MOVIECLIP) {
       ED_space_clip_get_aspect_dimension_aware(sclip, &r_aspect[0], &r_aspect[1]);
@@ -234,7 +234,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = t->sa->spacedata.first;
+    SpaceImage *sima = t->area->spacedata.first;
 
     if (t->options & CTX_MASK) {
       float v[2];
@@ -265,7 +265,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
   else if (t->spacetype == SPACE_ACTION) {
     int out[2] = {0, 0};
 #if 0
-    SpaceAction *sact = t->sa->spacedata.first;
+    SpaceAction *sact = t->area->spacedata.first;
 
     if (sact->flag & SACTION_DRAWTIME) {
       //vec[0] = vec[0]/((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
@@ -296,7 +296,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     adr[1] = out[1];
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sc = t->sa->spacedata.first;
+    SpaceClip *sc = t->area->spacedata.first;
 
     if (t->options & CTX_MASK) {
       MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -377,7 +377,7 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 {
   if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION) &&
       !(t->options & CTX_PAINT_CURVE)) {
-    SpaceImage *sima = t->sa->spacedata.first;
+    SpaceImage *sima = t->area->spacedata.first;
 
     if ((sima->flag & SI_COORDFLOATS) == 0) {
       int width, height;
@@ -401,7 +401,7 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 void removeAspectRatio(TransInfo *t, float vec[2])
 {
   if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION)) {
-    SpaceImage *sima = t->sa->spacedata.first;
+    SpaceImage *sima = t->area->spacedata.first;
 
     if ((sima->flag & SI_COORDFLOATS) == 0) {
       int width, height;
@@ -453,18 +453,18 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
     }
   }
   else if (t->spacetype == SPACE_ACTION) {
-    // SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
+    // SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
     WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    // SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
+    // SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
     WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
   }
   else if (t->spacetype == SPACE_NLA) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
   }
   else if (t->spacetype == SPACE_NODE) {
-    // ED_area_tag_redraw(t->sa);
+    // ED_area_tag_redraw(t->area);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
   }
   else if (t->spacetype == SPACE_SEQ) {
@@ -483,21 +483,21 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
       WM_paint_cursor_tag_redraw(window, t->region);
     }
     else if (t->flag & T_CURSOR) {
-      ED_area_tag_redraw(t->sa);
+      ED_area_tag_redraw(t->area);
     }
     else {
       // XXX how to deal with lock?
-      SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
+      SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
       if (sima->lock) {
         WM_event_add_notifier(C, NC_GEOM | ND_DATA, OBEDIT_FROM_VIEW_LAYER(t->view_layer)->data);
       }
       else {
-        ED_area_tag_redraw(t->sa);
+        ED_area_tag_redraw(t->area);
       }
     }
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sc = (SpaceClip *)t->sa->spacedata.first;
+    SpaceClip *sc = (SpaceClip *)t->area->spacedata.first;
 
     if (ED_space_clip_check_show_trackedit(sc)) {
       MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -517,7 +517,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 
 static void viewRedrawPost(bContext *C, TransInfo *t)
 {
-  ED_area_status_text(t->sa, NULL);
+  ED_area_status_text(t->area, NULL);
 
   if (t->spacetype == SPACE_VIEW3D) {
     /* if autokeying is enabled, send notifiers that keyframes were added */
@@ -1160,9 +1160,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_INSERTOFS_TOGGLE_DIR:
         if (t->spacetype == SPACE_NODE) {
-          SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
+          SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
 
-          BLI_assert(t->sa->spacetype == t->spacetype);
+          BLI_assert(t->area->spacetype == t->spacetype);
 
           if (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) {
             snode->insert_ofs_dir = SNODE_INSERTOFS_DIR_LEFT;
@@ -1521,9 +1521,9 @@ static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegi
     ok = true;
   }
   else {
-    ScrArea *sa = CTX_wm_area(C);
-    if (sa->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = sa->spacedata.first;
+    ScrArea *area = CTX_wm_area(C);
+    if (area->spacetype == SPACE_VIEW3D) {
+      View3D *v3d = area->spacedata.first;
       if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
         ok = true;
       }
@@ -1870,7 +1870,7 @@ static void initSnapSpatial(TransInfo *t, float r_snap[3])
     RegionView3D *rv3d = t->region->regiondata;
 
     if (rv3d) {
-      View3D *v3d = t->sa->spacedata.first;
+      View3D *v3d = t->area->spacedata.first;
       r_snap[0] = 0.0f;
       r_snap[1] = ED_view3d_grid_view_scale(t->scene, v3d, rv3d, NULL) * 1.0f;
       r_snap[2] = r_snap[1] * 0.1f;

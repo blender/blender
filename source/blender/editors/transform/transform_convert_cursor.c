@@ -44,7 +44,7 @@
 void createTransCursor_image(TransInfo *t)
 {
   TransData *td;
-  SpaceImage *sima = t->sa->spacedata.first;
+  SpaceImage *sima = t->area->spacedata.first;
   float *cursor_location = sima->cursor;
 
   {

@@ -139,8 +139,8 @@ void eyedropper_draw_cursor_text(const struct bContext *C, const ARegion *region
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
-  ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_ANY, event->x, event->y);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
+  ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->x, event->y);
 
   uiBut *but = ui_but_find_mouse_over(region, event);
 

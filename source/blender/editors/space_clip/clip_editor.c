@@ -313,9 +313,9 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
     for (wmWindow *win = wm->windows.first; win; win = win->next) {
       bScreen *screen = WM_window_get_active_screen(win);
 
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        if (sa->spacetype == SPACE_CLIP) {
-          SpaceClip *sc = sa->spacedata.first;
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        if (area->spacetype == SPACE_CLIP) {
+          SpaceClip *sc = area->spacedata.first;
 
           sc->scopes.ok = false;
 

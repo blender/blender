@@ -416,10 +416,10 @@ static bool edbm_bevel_calc(wmOperator *op)
 static void edbm_bevel_exit(bContext *C, wmOperator *op)
 {
   BevelData *opdata = op->customdata;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
-  if (sa) {
-    ED_area_status_text(sa, NULL);
+  if (area) {
+    ED_area_status_text(area, NULL);
   }
 
   for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {

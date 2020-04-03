@@ -1309,7 +1309,7 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, BeztMap *bezms, int totve
  */
 void remake_graph_transdata(TransInfo *t, ListBase *anim_data)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
+  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   bAnimListElem *ale;
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
@@ -1749,7 +1749,7 @@ bool motionpath_need_update_pose(Scene *scene, Object *ob)
 
 static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
 {
-  SpaceClip *sc = t->sa->spacedata.first;
+  SpaceClip *sc = t->area->spacedata.first;
   MovieClip *clip = ED_space_clip_get_clip(sc);
   ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
@@ -1791,11 +1791,11 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   Mask *mask = NULL;
 
   if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sc = t->sa->spacedata.first;
+    SpaceClip *sc = t->area->spacedata.first;
     mask = ED_space_clip_get_mask(sc);
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = t->sa->spacedata.first;
+    SpaceImage *sima = t->area->spacedata.first;
     mask = ED_space_image_get_mask(sima);
   }
   else {
@@ -1826,7 +1826,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 
   if (canceled && t->remove_on_cancel) {
     /* remove selected nodes on cancel */
-    SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
+    SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
     bNodeTree *ntree = snode->edittree;
     if (ntree) {
       bNode *node, *node_next;
@@ -1949,7 +1949,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     /* freeSeqData in transform_conversions.c does this
      * keep here so the else at the end wont run... */
 
-    SpaceSeq *sseq = (SpaceSeq *)t->sa->spacedata.first;
+    SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
 
     /* Marker transform, not especially nice but we may want to move markers
      * at the same time as strips in the Video Sequencer. */
@@ -1975,16 +1975,16 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     }
   }
   else if (t->spacetype == SPACE_NODE) {
-    SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
+    SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
     special_aftertrans_update__node(C, t);
     if (canceled == 0) {
       ED_node_post_apply_transform(C, snode->edittree);
 
-      ED_node_link_insert(bmain, t->sa);
+      ED_node_link_insert(bmain, t->area);
     }
 
     /* clear link line */
-    ED_node_link_intersect_test(t->sa, 0);
+    ED_node_link_intersect_test(t->area, 0);
   }
   else if (t->spacetype == SPACE_CLIP) {
     if (t->options & CTX_MOVIECLIP) {
@@ -1995,7 +1995,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     }
   }
   else if (t->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
+    SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
     bAnimContext ac;
 
     /* initialize relevant anim-context 'context' data */
@@ -2159,7 +2159,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     saction->flag &= ~SACTION_MOVING;
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
+    SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
     bAnimContext ac;
     const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 

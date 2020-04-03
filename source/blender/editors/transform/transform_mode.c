@@ -1028,21 +1028,21 @@ short getAnimEdit_SnapMode(TransInfo *t)
   short autosnap = SACTSNAP_OFF;
 
   if (t->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
+    SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
 
     if (saction) {
       autosnap = saction->autosnap;
     }
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
+    SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
 
     if (sipo) {
       autosnap = sipo->autosnap;
     }
   }
   else if (t->spacetype == SPACE_NLA) {
-    SpaceNla *snla = (SpaceNla *)t->sa->spacedata.first;
+    SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
 
     if (snla) {
       autosnap = snla->autosnap;

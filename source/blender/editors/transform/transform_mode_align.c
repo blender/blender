@@ -82,7 +82,7 @@ static void applyAlign(TransInfo *t, const int UNUSED(mval[2]))
 
   recalcData(t);
 
-  ED_area_status_text(t->sa, TIP_("Align"));
+  ED_area_status_text(t->area, TIP_("Align"));
 }
 
 void initAlign(TransInfo *t)

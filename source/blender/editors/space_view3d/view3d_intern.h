@@ -91,8 +91,8 @@ void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_xray(struct wmOperatorType *ot);
 
-void view3d_boxview_copy(struct ScrArea *sa, struct ARegion *region);
-void view3d_boxview_sync(struct ScrArea *sa, struct ARegion *region);
+void view3d_boxview_copy(struct ScrArea *area, struct ARegion *region);
+void view3d_boxview_sync(struct ScrArea *area, struct ARegion *region);
 
 void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
                                 const float ofs_old[3],
@@ -181,7 +181,7 @@ typedef struct V3D_SmoothParams {
 void ED_view3d_smooth_view_ex(const struct Depsgraph *depsgraph,
                               struct wmWindowManager *wm,
                               struct wmWindow *win,
-                              struct ScrArea *sa,
+                              struct ScrArea *area,
                               struct View3D *v3d,
                               struct ARegion *region,
                               const int smooth_viewtx,

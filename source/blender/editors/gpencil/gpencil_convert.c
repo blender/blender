@@ -1465,12 +1465,12 @@ static bool gp_convert_poll(bContext *C)
   bGPdata *gpd = (bGPdata *)ob->data;
   bGPDlayer *gpl = NULL;
   bGPDframe *gpf = NULL;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* only if the current view is 3D View, if there's valid data (i.e. at least one stroke!),
    * and if we are not in edit mode!
    */
-  return ((sa && sa->spacetype == SPACE_VIEW3D) && (gpl = BKE_gpencil_layer_active_get(gpd)) &&
+  return ((area && area->spacetype == SPACE_VIEW3D) && (gpl = BKE_gpencil_layer_active_get(gpd)) &&
           (gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV)) &&
           (gpf->strokes.first) && (!GPENCIL_ANY_EDIT_MODE(gpd)));
 }

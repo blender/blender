@@ -53,17 +53,17 @@
 
 /************************** properties ******************************/
 
-ARegion *ED_clip_has_properties_region(ScrArea *sa)
+ARegion *ED_clip_has_properties_region(ScrArea *area)
 {
   ARegion *region, *arnew;
 
-  region = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+  region = BKE_area_find_region_type(area, RGN_TYPE_UI);
   if (region) {
     return region;
   }
 
   /* add subdiv level; after header */
-  region = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+  region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
   /* is error! */
   if (region == NULL) {
@@ -72,7 +72,7 @@ ARegion *ED_clip_has_properties_region(ScrArea *sa)
 
   arnew = MEM_callocN(sizeof(ARegion), "clip properties region");
 
-  BLI_insertlinkafter(&sa->regionbase, region, arnew);
+  BLI_insertlinkafter(&area->regionbase, region, arnew);
   arnew->regiontype = RGN_TYPE_UI;
   arnew->alignment = RGN_ALIGN_RIGHT;
 

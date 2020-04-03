@@ -116,7 +116,7 @@ typedef struct BakeAPIRender {
   short *do_update;
 
   /* for redrawing */
-  ScrArea *sa;
+  ScrArea *area;
 } BakeAPIRender;
 
 /* callbacks */
@@ -161,10 +161,10 @@ static int bake_break(void *UNUSED(rjv))
   return 0;
 }
 
-static void bake_update_image(ScrArea *sa, Image *image)
+static void bake_update_image(ScrArea *area, Image *image)
 {
-  if (sa && sa->spacetype == SPACE_IMAGE) { /* in case the user changed while baking */
-    SpaceImage *sima = sa->spacedata.first;
+  if (area && area->spacetype == SPACE_IMAGE) { /* in case the user changed while baking */
+    SpaceImage *sima = area->spacedata.first;
     if (sima) {
       sima->image = image;
     }
@@ -743,7 +743,7 @@ static int bake(Render *re,
                 const int width,
                 const int height,
                 const char *identifier,
-                ScrArea *sa,
+                ScrArea *area,
                 const char *uv_layer)
 {
   /* We build a depsgraph for the baking,
@@ -1146,7 +1146,7 @@ static int bake(Render *re,
                                         is_noncolor);
 
         /* might be read by UI to set active image for display */
-        bake_update_image(sa, bk_image->image);
+        bake_update_image(area, bk_image->image);
 
         if (!ok) {
           BKE_reportf(reports,
@@ -1289,7 +1289,7 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   bkr->main = CTX_data_main(C);
   bkr->view_layer = CTX_data_view_layer(C);
   bkr->scene = CTX_data_scene(C);
-  bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL;
+  bkr->area = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL;
 
   bkr->pass_type = RNA_enum_get(op->ptr, "type");
   bkr->pass_filter = RNA_enum_get(op->ptr, "pass_filter");
@@ -1400,7 +1400,7 @@ static int bake_exec(bContext *C, wmOperator *op)
                   bkr.width,
                   bkr.height,
                   bkr.identifier,
-                  bkr.sa,
+                  bkr.area,
                   bkr.uv_layer);
   }
   else {
@@ -1432,7 +1432,7 @@ static int bake_exec(bContext *C, wmOperator *op)
                     bkr.width,
                     bkr.height,
                     bkr.identifier,
-                    bkr.sa,
+                    bkr.area,
                     bkr.uv_layer);
     }
   }
@@ -1501,7 +1501,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
                        bkr->width,
                        bkr->height,
                        bkr->identifier,
-                       bkr->sa,
+                       bkr->area,
                        bkr->uv_layer);
   }
   else {
@@ -1533,7 +1533,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
                          bkr->width,
                          bkr->height,
                          bkr->identifier,
-                         bkr->sa,
+                         bkr->area,
                          bkr->uv_layer);
 
       if (bkr->result == OPERATOR_CANCELLED) {

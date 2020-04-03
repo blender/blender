@@ -87,17 +87,17 @@ void WM_toolsystem_ref_sync_from_context(struct Main *bmain,
 void WM_toolsystem_init(struct bContext *C);
 
 int WM_toolsystem_mode_from_spacetype(struct ViewLayer *view_layer,
-                                      struct ScrArea *sa,
+                                      struct ScrArea *area,
                                       int space_type);
 bool WM_toolsystem_key_from_context(struct ViewLayer *view_layer,
-                                    struct ScrArea *sa,
+                                    struct ScrArea *area,
                                     bToolKey *tkey);
 
 void WM_toolsystem_update_from_context_view3d(struct bContext *C);
 void WM_toolsystem_update_from_context(struct bContext *C,
                                        struct WorkSpace *workspace,
                                        struct ViewLayer *view_layer,
-                                       struct ScrArea *sa);
+                                       struct ScrArea *area);
 
 bool WM_toolsystem_active_tool_is_brush(const struct bContext *C);
 
@@ -134,7 +134,7 @@ void WM_toolsystem_refresh_active(struct bContext *C);
 
 void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace,
                                        struct ViewLayer *view_layer,
-                                       struct ScrArea *sa);
+                                       struct ScrArea *area);
 void WM_toolsystem_refresh_screen_all(struct Main *bmain);
 
 #ifdef __cplusplus

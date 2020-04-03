@@ -549,7 +549,7 @@ void createTransTrackingData(bContext *C, TransInfo *t)
 void cancelTransTracking(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
-  SpaceClip *sc = t->sa->spacedata.first;
+  SpaceClip *sc = t->area->spacedata.first;
   int i, framenr = ED_space_clip_get_clip_frame_number(sc);
   TransDataTracking *tdt_array = tc->custom.type.data;
 

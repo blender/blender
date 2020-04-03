@@ -444,11 +444,11 @@ static void mask_point_make_pixel_space(bContext *C,
                                         float point_normalized[2],
                                         float point_pixel[2])
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
   float scalex, scaley;
-  ED_mask_pixelspace_factor(sa, region, &scalex, &scaley);
+  ED_mask_pixelspace_factor(area, region, &scalex, &scaley);
 
   point_pixel[0] = point_normalized[0] * scalex;
   point_pixel[1] = point_normalized[1] * scaley;
@@ -556,12 +556,12 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
   float co[2];
 
-  ED_mask_mouse_pos(sa, region, event->mval, co);
+  ED_mask_mouse_pos(area, region, event->mval, co);
 
   RNA_float_set_array(op->ptr, "location", co);
 
@@ -648,12 +648,12 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 
 static int add_feather_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
   float co[2];
 
-  ED_mask_mouse_pos(sa, region, event->mval, co);
+  ED_mask_mouse_pos(area, region, event->mval, co);
 
   RNA_float_set_array(op->ptr, "location", co);
 
@@ -693,7 +693,7 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 static int create_primitive_from_points(
     bContext *C, wmOperator *op, const float (*points)[2], int num_points, char handle_type)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Mask *mask;
   MaskLayer *mask_layer;
   MaskSpline *new_spline;
@@ -701,7 +701,7 @@ static int create_primitive_from_points(
   int i, width, height;
   int size = RNA_float_get(op->ptr, "size");
 
-  ED_mask_get_size(sa, &width, &height);
+  ED_mask_get_size(area, &width, &height);
   scale = (float)size / max_ii(width, height);
 
   /* Get location in mask space. */
@@ -762,12 +762,12 @@ static int create_primitive_from_points(
 
 static int primitive_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   float cursor[2];
   int width, height;
 
-  ED_mask_get_size(sa, &width, &height);
-  ED_mask_cursor_location_get(sa, cursor);
+  ED_mask_get_size(area, &width, &height);
+  ED_mask_cursor_location_get(area, cursor);
 
   cursor[0] *= width;
   cursor[1] *= height;

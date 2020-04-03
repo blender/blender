@@ -114,7 +114,7 @@ typedef struct tGPsdata {
   /** window where painting originated. */
   wmWindow *win;
   /** area where painting originated. */
-  ScrArea *sa;
+  ScrArea *area;
   /** region where painting originated. */
   ARegion *region;
   /** needed for GP_STROKE_2DSPACE. */
@@ -521,7 +521,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
        * so initialize depth buffer before converting coordinates
        */
       if (gpencil_project_check(p)) {
-        View3D *v3d = p->sa->spacedata.first;
+        View3D *v3d = p->area->spacedata.first;
 
         view3d_region_operator_needs_opengl(p->win, p->region);
         ED_view3d_autodist_init(p->depsgraph,
@@ -793,7 +793,7 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p,
                                          const int x,
                                          const int y)
 {
-  if ((p->sa->spacetype == SPACE_VIEW3D) && (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH)) {
+  if ((p->area->spacetype == SPACE_VIEW3D) && (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH)) {
     RegionView3D *rv3d = p->region->regiondata;
     const int mval_i[2] = {x, y};
     float mval_3d[3];
@@ -920,9 +920,9 @@ static void gp_stroke_doeraser(tGPsdata *p)
   rect.xmax = p->mval[0] + p->radius;
   rect.ymax = p->mval[1] + p->radius;
 
-  if (p->sa->spacetype == SPACE_VIEW3D) {
+  if (p->area->spacetype == SPACE_VIEW3D) {
     if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
-      View3D *v3d = p->sa->spacedata.first;
+      View3D *v3d = p->area->spacedata.first;
       view3d_region_operator_needs_opengl(p->win, p->region);
       ED_view3d_autodist_init(p->depsgraph, p->region, v3d, 0);
     }
@@ -936,7 +936,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
     /* Not all strokes in the datablock may be valid in the current editor/context
      * (e.g. 2D space strokes in the 3D view, if the same datablock is shared)
      */
-    if (ED_gpencil_stroke_can_use_direct(p->sa, gps)) {
+    if (ED_gpencil_stroke_can_use_direct(p->area, gps)) {
       gp_stroke_eraser_dostroke(p, gpf, gps, p->mval, p->radius, &rect);
     }
   }
@@ -997,7 +997,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
        * - must verify that region data is 3D-view (and not something else)
        */
       /* CAUTION: If this is the "toolbar", then this will change on the first stroke */
-      p->sa = curarea;
+      p->area = curarea;
       p->region = region;
       p->align_flag = &ts->annotate_v3d_align;
 
@@ -1016,7 +1016,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
       /* SpaceNode *snode = curarea->spacedata.first; */
 
       /* set current area */
-      p->sa = curarea;
+      p->area = curarea;
       p->region = region;
       p->v2d = &region->v2d;
       p->align_flag = &ts->gpencil_v2d_align;
@@ -1026,7 +1026,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
       SpaceSeq *sseq = curarea->spacedata.first;
 
       /* set current area */
-      p->sa = curarea;
+      p->area = curarea;
       p->region = region;
       p->v2d = &region->v2d;
       p->align_flag = &ts->gpencil_seq_align;
@@ -1045,7 +1045,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
       /* SpaceImage *sima = curarea->spacedata.first; */
 
       /* set the current area */
-      p->sa = curarea;
+      p->area = curarea;
       p->region = region;
       p->v2d = &region->v2d;
       p->align_flag = &ts->gpencil_ima_align;
@@ -1061,7 +1061,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
       }
 
       /* set the current area */
-      p->sa = curarea;
+      p->area = curarea;
       p->region = region;
       p->v2d = &region->v2d;
       p->align_flag = &ts->gpencil_v2d_align;
@@ -1279,7 +1279,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
     p->gpd->runtime.sbuffer_sflag |= GP_STROKE_ERASER;
 
     /* check if we should respect depth while erasing */
-    if (p->sa->spacetype == SPACE_VIEW3D) {
+    if (p->area->spacetype == SPACE_VIEW3D) {
       if (p->gpl->flag & GP_LAYER_NO_XRAY) {
         p->flags |= GP_PAINTFLAG_V3D_ERASER_DEPTH;
       }
@@ -1289,7 +1289,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
     /* disable eraser flags - so that we can switch modes during a session */
     p->gpd->runtime.sbuffer_sflag &= ~GP_STROKE_ERASER;
 
-    if (p->sa->spacetype == SPACE_VIEW3D) {
+    if (p->area->spacetype == SPACE_VIEW3D) {
       if (p->gpl->flag & GP_LAYER_NO_XRAY) {
         p->flags &= ~GP_PAINTFLAG_V3D_ERASER_DEPTH;
       }
@@ -1302,8 +1302,8 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
   /* when drawing in the camera view, in 2D space, set the subrect */
   p->subrect = NULL;
   if ((*p->align_flag & GP_PROJECT_VIEWSPACE) == 0) {
-    if (p->sa->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = p->sa->spacedata.first;
+    if (p->area->spacetype == SPACE_VIEW3D) {
+      View3D *v3d = p->area->spacedata.first;
       RegionView3D *rv3d = p->region->regiondata;
 
       /* for camera view set the subrect */
@@ -1320,7 +1320,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
   p->gsc.gpd = p->gpd;
   p->gsc.gpl = p->gpl;
 
-  p->gsc.sa = p->sa;
+  p->gsc.area = p->area;
   p->gsc.region = p->region;
   p->gsc.v2d = p->v2d;
 
@@ -1331,7 +1331,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 
   /* check if points will need to be made in view-aligned space */
   if (*p->align_flag & GP_PROJECT_VIEWSPACE) {
-    switch (p->sa->spacetype) {
+    switch (p->area->spacetype) {
       case SPACE_VIEW3D: {
         p->gpd->runtime.sbuffer_sflag |= GP_STROKE_3DSPACE;
         break;
@@ -1355,7 +1355,7 @@ static void gp_paint_strokeend(tGPsdata *p)
    * the conversions will project the values correctly...
    */
   if (gpencil_project_check(p)) {
-    View3D *v3d = p->sa->spacedata.first;
+    View3D *v3d = p->area->spacedata.first;
 
     /* need to restore the original projection settings before packing up */
     view3d_region_operator_needs_opengl(p->win, p->region);
@@ -1931,10 +1931,10 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 }
 
 /* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
-static bool gpencil_area_exists(bContext *C, ScrArea *sa_test)
+static bool gpencil_area_exists(bContext *C, ScrArea *area_test)
 {
   bScreen *sc = CTX_wm_screen(C);
-  return (BLI_findindex(&sc->areabase, sa_test) != -1);
+  return (BLI_findindex(&sc->areabase, area_test) != -1);
 }
 
 static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
@@ -1944,7 +1944,7 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
   /* we must check that we're still within the area that we're set up to work from
    * otherwise we could crash (see bug #20586)
    */
-  if (CTX_wm_area(C) != p->sa) {
+  if (CTX_wm_area(C) != p->area) {
     printf("\t\t\tGP - wrong area execution abort!\n");
     p->status = GP_STATUS_ERROR;
   }
@@ -2168,18 +2168,19 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
        */
       if ((p->region) && (p->region->regiontype == RGN_TYPE_TOOLS)) {
         /* Change to whatever region is now under the mouse */
-        ARegion *current_region = BKE_area_find_region_xy(p->sa, RGN_TYPE_ANY, event->x, event->y);
+        ARegion *current_region = BKE_area_find_region_xy(
+            p->area, RGN_TYPE_ANY, event->x, event->y);
 
         if (G.debug & G_DEBUG) {
-          printf("found alternative region %p (old was %p) - at %d %d (sa: %d %d -> %d %d)\n",
+          printf("found alternative region %p (old was %p) - at %d %d (area: %d %d -> %d %d)\n",
                  current_region,
                  p->region,
                  event->x,
                  event->y,
-                 p->sa->totrct.xmin,
-                 p->sa->totrct.ymin,
-                 p->sa->totrct.xmax,
-                 p->sa->totrct.ymax);
+                 p->area->totrct.xmin,
+                 p->area->totrct.ymin,
+                 p->area->totrct.xmax,
+                 p->area->totrct.ymax);
         }
 
         if (current_region) {
@@ -2314,7 +2315,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
-  if (0 == gpencil_area_exists(C, p->sa)) {
+  if (0 == gpencil_area_exists(C, p->area)) {
     estate = OPERATOR_CANCELLED;
   }
   else {

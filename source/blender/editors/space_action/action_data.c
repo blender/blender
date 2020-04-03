@@ -100,7 +100,7 @@ AnimData *ED_actedit_animdata_from_context(bContext *C)
 /* Create new action */
 static bAction *action_create_new(bContext *C, bAction *oldact)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   bAction *action;
 
   /* create action - the way to do this depends on whether we've got an
@@ -124,8 +124,8 @@ static bAction *action_create_new(bContext *C, bAction *oldact)
   id_us_min(&action->id);
 
   /* set ID-Root type */
-  if (sa->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
+  if (area->spacetype == SPACE_ACTION) {
+    SpaceAction *saction = (SpaceAction *)area->spacedata.first;
 
     if (saction->mode == SACTCONT_SHAPEKEY) {
       action->idroot = ID_KE;
@@ -550,7 +550,7 @@ void ACTION_OT_stash_and_create(wmOperatorType *ot)
 void ED_animedit_unlink_action(
     bContext *C, ID *id, AnimData *adt, bAction *act, ReportList *reports, bool force_delete)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* If the old action only has a single user (that it's about to lose),
    * warn user about it
@@ -609,13 +609,13 @@ void ED_animedit_unlink_action(
     BKE_nla_tweakmode_exit(adt);
 
     /* Flush this to the Action Editor (if that's where this change was initiated) */
-    if (sa->spacetype == SPACE_ACTION) {
+    if (area->spacetype == SPACE_ACTION) {
       actedit_change_action(C, NULL);
     }
   }
   else {
     /* Unlink normally - Setting it to NULL should be enough to get the old one unlinked */
-    if (sa->spacetype == SPACE_ACTION) {
+    if (area->spacetype == SPACE_ACTION) {
       /* clear action editor -> action */
       actedit_change_action(C, NULL);
     }

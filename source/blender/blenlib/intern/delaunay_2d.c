@@ -1992,25 +1992,25 @@ typedef struct EdgeVertLambda {
 /* For sorting first by edge id, then by lambda, then by vert id. */
 static int evl_cmp(const void *a, const void *b)
 {
-  const EdgeVertLambda *sa = a;
+  const EdgeVertLambda *area = a;
   const EdgeVertLambda *sb = b;
 
-  if (sa->e_id < sb->e_id) {
+  if (area->e_id < sb->e_id) {
     return -1;
   }
-  else if (sa->e_id > sb->e_id) {
+  else if (area->e_id > sb->e_id) {
     return 1;
   }
-  else if (sa->lambda < sb->lambda) {
+  else if (area->lambda < sb->lambda) {
     return -1;
   }
-  else if (sa->lambda > sb->lambda) {
+  else if (area->lambda > sb->lambda) {
     return 1;
   }
-  else if (sa->v_id < sb->v_id) {
+  else if (area->v_id < sb->v_id) {
     return -1;
   }
-  else if (sa->v_id > sb->v_id) {
+  else if (area->v_id > sb->v_id) {
     return 1;
   }
   return 0;

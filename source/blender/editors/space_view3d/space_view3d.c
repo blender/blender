@@ -88,9 +88,9 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
   if (rv3d == NULL) {
-    ScrArea *sa = CTX_wm_area(C);
-    if (sa && sa->spacetype == SPACE_VIEW3D) {
-      ARegion *region = BKE_area_find_region_active_win(sa);
+    ScrArea *area = CTX_wm_area(C);
+    if (area && area->spacetype == SPACE_VIEW3D) {
+      ARegion *region = BKE_area_find_region_active_win(area);
       if (region) {
         rv3d = region->regiondata;
       }
@@ -103,14 +103,14 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
  * so return that, the caller can then access the region->regiondata */
 bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_region)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   *r_v3d = NULL;
   *r_region = NULL;
 
-  if (sa && sa->spacetype == SPACE_VIEW3D) {
+  if (area && area->spacetype == SPACE_VIEW3D) {
     ARegion *region = CTX_wm_region(C);
-    View3D *v3d = (View3D *)sa->spacedata.first;
+    View3D *v3d = (View3D *)area->spacedata.first;
 
     if (region) {
       RegionView3D *rv3d;
@@ -121,7 +121,7 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_regi
         return true;
       }
       else {
-        if (ED_view3d_area_user_region(sa, v3d, r_region)) {
+        if (ED_view3d_area_user_region(area, v3d, r_region)) {
           *r_v3d = v3d;
           return true;
         }
@@ -136,12 +136,13 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_regi
  * Similar to #ED_view3d_context_user_region() but does not use context. Always performs a lookup.
  * Also works if \a v3d is not the active space.
  */
-bool ED_view3d_area_user_region(const ScrArea *sa, const View3D *v3d, ARegion **r_region)
+bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion **r_region)
 {
   RegionView3D *rv3d = NULL;
   ARegion *region_unlock_user = NULL;
   ARegion *region_unlock = NULL;
-  const ListBase *region_list = (v3d == sa->spacedata.first) ? &sa->regionbase : &v3d->regionbase;
+  const ListBase *region_list = (v3d == area->spacedata.first) ? &area->regionbase :
+                                                                 &v3d->regionbase;
 
   BLI_assert(v3d->spacetype == SPACE_VIEW3D);
 
@@ -239,14 +240,14 @@ void ED_view3d_stop_render_preview(wmWindowManager *wm, ARegion *region)
   }
 }
 
-void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
+void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area)
 {
   wmWindowManager *wm = bmain->wm.first;
 
   if (v3d->shading.type != OB_RENDER) {
     ARegion *region;
 
-    for (region = sa->regionbase.first; region; region = region->next) {
+    for (region = area->regionbase.first; region; region = region->next) {
       if ((region->regiontype == RGN_TYPE_WINDOW) && region->regiondata) {
         ED_view3d_stop_render_preview(wm, region);
         break;
@@ -257,7 +258,7 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 
 /* ******************** default callbacks for view3d space ***************** */
 
-static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
+static SpaceLink *view3d_new(const ScrArea *UNUSED(area), const Scene *scene)
 {
   ARegion *region;
   View3D *v3d;
@@ -336,7 +337,7 @@ static void view3d_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void view3d_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void view3d_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
@@ -732,9 +733,9 @@ static void *view3d_main_region_duplicate(void *poin)
 }
 
 static void view3d_main_region_listener(
-    wmWindow *UNUSED(win), ScrArea *sa, ARegion *region, wmNotifier *wmn, const Scene *scene)
+    wmWindow *UNUSED(win), ScrArea *area, ARegion *region, wmNotifier *wmn, const Scene *scene)
 {
-  View3D *v3d = sa->spacedata.first;
+  View3D *v3d = area->spacedata.first;
   RegionView3D *rv3d = region->regiondata;
   wmGizmoMap *gzmap = region->gizmo_map;
 
@@ -927,7 +928,7 @@ static void view3d_main_region_listener(
       }
       break;
     case NC_LIGHTPROBE:
-      ED_area_tag_refresh(sa);
+      ED_area_tag_refresh(area);
       break;
     case NC_IMAGE:
       /* this could be more fine grained checks if we had
@@ -992,7 +993,7 @@ static void view3d_main_region_message_subscribe(const struct bContext *C,
                                                  struct WorkSpace *UNUSED(workspace),
                                                  struct Scene *UNUSED(scene),
                                                  struct bScreen *UNUSED(screen),
-                                                 struct ScrArea *sa,
+                                                 struct ScrArea *area,
                                                  struct ARegion *region,
                                                  struct wmMsgBus *mbus)
 {
@@ -1070,7 +1071,7 @@ static void view3d_main_region_message_subscribe(const struct bContext *C,
   {
     wmMsgSubscribeValue msg_sub_value_region_tag_refresh = {
         .owner = region,
-        .user_data = sa,
+        .user_data = area,
         .notify = WM_toolsystem_do_msg_notify_tag_refresh,
     };
     WM_msg_subscribe_rna_anon_prop(mbus, Object, mode, &msg_sub_value_region_tag_refresh);
@@ -1078,9 +1079,9 @@ static void view3d_main_region_message_subscribe(const struct bContext *C,
   }
 }
 
-static void view3d_main_region_cursor(wmWindow *win, ScrArea *sa, ARegion *region)
+static void view3d_main_region_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
-  if (!WM_cursor_set_from_tool(win, sa, region)) {
+  if (!WM_cursor_set_from_tool(win, area, region)) {
     WM_cursor_set(win, WM_CURSOR_DEFAULT);
   }
 }
@@ -1101,7 +1102,7 @@ static void view3d_header_region_draw(const bContext *C, ARegion *region)
 }
 
 static void view3d_header_region_listener(wmWindow *UNUSED(win),
-                                          ScrArea *UNUSED(sa),
+                                          ScrArea *UNUSED(area),
                                           ARegion *region,
                                           wmNotifier *wmn,
                                           const Scene *UNUSED(scene))
@@ -1174,7 +1175,7 @@ static void view3d_header_region_message_subscribe(const struct bContext *UNUSED
                                                    struct WorkSpace *UNUSED(workspace),
                                                    struct Scene *UNUSED(scene),
                                                    struct bScreen *UNUSED(screen),
-                                                   struct ScrArea *UNUSED(sa),
+                                                   struct ScrArea *UNUSED(area),
                                                    struct ARegion *region,
                                                    struct wmMsgBus *mbus)
 {
@@ -1318,7 +1319,7 @@ static void view3d_buttons_region_layout(const bContext *C, ARegion *region)
 }
 
 static void view3d_buttons_region_listener(wmWindow *UNUSED(win),
-                                           ScrArea *UNUSED(sa),
+                                           ScrArea *UNUSED(area),
                                            ARegion *region,
                                            wmNotifier *wmn,
                                            const Scene *UNUSED(scene))
@@ -1441,11 +1442,11 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
 
 /* area (not region) level listener */
 static void space_view3d_listener(wmWindow *UNUSED(win),
-                                  ScrArea *sa,
+                                  ScrArea *area,
                                   struct wmNotifier *wmn,
                                   Scene *UNUSED(scene))
 {
-  View3D *v3d = sa->spacedata.first;
+  View3D *v3d = area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
@@ -1453,7 +1454,7 @@ static void space_view3d_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_WORLD:
           if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
-            ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
+            ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
           }
           break;
       }
@@ -1463,7 +1464,7 @@ static void space_view3d_listener(wmWindow *UNUSED(win),
         case ND_WORLD_DRAW:
         case ND_WORLD:
           if (v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD) {
-            ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
+            ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
           }
           break;
       }
@@ -1472,7 +1473,7 @@ static void space_view3d_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_NODES:
           if (v3d->shading.type == OB_TEXTURE) {
-            ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
+            ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
           }
           break;
       }
@@ -1480,7 +1481,7 @@ static void space_view3d_listener(wmWindow *UNUSED(win),
   }
 }
 
-static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(sa))
+static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(area))
 {
   Scene *scene = CTX_data_scene(C);
   LightCache *lcache = scene->eevee.light_cache_data;
@@ -1538,7 +1539,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
   return -1; /* found but not available */
 }
 
-static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_id)
+static void view3d_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new_id)
 {
   View3D *v3d;
   ARegion *region;
@@ -1553,8 +1554,8 @@ static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_i
       v3d->camera = (Object *)new_id;
       if (!new_id) {
         /* 3D view might be inactive, in that case needs to use slink->regionbase */
-        ListBase *regionbase = (slink == sa->spacedata.first) ? &sa->regionbase :
-                                                                &slink->regionbase;
+        ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
+                                                                  &slink->regionbase;
         for (region = regionbase->first; region; region = region->next) {
           if (region->regiontype == RGN_TYPE_WINDOW) {
             RegionView3D *rv3d = is_local ? ((RegionView3D *)region->regiondata)->localvd :

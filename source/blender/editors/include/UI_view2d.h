@@ -119,7 +119,7 @@ void UI_view2d_region_reinit(struct View2D *v2d, short type, int winx, int winy)
 
 void UI_view2d_curRect_validate(struct View2D *v2d);
 void UI_view2d_curRect_reset(struct View2D *v2d);
-void UI_view2d_sync(struct bScreen *screen, struct ScrArea *sa, struct View2D *v2dcur, int flag);
+void UI_view2d_sync(struct bScreen *screen, struct ScrArea *area, struct View2D *v2dcur, int flag);
 
 void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
 void UI_view2d_totRect_set_resize(struct View2D *v2d, int width, int height, bool resize);

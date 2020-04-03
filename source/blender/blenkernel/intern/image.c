@@ -3199,9 +3199,9 @@ static void image_walk_id_all_users(
       for (wmWindow *win = wm->windows.first; win; win = win->next) {
         const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
-        for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-          if (sa->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = sa->spacedata.first;
+        for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+          if (area->spacetype == SPACE_IMAGE) {
+            SpaceImage *sima = area->spacedata.first;
             callback(sima->image, NULL, &sima->iuser, customdata);
           }
         }

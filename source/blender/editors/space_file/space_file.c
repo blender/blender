@@ -55,16 +55,16 @@
 #include "filelist.h"
 #include "fsmenu.h"
 
-static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *region_prev)
+static ARegion *file_execute_region_ensure(ScrArea *area, ARegion *region_prev)
 {
   ARegion *region;
 
-  if ((region = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE)) != NULL) {
+  if ((region = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE)) != NULL) {
     return region;
   }
 
   region = MEM_callocN(sizeof(ARegion), "execute region for file");
-  BLI_insertlinkafter(&sa->regionbase, region_prev, region);
+  BLI_insertlinkafter(&area->regionbase, region_prev, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM;
   region->flag = RGN_FLAG_DYNAMIC_SIZE;
@@ -72,17 +72,17 @@ static ARegion *file_execute_region_ensure(ScrArea *sa, ARegion *region_prev)
   return region;
 }
 
-static ARegion *file_tool_props_region_ensure(ScrArea *sa, ARegion *region_prev)
+static ARegion *file_tool_props_region_ensure(ScrArea *area, ARegion *region_prev)
 {
   ARegion *region;
 
-  if ((region = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS)) != NULL) {
+  if ((region = BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS)) != NULL) {
     return region;
   }
 
   /* add subdiv level; after execute region */
   region = MEM_callocN(sizeof(ARegion), "tool props for file");
-  BLI_insertlinkafter(&sa->regionbase, region_prev, region);
+  BLI_insertlinkafter(&area->regionbase, region_prev, region);
   region->regiontype = RGN_TYPE_TOOL_PROPS;
   region->alignment = RGN_ALIGN_RIGHT;
 
@@ -173,18 +173,18 @@ static void file_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback, area size changes, screen set, etc */
-static void file_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
+static void file_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
-  SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
+  SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
 
   if (sfile->layout) {
     sfile->layout->dirty = true;
   }
 }
 
-static void file_exit(wmWindowManager *wm, ScrArea *sa)
+static void file_exit(wmWindowManager *wm, ScrArea *area)
 {
-  SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
+  SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
 
   if (sfile->previews_timer) {
     WM_event_remove_timer_notifier(wm, NULL, sfile->previews_timer);
@@ -228,19 +228,19 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 static void file_ensure_valid_region_state(bContext *C,
                                            wmWindowManager *wm,
                                            wmWindow *win,
-                                           ScrArea *sa,
+                                           ScrArea *area,
                                            SpaceFile *sfile,
                                            FileSelectParams *params)
 {
-  ARegion *region_ui = BKE_area_find_region_type(sa, RGN_TYPE_UI);
-  ARegion *region_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
-  ARegion *region_execute = BKE_area_find_region_type(sa, RGN_TYPE_EXECUTE);
+  ARegion *region_ui = BKE_area_find_region_type(area, RGN_TYPE_UI);
+  ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS);
+  ARegion *region_execute = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
   bool needs_init = false; /* To avoid multiple ED_area_initialize() calls. */
 
   /* If there's an file-operation, ensure we have the option and execute region */
   if (sfile->op && (region_props == NULL)) {
-    region_execute = file_execute_region_ensure(sa, region_ui);
-    region_props = file_tool_props_region_ensure(sa, region_execute);
+    region_execute = file_execute_region_ensure(area, region_ui);
+    region_props = file_tool_props_region_ensure(area, region_execute);
 
     if (params->flag & FILE_HIDE_TOOL_PROPS) {
       region_props->flag |= RGN_FLAG_HIDDEN;
@@ -255,17 +255,17 @@ static void file_ensure_valid_region_state(bContext *C,
   else if ((sfile->op == NULL) && (region_props != NULL)) {
     BLI_assert(region_execute != NULL);
 
-    ED_region_remove(C, sa, region_props);
-    ED_region_remove(C, sa, region_execute);
+    ED_region_remove(C, area, region_props);
+    ED_region_remove(C, area, region_execute);
     needs_init = true;
   }
 
   if (needs_init) {
-    ED_area_initialize(wm, win, sa);
+    ED_area_initialize(wm, win, area);
   }
 }
 
-static void file_refresh(const bContext *C, ScrArea *sa)
+static void file_refresh(const bContext *C, ScrArea *area)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
@@ -333,34 +333,34 @@ static void file_refresh(const bContext *C, ScrArea *sa)
     sfile->layout->dirty = true;
   }
 
-  /* Might be called with NULL sa, see file_main_region_draw() below. */
-  if (sa) {
-    file_ensure_valid_region_state((bContext *)C, wm, win, sa, sfile, params);
+  /* Might be called with NULL area, see file_main_region_draw() below. */
+  if (area) {
+    file_ensure_valid_region_state((bContext *)C, wm, win, area, sfile, params);
   }
 
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
 }
 
 static void file_listener(wmWindow *UNUSED(win),
-                          ScrArea *sa,
+                          ScrArea *area,
                           wmNotifier *wmn,
                           Scene *UNUSED(scene))
 {
-  SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
+  SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
     case NC_SPACE:
       switch (wmn->data) {
         case ND_SPACE_FILE_LIST:
-          ED_area_tag_refresh(sa);
+          ED_area_tag_refresh(area);
           break;
         case ND_SPACE_FILE_PARAMS:
-          ED_area_tag_refresh(sa);
+          ED_area_tag_refresh(area);
           break;
         case ND_SPACE_FILE_PREVIEW:
           if (sfile->files && filelist_cache_previews_update(sfile->files)) {
-            ED_area_tag_refresh(sa);
+            ED_area_tag_refresh(area);
           }
           break;
       }
@@ -384,7 +384,7 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
 }
 
 static void file_main_region_listener(wmWindow *UNUSED(win),
-                                      ScrArea *UNUSED(sa),
+                                      ScrArea *UNUSED(area),
                                       ARegion *region,
                                       wmNotifier *wmn,
                                       const Scene *UNUSED(scene))
@@ -408,18 +408,18 @@ static void file_main_region_message_subscribe(const struct bContext *UNUSED(C),
                                                struct WorkSpace *UNUSED(workspace),
                                                struct Scene *UNUSED(scene),
                                                struct bScreen *screen,
-                                               struct ScrArea *sa,
+                                               struct ScrArea *area,
                                                struct ARegion *region,
                                                struct wmMsgBus *mbus)
 {
-  SpaceFile *sfile = sa->spacedata.first;
+  SpaceFile *sfile = area->spacedata.first;
   FileSelectParams *params = ED_fileselect_get_params(sfile);
   /* This is a bit odd that a region owns the subscriber for an area,
    * keep for now since all subscribers for WM are regions.
    * May be worth re-visiting later. */
   wmMsgSubscribeValue msg_sub_value_area_tag_refresh = {
       .owner = region,
-      .user_data = sa,
+      .user_data = area,
       .notify = ED_area_do_msg_notify_tag_refresh,
   };
 
@@ -575,7 +575,7 @@ static void file_tools_region_draw(const bContext *C, ARegion *region)
 }
 
 static void file_tools_region_listener(wmWindow *UNUSED(win),
-                                       ScrArea *UNUSED(sa),
+                                       ScrArea *UNUSED(area),
                                        ARegion *UNUSED(region),
                                        wmNotifier *UNUSED(wmn),
                                        const Scene *UNUSED(scene))
@@ -643,7 +643,7 @@ static void file_execution_region_draw(const bContext *C, ARegion *region)
 }
 
 static void file_ui_region_listener(wmWindow *UNUSED(win),
-                                    ScrArea *UNUSED(sa),
+                                    ScrArea *UNUSED(area),
                                     ARegion *region,
                                     wmNotifier *wmn,
                                     const Scene *UNUSED(scene))

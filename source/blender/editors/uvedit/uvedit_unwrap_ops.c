@@ -708,7 +708,7 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
 static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interactive)
 {
   MinStretch *ms = op->customdata;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
@@ -724,9 +724,9 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
 
     param_flush(ms->handle);
 
-    if (sa) {
+    if (area) {
       BLI_snprintf(str, sizeof(str), TIP_("Minimize Stretch. Blend %.2f"), ms->blend);
-      ED_area_status_text(sa, str);
+      ED_area_status_text(area, str);
       ED_workspace_status_text(C, TIP_("Press + and -, or scroll wheel to set blending"));
     }
 
@@ -749,12 +749,12 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
 static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
 {
   MinStretch *ms = op->customdata;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
-  ED_area_status_text(sa, NULL);
+  ED_area_status_text(area, NULL);
   ED_workspace_status_text(C, NULL);
 
   if (ms->timer) {

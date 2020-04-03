@@ -420,7 +420,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *region)
  * Use to refresh centered popups on screen resizing (for splash).
  */
 static void ui_block_region_popup_window_listener(wmWindow *UNUSED(win),
-                                                  ScrArea *UNUSED(sa),
+                                                  ScrArea *UNUSED(area),
                                                   ARegion *region,
                                                   wmNotifier *wmn,
                                                   const Scene *UNUSED(scene))
@@ -525,7 +525,7 @@ void ui_popup_block_scrolltest(uiBlock *block)
 static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
 {
   wmWindow *ctx_win = CTX_wm_window(C);
-  ScrArea *ctx_sa = CTX_wm_area(C);
+  ScrArea *ctx_area = CTX_wm_area(C);
   ARegion *ctx_region = CTX_wm_region(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -550,7 +550,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
 
   /* Reset context (area and region were NULL'ed when chaning context window). */
   CTX_wm_window_set(C, ctx_win);
-  CTX_wm_area_set(C, ctx_sa);
+  CTX_wm_area_set(C, ctx_area);
   CTX_wm_region_set(C, ctx_region);
 
   /* reset to region cursor (only if there's not another menu open) */

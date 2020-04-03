@@ -851,7 +851,7 @@ void FILE_OT_select_walk(wmOperatorType *ot)
 
 static int file_select_all_exec(bContext *C, wmOperator *op)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelection sel;
   const int numfiles = filelist_files_ensure(sfile->files);
@@ -900,7 +900,7 @@ static int file_select_all_exec(bContext *C, wmOperator *op)
 
   file_draw_check(C);
   WM_event_add_mousemove(CTX_wm_window(C));
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
 
   return OPERATOR_FINISHED;
 }
@@ -975,7 +975,7 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 
 static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   struct FSMenu *fsmenu = ED_fsmenu_get();
   struct FileSelectParams *params = ED_fileselect_get_params(sfile);
@@ -992,8 +992,8 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
     fsmenu_write_file(fsmenu, name);
   }
 
-  ED_area_tag_refresh(sa);
-  ED_area_tag_redraw(sa);
+  ED_area_tag_refresh(area);
+  ED_area_tag_redraw(area);
   return OPERATOR_FINISHED;
 }
 
@@ -1017,7 +1017,7 @@ void FILE_OT_bookmark_add(wmOperatorType *ot)
 
 static int bookmark_delete_exec(bContext *C, wmOperator *op)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   struct FSMenu *fsmenu = ED_fsmenu_get();
   int nentries = ED_fsmenu_get_nentries(fsmenu, FS_CATEGORY_BOOKMARKS);
@@ -1041,8 +1041,8 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
                        BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
                        BLENDER_BOOKMARK_FILE);
       fsmenu_write_file(fsmenu, name);
-      ED_area_tag_refresh(sa);
-      ED_area_tag_redraw(sa);
+      ED_area_tag_refresh(area);
+      ED_area_tag_redraw(area);
     }
   }
 
@@ -1075,7 +1075,7 @@ void FILE_OT_bookmark_delete(wmOperatorType *ot)
 
 static int bookmark_cleanup_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   struct FSMenu *fsmenu = ED_fsmenu_get();
   struct FSMenuEntry *fsme_next, *fsme = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS);
   int index;
@@ -1102,8 +1102,8 @@ static int bookmark_cleanup_exec(bContext *C, wmOperator *UNUSED(op))
                      BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(fsmenu, name);
     fsmenu_refresh_bookmarks_status(CTX_wm_manager(C), fsmenu);
-    ED_area_tag_refresh(sa);
-    ED_area_tag_redraw(sa);
+    ED_area_tag_refresh(area);
+    ED_area_tag_redraw(area);
   }
 
   return OPERATOR_FINISHED;
@@ -1138,7 +1138,7 @@ enum {
 
 static int bookmark_move_exec(bContext *C, wmOperator *op)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   struct FSMenu *fsmenu = ED_fsmenu_get();
   struct FSMenuEntry *fsmentry = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS);
@@ -1187,7 +1187,7 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
                    BLENDER_BOOKMARK_FILE);
   fsmenu_write_file(fsmenu, fname);
 
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
   return OPERATOR_FINISHED;
 }
 
@@ -1228,7 +1228,7 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
 
 static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   char name[FILE_MAX];
   struct FSMenu *fsmenu = ED_fsmenu_get();
 
@@ -1240,7 +1240,7 @@ static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
                    BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
                    BLENDER_BOOKMARK_FILE);
   fsmenu_write_file(fsmenu, name);
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
 
   return OPERATOR_FINISHED;
 }
@@ -1867,7 +1867,7 @@ void FILE_OT_next(struct wmOperatorType *ot)
 /* only meant for timer usage */
 static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   ARegion *region, *region_ctx = CTX_wm_region(C);
   const bool is_horizontal = (sfile->layout->flag & FILE_LAYOUT_HOR) != 0;
@@ -1911,7 +1911,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   }
 
   /* we need the correct area for scrolling */
-  region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   if (!region || region->regiontype != RGN_TYPE_WINDOW) {
     WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
     sfile->smoothscroll_timer = NULL;
@@ -2521,12 +2521,12 @@ static void filenum_newname(char *name, size_t name_size, int add)
 static int file_filenum_exec(bContext *C, wmOperator *op)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   int inc = RNA_int_get(op->ptr, "increment");
   if (sfile->params && (inc != 0)) {
     filenum_newname(sfile->params->file, sizeof(sfile->params->file), inc);
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
     file_draw_check(C);
     // WM_event_add_notifier(C, NC_WINDOW, NULL);
   }
@@ -2576,12 +2576,12 @@ static void file_rename_state_activate(SpaceFile *sfile, int file_idx, bool requ
 
 static int file_rename_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
 
   if (sfile->params) {
     file_rename_state_activate(sfile, sfile->params->active_file, true);
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
   }
 
   return OPERATOR_FINISHED;
@@ -2589,12 +2589,12 @@ static int file_rename_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent
 
 static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
 
   if (sfile->params) {
     file_rename_state_activate(sfile, sfile->params->highlight_file, false);
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
   }
 
   return OPERATOR_FINISHED;
@@ -2708,8 +2708,8 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 
 static int file_start_filter_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *region = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_UI);
   SpaceFile *sf = CTX_wm_space_file(C);
 
   UI_textbutton_activate_rna(C, region, sf->params, "filter_search");

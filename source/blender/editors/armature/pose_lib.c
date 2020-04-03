@@ -161,16 +161,16 @@ static TimeMarker *poselib_get_active_pose(bAction *act)
 /* XXX C can be zero */
 static Object *get_poselib_object(bContext *C)
 {
-  ScrArea *sa;
+  ScrArea *area;
 
   /* sanity check */
   if (C == NULL) {
     return NULL;
   }
 
-  sa = CTX_wm_area(C);
+  area = CTX_wm_area(C);
 
-  if (sa && (sa->spacetype == SPACE_PROPERTIES)) {
+  if (area && (area->spacetype == SPACE_PROPERTIES)) {
     return ED_object_context(C);
   }
   else {
@@ -870,7 +870,7 @@ typedef struct tPoseLib_PreviewData {
   /** active scene. */
   Scene *scene;
   /** active area. */
-  ScrArea *sa;
+  ScrArea *area;
 
   /** RNA-Pointer to Object 'ob' .*/
   PointerRNA rna_ptr;
@@ -1171,7 +1171,7 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
   /* do header print - if interactively previewing */
   if (pld->state == PL_PREVIEW_RUNNING) {
     if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {
-      ED_area_status_text(pld->sa, TIP_("PoseLib Previewing Pose: [Showing Original Pose]"));
+      ED_area_status_text(pld->area, TIP_("PoseLib Previewing Pose: [Showing Original Pose]"));
       ED_workspace_status_text(C, TIP_("Use Tab to start previewing poses again"));
     }
     else if (pld->searchstr[0]) {
@@ -1200,7 +1200,7 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
                         "Current Pose - \"%s\""),
                    tempstr,
                    markern);
-      ED_area_status_text(pld->sa, pld->headerstr);
+      ED_area_status_text(pld->area, pld->headerstr);
       ED_workspace_status_text(C, TIP_("Use ScrollWheel or PageUp/Down to change pose"));
     }
     else {
@@ -1208,7 +1208,7 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
                    sizeof(pld->headerstr),
                    TIP_("PoseLib Previewing Pose: \"%s\""),
                    pld->marker->name);
-      ED_area_status_text(pld->sa, pld->headerstr);
+      ED_area_status_text(pld->area, pld->headerstr);
       ED_workspace_status_text(C, NULL);
     }
   }
@@ -1631,7 +1631,7 @@ static void poselib_preview_init_data(bContext *C, wmOperator *op)
   pld->act = (ob) ? (ob->poselib) : NULL;
 
   pld->scene = CTX_data_scene(C);
-  pld->sa = CTX_wm_area(C);
+  pld->area = CTX_wm_area(C);
 
   /* get starting pose based on RNA-props for this operator */
   if (pose_index == -1) {
@@ -1702,7 +1702,7 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
   TimeMarker *marker = pld->marker;
 
   /* redraw the header so that it doesn't show any of our stuff anymore */
-  ED_area_status_text(pld->sa, NULL);
+  ED_area_status_text(pld->area, NULL);
   ED_workspace_status_text(C, NULL);
 
   /* this signal does one recalc on pose, then unlocks, so ESC or edit will work */

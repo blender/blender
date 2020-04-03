@@ -131,18 +131,18 @@ typedef enum eSpaceButtons_Align {
   BUT_AUTO = 2,
 } eSpaceButtons_Align;
 
-static int panel_aligned(const ScrArea *sa, const ARegion *region)
+static int panel_aligned(const ScrArea *area, const ARegion *region)
 {
-  if (sa->spacetype == SPACE_PROPERTIES && region->regiontype == RGN_TYPE_WINDOW) {
+  if (area->spacetype == SPACE_PROPERTIES && region->regiontype == RGN_TYPE_WINDOW) {
     return BUT_VERTICAL;
   }
-  else if (sa->spacetype == SPACE_USERPREF && region->regiontype == RGN_TYPE_WINDOW) {
+  else if (area->spacetype == SPACE_USERPREF && region->regiontype == RGN_TYPE_WINDOW) {
     return BUT_VERTICAL;
   }
-  else if (sa->spacetype == SPACE_FILE && region->regiontype == RGN_TYPE_CHANNELS) {
+  else if (area->spacetype == SPACE_FILE && region->regiontype == RGN_TYPE_CHANNELS) {
     return BUT_VERTICAL;
   }
-  else if (sa->spacetype == SPACE_IMAGE && region->regiontype == RGN_TYPE_PREVIEW) {
+  else if (area->spacetype == SPACE_IMAGE && region->regiontype == RGN_TYPE_PREVIEW) {
     return BUT_VERTICAL;
   }
   else if (ELEM(region->regiontype,
@@ -196,21 +196,21 @@ static bool panel_active_animation_changed(ListBase *lb, Panel **pa_animation, b
   return false;
 }
 
-static bool panels_need_realign(ScrArea *sa, ARegion *region, Panel **r_pa_animate)
+static bool panels_need_realign(ScrArea *area, ARegion *region, Panel **r_pa_animate)
 {
   *r_pa_animate = NULL;
 
-  if (sa->spacetype == SPACE_PROPERTIES && region->regiontype == RGN_TYPE_WINDOW) {
-    SpaceProperties *sbuts = sa->spacedata.first;
+  if (area->spacetype == SPACE_PROPERTIES && region->regiontype == RGN_TYPE_WINDOW) {
+    SpaceProperties *sbuts = area->spacedata.first;
 
     if (sbuts->mainbo != sbuts->mainb) {
       return true;
     }
   }
-  else if (sa->spacetype == SPACE_IMAGE && region->regiontype == RGN_TYPE_PREVIEW) {
+  else if (area->spacetype == SPACE_IMAGE && region->regiontype == RGN_TYPE_PREVIEW) {
     return true;
   }
-  else if (sa->spacetype == SPACE_FILE && region->regiontype == RGN_TYPE_CHANNELS) {
+  else if (area->spacetype == SPACE_FILE && region->regiontype == RGN_TYPE_CHANNELS) {
     return true;
   }
 
@@ -234,11 +234,11 @@ static bool panels_need_realign(ScrArea *sa, ARegion *region, Panel **r_pa_anima
 
 /****************************** panels ******************************/
 
-static void panels_collapse_all(ScrArea *sa, ARegion *region, const Panel *from_pa)
+static void panels_collapse_all(ScrArea *area, ARegion *region, const Panel *from_pa)
 {
   const bool has_category_tabs = UI_panel_category_is_visible(region);
   const char *category = has_category_tabs ? UI_panel_category_active_get(region, false) : NULL;
-  const int flag = ((panel_aligned(sa, region) == BUT_HORIZONTAL) ? PNL_CLOSEDX : PNL_CLOSEDY);
+  const int flag = ((panel_aligned(area, region) == BUT_HORIZONTAL) ? PNL_CLOSEDX : PNL_CLOSEDY);
   const PanelType *from_pt = from_pa->type;
   Panel *pa;
 
@@ -274,7 +274,7 @@ Panel *UI_panel_find_by_type(ListBase *lb, PanelType *pt)
 /**
  * \note \a pa should be return value from #UI_panel_find_by_type and can be NULL.
  */
-Panel *UI_panel_begin(ScrArea *sa,
+Panel *UI_panel_begin(ScrArea *area,
                       ARegion *region,
                       ListBase *lb,
                       uiBlock *block,
@@ -286,7 +286,7 @@ Panel *UI_panel_begin(ScrArea *sa,
   const char *drawname = CTX_IFACE_(pt->translation_context, pt->label);
   const char *idname = pt->idname;
   const bool newpanel = (pa == NULL);
-  int align = panel_aligned(sa, region);
+  int align = panel_aligned(area, region);
 
   if (!newpanel) {
     pa->type = pt;
@@ -385,7 +385,7 @@ static float panel_region_offset_x_get(const ARegion *region, int align)
 }
 
 void UI_panel_end(
-    const ScrArea *sa, const ARegion *region, uiBlock *block, int width, int height, bool open)
+    const ScrArea *area, const ARegion *region, uiBlock *block, int width, int height, bool open)
 {
   Panel *pa = block->panel;
 
@@ -425,7 +425,7 @@ void UI_panel_end(
       pa->ofsy += old_sizey - pa->sizey;
     }
 
-    int align = panel_aligned(sa, region);
+    int align = panel_aligned(area, region);
     if (old_region_ofsx != panel_region_offset_x_get(region, align)) {
       pa->runtime_flag |= PNL_ANIM_ALIGN;
     }
@@ -1021,13 +1021,13 @@ static void align_sub_panels(Panel *pa)
 
 /* this doesn't draw */
 /* returns 1 when it did something */
-static bool uiAlignPanelStep(ScrArea *sa, ARegion *region, const float fac, const bool drag)
+static bool uiAlignPanelStep(ScrArea *area, ARegion *region, const float fac, const bool drag)
 {
   Panel *pa;
   PanelSort *ps, *panelsort, *psnext;
   int a, tot = 0;
   bool done;
-  int align = panel_aligned(sa, region);
+  int align = panel_aligned(area, region);
 
   /* count active, not tabbed panels */
   for (pa = region->panels.first; pa; pa = pa->next) {
@@ -1135,10 +1135,10 @@ static bool uiAlignPanelStep(ScrArea *sa, ARegion *region, const float fac, cons
   return done;
 }
 
-static void ui_panels_size(ScrArea *sa, ARegion *region, int *r_x, int *r_y)
+static void ui_panels_size(ScrArea *area, ARegion *region, int *r_x, int *r_y)
 {
   Panel *pa;
-  int align = panel_aligned(sa, region);
+  int align = panel_aligned(area, region);
   int sizex = 0;
   int sizey = 0;
 
@@ -1175,7 +1175,7 @@ static void ui_panels_size(ScrArea *sa, ARegion *region, int *r_x, int *r_y)
 static void ui_do_animate(const bContext *C, Panel *panel)
 {
   uiHandlePanelData *data = panel->activedata;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   float fac;
 
@@ -1183,7 +1183,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
   fac = min_ff(sqrtf(fac), 1.0f);
 
   /* for max 1 second, interpolate positions */
-  if (uiAlignPanelStep(sa, region, fac, false)) {
+  if (uiAlignPanelStep(area, region, fac, false)) {
     ED_region_tag_redraw(region);
   }
   else {
@@ -1220,7 +1220,7 @@ void UI_panels_begin(const bContext *UNUSED(C), ARegion *region)
 /* only draws blocks with panels */
 void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   uiBlock *block;
   Panel *pa, *firstpa;
 
@@ -1232,12 +1232,12 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   }
 
   /* re-align, possibly with animation */
-  if (panels_need_realign(sa, region, &pa)) {
+  if (panels_need_realign(area, region, &pa)) {
     if (pa) {
       panel_activate_state(C, pa, PANEL_STATE_ANIMATION);
     }
     else {
-      uiAlignPanelStep(sa, region, 1.0, false);
+      uiAlignPanelStep(area, region, 1.0, false);
     }
   }
 
@@ -1256,7 +1256,7 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   }
 
   /* compute size taken up by panel */
-  ui_panels_size(sa, region, r_x, r_y);
+  ui_panels_size(area, region, r_x, r_y);
 }
 
 void UI_panels_draw(const bContext *C, ARegion *region)
@@ -1347,9 +1347,9 @@ static void check_panel_overlap(ARegion *region, Panel *panel)
 static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
 {
   uiHandlePanelData *data = panel->activedata;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  short align = panel_aligned(sa, region), dx = 0, dy = 0;
+  short align = panel_aligned(area, region), dx = 0, dy = 0;
 
   /* first clip for window, no dragging outside */
   if (!BLI_rcti_isect_pt_v(&region->winrct, &event->x)) {
@@ -1381,7 +1381,7 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
     check_panel_overlap(region, panel);
 
     if (align) {
-      uiAlignPanelStep(sa, region, 0.2, true);
+      uiAlignPanelStep(area, region, 0.2, true);
     }
   }
 
@@ -1441,7 +1441,7 @@ static void ui_panel_drag_collapse(bContext *C,
                                    uiPanelDragCollapseHandle *dragcol_data,
                                    const int xy_dst[2])
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   uiBlock *block;
   Panel *pa;
@@ -1451,7 +1451,7 @@ static void ui_panel_drag_collapse(bContext *C,
     float xy_b_block[2] = {UNPACK2(xy_dst)};
     rctf rect = block->rect;
     int oldflag;
-    const bool is_horizontal = (panel_aligned(sa, region) == BUT_HORIZONTAL);
+    const bool is_horizontal = (panel_aligned(area, region) == BUT_HORIZONTAL);
 
     if ((pa = block->panel) == 0 || (pa->type && (pa->type->flag & PNL_NO_HEADER))) {
       continue;
@@ -1553,7 +1553,7 @@ static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was
 static void ui_handle_panel_header(
     const bContext *C, uiBlock *block, int mx, int my, int event, short ctrl, short shift)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 #ifdef USE_PIN_HIDDEN
   const bool show_pin = UI_panel_category_is_visible(region) &&
@@ -1565,7 +1565,7 @@ static void ui_handle_panel_header(
   const bool is_subpanel = (block->panel->type && block->panel->type->parent);
   const bool show_drag = !is_subpanel;
 
-  int align = panel_aligned(sa, region), button = 0;
+  int align = panel_aligned(area, region), button = 0;
 
   rctf rect_drag, rect_pin;
   float rect_leftmost;
@@ -1620,7 +1620,7 @@ static void ui_handle_panel_header(
     }
     else { /* collapse */
       if (ctrl) {
-        panels_collapse_all(sa, region, block->panel);
+        panels_collapse_all(area, region, block->panel);
 
         /* reset the view - we don't want to display a view without content */
         UI_view2d_offset(&region->v2d, 0.0f, 1.0f);
@@ -2400,7 +2400,7 @@ int ui_handler_panel_region(bContext *C,
           /*XXX 2.50*/
 #if 0
           if (block->handler) {
-            rem_blockhandler(sa, block->handler);
+            rem_blockhandler(area, block->handler);
             ED_region_tag_redraw(region);
             retval = WM_UI_HANDLER_BREAK;
           }
@@ -2421,10 +2421,10 @@ int ui_handler_panel_region(bContext *C,
           }
 
           if (zoom) {
-            ScrArea *sa = CTX_wm_area(C);
-            SpaceLink *sl = sa->spacedata.first;
+            ScrArea *area = CTX_wm_area(C);
+            SpaceLink *sl = area->spacedata.first;
 
-            if (sa->spacetype != SPACE_PROPERTIES) {
+            if (area->spacetype != SPACE_PROPERTIES) {
               if (!(pa->control & UI_PNL_SCALE)) {
                 if (event->type == PADPLUSKEY) {
                   sl->blockscale += 0.1;
@@ -2458,9 +2458,9 @@ static int ui_handler_panel(bContext *C, const wmEvent *event, void *userdata)
 
   /* verify if we can stop */
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    ScrArea *sa = CTX_wm_area(C);
+    ScrArea *area = CTX_wm_area(C);
     ARegion *region = CTX_wm_region(C);
-    int align = panel_aligned(sa, region);
+    int align = panel_aligned(area, region);
 
     if (align) {
       panel_activate_state(C, panel, PANEL_STATE_ANIMATION);

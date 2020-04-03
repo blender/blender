@@ -214,8 +214,8 @@ bool vertex_paint_mode_poll(bContext *C)
 static bool vertex_paint_poll_ex(bContext *C, bool check_tool)
 {
   if (vertex_paint_mode_poll(C) && BKE_paint_brush(&CTX_data_tool_settings(C)->vpaint->paint)) {
-    ScrArea *sa = CTX_wm_area(C);
-    if (sa && sa->spacetype == SPACE_VIEW3D) {
+    ScrArea *area = CTX_wm_area(C);
+    if (area && area->spacetype == SPACE_VIEW3D) {
       ARegion *region = CTX_wm_region(C);
       if (region->regiontype == RGN_TYPE_WINDOW) {
         if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
@@ -247,11 +247,11 @@ bool weight_paint_mode_poll(bContext *C)
 static bool weight_paint_poll_ex(bContext *C, bool check_tool)
 {
   Object *ob = CTX_data_active_object(C);
-  ScrArea *sa;
+  ScrArea *area;
 
   if ((ob != NULL) && (ob->mode & OB_MODE_WEIGHT_PAINT) &&
       (BKE_paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != NULL) &&
-      (sa = CTX_wm_area(C)) && (sa->spacetype == SPACE_VIEW3D)) {
+      (area = CTX_wm_area(C)) && (area->spacetype == SPACE_VIEW3D)) {
     ARegion *region = CTX_wm_region(C);
     if (ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_HUD)) {
       if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {

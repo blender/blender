@@ -156,7 +156,7 @@ static void depthdropper_depth_sample_pt(
 {
   /* we could use some clever */
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
   Scene *scene = CTX_data_scene(C);
 
   ScrArea *area_prev = CTX_wm_area(C);
@@ -164,19 +164,19 @@ static void depthdropper_depth_sample_pt(
 
   ddr->name[0] = '\0';
 
-  if (sa) {
-    if (sa->spacetype == SPACE_VIEW3D) {
-      ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+  if (area) {
+    if (area->spacetype == SPACE_VIEW3D) {
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
       if (region) {
         struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-        View3D *v3d = sa->spacedata.first;
+        View3D *v3d = area->spacedata.first;
         RegionView3D *rv3d = region->regiondata;
         /* weak, we could pass in some reference point */
         const float *view_co = v3d->camera ? v3d->camera->obmat[3] : rv3d->viewinv[3];
         const int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
         float co[3];
 
-        CTX_wm_area_set(C, sa);
+        CTX_wm_area_set(C, area);
         CTX_wm_region_set(C, region);
 
         /* grr, always draw else we leave stale text */

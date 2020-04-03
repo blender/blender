@@ -1533,7 +1533,7 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
   wmJob *wm_job;
   ProxyJob *pj;
   Scene *scene = CTX_data_scene(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
@@ -1570,7 +1570,7 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
   G.is_break = false;
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 
-  ED_area_tag_redraw(sa);
+  ED_area_tag_redraw(area);
 
   return OPERATOR_FINISHED;
 }

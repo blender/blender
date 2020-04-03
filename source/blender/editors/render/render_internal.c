@@ -112,7 +112,7 @@ typedef struct RenderJob {
   ReportList *reports;
   int orig_layer;
   int last_layer;
-  ScrArea *sa;
+  ScrArea *area;
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
   bool supports_glsl_draw;
@@ -543,24 +543,24 @@ static void render_progress_update(void *rjv, float progress)
 static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, ImageUser *iuser)
 {
   wmWindowManager *wm;
-  ScrArea *first_sa = NULL, *matched_sa = NULL;
+  ScrArea *first_area = NULL, *matched_area = NULL;
 
   /* image window, compo node users */
-  for (wm = rj->main->wm.first; wm && matched_sa == NULL; wm = wm->id.next) { /* only 1 wm */
+  for (wm = rj->main->wm.first; wm && matched_area == NULL; wm = wm->id.next) { /* only 1 wm */
     wmWindow *win;
-    for (win = wm->windows.first; win && matched_sa == NULL; win = win->next) {
+    for (win = wm->windows.first; win && matched_area == NULL; win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        if (sa->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = sa->spacedata.first;
-          // sa->spacedata might be empty when toggling fullscreen mode.
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        if (area->spacetype == SPACE_IMAGE) {
+          SpaceImage *sima = area->spacedata.first;
+          // area->spacedata might be empty when toggling fullscreen mode.
           if (sima != NULL && sima->image == rj->image) {
-            if (first_sa == NULL) {
-              first_sa = sa;
+            if (first_area == NULL) {
+              first_area = area;
             }
-            if (sa == rj->sa) {
-              matched_sa = sa;
+            if (area == rj->area) {
+              matched_area = area;
               break;
             }
           }
@@ -569,12 +569,12 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
     }
   }
 
-  if (matched_sa == NULL) {
-    matched_sa = first_sa;
+  if (matched_area == NULL) {
+    matched_area = first_area;
   }
 
-  if (matched_sa) {
-    SpaceImage *sima = matched_sa->spacedata.first;
+  if (matched_area) {
+    SpaceImage *sima = matched_area->spacedata.first;
     RenderResult *main_rr = RE_AcquireResultRead(rj->re);
 
     /* TODO(sergey): is there faster way to get the layer index? */
@@ -689,10 +689,10 @@ static void render_image_restore_layer(RenderJob *rj)
     for (win = wm->windows.first; win; win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        if (sa == rj->sa) {
-          if (sa->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = sa->spacedata.first;
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        if (area == rj->area) {
+          if (area->spacetype == SPACE_IMAGE) {
+            SpaceImage *sima = area->spacedata.first;
 
             if (RE_HasSingleLayer(rj->re)) {
               /* For single layer renders keep the active layer
@@ -748,7 +748,7 @@ static void render_endjob(void *rjv)
     WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
   }
 
-  if (rj->sa) {
+  if (rj->area) {
     render_image_restore_layer(rj);
   }
 
@@ -920,7 +920,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   View3D *v3d = use_viewport ? CTX_wm_view3d(C) : NULL;
   struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
   const char *name;
-  ScrArea *sa;
+  ScrArea *area;
 
   /* Cannot do render if there is not this function. */
   if (re_type->render == NULL) {
@@ -970,7 +970,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   // store spare
 
   /* ensure at least 1 area shows result */
-  sa = render_view_open(C, event->x, event->y, op->reports);
+  area = render_view_open(C, event->x, event->y, op->reports);
 
   /* job custom data */
   rj = MEM_callocN(sizeof(RenderJob), "render job");
@@ -991,14 +991,14 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   rj->reports = op->reports;
   rj->orig_layer = 0;
   rj->last_layer = 0;
-  rj->sa = sa;
+  rj->area = area;
   rj->supports_glsl_draw = IMB_colormanagement_support_glsl_draw(&scene->view_settings);
 
   BKE_color_managed_display_settings_copy(&rj->display_settings, &scene->display_settings);
   BKE_color_managed_view_settings_copy(&rj->view_settings, &scene->view_settings);
 
-  if (sa) {
-    SpaceImage *sima = sa->spacedata.first;
+  if (area) {
+    SpaceImage *sima = area->spacedata.first;
     rj->orig_layer = sima->iuser.layer;
   }
 

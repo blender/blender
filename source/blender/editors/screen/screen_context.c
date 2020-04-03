@@ -114,7 +114,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
   bScreen *sc = CTX_wm_screen(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obact = (view_layer && view_layer->basact) ? view_layer->basact->object : NULL;
@@ -533,7 +533,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
      * That causes the get_active function to fail when called from context.
      * For that reason, we end up using an alternative where we pass everything in!
      */
-    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
 
     if (gpd) {
       CTX_data_id_pointer_set(result, &gpd->id);
@@ -547,7 +547,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     PointerRNA ptr;
 
     /* get pointer to Grease Pencil Data */
-    gpd_ptr = ED_gpencil_data_get_pointers_direct(sa, obact, &ptr);
+    gpd_ptr = ED_gpencil_data_get_pointers_direct(area, obact, &ptr);
 
     if (gpd_ptr) {
       CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
@@ -555,7 +555,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "annotation_data")) {
-    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)sc, sa, scene);
+    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)sc, area, scene);
 
     if (gpd) {
       CTX_data_id_pointer_set(result, &gpd->id);
@@ -568,7 +568,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     PointerRNA ptr;
 
     /* Get pointer to Grease Pencil Data. */
-    gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)sc, sa, scene, &ptr);
+    gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)sc, area, scene, &ptr);
 
     if (gpd_ptr) {
       CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
@@ -576,7 +576,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "active_gpencil_layer")) {
-    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
 
     if (gpd) {
       bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -588,7 +588,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "active_annotation_layer")) {
-    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)sc, sa, scene);
+    bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)sc, area, scene);
 
     if (gpd) {
       bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -600,7 +600,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "active_gpencil_frame")) {
-    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
 
     if (gpd) {
       bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -612,7 +612,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "visible_gpencil_layers")) {
-    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
 
     if (gpd) {
       bGPDlayer *gpl;
@@ -627,7 +627,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "editable_gpencil_layers")) {
-    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
 
     if (gpd) {
       bGPDlayer *gpl;
@@ -642,7 +642,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "editable_gpencil_strokes")) {
-    bGPdata *gpd = ED_gpencil_data_get_active_direct(sa, obact);
+    bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
     const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
     if (gpd) {
@@ -660,7 +660,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
           for (gpf = init_gpf; gpf; gpf = gpf->next) {
             if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
               for (gps = gpf->strokes.first; gps; gps = gps->next) {
-                if (ED_gpencil_stroke_can_use_direct(sa, gps)) {
+                if (ED_gpencil_stroke_can_use_direct(area, gps)) {
                   /* check if the color is editable */
                   if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
                     continue;

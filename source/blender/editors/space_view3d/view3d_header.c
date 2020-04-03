@@ -105,7 +105,7 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
   wmWindow *win = CTX_wm_window(C);
   const int ctrl = win->eventstate->ctrl, shift = win->eventstate->shift;
 
-  /* watch it: if sa->win does not exist, check that when calling direct drawing routines */
+  /* watch it: if area->win does not exist, check that when calling direct drawing routines */
 
   switch (event) {
     case B_SEL_VERT:

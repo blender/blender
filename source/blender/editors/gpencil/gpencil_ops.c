@@ -178,10 +178,10 @@ static bool gp_stroke_sculptmode_poll(bContext *C)
 {
   bGPdata *gpd = CTX_data_gpencil_data(C);
   Object *ob = CTX_data_active_object(C);
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* if not gpencil object and not view3d, need sculpt keys if edit mode */
-  if (sa->spacetype != SPACE_VIEW3D) {
+  if (area->spacetype != SPACE_VIEW3D) {
     return ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
   }
   else {

@@ -57,22 +57,22 @@
 static ScrArea *biggest_non_image_area(bContext *C)
 {
   bScreen *sc = CTX_wm_screen(C);
-  ScrArea *sa, *big = NULL;
+  ScrArea *area, *big = NULL;
   int size, maxsize = 0, bwmaxsize = 0;
   short foundwin = 0;
 
-  for (sa = sc->areabase.first; sa; sa = sa->next) {
-    if (sa->winx > 30 && sa->winy > 30) {
-      size = sa->winx * sa->winy;
-      if (!sa->full && sa->spacetype == SPACE_PROPERTIES) {
+  for (area = sc->areabase.first; area; area = area->next) {
+    if (area->winx > 30 && area->winy > 30) {
+      size = area->winx * area->winy;
+      if (!area->full && area->spacetype == SPACE_PROPERTIES) {
         if (foundwin == 0 && size > bwmaxsize) {
           bwmaxsize = size;
-          big = sa;
+          big = area;
         }
       }
-      else if (sa->spacetype != SPACE_IMAGE && size > maxsize) {
+      else if (area->spacetype != SPACE_IMAGE && size > maxsize) {
         maxsize = size;
-        big = sa;
+        big = area;
         foundwin = 1;
       }
     }
@@ -84,7 +84,7 @@ static ScrArea *biggest_non_image_area(bContext *C)
 static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow **win)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  ScrArea *sa = NULL;
+  ScrArea *area = NULL;
   SpaceImage *sima;
 
   /* find an imagewindow showing render result */
@@ -92,40 +92,40 @@ static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow *
     if (WM_window_get_active_scene(*win) == scene) {
       const bScreen *screen = WM_window_get_active_screen(*win);
 
-      for (sa = screen->areabase.first; sa; sa = sa->next) {
-        if (sa->spacetype == SPACE_IMAGE) {
-          sima = sa->spacedata.first;
+      for (area = screen->areabase.first; area; area = area->next) {
+        if (area->spacetype == SPACE_IMAGE) {
+          sima = area->spacedata.first;
           if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
             break;
           }
         }
       }
-      if (sa) {
+      if (area) {
         break;
       }
     }
   }
 
-  return sa;
+  return area;
 }
 
 static ScrArea *find_area_image_empty(bContext *C)
 {
   bScreen *sc = CTX_wm_screen(C);
-  ScrArea *sa;
+  ScrArea *area;
   SpaceImage *sima;
 
   /* find an imagewindow showing render result */
-  for (sa = sc->areabase.first; sa; sa = sa->next) {
-    if (sa->spacetype == SPACE_IMAGE) {
-      sima = sa->spacedata.first;
+  for (area = sc->areabase.first; area; area = area->next) {
+    if (area->spacetype == SPACE_IMAGE) {
+      sima = area->spacedata.first;
       if ((sima->mode == SI_MODE_VIEW) && !sima->image) {
         break;
       }
     }
   }
 
-  return sa;
+  return area;
 }
 
 /********************** open image editor for render *************************/
@@ -136,7 +136,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   wmWindow *win = NULL;
-  ScrArea *sa = NULL;
+  ScrArea *area = NULL;
   SpaceImage *sima;
   bool area_was_image = false;
 
@@ -163,34 +163,34 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
       return NULL;
     }
 
-    sa = CTX_wm_area(C);
-    if (BLI_listbase_is_single(&sa->spacedata) == false) {
-      sima = sa->spacedata.first;
+    area = CTX_wm_area(C);
+    if (BLI_listbase_is_single(&area->spacedata) == false) {
+      sima = area->spacedata.first;
       sima->flag |= SI_PREVSPACE;
     }
   }
   else if (U.render_display_type == USER_RENDER_DISPLAY_SCREEN) {
-    sa = CTX_wm_area(C);
+    area = CTX_wm_area(C);
 
     /* if the active screen is already in fullscreen mode, skip this and
      * unset the area, so that the fullscreen area is just changed later */
-    if (sa && sa->full) {
-      sa = NULL;
+    if (area && area->full) {
+      area = NULL;
     }
     else {
-      if (sa && sa->spacetype == SPACE_IMAGE) {
+      if (area && area->spacetype == SPACE_IMAGE) {
         area_was_image = true;
       }
 
       /* this function returns with changed context */
-      sa = ED_screen_full_newspace(C, sa, SPACE_IMAGE);
+      area = ED_screen_full_newspace(C, area, SPACE_IMAGE);
     }
   }
 
-  if (!sa) {
-    sa = find_area_showing_r_result(C, scene, &win);
-    if (sa == NULL) {
-      sa = find_area_image_empty(C);
+  if (!area) {
+    area = find_area_showing_r_result(C, scene, &win);
+    if (area == NULL) {
+      area = find_area_image_empty(C);
     }
 
     /* if area found in other window, we make that one show in front */
@@ -198,27 +198,27 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
       wm_window_raise(win);
     }
 
-    if (sa == NULL) {
+    if (area == NULL) {
       /* find largest open non-image area */
-      sa = biggest_non_image_area(C);
-      if (sa) {
-        ED_area_newspace(C, sa, SPACE_IMAGE, true);
-        sima = sa->spacedata.first;
+      area = biggest_non_image_area(C);
+      if (area) {
+        ED_area_newspace(C, area, SPACE_IMAGE, true);
+        sima = area->spacedata.first;
 
         /* makes ESC go back to prev space */
         sima->flag |= SI_PREVSPACE;
 
         /* we already had a fullscreen here -> mark new space as a stacked fullscreen */
-        if (sa->full) {
-          sa->flag |= AREA_FLAG_STACKED_FULLSCREEN;
+        if (area->full) {
+          area->flag |= AREA_FLAG_STACKED_FULLSCREEN;
         }
       }
       else {
         /* use any area of decent size */
-        sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
-        if (sa->spacetype != SPACE_IMAGE) {
-          // XXX newspace(sa, SPACE_IMAGE);
-          sima = sa->spacedata.first;
+        area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
+        if (area->spacetype != SPACE_IMAGE) {
+          // XXX newspace(area, SPACE_IMAGE);
+          sima = area->spacedata.first;
 
           /* makes ESC go back to prev space */
           sima->flag |= SI_PREVSPACE;
@@ -226,7 +226,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
       }
     }
   }
-  sima = sa->spacedata.first;
+  sima = area->spacedata.first;
   sima->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
 
   /* get the correct image, and scale it */
@@ -234,7 +234,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 
   /* If we're rendering to full screen, set appropriate hints on image editor
    * so it can restore properly on pressing escape. */
-  if (sa->full) {
+  if (area->full) {
     sima->flag |= SI_FULLWINDOW;
 
     /* Tell the image editor to revert to previous space in space list on close
@@ -253,7 +253,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     old_sl->link_flag |= SPACE_FLAG_TYPE_WAS_ACTIVE;
   }
 
-  return sa;
+  return area;
 }
 
 /*************************** cancel render viewer **********************/
@@ -261,11 +261,11 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 {
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *sa = CTX_wm_area(C);
-  SpaceImage *sima = sa->spacedata.first;
+  ScrArea *area = CTX_wm_area(C);
+  SpaceImage *sima = area->spacedata.first;
 
   /* ensure image editor fullscreen and area fullscreen states are in sync */
-  if ((sima->flag & SI_FULLWINDOW) && !sa->full) {
+  if ((sima->flag & SI_FULLWINDOW) && !area->full) {
     sima->flag &= ~SI_FULLWINDOW;
   }
 
@@ -275,17 +275,17 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 
     if (sima->flag & SI_FULLWINDOW) {
       sima->flag &= ~SI_FULLWINDOW;
-      ED_screen_full_prevspace(C, sa);
+      ED_screen_full_prevspace(C, area);
     }
     else {
-      ED_area_prevspace(C, sa);
+      ED_area_prevspace(C, area);
     }
 
     return OPERATOR_FINISHED;
   }
   else if (sima->flag & SI_FULLWINDOW) {
     sima->flag &= ~SI_FULLWINDOW;
-    ED_screen_state_toggle(C, win, sa, SCREENMAXIMIZED);
+    ED_screen_state_toggle(C, win, area, SCREENMAXIMIZED);
     return OPERATOR_FINISHED;
   }
   else if (WM_window_is_temp_screen(win)) {
@@ -320,7 +320,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
   }
   else {
     wmWindow *win, *winshow;
-    ScrArea *sa = find_area_showing_r_result(C, CTX_data_scene(C), &winshow);
+    ScrArea *area = find_area_showing_r_result(C, CTX_data_scene(C), &winshow);
 
     /* is there another window on current scene showing result? */
     for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
@@ -335,20 +335,20 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
     }
 
     /* determine if render already shows */
-    if (sa) {
+    if (area) {
       /* but don't close it when rendering */
       if (G.is_rendering == false) {
-        SpaceImage *sima = sa->spacedata.first;
+        SpaceImage *sima = area->spacedata.first;
 
         if (sima->flag & SI_PREVSPACE) {
           sima->flag &= ~SI_PREVSPACE;
 
           if (sima->flag & SI_FULLWINDOW) {
             sima->flag &= ~SI_FULLWINDOW;
-            ED_screen_full_prevspace(C, sa);
+            ED_screen_full_prevspace(C, area);
           }
           else {
-            ED_area_prevspace(C, sa);
+            ED_area_prevspace(C, area);
           }
         }
       }

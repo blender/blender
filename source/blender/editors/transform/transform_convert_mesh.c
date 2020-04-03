@@ -1608,7 +1608,7 @@ void createTransUVs(bContext *C, TransInfo *t)
 
 void flushTransUVs(TransInfo *t)
 {
-  SpaceImage *sima = t->sa->spacedata.first;
+  SpaceImage *sima = t->area->spacedata.first;
   const bool use_pixel_snap = ((sima->pixel_snap_mode != SI_PIXEL_SNAP_DISABLED) &&
                                (t->state != TRANS_CANCEL));
 

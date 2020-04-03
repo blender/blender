@@ -1308,9 +1308,9 @@ static int editsource_text_edit(bContext *C,
   else {
     /* naughty!, find text area to set, not good behavior
      * but since this is a dev tool lets allow it - campbell */
-    ScrArea *sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
-    if (sa) {
-      SpaceText *st = sa->spacedata.first;
+    ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
+    if (area) {
+      SpaceText *st = area->spacedata.first;
       st->text = text;
     }
     else {

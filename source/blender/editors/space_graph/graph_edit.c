@@ -1336,7 +1336,7 @@ static void decimate_graph_keys(bAnimContext *ac, float remove_ratio, float erro
 typedef struct tDecimateGraphOp {
   bAnimContext ac;
   Scene *scene;
-  ScrArea *sa;
+  ScrArea *area;
   ARegion *region;
 
   /** A 0-1 value for determining how much we should decimate. */
@@ -1409,7 +1409,7 @@ static void decimate_exit(bContext *C, wmOperator *op)
     return;
   }
 
-  ScrArea *sa = dgo->sa;
+  ScrArea *area = dgo->area;
   LinkData *link;
 
   for (link = dgo->bezt_arr_list.first; link != NULL; link = link->next) {
@@ -1423,7 +1423,7 @@ static void decimate_exit(bContext *C, wmOperator *op)
 
   /* Return to normal cursor and header status. */
   WM_cursor_modal_restore(win);
-  ED_area_status_text(sa, NULL);
+  ED_area_status_text(area, NULL);
 
   /* cleanup */
   op->customdata = NULL;
@@ -1450,7 +1450,7 @@ static void decimate_draw_status_header(wmOperator *op, tDecimateGraphOp *dgo)
         status_str, sizeof(status_str), "%s: %d %%", mode_str, (int)(percentage * 100.0f));
   }
 
-  ED_area_status_text(dgo->sa, status_str);
+  ED_area_status_text(dgo->area, status_str);
 }
 
 /* Calculate percentage based on position of mouse (we only use x-axis for now.
@@ -1482,7 +1482,7 @@ static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent 
   dgo->percentage_prop = RNA_struct_find_property(op->ptr, "remove_ratio");
 
   dgo->scene = CTX_data_scene(C);
-  dgo->sa = CTX_wm_area(C);
+  dgo->area = CTX_wm_area(C);
   dgo->region = CTX_wm_region(C);
 
   /* initialise percentage so that it will have the correct value before the first mouse move. */
@@ -3623,10 +3623,10 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 static bool graph_driver_delete_invalid_poll(bContext *C)
 {
   bAnimContext ac;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* firstly, check if in Graph Editor */
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
+  if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return 0;
   }
 

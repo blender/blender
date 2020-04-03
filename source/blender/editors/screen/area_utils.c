@@ -46,7 +46,7 @@ void ED_region_generic_tools_region_message_subscribe(const struct bContext *UNU
                                                       struct WorkSpace *UNUSED(workspace),
                                                       struct Scene *UNUSED(scene),
                                                       struct bScreen *UNUSED(screen),
-                                                      struct ScrArea *UNUSED(sa),
+                                                      struct ScrArea *UNUSED(area),
                                                       struct ARegion *region,
                                                       struct wmMsgBus *mbus)
 {

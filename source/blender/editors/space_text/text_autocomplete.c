@@ -335,8 +335,8 @@ static int doc_scroll = 0;
 static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *region = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   int draw = 0, tools = 0, swallow = 0, scroll = 1;
   Text *text = CTX_data_edit_text(C);
@@ -577,7 +577,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
   }
 
   if (draw) {
-    ED_area_tag_redraw(sa);
+    ED_area_tag_redraw(area);
   }
 
   //  if (swallow) {

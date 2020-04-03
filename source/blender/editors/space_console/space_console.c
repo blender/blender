@@ -98,7 +98,7 @@ static void console_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void console_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
+static void console_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
@@ -146,7 +146,7 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
 }
 
 /* same as 'text_cursor' */
-static void console_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *region)
+static void console_cursor(wmWindow *win, ScrArea *UNUSED(area), ARegion *region)
 {
   int wmcursor = WM_CURSOR_TEXT_EDIT;
   const wmEvent *event = win->eventstate;
@@ -278,19 +278,19 @@ static void console_header_region_draw(const bContext *C, ARegion *region)
 }
 
 static void console_main_region_listener(wmWindow *UNUSED(win),
-                                         ScrArea *sa,
+                                         ScrArea *area,
                                          ARegion *region,
                                          wmNotifier *wmn,
                                          const Scene *UNUSED(scene))
 {
-  // SpaceInfo *sinfo = sa->spacedata.first;
+  // SpaceInfo *sinfo = area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
     case NC_SPACE: {
       if (wmn->data == ND_SPACE_CONSOLE) {
         if (wmn->action == NA_EDITED) {
-          if ((wmn->reference && sa) && (wmn->reference == sa->spacedata.first)) {
+          if ((wmn->reference && area) && (wmn->reference == area->spacedata.first)) {
             /* we've modified the geometry (font size), re-calculate rect */
             console_textview_update_rect(wmn->reference, region);
             ED_region_tag_redraw(region);

@@ -54,32 +54,32 @@
 /* Set up UI configuration for Drivers Editor */
 /* NOTE: Currently called from windowmanager
  * (new drivers editor window) and RNA (mode switching) */
-void ED_drivers_editor_init(bContext *C, ScrArea *sa)
+void ED_drivers_editor_init(bContext *C, ScrArea *area)
 {
-  SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;
+  SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
 
   /* Set mode */
   sipo->mode = SIPO_MODE_DRIVERS;
 
   /* Show Properties Region (or else the settings can't be edited) */
-  ARegion *region_props = BKE_area_find_region_type(sa, RGN_TYPE_UI);
+  ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_UI);
   if (region_props) {
     UI_panel_category_active_set(region_props, "Drivers");
 
     region_props->flag &= ~RGN_FLAG_HIDDEN;
     /* XXX: Adjust width of this too? */
 
-    ED_region_visibility_change_update(C, sa, region_props);
+    ED_region_visibility_change_update(C, area, region_props);
   }
   else {
-    printf("%s: Couldn't find properties region for Drivers Editor - %p\n", __func__, sa);
+    printf("%s: Couldn't find properties region for Drivers Editor - %p\n", __func__, area);
   }
 
   /* Adjust framing in graph region */
   /* TODO: Have a way of not resetting this every time?
    * (e.g. So that switching back and forth between editors doesn't keep jumping?)
    */
-  ARegion *region_main = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+  ARegion *region_main = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   if (region_main) {
     /* XXX: Ideally we recenter based on the range instead... */
     region_main->v2d.tot.xmin = -2.0f;
@@ -135,14 +135,14 @@ bool graphop_visible_keyframes_poll(bContext *C)
   bAnimContext ac;
   bAnimListElem *ale;
   ListBase anim_data = {NULL, NULL};
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   size_t items;
   int filter;
   short found = 0;
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
+  if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return 0;
   }
 
@@ -188,14 +188,14 @@ bool graphop_editable_keyframes_poll(bContext *C)
   bAnimContext ac;
   bAnimListElem *ale;
   ListBase anim_data = {NULL, NULL};
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   size_t items;
   int filter;
   short found = 0;
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
+  if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return 0;
   }
 
@@ -241,12 +241,12 @@ bool graphop_active_fcurve_poll(bContext *C)
 {
   bAnimContext ac;
   bAnimListElem *ale;
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   bool has_fcurve = 0;
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
+  if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return 0;
   }
 
@@ -293,13 +293,13 @@ bool graphop_selected_fcurve_poll(bContext *C)
 {
   bAnimContext ac;
   ListBase anim_data = {NULL, NULL};
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   size_t items;
   int filter;
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
+  if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return 0;
   }
 

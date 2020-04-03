@@ -88,20 +88,20 @@ struct bGPdata *ED_gpencil_data_get_active(const struct bContext *C);
 struct bGPdata *ED_gpencil_data_get_active_evaluated(const struct bContext *C);
 
 /* Context independent (i.e. each required part is passed in instead) */
-struct bGPdata **ED_gpencil_data_get_pointers_direct(struct ScrArea *sa,
+struct bGPdata **ED_gpencil_data_get_pointers_direct(struct ScrArea *area,
                                                      struct Object *ob,
                                                      struct PointerRNA *r_ptr);
-struct bGPdata *ED_gpencil_data_get_active_direct(struct ScrArea *sa, struct Object *ob);
+struct bGPdata *ED_gpencil_data_get_active_direct(struct ScrArea *area, struct Object *ob);
 
 struct bGPdata *ED_annotation_data_get_active(const struct bContext *C);
 struct bGPdata **ED_annotation_data_get_pointers(const struct bContext *C,
                                                  struct PointerRNA *r_ptr);
 struct bGPdata **ED_annotation_data_get_pointers_direct(struct ID *screen_id,
-                                                        struct ScrArea *sa,
+                                                        struct ScrArea *area,
                                                         struct Scene *scene,
                                                         struct PointerRNA *r_ptr);
 struct bGPdata *ED_annotation_data_get_active_direct(struct ID *screen_id,
-                                                     struct ScrArea *sa,
+                                                     struct ScrArea *area,
                                                      struct Scene *scene);
 
 bool ED_gpencil_data_owner_is_annotation(struct PointerRNA *owner_ptr);
@@ -111,7 +111,7 @@ bool ED_gpencil_has_keyframe_v3d(struct Scene *scene, struct Object *ob, int cfr
 
 /* ----------- Stroke Editing Utilities ---------------- */
 
-bool ED_gpencil_stroke_can_use_direct(const struct ScrArea *sa, const struct bGPDstroke *gps);
+bool ED_gpencil_stroke_can_use_direct(const struct ScrArea *area, const struct bGPDstroke *gps);
 bool ED_gpencil_stroke_can_use(const struct bContext *C, const struct bGPDstroke *gps);
 bool ED_gpencil_stroke_color_use(struct Object *ob,
                                  const struct bGPDlayer *gpl,
