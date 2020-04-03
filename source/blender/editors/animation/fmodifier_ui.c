@@ -178,7 +178,7 @@ static void draw_modifier__generator(uiLayout *layout,
       const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
       float *cp = NULL;
       char xval[32];
-      unsigned int i;
+      uint i;
       int maxXWidth;
 
       /* draw polynomial order selector */
@@ -317,7 +317,7 @@ static void draw_modifier__generator(uiLayout *layout,
     case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial expression */
     {
       float *cp = NULL;
-      unsigned int i;
+      uint i;
 
       /* draw polynomial order selector */
       row = uiLayoutRow(layout, false);

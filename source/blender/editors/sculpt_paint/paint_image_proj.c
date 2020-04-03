@@ -112,7 +112,7 @@ static void partial_redraw_array_init(ImagePaintPartialRedraw *pr);
 
 /* Defines and Structs */
 /* unit_float_to_uchar_clamp as inline function */
-BLI_INLINE unsigned char f_to_char(const float val)
+BLI_INLINE uchar f_to_char(const float val)
 {
   return unit_float_to_uchar_clamp(val);
 }
@@ -206,7 +206,7 @@ typedef struct ProjPaintImage {
   volatile void **undoRect;
   /** The mask accumulation must happen on canvas, not on space screen bucket.
    * Here we store the mask rectangle. */
-  unsigned short **maskRect;
+  ushort **maskRect;
   /** Store flag to enforce validation of undo rectangle. */
   bool **valid;
   bool touch;
@@ -279,7 +279,7 @@ typedef struct ProjPaintState {
   /** bucketRect aligned array linkList of faces overlapping each bucket. */
   LinkNode **bucketFaces;
   /** store if the bucks have been initialized. */
-  unsigned char *bucketFlags;
+  uchar *bucketFlags;
 
   /** store options per vert, now only store if the vert is pointing away from the view. */
   char *vertFlags;
@@ -443,13 +443,13 @@ typedef union pixelPointer {
   /** float buffer. */
   float *f_pt;
   /** 2 ways to access a char buffer. */
-  unsigned int *uint_pt;
-  unsigned char *ch_pt;
+  uint *uint_pt;
+  uchar *ch_pt;
 } PixelPointer;
 
 typedef union pixelStore {
-  unsigned char ch[4];
-  unsigned int uint;
+  uchar ch[4];
+  uint uint;
   float f[4];
 } PixelStore;
 
@@ -461,17 +461,17 @@ typedef struct ProjPixel {
   short x_px, y_px;
 
   /** if anyone wants to paint onto more than 65535 images they can bite me. */
-  unsigned short image_index;
-  unsigned char bb_cell_index;
+  ushort image_index;
+  uchar bb_cell_index;
 
   /* for various reasons we may want to mask out painting onto this pixel */
-  unsigned short mask;
+  ushort mask;
 
   /* Only used when the airbrush is disabled.
    * Store the max mask value to avoid painting over an area with a lower opacity
    * with an advantage that we can avoid touching the pixel at all, if the
    * new mask value is lower then mask_accum */
-  unsigned short *mask_accum;
+  ushort *mask_accum;
 
   /* horrible hack, store tile valid flag pointer here to re-validate tiles
    * used for anchored and drag-dot strokes */
@@ -491,7 +491,7 @@ typedef struct ProjPixelClone {
 typedef struct {
   SpinLock *lock;
   bool masked;
-  unsigned short tile_width;
+  ushort tile_width;
   ImBuf **tmpibuf;
   ProjPaintImage *pjima;
 } TileInfo;
@@ -717,11 +717,8 @@ static void uvco_to_wrapped_pxco(const float uv[2], int ibuf_x, int ibuf_y, floa
 
 /* Set the top-most face color that the screen space coord 'pt' touches
  * (or return 0 if none touch) */
-static bool project_paint_PickColor(const ProjPaintState *ps,
-                                    const float pt[2],
-                                    float *rgba_fp,
-                                    unsigned char *rgba,
-                                    const bool interp)
+static bool project_paint_PickColor(
+    const ProjPaintState *ps, const float pt[2], float *rgba_fp, uchar *rgba, const bool interp)
 {
   const MLoopTri *lt;
   const float *lt_tri_uv[3];
@@ -774,7 +771,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps,
         bilinear_interpolation_color_wrap(ibuf, rgba, NULL, x, y);
       }
       else {
-        unsigned char rgba_tmp[4];
+        uchar rgba_tmp[4];
         bilinear_interpolation_color_wrap(ibuf, rgba_tmp, NULL, x, y);
         straight_uchar_to_premul_float(rgba_fp, rgba_tmp);
       }
@@ -795,8 +792,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps,
         premul_float_to_straight_uchar(rgba, rgba_tmp_fp);
       }
       else {
-        *((unsigned int *)rgba) = *(unsigned int *)(((char *)ibuf->rect) +
-                                                    ((xi + yi * ibuf->x) * 4));
+        *((uint *)rgba) = *(uint *)(((char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4));
       }
     }
 
@@ -805,7 +801,7 @@ static bool project_paint_PickColor(const ProjPaintState *ps,
         copy_v4_v4(rgba_fp, (ibuf->rect_float + ((xi + yi * ibuf->x) * 4)));
       }
       else {
-        unsigned char *tmp_ch = ((unsigned char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4);
+        uchar *tmp_ch = ((uchar *)ibuf->rect) + ((xi + yi * ibuf->x) * 4);
         straight_uchar_to_premul_float(rgba_fp, tmp_ch);
       }
     }
@@ -1150,8 +1146,8 @@ static bool check_seam(const ProjPaintState *ps,
   const MLoopTri *orig_lt = &ps->mlooptri_eval[orig_face];
   const float *orig_lt_tri_uv[3] = {PS_LOOPTRI_AS_UV_3(ps->poly_to_loop_uv, orig_lt)};
   /* vert indices from face vert order indices */
-  const unsigned int i1 = ps->mloop_eval[orig_lt->tri[orig_i1_fidx]].v;
-  const unsigned int i2 = ps->mloop_eval[orig_lt->tri[orig_i2_fidx]].v;
+  const uint i1 = ps->mloop_eval[orig_lt->tri[orig_i1_fidx]].v;
+  const uint i2 = ps->mloop_eval[orig_lt->tri[orig_i2_fidx]].v;
   LinkNode *node;
   /* index in face */
   int i1_fidx = -1, i2_fidx = -1;
@@ -1641,7 +1637,7 @@ static float screen_px_line_point_factor_v2_persp(const ProjPaintState *ps,
 static void project_face_pixel(const float *lt_tri_uv[3],
                                ImBuf *ibuf_other,
                                const float w[3],
-                               unsigned char rgba_ub[4],
+                               uchar rgba_ub[4],
                                float rgba_f[4])
 {
   float uv_other[2], x, y;
@@ -1677,7 +1673,7 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
       const float *lt_other_tri_uv[3] = {PS_LOOPTRI_AS_UV_3(ps->poly_to_loop_uv, lt_other)};
 
       /* BKE_image_acquire_ibuf - TODO - this may be slow */
-      unsigned char rgba_ub[4];
+      uchar rgba_ub[4];
       float rgba_f[4];
 
       project_face_pixel(lt_other_tri_uv, ibuf_other, w, rgba_ub, rgba_f);
@@ -1937,8 +1933,8 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
     zero_v4(projPixel->newColor.f);
   }
   else {
-    projPixel->pixel.ch_pt = (unsigned char *)(ibuf->rect + (x_px + y_px * ibuf->x));
-    projPixel->origColor.uint_pt = (unsigned int *)projima->undoRect[tile_index] + tile_offset;
+    projPixel->pixel.ch_pt = (uchar *)(ibuf->rect + (x_px + y_px * ibuf->x));
+    projPixel->origColor.uint_pt = (uint *)projima->undoRect[tile_index] + tile_offset;
     projPixel->newColor.uint = 0;
   }
 
@@ -1952,7 +1948,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
   projPixel->x_px = x_px;
   projPixel->y_px = y_px;
 
-  projPixel->mask = (unsigned short)(mask * 65535);
+  projPixel->mask = (ushort)(mask * 65535);
   if (ps->do_masking) {
     projPixel->mask_accum = projima->maskRect[tile_index] + tile_offset;
   }
@@ -1984,7 +1980,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
                 lt_other_tri_uv, ibuf_other, w, NULL, ((ProjPixelClone *)projPixel)->clonepx.f);
           }
           else { /* from char to float */
-            unsigned char rgba_ub[4];
+            uchar rgba_ub[4];
             float rgba[4];
             project_face_pixel(lt_other_tri_uv, ibuf_other, w, rgba_ub, NULL);
             if (ps->use_colormanagement) {
@@ -4844,15 +4840,15 @@ typedef struct ProjectHandle {
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float mask)
 {
-  const unsigned char *clone_pt = ((ProjPixelClone *)projPixel)->clonepx.ch;
+  const uchar *clone_pt = ((ProjPixelClone *)projPixel)->clonepx.ch;
 
   if (clone_pt[3]) {
-    unsigned char clone_rgba[4];
+    uchar clone_rgba[4];
 
     clone_rgba[0] = clone_pt[0];
     clone_rgba[1] = clone_pt[1];
     clone_rgba[2] = clone_pt[2];
-    clone_rgba[3] = (unsigned char)(clone_pt[3] * mask);
+    clone_rgba[3] = (uchar)(clone_pt[3] * mask);
 
     if (ps->do_masking) {
       IMB_blend_color_byte(
@@ -4895,7 +4891,7 @@ static void do_projectpaint_smear(ProjPaintState *ps,
                                   LinkNode **smearPixels,
                                   const float co[2])
 {
-  unsigned char rgba_ub[4];
+  uchar rgba_ub[4];
 
   if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1) == 0) {
     return;
@@ -5016,7 +5012,7 @@ static void do_projectpaint_soften(ProjPaintState *ps,
   }
 
   if (LIKELY(accum_tot != 0)) {
-    unsigned char *rgba_ub = projPixel->newColor.ch;
+    uchar *rgba_ub = projPixel->newColor.ch;
 
     mul_v4_fl(rgba, 1.0f / (float)accum_tot);
 
@@ -5061,7 +5057,7 @@ static void do_projectpaint_draw(ProjPaintState *ps,
                                  float v)
 {
   float rgb[3];
-  unsigned char rgba_ub[4];
+  uchar rgba_ub[4];
 
   if (ps->is_texbrush) {
     mul_v3_v3v3(rgb, texrgb, ps->paint_color_linear);
@@ -5119,7 +5115,7 @@ static void do_projectpaint_draw_f(ProjPaintState *ps,
 
 static void do_projectpaint_mask(ProjPaintState *ps, ProjPixel *projPixel, float mask)
 {
-  unsigned char rgba_ub[4];
+  uchar rgba_ub[4];
   rgba_ub[0] = rgba_ub[1] = rgba_ub[2] = ps->stencil_value * 255.0f;
   rgba_ub[3] = f_to_char(mask);
 
@@ -5204,7 +5200,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
   /* for smear only */
   float pos_ofs[2] = {0};
   float co[2];
-  unsigned short mask_short;
+  ushort mask_short;
   const float brush_alpha = BKE_brush_alpha_get(ps->scene, brush);
   const float brush_radius = ps->brush_size;
   /* avoid a square root with every dist comparison */
@@ -5468,7 +5464,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
               }
 
               mask = min_ff(mask, 65535.0f);
-              mask_short = (unsigned short)mask;
+              mask_short = (ushort)mask;
 
               if (mask_short > *projPixel->mask_accum) {
                 *projPixel->mask_accum = mask_short;

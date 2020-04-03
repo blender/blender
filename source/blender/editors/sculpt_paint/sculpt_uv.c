@@ -70,8 +70,8 @@ typedef struct UvAdjacencyElement {
 } UvAdjacencyElement;
 
 typedef struct UvEdge {
-  unsigned int uv1;
-  unsigned int uv2;
+  uint uv1;
+  uint uv2;
   /* general use flag
    * (Used to check if edge is boundary here, and propagates to adjacency elements) */
   char flag;
@@ -315,7 +315,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  unsigned int tool;
+  uint tool;
   UvSculptData *sculptdata = (UvSculptData *)op->customdata;
   SpaceImage *sima;
   int invert;
@@ -386,7 +386,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
    * Smooth Tool
    */
   else if (tool == UV_SCULPT_TOOL_RELAX) {
-    unsigned int method = toolsettings->uv_relax_method;
+    uint method = toolsettings->uv_relax_method;
     if (method == UV_SCULPT_TOOL_RELAX_HC) {
       HC_relaxation_iteration_uv(em, sculptdata, co, alpha, radius, aspectRatio);
     }
@@ -464,7 +464,7 @@ static int uv_element_offset_from_face_get(
   return element - map->buf;
 }
 
-static unsigned int uv_edge_hash(const void *key)
+static uint uv_edge_hash(const void *key)
 {
   const UvEdge *edge = key;
   return (BLI_ghashutil_uinthash(edge->uv2) + BLI_ghashutil_uinthash(edge->uv1));

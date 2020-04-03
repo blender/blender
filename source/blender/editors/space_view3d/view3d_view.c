@@ -1555,9 +1555,7 @@ void VIEW3D_OT_localview_remove_from(wmOperatorType *ot)
 /** \name Local Collections
  * \{ */
 
-static uint free_localcollection_bit(Main *bmain,
-                                     unsigned short local_collections_uuid,
-                                     bool *r_reset)
+static uint free_localcollection_bit(Main *bmain, ushort local_collections_uuid, bool *r_reset)
 {
   ScrArea *sa;
   bScreen *sc;
@@ -1596,7 +1594,7 @@ static uint free_localcollection_bit(Main *bmain,
 }
 
 static void local_collections_reset_uuid(LayerCollection *layer_collection,
-                                         const unsigned short local_view_bit)
+                                         const ushort local_view_bit)
 {
   if (layer_collection->flag & LAYER_COLLECTION_HIDE) {
     layer_collection->local_collections_bits &= ~local_view_bit;

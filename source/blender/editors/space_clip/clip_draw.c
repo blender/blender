@@ -66,8 +66,7 @@
 
 /*********************** main area drawing *************************/
 
-static void draw_keyframe(
-    int frame, int cfra, int sfra, float framelen, int width, unsigned int pos)
+static void draw_keyframe(int frame, int cfra, int sfra, float framelen, int width, uint pos)
 {
   int height = (frame == cfra) ? 22 : 10;
   int x = (frame - sfra) * framelen;
@@ -592,7 +591,7 @@ static void draw_marker_outline(SpaceClip *sc,
                                 const float marker_pos[2],
                                 int width,
                                 int height,
-                                unsigned int position)
+                                uint position)
 {
   int tiny = sc->flag & SC_SHOW_TINY_MARKER;
   bool show_search = false;
@@ -895,7 +894,7 @@ static float get_shortest_pattern_side(MovieTrackingMarker *marker)
 }
 
 static void draw_marker_slide_square(
-    float x, float y, float dx, float dy, int outline, const float px[2], unsigned int pos)
+    float x, float y, float dx, float dy, int outline, const float px[2], uint pos)
 {
   float tdx, tdy;
 
@@ -911,7 +910,7 @@ static void draw_marker_slide_square(
 }
 
 static void draw_marker_slide_triangle(
-    float x, float y, float dx, float dy, int outline, const float px[2], unsigned int pos)
+    float x, float y, float dx, float dy, int outline, const float px[2], uint pos)
 {
   float tdx, tdy;
 
@@ -939,7 +938,7 @@ static void draw_marker_slide_zones(SpaceClip *sc,
                                     int act,
                                     int width,
                                     int height,
-                                    unsigned int pos)
+                                    uint pos)
 {
   float dx, dy, patdx, patdy, searchdx, searchdy;
   int tiny = sc->flag & SC_SHOW_TINY_MARKER;
@@ -1056,7 +1055,7 @@ static void draw_marker_texts(SpaceClip *sc,
       UI_FontThemeColor(fontid, TH_ACT_MARKER);
     }
     else {
-      unsigned char color[4];
+      uchar color[4];
       UI_GetThemeColorShade4ubv(TH_DIS_MARKER, 128, color);
       BLF_color4ubv(fontid, color);
     }
@@ -1191,7 +1190,7 @@ static void draw_plane_marker_image(Scene *scene,
   ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
   if (ibuf) {
-    unsigned char *display_buffer;
+    uchar *display_buffer;
     void *cache_handle;
 
     if (image->flag & IMA_VIEW_AS_RENDER) {

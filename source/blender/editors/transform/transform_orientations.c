@@ -523,12 +523,12 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 /**
  * utility function - get first n, selected vert/edge/faces
  */
-static unsigned int bm_mesh_elems_select_get_n__internal(
-    BMesh *bm, BMElem **elems, const unsigned int n, const BMIterType itype, const char htype)
+static uint bm_mesh_elems_select_get_n__internal(
+    BMesh *bm, BMElem **elems, const uint n, const BMIterType itype, const char htype)
 {
   BMIter iter;
   BMElem *ele;
-  unsigned int i;
+  uint i;
 
   BLI_assert(ELEM(htype, BM_VERT, BM_EDGE, BM_FACE));
   BLI_assert(ELEM(itype, BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH));
@@ -579,18 +579,18 @@ static unsigned int bm_mesh_elems_select_get_n__internal(
   return i;
 }
 
-static unsigned int bm_mesh_verts_select_get_n(BMesh *bm, BMVert **elems, const unsigned int n)
+static uint bm_mesh_verts_select_get_n(BMesh *bm, BMVert **elems, const uint n)
 {
   return bm_mesh_elems_select_get_n__internal(
       bm, (BMElem **)elems, min_ii(n, bm->totvertsel), BM_VERTS_OF_MESH, BM_VERT);
 }
-static unsigned int bm_mesh_edges_select_get_n(BMesh *bm, BMEdge **elems, const unsigned int n)
+static uint bm_mesh_edges_select_get_n(BMesh *bm, BMEdge **elems, const uint n)
 {
   return bm_mesh_elems_select_get_n__internal(
       bm, (BMElem **)elems, min_ii(n, bm->totedgesel), BM_EDGES_OF_MESH, BM_EDGE);
 }
 #if 0
-static unsigned int bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const unsigned int n)
+static uint bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const uint n)
 {
   return bm_mesh_elems_select_get_n__internal(
       bm, (BMElem **)elems, min_ii(n, bm->totfacesel), BM_FACES_OF_MESH, BM_FACE);

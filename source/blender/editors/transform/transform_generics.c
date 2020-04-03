@@ -337,7 +337,7 @@ static void animrecord_check_state(Scene *scene, ID *id, wmTimer *animtimer)
 static bool fcu_test_selected(FCurve *fcu)
 {
   BezTriple *bezt = fcu->bezt;
-  unsigned int i;
+  uint i;
 
   if (bezt == NULL) { /* ignore baked */
     return 0;
@@ -1222,7 +1222,7 @@ void recalcData(TransInfo *t)
 void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options)
 {
   float v1[3], v2[3], v3[3];
-  unsigned char col[3], col2[3];
+  uchar col[3], col2[3];
 
   if (t->spacetype == SPACE_VIEW3D) {
     View3D *v3d = t->view;

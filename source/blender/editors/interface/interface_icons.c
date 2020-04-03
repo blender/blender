@@ -759,11 +759,11 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           // blur alpha channel
           const int write_offset = by * (ICON_GRID_W + 2 * ICON_MONO_BORDER_OUTSET) + bx;
           float alpha_accum = 0.0;
-          unsigned int alpha_samples = 0;
+          uint alpha_samples = 0;
           for (int ax = asx; ax < aex; ax++) {
             for (int ay = asy; ay < aey; ay++) {
               const int offset_read = (sy + ay) * buf->x + (sx + ax);
-              unsigned int color_read = buf->rect[offset_read];
+              uint color_read = buf->rect[offset_read];
               const float alpha_read = ((color_read & 0xff000000) >> 24) / 255.0;
               alpha_accum += alpha_read;
               alpha_samples += 1;
@@ -782,8 +782,8 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           const float border_srgb[4] = {
               0, 0, 0, MIN2(1.0, blurred_alpha * border_sharpness) * border_intensity};
 
-          const unsigned int color_read = buf->rect[offset_write];
-          const unsigned char *orig_color = (unsigned char *)&color_read;
+          const uint color_read = buf->rect[offset_write];
+          const uchar *orig_color = (uchar *)&color_read;
 
           float border_rgba[4];
           float orig_rgba[4];
@@ -795,8 +795,8 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           blend_color_interpolate_float(dest_rgba, orig_rgba, border_rgba, 1.0 - orig_rgba[3]);
           linearrgb_to_srgb_v4(dest_srgb, dest_rgba);
 
-          unsigned int alpha_mask = ((unsigned int)(dest_srgb[3] * 255)) << 24;
-          unsigned int cpack = rgb_to_cpack(dest_srgb[0], dest_srgb[1], dest_srgb[2]) | alpha_mask;
+          uint alpha_mask = ((uint)(dest_srgb[3] * 255)) << 24;
+          uint cpack = rgb_to_cpack(dest_srgb[0], dest_srgb[1], dest_srgb[2]) | alpha_mask;
           result->rect[offset_write] = cpack;
         }
       }
@@ -1892,7 +1892,7 @@ static void icon_draw_size(float x,
     mul_v4_fl(color, alpha);
 
     float border_outset = 0.0;
-    unsigned int border_texel = 0;
+    uint border_texel = 0;
 #ifndef WITH_HEADLESS
     if (with_border) {
       const float scale = (float)ICON_GRID_W / (float)ICON_DEFAULT_WIDTH;

@@ -95,7 +95,7 @@ static void draw_current_frame(const Scene *scene,
                                int current_frame)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  const unsigned char color[] = {255, 255, 255, 255};
+  const uchar color[] = {255, 255, 255, 255};
   int frame_x = UI_view2d_view_to_region_x(v2d, current_frame);
 
   char frame_str[64];

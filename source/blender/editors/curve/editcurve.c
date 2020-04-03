@@ -6549,8 +6549,8 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 
     for (nu = editnurb->first; nu; nu = nu->next) {
       if ((nu->type == CU_BEZIER) && (nu->pntsu > 2)) {
-        unsigned int span_step[2] = {nu->pntsu, nu->pntsu};
-        unsigned int span_len;
+        uint span_step[2] = {nu->pntsu, nu->pntsu};
+        uint span_len;
 
         while (BLI_array_iter_span(nu->bezt,
                                    nu->pntsu,
@@ -6564,9 +6564,9 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
           BezTriple *bezt_next = &nu->bezt[mod_i(span_step[1] + 1, nu->pntsu)];
 
           int i_span_edge_len = span_len + 1;
-          const unsigned int dims = 3;
+          const uint dims = 3;
 
-          const unsigned int points_len = ((cu->resolu - 1) * i_span_edge_len) + 1;
+          const uint points_len = ((cu->resolu - 1) * i_span_edge_len) + 1;
           float *points = MEM_mallocN(points_len * dims * sizeof(float), __func__);
           float *points_stride = points;
           const int points_stride_len = (cu->resolu - 1);
@@ -6591,7 +6591,7 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
           BLI_assert(points_stride + dims == points + (points_len * dims));
 
           float tan_l[3], tan_r[3], error_sq_dummy;
-          unsigned int error_index_dummy;
+          uint error_index_dummy;
 
           sub_v3_v3v3(tan_l, bezt_prev->vec[1], bezt_prev->vec[2]);
           normalize_v3(tan_l);

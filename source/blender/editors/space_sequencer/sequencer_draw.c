@@ -99,9 +99,9 @@
 
 static Sequence *special_seq_update = NULL;
 
-void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
+void color3ubv_from_seq(Scene *curscene, Sequence *seq, uchar col[3])
 {
-  unsigned char blendcol[3];
+  uchar blendcol[3];
 
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
@@ -366,7 +366,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
    * so for now, just use the meta's immediate children, could be fixed but
    * its only drawing - campbell */
   Sequence *seq;
-  unsigned char col[4];
+  uchar col[4];
 
   int chan_min = MAXSEQ;
   int chan_max = 0;
@@ -467,15 +467,15 @@ static void draw_seq_handle(View2D *v2d,
                             Sequence *seq,
                             const float handsize_clamped,
                             const short direction,
-                            unsigned int pos,
+                            uint pos,
                             bool seq_active,
                             float pixelx,
                             bool y_threshold)
 {
   float rx1 = 0, rx2 = 0;
   float x1, x2, y1, y2;
-  unsigned int whichsel = 0;
-  unsigned char col[4];
+  uint whichsel = 0;
+  uchar col[4];
 
   x1 = seq->startdisp;
   x2 = seq->enddisp;
@@ -557,7 +557,7 @@ static void draw_seq_handle(View2D *v2d,
 }
 
 static void draw_seq_outline(Sequence *seq,
-                             unsigned int pos,
+                             uint pos,
                              float x1,
                              float x2,
                              float y1,
@@ -566,7 +566,7 @@ static void draw_seq_outline(Sequence *seq,
                              float pixely,
                              bool seq_active)
 {
-  unsigned char col[3];
+  uchar col[3];
 
   /* Get the color for the outline. */
   if (seq_active && (seq->flag & SELECT)) {
@@ -751,10 +751,10 @@ static void draw_seq_text(View2D *v2d,
   UI_view2d_text_cache_add_rectf(v2d, &rect, str, str_len, col);
 }
 
-static void draw_sequence_extensions(Scene *scene, Sequence *seq, unsigned int pos, float pixely)
+static void draw_sequence_extensions(Scene *scene, Sequence *seq, uint pos, float pixely)
 {
   float x1, x2, y1, y2;
-  unsigned char col[4], blend_col[3];
+  uchar col[4], blend_col[3];
 
   x1 = seq->startdisp;
   x2 = seq->enddisp;
@@ -793,9 +793,9 @@ static void draw_sequence_extensions(Scene *scene, Sequence *seq, unsigned int p
   GPU_blend(false);
 }
 
-static void draw_color_strip_band(Sequence *seq, unsigned int pos, float text_margin_y, float y1)
+static void draw_color_strip_band(Sequence *seq, uint pos, float text_margin_y, float y1)
 {
-  unsigned char col[4];
+  uchar col[4];
   SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
 
   rgb_float_to_uchar(col, colvars->col);
@@ -827,14 +827,14 @@ static void draw_color_strip_band(Sequence *seq, unsigned int pos, float text_ma
 
 static void draw_seq_background(Scene *scene,
                                 Sequence *seq,
-                                unsigned int pos,
+                                uint pos,
                                 float x1,
                                 float x2,
                                 float y1,
                                 float y2,
                                 bool is_single_image)
 {
-  unsigned char col[4];
+  uchar col[4];
 
   /* Get the correct color per strip type, transitions use their inputs ones. */
   if (ELEM(seq->type, SEQ_TYPE_CROSS, SEQ_TYPE_GAMCROSS, SEQ_TYPE_WIPE)) {
@@ -1538,7 +1538,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
       IMB_rect_from_float(ibuf);
     }
 
-    display_buffer = (unsigned char *)ibuf->rect;
+    display_buffer = (uchar *)ibuf->rect;
     format = GL_RGBA;
     type = GL_UNSIGNED_BYTE;
   }

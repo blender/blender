@@ -54,7 +54,7 @@
 #include "screen_intern.h"
 
 typedef struct ScreenshotData {
-  unsigned int *dumprect;
+  uint *dumprect;
   int dumpsx, dumpsy;
   rcti crop;
 

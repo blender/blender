@@ -119,7 +119,7 @@ int ED_mesh_mirror_spatial_table(
 /** \name Mesh Topology Mirror API
  * \{ */
 
-typedef unsigned int MirrTopoHash_t;
+typedef uint MirrTopoHash_t;
 
 typedef struct MirrTopoVert_t {
   MirrTopoHash_t hash;
@@ -231,7 +231,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     medge = me->medge;
 
     for (a = 0, med = medge; a < totedge; a++, med++) {
-      const unsigned int i1 = med->v1, i2 = med->v2;
+      const uint i1 = med->v1, i2 = med->v2;
       topo_hash[i1]++;
       topo_hash[i2]++;
     }
@@ -257,7 +257,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     }
     else {
       for (a = 0, med = medge; a < totedge; a++, med++) {
-        const unsigned int i1 = med->v1, i2 = med->v2;
+        const uint i1 = med->v1, i2 = med->v2;
         topo_hash[i1] += topo_hash_prev[i2] * topo_pass;
         topo_hash[i2] += topo_hash_prev[i1] * topo_pass;
         tot_unique_edges += (topo_hash[i1] != topo_hash[i2]);

@@ -141,7 +141,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
                                               View3D *v3d,
                                               Base *base,
-                                              const unsigned int *buffer,
+                                              const uint *buffer,
                                               short hits,
                                               bool extend,
                                               bool deselect,

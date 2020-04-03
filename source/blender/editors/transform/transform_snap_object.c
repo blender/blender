@@ -447,7 +447,7 @@ struct RayCastAll_Data {
   float local_scale;
 
   Object *ob;
-  unsigned int ob_uuid;
+  uint ob_uuid;
 
   /* output data */
   ListBase *hit_list;
@@ -460,7 +460,7 @@ static struct SnapObjectHitDepth *hit_depth_create(const float depth,
                                                    int index,
                                                    Object *ob,
                                                    const float obmat[4][4],
-                                                   unsigned int ob_uuid)
+                                                   uint ob_uuid)
 {
   struct SnapObjectHitDepth *hit = MEM_mallocN(sizeof(*hit), __func__);
 
@@ -586,7 +586,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
                         Object *ob,
                         Mesh *me,
                         const float obmat[4][4],
-                        const unsigned int ob_index,
+                        const uint ob_index,
                         bool use_hide,
                         bool use_backface_culling,
                         /* read/write args */
@@ -761,7 +761,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
                             Object *ob,
                             BMEditMesh *em,
                             const float obmat[4][4],
-                            const unsigned int ob_index,
+                            const uint ob_index,
                             bool use_backface_culling,
                             /* read/write args */
                             float *ray_depth,
@@ -931,7 +931,7 @@ static bool raycastObj(SnapObjectContext *sctx,
                        const float ray_dir[3],
                        Object *ob,
                        const float obmat[4][4],
-                       const unsigned int ob_index,
+                       const uint ob_index,
                        bool use_obedit,
                        bool use_occlusion_test,
                        bool use_backface_culling,
@@ -1046,7 +1046,7 @@ static bool raycastObj(SnapObjectContext *sctx,
 struct RaycastObjUserData {
   const float *ray_start;
   const float *ray_dir;
-  unsigned int ob_index;
+  uint ob_index;
   /* read/write args */
   float *ray_depth;
   /* return args */
@@ -1227,7 +1227,7 @@ static void cb_mlooptri_edges_get(const int index, int v_index[3], const BVHTree
   const MLoopTri *lt = &data->looptri[index];
   for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
     const MEdge *ed = &medge[mloop[lt->tri[j]].e];
-    unsigned int tri_edge[2] = {mloop[lt->tri[j]].v, mloop[lt->tri[j_next]].v};
+    uint tri_edge[2] = {mloop[lt->tri[j]].v, mloop[lt->tri[j_next]].v};
     if (ELEM(ed->v1, tri_edge[0], tri_edge[1]) && ELEM(ed->v2, tri_edge[0], tri_edge[1])) {
       // printf("real edge found\n");
       v_index[j] = mloop[lt->tri[j]].e;
@@ -3049,7 +3049,7 @@ bool ED_transform_snap_object_project_ray(SnapObjectContext *sctx,
 static short transform_snap_context_project_view3d_mixed_impl(
     SnapObjectContext *sctx,
     Depsgraph *depsgraph,
-    const unsigned short snap_to_flag,
+    const ushort snap_to_flag,
     const struct SnapObjectParams *params,
     const float mval[2],
     const float prev_co[3],
@@ -3225,7 +3225,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
 short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                  Depsgraph *depsgraph,
-                                                 const unsigned short snap_to,
+                                                 const ushort snap_to,
                                                  const struct SnapObjectParams *params,
                                                  const float mval[2],
                                                  const float prev_co[3],
@@ -3265,7 +3265,7 @@ short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
  */
 bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
                                              Depsgraph *depsgraph,
-                                             const unsigned short snap_to,
+                                             const ushort snap_to,
                                              const struct SnapObjectParams *params,
                                              const float mval[2],
                                              const float prev_co[3],

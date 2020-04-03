@@ -50,24 +50,24 @@ static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
   yuv[2] += 0.5f;
 }
 
-static void scope_put_pixel(unsigned char *table, unsigned char *pos)
+static void scope_put_pixel(uchar *table, uchar *pos)
 {
-  unsigned char newval = table[*pos];
+  uchar newval = table[*pos];
   pos[0] = pos[1] = pos[2] = newval;
   pos[3] = 255;
 }
 
-static void scope_put_pixel_single(unsigned char *table, unsigned char *pos, int col)
+static void scope_put_pixel_single(uchar *table, uchar *pos, int col)
 {
   char newval = table[pos[col]];
   pos[col] = newval;
   pos[3] = 255;
 }
 
-static void wform_put_line(int w, unsigned char *last_pos, unsigned char *new_pos)
+static void wform_put_line(int w, uchar *last_pos, uchar *new_pos)
 {
   if (last_pos > new_pos) {
-    unsigned char *temp = new_pos;
+    uchar *temp = new_pos;
     new_pos = last_pos;
     last_pos = temp;
   }
@@ -81,10 +81,10 @@ static void wform_put_line(int w, unsigned char *last_pos, unsigned char *new_po
   }
 }
 
-static void wform_put_line_single(int w, unsigned char *last_pos, unsigned char *new_pos, int col)
+static void wform_put_line_single(int w, uchar *last_pos, uchar *new_pos, int col)
 {
   if (last_pos > new_pos) {
-    unsigned char *temp = new_pos;
+    uchar *temp = new_pos;
     new_pos = last_pos;
     last_pos = temp;
   }
@@ -98,12 +98,12 @@ static void wform_put_line_single(int w, unsigned char *last_pos, unsigned char 
   }
 }
 
-static void wform_put_border(unsigned char *tgt, int w, int h)
+static void wform_put_border(uchar *tgt, int w, int h)
 {
   int x, y;
 
   for (x = 0; x < w; x++) {
-    unsigned char *p = tgt + 4 * x;
+    uchar *p = tgt + 4 * x;
     p[1] = p[3] = 155;
     p[4 * w + 1] = p[4 * w + 3] = 155;
     p = tgt + 4 * (w * (h - 1) + x);
@@ -112,7 +112,7 @@ static void wform_put_border(unsigned char *tgt, int w, int h)
   }
 
   for (y = 0; y < h; y++) {
-    unsigned char *p = tgt + 4 * w * y;
+    uchar *p = tgt + 4 * w * y;
     p[1] = p[3] = 155;
     p[4 + 1] = p[4 + 3] = 155;
     p = tgt + 4 * (w * y + w - 1);
@@ -121,7 +121,7 @@ static void wform_put_border(unsigned char *tgt, int w, int h)
   }
 }
 
-static void wform_put_gridrow(unsigned char *tgt, float perc, int w, int h)
+static void wform_put_gridrow(uchar *tgt, float perc, int w, int h)
 {
   int i;
 
@@ -134,7 +134,7 @@ static void wform_put_gridrow(unsigned char *tgt, float perc, int w, int h)
   }
 }
 
-static void wform_put_grid(unsigned char *tgt, int w, int h)
+static void wform_put_grid(uchar *tgt, int w, int h)
 {
   wform_put_gridrow(tgt, 90.0, w, h);
   wform_put_gridrow(tgt, 70.0, w, h);
@@ -145,27 +145,27 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
   int x, y;
-  const unsigned char *src = (unsigned char *)ibuf->rect;
-  unsigned char *tgt = (unsigned char *)rval->rect;
+  const uchar *src = (uchar *)ibuf->rect;
+  uchar *tgt = (uchar *)rval->rect;
   int w = ibuf->x + 3;
   int h = 515;
   float waveform_gamma = 0.2;
-  unsigned char wtable[256];
+  uchar wtable[256];
 
   wform_put_grid(tgt, w, h);
   wform_put_border(tgt, w, h);
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (unsigned char)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
+    wtable[x] = (uchar)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
   }
 
   for (y = 0; y < ibuf->y; y++) {
-    unsigned char *last_p = NULL;
+    uchar *last_p = NULL;
 
     for (x = 0; x < ibuf->x; x++) {
-      const unsigned char *rgb = src + 4 * (ibuf->x * y + x);
+      const uchar *rgb = src + 4 * (ibuf->x * y + x);
       float v = (float)IMB_colormanagement_get_luminance_byte(rgb) / 255.0f;
-      unsigned char *p = tgt;
+      uchar *p = tgt;
       p += 4 * (w * ((int)(v * (h - 3)) + 1) + x + 1);
 
       scope_put_pixel(wtable, p);
@@ -187,25 +187,25 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
   int x, y;
   const float *src = ibuf->rect_float;
-  unsigned char *tgt = (unsigned char *)rval->rect;
+  uchar *tgt = (uchar *)rval->rect;
   int w = ibuf->x + 3;
   int h = 515;
   float waveform_gamma = 0.2;
-  unsigned char wtable[256];
+  uchar wtable[256];
 
   wform_put_grid(tgt, w, h);
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (unsigned char)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
+    wtable[x] = (uchar)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
   }
 
   for (y = 0; y < ibuf->y; y++) {
-    unsigned char *last_p = NULL;
+    uchar *last_p = NULL;
 
     for (x = 0; x < ibuf->x; x++) {
       const float *rgb = src + 4 * (ibuf->x * y + x);
       float v = IMB_colormanagement_get_luminance(rgb);
-      unsigned char *p = tgt;
+      uchar *p = tgt;
 
       CLAMP(v, 0.0f, 1.0f);
 
@@ -241,28 +241,28 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
   int x, y;
-  const unsigned char *src = (const unsigned char *)ibuf->rect;
-  unsigned char *tgt = (unsigned char *)rval->rect;
+  const uchar *src = (const uchar *)ibuf->rect;
+  uchar *tgt = (uchar *)rval->rect;
   int w = ibuf->x + 3;
   int sw = ibuf->x / 3;
   int h = 515;
   float waveform_gamma = 0.2;
-  unsigned char wtable[256];
+  uchar wtable[256];
 
   wform_put_grid(tgt, w, h);
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (unsigned char)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
+    wtable[x] = (uchar)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
   }
 
   for (y = 0; y < ibuf->y; y++) {
-    unsigned char *last_p[3] = {NULL, NULL, NULL};
+    uchar *last_p[3] = {NULL, NULL, NULL};
 
     for (x = 0; x < ibuf->x; x++) {
       int c;
-      const unsigned char *rgb = src + 4 * (ibuf->x * y + x);
+      const uchar *rgb = src + 4 * (ibuf->x * y + x);
       for (c = 0; c < 3; c++) {
-        unsigned char *p = tgt;
+        uchar *p = tgt;
         p += 4 * (w * ((rgb[c] * (h - 3)) / 255 + 1) + c * sw + x / 3 + 1);
 
         scope_put_pixel_single(wtable, p, c);
@@ -287,27 +287,27 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
   int x, y;
   const float *src = ibuf->rect_float;
-  unsigned char *tgt = (unsigned char *)rval->rect;
+  uchar *tgt = (uchar *)rval->rect;
   int w = ibuf->x + 3;
   int sw = ibuf->x / 3;
   int h = 515;
   float waveform_gamma = 0.2;
-  unsigned char wtable[256];
+  uchar wtable[256];
 
   wform_put_grid(tgt, w, h);
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (unsigned char)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
+    wtable[x] = (uchar)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
   }
 
   for (y = 0; y < ibuf->y; y++) {
-    unsigned char *last_p[3] = {NULL, NULL, NULL};
+    uchar *last_p[3] = {NULL, NULL, NULL};
 
     for (x = 0; x < ibuf->x; x++) {
       int c;
       const float *rgb = src + 4 * (ibuf->x * y + x);
       for (c = 0; c < 3; c++) {
-        unsigned char *p = tgt;
+        uchar *p = tgt;
         float v = rgb[c];
 
         CLAMP(v, 0.0f, 1.0f);
@@ -343,18 +343,18 @@ ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf)
 
 static void draw_zebra_byte(ImBuf *src, ImBuf *ibuf, float perc)
 {
-  unsigned int limit = 255.0f * perc / 100.0f;
-  unsigned char *p = (unsigned char *)src->rect;
-  unsigned char *o = (unsigned char *)ibuf->rect;
+  uint limit = 255.0f * perc / 100.0f;
+  uchar *p = (uchar *)src->rect;
+  uchar *o = (uchar *)ibuf->rect;
   int x;
   int y;
 
   for (y = 0; y < ibuf->y; y++) {
     for (x = 0; x < ibuf->x; x++) {
-      unsigned char r = *p++;
-      unsigned char g = *p++;
-      unsigned char b = *p++;
-      unsigned char a = *p++;
+      uchar r = *p++;
+      uchar g = *p++;
+      uchar b = *p++;
+      uchar a = *p++;
 
       if (r >= limit || g >= limit || b >= limit) {
         if (((x + y) & 0x08) != 0) {
@@ -375,7 +375,7 @@ static void draw_zebra_float(ImBuf *src, ImBuf *ibuf, float perc)
 {
   float limit = perc / 100.0f;
   const float *p = src->rect_float;
-  unsigned char *o = (unsigned char *)ibuf->rect;
+  uchar *o = (uchar *)ibuf->rect;
   int x;
   int y;
 
@@ -417,7 +417,7 @@ ImBuf *make_zebra_view_from_ibuf(ImBuf *src, float perc)
 
 static void draw_histogram_marker(ImBuf *ibuf, int x)
 {
-  unsigned char *p = (unsigned char *)ibuf->rect;
+  uchar *p = (uchar *)ibuf->rect;
   int barh = ibuf->y * 0.1;
   int i;
 
@@ -431,7 +431,7 @@ static void draw_histogram_marker(ImBuf *ibuf, int x)
 
 static void draw_histogram_bar(ImBuf *ibuf, int x, float val, int col)
 {
-  unsigned char *p = (unsigned char *)ibuf->rect;
+  uchar *p = (uchar *)ibuf->rect;
   int barh = ibuf->y * val * 0.9f;
   int i;
 
@@ -456,12 +456,12 @@ static void make_histogram_view_from_ibuf_byte_cb_ex(void *__restrict userdata,
 {
   MakeHistogramViewData *data = userdata;
   const ImBuf *ibuf = data->ibuf;
-  const unsigned char *src = (unsigned char *)ibuf->rect;
+  const uchar *src = (uchar *)ibuf->rect;
 
   uint32_t(*cur_bins)[HIS_STEPS] = tls->userdata_chunk;
 
   for (int x = 0; x < ibuf->x; x++) {
-    const unsigned char *pixel = src + (y * ibuf->x + x) * 4;
+    const uchar *pixel = src + (y * ibuf->x + x) * 4;
 
     for (int j = 3; j--;) {
       cur_bins[j][pixel[j]]++;
@@ -488,9 +488,9 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
   int x;
-  unsigned int nr, ng, nb;
+  uint nr, ng, nb;
 
-  unsigned int bins[3][HIS_STEPS];
+  uint bins[3][HIS_STEPS];
 
   memset(bins, 0, sizeof(bins));
 
@@ -534,7 +534,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
     }
   }
 
-  wform_put_border((unsigned char *)rval->rect, rval->x, rval->y);
+  wform_put_border((uchar *)rval->rect, rval->x, rval->y);
 
   return rval;
 }
@@ -576,7 +576,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
   int nr, ng, nb;
   int x;
 
-  unsigned int bins[3][HIS_STEPS];
+  uint bins[3][HIS_STEPS];
 
   memset(bins, 0, sizeof(bins));
 
@@ -619,7 +619,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
   draw_histogram_marker(rval, get_bin_float(0.0));
   draw_histogram_marker(rval, get_bin_float(1.0));
-  wform_put_border((unsigned char *)rval->rect, rval->x, rval->y);
+  wform_put_border((uchar *)rval->rect, rval->x, rval->y);
 
   return rval;
 }
@@ -636,8 +636,7 @@ ImBuf *make_histogram_view_from_ibuf(ImBuf *ibuf)
   }
 }
 
-static void vectorscope_put_cross(
-    unsigned char r, unsigned char g, unsigned char b, char *tgt, int w, int h, int size)
+static void vectorscope_put_cross(uchar r, uchar g, uchar b, char *tgt, int w, int h, int size)
 {
   float rgb[3], yuv[3];
   char *p;
@@ -676,10 +675,10 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
   int w = 515;
   int h = 515;
   float scope_gamma = 0.2;
-  unsigned char wtable[256];
+  uchar wtable[256];
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (unsigned char)(pow(((float)x + 1) / 256, scope_gamma) * 255);
+    wtable[x] = (uchar)(pow(((float)x + 1) / 256, scope_gamma) * 255);
   }
 
   for (x = 0; x < 256; x++) {
@@ -702,7 +701,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
       rgb_to_yuv_normalized(rgb, yuv);
 
       p = tgt + 4 * (w * (int)((yuv[2] * (h - 3) + 1)) + (int)((yuv[1] * (w - 3) + 1)));
-      scope_put_pixel(wtable, (unsigned char *)p);
+      scope_put_pixel(wtable, (uchar *)p);
     }
   }
 
@@ -721,10 +720,10 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
   int w = 515;
   int h = 515;
   float scope_gamma = 0.2;
-  unsigned char wtable[256];
+  uchar wtable[256];
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (unsigned char)(pow(((float)x + 1) / 256, scope_gamma) * 255);
+    wtable[x] = (uchar)(pow(((float)x + 1) / 256, scope_gamma) * 255);
   }
 
   for (x = 0; x <= 255; x++) {
@@ -748,7 +747,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
       rgb_to_yuv_normalized(rgb, yuv);
 
       p = tgt + 4 * (w * (int)((yuv[2] * (h - 3) + 1)) + (int)((yuv[1] * (w - 3) + 1)));
-      scope_put_pixel(wtable, (unsigned char *)p);
+      scope_put_pixel(wtable, (uchar *)p);
     }
   }
 

@@ -99,13 +99,13 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
       for (i = 0, cur_point_eval = use_deform ? spline_eval->points_deform : spline_eval->points;
            i < spline_eval->tot_point;
            i++, cur_point_eval++) {
-        unsigned int tot_diff_point;
+        uint tot_diff_point;
         float *diff_points = BKE_mask_point_segment_diff(
             spline_eval, cur_point_eval, width, height, &tot_diff_point);
 
         if (diff_points) {
           int j, tot_point;
-          unsigned int tot_feather_point;
+          uint tot_feather_point;
           float *feather_points = NULL, *points;
 
           if (feather) {

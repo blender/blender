@@ -1189,7 +1189,7 @@ short paste_animedit_keys(bAnimContext *ac,
      * one F-Curve has been pasted into.
      */
     for (pass = 0; pass < 3; pass++) {
-      unsigned int totmatch = 0;
+      uint totmatch = 0;
 
       for (ale = anim_data->first; ale; ale = ale->next) {
         /* Find buffer item to paste from:

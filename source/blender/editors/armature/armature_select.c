@@ -176,7 +176,7 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
   EditBone *ebone;
   void *firstunSel = NULL, *firstSel = NULL, *data;
   Base *firstunSel_base = NULL, *firstSel_base = NULL;
-  unsigned int hitresult;
+  uint hitresult;
   short i;
   bool takeNext = false;
   int minsel = 0xffffffff, minunsel = 0xffffffff;
@@ -334,7 +334,7 @@ static void *ed_armature_pick_bone_impl(
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   rcti rect;
-  unsigned int buffer[MAXPICKBUF];
+  uint buffer[MAXPICKBUF];
   short hits;
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
@@ -635,15 +635,15 @@ void ARMATURE_OT_select_linked_pick(wmOperatorType *ot)
  * \{ */
 
 /* utility function for get_nearest_editbonepoint */
-static int selectbuffer_ret_hits_12(unsigned int *UNUSED(buffer), const int hits12)
+static int selectbuffer_ret_hits_12(uint *UNUSED(buffer), const int hits12)
 {
   return hits12;
 }
 
-static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits12, const int hits5)
+static int selectbuffer_ret_hits_5(uint *buffer, const int hits12, const int hits5)
 {
   const int offs = 4 * hits12;
-  memcpy(buffer, buffer + offs, 4 * hits5 * sizeof(unsigned int));
+  memcpy(buffer, buffer + offs, 4 * hits5 * sizeof(uint));
   return hits5;
 }
 

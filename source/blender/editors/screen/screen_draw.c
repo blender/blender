@@ -41,7 +41,7 @@
  * Draw horizontal shape visualizing future joining
  * (left as well right direction of future joining).
  */
-static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
+static void draw_horizontal_join_shape(ScrArea *sa, char dir, uint pos)
 {
   const float width = screen_geom_area_width(sa) - 1;
   const float height = screen_geom_area_height(sa) - 1;
@@ -122,7 +122,7 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 /**
  * Draw vertical shape visualizing future joining (up/down direction).
  */
-static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
+static void draw_vertical_join_shape(ScrArea *sa, char dir, uint pos)
 {
   const float width = screen_geom_area_width(sa) - 1;
   const float height = screen_geom_area_height(sa) - 1;
@@ -203,7 +203,7 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
 /**
  * Draw join shape due to direction of joining.
  */
-static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
+static void draw_join_shape(ScrArea *sa, char dir, uint pos)
 {
   if (dir == 'u' || dir == 'd') {
     draw_vertical_join_shape(sa, dir, pos);
@@ -294,7 +294,7 @@ static GPUBatch *batch_screen_edges_get(int *corner_len)
 /**
  * Draw screen area darker with arrow (visualization of future joining).
  */
-static void scrarea_draw_shape_dark(ScrArea *sa, char dir, unsigned int pos)
+static void scrarea_draw_shape_dark(ScrArea *sa, char dir, uint pos)
 {
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
@@ -306,7 +306,7 @@ static void scrarea_draw_shape_dark(ScrArea *sa, char dir, unsigned int pos)
 /**
  * Draw screen area lighter with arrow shape ("eraser" of previous dark shape).
  */
-static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir), unsigned int pos)
+static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir), uint pos)
 {
   GPU_blend_set_func(GPU_DST_COLOR, GPU_SRC_ALPHA);
   /* value 181 was hardly computed: 181~105 */
@@ -608,7 +608,7 @@ static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
 /**
  * Render the preview for a screen layout in \a screen.
  */
-void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, unsigned int *r_rect)
+void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uint *r_rect)
 {
   char err_out[256] = "unknown";
   GPUOffScreen *offscreen = GPU_offscreen_create(size_x, size_y, 0, true, false, err_out);

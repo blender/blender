@@ -626,7 +626,7 @@ static int poselib_remove_exec(bContext *C, wmOperator *op)
   /* remove relevant keyframes */
   for (fcu = act->curves.first; fcu; fcu = fcu->next) {
     BezTriple *bezt;
-    unsigned int i;
+    uint i;
 
     if (fcu->bezt) {
       for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -1323,9 +1323,7 @@ static void poselib_preview_get_next(tPoseLib_PreviewData *pld, int step)
 }
 
 /* specially handle events for searching */
-static void poselib_preview_handle_search(tPoseLib_PreviewData *pld,
-                                          unsigned short event,
-                                          char ascii)
+static void poselib_preview_handle_search(tPoseLib_PreviewData *pld, ushort event, char ascii)
 {
   /* try doing some form of string manipulation first */
   switch (event) {

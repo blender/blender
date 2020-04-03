@@ -313,7 +313,7 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
         break;
       }
       case HLP_TRACKBALL: {
-        unsigned char col[3], col2[3];
+        uchar col[3], col2[3];
         UI_GetThemeColor3ubv(TH_GRID, col);
 
         GPU_matrix_translate_3fv(mval);

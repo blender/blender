@@ -71,7 +71,7 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
   const bool show_time = (flag & DRAWCFRA_UNIT_SECONDS) != 0;
 
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  unsigned char col[4];
+  uchar col[4];
   float color[4];
   float xscale, x, y;
   char numstr[32] = "  t  "; /* t is the character to start replacing from */

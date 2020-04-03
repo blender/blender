@@ -158,7 +158,7 @@ static bool doForceIncrementSnap(const TransInfo *t)
 
 void drawSnapping(const struct bContext *C, TransInfo *t)
 {
-  unsigned char col[4], selectedCol[4], activeCol[4];
+  uchar col[4], selectedCol[4], activeCol[4];
 
   if (!activeSnap(t)) {
     return;

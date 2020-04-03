@@ -264,7 +264,7 @@ enum {
 
 typedef struct FileListEntryPreview {
   char path[FILE_MAX];
-  unsigned int flags;
+  uint flags;
   int index;
   ImBuf *img;
 } FileListEntryPreview;
@@ -2325,16 +2325,16 @@ int filelist_empty(struct FileList *filelist)
   return (filelist->filelist.nbr_entries == 0);
 }
 
-unsigned int filelist_entry_select_set(const FileList *filelist,
-                                       const FileDirEntry *entry,
-                                       FileSelType select,
-                                       unsigned int flag,
-                                       FileCheckType check)
+uint filelist_entry_select_set(const FileList *filelist,
+                               const FileDirEntry *entry,
+                               FileSelType select,
+                               uint flag,
+                               FileCheckType check)
 {
   /* Default NULL pointer if not found is fine here! */
   void **es_p = BLI_ghash_lookup_p(filelist->selection_state, entry->uuid);
-  unsigned int entry_flag = es_p ? POINTER_AS_UINT(*es_p) : 0;
-  const unsigned int org_entry_flag = entry_flag;
+  uint entry_flag = es_p ? POINTER_AS_UINT(*es_p) : 0;
+  const uint org_entry_flag = entry_flag;
 
   BLI_assert(entry);
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
@@ -2373,11 +2373,8 @@ unsigned int filelist_entry_select_set(const FileList *filelist,
   return entry_flag;
 }
 
-void filelist_entry_select_index_set(FileList *filelist,
-                                     const int index,
-                                     FileSelType select,
-                                     unsigned int flag,
-                                     FileCheckType check)
+void filelist_entry_select_index_set(
+    FileList *filelist, const int index, FileSelType select, uint flag, FileCheckType check)
 {
   FileDirEntry *entry = filelist_file(filelist, index);
 
@@ -2386,11 +2383,8 @@ void filelist_entry_select_index_set(FileList *filelist,
   }
 }
 
-void filelist_entries_select_index_range_set(FileList *filelist,
-                                             FileSelection *sel,
-                                             FileSelType select,
-                                             unsigned int flag,
-                                             FileCheckType check)
+void filelist_entries_select_index_range_set(
+    FileList *filelist, FileSelection *sel, FileSelType select, uint flag, FileCheckType check)
 {
   /* select all valid files between first and last indicated */
   if ((sel->first >= 0) && (sel->first < filelist->filelist.nbr_entries_filtered) &&
@@ -2402,9 +2396,7 @@ void filelist_entries_select_index_range_set(FileList *filelist,
   }
 }
 
-unsigned int filelist_entry_select_get(FileList *filelist,
-                                       FileDirEntry *entry,
-                                       FileCheckType check)
+uint filelist_entry_select_get(FileList *filelist, FileDirEntry *entry, FileCheckType check)
 {
   BLI_assert(entry);
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
@@ -2418,9 +2410,7 @@ unsigned int filelist_entry_select_get(FileList *filelist,
   return 0;
 }
 
-unsigned int filelist_entry_select_index_get(FileList *filelist,
-                                             const int index,
-                                             FileCheckType check)
+uint filelist_entry_select_index_get(FileList *filelist, const int index, FileCheckType check)
 {
   FileDirEntry *entry = filelist_file(filelist, index);
 
@@ -2436,7 +2426,7 @@ unsigned int filelist_entry_select_index_get(FileList *filelist,
  */
 void filelist_entry_parent_select_set(FileList *filelist,
                                       FileSelType select,
-                                      unsigned int flag,
+                                      uint flag,
                                       FileCheckType check)
 {
   if ((filelist->filter_data.flags & FLF_HIDE_PARENT) == 0) {

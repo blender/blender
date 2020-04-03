@@ -30,12 +30,14 @@
 #ifndef __GIZMO_GEOMETRY_H__
 #define __GIZMO_GEOMETRY_H__
 
+#include "BLI_sys_types.h"
+
 typedef struct GizmoGeomInfo {
   int nverts;
   int ntris;
   const float (*verts)[3];
   const float (*normals)[3];
-  const unsigned short *indices;
+  const ushort *indices;
 } GizmoGeomInfo;
 
 /* arrow gizmo */

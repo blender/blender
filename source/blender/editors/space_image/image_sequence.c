@@ -69,7 +69,7 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char base_head[FILE_MAX], base_tail[FILE_MAX];
     char head[FILE_MAX], tail[FILE_MAX];
-    unsigned short digits;
+    ushort digits;
     char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
     ImageFrame *frame = MEM_callocN(sizeof(ImageFrame), "image_frame");
 
@@ -125,7 +125,7 @@ static int image_get_udim(char *filepath, ListBase *udim_tiles)
   char filename[FILE_MAX], dirname[FILE_MAXDIR];
   BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
 
-  unsigned short digits;
+  ushort digits;
   char base_head[FILE_MAX], base_tail[FILE_MAX];
   int id = BLI_stringdec(filename, base_head, base_tail, &digits);
 

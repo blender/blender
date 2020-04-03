@@ -1128,10 +1128,10 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
 /* struct for use in re-sorting BezTriples during Graph Editor transform */
 typedef struct BeztMap {
   BezTriple *bezt;
-  unsigned int oldIndex; /* index of bezt in fcu->bezt array before sorting */
-  unsigned int newIndex; /* index of bezt in fcu->bezt array after sorting */
-  short swapHs;          /* swap order of handles (-1=clear; 0=not checked, 1=swap) */
-  char pipo, cipo;       /* interpolation of current and next segments */
+  uint oldIndex;   /* index of bezt in fcu->bezt array before sorting */
+  uint newIndex;   /* index of bezt in fcu->bezt array after sorting */
+  short swapHs;    /* swap order of handles (-1=clear; 0=not checked, 1=swap) */
+  char pipo, cipo; /* interpolation of current and next segments */
 } BeztMap;
 
 /* This function converts an FCurve's BezTriple array to a BeztMap array

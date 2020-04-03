@@ -506,7 +506,7 @@ static int material_slot_move_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
 
-  unsigned int *slot_remap;
+  uint *slot_remap;
   int index_pair[2];
 
   int dir = RNA_enum_get(op->ptr, "direction");
@@ -531,7 +531,7 @@ static int material_slot_move_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  slot_remap = MEM_mallocN(sizeof(unsigned int) * ob->totcol, __func__);
+  slot_remap = MEM_mallocN(sizeof(uint) * ob->totcol, __func__);
 
   range_vn_u(slot_remap, ob->totcol, 0);
 

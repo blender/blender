@@ -558,11 +558,11 @@ void draw_keyframe_shape(float x,
                          short key_type,
                          short mode,
                          float alpha,
-                         unsigned int pos_id,
-                         unsigned int size_id,
-                         unsigned int color_id,
-                         unsigned int outline_color_id,
-                         unsigned int flags_id,
+                         uint pos_id,
+                         uint size_id,
+                         uint color_id,
+                         uint outline_color_id,
+                         uint flags_id,
                          short handle_type,
                          short extreme_type)
 {
@@ -595,9 +595,9 @@ void draw_keyframe_shape(float x,
       size -= 0.8f * key_type;
   }
 
-  unsigned char fill_col[4];
-  unsigned char outline_col[4];
-  unsigned int flags = 0;
+  uchar fill_col[4];
+  uchar outline_col[4];
+  uint flags = 0;
 
   /* draw! */
   if (draw_fill) {

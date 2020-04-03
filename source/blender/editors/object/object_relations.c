@@ -1424,7 +1424,7 @@ void OBJECT_OT_track_set(wmOperatorType *ot)
  * \{ */
 
 #if 0
-static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
+static void link_to_scene(Main *UNUSED(bmain), ushort UNUSED(nr))
 {
   Scene *sce = (Scene *)BLI_findlink(&bmain->scene, G.curscreen->scenenr - 1);
   Base *base, *nbase;

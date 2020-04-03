@@ -79,7 +79,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
 {
   BezTriple *bezt;
   short ok = 0;
-  unsigned int i;
+  uint i;
 
   /* sanity check */
   if (ELEM(NULL, fcu, fcu->bezt)) {

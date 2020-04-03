@@ -103,7 +103,7 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile,
   return sel;
 }
 
-static void file_deselect_all(SpaceFile *sfile, unsigned int flag)
+static void file_deselect_all(SpaceFile *sfile, uint flag)
 {
   FileSelection sel;
   sel.first = 0;
@@ -2494,7 +2494,7 @@ static void filenum_newname(char *name, size_t name_size, int add)
   char head[FILE_MAXFILE], tail[FILE_MAXFILE];
   char name_temp[FILE_MAXFILE];
   int pic;
-  unsigned short digits;
+  ushort digits;
 
   pic = BLI_stringdec(name, head, tail, &digits);
 

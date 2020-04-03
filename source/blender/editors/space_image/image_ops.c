@@ -3107,13 +3107,13 @@ typedef struct ImageSampleInfo {
   int width, height;
   int sample_size;
 
-  unsigned char col[4];
+  uchar col[4];
   float colf[4];
   float linearcol[4];
   int z;
   float zf;
 
-  unsigned char *colp;
+  uchar *colp;
   const float *colfp;
   int *zp;
   float *zfp;
@@ -3198,7 +3198,7 @@ bool ED_space_image_color_sample(SpaceImage *sima, ARegion *region, int mval[2],
 
   if (uv[0] >= 0.0f && uv[1] >= 0.0f && uv[0] < 1.0f && uv[1] < 1.0f) {
     const float *fp;
-    unsigned char *cp;
+    uchar *cp;
     int x = (int)(uv[0] * ibuf->x), y = (int)(uv[1] * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
@@ -3210,7 +3210,7 @@ bool ED_space_image_color_sample(SpaceImage *sima, ARegion *region, int mval[2],
       ret = true;
     }
     else if (ibuf->rect) {
-      cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+      cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
       rgb_uchar_to_float(r_col, cp);
       IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
       ret = true;
@@ -3230,7 +3230,7 @@ static void image_sample_pixel_color_ubyte(const ImBuf *ibuf,
                                            uchar r_col[4],
                                            float r_col_linear[4])
 {
-  const uchar *cp = (unsigned char *)(ibuf->rect + coord[1] * ibuf->x + coord[0]);
+  const uchar *cp = (uchar *)(ibuf->rect + coord[1] * ibuf->x + coord[0]);
   copy_v4_v4_uchar(r_col, cp);
   rgba_uchar_to_float(r_col_linear, r_col);
   IMB_colormanagement_colorspace_to_scene_linear_v4(r_col_linear, false, ibuf->rect_colorspace);

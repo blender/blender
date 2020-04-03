@@ -1860,8 +1860,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 
   if (event->type == MOUSEMOVE || is_translate_init) {
     const ViewDepths *depths = xfd->vc.rv3d->depths;
-    if (depths && ((unsigned int)event->mval[0] < depths->w) &&
-        ((unsigned int)event->mval[1] < depths->h)) {
+    if (depths && ((uint)event->mval[0] < depths->w) && ((uint)event->mval[1] < depths->h)) {
       double depth = (double)ED_view3d_depth_read_cached(&xfd->vc, event->mval);
       float location_world[3];
       if (depth == 1.0f) {

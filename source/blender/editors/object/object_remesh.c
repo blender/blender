@@ -653,13 +653,13 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
   const MLoop *mloop = mesh->mloop;
   char *edge_faces = (char *)MEM_callocN(mesh->totedge * sizeof(char), "remesh_manifold_check");
   int *edge_vert = (int *)MEM_malloc_arrayN(
-      mesh->totedge, sizeof(unsigned int), "remesh_consistent_check");
+      mesh->totedge, sizeof(uint), "remesh_consistent_check");
 
-  for (unsigned int i = 0; i < mesh->totedge; i++) {
+  for (uint i = 0; i < mesh->totedge; i++) {
     edge_vert[i] = -1;
   }
 
-  for (unsigned int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
+  for (uint loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
     const MLoop *loop = &mloop[loop_idx];
     edge_faces[loop->e] += 1;
     if (edge_faces[loop->e] > 2) {
@@ -679,7 +679,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
 
   if (is_manifold_consistent) {
     /* check for wire edges */
-    for (unsigned int i = 0; i < mesh->totedge; i++) {
+    for (uint i = 0; i < mesh->totedge; i++) {
       if (edge_faces[i] == 0) {
         is_manifold_consistent = false;
         break;

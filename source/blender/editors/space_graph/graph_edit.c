@@ -2647,7 +2647,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
     for (f = 0; f < 3; f++) {
       FCurve *fcu = euf->fcurves[f];
       BezTriple *bezt, *prev;
-      unsigned int i;
+      uint i;
 
       /* skip if not enough vets to do a decent analysis of... */
       if (fcu->totvert <= 2) {
@@ -3569,7 +3569,7 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
   bAnimListElem *ale;
   int filter;
   bool ok = false;
-  unsigned int deleted = 0;
+  uint deleted = 0;
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {

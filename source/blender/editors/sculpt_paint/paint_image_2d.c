@@ -80,11 +80,11 @@ typedef struct BrushPainterCache {
 
   ImBuf *ibuf;
   ImBuf *texibuf;
-  unsigned short *curve_mask;
-  unsigned short *tex_mask;
-  unsigned short *tex_mask_old;
-  unsigned int tex_mask_old_w;
-  unsigned int tex_mask_old_h;
+  ushort *curve_mask;
+  ushort *tex_mask;
+  ushort *tex_mask_old;
+  uint tex_mask_old_w;
+  uint tex_mask_old_h;
 
   int image_size[2];
 } BrushPainterCache;
@@ -228,7 +228,7 @@ static void brush_imbuf_tex_co(rctf *mapping, int x, int y, float texco[3])
 }
 
 /* create a mask with the mask texture */
-static unsigned short *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size)
+static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size)
 {
   Scene *scene = painter->scene;
   Brush *brush = painter->brush;
@@ -236,10 +236,10 @@ static unsigned short *brush_painter_mask_ibuf_new(BrushPainter *painter, const 
   struct ImagePool *pool = painter->pool;
 
   float texco[3];
-  unsigned short *mask, *m;
+  ushort *mask, *m;
   int x, y, thread = 0;
 
-  mask = MEM_mallocN(sizeof(unsigned short) * size * size, "brush_painter_mask");
+  mask = MEM_mallocN(sizeof(ushort) * size * size, "brush_painter_mask");
   m = mask;
 
   for (y = 0; y < size; y++) {
@@ -247,7 +247,7 @@ static unsigned short *brush_painter_mask_ibuf_new(BrushPainter *painter, const 
       float res;
       brush_imbuf_tex_co(&mask_mapping, x, y, texco);
       res = BKE_brush_sample_masktex(scene, brush, texco, thread, pool);
-      *m = (unsigned short)(65535.0f * res);
+      *m = (ushort)(65535.0f * res);
     }
   }
 
@@ -257,7 +257,7 @@ static unsigned short *brush_painter_mask_ibuf_new(BrushPainter *painter, const 
 /* update rectangular section of the brush image */
 static void brush_painter_mask_imbuf_update(BrushPainter *painter,
                                             ImagePaintTile *tile,
-                                            unsigned short *tex_mask_old,
+                                            ushort *tex_mask_old,
                                             int origx,
                                             int origy,
                                             int w,
@@ -271,14 +271,14 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
   BrushPainterCache *cache = &tile->cache;
   rctf tex_mapping = painter->mask_mapping;
   struct ImagePool *pool = painter->pool;
-  unsigned short res;
+  ushort res;
 
   bool use_texture_old = (tex_mask_old != NULL);
 
   int x, y, thread = 0;
 
-  unsigned short *tex_mask = cache->tex_mask;
-  unsigned short *tex_mask_cur = cache->tex_mask_old;
+  ushort *tex_mask = cache->tex_mask;
+  ushort *tex_mask_cur = cache->tex_mask_old;
 
   /* fill pixels */
   for (y = origy; y < h; y++) {
@@ -287,13 +287,12 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
       float texco[3];
 
       /* handle byte pixel */
-      unsigned short *b = tex_mask + (y * diameter + x);
-      unsigned short *t = tex_mask_cur + (y * diameter + x);
+      ushort *b = tex_mask + (y * diameter + x);
+      ushort *t = tex_mask_cur + (y * diameter + x);
 
       if (!use_texture_old) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-        res = (unsigned short)(65535.0f *
-                               BKE_brush_sample_masktex(scene, brush, texco, thread, pool));
+        res = (ushort)(65535.0f * BKE_brush_sample_masktex(scene, brush, texco, thread, pool));
       }
 
       /* read from old texture buffer */
@@ -320,19 +319,17 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
                                                     const int diameter)
 {
   BrushPainterCache *cache = &tile->cache;
-  unsigned short *tex_mask_old;
+  ushort *tex_mask_old;
   int destx, desty, srcx, srcy, w, h, x1, y1, x2, y2;
 
   /* create brush image buffer if it didn't exist yet */
   if (!cache->tex_mask) {
-    cache->tex_mask = MEM_mallocN(sizeof(unsigned short) * diameter * diameter,
-                                  "brush_painter_mask");
+    cache->tex_mask = MEM_mallocN(sizeof(ushort) * diameter * diameter, "brush_painter_mask");
   }
 
   /* create new texture image buffer with coordinates relative to old */
   tex_mask_old = cache->tex_mask_old;
-  cache->tex_mask_old = MEM_mallocN(sizeof(unsigned short) * diameter * diameter,
-                                    "brush_painter_mask");
+  cache->tex_mask_old = MEM_mallocN(sizeof(ushort) * diameter * diameter, "brush_painter_mask");
 
   if (tex_mask_old) {
     ImBuf maskibuf;
@@ -393,18 +390,18 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
 }
 
 /* create a mask with the falloff strength */
-static unsigned short *brush_painter_curve_mask_new(BrushPainter *painter,
-                                                    int diameter,
-                                                    float radius,
-                                                    const float pos[2])
+static ushort *brush_painter_curve_mask_new(BrushPainter *painter,
+                                            int diameter,
+                                            float radius,
+                                            const float pos[2])
 {
   Brush *brush = painter->brush;
 
   int offset = (int)floorf(diameter / 2.0f);
 
-  unsigned short *mask, *m;
+  ushort *mask, *m;
 
-  mask = MEM_mallocN(sizeof(unsigned short) * diameter * diameter, "brush_painter_mask");
+  mask = MEM_mallocN(sizeof(ushort) * diameter * diameter, "brush_painter_mask");
   m = mask;
 
   int aa_samples = 1.0f / (radius * 0.20f);
@@ -458,7 +455,7 @@ static unsigned short *brush_painter_curve_mask_new(BrushPainter *painter,
           total_samples += curve * hardness_factor;
         }
       }
-      *m = (unsigned short)(total_samples * norm_factor);
+      *m = (ushort)(total_samples * norm_factor);
     }
   }
 
@@ -528,7 +525,7 @@ static ImBuf *brush_painter_imbuf_new(
       }
       else {
         /* write to byte pixel */
-        unsigned char *dst = (unsigned char *)ibuf->rect + (y * size + x) * 4;
+        uchar *dst = (uchar *)ibuf->rect + (y * size + x) * 4;
 
         rgb_float_to_uchar(dst, rgba);
         dst[3] = unit_float_to_uchar_clamp(rgba[3]);
@@ -624,16 +621,16 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
         bf[3] = rgba[3];
       }
       else {
-        unsigned char crgba[4];
+        uchar crgba[4];
 
         /* handle byte pixel */
-        unsigned char *b = (unsigned char *)ibuf->rect + (y * ibuf->x + x) * 4;
-        unsigned char *t = (unsigned char *)texibuf->rect + (y * texibuf->x + x) * 4;
+        uchar *b = (uchar *)ibuf->rect + (y * ibuf->x + x) * 4;
+        uchar *t = (uchar *)texibuf->rect + (y * texibuf->x + x) * 4;
 
         /* read from old texture buffer */
         if (use_texture_old) {
-          unsigned char *ot = (unsigned char *)oldtexibuf->rect +
-                              ((y - origy + yt) * oldtexibuf->x + (x - origx + xt)) * 4;
+          uchar *ot = (uchar *)oldtexibuf->rect +
+                      ((y - origy + yt) * oldtexibuf->x + (x - origx + xt)) * 4;
           crgba[0] = ot[0];
           crgba[1] = ot[1];
           crgba[2] = ot[2];
@@ -975,7 +972,7 @@ static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, float r_rgb[4])
     copy_v4_v4(r_rgb, rrgbf);
   }
   else {
-    unsigned char *rrgb = (unsigned char *)ibuf->rect + (ibuf->x * y + x) * 4;
+    uchar *rrgb = (uchar *)ibuf->rect + (ibuf->x * y + x) * 4;
     straight_uchar_to_premul_float(r_rgb, rrgb);
   }
 }
@@ -1001,8 +998,8 @@ static void paint_2d_ibuf_rgb_set(
     rrgbf[3] = rgb[3];
   }
   else {
-    unsigned char straight[4];
-    unsigned char *rrgb = (unsigned char *)ibuf->rect + (ibuf->x * y + x) * 4;
+    uchar straight[4];
+    uchar *rrgb = (uchar *)ibuf->rect + (ibuf->x * y + x) * 4;
 
     premul_float_to_straight_uchar(straight, rgb);
     rrgb[0] = straight[0];
@@ -1329,7 +1326,7 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
   for (int ty = tiley; ty <= tileh; ty++) {
     for (int tx = tilex; tx <= tilew; tx++) {
       /* retrieve original pixels + mask from undo buffer */
-      unsigned short *mask;
+      ushort *mask;
       int origx = region->destx - tx * ED_IMAGE_UNDO_TILE_SIZE;
       int origy = region->desty - ty * ED_IMAGE_UNDO_TILE_SIZE;
 
@@ -1829,7 +1826,7 @@ static void paint_2d_fill_add_pixel_byte(const int x_px,
 
   if (!BLI_BITMAP_TEST(touched, coordinate)) {
     float color_f[4];
-    unsigned char *color_b = (unsigned char *)(ibuf->rect + coordinate);
+    uchar *color_b = (uchar *)(ibuf->rect + coordinate);
     rgba_uchar_to_float(color_f, color_b);
     straight_to_premul_v4(color_f);
 
@@ -1895,7 +1892,7 @@ void paint_2d_bucket_fill(const bContext *C,
 
   ImBuf *ibuf;
   int x_px, y_px;
-  unsigned int color_b;
+  uint color_b;
   float color_f[4];
   float strength = br ? BKE_brush_alpha_get(s->scene, br) : 1.0f;
 
@@ -1935,7 +1932,7 @@ void paint_2d_bucket_fill(const bContext *C,
    * be in gamma space. strictly speaking this is not correct, but blender does not paint
    * byte images in linear space */
   if (!do_float) {
-    linearrgb_to_srgb_uchar3((unsigned char *)&color_b, color);
+    linearrgb_to_srgb_uchar3((uchar *)&color_b, color);
     *(((char *)&color_b) + 3) = strength * 255;
   }
   else {
@@ -1959,9 +1956,9 @@ void paint_2d_bucket_fill(const bContext *C,
     else {
       for (x_px = 0; x_px < ibuf->x; x_px++) {
         for (y_px = 0; y_px < ibuf->y; y_px++) {
-          blend_color_mix_byte((unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
-                               (unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
-                               (unsigned char *)&color_b);
+          blend_color_mix_byte((uchar *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
+                               (uchar *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
+                               (uchar *)&color_b);
         }
       }
     }
@@ -2000,7 +1997,7 @@ void paint_2d_bucket_fill(const bContext *C,
     }
     else {
       int pixel_color_b = *(ibuf->rect + coordinate);
-      rgba_uchar_to_float(pixel_color, (unsigned char *)&pixel_color_b);
+      rgba_uchar_to_float(pixel_color, (uchar *)&pixel_color_b);
       straight_to_premul_v4(pixel_color);
     }
 
@@ -2055,9 +2052,9 @@ void paint_2d_bucket_fill(const bContext *C,
       while (!BLI_stack_is_empty(stack)) {
         BLI_stack_pop(stack, &coordinate);
 
-        IMB_blend_color_byte((unsigned char *)(ibuf->rect + coordinate),
-                             (unsigned char *)(ibuf->rect + coordinate),
-                             (unsigned char *)&color_b,
+        IMB_blend_color_byte((uchar *)(ibuf->rect + coordinate),
+                             (uchar *)(ibuf->rect + coordinate),
+                             (uchar *)&color_b,
                              br->blend);
 
         /* reconstruct the coordinates here */
@@ -2117,7 +2114,7 @@ void paint_2d_gradient_fill(
 
   ImBuf *ibuf;
   int x_px, y_px;
-  unsigned int color_b;
+  uint color_b;
   float color_f[4];
   float image_init[2], image_final[2];
   float tangent[2];
@@ -2212,11 +2209,11 @@ void paint_2d_gradient_fill(
 
         BKE_colorband_evaluate(br->gradient, f, color_f);
         linearrgb_to_srgb_v3_v3(color_f, color_f);
-        rgba_float_to_uchar((unsigned char *)&color_b, color_f);
-        ((unsigned char *)&color_b)[3] *= brush_alpha;
-        IMB_blend_color_byte((unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
-                             (unsigned char *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
-                             (unsigned char *)&color_b,
+        rgba_float_to_uchar((uchar *)&color_b, color_f);
+        ((uchar *)&color_b)[3] *= brush_alpha;
+        IMB_blend_color_byte((uchar *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
+                             (uchar *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
+                             (uchar *)&color_b,
                              br->blend);
       }
     }

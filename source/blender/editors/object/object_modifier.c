@@ -2148,7 +2148,7 @@ static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
     /* Signal to modifier to recalculate. */
     CorrectiveSmoothModifierData *csmd_eval = (CorrectiveSmoothModifierData *)
         modifier_get_evaluated(depsgraph, ob, &csmd->modifier);
-    csmd_eval->bind_coords_num = (unsigned int)-1;
+    csmd_eval->bind_coords_num = (uint)-1;
 
     /* Force modifier to run, it will call binding routine
      * (this has to happen outside of depsgraph evaluation). */

@@ -132,7 +132,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float yzoom,
                                      float color[4])
 {
-  unsigned char *uc_rect = (unsigned char *)rect;
+  uchar *uc_rect = (uchar *)rect;
   const float *f_rect = (float *)rect;
   int subpart_x, subpart_y, tex_w, tex_h;
   int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
@@ -185,7 +185,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, format, GL_UNSIGNED_BYTE, NULL);
   }
 
-  unsigned int pos = state->pos, texco = state->texco;
+  uint pos = state->pos, texco = state->texco;
 
   /* optional */
   /* NOTE: Shader could be null for GLSL OCIO drawing, it is fine, since
@@ -650,7 +650,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
 
   /* In case GLSL failed or not usable, fallback to glaDrawPixelsAuto */
   if (need_fallback) {
-    unsigned char *display_buffer;
+    uchar *display_buffer;
     void *cache_handle;
 
     display_buffer = IMB_display_buffer_acquire(
@@ -758,7 +758,7 @@ int ED_draw_imbuf_method(ImBuf *ibuf)
 
 /* don't move to GPU_immediate_util.h because this uses user-prefs
  * and isn't very low level */
-void immDrawBorderCorners(unsigned int pos, const rcti *border, float zoomx, float zoomy)
+void immDrawBorderCorners(uint pos, const rcti *border, float zoomx, float zoomy)
 {
   float delta_x = 4.0f * UI_DPI_FAC / zoomx;
   float delta_y = 4.0f * UI_DPI_FAC / zoomy;

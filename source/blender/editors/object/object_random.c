@@ -50,7 +50,7 @@ static bool object_rand_transverts(TransVertStore *tvs,
                                    const float offset,
                                    const float uniform,
                                    const float normal_factor,
-                                   const unsigned int seed)
+                                   const uint seed)
 {
   bool use_normal = (normal_factor != 0.0f);
   struct RNG *rng;
@@ -100,7 +100,7 @@ static int object_rand_verts_exec(bContext *C, wmOperator *op)
   const float offset = RNA_float_get(op->ptr, "offset");
   const float uniform = RNA_float_get(op->ptr, "uniform");
   const float normal_factor = RNA_float_get(op->ptr, "normal");
-  const unsigned int seed = RNA_int_get(op->ptr, "seed");
+  const uint seed = RNA_int_get(op->ptr, "seed");
 
   bool changed_multi = false;
   uint objects_len = 0;

@@ -234,7 +234,7 @@ static bool write_internal_bake_pixels(Image *image,
                                   ibuf->x);
     }
     else {
-      IMB_buffer_byte_from_float((unsigned char *)ibuf->rect,
+      IMB_buffer_byte_from_float((uchar *)ibuf->rect,
                                  buffer,
                                  ibuf->channels,
                                  ibuf->dither,
@@ -259,7 +259,7 @@ static bool write_internal_bake_pixels(Image *image,
                                        mask_buffer);
     }
     else {
-      IMB_buffer_byte_from_float_mask((unsigned char *)ibuf->rect,
+      IMB_buffer_byte_from_float_mask((uchar *)ibuf->rect,
                                       buffer,
                                       ibuf->channels,
                                       ibuf->dither,
@@ -359,7 +359,7 @@ static bool write_external_bake_pixels(const char *filepath,
           buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, false);
     }
 
-    IMB_buffer_byte_from_float((unsigned char *)ibuf->rect,
+    IMB_buffer_byte_from_float((uchar *)ibuf->rect,
                                buffer,
                                ibuf->channels,
                                ibuf->dither,

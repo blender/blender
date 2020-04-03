@@ -284,7 +284,7 @@ static bool node_select_grouped_name(SpaceNode *snode, bNode *node_act, const bo
 {
   bNode *node;
   bool changed = false;
-  const unsigned int delims[] = {'.', '-', '_', '\0'};
+  const uint delims[] = {'.', '-', '_', '\0'};
   size_t pref_len_act, pref_len_curr;
   const char *sep, *suf_act, *suf_curr;
 

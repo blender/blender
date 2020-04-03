@@ -121,7 +121,7 @@ int flatten_string_strlen(FlattenString *fs, const char *str)
 
 /* Ensures the format string for the given line is long enough, reallocating
  * as needed. Allocation is done here, alone, to ensure consistency. */
-int text_check_format_len(TextLine *line, unsigned int len)
+int text_check_format_len(TextLine *line, uint len)
 {
   if (line->format) {
     if (strlen(line->format) < len) {

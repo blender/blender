@@ -494,7 +494,7 @@ int insert_vert_fcurve(
     FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag)
 {
   BezTriple beztr = {{{0}}};
-  unsigned int oldTot = fcu->totvert;
+  uint oldTot = fcu->totvert;
   int a;
 
   /* set all three points, for nicer start position

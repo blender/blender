@@ -382,7 +382,7 @@ typedef struct ImageSampleInfo {
   int x, y;
   int channels;
 
-  unsigned char col[4];
+  uchar col[4];
   float colf[4];
   float linearcol[4];
 
@@ -450,7 +450,7 @@ bool ED_space_node_color_sample(
 
   if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
     const float *fp;
-    unsigned char *cp;
+    uchar *cp;
     int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
@@ -463,7 +463,7 @@ bool ED_space_node_color_sample(
       ret = true;
     }
     else if (ibuf->rect) {
-      cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+      cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
       rgb_uchar_to_float(r_col, cp);
       IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
       ret = true;
@@ -507,7 +507,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
     const float *fp;
-    unsigned char *cp;
+    uchar *cp;
     int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
@@ -522,7 +522,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
     info->zfp = NULL;
 
     if (ibuf->rect) {
-      cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+      cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
 
       info->col[0] = cp[0];
       info->col[1] = cp[1];

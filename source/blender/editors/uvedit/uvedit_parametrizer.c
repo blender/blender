@@ -107,7 +107,7 @@ typedef struct PVert {
   struct PEdge *edge;
   float co[3];
   float uv[2];
-  unsigned char flag;
+  uchar flag;
 
 } PVert;
 
@@ -126,7 +126,7 @@ typedef struct PEdge {
   struct PEdge *next;
   struct PFace *face;
   float *orig_uv, old_uv[2];
-  unsigned short flag;
+  ushort flag;
 
 } PEdge;
 
@@ -141,7 +141,7 @@ typedef struct PFace {
   } u;
 
   struct PEdge *edge;
-  unsigned char flag;
+  uchar flag;
 } PFace;
 
 enum PVertFlag {
@@ -197,7 +197,7 @@ typedef struct PChart {
     } pack;
   } u;
 
-  unsigned char flag;
+  uchar flag;
   struct PHandle *handle;
 } PChart;
 
@@ -245,7 +245,7 @@ static int PHashSizes[] = {
     1048583, 2097169, 4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 268435459,
 };
 
-#define PHASH_hash(ph, item) (((uintptr_t)(item)) % ((unsigned int)(ph)->cursize))
+#define PHASH_hash(ph, item) (((uintptr_t)(item)) % ((uint)(ph)->cursize))
 #define PHASH_edge(v1, v2) (((v1) < (v2)) ? ((v1)*39) ^ ((v2)*31) : ((v1)*31) ^ ((v2)*39))
 
 static PHash *phash_new(PHashLink **list, int sizehint)
@@ -511,7 +511,7 @@ static void p_chart_uv_transform(PChart *chart, float mat[2][2])
 static void p_chart_uv_to_array(PChart *chart, float (*points)[2])
 {
   PVert *v;
-  unsigned int i = 0;
+  uint i = 0;
 
   for (v = chart->verts; v; v = v->nextlink) {
     copy_v2_v2(points[i++], v->uv);
@@ -521,7 +521,7 @@ static void p_chart_uv_to_array(PChart *chart, float (*points)[2])
 static void UNUSED_FUNCTION(p_chart_uv_from_array)(PChart *chart, float (*points)[2])
 {
   PVert *v;
-  unsigned int i = 0;
+  uint i = 0;
 
   for (v = chart->verts; v; v = v->nextlink) {
     copy_v2_v2(v->uv, points[i++]);
@@ -4409,8 +4409,8 @@ static void p_add_ngon(ParamHandle *handle,
   PHandle *phandle = (PHandle *)handle;
   MemArena *arena = phandle->polyfill_arena;
   Heap *heap = phandle->polyfill_heap;
-  unsigned int nfilltri = nverts - 2;
-  unsigned int(*tris)[3] = BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)nfilltri);
+  uint nfilltri = nverts - 2;
+  uint(*tris)[3] = BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)nfilltri);
   float(*projverts)[2] = BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)nverts);
 
   /* Calc normal, flipped: to get a positive 2d cross product. */
@@ -4441,10 +4441,10 @@ static void p_add_ngon(ParamHandle *handle,
 
   /* Add triangles. */
   for (int j = 0; j < nfilltri; j++) {
-    unsigned int *tri = tris[j];
-    unsigned int v0 = tri[0];
-    unsigned int v1 = tri[1];
-    unsigned int v2 = tri[2];
+    uint *tri = tris[j];
+    uint v0 = tri[0];
+    uint v1 = tri[1];
+    uint v2 = tri[2];
 
     ParamKey tri_vkeys[3] = {vkeys[v0], vkeys[v1], vkeys[v2]};
     float *tri_co[3] = {co[v0], co[v1], co[v2]};

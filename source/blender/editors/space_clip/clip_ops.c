@@ -1313,12 +1313,12 @@ typedef struct ProxyThread {
   int *build_undistort_sizes, build_undistort_count;
 } ProxyThread;
 
-static unsigned char *proxy_thread_next_frame(ProxyQueue *queue,
-                                              MovieClip *clip,
-                                              size_t *r_size,
-                                              int *r_cfra)
+static uchar *proxy_thread_next_frame(ProxyQueue *queue,
+                                      MovieClip *clip,
+                                      size_t *r_size,
+                                      int *r_cfra)
 {
-  unsigned char *mem = NULL;
+  uchar *mem = NULL;
 
   BLI_spin_lock(&queue->spin);
   if (!*queue->stop && queue->cfra <= queue->efra) {
@@ -1371,7 +1371,7 @@ static void proxy_task_func(TaskPool *__restrict pool, void *task_data, int UNUS
 {
   ProxyThread *data = (ProxyThread *)task_data;
   ProxyQueue *queue = (ProxyQueue *)BLI_task_pool_userdata(pool);
-  unsigned char *mem;
+  uchar *mem;
   size_t size;
   int cfra;
 

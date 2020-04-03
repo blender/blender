@@ -448,7 +448,7 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 
   const int step = (layout->tile_w + 2 * layout->tile_border_x);
 
-  unsigned int vertex_len = 0;
+  uint vertex_len = 0;
   int sx = (int)v2d->tot.xmin;
   while (sx < v2d->cur.xmax) {
     sx += step;
@@ -457,7 +457,7 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 
   if (vertex_len > 0) {
     int v1[2], v2[2];
-    unsigned char col_hi[3], col_lo[3];
+    uchar col_hi[3], col_lo[3];
 
     UI_GetThemeColorShade3ubv(TH_BACK, 30, col_hi);
     UI_GetThemeColorShade3ubv(TH_BACK, -30, col_lo);
@@ -685,7 +685,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   bool is_icon;
   eFontStyle_Align align;
   bool do_drag;
-  unsigned char text_col[4];
+  uchar text_col[4];
   const bool draw_columnheader = (params->display == FILE_VERTICALDISPLAY);
   const float thumb_icon_aspect = MIN2(64.0f / (float)(params->thumbnail_size), 1.0f);
 
@@ -753,7 +753,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   UI_GetThemeColor4ubv(TH_TEXT, text_col);
 
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
-    unsigned int file_selflag;
+    uint file_selflag;
     char path[FILE_MAX_LIBEXTRA];
     int padx = 0.1f * UI_UNIT_X;
     int icon_ofs = 0;

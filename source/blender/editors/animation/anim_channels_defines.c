@@ -856,7 +856,7 @@ static void acf_group_color(bAnimContext *ac, bAnimListElem *ale, float r_color[
   bool showGroupColors = acf_show_channel_colors(ac);
 
   if (showGroupColors && agrp->customCol) {
-    unsigned char cp[3];
+    uchar cp[3];
 
     /* highlight only for active */
     if (ale->flag & AGRP_ACTIVE) {
@@ -4395,7 +4395,7 @@ void ANIM_channel_draw(
   if (acf->name && !achannel_is_being_renamed(ac, acf, channel_index)) {
     const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
     char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
-    unsigned char col[4];
+    uchar col[4];
 
     /* set text color */
     /* XXX: if active, highlight differently? */

@@ -695,7 +695,7 @@ void ED_uvedit_select_all(BMesh *bm)
 static bool ED_uvedit_median_multi(
     const Scene *scene, Image *ima, Object **objects_edit, uint objects_len, float co[2])
 {
-  unsigned int sel = 0;
+  uint sel = 0;
   zero_v2(co);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -1319,7 +1319,7 @@ static void uv_select_linked_multi(Scene *scene,
     UvVertMap *vmap;
     UvMapVert *vlist, *iterv, *startv;
     int i, stacksize = 0, *stack;
-    unsigned int a;
+    uint a;
     char *flag;
 
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -3261,7 +3261,7 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
 static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene,
                                                          BMEditMesh *em,
                                                          UvVertMap *vmap,
-                                                         const unsigned int efa_index,
+                                                         const uint efa_index,
                                                          BMLoop *l,
                                                          const bool select,
                                                          const int cd_loop_uv_offset)
@@ -3361,7 +3361,7 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima,
   else if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && sima->sticky == SI_STICKY_LOC) {
     struct UvVertMap *vmap;
     float limit[2];
-    unsigned int efa_index;
+    uint efa_index;
 
     uvedit_pixel_to_float(sima, limit, 0.05);
 
@@ -3448,7 +3448,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima,
   else if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && sima->sticky == SI_STICKY_LOC) {
     struct UvVertMap *vmap;
     float limit[2];
-    unsigned int efa_index;
+    uint efa_index;
 
     uvedit_pixel_to_float(sima, limit, 0.05);
 

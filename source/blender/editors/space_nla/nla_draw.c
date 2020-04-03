@@ -313,7 +313,7 @@ static void nla_strip_get_color_inside(AnimData *adt, NlaStrip *strip, float col
 }
 
 /* helper call for drawing influence/time control curves for a given NLA-strip */
-static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, unsigned int pos)
+static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uint pos)
 {
   const float yheight = ymaxc - yminc;
 

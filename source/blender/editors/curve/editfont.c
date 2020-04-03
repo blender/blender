@@ -76,7 +76,7 @@ static int kill_selection(Object *obedit, int ins);
 /** \name Internal Utilities
  * \{ */
 
-static wchar_t findaccent(wchar_t char1, unsigned int code)
+static wchar_t findaccent(wchar_t char1, uint code)
 {
   wchar_t new = 0;
 

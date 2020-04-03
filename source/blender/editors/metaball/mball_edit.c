@@ -697,7 +697,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
   static MetaElem *startelem = NULL;
   ViewContext vc;
   int a, hits;
-  unsigned int buffer[MAXPICKBUF];
+  uint buffer[MAXPICKBUF];
   rcti rect;
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);

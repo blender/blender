@@ -539,7 +539,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm,
   UvVertMap *vmap;
   UvMapVert *buf;
   MLoopUV *luv;
-  unsigned int a;
+  uint a;
   int totverts, i, totuv, totfaces;
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
   bool *winding = NULL;
@@ -669,7 +669,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm,
   return vmap;
 }
 
-UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, unsigned int v)
+UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, uint v)
 {
   return vmap->vert[v];
 }
@@ -832,7 +832,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   }
 
   if (do_islands) {
-    unsigned int *map;
+    uint *map;
     BMFace **stack;
     int stacksize = 0;
     UvElement *islandbuf;
@@ -1224,7 +1224,7 @@ BMFace *EDBM_verts_mirror_get_face(BMEditMesh *em, BMFace *f)
   BMVert **v_mirr_arr = BLI_array_alloca(v_mirr_arr, f->len);
 
   BMLoop *l_iter, *l_first;
-  unsigned int i = 0;
+  uint i = 0;
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {

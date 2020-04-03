@@ -66,7 +66,7 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
   /* Elements */
   GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, info->ntris, info->nverts);
   for (int i = 0; i < info->ntris; i++) {
-    const unsigned short *idx = &info->indices[i * 3];
+    const ushort *idx = &info->indices[i * 3];
     GPU_indexbuf_add_tri_verts(&elb, idx[0], idx[1], idx[2]);
   }
   el = GPU_indexbuf_build(&elb);

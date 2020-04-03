@@ -559,7 +559,7 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 
 /* ************************** TRANSFORMATIONS **************************** */
 
-static void view_editmove(unsigned short UNUSED(event))
+static void view_editmove(ushort UNUSED(event))
 {
 #if 0  // TRANSFORM_FIX_ME
   int refresh = 0;
@@ -1576,7 +1576,7 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *region)
   /* warning text (to clarify meaning of overlays)
    * - original color was red to match the icon, but that clashes badly with a less nasty border
    */
-  unsigned char color[3];
+  uchar color[3];
   UI_GetThemeColorShade3ubv(TH_TEXT_HI, -50, color);
   BLF_color3ubv(font_id, color);
 #ifdef WITH_INTERNATIONAL

@@ -1023,10 +1023,10 @@ static float *editmesh_get_mirror_uv(
 
 #endif
 
-static unsigned int mirror_facehash(const void *ptr)
+static uint mirror_facehash(const void *ptr)
 {
   const MFace *mf = ptr;
-  unsigned int v0, v1;
+  uint v0, v1;
 
   if (mf->v4) {
     v0 = MIN4(mf->v1, mf->v2, mf->v3, mf->v4);
@@ -1119,8 +1119,8 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
     /* make sure v4 is not 0 if a quad */
     if (mf->v4 && mirrormf.v4 == 0) {
-      SWAP(unsigned int, mirrormf.v1, mirrormf.v3);
-      SWAP(unsigned int, mirrormf.v2, mirrormf.v4);
+      SWAP(uint, mirrormf.v1, mirrormf.v3);
+      SWAP(uint, mirrormf.v2, mirrormf.v4);
     }
 
     hashmf = BLI_ghash_lookup(fhash, &mirrormf);
@@ -1174,7 +1174,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
     *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
   }
 
-  if ((*r_index) == 0 || (*r_index) > (unsigned int)me->totpoly) {
+  if ((*r_index) == 0 || (*r_index) > (uint)me->totpoly) {
     return false;
   }
 
@@ -1218,7 +1218,7 @@ bool ED_mesh_pick_face_vert(
     bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  unsigned int poly_index;
+  uint poly_index;
   Mesh *me = ob->data;
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
@@ -1241,7 +1241,7 @@ bool ED_mesh_pick_face_vert(
     MPoly *me_eval_mpoly;
     MLoop *me_eval_mloop;
     MVert *me_eval_mvert;
-    unsigned int me_eval_mpoly_len;
+    uint me_eval_mpoly_len;
     const int *index_mp_to_orig;
 
     me_eval_mpoly = me_eval->mpoly;
@@ -1254,7 +1254,7 @@ bool ED_mesh_pick_face_vert(
 
     /* tag all verts using this face */
     if (index_mp_to_orig) {
-      unsigned int i;
+      uint i;
 
       for (i = 0; i < me_eval_mpoly_len; i++) {
         if (index_mp_to_orig[i] == poly_index) {

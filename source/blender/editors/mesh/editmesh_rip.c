@@ -402,7 +402,7 @@ static UnorderedLoopPair *edbm_tagged_loop_pairs_to_fill(BMesh *bm)
   BMIter iter;
   BMEdge *e;
 
-  unsigned int total_tag = 0;
+  uint total_tag = 0;
   /* count tags, could be pre-calculated */
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
     if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
@@ -441,8 +441,8 @@ static UnorderedLoopPair *edbm_tagged_loop_pairs_to_fill(BMesh *bm)
 static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *uloop_pairs)
 {
   UnorderedLoopPair *ulp;
-  unsigned int total_tag = MEM_allocN_len(uloop_pairs) / sizeof(UnorderedLoopPair);
-  unsigned int i;
+  uint total_tag = MEM_allocN_len(uloop_pairs) / sizeof(UnorderedLoopPair);
+  uint i;
 
   for (i = 0, ulp = uloop_pairs; i < total_tag; i++, ulp++) {
     if ((ulp->l_pair[0] && ulp->l_pair[1]) && (ulp->l_pair[0]->e != ulp->l_pair[1]->e)) {

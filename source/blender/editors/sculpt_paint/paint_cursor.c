@@ -876,12 +876,8 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
   return alpha_overlay_active;
 }
 
-BLI_INLINE void draw_tri_point(unsigned int pos,
-                               const float sel_col[4],
-                               float pivot_col[4],
-                               float *co,
-                               float width,
-                               bool selected)
+BLI_INLINE void draw_tri_point(
+    uint pos, const float sel_col[4], float pivot_col[4], float *co, float width, bool selected)
 {
   immUniformColor4fv(selected ? sel_col : pivot_col);
 
@@ -910,12 +906,8 @@ BLI_INLINE void draw_tri_point(unsigned int pos,
   immEnd();
 }
 
-BLI_INLINE void draw_rect_point(unsigned int pos,
-                                const float sel_col[4],
-                                float handle_col[4],
-                                float *co,
-                                float width,
-                                bool selected)
+BLI_INLINE void draw_rect_point(
+    uint pos, const float sel_col[4], float handle_col[4], float *co, float width, bool selected)
 {
   immUniformColor4fv(selected ? sel_col : handle_col);
 
@@ -935,7 +927,7 @@ BLI_INLINE void draw_rect_point(unsigned int pos,
   imm_draw_box_wire_2d(pos, minx, miny, maxx, maxy);
 }
 
-BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], BezTriple *bez)
+BLI_INLINE void draw_bezier_handle_lines(uint pos, float sel_col[4], BezTriple *bez)
 {
   immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
   GPU_line_width(3.0f);
