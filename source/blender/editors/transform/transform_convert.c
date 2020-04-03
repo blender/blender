@@ -2248,9 +2248,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
   else if (t->flag & T_EDIT) {
     if (t->obedit_type == OB_MESH) {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
         /* table needs to be created for each edit command, since vertices can move etc */
-        ED_mesh_mirror_spatial_table(tc->obedit, em, NULL, NULL, 'e');
+        ED_mesh_mirror_spatial_table_end(tc->obedit);
         /* TODO(campbell): xform: We need support for many mirror objects at once! */
         break;
       }

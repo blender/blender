@@ -1226,7 +1226,7 @@ static void ed_vwpaintmode_enter_generic(Main *bmain,
     BKE_paint_init(bmain, scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
 
     /* weight paint specific */
-    ED_mesh_mirror_spatial_table(ob, NULL, NULL, NULL, 's');
+    ED_mesh_mirror_spatial_table_end(ob);
     ED_vgroup_sync_from_pose(ob);
   }
   else {
@@ -1318,8 +1318,8 @@ static void ed_vwpaintmode_exit_generic(Object *ob, const eObjectMode mode_flag)
   paint_cursor_delete_textures();
 
   if (mode_flag == OB_MODE_WEIGHT_PAINT) {
-    ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
-    ED_mesh_mirror_topo_table(NULL, NULL, 'e');
+    ED_mesh_mirror_spatial_table_end(ob);
+    ED_mesh_mirror_topo_table_end(ob);
   }
 
   /* Never leave derived meshes behind. */

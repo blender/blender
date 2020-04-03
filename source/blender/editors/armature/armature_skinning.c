@@ -459,7 +459,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
 
   /* only generated in some cases but can call anyway */
-  ED_mesh_mirror_spatial_table(ob, NULL, NULL, NULL, 'e');
+  ED_mesh_mirror_spatial_table_end(ob);
 
   /* free the memory allocated */
   MEM_freeN(bonelist);

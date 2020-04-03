@@ -454,8 +454,8 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     }
     /* will be recalculated as needed. */
     {
-      ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
-      ED_mesh_mirror_topo_table(NULL, NULL, 'e');
+      ED_mesh_mirror_spatial_table_end(obedit);
+      ED_mesh_mirror_topo_table_end(obedit);
     }
   }
   else if (obedit->type == OB_ARMATURE) {

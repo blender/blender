@@ -406,10 +406,10 @@ void EDBM_mesh_load(Main *bmain, Object *ob)
 void EDBM_mesh_free(BMEditMesh *em)
 {
   /* These tables aren't used yet, so it's not strictly necessary
-   * to 'end' them (with 'e' param) but if someone tries to start
-   * using them, having these in place will save a lot of pain */
-  ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
-  ED_mesh_mirror_topo_table(NULL, NULL, 'e');
+   * to 'end' them but if someone tries to start using them,
+   * having these in place will save a lot of pain. */
+  ED_mesh_mirror_spatial_table_end(NULL);
+  ED_mesh_mirror_topo_table_end(NULL);
 
   BKE_editmesh_free(em);
 }

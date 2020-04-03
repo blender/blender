@@ -224,8 +224,8 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
   }
 
   /* global in meshtools... */
-  ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
-  ED_mesh_mirror_topo_table(NULL, NULL, 'e');
+  ED_mesh_mirror_spatial_table_end(NULL);
+  ED_mesh_mirror_topo_table_end(NULL);
 }
 
 bool ED_editors_flush_edits_for_object_ex(Main *bmain,
