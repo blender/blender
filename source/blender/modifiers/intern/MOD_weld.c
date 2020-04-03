@@ -800,6 +800,8 @@ static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter *iter,
   iter->mloop = mloop;
   iter->loop_map = loop_map;
   iter->group = group_buffer;
+
+  uint group_len = 0;
   if (group_buffer) {
     /* First loop group needs more attention. */
     uint loop_start, loop_end, l;
@@ -817,16 +819,14 @@ static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter *iter,
       break;
     }
     if (l != loop_end) {
-      iter->group_len = iter->loop_end - l;
+      group_len = loop_end - l;
       int i = 0;
       while (l < loop_end) {
         iter->group[i++] = ++l;
       }
     }
   }
-  else {
-    iter->group_len = 0;
-  }
+  iter->group_len = group_len;
 
   iter->l_next = iter->loop_start;
 #ifdef USE_WELD_DEBUG
