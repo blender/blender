@@ -4196,10 +4196,7 @@ typedef struct NurbSort {
   float vec[3];
 } NurbSort;
 
-static ListBase nsortbase = {NULL, NULL};
-/*  static NurbSort *nusmain; */ /* this var seems to go unused... at least in this file */
-
-static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb)
+static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb, ListBase *nsortbase)
 {
   ListBase nbase = {NULL, NULL};
   NurbSort *nus, *nustest, *headdo, *taildo;
@@ -4228,7 +4225,7 @@ static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb)
   /* just add the first one */
   nus = nbase.first;
   BLI_remlink(&nbase, nus);
-  BLI_addtail(&nsortbase, nus);
+  BLI_addtail(nsortbase, nus);
 
   /* now add, either at head or tail, the closest one */
   while (nbase.first) {
@@ -4238,13 +4235,13 @@ static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb)
 
     nustest = nbase.first;
     while (nustest) {
-      dist = len_v3v3(nustest->vec, ((NurbSort *)nsortbase.first)->vec);
+      dist = len_v3v3(nustest->vec, ((NurbSort *)nsortbase->first)->vec);
 
       if (dist < headdist) {
         headdist = dist;
         headdo = nustest;
       }
-      dist = len_v3v3(nustest->vec, ((NurbSort *)nsortbase.last)->vec);
+      dist = len_v3v3(nustest->vec, ((NurbSort *)nsortbase->last)->vec);
 
       if (dist < taildist) {
         taildist = dist;
@@ -4255,11 +4252,11 @@ static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb)
 
     if (headdist < taildist) {
       BLI_remlink(&nbase, headdo);
-      BLI_addhead(&nsortbase, headdo);
+      BLI_addhead(nsortbase, headdo);
     }
     else {
       BLI_remlink(&nbase, taildo);
-      BLI_addtail(&nsortbase, taildo);
+      BLI_addtail(nsortbase, taildo);
     }
   }
 }
@@ -4436,8 +4433,9 @@ static int merge_nurb(View3D *v3d, Object *obedit)
   ListBase *editnurb = object_editcurve_get(obedit);
   NurbSort *nus1, *nus2;
   bool ok = true;
+  ListBase nsortbase = {NULL, NULL};
 
-  make_selection_list_nurb(v3d, editnurb);
+  make_selection_list_nurb(v3d, editnurb, &nsortbase);
 
   if (nsortbase.first == nsortbase.last) {
     BLI_freelistN(&nsortbase);
