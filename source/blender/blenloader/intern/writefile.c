@@ -2591,12 +2591,6 @@ static void write_lightcache(WriteData *wd, LightCache *cache)
 
 static void write_scene(WriteData *wd, Scene *sce, const void *id_address)
 {
-  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-  if (sce->ed) {
-    sce->ed->cache = NULL;
-    sce->ed->prefetch_job = NULL;
-  }
-
   /* write LibData */
   writestruct_at_address(wd, ID_SCE, Scene, 1, id_address, sce);
   write_iddata(wd, &sce->id);
