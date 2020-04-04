@@ -1706,60 +1706,33 @@ class VIEW3D_MT_select_edit_surface(Menu):
         layout.operator("curve.select_less")
 
 
-class VIEW3D_MT_edit_text_context_menu(Menu):
-    bl_label = "Text Context Menu"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator_context = 'INVOKE_DEFAULT'
-
-        layout.operator("font.text_cut", text="Cut")
-        layout.operator("font.text_copy", text="Copy", icon='COPYDOWN')
-        layout.operator("font.text_paste", text="Paste", icon='PASTEDOWN')
-
-        layout.separator()
-
-        layout.operator("font.select_all")
-
-        layout.separator()
-
-        layout.menu("VIEW3D_MT_edit_font")
-
-
 class VIEW3D_MT_select_edit_text(Menu):
-    # intentional name mismatch
-    # select menu for 3d-text doesn't make sense
-    bl_label = "Edit"
+    bl_label = "Select"
 
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
+        layout.operator("font.select_all", text="All")
 
         layout.separator()
 
-        layout.operator("font.text_cut", text="Cut")
-        layout.operator("font.text_copy", text="Copy", icon='COPYDOWN')
-        layout.operator("font.text_paste", text="Paste", icon='PASTEDOWN')
+        layout.operator("font.move_select", text="Previous Block").type = 'PREVIOUS_PAGE'
+        layout.operator("font.move_select", text="Next Block").type = 'NEXT_PAGE'
 
         layout.separator()
 
-        layout.operator("font.text_paste_from_file")
+        layout.operator("font.move_select", text="Line Begin").type = 'LINE_BEGIN'
+        layout.operator("font.move_select", text="Line End").type = 'LINE_END'
 
         layout.separator()
 
-        layout.operator("font.select_all")
+        layout.operator("font.move_select", text="Previous Line").type = 'PREVIOUS_LINE'
+        layout.operator("font.move_select", text="Next Line").type = 'NEXT_LINE'
 
         layout.separator()
 
-        layout.operator("font.case_set", text="To Uppercase").case = 'UPPER'
-        layout.operator("font.case_set", text="To Lowercase").case = 'LOWER'
-
-        layout.separator()
-
-        layout.menu("VIEW3D_MT_edit_text_chars")
+        layout.operator("font.move_select", text="Previous Word").type = 'PREVIOUS_WORD'
+        layout.operator("font.move_select", text="Next Word").type = 'NEXT_WORD'
 
 
 class VIEW3D_MT_select_edit_metaball(Menu):
@@ -4512,36 +4485,7 @@ class VIEW3D_MT_edit_surface(Menu):
     draw = draw_curve
 
 
-class VIEW3D_MT_edit_font(Menu):
-    bl_label = "Font"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("font.style_toggle", text="Toggle Bold", icon='BOLD').style = 'BOLD'
-        layout.operator("font.style_toggle", text="Toggle Italic", icon='ITALIC').style = 'ITALIC'
-        layout.operator("font.style_toggle", text="Toggle Underline", icon='UNDERLINE').style = 'UNDERLINE'
-        layout.operator("font.style_toggle", text="Toggle Small Caps", icon='SMALL_CAPS').style = 'SMALL_CAPS'
-
-        layout.menu("VIEW3D_MT_edit_font_kerning")
-
-
-class VIEW3D_MT_edit_font_kerning(Menu):
-    bl_label = "Kerning"
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.active_object
-        text = ob.data
-        kerning = text.edit_format.kerning
-
-        layout.operator("font.change_spacing", text="Decrease Kerning").delta = -1
-        layout.operator("font.change_spacing", text="Increase Kerning").delta = 1
-        layout.operator("font.change_spacing", text="Reset Kerning").delta = -kerning
-
-
-class VIEW3D_MT_edit_text_chars(Menu):
+class VIEW3D_MT_edit_font_chars(Menu):
     bl_label = "Special Characters"
 
     def draw(self, _context):
@@ -4579,6 +4523,91 @@ class VIEW3D_MT_edit_text_chars(Menu):
         layout.operator("font.text_insert", text="German S").text = "\u00DF"
         layout.operator("font.text_insert", text="Spanish Question Mark").text = "\u00BF"
         layout.operator("font.text_insert", text="Spanish Exclamation Mark").text = "\u00A1"
+
+
+class VIEW3D_MT_edit_font_kerning(Menu):
+    bl_label = "Kerning"
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.active_object
+        text = ob.data
+        kerning = text.edit_format.kerning
+
+        layout.operator("font.change_spacing", text="Decrease Kerning").delta = -1
+        layout.operator("font.change_spacing", text="Increase Kerning").delta = 1
+        layout.operator("font.change_spacing", text="Reset Kerning").delta = -kerning
+
+
+class VIEW3D_MT_edit_font_delete(Menu):
+    bl_label = "Delete"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("font.delete", text="Previous Character").type = 'PREVIOUS_CHARACTER'
+        layout.operator("font.delete", text="Next Character").type = 'NEXT_CHARACTER'
+        layout.operator("font.delete", text="Previous Word").type = 'PREVIOUS_WORD'
+        layout.operator("font.delete", text="Next Word").type = 'NEXT_WORD'
+
+
+class VIEW3D_MT_edit_font(Menu):
+    bl_label = "Text"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("font.text_cut", text="Cut")
+        layout.operator("font.text_copy", text="Copy", icon='COPYDOWN')
+        layout.operator("font.text_paste", text="Paste", icon='PASTEDOWN')
+
+        layout.separator()
+
+        layout.operator("font.text_paste_from_file")
+
+        layout.separator()
+
+        layout.operator("font.case_set", text="To Uppercase").case = 'UPPER'
+        layout.operator("font.case_set", text="To Lowercase").case = 'LOWER'
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_font_chars")
+
+        layout.separator()
+
+        layout.operator("font.style_toggle", text="Toggle Bold", icon='BOLD').style = 'BOLD'
+        layout.operator("font.style_toggle", text="Toggle Italic", icon='ITALIC').style = 'ITALIC'
+        layout.operator("font.style_toggle", text="Toggle Underline", icon='UNDERLINE').style = 'UNDERLINE'
+        layout.operator("font.style_toggle", text="Toggle Small Caps", icon='SMALL_CAPS').style = 'SMALL_CAPS'
+
+        layout.menu("VIEW3D_MT_edit_font_kerning")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_font_delete")
+
+
+class VIEW3D_MT_edit_font_context_menu(Menu):
+    bl_label = "Text Context Menu"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+
+        layout.operator("font.text_cut", text="Cut")
+        layout.operator("font.text_copy", text="Copy", icon='COPYDOWN')
+        layout.operator("font.text_paste", text="Paste", icon='PASTEDOWN')
+
+        layout.separator()
+
+        layout.operator("font.select_all")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_font")
 
 
 class VIEW3D_MT_edit_meta(Menu):
@@ -7351,7 +7380,6 @@ classes = (
     VIEW3D_MT_select_edit_mesh,
     VIEW3D_MT_select_edit_curve,
     VIEW3D_MT_select_edit_surface,
-    VIEW3D_MT_edit_text_context_menu,
     VIEW3D_MT_select_edit_text,
     VIEW3D_MT_select_edit_metaball,
     VIEW3D_MT_edit_lattice_context_menu,
@@ -7465,8 +7493,10 @@ classes = (
     VIEW3D_MT_edit_curve_showhide,
     VIEW3D_MT_edit_surface,
     VIEW3D_MT_edit_font,
+    VIEW3D_MT_edit_font_chars,
     VIEW3D_MT_edit_font_kerning,
-    VIEW3D_MT_edit_text_chars,
+    VIEW3D_MT_edit_font_delete,
+    VIEW3D_MT_edit_font_context_menu,
     VIEW3D_MT_edit_meta,
     VIEW3D_MT_edit_meta_showhide,
     VIEW3D_MT_edit_lattice,
