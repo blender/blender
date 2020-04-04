@@ -1140,9 +1140,9 @@ static bool view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
   return false;
 }
 
-static void view3d_panel_vgroup(const bContext *C, Panel *pa)
+static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 {
-  uiBlock *block = uiLayoutAbsoluteBlock(pa->layout);
+  uiBlock *block = uiLayoutAbsoluteBlock(panel->layout);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = view_layer->basact->object;
@@ -1171,7 +1171,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
     UI_block_func_handle_set(block, do_view3d_vgroup_buttons, NULL);
 
-    bcol = uiLayoutColumn(pa->layout, true);
+    bcol = uiLayoutColumn(panel->layout, true);
     row = uiLayoutRow(bcol, true); /* The filter button row */
 
     RNA_pointer_create(NULL, &RNA_ToolSettings, ts, &tools_ptr);
@@ -1269,7 +1269,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 
     yco -= 2;
 
-    col = uiLayoutColumn(pa->layout, true);
+    col = uiLayoutColumn(panel->layout, true);
     row = uiLayoutRow(col, true);
 
     ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active_vertex", 1);
@@ -1555,7 +1555,7 @@ static bool view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt)
   return (view_layer->basact != NULL);
 }
 
-static void view3d_panel_transform(const bContext *C, Panel *pa)
+static void view3d_panel_transform(const bContext *C, Panel *panel)
 {
   uiBlock *block;
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1563,10 +1563,10 @@ static void view3d_panel_transform(const bContext *C, Panel *pa)
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   uiLayout *col;
 
-  block = uiLayoutGetBlock(pa->layout);
+  block = uiLayoutGetBlock(panel->layout);
   UI_block_func_handle_set(block, do_view3d_region_buttons, NULL);
 
-  col = uiLayoutColumn(pa->layout, false);
+  col = uiLayoutColumn(panel->layout, false);
 
   if (ob == obedit) {
     if (ob->type == OB_ARMATURE) {

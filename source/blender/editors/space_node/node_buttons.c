@@ -66,13 +66,13 @@ static bool node_sockets_poll(const bContext *C, PanelType *UNUSED(pt))
   return (snode && snode->nodetree && G.debug_value == 777);
 }
 
-static void node_sockets_panel(const bContext *C, Panel *pa)
+static void node_sockets_panel(const bContext *C, Panel *panel)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = (snode) ? snode->edittree : NULL;
   bNode *node = (ntree) ? nodeGetActive(ntree) : NULL;
   bNodeSocket *sock;
-  uiLayout *layout = pa->layout, *split;
+  uiLayout *layout = panel->layout, *split;
   char name[UI_MAX_NAME_STR];
 
   if (ELEM(NULL, ntree, node)) {
@@ -119,13 +119,13 @@ static bool node_tree_find_active_socket(bNodeTree *ntree, bNodeSocket **r_sock,
   return false;
 }
 
-static void node_tree_interface_panel(const bContext *C, Panel *pa)
+static void node_tree_interface_panel(const bContext *C, Panel *panel)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = (snode) ? snode->edittree : NULL;
   bNodeSocket *sock;
   int in_out;
-  uiLayout *layout = pa->layout, *row, *split, *col;
+  uiLayout *layout = panel->layout, *row, *split, *col;
   PointerRNA ptr, sockptr, opptr;
   wmOperatorType *ot;
 

@@ -2943,9 +2943,9 @@ static void write_soops(WriteData *wd, SpaceOutliner *so)
 
 static void write_panel_list(WriteData *wd, ListBase *lb)
 {
-  LISTBASE_FOREACH (Panel *, pa, lb) {
-    writestruct(wd, DATA, Panel, 1, pa);
-    write_panel_list(wd, &pa->children);
+  LISTBASE_FOREACH (Panel *, panel, lb) {
+    writestruct(wd, DATA, Panel, 1, panel);
+    write_panel_list(wd, &panel->children);
   }
 }
 

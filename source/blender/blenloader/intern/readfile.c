@@ -7197,11 +7197,11 @@ static void direct_link_panel_list(FileData *fd, ListBase *lb)
 {
   link_list(fd, lb);
 
-  LISTBASE_FOREACH (Panel *, pa, lb) {
-    pa->runtime_flag = 0;
-    pa->activedata = NULL;
-    pa->type = NULL;
-    direct_link_panel_list(fd, &pa->children);
+  LISTBASE_FOREACH (Panel *, panel, lb) {
+    panel->runtime_flag = 0;
+    panel->activedata = NULL;
+    panel->type = NULL;
+    direct_link_panel_list(fd, &panel->children);
   }
 }
 

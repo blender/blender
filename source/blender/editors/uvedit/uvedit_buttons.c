@@ -259,11 +259,11 @@ static bool image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
   return ED_uvedit_test(obedit);
 }
 
-static void image_panel_uv(const bContext *C, Panel *pa)
+static void image_panel_uv(const bContext *C, Panel *panel)
 {
   uiBlock *block;
 
-  block = uiLayoutAbsoluteBlock(pa->layout);
+  block = uiLayoutAbsoluteBlock(panel->layout);
   UI_block_func_handle_set(block, do_uvedit_vertex, NULL);
 
   uvedit_vertex_buttons(C, block);

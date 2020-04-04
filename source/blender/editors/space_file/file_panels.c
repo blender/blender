@@ -57,20 +57,20 @@ static bool file_panel_operator_poll(const bContext *C, PanelType *UNUSED(pt))
   return (sfile && sfile->op);
 }
 
-static void file_panel_operator_header(const bContext *C, Panel *pa)
+static void file_panel_operator_header(const bContext *C, Panel *panel)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   wmOperator *op = sfile->op;
 
-  BLI_strncpy(pa->drawname, WM_operatortype_name(op->type, op->ptr), sizeof(pa->drawname));
+  BLI_strncpy(panel->drawname, WM_operatortype_name(op->type, op->ptr), sizeof(panel->drawname));
 }
 
-static void file_panel_operator(const bContext *C, Panel *pa)
+static void file_panel_operator(const bContext *C, Panel *panel)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   wmOperator *op = sfile->op;
 
-  UI_block_func_set(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
+  UI_block_func_set(uiLayoutGetBlock(panel->layout), file_draw_check_cb, NULL, NULL);
 
   /* Hack: temporary hide.*/
   const char *hide[] = {"filepath", "files", "directory", "filename"};
@@ -82,7 +82,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
   }
 
   uiTemplateOperatorPropertyButs(
-      C, pa->layout, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
+      C, panel->layout, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
 
   /* Hack: temporary hide.*/
   for (int i = 0; i < ARRAY_SIZE(hide); i++) {
@@ -92,7 +92,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
     }
   }
 
-  UI_block_func_set(uiLayoutGetBlock(pa->layout), NULL, NULL, NULL);
+  UI_block_func_set(uiLayoutGetBlock(panel->layout), NULL, NULL, NULL);
 }
 
 void file_tool_props_region_panels_register(ARegionType *art)
@@ -128,12 +128,12 @@ static void file_panel_execution_execute_button(uiLayout *layout, const char *ti
   uiItemO(row, title, ICON_NONE, "FILE_OT_execute");
 }
 
-static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
+static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 {
   bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_params(sfile);
-  uiBlock *block = uiLayoutGetBlock(pa->layout);
+  uiBlock *block = uiLayoutGetBlock(panel->layout);
   uiBut *but;
   uiLayout *row;
   PointerRNA params_rna_ptr, *but_extra_rna_ptr;
@@ -148,7 +148,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *pa)
 
   RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &params_rna_ptr);
 
-  row = uiLayoutRow(pa->layout, false);
+  row = uiLayoutRow(panel->layout, false);
   uiLayoutSetScaleY(row, 1.3f);
 
   /* callbacks for operator check functions */

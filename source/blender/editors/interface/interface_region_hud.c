@@ -114,22 +114,22 @@ static bool hud_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt
   return false;
 }
 
-static void hud_panel_operator_redo_draw_header(const bContext *C, Panel *pa)
+static void hud_panel_operator_redo_draw_header(const bContext *C, Panel *panel)
 {
   wmOperator *op = WM_operator_last_redo(C);
-  BLI_strncpy(pa->drawname, WM_operatortype_name(op->type, op->ptr), sizeof(pa->drawname));
+  BLI_strncpy(panel->drawname, WM_operatortype_name(op->type, op->ptr), sizeof(panel->drawname));
 }
 
-static void hud_panel_operator_redo_draw(const bContext *C, Panel *pa)
+static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
 {
   wmOperator *op = WM_operator_last_redo(C);
   if (op == NULL) {
     return;
   }
   if (!WM_operator_check_ui_enabled(C, op->type->name)) {
-    uiLayoutSetEnabled(pa->layout, false);
+    uiLayoutSetEnabled(panel->layout, false);
   }
-  uiLayout *col = uiLayoutColumn(pa->layout, false);
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
   uiTemplateOperatorRedoProperties(col, C);
 }
 

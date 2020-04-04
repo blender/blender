@@ -222,11 +222,11 @@ typedef struct PanelType {
   /* verify if the panel should draw or not */
   bool (*poll)(const struct bContext *C, struct PanelType *pt);
   /* draw header (optional) */
-  void (*draw_header)(const struct bContext *C, struct Panel *pa);
+  void (*draw_header)(const struct bContext *C, struct Panel *panel);
   /* draw header preset (optional) */
-  void (*draw_header_preset)(const struct bContext *C, struct Panel *pa);
+  void (*draw_header_preset)(const struct bContext *C, struct Panel *panel);
   /* draw entirely, view changes should be handled here */
-  void (*draw)(const struct bContext *C, struct Panel *pa);
+  void (*draw)(const struct bContext *C, struct Panel *panel);
 
   /* sub panels */
   struct PanelType *parent;

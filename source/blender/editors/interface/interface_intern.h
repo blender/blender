@@ -975,7 +975,9 @@ ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const struct wmEvent 
 
 /* interface_context_menu.c */
 bool ui_popup_context_menu_for_button(struct bContext *C, uiBut *but);
-void ui_popup_context_menu_for_panel(struct bContext *C, struct ARegion *region, struct Panel *pa);
+void ui_popup_context_menu_for_panel(struct bContext *C,
+                                     struct ARegion *region,
+                                     struct Panel *panel);
 
 /* interface_eyedropper.c */
 struct wmKeyMap *eyedropper_modal_keymap(struct wmKeyConfig *keyconf);

@@ -230,11 +230,11 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
   BLI_duplicatelist(newlb, lb);
 
   /* copy panel pointers */
-  Panel *newpa = newlb->first;
-  Panel *pa = lb->first;
-  for (; newpa; newpa = newpa->next, pa = pa->next) {
-    newpa->activedata = NULL;
-    panel_list_copy(&newpa->children, &pa->children);
+  Panel *new_panel = newlb->first;
+  Panel *panel = lb->first;
+  for (; new_panel; new_panel = new_panel->next, panel = panel->next) {
+    new_panel->activedata = NULL;
+    panel_list_copy(&new_panel->children, &panel->children);
   }
 }
 
@@ -418,13 +418,13 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *)
 
 void BKE_area_region_panels_free(ListBase *lb)
 {
-  Panel *pa, *pa_next;
-  for (pa = lb->first; pa; pa = pa_next) {
-    pa_next = pa->next;
-    if (pa->activedata) {
-      MEM_freeN(pa->activedata);
+  Panel *panel, *panel_next;
+  for (panel = lb->first; panel; panel = panel_next) {
+    panel_next = panel->next;
+    if (panel->activedata) {
+      MEM_freeN(panel->activedata);
     }
-    BKE_area_region_panels_free(&pa->children);
+    BKE_area_region_panels_free(&panel->children);
   }
 
   BLI_freelistN(lb);
