@@ -106,7 +106,10 @@ void memfile_chunk_add(MemFile *memfile, const char *buf, uint size, MemFileChun
   curchunk->size = size;
   curchunk->buf = NULL;
   curchunk->is_identical = false;
-  curchunk->is_identical_future = false;
+  /* This is unsafe in the sense that an app handler or other code that does not
+   * perform an undo push may make changes after the last undo push that
+   * will then not be undo. Though it's not entirely clear that is wrong behavior. */
+  curchunk->is_identical_future = true;
   BLI_addtail(&memfile->chunks, curchunk);
 
   /* we compare compchunk with buf */

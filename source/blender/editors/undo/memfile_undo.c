@@ -25,14 +25,17 @@
 
 #include "BLI_ghash.h"
 
+#include "DNA_node_types.h"
 #include "DNA_object_enums.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_undo_system.h"
 
@@ -106,7 +109,6 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
   ID *id_self = cb_data->id_self;
   ID **id_pointer = cb_data->id_pointer;
   BLI_assert((id_self->tag & LIB_TAG_UNDO_OLD_ID_REUSED) != 0);
-  Main *bmain = cb_data->user_data;
 
   ID *id = *id_pointer;
   if (id != NULL && id->lib == NULL && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) == 0) {
@@ -129,9 +131,6 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
       }
     }
 
-    /* In case an old, re-used ID is using a newly read data-block (i.e. one of its ID pointers got
-     * updated), we have to tell the depsgraph about it. */
-    DEG_id_tag_update_ex(bmain, id_self, ID_RECALC_COPY_ON_WRITE);
     return do_stop_iter ? IDWALK_RET_STOP_ITER : IDWALK_RET_NOP;
   }
 
@@ -219,10 +218,35 @@ static void memfile_undosys_step_decode(struct bContext *C,
         BKE_library_foreach_ID_link(
             bmain, id, memfile_undosys_step_id_reused_cb, bmain, IDWALK_READONLY);
       }
+
+      /* Tag depsgraph to update datablock for changes that happend between the
+       * current and the target state, see direct_link_id_restore_recalc(). */
+      if (id->recalc) {
+        DEG_id_tag_update_ex(bmain, id, id->recalc);
+      }
     }
     FOREACH_MAIN_ID_END;
 
-    BKE_main_id_tag_all(bmain, LIB_TAG_UNDO_OLD_ID_REUSED, false);
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      /* Clear temporary tag. */
+      id->tag &= ~LIB_TAG_UNDO_OLD_ID_REUSED;
+
+      /* We only start accumulating from this point, any tags set up to here
+       * are already part of the current undo state. This is done in a second
+       * loop because DEG_id_tag_update may set tags on other datablocks. */
+      id->recalc_undo_accumulated = 0;
+      bNodeTree *nodetree = ntreeFromID(id);
+      if (nodetree != NULL) {
+        nodetree->id.recalc_undo_accumulated = 0;
+      }
+      if (GS(id->name) == ID_SCE) {
+        Scene *scene = (Scene *)id;
+        if (scene->master_collection != NULL) {
+          scene->master_collection->id.recalc_undo_accumulated = 0;
+        }
+      }
+    }
+    FOREACH_MAIN_ID_END;
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));

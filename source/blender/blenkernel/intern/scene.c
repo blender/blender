@@ -2167,8 +2167,6 @@ GHash *BKE_scene_undo_depsgraphs_extract(Main *bmain)
 void BKE_scene_undo_depsgraphs_restore(Main *bmain, GHash *depsgraph_extract)
 {
   for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-    BLI_assert(scene->depsgraph_hash == NULL);
-
     for (ViewLayer *view_layer = scene->view_layers.first; view_layer != NULL;
          view_layer = view_layer->next) {
       char key_full[MAX_ID_NAME + FILE_MAX + MAX_NAME] = {0};

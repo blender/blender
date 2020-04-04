@@ -2800,6 +2800,62 @@ static void direct_link_id_private_id(FileData *fd, ID *id, ID *id_old)
   }
 }
 
+static int direct_link_id_restore_recalc_exceptions(const ID *id_current)
+{
+  /* Exception for armature objects, where the pose has direct points to the
+   * armature databolock. */
+  if (GS(id_current->name) == ID_OB && ((Object *)id_current)->pose) {
+    return ID_RECALC_GEOMETRY;
+  }
+
+  return 0;
+}
+
+static int direct_link_id_restore_recalc(const FileData *fd,
+                                         const ID *id_target,
+                                         const ID *id_current,
+                                         const bool is_identical)
+{
+  /* These are the evaluations that had not been performed yet at the time the
+   * target undo state was written. These need to be done again, since they may
+   * flush back changes to the original datablock. */
+  int recalc = id_target->recalc;
+
+  if (id_current == NULL) {
+    /* ID does not currently exist in the database, so also will not exist in
+     * the dependency graphs. That means it will be newly created and as a
+     * result also fully re-evaluated regardless of the recalc flag set here. */
+    recalc |= ID_RECALC_ALL;
+  }
+  else {
+    /* If the contents datablock changed, the depsgraph needs to copy the
+     * datablock again to ensure it matches the original datablock. */
+    if (!is_identical) {
+      recalc |= ID_RECALC_COPY_ON_WRITE;
+    }
+
+    /* Special exceptions. */
+    recalc |= direct_link_id_restore_recalc_exceptions(id_current);
+
+    /* Evaluations for the current state that have not been performed yet
+     * by the time we are perfoming this undo step. */
+    recalc |= id_current->recalc;
+
+    /* Tags that were set between the target state and the current state,
+     * that we need to perform again. */
+    if (fd->undo_direction < 0) {
+      /* Undo: tags from target to the current state. */
+      recalc |= id_current->recalc_undo_accumulated;
+    }
+    else {
+      /* Redo: tags from current to the target state. */
+      recalc |= id_target->recalc_undo_accumulated;
+    }
+  }
+
+  return recalc;
+}
+
 static void direct_link_id_common(FileData *fd, ID *id, ID *id_old, const int tag)
 {
   /*link direct data of ID properties*/
@@ -2827,29 +2883,8 @@ static void direct_link_id_common(FileData *fd, ID *id, ID *id_old, const int ta
     id->recalc_undo_accumulated = 0;
   }
   else if ((fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0) {
-    if (fd->undo_direction < 0) {
-      /* We are coming from the future (i.e. do an actual undo, and not a redo), and we found an
-       * old (aka existing) ID: we use its 'accumulated recalc flags since last memfile undo step
-       * saving' as recalc flags of our newly read ID. */
-      if (id_old != NULL) {
-        id->recalc = id_old->recalc_undo_accumulated;
-      }
-    }
-    else {
-      /* We are coming from the past (i.e. do a redo), we use saved 'accumulated
-       * recalc flags since last memfile undo step saving' as recalc flags of our newly read ID. */
-      id->recalc = id->recalc_undo_accumulated;
-    }
-    /* In any case, we need to flush the depsgraph's CoWs, as even if the ID address itself did not
-     * change, internal data most likely have. */
-    id->recalc |= ID_RECALC_COPY_ON_WRITE;
-
-    /* We need to 'accumulate' the accumulated recalc flags of all undo steps until we actually
-     * perform a depsgraph update, otherwise we'd only ever use the flags from one of the steps,
-     * and never get proper flags matching all others. */
-    if (id_old != NULL) {
-      id->recalc_undo_accumulated |= id_old->recalc_undo_accumulated;
-    }
+    id->recalc = direct_link_id_restore_recalc(fd, id, id_old, false);
+    id->recalc_undo_accumulated = 0;
   }
 
   /* Link direct data of overrides. */
@@ -9498,7 +9533,7 @@ static bool read_libblock_undo_restore_linked(FileData *fd, Main *main, const ID
 
 /* For undo, restore unchanged datablock from old main. */
 static void read_libblock_undo_restore_identical(
-    FileData *fd, Main *main, const ID *id, ID *id_old, const int tag)
+    FileData *fd, Main *main, const ID *UNUSED(id), ID *id_old, const int tag)
 {
   BLI_assert((fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0);
   BLI_assert(id_old != NULL);
@@ -9511,10 +9546,6 @@ static void read_libblock_undo_restore_identical(
   id_old->newid = NULL;
   id_old->orig_id = NULL;
 
-  /* About recalc: since that ID did not change at all, we know that its recalc fields also
-   * remained unchanged, so no need to handle neither recalc nor recalc_undo_future here.
-   */
-
   const short idcode = GS(id_old->name);
   Main *old_bmain = fd->old_mainlist->first;
   ListBase *old_lb = which_libbase(old_bmain, idcode);
@@ -9522,31 +9553,9 @@ static void read_libblock_undo_restore_identical(
   BLI_remlink(old_lb, id_old);
   BLI_addtail(new_lb, id_old);
 
-  /* Even though we re-use the old ID as-is, it does not mean that we are 100% safe from
-   * needing some depsgraph updates for it (it could depend on another ID which address
-   * did not change, but which actual content might have been re-read from the memfile).
-   * IMPORTANT: Do not fully overwrite recalc flag here, depsgraph may not have been ran
-   * yet for previous undo step(s), we do not want to erase flags set by those.
-   */
-  if (fd->undo_direction < 0) {
-    /* We are coming from the future (i.e. do an actual undo, and not a redo), we use our
-     * old reused ID's 'accumulated recalc flags since last memfile undo step saving' as
-     * recalc flags. */
-    id_old->recalc |= id_old->recalc_undo_accumulated;
-  }
-  else {
-    /* We are coming from the past (i.e. do a redo), we use the saved 'accumulated recalc
-     * flags since last memfile undo step saving' from the newly read ID as recalc flags.
-     */
-    id_old->recalc |= id->recalc_undo_accumulated;
-  }
-  /* There is no need to flush the depsgraph's CoWs here, since that ID's data itself did
-   * not change. */
-
-  /* We need to 'accumulate' the accumulated recalc flags of all undo steps until we
-   * actually perform a depsgraph update, otherwise we'd only ever use the flags from one
-   * of the steps, and never get proper flags matching all others. */
-  id_old->recalc_undo_accumulated |= id->recalc_undo_accumulated;
+  /* Recalc flags, mostly these just remain as they are. */
+  id_old->recalc |= direct_link_id_restore_recalc_exceptions(id_old);
+  id_old->recalc_undo_accumulated = 0;
 }
 
 /* For undo, store changed datablock at old address. */
@@ -10216,6 +10225,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   BHead *bhead = blo_bhead_first(fd);
   BlendFileData *bfd;
   ListBase mainlist = {NULL, NULL};
+
+  if (fd->memfile != NULL) {
+    DEBUG_PRINTF("\nUNDO: read step\n");
+  }
 
   bfd = MEM_callocN(sizeof(BlendFileData), "blendfiledata");
 
