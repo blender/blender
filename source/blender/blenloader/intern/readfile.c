@@ -2384,6 +2384,15 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
   return temp;
 }
 
+/* Like read_struct, but gets a pointer without allocating. Only works for
+ * undo since DNA must match. */
+static const void *peek_struct_undo(FileData *fd, BHead *bhead)
+{
+  BLI_assert(fd->memfile != NULL);
+  UNUSED_VARS_NDEBUG(fd);
+  return (bhead->len) ? (const void *)(bhead + 1) : NULL;
+}
+
 typedef void (*link_list_cb)(FileData *fd, void *data);
 
 static void link_list_ex(FileData *fd, ListBase *lb, link_list_cb callback) /* only direct data */
@@ -9568,6 +9577,78 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
   BLI_addtail(old_lb, id);
 }
 
+static bool read_libblock_undo_restore(
+    FileData *fd, Main *main, BHead *bhead, const int tag, ID **r_id_old)
+{
+  /* Get pointer to memory of new ID that we will be reading. */
+  const ID *id = peek_struct_undo(fd, bhead);
+  const short idcode = GS(id->name);
+
+  if (bhead->code == ID_LI) {
+    /* Restore library datablock. */
+    if (read_libblock_undo_restore_library(fd, main, id)) {
+      return true;
+    }
+  }
+  else if (bhead->code == ID_LINK_PLACEHOLDER) {
+    /* Restore linked datablock. */
+    if (read_libblock_undo_restore_linked(fd, main, id, bhead)) {
+      return true;
+    }
+  }
+  else if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
+    /* Skip reading any UI datablocks, existing ones are kept. We don't
+     * support pointers from other datablocks to UI datablocks so those
+     * we also don't put UI datablocks in fd->libmap. */
+    return true;
+  }
+
+  /* Restore local datablocks. */
+  DEBUG_PRINTF("UNDO: read %s (uuid %d) -> ", id->name, id->session_uuid);
+
+  ID *id_old = NULL;
+  const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
+  if (do_partial_undo && (bhead->code != ID_LINK_PLACEHOLDER)) {
+    /* This code should only ever be reached for local data-blocks. */
+    BLI_assert(main->curlib == NULL);
+
+    /* Find the 'current' existing ID we want to reuse instead of the one we
+     * would read from the undo memfile. */
+    BLI_assert(fd->old_idmap != NULL);
+    id_old = BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid);
+  }
+
+  if (id_old != NULL && read_libblock_is_identical(fd, bhead)) {
+    /* Local datablock was unchanged, restore from the old main. */
+    DEBUG_PRINTF("keep identical datablock\n");
+
+    /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
+     * this is only for do_version-like code), but for sake of consistency, and also because
+     * it will tell us which ID is re-used from old Main, and which one is actually new. */
+    const int id_tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_UNDO_OLD_ID_REUSED;
+    read_libblock_undo_restore_identical(fd, main, id, id_old, id_tag);
+
+    /* Insert into library map for lookup by newly read datablocks (with pointer
+     * value bhead->old) or existing datablocks in memory (pointer value id_old). */
+    oldnewmap_insert(fd->libmap, bhead->old, id_old, bhead->code);
+    oldnewmap_insert(fd->libmap, id_old, id_old, bhead->code);
+
+    *r_id_old = id_old;
+    return true;
+  }
+  else if (id_old != NULL) {
+    /* Local datablock was changed. Restore at the address of the old datablock. */
+    DEBUG_PRINTF("read to old existing address\n");
+    *r_id_old = id_old;
+    return false;
+  }
+  else {
+    /* Local datablock does not exist in the undo step, so read from scratch. */
+    DEBUG_PRINTF("read at new address\n");
+    return false;
+  }
+}
+
 /* This routine reads a datablock and its direct data, and advances bhead to
  * the next datablock. For library linked datablocks, only a placeholder will
  * be generated, to be replaced in read_library_linked_ids.
@@ -9582,117 +9663,54 @@ static BHead *read_libblock(FileData *fd,
                             const bool placeholder_set_indirect_extern,
                             ID **r_id)
 {
-  /* Initialize in case of early return. */
-  if (r_id) {
-    *r_id = NULL;
+  /* First attemp to restore existing datablocks for undo.
+   * When datablocks are changed but still exist, we restore them at the old
+   * address and inherit recalc flags for the dependency graph. */
+  ID *id_old = NULL;
+  if (fd->memfile != NULL) {
+    if (read_libblock_undo_restore(fd, main, bhead, tag, &id_old)) {
+      if (r_id) {
+        *r_id = id_old;
+      }
+      return blo_bhead_next(fd, bhead);
+    }
   }
 
   /* Read libblock struct. */
-  BHead *id_bhead = bhead;
   ID *id = read_struct(fd, bhead, "lib block");
   if (id == NULL) {
+    if (r_id) {
+      *r_id = NULL;
+    }
     return blo_bhead_next(fd, bhead);
   }
 
-  /* Determine ID type. */
+  /* Determine ID type and add to main database list. */
   const short idcode = GS(id->name);
   ListBase *lb = which_libbase(main, idcode);
   if (lb == NULL) {
     /* Unknown ID type. */
     printf("%s: unknown id code '%c%c'\n", __func__, (idcode & 0xff), (idcode >> 8));
     MEM_freeN(id);
+    if (r_id) {
+      *r_id = NULL;
+    }
     return blo_bhead_next(fd, bhead);
   }
 
-  /* Used when undoing from memfile, we swap changed IDs into their old addresses when found. */
-  ID *id_old = NULL;
-  bool restore_at_old_address = false;
-
-  /* Restore existing datablocks for undo. */
-  if (fd->memfile != NULL) {
-    if (bhead->code == ID_LI) {
-      /* Restore library datablock. */
-      if (read_libblock_undo_restore_library(fd, main, id)) {
-        MEM_freeN(id);
-        return blo_bhead_next(fd, bhead);
-      }
-    }
-    else if (bhead->code == ID_LINK_PLACEHOLDER) {
-      /* Restore linked datablock. */
-      if (read_libblock_undo_restore_linked(fd, main, id, bhead)) {
-        MEM_freeN(id);
-        return blo_bhead_next(fd, bhead);
-      }
-    }
-    else if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
-      /* Skip reading any UI datablocks, existing ones are kept. We don't
-       * support pointers from other datablocks to UI datablocks so those
-       * we also don't put UI datablocks in fd->libmap. */
-      MEM_freeN(id);
-      return blo_bhead_next(fd, bhead);
-    }
-
-    /* Restore local datablocks. */
-    DEBUG_PRINTF("UNDO: read %s (uuid %d) -> ", id->name, id->session_uuid);
-
-    const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
-    if (do_partial_undo && (bhead->code != ID_LINK_PLACEHOLDER)) {
-      /* This code should only ever be reached for local data-blocks. */
-      BLI_assert(main->curlib == NULL);
-
-      /* Find the 'current' existing ID we want to reuse instead of the one we
-       * would read from the undo memfile. */
-      BLI_assert(fd->old_idmap != NULL);
-      id_old = BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid);
-    }
-
-    if (id_old != NULL && read_libblock_is_identical(fd, id_bhead)) {
-      /* Local datablock was unchanged, restore from the old main. */
-      DEBUG_PRINTF("keep identical datablock\n");
-
-      /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
-       * this is only for do_version-like code), but for sake of consistency, and also because
-       * it will tell us which ID is re-used from old Main, and which one is actually new. */
-      const int id_tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_UNDO_OLD_ID_REUSED;
-      read_libblock_undo_restore_identical(fd, main, id, id_old, id_tag);
-
-      /* Insert into library map for lookup by newly read datablocks (with pointer
-       * value bhead->old) or existing datablocks in memory (pointer value id_old). */
-      oldnewmap_insert(fd->libmap, bhead->old, id_old, bhead->code);
-      oldnewmap_insert(fd->libmap, id_old, id_old, bhead->code);
-
-      if (r_id) {
-        *r_id = id_old;
-      }
-
-      MEM_freeN(id);
-      return blo_bhead_next(fd, bhead);
-    }
-    else if (id_old != NULL) {
-      /* Local datablock was changed. Restore at the address of the old datablock. */
-      DEBUG_PRINTF("read to old existing address\n");
-      BLI_assert(MEM_allocN_len(id) == MEM_allocN_len(id_old));
-      restore_at_old_address = true;
-    }
-    else {
-      /* Local datablock does not exist in the undo step, so read from scratch. */
-      DEBUG_PRINTF("read at new address\n");
-    }
-  }
+  /* NOTE: id must be added to the list before direct_link_id(), since
+   * direct_link_library() may remove it from there in case of duplicates. */
+  BLI_addtail(lb, id);
 
   /* Insert into library map for lookup by newly read datablocks (with pointer
    * value bhead->old) or existing datablocks in memory (pointer value id_old). */
-  ID *id_target = restore_at_old_address ? id_old : id;
+  ID *id_target = id_old ? id_old : id;
   oldnewmap_insert(fd->libmap, bhead->old, id_target, bhead->code);
   oldnewmap_insert(fd->libmap, id_old, id_target, bhead->code);
 
   if (r_id) {
     *r_id = id_target;
   }
-
-  /* NOTE: id must be added to the list before direct_link_id(), since
-   * direct_link_library() may remove it from there in case of duplicates. */
-  BLI_addtail(lb, id);
 
   /* Set tag for new datablock to indicate lib linking and versioning needs
    * to be done still. */
@@ -9732,7 +9750,7 @@ static BHead *read_libblock(FileData *fd,
       *r_id = NULL;
     }
   }
-  else if (restore_at_old_address) {
+  else if (id_old) {
     /* For undo, store contents read into id at id_old. */
     read_libblock_undo_restore_at_old_address(fd, main, id, id_old);
   }
