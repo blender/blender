@@ -191,8 +191,18 @@ endif()
 
 if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
+
+  list(APPEND INC
+    xr
+  )
+
   list(APPEND SRC
-    intern/wm_xr.c
+    xr/intern/wm_xr.c
+    xr/intern/wm_xr_draw.c
+    xr/intern/wm_xr_session.c
+
+    xr/wm_xr.h
+    xr/intern/wm_xr_intern.h
   )
 endif()
 

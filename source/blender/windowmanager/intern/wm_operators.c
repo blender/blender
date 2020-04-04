@@ -106,6 +106,9 @@
 #include "wm_event_types.h"
 #include "wm_files.h"
 #include "wm_window.h"
+#ifdef WITH_XR_OPENXR
+#  include "wm_xr.h"
+#endif
 
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
 

@@ -46,7 +46,7 @@ void wm_surface_remove(wmSurface *surface);
 void wm_surfaces_free(void);
 
 /* Utils */
-void wm_surfaces_iter(struct bContext *C, void (*cb)(bContext *, wmSurface *));
+void wm_surfaces_iter(struct bContext *C, void (*cb)(struct bContext *, wmSurface *));
 
 /* Drawing */
 void wm_surface_make_drawable(wmSurface *surface);
