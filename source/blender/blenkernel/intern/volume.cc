@@ -901,6 +901,16 @@ const char *BKE_volume_grids_error_msg(const Volume *volume)
 #endif
 }
 
+const char *BKE_volume_grids_frame_filepath(const Volume *volume)
+{
+#ifdef WITH_OPENVDB
+  return volume->runtime.grids->filepath;
+#else
+  UNUSED_VARS(volume);
+  return "";
+#endif
+}
+
 VolumeGrid *BKE_volume_grid_get(const Volume *volume, int grid_index)
 {
 #ifdef WITH_OPENVDB

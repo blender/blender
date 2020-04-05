@@ -194,6 +194,19 @@ static int rna_VolumeGrids_error_message_length(PointerRNA *ptr)
   return strlen(BKE_volume_grids_error_msg(volume));
 }
 
+/* Frame Filepath */
+static void rna_VolumeGrids_frame_filepath_get(PointerRNA *ptr, char *value)
+{
+  Volume *volume = (Volume *)ptr->data;
+  strcpy(value, BKE_volume_grids_frame_filepath(volume));
+}
+
+static int rna_VolumeGrids_frame_filepath_length(PointerRNA *ptr)
+{
+  Volume *volume = (Volume *)ptr->data;
+  return strlen(BKE_volume_grids_frame_filepath(volume));
+}
+
 #else
 
 static void rna_def_volume_grid(BlenderRNA *brna)
@@ -307,6 +320,16 @@ static void rna_def_volume_grids(BlenderRNA *brna, PropertyRNA *cprop)
                            "Frame",
                            "Frame number that volume grids will be loaded at, based on scene time "
                            "and volume parameters");
+
+  prop = RNA_def_property(srna, "frame_filepath", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(
+      prop, "rna_VolumeGrids_frame_filepath_get", "rna_VolumeGrids_frame_filepath_length", NULL);
+
+  RNA_def_property_ui_text(prop,
+                           "Frame File Path",
+                           "Volume file used for loading the volume at the current frame. Empty "
+                           "if the volume has not be loaded or the frame only exists in memory");
 
   /* API */
   FunctionRNA *func;
@@ -446,7 +469,7 @@ static void rna_def_volume(BlenderRNA *brna)
   /* File */
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "File Path", "Volume sample file used by this Volume data-block");
+  RNA_def_property_ui_text(prop, "File Path", "Volume file used by this Volume data-block");
   RNA_def_property_update(prop, 0, "rna_Volume_update_filepath");
 
   prop = RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);

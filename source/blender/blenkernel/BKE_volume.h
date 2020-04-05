@@ -85,6 +85,7 @@ bool BKE_volume_is_loaded(const struct Volume *volume);
 
 int BKE_volume_num_grids(const struct Volume *volume);
 const char *BKE_volume_grids_error_msg(const struct Volume *volume);
+const char *BKE_volume_grids_frame_filepath(const struct Volume *volume);
 VolumeGrid *BKE_volume_grid_get(const struct Volume *volume, int grid_index);
 VolumeGrid *BKE_volume_grid_active_get(const struct Volume *volume);
 VolumeGrid *BKE_volume_grid_find(const struct Volume *volume, const char *name);
