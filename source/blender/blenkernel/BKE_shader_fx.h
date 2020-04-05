@@ -35,9 +35,9 @@ struct Object;
 struct ShaderFxData;
 
 #define SHADER_FX_ACTIVE(_fx, _is_render) \
-  (((_fx->mode & eShaderFxMode_Realtime) && (_is_render == false)) || \
-   ((_fx->mode & eShaderFxMode_Render) && (_is_render == true)))
-#define SHADER_FX_EDIT(_fx, _is_edit) (((_fx->mode & eShaderFxMode_Editmode) == 0) && (_is_edit))
+  ((((_fx)->mode & eShaderFxMode_Realtime) && (_is_render == false)) || \
+   (((_fx)->mode & eShaderFxMode_Render) && (_is_render == true)))
+#define SHADER_FX_EDIT(_fx, _is_edit) ((((_fx)->mode & eShaderFxMode_Editmode) == 0) && (_is_edit))
 
 typedef enum {
   /* Should not be used, only for None type */

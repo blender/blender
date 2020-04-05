@@ -462,7 +462,7 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 
 #define MARKER_VISIBLE(sc, track, marker) \
   (((marker)->flag & MARKER_DISABLED) == 0 || ((sc)->flag & SC_HIDE_DISABLED) == 0 || \
-   (sc->clip->tracking.act_track == track))
+   ((sc)->clip->tracking.act_track == track))
 
 #define TRACK_CLEAR_UPTO 0
 #define TRACK_CLEAR_REMAINED 1

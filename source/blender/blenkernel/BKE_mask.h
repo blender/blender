@@ -238,10 +238,10 @@ void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mas
 #define MASKPOINT_ISSEL_KNOT(p) (((p)->bezt.f2 & SELECT) != 0)
 
 #define MASKPOINT_ISSEL_HANDLE(point, which_handle) \
-  (((which_handle == MASK_WHICH_HANDLE_STICK) ? \
+  ((((which_handle) == MASK_WHICH_HANDLE_STICK) ? \
         ((((point)->bezt.f1 | (point)->bezt.f3) & SELECT)) : \
-        ((which_handle == MASK_WHICH_HANDLE_LEFT) ? ((point)->bezt.f1 & SELECT) : \
-                                                    ((point)->bezt.f3 & SELECT))) != 0)
+        (((which_handle) == MASK_WHICH_HANDLE_LEFT) ? ((point)->bezt.f1 & SELECT) : \
+                                                      ((point)->bezt.f3 & SELECT))) != 0)
 
 #define MASKPOINT_SEL_ALL(p) \
   { \

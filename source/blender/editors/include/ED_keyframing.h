@@ -430,14 +430,14 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
 /* Auto-Keying macros for use by various tools */
 /* check if auto-keyframing is enabled (per scene takes precedence) */
 #define IS_AUTOKEY_ON(scene) \
-  ((scene) ? (scene->toolsettings->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
+  ((scene) ? ((scene)->toolsettings->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
 /* check the mode for auto-keyframing (per scene takes precedence)  */
 #define IS_AUTOKEY_MODE(scene, mode) \
-  ((scene) ? (scene->toolsettings->autokey_mode == AUTOKEY_MODE_##mode) : \
+  ((scene) ? ((scene)->toolsettings->autokey_mode == AUTOKEY_MODE_##mode) : \
              (U.autokey_mode == AUTOKEY_MODE_##mode))
 /* check if a flag is set for auto-keyframing (per scene takes precedence) */
 #define IS_AUTOKEY_FLAG(scene, flag) \
-  ((scene) ? ((scene->toolsettings->autokey_flag & AUTOKEY_FLAG_##flag) || \
+  ((scene) ? (((scene)->toolsettings->autokey_flag & AUTOKEY_FLAG_##flag) || \
               (U.autokey_flag & AUTOKEY_FLAG_##flag)) : \
              (U.autokey_flag & AUTOKEY_FLAG_##flag))
 

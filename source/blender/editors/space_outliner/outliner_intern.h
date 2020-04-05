@@ -193,7 +193,8 @@ typedef enum {
 
 /* is the current element open? if so we also show children */
 #define TSELEM_OPEN(telm, sv) \
-  ((telm->flag & TSE_CLOSED) == 0 || (SEARCHING_OUTLINER(sv) && (telm->flag & TSE_CHILDSEARCH)))
+  (((telm)->flag & TSE_CLOSED) == 0 || \
+   (SEARCHING_OUTLINER(sv) && ((telm)->flag & TSE_CHILDSEARCH)))
 
 /**
  * Container to avoid passing around these variables to many functions.

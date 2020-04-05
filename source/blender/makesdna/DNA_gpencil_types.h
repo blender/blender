@@ -702,31 +702,32 @@ typedef enum eGP_DrawMode {
 /* Check if 'multiedit sessions' is enabled */
 #define GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) \
   ((gpd) && \
-   (gpd->flag & (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
-                 GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) && \
-   (gpd->flag & GP_DATA_STROKE_MULTIEDIT))
+   ((gpd)->flag & (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
+                   GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) && \
+   ((gpd)->flag & GP_DATA_STROKE_MULTIEDIT))
 
 /* Macros to check grease pencil modes */
 #define GPENCIL_ANY_MODE(gpd) \
-  ((gpd) && \
-   (gpd->flag & (GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
-                 GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)))
+  ((gpd) && ((gpd)->flag & \
+             (GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
+              GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)))
 #define GPENCIL_EDIT_MODE(gpd) ((gpd) && ((gpd)->flag & GP_DATA_STROKE_EDITMODE))
 #define GPENCIL_ANY_EDIT_MODE(gpd) \
-  ((gpd) && (gpd->flag & \
+  ((gpd) && ((gpd)->flag & \
              (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
 #define GPENCIL_PAINT_MODE(gpd) ((gpd) && (gpd->flag & (GP_DATA_STROKE_PAINTMODE)))
 #define GPENCIL_SCULPT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_SCULPTMODE))
 #define GPENCIL_WEIGHT_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE))
 #define GPENCIL_VERTEX_MODE(gpd) ((gpd) && (gpd->flag & (GP_DATA_STROKE_VERTEXMODE)))
 #define GPENCIL_SCULPT_OR_WEIGHT_MODE(gpd) \
-  ((gpd) && (gpd->flag & (GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
+  ((gpd) && ((gpd)->flag & (GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
 #define GPENCIL_NONE_EDIT_MODE(gpd) \
-  ((gpd) && ((gpd->flag & (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
-                           GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) == 0))
+  ((gpd) && (((gpd)->flag & (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | \
+                             GP_DATA_STROKE_WEIGHTMODE | GP_DATA_STROKE_VERTEXMODE)) == 0))
 #define GPENCIL_LAZY_MODE(brush, shift) \
-  (((brush) && ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) && (shift == 0))) || \
-   (((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) && (shift == 1)))
+  (((brush) && \
+    (((brush)->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) && ((shift) == 0))) || \
+   ((((brush)->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) && ((shift) == 1)))
 
 #define GPENCIL_ANY_SCULPT_MASK(flag) \
   ((flag & (GP_SCULPT_MASK_SELECTMODE_POINT | GP_SCULPT_MASK_SELECTMODE_STROKE | \

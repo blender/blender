@@ -421,8 +421,8 @@ enum {
 };
 
 #define RV3D_CLIPPING_ENABLED(v3d, rv3d) \
-  (rv3d && v3d && (rv3d->rflag & RV3D_CLIPPING) && ELEM(v3d->shading.type, OB_WIRE, OB_SOLID) && \
-   rv3d->clipbb)
+  ((rv3d) && (v3d) && ((rv3d)->rflag & RV3D_CLIPPING) && \
+   ELEM((v3d)->shading.type, OB_WIRE, OB_SOLID) && (rv3d)->clipbb)
 
 /** #View3D.flag2 (int) */
 #define V3D_HIDE_OVERLAYS (1 << 2)

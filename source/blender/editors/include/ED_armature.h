@@ -134,7 +134,7 @@ typedef struct EditBone {
    (((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A)))
 
 #define EBONE_SELECTABLE(arm, ebone) \
-  (EBONE_VISIBLE(arm, ebone) && !(ebone->flag & BONE_UNSELECTABLE))
+  (EBONE_VISIBLE(arm, ebone) && !((ebone)->flag & BONE_UNSELECTABLE))
 
 #define EBONE_EDITABLE(ebone) \
   (CHECK_TYPE_INLINE(ebone, EditBone *), \

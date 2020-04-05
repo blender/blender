@@ -248,9 +248,9 @@ enum {
 /* we cant have both flags enabled at once,
  * flags defined in DNA_scene_types.h */
 #define ME_EDIT_PAINT_SEL_MODE(_me) \
-  ((_me->editflag & ME_EDIT_PAINT_FACE_SEL) ? \
+  (((_me)->editflag & ME_EDIT_PAINT_FACE_SEL) ? \
        SCE_SELECT_FACE : \
-       (_me->editflag & ME_EDIT_PAINT_VERT_SEL) ? SCE_SELECT_VERTEX : 0)
+       ((_me)->editflag & ME_EDIT_PAINT_VERT_SEL) ? SCE_SELECT_VERTEX : 0)
 
 /* me->flag */
 enum {

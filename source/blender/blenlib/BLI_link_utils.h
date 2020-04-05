@@ -61,7 +61,7 @@
 #define BLI_LINKS_FREE(list) \
   { \
     while (list) { \
-      void *next = list->next; \
+      void *next = (list)->next; \
       MEM_freeN(list); \
       list = next; \
     } \
