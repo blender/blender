@@ -665,6 +665,17 @@ static void do_versions_area_ensure_tool_region(Main *bmain,
         }
       }
     }
+    /* Activate fcurves drawing in the vse. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+          if (sl->spacetype == SPACE_SEQ) {
+            SpaceSeq *sseq = (SpaceSeq *)sl;
+            sseq->flag |= SEQ_SHOW_FCURVES;
+          }
+        }
+      }
+    }
   }
 }
 

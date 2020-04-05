@@ -968,6 +968,99 @@ static void calculate_seq_text_offsets(
   }
 }
 
+static void fcurve_batch_add_verts(GPUVertBuf *vbo,
+                                   float y1,
+                                   float y2,
+                                   float y_height,
+                                   int cfra,
+                                   float curve_val,
+                                   unsigned int *vert_count)
+{
+  float vert_pos[2][2];
+
+  copy_v2_fl2(vert_pos[0], cfra, (curve_val * y_height) + y1);
+  copy_v2_fl2(vert_pos[1], cfra, y2);
+
+  GPU_vertbuf_vert_set(vbo, *vert_count, vert_pos[0]);
+  GPU_vertbuf_vert_set(vbo, *vert_count + 1, vert_pos[1]);
+  *vert_count += 2;
+}
+
+/* Draw f-curves as darkened regions of the strip.
+ *   - Volume for sound strips.
+ *   - Opacity for the other types. */
+static void draw_seq_fcurve(
+    Scene *scene, View2D *v2d, Sequence *seq, float x1, float y1, float x2, float y2, float pixelx)
+{
+  FCurve *fcu;
+
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
+  }
+  else {
+    fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "blend_alpha", 0, NULL);
+  }
+
+  if (fcu && !BKE_fcurve_is_empty(fcu)) {
+
+    /* Clamp curve evaluation to the editor's borders. */
+    int eval_start = max_ff(x1, v2d->cur.xmin);
+    int eval_end = min_ff(x2, v2d->cur.xmax + 1);
+
+    int eval_step = max_ii(1, floor(pixelx));
+
+    if (eval_start >= eval_end) {
+      return;
+    }
+
+    GPUVertFormat format = {0};
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+
+    uint max_verts = 2 * ((eval_end - eval_start) / eval_step + 1);
+    GPU_vertbuf_data_alloc(vbo, max_verts);
+    uint vert_count = 0;
+
+    const float y_height = y2 - y1;
+    float curve_val;
+    float prev_val = INT_MIN;
+    bool skip = false;
+
+    for (int cfra = eval_start; cfra <= eval_end; cfra += eval_step) {
+      curve_val = evaluate_fcurve(fcu, cfra);
+      CLAMP(curve_val, 0.0f, 1.0f);
+
+      /* Avoid adding adjacent verts that have the same value. */
+      if (curve_val == prev_val && cfra < eval_end - eval_step) {
+        skip = true;
+        continue;
+      }
+
+      /* If some frames were skipped above, we need to close the shape.  */
+      if (skip) {
+        fcurve_batch_add_verts(vbo, y1, y2, y_height, cfra - eval_step, prev_val, &vert_count);
+        skip = false;
+      }
+
+      fcurve_batch_add_verts(vbo, y1, y2, y_height, cfra, curve_val, &vert_count);
+      prev_val = curve_val;
+    }
+
+    GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
+    GPU_vertbuf_data_len_set(vbo, vert_count);
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+    GPU_batch_uniform_4f(batch, "color", 0.0f, 0.0f, 0.0f, 0.15f);
+    GPU_blend(true);
+
+    if (vert_count > 0) {
+      GPU_batch_draw(batch);
+    }
+
+    GPU_blend(false);
+    GPU_batch_discard(batch);
+  }
+}
+
 /* Draw visible strips. */
 static void draw_seq_strip(const bContext *C,
                            SpaceSeq *sseq,
@@ -1022,6 +1115,10 @@ static void draw_seq_strip(const bContext *C,
   if ((seq->type == SEQ_TYPE_META) ||
       ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS))) {
     drawmeta_contents(scene, seq, x1, y1, x2, y2);
+  }
+
+  if (sseq->flag & SEQ_SHOW_FCURVES) {
+    draw_seq_fcurve(scene, v2d, seq, x1, y1, x2, y2, pixelx);
   }
 
   /* Draw sound strip waveform. */

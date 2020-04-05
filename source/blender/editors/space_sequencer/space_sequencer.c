@@ -96,7 +96,7 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(area), const Scene *scene)
   sseq->chanshown = 0;
   sseq->view = SEQ_VIEW_SEQUENCE;
   sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-  sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS;
+  sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES;
 
   /* Tool header. */
   region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");

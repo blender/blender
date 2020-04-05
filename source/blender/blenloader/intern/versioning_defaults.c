@@ -174,7 +174,7 @@ static void blo_update_defaults_screen(bScreen *screen,
     }
     else if (area->spacetype == SPACE_SEQ) {
       SpaceSeq *seq = area->spacedata.first;
-      seq->flag |= SEQ_SHOW_MARKERS;
+      seq->flag |= SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES;
     }
     else if (area->spacetype == SPACE_TEXT) {
       /* Show syntax and line numbers in Script workspace text editor. */

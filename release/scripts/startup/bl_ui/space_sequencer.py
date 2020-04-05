@@ -309,6 +309,7 @@ class SEQUENCER_MT_view(Menu):
             layout.prop(st, "show_seconds")
             layout.prop(st, "show_locked_time")
             layout.prop(st, "show_strip_offset")
+            layout.prop(st, "show_fcurves")
             layout.separator()
             layout.prop(st, "show_markers")
 
