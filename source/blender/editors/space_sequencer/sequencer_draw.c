@@ -1239,7 +1239,7 @@ static void sequencer_check_scopes(SequencerScopes *scopes, ImBuf *ibuf)
   }
 }
 
-static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scope_cb)(ImBuf *ibuf))
+static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scope_fn)(ImBuf *ibuf))
 {
   ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
   ImBuf *scope;
@@ -1247,7 +1247,7 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
   IMB_colormanagement_imbuf_make_display_space(
       display_ibuf, &scene->view_settings, &scene->display_settings);
 
-  scope = make_scope_cb(display_ibuf);
+  scope = make_scope_fn(display_ibuf);
 
   IMB_freeImBuf(display_ibuf);
 
@@ -1980,7 +1980,7 @@ typedef struct CacheDrawData {
 } CacheDrawData;
 
 /* Called as a callback */
-static bool draw_cache_view_init_cb(void *userdata, size_t item_count)
+static bool draw_cache_view_init_fn(void *userdata, size_t item_count)
 {
   if (item_count == 0) {
     return true;
@@ -1998,7 +1998,7 @@ static bool draw_cache_view_init_cb(void *userdata, size_t item_count)
 }
 
 /* Called as a callback */
-static bool draw_cache_view_iter_cb(
+static bool draw_cache_view_iter_fn(
     void *userdata, struct Sequence *seq, int nfra, int cache_type, float UNUSED(cost))
 {
   CacheDrawData *drawdata = userdata;
@@ -2162,7 +2162,7 @@ static void draw_cache_view(const bContext *C)
   userdata.composite_vbo = GPU_vertbuf_create_with_format(&format);
   userdata.final_out_vbo = GPU_vertbuf_create_with_format(&format);
 
-  BKE_sequencer_cache_iterate(scene, &userdata, draw_cache_view_init_cb, draw_cache_view_iter_cb);
+  BKE_sequencer_cache_iterate(scene, &userdata, draw_cache_view_init_fn, draw_cache_view_iter_fn);
 
   draw_cache_view_batch(userdata.raw_vbo, userdata.raw_vert_count, 1.0f, 0.1f, 0.02f, 0.4f);
   draw_cache_view_batch(

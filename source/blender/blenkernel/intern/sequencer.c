@@ -121,7 +121,7 @@ static ThreadMutex seq_render_mutex = BLI_MUTEX_INITIALIZER;
 #define SELECT 1
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
-SequencerDrawView sequencer_view3d_cb = NULL; /* NULL in background mode */
+SequencerDrawView sequencer_view3d_fn = NULL; /* NULL in background mode */
 
 #if 0 /* unused function */
 static void printf_strip(Sequence *seq)
@@ -153,28 +153,28 @@ static void sequencer_state_init(SeqRenderState *state)
 }
 
 int BKE_sequencer_base_recursive_apply(ListBase *seqbase,
-                                       int (*apply_func)(Sequence *seq, void *),
+                                       int (*apply_fn)(Sequence *seq, void *),
                                        void *arg)
 {
   Sequence *iseq;
   for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-    if (BKE_sequencer_recursive_apply(iseq, apply_func, arg) == -1) {
+    if (BKE_sequencer_recursive_apply(iseq, apply_fn, arg) == -1) {
       return -1; /* bail out */
     }
   }
   return 1;
 }
 
-int BKE_sequencer_recursive_apply(Sequence *seq, int (*apply_func)(Sequence *, void *), void *arg)
+int BKE_sequencer_recursive_apply(Sequence *seq, int (*apply_fn)(Sequence *, void *), void *arg)
 {
-  int ret = apply_func(seq, arg);
+  int ret = apply_fn(seq, arg);
 
   if (ret == -1) {
     return -1; /* bail out */
   }
 
   if (ret && seq->seqbase.first) {
-    ret = BKE_sequencer_base_recursive_apply(&seq->seqbase, apply_func, arg);
+    ret = BKE_sequencer_base_recursive_apply(&seq->seqbase, apply_fn, arg);
   }
 
   return ret;
@@ -1139,7 +1139,7 @@ int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
   return (seq_a->startdisp > seq_b->startdisp);
 }
 
-static int clear_scene_in_allseqs_cb(Sequence *seq, void *arg_pt)
+static int clear_scene_in_allseqs_fn(Sequence *seq, void *arg_pt)
 {
   if (seq->scene == (Scene *)arg_pt) {
     seq->scene = NULL;
@@ -1155,7 +1155,7 @@ void BKE_sequencer_clear_scene_in_allseqs(Main *bmain, Scene *scene)
   for (scene_iter = bmain->scenes.first; scene_iter; scene_iter = scene_iter->id.next) {
     if (scene_iter != scene && scene_iter->ed) {
       BKE_sequencer_base_recursive_apply(
-          &scene_iter->ed->seqbase, clear_scene_in_allseqs_cb, scene);
+          &scene_iter->ed->seqbase, clear_scene_in_allseqs_fn, scene);
     }
   }
 }
@@ -1185,7 +1185,7 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
   }
 }
 
-static int seqbase_unique_name_recursive_cb(Sequence *seq, void *arg_pt)
+static int seqbase_unique_name_recursive_fn(Sequence *seq, void *arg_pt)
 {
   if (seq->seqbase.first) {
     seqbase_unique_name(&seq->seqbase, (SeqUniqueInfo *)arg_pt);
@@ -1217,7 +1217,7 @@ void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
   while (sui.match) {
     sui.match = 0;
     seqbase_unique_name(seqbasep, &sui);
-    BKE_sequencer_base_recursive_apply(seqbasep, seqbase_unique_name_recursive_cb, &sui);
+    BKE_sequencer_base_recursive_apply(seqbasep, seqbase_unique_name_recursive_fn, &sui);
   }
 
   BLI_strncpy(seq->name + 2, sui.name_dest, sizeof(seq->name) - 2);
@@ -3499,7 +3499,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
   is_frame_update = (orig_data.cfra != scene->r.cfra) || (orig_data.subframe != scene->r.subframe);
 
-  if ((sequencer_view3d_cb && do_seq_gl && camera) && is_thread_main) {
+  if ((sequencer_view3d_fn && do_seq_gl && camera) && is_thread_main) {
     char err_out[256] = "unknown";
     const int width = (scene->r.xsch * scene->r.size) / 100;
     const int height = (scene->r.ysch * scene->r.size) / 100;
@@ -3520,7 +3520,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
     /* opengl offscreen render */
     depsgraph = BKE_scene_get_depsgraph(context->bmain, scene, view_layer, true);
     BKE_scene_graph_update_for_newframe(depsgraph, context->bmain);
-    ibuf = sequencer_view3d_cb(
+    ibuf = sequencer_view3d_fn(
         /* set for OpenGL render (NULL when scrubbing) */
         depsgraph,
         scene,

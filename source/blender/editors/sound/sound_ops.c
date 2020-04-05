@@ -206,7 +206,7 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 
 static void sound_update_animation_flags(Scene *scene);
 
-static int sound_update_animation_flags_cb(Sequence *seq, void *user_data)
+static int sound_update_animation_flags_fn(Sequence *seq, void *user_data)
 {
   struct FCurve *fcu;
   Scene *scene = (Scene *)user_data;
@@ -258,7 +258,7 @@ static void sound_update_animation_flags(Scene *scene)
   scene->id.tag |= LIB_TAG_DOIT;
 
   SEQ_BEGIN (scene->ed, seq) {
-    BKE_sequencer_recursive_apply(seq, sound_update_animation_flags_cb, scene);
+    BKE_sequencer_recursive_apply(seq, sound_update_animation_flags_fn, scene);
   }
   SEQ_END;
 

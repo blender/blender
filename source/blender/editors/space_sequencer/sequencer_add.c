@@ -587,7 +587,7 @@ void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot)
   ot->prop = prop;
 }
 
-static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoadFunc seq_load_func)
+static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoadFn seq_load_fn)
 {
   Scene *scene = CTX_data_scene(C); /* only for sound */
   Editing *ed = BKE_sequencer_editing_get(scene, true);
@@ -617,7 +617,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
       /* Set seq_load.name, else all video/audio files get the same name! ugly! */
       BLI_strncpy(seq_load.name, file_only, sizeof(seq_load.name));
 
-      seq = seq_load_func(C, ed->seqbasep, &seq_load);
+      seq = seq_load_fn(C, ed->seqbasep, &seq_load);
       if (seq) {
         sequencer_add_apply_overlap(C, op, seq);
         if (seq_load.seq_sound) {
@@ -631,7 +631,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
     Sequence *seq;
 
     /* single file */
-    seq = seq_load_func(C, ed->seqbasep, &seq_load);
+    seq = seq_load_fn(C, ed->seqbasep, &seq_load);
     if (seq) {
       sequencer_add_apply_overlap(C, op, seq);
       if (seq_load.seq_sound) {
@@ -672,7 +672,7 @@ static void sequencer_add_cancel(bContext *UNUSED(C), wmOperator *op)
   op->customdata = NULL;
 }
 
-static bool sequencer_add_draw_check_prop(PointerRNA *UNUSED(ptr),
+static bool sequencer_add_draw_check_fn(PointerRNA *UNUSED(ptr),
                                           PropertyRNA *prop,
                                           void *UNUSED(user_data))
 {
@@ -740,7 +740,7 @@ static void sequencer_add_draw(bContext *UNUSED(C), wmOperator *op)
   /* main draw call */
   RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
   uiDefAutoButsRNA(
-      layout, &ptr, sequencer_add_draw_check_prop, NULL, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
+      layout, &ptr, sequencer_add_draw_check_fn, NULL, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
 
   /* image template */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, imf, &imf_ptr);

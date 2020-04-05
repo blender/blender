@@ -493,7 +493,7 @@ typedef struct SeqLoadInfo {
 #define SEQ_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
 
 /* use as an api function */
-typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct SeqLoadInfo *);
+typedef struct Sequence *(*SeqLoadFn)(struct bContext *, ListBase *, struct SeqLoadInfo *);
 
 struct Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type);
 

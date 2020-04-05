@@ -2359,7 +2359,7 @@ void SEQUENCER_OT_split(struct wmOperatorType *ot)
 #undef SEQ_SIDE_MOUSE
 
 /* duplicate operator */
-static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
+static int apply_unique_name_fn(Sequence *seq, void *arg_pt)
 {
   Scene *scene = (Scene *)arg_pt;
   char name[sizeof(seq->name) - 2];
@@ -2389,7 +2389,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
     BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
     for (; seq; seq = seq->next) {
-      BKE_sequencer_recursive_apply(seq, apply_unique_name_cb, scene);
+      BKE_sequencer_recursive_apply(seq, apply_unique_name_fn, scene);
     }
 
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -3461,7 +3461,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
     BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
     for (seq = first_seq; seq; seq = seq->next) {
-      BKE_sequencer_recursive_apply(seq, apply_unique_name_cb, scene);
+      BKE_sequencer_recursive_apply(seq, apply_unique_name_fn, scene);
     }
 
     seqbase_clipboard.first = first_seq;
@@ -3538,7 +3538,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* make sure the pasted strips have unique names between them */
   for (iseq = iseq_first; iseq; iseq = iseq->next) {
-    BKE_sequencer_recursive_apply(iseq, apply_unique_name_cb, scene);
+    BKE_sequencer_recursive_apply(iseq, apply_unique_name_fn, scene);
   }
 
   /* ensure pasted strips don't overlap */

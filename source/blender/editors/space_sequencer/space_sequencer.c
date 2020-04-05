@@ -935,6 +935,6 @@ void ED_spacetype_sequencer(void)
 
   /* set the sequencer callback when not in background mode */
   if (G.background == 0) {
-    sequencer_view3d_cb = ED_view3d_draw_offscreen_imbuf_simple;
+    sequencer_view3d_fn = ED_view3d_draw_offscreen_imbuf_simple;
   }
 }
