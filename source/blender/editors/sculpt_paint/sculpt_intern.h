@@ -818,6 +818,11 @@ typedef struct FilterCache {
   float surface_smooth_shape_preservation;
   float surface_smooth_current_vertex;
 
+  /* Sharpen mesh filter. */
+  float sharpen_smooth_ratio;
+  float *sharpen_factor;
+  float (*accum_disp)[3];
+
   /* unmasked nodes */
   PBVHNode **nodes;
   int totnode;

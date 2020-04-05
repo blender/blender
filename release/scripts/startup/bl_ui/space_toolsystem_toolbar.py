@@ -1034,6 +1034,8 @@ class _defs_sculpt:
             if (props.type == "SURFACE_SMOOTH"):
                 layout.prop(props, "surface_smooth_shape_preservation", expand=False)
                 layout.prop(props, "surface_smooth_current_vertex", expand=False)
+            if (props.type == "SHARPEN"):
+                layout.prop(props, "sharpen_smooth_ratio", expand=False)
 
         return dict(
             idname="builtin.mesh_filter",
