@@ -945,19 +945,25 @@ static uiBut *ui_item_with_label(uiLayout *layout,
   PropertyType type;
   PropertySubType subtype;
   int prop_but_width = w_hint;
+#ifdef UI_PROP_DECORATE
+  uiLayout *layout_prop_decorate = NULL;
   const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
+#endif
 
   /* Always align item with label since text is already given enough space not to overlap. */
   sub = uiLayoutRow(layout, true);
   UI_block_layout_set_current(block, sub);
 
+#ifdef UI_PROP_DECORATE
   if (name[0]) {
-    int w_label;
-
     if (use_prop_sep) {
-      w_label = (int)((w_hint * 2) * UI_ITEM_PROP_SEP_DIVIDE);
+      layout_prop_decorate = uiItemL_respect_property_split(layout, name, 0);
     }
-    else {
+    else
+#endif
+    {
+      int w_label;
+
       if (ui_layout_variable_size(layout)) {
         /* w_hint is width for label in this case.
          * Use a default width for property button(s) */
@@ -967,13 +973,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
       else {
         w_label = w_hint / 3;
       }
-    }
-
-    uiBut *but_label = uiDefBut(
-        block, UI_BTYPE_LABEL, 0, name, x, y, w_label, h, NULL, 0.0, 0.0, 0, 0, "");
-    if (use_prop_sep) {
-      but_label->drawflag |= UI_BUT_TEXT_RIGHT;
-      but_label->drawflag &= ~UI_BUT_TEXT_LEFT;
+      uiDefBut(block, UI_BTYPE_LABEL, 0, name, x, y, w_label, h, NULL, 0.0, 0.0, 0, 0, "");
     }
   }
 
@@ -1053,7 +1053,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
   if (layout->item.flag & UI_ITEM_PROP_SEP) {
     if ((layout->item.flag & UI_ITEM_PROP_DECORATE) &&
         (layout->item.flag & UI_ITEM_PROP_DECORATE_NO_PAD) == 0) {
-      uiItemL(sub, NULL, ICON_BLANK1);
+      uiItemL(layout_prop_decorate ? layout_prop_decorate : sub, NULL, ICON_BLANK1);
     }
   }
 #endif /* UI_PROP_DECORATE */
@@ -1862,6 +1862,20 @@ static void ui_item_rna_size(uiLayout *layout,
   *r_h = h;
 }
 
+/**
+ * Hack to add further items in a row into the second part of the split layout, so the label part
+ * keeps a fixed size.
+ * \return The layout to place further items in for the split layout.
+ */
+static uiLayout *ui_item_prop_split_layout_hack(uiLayout *layout_parent, uiLayout *layout_split)
+{
+  if (layout_parent->item.type == ITEM_LAYOUT_ROW) {
+    layout_parent->child_items_layout = uiLayoutRow(layout_split, true);
+    return layout_parent->child_items_layout;
+  }
+  return layout_split;
+}
+
 void uiItemFullR(uiLayout *layout,
                  PointerRNA *ptr,
                  PropertyRNA *prop,
@@ -2081,11 +2095,8 @@ void uiItemFullR(uiLayout *layout,
         }
       }
 
-      /* Hack to add further items in a row into the second part of
-       * the split layout, so the label part keeps a fixed size. */
-      if (layout_parent && layout_parent->item.type == ITEM_LAYOUT_ROW) {
-        layout_split = uiLayoutRow(layout_split, true);
-        layout_parent->child_items_layout = layout_split;
+      if (layout_parent) {
+        layout_split = ui_item_prop_split_layout_hack(layout_parent, layout_split);
       }
 
       /* Watch out! We can only write into the new layout now. */
@@ -2989,21 +3000,26 @@ void uiItemL(uiLayout *layout, const char *name, int icon)
  * extended to support more cases.
  * Ideally, #uiItemFullR() could just call this, but it currently has too many special needs.
  *
- * \return the layout to place the item(s) associated to the label in.
+ * \return A layout placed in the row after the split layout. Used to place decorator items.
  */
 uiLayout *uiItemL_respect_property_split(uiLayout *layout, const char *text, int icon)
 {
   if (layout->item.flag & UI_ITEM_PROP_SEP) {
-    uiLayout *layout_split = uiLayoutSplit(layout, UI_ITEM_PROP_SEP_DIVIDE, true);
+    uiBlock *block = uiLayoutGetBlock(layout);
+    uiLayout *layout_row = uiLayoutRow(layout, true);
+    uiLayout *layout_split = uiLayoutSplit(layout_row, UI_ITEM_PROP_SEP_DIVIDE, true);
     uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
 
-    layout_split->space = layout_sub->space = layout->space = 0;
+    layout_split->space = layout_sub->space = layout_row->space = 0;
     layout_sub->alignment = UI_LAYOUT_ALIGN_RIGHT;
 
     uiItemL_(layout_sub, text, icon);
 
+    layout_split = ui_item_prop_split_layout_hack(layout, layout_split);
+    UI_block_layout_set_current(block, layout_split);
+
     /* Give caller a new sub-row to place items in. */
-    return uiLayoutRow(layout_split, true);
+    return layout_row;
   }
   else {
     char namestr[UI_MAX_NAME_STR];
