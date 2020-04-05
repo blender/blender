@@ -46,7 +46,7 @@
 
 #include "UI_view2d.h"
 
-/* own include */
+/* Own include. */
 #include "sequencer_intern.h"
 
 /******************** sample backdrop operator ********************/
@@ -158,7 +158,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
       info->colf[3] = fp[3];
       info->colfp = info->colf;
 
-      /* sequencer's image buffers are in non-linear space, need to make them linear */
+      /* Sequencer's image buffers are in non-linear space, need to make them linear. */
       copy_v4_v4(info->linearcol, info->colf);
       BKE_sequencer_pixel_from_sequencer_space_v4(scene, info->linearcol);
 
@@ -236,17 +236,17 @@ static bool sample_poll(bContext *C)
 
 void SEQUENCER_OT_sample(wmOperatorType *ot)
 {
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "Sample Color";
   ot->idname = "SEQUENCER_OT_sample";
   ot->description = "Use mouse to sample color in current frame";
 
-  /* api callbacks */
+  /* Api callbacks. */
   ot->invoke = sample_invoke;
   ot->modal = sample_modal;
   ot->cancel = sample_cancel;
   ot->poll = sample_poll;
 
-  /* flags */
+  /* Flags. */
   ot->flag = OPTYPE_BLOCKING;
 }

@@ -79,20 +79,17 @@
 
 #include "MEM_guardedalloc.h"
 
-/* own include */
+/* Own include. */
 #include "sequencer_intern.h"
 
 #define SEQ_LEFTHANDLE 1
 #define SEQ_RIGHTHANDLE 2
-
 #define SEQ_HANDLE_SIZE 8.0f
-
 #define SEQ_SCROLLER_TEXT_OFFSET 8
-
 #define MUTE_ALPHA 120
 
 /* Note, Don't use SEQ_BEGIN/SEQ_END while drawing!
- * it messes up transform, - Campbell */
+ * it messes up transform. */
 #undef SEQ_BEGIN
 #undef SEQP_BEGIN
 #undef SEQ_END
@@ -141,7 +138,7 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, uchar col[3])
       col[2] = 130;
       break;
 
-    /* effects */
+    /* Effects. */
     case SEQ_TYPE_TRANSFORM:
     case SEQ_TYPE_SPEED:
     case SEQ_TYPE_ADD:
@@ -234,13 +231,10 @@ static void draw_seq_waveform(View2D *v2d,
                               float y2,
                               float stepsize)
 {
-  /*
-   * x1 is the starting x value to draw the wave,
-   * x2 the end x value, same for y1 and y2
-   * stepsize is width of a pixel.
-   */
+  /* X1, x2 is the starting and end X value to draw the wave, same for y1 and y2.
+   * Stepsize is width of a pixel. */
 
-  /* offset x1 and x2 values, to match view min/max, if strip is out of bounds */
+  /* Offset x1 and x2 values, to match view min/max, if strip is out of bounds. */
   int x1_offset = max_ff(v2d->cur.xmin, x1);
   int x2_offset = min_ff(v2d->cur.xmax + 1.0f, x2);
 
@@ -254,8 +248,6 @@ static void draw_seq_waveform(View2D *v2d,
     float volume = seq->volume;
     float value1, value2;
     bSound *sound = seq->sound;
-    FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
-
     SoundWaveform *waveform;
 
     if (length < 2) {
@@ -265,7 +257,7 @@ static void draw_seq_waveform(View2D *v2d,
     BLI_spin_lock(sound->spinlock);
     if (!sound->waveform) {
       if (!(sound->tags & SOUND_TAGS_WAVEFORM_LOADING)) {
-        /* prevent sounds from reloading */
+        /* Prevent sounds from reloading. */
         sound->tags |= SOUND_TAGS_WAVEFORM_LOADING;
         BLI_spin_unlock(sound->spinlock);
         sequencer_preview_add_sound(C, seq);
@@ -273,15 +265,14 @@ static void draw_seq_waveform(View2D *v2d,
       else {
         BLI_spin_unlock(sound->spinlock);
       }
-      return; /* nothing to draw */
+      return; /* Nothing to draw. */
     }
     BLI_spin_unlock(sound->spinlock);
 
     waveform = sound->waveform;
 
+    /* Waveform could not be built. */
     if (waveform->length == 0) {
-      /* BKE_sound_read_waveform() set an empty SoundWaveform data in case it cannot generate a
-       * valid one. See T45726. */
       return;
     }
 
@@ -298,6 +289,9 @@ static void draw_seq_waveform(View2D *v2d,
     if (length < 2) {
       return;
     }
+
+    /* Fcurve lookup is quite expensive, so do this after precondition. */
+    FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
 
     GPU_blend(true);
     GPUVertFormat *format = immVertexFormat();
@@ -325,7 +319,7 @@ static void draw_seq_waveform(View2D *v2d,
         }
       }
       else if (p + 1 < waveform->length) {
-        /* use simple linear interpolation */
+        /* Use simple linear interpolation. */
         float f = sampleoffset - p;
         value1 = (1.0f - f) * value1 + f * waveform->data[p * 3 + 3];
         value2 = (1.0f - f) * value2 + f * waveform->data[p * 3 + 4];
@@ -361,10 +355,6 @@ static void draw_seq_waveform(View2D *v2d,
 
 static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
 {
-  /* note: this used to use SEQ_BEGIN/SEQ_END, but it messes up the
-   * seq->depth value, (needed by transform when doing overlap checks)
-   * so for now, just use the meta's immediate children, could be fixed but
-   * its only drawing - campbell */
   Sequence *seq;
   uchar col[4];
 
@@ -400,12 +390,12 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
   chan_range = (chan_max - chan_min) + 1;
   draw_height = draw_range / chan_range;
 
-  col[3] = 196; /* alpha, used for all meta children */
+  col[3] = 196; /* Alpha, used for all meta children. */
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
+  /* Draw only immediate children (1 level depth). */
   for (seq = seqbase->first; seq; seq = seq->next) {
     const int startdisp = seq->startdisp + offset;
     const int enddisp = seq->enddisp + offset;
@@ -433,7 +423,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 
       immUniformColor4ubv(col);
 
-      /* clamp within parent sequence strip bounds */
+      /* Clamp within parent sequence strip bounds. */
       if (x1_chan < x1) {
         x1_chan = x1;
       }
@@ -453,16 +443,16 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
   GPU_blend(false);
 }
 
-/* clamp handles to defined size in pixel space */
+/* Get handle width in pixels. */
 float sequence_handle_size_get_clamped(Sequence *seq, const float pixelx)
 {
   const float maxhandle = (pixelx * SEQ_HANDLE_SIZE) * U.pixelsize;
 
-  /* ensure we're not greater than half width */
+  /* Ensure that handle is not wider, than half of strip. */
   return min_ff(maxhandle, ((float)(seq->enddisp - seq->startdisp) / 2.0f) / pixelx);
 }
 
-/* draw a handle, for each end of a sequence strip */
+/* Draw a handle, on left or right side of strip. */
 static void draw_seq_handle(View2D *v2d,
                             Sequence *seq,
                             const float handsize_clamped,
@@ -483,7 +473,7 @@ static void draw_seq_handle(View2D *v2d,
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
-  /* set up co-ordinates/dimensions for either left or right handle */
+  /* Set up co-ordinates and dimensions for either left or right handle. */
   if (direction == SEQ_LEFTHANDLE) {
     rx1 = x1;
     rx2 = x1 + handsize_clamped;
@@ -495,7 +485,6 @@ static void draw_seq_handle(View2D *v2d,
     whichsel = SEQ_RIGHTSEL;
   }
 
-  /* draw! */
   if (!(seq->type & SEQ_TYPE_EFFECT) || BKE_sequence_effect_get_num_inputs(seq->type) == 0) {
     GPU_blend(true);
 
@@ -522,9 +511,7 @@ static void draw_seq_handle(View2D *v2d,
     GPU_blend(false);
   }
 
-  /* Draw numbers for start and end of the strip next to its handles.
-   *  - Draw only when handles are selected or while translating the strip.
-   */
+  /* Draw numbers for start and end of the strip next to its handles. */
   if (y_threshold &&
       (((seq->flag & SELECT) && (G.moving & G_TRANSFORM_SEQ)) || (seq->flag & whichsel))) {
 
@@ -575,8 +562,8 @@ static void draw_seq_outline(Sequence *seq,
   else if (seq->flag & SELECT) {
     UI_GetThemeColor3ubv(TH_SEQ_SELECTED, col);
   }
-  /* Regular color for unselected strips: a bit darker than the background. */
   else {
+    /* Color for unselected strips is a bit darker than the background. */
     UI_GetThemeColor3ubv(TH_BACK, col);
     UI_GetColorPtrShade3ubv(col, col, -40);
   }
@@ -610,13 +597,13 @@ static void draw_seq_outline(Sequence *seq,
     /* Top */
     immRectf(pos, x1 - pixelx, y2 - 2 * pixely, x2 + pixelx, y2);
   }
-  /* 1px wide outline for unselected strips. */
   else {
+    /* 1px wide outline for unselected strips. */
     imm_draw_box_wire_2d(pos, x1, y1, x2, y2);
   }
 }
 
-/* draw info text on a sequence strip */
+/* Draw info text on a sequence strip. */
 static void draw_seq_text(View2D *v2d,
                           Sequence *seq,
                           SpaceSeq *sseq,
@@ -633,7 +620,7 @@ static void draw_seq_text(View2D *v2d,
   const char *name = seq->name + 2;
   uchar col[4];
 
-  /* note, all strings should include 'name' */
+  /* All strings should include name. */
   if (name[0] == '\0') {
     name = BKE_sequence_give_name(seq);
   }
@@ -723,7 +710,7 @@ static void draw_seq_text(View2D *v2d,
                            seq->len);
   }
   else {
-    /* should never get here!, but might with files from future */
+    /* Should never get here!, but might with files from future. */
     BLI_assert(0);
 
     str_len = BLI_snprintf(str, sizeof(str), "%s | %d", name, seq->len);
@@ -888,7 +875,7 @@ static void draw_seq_background(Scene *scene,
     }
   }
 
-  /* Transition strips.. Draw right half. */
+  /* Draw right half of transition strips. */
   if (ELEM(seq->type, SEQ_TYPE_CROSS, SEQ_TYPE_GAMCROSS, SEQ_TYPE_WIPE)) {
     float vert_pos[3][2];
     Sequence *seq1 = seq->seq1;
@@ -966,7 +953,7 @@ static void calculate_seq_text_offsets(
 
   float scroller_vert_xoffs = (V2D_SCROLL_HANDLE_WIDTH + SEQ_SCROLLER_TEXT_OFFSET) * pixelx;
 
-  /* info text on the strip */
+  /* Info text on the strip. */
   if (*x1 < v2d->cur.xmin + scroller_vert_xoffs) {
     *x1 = v2d->cur.xmin + scroller_vert_xoffs;
   }
@@ -981,11 +968,7 @@ static void calculate_seq_text_offsets(
   }
 }
 
-/*
- * Draw a sequence strip, bounds check already made
- * ARegion is currently only used to get the windows width in pixels
- * so wave file sample drawing precision is zoom adjusted
- */
+/* Draw visible strips. */
 static void draw_seq_strip(const bContext *C,
                            SpaceSeq *sseq,
                            Scene *scene,
@@ -999,20 +982,19 @@ static void draw_seq_strip(const bContext *C,
   const float handsize_clamped = sequence_handle_size_get_clamped(seq, pixelx);
   float pixely = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
 
-  /* We need to know if this is a single image/color or not for drawing. */
+  /* Check if we are doing "solo preview". */
   bool is_single_image = (char)BKE_sequence_single_check(seq);
 
-  /* body */
+  /* Draw strip body. */
   x1 = (seq->startstill) ? seq->start : seq->startdisp;
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
   x2 = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
-  /* Position of the text,
-   * make sure that the strip content is visible also when the strip height gets lower. */
+  /* Calculate height needed for drawing text on strip. */
   float text_margin_y = y2 - min_ff(0.40f, 20 * U.dpi_fac * pixely);
 
-  /* Show some content only when the strip is high enough. */
+  /* Is there enough space for drawing something else than text? */
   bool y_threshold = ((y2 - y1) / pixely) > 20 * U.dpi_fac;
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1020,12 +1002,12 @@ static void draw_seq_strip(const bContext *C,
 
   draw_seq_background(scene, seq, pos, x1, x2, y1, y2, is_single_image);
 
-  /* Color strips.. Draw a band with the strip's color on its lower part. */
+  /* Draw a color band inside color strip. */
   if (seq->type == SEQ_TYPE_COLOR && y_threshold) {
     draw_color_strip_band(seq, pos, text_margin_y, y1);
   }
 
-  /* Draw strip's offsets when flag is enabled or during "solo preview". */
+  /* Draw strip offsets when flag is enabled or during "solo preview". */
   if (!is_single_image && (seq->startofs || seq->endofs) && pixely > 0) {
     if ((sseq->draw_flag & SEQ_DRAW_OFFSET_EXT) || (seq == special_seq_update)) {
       draw_sequence_extensions(scene, seq, pos, pixely);
@@ -1042,7 +1024,7 @@ static void draw_seq_strip(const bContext *C,
     drawmeta_contents(scene, seq, x1, y1, x2, y2);
   }
 
-  /* Sound strips.. Draw waveforms. */
+  /* Draw sound strip waveform. */
   if ((seq->type == SEQ_TYPE_SOUND_RAM) && (sseq->flag & SEQ_NO_WAVEFORMS) == 0) {
     draw_seq_waveform(v2d,
                       C,
@@ -1061,7 +1043,7 @@ static void draw_seq_strip(const bContext *C,
     draw_seq_locked(x1, y1, x2, y2);
   }
 
-  /* Missing media indication.. Draw a red line on the top of the strip. */
+  /* Draw Red line on the top of invalid strip (Missing media). */
   if (!BKE_sequence_is_valid_check(seq)) {
     draw_seq_invalid(x1, x2, y2, text_margin_y);
   }
@@ -1082,11 +1064,9 @@ static void draw_seq_strip(const bContext *C,
 
   calculate_seq_text_offsets(v2d, seq, &x1, &x2, pixelx);
 
-  /* Draw the text on the top section of the strip,
-   *  - depending on the vertical space, move it to the center or don't draw it.
-   *  - don't draw it when there is not enough horizontal space.
-   */
+  /* Don't draw strip if there is not enough vertical or horizontal space. */
   if (((x2 - x1) > 32 * pixelx * U.dpi_fac) && ((y2 - y1) > 8 * pixely * U.dpi_fac)) {
+    /* Depending on the vertical space, draw text on top or in the center of strip. */
     draw_seq_text(
         v2d, seq, sseq, x1, x2, y_threshold ? text_margin_y : y1, y2, seq_active, y_threshold);
   }
@@ -1203,7 +1183,7 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
     GPU_framebuffer_bind(fb);
   }
 
-  /* restore state so real rendering would be canceled (if needed) */
+  /* Restore state so real rendering would be canceled if needed. */
   G.is_break = is_break;
 
   return ibuf;
@@ -1264,17 +1244,17 @@ static void sequencer_display_size(Scene *scene, float r_viewrect[2])
 
 static void sequencer_draw_gpencil(const bContext *C)
 {
-  /* draw grease-pencil (image aligned) */
+  /* Draw grease-pencil (image aligned). */
   ED_annotation_draw_2dimage(C);
 
-  /* ortho at pixel level */
+  /* Ortho at pixel level. */
   UI_view2d_view_restore(C);
 
-  /* draw grease-pencil (screen aligned) */
+  /* Draw grease-pencil (screen aligned). */
   ED_annotation_draw_view2d(C, 0);
 }
 
-/* draws content borders plus safety borders if needed */
+/* Draw content and safety borders borders. */
 static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, const Scene *scene)
 {
   float x1 = v2d->tot.xmin;
@@ -1284,7 +1264,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 
   GPU_line_width(1.0f);
 
-  /* border */
+  /* Draw border. */
   const uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
@@ -1301,7 +1281,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 
   imm_draw_box_wire_2d(shdr_pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
-  /* safety border */
+  /* Draw safety border. */
   if (sseq->flag & SEQ_SHOW_SAFE_MARGINS) {
     immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
 
@@ -1325,8 +1305,8 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 #if 0
 void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, SpaceSeq *sseq)
 {
-  /* NOTE: sequencer mask editing isnt finished, the draw code is working but editing not,
-   * for now just disable drawing since the strip frame will likely be offset */
+  /* NOTE: sequencer mask editing isnt finished, the draw code is working but editing not.
+   * For now just disable drawing since the strip frame will likely be offset. */
 
   // if (sc->mode == SC_MODE_MASKEDIT)
   if (0 && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
@@ -1377,8 +1357,8 @@ static void *sequencer_OCIO_transform_ibuf(
   force_fallback |= (ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL);
   force_fallback |= (ibuf->dither != 0.0f);
 
+  /* Fallback to CPU based color space conversion. */
   if (force_fallback) {
-    /* Fallback to CPU based color space conversion */
     *r_glsl_used = false;
     *r_format = GL_RGBA;
     *r_type = GL_UNSIGNED_BYTE;
@@ -1423,9 +1403,8 @@ static void *sequencer_OCIO_transform_ibuf(
     display_buffer = NULL;
   }
 
-  /* there's a data to be displayed, but GLSL is not initialized
-   * properly, in this case we fallback to CPU-based display transform
-   */
+  /* There is data to be displayed, but GLSL is not initialized
+   * properly, in this case we fallback to CPU-based display transform. */
   if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
     *r_format = GL_RGBA;
@@ -1441,14 +1420,12 @@ static void *sequencer_OCIO_transform_ibuf(
 static void sequencer_stop_running_jobs(const bContext *C, Scene *scene)
 {
   if (G.is_rendering == false && (scene->r.seq_prev_type) == OB_RENDER) {
-    /* stop all running jobs, except screen one. currently previews frustrate Render
-     * needed to make so sequencer's rendering doesn't conflict with compositor
-     */
+    /* Stop all running jobs, except screen one. Currently previews frustrate Render.
+     * Need to make so sequencer's rendering doesn't conflict with compositor. */
     WM_jobs_kill_type(CTX_wm_manager(C), NULL, WM_JOB_TYPE_COMPOSITE);
 
-    /* in case of final rendering used for preview, kill all previews,
-     * otherwise threading conflict will happen in rendering module
-     */
+    /* In case of final rendering used for preview, kill all previews,
+     * otherwise threading conflict will happen in rendering module. */
     WM_jobs_kill_type(CTX_wm_manager(C), NULL, WM_JOB_TYPE_RENDER_PREVIEW);
   }
 }
@@ -1521,8 +1498,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
   }
 
   /* Format needs to be created prior to any immBindProgram call.
-   * Do it here because OCIO binds it's own shader.
-   */
+   * Do it here because OCIO binds it's own shader. */
   int format, type;
   bool glsl_used = false;
   GLuint texid;
@@ -1671,7 +1647,7 @@ static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
         break;
     }
 
-    /* future files may have new scopes we don't catch above */
+    /* Future files may have new scopes we don't catch above. */
     if (scope) {
       scopes->reference_ibuf = ibuf;
     }
@@ -1708,13 +1684,13 @@ void sequencer_draw_preview(const bContext *C,
     return;
   }
 
-  /* Setup view */
+  /* Setup view. */
   sequencer_display_size(scene, viewrect);
   UI_view2d_totRect_set(v2d, viewrect[0] + 0.5f, viewrect[1] + 0.5f);
   UI_view2d_curRect_validate(v2d);
   UI_view2d_view_ortho(v2d);
 
-  /* Draw background */
+  /* Draw background. */
   if (!draw_backdrop && (!draw_overlay || sseq->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE)) {
     sequencer_preview_clear();
 
@@ -1722,18 +1698,18 @@ void sequencer_draw_preview(const bContext *C,
       imm_draw_box_checker_2d(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
     }
   }
-  /* Get image */
+  /* Get image. */
   ibuf = sequencer_ibuf_get(
       bmain, depsgraph, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
 
   if (ibuf) {
     scope = sequencer_get_scope(scene, sseq, ibuf, draw_backdrop);
 
-    /* Draw image */
+    /* Draw image. */
     sequencer_draw_display_buffer(
         C, scene, region, sseq, ibuf, scope, draw_overlay, draw_backdrop);
 
-    /* Draw over image */
+    /* Draw over image. */
     if (sseq->flag & SEQ_SHOW_METADATA) {
       ED_region_image_metadata_draw(0.0, 0.0, ibuf, &v2d->tot, 1.0, 1.0);
     }
@@ -1746,12 +1722,11 @@ void sequencer_draw_preview(const bContext *C,
   if (draw_gpencil && show_imbuf) {
     sequencer_draw_gpencil(C);
   }
+#if 0
+  sequencer_draw_maskedit(C, scene, region, sseq);
+#endif
 
-  /* TODO */
-  /* sequencer_draw_maskedit(C, scene, region, sseq); */
-
-  /* Scope is freed in sequencer_check_scopes when ibuf changes and
-   * scope image is to be replaced. */
+  /* Scope is freed in sequencer_check_scopes when ibuf changes and redraw is needed. */
   if (ibuf) {
     IMB_freeImBuf(ibuf);
   }
@@ -1760,7 +1735,7 @@ void sequencer_draw_preview(const bContext *C,
   seq_prefetch_wm_notify(C, scene);
 }
 
-/* draw backdrop of the sequencer strips view */
+/* Draw backdrop in sequencer timeline. */
 static void draw_seq_backdrop(View2D *v2d)
 {
   int i;
@@ -1768,11 +1743,11 @@ static void draw_seq_backdrop(View2D *v2d)
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  /* darker gray overlay over the view backdrop */
+  /* Darker gray overlay over the view backdrop. */
   immUniformThemeColorShade(TH_BACK, -20);
   immRectf(pos, v2d->cur.xmin, -1.0, v2d->cur.xmax, 1.0);
 
-  /* Alternating horizontal stripes */
+  /* Alternating horizontal stripes. */
   i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 
   while (i < v2d->cur.ymax) {
@@ -1788,7 +1763,7 @@ static void draw_seq_backdrop(View2D *v2d)
     i++;
   }
 
-  /* Darker lines separating the horizontal bands */
+  /* Darker lines separating the horizontal bands. */
   i = max_ii(1, ((int)v2d->cur.ymin) - 1);
   int line_len = (int)v2d->cur.ymax - i + 1;
   immUniformThemeColor(TH_GRID);
@@ -1802,7 +1777,6 @@ static void draw_seq_backdrop(View2D *v2d)
   immUnbindProgram();
 }
 
-/* draw the contents of the sequencer strips view */
 static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
 {
   Scene *scene = CTX_data_scene(C);
@@ -1812,12 +1786,12 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
   int sel = 0, j;
   float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 
-  /* loop through twice, first unselected, then selected */
+  /* Loop through twice, first unselected, then selected. */
   for (j = 0; j < 2; j++) {
     Sequence *seq;
-    /* loop through strips, checking for those that are visible */
+    /* Loop through strips, checking for those that are visible. */
     for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-      /* boundbox and selection tests for NOT drawing the strip... */
+      /* Boundbox and selection tests for NOT drawing the strip. */
       if ((seq->flag & SELECT) != sel) {
         continue;
       }
@@ -1837,11 +1811,11 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
         continue;
       }
 
-      /* strip passed all tests unscathed... so draw it now */
+      /* Strip passed all tests, draw it now. */
       draw_seq_strip(C, sseq, scene, region, seq, pixelx, seq == last_seq ? true : false);
     }
 
-    /* draw selected next time round */
+    /* Draw selected next time round. */
     sel = SELECT;
   }
 
@@ -1872,7 +1846,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
     }
   }
 
-  /* draw highlight when previewing a single strip */
+  /* Draw highlight if "solo preview" is used. */
   if (special_seq_update) {
     const Sequence *seq = special_seq_update;
     GPU_blend(true);
@@ -1904,8 +1878,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  /* draw darkened area outside of active timeline
-   * frame range used is preview range or scene range */
+  /* Draw overlay outside of frame range. */
   immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
 
   if (frame_sta < frame_end) {
@@ -1918,7 +1891,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
   immUniformThemeColorShade(TH_BACK, -60);
 
-  /* thin lines where the actual frames are */
+  /* Draw frame range boundary. */
   immBegin(GPU_PRIM_LINES, 4);
 
   immVertex2f(pos, frame_sta, v2d->cur.ymin);
@@ -1929,7 +1902,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
   immEnd();
 
-  /* While inside a meta strip, draw a checkerboard pattern outside of its range. */
+  /* While in meta strip, draw a checkerboard overlay outside of frame range. */
   if (ed && !BLI_listbase_is_empty(&ed->metastack)) {
     MetaStack *ms = ed->metastack.last;
     immUnbindProgram();
@@ -1979,7 +1952,7 @@ typedef struct CacheDrawData {
   size_t final_out_vert_count;
 } CacheDrawData;
 
-/* Called as a callback */
+/* Called as a callback. */
 static bool draw_cache_view_init_fn(void *userdata, size_t item_count)
 {
   if (item_count == 0) {
@@ -2175,7 +2148,7 @@ static void draw_cache_view(const bContext *C)
   GPU_blend(false);
 }
 
-/* Draw Timeline/Strip Editor Mode for Sequencer */
+/* Draw sequencer timeline. */
 void draw_timeline_seq(const bContext *C, ARegion *region)
 {
   Scene *scene = CTX_data_scene(C);
@@ -2188,7 +2161,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 
   seq_prefetch_wm_notify(C, scene);
 
-  /* clear and setup matrix */
   UI_GetThemeColor3fv(TH_BACK, col);
   if (ed && ed->metastack.first) {
     GPU_clear_color(col[0], col[1], col[2] - 0.1f, 0.0f);
@@ -2199,44 +2171,36 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   GPU_clear(GPU_COLOR_BIT);
 
   UI_view2d_view_ortho(v2d);
-
-  /* calculate extents of sequencer strips/data
-   * NOTE: needed for the scrollers later
-   */
+  /* Get timeline boundbox, needed for the scrollers. */
   boundbox_seq(scene, &v2d->tot);
-
-  /* draw backdrop */
   draw_seq_backdrop(v2d);
-
-  /* regular grid-pattern over the rest of the view (i.e. 1-second grid lines) */
   UI_view2d_constant_grid_draw(v2d, FPS);
 
-  /* Only draw backdrop in pure sequence view. */
+  /* Only draw backdrop in timeline view. */
   if (sseq->view == SEQ_VIEW_SEQUENCE && sseq->draw_flag & SEQ_DRAW_BACKDROP) {
     sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, true);
     UI_view2d_view_ortho(v2d);
   }
 
+  /* Draw attached callbacks. */
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
-
   seq_draw_sfra_efra(scene, v2d);
 
-  /* sequence strips (if there is data available to be drawn) */
   if (ed) {
-    /* draw the data */
     draw_seq_strips(C, ed, region);
-    /* text draw cached (for sequence names), in pixelspace now */
+    /* Draw text added in previous function. */
     UI_view2d_text_cache_draw(region);
   }
 
-  /* current frame */
   UI_view2d_view_ortho(v2d);
   if ((sseq->flag & SEQ_DRAWFRAMES) == 0) {
     cfra_flag |= DRAWCFRA_UNIT_SECONDS;
   }
+
+  /* Draw playhead. */
   ANIM_draw_cfra(C, v2d, cfra_flag);
 
-  /* overlap playhead */
+  /* Draw overlap playhead. */
   if (scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
     int cfra_over = (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) ?
                         scene->ed->over_cfra :
@@ -2247,7 +2211,8 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
     immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
-    immUniform1i("colors_len", 0); /* "simple" mode */
+    /* Shader may have color set from past usage - reset it. */
+    immUniform1i("colors_len", 0);
     immUniform1f("dash_width", 20.0f * U.pixelsize);
     immUniform1f("dash_factor", 0.5f);
     immUniformThemeColor(TH_CFRAME);
@@ -2260,7 +2225,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
     immUnbindProgram();
   }
 
-  /* markers */
   UI_view2d_view_orthoSpecial(region, v2d, 1);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
   if (sseq->flag & SEQ_SHOW_MARKERS) {
@@ -2268,28 +2232,22 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   }
 
   UI_view2d_view_ortho(v2d);
-  /* draw cache on top of markers area */
+
   if (ed) {
     draw_cache_view(C);
   }
-  /* preview range */
+
   ANIM_draw_previewrange(C, v2d, 1);
 
-  /* callback */
+  /* Draw registered callbacks. */
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
-
-  /* reset view matrix */
   UI_view2d_view_restore(C);
-
-  /* scrubbing region */
   ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
-
-  /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
   UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
 
-  /* channel numbers */
+  /* Draw channel numbers. */
   {
     rcti rect;
     BLI_rcti_init(

@@ -42,7 +42,7 @@ static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
   yuv[1] = 0.492f * (rgb[2] - yuv[0]);
   yuv[2] = 0.877f * (rgb[0] - yuv[0]);
 
-  /* Normalize */
+  /* Normalize. */
   yuv[1] *= 255.0f / (122 * 2.0f);
   yuv[1] += 0.5f;
 

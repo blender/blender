@@ -35,7 +35,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-/* own include */
+/* Own include. */
 #include "sequencer_intern.h"
 
 /*********************** Add modifier operator *************************/

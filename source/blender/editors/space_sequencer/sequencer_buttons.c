@@ -54,7 +54,7 @@ static bool sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNU
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-  /* don't show the gpencil if we are not showing the image */
+  /* Don't show the gpencil if we are not showing the image. */
   return ED_space_sequencer_check_show_imbuf(sseq);
 }
 #endif

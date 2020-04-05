@@ -27,7 +27,7 @@
 #include "DNA_sequence_types.h"
 #include "RNA_access.h"
 
-/* internal exports only */
+/* Internal exports only. */
 
 struct ARegion;
 struct ARegionType;
@@ -57,7 +57,7 @@ void sequencer_special_update_set(Sequence *seq);
 float sequence_handle_size_get_clamped(struct Sequence *seq, const float pixelx);
 
 /* UNUSED */
-// void seq_reset_imageofs(struct SpaceSeq *sseq);
+/* void seq_reset_imageofs(struct SpaceSeq *sseq); */
 
 struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  struct Depsgraph *depsgraph,
@@ -88,19 +88,19 @@ int seq_effect_find_selected(struct Scene *scene,
                              struct Sequence **r_selseq3,
                              const char **r_error_str);
 
-/* operator helpers */
+/* Operator helpers. */
 bool sequencer_edit_poll(struct bContext *C);
 /* UNUSED */
-// bool sequencer_strip_poll(struct bContext *C);
+/* bool sequencer_strip_poll(struct bContext *C); */
 bool sequencer_strip_has_path_poll(struct bContext *C);
 bool sequencer_view_preview_poll(struct bContext *C);
 bool sequencer_view_strips_poll(struct bContext *C);
 
-/* externs */
+/* Externs. */
 extern EnumPropertyItem sequencer_prop_effect_types[];
 extern EnumPropertyItem prop_side_types[];
 
-/* operators */
+/* Operators. */
 struct wmKeyConfig;
 struct wmOperatorType;
 
@@ -152,7 +152,7 @@ void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot);
 
-/* preview specific operators */
+/* Preview specific operators. */
 void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
@@ -193,8 +193,8 @@ enum {
   SEQ_SELECT_LR_RIGHT,
 };
 
-/* defines used internally */
-#define SCE_MARKERS 0  // XXX - dummy
+/* Defines used internally. */
+#define SCE_MARKERS 0 /* XXX - dummy */
 
 /* sequencer_ops.c */
 void sequencer_operatortypes(void);
@@ -222,7 +222,7 @@ void SEQUENCER_OT_sample(struct wmOperatorType *ot);
 /* sequencer_preview.c */
 void sequencer_preview_add_sound(const struct bContext *C, struct Sequence *seq);
 
-/* sequencer_add */
+/* sequencer_add.c */
 int sequencer_image_seq_get_minmax_frame(struct wmOperator *op,
                                          int sfra,
                                          int *r_minframe,

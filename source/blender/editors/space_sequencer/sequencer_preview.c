@@ -52,9 +52,9 @@ typedef struct PreviewJobAudio {
   struct PreviewJobAudio *next, *prev;
   struct Main *bmain;
   bSound *sound;
-  int lr; /* sample left or right */
+  int lr; /* Sample left or right. */
   int startframe;
-  bool waveform; /* reload sound or waveform */
+  bool waveform; /* Reload sound or waveform. */
 } PreviewJobAudio;
 
 static void free_preview_job(void *data)
@@ -66,7 +66,7 @@ static void free_preview_job(void *data)
   MEM_freeN(pj);
 }
 
-/* only this runs inside thread */
+/* Only this runs inside thread. */
 static void preview_startjob(void *data, short *stop, short *do_update, float *progress)
 {
   PreviewJob *pj = data;
@@ -89,7 +89,7 @@ static void preview_startjob(void *data, short *stop, short *do_update, float *p
       while (previewjb) {
         sound = previewjb->sound;
 
-        /* make sure we cleanup the loading flag! */
+        /* Make sure we cleanup the loading flag! */
         BLI_spin_lock(sound->spinlock);
         sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
         BLI_spin_unlock(sound->spinlock);
@@ -127,7 +127,6 @@ static void preview_endjob(void *data)
 
 void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
 {
-  /* first, get the preview job, if it exists */
   wmJob *wm_job;
   PreviewJob *pj;
   ScrArea *area = CTX_wm_area(C);
@@ -139,6 +138,7 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_SEQ_BUILD_PREVIEW);
 
+  /* Get the preview job if it exists. */
   pj = WM_jobs_customdata_get(wm_job);
 
   if (!pj) {
@@ -151,8 +151,6 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
     WM_jobs_callbacks(wm_job, preview_startjob, NULL, NULL, preview_endjob);
   }
-
-  /* attempt to lock mutex of job here */
 
   audiojob->bmain = CTX_data_main(C);
   audiojob->sound = seq->sound;

@@ -32,7 +32,7 @@
 #include "ED_markers.h"
 #include "ED_select_utils.h"
 #include "ED_sequencer.h"
-#include "ED_transform.h" /* transform keymap */
+#include "ED_transform.h" /* Transform keymap. */
 
 #include "BKE_sequencer.h"
 
