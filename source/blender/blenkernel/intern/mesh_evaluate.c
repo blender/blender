@@ -1012,7 +1012,7 @@ void BKE_mesh_loop_manifold_fan_around_vert_next(const MLoop *mloops,
 static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopSplitTaskData *data)
 {
   MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
-  short(*clnors_data)[2] = common_data->clnors_data;
+  const short(*clnors_data)[2] = common_data->clnors_data;
 
   const MVert *mverts = common_data->mverts;
   const MEdge *medges = common_data->medges;
