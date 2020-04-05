@@ -49,12 +49,15 @@ ogg*
 opj_*
 opus_*
 *OSL*
+*pathYy*
 png_*
 *SDL*
 *squish*
 *tbb*
+*textFileFormatYy*
 *TIFF*
 *tinyformat*
+*usdBlender*
 vorbis*
 vp8*
 vp9*
