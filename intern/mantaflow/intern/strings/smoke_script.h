@@ -329,6 +329,9 @@ const std::string smoke_step =
 def smoke_step_$ID$():\n\
     mantaMsg('Smoke step low')\n\
     \n\
+    # save original state for later (used during noise creation)\n\
+    velTmp_s$ID$.copyFrom(vel_s$ID$)\n\
+    \n\
     if using_dissolve_s$ID$:\n\
         mantaMsg('Dissolving smoke')\n\
         dissolveSmoke(flags=flags_s$ID$, density=density_s$ID$, heat=heat_s$ID$, red=color_r_s$ID$, green=color_g_s$ID$, blue=color_b_s$ID$, speed=dissolveSpeed_s$ID$, logFalloff=using_logdissolve_s$ID$)\n\
@@ -422,36 +425,36 @@ def smoke_step_noise_$ID$(framenr):\n\
     mantaMsg('Interpolating grids')\n\
     # Join big obstacle levelset after initDomain() call as it overwrites everything in phiObs\n\
     if using_obstacle_s$ID$:\n\
-        interpolateGrid(target=phiIn_sn$ID$, source=phiObsIn_s$ID$) # mis-use phiIn_sn\n\
+        phiIn_sn$ID$.copyFrom(phiObsIn_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(target=phiIn_sn$ID$, source=phiObsIn_s$ID$) # mis-use phiIn_sn\n\
         phiObs_sn$ID$.join(phiIn_sn$ID$)\n\
     if using_outflow_s$ID$:\n\
-        interpolateGrid(target=phiOut_sn$ID$, source=phiOut_s$ID$)\n\
-    interpolateGrid(target=phiIn_sn$ID$, source=phiIn_s$ID$)\n\
-    interpolateMACGrid(target=vel_sn$ID$, source=vel_s$ID$)\n\
+        phiOut_sn$ID$.copyFrom(phiOut_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(target=phiOut_sn$ID$, source=phiOut_s$ID$)\n\
+    phiIn_sn$ID$.copyFrom(phiIn_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(target=phiIn_sn$ID$, source=phiIn_s$ID$)\n\
+    vel_sn$ID$.copyFrom(velTmp_s$ID$) if upres_sn$ID$ <= 1 else interpolateMACGrid(target=vel_sn$ID$, source=velTmp_s$ID$)\n\
     \n\
     setObstacleFlags(flags=flags_sn$ID$, phiObs=phiObs_sn$ID$, phiOut=phiOut_sn$ID$, phiIn=phiIn_sn$ID$, boundaryWidth=1)\n\
     flags_sn$ID$.fillGrid()\n\
     \n\
     # Interpolate emission grids and apply them to big noise grids\n\
-    interpolateGrid(source=densityIn_s$ID$, target=tmpIn_sn$ID$)\n\
-    interpolateGrid(source=emissionIn_s$ID$, target=emissionIn_sn$ID$)\n\
+    tmpIn_sn$ID$.copyFrom(densityIn_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=densityIn_s$ID$, target=tmpIn_sn$ID$)\n\
+    emissionIn_sn$ID$.copyFrom(emissionIn_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=emissionIn_s$ID$, target=emissionIn_sn$ID$)\n\
     \n\
     # Higher-res noise grid needs scaled emission values\n\
     tmpIn_sn$ID$.multConst(float(upres_sn$ID$))\n\
     applyEmission(flags=flags_sn$ID$, target=density_sn$ID$, source=tmpIn_sn$ID$, emissionTexture=emissionIn_sn$ID$, type=FlagInflow|FlagOutflow)\n\
     \n\
     if using_colors_s$ID$:\n\
-        interpolateGrid(source=color_r_in_s$ID$, target=tmpIn_sn$ID$)\n\
+        tmpIn_sn$ID$.copyFrom(color_r_in_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=color_r_in_s$ID$, target=tmpIn_sn$ID$)\n\
         applyEmission(flags=flags_sn$ID$, target=color_r_sn$ID$, source=tmpIn_sn$ID$, emissionTexture=emissionIn_sn$ID$, type=FlagInflow|FlagOutflow)\n\
-        interpolateGrid(source=color_g_in_s$ID$, target=tmpIn_sn$ID$)\n\
+        tmpIn_sn$ID$.copyFrom(color_g_in_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=color_g_in_s$ID$, target=tmpIn_sn$ID$)\n\
         applyEmission(flags=flags_sn$ID$, target=color_g_sn$ID$, source=tmpIn_sn$ID$, emissionTexture=emissionIn_sn$ID$, type=FlagInflow|FlagOutflow)\n\
-        interpolateGrid(source=color_b_in_s$ID$, target=tmpIn_sn$ID$)\n\
+        tmpIn_sn$ID$.copyFrom(color_b_in_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=color_b_in_s$ID$, target=tmpIn_sn$ID$)\n\
         applyEmission(flags=flags_sn$ID$, target=color_b_sn$ID$, source=tmpIn_sn$ID$, emissionTexture=emissionIn_sn$ID$, type=FlagInflow|FlagOutflow)\n\
     \n\
     if using_fire_s$ID$:\n\
-        interpolateGrid(source=fuelIn_s$ID$, target=tmpIn_sn$ID$)\n\
+        tmpIn_sn$ID$.copyFrom(fuelIn_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=fuelIn_s$ID$, target=tmpIn_sn$ID$)\n\
         applyEmission(flags=flags_sn$ID$, target=fuel_sn$ID$, source=tmpIn_sn$ID$, emissionTexture=emissionIn_sn$ID$, type=FlagInflow|FlagOutflow)\n\
-        interpolateGrid(source=reactIn_s$ID$, target=tmpIn_sn$ID$)\n\
+        tmpIn_sn$ID$.copyFrom(reactIn_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=reactIn_s$ID$, target=tmpIn_sn$ID$)\n\
         applyEmission(flags=flags_sn$ID$, target=react_sn$ID$, source=tmpIn_sn$ID$, emissionTexture=emissionIn_sn$ID$, type=FlagInflow|FlagOutflow)\n\
     \n\
     mantaMsg('Noise step / sn$ID$.frame: ' + str(sn$ID$.frame))\n\
