@@ -220,6 +220,10 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, uchar col[3])
   }
 }
 
+/**
+ * \param x1, x2, y1, y2: The starting and end X value to draw the wave, same for y1 and y2.
+ * \param stepsize: The width of a pixel.
+ */
 static void draw_seq_waveform(View2D *v2d,
                               const bContext *C,
                               SpaceSeq *sseq,
@@ -231,9 +235,6 @@ static void draw_seq_waveform(View2D *v2d,
                               float y2,
                               float stepsize)
 {
-  /* X1, x2 is the starting and end X value to draw the wave, same for y1 and y2.
-   * Stepsize is width of a pixel. */
-
   /* Offset x1 and x2 values, to match view min/max, if strip is out of bounds. */
   int x1_offset = max_ff(v2d->cur.xmin, x1);
   int x2_offset = min_ff(v2d->cur.xmax + 1.0f, x2);
@@ -353,10 +354,10 @@ static void draw_seq_waveform(View2D *v2d,
   }
 }
 
-/* Don't use SEQ_BEGIN/SEQ_END here, because it changes seq->depth,
- * which is needed for tranform. */
 static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
 {
+  /* Don't use SEQ_BEGIN/SEQ_END here,
+   * because it changes seq->depth, which is needed for transform. */
   Sequence *seq;
   uchar col[4];
 
@@ -988,9 +989,11 @@ static void fcurve_batch_add_verts(GPUVertBuf *vbo,
   *vert_count += 2;
 }
 
-/* Draw f-curves as darkened regions of the strip.
- *   - Volume for sound strips.
- *   - Opacity for the other types. */
+/**
+ * Draw f-curves as darkened regions of the strip:
+ * - Volume for sound strips.
+ * - Opacity for the other types.
+ */
 static void draw_seq_fcurve(
     Scene *scene, View2D *v2d, Sequence *seq, float x1, float y1, float x2, float y2, float pixelx)
 {
