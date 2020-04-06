@@ -1038,7 +1038,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
     seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   }
 
-  /* Set channel.*/
+  /* Set channel. If unset, use lowest free one above strips. */
   if (!RNA_struct_property_is_set(op->ptr, "channel")) {
     if (seq->seq1) {
       int chan = max_iii(seq->seq1 ? seq->seq1->machine : 0,

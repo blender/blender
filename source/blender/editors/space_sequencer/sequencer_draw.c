@@ -353,6 +353,8 @@ static void draw_seq_waveform(View2D *v2d,
   }
 }
 
+/* Don't use SEQ_BEGIN/SEQ_END here, because it changes seq->depth,
+ * which is needed for tranform. */
 static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
 {
   Sequence *seq;
@@ -1061,7 +1063,7 @@ static void draw_seq_fcurve(
   }
 }
 
-/* Draw visible strips. */
+/* Draw visible strips. Bounds check are already made. */
 static void draw_seq_strip(const bContext *C,
                            SpaceSeq *sseq,
                            Scene *scene,
