@@ -1806,7 +1806,7 @@ static void rna_def_brush(BlenderRNA *brna)
        "SURFACE",
        0,
        "Surface",
-       "Smooths the surface of the mesh, preserving the volue"},
+       "Smooths the surface of the mesh, preserving the volume"},
       {0, NULL, 0, NULL, NULL},
   };
 
