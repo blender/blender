@@ -362,8 +362,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   kfilm->light_pass_flag = 0;
   kfilm->pass_stride = 0;
   kfilm->use_light_pass = use_light_visibility;
+  kfilm->pass_aov_value_num = 0;
+  kfilm->pass_aov_color_num = 0;
 
-  bool have_cryptomatte = false, have_aov_color = false, have_aov_value = false;
+  bool have_cryptomatte = false;
 
   for (size_t i = 0; i < passes.size(); i++) {
     Pass &pass = passes[i];
@@ -498,16 +500,16 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
         kfilm->pass_sample_count = kfilm->pass_stride;
         break;
       case PASS_AOV_COLOR:
-        if (!have_aov_color) {
+        if (kfilm->pass_aov_value_num == 0) {
           kfilm->pass_aov_color = kfilm->pass_stride;
-          have_aov_color = true;
         }
+        kfilm->pass_aov_value_num++;
         break;
       case PASS_AOV_VALUE:
-        if (!have_aov_value) {
+        if (kfilm->pass_aov_color_num == 0) {
           kfilm->pass_aov_value = kfilm->pass_stride;
-          have_aov_value = true;
         }
+        kfilm->pass_aov_color_num++;
         break;
       default:
         assert(false);

@@ -1242,7 +1242,9 @@ typedef struct KernelFilm {
 
   int pass_aov_color;
   int pass_aov_value;
-  int pad1;
+  int pass_aov_color_num;
+  int pass_aov_value_num;
+  int pad1, pad2, pad3;
 
   /* XYZ to rendering color space transform. float4 instead of float3 to
    * ensure consistent padding/alignment across devices. */
@@ -1265,7 +1267,7 @@ typedef struct KernelFilm {
   int use_display_exposure;
   int use_display_pass_alpha;
 
-  int pad3, pad4, pad5;
+  int pad4, pad5, pad6;
 } KernelFilm;
 static_assert_align(KernelFilm, 16);
 
