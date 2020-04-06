@@ -81,6 +81,11 @@ static float v3_dist_from_plane(float v[3], float center[3], float no[3])
 
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context)
 {
+  if (reshape_context->mmd->simple) {
+    /* Simple subdivisions does not move base mesh verticies, so no refitting is needed. */
+    return;
+  }
+
   Mesh *base_mesh = reshape_context->base_mesh;
 
   MeshElemMap *pmap;
