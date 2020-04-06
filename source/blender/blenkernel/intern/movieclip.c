@@ -457,8 +457,8 @@ typedef struct MovieClipCache {
 
     /* cache for undistorted shot */
     float principal[2];
-    float polynomial_k1;
-    float division_k1;
+    float polynomial_k[3];
+    float division_k[2];
     short distortion_model;
     bool undistortion_used;
 
@@ -896,11 +896,11 @@ static bool check_undistortion_cache_flags(const MovieClip *clip)
     return false;
   }
 
-  if (!equals_v3v3(&camera->k1, &cache->postprocessed.polynomial_k1)) {
+  if (!equals_v3v3(&camera->k1, cache->postprocessed.polynomial_k)) {
     return false;
   }
 
-  if (!equals_v2v2(&camera->division_k1, &cache->postprocessed.division_k1)) {
+  if (!equals_v2v2(&camera->division_k1, cache->postprocessed.division_k)) {
     return false;
   }
 
@@ -1002,8 +1002,8 @@ static void put_postprocessed_frame_to_cache(
   if (need_undistortion_postprocess(user, flag)) {
     cache->postprocessed.distortion_model = camera->distortion_model;
     copy_v2_v2(cache->postprocessed.principal, camera->principal);
-    copy_v3_v3(&cache->postprocessed.polynomial_k1, &camera->k1);
-    copy_v2_v2(&cache->postprocessed.division_k1, &camera->division_k1);
+    copy_v3_v3(cache->postprocessed.polynomial_k, &camera->k1);
+    copy_v2_v2(cache->postprocessed.division_k, &camera->division_k1);
     cache->postprocessed.undistortion_used = true;
   }
   else {
