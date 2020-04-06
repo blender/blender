@@ -193,11 +193,11 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   }
 
   /* wgroup is a temporary copy of the NodeTree we're merging in
-   * - all of wgroup's nodes are transferred across to their new home
+   * - all of wgroup's nodes are copied across to their new home
    * - ngroup (i.e. the source NodeTree) is left unscathed
-   * - temp copy. don't change ID usercount
+   * - temp copy. do change ID usercount for the copies
    */
-  wgroup = ntreeCopyTree_ex_new_pointers(ngroup, bmain, false);
+  wgroup = ntreeCopyTree_ex_new_pointers(ngroup, bmain, true);
 
   /* Add the nodes into the ntree */
   for (node = wgroup->nodes.first; node; node = nextnode) {
@@ -351,8 +351,8 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     nodeRemoveNode(bmain, ntree, node, false);
   }
 
-  /* delete the group instance */
-  nodeRemoveNode(bmain, ntree, gnode, false);
+  /* delete the group instance and dereference group tree */
+  nodeRemoveNode(bmain, ntree, gnode, true);
 
   ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 
