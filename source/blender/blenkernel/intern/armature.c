@@ -156,7 +156,7 @@ IDTypeInfo IDType_ID_AR = {
     .main_listbase_index = INDEX_ID_AR,
     .struct_size = sizeof(bArmature),
     .name = "Armature",
-    .name_plural = "armature",
+    .name_plural = "armatures",
     .translation_context = BLT_I18NCONTEXT_ID_ARMATURE,
     .flags = 0,
 
