@@ -136,6 +136,9 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
     # First add all user_modified keymaps (found in keyconfigs.user.keymaps list),
     # then add all remaining keymaps from the currently active custom keyconfig.
     #
+    # Sort the resulting list according to top context name,
+    # while this isn't essential, it makes comparing keymaps simpler.
+    #
     # This will create a final list of keymaps that can be used as a "diff" against
     # the default blender keyconfig, recreating the current setup from a fresh blender
     # without needing to export keymaps which haven't been edited.
@@ -151,6 +154,10 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
         export_keymaps = keyconfig_merge(edited_kc, kc)
     else:
         export_keymaps = keyconfig_merge(edited_kc, edited_kc)
+
+    # Sort the keymap list by top context name before exporting,
+    # not essential, just convenient to order them predictably.
+    export_keymaps.sort(key=lambda k: k[0].name)
 
     with open(filepath, "w") as fh:
         fw = fh.write
