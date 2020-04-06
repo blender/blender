@@ -751,12 +751,20 @@ static void sound_start_play_scene(Scene *scene)
   }
 }
 
+static float get_cur_time(Scene *scene)
+{
+  /* We divide by the current framelen to take into account time remapping.
+   * Otherwise we will get the wrong starting time which will break A/V sync.
+   * See T74111 for further details. */
+  return FRA2TIME((CFRA + SUBFRA) / scene->r.framelen);
+}
+
 void BKE_sound_play_scene(Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
 
   AUD_Status status;
-  const float cur_time = (float)((double)CFRA / FPS);
+  const float cur_time = get_cur_time(scene);
 
   AUD_Device_lock(sound_device);
 
@@ -804,7 +812,7 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
   int animation_playing;
 
   const float one_frame = (float)(1.0 / FPS);
-  const float cur_time = (float)((double)CFRA / FPS);
+  const float cur_time = get_cur_time(scene);
 
   AUD_Device_lock(sound_device);
 
