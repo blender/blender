@@ -1573,6 +1573,28 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
   return changed;
 }
 
+/* Make sure, that each strip contains at least 1 frame of content. */
+static void sequencer_slip_apply_limits(SlipData *data, int *offset)
+{
+  for (int i = 0; i < data->num_seq; i++) {
+    if (data->trim[i]) {
+      Sequence *seq = data->seq_array[i];
+      int seq_content_start = data->ts[i].start + *offset;
+      int seq_content_end = seq_content_start + seq->len + seq->anim_startofs + seq->anim_endofs;
+      int diff = 0;
+
+      if (seq_content_start >= seq->enddisp) {
+        diff = seq->enddisp - seq_content_start - 1;
+      }
+
+      if (seq_content_end <= seq->startdisp) {
+        diff = seq->startdisp - seq_content_end + 1;
+      }
+      *offset += diff;
+    }
+  }
+}
+
 static int sequencer_slip_exec(bContext *C, wmOperator *op)
 {
   SlipData *data;
@@ -1601,6 +1623,7 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
     transseq_backup(data->ts + i, data->seq_array[i]);
   }
 
+  sequencer_slip_apply_limits(data, &offset);
   success = sequencer_slip_recursively(scene, data, offset);
 
   MEM_freeN(data->seq_array);
@@ -1647,10 +1670,12 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Modal numinput active, try to handle numeric inputs. */
   if (event->val == KM_PRESS && has_numInput && handleNumInput(C, &data->num_input, event)) {
-    float offset;
-    applyNumInput(&data->num_input, &offset);
+    float offset_fl;
+    applyNumInput(&data->num_input, &offset_fl);
+    int offset = round_fl_to_int(offset_fl);
 
-    sequencer_slip_update_header(scene, area, data, (int)offset);
+    sequencer_slip_apply_limits(data, &offset);
+    sequencer_slip_update_header(scene, area, data, offset);
 
     RNA_int_set(op->ptr, "offset", offset);
 
@@ -1682,6 +1707,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
         UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
         offset = mouseloc[0] - data->init_mouseloc[0];
 
+        sequencer_slip_apply_limits(data, &offset);
         sequencer_slip_update_header(scene, area, data, offset);
 
         RNA_int_set(op->ptr, "offset", offset);
@@ -1761,10 +1787,12 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Modal numinput inactive, try to handle numeric inputs. */
   if (!handled && event->val == KM_PRESS && handleNumInput(C, &data->num_input, event)) {
-    float offset;
-    applyNumInput(&data->num_input, &offset);
+    float offset_fl;
+    applyNumInput(&data->num_input, &offset_fl);
+    int offset = round_fl_to_int(offset_fl);
 
-    sequencer_slip_update_header(scene, area, data, (int)offset);
+    sequencer_slip_apply_limits(data, &offset);
+    sequencer_slip_update_header(scene, area, data, offset);
 
     RNA_int_set(op->ptr, "offset", offset);
 
