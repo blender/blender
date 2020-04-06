@@ -56,7 +56,9 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "interface_intern.h"
@@ -544,59 +546,6 @@ static void ui_draw_panel_scalewidget(uint pos, const rcti *rect)
   GPU_blend(false);
 }
 
-static void immRectf_tris_color_ex(
-    uint pos, float x1, float y1, float x2, float y2, uint col, const float color[3])
-{
-  immAttr4fv(col, color);
-  immVertex2f(pos, x1, y1);
-  immAttr4fv(col, color);
-  immVertex2f(pos, x2, y1);
-  immAttr4fv(col, color);
-  immVertex2f(pos, x2, y2);
-
-  immAttr4fv(col, color);
-  immVertex2f(pos, x1, y1);
-  immAttr4fv(col, color);
-  immVertex2f(pos, x2, y2);
-  immAttr4fv(col, color);
-  immVertex2f(pos, x1, y2);
-}
-
-static void ui_draw_panel_dragwidget(uint pos, uint col, const rctf *rect)
-{
-  float col_high[4], col_dark[4];
-  const int col_tint = 84;
-
-  const int px = (int)U.pixelsize;
-  const int px_zoom = max_ii(round_fl_to_int(BLI_rctf_size_y(rect) / 22.0f), 1);
-
-  const int box_margin = max_ii(round_fl_to_int((float)(px_zoom * 2.0f)), px);
-  const int box_size = max_ii(round_fl_to_int((BLI_rctf_size_y(rect) / 8.0f) - px), px);
-
-  const int x_min = rect->xmin;
-  const int y_min = rect->ymin;
-  const int y_ofs = max_ii(round_fl_to_int(BLI_rctf_size_y(rect) / 2.5f), px);
-  const int x_ofs = y_ofs;
-  int i_x, i_y;
-
-  UI_GetThemeColorShade4fv(TH_PANEL_HEADER, col_tint, col_high);
-  UI_GetThemeColorShade4fv(TH_PANEL_BACK, -col_tint, col_dark);
-
-  /* draw multiple boxes */
-  immBegin(GPU_PRIM_TRIS, 4 * 2 * (6 * 2));
-  for (i_x = 0; i_x < 4; i_x++) {
-    for (i_y = 0; i_y < 2; i_y++) {
-      const int x_co = (x_min + x_ofs) + (i_x * (box_size + box_margin));
-      const int y_co = (y_min + y_ofs) + (i_y * (box_size + box_margin));
-
-      immRectf_tris_color_ex(
-          pos, x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom, col, col_dark);
-      immRectf_tris_color_ex(pos, x_co - box_size, y_co, x_co, y_co + box_size, col, col_high);
-    }
-  }
-  immEnd();
-}
-
 /* For button layout next to label. */
 void UI_panel_label_offset(uiBlock *block, int *r_x, int *r_y)
 {
@@ -755,24 +704,27 @@ void ui_draw_aligned_panel(uiStyle *style,
     ui_draw_aligned_panel_header(style, block, &titlerect, 'h', show_background);
 
     if (show_drag) {
-      uint col;
-      GPUVertFormat *format = immVertexFormat();
-      pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-
       /* itemrect smaller */
+      const float scale = 0.7;
       itemrect.xmax = headrect.xmax - (0.2f * UI_UNIT_X);
       itemrect.xmin = itemrect.xmax - BLI_rcti_size_y(&headrect);
       itemrect.ymin = headrect.ymin;
       itemrect.ymax = headrect.ymax;
+      BLI_rctf_scale(&itemrect, scale);
 
-      BLI_rctf_scale(&itemrect, 0.7f);
-      immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-      ui_draw_panel_dragwidget(pos, col, &itemrect);
-      immUnbindProgram();
+      GPU_matrix_push();
+      GPU_matrix_translate_2f(itemrect.xmin, itemrect.ymin);
 
-      /* Restore format for the following draws. */
-      pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      const int col_tint = 84;
+      float col_high[4], col_dark[4];
+      UI_GetThemeColorShade4fv(TH_PANEL_HEADER, col_tint, col_high);
+      UI_GetThemeColorShade4fv(TH_PANEL_BACK, -col_tint, col_dark);
+
+      GPUBatch *batch = GPU_batch_preset_panel_drag_widget(
+          U.pixelsize, col_high, col_dark, BLI_rcti_size_y(&headrect) * scale);
+      GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_FLAT_COLOR);
+      GPU_batch_draw(batch);
+      GPU_matrix_pop();
     }
   }
 
