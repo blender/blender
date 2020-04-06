@@ -80,6 +80,8 @@ void libmv_cameraIntrinsicsUpdate(
    * are not freed.
    */
 
+  camera_intrinsics->SetThreads(libmv_camera_intrinsics_options->num_threads);
+
   if (camera_intrinsics->focal_length() != focal_length) {
     camera_intrinsics->SetFocalLength(focal_length, focal_length);
   }

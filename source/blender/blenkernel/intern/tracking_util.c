@@ -35,6 +35,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -441,6 +442,8 @@ void tracking_cameraIntrinscisOptionsFromTracking(
 {
   MovieTrackingCamera *camera = &tracking->camera;
   float aspy = 1.0f / tracking->camera.pixel_aspect;
+
+  camera_intrinsics_options->num_threads = BLI_system_thread_count();
 
   camera_intrinsics_options->focal_length = camera->focal;
 
