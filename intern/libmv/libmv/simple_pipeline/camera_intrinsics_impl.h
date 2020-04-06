@@ -63,7 +63,7 @@ void LookupWarpGrid::Compute(const CameraIntrinsics &intrinsics,
   double aspx = (double) w / intrinsics.image_width();
   double aspy = (double) h / intrinsics.image_height();
 #if defined(_OPENMP)
-#  pragma omp parallel for schedule(dynamic) num_threads(threads_) \
+#  pragma omp parallel for schedule(static) num_threads(threads_) \
   if (threads_ > 1 && height > 100)
 #endif
   for (int y = 0; y < height; y++) {
@@ -125,7 +125,7 @@ void LookupWarpGrid::Apply(const PixelType *input_buffer,
                            int channels,
                            PixelType *output_buffer) {
 #if defined(_OPENMP)
-#  pragma omp parallel for schedule(dynamic) num_threads(threads_) \
+#  pragma omp parallel for schedule(static) num_threads(threads_) \
   if (threads_ > 1 && height > 100)
 #endif
   for (int y = 0; y < height; y++) {
