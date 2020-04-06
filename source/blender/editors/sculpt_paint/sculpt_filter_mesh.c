@@ -197,8 +197,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
 
-  /* When using the relax face sets mehs filter, each 3 iterations, do a whole mesh relax to smooth
-   * the contents of the Face Set. */
+  /* When using the relax face sets meshes filter,
+   * each 3 iterations, do a whole mesh relax to smooth the contents of the Face Set. */
   /* This produces better results as the relax operation is no completely focused on the
    * boundaries. */
   const bool relax_face_sets = !(ss->filter_cache->iteration_count % 3 == 0);
@@ -220,8 +220,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       if (!SCULPT_vertex_has_face_set(ss, vd.index, ss->filter_cache->active_face_set)) {
         continue;
       }
-      /* Skip the edges of the face set when relaxing or smoothing. There is a relax face set
-       * option to relax the boindaries independently. */
+      /* Skip the edges of the face set when relaxing or smoothing.
+       * There is a relax face set option to relax the boundaries independently. */
       if (filter_type == MESH_FILTER_RELAX) {
         if (!SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
           continue;

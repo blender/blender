@@ -96,7 +96,7 @@
  * behavior, but it uses more memory that it seems it should be.
  *
  * The dynamic topology undo nodes are handled somewhat separately from all
- * other ones and the idea there is to store log of operations: which verticies
+ * other ones and the idea there is to store log of operations: which vertices
  * and faces have been added or removed.
  *
  * Begin of dynamic topology sculpting mode have own node type. It contains an

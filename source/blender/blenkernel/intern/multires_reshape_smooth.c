@@ -929,7 +929,7 @@ typedef void(ReshapeSubdivCoarsePositionCb)(
     const Vertex *vertex,
     float r_P[3]);
 
-/* Refine subdivision surface topology at a reshape level for new coarse verticies positions.  */
+/* Refine subdivision surface topology at a reshape level for new coarse vertices positions.  */
 static void reshape_subdiv_refine(const MultiresReshapeSmoothContext *reshape_smooth_context,
                                   ReshapeSubdivCoarsePositionCb coarse_position_cb)
 {
