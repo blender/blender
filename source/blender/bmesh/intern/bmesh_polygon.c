@@ -596,6 +596,31 @@ void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3])
 }
 
 /**
+ * computes center of face in 3d.  uses center of bounding box.
+ */
+void BM_face_calc_center_bounds_vcos(const BMesh *bm,
+                                     const BMFace *f,
+                                     float r_cent[3],
+                                     float const (*vertexCos)[3])
+{
+  /* must have valid index data */
+  BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
+  (void)bm;
+
+  const BMLoop *l_iter, *l_first;
+  float min[3], max[3];
+
+  INIT_MINMAX(min, max);
+
+  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+  do {
+    minmax_v3v3_v3(min, max, vertexCos[BM_elem_index_get(l_iter->v)]);
+  } while ((l_iter = l_iter->next) != l_first);
+
+  mid_v3_v3v3(r_cent, min, max);
+}
+
+/**
  * computes the center of a face, using the mean average
  */
 void BM_face_calc_center_median(const BMFace *f, float r_cent[3])

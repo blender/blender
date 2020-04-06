@@ -27,6 +27,7 @@
 #include "BLI_string.h"
 
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
 #include "BKE_unit.h"
 
@@ -48,6 +49,7 @@
 #include "WM_api.h"
 
 #include "draw_manager_text.h"
+#include "intern/bmesh_polygon.h"
 
 typedef struct ViewCachedString {
   float vec[3];
@@ -216,6 +218,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
+  const float(*vert_coords)[3] = (me->runtime.edit_data ? me->runtime.edit_data->vertexCos : NULL);
+  const bool use_coords = (vert_coords != NULL);
 
   /* when 2 or more edge-info options are enabled, space apart */
   short edge_tex_count = 0;
@@ -261,6 +265,10 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
 
+    if (use_coords) {
+      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+    }
+
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
       /* draw selected edges, or edges next to selected verts while dragging */
       if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
@@ -268,8 +276,14 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                          BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))) {
         float v1_clip[3], v2_clip[3];
 
-        copy_v3_v3(v1, eed->v1->co);
-        copy_v3_v3(v2, eed->v2->co);
+        if (vert_coords) {
+          copy_v3_v3(v1, vert_coords[BM_elem_index_get(eed->v1)]);
+          copy_v3_v3(v2, vert_coords[BM_elem_index_get(eed->v2)]);
+        }
+        else {
+          copy_v3_v3(v1, eed->v1->co);
+          copy_v3_v3(v2, eed->v2->co);
+        }
 
         if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
 
@@ -306,6 +320,13 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
 
+    const float(*poly_normals)[3] = NULL;
+    if (use_coords) {
+      BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
+      BKE_editmesh_cache_ensure_poly_normals(em, me->runtime.edit_data);
+      poly_normals = me->runtime.edit_data->polyNos;
+    }
+
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
       BMLoop *l_a, *l_b;
       if (BM_edge_loop_pair(eed, &l_a, &l_b)) {
@@ -321,8 +342,14 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                            BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)))) {
           float v1_clip[3], v2_clip[3];
 
-          copy_v3_v3(v1, eed->v1->co);
-          copy_v3_v3(v2, eed->v2->co);
+          if (vert_coords) {
+            copy_v3_v3(v1, vert_coords[BM_elem_index_get(eed->v1)]);
+            copy_v3_v3(v2, vert_coords[BM_elem_index_get(eed->v2)]);
+          }
+          else {
+            copy_v3_v3(v1, eed->v1->co);
+            copy_v3_v3(v2, eed->v2->co);
+          }
 
           if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
             float no_a[3], no_b[3];
@@ -331,8 +358,14 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             mid_v3_v3v3(vmid, v1_clip, v2_clip);
             mul_m4_v3(ob->obmat, vmid);
 
-            copy_v3_v3(no_a, l_a->f->no);
-            copy_v3_v3(no_b, l_b->f->no);
+            if (use_coords) {
+              copy_v3_v3(no_a, poly_normals[BM_elem_index_get(l_a->f)]);
+              copy_v3_v3(no_b, poly_normals[BM_elem_index_get(l_b->f)]);
+            }
+            else {
+              copy_v3_v3(no_a, l_a->f->no);
+              copy_v3_v3(no_b, l_b->f->no);
+            }
 
             if (do_global) {
               mul_mat3_m4_v3(ob->imat, no_a);
@@ -372,9 +405,17 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         zero_v3(vmid);
         BMLoop *(*l)[3] = &em->looptris[poly_to_tri_count(i, BM_elem_index_get(f->l_first))];
         for (int j = 0; j < numtri; j++) {
-          copy_v3_v3(v1, l[j][0]->v->co);
-          copy_v3_v3(v2, l[j][1]->v->co);
-          copy_v3_v3(v3, l[j][2]->v->co);
+
+          if (use_coords) {
+            copy_v3_v3(v1, vert_coords[BM_elem_index_get(l[j][0]->v)]);
+            copy_v3_v3(v2, vert_coords[BM_elem_index_get(l[j][1]->v)]);
+            copy_v3_v3(v3, vert_coords[BM_elem_index_get(l[j][2]->v)]);
+          }
+          else {
+            copy_v3_v3(v1, l[j][0]->v->co);
+            copy_v3_v3(v2, l[j][1]->v->co);
+            copy_v3_v3(v3, l[j][2]->v->co);
+          }
 
           add_v3_v3(vmid, v1);
           add_v3_v3(vmid, v2);
@@ -417,6 +458,10 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 
+    if (use_coords) {
+      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+    }
+
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       const bool is_face_sel = BM_elem_flag_test_bool(efa, BM_ELEM_SELECT);
 
@@ -433,12 +478,24 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
             /* lazy init center calc */
             if (is_first) {
-              BM_face_calc_center_bounds(efa, vmid);
+              if (use_coords) {
+                BM_face_calc_center_bounds_vcos(em->bm, efa, vmid, vert_coords);
+              }
+              else {
+                BM_face_calc_center_bounds(efa, vmid);
+              }
               is_first = false;
             }
-            copy_v3_v3(v1, loop->prev->v->co);
-            copy_v3_v3(v2, loop->v->co);
-            copy_v3_v3(v3, loop->next->v->co);
+            if (use_coords) {
+              copy_v3_v3(v1, vert_coords[BM_elem_index_get(loop->prev->v)]);
+              copy_v3_v3(v2, vert_coords[BM_elem_index_get(loop->v)]);
+              copy_v3_v3(v3, vert_coords[BM_elem_index_get(loop->next->v)]);
+            }
+            else {
+              copy_v3_v3(v1, loop->prev->v->co);
+              copy_v3_v3(v2, loop->v->co);
+              copy_v3_v3(v3, loop->next->v->co);
+            }
 
             copy_v3_v3(v2_local, v2);
 
@@ -475,29 +532,44 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     if (em->selectmode & SCE_SELECT_VERTEX) {
       BMVert *v;
 
+      if (use_coords) {
+        BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+      }
       BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-          float vec[3];
-          mul_v3_m4v3(vec, ob->obmat, v->co);
+          if (use_coords) {
+            copy_v3_v3(v1, vert_coords[BM_elem_index_get(v)]);
+          }
+          else {
+            copy_v3_v3(v1, v->co);
+          }
+
+          mul_m4_v3(ob->obmat, v1);
 
           numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
-          DRW_text_cache_add(dt, vec, numstr, numstr_len, 0, 0, txt_flag, col);
+          DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
         }
       }
     }
 
     if (em->selectmode & SCE_SELECT_EDGE) {
-      BMEdge *e;
+      BMEdge *eed;
 
       const bool use_edge_tex_sep = (edge_tex_count == 2);
       const bool use_edge_tex_len = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN);
 
-      BM_ITER_MESH_INDEX (e, &iter, em->bm, BM_EDGES_OF_MESH, i) {
-        if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+      BM_ITER_MESH_INDEX (eed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+        if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
           float v1_clip[3], v2_clip[3];
 
-          copy_v3_v3(v1, e->v1->co);
-          copy_v3_v3(v2, e->v2->co);
+          if (use_coords) {
+            copy_v3_v3(v1, vert_coords[BM_elem_index_get(eed->v1)]);
+            copy_v3_v3(v2, vert_coords[BM_elem_index_get(eed->v2)]);
+          }
+          else {
+            copy_v3_v3(v1, eed->v1->co);
+            copy_v3_v3(v2, eed->v2->co);
+          }
 
           if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
             mid_v3_v3v3(vmid, v1_clip, v2_clip);
@@ -521,9 +593,20 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     if (em->selectmode & SCE_SELECT_FACE) {
       BMFace *f;
 
+      if (use_coords) {
+        BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+      }
+
       BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, i) {
         if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-          BM_face_calc_center_median(f, v1);
+
+          if (use_coords) {
+            BM_face_calc_center_median_vcos(em->bm, f, v1, vert_coords);
+          }
+          else {
+            BM_face_calc_center_median(f, v1);
+          }
+
           mul_m4_v3(ob->obmat, v1);
 
           numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
