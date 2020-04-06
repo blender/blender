@@ -106,11 +106,12 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_Data *data = vedata;
   OVERLAY_StorageList *stl = data->stl;
   OVERLAY_PrivateData *pd = stl->pd;
-  const bool draw_edit_weights = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_WEIGHT);
 
   switch (pd->ctx_mode) {
     case CTX_MODE_EDIT_MESH:
       OVERLAY_edit_mesh_cache_init(vedata);
+      /* `pd->edit_mesh.flag` is valid after calling `OVERLAY_edit_mesh_cache_init`. */
+      const bool draw_edit_weights = (pd->edit_mesh.flag & V3D_OVERLAY_EDIT_WEIGHT);
       if (draw_edit_weights) {
         OVERLAY_paint_cache_init(vedata);
       }
