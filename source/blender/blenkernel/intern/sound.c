@@ -812,7 +812,7 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
   int animation_playing;
 
   const float one_frame = (float)(1.0 / FPS);
-  const float cur_time = get_cur_time(scene);
+  const float cur_time = FRA2TIME(CFRA);
 
   AUD_Device_lock(sound_device);
 
