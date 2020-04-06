@@ -1052,6 +1052,7 @@ context_type_map = {
     "selected_editable_fcurves": ("FCurve", True),
     "selected_editable_objects": ("Object", True),
     "selected_editable_sequences": ("Sequence", True),
+    "selected_nla_strips": ("NlaStrip", True),
     "selected_nodes": ("Node", True),
     "selected_objects": ("Object", True),
     "selected_pose_bones": ("PoseBone", True),
