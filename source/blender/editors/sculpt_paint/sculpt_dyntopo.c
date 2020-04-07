@@ -42,8 +42,8 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
 #include "BKE_particle.h"
+#include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -141,10 +141,7 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
   ss->bm->pdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
 }
 
-void SCULPT_dynamic_topology_enable_ex(Main *bmain,
-                                              Depsgraph *depsgraph,
-                                              Scene *scene,
-                                              Object *ob)
+void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
@@ -281,9 +278,9 @@ void SCULPT_dynamic_topology_disable(bContext *C, SculptUndoNode *unode)
 }
 
 void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
-                                                      Depsgraph *depsgraph,
-                                                      Scene *scene,
-                                                      Object *ob)
+                                               Depsgraph *depsgraph,
+                                               Scene *scene,
+                                               Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   if (ss->bm) {
@@ -330,7 +327,6 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 
   return OPERATOR_FINISHED;
 }
-
 
 static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoWarnFlag flag)
 {

@@ -451,8 +451,8 @@ typedef struct MakeHistogramViewData {
 } MakeHistogramViewData;
 
 static void make_histogram_view_from_ibuf_byte_fn(void *__restrict userdata,
-                                                     const int y,
-                                                     const TaskParallelTLS *__restrict tls)
+                                                  const int y,
+                                                  const TaskParallelTLS *__restrict tls)
 {
   MakeHistogramViewData *data = userdata;
   const ImBuf *ibuf = data->ibuf;
@@ -552,8 +552,8 @@ BLI_INLINE int get_bin_float(float f)
 }
 
 static void make_histogram_view_from_ibuf_float_fn(void *__restrict userdata,
-                                                      const int y,
-                                                      const TaskParallelTLS *__restrict tls)
+                                                   const int y,
+                                                   const TaskParallelTLS *__restrict tls)
 {
   const MakeHistogramViewData *data = userdata;
   const ImBuf *ibuf = data->ibuf;
