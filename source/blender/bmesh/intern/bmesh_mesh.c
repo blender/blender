@@ -1628,20 +1628,6 @@ void BM_loop_normal_editdata_array_free(BMLoopNorEditDataArray *lnors_ed_arr)
   MEM_freeN(lnors_ed_arr);
 }
 
-int BM_total_loop_select(BMesh *bm)
-{
-  int r_sel = 0;
-  BMVert *v;
-  BMIter viter;
-
-  BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-      r_sel += BM_vert_face_count(v);
-    }
-  }
-  return r_sel;
-}
-
 /**
  * \brief BMesh Begin Edit
  *

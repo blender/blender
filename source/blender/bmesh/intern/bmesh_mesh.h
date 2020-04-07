@@ -72,7 +72,6 @@ void BM_lnorspace_err(BMesh *bm);
 struct BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
                                                                   const bool do_all_loops_of_vert);
 void BM_loop_normal_editdata_array_free(struct BMLoopNorEditDataArray *lnors_ed_arr);
-int BM_total_loop_select(BMesh *bm);
 
 void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle);
 
