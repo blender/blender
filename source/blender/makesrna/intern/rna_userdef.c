@@ -307,14 +307,27 @@ static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, 
   USERDEF_TAG_DIRTY;
 }
 
+static void rna_userdef_font_update(Main *UNUSED(bmain),
+                                    Scene *UNUSED(scene),
+                                    PointerRNA *UNUSED(ptr))
+{
+  BLF_cache_clear();
+  UI_reinit_font();
+}
+
 static void rna_userdef_language_update(Main *UNUSED(bmain),
                                         Scene *UNUSED(scene),
                                         PointerRNA *UNUSED(ptr))
 {
-  BLF_cache_clear();
   BLT_lang_set(NULL);
-  UI_reinit_font();
-  USERDEF_TAG_DIRTY;
+
+  const char *uilng = BLT_lang_get();
+  if (STREQ(uilng, "en_US")) {
+    U.transopts &= ~(USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_NEWDATANAME);
+  }
+  else {
+    U.transopts |= (USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_NEWDATANAME);
+  }
 }
 
 static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain),
@@ -4716,20 +4729,14 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   prop = RNA_def_property(srna, "font_path_ui", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, NULL, "font_path_ui");
   RNA_def_property_ui_text(prop, "Interface Font", "Path to interface font");
-  RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_font_update");
 
   prop = RNA_def_property(srna, "font_path_ui_mono", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, NULL, "font_path_ui_mono");
   RNA_def_property_ui_text(prop, "Mono-space Font", "Path to interface mono-space Font");
-  RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_font_update");
 
   /* Language. */
-
-  prop = RNA_def_property(srna, "use_international_fonts", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_DOTRANSLATE);
-  RNA_def_property_ui_text(
-      prop, "Translate UI", "Enable UI translation and use international fonts");
-  RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
   prop = RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_language_default_items);

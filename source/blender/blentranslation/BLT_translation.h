@@ -32,6 +32,10 @@
 extern "C" {
 #endif
 
+/* Locale Ids. Auto will try to get local from OS. Our default is English though. */
+#define ULANGUAGE_AUTO 0
+#define ULANGUAGE_ENGLISH 1
+
 bool BLT_is_default_context(const char *msgctxt);
 const char *BLT_pgettext(const char *msgctxt, const char *msgid);
 

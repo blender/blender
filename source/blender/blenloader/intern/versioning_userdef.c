@@ -26,6 +26,10 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#ifdef WITH_INTERNATIONAL
+#  include "BLT_translation.h"
+#endif
+
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
@@ -738,6 +742,15 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 
     /* Enable Overlay Engine Smooth Wire by default */
     userdef->gpu_flag |= USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE;
+  }
+
+  if (!USER_VERSION_ATLEAST(283, 13)) {
+    /* If Translations is off then language should default to English. */
+    if ((userdef->transopts & USER_DOTRANSLATE_DEPRECATED) == 0) {
+      userdef->language = ULANGUAGE_ENGLISH;
+    }
+    /* Clear this deprecated flag. */
+    userdef->transopts &= ~USER_DOTRANSLATE_DEPRECATED;
   }
 
   /**

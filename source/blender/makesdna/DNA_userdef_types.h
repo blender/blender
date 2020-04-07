@@ -1124,7 +1124,7 @@ typedef enum eUserpref_Translation_Flags {
   USER_TR_UNUSED_2 = (1 << 2), /* cleared */
   USER_TR_UNUSED_3 = (1 << 3), /* cleared */
   USER_TR_UNUSED_4 = (1 << 4), /* cleared */
-  USER_DOTRANSLATE = (1 << 5),
+  USER_DOTRANSLATE_DEPRECATED = (1 << 5), /* Deprecated in 2.83. */
   USER_TR_UNUSED_6 = (1 << 6), /* cleared */
   USER_TR_UNUSED_7 = (1 << 7), /* cleared */
   USER_TR_NEWDATANAME = (1 << 8),

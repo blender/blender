@@ -242,21 +242,14 @@ class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel)
     def poll(cls, context):
         return bpy.app.build_options.international
 
-    def draw_header(self, context):
-        prefs = context.preferences
-        view = prefs.view
-
-        self.layout.prop(view, "use_international_fonts", text="")
-
     def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
 
-        layout.active = view.use_international_fonts
-
         layout.prop(view, "language")
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        flow.active = (bpy.app.translations.locale != 'en_US')
 
         flow.prop(view, "use_translate_tooltips", text="Tooltips")
         flow.prop(view, "use_translate_interface", text="Interface")
