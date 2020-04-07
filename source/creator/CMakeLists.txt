@@ -1061,6 +1061,12 @@ unset(LIB)
 
 setup_liblinks(blender)
 
+if(APPLE)
+  set_target_properties(blender PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/osx_locals.map)
+elseif(UNIX)
+  set_target_properties(blender PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blender.map)
+endif()
+
 # -----------------------------------------------------------------------------
 # USD registry.
 # USD requires a set of JSON files that define the standard schemas. These
