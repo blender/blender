@@ -7806,7 +7806,7 @@ static EnumPropertyItem clnors_pointto_mode_items[] = {
 };
 
 /* Initialize loop normal data */
-static int point_normals_init(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static bool point_normals_init(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -7818,14 +7818,29 @@ static int point_normals_init(bContext *C, wmOperator *op, const wmEvent *UNUSED
 
   op->customdata = lnors_ed_arr;
 
-  return lnors_ed_arr->totloop;
+  return (lnors_ed_arr->totloop != 0);
 }
 
-static void point_normals_free(bContext *C, wmOperator *op)
+static bool point_normals_ensure(bContext *C, wmOperator *op)
 {
-  BMLoopNorEditDataArray *lnors_ed_arr = op->customdata;
-  BM_loop_normal_editdata_array_free(lnors_ed_arr);
-  op->customdata = NULL;
+  if (op->customdata != NULL) {
+    return true;
+  }
+  return point_normals_init(C, op);
+}
+
+static void point_normals_free(wmOperator *op)
+{
+  if (op->customdata != NULL) {
+    BMLoopNorEditDataArray *lnors_ed_arr = op->customdata;
+    BM_loop_normal_editdata_array_free(lnors_ed_arr);
+    op->customdata = NULL;
+  }
+}
+
+static void point_normals_cancel(bContext *C, wmOperator *op)
+{
+  point_normals_free(op);
   ED_area_status_text(CTX_wm_area(C), NULL);
 }
 
@@ -7942,6 +7957,13 @@ static void point_normals_apply(bContext *C, wmOperator *op, float target[3], co
 
 static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  /* As this operator passes events through, we can't be sure the user didn't exit edit-mode.
+   * or performed some other operation. */
+  if (!WM_operator_poll(C, op->type)) {
+    point_normals_cancel(C, op);
+    return OPERATOR_CANCELLED;
+  }
+
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -8112,23 +8134,37 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
     if (!ELEM(ret, OPERATOR_CANCELLED, OPERATOR_FINISHED)) {
       RNA_property_float_set_array(op->ptr, prop_target, target);
     }
-    point_normals_apply(C, op, target, do_reset);
-    EDBM_update_generic(obedit->data, true, false); /* Recheck bools. */
 
-    point_normals_update_header(C, op);
+    if (point_normals_ensure(C, op)) {
+      point_normals_apply(C, op, target, do_reset);
+      EDBM_update_generic(obedit->data, true, false); /* Recheck bools. */
+      point_normals_update_header(C, op);
+    }
+    else {
+      ret = OPERATOR_CANCELLED;
+    }
   }
 
   if (ELEM(ret, OPERATOR_CANCELLED, OPERATOR_FINISHED)) {
-    point_normals_free(C, op);
+    point_normals_cancel(C, op);
   }
 
+  /* If we allow other tools to run, we can't be sure if they will re-allocate
+   * the data this operator uses, see: T68159.
+   * Free the data here, then use #point_normals_ensure to add it back on demand. */
+  if (ret == OPERATOR_PASS_THROUGH) {
+    /* Don't free on mouse-move, causes creation/freeing of the loop data in an inefficient way. */
+    if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+      point_normals_free(op);
+    }
+  }
   return ret;
 }
 
-static int edbm_point_normals_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int edbm_point_normals_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (!point_normals_init(C, op, event)) {
-    point_normals_free(C, op);
+  if (!point_normals_init(C, op)) {
+    point_normals_cancel(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -8145,8 +8181,8 @@ static int edbm_point_normals_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
 
-  if (!point_normals_init(C, op, NULL)) {
-    point_normals_free(C, op);
+  if (!point_normals_init(C, op)) {
+    point_normals_cancel(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -8159,7 +8195,7 @@ static int edbm_point_normals_exec(bContext *C, wmOperator *op)
   point_normals_apply(C, op, target, false);
 
   EDBM_update_generic(obedit->data, true, false);
-  point_normals_free(C, op);
+  point_normals_cancel(C, op);
 
   return OPERATOR_FINISHED;
 }
@@ -8204,7 +8240,7 @@ void MESH_OT_point_normals(struct wmOperatorType *ot)
   ot->modal = edbm_point_normals_modal;
   ot->poll = ED_operator_editmesh;
   ot->ui = edbm_point_normals_ui;
-  ot->cancel = point_normals_free;
+  ot->cancel = point_normals_cancel;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_REGISTER | OPTYPE_UNDO;
