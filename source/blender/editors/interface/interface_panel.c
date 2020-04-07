@@ -1574,10 +1574,13 @@ static void ui_handle_panel_header(
     }
     else { /* collapse */
       if (ctrl) {
-        panels_collapse_all(area, region, block->panel);
+        /* Only collapse all for parent panels. */
+        if (block->panel->type != NULL && block->panel->type->parent == NULL) {
+          panels_collapse_all(area, region, block->panel);
 
-        /* reset the view - we don't want to display a view without content */
-        UI_view2d_offset(&region->v2d, 0.0f, 1.0f);
+          /* reset the view - we don't want to display a view without content */
+          UI_view2d_offset(&region->v2d, 0.0f, 1.0f);
+        }
       }
 
       if (block->panel->flag & PNL_CLOSED) {
