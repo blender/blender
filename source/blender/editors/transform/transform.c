@@ -1767,6 +1767,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   }
   else {
     orientation = V3D_ORIENT_GLOBAL;
+    unit_m3(t->spacemtx);
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
