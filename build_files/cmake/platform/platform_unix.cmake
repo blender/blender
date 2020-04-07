@@ -606,3 +606,10 @@ endif()
 set(PLATFORM_LINKFLAGS
   "${PLATFORM_LINKFLAGS} -Wl,--version-script='${CMAKE_SOURCE_DIR}/source/creator/blender.map'"
 )
+
+# Don't use position independent executable for portable install since file
+# browsers can't properly detect blender as an executable then. Still enabled
+# for non-portable installs as typically used by Linux distributions.
+if(WITH_INSTALL_PORTABLE)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -no-pie")
+endif()
