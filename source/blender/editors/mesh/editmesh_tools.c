@@ -71,7 +71,6 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
-#include "ED_transform_snap_object_context.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 
@@ -408,45 +407,6 @@ void MESH_OT_unsubdivide(wmOperatorType *ot)
   /* props */
   RNA_def_int(
       ot->srna, "iterations", 2, 1, 1000, "Iterations", "Number of times to unsubdivide", 1, 100);
-}
-
-void EDBM_project_snap_verts(
-    bContext *C, Depsgraph *depsgraph, ARegion *region, Object *obedit, BMEditMesh *em)
-{
-  Main *bmain = CTX_data_main(C);
-  BMIter iter;
-  BMVert *eve;
-
-  ED_view3d_init_mats_rv3d(obedit, region->regiondata);
-
-  struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-      bmain, CTX_data_scene(C), 0, region, CTX_wm_view3d(C));
-
-  BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-      float mval[2], co_proj[3];
-      if (ED_view3d_project_float_object(region, eve->co, mval, V3D_PROJ_TEST_NOP) ==
-          V3D_PROJ_RET_OK) {
-        if (ED_transform_snap_object_project_view3d(snap_context,
-                                                    depsgraph,
-                                                    SCE_SNAP_MODE_FACE,
-                                                    &(const struct SnapObjectParams){
-                                                        .snap_select = SNAP_NOT_ACTIVE,
-                                                        .use_object_edit_cage = false,
-                                                        .use_occlusion_test = true,
-                                                    },
-                                                    mval,
-                                                    NULL,
-                                                    NULL,
-                                                    co_proj,
-                                                    NULL)) {
-          mul_v3_m4v3(eve->co, obedit->imat, co_proj);
-        }
-      }
-    }
-  }
-
-  ED_transform_snap_object_context_destroy(snap_context);
 }
 
 /** \} */
@@ -1186,6 +1146,12 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Connect Vertex Path Operator
+ * \{ */
+
 static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *op)
 {
   BMesh *bm = em->bm;
@@ -1311,7 +1277,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Split Concave Faces Operator
+/** \name Connect Vertex Path Operator
  * \{ */
 
 /**
@@ -1599,6 +1565,12 @@ void MESH_OT_vert_connect_path(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Connect Concave Operator
+ * \{ */
 
 static int edbm_vert_connect_concave_exec(bContext *C, wmOperator *op)
 {
@@ -3210,7 +3182,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Remove Doubles Operator
+/** \name Merge By Distance Operator
  * \{ */
 
 static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
@@ -7812,7 +7784,11 @@ wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf)
 
 #define CLNORS_VALID_VEC_LEN (1e-4f)
 
-/********************** 'Point to' Loop Normals **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Loop Normals 'Point To' Operator
+ * \{ */
 
 enum {
   EDBM_CLNOR_POINTTO_MODE_COORDINATES = 1,
@@ -8273,7 +8249,7 @@ void MESH_OT_point_normals(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Split/Merge Loop Normals
+/** \name Split/Merge Loop Normals Operator
  * \{ */
 
 static void normals_merge(BMesh *bm, BMLoopNorEditDataArray *lnors_ed_arr)
@@ -8484,7 +8460,7 @@ void MESH_OT_split_normals(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Average Loop Normals
+/** \name Average Loop Normals Operator
  * \{ */
 
 enum {
@@ -8716,7 +8692,7 @@ void MESH_OT_average_normals(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Custom Normal Interface Tools
+/** \name Custom Normal Interface Tools Operator
  * \{ */
 
 enum {
@@ -8952,6 +8928,12 @@ void MESH_OT_normals_tools(struct wmOperatorType *ot)
                   "Copy Absolute coordinates or Normal vector");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Normals from Faces Operator
+ * \{ */
+
 static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -9058,6 +9040,12 @@ void MESH_OT_set_normals_from_faces(struct wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "keep_sharp", 0, "Keep Sharp Edges", "Do not set sharp edges to face");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Smooth Normal Vectors Operator
+ * \{ */
 
 static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
 {

@@ -139,6 +139,12 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
                        struct View3D *v3d,
                        struct Object *obedit);
 
+void EDBM_project_snap_verts(struct bContext *C,
+                             struct Depsgraph *depsgraph,
+                             struct ARegion *region,
+                             struct Object *obedit,
+                             struct BMEditMesh *em);
+
 /* editmesh_automerge.c */
 void EDBM_automerge(struct Object *ob, bool update, const char hflag, const float dist);
 void EDBM_automerge_and_split(struct Object *ob,
@@ -292,13 +298,6 @@ eEditMesh_PreSelPreviewAction EDBM_preselect_action_get(struct EditMesh_PreSelEl
 void ED_operatortypes_mesh(void);
 void ED_operatormacros_mesh(void);
 void ED_keymap_mesh(struct wmKeyConfig *keyconf);
-
-/* editmesh_tools.c (could be moved) */
-void EDBM_project_snap_verts(struct bContext *C,
-                             struct Depsgraph *depsgraph,
-                             struct ARegion *region,
-                             struct Object *obedit,
-                             struct BMEditMesh *em);
 
 /* editface.c */
 void paintface_flush_flags(struct bContext *C, struct Object *ob, short flag);
