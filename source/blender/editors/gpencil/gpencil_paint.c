@@ -3127,6 +3127,34 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
   return op->customdata;
 }
 
+/* Apply pressure change depending of the angle of the stroke for a segment. */
+static void gp_brush_angle_segment(tGPsdata *p, tGPspoint *pt_prev, tGPspoint *pt)
+{
+  Brush *brush = p->brush;
+  /* Sensitivity. */
+  const float sen = brush->gpencil_settings->draw_angle_factor;
+  /* Default angle of brush in radians */
+  const float angle = brush->gpencil_settings->draw_angle;
+
+  float mvec[2];
+  float fac;
+  float mpressure;
+
+  /* angle vector of the brush with full thickness */
+  float v0[2] = {cos(angle), sin(angle)};
+
+  mvec[0] = pt->x - pt_prev->x;
+  mvec[1] = pt->y - pt_prev->y;
+  normalize_v2(mvec);
+
+  fac = 1.0f - fabs(dot_v2v2(v0, mvec)); /* 0.0 to 1.0 */
+  /* interpolate with previous point for smoother transitions */
+  mpressure = interpf(pt->pressure - (sen * fac), pt_prev->pressure, 0.3f);
+  pt->pressure = mpressure;
+
+  CLAMP(pt->pressure, pt_prev->pressure * 0.5f, 1.0f);
+}
+
 /* Add arc points between two mouse events using the previous segment to determine the vertice of
  * the arc.
  *        /+ CTL
@@ -3208,6 +3236,11 @@ static void gpencil_add_arc_points(tGPsdata *p, float mval[2], int segments)
     /* Set pressure and strength equals to previous. It will be smoothed later. */
     pt->pressure = pt_prev->pressure;
     pt->strength = pt_prev->strength;
+
+    /* Apply angle of stroke to brush size. */
+    if (brush_settings->draw_angle_factor != 0.0f) {
+      gp_brush_angle_segment(p, pt_prev, pt);
+    }
 
     /* Apply randomness to pressure. */
     if (brush_settings->draw_random_press > 0.0f) {
