@@ -377,23 +377,25 @@ static short apply_targetless_ik(Object *ob)
       }
       for (; segcount; segcount--) {
         Bone *bone;
-        float rmat[4][4] /*, tmat[4][4], imat[4][4]*/;
+        float mat[4][4];
 
         /* pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK  */
-        /* we put in channel the entire result of rmat = (channel * constraint * IK) */
-        /* pose_mat(b) = pose_mat(b-1) * offs_bone * rmat  */
-        /* rmat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone ) */
+        /* we put in channel the entire result of mat = (channel * constraint * IK) */
+        /* pose_mat(b) = pose_mat(b-1) * offs_bone * mat  */
+        /* mat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone ) */
 
         parchan = chanlist[segcount - 1];
         bone = parchan->bone;
         bone->flag |= BONE_TRANSFORM; /* ensures it gets an auto key inserted */
 
-        BKE_armature_mat_pose_to_bone(parchan, parchan->pose_mat, rmat);
-
+        BKE_armature_mat_pose_to_bone(parchan, parchan->pose_mat, mat);
         /* apply and decompose, doesn't work for constraints or non-uniform scale well */
         {
           float rmat3[3][3], qrmat[3][3], imat3[3][3], smat[3][3];
-          copy_m3_m4(rmat3, rmat);
+
+          copy_m3_m4(rmat3, mat);
+          /* Make sure that our rotation matrix only contains rotation and not scale. */
+          normalize_m3(rmat3);
 
           /* rotation */
           /* [#22409] is partially caused by this, as slight numeric error introduced during
@@ -413,7 +415,7 @@ static short apply_targetless_ik(Object *ob)
 
           /* causes problems with some constraints (e.g. childof), so disable this */
           /* as it is IK shouldn't affect location directly */
-          /* copy_v3_v3(parchan->loc, rmat[3]); */
+          /* copy_v3_v3(parchan->loc, mat[3]); */
         }
       }
 
