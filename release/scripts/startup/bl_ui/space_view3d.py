@@ -3316,13 +3316,7 @@ class VIEW3D_MT_pose(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_AREA'
-        layout.operator("pose.autoside_names", text="AutoName Left/Right").axis = 'XAXIS'
-        layout.operator("pose.autoside_names", text="AutoName Front/Back").axis = 'YAXIS'
-        layout.operator("pose.autoside_names", text="AutoName Top/Bottom").axis = 'ZAXIS'
-
-        layout.operator("pose.flip_names")
-
+        layout.menu("VIEW3D_MT_pose_names")
         layout.operator("pose.quaternions_flip")
 
         layout.separator()
@@ -3457,6 +3451,19 @@ class VIEW3D_MT_pose_constraints(Menu):
         layout.operator("pose.constraint_add_with_targets", text="Add (With Targets)...")
         layout.operator("pose.constraints_copy")
         layout.operator("pose.constraints_clear")
+
+
+class VIEW3D_MT_pose_names(Menu):
+    bl_label = "Names"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("pose.autoside_names", text="AutoName Left/Right").axis = 'XAXIS'
+        layout.operator("pose.autoside_names", text="AutoName Front/Back").axis = 'YAXIS'
+        layout.operator("pose.autoside_names", text="AutoName Top/Bottom").axis = 'ZAXIS'
+        layout.operator("pose.flip_names")
 
 
 class VIEW3D_MT_pose_showhide(ShowHideMenu, Menu):
@@ -7443,6 +7450,7 @@ classes = (
     VIEW3D_MT_pose_group,
     VIEW3D_MT_pose_ik,
     VIEW3D_MT_pose_constraints,
+    VIEW3D_MT_pose_names,
     VIEW3D_MT_pose_showhide,
     VIEW3D_MT_pose_apply,
     VIEW3D_MT_pose_context_menu,
