@@ -79,7 +79,8 @@ struct MANTA {
   // Write cache
   bool writeConfiguration(FluidModifierData *mmd, int framenr);
   bool writeData(FluidModifierData *mmd, int framenr);
-  // write call for noise, mesh and particles were left in bake calls for now
+  bool writeNoise(FluidModifierData *mmd, int framenr);
+  // write calls for mesh and particles were left in bake calls for now
 
   // Read cache (via Manta save/load)
   bool readConfiguration(FluidModifierData *mmd, int framenr);

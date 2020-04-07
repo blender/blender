@@ -1441,6 +1441,29 @@ bool MANTA::writeData(FluidModifierData *mmd, int framenr)
   return runPythonString(pythonCommands);
 }
 
+bool MANTA::writeNoise(FluidModifierData *mmd, int framenr)
+{
+  if (with_debug)
+    std::cout << "MANTA::writeNoise()" << std::endl;
+
+  std::ostringstream ss;
+  std::vector<std::string> pythonCommands;
+
+  std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
+  std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
+
+  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  std::string resumable_cache = (final_cache) ? "False" : "True";
+
+  if (mUsingSmoke && mUsingNoise) {
+    ss.str("");
+    ss << "smoke_save_noise_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+       << ", '" << nformat << "', " << resumable_cache << ")";
+    pythonCommands.push_back(ss.str());
+  }
+  return runPythonString(pythonCommands);
+}
+
 bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
 {
   if (with_debug)

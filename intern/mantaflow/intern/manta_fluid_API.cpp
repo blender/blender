@@ -80,6 +80,13 @@ int manta_write_data(MANTA *fluid, FluidModifierData *mmd, int framenr)
   return fluid->writeData(mmd, framenr);
 }
 
+int manta_write_noise(MANTA *fluid, FluidModifierData *mmd, int framenr)
+{
+  if (!fluid || !mmd)
+    return 0;
+  return fluid->writeNoise(mmd, framenr);
+}
+
 int manta_read_config(MANTA *fluid, FluidModifierData *mmd, int framenr)
 {
   if (!fluid || !mmd)

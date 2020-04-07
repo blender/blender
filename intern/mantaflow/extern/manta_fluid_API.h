@@ -39,6 +39,7 @@ void manta_ensure_invelocity(struct MANTA *fluid, struct FluidModifierData *mmd)
 void manta_ensure_outflow(struct MANTA *fluid, struct FluidModifierData *mmd);
 int manta_write_config(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_write_data(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
+int manta_write_noise(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_read_config(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_read_data(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);
 int manta_read_noise(struct MANTA *fluid, struct FluidModifierData *mmd, int framenr);

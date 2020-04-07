@@ -3999,7 +3999,11 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
     }
     if (has_data || baking_data) {
       if (baking_noise && with_smoke && with_noise) {
-        manta_bake_noise(mds->fluid, mmd, scene_framenr);
+        /* Ensure that no bake occurs if domain was minimized by adaptive domain. */
+        if (mds->total_cells > 1) {
+          manta_bake_noise(mds->fluid, mmd, scene_framenr);
+        }
+        manta_write_noise(mds->fluid, mmd, scene_framenr);
       }
       if (baking_mesh && with_liquid && with_mesh) {
         manta_bake_mesh(mds->fluid, mmd, scene_framenr);
