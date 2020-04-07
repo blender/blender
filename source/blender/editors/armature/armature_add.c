@@ -1232,7 +1232,7 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Subdivide Multi";
+  ot->name = "Subdivide";
   ot->idname = "ARMATURE_OT_subdivide";
   ot->description = "Break selected bones into chains of smaller bones";
 
