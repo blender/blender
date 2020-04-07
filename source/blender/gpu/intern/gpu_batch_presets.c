@@ -309,6 +309,7 @@ GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
                                   !equals_v4v4(g_presets_2d.panel_drag_widget_col_dark, col_dark);
 
   if (g_presets_2d.batch.panel_drag_widget && parameters_changed) {
+    GPU_batch_discard(g_presets_2d.batch.panel_drag_widget);
     gpu_batch_presets_unregister(g_presets_2d.batch.panel_drag_widget);
     GPU_batch_discard(g_presets_2d.batch.panel_drag_widget);
     g_presets_2d.batch.panel_drag_widget = NULL;
