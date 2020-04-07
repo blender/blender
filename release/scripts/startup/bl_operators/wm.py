@@ -2423,7 +2423,14 @@ class WM_MT_splash(Menu):
 
         col = split.column()
 
-        col.label()
+        sub = col.split(factor=0.35)
+        row = sub.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Language")
+        prefs = context.preferences
+        sub.prop(prefs.view, "language", text="")
+
+        col.separator()
 
         sub = col.split(factor=0.35)
         row = sub.row()
@@ -2464,14 +2471,6 @@ class WM_MT_splash(Menu):
         if label == "Presets":
             label = "Blender Dark"
         sub.menu("USERPREF_MT_interface_theme_presets", text=label)
-
-        # We need to make switching to a language easier first
-        #sub = col.split(factor=0.35)
-        #row = sub.row()
-        #row.alignment = 'RIGHT'
-        # row.label(text="Language:")
-        #prefs = context.preferences
-        #sub.prop(prefs.system, "language", text="")
 
         # Keep height constant
         if not has_select_mouse:
