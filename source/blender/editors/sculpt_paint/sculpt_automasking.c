@@ -192,7 +192,7 @@ static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *a
   }
 
   int tot_vert = SCULPT_vertex_count_get(ss);
-  int active_face_set = SCULPT_vertex_face_set_get(ss, SCULPT_active_vertex_get(ss));
+  int active_face_set = SCULPT_active_face_set_get(ss);
   for (int i = 0; i < tot_vert; i++) {
     if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
       automask_factor[i] *= 0.0f;
