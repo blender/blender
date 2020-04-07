@@ -664,7 +664,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   char name1[FILE_MAX];
 
   BLI_strncpy(name1, filepath, sizeof(name1));
-  BLI_cleanup_path(relabase, name1);
+  BLI_path_normalize(relabase, name1);
 
   //  printf("blo_find_main: relabase  %s\n", relabase);
   //  printf("blo_find_main: original in  %s\n", filepath);
@@ -1680,7 +1680,7 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 
   strcpy(r_dir, path);
 
-  while ((slash = (char *)BLI_last_slash(r_dir))) {
+  while ((slash = (char *)BLI_path_slash_rfind(r_dir))) {
     char tc = *slash;
     *slash = '\0';
     if (BLO_has_bfile_extension(r_dir) && BLI_is_file(r_dir)) {
@@ -8436,7 +8436,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 
   /* make sure we have full path in lib->filepath */
   BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
-  BLI_cleanup_path(fd->relabase, lib->filepath);
+  BLI_path_normalize(fd->relabase, lib->filepath);
 
   //  printf("direct_link_library: name %s\n", lib->name);
   //  printf("direct_link_library: filepath %s\n", lib->filepath);

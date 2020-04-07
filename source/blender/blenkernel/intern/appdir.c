@@ -232,7 +232,7 @@ static bool get_path_local(char *targetpath,
   char osx_resourses[FILE_MAX];
   BLI_snprintf(osx_resourses, sizeof(osx_resourses), "%s../Resources", bprogdir);
   /* Remove the '/../' added above. */
-  BLI_cleanup_path(NULL, osx_resourses);
+  BLI_path_normalize(NULL, osx_resourses);
   return test_path(
       targetpath, targetpath_len, osx_resourses, blender_version_decimal(ver), relfolder);
 #else
@@ -692,7 +692,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
       BLI_path_program_extensions_add_win32(fullname, maxlen);
 #endif
     }
-    else if (BLI_last_slash(name)) {
+    else if (BLI_path_slash_rfind(name)) {
       // full path
       BLI_strncpy(fullname, name, maxlen);
 #ifdef _WIN32
@@ -703,7 +703,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
       BLI_path_program_search(fullname, maxlen, name);
     }
     /* Remove "/./" and "/../" so string comparisons can be used on the path. */
-    BLI_cleanup_path(NULL, fullname);
+    BLI_path_normalize(NULL, fullname);
 
 #if defined(DEBUG)
     if (!STREQ(name, fullname)) {
@@ -939,7 +939,7 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
   }
   else {
     /* add a trailing slash if needed */
-    BLI_add_slash(fullname);
+    BLI_path_slash_ensure(fullname);
 #ifdef WIN32
     if (userdir && userdir != fullname) {
       /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
@@ -967,7 +967,7 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
     if (BLI_is_dir(tmp_name)) {
       BLI_strncpy(basename, fullname, maxlen);
       BLI_strncpy(fullname, tmp_name, maxlen);
-      BLI_add_slash(fullname);
+      BLI_path_slash_ensure(fullname);
     }
     else {
       CLOG_WARN(&LOG,

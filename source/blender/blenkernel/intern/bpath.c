@@ -137,7 +137,7 @@ static bool bpath_relative_rebase_visit_cb(void *userdata, char *path_dst, const
     char filepath[(FILE_MAXDIR * 2) + FILE_MAXFILE];
     BLI_strncpy(filepath, path_src, FILE_MAX);
     if (BLI_path_abs(filepath, data->basedir_src)) {
-      BLI_cleanup_path(NULL, filepath);
+      BLI_path_normalize(NULL, filepath);
 
       /* This may fail, if so it's fine to leave absolute since the path is still valid. */
       BLI_path_rel(filepath, data->basedir_dst);
@@ -815,13 +815,13 @@ bool BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pa
   }
 
   /* Make referenced file absolute. This would be a side-effect of
-   * BLI_cleanup_path, but we do it explicitly so we know if it changed. */
+   * BLI_path_normalize, but we do it explicitly so we know if it changed. */
   BLI_strncpy(filepath, path_src, FILE_MAX);
   if (BLI_path_abs(filepath, base_old)) {
     /* Path was relative and is now absolute. Remap.
-     * Important BLI_cleanup_path runs before the path is made relative
+     * Important BLI_path_normalize runs before the path is made relative
      * because it wont work for paths that start with "//../" */
-    BLI_cleanup_path(base_new, filepath);
+    BLI_path_normalize(base_new, filepath);
     BLI_path_rel(filepath, base_new);
     BLI_strncpy(path_dst, filepath, FILE_MAX);
     return true;

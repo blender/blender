@@ -154,7 +154,7 @@ static int an_stringdec(const char *string, char *head, char *tail, unsigned sho
 static void an_stringenc(
     char *string, const char *head, const char *tail, unsigned short numlen, int pic)
 {
-  BLI_stringenc(string, head, tail, numlen, pic);
+  BLI_path_sequence_encode(string, head, tail, numlen, pic);
 }
 
 #ifdef WITH_AVI

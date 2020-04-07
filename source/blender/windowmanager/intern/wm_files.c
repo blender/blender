@@ -2298,7 +2298,7 @@ static bool wm_open_mainfile_check(bContext *UNUSED(C), wmOperator *op)
   RNA_string_get(op->ptr, "filepath", path);
 
   /* get the dir */
-  lslash = (char *)BLI_last_slash(path);
+  lslash = (char *)BLI_path_slash_rfind(path);
   if (lslash) {
     *(lslash + 1) = '\0';
   }
@@ -2536,7 +2536,7 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
 static void wm_filepath_default(char *filepath)
 {
   if (G.save_over == false) {
-    BLI_ensure_filename(filepath, FILE_MAX, "untitled.blend");
+    BLI_path_filename_ensure(filepath, FILE_MAX, "untitled.blend");
   }
 }
 

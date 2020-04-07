@@ -197,14 +197,14 @@ static void get_sequence_fname(const MovieClip *clip, const int framenr, char *n
   int offset;
 
   BLI_strncpy(name, clip->name, sizeof(clip->name));
-  BLI_stringdec(name, head, tail, &numlen);
+  BLI_path_sequence_decode(name, head, tail, &numlen);
 
   /* Movie-clips always points to first image from sequence, auto-guess offset for now.
    * Could be something smarter in the future. */
   offset = sequence_guess_offset(clip->name, strlen(head), numlen);
 
   if (numlen) {
-    BLI_stringenc(
+    BLI_path_sequence_encode(
         name, head, tail, numlen, offset + framenr - clip->start_frame + clip->frame_offset);
   }
   else {
@@ -421,7 +421,7 @@ static void movieclip_calc_length(MovieClip *clip)
     unsigned short numlen;
     char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 
-    BLI_stringdec(clip->name, head, tail, &numlen);
+    BLI_path_sequence_decode(clip->name, head, tail, &numlen);
 
     if (numlen == 0) {
       /* there's no number group in file name, assume it's single framed sequence */
@@ -505,7 +505,7 @@ static int user_frame_to_cache_frame(MovieClip *clip, int framenr)
       unsigned short numlen;
       char head[FILE_MAX], tail[FILE_MAX];
 
-      BLI_stringdec(clip->name, head, tail, &numlen);
+      BLI_path_sequence_decode(clip->name, head, tail, &numlen);
 
       /* see comment in get_sequence_fname */
       clip->cache->sequence_offset = sequence_guess_offset(clip->name, strlen(head), numlen);
@@ -648,7 +648,7 @@ static bool put_imbuf_cache(
     clip->cache->sequence_offset = -1;
     if (clip->source == MCLIP_SRC_SEQUENCE) {
       unsigned short numlen;
-      BLI_stringdec(clip->name, NULL, NULL, &numlen);
+      BLI_path_sequence_decode(clip->name, NULL, NULL, &numlen);
       clip->cache->is_still_sequence = (numlen == 0);
     }
   }

@@ -1794,7 +1794,8 @@ static int image_save_options_init(Main *bmain,
       }
 
       /* append UDIM numbering if not present */
-      if (ima->source == IMA_SRC_TILED && (BLI_stringdec(ima->name, NULL, NULL, NULL) != 1001)) {
+      if (ima->source == IMA_SRC_TILED &&
+          (BLI_path_sequence_decode(ima->name, NULL, NULL, NULL) != 1001)) {
         int len = strlen(opts->filepath);
         STR_CONCAT(opts->filepath, len, ".1001");
       }

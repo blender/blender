@@ -872,7 +872,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
 
     if (framenr <= clip->len) {
       BKE_movieclip_filename_for_frame(clip, user, filepath);
-      file = BLI_last_slash(filepath);
+      file = BLI_path_slash_rfind(filepath);
     }
     else {
       file = "-";

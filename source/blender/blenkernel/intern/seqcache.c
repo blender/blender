@@ -243,7 +243,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
     if (is_dir && !FILENAME_IS_CURRPAR(file)) {
       char subpath[FILE_MAX];
       BLI_strncpy(subpath, fl->path, sizeof(subpath));
-      BLI_add_slash(subpath);
+      BLI_path_slash_ensure(subpath);
       seq_disk_cache_get_files(disk_cache, subpath);
     }
 
@@ -439,7 +439,7 @@ static void seq_disk_cache_delete_invalid_files(SeqDiskCache *disk_cache,
   DiskCacheFile *next_file, *cache_file = disk_cache->files.first;
   char cache_dir[FILE_MAX];
   seq_disk_cache_get_dir(disk_cache, scene, seq, cache_dir, sizeof(cache_dir));
-  BLI_add_slash(cache_dir);
+  BLI_path_slash_ensure(cache_dir);
 
   while (cache_file) {
     next_file = cache_file->next;

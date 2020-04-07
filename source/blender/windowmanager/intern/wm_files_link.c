@@ -104,7 +104,7 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
     else if (G.relbase_valid) {
       char path[FILE_MAX];
       BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
-      BLI_parent_dir(path);
+      BLI_path_parent_dir(path);
       RNA_string_set(op->ptr, "filepath", path);
     }
   }

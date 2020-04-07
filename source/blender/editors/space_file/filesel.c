@@ -156,7 +156,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
     }
 
     if (params->dir[0]) {
-      BLI_cleanup_dir(blendfile_path, params->dir);
+      BLI_path_normalize_dir(blendfile_path, params->dir);
       BLI_path_abs(params->dir, blendfile_path);
     }
 
@@ -924,7 +924,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 
       match = UI_autocomplete_end(autocpl, str);
       if (match == AUTOCOMPLETE_FULL_MATCH) {
-        BLI_add_slash(str);
+        BLI_path_slash_ensure(str);
       }
     }
   }

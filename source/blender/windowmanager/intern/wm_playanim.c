@@ -429,7 +429,8 @@ static void build_pict_list_ex(
     } fp_decoded;
 
     BLI_strncpy(filepath, first, sizeof(filepath));
-    fp_framenr = BLI_stringdec(filepath, fp_decoded.head, fp_decoded.tail, &fp_decoded.digits);
+    fp_framenr = BLI_path_sequence_decode(
+        filepath, fp_decoded.head, fp_decoded.tail, &fp_decoded.digits);
 
     pupdate_time();
     ptottime = 1.0;
@@ -522,7 +523,8 @@ static void build_pict_list_ex(
 
       /* create a new filepath each time */
       fp_framenr += fstep;
-      BLI_stringenc(filepath, fp_decoded.head, fp_decoded.tail, fp_decoded.digits, fp_framenr);
+      BLI_path_sequence_encode(
+          filepath, fp_decoded.head, fp_decoded.tail, fp_decoded.digits, fp_framenr);
 
       while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0))) {
         GHOST_DispatchEvents(g_WS.ghost_system);

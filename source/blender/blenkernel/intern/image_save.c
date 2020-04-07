@@ -406,7 +406,7 @@ bool BKE_image_save(
 
   if (ima->source == IMA_SRC_TILED) {
     /* Verify filepath for tiles images. */
-    if (BLI_stringdec(opts->filepath, NULL, NULL, NULL) != 1001) {
+    if (BLI_path_sequence_decode(opts->filepath, NULL, NULL, NULL) != 1001) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "When saving a tiled image, the path '%s' must contain the UDIM tag 1001",
@@ -429,7 +429,7 @@ bool BKE_image_save(
 
     char head[FILE_MAX], tail[FILE_MAX];
     unsigned short numlen;
-    BLI_stringdec(filepath, head, tail, &numlen);
+    BLI_path_sequence_decode(filepath, head, tail, &numlen);
 
     /* Save all other tiles. */
     LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
@@ -439,7 +439,7 @@ bool BKE_image_save(
       }
 
       /* Build filepath of the tile. */
-      BLI_stringenc(opts->filepath, head, tail, numlen, tile->tile_number);
+      BLI_path_sequence_encode(opts->filepath, head, tail, numlen, tile->tile_number);
 
       iuser->tile = tile->tile_number;
       ok = ok && image_save_single(reports, ima, iuser, opts, &colorspace_changed);

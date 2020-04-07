@@ -349,7 +349,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   soc string basename((const char *)qfi.fileName().toAscii().data());
   char cleaned[FILE_MAX];
   BLI_strncpy(cleaned, iFileName, FILE_MAX);
-  BLI_cleanup_path(NULL, cleaned);
+  BLI_path_normalize(NULL, cleaned);
   string basename = string(cleaned);
 #endif
 

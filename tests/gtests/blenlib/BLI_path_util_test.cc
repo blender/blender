@@ -58,59 +58,59 @@ char *zLhm65070058860608_br_find_exe(const char *default_exe)
 /* -------------------------------------------------------------------- */
 /* tests */
 
-/* BLI_cleanup_path */
+/* BLI_path_normalize */
 #ifndef _WIN32
 TEST(path_util, Clean)
 {
   /* "/./" -> "/" */
   {
     char path[FILE_MAX] = "/a/./b/./c/./";
-    BLI_cleanup_path(NULL, path);
+    BLI_path_normalize(NULL, path);
     EXPECT_STREQ("/a/b/c/", path);
   }
 
   {
     char path[FILE_MAX] = "/./././";
-    BLI_cleanup_path(NULL, path);
+    BLI_path_normalize(NULL, path);
     EXPECT_STREQ("/", path);
   }
 
   {
     char path[FILE_MAX] = "/a/./././b/";
-    BLI_cleanup_path(NULL, path);
+    BLI_path_normalize(NULL, path);
     EXPECT_STREQ("/a/b/", path);
   }
 
   /* "//" -> "/" */
   {
     char path[FILE_MAX] = "a////";
-    BLI_cleanup_path(NULL, path);
+    BLI_path_normalize(NULL, path);
     EXPECT_STREQ("a/", path);
   }
 
   if (0) /* FIXME */
   {
     char path[FILE_MAX] = "./a////";
-    BLI_cleanup_path(NULL, path);
+    BLI_path_normalize(NULL, path);
     EXPECT_STREQ("./a/", path);
   }
 
   /* "foo/bar/../" -> "foo/" */
   {
     char path[FILE_MAX] = "/a/b/c/../../../";
-    BLI_cleanup_path(NULL, path);
+    BLI_path_normalize(NULL, path);
     EXPECT_STREQ("/", path);
   }
 
   {
     char path[FILE_MAX] = "/a/../a/b/../b/c/../c/";
-    BLI_cleanup_path(NULL, path);
+    BLI_path_normalize(NULL, path);
     EXPECT_STREQ("/a/b/c/", path);
   }
 
   {
     char path[FILE_MAX] = "//../";
-    BLI_cleanup_path("/a/b/c/", path);
+    BLI_path_normalize("/a/b/c/", path);
     EXPECT_STREQ("/a/b/", path);
   }
 }

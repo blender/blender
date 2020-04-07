@@ -56,11 +56,11 @@ bool BLI_path_name_at_index(const char *__restrict path,
                             int *__restrict r_offset,
                             int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
-const char *BLI_last_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-int BLI_add_slash(char *string) ATTR_NONNULL();
-void BLI_del_slash(char *string) ATTR_NONNULL();
-const char *BLI_first_slash(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-void BLI_path_native_slash(char *path) ATTR_NONNULL();
+const char *BLI_path_slash_rfind(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+int BLI_path_slash_ensure(char *string) ATTR_NONNULL();
+void BLI_path_slash_rstrip(char *string) ATTR_NONNULL();
+const char *BLI_path_slash_find(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+void BLI_path_slash_native(char *path) ATTR_NONNULL();
 
 #ifdef _WIN32
 bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen);
@@ -77,22 +77,22 @@ bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
 bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL();
 bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
-bool BLI_ensure_filename(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL();
-int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
-void BLI_stringenc(
+bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL();
+int BLI_path_sequence_decode(const char *string, char *head, char *start, unsigned short *numlen);
+void BLI_path_sequence_encode(
     char *string, const char *head, const char *tail, unsigned short numlen, int pic);
 
-void BLI_cleanup_path(const char *relabase, char *path) ATTR_NONNULL(2);
+void BLI_path_normalize(const char *relabase, char *path) ATTR_NONNULL(2);
 /* Same as above but adds a trailing slash. */
-void BLI_cleanup_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
+void BLI_path_normalize_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
 
 bool BLI_filename_make_safe(char *fname) ATTR_NONNULL(1);
 bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
 
 /* Go back one directory. */
-bool BLI_parent_dir(char *path) ATTR_NONNULL();
+bool BLI_path_parent_dir(char *path) ATTR_NONNULL();
 /* Go back until the directory is found. */
-bool BLI_parent_dir_until_exists(char *path) ATTR_NONNULL();
+bool BLI_path_parent_dir_until_exists(char *path) ATTR_NONNULL();
 
 bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL();
 bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
@@ -110,7 +110,7 @@ void BLI_path_to_display_name(char *display_name, int maxlen, const char *name) 
 
 #if defined(WIN32)
 void BLI_cleanup_unc_16(wchar_t *path_16);
-void BLI_cleanup_unc(char *path_16, int maxlen);
+void BLI_path_normalize_unc(char *path_16, int maxlen);
 #endif
 
 bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep)
