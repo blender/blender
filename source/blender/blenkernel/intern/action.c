@@ -925,6 +925,7 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
 
   if (pchan->prop) {
     IDP_FreeProperty(pchan->prop);
+    pchan->prop = NULL;
   }
 
   /* Cached data, for new draw manager rendering code. */

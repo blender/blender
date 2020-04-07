@@ -232,9 +232,6 @@ struct EditBone *duplicateEditBone(struct EditBone *curBone,
                                    const char *name,
                                    struct ListBase *editbones,
                                    struct Object *ob);
-void updateDuplicateSubtarget(struct EditBone *dupBone,
-                              struct ListBase *editbones,
-                              struct Object *ob);
 
 /* duplicate method (cross objects) */
 /* editbones is the target list */
@@ -243,12 +240,6 @@ struct EditBone *duplicateEditBoneObjects(struct EditBone *curBone,
                                           struct ListBase *editbones,
                                           struct Object *src_ob,
                                           struct Object *dst_ob);
-
-/* editbones is the source list */
-void updateDuplicateSubtargetObjects(struct EditBone *dupBone,
-                                     struct ListBase *editbones,
-                                     struct Object *src_ob,
-                                     struct Object *dst_ob);
 
 EditBone *add_points_bone(struct Object *obedit, float head[3], float tail[3]);
 void bone_free(struct bArmature *arm, struct EditBone *bone);
