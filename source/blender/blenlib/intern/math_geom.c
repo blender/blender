@@ -2379,7 +2379,10 @@ bool isect_tri_tri_epsilon_v3(const float t_a0[3],
         if (UNLIKELY(edge_fac == -1.0f)) {
           /* pass */
         }
-        else if (edge_fac > 0.0f && edge_fac < 1.0f) {
+        /* Important to include 0.0f and 1.0f as one of the triangles vertices may be placed
+         * exactly on the plane. In this case both it's edges will have a factor of 0 or 1,
+         * but not be going through the plane. See T73566. */
+        else if (edge_fac >= 0.0f && edge_fac <= 1.0f) {
           float ix_tri[3];
           float span_fac;
 
