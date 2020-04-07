@@ -129,6 +129,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
 
     info.has_half_images = (major >= 3);
     info.has_volume_decoupled = false;
+    info.has_adaptive_stop_per_sample = false;
 
     int pci_location[3] = {0, 0, 0};
     cuDeviceGetAttribute(&pci_location[0], CU_DEVICE_ATTRIBUTE_PCI_DOMAIN_ID, num);

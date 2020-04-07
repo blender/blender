@@ -138,8 +138,7 @@ void DeviceTask::update_progress(RenderTile *rtile, int pixel_samples)
 
 /* Adaptive Sampling */
 
-AdaptiveSampling::AdaptiveSampling()
-    : use(true), adaptive_step(ADAPTIVE_SAMPLE_STEP), min_samples(0)
+AdaptiveSampling::AdaptiveSampling() : use(true), adaptive_step(0), min_samples(0)
 {
 }
 

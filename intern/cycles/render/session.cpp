@@ -1110,6 +1110,7 @@ void Session::render(bool with_denoising)
   task.adaptive_sampling.use = (scene->integrator->sampling_pattern == SAMPLING_PATTERN_PMJ) &&
                                scene->dscene.data.film.pass_adaptive_aux_buffer;
   task.adaptive_sampling.min_samples = scene->dscene.data.integrator.adaptive_min_samples;
+  task.adaptive_sampling.adaptive_step = scene->dscene.data.integrator.adaptive_step;
 
   /* Acquire render tiles by default. */
   task.tile_types = RenderTile::PATH_TRACE;

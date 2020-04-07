@@ -839,7 +839,7 @@ class CPUDevice : public Device {
     return true;
   }
 
-  bool adaptive_sampling_filter(KernelGlobals *kg, RenderTile &tile)
+  bool adaptive_sampling_filter(KernelGlobals *kg, RenderTile &tile, int sample)
   {
     WorkTile wtile;
     wtile.x = tile.x;
@@ -850,11 +850,24 @@ class CPUDevice : public Device {
     wtile.stride = tile.stride;
     wtile.buffer = (float *)tile.buffer;
 
+    /* For CPU we do adaptive stopping per sample so we can stop earlier, but
+     * for combined CPU + GPU rendering we match the GPU and do it per tile
+     * after a given number of sample steps. */
+    if (!kernel_data.integrator.adaptive_stop_per_sample) {
+      for (int y = wtile.y; y < wtile.y + wtile.h; ++y) {
+        for (int x = wtile.x; x < wtile.x + wtile.w; ++x) {
+          const int index = wtile.offset + x + y * wtile.stride;
+          float *buffer = wtile.buffer + index * kernel_data.film.pass_stride;
+          kernel_do_adaptive_stopping(kg, buffer, sample);
+        }
+      }
+    }
+
     bool any = false;
-    for (int y = tile.y; y < tile.y + tile.h; ++y) {
+    for (int y = wtile.y; y < wtile.y + wtile.h; ++y) {
       any |= kernel_do_adaptive_filter_x(kg, y, &wtile);
     }
-    for (int x = tile.x; x < tile.x + tile.w; ++x) {
+    for (int x = wtile.x; x < wtile.x + wtile.w; ++x) {
       any |= kernel_do_adaptive_filter_y(kg, x, &wtile);
     }
     return (!any);
@@ -917,7 +930,7 @@ class CPUDevice : public Device {
       tile.sample = sample + 1;
 
       if (task.adaptive_sampling.use && task.adaptive_sampling.need_filter(sample)) {
-        const bool stop = adaptive_sampling_filter(kg, tile);
+        const bool stop = adaptive_sampling_filter(kg, tile, sample);
         if (stop) {
           const int num_progress_samples = end_sample - sample;
           tile.sample = end_sample;
@@ -1327,6 +1340,7 @@ void device_cpu_info(vector<DeviceInfo> &devices)
   info.id = "CPU";
   info.num = 0;
   info.has_volume_decoupled = true;
+  info.has_adaptive_stop_per_sample = true;
   info.has_osl = true;
   info.has_half_images = true;
   info.has_profiling = true;

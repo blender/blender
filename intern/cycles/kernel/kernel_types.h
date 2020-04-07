@@ -63,11 +63,6 @@ CCL_NAMESPACE_BEGIN
 
 #define VOLUME_STACK_SIZE 32
 
-/* Adaptive sampling constants */
-#define ADAPTIVE_SAMPLE_STEP 4
-static_assert((ADAPTIVE_SAMPLE_STEP & (ADAPTIVE_SAMPLE_STEP - 1)) == 0,
-              "ADAPTIVE_SAMPLE_STEP must be power of two for bitwise operations to work");
-
 /* Split kernel constants */
 #define WORK_POOL_SIZE_GPU 64
 #define WORK_POOL_SIZE_CPU 1
@@ -1350,6 +1345,8 @@ typedef struct KernelIntegrator {
   int sampling_pattern;
   int aa_samples;
   int adaptive_min_samples;
+  int adaptive_step;
+  int adaptive_stop_per_sample;
   float adaptive_threshold;
 
   /* volume render */
@@ -1362,7 +1359,7 @@ typedef struct KernelIntegrator {
 
   int max_closures;
 
-  int pad1, pad2, pad3;
+  int pad1;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 
