@@ -226,6 +226,8 @@ bool BM_edge_is_all_face_flag_test(const BMEdge *e,
 
 bool BM_edge_is_any_vert_flag_test(const BMEdge *e, const char hflag) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
+bool BM_edge_is_any_face_flag_test(const BMEdge *e, const char hflag) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 bool BM_face_is_any_vert_flag_test(const BMFace *f, const char hflag) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 bool BM_face_is_any_edge_flag_test(const BMFace *f, const char hflag) ATTR_WARN_UNUSED_RESULT

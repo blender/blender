@@ -3201,8 +3201,12 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
         BMEdge *e;
         BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
           if (!BMO_edge_flag_test(bm, e, BMO_ELE_TAG)) {
-            BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
-            BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
+            /* Check the edge for selected faces,
+             * this supports stepping off isolated vertices which would otherwise be ignored. */
+            if (BM_edge_is_any_face_flag_test(e, BM_ELEM_SELECT)) {
+              BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
+              BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
+            }
           }
         }
       }
@@ -3258,10 +3262,13 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
       if (delimit) {
         BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-          BM_elem_flag_set(
-              e,
-              BM_ELEM_TAG,
-              (BM_elem_flag_test(e, BM_ELEM_SELECT) && BMO_edge_flag_test(bm, e, BMO_ELE_TAG)));
+          /* Check the edge for selected faces,
+           * this supports stepping off isolated edges which would otherwise be ignored. */
+          BM_elem_flag_set(e,
+                           BM_ELEM_TAG,
+                           (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
+                            (BMO_edge_flag_test(bm, e, BMO_ELE_TAG) ||
+                             !BM_edge_is_any_face_flag_test(e, BM_ELEM_SELECT))));
         }
       }
       else {
