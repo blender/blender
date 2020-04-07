@@ -312,6 +312,7 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
   Scene *sce;
   Base *base;
   Object *ob = NULL;
+  TreeElement *te_ob = NULL;
 
   /* if id is not object, we search back */
   if (te->idcode == ID_OB) {
@@ -355,8 +356,12 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
     }
   }
 
-  parent_tselem = TREESTORE(outliner_find_id(soops, &soops->tree, (ID *)ob));
-  if (base) {
+  te_ob = outliner_find_id(soops, &soops->tree, (ID *)ob);
+  if (te_ob != NULL) {
+    parent_tselem = TREESTORE(te_ob);
+  }
+
+  if (!ELEM(NULL, parent_tselem, base)) {
     if (set == OL_SETSEL_EXTEND) {
       /* swap select */
       if (base->flag & BASE_SELECTED) {
