@@ -1222,19 +1222,21 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
 
   if (mUsingColors) {
     file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORR, dformat, framenr);
-    expected += 3;
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mColorR, false);
       assert(result == expected);
     }
 
     file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORG, dformat, framenr);
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mColorG, false);
       assert(result == expected);
     }
 
     file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_COLORB, dformat, framenr);
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mColorB, false);
       assert(result == expected);
@@ -1243,19 +1245,21 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
 
   if (mUsingFire) {
     file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_FLAME, dformat, framenr);
-    expected += 3;
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mFlame, false);
       assert(result == expected);
     }
 
     file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_FUEL, dformat, framenr);
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mFuel, false);
       assert(result == expected);
     }
 
     file = getFile(mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_REACT, dformat, framenr);
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mReact, false);
       assert(result == expected);
@@ -1301,19 +1305,21 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
 
   if (mUsingColors) {
     file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORRNOISE, nformat, framenr);
-    expected += 3;
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mColorRHigh, true);
       assert(result == expected);
     }
 
     file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORGNOISE, nformat, framenr);
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mColorGHigh, true);
       assert(result == expected);
     }
 
     file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_COLORBNOISE, nformat, framenr);
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mColorBHigh, true);
       assert(result == expected);
@@ -1322,19 +1328,21 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
 
   if (mUsingFire) {
     file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_FLAMENOISE, nformat, framenr);
-    expected += 3;
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mFlameHigh, true);
       assert(result == expected);
     }
 
     file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_FUELNOISE, nformat, framenr);
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mFuelHigh, true);
       assert(result == expected);
     }
 
     file = getFile(mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_REACTNOISE, nformat, framenr);
+    expected += 1;
     if (BLI_exists(file.c_str())) {
       result += updateGridFromFile(file, mReactHigh, true);
       assert(result == expected);
