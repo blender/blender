@@ -203,7 +203,7 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_normals_tools);
   WM_operatortype_append(MESH_OT_set_normals_from_faces);
   WM_operatortype_append(MESH_OT_average_normals);
-  WM_operatortype_append(MESH_OT_smoothen_normals);
+  WM_operatortype_append(MESH_OT_smooth_normals);
   WM_operatortype_append(MESH_OT_mod_weighted_strength);
 }
 

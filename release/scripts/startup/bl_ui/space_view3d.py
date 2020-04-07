@@ -4179,7 +4179,7 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.operator("mesh.normals_tools", text="Copy Vectors").mode = 'COPY'
         layout.operator("mesh.normals_tools", text="Paste Vectors").mode = 'PASTE'
 
-        layout.operator("mesh.smoothen_normals", text="Smoothen Vectors")
+        layout.operator("mesh.smooth_normals", text="Smooth Vectors")
         layout.operator("mesh.normals_tools", text="Reset Vectors").mode = 'RESET'
 
         layout.separator()

@@ -9047,7 +9047,7 @@ void MESH_OT_set_normals_from_faces(struct wmOperatorType *ot)
 /** \name Smooth Normal Vectors Operator
  * \{ */
 
-static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
+static int edbm_smooth_normals_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
@@ -9100,7 +9100,7 @@ static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
       float current_normal[3];
 
       if (normalize_v3(smooth_normal[i]) < CLNORS_VALID_VEC_LEN) {
-        /* Skip in case smoothen normal is invalid... */
+        /* Skip in case the smooth normal is invalid. */
         continue;
       }
 
@@ -9114,7 +9114,7 @@ static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
       add_v3_v3(current_normal, smooth_normal[i]);
 
       if (normalize_v3(current_normal) < CLNORS_VALID_VEC_LEN) {
-        /* Skip in case smoothen normal is invalid... */
+        /* Skip in case the smoothed normal is invalid. */
         continue;
       }
 
@@ -9132,15 +9132,15 @@ static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void MESH_OT_smoothen_normals(struct wmOperatorType *ot)
+void MESH_OT_smooth_normals(struct wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Smooth Normals Vectors";
-  ot->description = "Smoothen custom normals based on adjacent vertex normals";
-  ot->idname = "MESH_OT_smoothen_normals";
+  ot->description = "Smooth custom normals based on adjacent vertex normals";
+  ot->idname = "MESH_OT_smooth_normals";
 
   /* api callbacks */
-  ot->exec = edbm_smoothen_normals_exec;
+  ot->exec = edbm_smooth_normals_exec;
   ot->poll = ED_operator_editmesh;
 
   /* flags */
