@@ -456,6 +456,7 @@ typedef struct MovieClipCache {
     int flag;
 
     /* cache for undistorted shot */
+    float focal_length;
     float principal[2];
     float polynomial_k[3];
     float division_k[2];
@@ -887,6 +888,10 @@ static bool check_undistortion_cache_flags(const MovieClip *clip)
   const MovieClipCache *cache = clip->cache;
   const MovieTrackingCamera *camera = &clip->tracking.camera;
 
+  if (camera->focal != cache->postprocessed.focal_length) {
+    return false;
+  }
+
   /* check for distortion model changes */
   if (!equals_v2v2(camera->principal, cache->postprocessed.principal)) {
     return false;
@@ -1001,6 +1006,7 @@ static void put_postprocessed_frame_to_cache(
 
   if (need_undistortion_postprocess(user, flag)) {
     cache->postprocessed.distortion_model = camera->distortion_model;
+    cache->postprocessed.focal_length = camera->focal;
     copy_v2_v2(cache->postprocessed.principal, camera->principal);
     copy_v3_v3(cache->postprocessed.polynomial_k, &camera->k1);
     copy_v2_v2(cache->postprocessed.division_k, &camera->division_k1);
