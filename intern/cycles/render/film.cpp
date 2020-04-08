@@ -500,16 +500,16 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
         kfilm->pass_sample_count = kfilm->pass_stride;
         break;
       case PASS_AOV_COLOR:
-        if (kfilm->pass_aov_value_num == 0) {
+        if (kfilm->pass_aov_color_num == 0) {
           kfilm->pass_aov_color = kfilm->pass_stride;
         }
-        kfilm->pass_aov_value_num++;
+        kfilm->pass_aov_color_num++;
         break;
       case PASS_AOV_VALUE:
-        if (kfilm->pass_aov_color_num == 0) {
+        if (kfilm->pass_aov_value_num == 0) {
           kfilm->pass_aov_value = kfilm->pass_stride;
         }
-        kfilm->pass_aov_color_num++;
+        kfilm->pass_aov_value_num++;
         break;
       default:
         assert(false);
