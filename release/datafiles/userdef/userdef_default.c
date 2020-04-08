@@ -64,7 +64,8 @@ const UserDef U_default = {
     .uiflag2 = USER_REGION_OVERLAP,
     .gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE,
     .app_flag = 0,
-    .language = 0,
+    /** Default language of English (1), not Automatic (0). */
+    .language = 1,
     .viewzoom = USER_ZOOM_DOLLY,
     .mixbufsize = 2048,
     .audiodevice = 0,
