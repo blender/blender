@@ -446,7 +446,8 @@ static bool bake_object_check(ViewLayer *view_layer, Object *ob, ReportList *rep
   for (i = 0; i < ob->totcol; i++) {
     bNodeTree *ntree = NULL;
     bNode *node = NULL;
-    ED_object_get_active_image(ob, i + 1, &image, NULL, &node, &ntree);
+    const int mat_nr = i + 1;
+    ED_object_get_active_image(ob, mat_nr, &image, NULL, &node, &ntree);
 
     if (image) {
       ImBuf *ibuf;
@@ -481,7 +482,7 @@ static bool bake_object_check(ViewLayer *view_layer, Object *ob, ReportList *rep
       }
     }
     else {
-      Material *mat = BKE_object_material_get(ob, i);
+      Material *mat = BKE_object_material_get(ob, mat_nr);
       if (mat != NULL) {
         BKE_reportf(reports,
                     RPT_INFO,
