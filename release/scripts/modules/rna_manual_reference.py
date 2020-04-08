@@ -9,27 +9,25 @@ else:
 
 url_manual_prefix = "https://docs.blender.org/manual/en/" + manual_version + "/"
 
-language = ""
-if bpy.context.preferences.view.use_international_fonts:
-    language = bpy.context.preferences.view.language
-    if language == 'DEFAULT':
-        import os
-        language = os.getenv('LANG', '').split('.')[0]
+language = bpy.context.preferences.view.language
+if language == 'DEFAULT':
+    import os
+    language = os.getenv('LANG', '').split('.')[0]
 
 LANG = {
-    "de_DE":        "de",
-    "ru_RU":        "ru",
-    "uk_UA":        "uk",
-    "es":           "es",
-    "fr_FR":        "fr",
-    "it_IT":        "it",
-    "ja_JP":        "ja",
-    "ko_KR":        "ko",
-    "pt_PT":        "pt",
-    "pt_BR":        "pt",
-    "vi_VN":        "vi",
-    "zh_CN":        "zh-hans",
-    "zh_TW":        "zh-hant",
+"de_DE":        "de",
+"ru_RU":        "ru",
+"uk_UA":        "uk",
+"es":           "es",
+"fr_FR":        "fr",
+"it_IT":        "it",
+"ja_JP":        "ja",
+"ko_KR":        "ko",
+"pt_PT":        "pt",
+"pt_BR":        "pt",
+"vi_VN":        "vi",
+"zh_CN":        "zh-hans",
+"zh_TW":        "zh-hant",
 }.get(language)
 
 if LANG is not None:
