@@ -219,7 +219,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
             bmain, id, memfile_undosys_step_id_reused_cb, bmain, IDWALK_READONLY);
       }
 
-      /* Tag depsgraph to update datablock for changes that happend between the
+      /* Tag depsgraph to update data-block for changes that happened between the
        * current and the target state, see direct_link_id_restore_recalc(). */
       if (id->recalc) {
         DEG_id_tag_update_ex(bmain, id, id->recalc);

@@ -732,9 +732,8 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
   mul_m4_v3(target_mat, trans->to_min_rot);
   mul_m4_v3(target_mat, trans->to_max_rot);
 
-  /* TODO This does not support euler order, but doing so will make this way more complex.
-   * For now we have decided to not support all cornercases and advanced setups. (sebpa)
-   */
+  /* TODO(sebpa): This does not support euler order, but doing so will make this way more complex.
+   * For now we have decided to not support all corner cases and advanced setups. */
 
   /* Helper variables to denote the axis in trans->map */
   const char X = 0;
@@ -1181,9 +1180,9 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
          ebone_iter = ebone_iter->next) {
       if (EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
         if (ebone_iter->temp.ebone != NULL) {
-          /* will be set if the mirror bone already exists (no need to make a new one)
-           * but we do need to make sure that the pchan settings (constraints etc) is syncronized
-           */
+          /* This will be set if the mirror bone already exists (no need to make a new one)
+           * but we do need to make sure that the 'pchan' settings (constraints etc)
+           * is synchronized. */
           bPoseChannel *pchan;
           /* Make sure we clean up the old data before overwriting it */
           pchan = BKE_pose_channel_verify(obedit->pose, ebone_iter->temp.ebone->name);

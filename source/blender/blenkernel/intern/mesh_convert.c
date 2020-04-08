@@ -1165,7 +1165,7 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph, Object *object, bool preser
    * not cause ownership problems because evaluated object runtime is keeping track of the real
    * ownership.
    *
-   * Here we are constructing a mesh which is supposed to be iondependent, which means no shared
+   * Here we are constructing a mesh which is supposed to be independent, which means no shared
    * ownership is allowed, so we make sure edit mesh is reset to NULL (which is similar to as if
    * one duplicates the objects and applies all the modifiers). */
   new_mesh->edit_mesh = NULL;

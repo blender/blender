@@ -2838,7 +2838,7 @@ static int direct_link_id_restore_recalc(const FileData *fd,
     recalc |= direct_link_id_restore_recalc_exceptions(id_current);
 
     /* Evaluations for the current state that have not been performed yet
-     * by the time we are perfoming this undo step. */
+     * by the time we are performing this undo step. */
     recalc |= id_current->recalc;
 
     /* Tags that were set between the target state and the current state,
@@ -9672,7 +9672,7 @@ static BHead *read_libblock(FileData *fd,
                             const bool placeholder_set_indirect_extern,
                             ID **r_id)
 {
-  /* First attemp to restore existing datablocks for undo.
+  /* First attempt to restore existing datablocks for undo.
    * When datablocks are changed but still exist, we restore them at the old
    * address and inherit recalc flags for the dependency graph. */
   ID *id_old = NULL;
