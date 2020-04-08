@@ -647,6 +647,7 @@ void UI_butstore_free(uiBlock *block, uiButStore *bs_handle)
   }
 
   BLI_freelistN(&bs_handle->items);
+  BLI_assert(BLI_findindex(&block->butstore, bs_handle) != -1);
   BLI_remlink(&block->butstore, bs_handle);
 
   MEM_freeN(bs_handle);
@@ -747,8 +748,7 @@ void UI_butstore_update(uiBlock *block)
   /* move this list to the new block */
   if (block->oldblock) {
     if (block->oldblock->butstore.first) {
-      block->butstore = block->oldblock->butstore;
-      BLI_listbase_clear(&block->oldblock->butstore);
+      BLI_movelisttolist(&block->butstore, &block->oldblock->butstore);
     }
   }
 
