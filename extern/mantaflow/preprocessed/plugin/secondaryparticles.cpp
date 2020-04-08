@@ -1834,7 +1834,7 @@ struct knFlipDeleteParticlesInObstacle : public KernelBase {
     }
     int gridIndex = flags.index(xidx);
     // remove particles that penetrate obstacles
-    if (flags[gridIndex] == FlagGrid::TypeObstacle || flags[gridIndex] == FlagGrid::TypeOutflow) {
+    if (flags.isObstacle(gridIndex) || flags.isOutflow(gridIndex)) {
       pts.kill(idx);
     }
   }
