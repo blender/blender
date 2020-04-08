@@ -71,7 +71,7 @@ rm $BLENDER_INSTALLATION/blender/tmp/preprocessed/fileio/*.reg
 cd $BLENDER_INSTALLATION/blender/tmp/
 
 echo "Applying clang format to Mantaflow source files"
-find . -iname *.h -o -iname *.cpp | xargs clang-format --verbose -i -style=file
+find . -iname *.h -o -iname *.cpp | xargs clang-format --verbose -i -style=file -sort-includes=0
 find . -iname *.h -o -iname *.cpp | xargs dos2unix --verbose
 
 # ==================== 5) MOVE MANTAFLOW FILES TO EXTERN/ ================================
