@@ -1433,6 +1433,9 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
       ibuf_thumb = IMB_thumb_create(filepath, THB_LARGE, THB_SOURCE_BLEND, ibuf_thumb);
     }
 
+    /* Without this there is no feedback the file was saved. */
+    BKE_reportf(reports, RPT_INFO, "Saved \"%s\"", BLI_path_basename(filepath));
+
     /* Success. */
     ok = true;
   }
@@ -2715,8 +2718,6 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
 
     RNA_string_get(op->ptr, "filepath", path);
     ret = wm_save_as_mainfile_exec(C, op);
-    /* Without this there is no feedback the file was saved. */
-    BKE_reportf(op->reports, RPT_INFO, "Saved \"%s\"", BLI_path_basename(path));
   }
   else {
     WM_event_add_fileselect(C, op);
