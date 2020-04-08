@@ -525,7 +525,7 @@ struct knFlipSampleSecondaryParticlesMoreCylinders : public KernelBase {
     if (!(flags(i, j, k) & itype))
       return;
 
-    RandomStream mRand(9832);
+    static RandomStream mRand(9832);
     Real radius =
         0.25;  // diameter=0.5 => sampling with two cylinders in each dimension since cell size=1
     for (Real x = i - radius; x <= i + radius; x += 2 * radius) {
@@ -791,11 +791,9 @@ struct knFlipSampleSecondaryParticles : public KernelBase {
     const int n = KE * (k_ta * TA + k_wc * WC) * dt;  // number of secondary particles
     if (n == 0)
       return;
-    RandomStream mRand(9832);
+    static RandomStream mRand(9832);
 
-    Vec3 xi = Vec3(i + mRand.getReal(),
-                   j + mRand.getReal(),
-                   k + mRand.getReal());  // randomized offset uniform in cell
+    Vec3 xi = Vec3(i, j, k) + mRand.getVec3();  // randomized offset uniform in cell
     Vec3 vi = v.getInterpolated(xi);
     Vec3 dir = dt * vi;                               // direction of movement of current particle
     Vec3 e1 = getNormalized(Vec3(dir.z, 0, -dir.x));  // perpendicular to dir
