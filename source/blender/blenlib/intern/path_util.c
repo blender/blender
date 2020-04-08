@@ -1116,13 +1116,14 @@ bool BLI_path_abs(char *path, const char *basepath)
 }
 
 /**
- * Expands path relative to the current working directory, if it was relative.
- * Returns true if such expansion was done.
+ * Checks for relative path, expanding them relative to the current working directory.
+ * Returns true if the expansion was performed.
  *
- * \note Should only be done with command line paths.
- * this is _not_ something blenders internal paths support like the "//" prefix
+ * \note Should only be called with command line paths.
+ * This is _not_ something Blender's internal paths support, instead they use the "//" prefix.
+ * In most cases #BLI_path_abs should be used instead.
  */
-bool BLI_path_cwd(char *path, const size_t maxlen)
+bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
 {
 #ifdef DEBUG_STRSIZE
   memset(path, 0xff, sizeof(*path) * maxlen);

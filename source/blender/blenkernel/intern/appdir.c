@@ -687,7 +687,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 
     BLI_strncpy(fullname, name, maxlen);
     if (name[0] == '.') {
-      BLI_path_cwd(fullname, maxlen);
+      BLI_path_abs_from_cwd(fullname, maxlen);
 #ifdef _WIN32
       BLI_path_program_extensions_add_win32(fullname, maxlen);
 #endif

@@ -940,7 +940,7 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
   char filename_abs[1024];
 
   BLI_strncpy(filename_abs, filename_rel, sizeof(filename_abs));
-  BLI_path_cwd(filename_abs, sizeof(filename_abs));
+  BLI_path_abs_from_cwd(filename_abs, sizeof(filename_abs));
   Py_DECREF(filename_obj);
 
   argv[0] = filename_abs;
