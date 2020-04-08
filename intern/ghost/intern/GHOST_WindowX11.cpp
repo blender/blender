@@ -239,6 +239,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
 #ifdef WITH_XDND
       m_dropTarget(NULL),
 #endif
+      m_tabletData(GHOST_TABLET_DATA_NONE),
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       m_xic(NULL),
 #endif
@@ -498,8 +499,6 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
 
 #ifdef WITH_X11_XINPUT
   refreshXInputDevices();
-
-  m_tabletData = GHOST_TABLET_DATA_NONE;
 #endif
 
   /* now set up the rendering context. */

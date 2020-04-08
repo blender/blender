@@ -960,11 +960,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     case MotionNotify: {
       XMotionEvent &xme = xe->xmotion;
 
-#ifdef WITH_X11_XINPUT
       bool is_tablet = window->GetTabletData().Active != GHOST_kTabletModeNone;
-#else
-      bool is_tablet = false;
-#endif
 
       if (is_tablet == false && window->getCursorGrabModeIsWarp()) {
         GHOST_TInt32 x_new = xme.x_root;

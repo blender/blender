@@ -144,12 +144,11 @@ class GHOST_WindowX11 : public GHOST_Window {
    * Return a handle to the x11 window type.
    */
   Window getXWindow();
-#ifdef WITH_X11_XINPUT
+
   GHOST_TabletData &GetTabletData()
   {
     return m_tabletData;
   }
-#endif  // WITH_X11_XINPUT
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
   XIC getX11_XIC()
@@ -269,9 +268,7 @@ class GHOST_WindowX11 : public GHOST_Window {
   GHOST_DropTargetX11 *m_dropTarget;
 #endif
 
-#ifdef WITH_X11_XINPUT
   GHOST_TabletData m_tabletData;
-#endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
   XIC m_xic;
