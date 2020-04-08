@@ -2577,6 +2577,13 @@ static void search_id_collection(StructRNA *ptype, PointerRNA *r_ptr, PropertyRN
   RNA_STRUCT_END;
 }
 
+static void ui_rna_collection_search_free_cb(void *ptr)
+{
+  uiRNACollectionSearch *coll_search = ptr;
+  UI_butstore_free(coll_search->butstore_block, coll_search->butstore);
+  MEM_freeN(ptr);
+}
+
 void ui_but_add_search(
     uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop)
 {
@@ -2609,7 +2616,10 @@ void ui_but_add_search(
     coll_search->target_prop = prop;
     coll_search->search_ptr = *searchptr;
     coll_search->search_prop = searchprop;
-    coll_search->but_changed = &but->changed;
+    coll_search->search_but = but;
+    coll_search->butstore_block = but->block;
+    coll_search->butstore = UI_butstore_create(coll_search->butstore_block);
+    UI_butstore_register(coll_search->butstore, &coll_search->search_but);
 
     if (RNA_property_type(prop) == PROP_ENUM) {
       /* XXX, this will have a menu string,
@@ -2621,7 +2631,7 @@ void ui_but_add_search(
                            ui_searchbox_create_generic,
                            ui_rna_collection_search_cb,
                            coll_search,
-                           MEM_freeN,
+                           ui_rna_collection_search_free_cb,
                            NULL,
                            NULL);
   }

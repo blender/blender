@@ -790,6 +790,9 @@ static bool ui_but_update_from_old_block(const bContext *C,
 
     SWAP(ListBase, but->extra_op_icons, oldbut->extra_op_icons);
 
+    SWAP(uiButSearchArgFreeFunc, oldbut->search_arg_free_func, but->search_arg_free_func);
+    SWAP(void *, oldbut->search_arg, but->search_arg);
+
     /* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
      * when scrolling without moving mouse (see [#28432]) */
     if (ELEM(oldbut->type, UI_BTYPE_ROW, UI_BTYPE_LISTROW)) {

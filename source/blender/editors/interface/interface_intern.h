@@ -1014,7 +1014,11 @@ typedef struct uiRNACollectionSearch {
   PointerRNA search_ptr;
   PropertyRNA *search_prop;
 
-  bool *but_changed; /* pointer to uiBut.changed */
+  uiBut *search_but;
+  /* Let UI_butstore_ API update search_but pointer above over redraws. */
+  uiButStore *butstore;
+  /* Block has to be stored for freeing butstore (uiBut.block doesn't work with undo). */
+  uiBlock *butstore_block;
 } uiRNACollectionSearch;
 void ui_rna_collection_search_cb(const struct bContext *C,
                                  void *arg,
