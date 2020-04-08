@@ -344,6 +344,7 @@ typedef enum eGPCurveMappingPreset {
   GPCURVE_PRESET_INK = 1,
   GPCURVE_PRESET_INKNOISE = 2,
   GPCURVE_PRESET_MARKER = 3,
+  GPCURVE_PRESET_CHISEL = 4,
 } eGPCurveMappingPreset;
 
 static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
@@ -375,9 +376,9 @@ static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
     case GPCURVE_PRESET_INKNOISE:
       cuma->curve[0].x = 0.0f;
       cuma->curve[0].y = 0.0f;
-      cuma->curve[1].x = 0.63134f;
-      cuma->curve[1].y = 0.3625f;
-      cuma->curve[2].x = 1.0f;
+      cuma->curve[1].x = 0.55f;
+      cuma->curve[1].y = 0.45f;
+      cuma->curve[2].x = 0.85f;
       cuma->curve[2].y = 1.0f;
       break;
     case GPCURVE_PRESET_MARKER:
@@ -389,6 +390,12 @@ static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
       cuma->curve[2].y = 0.68f;
       cuma->curve[3].x = 1.0f;
       cuma->curve[3].y = 1.0f;
+      break;
+    case GPCURVE_PRESET_CHISEL:
+      cuma->curve[0].x = 0.0f;
+      cuma->curve[0].y = 0.0f;
+      cuma->curve[1].x = 0.8f;
+      cuma->curve[1].y = 1.0f;
       break;
   }
 
@@ -519,7 +526,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->simplify_f = 0.000f;
 
       brush->gpencil_settings->flag |= GP_BRUSH_GROUP_RANDOM;
-      brush->gpencil_settings->draw_random_press = 1.0f;
+      brush->gpencil_settings->draw_random_press = 0.6f;
       brush->gpencil_settings->draw_random_strength = 0.0f;
       brush->gpencil_settings->draw_jitter = 0.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
@@ -574,7 +581,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_MARKER_CHISEL: {
-      brush->size = 80.0f;
+      brush->size = 100.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
@@ -597,6 +604,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_jitter = 0.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
 
+      /* Curve. */
+      custom_curve = brush->gpencil_settings->curve_sensitivity;
+      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
+      BKE_curvemapping_initialize(custom_curve);
+      brush_gpencil_curvemap_reset(custom_curve->cm, 2, GPCURVE_PRESET_CHISEL);
+
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_CHISEL;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
@@ -604,7 +617,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_PEN: {
-      brush->size = 30.0f;
+      brush->size = 25.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
@@ -662,11 +675,22 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PENCIL;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
+      /* Create and link Black Dots material to brush.
+       * This material is required because the brush uses the material to define how the stroke is
+       * drawn. */
+      Material *ma = BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2);
+      if (ma == NULL) {
+        ma = BKE_gpencil_material_add(bmain, "Dots Stroke");
+      }
+      brush->gpencil_settings->material = ma;
+      /* Pin the matterial to the brush. */
+      brush->gpencil_settings->flag |= GP_BRUSH_MATERIAL_PINNED;
+
       zero_v3(brush->secondary_rgb);
       break;
     }
     case GP_BRUSH_PRESET_PENCIL: {
-      brush->size = 25.0f;
+      brush->size = 20.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 0.6f;
