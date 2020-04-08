@@ -1305,6 +1305,13 @@ typedef enum eUserpref_DiskCacheCompression {
   USER_SEQ_DISK_CACHE_COMPRESSION_HIGH = 2,
 } eUserpref_DiskCacheCompression;
 
+/* Locale Ids. Auto will try to get local from OS. Our default is English though. */
+/** #UserDef.language */
+enum {
+  ULANGUAGE_AUTO = 0,
+  ULANGUAGE_ENGLISH = 1,
+};
+
 #ifdef __cplusplus
 }
 #endif
