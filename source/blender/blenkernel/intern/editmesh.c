@@ -67,6 +67,10 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
    * tessellation only when/if that copy ends up getting used. */
   em_copy->looptris = NULL;
 
+  /* Copy various settings. */
+  em_copy->selectmode = em->selectmode;
+  em_copy->mat_nr = em->mat_nr;
+
   return em_copy;
 }
 

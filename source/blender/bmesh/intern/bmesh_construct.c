@@ -717,6 +717,10 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   MEM_freeN(vtable);
   MEM_freeN(ftable);
 
+  /* Copy various settings. */
+  bm_new->shapenr = bm_old->shapenr;
+  bm_new->selectmode = bm_old->selectmode;
+
   return bm_new;
 }
 
