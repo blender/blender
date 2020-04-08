@@ -1250,7 +1250,8 @@ static void update_obstacles(Depsgraph *depsgraph,
 
         /* Set scene time */
         /* Handle emission subframe */
-        if (subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) {
+        if ((subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) &&
+            !is_first_frame) {
           scene->r.subframe = (time_per_frame + (subframe + 1.0f) * subframe_dt) / frame_length;
           scene->r.cfra = frame - 1;
         }
@@ -2763,7 +2764,8 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
         FluidObjectBB bb_temp = {NULL};
 
         /* Set scene time */
-        if (subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) {
+        if ((subframe < subframes || time_per_frame + dt + FLT_EPSILON < frame_length) &&
+            !is_first_frame) {
           scene->r.subframe = (time_per_frame + (subframe + 1.0f) * subframe_dt) / frame_length;
           scene->r.cfra = frame - 1;
         }
