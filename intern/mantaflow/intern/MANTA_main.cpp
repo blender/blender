@@ -1098,12 +1098,14 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
   int expected = 0; /* Expected number of read successes for this frame. */
 
   /* Ensure empty data structures at start. */
-  if (!mMeshNodes || !mMeshTriangles || !mMeshVelocities)
+  if (!mMeshNodes || !mMeshTriangles)
     return false;
 
   mMeshNodes->clear();
   mMeshTriangles->clear();
-  mMeshVelocities->clear();
+
+  if (mMeshVelocities)
+    mMeshVelocities->clear();
 
   std::string mformat = getCacheFileEnding(mmd->domain->cache_mesh_format);
   std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
