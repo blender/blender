@@ -375,6 +375,9 @@ static void wm_init_userdef(Main *bmain)
 
   /* update tempdir from user preferences */
   BKE_tempdir_init(U.tempdir);
+
+  /* Update tablet API preference. */
+  WM_init_tablet_api();
 }
 
 /* return codes */
