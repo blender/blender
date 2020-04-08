@@ -283,6 +283,7 @@ void ImageManager::set_osl_texture_system(void *texture_system)
 bool ImageManager::set_animation_frame_update(int frame)
 {
   if (frame != animation_frame) {
+    thread_scoped_lock device_lock(images_mutex);
     animation_frame = frame;
 
     for (size_t slot = 0; slot < images.size(); slot++) {
@@ -377,7 +378,7 @@ int ImageManager::add_image_slot(ImageLoader *loader,
   Image *img;
   size_t slot;
 
-  thread_scoped_lock device_lock(device_mutex);
+  thread_scoped_lock device_lock(images_mutex);
 
   /* Fnd existing image. */
   for (slot = 0; slot < images.size(); slot++) {
@@ -418,6 +419,7 @@ int ImageManager::add_image_slot(ImageLoader *loader,
 
 void ImageManager::add_image_user(int slot)
 {
+  thread_scoped_lock device_lock(images_mutex);
   Image *image = images[slot];
   assert(image && image->users >= 1);
 
@@ -426,6 +428,7 @@ void ImageManager::add_image_user(int slot)
 
 void ImageManager::remove_image_user(int slot)
 {
+  thread_scoped_lock device_lock(images_mutex);
   Image *image = images[slot];
   assert(image && image->users >= 1);
 

@@ -206,6 +206,7 @@ class ImageManager {
   bool has_half_images;
 
   thread_mutex device_mutex;
+  thread_mutex images_mutex;
   int animation_frame;
 
   vector<Image *> images;
