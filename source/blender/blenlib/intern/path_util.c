@@ -497,11 +497,11 @@ static void BLI_path_unc_to_short(wchar_t *unc)
 void BLI_path_normalize_unc(char *path, int maxlen)
 {
   wchar_t *tmp_16 = alloc_utf16_from_8(path, 1);
-  BLI_cleanup_unc_16(tmp_16);
+  BLI_path_normalize_unc_16(tmp_16);
   conv_utf_16_to_8(tmp_16, path, maxlen);
 }
 
-void BLI_cleanup_unc_16(wchar_t *path_16)
+void BLI_path_normalize_unc_16(wchar_t *path_16)
 {
   BLI_path_unc_to_short(path_16);
   BLI_path_add_slash_to_share(path_16);

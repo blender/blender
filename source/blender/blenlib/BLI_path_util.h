@@ -109,7 +109,7 @@ bool BLI_path_is_unc(const char *path);
 void BLI_path_to_display_name(char *display_name, int maxlen, const char *name) ATTR_NONNULL();
 
 #if defined(WIN32)
-void BLI_cleanup_unc_16(wchar_t *path_16);
+void BLI_path_normalize_unc_16(wchar_t *path_16);
 void BLI_path_normalize_unc(char *path_16, int maxlen);
 #endif
 

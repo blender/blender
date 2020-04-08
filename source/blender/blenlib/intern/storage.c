@@ -316,7 +316,7 @@ int BLI_exists(const char *name)
    * 2. after the C:\ when the path is the volume only
    */
   if ((len >= 3) && (tmp_16[0] == L'\\') && (tmp_16[1] == L'\\')) {
-    BLI_cleanup_unc_16(tmp_16);
+    BLI_path_normalize_unc_16(tmp_16);
   }
 
   if ((tmp_16[1] == L':') && (tmp_16[2] == L'\0')) {
