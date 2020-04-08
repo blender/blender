@@ -82,6 +82,7 @@ const std::string smoke_alloc =
     "\n\
 mantaMsg('Smoke alloc')\n\
 shadow_s$ID$     = s$ID$.create(RealGrid)\n\
+emission_s$ID$   = s$ID$.create(RealGrid)\n\
 emissionIn_s$ID$ = s$ID$.create(RealGrid)\n\
 density_s$ID$    = s$ID$.create(RealGrid)\n\
 densityIn_s$ID$  = s$ID$.create(RealGrid)\n\
@@ -101,7 +102,7 @@ color_b_in_s$ID$ = None\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
 smoke_data_dict_final_s$ID$ = dict(density=density_s$ID$, shadow=shadow_s$ID$)\n\
-smoke_data_dict_resume_s$ID$ = dict(densityIn=densityIn_s$ID$, emissionIn=emissionIn_s$ID$)\n";
+smoke_data_dict_resume_s$ID$ = dict(densityIn=densityIn_s$ID$, emission=emission_s$ID$)\n";
 
 const std::string smoke_alloc_noise =
     "\n\
@@ -300,6 +301,9 @@ def smoke_adaptive_step_$ID$(framenr):\n\
     setObstacleFlags(flags=flags_s$ID$, phiObs=phiObs_s$ID$, phiOut=phiOut_s$ID$, phiIn=phiIn_s$ID$, boundaryWidth=1)\n\
     flags_s$ID$.fillGrid()\n\
     \n\
+    # accumulate emission value per adaptive step for later use in noise computation\n\
+    emission_s$ID$.join(emissionIn_s$ID$)\n\
+    \n\
     applyEmission(flags=flags_s$ID$, target=density_s$ID$, source=densityIn_s$ID$, emissionTexture=emissionIn_s$ID$, type=FlagInflow|FlagOutflow)\n\
     if using_heat_s$ID$:\n\
         applyEmission(flags=flags_s$ID$, target=heat_s$ID$, source=heatIn_s$ID$, emissionTexture=emissionIn_s$ID$, type=FlagInflow|FlagOutflow)\n\
@@ -437,7 +441,7 @@ def smoke_step_noise_$ID$(framenr):\n\
     \n\
     # Interpolate emission grids and apply them to big noise grids\n\
     tmpIn_sn$ID$.copyFrom(densityIn_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=densityIn_s$ID$, target=tmpIn_sn$ID$)\n\
-    emissionIn_sn$ID$.copyFrom(emissionIn_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=emissionIn_s$ID$, target=emissionIn_sn$ID$)\n\
+    emissionIn_sn$ID$.copyFrom(emission_s$ID$) if upres_sn$ID$ <= 1 else interpolateGrid(source=emission_s$ID$, target=emissionIn_sn$ID$)\n\
     \n\
     # Higher-res noise grid needs scaled emission values\n\
     tmpIn_sn$ID$.multConst(float(upres_sn$ID$))\n\
