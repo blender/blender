@@ -741,10 +741,14 @@ cache_end:
     else {
       int bias_max = INT_MIN;
 
-      /* Track cycle variables. */
+      /* Track Cycle Variables
+       * - Offset is always set to the active bone.
+       * - The object & bone indices subtracted by the 'offset.as_u32' value.
+       *   Unsigned subtraction wrapping means we always select the next bone in the cycle.
+       */
       struct {
         union {
-          uint32_t cmp;
+          uint32_t as_u32;
           struct {
 #ifdef __BIG_ENDIAN__
             uint16_t ob;
@@ -753,17 +757,19 @@ cache_end:
             uint16_t bone;
             uint16_t ob;
 #endif
-          } index;
-        } active, test, best;
+          };
+        } offset, test, best;
       } cycle_order;
 
       if (use_cycle) {
         bArmature *arm = obedit_orig->data;
         int ob_index = obedit_orig->runtime.select_id & 0xFFFF;
         int bone_index = BLI_findindex(arm->edbo, ebone_active_orig);
-        cycle_order.active.index.ob = ob_index;
-        cycle_order.active.index.bone = bone_index;
-        cycle_order.best.cmp = 0xffffffff;
+        /* Offset from the current active bone, so we cycle onto the next. */
+        cycle_order.offset.ob = ob_index;
+        cycle_order.offset.bone = bone_index;
+        /* The value of the active bone (with offset subtracted, a signal to always overwrite). */
+        cycle_order.best.as_u32 = 0;
       }
 
       for (int i = 0; i < hits; i++) {
@@ -823,25 +829,25 @@ cache_end:
 
           /* Cycle selected items (objects & bones). */
           if (use_cycle) {
-            bool found = false;
-            cycle_order.test.index.ob = hitresult & 0xFFFF;
-            cycle_order.test.index.bone = (hitresult & ~BONESEL_ANY) >> 16;
+            cycle_order.test.ob = hitresult & 0xFFFF;
+            cycle_order.test.bone = (hitresult & ~BONESEL_ANY) >> 16;
             if (ebone == ebone_active_orig) {
-              BLI_assert(cycle_order.test.index.ob == cycle_order.active.index.ob);
-              BLI_assert(cycle_order.test.index.bone == cycle_order.active.index.bone);
+              BLI_assert(cycle_order.test.ob == cycle_order.offset.ob);
+              BLI_assert(cycle_order.test.bone == cycle_order.offset.bone);
             }
-            cycle_order.test.cmp -= cycle_order.active.cmp;
+            /* Subtraction as a single value is needed to support cycling through bones
+             * from multiple objects. So once the last bone is selected,
+             * the bits for the bone index wrap into the object,
+             * causing the next object to be stepped onto. */
+            cycle_order.test.as_u32 -= cycle_order.offset.as_u32;
 
-            if (cycle_order.test.cmp < cycle_order.best.cmp && ebone != ebone_active_orig) {
-              cycle_order.best.cmp = cycle_order.test.cmp;
-              found = true;
-            }
-            else if (ELEM(result_cycle.ebone, NULL, ebone_active_orig)) {
-              /* Let the active bone become selected, but don't set the cycle order. */
-              found = true;
-            }
-
-            if (found) {
+            /* Even though this logic avoids stepping onto the active bone,
+             * always set the 'best' value for the first time.
+             * Otherwise ensure the value is the smallest it can be,
+             * relative to the active bone, as long as it's not the active bone. */
+            if ((cycle_order.best.as_u32 == 0) ||
+                (cycle_order.test.as_u32 && (cycle_order.test.as_u32 < cycle_order.best.as_u32))) {
+              cycle_order.best = cycle_order.test;
               result_cycle.hitresult = hitresult;
               result_cycle.base = base;
               result_cycle.ebone = ebone;
