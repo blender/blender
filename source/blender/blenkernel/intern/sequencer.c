@@ -3026,7 +3026,6 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     struct ImBuf **ibufs_arr;
     char prefix[FILE_MAX];
     const char *ext = NULL;
-    int i;
 
     if (totfiles > 1) {
       BKE_scene_multiview_view_prefix_get(context->scene, name, prefix, &ext);
@@ -3041,21 +3040,21 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
     ibufs_arr = MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs");
 
-    for (i = 0; i < totfiles; i++) {
+    for (int view_id = 0; view_id < totfiles; view_id++) {
 
       if (prefix[0] == '\0') {
-        ibufs_arr[i] = IMB_loadiffname(name, flag, seq->strip->colorspace_settings.name);
+        ibufs_arr[view_id] = IMB_loadiffname(name, flag, seq->strip->colorspace_settings.name);
       }
       else {
         char str[FILE_MAX];
-        seq_multiview_name(context->scene, i, prefix, ext, str, FILE_MAX);
-        ibufs_arr[i] = IMB_loadiffname(str, flag, seq->strip->colorspace_settings.name);
+        seq_multiview_name(context->scene, view_id, prefix, ext, str, FILE_MAX);
+        ibufs_arr[view_id] = IMB_loadiffname(str, flag, seq->strip->colorspace_settings.name);
       }
 
-      if (ibufs_arr[i]) {
+      if (ibufs_arr[view_id]) {
         /* we don't need both (speed reasons)! */
-        if (ibufs_arr[i]->rect_float && ibufs_arr[i]->rect) {
-          imb_freerectImBuf(ibufs_arr[i]);
+        if (ibufs_arr[view_id]->rect_float && ibufs_arr[view_id]->rect) {
+          imb_freerectImBuf(ibufs_arr[view_id]);
         }
       }
     }
@@ -3064,17 +3063,22 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
       IMB_ImBufFromStereo3d(seq->stereo3d_format, ibufs_arr[0], &ibufs_arr[0], &ibufs_arr[1]);
     }
 
-    for (i = 0; i < totviews; i++) {
-      if (ibufs_arr[i]) {
+    for (int view_id = 0; view_id < totviews; view_id++) {
+      if (ibufs_arr[view_id]) {
         SeqRenderData localcontext = *context;
-        localcontext.view_id = i;
+        localcontext.view_id = view_id;
 
         /* all sequencer color is done in SRGB space, linear gives odd crossfades */
-        BKE_sequencer_imbuf_to_sequencer_space(context->scene, ibufs_arr[i], false);
+        BKE_sequencer_imbuf_to_sequencer_space(context->scene, ibufs_arr[view_id], false);
 
-        if (i != context->view_id) {
-          BKE_sequencer_cache_put(
-              &localcontext, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibufs_arr[i], 0, false);
+        if (view_id != context->view_id) {
+          BKE_sequencer_cache_put(&localcontext,
+                                  seq,
+                                  cfra,
+                                  SEQ_CACHE_STORE_PREPROCESSED,
+                                  ibufs_arr[view_id],
+                                  0,
+                                  false);
         }
       }
     }
@@ -3087,9 +3091,9 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     }
 
     /* "remove" the others (decrease their refcount) */
-    for (i = 0; i < totviews; i++) {
-      if (ibufs_arr[i] != ibuf) {
-        IMB_freeImBuf(ibufs_arr[i]);
+    for (int view_id = 0; view_id < totviews; view_id++) {
+      if (ibufs_arr[view_id] != ibuf) {
+        IMB_freeImBuf(ibufs_arr[view_id]);
       }
     }
 
@@ -3137,7 +3141,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
     ImBuf **ibuf_arr;
     const int totfiles = seq_num_files(context->scene, seq->views_format, true);
     int totviews;
-    int i;
+    int ibuf_view_id;
 
     if (totfiles != BLI_listbase_count_at_most(&seq->anims, totfiles + 1)) {
       goto monoview_movie;
@@ -3146,28 +3150,28 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
     totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
     ibuf_arr = MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs");
 
-    for (i = 0, sanim = seq->anims.first; sanim; sanim = sanim->next, i++) {
+    for (ibuf_view_id = 0, sanim = seq->anims.first; sanim; sanim = sanim->next, ibuf_view_id++) {
       if (sanim->anim) {
         IMB_anim_set_preseek(sanim->anim, seq->anim_preseek);
 
-        ibuf_arr[i] = IMB_anim_absolute(sanim->anim,
-                                        nr + seq->anim_startofs,
-                                        seq->strip->proxy ? seq->strip->proxy->tc :
-                                                            IMB_TC_RECORD_RUN,
-                                        psize);
+        ibuf_arr[ibuf_view_id] = IMB_anim_absolute(sanim->anim,
+                                                   nr + seq->anim_startofs,
+                                                   seq->strip->proxy ? seq->strip->proxy->tc :
+                                                                       IMB_TC_RECORD_RUN,
+                                                   psize);
 
         /* fetching for requested proxy size failed, try fetching the original instead */
-        if (!ibuf_arr[i] && psize != IMB_PROXY_NONE) {
-          ibuf_arr[i] = IMB_anim_absolute(sanim->anim,
-                                          nr + seq->anim_startofs,
-                                          seq->strip->proxy ? seq->strip->proxy->tc :
-                                                              IMB_TC_RECORD_RUN,
-                                          IMB_PROXY_NONE);
+        if (!ibuf_arr[ibuf_view_id] && psize != IMB_PROXY_NONE) {
+          ibuf_arr[ibuf_view_id] = IMB_anim_absolute(sanim->anim,
+                                                     nr + seq->anim_startofs,
+                                                     seq->strip->proxy ? seq->strip->proxy->tc :
+                                                                         IMB_TC_RECORD_RUN,
+                                                     IMB_PROXY_NONE);
         }
-        if (ibuf_arr[i]) {
+        if (ibuf_arr[ibuf_view_id]) {
           /* we don't need both (speed reasons)! */
-          if (ibuf_arr[i]->rect_float && ibuf_arr[i]->rect) {
-            imb_freerectImBuf(ibuf_arr[i]);
+          if (ibuf_arr[ibuf_view_id]->rect_float && ibuf_arr[ibuf_view_id]->rect) {
+            imb_freerectImBuf(ibuf_arr[ibuf_view_id]);
           }
         }
       }
@@ -3184,17 +3188,17 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
       }
     }
 
-    for (i = 0; i < totviews; i++) {
+    for (int view_id = 0; view_id < totviews; view_id++) {
       SeqRenderData localcontext = *context;
-      localcontext.view_id = i;
+      localcontext.view_id = view_id;
 
-      if (ibuf_arr[i]) {
+      if (ibuf_arr[view_id]) {
         /* all sequencer color is done in SRGB space, linear gives odd crossfades */
-        BKE_sequencer_imbuf_to_sequencer_space(context->scene, ibuf_arr[i], false);
+        BKE_sequencer_imbuf_to_sequencer_space(context->scene, ibuf_arr[view_id], false);
       }
-      if (i != context->view_id) {
+      if (view_id != context->view_id) {
         BKE_sequencer_cache_put(
-            &localcontext, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf_arr[i], 0, false);
+            &localcontext, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf_arr[view_id], 0, false);
       }
     }
 
@@ -3206,9 +3210,9 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
     }
 
     /* "remove" the others (decrease their refcount) */
-    for (i = 0; i < totviews; i++) {
-      if (ibuf_arr[i] != ibuf) {
-        IMB_freeImBuf(ibuf_arr[i]);
+    for (int view_id = 0; view_id < totviews; view_id++) {
+      if (ibuf_arr[view_id] != ibuf) {
+        IMB_freeImBuf(ibuf_arr[view_id]);
       }
     }
 
@@ -3542,7 +3546,6 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
   else {
     Render *re = RE_GetSceneRender(scene);
     const int totviews = BKE_scene_multiview_num_views_get(&scene->r);
-    int i;
     ImBuf **ibufs_arr;
 
     ibufs_arr = MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs");
@@ -3567,34 +3570,37 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
       G.is_rendering = is_rendering;
     }
 
-    for (i = 0; i < totviews; i++) {
+    for (int view_id = 0; view_id < totviews; view_id++) {
       SeqRenderData localcontext = *context;
       RenderResult rres;
 
-      localcontext.view_id = i;
+      localcontext.view_id = view_id;
 
-      RE_AcquireResultImage(re, &rres, i);
+      RE_AcquireResultImage(re, &rres, view_id);
 
       if (rres.rectf) {
-        ibufs_arr[i] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat);
-        memcpy(ibufs_arr[i]->rect_float, rres.rectf, 4 * sizeof(float) * rres.rectx * rres.recty);
+        ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat);
+        memcpy(ibufs_arr[view_id]->rect_float,
+               rres.rectf,
+               4 * sizeof(float) * rres.rectx * rres.recty);
 
         if (rres.rectz) {
-          addzbuffloatImBuf(ibufs_arr[i]);
-          memcpy(ibufs_arr[i]->zbuf_float, rres.rectz, sizeof(float) * rres.rectx * rres.recty);
+          addzbuffloatImBuf(ibufs_arr[view_id]);
+          memcpy(
+              ibufs_arr[view_id]->zbuf_float, rres.rectz, sizeof(float) * rres.rectx * rres.recty);
         }
 
         /* float buffers in the sequencer are not linear */
-        BKE_sequencer_imbuf_to_sequencer_space(context->scene, ibufs_arr[i], false);
+        BKE_sequencer_imbuf_to_sequencer_space(context->scene, ibufs_arr[view_id], false);
       }
       else if (rres.rect32) {
-        ibufs_arr[i] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
-        memcpy(ibufs_arr[i]->rect, rres.rect32, 4 * rres.rectx * rres.recty);
+        ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
+        memcpy(ibufs_arr[view_id]->rect, rres.rect32, 4 * rres.rectx * rres.recty);
       }
 
-      if (i != context->view_id) {
+      if (view_id != context->view_id) {
         BKE_sequencer_cache_put(
-            &localcontext, seq, cfra, SEQ_CACHE_STORE_RAW, ibufs_arr[i], 0, false);
+            &localcontext, seq, cfra, SEQ_CACHE_STORE_RAW, ibufs_arr[view_id], 0, false);
       }
 
       RE_ReleaseResultImage(re);
@@ -3604,9 +3610,9 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
     ibuf = ibufs_arr[context->view_id];
 
     /* "remove" the others (decrease their refcount) */
-    for (i = 0; i < totviews; i++) {
-      if (ibufs_arr[i] != ibuf) {
-        IMB_freeImBuf(ibufs_arr[i]);
+    for (int view_id = 0; view_id < totviews; view_id++) {
+      if (ibufs_arr[view_id] != ibuf) {
+        IMB_freeImBuf(ibufs_arr[view_id]);
       }
     }
     MEM_freeN(ibufs_arr);
