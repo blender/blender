@@ -134,7 +134,7 @@ static void pointcloud_batch_cache_ensure_pos(Object *ob, PointCloudBatchCache *
     /* initialize vertex format */
     pos_id = GPU_vertformat_attr_add(&format, "pointcloud_pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     radius_id = GPU_vertformat_attr_add(
-        &format, "pointcloud_radius", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+        &format, "pointcloud_radius", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
 
   GPU_VERTBUF_DISCARD_SAFE(cache->pos);
