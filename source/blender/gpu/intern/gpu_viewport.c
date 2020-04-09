@@ -65,6 +65,24 @@ typedef struct ViewportTempTexture {
   GPUTexture *texture;
 } ViewportTempTexture;
 
+/* Struct storing a viewport specific GPUBatch.
+ * The end-goal is to have a single batch shared across viewport and use a model matrix to place
+ * the batch. Due to OCIO and Image/UV editor we are not able to use an model matrix yet. */
+struct GPUViewportBatch {
+  GPUBatch *batch;
+  struct {
+    rctf rect_pos;
+    rctf rect_uv;
+  } last_used_parameters;
+} GPUViewportBatch;
+
+static struct {
+  GPUVertFormat format;
+  struct {
+    uint pos, tex_coord;
+  } attr_id;
+} g_viewport = {{0}};
+
 struct GPUViewport {
   int size[2];
   int flag;
@@ -97,6 +115,7 @@ struct GPUViewport {
   /* TODO(fclem) the uvimage display use the viewport but do not set any view transform for the
    * moment. The end goal would be to let the GPUViewport do the color management. */
   bool do_color_management;
+  struct GPUViewportBatch batch;
 };
 
 enum {
@@ -625,6 +644,76 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
 
   GPU_framebuffer_restore();
 }
+/* -------------------------------------------------------------------- */
+/** \name Viewport Batches
+ * \{ */
+
+static GPUVertFormat *gpu_viewport_batch_format(void)
+{
+  if (g_viewport.format.attr_len == 0) {
+    GPUVertFormat *format = &g_viewport.format;
+    g_viewport.attr_id.pos = GPU_vertformat_attr_add(
+        format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    g_viewport.attr_id.tex_coord = GPU_vertformat_attr_add(
+        format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  }
+  return &g_viewport.format;
+}
+
+static GPUBatch *gpu_viewport_batch_create(const rctf *rect_pos, const rctf *rect_uv)
+{
+  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(gpu_viewport_batch_format());
+  const uint vbo_len = 4;
+  GPU_vertbuf_data_alloc(vbo, vbo_len);
+
+  GPUVertBufRaw pos_step, tex_coord_step;
+  GPU_vertbuf_attr_get_raw_data(vbo, g_viewport.attr_id.pos, &pos_step);
+  GPU_vertbuf_attr_get_raw_data(vbo, g_viewport.attr_id.tex_coord, &tex_coord_step);
+
+  copy_v2_fl2(GPU_vertbuf_raw_step(&pos_step), rect_pos->xmin, rect_pos->ymin);
+  copy_v2_fl2(GPU_vertbuf_raw_step(&tex_coord_step), rect_uv->xmin, rect_uv->ymin);
+  copy_v2_fl2(GPU_vertbuf_raw_step(&pos_step), rect_pos->xmax, rect_pos->ymin);
+  copy_v2_fl2(GPU_vertbuf_raw_step(&tex_coord_step), rect_uv->xmax, rect_uv->ymin);
+  copy_v2_fl2(GPU_vertbuf_raw_step(&pos_step), rect_pos->xmin, rect_pos->ymax);
+  copy_v2_fl2(GPU_vertbuf_raw_step(&tex_coord_step), rect_uv->xmin, rect_uv->ymax);
+  copy_v2_fl2(GPU_vertbuf_raw_step(&pos_step), rect_pos->xmax, rect_pos->ymax);
+  copy_v2_fl2(GPU_vertbuf_raw_step(&tex_coord_step), rect_uv->xmax, rect_uv->ymax);
+
+  return GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
+}
+
+static GPUBatch *gpu_viewport_batch_get(GPUViewport *viewport,
+                                        const rctf *rect_pos,
+                                        const rctf *rect_uv)
+{
+  const float compare_limit = 0.0001f;
+  const bool parameters_changed =
+      (!BLI_rctf_compare(
+           &viewport->batch.last_used_parameters.rect_pos, rect_pos, compare_limit) ||
+       !BLI_rctf_compare(&viewport->batch.last_used_parameters.rect_uv, rect_uv, compare_limit));
+
+  if (viewport->batch.batch && parameters_changed) {
+    GPU_batch_discard(viewport->batch.batch);
+    viewport->batch.batch = NULL;
+  }
+
+  if (!viewport->batch.batch) {
+    viewport->batch.batch = gpu_viewport_batch_create(rect_pos, rect_uv);
+    viewport->batch.last_used_parameters.rect_pos = *rect_pos;
+    viewport->batch.last_used_parameters.rect_uv = *rect_uv;
+  }
+  return viewport->batch.batch;
+}
+
+static void gpu_viewport_batch_free(GPUViewport *viewport)
+{
+  if (viewport->batch.batch) {
+    GPU_batch_discard(viewport->batch.batch);
+    viewport->batch.batch = NULL;
+  }
+}
+
+/** \} */
 
 static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
                                            const rctf *rect_pos,
@@ -634,10 +723,6 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
   DefaultTextureList *dtxl = viewport->txl;
   GPUTexture *color = dtxl->color;
   GPUTexture *color_overlay = dtxl->color_overlay;
-
-  GPUVertFormat *vert_format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint texco = GPU_vertformat_attr_add(vert_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   bool use_ocio = false;
 
@@ -650,37 +735,25 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
                                                               true);
   }
 
-  if (!use_ocio) {
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE);
-    immUniform1i("display_transform", display_colorspace);
-    immUniform1i("image_texture", 0);
-    immUniform1i("overlays_texture", 1);
+  GPUBatch *batch = gpu_viewport_batch_get(viewport, rect_pos, rect_uv);
+  if (use_ocio) {
+    GPU_batch_program_set_imm_shader(batch);
+  }
+  else {
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE);
+    GPU_batch_uniform_1i(batch, "display_transform", display_colorspace);
+    GPU_batch_uniform_1i(batch, "image_texture", 0);
+    GPU_batch_uniform_1i(batch, "overlays_texture", 1);
   }
 
   GPU_texture_bind(color, 0);
   GPU_texture_bind(color_overlay, 1);
-
-  immBegin(GPU_PRIM_TRI_STRIP, 4);
-
-  immAttr2f(texco, rect_uv->xmin, rect_uv->ymin);
-  immVertex2f(pos, rect_pos->xmin, rect_pos->ymin);
-  immAttr2f(texco, rect_uv->xmax, rect_uv->ymin);
-  immVertex2f(pos, rect_pos->xmax, rect_pos->ymin);
-  immAttr2f(texco, rect_uv->xmin, rect_uv->ymax);
-  immVertex2f(pos, rect_pos->xmin, rect_pos->ymax);
-  immAttr2f(texco, rect_uv->xmax, rect_uv->ymax);
-  immVertex2f(pos, rect_pos->xmax, rect_pos->ymax);
-
-  immEnd();
-
+  GPU_batch_draw(batch);
   GPU_texture_unbind(color);
   GPU_texture_unbind(color_overlay);
 
   if (use_ocio) {
     IMB_colormanagement_finish_glsl_draw();
-  }
-  else {
-    immUnbindProgram();
   }
 }
 
@@ -745,8 +818,8 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
  * Merge and draw the buffers of \a viewport into the currently active framebuffer, performing
  * color transform to display space.
  *
- * \param rect: Coordinates to draw into. By swapping min and max values, drawing can be done with
- *              inversed axis coordinates (upside down or sideways).
+ * \param rect: Coordinates to draw into. By swapping min and max values, drawing can be done
+ * with inversed axis coordinates (upside down or sideways).
  */
 void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *rect)
 {
@@ -922,6 +995,8 @@ void GPU_viewport_free(GPUViewport *viewport)
 
   DRW_instance_data_list_free(viewport->idatalist);
   MEM_freeN(viewport->idatalist);
+
+  gpu_viewport_batch_free(viewport);
 
   MEM_freeN(viewport);
 }
