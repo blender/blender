@@ -4405,6 +4405,17 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 283, 3)) {
+    /* Color Management Look. */
+    for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+      ColorManagedViewSettings *view_settings;
+      view_settings = &scene->view_settings;
+      if (BLI_str_startswith(view_settings->look, "Filmic - ")) {
+        STRNCPY(view_settings->look, view_settings->look + strlen("Filmic - "));
+      }
+      else if (BLI_str_startswith(view_settings->look, "Standard - ")) {
+        STRNCPY(view_settings->look, view_settings->look + strlen("Standard - "));
+      }
+    }
 
     /* Sequencer Tool region */
     do_versions_area_ensure_tool_region(bmain, SPACE_SEQ, RGN_FLAG_HIDDEN);
