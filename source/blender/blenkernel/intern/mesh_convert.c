@@ -28,6 +28,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_edgehash.h"
@@ -53,6 +54,8 @@
 #include "BKE_curve.h"
 /* -- */
 #include "BKE_object.h"
+/* -- */
+#include "BKE_pointcloud.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -901,6 +904,100 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), 
 
     BKE_object_free_derived_caches(ob);
   }
+}
+
+void BKE_pointcloud_from_mesh(Mesh *me, PointCloud *pointcloud)
+{
+  BLI_assert(me != NULL);
+
+  pointcloud->totpoint = me->totvert;
+  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint);
+
+  /* Copy over all attributes. */
+  const CustomData_MeshMasks mask = {
+      .vmask = CD_MASK_PROP_ALL,
+  };
+  CustomData_merge(&me->vdata, &pointcloud->pdata, mask.vmask, CD_DUPLICATE, me->totvert);
+  BKE_pointcloud_update_customdata_pointers(pointcloud);
+  CustomData_update_typemap(&pointcloud->pdata);
+
+  MVert *mvert;
+  mvert = me->mvert;
+  for (int i = 0; i < me->totvert; i++, mvert++) {
+    copy_v3_v3(pointcloud->co[i], mvert->co);
+  }
+}
+
+void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob)
+{
+  BLI_assert(ob->type == OB_MESH);
+
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
+
+  PointCloud *pointcloud = BKE_pointcloud_add(bmain, ob->id.name + 2);
+
+  BKE_pointcloud_from_mesh(me_eval, pointcloud);
+
+  BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)pointcloud);
+
+  id_us_min(&((Mesh *)ob->data)->id);
+  ob->data = pointcloud;
+  ob->type = OB_POINTCLOUD;
+
+  BKE_object_free_derived_caches(ob);
+}
+
+void BKE_mesh_from_pointcloud(PointCloud *pointcloud, Mesh *me)
+{
+  BLI_assert(pointcloud != NULL);
+
+  me->totvert = pointcloud->totpoint;
+
+  /* Merge over all attributes. */
+  const CustomData_MeshMasks mask = {
+      .vmask = CD_MASK_PROP_ALL,
+  };
+  CustomData_merge(&pointcloud->pdata, &me->vdata, mask.vmask, CD_DUPLICATE, pointcloud->totpoint);
+
+  /* Convert the Position attribute to a mesh vertex. */
+  me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+  CustomData_update_typemap(&me->vdata);
+
+  const int layer_idx = CustomData_get_named_layer_index(
+      &me->vdata, CD_PROP_FLOAT3, POINTCLOUD_ATTR_POSITION);
+  CustomDataLayer *pos_layer = &me->vdata.layers[layer_idx];
+  float(*positions)[3] = pos_layer->data;
+
+  MVert *mvert;
+  mvert = me->mvert;
+  for (int i = 0; i < me->totvert; i++, mvert++) {
+    copy_v3_v3(mvert->co, positions[i]);
+  }
+
+  /* Delete Position attribute since it is now in vertex coordinates. */
+  CustomData_free_layer(&me->vdata, CD_PROP_FLOAT3, me->totvert, layer_idx);
+}
+
+void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob)
+{
+  BLI_assert(ob->type == OB_POINTCLOUD);
+
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  PointCloud *pointcloud_eval = (PointCloud *)ob_eval->runtime.data_eval;
+
+  Mesh *me = BKE_mesh_add(bmain, ob->id.name + 2);
+
+  BKE_mesh_from_pointcloud(pointcloud_eval, me);
+
+  BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)me);
+
+  id_us_min(&((PointCloud *)ob->data)->id);
+  ob->data = me;
+  ob->type = OB_MESH;
+
+  BKE_object_free_derived_caches(ob);
 }
 
 /* Create a temporary object to be used for nurbs-to-mesh conversion.

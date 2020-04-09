@@ -41,6 +41,7 @@
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
@@ -2328,8 +2329,15 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 
 static const EnumPropertyItem convert_target_items[] = {
     {OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
+#ifdef WITH_PARTICLE_NODES
+    {OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text/Pointcloud", ""},
+#else
     {OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
+#endif
     {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil from Curve/Mesh", ""},
+#ifdef WITH_PARTICLE_NODES
+    {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Pointcloud from Mesh", ""},
+#endif
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -2467,6 +2475,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   MetaBall *mb;
   Mesh *me;
   Object *ob_gpencil = NULL;
+  PointCloud *pointcloud;
   const short target = RNA_enum_get(op->ptr, "target");
   bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
 
@@ -2635,6 +2644,31 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         }
       }
       ob_gpencil->actcol = actcol;
+    }
+    else if (ob->type == OB_MESH && target == OB_POINTCLOUD) {
+      ob->flag |= OB_DONE;
+
+      if (keep_original) {
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
+        newob = basen->object;
+
+        /* decrement original mesh's usage count  */
+        me = newob->data;
+        id_us_min(&me->id);
+
+        /* make a new copy of the mesh */
+        newob->data = BKE_mesh_copy(bmain, me);
+      }
+      else {
+        newob = ob;
+      }
+
+      BKE_mesh_to_pointcloud(bmain, depsgraph, scene, newob);
+
+      if (newob->type == OB_POINTCLOUD) {
+        BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
+        ED_rigidbody_object_remove(bmain, scene, newob);
+      }
     }
     else if (ob->type == OB_MESH) {
       ob->flag |= OB_DONE;
@@ -2819,6 +2853,31 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
         baseob->flag |= OB_DONE;
         mballConverted = 1;
+      }
+    }
+    else if (ob->type == OB_POINTCLOUD && target == OB_MESH) {
+      ob->flag |= OB_DONE;
+
+      if (keep_original) {
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
+        newob = basen->object;
+
+        /* decrement original pointclouds's usage count  */
+        pointcloud = newob->data;
+        id_us_min(&pointcloud->id);
+
+        /* make a new copy of the pointcloud */
+        newob->data = BKE_pointcloud_copy(bmain, pointcloud);
+      }
+      else {
+        newob = ob;
+      }
+
+      BKE_pointcloud_to_mesh(bmain, depsgraph, scene, newob);
+
+      if (newob->type == OB_MESH) {
+        BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
+        ED_rigidbody_object_remove(bmain, scene, newob);
       }
     }
     else {

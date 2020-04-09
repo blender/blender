@@ -53,8 +53,8 @@
 
 static void pointcloud_random(PointCloud *pointcloud);
 
-static const char *POINTCLOUD_ATTR_POSITION = "Position";
-static const char *POINTCLOUD_ATTR_RADIUS = "Radius";
+const char *POINTCLOUD_ATTR_POSITION = "Position";
+const char *POINTCLOUD_ATTR_RADIUS = "Radius";
 
 static void pointcloud_init_data(ID *id)
 {
@@ -70,15 +70,7 @@ static void pointcloud_init_data(ID *id)
                              NULL,
                              pointcloud->totpoint,
                              POINTCLOUD_ATTR_POSITION);
-  CustomData_add_layer_named(&pointcloud->pdata,
-                             CD_PROP_FLOAT,
-                             CD_CALLOC,
-                             NULL,
-                             pointcloud->totpoint,
-                             POINTCLOUD_ATTR_RADIUS);
   BKE_pointcloud_update_customdata_pointers(pointcloud);
-
-  pointcloud_random(pointcloud);
 }
 
 static void pointcloud_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
@@ -217,6 +209,23 @@ void *BKE_pointcloud_add(Main *bmain, const char *name)
   PointCloud *pointcloud = BKE_libblock_alloc(bmain, ID_PT, name, 0);
 
   pointcloud_init_data(&pointcloud->id);
+
+  return pointcloud;
+}
+
+void *BKE_pointcloud_add_default(Main *bmain, const char *name)
+{
+  PointCloud *pointcloud = BKE_libblock_alloc(bmain, ID_PT, name, 0);
+
+  pointcloud_init_data(&pointcloud->id);
+
+  CustomData_add_layer_named(&pointcloud->pdata,
+                             CD_PROP_FLOAT,
+                             CD_CALLOC,
+                             NULL,
+                             pointcloud->totpoint,
+                             POINTCLOUD_ATTR_RADIUS);
+  pointcloud_random(pointcloud);
 
   return pointcloud;
 }

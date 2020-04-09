@@ -32,7 +32,12 @@ struct Object;
 struct PointCloud;
 struct Scene;
 
+/* PointCloud datablock */
+extern const char *POINTCLOUD_ATTR_POSITION;
+extern const char *POINTCLOUD_ATTR_RADIUS;
+
 void *BKE_pointcloud_add(struct Main *bmain, const char *name);
+void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
 struct PointCloud *BKE_pointcloud_copy(struct Main *bmain, const struct PointCloud *pointcloud);
 
 struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);

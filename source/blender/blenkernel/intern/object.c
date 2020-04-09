@@ -48,6 +48,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -1285,7 +1286,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
     case OB_HAIR:
       return BKE_hair_add(bmain, name);
     case OB_POINTCLOUD:
-      return BKE_pointcloud_add(bmain, name);
+      return BKE_pointcloud_add_default(bmain, name);
     case OB_VOLUME:
       return BKE_volume_add(bmain, name);
     case OB_EMPTY:

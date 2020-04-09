@@ -535,6 +535,27 @@ static void material_data_index_clear_id(ID *id)
   }
 }
 
+void BKE_id_materials_copy(Main *bmain, ID *id_src, ID *id_dst)
+{
+  Material ***matar_src = BKE_id_material_array_p(id_src);
+  const short *materials_len_p_src = BKE_id_material_len_p(id_src);
+
+  Material ***matar_dst = BKE_id_material_array_p(id_dst);
+  short *materials_len_p_dst = BKE_id_material_len_p(id_dst);
+
+  *materials_len_p_dst = *materials_len_p_src;
+  if (*materials_len_p_src != 0) {
+    (*matar_dst) = MEM_dupallocN(*matar_src);
+
+    for (int a = 0; a < *materials_len_p_src; a++) {
+      id_us_plus((ID *)(*matar_dst)[a]);
+    }
+
+    DEG_id_tag_update(id_dst, ID_RECALC_COPY_ON_WRITE);
+    DEG_relations_tag_update(bmain);
+  }
+}
+
 void BKE_id_material_resize(Main *bmain, ID *id, short totcol, bool do_id_user)
 {
   Material ***matar = BKE_id_material_array_p(id);
