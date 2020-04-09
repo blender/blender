@@ -36,9 +36,11 @@ using namespace USD;
 
 class TestHierarchyWriter : public AbstractHierarchyWriter {
  public:
+  std::string writer_type;
   created_writers &writers_map;
 
-  TestHierarchyWriter(created_writers &writers_map) : writers_map(writers_map)
+  TestHierarchyWriter(const std::string &writer_type, created_writers &writers_map)
+      : writer_type(writer_type), writers_map(writers_map)
   {
   }
 
@@ -47,7 +49,10 @@ class TestHierarchyWriter : public AbstractHierarchyWriter {
     const char *id_name = context.object->id.name;
     created_writers::mapped_type &writers = writers_map[id_name];
 
-    BLI_assert(writers.find(context.export_path) == writers.end());
+    if (writers.find(context.export_path) != writers.end()) {
+      ADD_FAILURE() << "Unexpectedly found another " << writer_type << " writer for " << id_name
+                    << " to export to " << context.export_path;
+    }
     writers.insert(context.export_path);
   }
 };
@@ -81,19 +86,19 @@ class TestingHierarchyIterator : public AbstractHierarchyIterator {
  protected:
   AbstractHierarchyWriter *create_transform_writer(const HierarchyContext *context) override
   {
-    return new TestHierarchyWriter(transform_writers);
+    return new TestHierarchyWriter("transform", transform_writers);
   }
   AbstractHierarchyWriter *create_data_writer(const HierarchyContext *context) override
   {
-    return new TestHierarchyWriter(data_writers);
+    return new TestHierarchyWriter("data", data_writers);
   }
   AbstractHierarchyWriter *create_hair_writer(const HierarchyContext *context) override
   {
-    return new TestHierarchyWriter(hair_writers);
+    return new TestHierarchyWriter("hair", hair_writers);
   }
   AbstractHierarchyWriter *create_particle_writer(const HierarchyContext *context) override
   {
-    return new TestHierarchyWriter(particle_writers);
+    return new TestHierarchyWriter("particle", particle_writers);
   }
 
   void delete_object_writer(AbstractHierarchyWriter *writer) override
