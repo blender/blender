@@ -137,6 +137,7 @@ void BKE_layer_collection_set_visible(struct ViewLayer *view_layer,
                                       struct LayerCollection *lc,
                                       const bool visible,
                                       const bool hierarchy);
+void BKE_layer_collection_set_flag(struct LayerCollection *lc, const int flag, const bool value);
 
 /* evaluation */
 

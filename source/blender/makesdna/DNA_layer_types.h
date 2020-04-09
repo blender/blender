@@ -173,6 +173,7 @@ enum {
   LAYER_COLLECTION_HOLDOUT = (1 << 5),
   LAYER_COLLECTION_INDIRECT_ONLY = (1 << 6),
   LAYER_COLLECTION_HIDE = (1 << 7),
+  LAYER_COLLECTION_PREVIOUSLY_EXCLUDED = (1 << 8),
 };
 
 /* Layer Collection->runtime_flag

@@ -1359,6 +1359,49 @@ void BKE_layer_collection_set_visible(ViewLayer *view_layer,
   }
 }
 
+/**
+ * Set layer collection hide/exclude/indirect flag on a layer collection.
+ * recursively.
+ */
+static void layer_collection_flag_recursive_set(LayerCollection *lc,
+                                                const int flag,
+                                                const bool value,
+                                                const bool restore_flag)
+{
+  if (flag == LAYER_COLLECTION_EXCLUDE) {
+    /* For exclude flag, we remember the state the children had before
+     * excluding and restoring it when enabling the parent collection again. */
+    if (value) {
+      if (restore_flag) {
+        SET_FLAG_FROM_TEST(
+            lc->flag, (lc->flag & LAYER_COLLECTION_EXCLUDE), LAYER_COLLECTION_PREVIOUSLY_EXCLUDED);
+      }
+      else {
+        lc->flag &= ~LAYER_COLLECTION_PREVIOUSLY_EXCLUDED;
+      }
+
+      lc->flag |= flag;
+    }
+    else {
+      if (!(lc->flag & LAYER_COLLECTION_PREVIOUSLY_EXCLUDED)) {
+        lc->flag &= ~flag;
+      }
+    }
+  }
+  else {
+    SET_FLAG_FROM_TEST(lc->flag, value, flag);
+  }
+
+  LISTBASE_FOREACH (LayerCollection *, nlc, &lc->layer_collections) {
+    layer_collection_flag_recursive_set(nlc, flag, value, true);
+  }
+}
+
+void BKE_layer_collection_set_flag(LayerCollection *lc, const int flag, const bool value)
+{
+  layer_collection_flag_recursive_set(lc, flag, value, false);
+}
+
 /* ---------------------------------------------------------------------- */
 
 static LayerCollection *find_layer_collection_by_scene_collection(LayerCollection *lc,

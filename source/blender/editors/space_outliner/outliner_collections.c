@@ -845,20 +845,6 @@ static bool collections_indirect_only_clear_poll(bContext *C)
   return collections_view_layer_poll(C, true, LAYER_COLLECTION_INDIRECT_ONLY);
 }
 
-static void layer_collection_flag_recursive_set(LayerCollection *lc, int flag)
-{
-  LISTBASE_FOREACH (LayerCollection *, nlc, &lc->layer_collections) {
-    if (lc->flag & flag) {
-      nlc->flag |= flag;
-    }
-    else {
-      nlc->flag &= ~flag;
-    }
-
-    layer_collection_flag_recursive_set(nlc, flag);
-  }
-}
-
 static int collection_view_layer_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -883,15 +869,7 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
     LayerCollection *lc = BLI_gsetIterator_getKey(&collections_to_edit_iter);
-
-    if (clear) {
-      lc->flag &= ~flag;
-    }
-    else {
-      lc->flag |= flag;
-    }
-
-    layer_collection_flag_recursive_set(lc, flag);
+    BKE_layer_collection_set_flag(lc, flag, !clear);
   }
 
   BLI_gset_free(data.collections_to_edit, NULL);
@@ -1468,8 +1446,7 @@ static int outliner_unhide_all_exec(bContext *C, wmOperator *UNUSED(op))
   /* Unhide all the collections. */
   LayerCollection *lc_master = view_layer->layer_collections.first;
   LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
-    lc_iter->flag &= ~LAYER_COLLECTION_HIDE;
-    layer_collection_flag_recursive_set(lc_iter, LAYER_COLLECTION_HIDE);
+    BKE_layer_collection_set_flag(lc_iter, LAYER_COLLECTION_HIDE, false);
   }
 
   /* Unhide all objects. */
