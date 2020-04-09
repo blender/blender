@@ -542,15 +542,15 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
 #  ifdef USE_ARRAY_STORE_THREAD
     if (um_arraystore.task_pool == NULL) {
       TaskScheduler *scheduler = BLI_task_scheduler_get();
-      um_arraystore.task_pool = BLI_task_pool_create_background(scheduler, NULL);
+      um_arraystore.task_pool = BLI_task_pool_create_background(
+          scheduler, NULL, TASK_PRIORITY_LOW);
     }
 
     struct UMArrayData *um_data = MEM_mallocN(sizeof(*um_data), __func__);
     um_data->um = um;
     um_data->um_ref = um_ref;
 
-    BLI_task_pool_push(
-        um_arraystore.task_pool, um_arraystore_compact_cb, um_data, true, TASK_PRIORITY_LOW);
+    BLI_task_pool_push(um_arraystore.task_pool, um_arraystore_compact_cb, um_data, true, NULL);
 #  else
     um_arraystore_compact_with_info(um, um_ref);
 #  endif

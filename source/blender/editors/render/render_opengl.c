@@ -859,11 +859,12 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
     if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
       task_scheduler = BLI_task_scheduler_create(1);
       oglrender->task_scheduler = task_scheduler;
-      oglrender->task_pool = BLI_task_pool_create_background(task_scheduler, oglrender);
+      oglrender->task_pool = BLI_task_pool_create_background(
+          task_scheduler, oglrender, TASK_PRIORITY_LOW);
     }
     else {
       oglrender->task_scheduler = NULL;
-      oglrender->task_pool = BLI_task_pool_create(task_scheduler, oglrender);
+      oglrender->task_pool = BLI_task_pool_create(task_scheduler, oglrender, TASK_PRIORITY_LOW);
     }
     oglrender->pool_ok = true;
     BLI_spin_init(&oglrender->reports_lock);
@@ -1123,7 +1124,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
     BLI_condition_wait(&oglrender->task_condition, &oglrender->task_mutex);
   }
   BLI_mutex_unlock(&oglrender->task_mutex);
-  BLI_task_pool_push(oglrender->task_pool, write_result_func, task_data, true, TASK_PRIORITY_LOW);
+  BLI_task_pool_push(oglrender->task_pool, write_result_func, task_data, true, NULL);
   return true;
 }
 

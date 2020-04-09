@@ -83,10 +83,10 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   BLI_linklist_lockfree_init(&list);
   /* Initialize task scheduler and pool. */
   TaskScheduler *scheduler = BLI_task_scheduler_create(num_threads);
-  TaskPool *pool = BLI_task_pool_create_suspended(scheduler, &list);
+  TaskPool *pool = BLI_task_pool_create_suspended(scheduler, &list, TASK_PRIORITY_HIGH);
   /* Push tasks to the pool. */
   for (int i = 0; i < num_nodes; ++i) {
-    BLI_task_pool_push(pool, concurrent_insert, POINTER_FROM_INT(i), false, TASK_PRIORITY_HIGH);
+    BLI_task_pool_push(pool, concurrent_insert, POINTER_FROM_INT(i), false, NULL);
   }
   /* Run all the tasks. */
   BLI_threaded_malloc_begin();

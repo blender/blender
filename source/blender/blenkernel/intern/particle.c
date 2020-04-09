@@ -2827,7 +2827,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim,
   }
 
   task_scheduler = BLI_task_scheduler_get();
-  task_pool = BLI_task_pool_create(task_scheduler, &ctx);
+  task_pool = BLI_task_pool_create(task_scheduler, &ctx, TASK_PRIORITY_LOW);
   totchild = ctx.totchild;
   totparent = ctx.totparent;
 
@@ -2850,7 +2850,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim,
     ParticleTask *task = &tasks_parent[i];
 
     psys_task_init_path(task, sim);
-    BLI_task_pool_push(task_pool, exec_child_path_cache, task, false, TASK_PRIORITY_LOW);
+    BLI_task_pool_push(task_pool, exec_child_path_cache, task, false, NULL);
   }
   BLI_task_pool_work_and_wait(task_pool);
 
@@ -2861,7 +2861,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim,
     ParticleTask *task = &tasks_child[i];
 
     psys_task_init_path(task, sim);
-    BLI_task_pool_push(task_pool, exec_child_path_cache, task, false, TASK_PRIORITY_LOW);
+    BLI_task_pool_push(task_pool, exec_child_path_cache, task, false, NULL);
   }
   BLI_task_pool_work_and_wait(task_pool);
 

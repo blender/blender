@@ -5617,7 +5617,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 
   if (ps->thread_tot > 1) {
     scheduler = BLI_task_scheduler_get();
-    task_pool = BLI_task_pool_create_suspended(scheduler, NULL);
+    task_pool = BLI_task_pool_create_suspended(scheduler, NULL, TASK_PRIORITY_HIGH);
   }
 
   image_pool = BKE_image_pool_new();
@@ -5652,8 +5652,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
     handles[a].pool = image_pool;
 
     if (task_pool != NULL) {
-      BLI_task_pool_push(
-          task_pool, do_projectpaint_thread, &handles[a], false, TASK_PRIORITY_HIGH);
+      BLI_task_pool_push(task_pool, do_projectpaint_thread, &handles[a], false, NULL);
     }
   }
 

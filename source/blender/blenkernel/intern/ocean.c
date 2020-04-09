@@ -680,7 +680,7 @@ void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount
   osd.scale = scale;
   osd.chop_amount = chop_amount;
 
-  pool = BLI_task_pool_create(scheduler, &osd);
+  pool = BLI_task_pool_create(scheduler, &osd, TASK_PRIORITY_HIGH);
 
   BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
 
@@ -698,23 +698,23 @@ void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount
   BLI_task_parallel_range(0, o->_M, &osd, ocean_compute_htilda, &settings);
 
   if (o->_do_disp_y) {
-    BLI_task_pool_push(pool, ocean_compute_displacement_y, NULL, false, TASK_PRIORITY_HIGH);
+    BLI_task_pool_push(pool, ocean_compute_displacement_y, NULL, false, NULL);
   }
 
   if (o->_do_chop) {
-    BLI_task_pool_push(pool, ocean_compute_displacement_x, NULL, false, TASK_PRIORITY_HIGH);
-    BLI_task_pool_push(pool, ocean_compute_displacement_z, NULL, false, TASK_PRIORITY_HIGH);
+    BLI_task_pool_push(pool, ocean_compute_displacement_x, NULL, false, NULL);
+    BLI_task_pool_push(pool, ocean_compute_displacement_z, NULL, false, NULL);
   }
 
   if (o->_do_jacobian) {
-    BLI_task_pool_push(pool, ocean_compute_jacobian_jxx, NULL, false, TASK_PRIORITY_HIGH);
-    BLI_task_pool_push(pool, ocean_compute_jacobian_jzz, NULL, false, TASK_PRIORITY_HIGH);
-    BLI_task_pool_push(pool, ocean_compute_jacobian_jxz, NULL, false, TASK_PRIORITY_HIGH);
+    BLI_task_pool_push(pool, ocean_compute_jacobian_jxx, NULL, false, NULL);
+    BLI_task_pool_push(pool, ocean_compute_jacobian_jzz, NULL, false, NULL);
+    BLI_task_pool_push(pool, ocean_compute_jacobian_jxz, NULL, false, NULL);
   }
 
   if (o->_do_normals) {
-    BLI_task_pool_push(pool, ocean_compute_normal_x, NULL, false, TASK_PRIORITY_HIGH);
-    BLI_task_pool_push(pool, ocean_compute_normal_z, NULL, false, TASK_PRIORITY_HIGH);
+    BLI_task_pool_push(pool, ocean_compute_normal_x, NULL, false, NULL);
+    BLI_task_pool_push(pool, ocean_compute_normal_z, NULL, false, NULL);
     o->_N_y = 1.0f / scale;
   }
 

@@ -118,7 +118,8 @@ set(SRC
   intern/string_utf8.c
   intern/string_utils.c
   intern/system.c
-  intern/task.c
+  intern/task_pool.cc
+  intern/task_iterator.c
   intern/threads.c
   intern/time.c
   intern/timecode.c

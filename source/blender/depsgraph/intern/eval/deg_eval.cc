@@ -72,8 +72,7 @@ void schedule_children(DepsgraphEvalState *state,
 
 void schedule_node_to_pool(OperationNode *node, const int thread_id, TaskPool *pool)
 {
-  BLI_task_pool_push_from_thread(
-      pool, deg_task_run_func, node, false, TASK_PRIORITY_HIGH, thread_id);
+  BLI_task_pool_push_from_thread(pool, deg_task_run_func, node, false, NULL, thread_id);
 }
 
 /* Denotes which part of dependency graph is being evaluated. */
@@ -389,7 +388,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
     task_scheduler = BLI_task_scheduler_get();
     need_free_scheduler = false;
   }
-  TaskPool *task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
+  TaskPool *task_pool = BLI_task_pool_create_suspended(task_scheduler, &state, TASK_PRIORITY_HIGH);
   /* Prepare all nodes for evaluation. */
   initialize_execution(&state, graph);
 

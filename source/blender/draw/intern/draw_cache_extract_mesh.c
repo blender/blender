@@ -4524,7 +4524,7 @@ static void extract_range_task_create(
   taskdata->iter_type = type;
   taskdata->start = start;
   taskdata->end = start + length;
-  BLI_task_pool_push(task_pool, extract_run, taskdata, true, TASK_PRIORITY_HIGH);
+  BLI_task_pool_push(task_pool, extract_run, taskdata, true, NULL);
 }
 
 static void extract_task_create(TaskPool *task_pool,
@@ -4583,7 +4583,7 @@ static void extract_task_create(TaskPool *task_pool,
   else if (use_thread) {
     /* One task for the whole VBO. */
     (*task_counter)++;
-    BLI_task_pool_push(task_pool, extract_run, taskdata, true, TASK_PRIORITY_HIGH);
+    BLI_task_pool_push(task_pool, extract_run, taskdata, true, NULL);
   }
   else {
     /* Single threaded extraction. */
@@ -4682,7 +4682,7 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
   TaskPool *task_pool;
 
   task_scheduler = BLI_task_scheduler_get();
-  task_pool = BLI_task_pool_create_suspended(task_scheduler, NULL);
+  task_pool = BLI_task_pool_create_suspended(task_scheduler, NULL, TASK_PRIORITY_HIGH);
 
   size_t counters_size = (sizeof(mbc) / sizeof(void *)) * sizeof(int32_t);
   int32_t *task_counters = MEM_callocN(counters_size, __func__);
