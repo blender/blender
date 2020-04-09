@@ -894,55 +894,64 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   }
 
   float parmat[4][4];
+  float inverse_matrix[4][4];
   /* Simple matrix parenting. */
   if ((data->flag & CHILDOF_ALL) == CHILDOF_ALL) {
     copy_m4_m4(parmat, ct->matrix);
+    copy_m4_m4(inverse_matrix, data->invmat);
   }
   /* Filter the parent matrix by channel. */
   else {
     float loc[3], eul[3], size[3];
+    float loco[3], eulo[3], sizeo[3];
 
     /* extract components of both matrices */
     copy_v3_v3(loc, ct->matrix[3]);
     mat4_to_eulO(eul, ct->rotOrder, ct->matrix);
     mat4_to_size(size, ct->matrix);
 
-    /* disable channels not enabled */
+    copy_v3_v3(loco, data->invmat[3]);
+    mat4_to_eulO(eulo, cob->rotOrder, data->invmat);
+    mat4_to_size(sizeo, data->invmat);
+
+    /* Reset the locked channels to their no-op values. */
     if (!(data->flag & CHILDOF_LOCX)) {
-      loc[0] = 0.0f;
+      loc[0] = loco[0] = 0.0f;
     }
     if (!(data->flag & CHILDOF_LOCY)) {
-      loc[1] = 0.0f;
+      loc[1] = loco[1] = 0.0f;
     }
     if (!(data->flag & CHILDOF_LOCZ)) {
-      loc[2] = 0.0f;
+      loc[2] = loco[2] = 0.0f;
     }
     if (!(data->flag & CHILDOF_ROTX)) {
-      eul[0] = 0.0f;
+      eul[0] = eulo[0] = 0.0f;
     }
     if (!(data->flag & CHILDOF_ROTY)) {
-      eul[1] = 0.0f;
+      eul[1] = eulo[1] = 0.0f;
     }
     if (!(data->flag & CHILDOF_ROTZ)) {
-      eul[2] = 0.0f;
+      eul[2] = eulo[2] = 0.0f;
     }
     if (!(data->flag & CHILDOF_SIZEX)) {
-      size[0] = 1.0f;
+      size[0] = sizeo[0] = 1.0f;
     }
     if (!(data->flag & CHILDOF_SIZEY)) {
-      size[1] = 1.0f;
+      size[1] = sizeo[1] = 1.0f;
     }
     if (!(data->flag & CHILDOF_SIZEZ)) {
-      size[2] = 1.0f;
+      size[2] = sizeo[2] = 1.0f;
     }
 
-    /* make new target mat and offset mat */
+    /* Construct the new matrices given the disabled channels. */
     loc_eulO_size_to_mat4(parmat, loc, eul, size, ct->rotOrder);
+    loc_eulO_size_to_mat4(inverse_matrix, loco, eulo, sizeo, cob->rotOrder);
   }
 
-  /* Compute the inverse matrix if requested. */
+  /* If requested, compute the inverse matrix from the computed parent matrix. */
   if (data->flag & CHILDOF_SET_INVERSE) {
     invert_m4_m4(data->invmat, parmat);
+    copy_m4_m4(inverse_matrix, data->invmat);
 
     data->flag &= ~CHILDOF_SET_INVERSE;
 
@@ -962,7 +971,7 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
    * (i.e.  owner is 'parented' to parent). */
   float orig_cob_matrix[4][4];
   copy_m4_m4(orig_cob_matrix, cob->matrix);
-  mul_m4_series(cob->matrix, parmat, data->invmat, orig_cob_matrix);
+  mul_m4_series(cob->matrix, parmat, inverse_matrix, orig_cob_matrix);
 
   /* Without this, changes to scale and rotation can change location
    * of a parentless bone or a disconnected bone. Even though its set
