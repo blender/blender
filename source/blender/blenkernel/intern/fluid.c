@@ -3788,6 +3788,13 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   prev_particles = manta_has_particles(mds->fluid, mmd, scene_framenr - 1);
   prev_guide = manta_has_guiding(mds->fluid, mmd, scene_framenr - 1, guide_parent);
 
+  /* Unused for now, but needed for proper caching. */
+  UNUSED_VARS(prev_guide);
+  UNUSED_VARS(next_noise);
+  UNUSED_VARS(next_mesh);
+  UNUSED_VARS(next_particles);
+  UNUSED_VARS(next_guide);
+
   bool with_gdomain;
   with_gdomain = (mds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);
 
