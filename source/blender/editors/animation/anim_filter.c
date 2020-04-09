@@ -1844,11 +1844,15 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
   ViewLayer *view_layer = (ViewLayer *)ac->view_layer;
   Base *base;
 
-  /* Active scene's GPencil block first - No parent item needed... */
-  if (scene->gpd) {
-    items += animdata_filter_gpencil_data(anim_data, ads, scene->gpd, filter_mode);
+  /* Include all annotation datablocks. */
+  if (((ads->filterflag & ADS_FILTER_ONLYSEL) == 0) ||
+      (ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
+    LISTBASE_FOREACH (bGPdata *, gpd, &ac->bmain->gpencils) {
+      if (gpd->flag & GP_DATA_ANNOTATIONS) {
+        items += animdata_filter_gpencil_data(anim_data, ads, gpd, filter_mode);
+      }
+    }
   }
-
   /* Objects in the scene */
   for (base = view_layer->object_bases.first; base; base = base->next) {
     /* Only consider this object if it has got some GP data (saving on all the other tests) */
