@@ -1822,7 +1822,7 @@ void GPENCIL_OT_image_to_grease_pencil(wmOperatorType *ot)
                            0.0001f,
                            10.0f,
                            "Point Size",
-                           "Size used for graese pencil points",
+                           "Size used for grease pencil points",
                            0.001f,
                            1.0f);
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
