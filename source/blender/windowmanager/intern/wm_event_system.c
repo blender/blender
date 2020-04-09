@@ -2519,10 +2519,11 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
   wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
 
   /* Needed so UI blocks over gizmos don't let events fall through to the gizmos,
-   * noticeable for the node editor - where dragging on a node should move it, see: T73212. */
+   * noticeable for the node editor - where dragging on a node should move it, see: T73212.
+   * note we still allow for starting the gizmo drag outside, then travel 'inside' the node */
   if (region->type->clip_gizmo_events_by_ui) {
     if (UI_region_block_find_mouse_over(region, &event->x, true)) {
-      if (gz != NULL) {
+      if (gz != NULL && event->type != EVT_GIZMO_UPDATE) {
         WM_tooltip_clear(C, CTX_wm_window(C));
         wm_gizmomap_highlight_set(gzmap, C, NULL, 0);
       }
