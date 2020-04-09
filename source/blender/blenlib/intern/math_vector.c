@@ -778,7 +778,7 @@ void bisect_v3_v3v3v3(float out[3], const float v1[3], const float v2[3], const 
  * <pre>
  * v
  * +  ^
- * \ |
+ *  \ |
  *   \|
  *    + normal: axis of reflection
  *   /

@@ -1056,7 +1056,7 @@ void BLI_ghash_flag_clear(GHash *gh, uint flag)
  * #BLI_ghash_len(gh) times before becoming done.
  *
  * \param gh: The GHash to iterate over.
- * \return Pointer to a new DynStr.
+ * \return Pointer to a new iterator.
  */
 GHashIterator *BLI_ghashIterator_new(GHash *gh)
 {
