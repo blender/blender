@@ -433,6 +433,59 @@ void tracking_marker_insert_disabled(MovieTrackingTrack *track,
   }
 }
 
+static void distortion_model_parameters_from_tracking(
+    const MovieTrackingCamera *camera, libmv_CameraIntrinsicsOptions *camera_intrinsics_options)
+{
+  switch (camera->distortion_model) {
+    case TRACKING_DISTORTION_MODEL_POLYNOMIAL:
+      camera_intrinsics_options->distortion_model = LIBMV_DISTORTION_MODEL_POLYNOMIAL;
+      camera_intrinsics_options->polynomial_k1 = camera->k1;
+      camera_intrinsics_options->polynomial_k2 = camera->k2;
+      camera_intrinsics_options->polynomial_k3 = camera->k3;
+      camera_intrinsics_options->polynomial_p1 = 0.0;
+      camera_intrinsics_options->polynomial_p2 = 0.0;
+      return;
+
+    case TRACKING_DISTORTION_MODEL_DIVISION:
+      camera_intrinsics_options->distortion_model = LIBMV_DISTORTION_MODEL_DIVISION;
+      camera_intrinsics_options->division_k1 = camera->division_k1;
+      camera_intrinsics_options->division_k2 = camera->division_k2;
+      return;
+  }
+
+  /* Unknown distortion model, which might be due to opening newer file in older Blender.
+   * Fallback to a known and supported model with 0 distortion. */
+  camera_intrinsics_options->distortion_model = LIBMV_DISTORTION_MODEL_POLYNOMIAL;
+  camera_intrinsics_options->polynomial_k1 = 0.0;
+  camera_intrinsics_options->polynomial_k2 = 0.0;
+  camera_intrinsics_options->polynomial_k3 = 0.0;
+  camera_intrinsics_options->polynomial_p1 = 0.0;
+  camera_intrinsics_options->polynomial_p2 = 0.0;
+}
+
+static void distortion_model_parameters_from_options(
+    const libmv_CameraIntrinsicsOptions *camera_intrinsics_options, MovieTrackingCamera *camera)
+{
+  switch (camera_intrinsics_options->distortion_model) {
+    case LIBMV_DISTORTION_MODEL_POLYNOMIAL:
+      camera->distortion_model = TRACKING_DISTORTION_MODEL_POLYNOMIAL;
+      camera->k1 = camera_intrinsics_options->polynomial_k1;
+      camera->k2 = camera_intrinsics_options->polynomial_k2;
+      camera->k3 = camera_intrinsics_options->polynomial_k3;
+      return;
+
+    case LIBMV_DISTORTION_MODEL_DIVISION:
+      camera->distortion_model = TRACKING_DISTORTION_MODEL_DIVISION;
+      camera->division_k1 = camera_intrinsics_options->division_k1;
+      camera->division_k2 = camera_intrinsics_options->division_k2;
+      return;
+  }
+
+  /* Libmv returned distortion model which is not known to Blender. This is a logical error in code
+   * and Blender side is to be updated to match Libmv. */
+  BLI_assert(!"Unknown distortion model");
+}
+
 /* Fill in Libmv C-API camera intrinsics options from tracking structure. */
 void tracking_cameraIntrinscisOptionsFromTracking(
     MovieTracking *tracking,
@@ -450,24 +503,7 @@ void tracking_cameraIntrinscisOptionsFromTracking(
   camera_intrinsics_options->principal_point_x = camera->principal[0];
   camera_intrinsics_options->principal_point_y = camera->principal[1] * aspy;
 
-  switch (camera->distortion_model) {
-    case TRACKING_DISTORTION_MODEL_POLYNOMIAL:
-      camera_intrinsics_options->distortion_model = LIBMV_DISTORTION_MODEL_POLYNOMIAL;
-      camera_intrinsics_options->polynomial_k1 = camera->k1;
-      camera_intrinsics_options->polynomial_k2 = camera->k2;
-      camera_intrinsics_options->polynomial_k3 = camera->k3;
-      camera_intrinsics_options->polynomial_p1 = 0.0;
-      camera_intrinsics_options->polynomial_p2 = 0.0;
-      break;
-    case TRACKING_DISTORTION_MODEL_DIVISION:
-      camera_intrinsics_options->distortion_model = LIBMV_DISTORTION_MODEL_DIVISION;
-      camera_intrinsics_options->division_k1 = camera->division_k1;
-      camera_intrinsics_options->division_k2 = camera->division_k2;
-      break;
-    default:
-      BLI_assert(!"Unknown distortion model");
-      break;
-  }
+  distortion_model_parameters_from_tracking(camera, camera_intrinsics_options);
 
   camera_intrinsics_options->image_width = calibration_width;
   camera_intrinsics_options->image_height = (int)(calibration_height * aspy);
@@ -484,22 +520,7 @@ void tracking_trackingCameraFromIntrinscisOptions(
   camera->principal[0] = camera_intrinsics_options->principal_point_x;
   camera->principal[1] = camera_intrinsics_options->principal_point_y / (double)aspy;
 
-  switch (camera_intrinsics_options->distortion_model) {
-    case LIBMV_DISTORTION_MODEL_POLYNOMIAL:
-      camera->distortion_model = TRACKING_DISTORTION_MODEL_POLYNOMIAL;
-      camera->k1 = camera_intrinsics_options->polynomial_k1;
-      camera->k2 = camera_intrinsics_options->polynomial_k2;
-      camera->k3 = camera_intrinsics_options->polynomial_k3;
-      break;
-    case LIBMV_DISTORTION_MODEL_DIVISION:
-      camera->distortion_model = TRACKING_DISTORTION_MODEL_DIVISION;
-      camera->division_k1 = camera_intrinsics_options->division_k1;
-      camera->division_k2 = camera_intrinsics_options->division_k2;
-      break;
-    default:
-      BLI_assert(!"Unknown distortion model");
-      break;
-  }
+  distortion_model_parameters_from_options(camera_intrinsics_options, camera);
 }
 
 /* Get previous keyframed marker. */
