@@ -1840,7 +1840,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
   bDopeSheet *ads = ac->ads;
   size_t items = 0;
 
-  Scene *scene = (Scene *)ads->source;
+  /* Scene *scene = (Scene *)ads->source; */ /* UNUSED */
   ViewLayer *view_layer = (ViewLayer *)ac->view_layer;
   Base *base;
 
