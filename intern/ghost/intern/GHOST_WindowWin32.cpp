@@ -1072,11 +1072,10 @@ void GHOST_WindowWin32::initializeWintab()
     // Wintab provides no way to determine the maximum queue size aside from checking if attempts
     // to change the queue size are successful.
     const int maxQueue = 500;
-    int initialQueueSize = m_wintab.queueSizeGet(m_wintab.context);
-    int queueSize = initialQueueSize;
+    int queueSize = m_wintab.queueSizeGet(m_wintab.context);
 
     while (queueSize < maxQueue) {
-      int testSize = min(queueSize + initialQueueSize, maxQueue);
+      int testSize = min(queueSize + 16, maxQueue);
       if (m_wintab.queueSizeSet(m_wintab.context, testSize)) {
         queueSize = testSize;
       }
