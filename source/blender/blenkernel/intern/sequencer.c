@@ -106,6 +106,14 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
                                      ListBase *seqbasep,
                                      float cfra,
                                      int chanshown);
+static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
+                                         Sequence *seq,
+                                         ImBuf *ibuf,
+                                         float cfra,
+                                         clock_t begin,
+                                         bool use_preprocess,
+                                         const bool is_proxy_image,
+                                         const bool is_preprocessed);
 static ImBuf *seq_render_strip(const SeqRenderData *context,
                                SeqRenderState *state,
                                Sequence *seq,
@@ -3072,13 +3080,8 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
         BKE_sequencer_imbuf_to_sequencer_space(context->scene, ibufs_arr[view_id], false);
 
         if (view_id != context->view_id) {
-          BKE_sequencer_cache_put(&localcontext,
-                                  seq,
-                                  cfra,
-                                  SEQ_CACHE_STORE_PREPROCESSED,
-                                  ibufs_arr[view_id],
-                                  0,
-                                  false);
+          ibufs_arr[view_id] = seq_render_preprocess_ibuf(
+              &localcontext, seq, ibufs_arr[view_id], cfra, clock(), true, false, false);
         }
       }
     }
@@ -3197,8 +3200,8 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
         BKE_sequencer_imbuf_to_sequencer_space(context->scene, ibuf_arr[view_id], false);
       }
       if (view_id != context->view_id) {
-        BKE_sequencer_cache_put(
-            &localcontext, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf_arr[view_id], 0, false);
+        ibuf_arr[view_id] = seq_render_preprocess_ibuf(
+            &localcontext, seq, ibuf_arr[view_id], cfra, clock(), true, false, false);
       }
     }
 
@@ -3797,6 +3800,34 @@ static float seq_estimate_render_cost_end(Scene *scene, clock_t begin)
   }
 }
 
+static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
+                                         Sequence *seq,
+                                         ImBuf *ibuf,
+                                         float cfra,
+                                         clock_t begin,
+                                         bool use_preprocess,
+                                         const bool is_proxy_image,
+                                         const bool is_preprocessed)
+{
+  if (context->is_proxy_render == false &&
+      (ibuf->x != context->rectx || ibuf->y != context->recty)) {
+    use_preprocess = true;
+  }
+
+  if (use_preprocess) {
+    float cost = seq_estimate_render_cost_end(context->scene, begin);
+    BKE_sequencer_cache_put(context, seq, cfra, SEQ_CACHE_STORE_RAW, ibuf, cost, false);
+
+    /* Reset timer so we can get partial render time. */
+    begin = seq_estimate_render_cost_begin();
+    ibuf = input_preprocess(context, seq, cfra, ibuf, is_proxy_image, is_preprocessed);
+  }
+
+  float cost = seq_estimate_render_cost_end(context->scene, begin);
+  BKE_sequencer_cache_put(context, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf, cost, false);
+  return ibuf;
+}
+
 static ImBuf *seq_render_strip(const SeqRenderData *context,
                                SeqRenderState *state,
                                Sequence *seq,
@@ -3845,22 +3876,8 @@ static ImBuf *seq_render_strip(const SeqRenderData *context,
       sequencer_imbuf_assign_spaces(context->scene, ibuf);
     }
 
-    if (context->is_proxy_render == false &&
-        (ibuf->x != context->rectx || ibuf->y != context->recty)) {
-      use_preprocess = true;
-    }
-
-    if (use_preprocess) {
-      float cost = seq_estimate_render_cost_end(context->scene, begin);
-      BKE_sequencer_cache_put(context, seq, cfra, SEQ_CACHE_STORE_RAW, ibuf, cost, false);
-
-      /* reset timer so we can get partial render time */
-      begin = seq_estimate_render_cost_begin();
-      ibuf = input_preprocess(context, seq, cfra, ibuf, is_proxy_image, is_preprocessed);
-    }
-
-    float cost = seq_estimate_render_cost_end(context->scene, begin);
-    BKE_sequencer_cache_put(context, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED, ibuf, cost, false);
+    ibuf = seq_render_preprocess_ibuf(
+        context, seq, ibuf, cfra, begin, use_preprocess, is_proxy_image, is_preprocessed);
   }
   return ibuf;
 }
