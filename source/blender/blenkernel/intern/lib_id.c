@@ -320,7 +320,11 @@ void id_us_min(ID *id)
                  id->lib ? id->lib->filepath : "[Main]",
                  id->us,
                  limit);
-      BLI_assert(0);
+      if (GS(id->name) != ID_IP) {
+        /* Do not assert on deprecated ID types, we cannot really ensure that their ID refcounting
+         * is valid... */
+        BLI_assert(0);
+      }
       id->us = limit;
     }
     else {
