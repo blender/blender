@@ -232,8 +232,9 @@ eFileAttributes BLI_file_attributes(const char *path)
   int ret = 0;
 
 #  ifdef WIN32
-  wchar_t wline[FILE_MAXDIR];
-  BLI_strncpy_wchar_from_utf8(wline, path, ARRAY_SIZE(wline));
+  WCHAR wline[FILE_MAXDIR];
+  size_t bsize = count_utf_16_from_8(path);
+  conv_utf_8_to_16(path, wline, bsize);
   DWORD attr = GetFileAttributesW(wline);
   if (attr & FILE_ATTRIBUTE_READONLY) {
     ret |= FILE_ATTR_READONLY;
