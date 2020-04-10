@@ -315,6 +315,9 @@ static void layerInterp_mdeformvert(const void **sources,
   if (totweight) {
     dvert->totweight = totweight;
     for (i = 0, node = dest_dwlink; node; node = node->next, i++) {
+      if (node->dw.weight > 1.0f) {
+        node->dw.weight = 1.0f;
+      }
       dvert->dw[i] = node->dw;
     }
   }
