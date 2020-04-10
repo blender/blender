@@ -43,6 +43,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_util.h"
 #include "MOD_weightvg_util.h"
 
 /**
@@ -181,14 +182,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
   if (wmd->mask_tex_map_obj != NULL && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
-    if (wmd->mask_tex_map_bone[0] && wmd->mask_tex_map_obj->type == OB_ARMATURE) {
-      DEG_add_object_relation(
-          ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_EVAL_POSE, "WeightVGMix Modifier");
-    }
-    else {
-      DEG_add_object_relation(
-          ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_TRANSFORM, "WeightVGMix Modifier");
-    }
+    MOD_depsgraph_update_object_bone_relation(
+        ctx->node, wmd->mask_tex_map_obj, wmd->mask_tex_map_bone, "WeightVGMix Modifier");
     DEG_add_object_relation(
         ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_GEOMETRY, "WeightVGMix Modifier");
 

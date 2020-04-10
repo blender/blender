@@ -56,4 +56,8 @@ void MOD_get_vgroup(struct Object *ob,
                     struct MDeformVert **dvert,
                     int *defgrp_index);
 
+void MOD_depsgraph_update_object_bone_relation(struct DepsNodeHandle *node,
+                                               struct Object *object,
+                                               const char *bonename,
+                                               const char *description);
 #endif /* __MOD_UTIL_H__ */

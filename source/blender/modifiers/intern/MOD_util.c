@@ -262,6 +262,22 @@ void MOD_get_vgroup(
   }
 }
 
+void MOD_depsgraph_update_object_bone_relation(struct DepsNodeHandle *node,
+                                               Object *object,
+                                               const char *bonename,
+                                               const char *description)
+{
+  if (object == NULL) {
+    return;
+  }
+  if (bonename[0] != '\0' && object->type == OB_ARMATURE) {
+    DEG_add_object_relation(node, object, DEG_OB_COMP_EVAL_POSE, description);
+  }
+  else {
+    DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, description);
+  }
+}
+
 /* only called by BKE_modifier.h/modifier.c */
 void modifier_type_init(ModifierTypeInfo *types[])
 {

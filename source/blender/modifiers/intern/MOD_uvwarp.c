@@ -233,26 +233,14 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
   walk(userData, ob, &umd->object_src, IDWALK_CB_NOP);
 }
 
-static void uv_warp_deps_object_bone_new(struct DepsNodeHandle *node,
-                                         Object *object,
-                                         const char *bonename)
-{
-  if (object != NULL) {
-    if (object->type == OB_ARMATURE && bonename[0]) {
-      DEG_add_object_relation(node, object, DEG_OB_COMP_EVAL_POSE, "UVWarp Modifier");
-    }
-    else {
-      DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "UVWarp Modifier");
-    }
-  }
-}
-
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
 
-  uv_warp_deps_object_bone_new(ctx->node, umd->object_src, umd->bone_src);
-  uv_warp_deps_object_bone_new(ctx->node, umd->object_dst, umd->bone_dst);
+  MOD_depsgraph_update_object_bone_relation(
+      ctx->node, umd->object_src, umd->bone_src, "UVWarp Modifier");
+  MOD_depsgraph_update_object_bone_relation(
+      ctx->node, umd->object_dst, umd->bone_dst, "UVWarp Modifier");
 
   DEG_add_modifier_to_transform_relation(ctx->node, "UVWarp Modifier");
 }

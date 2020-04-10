@@ -135,14 +135,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
   if (dmd->map_object != NULL && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
-    if (dmd->map_bone[0] && dmd->map_object->type == OB_ARMATURE) {
-      DEG_add_object_relation(
-          ctx->node, dmd->map_object, DEG_OB_COMP_EVAL_POSE, "Displace Modifier");
-    }
-    else {
-      DEG_add_object_relation(
-          ctx->node, dmd->map_object, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
-    }
+    MOD_depsgraph_update_object_bone_relation(
+        ctx->node, dmd->map_object, dmd->map_bone, "Displace Modifier");
     DEG_add_modifier_to_transform_relation(ctx->node, "Displace Modifier");
   }
   if (dmd->texmapping == MOD_DISP_MAP_GLOBAL ||

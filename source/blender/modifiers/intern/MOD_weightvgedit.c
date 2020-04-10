@@ -45,6 +45,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_util.h"
 #include "MOD_weightvg_util.h"
 
 /**************************************
@@ -135,14 +136,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
   WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
   if (wmd->mask_tex_map_obj != NULL && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
-    if (wmd->mask_tex_map_bone[0] && wmd->mask_tex_map_obj->type == OB_ARMATURE) {
-      DEG_add_object_relation(
-          ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_EVAL_POSE, "WeightVGEdit Modifier");
-    }
-    else {
-      DEG_add_object_relation(
-          ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_TRANSFORM, "WeightVGEdit Modifier");
-    }
+    MOD_depsgraph_update_object_bone_relation(
+        ctx->node, wmd->mask_tex_map_obj, wmd->mask_tex_map_bone, "WeightVGEdit Modifier");
     DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGEdit Modifier");
   }
   else if (wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL) {
