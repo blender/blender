@@ -54,6 +54,7 @@
 #include "BKE_outliner_treehash.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -472,6 +473,14 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
                 "Cannot delete id '%s', indirectly used data-blocks need at least one user",
                 id->name);
     return;
+  }
+  else if (te->idcode == ID_WS) {
+    BKE_workspace_id_tag_all_visible(bmain, LIB_TAG_DOIT);
+    if (id->tag & LIB_TAG_DOIT) {
+      BKE_reportf(
+          reports, RPT_WARNING, "Cannot delete currently visible workspace id '%s'", id->name);
+      return;
+    }
   }
 
   BKE_id_delete(bmain, id);
