@@ -777,8 +777,6 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
   if (!lbake->resource_only) {
     BLI_mutex_unlock(lbake->mutex);
   }
-
-  EEVEE_volumes_free_smoke_textures();
 }
 
 /* Cache as in draw cache not light cache. */
@@ -1347,6 +1345,9 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
   }
 
   eevee_lightbake_delete_resources(lbake);
+
+  /* Free GPU smoke textures and the smoke domain list correctly: See also T73921.*/
+  EEVEE_volumes_free_smoke_textures();
 }
 
 /* This is to update the world irradiance and reflection contribution from
