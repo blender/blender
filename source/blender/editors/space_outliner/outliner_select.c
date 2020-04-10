@@ -308,7 +308,7 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
                                                    bool recursive)
 {
   TreeStoreElem *tselem = TREESTORE(te);
-  TreeStoreElem *parent_tselem;
+  TreeStoreElem *parent_tselem = NULL;
   Scene *sce;
   Base *base;
   Object *ob = NULL;
