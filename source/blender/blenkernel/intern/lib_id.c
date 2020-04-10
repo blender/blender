@@ -1720,21 +1720,31 @@ static void library_make_local_copying_check(ID *id,
     /* Used_to_user stores ID pointer, not pointer to ID pointer. */
     ID *par_id = (ID *)entry->id_pointer;
 
-    /* Our oh-so-beloved 'from' pointers... */
+    /* Our oh-so-beloved 'from' pointers... Those should always be ignored here, since the actual
+     * relation we want to check is in the other way around. */
     if (entry->usage_flag & IDWALK_CB_LOOPBACK) {
-      /* We totally disregard Object->proxy_from 'usage' here,
-       * this one would only generate fake positives. */
-      if (GS(par_id->name) == ID_OB) {
-        BLI_assert(((Object *)par_id)->proxy_from == (Object *)id);
-        continue;
+#ifndef NDEBUG
+      /* Some debug checks to ensure we explicitely are aware of all 'loopback' cases, since those
+       * may not always be manageable in the same way... */
+      switch (GS(par_id->name)) {
+        case ID_OB:
+          BLI_assert(((Object *)par_id)->proxy_from == (Object *)id);
+          break;
+        case ID_KE:
+          BLI_assert(((Key *)par_id)->from == id);
+          break;
+        default:
+          BLI_assert(0);
       }
+#endif
+      continue;
+    }
 
-      /* Shapekeys are considered 'private' to their owner ID here, and never tagged
-       * (since they cannot be linked), so we have to switch effective parent to their owner.
-       */
-      if (GS(par_id->name) == ID_KE) {
-        par_id = ((Key *)par_id)->from;
-      }
+    /* Shapekeys are considered 'private' to their owner ID here, and never tagged
+     * (since they cannot be linked), so we have to switch effective parent to their owner.
+     */
+    if (GS(par_id->name) == ID_KE) {
+      par_id = ((Key *)par_id)->from;
     }
 
     if (par_id->lib == NULL) {
