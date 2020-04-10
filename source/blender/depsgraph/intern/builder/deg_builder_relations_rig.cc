@@ -68,6 +68,12 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
                                              bConstraint *con,
                                              RootPChanMap *root_map)
 {
+  if ((con->flag & CONSTRAINT_DISABLE) != 0) {
+    /* Do not add disabled IK constraints to the relations. If these needs to be temporarly
+     * enabled, they will be added as temporary constraints during transform. */
+    return;
+  }
+
   bKinematicConstraint *data = (bKinematicConstraint *)con->data;
   /* Attach owner to IK Solver to. */
   bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
