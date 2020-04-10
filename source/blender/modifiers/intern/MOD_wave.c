@@ -102,7 +102,14 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     DEG_add_object_relation(ctx->node, wmd->objectcenter, DEG_OB_COMP_TRANSFORM, "Wave Modifier");
   }
   if (wmd->map_object != NULL) {
-    DEG_add_object_relation(ctx->node, wmd->map_object, DEG_OB_COMP_TRANSFORM, "Wave Modifier");
+    if (wmd->map_bone[0] && wmd->map_object->type == OB_ARMATURE) {
+      DEG_add_object_relation(
+          ctx->node, wmd->map_object, DEG_OB_COMP_EVAL_POSE, "Wave Modifier");
+    }
+    else {
+      DEG_add_object_relation(
+          ctx->node, wmd->map_object, DEG_OB_COMP_TRANSFORM, "Wave Modifier");
+    }
   }
   if (wmd->objectcenter != NULL || wmd->map_object != NULL) {
     DEG_add_modifier_to_transform_relation(ctx->node, "Wave Modifier");

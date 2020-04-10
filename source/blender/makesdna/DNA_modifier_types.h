@@ -138,6 +138,7 @@ typedef struct MappingInfoModifierData {
 
   struct Tex *texture;
   struct Object *map_object;
+  char map_bone[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char uvlayer_name[64];
   int uvlayer_tmp;
@@ -496,6 +497,7 @@ typedef struct DisplaceModifierData {
   /* keep in sync with MappingInfoModifierData */
   struct Tex *texture;
   struct Object *map_object;
+  char map_bone[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char uvlayer_name[64];
   int uvlayer_tmp;
@@ -651,6 +653,7 @@ typedef struct WaveModifierData {
   /* keep in sync with MappingInfoModifierData */
   struct Tex *texture;
   struct Object *map_object;
+  char map_bone[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char uvlayer_name[64];
   int uvlayer_tmp;
@@ -1318,6 +1321,7 @@ typedef struct WarpModifierData {
   /* keep in sync with MappingInfoModifierData */
   struct Tex *texture;
   struct Object *map_object;
+  char map_bone[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char uvlayer_name[64];
   int uvlayer_tmp;
@@ -1393,6 +1397,8 @@ typedef struct WeightVGEditModifierData {
   struct Tex *mask_texture;
   /** Name of the map object. */
   struct Object *mask_tex_map_obj;
+  /** Name of the map bone. */
+  char mask_tex_map_bone[64];
   /** How to map the texture (using MOD_DISP_MAP_* enums). */
   int mask_tex_mapping;
   /** Name of the UV map. MAX_CUSTOMDATA_LAYER_NAME. */
@@ -1444,6 +1450,8 @@ typedef struct WeightVGMixModifierData {
   struct Tex *mask_texture;
   /** Name of the map object. */
   struct Object *mask_tex_map_obj;
+  /** Name of the map bone. */
+  char mask_tex_map_bone[64];
   /** How to map the texture!. */
   int mask_tex_mapping;
   /** Name of the UV map. MAX_CUSTOMDATA_LAYER_NAME. */
@@ -1518,6 +1526,8 @@ typedef struct WeightVGProximityModifierData {
   struct Tex *mask_texture;
   /** Name of the map object. */
   struct Object *mask_tex_map_obj;
+  /** Name of the map bone. */
+  char mask_tex_map_bone[64];
   /** How to map the texture!. */
   int mask_tex_mapping;
   /** Name of the UV Map. MAX_CUSTOMDATA_LAYER_NAME. */

@@ -36,6 +36,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_image.h"
@@ -81,12 +82,25 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   const int numVerts = mesh->totvert;
   int i;
   int texmapping = dmd->texmapping;
-  float mapob_imat[4][4];
+  float mapref_imat[4][4];
 
   if (texmapping == MOD_DISP_MAP_OBJECT) {
     if (dmd->map_object != NULL) {
       Object *map_object = dmd->map_object;
-      invert_m4_m4(mapob_imat, map_object->obmat);
+      if (dmd->map_bone[0] != '\0') {
+        bPoseChannel *pchan = BKE_pose_channel_find_name(map_object->pose, dmd->map_bone);
+        if (pchan) {
+          float mat_bone_world[4][4];
+          mul_m4_m4m4(mat_bone_world, map_object->obmat, pchan->pose_mat);
+          invert_m4_m4(mapref_imat, mat_bone_world);
+        }
+        else {
+          invert_m4_m4(mapref_imat, map_object->obmat);
+        }
+      }
+      else {
+        invert_m4_m4(mapref_imat, map_object->obmat);
+      }
     }
     else { /* if there is no map object, default to local */
       texmapping = MOD_DISP_MAP_LOCAL;
@@ -145,7 +159,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
         break;
       case MOD_DISP_MAP_OBJECT:
         mul_v3_m4v3(*r_texco, ob->obmat, cos != NULL ? *cos : mv->co);
-        mul_m4_v3(mapob_imat, *r_texco);
+        mul_m4_v3(mapref_imat, *r_texco);
         break;
     }
     if (cos != NULL) {

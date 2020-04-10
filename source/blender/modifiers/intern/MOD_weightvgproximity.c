@@ -376,8 +376,14 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     }
   }
   if (wmd->mask_tex_map_obj != NULL && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
-    DEG_add_object_relation(
-        ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_TRANSFORM, "WeightVGProximity Modifier");
+    if (wmd->mask_tex_map_bone[0] && wmd->mask_tex_map_obj->type == OB_ARMATURE) {
+      DEG_add_object_relation(
+          ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_EVAL_POSE, "WeightVGProximity Modifier");
+    }
+    else {
+      DEG_add_object_relation(
+          ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_TRANSFORM, "WeightVGProximity Modifier");
+    }
     DEG_add_object_relation(
         ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_GEOMETRY, "WeightVGProximity Modifier");
   }
@@ -589,6 +595,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
                    wmd->mask_tex_use_channel,
                    wmd->mask_tex_mapping,
                    wmd->mask_tex_map_obj,
+                   wmd->mask_tex_map_bone,
                    wmd->mask_tex_uvlayer_name,
                    invert_vgroup_mask);
 

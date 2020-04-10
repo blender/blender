@@ -137,6 +137,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
                       const int tex_use_channel,
                       const int tex_mapping,
                       Object *tex_map_object,
+                      const char *text_map_bone,
                       const char *tex_uvlayer_name,
                       const bool invert_vgroup_mask)
 {
@@ -163,6 +164,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
      */
     t_map.texture = texture;
     t_map.map_object = tex_map_object;
+    BLI_strncpy(t_map.map_bone, text_map_bone, sizeof(t_map.map_bone));
     BLI_strncpy(t_map.uvlayer_name, tex_uvlayer_name, sizeof(t_map.uvlayer_name));
     t_map.texmapping = tex_mapping;
 
