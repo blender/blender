@@ -48,18 +48,14 @@ endfunction()
 
 # Run Python script outside Blender.
 function(add_python_test testname testscript)
-  if(MSVC)
-    add_test(
-      NAME ${testname}
-      COMMAND ${TEST_PYTHON_EXE} ${testscript} ${ARGN}
-    )
-  else()
-    add_test(
-      NAME ${testname}
-      COMMAND ${testscript} ${ARGN}
-    )
+  if(NOT TEST_PYTHON_EXE)
+    message(FATAL_ERROR "No Python configured for running tests, set TEST_PYTHON_EXE.")
   endif()
 
+  add_test(
+    NAME ${testname}
+    COMMAND ${TEST_PYTHON_EXE} ${testscript} ${ARGN}
+  )
   set_tests_properties(${testname} PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
 endfunction()
 
