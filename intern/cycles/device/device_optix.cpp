@@ -383,7 +383,13 @@ class OptiXDevice : public CUDADevice {
 
     {  // Load and compile PTX module with OptiX kernels
       string ptx_data, ptx_filename = path_get("lib/kernel_optix.ptx");
-      if (use_adaptive_compilation()) {
+      if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
+        if (!getenv("OPTIX_ROOT_DIR")) {
+          set_error(
+              "OPTIX_ROOT_DIR environment variable not set, must be set with the path to the "
+              "Optix SDK in order to compile the Optix kernel on demand.");
+          return false;
+        }
         ptx_filename = compile_kernel(requested_features, "kernel_optix", "optix", true);
       }
       if (ptx_filename.empty() || !path_read_text(ptx_filename, ptx_data)) {

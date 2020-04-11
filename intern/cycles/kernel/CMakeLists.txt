@@ -507,7 +507,7 @@ endif()
 
 # OptiX PTX modules
 
-if(WITH_CYCLES_DEVICE_OPTIX)
+if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
   foreach(input ${SRC_OPTIX_KERNELS})
     get_filename_component(input_we ${input} NAME_WE)
 
@@ -677,7 +677,7 @@ source_group("svm" FILES ${SRC_SVM_HEADERS})
 if(WITH_CYCLES_CUDA)
   add_dependencies(cycles_kernel cycles_kernel_cuda)
 endif()
-if(WITH_CYCLES_DEVICE_OPTIX)
+if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
   add_dependencies(cycles_kernel cycles_kernel_optix)
 endif()
 
