@@ -98,18 +98,28 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   WaveModifierData *wmd = (WaveModifierData *)md;
+  bool need_transform_relation = false;
 
   if (wmd->objectcenter != NULL) {
     DEG_add_object_relation(ctx->node, wmd->objectcenter, DEG_OB_COMP_TRANSFORM, "Wave Modifier");
-  }
-  MOD_depsgraph_update_object_bone_relation(
-      ctx->node, wmd->map_object, wmd->map_bone, "Wave Modifier");
-  if (wmd->objectcenter != NULL || wmd->map_object != NULL) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "Wave Modifier");
+    need_transform_relation = true;
   }
 
   if (wmd->texture != NULL) {
     DEG_add_generic_id_relation(ctx->node, &wmd->texture->id, "Wave Modifier");
+
+    if ((wmd->texmapping == MOD_DISP_MAP_OBJECT) && wmd->map_object != NULL) {
+      MOD_depsgraph_update_object_bone_relation(
+          ctx->node, wmd->map_object, wmd->map_bone, "Wave Modifier");
+      need_transform_relation = true;
+    }
+    else if (wmd->texmapping == MOD_DISP_MAP_GLOBAL) {
+      need_transform_relation = true;
+    }
+  }
+
+  if (need_transform_relation) {
+    DEG_add_modifier_to_transform_relation(ctx->node, "Wave Modifier");
   }
 }
 

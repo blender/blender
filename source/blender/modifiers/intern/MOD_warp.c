@@ -155,24 +155,31 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
+  bool need_transform_relation = false;
 
   if (wmd->object_from != NULL && wmd->object_to != NULL) {
     MOD_depsgraph_update_object_bone_relation(
         ctx->node, wmd->object_from, wmd->bone_from, "Warp Modifier");
     MOD_depsgraph_update_object_bone_relation(
         ctx->node, wmd->object_to, wmd->bone_to, "Warp Modifier");
-
-    DEG_add_modifier_to_transform_relation(ctx->node, "Warp Modifier");
+    need_transform_relation = true;
   }
 
-  if ((wmd->texmapping == MOD_DISP_MAP_OBJECT) && wmd->map_object != NULL) {
-    MOD_depsgraph_update_object_bone_relation(
-        ctx->node, wmd->map_object, wmd->map_bone, "Warp Modifier");
-
-    DEG_add_modifier_to_transform_relation(ctx->node, "Warp Modifier map");
-  }
   if (wmd->texture != NULL) {
     DEG_add_generic_id_relation(ctx->node, &wmd->texture->id, "Warp Modifier");
+
+    if ((wmd->texmapping == MOD_DISP_MAP_OBJECT) && wmd->map_object != NULL) {
+      MOD_depsgraph_update_object_bone_relation(
+          ctx->node, wmd->map_object, wmd->map_bone, "Warp Modifier");
+      need_transform_relation = true;
+    }
+    else if (wmd->texmapping == MOD_DISP_MAP_GLOBAL) {
+      need_transform_relation = true;
+    }
+  }
+
+  if (need_transform_relation) {
+    DEG_add_modifier_to_transform_relation(ctx->node, "Warp Modifier");
   }
 }
 

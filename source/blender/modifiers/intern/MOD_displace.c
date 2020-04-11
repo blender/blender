@@ -134,19 +134,28 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
-  if (dmd->map_object != NULL && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
-    MOD_depsgraph_update_object_bone_relation(
-        ctx->node, dmd->map_object, dmd->map_bone, "Displace Modifier");
-    DEG_add_modifier_to_transform_relation(ctx->node, "Displace Modifier");
+  bool need_transform_relation = false;
+
+  if (dmd->space == MOD_DISP_SPACE_GLOBAL &&
+      ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ)) {
+    need_transform_relation = true;
   }
-  if (dmd->texmapping == MOD_DISP_MAP_GLOBAL ||
-      (ELEM(
-           dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
-       dmd->space == MOD_DISP_SPACE_GLOBAL)) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "Displace Modifier");
-  }
+
   if (dmd->texture != NULL) {
     DEG_add_generic_id_relation(ctx->node, &dmd->texture->id, "Displace Modifier");
+
+    if (dmd->map_object != NULL && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
+      MOD_depsgraph_update_object_bone_relation(
+          ctx->node, dmd->map_object, dmd->map_bone, "Displace Modifier");
+      need_transform_relation = true;
+    }
+    if (dmd->texmapping == MOD_DISP_MAP_GLOBAL) {
+      need_transform_relation = true;
+    }
+  }
+
+  if (need_transform_relation) {
+    DEG_add_modifier_to_transform_relation(ctx->node, "Displace Modifier");
   }
 }
 
