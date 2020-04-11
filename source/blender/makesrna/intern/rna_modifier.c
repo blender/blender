@@ -4800,7 +4800,8 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna),
 
   prop = RNA_def_property(srna, "mask_tex_map_bone", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "mask_tex_map_bone");
-  RNA_def_property_ui_text(prop, "Texture Coordinate Bone", "Which bone to take texture coordinates from");
+  RNA_def_property_ui_text(
+      prop, "Texture Coordinate Bone", "Which bone to take texture coordinates from");
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 }
 
