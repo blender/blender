@@ -716,10 +716,13 @@ static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame)
   return stroke;
 }
 
-static void rna_GPencil_stroke_remove(bGPDframe *frame,
+static void rna_GPencil_stroke_remove(ID *id,
+                                      bGPDframe *frame,
                                       ReportList *reports,
                                       PointerRNA *stroke_ptr)
 {
+  bGPdata *gpd = (bGPdata *)id;
+
   bGPDstroke *stroke = stroke_ptr->data;
   if (BLI_findindex(&frame->strokes, stroke) == -1) {
     BKE_report(reports, RPT_ERROR, "Stroke not found in grease pencil frame");
@@ -729,7 +732,8 @@ static void rna_GPencil_stroke_remove(bGPDframe *frame,
   BLI_freelinkN(&frame->strokes, stroke);
   RNA_POINTER_INVALIDATE(stroke_ptr);
 
-  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
 static void rna_GPencil_stroke_close(ID *id,
@@ -1282,7 +1286,7 @@ static void rna_def_gpencil_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "remove", "rna_GPencil_stroke_remove");
   RNA_def_function_ui_description(func, "Remove a grease pencil stroke");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
   parm = RNA_def_pointer(func, "stroke", "GPencilStroke", "Stroke", "The stroke to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
