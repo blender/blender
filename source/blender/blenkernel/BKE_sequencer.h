@@ -265,7 +265,7 @@ void BKE_sequencer_base_clipboard_pointers_free(struct ListBase *seqbase);
 void BKE_sequencer_base_clipboard_pointers_store(struct Main *bmain, struct ListBase *seqbase);
 void BKE_sequencer_base_clipboard_pointers_restore(struct ListBase *seqbase, struct Main *bmain);
 
-void BKE_sequence_free(struct Scene *scene, struct Sequence *seq);
+void BKE_sequence_free(struct Scene *scene, struct Sequence *seq, const bool do_clean_animdata);
 void BKE_sequence_free_anim(struct Sequence *seq);
 const char *BKE_sequence_give_name(struct Sequence *seq);
 ListBase *BKE_sequence_seqbase_get(struct Sequence *seq, int *r_offset);

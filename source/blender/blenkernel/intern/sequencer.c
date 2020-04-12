@@ -236,7 +236,8 @@ static void seq_free_strip(Strip *strip)
 static void BKE_sequence_free_ex(Scene *scene,
                                  Sequence *seq,
                                  const bool do_cache,
-                                 const bool do_id_user)
+                                 const bool do_id_user,
+                                 const bool do_clean_animdata)
 {
   if (seq->strip) {
     seq_free_strip(seq->strip);
@@ -271,7 +272,10 @@ static void BKE_sequence_free_ex(Scene *scene,
       BKE_sound_remove_scene_sound(scene, seq->scene_sound);
     }
 
-    seq_free_animdata(scene, seq);
+    /* XXX This must not be done in BKE code. */
+    if (do_clean_animdata) {
+      seq_free_animdata(scene, seq);
+    }
   }
 
   if (seq->prop) {
@@ -299,9 +303,9 @@ static void BKE_sequence_free_ex(Scene *scene,
   MEM_freeN(seq);
 }
 
-void BKE_sequence_free(Scene *scene, Sequence *seq)
+void BKE_sequence_free(Scene *scene, Sequence *seq, const bool do_clean_animdata)
 {
-  BKE_sequence_free_ex(scene, seq, true, true);
+  BKE_sequence_free_ex(scene, seq, true, true, do_clean_animdata);
 }
 
 /* Function to free imbuf and anim data on changes */
@@ -331,7 +335,7 @@ static void seq_free_sequence_recurse(Scene *scene, Sequence *seq, const bool do
     seq_free_sequence_recurse(scene, iseq, do_id_user);
   }
 
-  BKE_sequence_free_ex(scene, seq, false, do_id_user);
+  BKE_sequence_free_ex(scene, seq, false, do_id_user, true);
 }
 
 Editing *BKE_sequencer_editing_get(Scene *scene, bool alloc)
@@ -501,7 +505,7 @@ void BKE_sequencer_editing_free(Scene *scene, const bool do_id_user)
 
   SEQ_BEGIN (ed, seq) {
     /* handle cache freeing above */
-    BKE_sequence_free_ex(scene, seq, false, do_id_user);
+    BKE_sequence_free_ex(scene, seq, false, do_id_user, false);
   }
   SEQ_END;
 

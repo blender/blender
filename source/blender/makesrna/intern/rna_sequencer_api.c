@@ -193,7 +193,7 @@ static Sequence *rna_Sequences_new_image(ID *id,
   if (seq->strip->stripdata->name[0] == '\0') {
     BKE_report(reports, RPT_ERROR, "Sequences.new_image: unable to open image file");
     BLI_remlink(&ed->seqbase, seq);
-    BKE_sequence_free(scene, seq);
+    BKE_sequence_free(scene, seq, true);
     return NULL;
   }
 
@@ -382,7 +382,7 @@ static void rna_Sequences_remove(
     return;
   }
 
-  BKE_sequence_free(scene, seq);
+  BKE_sequence_free(scene, seq, true);
   RNA_POINTER_INVALIDATE(seq_ptr);
 
   DEG_relations_tag_update(bmain);
