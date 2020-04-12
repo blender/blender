@@ -4168,13 +4168,12 @@ static void sequence_do_invalidate_dependent(Scene *scene, Sequence *seq, ListBa
     if (BKE_sequence_check_depend(seq, cur)) {
       /* Effect must be invalidated completely if they depend on invalidated seq. */
       if ((cur->type & SEQ_TYPE_EFFECT) != 0) {
-        BKE_sequencer_cache_cleanup_sequence(
-            scene, cur, seq, SEQ_CACHE_ALL_TYPES);
+        BKE_sequencer_cache_cleanup_sequence(scene, cur, seq, SEQ_CACHE_ALL_TYPES, false);
       }
       else {
         /* In case of alpha over for example only invalidate composite image */
         BKE_sequencer_cache_cleanup_sequence(
-            scene, cur, seq, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
+            scene, cur, seq, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT, false);
       }
     }
 
@@ -4193,7 +4192,7 @@ static void sequence_invalidate_cache(Scene *scene,
 
   if (invalidate_self) {
     BKE_sequence_free_anim(seq);
-    BKE_sequencer_cache_cleanup_sequence(scene, seq, seq, invalidate_types);
+    BKE_sequencer_cache_cleanup_sequence(scene, seq, seq, invalidate_types, false);
   }
 
   if (seq->effectdata && seq->type == SEQ_TYPE_SPEED) {
@@ -4203,6 +4202,14 @@ static void sequence_invalidate_cache(Scene *scene,
   sequence_do_invalidate_dependent(scene, seq, &ed->seqbase);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   BKE_sequencer_prefetch_stop(scene);
+}
+
+void BKE_sequence_invalidate_cache_in_range(Scene *scene,
+                                            Sequence *seq,
+                                            Sequence *range_mask,
+                                            int invalidate_types)
+{
+  BKE_sequencer_cache_cleanup_sequence(scene, seq, range_mask, invalidate_types, true);
 }
 
 void BKE_sequence_invalidate_cache_raw(Scene *scene, Sequence *seq)

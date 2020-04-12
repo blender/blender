@@ -336,7 +336,8 @@ void BKE_sequencer_cache_cleanup(struct Scene *scene);
 void BKE_sequencer_cache_cleanup_sequence(struct Scene *scene,
                                           struct Sequence *seq,
                                           struct Sequence *seq_changed,
-                                          int invalidate_types);
+                                          int invalidate_types,
+                                          bool force_seq_changed_range);
 void BKE_sequencer_cache_iterate(struct Scene *scene,
                                  void *userdata,
                                  bool callback_init(void *userdata, size_t item_count),
@@ -434,6 +435,7 @@ void BKE_sequence_invalidate_cache_composite(struct Scene *scene, struct Sequenc
 void BKE_sequence_invalidate_dependent(struct Scene *scene, struct Sequence *seq);
 void BKE_sequence_invalidate_scene_strips(struct Main *bmain, struct Scene *scene_target);
 void BKE_sequence_invalidate_movieclip_strips(struct Main *bmain, struct MovieClip *clip_target);
+void BKE_sequence_invalidate_cache_in_range(struct Scene *scene, struct Sequence *seq, struct Sequence *range_mask, int invalidate_types);
 
 void BKE_sequencer_update_sound_bounds_all(struct Scene *scene);
 void BKE_sequencer_update_sound_bounds(struct Scene *scene, struct Sequence *seq);

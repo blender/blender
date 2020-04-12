@@ -838,6 +838,7 @@ static Sequence *split_seq_hard(
 
     BKE_sequence_reload_new_file(bmain, scene, seqn, false);
     BKE_sequence_calc(scene, seqn);
+    BKE_sequence_invalidate_cache_in_range(scene, seq, seqn, SEQ_CACHE_ALL_TYPES);
   }
   return seqn;
 }
@@ -937,6 +938,7 @@ static Sequence *split_seq_soft(
     }
 
     BKE_sequence_calc(scene, seqn);
+    BKE_sequence_invalidate_cache_in_range(scene, seq, seqn, SEQ_CACHE_ALL_TYPES);
   }
   return seqn;
 }
