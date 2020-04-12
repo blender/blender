@@ -707,7 +707,7 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
         case SEQ_VIEW_SEQUENCE:
           return "builtin.select";
         case SEQ_VIEW_PREVIEW:
-          return "builtin.annotate";
+          return "builtin.sample";
         case SEQ_VIEW_SEQUENCE_PREVIEW:
           return "builtin.select";
       }
