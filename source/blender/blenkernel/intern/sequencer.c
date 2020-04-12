@@ -4166,8 +4166,16 @@ static void sequence_do_invalidate_dependent(Scene *scene, Sequence *seq, ListBa
     }
 
     if (BKE_sequence_check_depend(seq, cur)) {
-      BKE_sequencer_cache_cleanup_sequence(
-          scene, cur, seq, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
+      /* Effect must be invalidated completely if they depend on invalidated seq. */
+      if ((cur->type & SEQ_TYPE_EFFECT) != 0) {
+        BKE_sequencer_cache_cleanup_sequence(
+            scene, cur, seq, SEQ_CACHE_ALL_TYPES);
+      }
+      else {
+        /* In case of alpha over for example only invalidate composite image */
+        BKE_sequencer_cache_cleanup_sequence(
+            scene, cur, seq, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
+      }
     }
 
     if (cur->seqbase.first) {
