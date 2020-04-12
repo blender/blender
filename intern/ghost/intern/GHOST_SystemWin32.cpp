@@ -1011,9 +1011,6 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
          * changing a window.
          */
         if (type == GHOST_kEventButtonDown) {
-          // Move cursor to point of contact because GHOST_EventButton does not include position.
-          system->pushEvent(new GHOST_EventCursor(
-              info.time, GHOST_kEventCursorMove, window, info.x, info.y, info.tabletData));
           system->pushEvent(
               new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
         }
