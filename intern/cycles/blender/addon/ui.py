@@ -253,8 +253,8 @@ class CYCLES_RENDER_PT_sampling_adaptive(CyclesButtonsPanel, Panel):
         layout.active = cscene.use_adaptive_sampling
 
         col = layout.column(align=True)
-        col.prop(cscene, "adaptive_min_samples", text="Min Samples")
         col.prop(cscene, "adaptive_threshold", text="Noise Threshold")
+        col.prop(cscene, "adaptive_min_samples", text="Min Samples")
 
 class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
     bl_label = "Advanced"
