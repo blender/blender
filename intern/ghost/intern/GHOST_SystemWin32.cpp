@@ -945,18 +945,11 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
    * leave event might have fired before the Windows mouse up event, thus there are still tablet
    * events to grab. The described behavior was observed in a Wacom Bamboo CTE-450.
    */
-  if (window->m_tabletInRange || window->wintabSysButPressed()) {
-    if (window->useTabletAPI(GHOST_kTabletWintab) && processWintabEvents(type, window)) {
-      // Wintab processing only handles in-contact events.
-      return NULL;
-    }
-    else if (window->useTabletAPI(GHOST_kTabletNative)) {
-      // Win32 Pointer processing handles input while in-range and in-contact events.
-      return NULL;
-    }
-
-    // If using Wintab and this was a button down event but no button event was queued while
-    // processing Wintab packets, fall through to create a button event.
+  if (window->useTabletAPI(GHOST_kTabletWintab) &&
+      (window->m_tabletInRange || window->wintabSysButPressed()) &&
+      processWintabEvents(type, window, mask, window->getMousePressed())) {
+    // Wintab processing only handles in-contact events.
+    return NULL;
   }
 
   return new GHOST_EventButton(
@@ -964,7 +957,9 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
 }
 
 GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
-                                                      GHOST_WindowWin32 *window)
+                                                      GHOST_WindowWin32 *window,
+                                                      GHOST_TButtonMask mask,
+                                                      bool mousePressed)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
@@ -974,7 +969,7 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
    * to a modifier key (shift, alt, ctrl) or a system event (scroll, etc.) and thus it is not
    * possible to determine if a mouse click event should occur.
    */
-  if (!window->getMousePressed() && !window->wintabSysButPressed()) {
+  if (!mousePressed && !window->wintabSysButPressed()) {
     return GHOST_kFailure;
   }
 
@@ -997,6 +992,8 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
     }
   }
 
+  bool unhandledButton = type != GHOST_kEventCursorMove;
+
   for (; wtiIter != wintabInfo.end(); wtiIter++) {
     auto info = *wtiIter;
 
@@ -1010,9 +1007,10 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
          * don't duplicate the prior button down as it interrupts drawing immediately after
          * changing a window.
          */
-        if (type == GHOST_kEventButtonDown) {
+        if (type == GHOST_kEventButtonDown && mask == info.button) {
           system->pushEvent(
               new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
+          unhandledButton = false;
         }
         window->updateWintabSysBut(MousePressed);
         break;
@@ -1022,13 +1020,22 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
             info.time, GHOST_kEventCursorMove, window, info.x, info.y, info.tabletData));
         break;
       case GHOST_kEventButtonUp:
-        system->pushEvent(
-            new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
+        if (type == GHOST_kEventButtonUp && mask == info.button) {
+          system->pushEvent(
+              new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
+          unhandledButton = false;
+        }
         window->updateWintabSysBut(MouseReleased);
         break;
       default:
         break;
     }
+  }
+
+  // No Wintab button found correlating to the system button event, handle it too.
+  if (unhandledButton) {
+    system->pushEvent(new GHOST_EventButton(
+        system->getMilliSeconds(), type, window, mask, GHOST_TABLET_DATA_NONE));
   }
 
   return GHOST_kSuccess;
@@ -1121,7 +1128,8 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
 
   if (window->m_tabletInRange || window->wintabSysButPressed()) {
     if (window->useTabletAPI(GHOST_kTabletWintab) &&
-        processWintabEvents(GHOST_kEventCursorMove, window)) {
+        processWintabEvents(
+            GHOST_kEventCursorMove, window, GHOST_kButtonMaskNone, window->getMousePressed())) {
       return NULL;
     }
     else if (window->useTabletAPI(GHOST_kTabletNative)) {

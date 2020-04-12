@@ -162,7 +162,8 @@ typedef enum {
 } GHOST_TDrawingContextType;
 
 typedef enum {
-  GHOST_kButtonMaskLeft = 0,
+  GHOST_kButtonMaskNone,
+  GHOST_kButtonMaskLeft,
   GHOST_kButtonMaskMiddle,
   GHOST_kButtonMaskRight,
   GHOST_kButtonMaskButton4,

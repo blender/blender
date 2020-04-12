@@ -320,10 +320,15 @@ class GHOST_SystemWin32 : public GHOST_System {
 
   /**
    * Creates tablet events from Wintab events.
-   * \param type      The type of pointer event
-   * \param window    The window receiving the event (the active window).
+   * \param type            The type of pointer event
+   * \param window          The window receiving the event (the active window).
+   * \param mask            The button mask of the calling event.
+   * \param mousePressed    Whether the mouse is currently pressed
    */
-  static GHOST_TSuccess processWintabEvents(GHOST_TEventType type, GHOST_WindowWin32 *window);
+  static GHOST_TSuccess processWintabEvents(GHOST_TEventType type,
+                                            GHOST_WindowWin32 *window,
+                                            GHOST_TButtonMask mask,
+                                            bool mousePressed);
 
   /**
    * Creates tablet events from pointer events.
