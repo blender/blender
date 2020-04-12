@@ -64,6 +64,7 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
   char dir[FILE_MAXDIR];
   const bool do_frame_range = RNA_boolean_get(op->ptr, "use_sequence_detection");
   ImageFrameRange *range = NULL;
+  int range_first_frame = 0;
 
   RNA_string_get(op->ptr, "directory", dir);
   RNA_BEGIN (op->ptr, itemptr, "files") {
@@ -79,7 +80,11 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     /* still in the same sequence */
     if (do_frame_range && (range != NULL) && (STREQLEN(base_head, head, FILE_MAX)) &&
         (STREQLEN(base_tail, tail, FILE_MAX))) {
-      /* pass */
+      /* Set filepath to first frame in the range. */
+      if (frame->framenr < range_first_frame) {
+        BLI_join_dirfile(range->filepath, sizeof(range->filepath), dir, filename);
+        range_first_frame = frame->framenr;
+      }
     }
     else {
       /* start a new frame range */
@@ -89,6 +94,8 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
 
       BLI_strncpy(base_head, head, sizeof(base_head));
       BLI_strncpy(base_tail, tail, sizeof(base_tail));
+
+      range_first_frame = frame->framenr;
     }
 
     BLI_addtail(&range->frames, frame);

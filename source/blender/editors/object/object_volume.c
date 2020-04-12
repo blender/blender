@@ -109,11 +109,6 @@ static int volume_import_exec(bContext *C, wmOperator *op)
       BLI_path_rel(volume->filepath, BKE_main_blendfile_path(bmain));
     }
 
-    volume->is_sequence = (range->length > 1);
-    volume->frame_duration = (volume->is_sequence) ? range->length : 0;
-    volume->frame_start = 1;
-    volume->frame_offset = (volume->is_sequence) ? range->offset - 1 : 0;
-
     if (!BKE_volume_load(volume, bmain)) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
@@ -133,6 +128,13 @@ static int volume_import_exec(bContext *C, wmOperator *op)
       BKE_id_delete(bmain, &volume->id);
       continue;
     }
+
+    /* Set sequence parameters after trying to load the first frame, for file validation we want
+     * to use a consistent frame rather than whatever corresponds to the current scene frame. */
+    volume->is_sequence = (range->length > 1);
+    volume->frame_duration = (volume->is_sequence) ? range->length : 0;
+    volume->frame_start = 1;
+    volume->frame_offset = (volume->is_sequence) ? range->offset - 1 : 0;
 
     if (BKE_volume_is_y_up(volume)) {
       object->rot[0] += M_PI_2;
