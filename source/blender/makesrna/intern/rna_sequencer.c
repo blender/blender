@@ -2517,12 +2517,12 @@ static void rna_def_wipe(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem wipe_type_items[] = {
-      {0, "SINGLE", 0, "Single", ""},
-      {1, "DOUBLE", 0, "Double", ""},
-      /* not used yet {2, "BOX", 0, "Box", ""}, */
-      /* not used yet {3, "CROSS", 0, "Cross", ""}, */
-      {4, "IRIS", 0, "Iris", ""},
-      {5, "CLOCK", 0, "Clock", ""},
+      {DO_SINGLE_WIPE, "SINGLE", 0, "Single", ""},
+      {DO_DOUBLE_WIPE, "DOUBLE", 0, "Double", ""},
+      /* not used yet {DO_BOX_WIPE, "BOX", 0, "Box", ""}, */
+      /* not used yet {DO_CROSS_WIPE, "CROSS", 0, "Cross", ""}, */
+      {DO_IRIS_WIPE, "IRIS", 0, "Iris", ""},
+      {DO_CLOCK_WIPE, "CLOCK", 0, "Clock", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
