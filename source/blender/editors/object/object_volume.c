@@ -140,6 +140,8 @@ static int volume_import_exec(bContext *C, wmOperator *op)
       object->rot[0] += M_PI_2;
     }
 
+    BKE_volume_unload(volume);
+
     imported = true;
   }
   BLI_freelistN(&ranges);
