@@ -1877,7 +1877,9 @@ void BKE_curve_bevel_make(Object *ob, ListBase *disp)
       }
       /* Don't duplicate the last back vertex. */
       angle = (cu->ext1 == 0.0f && (cu->flag & CU_BACK)) ? dangle : 0;
-      int front_len = (cu->ext1 == 0.0f) ? cu->bevresol + 1 : cu->bevresol + 2;
+      int front_len = (cu->ext1 == 0.0f && ((cu->flag & CU_BACK) || !(cu->flag & CU_FRONT))) ?
+                          cu->bevresol + 1 :
+                          cu->bevresol + 2;
       for (a = 0; a < front_len; a++) {
         fp[0] = 0.0;
         fp[1] = (float)(cosf(angle) * (cu->ext2));
