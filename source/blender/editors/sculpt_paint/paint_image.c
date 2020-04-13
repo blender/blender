@@ -1288,9 +1288,9 @@ static bool brush_colors_flip_poll(bContext *C)
 void PAINT_OT_brush_colors_flip(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Brush Colors Flip";
+  ot->name = "Swap Colors";
   ot->idname = "PAINT_OT_brush_colors_flip";
-  ot->description = "Toggle foreground and background brush colors";
+  ot->description = "Swap primary and secondary brush colors";
 
   /* api callbacks */
   ot->exec = brush_colors_flip_exec;
