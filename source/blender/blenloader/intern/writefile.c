@@ -1133,11 +1133,6 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
   for (sock = ntree->outputs.first; sock; sock = sock->next) {
     write_node_socket_interface(wd, sock);
   }
-
-  /* Clear the accumulated recalc flags in case of undo step saving. */
-  if (wd->use_memfile) {
-    ntree->id.recalc_undo_accumulated = 0;
-  }
 }
 
 /**
@@ -2453,11 +2448,6 @@ static void write_collection_nolib(WriteData *wd, Collection *collection)
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     writestruct(wd, DATA, CollectionChild, 1, child);
-  }
-
-  /* Clear the accumulated recalc flags in case of undo step saving. */
-  if (wd->use_memfile) {
-    collection->id.recalc_undo_accumulated = 0;
   }
 }
 
@@ -4069,6 +4059,28 @@ static bool write_file_handle(Main *mainvar,
           BKE_lib_override_library_operations_store_start(bmain, override_storage, id);
         }
 
+        if (wd->use_memfile) {
+          /* Record the changes that happened up to this undo push in
+           * recalc_up_to_undo_push, and clear recalc_after_undo_push again
+           * to start accumulating for the next undo push. */
+          id->recalc_up_to_undo_push = id->recalc_after_undo_push;
+          id->recalc_after_undo_push = 0;
+
+          bNodeTree *nodetree = ntreeFromID(id);
+          if (nodetree != NULL) {
+            nodetree->id.recalc_up_to_undo_push = nodetree->id.recalc_after_undo_push;
+            nodetree->id.recalc_after_undo_push = 0;
+          }
+          if (GS(id->name) == ID_SCE) {
+            Scene *scene = (Scene *)id;
+            if (scene->master_collection != NULL) {
+              scene->master_collection->id.recalc_up_to_undo_push =
+                  scene->master_collection->id.recalc_after_undo_push;
+              scene->master_collection->id.recalc_after_undo_push = 0;
+            }
+          }
+        }
+
         memcpy(id_buffer, id, idtype_struct_size);
 
         ((ID *)id_buffer)->tag = 0;
@@ -4206,9 +4218,6 @@ static bool write_file_handle(Main *mainvar,
           /* Very important to do it after every ID write now, otherwise we cannot know whether a
            * specific ID changed or not. */
           mywrite_flush(wd);
-
-          /* Clear the accumulated recalc flags in case of undo step saving. */
-          id->recalc_undo_accumulated = 0;
         }
       }
 

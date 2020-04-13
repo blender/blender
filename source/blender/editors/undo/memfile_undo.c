@@ -234,15 +234,15 @@ static void memfile_undosys_step_decode(struct bContext *C,
       /* We only start accumulating from this point, any tags set up to here
        * are already part of the current undo state. This is done in a second
        * loop because DEG_id_tag_update may set tags on other datablocks. */
-      id->recalc_undo_accumulated = 0;
+      id->recalc_after_undo_push = 0;
       bNodeTree *nodetree = ntreeFromID(id);
       if (nodetree != NULL) {
-        nodetree->id.recalc_undo_accumulated = 0;
+        nodetree->id.recalc_after_undo_push = 0;
       }
       if (GS(id->name) == ID_SCE) {
         Scene *scene = (Scene *)id;
         if (scene->master_collection != NULL) {
-          scene->master_collection->id.recalc_undo_accumulated = 0;
+          scene->master_collection->id.recalc_after_undo_push = 0;
         }
       }
     }
