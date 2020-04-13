@@ -287,7 +287,9 @@ static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
 /* A simple wrapper around above func, directly usable as prop update func.
  * Also invalidate cache if needed.
  */
-static void rna_Sequence_frame_change_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Sequence_frame_change_update(Main *UNUSED(bmain),
+                                             Scene *UNUSED(scene),
+                                             PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   do_sequence_frame_change_update(scene, (Sequence *)ptr->data);
