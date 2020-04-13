@@ -291,6 +291,15 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
   /* Vert edge adjacent map. */
   OldVertEdgeRef **vert_adj_edges = MEM_calloc_arrayN(
       numVerts, sizeof(*vert_adj_edges), "vert_adj_edges in solidify");
+  /* Original vertex positions (changed for degenerated geometry). */
+  float(*orig_mvert_co)[3] = MEM_malloc_arrayN(
+      numVerts, sizeof(*orig_mvert_co), "orig_mvert_co in solidify");
+  /* Fill in the original vertex positions. */
+  for (uint i = 0; i < numVerts; i++) {
+    orig_mvert_co[i][0] = orig_mvert[i].co[0];
+    orig_mvert_co[i][1] = orig_mvert[i].co[1];
+    orig_mvert_co[i][2] = orig_mvert[i].co[2];
+  }
 
   /* Create edge to #NewEdgeRef map. */
   {
@@ -344,33 +353,35 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
       bool *face_singularity = MEM_calloc_arrayN(
           numPolys, sizeof(*face_singularity), "face_sides_arr in solidify");
 
+      const float merge_tolerance_sqr = smd->merge_tolerance * smd->merge_tolerance;
+      uint *combined_verts = MEM_calloc_arrayN(
+          numVerts, sizeof(*combined_verts), "combined_verts in solidify");
+
       ed = orig_medge;
       for (uint i = 0; i < numEdges; i++, ed++) {
         if (edge_adj_faces_len[i] > 0) {
-          const uint v1 = vm[ed->v1];
-          const uint v2 = vm[ed->v2];
+          uint v1 = vm[ed->v1];
+          uint v2 = vm[ed->v2];
           if (v1 != v2) {
-            sub_v3_v3v3(edgedir, orig_mvert[v2].co, orig_mvert[v1].co);
+            if (v2 < v1) {
+              SWAP(uint, v1, v2);
+            }
+            sub_v3_v3v3(edgedir, orig_mvert_co[v2], orig_mvert_co[v1]);
             orig_edge_lengths[i] = len_squared_v3(edgedir);
-            if (orig_edge_lengths[i] <= FLT_EPSILON) {
-              if (v2 > v1) {
-                for (uint j = v2; j < numVerts; j++) {
-                  if (vm[j] == v2) {
-                    vm[j] = v1;
-                    vert_adj_edges_len[v1] += vert_adj_edges_len[j];
-                    vert_adj_edges_len[j] = 0;
-                  }
+            if (orig_edge_lengths[i] <= merge_tolerance_sqr) {
+              mul_v3_fl(edgedir,
+                        (combined_verts[v2] + 1) /
+                            (float)(combined_verts[v1] + combined_verts[v2] + 2));
+              add_v3_v3(orig_mvert_co[v1], edgedir);
+              for (uint j = v2; j < numVerts; j++) {
+                if (vm[j] == v2) {
+                  vm[j] = v1;
                 }
               }
-              else if (v2 < v1) {
-                for (uint j = v1; j < numVerts; j++) {
-                  if (vm[j] == v1) {
-                    vm[j] = v2;
-                    vert_adj_edges_len[v2] += vert_adj_edges_len[j];
-                    vert_adj_edges_len[j] = 0;
-                  }
-                }
-              }
+              vert_adj_edges_len[v1] += vert_adj_edges_len[v2];
+              vert_adj_edges_len[v2] = 0;
+              combined_verts[v1] += combined_verts[v2] + 1;
+
               if (do_shell) {
                 numNewLoops -= edge_adj_faces_len[i] * 2;
               }
@@ -429,6 +440,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
       }
 
       MEM_freeN(face_singularity);
+      MEM_freeN(combined_verts);
     }
 
     /* Create vert_adj_edges for verts. */
@@ -668,7 +680,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
         const uint v1 = vm[ed->v1];
         const uint v2 = vm[ed->v2];
         if (edge_adj_faces_len[i] > 0) {
-          sub_v3_v3v3(edgedir, orig_mvert[v2].co, orig_mvert[v1].co);
+          sub_v3_v3v3(edgedir, orig_mvert_co[v2], orig_mvert_co[v1]);
           mul_v3_fl(edgedir, 1.0f / orig_edge_lengths[i]);
 
           OldEdgeFaceRef *adj_faces = edge_adj_faces[i];
@@ -1496,8 +1508,9 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                           ml_prev = ml;
                           ml = ml_next;
                         }
-                        angle = angle_v3v3v3(
-                            orig_mvert[vm[ml_prev->v]].co, mv->co, orig_mvert[vm[ml_next->v]].co);
+                        angle = angle_v3v3v3(orig_mvert_co[vm[ml_prev->v]],
+                                             orig_mvert_co[i],
+                                             orig_mvert_co[vm[ml_next->v]]);
                         if (face->reversed) {
                           total_angle_back += angle * ofs * ofs;
                         }
@@ -1591,7 +1604,8 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                 uint k;
                 for (k = 1; k + 1 < g->edges_len; k++, edge_ptr++) {
                   MEdge *e = orig_medge + (*edge_ptr)->old_edge;
-                  sub_v3_v3v3(tmp, orig_mvert[vm[e->v1] == i ? e->v2 : e->v1].co, mv->co);
+                  sub_v3_v3v3(
+                      tmp, orig_mvert_co[vm[e->v1] == i ? e->v2 : e->v1], orig_mvert_co[i]);
                   add_v3_v3(move_nor, tmp);
                 }
                 if (k == 1) {
@@ -1613,10 +1627,12 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
               MEdge *e1_edge = orig_medge + g->edges[g->edges_len - 1]->old_edge;
               float e0[3];
               float e1[3];
-              sub_v3_v3v3(
-                  e0, orig_mvert[vm[e0_edge->v1] == i ? e0_edge->v2 : e0_edge->v1].co, mv->co);
-              sub_v3_v3v3(
-                  e1, orig_mvert[vm[e1_edge->v1] == i ? e1_edge->v2 : e1_edge->v1].co, mv->co);
+              sub_v3_v3v3(e0,
+                          orig_mvert_co[vm[e0_edge->v1] == i ? e0_edge->v2 : e0_edge->v1],
+                          orig_mvert_co[i]);
+              sub_v3_v3v3(e1,
+                          orig_mvert_co[vm[e1_edge->v1] == i ? e1_edge->v2 : e1_edge->v1],
+                          orig_mvert_co[i]);
               if (smd->nonmanifold_boundary_mode == MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_FLAT) {
                 cross_v3_v3v3(constr_nor, e0, e1);
               }
@@ -1702,16 +1718,17 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
               }
             }
             mul_v3_fl(nor, scalar_vgroup);
-            add_v3_v3v3(g->co, nor, mv->co);
+            add_v3_v3v3(g->co, nor, orig_mvert_co[i]);
           }
           else {
-            copy_v3_v3(g->co, mv->co);
+            copy_v3_v3(g->co, orig_mvert_co[i]);
           }
         }
       }
     }
   }
 
+  MEM_freeN(orig_mvert_co);
   if (null_faces) {
     MEM_freeN(null_faces);
   }

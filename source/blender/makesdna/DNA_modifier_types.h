@@ -1175,6 +1175,9 @@ typedef struct SolidifyModifierData {
   int flag;
   short mat_ofs;
   short mat_ofs_rim;
+
+  float merge_tolerance;
+  char _pad1[4];
 } SolidifyModifierData;
 
 /** #SolidifyModifierData.flag */

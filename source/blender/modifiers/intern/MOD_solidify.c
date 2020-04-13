@@ -53,6 +53,7 @@ static void initData(ModifierData *md)
   smd->mode = MOD_SOLIDIFY_MODE_EXTRUDE;
   smd->nonmanifold_offset_mode = MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_CONSTRAINTS;
   smd->nonmanifold_boundary_mode = MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_NONE;
+  smd->merge_tolerance = 0.0001f;
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

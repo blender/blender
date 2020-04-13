@@ -4890,7 +4890,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 283, 12)) {
-
     /* Activate f-curve drawing in the sequencer. */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       for (ScrArea *area = screen->areabase.first; area; area = area->next) {
@@ -4929,5 +4928,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Solidify modifier merge tolerance. */
+    if (!DNA_struct_elem_find(fd->filesdna, "SolidifyModifierData", "float", "merge_tolerance")) {
+      for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+        for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+          if (md->type == eModifierType_Solidify) {
+            SolidifyModifierData *smd = (SolidifyModifierData *)md;
+            /* set to 0.0003 since that is what was used before, default now is 0.0001 */
+            smd->merge_tolerance = 0.0003f;
+          }
+        }
+      }
+    }
   }
 }

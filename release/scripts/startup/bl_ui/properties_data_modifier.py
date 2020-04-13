@@ -1049,6 +1049,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.prop(md, "edge_crease_inner", text="Inner")
             col.prop(md, "edge_crease_outer", text="Outer")
             col.prop(md, "edge_crease_rim", text="Rim")
+        else:
+            col.prop(md, "nonmanifold_merge_threshold")
 
         col = split.column()
 
