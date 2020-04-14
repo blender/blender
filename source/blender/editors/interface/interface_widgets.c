@@ -2376,21 +2376,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   }
 }
 
-static BIFIconID widget_icon_id(uiBut *but)
-{
-  if (!(but->flag & UI_HAS_ICON)) {
-    return ICON_NONE;
-  }
-
-  /* Consecutive icons can be toggle between. */
-  if (but->drawflag & UI_BUT_ICON_REVERSE) {
-    return but->icon - but->iconadd;
-  }
-  else {
-    return but->icon + but->iconadd;
-  }
-}
-
 static void widget_draw_extra_icons(const uiWidgetColors *wcol,
                                     uiBut *but,
                                     rcti *rect,
@@ -2433,7 +2418,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
   /* Big previews with optional text label below */
   if (but->flag & UI_BUT_ICON_PREVIEW && ui_block_is_menu(but->block)) {
-    const BIFIconID icon = widget_icon_id(but);
+    const BIFIconID icon = ui_but_icon(but);
     int icon_size = BLI_rcti_size_y(rect);
     int text_size = 0;
 
@@ -2470,7 +2455,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     }
 #endif
 
-    const BIFIconID icon = widget_icon_id(but);
+    const BIFIconID icon = ui_but_icon(but);
     int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
     const float icon_size = icon_size_init / (but->block->aspect * U.inv_dpi_fac);
     const float icon_padding = 2 * UI_DPI_FAC;

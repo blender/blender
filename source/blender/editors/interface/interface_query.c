@@ -161,6 +161,21 @@ bool UI_but_has_tooltip_label(const uiBut *but)
   return false;
 }
 
+int ui_but_icon(const uiBut *but)
+{
+  if (!(but->flag & UI_HAS_ICON)) {
+    return ICON_NONE;
+  }
+
+  /* Consecutive icons can be toggle between. */
+  if (but->drawflag & UI_BUT_ICON_REVERSE) {
+    return but->icon - but->iconadd;
+  }
+  else {
+    return but->icon + but->iconadd;
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

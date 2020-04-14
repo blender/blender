@@ -6818,7 +6818,7 @@ static bool menu_items_from_ui_create_item_from_button(struct MenuSearch_Data *d
   if (item != NULL) {
     /* Handle shared settings. */
     item->drawstr = strdup_memarena(memarena, but->drawstr);
-    item->icon = but->icon;
+    item->icon = ui_but_icon(but);
     item->state = (but->flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT));
     item->mt = mt;
     item->drawstr_submenu = drawstr_submenu ? strdup_memarena(memarena, drawstr_submenu) : NULL;
