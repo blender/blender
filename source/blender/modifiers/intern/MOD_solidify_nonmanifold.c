@@ -175,6 +175,8 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                         0;
   const bool do_clamp = (smd->offset_clamp != 0.0f);
 
+  const float bevel_convex = smd->bevel_convex;
+
   MDeformVert *dvert;
   const bool defgrp_invert = (smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0;
   int defgrp_index;
@@ -1798,6 +1800,11 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
   int *origindex_edge = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
   int *origindex_poly = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
 
+  if (bevel_convex != 0.0f) {
+    /* make sure bweight is enabled */
+    result->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
+  }
+
   /* Checks that result has dvert data. */
   if (shell_defgrp_index != -1 || rim_defgrp_index != -1) {
     dvert = CustomData_duplicate_referenced_layer(&result->vdata, CD_MDEFORMVERT, result->totvert);
@@ -1863,6 +1870,17 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
             medge[insert].flag = orig_medge[(*l)->old_edge].flag | ME_EDGEDRAW | ME_EDGERENDER;
             medge[insert].crease = orig_medge[(*l)->old_edge].crease;
             medge[insert].bweight = orig_medge[(*l)->old_edge].bweight;
+            if (bevel_convex != 0.0f && (*l)->faces[1] != NULL) {
+              medge[insert].bweight = (char)clamp_i(
+                  (int)medge[insert].bweight + (int)(((*l)->angle > M_PI + FLT_EPSILON ?
+                                                          clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                          ((*l)->angle < M_PI - FLT_EPSILON ?
+                                                               clamp_f(bevel_convex, -1.0f, 0.0f) :
+                                                               0)) *
+                                                     255),
+                  0,
+                  255);
+            }
             (*l)->new_edge = insert;
           }
         }
@@ -1914,7 +1932,8 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
   /* Make boundary edges/faces. */
   {
     gs_ptr = orig_vert_groups_arr;
-    for (uint i = 0; i < numVerts; i++, gs_ptr++) {
+    mv = orig_mvert;
+    for (uint i = 0; i < numVerts; i++, gs_ptr++, mv++) {
       EdgeGroup *gs = *gs_ptr;
       if (gs) {
         EdgeGroup *g = gs;
@@ -1936,15 +1955,37 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
             max_crease = 0;
             max_bweight = 0;
             flag = 0;
-            for (uint k = 1; k < g->edges_len - 1; k++) {
-              ed = orig_medge + g->edges[k]->old_edge;
-              if (ed->crease > max_crease) {
-                max_crease = ed->crease;
+
+            BLI_assert(g->edges_len >= 2);
+
+            if (g->edges_len == 2) {
+              max_crease = min_cc(orig_medge[g->edges[0]->old_edge].crease,
+                                  orig_medge[g->edges[1]->old_edge].crease);
+            }
+            else {
+              for (uint k = 1; k < g->edges_len - 1; k++) {
+                ed = orig_medge + g->edges[k]->old_edge;
+                if (ed->crease > max_crease) {
+                  max_crease = ed->crease;
+                }
+                char bweight = medge[g->edges[k]->new_edge].bweight;
+                if (bweight > max_bweight) {
+                  max_bweight = bweight;
+                }
+                flag |= ed->flag;
               }
-              if (ed->bweight > max_bweight) {
-                max_bweight = ed->bweight;
+            }
+
+            const char bweight_open_edge = min_cc(
+                orig_medge[g->edges[0]->old_edge].bweight,
+                orig_medge[g->edges[g->edges_len - 1]->old_edge].bweight);
+            if (bweight_open_edge > 0) {
+              max_bweight = min_cc(bweight_open_edge, max_bweight);
+            }
+            else {
+              if (bevel_convex < 0.0f) {
+                max_bweight = 0;
               }
-              flag |= ed->flag;
             }
             if (!first_g) {
               first_g = g;
@@ -1966,8 +2007,9 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
               medge[edge_index].v2 = g->new_vert;
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | flag) & (ME_SEAM | ME_SHARP));
-              medge[edge_index].crease = MAX2(last_max_crease, max_crease);
-              medge[edge_index++].bweight = MAX2(last_max_bweight, max_bweight);
+              medge[edge_index].crease = min_cc(last_max_crease, max_crease);
+              medge[edge_index++].bweight = max_cc(mv->bweight,
+                                                   min_cc(last_max_bweight, max_bweight));
             }
             last_g = g;
             last_max_crease = max_crease;
@@ -1993,8 +2035,9 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
               medge[edge_index].v2 = first_g->new_vert;
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | first_flag) & (ME_SEAM | ME_SHARP));
-              medge[edge_index].crease = MAX2(last_max_crease, first_max_crease);
-              medge[edge_index++].bweight = MAX2(last_max_bweight, first_max_bweight);
+              medge[edge_index].crease = min_cc(last_max_crease, first_max_crease);
+              medge[edge_index++].bweight = max_cc(mv->bweight,
+                                                   min_cc(last_max_bweight, first_max_bweight));
 
               /* Loop data. */
               int *loops = MEM_malloc_arrayN(j, sizeof(*loops), "loops in solidify");

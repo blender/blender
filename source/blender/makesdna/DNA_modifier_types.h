@@ -1177,7 +1177,7 @@ typedef struct SolidifyModifierData {
   short mat_ofs_rim;
 
   float merge_tolerance;
-  char _pad1[4];
+  float bevel_convex;
 } SolidifyModifierData;
 
 /** #SolidifyModifierData.flag */
