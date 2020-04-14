@@ -329,7 +329,7 @@ static void rna_Object_internal_update_draw(Main *UNUSED(bmain),
                                             Scene *UNUSED(scene),
                                             PointerRNA *ptr)
 {
-  DEG_id_tag_update(ptr->owner_id, ID_RECALC_TRANSFORM);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_SHADING);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->owner_id);
 }
 
