@@ -3244,6 +3244,7 @@ static int text_selection_set_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   op->customdata = MEM_callocN(sizeof(SetSelection), "SetCursor");
   ssel = op->customdata;
+  ssel->selecting = RNA_boolean_get(op->ptr, "select");
 
   ssel->mval_prev[0] = event->mval[0];
   ssel->mval_prev[1] = event->mval[1];
@@ -3292,6 +3293,9 @@ void TEXT_OT_selection_set(wmOperatorType *ot)
   ot->modal = text_selection_set_modal;
   ot->cancel = text_selection_set_cancel;
   ot->poll = text_region_edit_poll;
+
+  /* properties */
+  RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor");
 }
 
 /** \} */
