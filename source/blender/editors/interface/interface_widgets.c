@@ -2315,7 +2315,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                            },
                            drawlen,
                            &font_xofs,
-                           &font_yofs);
+                           &font_yofs,
+                           NULL);
 
       if (but->menu_key != '\0') {
         char fixedbuf[128];
@@ -5267,8 +5268,13 @@ void ui_draw_tooltip_background(const uiStyle *UNUSED(style), uiBlock *UNUSED(bl
 
 /* helper call to draw a menu item without button */
 /* state: UI_ACTIVE or 0 */
-void ui_draw_menu_item(
-    const uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state, bool use_sep)
+void ui_draw_menu_item(const uiFontStyle *fstyle,
+                       rcti *rect,
+                       const char *name,
+                       int iconid,
+                       int state,
+                       bool use_sep,
+                       int *r_name_width)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
   rcti _rect = *rect;
@@ -5318,13 +5324,22 @@ void ui_draw_menu_item(
       UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
     }
 
-    UI_fontstyle_draw(fstyle,
-                      rect,
-                      drawstr,
-                      wt->wcol.text,
-                      &(struct uiFontStyleDraw_Params){
-                          .align = UI_STYLE_TEXT_LEFT,
-                      });
+    int xofs = 0, yofs = 0;
+    struct ResultBLF info;
+    UI_fontstyle_draw_ex(fstyle,
+                         rect,
+                         drawstr,
+                         wt->wcol.text,
+                         &(struct uiFontStyleDraw_Params){
+                             .align = UI_STYLE_TEXT_LEFT,
+                         },
+                         BLF_DRAW_STR_DUMMY_MAX,
+                         &xofs,
+                         &yofs,
+                         &info);
+    if (r_name_width != NULL) {
+      *r_name_width = xofs + info.width;
+    }
   }
 
   /* part text right aligned */

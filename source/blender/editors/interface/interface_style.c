@@ -148,7 +148,8 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
                           const struct uiFontStyleDraw_Params *fs_params,
                           size_t len,
                           int *r_xofs,
-                          int *r_yofs)
+                          int *r_yofs,
+                          struct ResultBLF *r_info)
 {
   int xofs = 0, yofs;
   int font_flag = BLF_CLIPPING;
@@ -196,7 +197,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);
   BLF_color4ubv(fs->uifont_id, col);
 
-  BLF_draw(fs->uifont_id, str, len);
+  BLF_draw_ex(fs->uifont_id, str, len, r_info);
 
   BLF_disable(fs->uifont_id, font_flag);
 
@@ -212,7 +213,7 @@ void UI_fontstyle_draw(const uiFontStyle *fs,
 {
   int xofs, yofs;
 
-  UI_fontstyle_draw_ex(fs, rect, str, col, fs_params, BLF_DRAW_STR_DUMMY_MAX, &xofs, &yofs);
+  UI_fontstyle_draw_ex(fs, rect, str, col, fs_params, BLF_DRAW_STR_DUMMY_MAX, &xofs, &yofs, NULL);
 }
 
 /* drawn same as above, but at 90 degree angle */

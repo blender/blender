@@ -205,6 +205,7 @@ struct uiBut {
   uiButSearchFunc search_func;
   void *search_arg;
   uiButSearchArgFreeFunc search_arg_free_func;
+  const char *search_sep_string;
 
   uiButHandleRenameFunc rename_func;
   void *rename_arg1;
@@ -851,7 +852,8 @@ void ui_draw_menu_item(const struct uiFontStyle *fstyle,
                        const char *name,
                        int iconid,
                        int state,
-                       bool use_sep);
+                       bool use_sep,
+                       int *r_name_width);
 void ui_draw_preview_item(
     const struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 

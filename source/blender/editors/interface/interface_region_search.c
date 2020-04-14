@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "DNA_ID.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
@@ -89,9 +90,14 @@ typedef struct uiSearchboxData {
   bool noback;
   /** draw thumbnail previews, rather than list */
   bool preview;
-  /** use the UI_SEP_CHAR char for splitting shortcuts (good for operators, bad for data) */
+  /** Use the #UI_SEP_CHAR char for splitting shortcuts (good for operators, bad for data). */
   bool use_sep;
   int prv_rows, prv_cols;
+  /**
+   * Show the active icon and text after the last instance of this string.
+   * Used so we can show leading text to menu items less prominently (not related to 'use_sep').
+   */
+  const char *sep_string;
 } uiSearchboxData;
 
 #define SEARCH_ITEMS 10
@@ -465,19 +471,50 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
       }
     }
     else {
+      const int search_sep_len = data->sep_string ? strlen(data->sep_string) : 0;
       /* draw items */
       for (a = 0; a < data->items.totitem; a++) {
         const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+        char *name = data->items.names[a];
+        int icon = data->items.icons[a];
+        char *name_sep_test = NULL;
 
         ui_searchbox_butrect(&rect, data, a);
 
         /* widget itself */
-        ui_draw_menu_item(&data->fstyle,
-                          &rect,
-                          data->items.names[a],
-                          data->items.icons[a],
-                          state,
-                          data->use_sep);
+        if ((search_sep_len == 0) ||
+            !(name_sep_test = strstr(data->items.names[a], data->sep_string))) {
+
+          /* Simple menu item. */
+          ui_draw_menu_item(&data->fstyle, &rect, name, icon, state, data->use_sep, NULL);
+        }
+        else {
+          /* Split menu item, faded text before the separator. */
+          char *name_sep = NULL;
+          do {
+            name_sep = name_sep_test;
+            name_sep_test = strstr(name_sep + search_sep_len, data->sep_string);
+          } while (name_sep_test != NULL);
+
+          name_sep += search_sep_len;
+          const char name_sep_prev = *name_sep;
+          *name_sep = '\0';
+          int name_width = 0;
+          ui_draw_menu_item(
+              &data->fstyle, &rect, name, 0, state | UI_BUT_INACTIVE, false, &name_width);
+          *name_sep = name_sep_prev;
+          rect.xmin += name_width;
+          rect.xmin += UI_UNIT_X / 4;
+
+          if (icon == ICON_BLANK1) {
+            icon = ICON_NONE;
+            rect.xmin -= UI_DPI_ICON_SIZE / 4;
+          }
+
+          /* The previous menu item draws the active selection. */
+          ui_draw_menu_item(
+              &data->fstyle, &rect, name_sep, icon, state & ~UI_ACTIVE, data->use_sep, NULL);
+        }
       }
       /* indicate more */
       if (data->items.more) {
@@ -566,6 +603,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
   if (but->optype != NULL || (but->drawflag & UI_BUT_HAS_SHORTCUT) != 0) {
     data->use_sep = true;
   }
+  data->sep_string = but->search_sep_string;
 
   /* compute position */
   if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
@@ -762,9 +800,10 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, text_pre),
                           data->items.icons[a],
                           state,
-                          false);
+                          false,
+                          NULL);
         ui_draw_menu_item(
-            &data->fstyle, &rect_post, data->items.names[a], 0, state, data->use_sep);
+            &data->fstyle, &rect_post, data->items.names[a], 0, state, data->use_sep, NULL);
       }
     }
     /* indicate more */

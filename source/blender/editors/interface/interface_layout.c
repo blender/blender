@@ -2633,6 +2633,7 @@ void ui_but_add_search(
                            coll_search,
                            ui_rna_collection_search_free_cb,
                            NULL,
+                           NULL,
                            NULL);
   }
   else if (but->type == UI_BTYPE_SEARCH_MENU) {

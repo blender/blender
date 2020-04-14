@@ -6332,7 +6332,9 @@ uiBut *uiDefSearchBut(uiBlock *block,
 /**
  * \param search_func, bfunc: both get it as \a arg.
  * \param arg: user value,
- * \param  active: when set, button opens with this item visible and selected.
+ * \param active: when set, button opens with this item visible and selected.
+ * \param separator_string: when not NULL, this string is used as a separator,
+ * showing the icon and highlighted text after the last instance of this string.
  */
 void UI_but_func_search_set(uiBut *but,
                             uiButSearchCreateFunc search_create_func,
@@ -6340,6 +6342,7 @@ void UI_but_func_search_set(uiBut *but,
                             void *arg,
                             uiButSearchArgFreeFunc search_arg_free_func,
                             uiButHandleFunc bfunc,
+                            const char *search_sep_string,
                             void *active)
 {
   /* needed since callers don't have access to internal functions
@@ -6358,6 +6361,7 @@ void UI_but_func_search_set(uiBut *but,
 
   but->search_arg = arg;
   but->search_arg_free_func = search_arg_free_func;
+  but->search_sep_string = search_sep_string;
 
   if (bfunc) {
 #ifdef DEBUG
@@ -6467,6 +6471,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
                          but,
                          NULL,
                          operator_enum_call_cb,
+                         NULL,
                          NULL);
 
   but->optype = ot;
