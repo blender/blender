@@ -91,9 +91,6 @@ static void gpencil_uv_transform_get(const float ofs[2],
   copy_v2_v2(r_uvmat[2], mat[3]);
 }
 
-#define HSV_SATURATION 0.5
-#define HSV_VALUE 0.8
-
 static void gpencil_shade_color(float color[3])
 {
   /* This is scene refereed color, not gamma corrected and not per perceptual.
