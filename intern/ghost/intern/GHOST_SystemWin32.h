@@ -266,16 +266,6 @@ class GHOST_SystemWin32 : public GHOST_System {
                                           int mouseY,
                                           void *data);
 
-  /***************************************************************************************
-   ** Modify tablet API
-   ***************************************************************************************/
-
-  /**
-   * Set which tablet API to use.
-   * \param api Enum indicating which API to use.
-   */
-  void setTabletAPI(GHOST_TTabletAPI api) override;
-
  protected:
   /**
    * Initializes the system.
