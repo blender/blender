@@ -94,18 +94,6 @@ static void gpencil_uv_transform_get(const float ofs[2],
 #define HSV_SATURATION 0.5
 #define HSV_VALUE 0.8
 
-static void gpencil_object_random_color_get(const Object *ob, float r_color[3])
-{
-  /* Duplicated from workbench_material.c */
-  uint hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
-  if (ob->id.lib) {
-    hash = (hash * 13) ^ BLI_ghashutil_strhash_p_murmur(ob->id.lib->name);
-  }
-  float hue = BLI_hash_int_01(hash);
-  float hsv[3] = {hue, HSV_SATURATION, HSV_VALUE};
-  hsv_to_rgb_v(hsv, r_color);
-}
-
 static void gpencil_shade_color(float color[3])
 {
   /* This is scene refereed color, not gamma corrected and not per perceptual.
@@ -129,6 +117,10 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(GPENCIL_Private
 
   switch (color_type) {
     case V3D_SHADING_MATERIAL_COLOR:
+    case V3D_SHADING_RANDOM_COLOR:
+      /* Random uses a random color by layer and this is done using the tint
+       * layer. A simple color by object, like meshes, is not practical in
+       * grease pencil. */
       copy_v4_v4(gp_style_tmp.stroke_rgba, gp_style->stroke_rgba);
       copy_v4_v4(gp_style_tmp.fill_rgba, gp_style->fill_rgba);
       gp_style = &gp_style_tmp;
@@ -151,15 +143,6 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(GPENCIL_Private
         /* gp_style->fill_rgba is needed for correct gradient. */
         gp_style->mix_factor = 0.0f;
       }
-      break;
-    case V3D_SHADING_RANDOM_COLOR:
-      gp_style = &gp_style_tmp;
-      gp_style->stroke_style = GP_MATERIAL_STROKE_STYLE_SOLID;
-      gp_style->fill_style = GP_MATERIAL_FILL_STYLE_SOLID;
-      gpencil_object_random_color_get(ob, gp_style->fill_rgba);
-      gp_style->fill_rgba[3] = 1.0f;
-      copy_v4_v4(gp_style->stroke_rgba, gp_style->fill_rgba);
-      gpencil_shade_color(gp_style->stroke_rgba);
       break;
     case V3D_SHADING_SINGLE_COLOR:
       gp_style = &gp_style_tmp;

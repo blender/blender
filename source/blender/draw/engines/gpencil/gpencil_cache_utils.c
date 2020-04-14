@@ -33,6 +33,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_object.h"
 
+#include "BLI_hash.h"
 #include "BLI_link_utils.h"
 #include "BLI_memblock.h"
 
@@ -234,6 +235,21 @@ static void gpencil_layer_final_tint_and_alpha_get(const GPENCIL_PrivateData *pd
   *r_alpha *= pd->xray_alpha;
 }
 
+/* Random color by layer. */
+static void gpencil_layer_random_color_get(const Object *ob,
+                                           const bGPDlayer *gpl,
+                                           float r_color[3])
+{
+  const float hsv_saturation = 0.7f;
+  const float hsv_value = 0.6f;
+
+  uint ob_hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
+  uint gpl_hash = BLI_ghashutil_strhash_p_murmur(gpl->info);
+  float hue = BLI_hash_int_01(ob_hash * gpl_hash);
+  float hsv[3] = {hue, hsv_saturation, hsv_value};
+  hsv_to_rgb_v(hsv, r_color);
+}
+
 GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                         const Object *ob,
                                         const bGPDlayer *gpl,
@@ -375,7 +391,16 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
     DRW_shgroup_uniform_float_copy(grp, "thicknessOffset", (float)gpl->line_change);
     DRW_shgroup_uniform_float_copy(grp, "thicknessWorldScale", thickness_scale);
     DRW_shgroup_uniform_float_copy(grp, "vertexColorOpacity", vert_col_opacity);
-    DRW_shgroup_uniform_vec4_copy(grp, "layerTint", layer_tint);
+
+    /* If random color type, need color by layer. */
+    float gpl_color[4];
+    copy_v4_v4(gpl_color, layer_tint);
+    if (pd->v3d_color_type == V3D_SHADING_RANDOM_COLOR) {
+      gpencil_layer_random_color_get(ob, gpl, gpl_color);
+      gpl_color[3] = 1.0f;
+    }
+    DRW_shgroup_uniform_vec4_copy(grp, "layerTint", gpl_color);
+
     DRW_shgroup_uniform_float_copy(grp, "layerOpacity", layer_alpha);
     DRW_shgroup_stencil_mask(grp, 0xFF);
   }
