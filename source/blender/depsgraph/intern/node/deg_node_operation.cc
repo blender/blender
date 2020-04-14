@@ -61,6 +61,8 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Scene related. */
     case OperationCode::SCENE_EVAL:
       return "SCENE_EVAL";
+    case OperationCode::AUDIO_VOLUME:
+      return "AUDIO_VOLUME";
     /* Object related. */
     case OperationCode::OBJECT_BASE_FLAGS:
       return "OBJECT_BASE_FLAGS";

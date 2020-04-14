@@ -1736,7 +1736,14 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
   if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_AUDIO)) {
     return;
   }
+
   add_operation_node(&scene->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
+
+  Scene *scene_cow = get_cow_datablock(scene);
+  add_operation_node(&scene->id,
+                     NodeType::AUDIO,
+                     OperationCode::AUDIO_VOLUME,
+                     function_bind(BKE_scene_update_tag_audio_volume, _1, scene_cow));
 }
 
 void DepsgraphNodeBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)
