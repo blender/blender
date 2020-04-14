@@ -657,7 +657,8 @@ static bool collection_object_add(
 {
   if (ob->instance_collection) {
     /* Cyclic dependency check. */
-    if (collection_find_child_recursive(ob->instance_collection, collection)) {
+    if (collection_find_child_recursive(ob->instance_collection, collection) ||
+        ob->instance_collection == collection) {
       return false;
     }
   }
