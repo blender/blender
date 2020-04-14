@@ -2415,8 +2415,8 @@ void UI_fontstyle_draw_ex(const struct uiFontStyle *fs,
                           const uchar col[4],
                           const struct uiFontStyleDraw_Params *fs_params,
                           size_t len,
-                          float *r_xofs,
-                          float *r_yofs);
+                          int *r_xofs,
+                          int *r_yofs);
 void UI_fontstyle_draw(const struct uiFontStyle *fs,
                        const struct rcti *rect,
                        const char *str,

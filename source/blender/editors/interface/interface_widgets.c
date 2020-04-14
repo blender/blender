@@ -2300,7 +2300,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
   if (!use_right_only) {
     /* for underline drawing */
-    float font_xofs, font_yofs;
+    int font_xofs, font_yofs;
 
     int drawlen = (drawstr_left_len == INT_MAX) ? strlen(drawstr + but->ofs) :
                                                   (drawstr_left_len - but->ofs);
@@ -2342,7 +2342,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           ul_advance = BLF_width(fstyle->uifont_id, fixedbuf, ul_index) + (1.0f * UI_DPI_FAC);
 
           BLF_position(fstyle->uifont_id,
-                       rect->xmin + font_xofs + ul_advance,
+                       rect->xmin + font_xofs + (int)ul_advance,
                        rect->ymin + font_yofs,
                        0.0f);
           BLF_color4ubv(fstyle->uifont_id, wcol->text);
