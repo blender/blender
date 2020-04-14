@@ -151,6 +151,9 @@ MINLINE int max_iiii(int a, int b, int c, int d);
 MINLINE size_t min_zz(size_t a, size_t b);
 MINLINE size_t max_zz(size_t a, size_t b);
 
+MINLINE char min_cc(char a, char b);
+MINLINE char max_cc(char a, char b);
+
 MINLINE int clamp_i(int value, int min, int max);
 MINLINE float clamp_f(float value, float min, float max);
 MINLINE size_t clamp_z(size_t value, size_t min, size_t max);

@@ -524,6 +524,15 @@ MINLINE size_t max_zz(size_t a, size_t b)
   return (b < a) ? a : b;
 }
 
+MINLINE char min_cc(char a, char b)
+{
+  return (a < b) ? a : b;
+}
+MINLINE char max_cc(char a, char b)
+{
+  return (b < a) ? a : b;
+}
+
 MINLINE int clamp_i(int value, int min, int max)
 {
   return min_ii(max_ii(value, min), max);
