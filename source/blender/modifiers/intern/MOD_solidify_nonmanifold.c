@@ -186,6 +186,8 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
 
   MOD_get_vgroup(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
+  const bool do_flat_faces = dvert && (smd->flag & MOD_SOLIDIFY_NONMANIFOLD_FLAT_FACES);
+
   orig_mvert = mesh->mvert;
   orig_medge = mesh->medge;
   orig_mloop = mesh->mloop;
@@ -1305,6 +1307,30 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
 
   /* Calculate EdgeGroup vertex coordinates. */
   {
+    float *face_weight = NULL;
+
+    if (do_flat_faces) {
+      face_weight = MEM_malloc_arrayN(numPolys, sizeof(*face_weight), "face_weight in solidify");
+
+      mp = orig_mpoly;
+      for (uint i = 0; i < numPolys; i++, mp++) {
+        float scalar_vgroup = 1.0f;
+        int loopend = mp->loopstart + mp->totloop;
+        ml = orig_mloop + mp->loopstart;
+        for (int j = mp->loopstart; j < loopend; j++, ml++) {
+          MDeformVert *dv = &dvert[ml->v];
+          if (defgrp_invert) {
+            scalar_vgroup = min_ff(1.0f - BKE_defvert_find_weight(dv, defgrp_index),
+                                   scalar_vgroup);
+          }
+          else {
+            scalar_vgroup = min_ff(BKE_defvert_find_weight(dv, defgrp_index), scalar_vgroup);
+          }
+        }
+        face_weight[i] = scalar_vgroup;
+      }
+    }
+
     mv = orig_mvert;
     gs_ptr = orig_vert_groups_arr;
     for (uint i = 0; i < numVerts; i++, mv++, gs_ptr++) {
@@ -1337,14 +1363,22 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                     NewFaceRef *face = edge->faces[l];
                     if (face && (first_edge == NULL ||
                                  (first_edge->faces[0] != face && first_edge->faces[1] != face))) {
-                      const float ofs = face->reversed ? ofs_back_clamped : ofs_front_clamped;
+                      float ofs = face->reversed ? ofs_back_clamped : ofs_front_clamped;
+                      /* Use face_weight here to make faces thinner. */
+                      if (do_flat_faces) {
+                        ofs *= face_weight[face->index];
+                      }
+
                       if (!null_faces[face->index]) {
+                        /* And normal to the queue. */
                         mul_v3_v3fl(normals_queue[queue_index],
                                     poly_nors[face->index],
                                     face->reversed ? -1 : 1);
                         normals_queue[queue_index++][3] = ofs;
                       }
                       else {
+                        /* Just use this approximate normal of the null face if there is no other
+                         * normal to use. */
                         mul_v3_v3fl(face_nors[0], poly_nors[face->index], face->reversed ? -1 : 1);
                         nor_ofs[0] = ofs;
                       }
@@ -1446,6 +1480,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                 }
               }
               MEM_freeN(normals_queue);
+
               /* When up to 3 constraint normals are found. */
               if (ELEM(face_nors_len, 2, 3)) {
                 const float q = dot_v3v3(face_nors[0], face_nors[1]);
@@ -1500,6 +1535,11 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                                  (first_edge->faces[0] != face && first_edge->faces[1] != face))) {
                       float angle = 1.0f;
                       float ofs = face->reversed ? -ofs_back_clamped : ofs_front_clamped;
+                      /* Use face_weight here to make faces thinner. */
+                      if (do_flat_faces) {
+                        ofs *= face_weight[face->index];
+                      }
+
                       if (smd->nonmanifold_offset_mode ==
                           MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_EVEN) {
                         MLoop *ml_next = orig_mloop + face->face->loopstart;
@@ -1669,7 +1709,7 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
             }
             float scalar_vgroup = 1;
             /* Use vertex group. */
-            if (dvert) {
+            if (dvert && !do_flat_faces) {
               MDeformVert *dv = &dvert[i];
               if (defgrp_invert) {
                 scalar_vgroup = 1.0f - BKE_defvert_find_weight(dv, defgrp_index);
@@ -1727,6 +1767,10 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
           }
         }
       }
+    }
+
+    if (do_flat_faces) {
+      MEM_freeN(face_weight);
     }
   }
 
