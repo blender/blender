@@ -3879,6 +3879,8 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
         return menu
 
     def draw(self, context):
+        from math import pi
+
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -3888,6 +3890,7 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
         layout.separator()
 
         layout.operator("mesh.extrude_repeat")
+        layout.operator("mesh.spin").angle = pi * 2
 
 
 class VIEW3D_MT_edit_mesh_vertices(Menu):
