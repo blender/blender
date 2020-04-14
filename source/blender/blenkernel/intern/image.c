@@ -3977,7 +3977,9 @@ static ImBuf *load_sequence_single(
     iuser_t = *iuser;
   }
   else {
-    /* TODO(sergey): Do we need to initialize something here? */
+    /* BKE_image_user_file_path() uses this value for file name for sequences. */
+    iuser_t.framenr = frame;
+    /* TODO(sergey): Do we need to initialize something else here? */
   }
 
   iuser_t.view = view_id;
