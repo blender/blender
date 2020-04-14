@@ -514,6 +514,11 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
   if (GPU_framebuffer_active_get() != fb) {
     glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
     glEnable(GL_FRAMEBUFFER_SRGB);
+
+    GPUTexture *first_target = fb->attachments[GPU_FB_COLOR_ATTACHMENT0].tex;
+    const bool is_srgb_target = (first_target &&
+                                 (GPU_texture_format(first_target) == GPU_SRGB8_A8));
+    GPU_shader_set_framebuffer_srgb_target(is_srgb_target);
   }
 
   gpu_framebuffer_current_set(fb);
@@ -549,6 +554,7 @@ void GPU_framebuffer_restore(void)
     glBindFramebuffer(GL_FRAMEBUFFER, GPU_framebuffer_default());
     gpu_framebuffer_current_set(NULL);
     glDisable(GL_FRAMEBUFFER_SRGB);
+    GPU_shader_set_framebuffer_srgb_target(false);
   }
 }
 
@@ -944,6 +950,7 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
   GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
   GPU_framebuffer_bind(ofs_fb);
   glDisable(GL_FRAMEBUFFER_SRGB);
+  GPU_shader_set_framebuffer_srgb_target(false);
 }
 
 void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)

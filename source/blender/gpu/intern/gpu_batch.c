@@ -675,6 +675,7 @@ void GPU_batch_draw(GPUBatch *batch)
 #endif
   GPU_batch_program_use_begin(batch);
   GPU_matrix_bind(batch->interface);  // external call.
+  GPU_shader_set_srgb_uniform(batch->interface);
 
   GPU_batch_bind(batch);
   GPU_batch_draw_advanced(batch, 0, 0, 0, 0);

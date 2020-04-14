@@ -17,4 +17,5 @@ void main()
 #else
   fragColor = color;
 #endif
+  fragColor = blender_srgb_to_framebuffer_space(fragColor);
 }

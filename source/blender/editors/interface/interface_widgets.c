@@ -1348,6 +1348,7 @@ void UI_widgetbase_draw_cache_flush(void)
                                 (float *)g_widget_base_batch.params);
     GPU_batch_uniform_3fv(batch, "checkerColorAndSize", checker_params);
     GPU_matrix_bind(batch->interface);
+    GPU_shader_set_srgb_uniform(batch->interface);
     GPU_batch_bind(batch);
     GPU_batch_draw_advanced(batch, 0, 0, 0, g_widget_base_batch.count);
 

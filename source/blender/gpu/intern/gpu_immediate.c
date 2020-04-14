@@ -151,6 +151,7 @@ void immBindProgram(GLuint program, const GPUShaderInterface *shaderface)
   glUseProgram(program);
   get_attr_locations(&imm.vertex_format, &imm.attr_binding, shaderface);
   GPU_matrix_bind(shaderface);
+  GPU_shader_set_srgb_uniform(shaderface);
 }
 
 void immBindBuiltinProgram(eGPUBuiltinShader shader_id)

@@ -265,6 +265,7 @@ static void draw_uvs_texpaint(const Scene *scene, Object *ob, Depsgraph *depsgra
     bool prev_ma_match = (mpoly->mat_nr == (ob_eval->actcol - 1));
 
     GPU_matrix_bind(geom->interface);
+    GPU_shader_set_srgb_uniform(geom->interface);
     GPU_batch_bind(geom);
 
     /* TODO(fclem): If drawcall count becomes a problem in the future

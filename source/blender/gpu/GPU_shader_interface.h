@@ -56,6 +56,7 @@ typedef enum {
   GPU_UNIFORM_BASE_INSTANCE,  /* int baseInstance */
   GPU_UNIFORM_RESOURCE_CHUNK, /* int resourceChunk */
   GPU_UNIFORM_RESOURCE_ID,    /* int resourceId */
+  GPU_UNIFORM_SRGB_TRANSFORM, /* bool srgbTarget */
 
   GPU_UNIFORM_CUSTOM, /* custom uniform, not one of the above built-ins */
 

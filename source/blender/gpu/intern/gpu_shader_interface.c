@@ -68,6 +68,7 @@ static const char *BuiltinUniform_name(GPUUniformBuiltin u)
       [GPU_UNIFORM_BASE_INSTANCE] = "baseInstance",
       [GPU_UNIFORM_RESOURCE_CHUNK] = "resourceChunk",
       [GPU_UNIFORM_RESOURCE_ID] = "resourceId",
+      [GPU_UNIFORM_SRGB_TRANSFORM] = "srgbTarget",
 
       [GPU_UNIFORM_CUSTOM] = NULL,
       [GPU_NUM_UNIFORMS] = NULL,

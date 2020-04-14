@@ -120,8 +120,8 @@ static PyObject *bpygpu_shader_new(PyTypeObject *UNUSED(type), PyObject *args, P
     return NULL;
   }
 
-  GPUShader *shader = GPU_shader_create(
-      params.vertexcode, params.fragcode, params.geocode, params.libcode, params.defines, NULL);
+  GPUShader *shader = GPU_shader_create_from_python(
+      params.vertexcode, params.fragcode, params.geocode, params.libcode, params.defines);
 
   if (shader == NULL) {
     PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
@@ -608,6 +608,10 @@ PyDoc_STRVAR(
     "\n"
     "   To debug shaders, use the --debug-gpu-shaders command line option"
     "   to see full GLSL shader compilation and linking errors.\n"
+    "\n"
+    "   For drawing user interface elements and gizmos, use "
+    "   ``fragOutput = blender_srgb_to_framebuffer_space(fragOutput)``"
+    "   to transform the output sRGB colors to the framebuffer colorspace."
     "\n"
     "   :param vertexcode: Vertex shader code.\n"
     "   :type vertexcode: str\n"
