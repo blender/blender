@@ -5175,8 +5175,11 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
     int new_points = 0;
     int offset = 0;
     bool is_prev_selected = false;
+    bool duplic_first = false;
+    bool duplic_last = false;
     if (nu->type == CU_BEZIER) {
       BezTriple *bezt, *bezt_prev = NULL;
+      BezTriple bezt_stack;
       bool is_cyclic = false;
       if (pnt_len == 1) {
         /* Single point extrusion.
@@ -5187,6 +5190,22 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
         is_cyclic = true;
         bezt_prev = &nu->bezt[pnt_len - 1];
         is_prev_selected = BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt_prev);
+      }
+      else {
+        duplic_first = BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu->bezt[0]) &&
+                       BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu->bezt[1]);
+
+        duplic_last = BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu->bezt[pnt_len - 2]) &&
+                      BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu->bezt[pnt_len - 1]);
+
+        if (duplic_first) {
+          bezt_stack = nu->bezt[0];
+          BEZT_DESEL_ALL(&bezt_stack);
+          bezt_prev = &bezt_stack;
+        }
+        if (duplic_last) {
+          new_points++;
+        }
       }
       i = pnt_len;
       for (bezt = &nu->bezt[0]; i--; bezt++) {
@@ -5212,12 +5231,18 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
           BLI_assert(bezt_prev == &nu->bezt[pnt_len - 1]);
           BLI_assert(is_prev_selected == BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt_prev));
         }
+        else if (duplic_first) {
+          bezt_prev = &bezt_stack;
+          is_prev_selected = false;
+        }
         else {
           bezt_prev = NULL;
         }
         BezTriple *bezt_src, *bezt_dst, *bezt_src_iter, *bezt_dst_iter;
+        const int new_len = pnt_len + new_points;
+
         bezt_src = nu->bezt;
-        bezt_dst = MEM_mallocN((pnt_len + new_points) * sizeof(BezTriple), __func__);
+        bezt_dst = MEM_mallocN(new_len * sizeof(BezTriple), __func__);
         bezt_src_iter = &bezt_src[0];
         bezt_dst_iter = &bezt_dst[0];
         i = 0;
@@ -5251,7 +5276,12 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
 
         int remain = pnt_len - offset;
         if (remain) {
-          ED_curve_beztcpy(editnurb, bezt_dst_iter, bezt_src_iter, pnt_len - offset);
+          ED_curve_beztcpy(editnurb, bezt_dst_iter, bezt_src_iter, remain);
+        }
+
+        if (duplic_last) {
+          ED_curve_beztcpy(editnurb, &bezt_dst[new_len - 1], &bezt_src[pnt_len - 1], 1);
+          BEZT_DESEL_ALL(&bezt_dst[new_len - 1]);
         }
 
         MEM_freeN(nu->bezt);
@@ -5262,11 +5292,25 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
     }
     else {
       BPoint *bp, *bp_prev = NULL;
+      BPoint bp_stack;
       if (pnt_len == 1) {
         /* Single point extrusion.
          * Reference a `prev_bp` to force extrude. */
         bp_prev = &nu->bp[0];
       }
+      else {
+        duplic_first = (nu->bp[0].f1 & SELECT) && (nu->bp[1].f1 & SELECT);
+        duplic_last = (nu->bp[pnt_len - 2].f1 & SELECT) && (nu->bp[pnt_len - 1].f1 & SELECT);
+        if (duplic_first) {
+          bp_stack = nu->bp[0];
+          bp_stack.f1 &= ~SELECT;
+          bp_prev = &bp_stack;
+        }
+        if (duplic_last) {
+          new_points++;
+        }
+      }
+
       i = pnt_len;
       for (bp = &nu->bp[0]; i--; bp++) {
         bool is_selected = (bp->f1 & SELECT) != 0;
@@ -5282,17 +5326,23 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
 
       if (new_points) {
         BPoint *bp_src, *bp_dst, *bp_src_iter, *bp_dst_iter;
+        const int new_len = pnt_len + new_points;
+
         is_prev_selected = false;
         if (pnt_len == 1) {
           /* Single point extrusion.
            * Keep `is_prev_selected` false to force extrude. */
           BLI_assert(bp_prev == &nu->bp[0]);
         }
+        else if (duplic_first) {
+          bp_prev = &bp_stack;
+          is_prev_selected = false;
+        }
         else {
           bp_prev = NULL;
         }
         bp_src = nu->bp;
-        bp_dst = MEM_mallocN((pnt_len + new_points) * sizeof(BPoint), __func__);
+        bp_dst = MEM_mallocN(new_len * sizeof(BPoint), __func__);
         bp_src_iter = &bp_src[0];
         bp_dst_iter = &bp_dst[0];
         i = 0;
@@ -5320,7 +5370,12 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
 
         int remain = pnt_len - offset;
         if (remain) {
-          ED_curve_bpcpy(editnurb, bp_dst_iter, bp_src_iter, pnt_len - offset);
+          ED_curve_bpcpy(editnurb, bp_dst_iter, bp_src_iter, remain);
+        }
+
+        if (duplic_last) {
+          ED_curve_bpcpy(editnurb, &bp_dst[new_len - 1], &bp_src[pnt_len - 1], 1);
+          bp_dst[new_len - 1].f1 &= ~SELECT;
         }
 
         MEM_freeN(nu->bp);
