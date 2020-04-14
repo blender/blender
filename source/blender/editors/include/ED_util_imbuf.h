@@ -25,17 +25,17 @@
 #define __ED_UTIL_IMBUF_H__
 
 #include "BLI_compiler_attrs.h"
-
-#include "DNA_screen_types.h"
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct ARegion;
 struct Main;
 struct bContext;
-struct wmOperator;
 struct wmEvent;
+struct wmOperator;
 
 /* ed_util_imbuf.c */
 void ED_imbuf_sample_draw(const struct bContext *C, struct ARegion *region, void *arg_info);
