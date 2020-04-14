@@ -3834,20 +3834,11 @@ typedef struct tConstraintLinkData {
 /* callback function used to relink constraint ID-links */
 static void lib_link_constraint_cb(bConstraint *UNUSED(con),
                                    ID **idpoin,
-                                   bool is_reference,
+                                   bool UNUSED(is_reference),
                                    void *userdata)
 {
   tConstraintLinkData *cld = (tConstraintLinkData *)userdata;
-
-  /* for reference types, we need to increment the user-counts on load... */
-  if (is_reference) {
-    /* reference type - with usercount */
-    *idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
-  }
-  else {
-    /* target type - no usercount needed */
-    *idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
-  }
+  *idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
 }
 
 static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
