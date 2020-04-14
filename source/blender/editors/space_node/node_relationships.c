@@ -1622,8 +1622,8 @@ static void node_parent_offset_apply(NodeInsertOfsData *data, bNode *parent, con
 
   node_offset_apply(parent, offset_x);
 
-  /* flag all childs as offset to prevent them from being offset
-   * separately (they've already moved with the parent) */
+  /* Flag all children as offset to prevent them from being offset
+   * separately (they've already moved with the parent). */
   for (node = data->ntree->nodes.first; node; node = node->next) {
     if (nodeIsChildOf(parent, node)) {
       /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */

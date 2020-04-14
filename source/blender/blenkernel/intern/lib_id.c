@@ -1724,7 +1724,7 @@ static void library_make_local_copying_check(ID *id,
      * relation we want to check is in the other way around. */
     if (entry->usage_flag & IDWALK_CB_LOOPBACK) {
 #ifndef NDEBUG
-      /* Some debug checks to ensure we explicitely are aware of all 'loopback' cases, since those
+      /* Some debug checks to ensure we explicitly are aware of all 'loop-back' cases, since those
        * may not always be manageable in the same way... */
       switch (GS(par_id->name)) {
         case ID_OB:

@@ -1299,9 +1299,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
       }
       else if (GS(id->name) == ID_SCE) {
         if (RNA_struct_is_a(ptr->type, &RNA_ToolSettings)) {
-          /* toolsettings property
-           * NOTE: toolsettings is usually accessed directly (i.e. not through scene)
-           */
+          /* Tool-settings property:
+           * NOTE: tool-settings is usually accessed directly (i.e. not through scene). */
           data_path = RNA_path_from_ID_to_property(ptr, prop);
         }
         else {
