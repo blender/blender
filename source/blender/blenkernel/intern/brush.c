@@ -1422,6 +1422,12 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->cloth_deform_type = BRUSH_CLOTH_DEFORM_DRAG;
       br->flag &= ~(BRUSH_ALPHA_PRESSURE | BRUSH_SIZE_PRESSURE);
       break;
+    case SCULPT_TOOL_LAYER:
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      br->hardness = 0.35f;
+      br->alpha = 1.0f;
+      br->height = 0.05f;
+      break;
     default:
       break;
   }

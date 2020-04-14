@@ -781,6 +781,9 @@ typedef struct StrokeCache {
   /* Stores the displacement produced by the laplacian step of HC smooth. */
   float (*surface_smooth_laplacian_disp)[3];
 
+  /* Layer brush */
+  float *layer_displacement_factor;
+
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;
 

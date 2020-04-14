@@ -122,7 +122,6 @@ void BKE_pbvh_build_bmesh(PBVH *bvh,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset);
 void BKE_pbvh_free(PBVH *bvh);
-void BKE_pbvh_free_layer_disp(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
  * - for each hit calling a callback
@@ -309,14 +308,6 @@ void BKE_pbvh_subdiv_cgg_set(PBVH *bvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_face_sets_set(PBVH *bvh, int *face_sets);
 
 void BKE_pbvh_face_sets_color_set(PBVH *bvh, int seed, int color_default);
-
-/* Layer displacement */
-
-/* Get the node's displacement layer, creating it if necessary */
-float *BKE_pbvh_node_layer_disp_get(PBVH *pbvh, PBVHNode *node);
-
-/* If the node has a displacement layer, free it and set to null */
-void BKE_pbvh_node_layer_disp_free(PBVHNode *node);
 
 /* vertex deformer */
 float (*BKE_pbvh_vert_coords_alloc(struct PBVH *pbvh))[3];

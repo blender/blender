@@ -1306,8 +1306,9 @@ static void sculptsession_free_pbvh(Object *object)
   }
 
   MEM_SAFE_FREE(ss->pmap);
-
   MEM_SAFE_FREE(ss->pmap_mem);
+
+  MEM_SAFE_FREE(ss->layer_base);
 
   MEM_SAFE_FREE(ss->preview_vert_index_list);
   ss->preview_vert_index_count = 0;
@@ -1353,31 +1354,17 @@ void BKE_sculptsession_free(Object *ob)
       BM_log_free(ss->bm_log);
     }
 
-    if (ss->texcache) {
-      MEM_freeN(ss->texcache);
-    }
+    MEM_SAFE_FREE(ss->texcache);
 
     if (ss->tex_pool) {
       BKE_image_pool_free(ss->tex_pool);
     }
 
-    if (ss->layer_co) {
-      MEM_freeN(ss->layer_co);
-    }
+    MEM_SAFE_FREE(ss->orig_cos);
+    MEM_SAFE_FREE(ss->deform_cos);
+    MEM_SAFE_FREE(ss->deform_imats);
 
-    if (ss->orig_cos) {
-      MEM_freeN(ss->orig_cos);
-    }
-    if (ss->deform_cos) {
-      MEM_freeN(ss->deform_cos);
-    }
-    if (ss->deform_imats) {
-      MEM_freeN(ss->deform_imats);
-    }
-
-    if (ss->preview_vert_index_list) {
-      MEM_freeN(ss->preview_vert_index_list);
-    }
+    MEM_SAFE_FREE(ss->preview_vert_index_list);
 
     if (ss->pose_ik_chain_preview) {
       for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {

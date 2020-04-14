@@ -279,6 +279,12 @@ typedef struct SculptClothSimulation {
 
 } SculptClothSimulation;
 
+typedef struct SculptLayerPersistentBase {
+  float co[3];
+  float no[3];
+  float disp;
+} SculptLayerPersistentBase;
+
 /* Session data (mode-specific) */
 
 typedef struct SculptSession {
@@ -329,9 +335,6 @@ typedef struct SculptSession {
   unsigned int texcache_side, *texcache, texcache_actual;
   struct ImagePool *tex_pool;
 
-  /* Layer brush persistence between strokes */
-  float (*layer_co)[3]; /* Copy of the mesh vertices' locations */
-
   struct StrokeCache *cache;
   struct FilterCache *filter_cache;
 
@@ -358,6 +361,10 @@ typedef struct SculptSession {
   /* Pose Brush Preview */
   float pose_origin[3];
   SculptPoseIKChain *pose_ik_chain_preview;
+
+  /* Layer brush persistence between strokes */
+  /* This is freed with the PBVH, so it is always in sync with the mesh. */
+  SculptLayerPersistentBase *layer_base;
 
   /* Transform operator */
   float pivot_pos[3];

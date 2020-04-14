@@ -1314,10 +1314,6 @@ void SCULPT_undo_push_end_ex(const bool use_nested_undo)
       MEM_freeN(unode->no);
       unode->no = NULL;
     }
-
-    if (unode->node) {
-      BKE_pbvh_node_layer_disp_free(unode->node);
-    }
   }
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */

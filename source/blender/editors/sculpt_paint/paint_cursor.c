@@ -1216,6 +1216,34 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession
   }
 }
 
+void SCULPT_layer_brush_height_preview_draw(const uint gpuattr,
+                                            const Brush *brush,
+                                            const float obmat[4][4],
+                                            const float location[3],
+                                            const float normal[3],
+                                            const float rds,
+                                            const float line_width,
+                                            const float outline_col[3],
+                                            const float alpha)
+{
+  float cursor_trans[4][4], cursor_rot[4][4];
+  float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
+  float quat[4];
+  float height_preview_trans[3];
+  copy_m4_m4(cursor_trans, obmat);
+  madd_v3_v3v3fl(height_preview_trans, location, normal, brush->height);
+  translate_m4(
+      cursor_trans, height_preview_trans[0], height_preview_trans[1], height_preview_trans[2]);
+  rotation_between_vecs_to_quat(quat, z_axis, normal);
+  quat_to_mat4(cursor_rot, quat);
+  GPU_matrix_mul(cursor_trans);
+  GPU_matrix_mul(cursor_rot);
+
+  GPU_line_width(line_width);
+  immUniformColor3fvAlpha(outline_col, alpha * 0.5f);
+  imm_draw_circle_wire_3d(gpuattr, 0, 0, rds, 80);
+}
+
 static bool paint_use_2d_cursor(ePaintMode mode)
 {
   if (mode >= PAINT_MODE_TEXTURE_3D) {
@@ -1473,6 +1501,21 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
             const float white[3] = {1.0f, 1.0f, 1.0f};
             SCULPT_cloth_simulation_limits_draw(
                 pos, brush, vc.obact->obmat, gi.location, gi.normal, rds, 1.0f, white, 0.25f);
+            GPU_matrix_pop();
+          }
+
+          /* Layer brush height. */
+          if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
+            GPU_matrix_push();
+            SCULPT_layer_brush_height_preview_draw(pos,
+                                                   brush,
+                                                   vc.obact->obmat,
+                                                   gi.location,
+                                                   gi.normal,
+                                                   rds,
+                                                   1.0f,
+                                                   outline_col,
+                                                   outline_alpha);
             GPU_matrix_pop();
           }
 

@@ -1709,10 +1709,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   /* Update the test radius to sample the normal using the normal radius of the brush. */
   if (data->brush->ob_mode == OB_MODE_SCULPT) {
     float test_radius = sqrtf(normal_test.radius_squared);
-    /* Layer brush produces artifacts with normal and area radius. */
-    if (!(ss->cache && data->brush->sculpt_tool == SCULPT_TOOL_LAYER)) {
-      test_radius *= data->brush->normal_radius_factor;
-    }
+    test_radius *= data->brush->normal_radius_factor;
     normal_test.radius = test_radius;
     normal_test.radius_squared = test_radius * test_radius;
   }
@@ -1724,15 +1721,13 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   if (data->brush->ob_mode == OB_MODE_SCULPT) {
     float test_radius = sqrtf(area_test.radius_squared);
     /* Layer brush produces artifacts with normal and area radius */
-    if (!(ss->cache && data->brush->sculpt_tool == SCULPT_TOOL_LAYER)) {
-      /* Enable area radius control only on Scrape for now */
-      if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_FILL) &&
-          data->brush->area_radius_factor > 0.0f) {
-        test_radius *= data->brush->area_radius_factor;
-      }
-      else {
-        test_radius *= data->brush->normal_radius_factor;
-      }
+    /* Enable area radius control only on Scrape for now */
+    if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_SCRAPE, SCULPT_TOOL_FILL) &&
+        data->brush->area_radius_factor > 0.0f) {
+      test_radius *= data->brush->area_radius_factor;
+    }
+    else {
+      test_radius *= data->brush->normal_radius_factor;
     }
     area_test.radius = test_radius;
     area_test.radius_squared = test_radius * test_radius;
@@ -4072,22 +4067,13 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
-  const float *offset = data->offset;
+
+  const bool use_persistent_base = ss->layer_base && brush->flag & BRUSH_PERSISTENT;
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
-  float *layer_disp;
   const float bstrength = ss->cache->bstrength;
-  const float lim = (bstrength < 0.0f) ? -data->brush->height : data->brush->height;
-  /* XXX: layer brush needs conversion to proxy but its more complicated */
-  /* proxy = BKE_pbvh_node_add_proxy(ss->pbvh, nodes[n])->co; */
-
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
-
-  /* Why does this have to be thread-protected? */
-  BLI_mutex_lock(&data->mutex);
-  layer_disp = BKE_pbvh_node_layer_disp_get(ss->pbvh, data->nodes[n]);
-  BLI_mutex_unlock(&data->mutex);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -4098,38 +4084,65 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_orig_vert_data_update(&orig_data, &vd);
 
     if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  vd.co,
-                                                                  sqrtf(test.dist),
-                                                                  vd.no,
-                                                                  vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
-                                                                  tls->thread_id);
-      float *disp = &layer_disp[vd.i];
-      float val[3];
+      const float fade = SCULPT_brush_strength_factor(ss,
+                                                      brush,
+                                                      vd.co,
+                                                      sqrtf(test.dist),
+                                                      vd.no,
+                                                      vd.fno,
+                                                      vd.mask ? *vd.mask : 0.0f,
+                                                      vd.index,
+                                                      tls->thread_id);
 
-      *disp += fade;
-
-      /* Don't let the displacement go past the limit. */
-      if ((lim < 0.0f && *disp < lim) || (lim >= 0.0f && *disp > lim)) {
-        *disp = lim;
-      }
-
-      mul_v3_v3fl(val, offset, *disp);
-
-      if (!ss->multires.active && !ss->bm && ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
-        int index = vd.vert_indices[vd.i];
-
-        /* Persistent base. */
-        add_v3_v3(val, ss->layer_co[index]);
+      const int vi = vd.index;
+      float *disp_factor;
+      if (use_persistent_base) {
+        disp_factor = &ss->layer_base[vi].disp;
       }
       else {
-        add_v3_v3(val, orig_data.co);
+        disp_factor = &ss->cache->layer_displacement_factor[vi];
       }
 
-      SCULPT_clip(sd, ss, vd.co, val);
+      /* When using persistent base, the layer brush Ctrl invert mode resets the height of the
+       * layer to 0. This makes possible to clean edges of previously added layers on top of the
+       * base. */
+      /* The main direction of the layers is inverted using the regular brush strength with the
+       * brush direction property. */
+      if (use_persistent_base && ss->cache->invert) {
+        (*disp_factor) += fabsf(fade * bstrength * (*disp_factor)) *
+                          ((*disp_factor) > 0.0f ? -1.0f : 1.0f);
+      }
+      else {
+        (*disp_factor) += fade * bstrength * (1.05f - fabsf(*disp_factor));
+      }
+      if (vd.mask) {
+        const float clamp_mask = 1.0f - *vd.mask;
+        CLAMP(*disp_factor, -clamp_mask, clamp_mask);
+      }
+      else {
+        CLAMP(*disp_factor, -1.0f, 1.0f);
+      }
+
+      float final_co[3];
+      float normal[3];
+
+      if (use_persistent_base) {
+        copy_v3_v3(normal, ss->layer_base[vi].no);
+        mul_v3_fl(normal, brush->height);
+        madd_v3_v3v3fl(final_co, ss->layer_base[vi].co, normal, *disp_factor);
+      }
+      else {
+        normal_short_to_float_v3(normal, orig_data.no);
+        mul_v3_fl(normal, brush->height);
+        madd_v3_v3v3fl(final_co, orig_data.co, normal, *disp_factor);
+      }
+
+      float vdisp[3];
+      sub_v3_v3v3(vdisp, final_co, vd.co);
+      mul_v3_fl(vdisp, fabsf(fade));
+      add_v3_v3v3(final_co, vd.co, vdisp);
+
+      SCULPT_clip(sd, ss, vd.co, final_co);
 
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -4143,24 +4156,23 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-  float offset[3];
 
-  mul_v3_v3v3(offset, ss->cache->scale, ss->cache->sculpt_normal_symm);
+  if (ss->cache->mirror_symmetry_pass == 0 && ss->cache->radial_symmetry_pass == 0 &&
+      ss->cache->first_time) {
+    ss->cache->layer_displacement_factor = MEM_callocN(sizeof(float) * SCULPT_vertex_count_get(ss),
+                                                       "layer displacement factor");
+  }
 
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
       .brush = brush,
       .nodes = nodes,
-      .offset = offset,
   };
-  BLI_mutex_init(&data.mutex);
 
   PBVHParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
   BKE_pbvh_parallel_range(0, totnode, &data, do_layer_brush_task_cb_ex, &settings);
-
-  BLI_mutex_end(&data.mutex);
 }
 
 static void do_inflate_brush_task_cb_ex(void *__restrict userdata,
@@ -5948,6 +5960,7 @@ void SCULPT_cache_free(StrokeCache *cache)
 {
   MEM_SAFE_FREE(cache->dial);
   MEM_SAFE_FREE(cache->surface_smooth_laplacian_disp);
+  MEM_SAFE_FREE(cache->layer_displacement_factor);
 
   if (cache->pose_ik_chain) {
     SCULPT_pose_ik_chain_free(cache->pose_ik_chain);
@@ -6006,14 +6019,9 @@ static void sculpt_update_cache_invariants(
   ss->cache = cache;
 
   /* Set scaling adjustment. */
-  if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
-    max_scale = 1.0f;
-  }
-  else {
-    max_scale = 0.0f;
-    for (int i = 0; i < 3; i++) {
-      max_scale = max_ff(max_scale, fabsf(ob->scale[i]));
-    }
+  max_scale = 0.0f;
+  for (int i = 0; i < 3; i++) {
+    max_scale = max_ff(max_scale, fabsf(ob->scale[i]));
   }
   cache->scale[0] = max_scale / ob->scale[0];
   cache->scale[1] = max_scale / ob->scale[1];
@@ -6127,32 +6135,6 @@ static void sculpt_update_cache_invariants(
     /* Transform to sculpted object space. */
     mul_m3_v3(mat, cache->true_gravity_direction);
     normalize_v3(cache->true_gravity_direction);
-  }
-
-  /* Initialize layer brush displacements and persistent coords. */
-  if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
-    /* Not supported yet for multires or dynamic topology. */
-    if (!ss->multires.active && !ss->bm && !ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
-      if (!ss->layer_co) {
-        ss->layer_co = MEM_mallocN(sizeof(float) * 3 * ss->totvert, "sculpt mesh vertices copy");
-      }
-
-      if (ss->deform_cos) {
-        memcpy(ss->layer_co, ss->deform_cos, ss->totvert);
-      }
-      else {
-        for (int i = 0; i < ss->totvert; i++) {
-          copy_v3_v3(ss->layer_co[i], ss->mvert[i].co);
-        }
-      }
-    }
-
-    if (ss->bm) {
-      /* Free any remaining layer displacements from nodes. If not and topology changes
-       * from using another tool, then next layer toolstroke
-       * can access past disp array bounds. */
-      BKE_pbvh_free_layer_disp(ss->pbvh);
-    }
   }
 
   /* Make copies of the mesh vertex locations and normals for some tools. */
@@ -7290,13 +7272,25 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  SculptSession *ss = CTX_data_active_object(C)->sculpt;
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
 
   if (ss) {
-    if (ss->layer_co) {
-      MEM_freeN(ss->layer_co);
+    SCULPT_vertex_random_access_init(ss);
+    BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false);
+
+    MEM_SAFE_FREE(ss->layer_base);
+
+    const int totvert = SCULPT_vertex_count_get(ss);
+    ss->layer_base = MEM_mallocN(sizeof(SculptLayerPersistentBase) * totvert,
+                                 "layer persistent base");
+
+    for (int i = 0; i < totvert; i++) {
+      copy_v3_v3(ss->layer_base[i].co, SCULPT_vertex_co_get(ss, i));
+      SCULPT_vertex_normal_get(ss, i, ss->layer_base[i].no);
+      ss->layer_base[i].disp = 0.0f;
     }
-    ss->layer_co = NULL;
   }
 
   return OPERATOR_FINISHED;

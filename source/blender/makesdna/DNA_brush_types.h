@@ -689,7 +689,6 @@ typedef enum eBrushUVSculptTool {
        SCULPT_TOOL_SLIDE_RELAX, \
        SCULPT_TOOL_CREASE, \
        SCULPT_TOOL_BLOB, \
-       SCULPT_TOOL_LAYER, \
        SCULPT_TOOL_INFLATE, \
        SCULPT_TOOL_CLAY, \
        SCULPT_TOOL_CLAY_STRIPS, \
