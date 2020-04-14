@@ -42,11 +42,11 @@
 /* Using Hammersley distribution */
 static float *create_disk_samples(int num_samples, int num_iterations)
 {
+  BLI_assert(num_samples * num_iterations <= CAVITY_MAX_SAMPLES);
   const int total_samples = num_samples * num_iterations;
   const float num_samples_inv = 1.0f / num_samples;
   /* vec4 to ensure memory alignment. */
   float(*texels)[4] = MEM_callocN(sizeof(float[4]) * CAVITY_MAX_SAMPLES, __func__);
-
   for (int i = 0; i < total_samples; i++) {
     float it_add = (i / num_samples) * 0.499f;
     float r = fmodf((i + 0.5f + it_add) * num_samples_inv, 1.0f);
@@ -102,7 +102,7 @@ void workbench_cavity_data_update(WORKBENCH_PrivateData *wpd, WORKBENCH_UBO_Worl
   if (CAVITY_ENABLED(wpd)) {
     int cavity_sample_count_single_iteration = scene->display.matcap_ssao_samples;
     int cavity_sample_count_total = workbench_cavity_total_sample_count(wpd, scene);
-    int max_iter_count = cavity_sample_count_total / cavity_sample_count_single_iteration;
+    const int max_iter_count = cavity_sample_count_total / cavity_sample_count_single_iteration;
 
     int sample = wpd->taa_sample % max_iter_count;
     wd->cavity_sample_start = cavity_sample_count_single_iteration * sample;
@@ -128,6 +128,7 @@ void workbench_cavity_samples_ubo_ensure(WORKBENCH_PrivateData *wpd)
 
   int cavity_sample_count_single_iteration = scene->display.matcap_ssao_samples;
   int cavity_sample_count = workbench_cavity_total_sample_count(wpd, scene);
+  const int max_iter_count = max_ii(1, cavity_sample_count / cavity_sample_count_single_iteration);
 
   if (wpd->vldata->cavity_sample_count != cavity_sample_count) {
     DRW_UBO_FREE_SAFE(wpd->vldata->cavity_sample_ubo);
@@ -135,8 +136,7 @@ void workbench_cavity_samples_ubo_ensure(WORKBENCH_PrivateData *wpd)
   }
 
   if (wpd->vldata->cavity_sample_ubo == NULL) {
-    float *samples = create_disk_samples(cavity_sample_count_single_iteration,
-                                         max_ii(1, wpd->taa_sample_len));
+    float *samples = create_disk_samples(cavity_sample_count_single_iteration, max_iter_count);
     wpd->vldata->cavity_jitter_tx = create_jitter_texture(cavity_sample_count);
     /* NOTE: Uniform buffer needs to always be filled to be valid. */
     wpd->vldata->cavity_sample_ubo = DRW_uniformbuffer_create(
