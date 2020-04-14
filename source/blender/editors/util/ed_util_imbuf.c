@@ -53,7 +53,9 @@
 /* Own define. */
 #include "ED_util_imbuf.h"
 
-/* ********* Pixel sample operator ********* */
+/* -------------------------------------------------------------------- */
+/** \name Image Pixel Sample Struct (Operator Custom Data)
+ * \{ */
 
 typedef struct ImageSampleInfo {
   ARegionType *art;
@@ -79,6 +81,8 @@ typedef struct ImageSampleInfo {
   bool color_manage;
   int use_default_view;
 } ImageSampleInfo;
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Image Pixel Sample
@@ -154,6 +158,10 @@ static void image_sample_rect_color_float(ImBuf *ibuf, const rcti *rect, float r
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Pixel Sample (Internal Utilities)
+ * \{ */
 
 static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -387,6 +395,14 @@ static void ed_imbuf_sample_apply(bContext *C, wmOperator *op, const wmEvent *ev
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Pixel Sample (Public Operator Callback)
+ *
+ * Callbacks for the sample operator, used by sequencer and image spaces.
+ * \{ */
+
 void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
 {
   ImageSampleInfo *info = arg_info;
@@ -551,3 +567,5 @@ bool ED_imbuf_sample_poll(bContext *C)
 
   return false;
 }
+
+/** \} */
