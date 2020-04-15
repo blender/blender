@@ -2483,8 +2483,8 @@ class WM_MT_splash(Menu):
         row = layout.row()
 
         sub = row.row()
-        if bpy.types.PREFERENCES_OT_copy_prev.poll(context):
-            old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
+        old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
+        if bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version:
             sub.operator("preferences.copy_prev", text="Load %d.%d Settings" % old_version)
             sub.operator("wm.save_userpref", text="Save New Settings")
         else:

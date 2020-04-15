@@ -110,20 +110,30 @@ class PREFERENCES_OT_copy_prev(Operator):
     bl_idname = "preferences.copy_prev"
     bl_label = "Copy Previous Settings"
 
-    @staticmethod
-    def previous_version():
-        ver = bpy.app.version
-        ver_old = ((ver[0] * 100) + ver[1]) - 1
-        return ver_old // 100, ver_old % 100
+    @classmethod
+    def _old_version_path(cls, version):
+        return bpy.utils.resource_path('USER', version[0], version[1])
 
-    @staticmethod
-    def _old_path():
-        ver = bpy.app.version
-        ver_old = ((ver[0] * 100) + ver[1]) - 1
-        return bpy.utils.resource_path('USER', ver_old // 100, ver_old % 100)
+    @classmethod
+    def previous_version(cls):
+        # Find config folder from previous version.
+        import os
+        version = bpy.app.version
+        version_old = ((version[0] * 100) + version[1]) - 1
+        while version_old % 10 > 0:
+            version_split = version_old // 100, version_old % 100
+            if os.path.isdir(cls._old_version_path(version_split)):
+                return version_split
+            version_old = version_old - 1
+        return None
 
-    @staticmethod
-    def _new_path():
+    @classmethod
+    def _old_path(cls):
+        version_old = cls.previous_version()
+        return cls._old_version_path(version_old) if version_old else None
+
+    @classmethod
+    def _new_path(cls):
         return bpy.utils.resource_path('USER')
 
     @classmethod
@@ -132,6 +142,8 @@ class PREFERENCES_OT_copy_prev(Operator):
 
         old = cls._old_path()
         new = cls._new_path()
+        if not old:
+            return False
 
         # Disable operator in case config path is overridden with environment
         # variable. That case has no automatic per-version configuration.
