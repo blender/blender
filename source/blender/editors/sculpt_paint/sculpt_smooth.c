@@ -315,7 +315,7 @@ static void do_smooth_brush_bmesh_task_cb_ex(void *__restrict userdata,
                                                                   vd.index,
                                                                   tls->thread_id);
       if (smooth_mask) {
-        float val = SCULPT_neighbor_mask_average(ss, vd.vert_indices[vd.i]) - *vd.mask;
+        float val = SCULPT_neighbor_mask_average(ss, vd.index) - *vd.mask;
         val *= fade * bstrength;
         *vd.mask += val;
         CLAMP(*vd.mask, 0.0f, 1.0f);
