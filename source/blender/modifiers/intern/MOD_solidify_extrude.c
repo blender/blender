@@ -236,8 +236,8 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
   const bool do_clamp = (smd->offset_clamp != 0.0f);
   const bool do_angle_clamp = do_clamp && (smd->flag & MOD_SOLIDIFY_OFFSET_ANGLE_CLAMP) != 0;
   const bool do_bevel_convex = bevel_convex != 0.0f;
-  const bool do_rim = (smd->flag & MOD_SOLIDIFY_RIM) == 0;
-  const bool do_shell = do_rim && (smd->flag & MOD_SOLIDIFY_NOSHELL) == 0;
+  const bool do_rim = (smd->flag & MOD_SOLIDIFY_RIM) != 0;
+  const bool do_shell = !(do_rim && (smd->flag & MOD_SOLIDIFY_NOSHELL) != 0);
 
   /* weights */
   MDeformVert *dvert;
