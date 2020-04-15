@@ -236,8 +236,8 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
   const bool do_clamp = (smd->offset_clamp != 0.0f);
   const bool do_angle_clamp = do_clamp && (smd->flag & MOD_SOLIDIFY_OFFSET_ANGLE_CLAMP) != 0;
   const bool do_bevel_convex = bevel_convex != 0.0f;
-  const bool do_shell = ((smd->flag & MOD_SOLIDIFY_RIM) && (smd->flag & MOD_SOLIDIFY_NOSHELL)) ==
-                        0;
+  const bool do_rim = (smd->flag & MOD_SOLIDIFY_RIM) == 0;
+  const bool do_shell = do_rim && (smd->flag & MOD_SOLIDIFY_NOSHELL) == 0;
 
   /* weights */
   MDeformVert *dvert;
@@ -274,7 +274,7 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
   STACK_INIT(new_vert_arr, numVerts * 2);
   STACK_INIT(new_edge_arr, numEdges * 2);
 
-  if (smd->flag & MOD_SOLIDIFY_RIM) {
+  if (do_rim) {
     BLI_bitmap *orig_mvert_tag = BLI_BITMAP_NEW(numVerts, __func__);
     uint eidx;
     uint i;
@@ -372,6 +372,11 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
   mloop = result->mloop;
   medge = result->medge;
   mvert = result->mvert;
+
+  if (do_bevel_convex) {
+    /* Make sure bweight is enabled. */
+    result->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
+  }
 
   if (do_shell) {
     CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)numVerts);
@@ -534,6 +539,9 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
       }
       if (do_bevel_convex) {
         edge_angs = MEM_malloc_arrayN(numEdges, sizeof(float), "edge_angs");
+        if (!do_rim) {
+          edge_users = MEM_malloc_arrayN(numEdges, sizeof(*edge_users), "solid_mod edges");
+        }
       }
       uint(*edge_user_pairs)[2] = MEM_malloc_arrayN(
           numEdges, sizeof(*edge_user_pairs), "edge_user_pairs");
@@ -578,6 +586,9 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
           }
           if (do_bevel_convex) {
             edge_angs[i] = angle;
+            if (!do_rim) {
+              edge_users[i] = INVALID_PAIR;
+            }
           }
         }
       }
@@ -698,6 +709,9 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
           }
         }
       }
+      if (!do_rim) {
+        MEM_freeN(edge_users);
+      }
       MEM_freeN(edge_angs);
     }
 
@@ -810,6 +824,9 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
       }
       if (do_bevel_convex) {
         edge_angs = MEM_malloc_arrayN(numEdges, sizeof(float), "edge_angs even");
+        if (!do_rim) {
+          edge_users = MEM_malloc_arrayN(numEdges, sizeof(*edge_users), "solid_mod edges");
+        }
       }
       uint(*edge_user_pairs)[2] = MEM_malloc_arrayN(
           numEdges, sizeof(*edge_user_pairs), "edge_user_pairs");
@@ -853,6 +870,9 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
             sub_v3_v3v3(e, orig_mvert[ed->v1].co, orig_mvert[ed->v2].co);
             normalize_v3(e);
             edge_angs[i] = angle_signed_on_axis_v3v3_v3(n0, n1, e);
+            if (!do_rim) {
+              edge_users[i] = INVALID_PAIR;
+            }
           }
         }
       }
@@ -916,6 +936,9 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
           }
         }
       }
+      if (!do_rim) {
+        MEM_freeN(edge_users);
+      }
       MEM_freeN(edge_angs);
     }
 
@@ -961,7 +984,7 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
   }
 
   /* must recalculate normals with vgroups since they can displace unevenly [#26888] */
-  if ((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || (smd->flag & MOD_SOLIDIFY_RIM) || dvert) {
+  if ((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || do_rim || dvert) {
     result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
   }
   else if (do_shell) {
@@ -1003,7 +1026,7 @@ Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
       }
     }
   }
-  if (smd->flag & MOD_SOLIDIFY_RIM) {
+  if (do_rim) {
     uint i;
 
     /* bugger, need to re-calculate the normals for the new edge faces.
