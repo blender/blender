@@ -920,7 +920,7 @@ static bool rna_HookModifier_object_override_apply(Main *UNUSED(bmain),
 {
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
   BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
-             "Unsupported RNA override operation on Hook modifier target objet pointer");
+             "Unsupported RNA override operation on Hook modifier target object pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
   /* We need a special handling here because setting hook target resets invert parent matrix,
