@@ -40,6 +40,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
@@ -55,6 +56,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -178,13 +180,65 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
 #endif /* WITH_BUILDINFO */
 }
 
-static ImBuf *wm_block_splash_image(void)
+static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
+{
+  uchar *rct = (uchar *)ibuf->rect;
+
+  if (rct) {
+    bTheme *btheme = UI_GetTheme();
+    const float roundness = btheme->tui.wcol_menu_back.roundness * U.dpi_fac;
+    const int size = roundness * 20;
+
+    if (size < ibuf->x && size < ibuf->y) {
+      /* Y-axis initial offset. */
+      rct += 4 * (ibuf->y - size) * ibuf->x;
+
+      for (int y = 0; y < size; y++) {
+        for (int x = 0; x < size; x++, rct += 4) {
+          const float pixel = 1.0 / size;
+          const float u = pixel * x;
+          const float v = pixel * y;
+          const float distance = sqrt(u * u + v * v);
+
+          /* Pointer offset to the alpha value of pixel. */
+          /* Note, the left corner is flipped in the X-axis. */
+          const int offset_l = 4 * (size - x - x - 1) + 3;
+          const int offset_r = 4 * (ibuf->x - size) + 3;
+
+          if (distance > 1.0) {
+            rct[offset_l] = 0;
+            rct[offset_r] = 0;
+          }
+          else {
+            /* Create a single pixel wide transition for anti-aliasing.
+             * Invert the distance and map its range [0, 1] to [0, pixel]. */
+            const float fac = (1.0 - distance) * size;
+
+            if (fac > 1.0) {
+              continue;
+            }
+
+            const uchar alpha = unit_float_to_uchar_clamp(fac);
+            rct[offset_l] = alpha;
+            rct[offset_r] = alpha;
+          }
+        }
+
+        /* X-axis offset to the next row. */
+        rct += 4 * (ibuf->x - size);
+      }
+    }
+  }
+}
+
+static ImBuf *wm_block_splash_image(int width, int *r_height)
 {
 #ifndef WITH_HEADLESS
   extern char datatoc_splash_png[];
   extern int datatoc_splash_png_size;
 
   ImBuf *ibuf = NULL;
+  int height = 0;
 
   if (U.app_template[0] != '\0') {
     char splash_filepath[FILE_MAX];
@@ -201,6 +255,18 @@ static ImBuf *wm_block_splash_image(void)
     size_t splash_data_size = datatoc_splash_png_size;
     ibuf = IMB_ibImageFromMemory(splash_data, splash_data_size, IB_rect, NULL, "<splash screen>");
   }
+
+  if (ibuf) {
+    height = (width * ibuf->y) / ibuf->x;
+    if (width != ibuf->x || height != ibuf->y) {
+      IMB_scaleImBuf(ibuf, width, height);
+    }
+
+    wm_block_splash_image_roundcorners_add(ibuf);
+    IMB_premultiply_alpha(ibuf);
+  }
+
+  *r_height = height;
 
   return ibuf;
 #else
@@ -223,12 +289,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
+  int splash_width = 500.0f * U.dpi_fac;
+  int splash_height;
+
   /* Would be nice to support caching this, so it only has to be re-read (and likely resized) on
    * first draw or if the image changed. */
-  ImBuf *ibuf = wm_block_splash_image();
-
-  float splash_width = 500.0f * U.dpi_fac;
-  float splash_height = (splash_width * ibuf->y) / ibuf->x;
+  ImBuf *ibuf = wm_block_splash_image(splash_width, &splash_height);
 
   but = uiDefButImage(block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
 
