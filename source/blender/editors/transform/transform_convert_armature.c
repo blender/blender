@@ -58,7 +58,8 @@ typedef struct BoneInitData {
   float zwidth;
 } BoneInitData;
 
-static void add_temporary_ik_constraint(bPoseChannel *pchan, bKinematicConstraint *targetless_con)
+static bConstraint *add_temporary_ik_constraint(bPoseChannel *pchan,
+                                                bKinematicConstraint *targetless_con)
 {
   bConstraint *con = BKE_constraint_add_for_pose(
       NULL, pchan, "TempConstraint", CONSTRAINT_TYPE_KINEMATIC);
@@ -77,6 +78,8 @@ static void add_temporary_ik_constraint(bPoseChannel *pchan, bKinematicConstrain
   }
 
   temp_con_data->flag |= CONSTRAINT_IK_TEMP | CONSTRAINT_IK_AUTO | CONSTRAINT_IK_POS;
+
+  return con;
 }
 
 static void update_deg_with_temporary_ik(Main *bmain, Object *ob)
@@ -324,7 +327,8 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
     }
   }
 
-  add_temporary_ik_constraint(pchan, targetless);
+  data = add_temporary_ik_constraint(pchan, targetless)->data;
+
   copy_v3_v3(data->grabtarget, pchan->pose_tail);
 
   /* watch-it! has to be 0 here, since we're still on the
