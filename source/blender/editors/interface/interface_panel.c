@@ -742,7 +742,7 @@ void ui_draw_aligned_panel(uiStyle *style,
   /* an open panel */
   else {
     /* in some occasions, draw a border */
-    if (panel->flag & PNL_SELECT) {
+    if (panel->flag & PNL_SELECT && !is_subpanel) {
       if (panel->control & UI_PNL_SOLID) {
         UI_draw_roundbox_corner_set(UI_CNR_ALL);
       }
@@ -2457,6 +2457,24 @@ static void ui_handler_remove_panel(bContext *C, void *userdata)
   panel_activate_state(C, panel, PANEL_STATE_EXIT);
 }
 
+/**
+ * Set selection state for a panel and its subpanels. The subpanels need to know they are selected
+ * too so they can be drawn above their parent when it is dragged.
+ */
+static void set_panel_selection(Panel *panel, bool value)
+{
+  if (value) {
+    panel->flag |= PNL_SELECT;
+  }
+  else {
+    panel->flag &= ~PNL_SELECT;
+  }
+
+  LISTBASE_FOREACH (Panel *, child, &panel->children) {
+    set_panel_selection(child, value);
+  }
+}
+
 static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelState state)
 {
   uiHandlePanelData *data = panel->activedata;
@@ -2479,10 +2497,10 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
       check_panel_overlap(region, NULL); /* clears */
     }
 
-    panel->flag &= ~PNL_SELECT;
+    set_panel_selection(panel, false);
   }
   else {
-    panel->flag |= PNL_SELECT;
+    set_panel_selection(panel, true);
   }
 
   if (data && data->animtimer) {
