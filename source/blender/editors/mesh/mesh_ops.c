@@ -277,6 +277,18 @@ void ED_operatormacros_mesh(void)
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 
+  ot = WM_operatortype_append_macro(
+      "MESH_OT_extrude_region_dissolve_move_intersect",
+      "Extrude, Dissolve, Move and Intersect",
+      "Extrude, dissolves edges whose faces form a flat surface and intersect new edges",
+      OPTYPE_UNDO | OPTYPE_REGISTER);
+  otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_region");
+  RNA_boolean_set(otmacro->ptr, "use_dissolve_ortho_edges", true);
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
+  RNA_boolean_set(otmacro->ptr, "mirror", false);
+  RNA_boolean_set(otmacro->ptr, "use_automerge_and_split", true);
+
   ot = WM_operatortype_append_macro("MESH_OT_extrude_context_move",
                                     "Extrude Region and Move",
                                     "Extrude region together along the average normal",

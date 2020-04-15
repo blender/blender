@@ -671,6 +671,20 @@ class _defs_edit_mesh:
         )
 
     @ToolDef.from_fn
+    def extrude_dissolve_and_intersect():
+        return dict(
+            idname="builtin.extrude_dissolve_and_intersect",
+            label="Extrude Dissolve and Intersect",
+            description=(
+                "Extrude, dissolves edges whose faces form a flat surface and intersect new edges"
+            ),
+            icon="none",
+            widget="VIEW3D_GGT_tool_generic_handle_normal",
+            operator="view3d.edit_mesh_extrude_dissolve_and_intersect",
+            keymap=(),
+        )
+
+    @ToolDef.from_fn
     def extrude_normals():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("mesh.extrude_region_shrink_fatten")
@@ -2114,6 +2128,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             (
                 _defs_edit_mesh.extrude,
+                _defs_edit_mesh.extrude_dissolve_and_intersect,
                 _defs_edit_mesh.extrude_normals,
                 _defs_edit_mesh.extrude_individual,
                 _defs_edit_mesh.extrude_cursor,
