@@ -289,7 +289,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 
   /* Rule: not if there's already an IK on this channel */
   for (con = pchan->constraints.first; con; con = con->next) {
-    if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+    if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->flag & CONSTRAINT_OFF) == 0) {
       data = con->data;
 
       if (data->tar == NULL || (data->tar->type == OB_ARMATURE && data->subtarget[0] == '\0')) {
@@ -304,17 +304,17 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
           /* if no chain length has been specified,
            * just make things obey standard rotation locks too */
           if (data->rootbone == 0) {
-            for (; pchan; pchan = pchan->parent) {
+            for (bPoseChannel *pchan_iter = pchan; pchan_iter; pchan_iter = pchan_iter->parent) {
               /* here, we set ik-settings for bone from pchan->protectflag */
               // XXX: careful with quats/axis-angle rotations where we're locking 4d components
-              if (pchan->protectflag & OB_LOCK_ROTX) {
-                pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
+              if (pchan_iter->protectflag & OB_LOCK_ROTX) {
+                pchan_iter->ikflag |= BONE_IK_NO_XDOF_TEMP;
               }
-              if (pchan->protectflag & OB_LOCK_ROTY) {
-                pchan->ikflag |= BONE_IK_NO_YDOF_TEMP;
+              if (pchan_iter->protectflag & OB_LOCK_ROTY) {
+                pchan_iter->ikflag |= BONE_IK_NO_YDOF_TEMP;
               }
-              if (pchan->protectflag & OB_LOCK_ROTZ) {
-                pchan->ikflag |= BONE_IK_NO_ZDOF_TEMP;
+              if (pchan_iter->protectflag & OB_LOCK_ROTZ) {
+                pchan_iter->ikflag |= BONE_IK_NO_ZDOF_TEMP;
               }
             }
           }
