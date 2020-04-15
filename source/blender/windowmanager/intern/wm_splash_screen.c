@@ -83,28 +83,12 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
     return;
   }
 
-  const uiStyle *style = UI_style_get();
-
-  BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.pixelsize * U.dpi);
-  int label_width = BLF_width(style->widgetlabel.uifont_id, label, strlen(label));
-  label_width = label_width + U.widget_unit;
-
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
-  uiBut *but = uiDefBut(block,
-                        UI_BTYPE_LABEL,
-                        0,
-                        label,
-                        x - label_width,
-                        *y,
-                        label_width,
-                        UI_UNIT_Y,
-                        NULL,
-                        0,
-                        0,
-                        0,
-                        0,
-                        NULL);
+  uiBut *but = uiDefBut(
+      block, UI_BTYPE_LABEL, 0, label, 0, *y, x, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
 
   /* 1 = UI_SELECT, internal flag to draw in white. */
   UI_but_flag_enable(but, 1);
