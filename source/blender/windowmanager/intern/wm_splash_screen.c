@@ -181,8 +181,8 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
 static ImBuf *wm_block_splash_image(void)
 {
 #ifndef WITH_HEADLESS
-  extern char datatoc_splash_2x_png[];
-  extern int datatoc_splash_2x_png_size;
+  extern char datatoc_splash_png[];
+  extern int datatoc_splash_png_size;
 
   ImBuf *ibuf = NULL;
 
@@ -197,8 +197,8 @@ static ImBuf *wm_block_splash_image(void)
   }
 
   if (ibuf == NULL) {
-    const uchar *splash_data = (const uchar *)datatoc_splash_2x_png;
-    size_t splash_data_size = datatoc_splash_2x_png_size;
+    const uchar *splash_data = (const uchar *)datatoc_splash_png;
+    size_t splash_data_size = datatoc_splash_png_size;
     ibuf = IMB_ibImageFromMemory(splash_data, splash_data_size, IB_rect, NULL, "<splash screen>");
   }
 

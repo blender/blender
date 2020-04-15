@@ -54,9 +54,6 @@ extern char datatoc_alert_icons_png[];
 extern int datatoc_splash_png_size;
 extern char datatoc_splash_png[];
 
-extern int datatoc_splash_2x_png_size;
-extern char datatoc_splash_2x_png[];
-
 extern int datatoc_bfont_pfb_size;
 extern char datatoc_bfont_pfb[];
 
