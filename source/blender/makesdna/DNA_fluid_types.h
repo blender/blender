@@ -541,6 +541,8 @@ enum {
   FLUID_FLOW_USE_INFLOW = (1 << 5),
   /* Control how to initialize flow objects. */
   FLUID_FLOW_USE_PLANE_INIT = (1 << 6),
+  /* Notify domain objects about state change (invalidate cache). */
+  FLUID_FLOW_NEEDS_UPDATE = (1 << 7),
 };
 
 typedef struct FluidFlowSettings {
@@ -614,6 +616,8 @@ enum {
   FLUID_EFFECTOR_USE_EFFEC = (1 << 1),
   /* Control how to initialize flow objects. */
   FLUID_EFFECTOR_USE_PLANE_INIT = (1 << 2),
+  /* Notify domain objects about state change (invalidate cache). */
+  FLUID_EFFECTOR_NEEDS_UPDATE = (1 << 3),
 };
 
 /* Collision objects (filled with smoke). */
