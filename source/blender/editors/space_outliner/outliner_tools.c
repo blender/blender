@@ -2332,11 +2332,9 @@ static int outliner_operator_menu(bContext *C, const char *opname)
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
   uiItemsEnumO(layout, ot->idname, RNA_property_identifier(ot->prop));
 
-  MenuType *mt = WM_menutype_find("OUTLINER_MT_context", false);
-  if (mt) {
-    uiItemS(layout);
-    UI_menutype_draw(C, mt, layout);
-  }
+  uiItemS(layout);
+
+  uiItemMContents(layout, "OUTLINER_MT_context_menu");
 
   UI_popup_menu_end(C, pup);
 
@@ -2471,14 +2469,8 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent
     }
   }
 
-  /* Menus for clicking in empty space. */
-  if (soops->outlinevis == SO_VIEW_LAYER) {
-    WM_menu_name_call(C, "OUTLINER_MT_collection_new", WM_OP_INVOKE_REGION_WIN);
-    return OPERATOR_FINISHED;
-  }
-
-  WM_menu_name_call(C, "OUTLINER_MT_context", WM_OP_INVOKE_REGION_WIN);
-  return OPERATOR_FINISHED;
+  /* Let this fall through to 'OUTLINER_MT_context_menu'. */
+  return OPERATOR_PASS_THROUGH;
 }
 
 /* Menu only! Calls other operators */
