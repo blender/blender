@@ -72,13 +72,19 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
     bl_label = "Extrude and Move on Normals"
     bl_idname = "view3d.edit_mesh_extrude_move_normal"
 
+    dissolve_and_intersect: BoolProperty(
+            name="dissolve_and_intersect",
+            default=False,
+            description="Dissolves adjacent faces and intersects new geometry"
+            )
+
     @classmethod
     def poll(cls, context):
         obj = context.active_object
         return (obj is not None and obj.mode == 'EDIT')
 
     @staticmethod
-    def extrude_region(context, use_vert_normals):
+    def extrude_region(context, use_vert_normals, dissolve_and_intersect):
         mesh = context.object.data
 
         totface = mesh.total_face_sel
@@ -90,6 +96,17 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                 bpy.ops.mesh.extrude_region_shrink_fatten(
                     'INVOKE_REGION_WIN',
                     TRANSFORM_OT_shrink_fatten={},
+                )
+            elif dissolve_and_intersect:
+                bpy.ops.mesh.extrude_region_dissolve_move_intersect(
+                    'INVOKE_REGION_WIN',
+                    MESH_OT_extrude_region={
+                        "use_dissolve_ortho_edges": True,
+                    },
+                    TRANSFORM_OT_translate={
+                        "orient_type": 'NORMAL',
+                        "constraint_axis": (False, False, True),
+                    },
                 )
             else:
                 bpy.ops.mesh.extrude_region_move(
@@ -119,7 +136,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
         return {'FINISHED'}
 
     def execute(self, context):
-        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, False)
+        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, False, self.dissolve_and_intersect)
 
     def invoke(self, context, _event):
         return self.execute(context)
