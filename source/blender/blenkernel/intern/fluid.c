@@ -334,6 +334,14 @@ void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *mds,
   manta_free(fluid_old);
 }
 
+void BKE_fluid_cache_free_all(FluidDomainSettings *mds, Object *ob)
+{
+  int cache_map = (FLUID_DOMAIN_OUTDATED_DATA | FLUID_DOMAIN_OUTDATED_NOISE |
+                   FLUID_DOMAIN_OUTDATED_MESH | FLUID_DOMAIN_OUTDATED_PARTICLES |
+                   FLUID_DOMAIN_OUTDATED_GUIDE);
+  BKE_fluid_cache_free(mds, ob, cache_map);
+}
+
 void BKE_fluid_cache_free(FluidDomainSettings *mds, Object *ob, int cache_map)
 {
   char temp_dir[FILE_MAX];
@@ -1130,7 +1138,18 @@ static void obstacles_from_mesh(Object *coll_ob,
   }
 }
 
+static void ensure_obstaclefields(FluidDomainSettings *mds)
+{
+  if (mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE) {
+    manta_ensure_obstacle(mds->fluid, mds->mmd);
+  }
+  if (mds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE) {
+    manta_ensure_guiding(mds->fluid, mds->mmd);
+  }
+}
+
 static void update_obstacleflags(FluidDomainSettings *mds,
+                                 Object *domain,
                                  Object **coll_ob_array,
                                  int coll_ob_array_len)
 {
@@ -1157,6 +1176,11 @@ static void update_obstacleflags(FluidDomainSettings *mds,
       if (!mes) {
         break;
       }
+      if (mes->flags & FLUID_EFFECTOR_NEEDS_UPDATE) {
+        mes->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
+        BKE_fluid_cache_free_all(mds, domain);
+        mds->cache_flag |= FLUID_DOMAIN_OUTDATED_DATA;
+      }
       if (mes->type == FLUID_EFFECTOR_TYPE_COLLISION) {
         active_fields |= FLUID_DOMAIN_ACTIVE_OBSTACLE;
       }
@@ -1164,13 +1188,6 @@ static void update_obstacleflags(FluidDomainSettings *mds,
         active_fields |= FLUID_DOMAIN_ACTIVE_GUIDE;
       }
     }
-  }
-  /* Finally, initialize new data fields if any */
-  if (active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE) {
-    manta_ensure_obstacle(mds->fluid, mds->mmd);
-  }
-  if (active_fields & FLUID_DOMAIN_ACTIVE_GUIDE) {
-    manta_ensure_guiding(mds->fluid, mds->mmd);
   }
   mds->active_fields = active_fields;
 }
@@ -1193,7 +1210,8 @@ static void update_obstacles(Depsgraph *depsgraph,
       depsgraph, ob, mds->effector_group, &numeffecobjs, eModifierType_Fluid);
 
   /* Update all effector related flags and ensure that corresponding grids get initialized. */
-  update_obstacleflags(mds, effecobjs, numeffecobjs);
+  update_obstacleflags(mds, ob, effecobjs, numeffecobjs);
+  ensure_obstaclefields(mds);
 
   /* Initialize effector maps for each flow. */
   bb_maps = MEM_callocN(sizeof(struct FluidObjectBB) * numeffecobjs, "fluid_effector_bb_maps");
@@ -2573,21 +2591,49 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *mfs,
   }
 }
 
-static void update_flowsflags(FluidDomainSettings *mds, Object **flowobjs, int numflowobj)
+static void ensure_flowsfields(FluidDomainSettings *mds)
+{
+  if (mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL) {
+    manta_ensure_invelocity(mds->fluid, mds->mmd);
+  }
+  if (mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW) {
+    manta_ensure_outflow(mds->fluid, mds->mmd);
+  }
+  if (mds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT) {
+    manta_smoke_ensure_heat(mds->fluid, mds->mmd);
+  }
+  if (mds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) {
+    manta_smoke_ensure_fire(mds->fluid, mds->mmd);
+  }
+  if (mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) {
+    /* initialize all smoke with "active_color" */
+    manta_smoke_ensure_colors(mds->fluid, mds->mmd);
+  }
+  if (mds->type == FLUID_DOMAIN_TYPE_LIQUID &&
+      (mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY ||
+       mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM ||
+       mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER)) {
+    manta_liquid_ensure_sndparts(mds->fluid, mds->mmd);
+  }
+}
+
+static void update_flowsflags(FluidDomainSettings *mds,
+                              Object *domain,
+                              Object **flowobjs,
+                              int numflowobj)
 {
   int active_fields = mds->active_fields;
   uint flow_index;
 
   /* First, remove all flags that we want to update. */
   int prev_flags = (FLUID_DOMAIN_ACTIVE_INVEL | FLUID_DOMAIN_ACTIVE_OUTFLOW |
-                    FLUID_DOMAIN_ACTIVE_HEAT | FLUID_DOMAIN_ACTIVE_FIRE |
-                    FLUID_DOMAIN_ACTIVE_COLOR_SET | FLUID_DOMAIN_ACTIVE_COLORS);
+                    FLUID_DOMAIN_ACTIVE_HEAT | FLUID_DOMAIN_ACTIVE_FIRE);
   active_fields &= ~prev_flags;
 
   /* Monitor active fields based on flow settings */
   for (flow_index = 0; flow_index < numflowobj; flow_index++) {
-    Object *coll_ob = flowobjs[flow_index];
-    FluidModifierData *mmd2 = (FluidModifierData *)modifiers_findByType(coll_ob,
+    Object *flow_ob = flowobjs[flow_index];
+    FluidModifierData *mmd2 = (FluidModifierData *)modifiers_findByType(flow_ob,
                                                                         eModifierType_Fluid);
 
     /* Sanity check. */
@@ -2599,6 +2645,11 @@ static void update_flowsflags(FluidDomainSettings *mds, Object **flowobjs, int n
       FluidFlowSettings *mfs = mmd2->flow;
       if (!mfs) {
         break;
+      }
+      if (mfs->flags & FLUID_FLOW_NEEDS_UPDATE) {
+        mfs->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
+        BKE_fluid_cache_free_all(mds, domain);
+        mds->cache_flag |= FLUID_DOMAIN_OUTDATED_DATA;
       }
       if (mfs->flags & FLUID_FLOW_INITVELOCITY) {
         active_fields |= FLUID_DOMAIN_ACTIVE_INVEL;
@@ -2648,29 +2699,6 @@ static void update_flowsflags(FluidDomainSettings *mds, Object **flowobjs, int n
       active_fields |= FLUID_DOMAIN_ACTIVE_COLORS;
     }
   }
-  /* Finally, initialize new data fields if any */
-  if (active_fields & FLUID_DOMAIN_ACTIVE_INVEL) {
-    manta_ensure_invelocity(mds->fluid, mds->mmd);
-  }
-  if (active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW) {
-    manta_ensure_outflow(mds->fluid, mds->mmd);
-  }
-  if (active_fields & FLUID_DOMAIN_ACTIVE_HEAT) {
-    manta_smoke_ensure_heat(mds->fluid, mds->mmd);
-  }
-  if (active_fields & FLUID_DOMAIN_ACTIVE_FIRE) {
-    manta_smoke_ensure_fire(mds->fluid, mds->mmd);
-  }
-  if (active_fields & FLUID_DOMAIN_ACTIVE_COLORS) {
-    /* initialize all smoke with "active_color" */
-    manta_smoke_ensure_colors(mds->fluid, mds->mmd);
-  }
-  if (mds->type == FLUID_DOMAIN_TYPE_LIQUID &&
-      (mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY ||
-       mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM ||
-       mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER)) {
-    manta_liquid_ensure_sndparts(mds->fluid, mds->mmd);
-  }
   mds->active_fields = active_fields;
 }
 
@@ -2692,7 +2720,8 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       depsgraph, ob, mds->fluid_group, &numflowobj, eModifierType_Fluid);
 
   /* Update all flow related flags and ensure that corresponding grids get initialized. */
-  update_flowsflags(mds, flowobjs, numflowobj);
+  update_flowsflags(mds, ob, flowobjs, numflowobj);
+  ensure_flowsfields(mds);
 
   /* Initialize emission maps for each flow. */
   bb_maps = MEM_callocN(sizeof(struct FluidObjectBB) * numflowobj, "fluid_flow_bb_maps");
@@ -3566,6 +3595,7 @@ static int manta_step(
       break;
     }
 
+    /* Only bake if the domain is bigger than one cell (important for adaptive domain). */
     if (mds->total_cells > 1) {
       update_effectors(depsgraph, scene, ob, mds, dt);
       manta_bake_data(mds->fluid, mmd, frame);
@@ -3585,7 +3615,7 @@ static int manta_step(
     }
   }
 
-  if (mds->type == FLUID_DOMAIN_TYPE_GAS) {
+  if (mds->type == FLUID_DOMAIN_TYPE_GAS && result) {
     manta_smoke_calc_transparency(mds, DEG_get_evaluated_view_layer(depsgraph));
   }
   BLI_mutex_unlock(&object_update_lock);
@@ -3684,8 +3714,35 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
     return;
   }
 
+  bool bake_outdated = mds->cache_flag &
+                       (FLUID_DOMAIN_OUTDATED_DATA | FLUID_DOMAIN_OUTDATED_NOISE |
+                        FLUID_DOMAIN_OUTDATED_MESH | FLUID_DOMAIN_OUTDATED_PARTICLES |
+                        FLUID_DOMAIN_OUTDATED_GUIDE);
+
+  /* Exit early if cache is outdated. */
+  if (bake_outdated) {
+    return;
+  }
+
+  /* Ensure cache directory is not relative. */
+  const char *relbase = modifier_path_relbase_from_global(ob);
+  BLI_path_abs(mds->cache_directory, relbase);
+
+  objs = BKE_collision_objects_create(
+      depsgraph, ob, mds->fluid_group, &numobj, eModifierType_Fluid);
+  update_flowsflags(mds, ob, objs, numobj);
+  if (objs) {
+    MEM_freeN(objs);
+  }
+  objs = BKE_collision_objects_create(
+      depsgraph, ob, mds->effector_group, &numobj, eModifierType_Fluid);
+  update_obstacleflags(mds, ob, objs, numobj);
+  if (objs) {
+    MEM_freeN(objs);
+  }
+
   /* Reset fluid if no fluid present. */
-  if (!mds->fluid) {
+  if (!mds->fluid || mds->cache_flag & FLUID_DOMAIN_OUTDATED_DATA) {
     BKE_fluid_modifier_reset_ex(mmd, false);
 
     /* Fluid domain init must not fail in order to continue modifier evaluation. */
@@ -3712,23 +3769,10 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   /* Get distance between cache start and current frame for total time. */
   mds->time_total = abs(scene_framenr - mds->cache_frame_start) * mds->frame_length;
 
-  objs = BKE_collision_objects_create(
-      depsgraph, ob, mds->fluid_group, &numobj, eModifierType_Fluid);
-  update_flowsflags(mds, objs, numobj);
-  if (objs) {
-    MEM_freeN(objs);
-  }
-
-  objs = BKE_collision_objects_create(
-      depsgraph, ob, mds->effector_group, &numobj, eModifierType_Fluid);
-  update_obstacleflags(mds, objs, numobj);
-  if (objs) {
-    MEM_freeN(objs);
-  }
-
-  /* Ensure cache directory is not relative. */
-  const char *relbase = modifier_path_relbase_from_global(ob);
-  BLI_path_abs(mds->cache_directory, relbase);
+  int next_frame = scene_framenr + 1;
+  int prev_frame = scene_framenr - 1;
+  /* Ensure positivity of previous frame. */
+  CLAMP(prev_frame, mds->cache_frame_start, prev_frame);
 
   int data_frame = scene_framenr, noise_frame = scene_framenr;
   int mesh_frame = scene_framenr, particles_frame = scene_framenr, guide_frame = scene_framenr;
@@ -3751,17 +3795,18 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   with_particles = drops || bubble || floater;
 
   bool has_data, has_noise, has_mesh, has_particles, has_guide;
-  has_data = has_noise = has_mesh = has_particles = has_guide = false;
+  has_data = manta_has_data(mds->fluid, mmd, scene_framenr);
+  has_noise = manta_has_noise(mds->fluid, mmd, scene_framenr);
+  has_mesh = manta_has_mesh(mds->fluid, mmd, scene_framenr);
+  has_particles = manta_has_particles(mds->fluid, mmd, scene_framenr);
+  has_guide = manta_has_guiding(mds->fluid, mmd, scene_framenr, guide_parent);
 
-  bool baking_data, baking_noise, baking_mesh, baking_particles, baking_guide, bake_outdated;
+  bool baking_data, baking_noise, baking_mesh, baking_particles, baking_guide;
   baking_data = mds->cache_flag & FLUID_DOMAIN_BAKING_DATA;
   baking_noise = mds->cache_flag & FLUID_DOMAIN_BAKING_NOISE;
   baking_mesh = mds->cache_flag & FLUID_DOMAIN_BAKING_MESH;
   baking_particles = mds->cache_flag & FLUID_DOMAIN_BAKING_PARTICLES;
   baking_guide = mds->cache_flag & FLUID_DOMAIN_BAKING_GUIDE;
-  bake_outdated = mds->cache_flag & (FLUID_DOMAIN_OUTDATED_DATA | FLUID_DOMAIN_OUTDATED_NOISE |
-                                     FLUID_DOMAIN_OUTDATED_MESH | FLUID_DOMAIN_OUTDATED_PARTICLES |
-                                     FLUID_DOMAIN_OUTDATED_GUIDE);
 
   bool resume_data, resume_noise, resume_mesh, resume_particles, resume_guide;
   resume_data = (!is_startframe) && (mds->cache_frame_pause_data == scene_framenr);
@@ -3775,35 +3820,27 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   bake_cache = baking_data || baking_noise || baking_mesh || baking_particles || baking_guide;
 
   bool next_data, next_noise, next_mesh, next_particles, next_guide;
-  next_data = manta_has_data(mds->fluid, mmd, scene_framenr + 1);
-  next_noise = manta_has_noise(mds->fluid, mmd, scene_framenr + 1);
-  next_mesh = manta_has_mesh(mds->fluid, mmd, scene_framenr + 1);
-  next_particles = manta_has_particles(mds->fluid, mmd, scene_framenr + 1);
-  next_guide = manta_has_guiding(mds->fluid, mmd, scene_framenr + 1, guide_parent);
+  next_data = manta_has_data(mds->fluid, mmd, next_frame);
+  next_noise = manta_has_noise(mds->fluid, mmd, next_frame);
+  next_mesh = manta_has_mesh(mds->fluid, mmd, next_frame);
+  next_particles = manta_has_particles(mds->fluid, mmd, next_frame);
+  next_guide = manta_has_guiding(mds->fluid, mmd, next_frame, guide_parent);
 
   bool prev_data, prev_noise, prev_mesh, prev_particles, prev_guide;
-  prev_data = manta_has_data(mds->fluid, mmd, scene_framenr - 1);
-  prev_noise = manta_has_noise(mds->fluid, mmd, scene_framenr - 1);
-  prev_mesh = manta_has_mesh(mds->fluid, mmd, scene_framenr - 1);
-  prev_particles = manta_has_particles(mds->fluid, mmd, scene_framenr - 1);
-  prev_guide = manta_has_guiding(mds->fluid, mmd, scene_framenr - 1, guide_parent);
+  prev_data = manta_has_data(mds->fluid, mmd, prev_frame);
+  prev_noise = manta_has_noise(mds->fluid, mmd, prev_frame);
+  prev_mesh = manta_has_mesh(mds->fluid, mmd, prev_frame);
+  prev_particles = manta_has_particles(mds->fluid, mmd, prev_frame);
+  prev_guide = manta_has_guiding(mds->fluid, mmd, prev_frame, guide_parent);
 
-  /* Unused for now, but needed for proper caching. */
-  UNUSED_VARS(prev_guide);
-  UNUSED_VARS(next_noise);
-  UNUSED_VARS(next_mesh);
-  UNUSED_VARS(next_particles);
-  UNUSED_VARS(next_guide);
+  /* Unused for now. */
+  UNUSED_VARS(prev_guide, next_mesh, next_guide);
 
   bool with_gdomain;
   with_gdomain = (mds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);
 
   int o_res[3], o_min[3], o_max[3], o_shift[3];
   int mode = mds->cache_type;
-  int prev_frame = scene_framenr - 1;
-
-  /* Ensure positivity of previous frame. */
-  CLAMP(prev_frame, 1, prev_frame);
 
   /* Cache mode specific settings. */
   switch (mode) {
@@ -3851,19 +3888,21 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       break;
     case FLUID_DOMAIN_CACHE_REPLAY:
     default:
+      baking_data = !has_data && (is_startframe || prev_data);
+      if (with_smoke && with_noise) {
+        baking_noise = !has_noise && (is_startframe || prev_noise);
+      }
+      if (with_liquid && with_mesh) {
+        baking_mesh = !has_mesh && (is_startframe || prev_mesh);
+      }
+      if (with_liquid && with_particles) {
+        baking_particles = !has_particles && (is_startframe || prev_particles);
+      }
+
       /* Always trying to read the cache in replay mode. */
       read_cache = true;
       bake_cache = false;
       break;
-  }
-
-  /* Cache outdated? If so reset, don't read, and then just rebake.
-   * Note: Only do this in replay mode! */
-  bool mode_replay = (mode == FLUID_DOMAIN_CACHE_REPLAY);
-  if (bake_outdated && mode_replay) {
-    read_cache = false;
-    bake_cache = true;
-    BKE_fluid_cache_free(mds, ob, mds->cache_flag);
   }
 
   /* Try to read from cache and keep track of read success. */
@@ -3877,7 +3916,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
 
     /* Read particles cache. */
     if (with_liquid && with_particles) {
-      if (!baking_data && !baking_particles && !mode_replay) {
+      if (!baking_data && !baking_particles && next_particles) {
         /* Update particle data from file is faster than via Python (manta_read_particles()). */
         has_particles = manta_update_particle_structures(mds->fluid, mmd, particles_frame);
       }
@@ -3901,8 +3940,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
           manta_needs_realloc(mds->fluid, mmd)) {
         BKE_fluid_reallocate_fluid(mds, mds->res, 1);
       }
-      if (!baking_data && !baking_noise && !mode_replay) {
-        has_data = manta_update_noise_structures(mds->fluid, mmd, noise_frame);
+      if (!baking_data && !baking_noise && next_noise) {
+        has_noise = manta_update_noise_structures(mds->fluid, mmd, noise_frame);
       }
       else {
         has_noise = manta_read_noise(mds->fluid, mmd, noise_frame);
@@ -3921,8 +3960,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
               mds, o_res, mds->res, o_min, mds->res_min, o_max, o_shift, mds->shift);
         }
       }
-      if (!baking_data && !baking_noise && !mode_replay) {
-        /* TODO (sebbas): Confirm if this read call is really needed or not. */
+      if (!baking_data && !baking_noise && next_data && next_noise) {
+        /* TODO (sebbas): Confirm if this read call is really needed or not.
+         * Currently only important to load the shadow grid. */
         has_data = manta_update_smoke_structures(mds->fluid, mmd, data_frame);
       }
       else {
@@ -3946,7 +3986,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
         }
       }
       if (with_liquid) {
-        if (!baking_data && !baking_particles && !baking_mesh && !mode_replay) {
+        if (!baking_data && !baking_particles && !baking_mesh && next_data) {
           has_data = manta_update_liquid_structures(mds->fluid, mmd, data_frame);
         }
         else {
@@ -3960,6 +4000,9 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   switch (mode) {
     case FLUID_DOMAIN_CACHE_FINAL:
     case FLUID_DOMAIN_CACHE_MODULAR:
+      if (!baking_data && !baking_noise && !baking_mesh && !baking_particles && !baking_guide) {
+        bake_cache = false;
+      }
       break;
     case FLUID_DOMAIN_CACHE_REPLAY:
     default:
