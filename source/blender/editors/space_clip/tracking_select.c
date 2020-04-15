@@ -387,7 +387,8 @@ static int mouse_select(bContext *C, const float co[2], const bool extend, const
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
   DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
-  return OPERATOR_FINISHED;
+  /* Pass-through + finished to allow tweak to transform. */
+  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
 static bool select_poll(bContext *C)
