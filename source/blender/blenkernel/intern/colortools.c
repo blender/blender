@@ -1805,6 +1805,7 @@ void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings)
 {
   if (settings->curve_mapping) {
     BKE_curvemapping_free(settings->curve_mapping);
+    settings->curve_mapping = NULL;
   }
 }
 
