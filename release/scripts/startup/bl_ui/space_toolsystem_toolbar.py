@@ -680,7 +680,6 @@ class _defs_edit_mesh:
             ),
             icon="none",
             widget="VIEW3D_GGT_tool_generic_handle_normal",
-            operator="view3d.edit_mesh_extrude_dissolve_and_intersect",
             keymap=(),
         )
 
