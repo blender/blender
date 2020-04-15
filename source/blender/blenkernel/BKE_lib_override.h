@@ -48,6 +48,8 @@ struct IDOverrideLibrary;
 struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
 struct Main;
+struct PointerRNA;
+struct PropertyRNA;
 
 void BKE_lib_override_library_enable(const bool do_enable);
 bool BKE_lib_override_library_is_enabled(void);
@@ -91,6 +93,15 @@ struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_ope
 void BKE_lib_override_library_property_operation_delete(
     struct IDOverrideLibraryProperty *override_property,
     struct IDOverrideLibraryPropertyOperation *override_property_operation);
+
+bool BKE_lib_override_library_property_operation_operands_validate(
+    struct IDOverrideLibraryPropertyOperation *override_property_operation,
+    struct PointerRNA *ptr_dst,
+    struct PointerRNA *ptr_src,
+    struct PointerRNA *ptr_storage,
+    struct PropertyRNA *prop_dst,
+    struct PropertyRNA *prop_src,
+    struct PropertyRNA *prop_storage);
 
 bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *local);
 bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct ID *local);

@@ -481,28 +481,13 @@ static bool rna_property_override_operation_apply(Main *bmain,
 
   const short override_op = opop->operation;
 
+  if (!BKE_lib_override_library_property_operation_operands_validate(
+          opop, ptr_dst, ptr_src, ptr_storage, prop_dst, prop_src, prop_storage)) {
+    return false;
+  }
+
   if (override_op == IDOVERRIDE_LIBRARY_OP_NOOP) {
     return true;
-  }
-
-  if (ELEM(override_op,
-           IDOVERRIDE_LIBRARY_OP_ADD,
-           IDOVERRIDE_LIBRARY_OP_SUBTRACT,
-           IDOVERRIDE_LIBRARY_OP_MULTIPLY) &&
-      !ptr_storage) {
-    /* We cannot apply 'diff' override operations without some reference storage.
-     * This should typically only happen at read time of .blend file... */
-    return false;
-  }
-
-  if (ELEM(override_op,
-           IDOVERRIDE_LIBRARY_OP_ADD,
-           IDOVERRIDE_LIBRARY_OP_SUBTRACT,
-           IDOVERRIDE_LIBRARY_OP_MULTIPLY) &&
-      !prop_storage) {
-    /* We cannot apply 'diff' override operations without some reference storage.
-     * This should typically only happen at read time of .blend file... */
-    return false;
   }
 
   RNAPropOverrideApply override_apply = NULL;

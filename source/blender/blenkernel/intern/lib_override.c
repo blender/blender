@@ -559,6 +559,46 @@ void BKE_lib_override_library_property_operation_delete(
 }
 
 /**
+ * Validate that required data for a given operation are available.
+ */
+bool BKE_lib_override_library_property_operation_operands_validate(
+    struct IDOverrideLibraryPropertyOperation *override_property_operation,
+    struct PointerRNA *ptr_dst,
+    struct PointerRNA *ptr_src,
+    struct PointerRNA *ptr_storage,
+    struct PropertyRNA *prop_dst,
+    struct PropertyRNA *prop_src,
+    struct PropertyRNA *prop_storage)
+{
+  switch (override_property_operation->operation) {
+    case IDOVERRIDE_LIBRARY_OP_NOOP:
+      return true;
+    case IDOVERRIDE_LIBRARY_OP_ADD:
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_SUBTRACT:
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_MULTIPLY:
+      if (ptr_storage == NULL || ptr_storage->data == NULL || prop_storage == NULL) {
+        BLI_assert(!"Missing data to apply differential override operation.");
+        return false;
+      }
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_INSERT_AFTER:
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE:
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_REPLACE:
+      if ((ptr_dst == NULL || ptr_dst->data == NULL || prop_dst == NULL) ||
+          (ptr_src == NULL || ptr_src->data == NULL || prop_src == NULL)) {
+        BLI_assert(!"Missing data to apply override operation.");
+        return false;
+      }
+  }
+
+  return true;
+}
+
+/**
  * Check that status of local data-block is still valid against current reference one.
  *
  * It means that all overridable, but not overridden, properties' local values must be equal to
