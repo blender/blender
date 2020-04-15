@@ -3881,11 +3881,9 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   display = IMB_colormanagement_display_get_named(display_device);
 
   /* Compensate text size for preview render size. */
-  if (context->preview_render_size == SEQ_PROXY_RENDER_SIZE_SCENE) {
-    proxy_size_comp = context->scene->r.size / 100.0;
-  }
-  else {
-    proxy_size_comp = BKE_sequencer_rendersize_to_scale_factor(context->preview_render_size);
+  proxy_size_comp = context->scene->r.size / 100.0;
+  if (context->preview_render_size != SEQ_PROXY_RENDER_SIZE_SCENE) {
+    proxy_size_comp *= BKE_sequencer_rendersize_to_scale_factor(context->preview_render_size);
   }
 
   /* set before return */
