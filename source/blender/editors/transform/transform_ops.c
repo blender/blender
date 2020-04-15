@@ -705,6 +705,15 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
     prop = RNA_def_boolean(ot->srna, "use_accurate", 0, "Accurate", "Use accurate transformation");
     RNA_def_property_flag(prop, PROP_HIDDEN);
   }
+
+  if (flags & P_POST_TRANSFORM) {
+    prop = RNA_def_boolean(ot->srna,
+                           "use_automerge_and_split",
+                           0,
+                           "Auto Merge & Split",
+                           "Forces the use of Auto Merge & Split");
+    RNA_def_property_flag(prop, PROP_HIDDEN);
+  }
 }
 
 static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
@@ -730,7 +739,7 @@ static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 
   Transform_Properties(ot,
                        P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP |
-                           P_OPTIONS | P_GPENCIL_EDIT | P_CURSOR_EDIT);
+                           P_OPTIONS | P_GPENCIL_EDIT | P_CURSOR_EDIT | P_POST_TRANSFORM);
 }
 
 static void TRANSFORM_OT_resize(struct wmOperatorType *ot)

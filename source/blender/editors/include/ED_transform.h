@@ -157,6 +157,8 @@ int BIF_countTransformOrientation(const struct bContext *C);
 #define P_GPENCIL_EDIT (1 << 13)
 #define P_CURSOR_EDIT (1 << 14)
 #define P_CLNOR_INVALIDATE (1 << 15)
+/* For properties performed when confirming the transformation. */
+#define P_POST_TRANSFORM (1 << 16)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 

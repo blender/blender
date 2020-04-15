@@ -677,6 +677,10 @@ enum {
   T_MODAL_CURSOR_SET = 1 << 26,
 
   T_CLNOR_REBUILD = 1 << 27,
+
+  /* Special Aftertrans. */
+  T_AUTOMERGE = 1 << 28,
+  T_AUTOSPLIT = 1 << 29,
 };
 
 /** #TransInfo.modifiers */

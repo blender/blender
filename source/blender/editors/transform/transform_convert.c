@@ -1843,8 +1843,8 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 
 static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 {
-  /* so automerge supports mirror */
-  if ((t->scene->toolsettings->automerge) && ((t->flag & T_EDIT) && t->obedit_type == OB_MESH)) {
+  bool use_automerge = (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
+  if (use_automerge && ((t->flag & T_EDIT) && t->obedit_type == OB_MESH)) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
       BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
@@ -1870,14 +1870,12 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
         hflag = BM_ELEM_SELECT;
       }
 
-      if (t->scene->toolsettings->automerge & AUTO_MERGE) {
-        if (t->scene->toolsettings->automerge & AUTO_MERGE_AND_SPLIT) {
-          EDBM_automerge_and_split(
-              tc->obedit, true, true, true, hflag, t->scene->toolsettings->doublimit);
-        }
-        else {
-          EDBM_automerge(tc->obedit, true, hflag, t->scene->toolsettings->doublimit);
-        }
+      if (t->flag & T_AUTOSPLIT) {
+        EDBM_automerge_and_split(
+            tc->obedit, true, true, true, hflag, t->scene->toolsettings->doublimit);
+      }
+      else {
+        EDBM_automerge(tc->obedit, true, hflag, t->scene->toolsettings->doublimit);
       }
 
       /* Special case, this is needed or faces won't re-select.
