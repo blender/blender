@@ -527,7 +527,6 @@ def bake_noise_process_$ID$(framenr, format_data, format_noise, path_data, path_
     sn$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for noise\n\
     \n\
     smoke_step_noise_$ID$(framenr)\n\
-    smoke_save_noise_$ID$(path_noise, framenr, format_noise, resumable)\n\
 \n\
 def bake_noise_$ID$(path_data, path_noise, framenr, format_data, format_noise, resumable):\n\
     if not withMPBake or isWindows:\n\
