@@ -279,8 +279,8 @@ const bTheme U_theme_default = {
     .button_text_hi = RGBA(0xffffffff),
     .navigation_bar = RGBA(0x232323ff),
     .panelcolors = {
-      .header = RGBA(0x42424200),
-      .back = RGBA(0x00000028),
+      .header = RGBA(0x424242ff),
+      .back = RGBA(0x383838ff),
       .sub_back = RGBA(0x00000024),
     },
     .vertex_size = 3,
