@@ -69,7 +69,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
                                              RootPChanMap *root_map)
 {
   if ((con->flag & CONSTRAINT_DISABLE) != 0) {
-    /* Do not add disabled IK constraints to the relations. If these needs to be temporarly
+    /* Do not add disabled IK constraints to the relations. If these needs to be temporarily
      * enabled, they will be added as temporary constraints during transform. */
     return;
   }

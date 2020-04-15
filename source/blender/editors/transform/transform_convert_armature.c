@@ -609,9 +609,9 @@ void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, Object *
         /* TODO(germano): Realitve Mirror support */
       }
       data->flag |= CONSTRAINT_IK_AUTO;
-      /* Add a temporary auto IK constraint here, as we will only temporarly active this targetless
-       * bone during transform. (Targetless IK constraints are treated as if they are disabled
-       * unless they are transformed) */
+      /* Add a temporary auto IK constraint here, as we will only temporarily active this
+       * target-less bone during transform. (Target-less IK constraints are treated as if they are
+       * disabled unless they are transformed) */
       add_temporary_ik_constraint(pchan, data);
       Main *bmain = CTX_data_main(t->context);
       update_deg_with_temporary_ik(bmain, ob);
