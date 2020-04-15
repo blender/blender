@@ -691,6 +691,8 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
 {
   const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
   const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
+  const bool show_face_sets = sculpt_face_sets &&
+                              (update_flags & GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS) != 0;
   bool empty_mask = true;
   bool default_face_set = true;
 
@@ -738,7 +740,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
 
       uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
-      if (subdiv_ccg && sculpt_face_sets) {
+      if (show_face_sets && subdiv_ccg && sculpt_face_sets) {
         const int face_index = BKE_subdiv_cgg_grid_to_face_index(subdiv_ccg, grid_index);
 
         const int fset = abs(sculpt_face_sets[face_index]);
