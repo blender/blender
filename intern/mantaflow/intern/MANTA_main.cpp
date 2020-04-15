@@ -61,28 +61,29 @@ int MANTA::with_debug(0);
 MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
 {
   if (with_debug)
-    std::cout << "MANTA: " << mCurrentID << " with res(" << res[0] << ", " << res[1] << ", "
+    std::cout << "FLUID: " << mCurrentID << " with res(" << res[0] << ", " << res[1] << ", "
               << res[2] << ")" << std::endl;
 
   mmd->domain->fluid = this;
 
   mUsingLiquid = (mmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID);
   mUsingSmoke = (mmd->domain->type == FLUID_DOMAIN_TYPE_GAS);
-  mUsingHeat = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_HEAT) && mUsingSmoke;
-  mUsingFire = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) && mUsingSmoke;
-  mUsingColors = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) && mUsingSmoke;
   mUsingNoise = (mmd->domain->flags & FLUID_DOMAIN_USE_NOISE) && mUsingSmoke;
   mUsingFractions = (mmd->domain->flags & FLUID_DOMAIN_USE_FRACTIONS) && mUsingLiquid;
+  mUsingMesh = (mmd->domain->flags & FLUID_DOMAIN_USE_MESH) && mUsingLiquid;
+  mUsingMVel = (mmd->domain->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) && mUsingLiquid;
+  mUsingGuiding = (mmd->domain->flags & FLUID_DOMAIN_USE_GUIDE);
   mUsingDrops = (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && mUsingLiquid;
   mUsingBubbles = (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) && mUsingLiquid;
   mUsingFloats = (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) && mUsingLiquid;
   mUsingTracers = (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) && mUsingLiquid;
-  mUsingMesh = (mmd->domain->flags & FLUID_DOMAIN_USE_MESH) && mUsingLiquid;
-  mUsingMVel = (mmd->domain->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) && mUsingLiquid;
+
+  mUsingHeat = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_HEAT) && mUsingSmoke;
+  mUsingFire = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) && mUsingSmoke;
+  mUsingColors = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) && mUsingSmoke;
   mUsingObstacle = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
   mUsingInvel = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
   mUsingOutflow = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
-  mUsingGuiding = (mmd->domain->flags & FLUID_DOMAIN_USE_GUIDE);
 
   // Simulation constants
   mTempAmb = 0;  // TODO: Maybe use this later for buoyancy calculation
@@ -566,7 +567,7 @@ bool MANTA::runPythonString(std::vector<std::string> commands)
 void MANTA::initializeMantaflow()
 {
   if (with_debug)
-    std::cout << "Fluid: Initializing Mantaflow framework." << std::endl;
+    std::cout << "Fluid: Initializing Mantaflow framework" << std::endl;
 
   std::string filename = "manta_scene_" + std::to_string(mCurrentID) + ".py";
   std::vector<std::string> fill = std::vector<std::string>();
@@ -581,7 +582,7 @@ void MANTA::initializeMantaflow()
 void MANTA::terminateMantaflow()
 {
   if (with_debug)
-    std::cout << "Fluid: Releasing Mantaflow framework." << std::endl;
+    std::cout << "Fluid: Releasing Mantaflow framework" << std::endl;
 
   PyGILState_STATE gilstate = PyGILState_Ensure();
   Pb::finalize();  // Namespace from Mantaflow (registry)
@@ -1078,8 +1079,7 @@ bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
     assert(result == expected);
   }
 
-  mFlipFromFile = true;
-  return (result == expected);
+  return mFlipFromFile = (result == expected);
 }
 
 bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
@@ -1126,8 +1126,7 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
     }
   }
 
-  mMeshFromFile = true;
-  return (result == expected);
+  return mMeshFromFile = (result == expected);
 }
 
 bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
@@ -1177,8 +1176,7 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
     assert(result == expected);
   }
 
-  mParticlesFromFile = true;
-  return (result == expected);
+  return mParticlesFromFile = (result == expected);
 }
 
 bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
@@ -1268,8 +1266,7 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
     }
   }
 
-  mSmokeFromFile = true;
-  return (result == expected);
+  return mSmokeFromFile = (result == expected);
 }
 
 bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
@@ -1351,8 +1348,7 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
     }
   }
 
-  mNoiseFromFile = true;
-  return (result == expected);
+  return mNoiseFromFile = (result == expected);
 }
 
 /* Dirty hack: Needed to format paths from python code that is run via PyRun_SimpleString */
@@ -2748,10 +2744,10 @@ bool MANTA::updateParticlesFromUni(std::string filename, bool isSecondarySys, bo
     return false;
   }
   if (!ibuffer[0]) {  // Any particles present?
-    std::cerr << "Fluid Error -- updateParticlesFromUni(): No particles present in file: "
-              << filename << std::endl;
+    if (with_debug)
+      std::cout << "Fluid: No particles present in file: " << filename << std::endl;
     gzclose(gzf);
-    return false;
+    return true;  // return true since having no particles in a cache file is valid
   }
 
   numParticles = ibuffer[0];
