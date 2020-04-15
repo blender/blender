@@ -6063,10 +6063,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       prop,
       "Undo Speedup",
       "Use new undo speedup (WARNING: can lead to crashes and serious .blend file corruption)");
-
-  prop = RNA_def_property(srna, "use_menu_search", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_menu_search", 1);
-  RNA_def_property_ui_text(prop, "Menu Search", "Search actions by menus instead of operators");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

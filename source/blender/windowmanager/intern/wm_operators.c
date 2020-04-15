@@ -1794,13 +1794,12 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     }
   }
 
-  PropertyRNA *prop = op->type->prop;
   int search_type;
-  if (RNA_property_is_set(op->ptr, prop)) {
-    search_type = RNA_property_enum_get(op->ptr, prop);
+  if (STREQ(op->type->idname, "WM_OT_search_menu")) {
+    search_type = SEARCH_TYPE_MENU;
   }
   else {
-    search_type = U.experimental.use_menu_search ? SEARCH_TYPE_MENU : SEARCH_TYPE_OPERATOR;
+    search_type = SEARCH_TYPE_OPERATOR;
   }
 
   static struct SearchPopupInit_Data data;
@@ -1818,20 +1817,22 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 {
   ot->name = "Search Menu";
   ot->idname = "WM_OT_search_menu";
-  ot->description = "Pop-up a search menu over all available operators in current context";
+  ot->description = "Pop-up a search over all menus in the current context";
 
   ot->invoke = wm_search_menu_invoke;
   ot->exec = wm_search_menu_exec;
   ot->poll = WM_operator_winactive;
+}
 
-  static const EnumPropertyItem search_type_items[] = {
-      {SEARCH_TYPE_OPERATOR, "OPERATOR", 0, "Operator", "Search all operators"},
-      {SEARCH_TYPE_MENU, "MENU", 0, "Menu", "Search active menu items"},
-      {0, NULL, 0, NULL, NULL},
-  };
+static void WM_OT_search_operator(wmOperatorType *ot)
+{
+  ot->name = "Search Operator";
+  ot->idname = "WM_OT_search_operator";
+  ot->description = "Pop-up a search over all available operators in current context";
 
-  /* properties */
-  ot->prop = RNA_def_enum(ot->srna, "type", search_type_items, SEARCH_TYPE_OPERATOR, "Type", "");
+  ot->invoke = wm_search_menu_invoke;
+  ot->exec = wm_search_menu_exec;
+  ot->poll = WM_operator_winactive;
 }
 
 static int wm_call_menu_exec(bContext *C, wmOperator *op)
@@ -3806,6 +3807,7 @@ void wm_operatortypes_register(void)
   WM_operatortype_append(WM_OT_operator_defaults);
   WM_operatortype_append(WM_OT_splash);
   WM_operatortype_append(WM_OT_search_menu);
+  WM_operatortype_append(WM_OT_search_operator);
   WM_operatortype_append(WM_OT_call_menu);
   WM_operatortype_append(WM_OT_call_menu_pie);
   WM_operatortype_append(WM_OT_call_panel);

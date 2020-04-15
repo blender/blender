@@ -580,6 +580,8 @@ class TOPBAR_MT_edit(Menu):
     def draw(self, context):
         layout = self.layout
 
+        show_developer = context.preferences.view.show_developer_ui
+
         layout.operator("ed.undo")
         layout.operator("ed.redo")
 
@@ -598,8 +600,9 @@ class TOPBAR_MT_edit(Menu):
 
         layout.separator()
 
-        layout.operator("wm.search_menu",
-                        text="Operator Search...", icon='VIEWZOOM')
+        layout.operator("wm.search_menu", text="Menu Search...", icon='VIEWZOOM')
+        if show_developer:
+            layout.operator("wm.search_operator", text="Operator Search...", icon='VIEWZOOM')
 
         layout.separator()
 
