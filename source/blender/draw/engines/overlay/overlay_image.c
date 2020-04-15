@@ -395,16 +395,22 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
   /* Use the actual depth if we are doing depth tests to determine the distance to the object */
   char depth_mode = DRW_state_is_depth() ? OB_EMPTY_IMAGE_DEPTH_DEFAULT : ob->empty_image_depth;
   DRWPass *pass = NULL;
-  switch (depth_mode) {
-    case OB_EMPTY_IMAGE_DEPTH_DEFAULT:
-      pass = (use_alpha_blend) ? psl->image_empties_blend_ps : psl->image_empties_ps;
-      break;
-    case OB_EMPTY_IMAGE_DEPTH_BACK:
-      pass = psl->image_empties_back_ps;
-      break;
-    case OB_EMPTY_IMAGE_DEPTH_FRONT:
-      pass = psl->image_empties_front_ps;
-      break;
+  if ((ob->dtx & OB_DRAWXRAY) != 0) {
+    /* Object In Front overrides image empty depth mode. */
+    pass = psl->image_empties_front_ps;
+  }
+  else {
+    switch (depth_mode) {
+      case OB_EMPTY_IMAGE_DEPTH_DEFAULT:
+        pass = (use_alpha_blend) ? psl->image_empties_blend_ps : psl->image_empties_ps;
+        break;
+      case OB_EMPTY_IMAGE_DEPTH_BACK:
+        pass = psl->image_empties_back_ps;
+        break;
+      case OB_EMPTY_IMAGE_DEPTH_FRONT:
+        pass = psl->image_empties_front_ps;
+        break;
+    }
   }
 
   if (show_frame) {
