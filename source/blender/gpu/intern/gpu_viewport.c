@@ -93,6 +93,7 @@ struct GPUViewport {
   /* Color management. */
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
+  CurveMapping *orig_curve_mapping;
   float dither;
   /* TODO(fclem) the uvimage display use the viewport but do not set any view transform for the
    * moment. The end goal would be to let the GPUViewport do the color management. */
@@ -552,8 +553,43 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
                                  ColorManagedDisplaySettings *display_settings,
                                  float dither)
 {
-  memcpy(&viewport->view_settings, view_settings, sizeof(*view_settings));
-  memcpy(&viewport->display_settings, display_settings, sizeof(*display_settings));
+  /**
+   * HACK(fclem): We copy the settings here to avoid use after free if an update frees the scene
+   * and the viewport stays cached (see T75443). But this means the OCIO curvemapping caching
+   * (which is based on CurveMap pointer address) cannot operate correctly and it will create
+   * a different OCIO processor for each viewport. We try to only realloc the curvemap copy if
+   * needed to avoid uneeded cache invalidation.
+   */
+  if (view_settings->curve_mapping) {
+    if (viewport->view_settings.curve_mapping) {
+      if (view_settings->curve_mapping->changed_timestamp !=
+          viewport->view_settings.curve_mapping->changed_timestamp) {
+        BKE_color_managed_view_settings_free(&viewport->view_settings);
+      }
+    }
+  }
+
+  if (viewport->orig_curve_mapping != view_settings->curve_mapping) {
+    viewport->orig_curve_mapping = view_settings->curve_mapping;
+    BKE_color_managed_view_settings_free(&viewport->view_settings);
+  }
+  /* Don't copy the curve mapping already. */
+  CurveMapping *tmp_curve_mapping = view_settings->curve_mapping;
+  CurveMapping *tmp_curve_mapping_vp = viewport->view_settings.curve_mapping;
+  view_settings->curve_mapping = NULL;
+  viewport->view_settings.curve_mapping = NULL;
+
+  BKE_color_managed_view_settings_copy(&viewport->view_settings, view_settings);
+  /* Restore. */
+  view_settings->curve_mapping = tmp_curve_mapping;
+  viewport->view_settings.curve_mapping = tmp_curve_mapping_vp;
+  /* Only copy curvemapping if needed. Avoid uneeded OCIO cache miss. */
+  if (tmp_curve_mapping && viewport->view_settings.curve_mapping == NULL) {
+    BKE_color_managed_view_settings_free(&viewport->view_settings);
+    viewport->view_settings.curve_mapping = BKE_curvemapping_copy(tmp_curve_mapping);
+  }
+
+  BKE_color_managed_display_settings_copy(&viewport->display_settings, display_settings);
   viewport->dither = dither;
   viewport->do_color_management = true;
 }
@@ -922,6 +958,8 @@ void GPU_viewport_free(GPUViewport *viewport)
 
   DRW_instance_data_list_free(viewport->idatalist);
   MEM_freeN(viewport->idatalist);
+
+  BKE_color_managed_view_settings_free(&viewport->view_settings);
 
   MEM_freeN(viewport);
 }

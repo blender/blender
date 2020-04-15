@@ -4804,7 +4804,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->adapt_threshold = 0.02f;
 
     /* fluid domain options */
-    mmd->domain->maxres = 64;
+    mmd->domain->maxres = 32;
     mmd->domain->solver_res = 3;
     mmd->domain->border_collisions = 0;  // open domain
     mmd->domain->flags = FLUID_DOMAIN_USE_DISSOLVE_LOG | FLUID_DOMAIN_USE_ADAPTIVE_TIME;
@@ -4906,7 +4906,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->cache_frame_pause_particles = 0;
     mmd->domain->cache_frame_pause_guide = 0;
     mmd->domain->cache_flag = 0;
-    mmd->domain->cache_type = FLUID_DOMAIN_CACHE_MODULAR;
+    mmd->domain->cache_type = FLUID_DOMAIN_CACHE_REPLAY;
     mmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
 #ifdef WITH_OPENVDB
     mmd->domain->cache_data_format = FLUID_DOMAIN_FILE_OPENVDB;
