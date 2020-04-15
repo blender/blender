@@ -988,6 +988,7 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
         layout.use_property_split = True
 
         domain = context.fluid.domain_settings
+        layout.active = domain.use_diffusion
 
         is_baking_any = domain.is_cache_baking_any
         has_baked_any = domain.has_cache_baked_any
