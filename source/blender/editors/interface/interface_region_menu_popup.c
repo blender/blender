@@ -88,11 +88,11 @@ int ui_but_menu_step(uiBut *but, int direction)
   return 0;
 }
 
-static uint ui_popup_string_hash(const char *str)
+static uint ui_popup_string_hash(const char *str, const bool use_sep)
 {
   /* sometimes button contains hotkey, sometimes not, strip for proper compare */
   int hash;
-  const char *delimit = strrchr(str, UI_SEP_CHAR);
+  const char *delimit = use_sep ? strrchr(str, UI_SEP_CHAR) : NULL;
 
   if (delimit) {
     hash = BLI_ghashutil_strhash_n(str, delimit - str);
@@ -126,13 +126,13 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 
   if (but) {
     /* set */
-    mem[hash_mod] = ui_popup_string_hash(but->str);
+    mem[hash_mod] = ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR);
     return NULL;
   }
   else {
     /* get */
     for (but = block->buttons.first; but; but = but->next) {
-      if (ui_popup_string_hash(but->str) == mem[hash_mod]) {
+      if (mem[hash_mod] == ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR)) {
         return but;
       }
     }

@@ -5279,7 +5279,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
 
   /* cut string in 2 parts? */
   if (use_sep) {
-    cpoin = strchr(name, UI_SEP_CHAR);
+    cpoin = strrchr(name, UI_SEP_CHAR);
     if (cpoin) {
       *cpoin = 0;
 
