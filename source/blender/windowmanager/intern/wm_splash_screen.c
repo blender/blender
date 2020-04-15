@@ -178,22 +178,11 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
 #endif /* WITH_BUILDINFO */
 }
 
-static ImBuf *wm_block_splash_image(int r_unit_size[2])
+static ImBuf *wm_block_splash_image(void)
 {
 #ifndef WITH_HEADLESS
-  extern char datatoc_splash_png[];
-  extern int datatoc_splash_png_size;
   extern char datatoc_splash_2x_png[];
   extern int datatoc_splash_2x_png_size;
-  const bool is_2x = U.dpi_fac > 1.0;
-  const int imb_scale = is_2x ? 2 : 1;
-
-  /* We could allow this to be variable,
-   * for now don't since allowing it might create layout issues.
-   *
-   * Only check width because splashes sometimes change height
-   * and we don't want to break app-templates. */
-  const int x_expect = 501 * imb_scale;
 
   ImBuf *ibuf = NULL;
 
@@ -202,50 +191,15 @@ static ImBuf *wm_block_splash_image(int r_unit_size[2])
     char template_directory[FILE_MAX];
     if (BKE_appdir_app_template_id_search(
             U.app_template, template_directory, sizeof(template_directory))) {
-      BLI_join_dirfile(splash_filepath,
-                       sizeof(splash_filepath),
-                       template_directory,
-                       is_2x ? "splash_2x.png" : "splash.png");
+      BLI_join_dirfile(splash_filepath, sizeof(splash_filepath), template_directory, "splash.png");
       ibuf = IMB_loadiffname(splash_filepath, IB_rect, NULL);
-
-      /* We could skip this check, see comment about 'x_expect' above. */
-      if (ibuf && ibuf->x != x_expect) {
-        CLOG_ERROR(WM_LOG_OPERATORS,
-                   "Splash expected %d width found %d, ignoring: %s\n",
-                   x_expect,
-                   ibuf->x,
-                   splash_filepath);
-        IMB_freeImBuf(ibuf);
-        ibuf = NULL;
-      }
     }
   }
 
   if (ibuf == NULL) {
-    const uchar *splash_data;
-    size_t splash_data_size;
-
-    if (is_2x) {
-      splash_data = (const uchar *)datatoc_splash_2x_png;
-      splash_data_size = datatoc_splash_2x_png_size;
-    }
-    else {
-      splash_data = (const uchar *)datatoc_splash_png;
-      splash_data_size = datatoc_splash_png_size;
-    }
-
+    const uchar *splash_data = (const uchar *)datatoc_splash_2x_png;
+    size_t splash_data_size = datatoc_splash_2x_png_size;
     ibuf = IMB_ibImageFromMemory(splash_data, splash_data_size, IB_rect, NULL, "<splash screen>");
-
-    BLI_assert(ibuf->x == x_expect);
-  }
-
-  if (is_2x) {
-    r_unit_size[0] = ibuf->x / 2;
-    r_unit_size[1] = ibuf->y / 2;
-  }
-  else {
-    r_unit_size[0] = ibuf->x;
-    r_unit_size[1] = ibuf->y;
   }
 
   return ibuf;
@@ -269,23 +223,19 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  /* Size before dpi scaling (halved for hi-dpi image). */
-  int ibuf_unit_size[2];
-  ImBuf *ibuf = wm_block_splash_image(ibuf_unit_size);
-  but = uiDefButImage(block,
-                      ibuf,
-                      0,
-                      0.5f * U.widget_unit,
-                      U.dpi_fac * ibuf_unit_size[0],
-                      U.dpi_fac * ibuf_unit_size[1],
-                      NULL);
+  /* Would be nice to support caching this, so it only has to be re-read (and likely resized) on
+   * first draw or if the image changed. */
+  ImBuf *ibuf = wm_block_splash_image();
+
+  float splash_width = 500.0f * U.dpi_fac;
+  float splash_height = (splash_width * ibuf->y) / ibuf->x;
+
+  but = uiDefButImage(block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
+
   UI_but_func_set(but, wm_block_splash_close, block, NULL);
   UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 
-  int x = U.dpi_fac * (ibuf_unit_size[0] + 1);
-  int y = U.dpi_fac * (ibuf_unit_size[1] - 13);
-
-  wm_block_splash_add_labels(block, x, y);
+  wm_block_splash_add_labels(block, splash_width, splash_height - 13 * U.dpi_fac);
 
   const int layout_margin_x = U.dpi_fac * 26;
   uiLayout *layout = UI_block_layout(block,
@@ -293,7 +243,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
                                      UI_LAYOUT_PANEL,
                                      layout_margin_x,
                                      0,
-                                     (U.dpi_fac * ibuf_unit_size[0]) - (layout_margin_x * 2),
+                                     splash_width - (layout_margin_x * 2),
                                      U.dpi_fac * 110,
                                      0,
                                      style);
