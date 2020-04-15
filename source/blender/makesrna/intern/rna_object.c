@@ -1625,7 +1625,10 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   }
   mod_src = mod_src ? mod_src->next : ob_src->modifiers.first;
 
-  BLI_assert(mod_src != NULL);
+  if (mod_src == NULL) {
+    BLI_assert(mod_src != NULL);
+    return false;
+  }
 
   /* While it would be nicer to use lower-level modifier_new() here, this one is lacking
    * special-cases handling (particles and other physics modifiers mostly), so using the ED version
