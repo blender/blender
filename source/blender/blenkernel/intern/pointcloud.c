@@ -184,7 +184,7 @@ void BKE_pointcloud_update_customdata_pointers(PointCloud *pointcloud)
 
 PointCloud *BKE_pointcloud_new_for_eval(const PointCloud *pointcloud_src, int totpoint)
 {
-  PointCloud *pointcloud_dst = BKE_id_new_nomain(ID_HA, NULL);
+  PointCloud *pointcloud_dst = BKE_id_new_nomain(ID_PT, NULL);
 
   STRNCPY(pointcloud_dst->id.name, pointcloud_src->id.name);
   pointcloud_dst->mat = MEM_dupallocN(pointcloud_src->mat);
