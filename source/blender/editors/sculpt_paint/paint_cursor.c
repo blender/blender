@@ -1216,15 +1216,15 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr, SculptSession
   }
 }
 
-void SCULPT_layer_brush_height_preview_draw(const uint gpuattr,
-                                            const Brush *brush,
-                                            const float obmat[4][4],
-                                            const float location[3],
-                                            const float normal[3],
-                                            const float rds,
-                                            const float line_width,
-                                            const float outline_col[3],
-                                            const float alpha)
+static void SCULPT_layer_brush_height_preview_draw(const uint gpuattr,
+                                                   const Brush *brush,
+                                                   const float obmat[4][4],
+                                                   const float location[3],
+                                                   const float normal[3],
+                                                   const float rds,
+                                                   const float line_width,
+                                                   const float outline_col[3],
+                                                   const float alpha)
 {
   float cursor_trans[4][4], cursor_rot[4][4];
   float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
