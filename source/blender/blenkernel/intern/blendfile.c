@@ -258,9 +258,6 @@ static void setup_app_data(bContext *C,
   //  CTX_wm_manager_set(C, NULL);
   BKE_blender_globals_clear();
 
-  /* clear old property update cache, in case some old references are left dangling */
-  RNA_property_update_cache_free();
-
   bmain = G_MAIN = bfd->main;
   bfd->main = NULL;
 

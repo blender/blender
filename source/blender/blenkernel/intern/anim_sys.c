@@ -2547,13 +2547,6 @@ void BKE_animsys_evaluate_animdata(
    * - It is best that we execute this every time, so that no errors are likely to occur.
    */
   animsys_evaluate_overrides(&id_ptr, adt);
-
-  /* execute and clear all cached property update functions */
-  if (scene) {
-    Main *bmain = G.main;  // xxx - to get passed in!
-    RNA_property_update_cache_flush(bmain, scene);
-    RNA_property_update_cache_free();
-  }
 }
 
 /* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only

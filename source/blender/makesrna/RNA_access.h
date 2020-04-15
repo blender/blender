@@ -930,10 +930,6 @@ void RNA_property_update_main(struct Main *bmain,
                               PropertyRNA *prop);
 bool RNA_property_update_check(struct PropertyRNA *prop);
 
-void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop);
-void RNA_property_update_cache_flush(struct Main *bmain, struct Scene *scene);
-void RNA_property_update_cache_free(void);
-
 /* Property Data */
 
 bool RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop);
