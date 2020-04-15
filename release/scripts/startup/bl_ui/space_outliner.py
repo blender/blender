@@ -243,10 +243,14 @@ class OUTLINER_MT_collection_new(Menu):
     bl_label = "Collection"
 
     def draw(self, context):
+        # Note: this menu is used in any context where collections exist,
+        # as a generic way to add data. The names here are expanded because
+        # this menu is often expended without it's title.
+
         layout = self.layout
 
-        layout.operator("outliner.collection_new", text="New").nested = False
-        layout.operator("outliner.id_paste", text="Paste", icon='PASTEDOWN')
+        layout.operator("outliner.collection_new", text="New Collection").nested = False
+        layout.operator("outliner.id_paste", text="Paste Data-Blocks", icon='PASTEDOWN')
 
         layout.separator()
 
