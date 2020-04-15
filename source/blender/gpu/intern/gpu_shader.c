@@ -1024,7 +1024,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
         {
             .vert = datatoc_gpu_shader_3D_clipped_uniform_color_vert_glsl,
             .frag = datatoc_gpu_shader_uniform_color_frag_glsl,
-            .defs = datatoc_gpu_shader_colorspace_lib_glsl,
         },
 
     [GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR] =
