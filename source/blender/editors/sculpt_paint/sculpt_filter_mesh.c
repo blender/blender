@@ -578,7 +578,6 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   ss->filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
 
   if (RNA_enum_get(op->ptr, "type") == MESH_FILTER_RELAX) {
-    const int totvert = SCULPT_vertex_count_get(ss);
     ss->filter_cache->automask = MEM_mallocN(totvert * sizeof(float),
                                              "Relax filter edge automask");
     for (int i = 0; i < totvert; i++) {
