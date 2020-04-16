@@ -1364,7 +1364,15 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
 static bool shade_poll(bContext *C)
 {
-  return (CTX_data_edit_object(C) == NULL);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *obact = OBACT(view_layer);
+  if (obact != NULL) {
+    /* Doesn't handle edit-data, sculpt dynamic-topology, or their undo systems. */
+    if (obact->mode & (OB_MODE_EDIT | OB_MODE_SCULPT)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void OBJECT_OT_shade_flat(wmOperatorType *ot)
