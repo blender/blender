@@ -279,9 +279,10 @@ void BPY_python_start(int argc, const char **argv)
    * While harmless, it's noisy. */
   Py_FrozenFlag = 1;
 
-  /* Only use the systems environment variables when explicitly requested.
+  /* Only use the systems environment variables and site when explicitly requested.
    * Since an incorrect 'PYTHONPATH' causes difficult to debug errors, see: T72807. */
   Py_IgnoreEnvironmentFlag = !py_use_system_env;
+  Py_NoUserSiteDirectory = !py_use_system_env;
 
   Py_Initialize();
 
