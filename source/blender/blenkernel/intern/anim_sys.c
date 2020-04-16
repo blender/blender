@@ -2708,7 +2708,6 @@ void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id)
   AnimData *adt = BKE_animdata_from_id(id);
   /* XXX: this is only needed for flushing RNA updates,
    * which should get handled as part of the dependency graph instead. */
-  Scene *scene = NULL;
   DEG_debug_print_eval_time(depsgraph, __func__, id->name, id, ctime);
   const bool flush_to_original = DEG_is_active(depsgraph);
   BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM, flush_to_original);
