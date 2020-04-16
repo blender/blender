@@ -4410,10 +4410,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       ColorManagedViewSettings *view_settings;
       view_settings = &scene->view_settings;
       if (BLI_str_startswith(view_settings->look, "Filmic - ")) {
-        STRNCPY(view_settings->look, view_settings->look + strlen("Filmic - "));
+        char *src = view_settings->look + strlen("Filmic - ");
+        memmove(view_settings->look, src, strlen(src) + 1);
       }
       else if (BLI_str_startswith(view_settings->look, "Standard - ")) {
-        STRNCPY(view_settings->look, view_settings->look + strlen("Standard - "));
+        char *src = view_settings->look + strlen("Standard - ");
+        memmove(view_settings->look, src, strlen(src) + 1);
       }
     }
 
