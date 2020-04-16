@@ -24,6 +24,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "GHOST_C-api.h"
 #include "GHOST_IEvent.h"
@@ -527,17 +528,15 @@ void GHOST_SetTitle(GHOST_WindowHandle windowhandle, const char *title)
 char *GHOST_GetTitle(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  STR_String title;
+  std::string title = window->getTitle();
 
-  window->getTitle(title);
-
-  char *ctitle = (char *)malloc(title.Length() + 1);
+  char *ctitle = (char *)malloc(title.size() + 1);
 
   if (ctitle == NULL) {
     return NULL;
   }
 
-  strcpy(ctitle, title.Ptr());
+  strcpy(ctitle, title.c_str());
 
   return ctitle;
 }

@@ -291,7 +291,7 @@
 /* clang-format on */
 
 GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
-                                     const STR_String &title,
+                                     const char *title,
                                      GHOST_TInt32 left,
                                      GHOST_TInt32 bottom,
                                      GHOST_TUns32 width,
@@ -482,7 +482,7 @@ void *GHOST_WindowCocoa::getOSWindow() const
   return (void *)m_window;
 }
 
-void GHOST_WindowCocoa::setTitle(const STR_String &title)
+void GHOST_WindowCocoa::setTitle(const char *title)
 {
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid");
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -524,7 +524,7 @@ void GHOST_WindowCocoa::setTitle(const STR_String &title)
   [pool drain];
 }
 
-void GHOST_WindowCocoa::getTitle(STR_String &title) const
+std::string GHOST_WindowCocoa::getTitle() const
 {
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getTitle(): window invalid");
 
@@ -532,11 +532,14 @@ void GHOST_WindowCocoa::getTitle(STR_String &title) const
 
   NSString *windowTitle = [m_window title];
 
+  std::string title;
   if (windowTitle != nil) {
     title = [windowTitle UTF8String];
   }
 
   [pool drain];
+
+  return title;
 }
 
 void GHOST_WindowCocoa::getWindowBounds(GHOST_Rect &bounds) const

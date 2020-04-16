@@ -259,7 +259,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * \param parentWindowHwnd
    */
   GHOST_WindowWin32(GHOST_SystemWin32 *system,
-                    const STR_String &title,
+                    const char *title,
                     GHOST_TInt32 left,
                     GHOST_TInt32 top,
                     GHOST_TUns32 width,
@@ -294,13 +294,13 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * Sets the title displayed in the title bar.
    * \param title The title to display in the title bar.
    */
-  void setTitle(const STR_String &title);
+  void setTitle(const char *title);
 
   /**
    * Returns the title displayed in the title bar.
-   * \param title The title displayed in the title bar.
+   * \return The title displayed in the title bar.
    */
-  void getTitle(STR_String &title) const;
+  std::string getTitle() const;
 
   /**
    * Returns the window rectangle dimensions.

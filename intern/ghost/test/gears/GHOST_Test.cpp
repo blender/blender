@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <string>
 
 #if defined(WIN32) || defined(__APPLE__)
 #  ifdef WIN32
@@ -43,7 +44,6 @@
 #endif  // defined(WIN32) || defined(__APPLE__)
 
 #include "GHOST_Rect.h"
-#include "STR_String.h"
 
 #include "GHOST_IEvent.h"
 #include "GHOST_IEventConsumer.h"
@@ -427,8 +427,7 @@ Application::Application(GHOST_ISystem *system)
   fApp = this;
 
   // Create the main window
-  STR_String title1("gears - main window");
-  m_mainWindow = system->createWindow(title1,
+  m_mainWindow = system->createWindow("gears - main window",
                                       10,
                                       64,
                                       320,
@@ -443,8 +442,7 @@ Application::Application(GHOST_ISystem *system)
   }
 
   // Create a secondary window
-  STR_String title2("gears - secondary window");
-  m_secondaryWindow = system->createWindow(title2,
+  m_secondaryWindow = system->createWindow("gears - secondary window",
                                            340,
                                            64,
                                            320,
@@ -598,8 +596,7 @@ bool Application::processEvent(GHOST_IEvent *event)
 
         case GHOST_kKeyW:
           if (m_mainWindow) {
-            STR_String title;
-            m_mainWindow->getTitle(title);
+            std::string title = m_mainWindow->getTitle();
             title += "-";
             m_mainWindow->setTitle(title);
           }

@@ -25,6 +25,8 @@
 #ifndef __GHOST_EVENTKEY_H__
 #define __GHOST_EVENTKEY_H__
 
+#include <string.h>
+
 #include "GHOST_Event.h"
 
 /**

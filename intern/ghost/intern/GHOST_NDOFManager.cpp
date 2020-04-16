@@ -19,6 +19,8 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventNDOF.h"
 #include "GHOST_WindowManager.h"
+
+#include <limits.h>
 #include <math.h>
 #include <stdio.h>   // for error/info reporting
 #include <string.h>  // for memory functions

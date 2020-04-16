@@ -698,7 +698,7 @@ void GHOST_SystemCocoa::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns3
   getMainDisplayDimensions(width, height);
 }
 
-GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
+GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                                GHOST_TInt32 left,
                                                GHOST_TInt32 top,
                                                GHOST_TUns32 width,

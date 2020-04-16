@@ -338,7 +338,7 @@ void GHOST_SystemX11::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 
  * \param   parentWindow    Parent window
  * \return  The new window (or 0 if creation failed).
  */
-GHOST_IWindow *GHOST_SystemX11::createWindow(const STR_String &title,
+GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                              GHOST_TInt32 left,
                                              GHOST_TInt32 top,
                                              GHOST_TUns32 width,

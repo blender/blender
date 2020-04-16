@@ -27,8 +27,6 @@
 
 #include "GHOST_IEventConsumer.h"
 
-#include "STR_String.h"
-
 /**
  * An Event consumer that prints all the events to standard out.
  * Really useful when debugging.

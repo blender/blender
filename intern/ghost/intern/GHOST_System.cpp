@@ -367,7 +367,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
   GHOST_ASSERT(m_displayManager,
                "GHOST_System::createFullScreenWindow(): invalid display manager");
   // GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
-  *window = (GHOST_Window *)createWindow(STR_String(""),
+  *window = (GHOST_Window *)createWindow("",
                                          0,
                                          0,
                                          settings.xPixels,

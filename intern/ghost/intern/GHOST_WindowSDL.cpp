@@ -27,7 +27,7 @@
 #include <assert.h>
 
 GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
-                                 const STR_String &title,
+                                 const char *title,
                                  GHOST_TInt32 left,
                                  GHOST_TInt32 top,
                                  GHOST_TUns32 width,
@@ -148,14 +148,14 @@ bool GHOST_WindowSDL::getValid() const
   return GHOST_Window::getValid() && m_valid_setup;
 }
 
-void GHOST_WindowSDL::setTitle(const STR_String &title)
+void GHOST_WindowSDL::setTitle(const char *title)
 {
-  SDL_SetWindowTitle(m_sdl_win, title.ReadPtr());
+  SDL_SetWindowTitle(m_sdl_win, title);
 }
 
-void GHOST_WindowSDL::getTitle(STR_String &title) const
+std::string GHOST_WindowSDL::getTitle() const
 {
-  title = SDL_GetWindowTitle(m_sdl_win);
+  return SDL_GetWindowTitle(m_sdl_win);
 }
 
 void GHOST_WindowSDL::getWindowBounds(GHOST_Rect &bounds) const

@@ -282,7 +282,7 @@ void GHOST_SystemWin32::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns3
   height = ::GetSystemMetrics(SM_CYVIRTUALSCREEN);
 }
 
-GHOST_IWindow *GHOST_SystemWin32::createWindow(const STR_String &title,
+GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
                                                GHOST_TInt32 left,
                                                GHOST_TInt32 top,
                                                GHOST_TUns32 width,

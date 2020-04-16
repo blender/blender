@@ -26,7 +26,6 @@
 
 #include <map>
 
-class STR_String;
 class GHOST_SystemNULL;
 
 class GHOST_WindowNULL : public GHOST_Window {
@@ -37,7 +36,7 @@ class GHOST_WindowNULL : public GHOST_Window {
   }
 
   GHOST_WindowNULL(GHOST_SystemNULL *system,
-                   const STR_String &title,
+                   const char *title,
                    GHOST_TInt32 left,
                    GHOST_TInt32 top,
                    GHOST_TUns32 width,
@@ -83,12 +82,12 @@ class GHOST_WindowNULL : public GHOST_Window {
   {
     return true;
   }
-  void setTitle(const STR_String &title)
+  void setTitle(const char *title)
   { /* nothing */
   }
-  void getTitle(STR_String &title) const
+  std::string getTitle() const
   {
-    title = "untitled";
+    return "untitled";
   }
   void getWindowBounds(GHOST_Rect &bounds) const
   {

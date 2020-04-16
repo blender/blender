@@ -80,7 +80,7 @@ class GHOST_SystemSDL : public GHOST_System {
  private:
   GHOST_TSuccess init();
 
-  GHOST_IWindow *createWindow(const STR_String &title,
+  GHOST_IWindow *createWindow(const char *title,
                               GHOST_TInt32 left,
                               GHOST_TInt32 top,
                               GHOST_TUns32 width,

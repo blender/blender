@@ -27,7 +27,9 @@
 
 #include "GHOST_Rect.h"
 #include "GHOST_Types.h"
-#include "STR_String.h"
+
+#include <stdlib.h>
+#include <string>
 
 /**
  * Interface for GHOST windows.
@@ -81,13 +83,13 @@ class GHOST_IWindow {
    * Sets the title displayed in the title bar.
    * \param title The title to display in the title bar.
    */
-  virtual void setTitle(const STR_String &title) = 0;
+  virtual void setTitle(const char *title) = 0;
 
   /**
    * Returns the title displayed in the title bar.
    * \param title The title displayed in the title bar.
    */
-  virtual void getTitle(STR_String &title) const = 0;
+  virtual std::string getTitle() const = 0;
 
   /**
    * Returns the window rectangle dimensions.

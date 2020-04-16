@@ -137,7 +137,7 @@ class GHOST_SystemX11 : public GHOST_System {
    * \param   parentWindow    Parent (embedder) window
    * \return  The new window (or 0 if creation failed).
    */
-  GHOST_IWindow *createWindow(const STR_String &title,
+  GHOST_IWindow *createWindow(const char *title,
                               GHOST_TInt32 left,
                               GHOST_TInt32 top,
                               GHOST_TUns32 width,

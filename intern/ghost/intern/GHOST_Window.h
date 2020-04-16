@@ -27,7 +27,6 @@
 
 #include "GHOST_IWindow.h"
 
-class STR_String;
 class GHOST_Context;
 
 /**
@@ -61,8 +60,8 @@ class GHOST_Window : public GHOST_IWindow {
    * \section Interface inherited from GHOST_IWindow left for derived class
    * implementation.
    * virtual  bool getValid() const = 0;
-   * virtual void setTitle(const STR_String& title) = 0;
-   * virtual void getTitle(STR_String& title) const = 0;
+   * virtual void setTitle(const char * title) = 0;
+   * virtual std::string getTitle() const = 0;
    * virtual  void getWindowBounds(GHOST_Rect& bounds) const = 0;
    * virtual  void getClientBounds(GHOST_Rect& bounds) const = 0;
    * virtual  GHOST_TSuccess setClientWidth(GHOST_TUns32 width) = 0;
