@@ -695,6 +695,7 @@ void uiTemplateNodeLink(
 
   UI_but_type_set_menu_from_pulldown(but);
   UI_but_node_link_set(but, sock, socket_col);
+  UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
 
   but->poin = (char *)but;
   but->func_argN = arg;
@@ -816,6 +817,10 @@ static void ui_node_draw_input(
     }
   }
   else {
+    row = uiLayoutRow(split, true);
+
+    uiTemplateNodeLink(row, C, ntree, node, input);
+
     /* input not linked, show value */
     if (!(input->flag & SOCK_HIDE_VALUE)) {
       switch (input->type) {
@@ -824,25 +829,15 @@ static void ui_node_draw_input(
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
         case SOCK_STRING:
-          row = uiLayoutRow(split, true);
           uiItemR(row, &inputptr, "default_value", 0, "", ICON_NONE);
           break;
         case SOCK_VECTOR:
-          row = uiLayoutRow(split, false);
+          uiItemS(row);
           col = uiLayoutColumn(row, false);
           uiItemR(col, &inputptr, "default_value", 0, "", ICON_NONE);
           break;
-
-        default:
-          row = uiLayoutRow(split, false);
-          break;
       }
     }
-    else {
-      row = uiLayoutRow(split, false);
-    }
-
-    uiTemplateNodeLink(row, C, ntree, node, input);
   }
 
   /* clear */
