@@ -217,18 +217,6 @@ static void gpu_viewport_framebuffer_view_set(GPUViewport *viewport, int view)
                                     GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
                                 });
 
-  if (((viewport->flag & GPU_VIEWPORT_STEREO) != 0)) {
-    GPU_framebuffer_ensure_config(&dfbl->stereo_comp_fb,
-                                  {
-                                      GPU_ATTACHMENT_NONE,
-                                      GPU_ATTACHMENT_TEXTURE(dtxl->color),
-                                      GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
-                                  });
-  }
-  else {
-    dfbl->stereo_comp_fb = NULL;
-  }
-
   viewport->active_view = view;
 }
 
@@ -492,9 +480,6 @@ static void gpu_viewport_default_fb_create(GPUViewport *viewport)
   ok = ok && GPU_framebuffer_check_valid(dfbl->color_only_fb, NULL);
   ok = ok && GPU_framebuffer_check_valid(dfbl->depth_only_fb, NULL);
   ok = ok && GPU_framebuffer_check_valid(dfbl->overlay_only_fb, NULL);
-  if (((viewport->flag & GPU_VIEWPORT_STEREO) != 0)) {
-    ok = ok && GPU_framebuffer_check_valid(dfbl->stereo_comp_fb, NULL);
-  }
 cleanup:
   if (!ok) {
     GPU_viewport_free(viewport);
@@ -624,6 +609,14 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
   gpu_viewport_framebuffer_view_set(viewport, 0);
   DefaultTextureList *dtxl = viewport->txl;
   DefaultFramebufferList *dfbl = viewport->fbl;
+
+  /* The composite framebuffer object needs to be created in the window context. */
+  GPU_framebuffer_ensure_config(&dfbl->stereo_comp_fb,
+                                {
+                                    GPU_ATTACHMENT_NONE,
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->color),
+                                    GPU_ATTACHMENT_TEXTURE(dtxl->color_overlay),
+                                });
 
   GPUVertFormat *vert_format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

@@ -890,8 +890,7 @@ static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, I
     for (path = snode->treepath.first; path; path = path->next) {
       if ((ID *)path->nodetree == old_id) {
         path->nodetree = (bNodeTree *)new_id;
-        id_us_min(old_id);
-        id_us_plus(new_id);
+        id_us_ensure_real(new_id);
       }
       if (path == snode->treepath.first) {
         /* first nodetree in path is same as snode->nodetree */
