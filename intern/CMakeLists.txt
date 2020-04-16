@@ -20,7 +20,6 @@
 
 # add_subdirectory(atomic)  # header only
 add_subdirectory(clog)
-add_subdirectory(string)
 add_subdirectory(ghost)
 add_subdirectory(guardedalloc)
 add_subdirectory(libmv)
