@@ -100,6 +100,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "CLG_log.h"
+
 /* for menu/popup icons etc etc*/
 
 #include "UI_interface.h"
@@ -112,21 +114,13 @@
 
 #include "object_intern.h"  // own include
 
+static CLG_LogRef LOG = {"ed.object.edit"};
+
 /* prototypes */
 typedef struct MoveToCollectionData MoveToCollectionData;
 static void move_to_collection_menus_items(struct uiLayout *layout,
                                            struct MoveToCollectionData *menu);
 static ListBase selected_objects_get(bContext *C);
-
-/* ************* XXX **************** */
-static void error(const char *UNUSED(arg))
-{
-}
-
-/* port over here */
-static void error_libdata(void)
-{
-}
 
 Object *ED_object_context(bContext *C)
 {
@@ -441,7 +435,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     }
 
     if (me->edit_mesh->bm->totvert > MESH_MAX_VERTS) {
-      error("Too many vertices");
+      /* This used to be warned int the UI, we could warn again although it's quite rare. */
+      CLOG_WARN(&LOG,
+                "Too many vertices for mesh '%s' (%d)",
+                me->id.name + 2,
+                me->edit_mesh->bm->totvert);
       return false;
     }
 
@@ -600,7 +598,8 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
   }
 
   if (BKE_object_obdata_is_libdata(ob)) {
-    error_libdata();
+    /* Ideally the caller should check this. */
+    CLOG_WARN(&LOG, "Unable to enter edit-mode on library data for object '%s'", ob->id.name + 2);
     return false;
   }
 
