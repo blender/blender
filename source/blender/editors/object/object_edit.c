@@ -122,6 +122,10 @@ static void move_to_collection_menus_items(struct uiLayout *layout,
                                            struct MoveToCollectionData *menu);
 static ListBase selected_objects_get(bContext *C);
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
 Object *ED_object_context(bContext *C)
 {
   return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
@@ -141,7 +145,11 @@ Object *ED_object_active_context(bContext *C)
   return ob;
 }
 
-/* ********************** object hiding *************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide Operator
+ * \{ */
 
 static bool object_hide_poll(bContext *C)
 {
@@ -395,7 +403,11 @@ void OBJECT_OT_hide_collection(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
-/* ******************* toggle editmode operator  ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Toggle Edit-Mode Operator
+ * \{ */
 
 static bool mesh_needs_keyindex(Main *bmain, const Mesh *me)
 {
@@ -776,7 +788,11 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* *************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Toggle Pose-Mode Operator
+ * \{ */
 
 static int posemode_exec(bContext *C, wmOperator *op)
 {
@@ -860,7 +876,11 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************* force field toggle operator ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Force Field Toggle Operator
+ * \{ */
 
 void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
 {
@@ -923,8 +943,11 @@ void OBJECT_OT_forcefield_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************************** */
-/* Motion Paths */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Calculate Motion Paths Operator
+ * \{ */
 
 static eAnimvizCalcRange object_path_convert_range(eObjectPathCalcRange range)
 {
@@ -1018,7 +1041,7 @@ static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEv
   }
 
   /* show popup dialog to allow editing of range... */
-  /* FIXME: hardcoded dimensions here are just arbitrary */
+  /* FIXME: hard-coded dimensions here are just arbitrary. */
   return WM_operator_props_dialog_popup(C, op, 200);
 }
 
@@ -1087,7 +1110,11 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
               MAXFRAME / 2.0);
 }
 
-/* --------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update Motion Paths Operator
+ * \{ */
 
 static bool object_update_paths_poll(bContext *C)
 {
@@ -1131,7 +1158,11 @@ void OBJECT_OT_paths_update(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* --------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Motion Paths Operator
+ * \{ */
 
 /* Helper for ED_objects_clear_paths() */
 static void object_clear_mpath(Object *ob)
@@ -1150,14 +1181,14 @@ static void object_clear_mpath(Object *ob)
 void ED_objects_clear_paths(bContext *C, bool only_selected)
 {
   if (only_selected) {
-    /* loop over all selected + sedtiable objects in scene */
+    /* Loop over all selected + editable objects in scene. */
     CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
       object_clear_mpath(ob);
     }
     CTX_DATA_END;
   }
   else {
-    /* loop over all edtiable objects in scene */
+    /* Loop over all editable objects in scene. */
     CTX_DATA_BEGIN (C, Object *, ob, editable_objects) {
       object_clear_mpath(ob);
     }
@@ -1209,13 +1240,17 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
-/* --------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update Motion Paths Range from Scene Operator
+ * \{ */
 
 static int object_update_paths_range_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
 
-  /* loop over all edtiable objects in scene */
+  /* Loop over all editable objects in scene. */
   CTX_DATA_BEGIN (C, Object *, ob, editable_objects) {
     /* use Preview Range or Full Frame Range - whichever is in use */
     ob->avs.path_sf = PSFRA;
@@ -1245,7 +1280,11 @@ void OBJECT_OT_paths_range_update(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** Smooth/Flat *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Shade Smooth/Flat Operator
+ * \{ */
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
@@ -1334,7 +1373,11 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Mode Set Operator
+ * \{ */
 
 static const EnumPropertyItem *object_mode_set_itemsf(bContext *C,
                                                       PointerRNA *UNUSED(ptr),
@@ -1514,6 +1557,12 @@ void OBJECT_OT_mode_set_with_submode(wmOperatorType *ot)
       ot->srna, "mesh_select_mode", rna_enum_mesh_select_mode_items, 0, "Mesh Mode", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Link/Move to Collection Operator
+ * \{ */
 
 static ListBase selected_objects_get(bContext *C)
 {
@@ -1855,3 +1904,5 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = prop;
 }
+
+/** \} */
