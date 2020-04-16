@@ -42,6 +42,8 @@
 
 #include "BLF_api.h"
 
+#include "ED_node.h"
+
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
@@ -2394,6 +2396,30 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
   }
 }
 
+static void widget_draw_node_link_socket(const uiWidgetColors *wcol,
+                                         const rcti *rect,
+                                         uiBut *but,
+                                         float alpha)
+{
+  /* Node socket pointer can be passed as custom_data, see UI_but_node_link_set(). */
+  if (but->custom_data) {
+    const float scale = 0.9f / but->block->aspect;
+
+    float col[4];
+    rgba_uchar_to_float(col, but->col);
+    col[3] *= alpha;
+
+    GPU_blend(true);
+    UI_widgetbase_draw_cache_flush();
+    GPU_blend(false);
+
+    ED_node_socket_draw(but->custom_data, rect, col, scale);
+  }
+  else {
+    widget_draw_icon(but, ICON_LAYER_USED, alpha, rect, wcol->text);
+  }
+}
+
 /* draws text and icons for buttons */
 static void widget_draw_text_icon(const uiFontStyle *fstyle,
                                   const uiWidgetColors *wcol,
@@ -2403,15 +2429,27 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   const bool show_menu_icon = ui_but_draw_menu_icon(but);
   float alpha = (float)wcol->text[3] / 255.0f;
   char password_str[UI_MAX_DRAW_STR];
+  bool no_text_padding = false;
 
   ui_but_text_password_hide(password_str, but, false);
 
   /* check for button text label */
   if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_POPOVER) && (but->flag & UI_BUT_NODE_LINK)) {
     rcti temp = *rect;
-    temp.xmin = rect->xmax - BLI_rcti_size_y(rect) - 1;
-    widget_draw_icon(but, ICON_LAYER_USED, alpha, &temp, wcol->text);
-    rect->xmax = temp.xmin;
+    const int size = BLI_rcti_size_y(rect) + 1; /* Not the icon size! */
+
+    if (but->drawflag & UI_BUT_ICON_LEFT) {
+      temp.xmax = rect->xmin + size;
+      rect->xmin = temp.xmax;
+      /* Further padding looks off. */
+      no_text_padding = true;
+    }
+    else {
+      temp.xmin = rect->xmax - size;
+      rect->xmax = temp.xmin;
+    }
+
+    widget_draw_node_link_socket(wcol, &temp, but, alpha);
   }
 
   /* If there's an icon too (made with uiDefIconTextBut) then draw the icon
@@ -2496,28 +2534,30 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     rect->xmin += icon_size + icon_padding;
   }
 
-  int text_padding = (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
-  if (but->editstr) {
-    rect->xmin += text_padding;
-  }
-  else if (but->flag & UI_BUT_DRAG_MULTI) {
-    bool text_is_edited = ui_but_drag_multi_edit_get(but) != NULL;
-    if (text_is_edited) {
+  if (!no_text_padding) {
+    int text_padding = (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+    if (but->editstr) {
       rect->xmin += text_padding;
     }
-  }
-  else if (but->drawflag & UI_BUT_TEXT_LEFT) {
-
-    /* Reduce the left padding for labels without an icon. */
-    if ((but->type == UI_BTYPE_LABEL) && !(but->flag & UI_HAS_ICON) &&
-        !ui_block_is_menu(but->block)) {
-      text_padding /= 2;
+    else if (but->flag & UI_BUT_DRAG_MULTI) {
+      bool text_is_edited = ui_but_drag_multi_edit_get(but) != NULL;
+      if (text_is_edited) {
+        rect->xmin += text_padding;
+      }
     }
+    else if (but->drawflag & UI_BUT_TEXT_LEFT) {
 
-    rect->xmin += text_padding;
-  }
-  else if (but->drawflag & UI_BUT_TEXT_RIGHT) {
-    rect->xmax -= text_padding;
+      /* Reduce the left padding for labels without an icon. */
+      if ((but->type == UI_BTYPE_LABEL) && !(but->flag & UI_HAS_ICON) &&
+          !ui_block_is_menu(but->block)) {
+        text_padding /= 2;
+      }
+
+      rect->xmin += text_padding;
+    }
+    else if (but->drawflag & UI_BUT_TEXT_RIGHT) {
+      rect->xmax -= text_padding;
+    }
   }
 
   /* Menu contains sub-menu items with triangle icon on their right. Shortcut

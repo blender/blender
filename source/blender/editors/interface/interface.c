@@ -6486,6 +6486,13 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
   return but;
 }
 
+void UI_but_node_link_set(uiBut *but, bNodeSocket *socket, const float draw_color[4])
+{
+  but->flag |= UI_BUT_NODE_LINK;
+  but->custom_data = socket;
+  rgba_float_to_uchar(but->col, draw_color);
+}
+
 /**
  * push a new event onto event queue to activate the given button
  * (usually a text-field) upon entering a popup

@@ -38,6 +38,7 @@ struct bContext;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
+struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;
 
@@ -77,6 +78,11 @@ void node_draw_sockets(struct View2D *v2d,
 void node_update_default(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node);
 int node_select_area_default(struct bNode *node, int x, int y);
 int node_tweak_area_default(struct bNode *node, int x, int y);
+void node_socket_color_get(struct bContext *C,
+                           struct bNodeTree *ntree,
+                           struct PointerRNA *node_ptr,
+                           struct bNodeSocket *sock,
+                           float r_color[4]);
 void node_update_nodetree(const struct bContext *C, struct bNodeTree *ntree);
 void node_draw_nodetree(const struct bContext *C,
                         struct ARegion *region,
@@ -122,7 +128,7 @@ void NODE_OT_find_node(struct wmOperatorType *ot);
 
 /* node_view.c */
 int space_node_view_flag(struct bContext *C,
-                         SpaceNode *snode,
+                         struct SpaceNode *snode,
                          ARegion *region,
                          const int node_flag,
                          const int smooth_viewtx);
@@ -196,7 +202,7 @@ void NODE_OT_detach(struct wmOperatorType *ot);
 
 void NODE_OT_link_viewer(struct wmOperatorType *ot);
 
-void NODE_OT_insert_offset(wmOperatorType *ot);
+void NODE_OT_insert_offset(struct wmOperatorType *ot);
 
 /* node_edit.c */
 void snode_notify(struct bContext *C, struct SpaceNode *snode);
@@ -207,8 +213,8 @@ void snode_update(struct SpaceNode *snode, struct bNode *node);
 bool composite_node_active(struct bContext *C);
 bool composite_node_editable(struct bContext *C);
 
-int node_has_hidden_sockets(bNode *node);
-void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
+int node_has_hidden_sockets(struct bNode *node);
+void node_set_hidden_sockets(struct SpaceNode *snode, bNode *node, int set);
 int node_render_changed_exec(bContext *, struct wmOperator *);
 int node_find_indicated_socket(struct SpaceNode *snode,
                                struct bNode **nodep,

@@ -84,7 +84,7 @@ static void node_sockets_panel(const bContext *C, Panel *panel)
 
     split = uiLayoutSplit(layout, 0.35f, false);
     uiItemL(split, name, ICON_NONE);
-    uiTemplateNodeLink(split, ntree, node, sock);
+    uiTemplateNodeLink(split, (bContext *)C, ntree, node, sock);
   }
 }
 

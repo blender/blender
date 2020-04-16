@@ -1585,6 +1585,8 @@ int UI_searchbox_size_x(void);
 /* check if a string is in an existing search box */
 int UI_search_items_find_index(uiSearchItems *items, const char *name);
 
+void UI_but_node_link_set(uiBut *but, struct bNodeSocket *socket, const float draw_color[4]);
+
 void UI_block_func_handle_set(uiBlock *block, uiBlockHandleFunc func, void *arg);
 void UI_block_func_butmenu_set(uiBlock *block, uiMenuHandleFunc func, void *arg);
 void UI_block_func_set(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2);
@@ -2088,6 +2090,7 @@ void uiTemplateList(uiLayout *layout,
                     bool sort_reverse,
                     bool sort_lock);
 void uiTemplateNodeLink(uiLayout *layout,
+                        struct bContext *C,
                         struct bNodeTree *ntree,
                         struct bNode *node,
                         struct bNodeSocket *input);
