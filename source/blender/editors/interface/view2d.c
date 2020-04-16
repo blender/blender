@@ -60,7 +60,7 @@
 
 #include "interface_intern.h"
 
-static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mask_scrollers);
+static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize);
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -134,7 +134,7 @@ void UI_view2d_mask_from_win(const View2D *v2d, rcti *r_mask)
  *
  * \param mask_scroll: Optionally clamp scrollbars by this region.
  */
-static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scroll)
+static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 {
   int scroll;
 
@@ -144,26 +144,24 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
     mask_scroll = &v2d->mask;
   }
 
-  if (check_scrollers) {
-    /* check size if hiding flag is set: */
-    if (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE) {
-      if (!(v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES)) {
-        if (BLI_rctf_size_x(&v2d->tot) > BLI_rctf_size_x(&v2d->cur)) {
-          v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_FULLR;
-        }
-        else {
-          v2d->scroll |= V2D_SCROLL_HORIZONTAL_FULLR;
-        }
+  /* check size if hiding flag is set: */
+  if (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE) {
+    if (!(v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES)) {
+      if (BLI_rctf_size_x(&v2d->tot) > BLI_rctf_size_x(&v2d->cur)) {
+        v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_FULLR;
+      }
+      else {
+        v2d->scroll |= V2D_SCROLL_HORIZONTAL_FULLR;
       }
     }
-    if (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE) {
-      if (!(v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES)) {
-        if (BLI_rctf_size_y(&v2d->tot) + 0.01f > BLI_rctf_size_y(&v2d->cur)) {
-          v2d->scroll &= ~V2D_SCROLL_VERTICAL_FULLR;
-        }
-        else {
-          v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR;
-        }
+  }
+  if (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE) {
+    if (!(v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES)) {
+      if (BLI_rctf_size_y(&v2d->tot) + 0.01f > BLI_rctf_size_y(&v2d->cur)) {
+        v2d->scroll &= ~V2D_SCROLL_VERTICAL_FULLR;
+      }
+      else {
+        v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR;
       }
     }
   }
@@ -385,8 +383,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
   v2d->winx = winx;
   v2d->winy = winy;
 
-  /* set masks (always do), but leave scroller scheck to totrect_set */
-  view2d_masks(v2d, 0, NULL);
+  view2d_masks(v2d, NULL);
 
   if (do_init) {
     /* Visible by default. */
@@ -394,13 +391,12 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
   }
 
   /* set 'tot' rect before setting cur? */
-  /* XXX confusing stuff here still -
-   * I made this function not check scroller hide - that happens in totrect_set */
+  /* XXX confusing stuff here still */
   if (tot_changed) {
     UI_view2d_totRect_set_resize(v2d, winx, winy, !do_init);
   }
   else {
-    ui_view2d_curRect_validate_resize(v2d, !do_init, 0);
+    ui_view2d_curRect_validate_resize(v2d, !do_init);
   }
 }
 
@@ -409,7 +405,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
  * 'cur' is not allowed to be: larger than max, smaller than min, or outside of 'tot'
  */
 // XXX pre2.5 -> this used to be called  test_view2d()
-static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mask_scrollers)
+static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
 {
   float totwidth, totheight, curwidth, curheight, width, height;
   float winx, winy;
@@ -851,12 +847,12 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
   }
 
   /* set masks */
-  view2d_masks(v2d, mask_scrollers, NULL);
+  view2d_masks(v2d, NULL);
 }
 
 void UI_view2d_curRect_validate(View2D *v2d)
 {
-  ui_view2d_curRect_validate_resize(v2d, 0, 1);
+  ui_view2d_curRect_validate_resize(v2d, false);
 }
 
 /* ------------------ */
@@ -982,21 +978,9 @@ void UI_view2d_curRect_reset(View2D *v2d)
 /* Change the size of the maximum viewable area (i.e. 'tot' rect) */
 void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
 {
-  //  int scroll = view2d_scroll_mapped(v2d->scroll);
-
   /* don't do anything if either value is 0 */
   width = abs(width);
   height = abs(height);
-
-  /* hrumf! */
-  /* XXX: there are work arounds for this in the panel and file browse code. */
-  /* round to int, because this is called with width + V2D_SCROLL_WIDTH */
-  //  if (scroll & V2D_SCROLL_HORIZONTAL) {
-  //      width -= (int)V2D_SCROLL_WIDTH;
-  //  }
-  //  if (scroll & V2D_SCROLL_VERTICAL) {
-  //      height -= (int)V2D_SCROLL_HEIGHT;
-  //  }
 
   if (ELEM(0, width, height)) {
     if (G.debug & G_DEBUG) {
@@ -1047,20 +1031,12 @@ void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resiz
   }
 
   /* make sure that 'cur' rect is in a valid state as a result of these changes */
-  ui_view2d_curRect_validate_resize(v2d, resize, 1);
+  ui_view2d_curRect_validate_resize(v2d, resize);
 }
 
 void UI_view2d_totRect_set(View2D *v2d, int width, int height)
 {
-  int scroll = view2d_scroll_mapped(v2d->scroll);
-
-  UI_view2d_totRect_set_resize(v2d, width, height, 0);
-
-  /* solve bad recursion... if scroller state changed,
-   * mask is different, so you get different rects */
-  if (scroll != view2d_scroll_mapped(v2d->scroll)) {
-    UI_view2d_totRect_set_resize(v2d, width, height, 0);
-  }
+  UI_view2d_totRect_set_resize(v2d, width, height, false);
 }
 
 bool UI_view2d_tab_set(View2D *v2d, int tab)
@@ -1448,7 +1424,7 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
   scrollers = MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
 
   /* Always update before drawing (for dynamically sized scrollers). */
-  view2d_masks(v2d, false, mask_custom);
+  view2d_masks(v2d, mask_custom);
 
   vert = v2d->vert;
   hor = v2d->hor;

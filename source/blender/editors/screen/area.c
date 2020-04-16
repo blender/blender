@@ -2532,7 +2532,6 @@ void ED_region_panels_layout_ex(const bContext *C,
     v2d->scroll |= (V2D_SCROLL_BOTTOM);
     v2d->scroll &= ~(V2D_SCROLL_RIGHT);
   }
-  const int scroll = v2d->scroll;
 
   /* collect categories */
   if (use_category_tabs) {
@@ -2641,16 +2640,6 @@ void ED_region_panels_layout_ex(const bContext *C,
 
   /* this also changes the 'cur' */
   UI_view2d_totRect_set(v2d, x, y);
-
-  if (scroll != v2d->scroll) {
-    /* Note: this code scales fine, but because of rounding differences, positions of elements
-     * flip +1 or -1 pixel compared to redoing the entire layout again.
-     * Leaving in commented code for future tests */
-#if 0
-    UI_panels_scale(region, BLI_rctf_size_x(&v2d->cur));
-    break;
-#endif
-  }
 
   if (use_category_tabs) {
     region->runtime.category = category;
