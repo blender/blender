@@ -2514,7 +2514,7 @@ void RE_RenderAnim(Render *re,
       {
         float ctime = BKE_scene_frame_get(scene);
         AnimData *adt = BKE_animdata_from_id(&scene->id);
-        BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, ADT_RECALC_ALL, false);
+        BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, ADT_RECALC_ALL, false);
       }
 
       render_update_depsgraph(re);

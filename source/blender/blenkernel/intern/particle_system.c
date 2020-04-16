@@ -4847,7 +4847,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
         hcfra = 100.0f * (float)i / (float)psys->part->hair_step;
         if ((part->flag & PART_HAIR_REGROW) == 0) {
           BKE_animsys_evaluate_animdata(
-              scene, &part_local->id, part_local->adt, hcfra, ADT_RECALC_ANIM, false);
+              &part_local->id, part_local->adt, hcfra, ADT_RECALC_ANIM, false);
         }
         system_step(&sim, hcfra, use_render_params);
         psys->cfra = hcfra;

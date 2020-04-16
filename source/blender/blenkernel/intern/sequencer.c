@@ -3330,8 +3330,7 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
 
     /* anim-data */
     adt = BKE_animdata_from_id(&mask->id);
-    BKE_animsys_evaluate_animdata(
-        context->scene, &mask_temp->id, adt, mask->sfra + nr, ADT_RECALC_ANIM, false);
+    BKE_animsys_evaluate_animdata(&mask_temp->id, adt, mask->sfra + nr, ADT_RECALC_ANIM, false);
 
     maskbuf = MEM_mallocN(sizeof(float) * context->rectx * context->recty, __func__);
 
@@ -3660,8 +3659,7 @@ static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
   if (seqbase && !BLI_listbase_is_empty(seqbase)) {
 
     if (seq->flag & SEQ_SCENE_STRIPS && seq->scene) {
-      BKE_animsys_evaluate_all_animation(
-          context->bmain, context->depsgraph, seq->scene, nr + offset);
+      BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, nr + offset);
     }
 
     ibuf = seq_render_strip_stack(context,

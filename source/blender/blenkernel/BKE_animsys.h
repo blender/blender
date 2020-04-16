@@ -207,17 +207,15 @@ bool BKE_animsys_read_rna_setting(struct PathResolvedRNA *anim_rna, float *r_val
 bool BKE_animsys_write_rna_setting(struct PathResolvedRNA *anim_rna, const float value);
 
 /* Evaluation loop for evaluating animation data  */
-void BKE_animsys_evaluate_animdata(struct Scene *scene,
-                                   struct ID *id,
+void BKE_animsys_evaluate_animdata(struct ID *id,
                                    struct AnimData *adt,
                                    float ctime,
-                                   short recalc,
+                                   eAnimData_Recalc recalc,
                                    const bool flush_to_original);
 
 /* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only */
 void BKE_animsys_evaluate_all_animation(struct Main *main,
                                         struct Depsgraph *depsgraph,
-                                        struct Scene *scene,
                                         float ctime);
 
 /* ------------ Specialized API --------------- */

@@ -2500,7 +2500,7 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
  * have been set already by the depsgraph. Now, we use the recalc
  */
 void BKE_animsys_evaluate_animdata(
-    Scene *scene, ID *id, AnimData *adt, float ctime, short recalc, const bool flush_to_original)
+    ID *id, AnimData *adt, float ctime, eAnimData_Recalc recalc, const bool flush_to_original)
 {
   PointerRNA id_ptr;
 
@@ -2556,10 +2556,7 @@ void BKE_animsys_evaluate_animdata(
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-void BKE_animsys_evaluate_all_animation(Main *main,
-                                        Depsgraph *depsgraph,
-                                        Scene *scene,
-                                        float ctime)
+void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float ctime)
 {
   ID *id;
 
@@ -2578,7 +2575,7 @@ void BKE_animsys_evaluate_all_animation(Main *main,
   for (id = first; id; id = id->next) { \
     if (ID_REAL_USERS(id) > 0) { \
       AnimData *adt = BKE_animdata_from_id(id); \
-      BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag, flush_to_original); \
+      BKE_animsys_evaluate_animdata(id, adt, ctime, aflag, flush_to_original); \
     } \
   } \
   (void)0
@@ -2597,9 +2594,9 @@ void BKE_animsys_evaluate_all_animation(Main *main,
       if (ntp->nodetree) { \
         AnimData *adt2 = BKE_animdata_from_id((ID *)ntp->nodetree); \
         BKE_animsys_evaluate_animdata( \
-            scene, (ID *)ntp->nodetree, adt2, ctime, ADT_RECALC_ANIM, flush_to_original); \
+            &ntp->nodetree->id, adt2, ctime, ADT_RECALC_ANIM, flush_to_original); \
       } \
-      BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag, flush_to_original); \
+      BKE_animsys_evaluate_animdata(id, adt, ctime, aflag, flush_to_original); \
     } \
   } \
   (void)0
@@ -2714,7 +2711,7 @@ void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id)
   Scene *scene = NULL;
   DEG_debug_print_eval_time(depsgraph, __func__, id->name, id, ctime);
   const bool flush_to_original = DEG_is_active(depsgraph);
-  BKE_animsys_evaluate_animdata(scene, id, adt, ctime, ADT_RECALC_ANIM, flush_to_original);
+  BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM, flush_to_original);
 }
 
 void BKE_animsys_update_driver_array(ID *id)
