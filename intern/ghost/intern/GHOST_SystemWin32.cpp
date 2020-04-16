@@ -1020,9 +1020,9 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
             info.time, GHOST_kEventCursorMove, window, info.x, info.y, info.tabletData));
         break;
       case GHOST_kEventButtonUp:
+        system->pushEvent(
+            new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
         if (type == GHOST_kEventButtonUp && mask == info.button) {
-          system->pushEvent(
-              new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
           unhandledButton = false;
         }
         window->updateWintabSysBut(MouseReleased);
@@ -1033,6 +1033,10 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
   }
 
   // No Wintab button found correlating to the system button event, handle it too.
+  //
+  // Wintab button up events may be handled during WM_MOUSEMOVE, before their corresponding
+  // WM_*BUTTONUP event has fired, which results in two GHOST Button up events for a single Wintab
+  // associated button event. Because Wintab and their associated Windows mouse events are handled asynchronously, and there's no way to turn off 
   if (unhandledButton) {
     system->pushEvent(new GHOST_EventButton(
         system->getMilliSeconds(), type, window, mask, GHOST_TABLET_DATA_NONE));
