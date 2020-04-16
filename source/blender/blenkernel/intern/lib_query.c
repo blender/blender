@@ -492,16 +492,17 @@ static void library_foreach_screen_area(LibraryForeachIDData *data, ScrArea *are
         FOREACH_CALLBACK_INVOKE_ID(data, snode->from, IDWALK_CB_NOP);
 
         FOREACH_CALLBACK_INVOKE(
-            data, snode->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER);
+            data, snode->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER_ONE);
 
         for (path = snode->treepath.first; path; path = path->next) {
           if (path == snode->treepath.first) {
             /* first nodetree in path is same as snode->nodetree */
-            FOREACH_CALLBACK_INVOKE(
-                data, path->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_NOP);
+            FOREACH_CALLBACK_INVOKE(data,
+                                    path->nodetree,
+                                    is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER_ONE);
           }
           else {
-            FOREACH_CALLBACK_INVOKE(data, path->nodetree, IDWALK_CB_USER);
+            FOREACH_CALLBACK_INVOKE(data, path->nodetree, IDWALK_CB_USER_ONE);
           }
 
           if (path->nodetree == NULL) {
