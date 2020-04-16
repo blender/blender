@@ -241,10 +241,8 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
     if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
       gpd = (bGPdata *)ob->data;
       bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
-      ScrArea *area = CTX_wm_area(C);
-
-      /* In dopesheet add a new frame. */
-      if ((gpl != NULL) && (area->spacetype == SPACE_ACTION)) {
+      /* Add a new frame to make it visible in Dopesheet. */
+      if (gpl != NULL) {
         gpl->actframe = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_NEW);
       }
     }
