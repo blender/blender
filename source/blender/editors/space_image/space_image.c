@@ -127,6 +127,7 @@ static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sce
   simage->zoom = 1.0f;
   simage->lock = true;
   simage->flag = SI_SHOW_GPENCIL | SI_USE_ALPHA | SI_COORDFLOATS;
+  simage->uv_opacity = 1.0f;
 
   BKE_imageuser_default(&simage->iuser);
   simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS;

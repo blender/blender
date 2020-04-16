@@ -306,6 +306,7 @@ static void draw_uvs(SpaceImage *sima,
   Object *ob_eval = batch->ob_eval;
   const ToolSettings *ts = scene->toolsettings;
   float col1[4], col2[4], col3[4], transparent[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float overlay_alpha = sima->uv_opacity;
 
   if (sima->flag & SI_DRAWSHADOW) {
     bool is_cage_like_final_meshes = false;
@@ -347,6 +348,11 @@ static void draw_uvs(SpaceImage *sima,
       UI_GetThemeColor4fv(TH_FACE_SELECT, col2);
       UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, col3);
       col3[3] *= 0.2; /* Simulate dithering */
+
+      col1[3] *= overlay_alpha;
+      col2[3] *= overlay_alpha;
+      col3[3] *= overlay_alpha;
+
       GPU_batch_uniform_4fv(batch->faces, "faceColor", col1);
       GPU_batch_uniform_4fv(batch->faces, "selectColor", col2);
       GPU_batch_uniform_4fv(batch->faces, "activeColor", col3);
@@ -372,9 +378,16 @@ static void draw_uvs(SpaceImage *sima,
       GPU_line_smooth(true);
       GPU_blend(true);
     }
+    else if (overlay_alpha < 1.0f) {
+      GPU_blend(true);
+    }
+
     switch (sima->dt_uv) {
       case SI_UVDT_DASH: {
-        float dash_colors[2][4] = {{0.56f, 0.56f, 0.56f, 1.0f}, {0.07f, 0.07f, 0.07f, 1.0f}};
+        float dash_colors[2][4] = {
+            {0.56f, 0.56f, 0.56f, overlay_alpha},
+            {0.07f, 0.07f, 0.07f, overlay_alpha},
+        };
         float viewport_size[4];
         GPU_viewport_size_get_f(viewport_size);
 
@@ -398,7 +411,8 @@ static void draw_uvs(SpaceImage *sima,
          * instead of modifying the provoking vert. */
         glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
-        UI_GetThemeColor4fv(TH_EDGE_SELECT, col2);
+        UI_GetThemeColor3fv(TH_EDGE_SELECT, col2);
+        col2[3] = overlay_alpha;
 
         GPU_batch_program_set_builtin(
             batch->edges, (interpedges) ? GPU_SHADER_2D_UV_EDGES_SMOOTH : GPU_SHADER_2D_UV_EDGES);
@@ -406,18 +420,19 @@ static void draw_uvs(SpaceImage *sima,
         if (sima->dt_uv == SI_UVDT_OUTLINE) {
           /* Black Outline. */
           GPU_line_width(3.0f);
-          GPU_batch_uniform_4f(batch->edges, "edgeColor", 0.0f, 0.0f, 0.0f, 1.0f);
-          GPU_batch_uniform_4f(batch->edges, "selectColor", 0.0f, 0.0f, 0.0f, 1.0f);
+          GPU_batch_uniform_4f(batch->edges, "edgeColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
+          GPU_batch_uniform_4f(batch->edges, "selectColor", 0.0f, 0.0f, 0.0f, overlay_alpha);
           GPU_batch_draw(batch->edges);
 
-          UI_GetThemeColor4fv(TH_WIRE_EDIT, col1);
+          UI_GetThemeColor3fv(TH_WIRE_EDIT, col1);
         }
         else if (sima->dt_uv == SI_UVDT_WHITE) {
-          copy_v4_fl4(col1, 1.0f, 1.0f, 1.0f, 1.0f);
+          copy_v3_fl3(col1, 1.0f, 1.0f, 1.0f);
         }
         else {
-          copy_v4_fl4(col1, 0.0f, 0.0f, 0.0f, 1.0f);
+          copy_v3_fl3(col1, 0.0f, 0.0f, 0.0f);
         }
+        col1[3] = overlay_alpha;
 
         /* Inner Line. Use depth test to insure selection is drawn on top. */
         GPU_depth_test(true);
@@ -433,6 +448,9 @@ static void draw_uvs(SpaceImage *sima,
     }
     if (sima->flag & SI_SMOOTH_UV) {
       GPU_line_smooth(false);
+      GPU_blend(false);
+    }
+    else if (overlay_alpha < 1.0f) {
       GPU_blend(false);
     }
   }

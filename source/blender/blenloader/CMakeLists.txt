@@ -53,6 +53,7 @@ set(SRC
   intern/versioning_260.c
   intern/versioning_270.c
   intern/versioning_280.c
+  intern/versioning_290.c
   intern/versioning_cycles.c
   intern/versioning_defaults.c
   intern/versioning_dna.c

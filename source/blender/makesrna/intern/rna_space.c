@@ -2935,6 +2935,12 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
       prop, "Tile Grid Shape", "How many tiles will be shown in the background");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
+  prop = RNA_def_property(srna, "uv_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "uv_opacity");
+  RNA_def_property_range(prop, 0.2f, 1.0f);
+  RNA_def_property_ui_text(prop, "UV Opacity", "Opacity of UV overlays");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
+
   /* todo: move edge and face drawing options here from G.f */
 
   prop = RNA_def_property(srna, "pixel_snap_mode", PROP_ENUM, PROP_NONE);
