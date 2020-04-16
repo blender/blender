@@ -257,6 +257,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
     input->location = glGetAttribLocation(program, name);
     /* Ignore OpenGL names like `gl_BaseInstanceARB`, `gl_InstanceID` and `gl_VertexID`. */
     if (input->location == -1) {
+      MEM_freeN(input);
       continue;
     }
 
