@@ -724,7 +724,7 @@
         freestyle_face_mark="#7fff7f33"
         face_back="#00000000"
         face_front="#00000000"
-        editmesh_active="#ffffff80"
+        editmesh_active="#ffffff40"
         wire_edit="#c0c0c0"
         edge_select="#ff8500"
         scope_back="#727272ff"

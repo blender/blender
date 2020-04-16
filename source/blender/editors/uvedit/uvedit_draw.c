@@ -347,7 +347,6 @@ static void draw_uvs(SpaceImage *sima,
       UI_GetThemeColor4fv(TH_FACE, col1);
       UI_GetThemeColor4fv(TH_FACE_SELECT, col2);
       UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, col3);
-      col3[3] *= 0.2; /* Simulate dithering */
 
       col1[3] *= overlay_alpha;
       col2[3] *= overlay_alpha;
