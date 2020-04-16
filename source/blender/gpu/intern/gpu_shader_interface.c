@@ -254,8 +254,11 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
     }
 
     /* TODO: reject DOUBLE gl_types */
-
     input->location = glGetAttribLocation(program, name);
+    /* Ignore OpenGL names like `gl_BaseInstanceARB`, `gl_InstanceID` and `gl_VertexID`. */
+    if (input->location == -1) {
+      continue;
+    }
 
     shaderface->enabled_attr_mask |= (1 << input->location);
 
