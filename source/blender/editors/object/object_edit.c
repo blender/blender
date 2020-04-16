@@ -1288,54 +1288,78 @@ void OBJECT_OT_paths_range_update(wmOperatorType *ot)
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
-  ID *data;
-  Curve *cu;
-  Nurb *nu;
-  int clear = (STREQ(op->idname, "OBJECT_OT_shade_flat"));
-  bool done = false, linked_data = false;
+  const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
+  bool changed_multi = false;
+  bool has_linked_data = false;
 
-  CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    data = ob->data;
+  ListBase ctx_objects = {NULL, NULL};
+  CollectionPointerLink ctx_ob_single_active = {NULL};
+
+  /* For modes that only use an active object, don't handle the whole selection. */
+  {
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    Object *obact = OBACT(view_layer);
+    if (obact && ((obact->mode & OB_MODE_ALL_PAINT))) {
+      ctx_ob_single_active.ptr.data = obact;
+      BLI_addtail(&ctx_objects, &ctx_ob_single_active);
+    }
+  }
+
+  if (ctx_objects.first != &ctx_ob_single_active) {
+    CTX_data_selected_editable_objects(C, &ctx_objects);
+  }
+
+  for (CollectionPointerLink *ctx_ob = ctx_objects.first; ctx_ob; ctx_ob = ctx_ob->next) {
+    Object *ob = ctx_ob->ptr.data;
+    ID *data = ob->data;
+    if (data != NULL) {
+      data->tag |= LIB_TAG_DOIT;
+    }
+  }
+
+  for (CollectionPointerLink *ctx_ob = ctx_objects.first; ctx_ob; ctx_ob = ctx_ob->next) {
+    /* Always un-tag all object data-blocks irrespective of our ability to operate on them. */
+    Object *ob = ctx_ob->ptr.data;
+    ID *data = ob->data;
+    if ((data == NULL) || ((data->tag & LIB_TAG_DOIT) == 0)) {
+      continue;
+    }
+    data->tag &= ~LIB_TAG_DOIT;
+    /* Finished un-tagging, continue with regular logic. */
 
     if (data && ID_IS_LINKED(data)) {
-      linked_data = true;
+      has_linked_data = true;
       continue;
     }
 
+    bool changed = false;
     if (ob->type == OB_MESH) {
-      BKE_mesh_smooth_flag_set(ob->data, !clear);
-
+      BKE_mesh_smooth_flag_set(ob->data, use_smooth);
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-
-      done = true;
+      changed = true;
     }
     else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
-      cu = ob->data;
+      BKE_curve_smooth_flag_set(ob->data, use_smooth);
+      changed = true;
+    }
 
-      for (nu = cu->nurb.first; nu; nu = nu->next) {
-        if (!clear) {
-          nu->flag |= ME_SMOOTH;
-        }
-        else {
-          nu->flag &= ~ME_SMOOTH;
-        }
-      }
+    if (changed) {
+      changed_multi = true;
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-
-      done = true;
     }
   }
-  CTX_DATA_END;
 
-  if (linked_data) {
+  if (ctx_objects.first != &ctx_ob_single_active) {
+    BLI_freelistN(&ctx_objects);
+  }
+
+  if (has_linked_data) {
     BKE_report(op->reports, RPT_WARNING, "Can't edit linked mesh or curve data");
   }
 
-  return (done) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return (changed_multi) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static bool shade_poll(bContext *C)

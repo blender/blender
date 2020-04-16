@@ -5506,6 +5506,20 @@ void BKE_curve_material_remap(Curve *cu, const unsigned int *remap, unsigned int
 #undef MAT_NR_REMAP
 }
 
+void BKE_curve_smooth_flag_set(Curve *cu, const bool use_smooth)
+{
+  if (use_smooth) {
+    for (Nurb *nu = cu->nurb.first; nu; nu = nu->next) {
+      nu->flag |= CU_SMOOTH;
+    }
+  }
+  else {
+    for (Nurb *nu = cu->nurb.first; nu; nu = nu->next) {
+      nu->flag &= ~CU_SMOOTH;
+    }
+  }
+}
+
 void BKE_curve_rect_from_textbox(const struct Curve *cu,
                                  const struct TextBox *tb,
                                  struct rctf *r_rect)

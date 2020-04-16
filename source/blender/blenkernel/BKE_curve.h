@@ -111,6 +111,8 @@ void BKE_curve_material_index_clear(struct Curve *cu);
 bool BKE_curve_material_index_validate(struct Curve *cu);
 void BKE_curve_material_remap(struct Curve *cu, const unsigned int *remap, unsigned int remap_len);
 
+void BKE_curve_smooth_flag_set(struct Curve *cu, bool set);
+
 ListBase *BKE_curve_nurbs_get(struct Curve *cu);
 
 int BKE_curve_nurb_vert_index_get(const struct Nurb *nu, const void *vert);
