@@ -111,6 +111,17 @@ bool BKE_lib_override_library_operations_create(struct Main *bmain,
                                                 const bool force_auto);
 void BKE_lib_override_library_main_operations_create(struct Main *bmain, const bool force_auto);
 
+void BKE_lib_override_library_operations_tag(struct IDOverrideLibraryProperty *override_property,
+                                             const short tag,
+                                             const bool do_set);
+void BKE_lib_override_library_properties_tag(struct IDOverrideLibrary *override,
+                                             const short tag,
+                                             const bool do_set);
+void BKE_lib_override_library_main_tag(struct Main *bmain, const short tag, const bool do_set);
+
+void BKE_lib_override_library_id_unused_cleanup(struct ID *local);
+void BKE_lib_override_library_main_unused_cleanup(struct Main *bmain);
+
 void BKE_lib_override_library_update(struct Main *bmain, struct ID *local);
 void BKE_lib_override_library_main_update(struct Main *bmain);
 

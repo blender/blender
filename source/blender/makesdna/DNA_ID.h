@@ -135,7 +135,10 @@ typedef struct IDOverrideLibraryPropertyOperation {
   /* Type of override. */
   short operation;
   short flag;
-  char _pad0[4];
+
+  /** Runtime, tags are common to both IDOverrideProperty and IDOverridePropertyOperation. */
+  short tag;
+  char _pad0[2];
 
   /* Sub-item references, if needed (for arrays or collections only).
    * We need both reference and local values to allow e.g. insertion into collections
@@ -189,7 +192,17 @@ typedef struct IDOverrideLibraryProperty {
 
   /** List of overriding operations (IDOverridePropertyOperation) applied to this property. */
   ListBase operations;
+
+  /** Runtime, tags are common to both IDOverrideProperty and IDOverridePropertyOperation. */
+  short tag;
+  char _pad0[6];
 } IDOverrideLibraryProperty;
+
+/* IDOverrideProperty->tag and IDOverridePropertyOperation->tag. */
+enum {
+  /** This override property (operation) is unused and should be removed by cleanup process. */
+  IDOVERRIDE_LIBRARY_TAG_UNUSED = 1 << 0,
+};
 
 /* We do not need a full struct for that currently, just a GHash. */
 typedef struct GHash IDOverrideLibraryRuntime;
