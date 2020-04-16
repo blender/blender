@@ -153,7 +153,7 @@ class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
         return (obj is not None and obj.mode == 'EDIT')
 
     def execute(self, context):
-        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, True)
+        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, True, False)
 
     def invoke(self, context, _event):
         return self.execute(context)
