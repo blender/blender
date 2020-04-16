@@ -1666,6 +1666,19 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       BKE_fcurves_id_cb(&ob->id, do_version_fcurve_hide_viewport_fix, NULL);
     }
+
+    /* Reset all grease pencil brushes. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      BKE_brush_gpencil_paint_presets(bmain, scene->toolsettings);
+      BKE_brush_gpencil_sculpt_presets(bmain, scene->toolsettings);
+      BKE_brush_gpencil_weight_presets(bmain, scene->toolsettings);
+      BKE_brush_gpencil_vertex_presets(bmain, scene->toolsettings);
+
+      /* Ensure new Paint modes. */
+      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+    }
   }
 
   /**
