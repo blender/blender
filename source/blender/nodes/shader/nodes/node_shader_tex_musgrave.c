@@ -137,6 +137,9 @@ static void node_shader_update_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *nod
   nodeSetSocketAvailability(inGainSock,
                             tex->musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
                                 tex->musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
+
+  bNodeSocket *outFacSock = nodeFindSocket(node, SOCK_OUT, "Fac");
+  node_sock_label(outFacSock, "Height");
 }
 
 void register_node_type_sh_tex_musgrave(void)
