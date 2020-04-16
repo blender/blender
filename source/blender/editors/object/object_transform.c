@@ -1608,6 +1608,7 @@ struct XFormAxisItem {
   float rot_mat[3][3];
   void *obtfm;
   float xform_dist;
+  bool is_z_flip;
 
 #ifdef USE_RELATIVE_ROTATION
   /* use when translating multiple */
@@ -1730,11 +1731,16 @@ static void object_apply_location(Object *ob, const float loc[3])
 static void object_orient_to_location(Object *ob,
                                       const float rot_orig[3][3],
                                       const float axis[3],
-                                      const float location[3])
+                                      const float location[3],
+                                      const bool z_flip)
 {
   float delta[3];
   sub_v3_v3v3(delta, ob->obmat[3], location);
   if (normalize_v3(delta) != 0.0f) {
+    if (z_flip) {
+      negate_v3(delta);
+    }
+
     if (len_squared_v3v3(delta, axis) > FLT_EPSILON) {
       float delta_rot[3][3];
       float final_rot[3][3];
@@ -1840,6 +1846,11 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
     for (int i = 0; i < xfd->object_data_len; i++, item++) {
       item->obtfm = BKE_object_tfm_backup(item->ob);
       BKE_object_rot_to_mat3(item->ob, item->rot_mat, true);
+
+      /* Detect negative scale matrix. */
+      float full_mat3[3][3];
+      BKE_object_to_mat3(item->ob, full_mat3);
+      item->is_z_flip = dot_v3v3(item->rot_mat[2], full_mat3[2]) < 0.0f;
     }
   }
 
@@ -1964,7 +1975,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
                 }
 
                 object_orient_to_location(
-                    item->ob, item->rot_mat, item->rot_mat[2], location_world);
+                    item->ob, item->rot_mat, item->rot_mat[2], location_world, item->is_z_flip);
                 WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
               }
               copy_v3_v3(xfd->prev.normal, normal);
@@ -1974,7 +1985,8 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
           else {
             struct XFormAxisItem *item = xfd->object_data;
             for (int i = 0; i < xfd->object_data_len; i++, item++) {
-              object_orient_to_location(item->ob, item->rot_mat, item->rot_mat[2], location_world);
+              object_orient_to_location(
+                  item->ob, item->rot_mat, item->rot_mat[2], location_world, item->is_z_flip);
               WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
             }
             xfd->prev.is_normal_valid = false;
