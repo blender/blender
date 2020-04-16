@@ -575,6 +575,9 @@ static void draw_image_buffer(const bContext *C,
                               float zoomx,
                               float zoomy)
 {
+  /* Image are still drawn in display space. */
+  glDisable(GL_FRAMEBUFFER_SRGB);
+
   int x, y;
   int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
 
@@ -666,6 +669,8 @@ static void draw_image_buffer(const bContext *C,
       GPU_blend(false);
     }
   }
+
+  glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 static void draw_image_buffer_repeated(const bContext *C,
