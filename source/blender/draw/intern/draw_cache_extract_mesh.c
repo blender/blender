@@ -1648,9 +1648,12 @@ static void extract_lnor_hq_loop_mesh(
     normal_float_to_short_v3(&lnor_data->x, mr->poly_normals[p]);
   }
 
-  /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE || (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
-                                mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
+  /* Flag for paint mode overlay.
+   * Only use MR_EXTRACT_MAPPED in edit mode where it is used to display the edge-normals. In paint
+   * mode it will use the unmapped data to draw the wireframe. */
+  if (mpoly->flag & ME_HIDE ||
+      (mr->edit_bmesh && mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
+       mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
     lnor_data->w = -1;
   }
   else if (mpoly->flag & ME_FACE_SEL) {
@@ -1724,9 +1727,12 @@ static void extract_lnor_loop_mesh(
     *lnor_data = GPU_normal_convert_i10_v3(mr->poly_normals[p]);
   }
 
-  /* Flag for paint mode overlay. */
-  if (mpoly->flag & ME_HIDE || (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
-                                mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
+  /* Flag for paint mode overlay.
+   * Only use MR_EXTRACT_MAPPED in edit mode where it is used to display the edge-normals. In paint
+   * mode it will use the unmapped data to draw the wireframe. */
+  if (mpoly->flag & ME_HIDE ||
+      (mr->edit_bmesh && mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
+       mr->v_origindex[mloop->v] == ORIGINDEX_NONE)) {
     lnor_data->w = -1;
   }
   else if (mpoly->flag & ME_FACE_SEL) {
