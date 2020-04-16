@@ -1924,7 +1924,8 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UN
 
 static const char arg_handle_python_use_system_env_set_doc[] =
     "\n\t"
-    "Allow Python to use system environment variables such as 'PYTHONPATH'.";
+    "Allow Python to use system environment variables such as 'PYTHONPATH' and the user "
+    "site-packages directory.";
 static int arg_handle_python_use_system_env_set(int UNUSED(argc),
                                                 const char **UNUSED(argv),
                                                 void *UNUSED(data))

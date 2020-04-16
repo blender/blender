@@ -481,28 +481,13 @@ static bool rna_property_override_operation_apply(Main *bmain,
 
   const short override_op = opop->operation;
 
+  if (!BKE_lib_override_library_property_operation_operands_validate(
+          opop, ptr_dst, ptr_src, ptr_storage, prop_dst, prop_src, prop_storage)) {
+    return false;
+  }
+
   if (override_op == IDOVERRIDE_LIBRARY_OP_NOOP) {
     return true;
-  }
-
-  if (ELEM(override_op,
-           IDOVERRIDE_LIBRARY_OP_ADD,
-           IDOVERRIDE_LIBRARY_OP_SUBTRACT,
-           IDOVERRIDE_LIBRARY_OP_MULTIPLY) &&
-      !ptr_storage) {
-    /* We cannot apply 'diff' override operations without some reference storage.
-     * This should typically only happen at read time of .blend file... */
-    return false;
-  }
-
-  if (ELEM(override_op,
-           IDOVERRIDE_LIBRARY_OP_ADD,
-           IDOVERRIDE_LIBRARY_OP_SUBTRACT,
-           IDOVERRIDE_LIBRARY_OP_MULTIPLY) &&
-      !prop_storage) {
-    /* We cannot apply 'diff' override operations without some reference storage.
-     * This should typically only happen at read time of .blend file... */
-    return false;
   }
 
   RNAPropOverrideApply override_apply = NULL;
@@ -692,7 +677,9 @@ bool RNA_struct_override_matches(Main *bmain,
 
     //    printf("Override Checking %s\n", rna_path);
 
-    if (ignore_overridden && BKE_lib_override_library_property_find(override, rna_path) != NULL) {
+    IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(override, rna_path);
+    if (ignore_overridden && op != NULL) {
+      BKE_lib_override_library_operations_tag(op, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
       RNA_PATH_FREE;
       continue;
     }
@@ -731,8 +718,12 @@ bool RNA_struct_override_matches(Main *bmain,
 
     if (diff != 0) {
       /* XXX TODO: refine this for per-item overriding of arrays... */
-      IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(override, rna_path);
+      op = BKE_lib_override_library_property_find(override, rna_path);
       IDOverrideLibraryPropertyOperation *opop = op ? op->operations.first : NULL;
+
+      if (op != NULL) {
+        BKE_lib_override_library_operations_tag(op, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
+      }
 
       if (do_restore && (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) == 0) {
         /* We are allowed to restore to reference's values. */

@@ -383,10 +383,10 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
 void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
                                               IDOverrideLibraryProperty *override_property)
 {
-  lib_override_library_property_clear(override_property);
   if (override->runtime != NULL) {
     BLI_ghash_remove(override->runtime, override_property->rna_path, NULL, NULL);
   }
+  lib_override_library_property_clear(override_property);
   BLI_freelinkN(&override->properties, override_property);
 }
 
@@ -559,6 +559,46 @@ void BKE_lib_override_library_property_operation_delete(
 }
 
 /**
+ * Validate that required data for a given operation are available.
+ */
+bool BKE_lib_override_library_property_operation_operands_validate(
+    struct IDOverrideLibraryPropertyOperation *override_property_operation,
+    struct PointerRNA *ptr_dst,
+    struct PointerRNA *ptr_src,
+    struct PointerRNA *ptr_storage,
+    struct PropertyRNA *prop_dst,
+    struct PropertyRNA *prop_src,
+    struct PropertyRNA *prop_storage)
+{
+  switch (override_property_operation->operation) {
+    case IDOVERRIDE_LIBRARY_OP_NOOP:
+      return true;
+    case IDOVERRIDE_LIBRARY_OP_ADD:
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_SUBTRACT:
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_MULTIPLY:
+      if (ptr_storage == NULL || ptr_storage->data == NULL || prop_storage == NULL) {
+        BLI_assert(!"Missing data to apply differential override operation.");
+        return false;
+      }
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_INSERT_AFTER:
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE:
+      ATTR_FALLTHROUGH;
+    case IDOVERRIDE_LIBRARY_OP_REPLACE:
+      if ((ptr_dst == NULL || ptr_dst->data == NULL || prop_dst == NULL) ||
+          (ptr_src == NULL || ptr_src->data == NULL || prop_src == NULL)) {
+        BLI_assert(!"Missing data to apply override operation.");
+        return false;
+      }
+  }
+
+  return true;
+}
+
+/**
  * Check that status of local data-block is still valid against current reference one.
  *
  * It means that all overridable, but not overridden, properties' local values must be equal to
@@ -704,8 +744,8 @@ bool BKE_lib_override_library_operations_create(Main *bmain, ID *local, const bo
 
     if (GS(local->name) == ID_OB) {
       /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would ensure
-       * this is valid, but in some cases (like hidden collections etc.) this won't be the case, so
-       * we need to take care of this ourselves. */
+       * this is valid, but in some situations (like hidden collections etc.) this won't be the
+       * case, so we need to take care of this ourselves. */
       Object *ob_local = (Object *)local;
       if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
           ob_local->pose->flag & POSE_RECALC) {
@@ -748,11 +788,103 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
 {
   ID *id;
 
+  /* When force-auto is set, we also remove all unused existing override properties & operations.
+   */
+  if (force_auto) {
+    BKE_lib_override_library_main_tag(bmain, IDOVERRIDE_LIBRARY_TAG_UNUSED, true);
+  }
+
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if ((ID_IS_OVERRIDE_LIBRARY(id) && force_auto) ||
         (ID_IS_OVERRIDE_LIBRARY_AUTO(id) && (id->tag & LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH))) {
       BKE_lib_override_library_operations_create(bmain, id, force_auto);
       id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  if (force_auto) {
+    BKE_lib_override_library_main_unused_cleanup(bmain);
+  }
+}
+
+/** Set or clear given tag in all operations as unused in that override property data. */
+void BKE_lib_override_library_operations_tag(struct IDOverrideLibraryProperty *override_property,
+                                             const short tag,
+                                             const bool do_set)
+{
+  if (override_property != NULL) {
+    if (do_set) {
+      override_property->tag |= tag;
+    }
+    else {
+      override_property->tag &= ~tag;
+    }
+
+    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &override_property->operations) {
+      if (do_set) {
+        opop->tag |= tag;
+      }
+      else {
+        opop->tag &= ~tag;
+      }
+    }
+  }
+}
+
+/** Set or clear given tag in all properties and operations in that override data. */
+void BKE_lib_override_library_properties_tag(struct IDOverrideLibrary *override,
+                                             const short tag,
+                                             const bool do_set)
+{
+  if (override != NULL) {
+    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
+      BKE_lib_override_library_operations_tag(op, tag, do_set);
+    }
+  }
+}
+
+/** Set or clear given tag in all properties and operations in that Main's ID override data. */
+void BKE_lib_override_library_main_tag(struct Main *bmain, const short tag, const bool do_set)
+{
+  ID *id;
+
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (ID_IS_OVERRIDE_LIBRARY(id)) {
+      BKE_lib_override_library_properties_tag(id->override_library, tag, do_set);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+}
+
+/** Remove all tagged-as-unused properties and operations from that ID override data. */
+void BKE_lib_override_library_id_unused_cleanup(struct ID *local)
+{
+  if (local->override_library != NULL) {
+    LISTBASE_FOREACH_MUTABLE (
+        IDOverrideLibraryProperty *, op, &local->override_library->properties) {
+      if (op->tag & IDOVERRIDE_LIBRARY_TAG_UNUSED) {
+        BKE_lib_override_library_property_delete(local->override_library, op);
+      }
+      else {
+        LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+          if (opop->tag & IDOVERRIDE_LIBRARY_TAG_UNUSED) {
+            BKE_lib_override_library_property_operation_delete(op, opop);
+          }
+        }
+      }
+    }
+  }
+}
+
+/** Remove all tagged-as-unused properties and operations from that Main's ID override data. */
+void BKE_lib_override_library_main_unused_cleanup(struct Main *bmain)
+{
+  ID *id;
+
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (ID_IS_OVERRIDE_LIBRARY(id)) {
+      BKE_lib_override_library_id_unused_cleanup(id);
     }
   }
   FOREACH_MAIN_ID_END;
