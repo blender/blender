@@ -383,10 +383,10 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
 void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
                                               IDOverrideLibraryProperty *override_property)
 {
-  lib_override_library_property_clear(override_property);
   if (override->runtime != NULL) {
     BLI_ghash_remove(override->runtime, override_property->rna_path, NULL, NULL);
   }
+  lib_override_library_property_clear(override_property);
   BLI_freelinkN(&override->properties, override_property);
 }
 
