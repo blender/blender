@@ -1349,17 +1349,8 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   }
 
   uiLayout *col = uiLayoutColumn(layout, false);
-
-  if (op->type->flag & OPTYPE_MACRO) {
-    for (op = op->macro.first; op; op = op->next) {
-      uiTemplateOperatorPropertyButs(
-          C, col, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
-    }
-  }
-  else {
-    uiTemplateOperatorPropertyButs(
-        C, col, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
-  }
+  uiTemplateOperatorPropertyButs(
+      C, col, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
 
   UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
 

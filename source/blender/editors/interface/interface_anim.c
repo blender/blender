@@ -28,6 +28,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -114,10 +115,38 @@ void ui_but_anim_flag(uiBut *but, float cfra)
   }
 }
 
+static uiBut *ui_but_anim_decorate_find_attached_button(uiBut *but_decorate)
+{
+  uiBut *but_iter = NULL;
+
+  BLI_assert(UI_but_is_decorator(but_decorate));
+  BLI_assert(but_decorate->rnasearchpoin.data && but_decorate->rnasearchprop);
+
+  LISTBASE_CIRCULAR_BACKWARD_BEGIN (&but_decorate->block->buttons, but_iter, but_decorate->prev) {
+    if (but_iter != but_decorate && ui_but_rna_equals_ex(but_decorate,
+                                                         &but_iter->rnasearchpoin,
+                                                         but_iter->rnasearchprop,
+                                                         POINTER_AS_INT(but_iter->custom_data))) {
+      return but_iter;
+    }
+  }
+  LISTBASE_CIRCULAR_BACKWARD_END(&but_decorate->block->buttons, but_iter, but_decorate->prev);
+
+  return NULL;
+}
+
 void ui_but_anim_decorate_update_from_flag(uiBut *but)
 {
-  BLI_assert(UI_but_is_decorator(but) && but->prev);
-  int flag = but->prev->flag;
+  const uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but);
+
+  if (!but_anim) {
+    printf("Could not find button with matching property to decorate (%s.%s)",
+           RNA_struct_identifier(but->rnapoin.type),
+           RNA_property_identifier(but->rnaprop));
+  }
+
+  int flag = but_anim->flag;
+
   if (flag & UI_BUT_DRIVEN) {
     but->icon = ICON_DECORATE_DRIVER;
   }
@@ -289,22 +318,26 @@ void ui_but_anim_paste_driver(bContext *C)
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  uiBut *but = arg_but;
-  but = but->prev;
+  uiBut *but_decorate = arg_but;
+  uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
+
+  if (!but_anim) {
+    return;
+  }
 
   /* FIXME(campbell), swapping active pointer is weak. */
-  SWAP(struct uiHandleButtonData *, but->active, but->next->active);
+  SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->active);
   wm->op_undo_depth++;
 
-  if (but->flag & UI_BUT_DRIVEN) {
+  if (but_anim->flag & UI_BUT_DRIVEN) {
     /* pass */
     /* TODO: report? */
   }
-  else if (but->flag & UI_BUT_ANIMATED_KEY) {
+  else if (but_anim->flag & UI_BUT_ANIMATED_KEY) {
     PointerRNA props_ptr;
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
-    RNA_boolean_set(&props_ptr, "all", but->rnaindex == -1);
+    RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
     WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
     WM_operator_properties_free(&props_ptr);
   }
@@ -312,11 +345,11 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     PointerRNA props_ptr;
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_insert_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
-    RNA_boolean_set(&props_ptr, "all", but->rnaindex == -1);
+    RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
     WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
     WM_operator_properties_free(&props_ptr);
   }
 
-  SWAP(struct uiHandleButtonData *, but->active, but->next->active);
+  SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->active);
   wm->op_undo_depth--;
 }

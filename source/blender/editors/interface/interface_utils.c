@@ -294,7 +294,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
                                      const bool compact)
 {
   eAutoPropButsReturn return_info = UI_PROP_BUTS_NONE_ADDED;
-  uiLayout *split, *col;
+  uiLayout *col;
   const char *name;
 
   RNA_STRUCT_BEGIN (ptr, prop) {
@@ -325,18 +325,10 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
         }
         else {
           BLI_assert(label_align == UI_BUT_LABEL_ALIGN_SPLIT_COLUMN);
-          split = uiLayoutSplit(layout, 0.5f, false);
-
-          col = uiLayoutColumn(split, false);
-          uiItemL(col, (is_boolean) ? "" : name, ICON_NONE);
-          col = uiLayoutColumn(split, false);
+          col = uiLayoutColumn(layout, true);
+          /* Let uiItemFullR() create the split layout. */
+          uiLayoutSetPropSep(col, true);
         }
-
-        /* May need to add more cases here.
-         * don't override enum flag names */
-
-        /* name is shown above, empty name for button below */
-        name = (flag & PROP_ENUM_FLAG || is_boolean) ? NULL : "";
 
         break;
       }

@@ -250,6 +250,8 @@ enum {
   UI_BUT_TEXT_RIGHT = 1 << 3,
   /** Prevent the button to show any tooltip. */
   UI_BUT_NO_TOOLTIP = 1 << 4,
+  /** Do not add the usual horizontal padding for text drawing. */
+  UI_BUT_NO_TEXT_PADDING = 1 << 5,
 
   /* Button align flag, for drawing groups together.
    * Used in 'uiBlock.flag', take care! */
@@ -1774,6 +1776,8 @@ enum {
   UI_ITEM_O_DEPRESS = 1 << 10,
   UI_ITEM_R_COMPACT = 1 << 11,
   UI_ITEM_R_CHECKBOX_INVERT = 1 << 12,
+  /** Don't add a real decorator item, just blank space. */
+  UI_ITEM_R_FORCE_BLANK_DECORATE = 1 << 13,
 };
 
 #define UI_HEADER_OFFSET ((void)0, 0.4f * UI_UNIT_X)
@@ -1784,6 +1788,9 @@ enum {
   UI_TEMPLATE_OP_PROPS_SHOW_EMPTY = 1 << 1,
   UI_TEMPLATE_OP_PROPS_COMPACT = 1 << 2,
   UI_TEMPLATE_OP_PROPS_HIDE_ADVANCED = 1 << 3,
+  /* Disable property split for the default layout (custom ui callbacks still have full control
+   * over the layout and can enable it). */
+  UI_TEMPLATE_OP_PROPS_NO_SPLIT_LAYOUT = 1 << 4,
 };
 
 /* used for transp checkers */
@@ -1871,7 +1878,9 @@ bool uiLayoutGetPropDecorate(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, bool align);
+uiLayout *uiLayoutRowWithHeading(uiLayout *layout, bool align, const char *heading);
 uiLayout *uiLayoutColumn(uiLayout *layout, bool align);
+uiLayout *uiLayoutColumnWithHeading(uiLayout *layout, bool align, const char *heading);
 uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, bool align);
 uiLayout *uiLayoutGridFlow(uiLayout *layout,
                            bool row_major,
@@ -2046,11 +2055,11 @@ void uiTemplateOperatorSearch(uiLayout *layout);
 void UI_but_func_menu_search(uiBut *but);
 void uiTemplateMenuSearch(uiLayout *layout);
 
-eAutoPropButsReturn uiTemplateOperatorPropertyButs(const struct bContext *C,
-                                                   uiLayout *layout,
-                                                   struct wmOperator *op,
-                                                   const eButLabelAlign label_align,
-                                                   const short flag);
+void uiTemplateOperatorPropertyButs(const struct bContext *C,
+                                    uiLayout *layout,
+                                    struct wmOperator *op,
+                                    eButLabelAlign label_align,
+                                    short flag);
 void uiTemplateHeader3D_mode(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
@@ -2311,6 +2320,9 @@ void uiItemM_ptr(uiLayout *layout, struct MenuType *mt, const char *name, int ic
 void uiItemM(uiLayout *layout, const char *menuname, const char *name, int icon);
 /* menu contents */
 void uiItemMContents(uiLayout *layout, const char *menuname);
+/* Decorators */
+void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index);
+void uiItemDecoratorR(uiLayout *layout, PointerRNA *ptr, const char *propname, int index);
 /* value */
 void uiItemV(uiLayout *layout, const char *name, int icon, int argval);
 /* separator */

@@ -790,6 +790,11 @@ float ui_block_calc_pie_segment(struct uiBlock *block, const float event_xy[2]);
 
 void ui_but_add_shortcut(uiBut *but, const char *key_str, const bool do_strip);
 void ui_but_clipboard_free(void);
+bool ui_but_rna_equals(const uiBut *a, const uiBut *b);
+bool ui_but_rna_equals_ex(const uiBut *but,
+                          const PointerRNA *ptr,
+                          const PropertyRNA *prop,
+                          int index);
 uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new);
 uiBut *ui_but_find_new(uiBlock *block_old, const uiBut *but_new);
 
