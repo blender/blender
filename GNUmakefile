@@ -71,17 +71,6 @@ Testing Targets
      which are tagged to use the stricter formatting
    * test_deprecated:
      Checks for deprecation tags in our code which may need to be removed
-   * test_style_c:
-     Checks C/C++ conforms with blenders style guide:
-     https://wiki.blender.org/wiki/Source/Code_Style
-   * test_style_c_qtc:
-     Same as test_style but outputs QtCreator tasks format
-   * test_style_osl:
-     Checks OpenShadingLanguage conforms with blenders style guide:
-     https://wiki.blender.org/wiki/Source/Code_Style
-   * test_style_osl_qtc:
-     Checks OpenShadingLanguage conforms with blenders style guide:
-     https://wiki.blender.org/wiki/Source/Code_Style
 
 Static Source Code Checking
    Not associated with building Blender.
@@ -402,45 +391,6 @@ test_cmake: .FORCE
 test_deprecated: .FORCE
 	$(PYTHON) tests/check_deprecated.py
 
-test_style_c: .FORCE
-	# run our own checks on C/C++ style
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" \
-	    "$(BLENDER_DIR)/source/blender" \
-	    "$(BLENDER_DIR)/source/creator" \
-	    --no-length-check
-
-test_style_c_qtc: .FORCE
-	# run our own checks on C/C++ style
-	USE_QTC_TASK=1 \
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" \
-	    "$(BLENDER_DIR)/source/blender" \
-	    "$(BLENDER_DIR)/source/creator" \
-	    --no-length-check \
-	    > \
-	    "$(BLENDER_DIR)/test_style.tasks"
-	@echo "written: test_style.tasks"
-
-
-test_style_osl: .FORCE
-	# run our own checks on C/C++ style
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" \
-	    "$(BLENDER_DIR)/intern/cycles/kernel/shaders" \
-	    "$(BLENDER_DIR)/release/scripts/templates_osl"
-
-
-test_style_osl_qtc: .FORCE
-	# run our own checks on C/C++ style
-	USE_QTC_TASK=1 \
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_style_c.py" \
-	    "$(BLENDER_DIR)/intern/cycles/kernel/shaders" \
-	    "$(BLENDER_DIR)/release/scripts/templates_osl" \
-	    > \
-	    "$(BLENDER_DIR)/test_style.tasks"
-	@echo "written: test_style.tasks"
 
 # -----------------------------------------------------------------------------
 # Project Files
