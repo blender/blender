@@ -1341,8 +1341,8 @@ static void draw_points(ArmatureDrawContext *ctx,
   bone_hint_color_shade(col_hint_tail, (ctx->const_color) ? col_solid_tail : col_wire_tail);
 
   /* Draw root point if we are not connected to our parent */
-  if (!(eBone ? (eBone->parent && (eBone->flag & BONE_CONNECTED)) :
-                (pchan->bone->parent && (pchan->bone->flag & BONE_CONNECTED)))) {
+  if (!(eBone ? (eBone->parent && (boneflag & BONE_CONNECTED)) :
+                (pchan->bone->parent && (boneflag & BONE_CONNECTED)))) {
     if (select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_ROOT);
     }
@@ -1522,8 +1522,8 @@ static void draw_bone_line(ArmatureDrawContext *ctx,
     }
 
     /* Draw root point if we are not connected to our parent. */
-    if (!(eBone ? (eBone->parent && (eBone->flag & BONE_CONNECTED)) :
-                  (pchan->bone->parent && (pchan->bone->flag & BONE_CONNECTED)))) {
+    if (!(eBone ? (eBone->parent && (boneflag & BONE_CONNECTED)) :
+                  (pchan->bone->parent && (boneflag & BONE_CONNECTED)))) {
 
       if (eBone) {
         col_head = (eBone->flag & BONE_ROOTSEL) ? G_draw.block.colorVertexSelect : col_bone;
