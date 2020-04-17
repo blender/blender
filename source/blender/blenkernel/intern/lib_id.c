@@ -663,7 +663,7 @@ static void id_swap(Main *bmain, ID *id_a, ID *id_b, const bool do_full_id)
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note Most internal ID data itself is not swapped (only IDProperties are).
  *
- * \param bmain May be NULL, in which case there will be no remapping of internal pointers to
+ * \param bmain: May be NULL, in which case there will be no remapping of internal pointers to
  * itself.
  */
 void BKE_lib_id_swap(Main *bmain, ID *id_a, ID *id_b)
@@ -675,7 +675,7 @@ void BKE_lib_id_swap(Main *bmain, ID *id_a, ID *id_b)
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note All internal ID data itself is also swapped.
  *
- * \param bmain May be NULL, in which case there will be no remapping of internal pointers to
+ * \param bmain: May be NULL, in which case there will be no remapping of internal pointers to
  * itself.
  */
 void BKE_lib_id_swap_full(Main *bmain, ID *id_a, ID *id_b)
@@ -1248,7 +1248,7 @@ ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *nam
  *
  * \note All other IDs beside given one are assumed already properly sorted in the list.
  *
- * \param id_sorting_hint Ignored if NULL. Otherwise, used to check if we can insert \a id
+ * \param id_sorting_hint: Ignored if NULL. Otherwise, used to check if we can insert \a id
  * immediately before or after that pointer. It must always be into given \a lb list.
  */
 void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)

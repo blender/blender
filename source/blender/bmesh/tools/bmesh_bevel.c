@@ -997,10 +997,10 @@ static bool point_between_edges(float co[3], BMVert *v, BMFace *f, EdgeHalf *e1,
  * record the change in offset_l (or offset_r); later we can tell that a change has happened
  * because the offset will differ from its original value in offset_l_spec (or offset_r_spec).
  *
- * \param edges_between If this is true, there are edges between e1 and e2 in CCW order so they
+ * \param edges_between: If this is true, there are edges between e1 and e2 in CCW order so they
  * don't share a common face. We want the meeting point to be on an existing face so it
  * should be dropped onto one of the intermediate faces, if possible.
- * \param e_in_plane If we need to drop from the calculated offset lines to one of the faces,
+ * \param e_in_plane: If we need to drop from the calculated offset lines to one of the faces,
  * we don't want to drop onto the 'in plane' face, so if this is not null skip this edge's faces.
  */
 static void offset_meet(EdgeHalf *e1,
@@ -2601,13 +2601,13 @@ static void adjust_miter_inner_coords(BevelParams *bp, BevVert *bv, EdgeHalf *em
  * to be a subsequent pass to make the widths as consistent as possible.
  * Doesn't make the actual BMVerts.
  *
- * For a width consistency pass, we just recalculate the coordinates of the BoundVerts. If the
+ * For a width consistency pass, we just recalculate the coordinates of the #BoundVerts. If the
  * other ends have been (re)built already, then we copy the offsets from there to match, else we
  * use the ideal (user-specified) widths.
  *
- * \param construct The first time through, construct will be true and we are making the BoundVerts
- * and setting up the BoundVert and EdgeHalf pointers appropriately. Also, if construct, decide on
- * the mesh pattern that will be used inside the boundary.
+ * \param construct: The first time through, construct will be true and we are making the
+ * #BoundVerts and setting up the #BoundVert and #EdgeHalf pointers appropriately.
+ * Also, if construct, decide on the mesh pattern that will be used inside the boundary.
  */
 static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 {

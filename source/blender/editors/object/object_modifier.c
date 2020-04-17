@@ -142,10 +142,11 @@ static void object_force_modifier_bind_simple_options(Depsgraph *depsgraph,
   md_eval->mode = mode;
 }
 
-/** Add a modifier to given object, including relevant extra processing needed by some physics
- * types (particles, simulations...).
+/**
+ * Add a modifier to given object, including relevant extra processing needed by some physics types
+ * (particles, simulations...).
  *
- * \param scene is only used to set current frame in some cases, and may be NULL.
+ * \param scene: is only used to set current frame in some cases, and may be NULL.
  */
 ModifierData *ED_object_modifier_add(
     ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)

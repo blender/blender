@@ -5674,10 +5674,10 @@ static char *rna_idp_path(PointerRNA *ptr,
 }
 
 /**
- * Find the path from the structure referenced by the pointer to the IDProperty object.
+ * Find the path from the structure referenced by the pointer to the #IDProperty object.
  *
- * \param ptr Reference to the object owning the custom property storage.
- * \param needle Custom property object to find.
+ * \param ptr: Reference to the object owning the custom property storage.
+ * \param needle: Custom property object to find.
  * \return Relative path or NULL.
  */
 char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, IDProperty *needle)
