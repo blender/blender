@@ -89,6 +89,7 @@ static GPUShader *hair_refine_shader_get(ParticleRefineShader sh)
   g_refine_shaders[sh] = DRW_shader_create(vert_with_lib,
                                            NULL,
                                            datatoc_gpu_shader_3D_smooth_color_frag_glsl,
+                                           "#define blender_srgb_to_framebuffer_space(a) a\n"
                                            "#define HAIR_PHASE_SUBDIV\n"
                                            "#define TF_WORKAROUND\n");
 #endif
