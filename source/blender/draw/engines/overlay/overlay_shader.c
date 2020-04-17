@@ -1341,6 +1341,7 @@ struct GPUShader *OVERLAY_shader_volume_velocity(bool use_needle)
         NULL,
         datatoc_gpu_shader_flat_color_frag_glsl,
         datatoc_common_view_lib_glsl,
+        "#define blender_srgb_to_framebuffer_space(a) a\n"
         "#define USE_NEEDLE\n");
   }
   else if (!sh_data->volume_velocity_sh) {
@@ -1349,7 +1350,7 @@ struct GPUShader *OVERLAY_shader_volume_velocity(bool use_needle)
         NULL,
         datatoc_gpu_shader_flat_color_frag_glsl,
         datatoc_common_view_lib_glsl,
-        NULL);
+        "#define blender_srgb_to_framebuffer_space(a) a\n");
   }
   return (use_needle) ? sh_data->volume_velocity_needle_sh : sh_data->volume_velocity_sh;
 }
