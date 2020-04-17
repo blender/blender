@@ -9799,7 +9799,11 @@ static int ui_handle_menu_event(bContext *C,
             for (but = block->buttons.first; but; but = but->next) {
               bool doit = false;
 
-              if (!ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
+              if (!ELEM(but->type,
+                        UI_BTYPE_LABEL,
+                        UI_BTYPE_SEPR,
+                        UI_BTYPE_SEPR_LINE,
+                        UI_BTYPE_IMAGE)) {
                 count++;
               }
 
