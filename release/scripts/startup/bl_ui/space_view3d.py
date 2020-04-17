@@ -5407,9 +5407,7 @@ class VIEW3D_PT_view3d_properties(Panel):
         subcol.prop(view, "clip_start", text="Clip Start")
         subcol.prop(view, "clip_end", text="End")
 
-        subcol.separator()
-
-        col = layout.column()
+        layout.separator()
 
         col = layout.column(align=False, heading="Local Camera")
         col.use_property_decorate = False
@@ -5420,9 +5418,11 @@ class VIEW3D_PT_view3d_properties(Panel):
         sub.enabled = view.use_local_camera
         sub.prop(view, "camera", text="")
 
-        subcol = col.column(align=True)
-        subcol.prop(view, "use_render_border")
-        subcol.active = view.region_3d.view_perspective != 'CAMERA'
+        layout.separator()
+
+        col = layout.column(align=True)
+        col.prop(view, "use_render_border")
+        col.active = view.region_3d.view_perspective != 'CAMERA'
 
 
 class VIEW3D_PT_view3d_lock(Panel):
