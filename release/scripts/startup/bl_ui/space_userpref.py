@@ -2167,7 +2167,7 @@ class USERPREF_PT_experimental_system(ExperimentalPanel, Panel):
     def draw(self, context):
         self._draw_items(
             context, (
-                ({"property": "use_undo_speedup"}, "T60695"),
+                ({"property": "use_undo_legacy"}, "T60695"),
             ),
         )
 

@@ -147,7 +147,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
 
   bool use_old_bmain_data = true;
 
-  if (!U.experimental.use_undo_speedup) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_undo_legacy)) {
     use_old_bmain_data = false;
   }
   else if (undo_direction > 0) {
