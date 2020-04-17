@@ -199,7 +199,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   }
   wpd->clip_state = clip_state;
 
-  wpd->cull_state = CULL_BACKFACE_ENABLED(wpd) ? DRW_STATE_CULL_BACK : 0;
+  wpd->cull_state = CULL_BACKFACE_ENABLED(v3d) ? DRW_STATE_CULL_BACK : 0;
   wpd->vldata = vldata;
   wpd->world_ubo = vldata->world_ubo;
 
