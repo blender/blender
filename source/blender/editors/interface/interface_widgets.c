@@ -5292,15 +5292,23 @@ void ui_draw_tooltip_background(const uiStyle *UNUSED(style), uiBlock *UNUSED(bl
   wt->draw(&wt->wcol, rect, 0, 0);
 }
 
-/* helper call to draw a menu item without button */
-/* state: UI_ACTIVE or 0 */
+/**
+ * Helper call to draw a menu item without a button.
+ *
+ * \param state: The state of the button,
+ * typically #UI_ACTIVE, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
+ * \param use_sep: When true, characters after the last #UI_SEP_CHAR are right aligned,
+ * use for displaying key shortcuts.
+ * \param r_xmax: The right hand position of the text, this takes into the icon,
+ * padding and text clipping when there is not enough room to display the full text.
+ */
 void ui_draw_menu_item(const uiFontStyle *fstyle,
                        rcti *rect,
                        const char *name,
                        int iconid,
                        int state,
                        bool use_sep,
-                       int *r_name_width)
+                       int *r_xmax)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
   rcti _rect = *rect;
@@ -5363,8 +5371,8 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
                          &xofs,
                          &yofs,
                          &info);
-    if (r_name_width != NULL) {
-      *r_name_width = xofs + info.width;
+    if (r_xmax != NULL) {
+      *r_xmax = xofs + info.width;
     }
   }
 

@@ -853,7 +853,7 @@ void ui_draw_menu_item(const struct uiFontStyle *fstyle,
                        int iconid,
                        int state,
                        bool use_sep,
-                       int *r_name_width);
+                       int *r_xmax);
 void ui_draw_preview_item(
     const struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 
