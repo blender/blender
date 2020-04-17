@@ -464,7 +464,7 @@ static GLenum gpu_format_to_gl_internalformat(eGPUTextureFormat format)
     case GPU_RG16I:
       return GL_RG16I;
     case GPU_RG16F:
-      return GL_RGBA32F;
+      return GL_RG16F;
     case GPU_RG16:
       return GL_RG16;
     case GPU_R8UI:
