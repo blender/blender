@@ -11,4 +11,4 @@ echo Note that OpenXR support in Oculus is considered a preview. Use with care!
 echo.
 pause
 set XR_RUNTIME_JSON=%~dp0oculus.json
-blender
+"%~dp0\blender"
