@@ -311,12 +311,13 @@ void EuclideanBundlerPerformEvaluation(const Tracks &tracks,
   for (int i = 0; i <= max_track; i++) {
     EuclideanPoint *point = reconstruction->PointForTrack(i);
     if (point) {
-      // We need to know whether the track is constant zero weight,
-      // and it so it wouldn't have parameter block in the problem.
+      // We need to know whether the track is a constant zero weight.
+      // If it is so it wouldn't have a parameter block in the problem.
       //
-      // Getting all markers for track is not so bac currently since
-      // this code is only used by keyframe selection when there are
-      // not so much tracks and only 2 frames anyway.
+      // Usually getting all markers of a track is considered slow, but this
+      // code is only used by the keyframe selection code where there aren't
+      // that many tracks in the storage and there are only 2 frames for each
+      // of the tracks.
       vector<Marker> markera_of_track = tracks.MarkersForTrack(i);
       for (int j = 0; j < markera_of_track.size(); j++) {
         if (markera_of_track.at(j).weight != 0.0) {
