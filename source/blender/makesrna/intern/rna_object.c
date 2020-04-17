@@ -1688,6 +1688,69 @@ static void rna_Object_greasepencil_modifier_clear(Object *object, bContext *C)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
+bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
+                                                      PointerRNA *ptr_dst,
+                                                      PointerRNA *ptr_src,
+                                                      PointerRNA *UNUSED(ptr_storage),
+                                                      PropertyRNA *UNUSED(prop_dst),
+                                                      PropertyRNA *UNUSED(prop_src),
+                                                      PropertyRNA *UNUSED(prop_storage),
+                                                      const int UNUSED(len_dst),
+                                                      const int UNUSED(len_src),
+                                                      const int UNUSED(len_storage),
+                                                      PointerRNA *UNUSED(ptr_item_dst),
+                                                      PointerRNA *UNUSED(ptr_item_src),
+                                                      PointerRNA *UNUSED(ptr_item_storage),
+                                                      IDOverrideLibraryPropertyOperation *opop)
+{
+  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+             "Unsupported RNA override operation on modifiers collection");
+
+  Object *ob_dst = (Object *)ptr_dst->owner_id;
+  Object *ob_src = (Object *)ptr_src->owner_id;
+
+  /* Remember that insertion operations are defined and stored in correct order, which means that
+   * even if we insert several items in a row, we always insert first one, then second one, etc.
+   * So we should always find 'anchor' modifier in both _src *and* _dst. */
+  GpencilModifierData *mod_anchor = NULL;
+  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
+    mod_anchor = BLI_findstring(
+        &ob_dst->greasepencil_modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
+  }
+  if (mod_anchor == NULL && opop->subitem_local_index >= 0) {
+    mod_anchor = BLI_findlink(&ob_dst->greasepencil_modifiers, opop->subitem_local_index);
+  }
+  /* Otherwise we just insert in first position. */
+
+  GpencilModifierData *mod_src = NULL;
+  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
+    mod_src = BLI_findstring(
+        &ob_src->greasepencil_modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
+  }
+  if (mod_src == NULL && opop->subitem_local_index >= 0) {
+    mod_src = BLI_findlink(&ob_src->greasepencil_modifiers, opop->subitem_local_index);
+  }
+  mod_src = mod_src ? mod_src->next : ob_src->greasepencil_modifiers.first;
+
+  if (mod_src == NULL) {
+    BLI_assert(mod_src != NULL);
+    return false;
+  }
+
+  /* While it would be nicer to use lower-level modifier_new() here, this one is lacking
+   * special-cases handling (particles and other physics modifiers mostly), so using the ED version
+   * instead, to avoid duplicating code. */
+  GpencilModifierData *mod_dst = ED_object_gpencil_modifier_add(
+      NULL, bmain, NULL, ob_dst, mod_src->name, mod_src->type);
+
+  BLI_remlink(&ob_dst->modifiers, mod_dst);
+  /* This handles NULL anchor as expected by adding at head of list. */
+  BLI_insertlinkafter(&ob_dst->greasepencil_modifiers, mod_anchor, mod_dst);
+
+  //  printf("%s: We inserted a gpencil modifier '%s'...\n", __func__, mod_dst->name);
+  return true;
+}
+
 /* shader fx */
 static ShaderFxData *rna_Object_shaderfx_new(
     Object *object, bContext *C, ReportList *reports, const char *name, int type)
@@ -2839,6 +2902,10 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "GpencilModifier");
   RNA_def_property_ui_text(
       prop, "Grease Pencil Modifiers", "Modifiers affecting the data of the grease pencil object");
+  RNA_def_property_override_funcs(
+      prop, NULL, NULL, "rna_Object_greasepencil_modifiers_override_apply");
+  RNA_def_property_override_flag(
+      prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY | PROPOVERRIDE_LIBRARY_INSERTION);
   rna_def_object_grease_pencil_modifiers(brna, prop);
 
   /* Shader FX. */
