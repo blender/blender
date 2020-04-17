@@ -1838,9 +1838,9 @@ static void subdiv_foreach_boundary_edges_task(void *__restrict userdata,
   subdiv_foreach_boundary_edges(ctx, tls->userdata_chunk, edge_index);
 }
 
-static void subdiv_foreach_finalize(void *__restrict userdata, void *__restrict userdata_chunk)
+static void subdiv_foreach_free(const void *__restrict userdata, void *__restrict userdata_chunk)
 {
-  SubdivForeachTaskContext *ctx = userdata;
+  const SubdivForeachTaskContext *ctx = userdata;
   ctx->foreach_context->user_data_tls_free(userdata_chunk);
 }
 
@@ -1873,7 +1873,7 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
   parallel_range_settings.userdata_chunk_size = context->user_data_tls_size;
   parallel_range_settings.min_iter_per_thread = 1;
   if (context->user_data_tls_free != NULL) {
-    parallel_range_settings.func_finalize = subdiv_foreach_finalize;
+    parallel_range_settings.func_free = subdiv_foreach_free;
   }
 
   /* TODO(sergey): Possible optimization is to have a single pool and push all

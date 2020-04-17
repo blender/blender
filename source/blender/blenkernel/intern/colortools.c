@@ -1383,8 +1383,6 @@ typedef struct ScopesUpdateData {
   struct ColormanageProcessor *cm_processor;
   const unsigned char *display_buffer;
   const int ycc_mode;
-
-  unsigned int *bin_lum, *bin_r, *bin_g, *bin_b, *bin_a;
 } ScopesUpdateData;
 
 typedef struct ScopesUpdateDataChunk {
@@ -1495,23 +1493,24 @@ static void scopes_update_cb(void *__restrict userdata,
   }
 }
 
-static void scopes_update_finalize(void *__restrict userdata, void *__restrict userdata_chunk)
+static void scopes_update_reduce(const void *__restrict UNUSED(userdata),
+                                 void *__restrict chunk_join,
+                                 void *__restrict chunk)
 {
-  const ScopesUpdateData *data = userdata;
-  const ScopesUpdateDataChunk *data_chunk = userdata_chunk;
+  ScopesUpdateDataChunk *join_chunk = chunk_join;
+  const ScopesUpdateDataChunk *data_chunk = chunk;
 
-  unsigned int *bin_lum = data->bin_lum;
-  unsigned int *bin_r = data->bin_r;
-  unsigned int *bin_g = data->bin_g;
-  unsigned int *bin_b = data->bin_b;
-  unsigned int *bin_a = data->bin_a;
+  unsigned int *bin_lum = join_chunk->bin_lum;
+  unsigned int *bin_r = join_chunk->bin_r;
+  unsigned int *bin_g = join_chunk->bin_g;
+  unsigned int *bin_b = join_chunk->bin_b;
+  unsigned int *bin_a = join_chunk->bin_a;
   const unsigned int *bin_lum_c = data_chunk->bin_lum;
   const unsigned int *bin_r_c = data_chunk->bin_r;
   const unsigned int *bin_g_c = data_chunk->bin_g;
   const unsigned int *bin_b_c = data_chunk->bin_b;
   const unsigned int *bin_a_c = data_chunk->bin_a;
 
-  float(*minmax)[2] = data->scopes->minmax;
   const float *min = data_chunk->min;
   const float *max = data_chunk->max;
 
@@ -1524,11 +1523,11 @@ static void scopes_update_finalize(void *__restrict userdata, void *__restrict u
   }
 
   for (int c = 3; c--;) {
-    if (min[c] < minmax[c][0]) {
-      minmax[c][0] = min[c];
+    if (min[c] < join_chunk->min[c]) {
+      join_chunk->min[c] = min[c];
     }
-    if (max[c] > minmax[c][1]) {
-      minmax[c][1] = max[c];
+    if (max[c] > join_chunk->max[c]) {
+      join_chunk->max[c] = max[c];
     }
   }
 }
@@ -1542,7 +1541,6 @@ void BKE_scopes_update(Scopes *scopes,
   unsigned int nl, na, nr, ng, nb;
   double divl, diva, divr, divg, divb;
   const unsigned char *display_buffer = NULL;
-  uint bin_lum[256] = {0}, bin_r[256] = {0}, bin_g[256] = {0}, bin_b[256] = {0}, bin_a[256] = {0};
   int ycc_mode = -1;
   void *cache_handle = NULL;
   struct ColormanageProcessor *cm_processor = NULL;
@@ -1638,11 +1636,6 @@ void BKE_scopes_update(Scopes *scopes,
       .cm_processor = cm_processor,
       .display_buffer = display_buffer,
       .ycc_mode = ycc_mode,
-      .bin_lum = bin_lum,
-      .bin_r = bin_r,
-      .bin_g = bin_g,
-      .bin_b = bin_b,
-      .bin_a = bin_a,
   };
   ScopesUpdateDataChunk data_chunk = {{0}};
   INIT_MINMAX(data_chunk.min, data_chunk.max);
@@ -1652,26 +1645,26 @@ void BKE_scopes_update(Scopes *scopes,
   settings.use_threading = (ibuf->y > 256);
   settings.userdata_chunk = &data_chunk;
   settings.userdata_chunk_size = sizeof(data_chunk);
-  settings.func_finalize = scopes_update_finalize;
+  settings.func_reduce = scopes_update_reduce;
   BLI_task_parallel_range(0, ibuf->y, &data, scopes_update_cb, &settings);
 
   /* convert hist data to float (proportional to max count) */
   nl = na = nr = nb = ng = 0;
   for (a = 0; a < 256; a++) {
-    if (bin_lum[a] > nl) {
-      nl = bin_lum[a];
+    if (data_chunk.bin_lum[a] > nl) {
+      nl = data_chunk.bin_lum[a];
     }
-    if (bin_r[a] > nr) {
-      nr = bin_r[a];
+    if (data_chunk.bin_r[a] > nr) {
+      nr = data_chunk.bin_r[a];
     }
-    if (bin_g[a] > ng) {
-      ng = bin_g[a];
+    if (data_chunk.bin_g[a] > ng) {
+      ng = data_chunk.bin_g[a];
     }
-    if (bin_b[a] > nb) {
-      nb = bin_b[a];
+    if (data_chunk.bin_b[a] > nb) {
+      nb = data_chunk.bin_b[a];
     }
-    if (bin_a[a] > na) {
-      na = bin_a[a];
+    if (data_chunk.bin_a[a] > na) {
+      na = data_chunk.bin_a[a];
     }
   }
   divl = nl ? 1.0 / (double)nl : 1.0;
@@ -1681,11 +1674,11 @@ void BKE_scopes_update(Scopes *scopes,
   divb = nb ? 1.0 / (double)nb : 1.0;
 
   for (a = 0; a < 256; a++) {
-    scopes->hist.data_luma[a] = bin_lum[a] * divl;
-    scopes->hist.data_r[a] = bin_r[a] * divr;
-    scopes->hist.data_g[a] = bin_g[a] * divg;
-    scopes->hist.data_b[a] = bin_b[a] * divb;
-    scopes->hist.data_a[a] = bin_a[a] * diva;
+    scopes->hist.data_luma[a] = data_chunk.bin_lum[a] * divl;
+    scopes->hist.data_r[a] = data_chunk.bin_r[a] * divr;
+    scopes->hist.data_g[a] = data_chunk.bin_g[a] * divg;
+    scopes->hist.data_b[a] = data_chunk.bin_b[a] * divb;
+    scopes->hist.data_a[a] = data_chunk.bin_a[a] * diva;
   }
 
   if (cm_processor) {

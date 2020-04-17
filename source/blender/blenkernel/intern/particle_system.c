@@ -3692,10 +3692,11 @@ typedef struct DynamicStepSolverTaskData {
   SpinLock spin;
 } DynamicStepSolverTaskData;
 
-static void dynamics_step_finalize_sphdata(void *__restrict UNUSED(userdata),
-                                           void *__restrict tls_userdata_chunk)
+static void dynamics_step_sphdata_reduce(const void *__restrict UNUSED(userdata),
+                                         void *__restrict UNUSED(join_v),
+                                         void *__restrict chunk_v)
 {
-  SPHData *sphdata = tls_userdata_chunk;
+  SPHData *sphdata = chunk_v;
 
   psys_sph_flush_springs(sphdata);
 }
@@ -3986,7 +3987,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
         settings.use_threading = (psys->totpart > 100);
         settings.userdata_chunk = &sphdata;
         settings.userdata_chunk_size = sizeof(sphdata);
-        settings.func_finalize = dynamics_step_finalize_sphdata;
+        settings.func_reduce = dynamics_step_sphdata_reduce;
         BLI_task_parallel_range(
             0, psys->totpart, &task_data, dynamics_step_sph_ddr_task_cb_ex, &settings);
 
@@ -4018,7 +4019,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
           settings.use_threading = (psys->totpart > 100);
           settings.userdata_chunk = &sphdata;
           settings.userdata_chunk_size = sizeof(sphdata);
-          settings.func_finalize = dynamics_step_finalize_sphdata;
+          settings.func_reduce = dynamics_step_sphdata_reduce;
           BLI_task_parallel_range(0,
                                   psys->totpart,
                                   &task_data,
@@ -4033,7 +4034,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
           settings.use_threading = (psys->totpart > 100);
           settings.userdata_chunk = &sphdata;
           settings.userdata_chunk_size = sizeof(sphdata);
-          settings.func_finalize = dynamics_step_finalize_sphdata;
+          settings.func_reduce = dynamics_step_sphdata_reduce;
           BLI_task_parallel_range(0,
                                   psys->totpart,
                                   &task_data,
@@ -4189,7 +4190,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
       ParticleSettings *part = psys->part;
       ParticleData *pa = NULL;
 
-      int p, totpart, tottypepart = 0;
+      int p, totpart = 0, tottypepart = 0;
       int flagActivePart, activeParts = 0;
       float posX, posY, posZ, velX, velY, velZ;
       float resX, resY, resZ;

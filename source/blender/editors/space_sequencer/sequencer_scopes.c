@@ -447,7 +447,6 @@ static void draw_histogram_bar(ImBuf *ibuf, int x, float val, int col)
 
 typedef struct MakeHistogramViewData {
   const ImBuf *ibuf;
-  uint32_t (*bins)[HIS_STEPS];
 } MakeHistogramViewData;
 
 static void make_histogram_view_from_ibuf_byte_fn(void *__restrict userdata,
@@ -469,17 +468,16 @@ static void make_histogram_view_from_ibuf_byte_fn(void *__restrict userdata,
   }
 }
 
-static void make_histogram_view_from_ibuf_finalize(void *__restrict userdata,
-                                                   void *__restrict userdata_chunk)
+static void make_histogram_view_from_ibuf_reduce(const void *__restrict UNUSED(userdata),
+                                                 void *__restrict chunk_join,
+                                                 void *__restrict chunk)
 {
-  MakeHistogramViewData *data = userdata;
-  uint32_t(*bins)[HIS_STEPS] = data->bins;
-
-  uint32_t(*cur_bins)[HIS_STEPS] = userdata_chunk;
+  uint32_t(*join_bins)[HIS_STEPS] = chunk_join;
+  uint32_t(*bins)[HIS_STEPS] = chunk;
 
   for (int j = 3; j--;) {
     for (int i = 0; i < HIS_STEPS; i++) {
-      bins[j][i] += cur_bins[j][i];
+      join_bins[j][i] += bins[j][i];
     }
   }
 }
@@ -496,14 +494,13 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
   MakeHistogramViewData data = {
       .ibuf = ibuf,
-      .bins = bins,
   };
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (ibuf->y >= 256);
   settings.userdata_chunk = bins;
   settings.userdata_chunk_size = sizeof(bins);
-  settings.func_finalize = make_histogram_view_from_ibuf_finalize;
+  settings.func_reduce = make_histogram_view_from_ibuf_reduce;
   BLI_task_parallel_range(0, ibuf->y, &data, make_histogram_view_from_ibuf_byte_fn, &settings);
 
   nr = nb = ng = 0;
@@ -582,14 +579,13 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
   MakeHistogramViewData data = {
       .ibuf = ibuf,
-      .bins = bins,
   };
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (ibuf->y >= 256);
   settings.userdata_chunk = bins;
   settings.userdata_chunk_size = sizeof(bins);
-  settings.func_finalize = make_histogram_view_from_ibuf_finalize;
+  settings.func_reduce = make_histogram_view_from_ibuf_reduce;
   BLI_task_parallel_range(0, ibuf->y, &data, make_histogram_view_from_ibuf_float_fn, &settings);
 
   nr = nb = ng = 0;

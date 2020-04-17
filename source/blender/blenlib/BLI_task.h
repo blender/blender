@@ -146,12 +146,14 @@ typedef struct TaskParallelTLS {
   void *userdata_chunk;
 } TaskParallelTLS;
 
-typedef void (*TaskParallelFinalizeFunc)(void *__restrict userdata,
-                                         void *__restrict userdata_chunk);
-
 typedef void (*TaskParallelRangeFunc)(void *__restrict userdata,
                                       const int iter,
                                       const TaskParallelTLS *__restrict tls);
+typedef void (*TaskParallelReduceFunc)(const void *__restrict userdata,
+                                       void *__restrict chunk_join,
+                                       void *__restrict chunk);
+
+typedef void (*TaskParallelFreeFunc)(const void *__restrict userdata, void *__restrict chunk);
 
 typedef struct TaskParallelSettings {
   /* Whether caller allows to do threading of the particular range.
@@ -171,7 +173,13 @@ typedef struct TaskParallelSettings {
   /* Function called from calling thread once whole range have been
    * processed.
    */
-  TaskParallelFinalizeFunc func_finalize;
+  /* Function called to join user data chunk into another, to reduce
+   * the result to the original userdata_chunk memory.
+   * The reduce functions should have no side effects, so that they
+   * can be run on any thread. */
+  TaskParallelReduceFunc func_reduce;
+  /* Function called to free data created by TaskParallelRangeFunc. */
+  TaskParallelFreeFunc func_free;
   /* Minimum allowed number of range iterators to be handled by a single
    * thread. This allows to achieve following:
    * - Reduce amount of threading overhead.

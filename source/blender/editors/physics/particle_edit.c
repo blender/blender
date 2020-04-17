@@ -4084,7 +4084,6 @@ typedef struct BrushAddCountIterData {
   short size;
   float imat[4][4];
   ParticleData *add_pars;
-  int num_added;
 } BrushAddCountIterData;
 
 typedef struct BrushAddCountIterTLSData {
@@ -4176,12 +4175,19 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
   }
 }
 
-static void brush_add_count_iter_finalize(void *__restrict userdata_v,
-                                          void *__restrict userdata_chunk_v)
+static void brush_add_count_iter_reduce(const void *__restrict UNUSED(userdata),
+                                        void *__restrict join_v,
+                                        void *__restrict chunk_v)
 {
-  BrushAddCountIterData *iter_data = (BrushAddCountIterData *)userdata_v;
-  BrushAddCountIterTLSData *tls = (BrushAddCountIterTLSData *)userdata_chunk_v;
-  iter_data->num_added += tls->num_added;
+  BrushAddCountIterTLSData *join = (BrushAddCountIterTLSData *)join_v;
+  BrushAddCountIterTLSData *tls = (BrushAddCountIterTLSData *)chunk_v;
+  join->num_added += tls->num_added;
+}
+
+static void brush_add_count_iter_free(const void *__restrict UNUSED(userdata_v),
+                                      void *__restrict chunk_v)
+{
+  BrushAddCountIterTLSData *tls = (BrushAddCountIterTLSData *)chunk_v;
   if (tls->rng != NULL) {
     BLI_rng_free(tls->rng);
   }
@@ -4245,7 +4251,6 @@ static int brush_add(const bContext *C, PEData *data, short number)
   iter_data.number = number;
   iter_data.size = size;
   iter_data.add_pars = add_pars;
-  iter_data.num_added = 0;
   copy_m4_m4(iter_data.imat, imat);
 
   BrushAddCountIterTLSData tls = {NULL};
@@ -4255,13 +4260,14 @@ static int brush_add(const bContext *C, PEData *data, short number)
   settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   settings.userdata_chunk = &tls;
   settings.userdata_chunk_size = sizeof(BrushAddCountIterTLSData);
-  settings.func_finalize = brush_add_count_iter_finalize;
+  settings.func_reduce = brush_add_count_iter_reduce;
+  settings.func_free = brush_add_count_iter_free;
   BLI_task_parallel_range(0, number, &iter_data, brush_add_count_iter, &settings);
 
   /* Convert add_parse to a dense array, where all new particles are in the
    * beginning of the array.
    */
-  n = iter_data.num_added;
+  n = tls.num_added;
   for (int current_iter = 0, new_index = 0; current_iter < number; current_iter++) {
     if (add_pars[current_iter].num == DMCACHE_NOTFOUND) {
       continue;

@@ -770,8 +770,8 @@ static void subdiv_ccg_recalc_inner_normal_task(void *__restrict userdata_v,
   subdiv_ccg_average_inner_face_normals(data->subdiv_ccg, data->key, tls, grid_index);
 }
 
-static void subdiv_ccg_recalc_inner_normal_finalize(void *__restrict UNUSED(userdata),
-                                                    void *__restrict tls_v)
+static void subdiv_ccg_recalc_inner_normal_free(const void *__restrict UNUSED(userdata),
+                                                void *__restrict tls_v)
 {
   RecalcInnerNormalsTLSData *tls = tls_v;
   MEM_SAFE_FREE(tls->face_normals);
@@ -791,7 +791,7 @@ static void subdiv_ccg_recalc_inner_grid_normals(SubdivCCG *subdiv_ccg)
   BLI_parallel_range_settings_defaults(&parallel_range_settings);
   parallel_range_settings.userdata_chunk = &tls_data;
   parallel_range_settings.userdata_chunk_size = sizeof(tls_data);
-  parallel_range_settings.func_finalize = subdiv_ccg_recalc_inner_normal_finalize;
+  parallel_range_settings.func_free = subdiv_ccg_recalc_inner_normal_free;
   BLI_task_parallel_range(0,
                           subdiv_ccg->num_grids,
                           &data,
@@ -834,8 +834,8 @@ static void subdiv_ccg_recalc_modified_inner_normal_task(void *__restrict userda
   subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, face);
 }
 
-static void subdiv_ccg_recalc_modified_inner_normal_finalize(void *__restrict UNUSED(userdata),
-                                                             void *__restrict tls_v)
+static void subdiv_ccg_recalc_modified_inner_normal_free(const void *__restrict UNUSED(userdata),
+                                                         void *__restrict tls_v)
 {
   RecalcInnerNormalsTLSData *tls = tls_v;
   MEM_SAFE_FREE(tls->face_normals);
@@ -857,7 +857,7 @@ static void subdiv_ccg_recalc_modified_inner_grid_normals(SubdivCCG *subdiv_ccg,
   BLI_parallel_range_settings_defaults(&parallel_range_settings);
   parallel_range_settings.userdata_chunk = &tls_data;
   parallel_range_settings.userdata_chunk_size = sizeof(tls_data);
-  parallel_range_settings.func_finalize = subdiv_ccg_recalc_modified_inner_normal_finalize;
+  parallel_range_settings.func_free = subdiv_ccg_recalc_modified_inner_normal_free;
   BLI_task_parallel_range(0,
                           num_effected_faces,
                           &data,
@@ -1077,8 +1077,8 @@ static void subdiv_ccg_average_grids_boundaries_task(void *__restrict userdata_v
   subdiv_ccg_average_grids_boundary(subdiv_ccg, key, adjacent_edge, tls);
 }
 
-static void subdiv_ccg_average_grids_boundaries_finalize(void *__restrict UNUSED(userdata),
-                                                         void *__restrict tls_v)
+static void subdiv_ccg_average_grids_boundaries_free(const void *__restrict UNUSED(userdata),
+                                                     void *__restrict tls_v)
 {
   AverageGridsBoundariesTLSData *tls = tls_v;
   MEM_SAFE_FREE(tls->accumulators);
@@ -1136,7 +1136,7 @@ static void subdiv_ccg_average_all_boundaries(SubdivCCG *subdiv_ccg, CCGKey *key
   AverageGridsBoundariesTLSData tls_data = {NULL};
   parallel_range_settings.userdata_chunk = &tls_data;
   parallel_range_settings.userdata_chunk_size = sizeof(tls_data);
-  parallel_range_settings.func_finalize = subdiv_ccg_average_grids_boundaries_finalize;
+  parallel_range_settings.func_free = subdiv_ccg_average_grids_boundaries_free;
   BLI_task_parallel_range(0,
                           subdiv_ccg->num_adjacent_edges,
                           &boundaries_data,

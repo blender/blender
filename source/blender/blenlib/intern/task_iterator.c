@@ -78,8 +78,13 @@ typedef struct TaskParallelRangeState {
   /* Number of 'tls' copies in the array, i.e. number of worker threads. */
   size_t num_elements_in_tls_storage;
 
-  /* Function called from calling thread once whole range have been processed. */
-  TaskParallelFinalizeFunc func_finalize;
+  /* Function called to join user data chunk into another, to reduce
+   * the result to the original userdata_chunk memory.
+   * The reduce functions should have no side effects, so that they
+   * can be run on any thread. */
+  TaskParallelReduceFunc func_reduce;
+  /* Function called to free data created by TaskParallelRangeFunc. */
+  TaskParallelFreeFunc func_free;
 
   /* Current value of the iterator, shared between all threads (atomically updated). */
   int iter_value;
@@ -256,23 +261,18 @@ static void parallel_range_single_thread(TaskParallelRangePool *range_pool)
 
     void *initial_tls_memory = state->initial_tls_memory;
     const size_t tls_data_size = state->tls_data_size;
-    void *flatten_tls_storage = NULL;
     const bool use_tls_data = (tls_data_size != 0) && (initial_tls_memory != NULL);
-    if (use_tls_data) {
-      flatten_tls_storage = MALLOCA(tls_data_size);
-      memcpy(flatten_tls_storage, initial_tls_memory, tls_data_size);
-    }
     TaskParallelTLS tls = {
         .thread_id = 0,
-        .userdata_chunk = flatten_tls_storage,
+        .userdata_chunk = initial_tls_memory,
     };
     for (int i = start; i < stop; i++) {
       func(userdata, i, &tls);
     }
-    if (state->func_finalize != NULL) {
-      state->func_finalize(userdata, flatten_tls_storage);
+    if (use_tls_data && state->func_free != NULL) {
+      /* `func_free` should only free data that was created during execution of `func`. */
+      state->func_free(userdata, initial_tls_memory);
     }
-    MALLOCA_FREE(flatten_tls_storage, tls_data_size);
   }
 }
 
@@ -303,7 +303,7 @@ void BLI_task_parallel_range(const int start,
       .iter_value = start,
       .initial_tls_memory = settings->userdata_chunk,
       .tls_data_size = settings->userdata_chunk_size,
-      .func_finalize = settings->func_finalize,
+      .func_free = settings->func_free,
   };
   TaskParallelRangePool range_pool = {
       .pool = NULL, .parallel_range_states = &state, .current_state = NULL, .settings = settings};
@@ -367,11 +367,15 @@ void BLI_task_parallel_range(const int start,
   BLI_task_pool_work_and_wait(task_pool);
   BLI_task_pool_free(task_pool);
 
-  if (use_tls_data) {
-    if (settings->func_finalize != NULL) {
-      for (i = 0; i < num_tasks; i++) {
-        void *userdata_chunk_local = (char *)flatten_tls_storage + (tls_data_size * (size_t)i);
-        settings->func_finalize(userdata, userdata_chunk_local);
+  if (use_tls_data && (settings->func_free != NULL || settings->func_reduce != NULL)) {
+    for (i = 0; i < num_tasks; i++) {
+      void *userdata_chunk_local = (char *)flatten_tls_storage + (tls_data_size * (size_t)i);
+      if (settings->func_reduce) {
+        settings->func_reduce(userdata, tls_data, userdata_chunk_local);
+      }
+      if (settings->func_free) {
+        /* `func_free` should only free data that was created during execution of `func`. */
+        settings->func_free(userdata, userdata_chunk_local);
       }
     }
     MALLOCA_FREE(flatten_tls_storage, tls_data_size * (size_t)num_tasks);
@@ -382,16 +386,17 @@ void BLI_task_parallel_range(const int start,
  * Initialize a task pool to parallelize several for loops at the same time.
  *
  * See public API doc of ParallelRangeSettings for description of all settings.
- * Note that loop-specific settings (like 'tls' data or finalize function) must be left NULL here.
- * Only settings controlling how iteration is parallelized must be defined, as those will affect
- * all loops added to that pool.
+ * Note that loop-specific settings (like 'tls' data or reduce/free functions) must be left NULL
+ * here. Only settings controlling how iteration is parallelized must be defined, as those will
+ * affect all loops added to that pool.
  */
 TaskParallelRangePool *BLI_task_parallel_range_pool_init(const TaskParallelSettings *settings)
 {
   TaskParallelRangePool *range_pool = MEM_callocN(sizeof(*range_pool), __func__);
 
   BLI_assert(settings->userdata_chunk == NULL);
-  BLI_assert(settings->func_finalize == NULL);
+  BLI_assert(settings->func_reduce == NULL);
+  BLI_assert(settings->func_free == NULL);
   range_pool->settings = MEM_mallocN(sizeof(*range_pool->settings), __func__);
   *range_pool->settings = *settings;
 
@@ -430,7 +435,8 @@ void BLI_task_parallel_range_pool_push(TaskParallelRangePool *range_pool,
   state->iter_value = start;
   state->initial_tls_memory = settings->userdata_chunk;
   state->tls_data_size = settings->userdata_chunk_size;
-  state->func_finalize = settings->func_finalize;
+  state->func_reduce = settings->func_reduce;
+  state->func_free = settings->func_free;
 
   state->next = range_pool->parallel_range_states;
   range_pool->parallel_range_states = state;
@@ -445,7 +451,13 @@ static void parallel_range_func_finalize(TaskPool *__restrict pool,
 
   for (int i = 0; i < range_pool->num_tasks; i++) {
     void *tls_data = (char *)state->flatten_tls_storage + (state->tls_data_size * (size_t)i);
-    state->func_finalize(state->userdata_shared, tls_data);
+    if (state->func_reduce != NULL) {
+      state->func_reduce(state->userdata_shared, state->initial_tls_memory, tls_data);
+    }
+    if (state->func_free != NULL) {
+      /* `func_free` should only free data that was created during execution of `func`. */
+      state->func_free(state->userdata_shared, tls_data);
+    }
   }
 }
 
@@ -531,7 +543,7 @@ void BLI_task_parallel_range_pool_work_and_wait(TaskParallelRangePool *range_poo
       continue;
     }
 
-    if (state->func_finalize != NULL) {
+    if (state->func_reduce != NULL || state->func_free != NULL) {
       BLI_task_pool_push_from_thread(
           task_pool, parallel_range_func_finalize, state, false, NULL, thread_id);
     }
@@ -677,11 +689,9 @@ static void task_parallel_iterator_no_threads(const TaskParallelSettings *settin
 
   parallel_iterator_func_do(state, userdata_chunk, 0);
 
-  if (use_userdata_chunk) {
-    if (settings->func_finalize != NULL) {
-      settings->func_finalize(state->userdata, userdata_chunk_local);
-    }
-    MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
+  if (use_userdata_chunk && settings->func_free != NULL) {
+    /* `func_free` should only free data that was created during execution of `func`. */
+    settings->func_free(state->userdata, userdata_chunk_local);
   }
 }
 
@@ -740,11 +750,14 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
   BLI_task_pool_work_and_wait(task_pool);
   BLI_task_pool_free(task_pool);
 
-  if (use_userdata_chunk) {
-    if (settings->func_finalize != NULL) {
-      for (size_t i = 0; i < num_tasks; i++) {
-        userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
-        settings->func_finalize(state->userdata, userdata_chunk_local);
+  if (use_userdata_chunk && (settings->func_reduce != NULL || settings->func_free != NULL)) {
+    for (size_t i = 0; i < num_tasks; i++) {
+      userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
+      if (settings->func_reduce != NULL) {
+        settings->func_reduce(state->userdata, userdata_chunk, userdata_chunk_local);
+      }
+      if (settings->func_free != NULL) {
+        settings->func_free(state->userdata, userdata_chunk_local);
       }
     }
     MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * num_tasks);
