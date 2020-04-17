@@ -1971,8 +1971,11 @@ void BKE_gpencil_frame_original_pointers_update(const struct bGPDframe *gpf_orig
         if (i > gps_eval->totpoints - 1) {
           break;
         }
+        bGPDspoint *pt_orig = &gps_orig->points[i];
         bGPDspoint *pt_eval = &gps_eval->points[i];
-        pt_eval->runtime.pt_orig = &gps_orig->points[i];
+        pt_orig->runtime.pt_orig = NULL;
+        pt_orig->runtime.idx_orig = i;
+        pt_eval->runtime.pt_orig = pt_orig;
         pt_eval->runtime.idx_orig = i;
       }
       /* Increase pointer. */

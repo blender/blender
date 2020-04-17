@@ -684,6 +684,7 @@ void BKE_gpencil_stroke_subdivide(bGPDstroke *gps, int level, int type)
       CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
       pt_final->time = interpf(pt->time, next->time, 0.5f);
       pt_final->runtime.pt_orig = NULL;
+      pt_final->flag = 0;
       interp_v4_v4v4(pt_final->vert_color, pt->vert_color, next->vert_color, 0.5f);
 
       if (gps->dvert != NULL) {
