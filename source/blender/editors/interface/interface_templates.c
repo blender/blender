@@ -2249,6 +2249,10 @@ static uiLayout *gpencil_draw_modifier(uiLayout *layout, Object *ob, GpencilModi
                 0,
                 "apply_as",
                 MODIFIER_APPLY_DATA);
+
+    UI_block_lock_clear(block);
+    UI_block_lock_set(block, ob && ID_IS_LINKED(ob), ERROR_LIBDATA_MESSAGE);
+
     uiItemO(row,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"),
             ICON_NONE,
