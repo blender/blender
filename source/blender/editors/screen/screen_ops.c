@@ -3870,7 +3870,6 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 
       rv3d->viewlock_quad = RV3D_VIEWLOCK_INIT;
       rv3d->viewlock = 0;
-      rv3d->rflag &= ~RV3D_CLIPPING;
 
       /* Accumulate locks, in case they're mixed. */
       for (region_iter = area->regionbase.first; region_iter; region_iter = region_iter->next) {
