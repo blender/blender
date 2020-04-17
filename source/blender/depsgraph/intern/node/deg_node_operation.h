@@ -60,6 +60,7 @@ enum class OperationCode {
 
   /* Scene related. ------------------------------------------------------- */
   SCENE_EVAL,
+  AUDIO_VOLUME,
 
   /* Object related. ------------------------------------------------------ */
   OBJECT_BASE_FLAGS,
