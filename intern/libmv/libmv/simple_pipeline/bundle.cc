@@ -302,68 +302,68 @@ void EuclideanBundlerPerformEvaluation(const Tracks &tracks,
                                        vector<Vec6> *all_cameras_R_t,
                                        ceres::Problem *problem,
                                        BundleEvaluation *evaluation) {
-    int max_track = tracks.MaxTrack();
-    // Number of camera rotations equals to number of translation,
-    int num_cameras = all_cameras_R_t->size();
-    int num_points = 0;
+  int max_track = tracks.MaxTrack();
+  // Number of camera rotations equals to number of translation,
+  int num_cameras = all_cameras_R_t->size();
+  int num_points = 0;
 
-    vector<EuclideanPoint*> minimized_points;
-    for (int i = 0; i <= max_track; i++) {
-      EuclideanPoint *point = reconstruction->PointForTrack(i);
-      if (point) {
-        // We need to know whether the track is constant zero weight,
-        // and it so it wouldn't have parameter block in the problem.
-        //
-        // Getting all markers for track is not so bac currently since
-        // this code is only used by keyframe selection when there are
-        // not so much tracks and only 2 frames anyway.
-        vector<Marker> markera_of_track = tracks.MarkersForTrack(i);
-        for (int j = 0; j < markera_of_track.size(); j++) {
-          if (markera_of_track.at(j).weight != 0.0) {
-            minimized_points.push_back(point);
-            num_points++;
-            break;
-          }
+  vector<EuclideanPoint*> minimized_points;
+  for (int i = 0; i <= max_track; i++) {
+    EuclideanPoint *point = reconstruction->PointForTrack(i);
+    if (point) {
+      // We need to know whether the track is constant zero weight,
+      // and it so it wouldn't have parameter block in the problem.
+      //
+      // Getting all markers for track is not so bac currently since
+      // this code is only used by keyframe selection when there are
+      // not so much tracks and only 2 frames anyway.
+      vector<Marker> markera_of_track = tracks.MarkersForTrack(i);
+      for (int j = 0; j < markera_of_track.size(); j++) {
+        if (markera_of_track.at(j).weight != 0.0) {
+          minimized_points.push_back(point);
+          num_points++;
+          break;
         }
       }
     }
+  }
 
-    LG << "Number of cameras " << num_cameras;
-    LG << "Number of points " << num_points;
+  LG << "Number of cameras " << num_cameras;
+  LG << "Number of points " << num_points;
 
-    evaluation->num_cameras = num_cameras;
-    evaluation->num_points = num_points;
+  evaluation->num_cameras = num_cameras;
+  evaluation->num_points = num_points;
 
-    if (evaluation->evaluate_jacobian) {      // Evaluate jacobian matrix.
-      ceres::CRSMatrix evaluated_jacobian;
-      ceres::Problem::EvaluateOptions eval_options;
+  if (evaluation->evaluate_jacobian) {      // Evaluate jacobian matrix.
+    ceres::CRSMatrix evaluated_jacobian;
+    ceres::Problem::EvaluateOptions eval_options;
 
-      // Cameras goes first in the ordering.
-      int max_image = tracks.MaxImage();
-      for (int i = 0; i <= max_image; i++) {
-        const EuclideanCamera *camera = reconstruction->CameraForImage(i);
-        if (camera) {
-          double *current_camera_R_t = &(*all_cameras_R_t)[i](0);
+    // Cameras goes first in the ordering.
+    int max_image = tracks.MaxImage();
+    for (int i = 0; i <= max_image; i++) {
+      const EuclideanCamera *camera = reconstruction->CameraForImage(i);
+      if (camera) {
+        double *current_camera_R_t = &(*all_cameras_R_t)[i](0);
 
-          // All cameras are variable now.
-          problem->SetParameterBlockVariable(current_camera_R_t);
+        // All cameras are variable now.
+        problem->SetParameterBlockVariable(current_camera_R_t);
 
-          eval_options.parameter_blocks.push_back(current_camera_R_t);
-        }
+        eval_options.parameter_blocks.push_back(current_camera_R_t);
       }
-
-      // Points goes at the end of ordering,
-      for (int i = 0; i < minimized_points.size(); i++) {
-        EuclideanPoint *point = minimized_points.at(i);
-        eval_options.parameter_blocks.push_back(&point->X(0));
-      }
-
-      problem->Evaluate(eval_options,
-                        NULL, NULL, NULL,
-                        &evaluated_jacobian);
-
-      CRSMatrixToEigenMatrix(evaluated_jacobian, &evaluation->jacobian);
     }
+
+    // Points goes at the end of ordering,
+    for (int i = 0; i < minimized_points.size(); i++) {
+      EuclideanPoint *point = minimized_points.at(i);
+      eval_options.parameter_blocks.push_back(&point->X(0));
+    }
+
+    problem->Evaluate(eval_options,
+                      NULL, NULL, NULL,
+                      &evaluated_jacobian);
+
+    CRSMatrixToEigenMatrix(evaluated_jacobian, &evaluation->jacobian);
+  }
 }
 
 // This is an utility function to only bundle 3D position of
