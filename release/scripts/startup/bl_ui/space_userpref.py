@@ -2186,7 +2186,6 @@ classes = (
 
     USERPREF_PT_animation_timeline,
     USERPREF_PT_animation_keyframes,
-    USERPREF_PT_animation_autokey,
     USERPREF_PT_animation_fcurves,
 
     USERPREF_PT_system_cycles_devices,
