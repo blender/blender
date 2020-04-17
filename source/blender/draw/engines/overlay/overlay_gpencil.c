@@ -267,6 +267,11 @@ static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob
   const DRWContextState *draw_ctx = DRW_context_state_get();
   View3D *v3d = draw_ctx->v3d;
 
+  /* Overlay is only for active object. */
+  if (ob != draw_ctx->obact) {
+    return;
+  }
+
   if (pd->edit_gpencil_wires_grp) {
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_wires_grp);
     DRW_shgroup_uniform_vec4_copy(grp, "gpEditColor", gpd->line_color);
