@@ -164,7 +164,7 @@ struct OpenCVReprojectionError {
   const double weight_;
 };
 
-// Print a message to the log which camera intrinsics are gonna to be optimixed.
+// Print a message to the log which camera intrinsics are gonna to be optimized.
 void BundleIntrinsicsLogMessage(const int bundle_intrinsics) {
   if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
     LOG(INFO) << "Bundling only camera positions.";
@@ -392,7 +392,7 @@ void EuclideanBundlePointsOnly(const DistortionModelType distortion_model,
     }
 
     // Rotation of camera denoted in angle axis followed with
-    // camera translaiton.
+    // camera translation.
     double *current_camera_R_t = &all_cameras_R_t[camera->image](0);
 
     problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
@@ -509,7 +509,7 @@ void EuclideanBundleCommonIntrinsics(
     }
 
     // Rotation of camera denoted in angle axis followed with
-    // camera translaiton.
+    // camera translation.
     double *current_camera_R_t = &all_cameras_R_t[camera->image](0);
 
     // Skip residual block for markers which does have absolutely
