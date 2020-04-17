@@ -538,6 +538,7 @@ class SystemPanel:
 
 class USERPREF_PT_system_sound(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Sound"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_centered(self, context, layout):
         prefs = context.preferences
@@ -591,16 +592,7 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
         layout.separator()
 
         col = layout.column()
-        col.prop(system, "memory_cache_limit", text="Sequencer Cache Limit")
         col.prop(system, "scrollback", text="Console Scrollback Lines")
-
-        layout.separator()
-
-        col = layout.column()
-        col.prop(system, "use_sequencer_disk_cache")
-        col.prop(system, "sequencer_disk_cache_dir")
-        col.prop(system, "sequencer_disk_cache_size_limit")
-        col.prop(system, "sequencer_disk_cache_compression")
 
         layout.separator()
 
@@ -613,6 +605,26 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
         col = layout.column()
         col.prop(system, "vbo_time_out", text="Vbo Time Out")
         col.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
+
+
+class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
+    bl_label = "Video Sequencer"
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        system = prefs.system
+        edit = prefs.edit
+
+        layout.prop(system, "memory_cache_limit")
+
+        layout.separator()
+
+        layout.prop(system, "use_sequencer_disk_cache")
+        col = layout.column()
+        col.active = system.use_sequencer_disk_cache
+        col.prop(system, "sequencer_disk_cache_dir", text="Directory")
+        col.prop(system, "sequencer_disk_cache_size_limit", text="Cache Limit")
+        col.prop(system, "sequencer_disk_cache_compression", text="Compression")
 
 
 # -----------------------------------------------------------------------------
@@ -2190,6 +2202,7 @@ classes = (
 
     USERPREF_PT_system_cycles_devices,
     USERPREF_PT_system_memory,
+    USERPREF_PT_system_video_sequencer,
     USERPREF_PT_system_sound,
 
     USERPREF_MT_interface_theme_presets,
