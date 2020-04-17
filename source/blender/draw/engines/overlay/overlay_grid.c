@@ -169,7 +169,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
 
   psl->grid_ps = NULL;
 
-  if (shd->grid_flag == 0 || !DRW_state_is_fbo()) {
+  if ((shd->grid_flag == 0 && shd->zpos_flag == 0) || !DRW_state_is_fbo()) {
     return;
   }
 
@@ -188,7 +188,9 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
   DRW_shgroup_uniform_float_copy(grp, "meshSize", shd->grid_mesh_size);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-  DRW_shgroup_call(grp, geom, NULL);
+  if (shd->zneg_flag) {
+    DRW_shgroup_call(grp, geom, NULL);
+  }
 
   grp = DRW_shgroup_create(sh, psl->grid_ps);
   DRW_shgroup_uniform_int(grp, "gridFlag", &shd->grid_flag, 1);
@@ -196,14 +198,18 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
   DRW_shgroup_uniform_float(grp, "gridSteps", shd->grid_steps, ARRAY_SIZE(shd->grid_steps));
-  DRW_shgroup_call(grp, geom, NULL);
+  if (shd->grid_flag) {
+    DRW_shgroup_call(grp, geom, NULL);
+  }
 
   grp = DRW_shgroup_create(sh, psl->grid_ps);
   DRW_shgroup_uniform_int(grp, "gridFlag", &shd->zpos_flag, 1);
   DRW_shgroup_uniform_vec3(grp, "planeAxes", shd->zplane_axes, 1);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-  DRW_shgroup_call(grp, geom, NULL);
+  if (shd->zpos_flag) {
+    DRW_shgroup_call(grp, geom, NULL);
+  }
 }
 
 void OVERLAY_grid_draw(OVERLAY_Data *vedata)
