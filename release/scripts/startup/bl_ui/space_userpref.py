@@ -559,6 +559,7 @@ class SystemPanel:
 
 class USERPREF_PT_system_sound(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Sound"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_centered(self, context, layout):
         prefs = context.preferences
@@ -604,33 +605,43 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
         system = prefs.system
         edit = prefs.edit
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(edit, "undo_steps", text="Undo Steps")
-        flow.prop(edit, "undo_memory_limit", text="Undo Memory Limit")
-        flow.prop(edit, "use_global_undo")
+        layout.prop(edit, "undo_steps", text="Undo Steps")
+        layout.prop(edit, "undo_memory_limit", text="Undo Memory Limit")
+        layout.prop(edit, "use_global_undo")
 
         layout.separator()
 
-        flow.prop(system, "texture_time_out", text="Texture Time Out")
-        flow.prop(system, "texture_collection_rate", text="Garbage Collection Rate")
+        layout.prop(system, "texture_time_out", text="Texture Time Out")
+        layout.prop(system, "texture_collection_rate", text="Garbage Collection Rate")
 
         layout.separator()
 
-        flow.prop(system, "vbo_time_out", text="Vbo Time Out")
-        flow.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
+        layout.prop(system, "vbo_time_out", text="Vbo Time Out")
+        layout.prop(system, "vbo_collection_rate", text="Garbage Collection Rate")
 
         layout.separator()
 
-        flow.prop(system, "scrollback", text="Console Scrollback Lines")
+        layout.prop(system, "scrollback", text="Console Scrollback Lines")
+
+
+class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
+    bl_label = "Video Sequencer"
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        system = prefs.system
+        edit = prefs.edit
+
+        layout.prop(system, "memory_cache_limit")
 
         layout.separator()
 
-        flow.prop(system, "memory_cache_limit", text="Sequencer Cache Limit")
-        flow.prop(system, "use_sequencer_disk_cache")
-        flow.prop(system, "sequencer_disk_cache_dir")
-        flow.prop(system, "sequencer_disk_cache_size_limit")
-        flow.prop(system, "sequencer_disk_cache_compression")
+        layout.prop(system, "use_sequencer_disk_cache")
+        col = layout.column()
+        col.active = system.use_sequencer_disk_cache
+        col.prop(system, "sequencer_disk_cache_dir", text="Directory")
+        col.prop(system, "sequencer_disk_cache_size_limit", text="Cache Limit")
+        col.prop(system, "sequencer_disk_cache_compression", text="Compression")
 
 
 # -----------------------------------------------------------------------------
@@ -2217,6 +2228,7 @@ classes = (
 
     USERPREF_PT_system_cycles_devices,
     USERPREF_PT_system_memory,
+    USERPREF_PT_system_video_sequencer,
     USERPREF_PT_system_sound,
 
     USERPREF_MT_interface_theme_presets,
