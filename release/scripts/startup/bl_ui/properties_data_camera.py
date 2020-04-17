@@ -360,8 +360,9 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                     col.prop(bg, "rotation")
                     col.prop(bg, "scale")
 
-                    col.prop(bg, "use_flip_x")
-                    col.prop(bg, "use_flip_y")
+                    col = box.column(heading="Flip")
+                    col.prop(bg, "use_flip_x", text="X")
+                    col.prop(bg, "use_flip_y", text="Y")
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
@@ -377,21 +378,12 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
 
         col = layout.column(align=True)
 
-        col.separator()
-
         col.prop(cam, "display_size", text="Size")
 
-        col.separator()
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
-
-        col = flow.column()
+        col = layout.column(heading="Show")
         col.prop(cam, "show_limits", text="Limits")
-        col = flow.column()
         col.prop(cam, "show_mist", text="Mist")
-        col = flow.column()
         col.prop(cam, "show_sensor", text="Sensor")
-        col = flow.column()
         col.prop(cam, "show_name", text="Name")
 
 
@@ -407,24 +399,20 @@ class DATA_PT_camera_display_composition_guides(CameraButtonsPanel, Panel):
 
         cam = context.camera
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
+        layout.prop(cam, "show_composition_thirds")
 
-        col = flow.column()
+        col = layout.column(heading="Center", align=True)
         col.prop(cam, "show_composition_center")
-        col = flow.column()
-        col.prop(cam, "show_composition_center_diagonal")
-        col = flow.column()
-        col.prop(cam, "show_composition_thirds")
-        col = flow.column()
-        col.prop(cam, "show_composition_golden")
-        col = flow.column()
-        col.prop(cam, "show_composition_golden_tria_a")
-        col = flow.column()
-        col.prop(cam, "show_composition_golden_tria_b")
-        col = flow.column()
-        col.prop(cam, "show_composition_harmony_tri_a")
-        col = flow.column()
-        col.prop(cam, "show_composition_harmony_tri_b")
+        col.prop(cam, "show_composition_center_diagonal", text="Diagonal")
+
+        col = layout.column(heading="Golden", align=True)
+        col.prop(cam, "show_composition_golden", text="Ratio")
+        col.prop(cam, "show_composition_golden_tria_a", text="Triangle A")
+        col.prop(cam, "show_composition_golden_tria_b", text="Triangle B")
+
+        col = layout.column(heading="Harmony", align=True)
+        col.prop(cam, "show_composition_harmony_tri_a", text="Triangle A")
+        col.prop(cam, "show_composition_harmony_tri_b", text="Triangle B")
 
 
 class DATA_PT_camera_display_passepartout(CameraButtonsPanel, Panel):

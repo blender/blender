@@ -276,23 +276,23 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
             col.prop(act_spline, "use_smooth")
         else:
 
-            sub = col.column(align=True)
-            sub.prop(act_spline, "use_cyclic_u")
+            sub = col.column(heading="Cyclic", align=True)
+            sub.prop(act_spline, "use_cyclic_u", text="U")
             if is_surf:
                 sub.prop(act_spline, "use_cyclic_v", text="V")
 
             if act_spline.type == 'NURBS':
-                sub = col.column(align=True)
+                sub = col.column(heading="Bezier", align=True)
                 # sub.active = (not act_spline.use_cyclic_u)
-                sub.prop(act_spline, "use_bezier_u", text="Bezier U")
+                sub.prop(act_spline, "use_bezier_u", text="U")
 
                 if is_surf:
                     subsub = sub.column()
                     subsub.active = (not act_spline.use_cyclic_v)
                     subsub.prop(act_spline, "use_bezier_v", text="V")
 
-                sub = col.column(align=True)
-                sub.prop(act_spline, "use_endpoint_u", text="Endpoint U")
+                sub = col.column(heading="Endpoint", align=True)
+                sub.prop(act_spline, "use_endpoint_u", text="U")
 
                 if is_surf:
                     subsub = sub.column()

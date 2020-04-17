@@ -40,17 +40,12 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
 
         layout.use_property_split = True
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
-        layout.use_property_split = True
-
         scene = context.scene
         rd = scene.render
         layer = context.view_layer
 
-        col = flow.column()
+        col = layout.column()
         col.prop(layer, "use", text="Use for Rendering")
-        col = flow.column()
         col.prop(rd, "use_single_layer", text="Render Single Layer")
 
 
@@ -77,14 +72,10 @@ class VIEWLAYER_PT_eevee_layer_passes_data(ViewLayerButtonsPanel, Panel):
         rd = scene.render
         view_layer = context.view_layer
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        col = flow.column()
+        col = layout.column()
         col.prop(view_layer, "use_pass_combined")
-        col = flow.column()
         col.prop(view_layer, "use_pass_z")
-        col = flow.column()
         col.prop(view_layer, "use_pass_mist")
-        col = flow.column()
         col.prop(view_layer, "use_pass_normal")
 
 
@@ -104,29 +95,19 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
         scene = context.scene
         scene_eevee = scene.eevee
 
-        split = layout.split(factor=0.35)
-        split.use_property_split = False
-        split.label(text="Diffuse")
-        row = split.row(align=True)
-        row.prop(view_layer, "use_pass_diffuse_direct", text="Light", toggle=True)
-        row.prop(view_layer, "use_pass_diffuse_color", text="Color", toggle=True)
+        col = layout.column(heading="Diffuse", align=True)
+        col.prop(view_layer, "use_pass_diffuse_direct", text="Light")
+        col.prop(view_layer, "use_pass_diffuse_color", text="Color")
 
-        split = layout.split(factor=0.35)
-        split.use_property_split = False
-        split.label(text="Specular")
-        row = split.row(align=True)
-        row.prop(view_layer, "use_pass_glossy_direct", text="Light", toggle=True)
-        row.prop(view_layer, "use_pass_glossy_color", text="Color", toggle=True)
+        col = layout.column(heading="Specular", align=True)
+        col.prop(view_layer, "use_pass_glossy_direct", text="Light")
+        col.prop(view_layer, "use_pass_glossy_color", text="Color")
 
-        split = layout.split(factor=0.35)
-        split.use_property_split = False
-        split.label(text="Volume")
-        row = split.row(align=True)
-        row.prop(view_layer_eevee, "use_pass_volume_transmittance", text="Transmittance", toggle=True)
-        row.prop(view_layer_eevee, "use_pass_volume_scatter", text="Scatter", toggle=True)
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        col = layout.column(heading="Volume", align=True)
+        col.prop(view_layer_eevee, "use_pass_volume_transmittance", text="Transmittance")
+        col.prop(view_layer_eevee, "use_pass_volume_scatter", text="Scatter")
 
-        col = layout.column(align=True)
+        col = layout.column(heading="Other", align=True)
         col.prop(view_layer, "use_pass_emit", text="Emission")
         col.prop(view_layer, "use_pass_environment")
         col.prop(view_layer, "use_pass_shadow")
@@ -146,14 +127,12 @@ class VIEWLAYER_PT_eevee_layer_passes_effects(ViewLayerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
         view_layer = context.view_layer
         view_layer_eevee = view_layer.eevee
         scene = context.scene
         scene_eevee = scene.eevee
 
-        col = flow.column()
+        col = layout.column()
         col.prop(view_layer_eevee, "use_pass_bloom", text="Bloom")
         col.active = scene_eevee.use_bloom
 

@@ -94,14 +94,14 @@ class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
         return args
 
     @staticmethod
-    def draw_framerate(layout, sub, rd):
+    def draw_framerate(layout, rd):
         if RENDER_PT_dimensions._preset_class is None:
             RENDER_PT_dimensions._preset_class = bpy.types.RENDER_MT_framerate_presets
 
         args = rd.fps, rd.fps_base, RENDER_PT_dimensions._preset_class.bl_label
         fps_label_text, show_framerate = RENDER_PT_dimensions._draw_framerate_label(*args)
 
-        sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
+        layout.menu("RENDER_MT_framerate_presets", text=fps_label_text)
 
         if show_framerate:
             col = layout.column(align=True)
@@ -136,10 +136,8 @@ class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
         col.prop(scene, "frame_end", text="End")
         col.prop(scene, "frame_step", text="Step")
 
-        col = layout.split()
-        col.alignment = 'RIGHT'
-        col.label(text="Frame Rate")
-        self.draw_framerate(layout, col, rd)
+        col = layout.column(heading="Frame Rate")
+        self.draw_framerate(col, rd)
 
 
 class RENDER_PT_frame_remapping(RenderOutputButtonsPanel, Panel):
@@ -171,10 +169,8 @@ class RENDER_PT_post_processing(RenderOutputButtonsPanel, Panel):
 
         rd = context.scene.render
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        col = flow.column()
+        col = layout.column(heading="Pipeline")
         col.prop(rd, "use_compositing")
-        col = flow.column()
         col.prop(rd, "use_sequencer")
 
         layout.prop(rd, "dither_intensity", text="Dither", slider=True)
@@ -192,43 +188,22 @@ class RENDER_PT_stamp(RenderOutputButtonsPanel, Panel):
 
         rd = context.scene.render
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
-        col = flow.column()
-        col.prop(rd, "use_stamp_date", text="Date")
-        col = flow.column()
-        col.prop(rd, "use_stamp_time", text="Time")
-
-        col = flow.column()
-        col.prop(rd, "use_stamp_render_time", text="Render Time")
-        col = flow.column()
-        col.prop(rd, "use_stamp_frame", text="Frame")
-        col = flow.column()
-        col.prop(rd, "use_stamp_frame_range", text="Frame Range")
-        col = flow.column()
-        col.prop(rd, "use_stamp_memory", text="Memory")
-        col = flow.column()
-        col.prop(rd, "use_stamp_hostname", text="Hostname")
-
-        col = flow.column()
-        col.prop(rd, "use_stamp_camera", text="Camera")
-        col = flow.column()
-        col.prop(rd, "use_stamp_lens", text="Lens")
-
-        col = flow.column()
-        col.prop(rd, "use_stamp_scene", text="Scene")
-        col = flow.column()
-        col.prop(rd, "use_stamp_marker", text="Marker")
-
-        col = flow.column()
-        col.prop(rd, "use_stamp_filename", text="Filename")
-
-        col = flow.column()
-        col.prop(rd, "use_stamp_sequencer_strip", text="Strip Name")
-
         if rd.use_sequencer:
-            col = flow.column()
-            col.prop(rd, "use_stamp_strip_meta", text="Use Strip Metadata")
+            layout.prop(rd, "metadata_input")
+
+        col = layout.column(heading="Include")
+        col.prop(rd, "use_stamp_date", text="Date")
+        col.prop(rd, "use_stamp_time", text="Time")
+        col.prop(rd, "use_stamp_render_time", text="Render Time")
+        col.prop(rd, "use_stamp_frame", text="Frame")
+        col.prop(rd, "use_stamp_frame_range", text="Frame Range")
+        col.prop(rd, "use_stamp_memory", text="Memory")
+        col.prop(rd, "use_stamp_hostname", text="Hostname")
+        col.prop(rd, "use_stamp_camera", text="Camera")
+        col.prop(rd, "use_stamp_lens", text="Lens")
+        col.prop(rd, "use_stamp_scene", text="Scene")
+        col.prop(rd, "use_stamp_marker", text="Marker")
+        col.prop(rd, "use_stamp_filename", text="Filename")
 
 
 class RENDER_PT_stamp_note(RenderOutputButtonsPanel, Panel):
@@ -293,20 +268,16 @@ class RENDER_PT_output(RenderOutputButtonsPanel, Panel):
 
         layout.use_property_split = True
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
-        col = flow.column()
-        col.active = not rd.is_movie_format
-        col.prop(rd, "use_overwrite")
-        col = flow.column()
-        col.active = not rd.is_movie_format
-        col.prop(rd, "use_placeholder")
-        col = flow.column()
+        col = layout.column(heading="Saving")
         col.prop(rd, "use_file_extension")
-        col = flow.column()
         col.prop(rd, "use_render_cache")
 
         layout.template_image_settings(image_settings, color_management=False)
+
+        if not rd.is_movie_format:
+            col = layout.column(heading="Image Sequence")
+            col.prop(rd, "use_overwrite")
+            col.prop(rd, "use_placeholder")
 
 
 class RENDER_PT_output_views(RenderOutputButtonsPanel, Panel):

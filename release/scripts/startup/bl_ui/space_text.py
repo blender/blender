@@ -129,18 +129,21 @@ class TEXT_PT_properties(Panel):
         layout.use_property_decorate = False
         st = context.space_data
 
-        flow = layout.column_flow()
         if not st.text:
-            flow.active = False
-        row = flow.row(align=True)
-        st = context.space_data
-        row.prop(st, "show_margin", text="Margin")
-        rowsub = row.row()
-        rowsub.active = st.show_margin
-        rowsub.prop(st, "margin_column", text="")
+            layout.active = False
 
-        flow.prop(st, "font_size")
-        flow.prop(st, "tab_width")
+        st = context.space_data
+
+        col = layout.column(align=False, heading="Margin")
+        row = col.row(align=True)
+        sub = row.row(align=True)
+        sub.prop(st, "show_margin", text="")
+        sub = sub.row(align=True)
+        sub.active = st.show_margin
+        sub.prop(st, "margin_column", text="")
+
+        layout.prop(st, "font_size")
+        layout.prop(st, "tab_width")
 
         text = st.text
         if text:
