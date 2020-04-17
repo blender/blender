@@ -81,7 +81,7 @@ BLI_INLINE void BLI_hash_pointer_to_color(const void *ptr, int *r, int *g, int *
 {
   size_t val = (size_t)ptr;
   const size_t hash_a = BLI_hash_int(val & 0x0000ffff);
-  const size_t hash_b = BLI_hash_int((uint)((val & 0xffff0000) >> 32));
+  const size_t hash_b = BLI_hash_int((uint)((val & 0xffff0000) >> 16));
   const size_t hash = hash_a ^ (hash_b + 0x9e3779b9 + (hash_a << 6) + (hash_a >> 2));
   *r = (hash & 0xff0000) >> 16;
   *g = (hash & 0x00ff00) >> 8;
