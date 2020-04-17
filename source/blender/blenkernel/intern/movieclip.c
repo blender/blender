@@ -1512,7 +1512,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
             undist_marker.pos[0] *= width;
             undist_marker.pos[1] *= height * aspy;
 
-            BKE_tracking_undistort_v2(&clip->tracking, undist_marker.pos, undist_marker.pos);
+            BKE_tracking_undistort_v2(
+                &clip->tracking, width, height, undist_marker.pos, undist_marker.pos);
 
             undist_marker.pos[0] /= width;
             undist_marker.pos[1] /= height * aspy;

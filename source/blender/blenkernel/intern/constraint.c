@@ -4694,7 +4694,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
         pos[0] *= width;
         pos[1] *= height;
 
-        BKE_tracking_undistort_v2(tracking, pos, pos);
+        BKE_tracking_undistort_v2(tracking, width, height, pos, pos);
 
         /* Normalize pixel coordinates back. */
         pos[0] /= width;

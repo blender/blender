@@ -546,7 +546,7 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[
     r_co[0] *= width;
     r_co[1] *= height * aspy;
 
-    BKE_tracking_undistort_v2(&clip->tracking, r_co, r_co);
+    BKE_tracking_undistort_v2(&clip->tracking, width, height, r_co, r_co);
 
     r_co[0] /= width;
     r_co[1] /= height * aspy;
@@ -580,7 +580,7 @@ void ED_clip_point_stable_pos(
     float aspy = 1.0f / tracking->camera.pixel_aspect;
     float tmp[2] = {*xr * width, *yr * height * aspy};
 
-    BKE_tracking_distort_v2(tracking, tmp, tmp);
+    BKE_tracking_distort_v2(tracking, width, height, tmp, tmp);
 
     *xr = tmp[0] / width;
     *yr = tmp[1] / (height * aspy);

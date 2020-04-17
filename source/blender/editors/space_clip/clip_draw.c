@@ -1651,7 +1651,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
           pos[0] = (pos[0] / (pos[3] * 2.0f) + 0.5f) * width;
           pos[1] = (pos[1] / (pos[3] * 2.0f) + 0.5f) * height * aspy;
 
-          BKE_tracking_distort_v2(tracking, pos, npos);
+          BKE_tracking_distort_v2(tracking, width, height, pos, npos);
 
           if (npos[0] >= 0.0f && npos[1] >= 0.0f && npos[0] <= width && npos[1] <= height * aspy) {
             vec[0] = (marker->pos[0] + track->offset[0]) * width;
@@ -1777,7 +1777,7 @@ static void draw_distortion(SpaceClip *sc,
     for (i = 0; i <= n; i++) {
       for (j = 0; j <= n; j++) {
         if (i == 0 || j == 0 || i == n || j == n) {
-          BKE_tracking_distort_v2(tracking, pos, tpos);
+          BKE_tracking_distort_v2(tracking, width, height, pos, tpos);
 
           for (a = 0; a < 4; a++) {
             int ok;
@@ -1810,7 +1810,7 @@ static void draw_distortion(SpaceClip *sc,
       pos[0] = idx[a][0] * dx;
       pos[1] = idx[a][1] * dy;
 
-      BKE_tracking_undistort_v2(tracking, pos, tpos);
+      BKE_tracking_undistort_v2(tracking, width, height, pos, tpos);
 
       minmax_v2v2_v2(min, max, tpos);
     }
@@ -1821,7 +1821,7 @@ static void draw_distortion(SpaceClip *sc,
 
     for (i = 0; i <= n; i++) {
       for (j = 0; j <= n; j++) {
-        BKE_tracking_distort_v2(tracking, pos, grid[i][j]);
+        BKE_tracking_distort_v2(tracking, width, height, pos, grid[i][j]);
 
         grid[i][j][0] /= width;
         grid[i][j][1] /= height * aspy;
@@ -1897,8 +1897,8 @@ static void draw_distortion(SpaceClip *sc,
 
                 /* we want to distort only long straight lines */
                 if (stroke->totpoints == 2) {
-                  BKE_tracking_undistort_v2(tracking, pos, pos);
-                  BKE_tracking_undistort_v2(tracking, npos, npos);
+                  BKE_tracking_undistort_v2(tracking, width, height, pos, pos);
+                  BKE_tracking_undistort_v2(tracking, width, height, npos, npos);
                 }
 
                 sub_v2_v2v2(dpos, npos, pos);
@@ -1907,7 +1907,7 @@ static void draw_distortion(SpaceClip *sc,
                 immBegin(GPU_PRIM_LINE_STRIP, steps + 1);
 
                 for (j = 0; j <= steps; j++) {
-                  BKE_tracking_distort_v2(tracking, pos, tpos);
+                  BKE_tracking_distort_v2(tracking, width, height, pos, tpos);
                   immVertex2f(position, tpos[0] / width, tpos[1] / (height * aspy));
 
                   add_v2_v2(pos, dpos);

@@ -2288,13 +2288,15 @@ void BKE_tracking_distortion_free(MovieDistortion *distortion)
   MEM_freeN(distortion);
 }
 
-void BKE_tracking_distort_v2(MovieTracking *tracking, const float co[2], float r_co[2])
+void BKE_tracking_distort_v2(
+    MovieTracking *tracking, int image_width, int image_height, const float co[2], float r_co[2])
 {
   const MovieTrackingCamera *camera = &tracking->camera;
   const float aspy = 1.0f / tracking->camera.pixel_aspect;
 
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
-  tracking_cameraIntrinscisOptionsFromTracking(tracking, 0, 0, &camera_intrinsics_options);
+  tracking_cameraIntrinscisOptionsFromTracking(
+      tracking, image_width, image_height, &camera_intrinsics_options);
   libmv_CameraIntrinsics *intrinsics = libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
   /* Normalize coordinates. */
@@ -2309,13 +2311,15 @@ void BKE_tracking_distort_v2(MovieTracking *tracking, const float co[2], float r
   r_co[1] = y;
 }
 
-void BKE_tracking_undistort_v2(MovieTracking *tracking, const float co[2], float r_co[2])
+void BKE_tracking_undistort_v2(
+    MovieTracking *tracking, int image_width, int image_height, const float co[2], float r_co[2])
 {
   const MovieTrackingCamera *camera = &tracking->camera;
   const float aspy = 1.0f / tracking->camera.pixel_aspect;
 
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
-  tracking_cameraIntrinscisOptionsFromTracking(tracking, 0, 0, &camera_intrinsics_options);
+  tracking_cameraIntrinscisOptionsFromTracking(
+      tracking, image_width, image_height, &camera_intrinsics_options);
   libmv_CameraIntrinsics *intrinsics = libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
   double x = co[0], y = co[1];
@@ -2361,13 +2365,19 @@ ImBuf *BKE_tracking_distort_frame(MovieTracking *tracking,
 }
 
 void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
+                                                    int image_width,
+                                                    int image_height,
                                                     rcti *rect,
                                                     bool undistort,
                                                     float delta[2])
 {
   float pos[2], warped_pos[2];
   const int coord_delta = 5;
-  void (*apply_distortion)(MovieTracking * tracking, const float pos[2], float out[2]);
+  void (*apply_distortion)(MovieTracking * tracking,
+                           int image_width,
+                           int image_height,
+                           const float pos[2],
+                           float out[2]);
 
   if (undistort) {
     apply_distortion = BKE_tracking_undistort_v2;
@@ -2387,7 +2397,7 @@ void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
     pos[0] = a;
     pos[1] = rect->ymin;
 
-    apply_distortion(tracking, pos, warped_pos);
+    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
 
     delta[0] = max_ff(delta[0], fabsf(pos[0] - warped_pos[0]));
     delta[1] = max_ff(delta[1], fabsf(pos[1] - warped_pos[1]));
@@ -2396,7 +2406,7 @@ void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
     pos[0] = a;
     pos[1] = rect->ymax;
 
-    apply_distortion(tracking, pos, warped_pos);
+    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
 
     delta[0] = max_ff(delta[0], fabsf(pos[0] - warped_pos[0]));
     delta[1] = max_ff(delta[1], fabsf(pos[1] - warped_pos[1]));
@@ -2415,7 +2425,7 @@ void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
     pos[0] = rect->xmin;
     pos[1] = a;
 
-    apply_distortion(tracking, pos, warped_pos);
+    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
 
     delta[0] = max_ff(delta[0], fabsf(pos[0] - warped_pos[0]));
     delta[1] = max_ff(delta[1], fabsf(pos[1] - warped_pos[1]));
@@ -2424,7 +2434,7 @@ void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
     pos[0] = rect->xmax;
     pos[1] = a;
 
-    apply_distortion(tracking, pos, warped_pos);
+    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
 
     delta[0] = max_ff(delta[0], fabsf(pos[0] - warped_pos[0]));
     delta[1] = max_ff(delta[1], fabsf(pos[1] - warped_pos[1]));
