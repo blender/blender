@@ -1904,9 +1904,9 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
               normal_found = true;
 
               /* cheap attempt to smooth normals out a bit! */
-              const uint ofs = 2;
-              for (uint x = -ofs; x <= ofs; x += ofs / 2) {
-                for (uint y = -ofs; y <= ofs; y += ofs / 2) {
+              const int ofs = 2;
+              for (int x = -ofs; x <= ofs; x += ofs / 2) {
+                for (int y = -ofs; y <= ofs; y += ofs / 2) {
                   if (x != 0 && y != 0) {
                     int mval_ofs[2] = {event->mval[0] + x, event->mval[1] + y};
                     float n[3];
