@@ -267,6 +267,8 @@ typedef struct WORKBENCH_PrivateData {
   float taa_sample_inv;
   /** If the view has been updated and TAA needs to be reset. */
   bool view_updated;
+  /** True if the history buffer contains relevant data and false if it could contain garbage. */
+  bool valid_history;
   /** View */
   struct DRWView *view;
   /** Last projection matrix to see if view is still valid. */

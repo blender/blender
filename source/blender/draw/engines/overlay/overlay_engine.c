@@ -495,7 +495,7 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_motion_path_draw(vedata);
   OVERLAY_extra_centers_draw(vedata);
 
-  if (DRW_state_is_select()) {
+  if (DRW_state_is_select() || DRW_state_is_depth()) {
     /* Edit modes have their own selection code. */
     return;
   }

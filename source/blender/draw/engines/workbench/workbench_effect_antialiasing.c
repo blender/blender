@@ -187,6 +187,10 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
     wpd->view_updated = false;
   }
 
+  if (wpd->taa_sample_len > 0 && wpd->valid_history == false) {
+    wpd->taa_sample = 0;
+  }
+
   {
     float persmat[4][4];
     DRW_view_persmat_get(NULL, persmat, false);
@@ -420,6 +424,7 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
     /* AA disabled. */
     /* Just set sample to 1 to avoid rendering indefinitely. */
     wpd->taa_sample = 1;
+    wpd->valid_history = false;
     return;
   }
 
@@ -432,6 +437,7 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
   const bool last_sample = wpd->taa_sample + 1 == wpd->taa_sample_len;
   const bool taa_finished = wpd->taa_sample >= wpd->taa_sample_len;
   if (wpd->taa_sample == 0) {
+    wpd->valid_history = true;
     /* In playback mode, we are sure the next redraw will not use the same viewmatrix.
      * In this case no need to save the depth buffer. */
     eGPUFrameBufferBits bits = GPU_COLOR_BIT | (!wpd->is_playback ? GPU_DEPTH_BIT : 0);

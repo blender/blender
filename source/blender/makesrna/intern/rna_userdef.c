@@ -6057,12 +6057,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Experimental", "Experimental features");
 
-  prop = RNA_def_property(srna, "use_undo_speedup", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_undo_speedup", 1);
+  prop = RNA_def_property(srna, "use_undo_legacy", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_undo_legacy", 1);
   RNA_def_property_ui_text(
       prop,
-      "Undo Speedup",
-      "Use new undo speedup (WARNING: can lead to crashes and serious .blend file corruption)");
+      "Undo Legacy",
+      "Use legacy undo (slower than the new default one, but may be more stable in some cases)");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
