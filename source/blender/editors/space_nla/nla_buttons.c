@@ -354,7 +354,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
 {
   PointerRNA strip_ptr;
   uiLayout *layout = panel->layout;
-  uiLayout *column;
+  uiLayout *column, *row;
   uiBlock *block;
   short showEvalProps = 1;
 
@@ -401,20 +401,19 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
     uiItemR(column, &strip_ptr, "blend_in", 0, IFACE_("Blend In"), ICON_NONE);
     uiItemR(column, &strip_ptr, "blend_out", 0, IFACE_("Out"), ICON_NONE);
 
-    column = uiLayoutColumn(layout, true);
-    uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_influence") == false);
-    uiItemR(column, &strip_ptr, "use_auto_blend", 0, NULL, ICON_NONE);  // XXX as toggle?
-
-    uiItemS(layout);
+    row = uiLayoutRow(column, true);
+    uiLayoutSetActive(row, RNA_boolean_get(&strip_ptr, "use_animated_influence") == false);
+    uiItemR(row, &strip_ptr, "use_auto_blend", 0, NULL, ICON_NONE);  // XXX as toggle?
 
     /* settings */
-    column = uiLayoutColumn(layout, true);
-    uiLayoutSetActive(column,
+    column = uiLayoutColumnWithHeading(layout, true, "Playback");
+    row = uiLayoutRow(column, true);
+    uiLayoutSetActive(row,
                       !(RNA_boolean_get(&strip_ptr, "use_animated_influence") ||
                         RNA_boolean_get(&strip_ptr, "use_animated_time")));
-    uiItemR(column, &strip_ptr, "use_reverse", 0, NULL, ICON_NONE);
+    uiItemR(row, &strip_ptr, "use_reverse", 0, NULL, ICON_NONE);
 
-    uiItemR(layout, &strip_ptr, "use_animated_time_cyclic", 0, NULL, ICON_NONE);
+    uiItemR(column, &strip_ptr, "use_animated_time_cyclic", 0, NULL, ICON_NONE);
   }
 }
 
@@ -442,15 +441,12 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
   uiItemR(row, &strip_ptr, "action", 0, NULL, ICON_ACTION);
 
   /* action extents */
-  // XXX custom names were used here (to avoid the prefixes)... probably not necessary in future?
   column = uiLayoutColumn(layout, true);
   uiItemR(column, &strip_ptr, "action_frame_start", 0, IFACE_("Frame Start"), ICON_NONE);
   uiItemR(column, &strip_ptr, "action_frame_end", 0, IFACE_("End"), ICON_NONE);
 
-  /* XXX: this layout may actually be too abstract and confusing,
-   * and may be better using standard column layout. */
-  row = uiLayoutRow(layout, false);
-  uiItemR(row, &strip_ptr, "use_sync_length", 0, IFACE_("Sync Length"), ICON_NONE);
+  row = uiLayoutRowWithHeading(layout, false, "Sync Length");
+  uiItemR(row, &strip_ptr, "use_sync_length", 0, "", ICON_NONE);
   uiItemO(row, IFACE_("Now"), ICON_FILE_REFRESH, "NLA_OT_action_sync_length");
 
   /* action usage */
