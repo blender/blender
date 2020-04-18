@@ -369,6 +369,7 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         col.prop(ob, "hide_render", text="Renders", toggle=False, invert_checkbox=True)
 
         if context.object.type == 'GPENCIL':
+            col = layout.column(heading="Grease Pencil")
             col.prop(ob, "use_grease_pencil_lights", toggle=False)
 
 
