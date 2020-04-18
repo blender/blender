@@ -581,7 +581,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_MARKER_CHISEL: {
-      brush->size = 100.0f;
+      brush->size = 150.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
@@ -618,10 +618,10 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     case GP_BRUSH_PRESET_PEN: {
       brush->size = 25.0f;
-      brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+      brush->gpencil_settings->flag &= ~GP_BRUSH_USE_PRESSURE;
 
       brush->gpencil_settings->draw_strength = 1.0f;
-      brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
+      brush->gpencil_settings->flag &= ~GP_BRUSH_USE_STENGTH_PRESSURE;
 
       brush->gpencil_settings->input_samples = 10;
       brush->gpencil_settings->active_smooth = ACTIVE_SMOOTH;
