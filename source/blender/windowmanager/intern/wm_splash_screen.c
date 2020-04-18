@@ -254,7 +254,6 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
 
   return ibuf;
 #else
-  UNUSED_VARS(r_unit_size);
   return NULL;
 #endif
 }
