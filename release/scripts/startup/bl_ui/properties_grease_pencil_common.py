@@ -520,7 +520,7 @@ class AnnotationOnionSkin:
             if gpl is None:
                 return False
 
-            return True
+        return True
 
     def draw_header(self, context):
         gpl = context.active_annotation_layer
