@@ -111,6 +111,35 @@
 /* Make preferences read-only, use versioning_userdef.c. */
 #define U (*((const UserDef *)&U))
 
+/**
+ * Rename if the ID doesn't exist.
+ */
+static ID *rename_id_for_versioning(Main *bmain,
+                                    const short id_type,
+                                    const char *name_src,
+                                    const char *name_dst)
+{
+  /* We can ignore libraries */
+  ListBase *lb = which_libbase(bmain, id_type);
+  ID *id = NULL;
+  LISTBASE_FOREACH (ID *, idtest, lb) {
+    if (idtest->lib == NULL) {
+      if (STREQ(idtest->name + 2, name_src)) {
+        id = idtest;
+      }
+      if (STREQ(idtest->name + 2, name_dst)) {
+        return NULL;
+      }
+    }
+  }
+  if (id != NULL) {
+    BLI_strncpy(id->name + 2, name_dst, sizeof(id->name) - 2);
+    /* We know it's unique, this just sorts. */
+    BLI_libblock_ensure_unique_name(bmain, id->name);
+  }
+  return id;
+}
+
 static bScreen *screen_parent_find(const bScreen *screen)
 {
   /* Can avoid lookup if screen state isn't maximized/full
@@ -1633,7 +1662,27 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 282, 2)) {
     /* Init all Vertex/Sculpt and Weight Paint brushes. */
-    Brush *brush = BLI_findstring(&bmain->brushes, "Pencil", offsetof(ID, name) + 2);
+    Brush *brush;
+    /* Pen Soft brush. */
+    brush = (Brush *)rename_id_for_versioning(bmain, ID_BR, "Draw Soft", "Pencil Soft");
+    if (brush) {
+      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
+    }
+    rename_id_for_versioning(bmain, ID_BR, "Draw Pencil", "Pencil");
+    rename_id_for_versioning(bmain, ID_BR, "Draw Pen", "Pen");
+    rename_id_for_versioning(bmain, ID_BR, "Draw Ink", "Ink Pen");
+    rename_id_for_versioning(bmain, ID_BR, "Draw Noise", "Ink Pen Rough");
+    rename_id_for_versioning(bmain, ID_BR, "Draw Marker", "Marker Bold");
+    rename_id_for_versioning(bmain, ID_BR, "Draw Block", "Marker Chisel");
+
+    /* Remove useless Fill Area.001 brush. */
+    brush = BLI_findstring(&bmain->brushes, "Fill Area.001", offsetof(ID, name) + 2);
+    if (brush) {
+      BKE_id_delete(bmain, brush);
+    }
+
+    brush = BLI_findstring(&bmain->brushes, "Pencil", offsetof(ID, name) + 2);
+
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       ToolSettings *ts = scene->toolsettings;
 
