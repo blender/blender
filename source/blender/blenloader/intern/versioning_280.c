@@ -1663,6 +1663,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
   if (!MAIN_VERSION_ATLEAST(bmain, 282, 2)) {
     /* Init all Vertex/Sculpt and Weight Paint brushes. */
     Brush *brush;
+    Material *ma;
     /* Pen Soft brush. */
     brush = (Brush *)rename_id_for_versioning(bmain, ID_BR, "Draw Soft", "Pencil Soft");
     if (brush) {
@@ -1674,6 +1675,23 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     rename_id_for_versioning(bmain, ID_BR, "Draw Noise", "Ink Pen Rough");
     rename_id_for_versioning(bmain, ID_BR, "Draw Marker", "Marker Bold");
     rename_id_for_versioning(bmain, ID_BR, "Draw Block", "Marker Chisel");
+
+    ma = BLI_findstring(&bmain->materials, "Black", offsetof(ID, name) + 2);
+    if (ma && ma->gp_style) {
+      rename_id_for_versioning(bmain, ID_MA, "Black", "Solid Stroke");
+    }
+    ma = BLI_findstring(&bmain->materials, "Red", offsetof(ID, name) + 2);
+    if (ma && ma->gp_style) {
+      rename_id_for_versioning(bmain, ID_MA, "Red", "Squares Stroke");
+    }
+    ma = BLI_findstring(&bmain->materials, "Grey", offsetof(ID, name) + 2);
+    if (ma && ma->gp_style) {
+      rename_id_for_versioning(bmain, ID_MA, "Grey", "Solid Fill");
+    }
+    ma = BLI_findstring(&bmain->materials, "Black Dots", offsetof(ID, name) + 2);
+    if (ma && ma->gp_style) {
+      rename_id_for_versioning(bmain, ID_MA, "Black Dots", "Dots Stroke");
+    }
 
     /* Remove useless Fill Area.001 brush. */
     brush = BLI_findstring(&bmain->brushes, "Fill Area.001", offsetof(ID, name) + 2);
