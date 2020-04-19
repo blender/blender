@@ -199,7 +199,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   }
   wpd->clip_state = clip_state;
 
-  wpd->cull_state = CULL_BACKFACE_ENABLED(v3d) ? DRW_STATE_CULL_BACK : 0;
   wpd->vldata = vldata;
   wpd->world_ubo = vldata->world_ubo;
 
@@ -265,6 +264,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     /* No background. The overlays will draw the correct one. */
     copy_v4_fl(wpd->background_color, 0.0f);
   }
+
+  wpd->cull_state = CULL_BACKFACE_ENABLED(wpd) ? DRW_STATE_CULL_BACK : 0;
 
   if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
     wpd->studio_light = BKE_studiolight_find(wpd->shading.matcap, STUDIOLIGHT_TYPE_MATCAP);
