@@ -1387,7 +1387,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
                 if md.mask_tex_mapping == 'OBJECT':
                     layout.prop(md, "mask_tex_map_object", text="Object")
-                    obj = md.mask_text_map_object
+                    obj = md.mask_tex_map_object
                     if obj and obj.type == 'ARMATURE':
                         layout.prop_search(md, "mask_tex_map_bone", obj.data, "bones", text="Bone")
                 elif md.mask_tex_mapping == 'UV' and ob.type == 'MESH':
