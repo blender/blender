@@ -47,6 +47,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_Armature = 15,
   eGpencilModifierType_Time = 16,
   eGpencilModifierType_Multiply = 17,
+  eGpencilModifierType_Texture = 18,
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
 
@@ -712,5 +713,51 @@ typedef enum eTintGpencil_Flag {
   GP_TINT_INVERT_MATERIAL = (1 << 5),
   GP_TINT_CUSTOM_CURVE = (1 << 6),
 } eTintGpencil_Flag;
+
+typedef struct TextureGpencilModifierData {
+  GpencilModifierData modifier;
+  /** Layer name. */
+  char layername[64];
+  /** Material name. */
+  char materialname[64];
+  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  char vgname[64];
+  /** Custom index for passes. */
+  int pass_index;
+  /** Flags. */
+  int flag;
+  /** Offset value to add to uv_fac. */
+  float uv_offset;
+  float uv_scale;
+  float fill_rotation;
+  float fill_offset[2];
+  float fill_scale;
+  /** Custom index for passes. */
+  int layer_pass;
+  /** Texture fit options. */
+  short fit_method;
+  short mode;
+} TextureGpencilModifierData;
+
+typedef enum eTextureGpencil_Flag {
+  GP_TEX_INVERT_LAYER = (1 << 0),
+  GP_TEX_INVERT_PASS = (1 << 1),
+  GP_TEX_INVERT_VGROUP = (1 << 2),
+  GP_TEX_INVERT_LAYERPASS = (1 << 3),
+  GP_TEX_INVERT_MATERIAL = (1 << 4),
+} eTextureGpencil_Flag;
+
+/* Texture->fit_method */
+typedef enum eTextureGpencil_Fit {
+  GP_TEX_FIT_STROKE = 0,
+  GP_TEX_CONSTANT_LENGTH = 1,
+} eTextureGpencil_Fit;
+
+/* Texture->mode */
+typedef enum eTextureGpencil_Mode {
+  STROKE = 0,
+  FILL = 1,
+  STROKE_AND_FILL = 2,
+} eTextureGpencil_Mode;
 
 #endif /* __DNA_GPENCIL_MODIFIER_TYPES_H__ */
