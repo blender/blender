@@ -107,6 +107,7 @@ float *manta_get_phistatic_in(struct MANTA *fluid);
 float *manta_get_phiobs_in(struct MANTA *fluid);
 float *manta_get_phiobsstatic_in(struct MANTA *fluid);
 float *manta_get_phiout_in(struct MANTA *fluid);
+float *manta_get_phioutstatic_in(struct MANTA *fluid);
 
 /* Smoke functions */
 void manta_smoke_export_script(struct MANTA *smoke, struct FluidModifierData *mmd);

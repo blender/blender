@@ -191,6 +191,7 @@ def liquid_adaptive_step_$ID$(framenr):\n\
     phi_s$ID$.join(phiIn_s$ID$)\n\
     \n\
     if using_outflow_s$ID$:\n\
+        phiOutIn_s$ID$.join(phiOutSIn_s$ID$) # Join static outflow map\n\
         phiOut_s$ID$.join(phiOutIn_s$ID$)\n\
     \n\
     if using_fractions_s$ID$:\n\
@@ -206,6 +207,9 @@ def liquid_adaptive_step_$ID$(framenr):\n\
         extrapolateVec3Simple(vel=invelC_s$ID$, phi=phiIn_s$ID$, distance=6, inside=True)\n\
         resampleVec3ToMac(source=invelC_s$ID$, target=invel_s$ID$)\n\
         pVel_pp$ID$.setSource(invel_s$ID$, isMAC=True)\n\
+    # ensure that pvel has vel as source (important when resuming bake jobs)\n\
+    else:\n\
+        pVel_pp$ID$.setSource(vel_s$ID$, isMAC=True)\n\
     \n\
     sampleLevelsetWithParticles(phi=phiIn_s$ID$, flags=flags_s$ID$, parts=pp_s$ID$, discretization=particleNumber_s$ID$, randomness=randomness_s$ID$)\n\
     flags_s$ID$.updateFromLevelset(phi_s$ID$)\n\
@@ -363,7 +367,7 @@ def liquid_step_particles_$ID$():\n\
         interpolateGrid(target=phiOut_sp$ID$, source=phiOut_s$ID$)\n\
     \n\
     # phiIn not needed, bwidth to 0 because we are omitting flags.initDomain()\n\
-    setObstacleFlags(flags=flags_sp$ID$, phiObs=phiObs_sp$ID$, phiOut=None, phiIn=None, boundaryWidth=0)\n\
+    setObstacleFlags(flags=flags_sp$ID$, phiObs=phiObs_sp$ID$, phiOut=phiOut_sp$ID$, phiIn=None, boundaryWidth=0)\n\
     flags_sp$ID$.updateFromLevelset(levelset=phi_sp$ID$)\n\
     \n\
     # Actual secondary particle simulation\n\
