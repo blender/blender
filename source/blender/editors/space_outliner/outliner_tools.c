@@ -1383,12 +1383,14 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
     str = "Select Object Hierarchy";
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+    ED_outliner_select_sync_from_object_tag(C);
   }
   else if (event == OL_OP_DESELECT) {
     outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_deselect_cb);
     str = "Deselect Objects";
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+    ED_outliner_select_sync_from_object_tag(C);
   }
   else if (event == OL_OP_DELETE) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1727,6 +1729,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
     }
     case OUTLINER_IDOP_PASTE: {
       WM_operator_name_call(C, "OUTLINER_OT_id_paste", WM_OP_INVOKE_DEFAULT, NULL);
+      ED_outliner_select_sync_from_all_tag(C);
       ED_undo_push(C, "Paste");
       break;
     }
@@ -1760,6 +1763,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
     case OUTLINER_IDOP_SELECT_LINKED:
       outliner_do_libdata_operation(
           C, op->reports, scene, soops, &soops->tree, id_select_linked_cb, NULL);
+      ED_outliner_select_sync_from_all_tag(C);
       ED_undo_push(C, "Select");
       break;
 
