@@ -405,6 +405,10 @@ struct MANTA {
   {
     return mPhiOutIn;
   }
+  inline float *getPhiOutStaticIn()
+  {
+    return mPhiOutStaticIn;
+  }
   inline float *getPhi()
   {
     return mPhi;
@@ -844,6 +848,7 @@ struct MANTA {
   float *mPhiObsStaticIn;
   float *mPhiGuideIn;
   float *mPhiOutIn;
+  float *mPhiOutStaticIn;
   float *mPhi;
 
   // Mesh fields

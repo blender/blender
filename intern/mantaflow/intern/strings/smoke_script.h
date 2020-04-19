@@ -296,6 +296,7 @@ def smoke_adaptive_step_$ID$(framenr):\n\
     extrapolateLsSimple(phi=phiIn_s$ID$, distance=3, inside=False)\n\
     \n\
     if using_outflow_s$ID$:\n\
+        phiOutIn_s$ID$.join(phiOutSIn_s$ID$) # Join static outflow map\n\
         phiOut_s$ID$.join(phiOutIn_s$ID$)\n\
     \n\
     setObstacleFlags(flags=flags_s$ID$, phiObs=phiObs_s$ID$, phiOut=phiOut_s$ID$, phiIn=phiIn_s$ID$, boundaryWidth=1)\n\

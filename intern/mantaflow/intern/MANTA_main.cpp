@@ -141,6 +141,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
   mPhiIn = nullptr;
   mPhiStaticIn = nullptr;
   mPhiOutIn = nullptr;
+  mPhiOutStaticIn = nullptr;
   mPhi = nullptr;
 
   // Mesh
@@ -1926,6 +1927,7 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
   bool obstacle = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
   bool guiding = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
   bool invel = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
+  bool outflow = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
 
   std::string manta_script;
 
@@ -1968,6 +1970,8 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
     manta_script += fluid_alloc_obstacle;
   if (invel)
     manta_script += fluid_alloc_invel;
+  if (outflow)
+    manta_script += fluid_alloc_outflow;
 
   // Noise field
   if (noise)
@@ -2032,6 +2036,7 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   bool fractions = mmd->domain->flags & FLUID_DOMAIN_USE_FRACTIONS;
   bool guiding = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
   bool invel = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
+  bool outflow = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
 
   std::string manta_script;
 
@@ -2070,6 +2075,8 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
     manta_script += fluid_alloc_fractions;
   if (invel)
     manta_script += fluid_alloc_invel;
+  if (outflow)
+    manta_script += fluid_alloc_outflow;
 
   // Domain init
   manta_script += header_gridinit + liquid_init_phi;
@@ -3119,6 +3126,8 @@ void MANTA::updatePointers()
 
   if (mUsingOutflow) {
     mPhiOutIn = (float *)pyObjectToPointer(callPythonFunction("phiOutIn" + solver_ext, func));
+    mPhiOutStaticIn = (float *)pyObjectToPointer(
+        callPythonFunction("phiOutSIn" + solver_ext, func));
   }
   if (mUsingObstacle) {
     mPhiObsIn = (float *)pyObjectToPointer(callPythonFunction("phiObsIn" + solver_ext, func));
@@ -3230,7 +3239,7 @@ bool MANTA::hasConfig(FluidModifierData *mmd, int framenr)
 
 bool MANTA::hasData(FluidModifierData *mmd, int framenr)
 {
-  std::string filename = (mUsingSmoke) ? FLUID_DOMAIN_FILE_DENSITY : FLUID_DOMAIN_FILE_PHI;
+  std::string filename = (mUsingSmoke) ? FLUID_DOMAIN_FILE_DENSITY : FLUID_DOMAIN_FILE_PP;
   std::string extension = getCacheFileEnding(mmd->domain->cache_data_format);
   return BLI_exists(getFile(mmd, FLUID_DOMAIN_DIR_DATA, filename, extension, framenr).c_str());
 }
