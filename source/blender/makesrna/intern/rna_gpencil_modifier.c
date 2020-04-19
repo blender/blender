@@ -135,7 +135,6 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      "Texture",
      "Change stroke uv texture values"},
     {0, NULL, 0, NULL, NULL},
-
 };
 
 #ifndef RNA_RUNTIME
