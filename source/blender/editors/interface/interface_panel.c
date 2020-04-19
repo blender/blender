@@ -428,7 +428,8 @@ void UI_panel_end(
     }
 
     int align = panel_aligned(area, region);
-    if (old_region_ofsx != panel_region_offset_x_get(region, align)) {
+    panel->runtime.region_ofsx = panel_region_offset_x_get(region, align);
+    if (old_region_ofsx != panel->runtime.region_ofsx) {
       panel->runtime_flag |= PNL_ANIM_ALIGN;
     }
   }
