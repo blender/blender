@@ -4163,6 +4163,12 @@ struct Mesh *BKE_fluid_modifier_do(
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_PARTICLES;
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_GUIDE;
   }
+  else if (mmd->type & MOD_FLUID_TYPE_FLOW && mmd->flow) {
+    mmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
+  }
+  else if (mmd->type & MOD_FLUID_TYPE_EFFEC && mmd->effector) {
+    mmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
+  }
   if (!result) {
     result = BKE_mesh_copy_for_eval(me, false);
   }
