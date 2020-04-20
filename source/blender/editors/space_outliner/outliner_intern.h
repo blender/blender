@@ -108,7 +108,8 @@ typedef struct TreeElementIcon {
         ID_LP, \
         ID_HA, \
         ID_PT, \
-        ID_VO) || /* Only in 'blendfile' mode ... :/ */ \
+        ID_VO, \
+        ID_SIM) || /* Only in 'blendfile' mode ... :/ */ \
    ELEM(GS((_id)->name), \
         ID_SCR, \
         ID_WM, \

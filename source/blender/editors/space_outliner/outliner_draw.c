@@ -2581,6 +2581,10 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case ID_PC:
           data.icon = ICON_CURVE_BEZCURVE;
           break;
+        case ID_SIM:
+          /* TODO: Use correct icon. */
+          data.icon = ICON_PHYSICS;
+          break;
         default:
           break;
       }

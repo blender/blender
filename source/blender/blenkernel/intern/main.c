@@ -479,6 +479,8 @@ ListBase *which_libbase(Main *bmain, short type)
       return &(bmain->pointclouds);
     case ID_VO:
       return &(bmain->volumes);
+    case ID_SIM:
+      return &(bmain->simulations);
   }
   return NULL;
 }
@@ -554,6 +556,7 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
   lb[INDEX_ID_WS] = &(bmain->workspaces); /* before wm, so it's freed after it! */
   lb[INDEX_ID_WM] = &(bmain->wm);
   lb[INDEX_ID_MSK] = &(bmain->masks);
+  lb[INDEX_ID_SIM] = &(bmain->simulations);
 
   lb[INDEX_ID_NULL] = NULL;
 

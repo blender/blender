@@ -62,6 +62,7 @@ extern "C" {
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
@@ -557,6 +558,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       break;
     case ID_SCE:
       build_scene_parameters((Scene *)id);
+      break;
+    case ID_SIM:
+      build_simulation((Simulation *)id);
       break;
     default:
       fprintf(stderr, "Unhandled ID %s\n", id->name);
@@ -2500,6 +2504,15 @@ void DepsgraphRelationBuilder::build_sound(bSound *sound)
   }
   build_animdata(&sound->id);
   build_parameters(&sound->id);
+}
+
+void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
+{
+  if (built_map_.checkIsBuiltAndTag(simulation)) {
+    return;
+  }
+  build_animdata(&simulation->id);
+  build_parameters(&simulation->id);
 }
 
 void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)

@@ -211,6 +211,7 @@ set(SRC
   intern/sequencer.c
   intern/shader_fx.c
   intern/shrinkwrap.c
+  intern/simulation.cc
   intern/softbody.c
   intern/sound.c
   intern/speaker.c
@@ -362,6 +363,7 @@ set(SRC
   BKE_sequencer.h
   BKE_shader_fx.h
   BKE_shrinkwrap.h
+  BKE_simulation.h
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h

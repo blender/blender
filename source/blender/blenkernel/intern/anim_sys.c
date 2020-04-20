@@ -2680,6 +2680,9 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float 
   /* volumes */
   EVAL_ANIM_IDS(main->volumes.first, ADT_RECALC_ANIM);
 
+  /* simulations */
+  EVAL_ANIM_IDS(main->simulations.first, ADT_RECALC_ANIM);
+
   /* objects */
   /* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets
    * this tagged by Depsgraph on framechange. This optimization means that objects

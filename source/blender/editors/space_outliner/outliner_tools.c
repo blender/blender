@@ -39,6 +39,7 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_simulation_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
@@ -160,6 +161,7 @@ static void set_operation_types(SpaceOutliner *soops,
           case ID_HA:
           case ID_PT:
           case ID_VO:
+          case ID_SIM:
             is_standard_id = true;
             break;
           case ID_WM:

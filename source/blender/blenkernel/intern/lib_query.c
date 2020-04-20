@@ -49,6 +49,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_speaker_types.h"
@@ -1294,6 +1295,7 @@ static void library_foreach_ID_link(Main *bmain,
       case ID_PAL:
       case ID_PC:
       case ID_CF:
+      case ID_SIM:
         break;
 
       /* Deprecated. */
@@ -1456,6 +1458,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
     case ID_PAL:
     case ID_PC:
     case ID_CF:
+    case ID_SIM:
       /* Those types never use/reference other IDs... */
       return false;
     case ID_IP:

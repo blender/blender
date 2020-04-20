@@ -147,6 +147,7 @@ typedef struct Main {
   ListBase hairs;
   ListBase pointclouds;
   ListBase volumes;
+  ListBase simulations;
 
   /**
    * Must be generated, used and freed by same code - never assume this is valid data unless you
@@ -220,7 +221,7 @@ const char *BKE_main_blendfile_path_from_global(void);
 
 struct ListBase *which_libbase(struct Main *mainlib, short type);
 
-#define MAX_LIBARRAY 40
+#define MAX_LIBARRAY 41
 int set_listbasepointers(struct Main *main, struct ListBase *lb[MAX_LIBARRAY]);
 
 #define MAIN_VERSION_ATLEAST(main, ver, subver) \

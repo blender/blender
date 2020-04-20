@@ -193,7 +193,8 @@ static int mouse_nla_channels(
     case ANIMTYPE_PALETTE:
     case ANIMTYPE_DSHAIR:
     case ANIMTYPE_DSPOINTCLOUD:
-    case ANIMTYPE_DSVOLUME: {
+    case ANIMTYPE_DSVOLUME:
+    case ANIMTYPE_DSSIMULATION: {
       /* sanity checking... */
       if (ale->adt) {
         /* select/deselect */

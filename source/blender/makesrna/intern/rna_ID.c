@@ -71,6 +71,9 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
     {ID_LP, "LIGHT_PROBE", ICON_LIGHTPROBE_CUBEMAP, "Light Probe", ""},
     {ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
+#ifdef WITH_NEW_SIMULATION_TYPE
+    {ID_SIM, "SIMULATION", ICON_PHYSICS, "Simulation", ""}, /* TODO: Use correct icon. */
+#endif
     {ID_SO, "SOUND", ICON_SOUND, "Sound", ""},
     {ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
     {ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
@@ -303,6 +306,11 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_Screen) {
     return ID_SCR;
   }
+#  ifdef WITH_NEW_SIMULATION_TYPE
+  if (base_type == &RNA_Simulation) {
+    return ID_SIM;
+  }
+#  endif
   if (base_type == &RNA_Sound) {
     return ID_SO;
   }
@@ -405,6 +413,12 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_Scene;
     case ID_SCR:
       return &RNA_Screen;
+    case ID_SIM:
+#  ifdef WITH_NEW_SIMULATION_TYPE
+      return &RNA_Simulation;
+#  else
+      return &RNA_ID;
+#  endif
     case ID_SO:
       return &RNA_Sound;
     case ID_SPK:

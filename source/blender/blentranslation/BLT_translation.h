@@ -122,6 +122,7 @@ bool BLT_lang_is_ime_supported(void);
 #define BLT_I18NCONTEXT_ID_IMAGE "Image"
 /*#define BLT_I18NCONTEXT_ID_IPO                  "Ipo"*/ /* Deprecated */
 #define BLT_I18NCONTEXT_ID_SHAPEKEY "Key"
+#define BLT_I18NCONTEXT_ID_SIMULATION "Simulation"
 #define BLT_I18NCONTEXT_ID_LIGHT "Light"
 #define BLT_I18NCONTEXT_ID_LIBRARY "Library"
 #define BLT_I18NCONTEXT_ID_LATTICE "Lattice"
@@ -202,6 +203,7 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SCENE, "id_scene"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SCREEN, "id_screen"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SEQUENCE, "id_sequence"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SIMULATION, "id_simulation"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SPEAKER, "id_speaker"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SOUND, "id_sound"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_TEXTURE, "id_texture"), \

@@ -67,6 +67,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_simulation_types.h"
 #include "DNA_space_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_userdef_types.h"
@@ -819,6 +820,18 @@ static bAnimListElem *make_new_animlistelem(void *data,
         AnimData *adt = volume->adt;
 
         ale->flag = FILTER_VOLUME_OBJD(volume);
+
+        ale->key_data = (adt) ? adt->action : NULL;
+        ale->datatype = ALE_ACT;
+
+        ale->adt = BKE_animdata_from_id(data);
+        break;
+      }
+      case ANIMTYPE_DSSIMULATION: {
+        Simulation *simulation = (Simulation *)data;
+        AnimData *adt = simulation->adt;
+
+        ale->flag = FILTER_SIMULATION_OBJD(simulation);
 
         ale->key_data = (adt) ? adt->action : NULL;
         ale->datatype = ALE_ACT;

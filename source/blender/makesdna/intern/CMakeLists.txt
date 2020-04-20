@@ -146,6 +146,7 @@ set(SRC
   ../DNA_object_defaults.h
   ../DNA_pointcloud_defaults.h
   ../DNA_scene_defaults.h
+  ../DNA_simulation_defaults.h
   ../DNA_speaker_defaults.h
   ../DNA_texture_defaults.h
   ../DNA_vec_defaults.h

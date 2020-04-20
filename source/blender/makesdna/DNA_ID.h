@@ -424,6 +424,7 @@ typedef enum ID_Type {
   ID_HA = MAKE_ID2('H', 'A'),  /* Hair */
   ID_PT = MAKE_ID2('P', 'T'),  /* PointCloud */
   ID_VO = MAKE_ID2('V', 'O'),  /* Volume */
+  ID_SIM = MAKE_ID2('S', 'I'), /* Simulation */
 } ID_Type;
 
 /* Only used as 'placeholder' in .blend files for directly linked data-blocks. */
@@ -723,6 +724,7 @@ typedef enum IDRecalcFlag {
 #define FILTER_ID_HA (1ULL << 32)
 #define FILTER_ID_PT (1ULL << 33)
 #define FILTER_ID_VO (1ULL << 34)
+#define FILTER_ID_SIM (1ULL << 35)
 
 #define FILTER_ID_ALL \
   (FILTER_ID_AC | FILTER_ID_AR | FILTER_ID_BR | FILTER_ID_CA | FILTER_ID_CU | FILTER_ID_GD | \
@@ -730,7 +732,7 @@ typedef enum IDRecalcFlag {
    FILTER_ID_MB | FILTER_ID_MC | FILTER_ID_ME | FILTER_ID_MSK | FILTER_ID_NT | FILTER_ID_OB | \
    FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | FILTER_ID_SPK | FILTER_ID_SO | \
    FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | FILTER_ID_CF | FILTER_ID_WS | \
-   FILTER_ID_LP | FILTER_ID_HA | FILTER_ID_PT | FILTER_ID_VO)
+   FILTER_ID_LP | FILTER_ID_HA | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM)
 
 /* IMPORTANT: this enum matches the order currently use in set_listbasepointers,
  * keep them in sync! */
@@ -774,6 +776,7 @@ enum {
   INDEX_ID_WS,
   INDEX_ID_WM,
   INDEX_ID_MSK,
+  INDEX_ID_SIM,
   INDEX_ID_NULL,
   INDEX_ID_MAX,
 };

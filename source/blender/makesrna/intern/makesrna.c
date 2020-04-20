@@ -4302,6 +4302,9 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_screen.c", NULL, RNA_def_screen},
     {"rna_sculpt_paint.c", NULL, RNA_def_sculpt_paint},
     {"rna_sequencer.c", "rna_sequencer_api.c", RNA_def_sequencer},
+#ifdef WITH_NEW_SIMULATION_TYPE
+    {"rna_simulation.c", NULL, RNA_def_simulation},
+#endif
     {"rna_space.c", "rna_space_api.c", RNA_def_space},
     {"rna_speaker.c", NULL, RNA_def_speaker},
     {"rna_test.c", NULL, RNA_def_test},

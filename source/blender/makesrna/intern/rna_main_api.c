@@ -69,6 +69,7 @@
 #  include "BKE_particle.h"
 #  include "BKE_pointcloud.h"
 #  include "BKE_scene.h"
+#  include "BKE_simulation.h"
 #  include "BKE_sound.h"
 #  include "BKE_speaker.h"
 #  include "BKE_text.h"
@@ -98,6 +99,7 @@
 #  include "DNA_node_types.h"
 #  include "DNA_particle_types.h"
 #  include "DNA_pointcloud_types.h"
+#  include "DNA_simulation_types.h"
 #  include "DNA_sound_types.h"
 #  include "DNA_speaker_types.h"
 #  include "DNA_text_types.h"
@@ -738,6 +740,18 @@ static Volume *rna_Main_volumes_new(Main *bmain, const char *name)
   return volume;
 }
 
+#  ifdef WITH_NEW_SIMULATION_TYPE
+static Simulation *rna_Main_simulations_new(Main *bmain, const char *name)
+{
+  char safe_name[MAX_ID_NAME - 2];
+  rna_idname_validate(name, safe_name);
+
+  Simulation *simulation = BKE_simulation_add(bmain, safe_name);
+  id_us_min(&simulation->id);
+  return simulation;
+}
+#  endif
+
 /* tag functions, all the same */
 #  define RNA_MAIN_ID_TAG_FUNCS_DEF(_func_name, _listbase_name, _id_type) \
     static void rna_Main_##_func_name##_tag(Main *bmain, bool value) \
@@ -785,6 +799,9 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(hairs, hairs, ID_HA)
 RNA_MAIN_ID_TAG_FUNCS_DEF(pointclouds, pointclouds, ID_PT)
 #  endif
 RNA_MAIN_ID_TAG_FUNCS_DEF(volumes, volumes, ID_VO)
+#  ifdef WITH_NEW_SIMULATION_TYPE
+RNA_MAIN_ID_TAG_FUNCS_DEF(simulations, simulations, ID_SIM)
+#  endif
 
 #  undef RNA_MAIN_ID_TAG_FUNCS_DEF
 
@@ -2300,6 +2317,46 @@ void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop)
       func, "do_ui_user", true, "", "Make sure interface does not reference this volume data");
 
   func = RNA_def_function(srna, "tag", "rna_Main_volumes_tag");
+  parm = RNA_def_boolean(func, "value", 0, "Value", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+}
+
+void RNA_def_main_simulations(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "BlendDataSimulations");
+  srna = RNA_def_struct(brna, "BlendDataSimulations", NULL);
+  RNA_def_struct_sdna(srna, "Main");
+  RNA_def_struct_ui_text(srna, "Main Simulations", "Collection of simulations");
+
+  func = RNA_def_function(srna, "new", "rna_Main_simulations_new");
+  RNA_def_function_ui_description(func, "Add a new simulation to the main database");
+  parm = RNA_def_string(func, "name", "Simulation", 0, "", "New name for the data-block");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  /* return type */
+  parm = RNA_def_pointer(func, "simulation", "Simulation", "", "New simulation data-block");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Remove a simulation from the current blendfile");
+  parm = RNA_def_pointer(func, "simulation", "Simulation", "", "Simulation to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_boolean(
+      func, "do_unlink", true, "", "Unlink all usages of this simulation before deleting it");
+  RNA_def_boolean(func,
+                  "do_id_user",
+                  true,
+                  "",
+                  "Decrement user counter of all datablocks used by this simulation data");
+  RNA_def_boolean(
+      func, "do_ui_user", true, "", "Make sure interface does not reference this simulation data");
+
+  func = RNA_def_function(srna, "tag", "rna_Main_simulations_tag");
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }

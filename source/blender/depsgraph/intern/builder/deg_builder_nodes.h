@@ -52,6 +52,7 @@ struct MovieClip;
 struct Object;
 struct ParticleSettings;
 struct Scene;
+struct Simulation;
 struct Speaker;
 struct Tex;
 struct World;
@@ -217,6 +218,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_lightprobe(LightProbe *probe);
   virtual void build_speaker(Speaker *speaker);
   virtual void build_sound(bSound *sound);
+  virtual void build_simulation(Simulation *simulation);
   virtual void build_scene_sequencer(Scene *scene);
   virtual void build_scene_audio(Scene *scene);
   virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
