@@ -66,7 +66,7 @@ enum {
 
 namespace {
 
-// Apply distorion model (aka distort the input) for the given input in the
+// Apply distortion model (aka distort the input) for the given input in the
 // normalized space.
 // Only use for distortion models which are analytically defined for their
 // Apply() function.
