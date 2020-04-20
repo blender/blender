@@ -1235,7 +1235,7 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "uv_translation");
   RNA_def_property_array(prop, 2);
   RNA_def_property_float_default(prop, 0.0f);
-  RNA_def_property_ui_text(prop, "UV Translation", "Translation of default UV postion");
+  RNA_def_property_ui_text(prop, "UV Translation", "Translation of default UV position");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_uv_update");
 

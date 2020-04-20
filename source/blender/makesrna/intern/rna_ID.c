@@ -1506,7 +1506,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Embedded Data",
-      "This data-block is not an independant one, but is actually a sub-data of another ID "
+      "This data-block is not an independent one, but is actually a sub-data of another ID "
       "(typical example: root node trees or master collections)");
 
   prop = RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
