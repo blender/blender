@@ -67,6 +67,7 @@
 
 #include "NOD_common.h"
 #include "NOD_composite.h"
+#include "NOD_function.h"
 #include "NOD_shader.h"
 #include "NOD_simulation.h"
 #include "NOD_socket.h"
@@ -4242,6 +4243,13 @@ static void registerSimulationNodes(void)
   register_node_type_sim_particle_attribute();
 }
 
+static void registerFunctionNodes(void)
+{
+  register_node_type_fn_boolean_math();
+  register_node_type_fn_float_compare();
+  register_node_type_fn_switch();
+}
+
 void init_nodesystem(void)
 {
   nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
@@ -4266,6 +4274,7 @@ void init_nodesystem(void)
   registerShaderNodes();
   registerTextureNodes();
   registerSimulationNodes();
+  registerFunctionNodes();
 }
 
 void free_nodesystem(void)

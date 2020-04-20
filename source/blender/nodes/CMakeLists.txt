@@ -21,6 +21,7 @@
 set(INC
   .
   composite
+  function
   intern
   shader
   simulation
@@ -127,6 +128,11 @@ set(SRC
 
   composite/node_composite_tree.c
   composite/node_composite_util.c
+
+  function/nodes/node_fn_boolean_math.cc
+  function/nodes/node_fn_float_compare.cc
+  function/nodes/node_fn_switch.cc
+  function/node_function_util.cc
 
   shader/nodes/node_shader_add_shader.c
   shader/nodes/node_shader_ambient_occlusion.c
@@ -269,12 +275,14 @@ set(SRC
   intern/node_util.c
 
   composite/node_composite_util.h
+  function/node_function_util.h
   shader/node_shader_util.h
   simulation/node_simulation_util.h
   texture/node_texture_util.h
 
   NOD_common.h
   NOD_composite.h
+  NOD_function.h
   NOD_shader.h
   NOD_simulation.h
   NOD_socket.h

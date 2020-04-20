@@ -1308,6 +1308,23 @@ enum {
   NODE_VECTOR_MATH_TANGENT = 23,
 };
 
+/* Boolean math node operations. */
+enum {
+  NODE_BOOLEAN_MATH_AND = 0,
+  NODE_BOOLEAN_MATH_OR = 1,
+  NODE_BOOLEAN_MATH_NOT = 2,
+};
+
+/* Float compare node operations. */
+enum {
+  NODE_FLOAT_COMPARE_LESS_THAN = 0,
+  NODE_FLOAT_COMPARE_LESS_EQUAL = 1,
+  NODE_FLOAT_COMPARE_GREATER_THAN = 2,
+  NODE_FLOAT_COMPARE_GREATER_EQUAL = 3,
+  NODE_FLOAT_COMPARE_EQUAL = 4,
+  NODE_FLOAT_COMPARE_NOT_EQUAL = 5,
+};
+
 /* Clamp node types. */
 enum {
   NODE_CLAMP_MINMAX = 0,

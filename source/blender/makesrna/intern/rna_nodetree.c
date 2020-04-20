@@ -101,6 +101,18 @@ static const EnumPropertyItem particle_attribute_socket_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem node_socket_data_type_items[] = {
+    {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
+    {SOCK_INT, "INT", 0, "Int", ""},
+    {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
+    {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
+    {SOCK_STRING, "STRING", 0, "String", ""},
+    {SOCK_RGBA, "RGBA", 0, "Color", ""},
+    {SOCK_OBJECT, "OBJECT", 0, "Object", ""},
+    {SOCK_IMAGE, "IMAGE", 0, "Image", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static const EnumPropertyItem node_quality_items[] = {
     {NTREE_QUALITY_HIGH, "HIGH", 0, "High", "High quality"},
     {NTREE_QUALITY_MEDIUM, "MEDIUM", 0, "Medium", "Medium quality"},
@@ -258,6 +270,47 @@ const EnumPropertyItem rna_enum_node_vec_math_items[] = {
     {NODE_VECTOR_MATH_SINE, "SINE", 0, "Sine", "Entry-wise sin(A)"},
     {NODE_VECTOR_MATH_COSINE, "COSINE", 0, "Cosine", "Entry-wise cos(A)"},
     {NODE_VECTOR_MATH_TANGENT, "TANGENT", 0, "Tangent", "Entry-wise tan(A)"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_node_boolean_math_items[] = {
+    {NODE_BOOLEAN_MATH_AND, "AND", 0, "And", "Outputs true only when both inputs are true"},
+    {NODE_BOOLEAN_MATH_OR, "OR", 0, "Or", "Outputs or when at least one of the inputs is true"},
+    {NODE_BOOLEAN_MATH_NOT, "NOT", 0, "Not", "Outputs the opposite of the input"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_node_float_compare_items[] = {
+    {NODE_FLOAT_COMPARE_LESS_THAN,
+     "LESS_THAN",
+     0,
+     "A < B",
+     "True when the first input is smaller than second input"},
+    {NODE_FLOAT_COMPARE_LESS_EQUAL,
+     "LESS_EQUAL",
+     0,
+     "A <= B",
+     "True when the first input is smaller than the second input or equal"},
+    {NODE_FLOAT_COMPARE_GREATER_THAN,
+     "GREATER_THAN",
+     0,
+     "A > B",
+     "True when the first input is greater than the second input"},
+    {NODE_FLOAT_COMPARE_GREATER_EQUAL,
+     "GREATER_EQUAL",
+     0,
+     "A >= B",
+     "True when the first input is greater than the second input or equal"},
+    {NODE_FLOAT_COMPARE_EQUAL,
+     "EQUAL",
+     0,
+     "A = B",
+     "True when both inputs are approximately equal"},
+    {NODE_FLOAT_COMPARE_NOT_EQUAL,
+     "NOT_EQUAL",
+     0,
+     "A != B",
+     "True when both inputs are not approximately equal"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -689,6 +742,20 @@ static const EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C),
   if (RNA_struct_is_a(ptr->type, &RNA_SimulationNode)) {
 #  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
     if (STREQ(#Category, "SimulationNode")) { \
+      tmp.value = ID; \
+      tmp.identifier = EnumName; \
+      tmp.name = UIName; \
+      tmp.description = UIDesc; \
+      tmp.icon = ICON_NONE; \
+      RNA_enum_item_add(&item, &totitem, &tmp); \
+    }
+#  include "../../nodes/NOD_static_types.h"
+#  undef DefNode
+  }
+
+  if (RNA_struct_is_a(ptr->type, &RNA_FunctionNode)) {
+#  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+    if (STREQ(#Category, "FunctionNode")) { \
       tmp.value = ID; \
       tmp.identifier = EnumName; \
       tmp.name = UIName; \
@@ -1826,6 +1893,28 @@ static StructRNA *rna_SimulationNode_register(Main *bmain,
 {
   bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_SimulationNode, data, identifier, validate, call, free);
+  if (!nt) {
+    return NULL;
+  }
+
+  nodeRegisterType(nt);
+
+  /* update while blender is running */
+  WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+
+  return nt->rna_ext.srna;
+}
+
+static StructRNA *rna_FunctionNode_register(Main *bmain,
+                                            ReportList *reports,
+                                            void *data,
+                                            const char *identifier,
+                                            StructValidateFunc validate,
+                                            StructCallbackFunc call,
+                                            StructFreeFunc free)
+{
+  bNodeType *nt = rna_Node_register_base(
+      bmain, reports, &RNA_FunctionNode, data, identifier, validate, call, free);
   if (!nt) {
     return NULL;
   }
@@ -3634,6 +3723,15 @@ static void rna_ShaderNode_socket_update(Main *bmain, Scene *scene, PointerRNA *
   rna_Node_update(bmain, scene, ptr);
 }
 
+static void rna_FunctionNode_socket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+  bNode *node = (bNode *)ptr->data;
+
+  nodeUpdate(ntree, node);
+  rna_Node_update(bmain, scene, ptr);
+}
+
 static void rna_CompositorNodeScale_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
@@ -4076,6 +4174,39 @@ static void def_math(StructRNA *srna)
   RNA_def_property_boolean_sdna(prop, NULL, "custom2", SHD_MATH_CLAMP);
   RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0..1 range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_boolean_math(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_node_boolean_math_items);
+  RNA_def_property_ui_text(prop, "Operation", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_FunctionNode_socket_update");
+}
+
+static void def_float_compare(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_node_float_compare_items);
+  RNA_def_property_ui_text(prop, "Operation", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_FunctionNode_socket_update");
+}
+
+static void def_fn_switch(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, node_socket_data_type_items);
+  RNA_def_property_ui_text(prop, "Data Type", "Data type for inputs and outputs");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_FunctionNode_socket_update");
 }
 
 static void def_vector_math(StructRNA *srna)
@@ -8084,6 +8215,16 @@ static void rna_def_simulation_node(BlenderRNA *brna)
   RNA_def_struct_register_funcs(srna, "rna_SimulationNode_register", "rna_Node_unregister", NULL);
 }
 
+static void rna_def_function_node(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "FunctionNode", "NodeInternal");
+  RNA_def_struct_ui_text(srna, "Function Node", "");
+  RNA_def_struct_sdna(srna, "bNode");
+  RNA_def_struct_register_funcs(srna, "rna_FunctionNode_register", "rna_Node_unregister", NULL);
+}
+
 /* -------------------------------------------------------------------------- */
 
 static void rna_def_node_socket(BlenderRNA *brna)
@@ -9830,6 +9971,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_compositor_node(brna);
   rna_def_texture_node(brna);
   rna_def_simulation_node(brna);
+  rna_def_function_node(brna);
 
   rna_def_nodetree(brna);
 

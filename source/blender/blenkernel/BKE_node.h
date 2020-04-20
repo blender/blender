@@ -1302,6 +1302,16 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Function Nodes
+ * \{ */
+
+#define FN_NODE_BOOLEAN_MATH 1200
+#define FN_NODE_SWITCH 1201
+#define FN_NODE_FLOAT_COMPARE 1202
+
+/** \} */
+
 void init_nodesystem(void);
 void free_nodesystem(void);
 

@@ -524,6 +524,9 @@ simulation_node_categories = [
         NodeItem("ShaderNodeCombineXYZ"),
         NodeItem("ShaderNodeSeparateHSV"),
         NodeItem("ShaderNodeCombineHSV"),
+        NodeItem("FunctionNodeBooleanMath"),
+        NodeItem("FunctionNodeFloatCompare"),
+        NodeItem("FunctionNodeSwitch"),
     ]),
     SimulationNodeCategory("SIM_GROUP", "Group", items=node_group_items),
     SimulationNodeCategory("SIM_LAYOUT", "Layout", items=[
