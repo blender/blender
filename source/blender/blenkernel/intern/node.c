@@ -2252,7 +2252,7 @@ void ntreeFreeTree(bNodeTree *ntree)
   BKE_animdata_free(&ntree->id, false);
 }
 
-void ntreeFreeNestedTree(bNodeTree *ntree)
+void ntreeFreeEmbeddedTree(bNodeTree *ntree)
 {
   ntreeFreeTree(ntree);
   BKE_libblock_free_data(&ntree->id, true);

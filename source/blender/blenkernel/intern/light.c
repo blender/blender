@@ -97,7 +97,7 @@ static void light_free_data(ID *id)
 
   /* is no lib link block, but light extension */
   if (la->nodetree) {
-    ntreeFreeNestedTree(la->nodetree);
+    ntreeFreeEmbeddedTree(la->nodetree);
     MEM_freeN(la->nodetree);
     la->nodetree = NULL;
   }

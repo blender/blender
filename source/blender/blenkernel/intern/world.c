@@ -59,7 +59,7 @@ static void world_free_data(ID *id)
 
   /* is no lib link block, but world extension */
   if (wrld->nodetree) {
-    ntreeFreeNestedTree(wrld->nodetree);
+    ntreeFreeEmbeddedTree(wrld->nodetree);
     MEM_freeN(wrld->nodetree);
     wrld->nodetree = NULL;
   }

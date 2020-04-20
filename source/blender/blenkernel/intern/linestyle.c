@@ -125,7 +125,7 @@ static void linestyle_free_data(ID *id)
 
   /* is no lib link block, but linestyle extension */
   if (linestyle->nodetree) {
-    ntreeFreeNestedTree(linestyle->nodetree);
+    ntreeFreeEmbeddedTree(linestyle->nodetree);
     MEM_freeN(linestyle->nodetree);
     linestyle->nodetree = NULL;
   }

@@ -78,7 +78,7 @@ static void simulation_free_data(ID *id)
   BKE_animdata_free(&simulation->id, false);
 
   if (simulation->nodetree) {
-    ntreeFreeNestedTree(simulation->nodetree);
+    ntreeFreeEmbeddedTree(simulation->nodetree);
     MEM_freeN(simulation->nodetree);
     simulation->nodetree = nullptr;
   }

@@ -130,7 +130,7 @@ static void material_free_data(ID *id)
 
   /* is no lib link block, but material extension */
   if (material->nodetree) {
-    ntreeFreeNestedTree(material->nodetree);
+    ntreeFreeEmbeddedTree(material->nodetree);
     MEM_freeN(material->nodetree);
     material->nodetree = NULL;
   }
@@ -1599,7 +1599,7 @@ void BKE_material_copybuf_paste(Main *bmain, Material *ma)
   GPU_material_free(&ma->gpumaterial);
 
   if (ma->nodetree) {
-    ntreeFreeNestedTree(ma->nodetree);
+    ntreeFreeEmbeddedTree(ma->nodetree);
     MEM_freeN(ma->nodetree);
   }
 

@@ -385,8 +385,8 @@ struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char 
 
 /* copy/free funcs, need to manage ID users */
 void ntreeFreeTree(struct bNodeTree *ntree);
-/* Free tree which is owned byt another datablock. */
-void ntreeFreeNestedTree(struct bNodeTree *ntree);
+/* Free tree which is embedded into another datablock. */
+void ntreeFreeEmbeddedTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree_ex(const struct bNodeTree *ntree,
                                    struct Main *bmain,
                                    const bool do_id_user);

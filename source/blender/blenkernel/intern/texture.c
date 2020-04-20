@@ -112,7 +112,7 @@ static void texture_free_data(ID *id)
 
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {
-    ntreeFreeNestedTree(texture->nodetree);
+    ntreeFreeEmbeddedTree(texture->nodetree);
     MEM_freeN(texture->nodetree);
     texture->nodetree = NULL;
   }
