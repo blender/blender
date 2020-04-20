@@ -389,6 +389,43 @@ void EuclideanBundlerPerformEvaluation(const Tracks &tracks,
   }
 }
 
+template<typename CostFunction>
+void AddResidualBlockToProblemImpl(const CameraIntrinsics *intrinsics,
+                                   double observed_x, double observed_y,
+                                   double weight,
+                                   double ceres_intrinsics[OFFSET_MAX],
+                                   double *camera_R_t,
+                                   EuclideanPoint *point,
+                                   ceres::Problem* problem) {
+  problem->AddResidualBlock(new ceres::AutoDiffCostFunction<
+      CostFunction, 2, OFFSET_MAX, 6, 3>(
+          new CostFunction(
+              intrinsics,
+              observed_x, observed_y,
+              weight)),
+      NULL,
+      ceres_intrinsics,
+      camera_R_t,
+      &point->X(0));
+}
+
+void AddResidualBlockToProblem(const CameraIntrinsics *invariant_intrinsics,
+                               const Marker &marker,
+                               double marker_weight,
+                               double ceres_intrinsics[OFFSET_MAX],
+                               double *camera_R_t,
+                               EuclideanPoint *point,
+                               ceres::Problem* problem) {
+    AddResidualBlockToProblemImpl<OpenCVReprojectionErrorApplyIntrinsics>(
+            invariant_intrinsics,
+            marker.x, marker.y,
+            marker_weight,
+            ceres_intrinsics,
+            camera_R_t,
+            point,
+            problem);
+}
+
 // This is an utility function to only bundle 3D position of
 // given markers list.
 //
@@ -418,17 +455,13 @@ void EuclideanBundlePointsOnly(const CameraIntrinsics *invariant_intrinsics,
     // camera translation.
     double *current_camera_R_t = &all_cameras_R_t[camera->image](0);
 
-    problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-        OpenCVReprojectionErrorApplyIntrinsics, 2, OFFSET_MAX, 6, 3>(
-            new OpenCVReprojectionErrorApplyIntrinsics(
-                invariant_intrinsics,
-                marker.x,
-                marker.y,
-                1.0)),
-        NULL,
-        ceres_intrinsics,
-        current_camera_R_t,
-        &point->X(0));
+    AddResidualBlockToProblem(invariant_intrinsics,
+                              marker,
+                              1.0,
+                              ceres_intrinsics,
+                              current_camera_R_t,
+                              point,
+                              &problem);
 
     problem.SetParameterBlockConstant(current_camera_R_t);
     num_residuals++;
@@ -538,17 +571,13 @@ void EuclideanBundleCommonIntrinsics(
     // no affect on the final solution.
     // This way ceres is not gonna to go crazy.
     if (marker.weight != 0.0) {
-      problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-          OpenCVReprojectionErrorApplyIntrinsics, 2, OFFSET_MAX, 6, 3>(
-              new OpenCVReprojectionErrorApplyIntrinsics(
-                  intrinsics,
-                  marker.x,
-                  marker.y,
-                  marker.weight)),
-          NULL,
-          ceres_intrinsics,
-          current_camera_R_t,
-          &point->X(0));
+      AddResidualBlockToProblem(intrinsics,
+                                marker,
+                                marker.weight,
+                                ceres_intrinsics,
+                                current_camera_R_t,
+                                point,
+                                &problem);
 
       // We lock the first camera to better deal with scene orientation ambiguity.
       if (!have_locked_camera) {
