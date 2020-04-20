@@ -542,7 +542,7 @@ static void rna_def_shader_fx_glow(BlenderRNA *brna)
   prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "blur");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_text(prop, "Size", "Size of th effect");
+  RNA_def_property_ui_text(prop, "Size", "Size of the effect");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
   prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);

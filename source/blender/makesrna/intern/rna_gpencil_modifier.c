@@ -1553,7 +1553,7 @@ static void rna_def_modifier_gpencilarray(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_object_offset", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_ARRAY_USE_OB_OFFSET);
-  RNA_def_property_ui_text(prop, "Object Offset", "Enable obejct offset");
+  RNA_def_property_ui_text(prop, "Object Offset", "Enable object offset");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_relative_offset", PROP_BOOLEAN, PROP_NONE);

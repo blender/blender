@@ -1161,7 +1161,7 @@ rna_max = FloatProperty(
 
 rna_use_soft_limits = BoolProperty(
     name="Use Soft Limits",
-    description="Limits the Property Value slider to a range, values outside the range must be inputed numerically",
+    description="Limits the Property Value slider to a range, values outside the range must be inputted numerically",
 )
 
 rna_is_overridable_library = BoolProperty(

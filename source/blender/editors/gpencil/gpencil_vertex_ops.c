@@ -844,7 +844,7 @@ void GPENCIL_OT_material_to_vertex_color(wmOperatorType *ot)
   ot->prop = RNA_def_boolean(ot->srna,
                              "remove",
                              true,
-                             "Remove Unused Materiales",
+                             "Remove Unused Materials",
                              "Remove any unused material after the conversion");
   RNA_def_boolean(ot->srna, "palette", true, "Create Palette", "Create a new palette with colors");
   RNA_def_boolean(ot->srna, "selected", false, "Only Selected", "Convert only selected strokes");

@@ -384,7 +384,7 @@ void immEnd(void)
 {
 #if TRUST_NO_ONE
   assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
-  assert(imm.active_buffer);
+  assert(imm.active_buffer || imm.batch);
 #endif
 
   uint buffer_bytes_used;

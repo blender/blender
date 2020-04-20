@@ -713,7 +713,7 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
       0.0f,
       1.0f,
       "Threshold",
-      "Minimum value to consider a certain atribute a boundary when creating the Face Sets",
+      "Minimum value to consider a certain attribute a boundary when creating the Face Sets",
       0.0f,
       1.0f);
 }
