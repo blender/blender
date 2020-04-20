@@ -296,6 +296,17 @@ def _template_items_proportional_editing(*, connected=False):
     ]
 
 
+def _template_items_change_frame(params):
+    if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
+        return [
+            ("anim.change_frame", {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True}, None),
+        ]
+    else:
+        return [
+            ("anim.change_frame", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ]
+
+
 # Tool System Templates
 
 def _template_items_tool_select(params, operator, cursor_operator, *, extend):
@@ -2073,6 +2084,7 @@ def km_dopesheet(params):
         ("marker.rename", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
         ("marker.camera_bind", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_context_menu("DOPESHEET_MT_context_menu", params.context_menu_event),
+        *_template_items_change_frame(params),
     ])
 
     return keymap
@@ -2198,6 +2210,7 @@ def km_nla_editor(params):
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_context_menu("NLA_MT_context_menu", params.context_menu_event),
+        *_template_items_change_frame(params),
     ])
 
     return keymap
@@ -2929,15 +2942,6 @@ def km_animation(params):
         ("anim.start_frame_set", {"type": 'HOME', "value": 'PRESS', "ctrl": True}, None),
         ("anim.end_frame_set", {"type": 'END', "value": 'PRESS', "ctrl": True}, None),
     ])
-
-    if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
-        items.extend([
-            ("anim.change_frame", {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True}, None),
-        ])
-    else:
-        items.extend([
-            ("anim.change_frame", {"type": params.action_mouse, "value": 'PRESS'}, None),
-        ])
 
     return keymap
 
@@ -6502,6 +6506,7 @@ def km_sequencer_editor_tool_select(params):
         {"items": [
             ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'},
              {"properties": [("extend", False), ("deselect_all", not params.legacy)]}),
+            *_template_items_change_frame(params),
         ]},
     )
 
