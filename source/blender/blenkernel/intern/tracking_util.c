@@ -451,6 +451,12 @@ static void distortion_model_parameters_from_tracking(
       camera_intrinsics_options->division_k1 = camera->division_k1;
       camera_intrinsics_options->division_k2 = camera->division_k2;
       return;
+
+    case TRACKING_DISTORTION_MODEL_NUKE:
+      camera_intrinsics_options->distortion_model = LIBMV_DISTORTION_MODEL_NUKE;
+      camera_intrinsics_options->nuke_k1 = camera->nuke_k1;
+      camera_intrinsics_options->nuke_k2 = camera->nuke_k2;
+      return;
   }
 
   /* Unknown distortion model, which might be due to opening newer file in older Blender.
@@ -478,6 +484,12 @@ static void distortion_model_parameters_from_options(
       camera->distortion_model = TRACKING_DISTORTION_MODEL_DIVISION;
       camera->division_k1 = camera_intrinsics_options->division_k1;
       camera->division_k2 = camera_intrinsics_options->division_k2;
+      return;
+
+    case LIBMV_DISTORTION_MODEL_NUKE:
+      camera->distortion_model = TRACKING_DISTORTION_MODEL_NUKE;
+      camera->nuke_k1 = camera_intrinsics_options->nuke_k1;
+      camera->nuke_k2 = camera_intrinsics_options->nuke_k2;
       return;
   }
 

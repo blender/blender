@@ -29,6 +29,7 @@ typedef struct libmv_CameraIntrinsics libmv_CameraIntrinsics;
 enum {
   LIBMV_DISTORTION_MODEL_POLYNOMIAL = 0,
   LIBMV_DISTORTION_MODEL_DIVISION = 1,
+  LIBMV_DISTORTION_MODEL_NUKE = 2,
 };
 
 typedef struct libmv_CameraIntrinsicsOptions {
@@ -45,6 +46,9 @@ typedef struct libmv_CameraIntrinsicsOptions {
 
   // Division distortion model.
   double division_k1, division_k2;
+
+  // Nuke distortion model.
+  double nuke_k1, nuke_k2;
 } libmv_CameraIntrinsicsOptions;
 
 libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(

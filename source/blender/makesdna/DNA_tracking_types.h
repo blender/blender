@@ -70,6 +70,9 @@ typedef struct MovieTrackingCamera {
 
   /* Division distortion model coefficients */
   float division_k1, division_k2;
+
+  /* Nuke distortion model coefficients */
+  float nuke_k1, nuke_k2;
 } MovieTrackingCamera;
 
 typedef struct MovieTrackingMarker {
@@ -455,6 +458,7 @@ typedef struct MovieTracking {
 enum {
   TRACKING_DISTORTION_MODEL_POLYNOMIAL = 0,
   TRACKING_DISTORTION_MODEL_DIVISION = 1,
+  TRACKING_DISTORTION_MODEL_NUKE = 2,
 };
 
 /* MovieTrackingCamera->units */

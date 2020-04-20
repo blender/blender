@@ -131,6 +131,8 @@ void CameraIntrinsics::ResetLookupGrids() {
   undistort_.Reset();
 }
 
+// Polynomial model.
+
 PolynomialCameraIntrinsics::PolynomialCameraIntrinsics()
     : CameraIntrinsics() {
   SetRadialDistortion(0.0, 0.0, 0.0);
@@ -193,6 +195,8 @@ void PolynomialCameraIntrinsics::InvertIntrinsics(
                                   normalized_y);
 }
 
+// Division model.
+
 DivisionCameraIntrinsics::DivisionCameraIntrinsics()
     : CameraIntrinsics() {
   SetDistortion(0.0, 0.0);
@@ -241,6 +245,57 @@ void DivisionCameraIntrinsics::InvertIntrinsics(double image_x,
                                 normalized_y);
 }
 
+// Nuke model.
+
+NukeCameraIntrinsics::NukeCameraIntrinsics()
+    : CameraIntrinsics() {
+  SetDistortion(0.0, 0.0);
+}
+
+NukeCameraIntrinsics::NukeCameraIntrinsics(
+    const NukeCameraIntrinsics &from)
+    : CameraIntrinsics(from) {
+  SetDistortion(from.k1(), from.k1());
+}
+
+void NukeCameraIntrinsics::SetDistortion(double k1, double k2) {
+  parameters_[OFFSET_K1] = k1;
+  parameters_[OFFSET_K2] = k2;
+  ResetLookupGrids();
+}
+
+void NukeCameraIntrinsics::ApplyIntrinsics(double normalized_x,
+                                           double normalized_y,
+                                           double *image_x,
+                                           double *image_y) const {
+  ApplyNukeDistortionModel(focal_length_x(),
+                           focal_length_y(),
+                           principal_point_x(),
+                           principal_point_y(),
+                           image_width(), image_height(),
+                           k1(), k2(),
+                           normalized_x,
+                           normalized_y,
+                           image_x,
+                           image_y);
+}
+
+void NukeCameraIntrinsics::InvertIntrinsics(double image_x,
+                                                double image_y,
+                                                double *normalized_x,
+                                                double *normalized_y) const {
+  InvertNukeDistortionModel(focal_length_x(),
+                            focal_length_y(),
+                            principal_point_x(),
+                            principal_point_y(),
+                            image_width(), image_height(),
+                            k1(), k2(),
+                            image_x,
+                            image_y,
+                            normalized_x,
+                            normalized_y);
+}
+
 std::ostream& operator <<(std::ostream &os,
                           const CameraIntrinsics &intrinsics) {
   if (intrinsics.focal_length_x() == intrinsics.focal_length_x()) {
@@ -279,6 +334,14 @@ std::ostream& operator <<(std::ostream &os,
             static_cast<const DivisionCameraIntrinsics *>(&intrinsics);
         PRINT_NONZERO_COEFFICIENT(division_intrinsics, k1);
         PRINT_NONZERO_COEFFICIENT(division_intrinsics, k2);
+        break;
+      }
+    case DISTORTION_MODEL_NUKE:
+      {
+        const NukeCameraIntrinsics *nuke_intrinsics =
+            static_cast<const NukeCameraIntrinsics *>(&intrinsics);
+        PRINT_NONZERO_COEFFICIENT(nuke_intrinsics, k1);
+        PRINT_NONZERO_COEFFICIENT(nuke_intrinsics, k2);
         break;
       }
     default:

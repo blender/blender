@@ -24,6 +24,7 @@
 using libmv::CameraIntrinsics;
 using libmv::DivisionCameraIntrinsics;
 using libmv::PolynomialCameraIntrinsics;
+using libmv::NukeCameraIntrinsics;
 
 libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(
     const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options) {
@@ -53,6 +54,14 @@ libmv_CameraIntrinsics *libmv_cameraIntrinsicsCopy(
           static_cast<const DivisionCameraIntrinsics*>(orig_intrinsics);
         new_intrinsics = LIBMV_OBJECT_NEW(DivisionCameraIntrinsics,
                                           *division_intrinsics);
+        break;
+      }
+    case libmv::DISTORTION_MODEL_NUKE:
+      {
+        const NukeCameraIntrinsics *nuke_intrinsics =
+          static_cast<const NukeCameraIntrinsics*>(orig_intrinsics);
+        new_intrinsics = LIBMV_OBJECT_NEW(NukeCameraIntrinsics,
+                                          *nuke_intrinsics);
         break;
       }
     default:
@@ -136,6 +145,25 @@ void libmv_cameraIntrinsicsUpdate(
         break;
       }
 
+    case LIBMV_DISTORTION_MODEL_NUKE:
+      {
+        assert(camera_intrinsics->GetDistortionModelType() ==
+               libmv::DISTORTION_MODEL_NUKE);
+
+        NukeCameraIntrinsics *nuke_intrinsics =
+          (NukeCameraIntrinsics *) camera_intrinsics;
+
+        double k1 = libmv_camera_intrinsics_options->nuke_k1;
+        double k2 = libmv_camera_intrinsics_options->nuke_k2;
+
+        if (nuke_intrinsics->k1() != k1 ||
+            nuke_intrinsics->k2() != k2) {
+          nuke_intrinsics->SetDistortion(k1, k2);
+        }
+
+        break;
+      }
+
     default:
       assert(!"Unknown distortion model");
   }
@@ -186,6 +214,17 @@ void libmv_cameraIntrinsicsExtractOptions(
           LIBMV_DISTORTION_MODEL_DIVISION;
         camera_intrinsics_options->division_k1 = division_intrinsics->k1();
         camera_intrinsics_options->division_k2 = division_intrinsics->k2();
+        break;
+      }
+
+    case libmv::DISTORTION_MODEL_NUKE:
+      {
+        const NukeCameraIntrinsics *nuke_intrinsics =
+          static_cast<const NukeCameraIntrinsics *>(camera_intrinsics);
+        camera_intrinsics_options->distortion_model =
+          LIBMV_DISTORTION_MODEL_NUKE;
+        camera_intrinsics_options->nuke_k1 = nuke_intrinsics->k1();
+        camera_intrinsics_options->nuke_k2 = nuke_intrinsics->k2();
         break;
       }
 
@@ -316,6 +355,17 @@ static void libmv_cameraIntrinsicsFillFromOptions(
         break;
       }
 
+    case LIBMV_DISTORTION_MODEL_NUKE:
+      {
+        NukeCameraIntrinsics *nuke_intrinsics =
+          static_cast<NukeCameraIntrinsics*>(camera_intrinsics);
+
+        nuke_intrinsics->SetDistortion(
+            camera_intrinsics_options->nuke_k1,
+            camera_intrinsics_options->nuke_k2);
+        break;
+      }
+
     default:
       assert(!"Unknown distortion model");
   }
@@ -330,6 +380,9 @@ CameraIntrinsics* libmv_cameraIntrinsicsCreateFromOptions(
       break;
     case LIBMV_DISTORTION_MODEL_DIVISION:
       camera_intrinsics = LIBMV_OBJECT_NEW(DivisionCameraIntrinsics);
+      break;
+    case LIBMV_DISTORTION_MODEL_NUKE:
+      camera_intrinsics = LIBMV_OBJECT_NEW(NukeCameraIntrinsics);
       break;
     default:
       assert(!"Unknown distortion model");

@@ -460,6 +460,7 @@ typedef struct MovieClipCache {
     float principal[2];
     float polynomial_k[3];
     float division_k[2];
+    float nuke_k[2];
     short distortion_model;
     bool undistortion_used;
 
@@ -908,6 +909,9 @@ static bool check_undistortion_cache_flags(const MovieClip *clip)
   if (!equals_v2v2(&camera->division_k1, cache->postprocessed.division_k)) {
     return false;
   }
+  if (!equals_v2v2(&camera->nuke_k1, cache->postprocessed.nuke_k)) {
+    return false;
+  }
 
   return true;
 }
@@ -1010,6 +1014,7 @@ static void put_postprocessed_frame_to_cache(
     copy_v2_v2(cache->postprocessed.principal, camera->principal);
     copy_v3_v3(cache->postprocessed.polynomial_k, &camera->k1);
     copy_v2_v2(cache->postprocessed.division_k, &camera->division_k1);
+    copy_v2_v2(cache->postprocessed.nuke_k, &camera->nuke_k1);
     cache->postprocessed.undistortion_used = true;
   }
   else {

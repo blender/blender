@@ -918,6 +918,10 @@ class CLIP_PT_tracking_lens(Panel):
             col = layout.column(align=True)
             col.prop(camera, "division_k1")
             col.prop(camera, "division_k2")
+        elif camera.distortion_model == 'NUKE':
+            col = layout.column(align=True)
+            col.prop(camera, "nuke_k1")
+            col.prop(camera, "nuke_k2")
 
 
 class CLIP_PT_marker(CLIP_PT_tracking_panel, Panel):

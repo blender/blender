@@ -276,7 +276,7 @@ class CameraIntrinsics {
 class PolynomialCameraIntrinsics : public CameraIntrinsics {
  public:
   // This constants defines an offset of corresponding coefficients
-  // in the arameters_ array.
+  // in the parameters_ array.
   enum {
     OFFSET_K1,
     OFFSET_K2,
@@ -342,7 +342,7 @@ class PolynomialCameraIntrinsics : public CameraIntrinsics {
 class DivisionCameraIntrinsics : public CameraIntrinsics {
  public:
   // This constants defines an offset of corresponding coefficients
-  // in the arameters_ array.
+  // in the parameters_ array.
   enum {
     OFFSET_K1,
     OFFSET_K2,
@@ -357,6 +357,60 @@ class DivisionCameraIntrinsics : public CameraIntrinsics {
 
   DistortionModelType GetDistortionModelType() const {
     return DISTORTION_MODEL_DIVISION;
+  }
+
+  int num_distortion_parameters() const { return NUM_PARAMETERS; }
+  double *distortion_parameters() { return parameters_; };
+  const double *distortion_parameters() const { return parameters_; };
+
+  double k1() const { return parameters_[OFFSET_K1]; }
+  double k2() const { return parameters_[OFFSET_K2]; }
+
+  // Set radial distortion coeffcients.
+  void SetDistortion(double k1, double k2);
+
+  // Apply camera intrinsics to the normalized point to get image coordinates.
+  //
+  // This applies the lens distortion to a point which is in normalized
+  // camera coordinates (i.e. the principal point is at (0, 0)) to get image
+  // coordinates in pixels.
+  void ApplyIntrinsics(double normalized_x,
+                       double normalized_y,
+                       double *image_x,
+                       double *image_y) const;
+
+  // Invert camera intrinsics on the image point to get normalized coordinates.
+  //
+  // This reverses the effect of lens distortion on a point which is in image
+  // coordinates to get normalized camera coordinates.
+  void InvertIntrinsics(double image_x,
+                        double image_y,
+                        double *normalized_x,
+                        double *normalized_y) const;
+
+ private:
+  // Double-parameter division distortion model.
+  double parameters_[NUM_PARAMETERS];
+};
+
+class NukeCameraIntrinsics : public CameraIntrinsics {
+ public:
+  // This constants defines an offset of corresponding coefficients
+  // in the parameters_ array.
+  enum {
+    OFFSET_K1,
+    OFFSET_K2,
+
+    // This defines the size of array which we need to have in order
+    // to store all the coefficients.
+    NUM_PARAMETERS,
+  };
+
+  NukeCameraIntrinsics();
+  NukeCameraIntrinsics(const NukeCameraIntrinsics &from);
+
+  DistortionModelType GetDistortionModelType() const {
+    return DISTORTION_MODEL_NUKE;
   }
 
   int num_distortion_parameters() const { return NUM_PARAMETERS; }

@@ -194,4 +194,96 @@ void InvertDivisionDistortionModel(const double focal_length_x,
   *normalized_y = normalized(1);
 }
 
+struct ApplyNukeIntrinsicsCostFunction {
+ public:
+  typedef Vec2 FMatrixType;
+  typedef Vec2 XMatrixType;
+
+  ApplyNukeIntrinsicsCostFunction(const double focal_length_x,
+                                  const double focal_length_y,
+                                  const double principal_point_x,
+                                  const double principal_point_y,
+                                  const int image_width,
+                                  const int image_height,
+                                  const double k1,
+                                  const double k2,
+                                  const double expected_normalized_x,
+                                  const double expected_normalized_y)
+    : focal_length_x_(focal_length_x),
+      focal_length_y_(focal_length_y),
+      principal_point_x_(principal_point_x),
+      principal_point_y_(principal_point_y),
+      image_width_(image_width),
+      image_height_(image_height),
+      k1_(k1), k2_(k2),
+      expected_normalized_x_(expected_normalized_x),
+      expected_normalized_y_(expected_normalized_y) {}
+
+  Vec2 operator()(const Vec2 &image_coordinate) const {
+    double actual_normalized_x, actual_normalized_y;
+
+    InvertNukeDistortionModel(focal_length_x_,
+                              focal_length_y_,
+                              principal_point_x_,
+                              principal_point_y_,
+                              image_width_, image_height_,
+                              k1_, k2_,
+                              image_coordinate(0), image_coordinate(1),
+                              &actual_normalized_x, &actual_normalized_y);
+
+    Vec2 fx;
+    fx << (actual_normalized_x - expected_normalized_x_),
+          (actual_normalized_y - expected_normalized_y_);
+    return fx;
+  }
+  double focal_length_x_;
+  double focal_length_y_;
+  double principal_point_x_;
+  double principal_point_y_;
+  int image_width_;
+  int image_height_;
+  double k1_, k2_;
+  double expected_normalized_x_, expected_normalized_y_;
+};
+
+void ApplyNukeDistortionModel(const double focal_length_x,
+                              const double focal_length_y,
+                              const double principal_point_x,
+                              const double principal_point_y,
+                              const int image_width,
+                              const int image_height,
+                              const double k1,
+                              const double k2,
+                              const double normalized_x,
+                              const double normalized_y,
+                              double *image_x,
+                              double *image_y) {
+  // Compute the initial guess. For a camera with no distortion, this will also
+  // be the final answer; the LM iteration will terminate immediately.
+  Vec2 image;
+  image(0) = normalized_x * focal_length_x + principal_point_x;
+  image(1) = normalized_y * focal_length_y + principal_point_y;
+
+  // TODO(sergey): Use Ceres minimizer instead.
+  typedef LevenbergMarquardt<ApplyNukeIntrinsicsCostFunction> Solver;
+
+  ApplyNukeIntrinsicsCostFunction intrinsics_cost(focal_length_x,
+                                                  focal_length_y,
+                                                  principal_point_x,
+                                                  principal_point_y,
+                                                  image_width,
+                                                  image_height,
+                                                  k1, k2,
+                                                  normalized_x, normalized_y);
+  Solver::SolverParameters params;
+  Solver solver(intrinsics_cost);
+
+  /*Solver::Results results =*/ solver.minimize(params, &image);
+
+  // TODO(keir): Better error handling.
+
+  *image_x = image(0);
+  *image_y = image(1);
+}
+
 }  // namespace libmv
