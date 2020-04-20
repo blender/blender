@@ -66,18 +66,82 @@ enum {
 
 namespace {
 
-// Cost functor which computes reprojection error of 3D point X
-// on camera defined by angle-axis rotation and it's translation
-// (which are in the same block due to optimization reasons).
+// Apply distorion model (aka distort the input) for the given input in the
+// normalized space.
+// Only use for distortion models which are analytically defined for their
+// Apply() function.
 //
-// This functor uses a radial distortion model.
-struct OpenCVReprojectionError {
-  OpenCVReprojectionError(const CameraIntrinsics *invariant_intrinsics,
-                          const double observed_x,
-                          const double observed_y,
-                          const double weight)
+// The invariant_intrinsics are used to access intrinsics which are never
+// packed into their parameter block: for example, image dimension.
+template<typename T>
+void ApplyIntrinsicsOnNormalizedPoint(
+    const CameraIntrinsics * invariant_intrinsics,
+    const T* const intrinsics,
+    const T& normalized_x, const T& normalized_y,
+    T* distorted_x, T* distorted_y) {
+  // Unpack the intrinsics.
+  const T& focal_length      = intrinsics[OFFSET_FOCAL_LENGTH];
+  const T& principal_point_x = intrinsics[OFFSET_PRINCIPAL_POINT_X];
+  const T& principal_point_y = intrinsics[OFFSET_PRINCIPAL_POINT_Y];
+
+  // Apply distortion to the normalized points to get (xd, yd).
+  //
+  // TODO(keir): Do early bailouts for zero distortion; these are expensive
+  // jet operations.
+  switch (invariant_intrinsics->GetDistortionModelType()) {
+    case DISTORTION_MODEL_POLYNOMIAL:
+      {
+        const T& k1 = intrinsics[OFFSET_K1];
+        const T& k2 = intrinsics[OFFSET_K2];
+        const T& k3 = intrinsics[OFFSET_K3];
+        const T& p1 = intrinsics[OFFSET_P1];
+        const T& p2 = intrinsics[OFFSET_P2];
+
+        ApplyPolynomialDistortionModel(focal_length,
+                                       focal_length,
+                                       principal_point_x,
+                                       principal_point_y,
+                                       k1, k2, k3,
+                                       p1, p2,
+                                       normalized_x, normalized_y,
+                                       distorted_x, distorted_y);
+        return;
+      }
+
+    case DISTORTION_MODEL_DIVISION:
+      {
+        const T& k1 = intrinsics[OFFSET_K1];
+        const T& k2 = intrinsics[OFFSET_K2];
+
+        ApplyDivisionDistortionModel(focal_length,
+                                     focal_length,
+                                     principal_point_x,
+                                     principal_point_y,
+                                     k1, k2,
+                                     normalized_x, normalized_y,
+                                     distorted_x, distorted_y);
+        return;
+      }
+  }
+
+  LOG(FATAL) << "Unknown distortion model.";
+}
+
+// Cost functor which computes reprojection error of 3D point X on camera
+// defined by angle-axis rotation and it's translation (which are in the same
+// block due to optimization reasons).
+//
+// This functor can only be used for distortion models which have analytically
+// defined Apply() function.
+struct OpenCVReprojectionErrorApplyIntrinsics {
+  OpenCVReprojectionErrorApplyIntrinsics(
+      const CameraIntrinsics *invariant_intrinsics,
+      const double observed_distorted_x,
+      const double observed_distorted_y,
+      const double weight)
       : invariant_intrinsics_(invariant_intrinsics),
-        observed_x_(observed_x), observed_y_(observed_y),
+        observed_distorted_x_(observed_distorted_x),
+        observed_distorted_y_(observed_distorted_y),
         weight_(weight) {}
 
   template <typename T>
@@ -86,11 +150,6 @@ struct OpenCVReprojectionError {
                                        // followed with translation
                   const T* const X,    // Point coordinates 3x1.
                   T* residuals) const {
-    // Unpack the intrinsics.
-    const T& focal_length      = intrinsics[OFFSET_FOCAL_LENGTH];
-    const T& principal_point_x = intrinsics[OFFSET_PRINCIPAL_POINT_X];
-    const T& principal_point_y = intrinsics[OFFSET_PRINCIPAL_POINT_Y];
-
     // Compute projective coordinates: x = RX + t.
     T x[3];
 
@@ -108,59 +167,22 @@ struct OpenCVReprojectionError {
     T xn = x[0] / x[2];
     T yn = x[1] / x[2];
 
-    T predicted_x, predicted_y;
-
-    // Apply distortion to the normalized points to get (xd, yd).
-    // TODO(keir): Do early bailouts for zero distortion; these are expensive
-    // jet operations.
-    switch (invariant_intrinsics_->GetDistortionModelType()) {
-      case DISTORTION_MODEL_POLYNOMIAL:
-        {
-          const T& k1 = intrinsics[OFFSET_K1];
-          const T& k2 = intrinsics[OFFSET_K2];
-          const T& k3 = intrinsics[OFFSET_K3];
-          const T& p1 = intrinsics[OFFSET_P1];
-          const T& p2 = intrinsics[OFFSET_P2];
-
-          ApplyPolynomialDistortionModel(focal_length,
-                                         focal_length,
-                                         principal_point_x,
-                                         principal_point_y,
-                                         k1, k2, k3,
-                                         p1, p2,
-                                         xn, yn,
-                                         &predicted_x,
-                                         &predicted_y);
-          break;
-        }
-      case DISTORTION_MODEL_DIVISION:
-        {
-          const T& k1 = intrinsics[OFFSET_K1];
-          const T& k2 = intrinsics[OFFSET_K2];
-
-          ApplyDivisionDistortionModel(focal_length,
-                                       focal_length,
-                                       principal_point_x,
-                                       principal_point_y,
-                                       k1, k2,
-                                       xn, yn,
-                                       &predicted_x,
-                                       &predicted_y);
-          break;
-        }
-      default:
-        LOG(FATAL) << "Unknown distortion model";
-    }
+    T predicted_distorted_x, predicted_distorted_y;
+    ApplyIntrinsicsOnNormalizedPoint(
+        invariant_intrinsics_,
+        intrinsics,
+        xn, yn,
+        &predicted_distorted_x, &predicted_distorted_y);
 
     // The error is the difference between the predicted and observed position.
-    residuals[0] = (predicted_x - T(observed_x_)) * weight_;
-    residuals[1] = (predicted_y - T(observed_y_)) * weight_;
+    residuals[0] = (predicted_distorted_x - T(observed_distorted_x_)) * weight_;
+    residuals[1] = (predicted_distorted_y - T(observed_distorted_y_)) * weight_;
     return true;
   }
 
   const CameraIntrinsics *invariant_intrinsics_;
-  const double observed_x_;
-  const double observed_y_;
+  const double observed_distorted_x_;
+  const double observed_distorted_y_;
   const double weight_;
 };
 
@@ -397,8 +419,8 @@ void EuclideanBundlePointsOnly(const CameraIntrinsics *invariant_intrinsics,
     double *current_camera_R_t = &all_cameras_R_t[camera->image](0);
 
     problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-        OpenCVReprojectionError, 2, OFFSET_MAX, 6, 3>(
-            new OpenCVReprojectionError(
+        OpenCVReprojectionErrorApplyIntrinsics, 2, OFFSET_MAX, 6, 3>(
+            new OpenCVReprojectionErrorApplyIntrinsics(
                 invariant_intrinsics,
                 marker.x,
                 marker.y,
@@ -517,8 +539,8 @@ void EuclideanBundleCommonIntrinsics(
     // This way ceres is not gonna to go crazy.
     if (marker.weight != 0.0) {
       problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-          OpenCVReprojectionError, 2, OFFSET_MAX, 6, 3>(
-              new OpenCVReprojectionError(
+          OpenCVReprojectionErrorApplyIntrinsics, 2, OFFSET_MAX, 6, 3>(
+              new OpenCVReprojectionErrorApplyIntrinsics(
                   intrinsics,
                   marker.x,
                   marker.y,
