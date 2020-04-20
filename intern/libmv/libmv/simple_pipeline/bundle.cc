@@ -72,11 +72,11 @@ namespace {
 //
 // This functor uses a radial distortion model.
 struct OpenCVReprojectionError {
-  OpenCVReprojectionError(const DistortionModelType distortion_model,
+  OpenCVReprojectionError(const CameraIntrinsics *invariant_intrinsics,
                           const double observed_x,
                           const double observed_y,
                           const double weight)
-      : distortion_model_(distortion_model),
+      : invariant_intrinsics_(invariant_intrinsics),
         observed_x_(observed_x), observed_y_(observed_y),
         weight_(weight) {}
 
@@ -113,7 +113,7 @@ struct OpenCVReprojectionError {
     // Apply distortion to the normalized points to get (xd, yd).
     // TODO(keir): Do early bailouts for zero distortion; these are expensive
     // jet operations.
-    switch (distortion_model_) {
+    switch (invariant_intrinsics_->GetDistortionModelType()) {
       case DISTORTION_MODEL_POLYNOMIAL:
         {
           const T& k1 = intrinsics[OFFSET_K1];
@@ -158,7 +158,7 @@ struct OpenCVReprojectionError {
     return true;
   }
 
-  const DistortionModelType distortion_model_;
+  const CameraIntrinsics *invariant_intrinsics_;
   const double observed_x_;
   const double observed_y_;
   const double weight_;
@@ -376,7 +376,7 @@ void EuclideanBundlerPerformEvaluation(const Tracks &tracks,
 //
 // At this point we only need to bundle points positions, cameras
 // are to be totally still here.
-void EuclideanBundlePointsOnly(const DistortionModelType distortion_model,
+void EuclideanBundlePointsOnly(const CameraIntrinsics *invariant_intrinsics,
                                const vector<Marker> &markers,
                                vector<Vec6> &all_cameras_R_t,
                                double ceres_intrinsics[OFFSET_MAX],
@@ -399,7 +399,7 @@ void EuclideanBundlePointsOnly(const DistortionModelType distortion_model,
     problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
         OpenCVReprojectionError, 2, OFFSET_MAX, 6, 3>(
             new OpenCVReprojectionError(
-                distortion_model,
+                invariant_intrinsics,
                 marker.x,
                 marker.y,
                 1.0)),
@@ -439,7 +439,6 @@ void EuclideanBundlePointsOnly(const DistortionModelType distortion_model,
   ceres::Solve(options, &problem, &summary);
 
   LG << "Final report:\n" << summary.FullReport();
-
 }
 
 }  // namespace
@@ -520,7 +519,7 @@ void EuclideanBundleCommonIntrinsics(
       problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
           OpenCVReprojectionError, 2, OFFSET_MAX, 6, 3>(
               new OpenCVReprojectionError(
-                  intrinsics->GetDistortionModelType(),
+                  intrinsics,
                   marker.x,
                   marker.y,
                   marker.weight)),
@@ -642,7 +641,7 @@ void EuclideanBundleCommonIntrinsics(
 
   if (zero_weight_markers.size()) {
     LG << "Refining position of constant zero-weighted tracks";
-    EuclideanBundlePointsOnly(intrinsics->GetDistortionModelType(),
+    EuclideanBundlePointsOnly(intrinsics,
                               zero_weight_markers,
                               all_cameras_R_t,
                               ceres_intrinsics,
