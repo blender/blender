@@ -1514,9 +1514,12 @@ static void sculpt_update_object(
     ss->totvert = me_eval->totvert;
     ss->totpoly = me_eval->totpoly;
     ss->totfaces = me->totpoly;
-    ss->mvert = NULL;
-    ss->mpoly = NULL;
-    ss->mloop = NULL;
+
+    /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
+     * and tools use the Face Sets data from the base mesh when Multires is active. */
+    ss->mvert = me->mvert;
+    ss->mpoly = me->mpoly;
+    ss->mloop = me->mloop;
   }
   else {
     ss->totvert = me->totvert;
