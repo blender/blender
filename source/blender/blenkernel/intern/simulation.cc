@@ -56,17 +56,6 @@ static void simulation_copy_data(Main *UNUSED(bmain),
 {
 }
 
-static void simulation_make_local(Main *bmain, ID *id, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, id, flags);
-}
-
-static void simulation_free_data(ID *id)
-{
-  Simulation *simulation = (Simulation *)id;
-  BKE_animdata_free(&simulation->id, false);
-}
-
 void *BKE_simulation_add(Main *bmain, const char *name)
 {
   Simulation *simulation = (Simulation *)BKE_libblock_alloc(bmain, ID_SIM, name, 0);
@@ -88,6 +77,6 @@ IDTypeInfo IDType_ID_SIM = {
 
     /* init_data */ simulation_init_data,
     /* copy_data */ simulation_copy_data,
-    /* free_data */ simulation_free_data,
-    /* make_local */ simulation_make_local,
+    /* free_data */ nullptr,
+    /* make_local */ nullptr,
 };
