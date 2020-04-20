@@ -134,7 +134,7 @@ void register_node_type_sh_vect_math(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VECTOR_MATH, "Vector Math", NODE_CLASS_OP_VECTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_MATH, "Vector Math", NODE_CLASS_OP_VECTOR, 0);
   node_type_socket_templates(&ntype, sh_node_vector_math_in, sh_node_vector_math_out);
   node_type_label(&ntype, node_vector_math_label);
   node_type_gpu(&ntype, gpu_shader_vector_math);

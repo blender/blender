@@ -81,7 +81,7 @@ void register_node_type_sh_map_range(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTOR, 0);
   node_type_socket_templates(&ntype, sh_node_map_range_in, sh_node_map_range_out);
   node_type_init(&ntype, node_shader_init_map_range);
   node_type_update(&ntype, node_shader_update_map_range);

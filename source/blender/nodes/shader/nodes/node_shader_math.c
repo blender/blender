@@ -105,7 +105,7 @@ void register_node_type_sh_math(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, 0);
   node_type_socket_templates(&ntype, sh_node_math_in, sh_node_math_out);
   node_type_label(&ntype, node_math_label);
   node_type_gpu(&ntype, gpu_shader_math);

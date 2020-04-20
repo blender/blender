@@ -32,6 +32,11 @@ bool sh_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
   return STREQ(ntree->idname, "ShaderNodeTree");
 }
 
+static bool sh_fn_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+{
+  return STREQ(ntree->idname, "ShaderNodeTree") || STREQ(ntree->idname, "SimulationNodeTree");
+}
+
 void sh_node_type_base(
     struct bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
@@ -40,6 +45,12 @@ void sh_node_type_base(
   ntype->poll = sh_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->update_internal_links = node_update_internal_links_default;
+}
+
+void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
+{
+  sh_node_type_base(ntype, type, name, nclass, flag);
+  ntype->poll = sh_fn_poll_default;
 }
 
 /* ****** */

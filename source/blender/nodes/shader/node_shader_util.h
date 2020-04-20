@@ -72,6 +72,8 @@
 bool sh_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
 void sh_node_type_base(
     struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void sh_fn_node_type_base(
+    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
 
 /* ********* exec data struct, remains internal *********** */
 
