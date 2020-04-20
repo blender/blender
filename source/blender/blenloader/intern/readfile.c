@@ -3626,6 +3626,10 @@ static void lib_link_node_socket(FileData *fd, Library *lib, bNodeSocket *sock)
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_EMITTERS:
+    case SOCK_EVENTS:
+    case SOCK_FORCES:
+    case SOCK_CONTROL_FLOW:
       break;
   }
 }
@@ -11012,6 +11016,10 @@ static void expand_node_socket(FileData *fd, Main *mainvar, bNodeSocket *sock)
       case __SOCK_MESH:
       case SOCK_CUSTOM:
       case SOCK_SHADER:
+      case SOCK_EMITTERS:
+      case SOCK_EVENTS:
+      case SOCK_FORCES:
+      case SOCK_CONTROL_FLOW:
         break;
     }
   }

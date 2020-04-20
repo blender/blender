@@ -229,6 +229,10 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_EMITTERS:
+    case SOCK_EVENTS:
+    case SOCK_FORCES:
+    case SOCK_CONTROL_FLOW:
       break;
   }
 

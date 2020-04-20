@@ -1000,6 +1000,10 @@ static void write_node_socket_default_value(WriteData *wd, bNodeSocket *sock)
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_EMITTERS:
+    case SOCK_EVENTS:
+    case SOCK_FORCES:
+    case SOCK_CONTROL_FLOW:
       BLI_assert(false);
       break;
   }
