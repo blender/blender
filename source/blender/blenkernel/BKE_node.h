@@ -1283,6 +1283,25 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
                      struct MTex *mtex);
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Simulation Nodes
+ * \{ */
+
+#define SIM_NODE_PARTICLE_SIMULATION 1000
+#define SIM_NODE_FORCE 1001
+#define SIM_NODE_SET_PARTICLE_ATTRIBUTE 1002
+#define SIM_NODE_PARTICLE_BIRTH_EVENT 1003
+#define SIM_NODE_PARTICLE_TIME_STEP_EVENT 1004
+#define SIM_NODE_EXECUTE_CONDITION 1005
+#define SIM_NODE_MULTI_EXECUTE 1006
+#define SIM_NODE_PARTICLE_MESH_EMITTER 1007
+#define SIM_NODE_PARTICLE_MESH_COLLISION_EVENT 1008
+#define SIM_NODE_EMIT_PARTICLES 1009
+#define SIM_NODE_TIME 1010
+#define SIM_NODE_PARTICLE_ATTRIBUTE 1011
+
+/** \} */
+
 void init_nodesystem(void);
 void free_nodesystem(void);
 

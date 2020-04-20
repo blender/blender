@@ -1400,4 +1400,16 @@ typedef enum NodeShaderOutputTarget {
   SHD_OUTPUT_CYCLES = 2,
 } NodeShaderOutputTarget;
 
+/* Particle Time Step Event node */
+typedef enum NodeSimParticleTimeStepEventType {
+  NODE_PARTICLE_TIME_STEP_EVENT_BEGIN = 0,
+  NODE_PARTICLE_TIME_STEP_EVENT_END = 1,
+} NodeSimParticleTimeStepEventType;
+
+/* Simulation Time node */
+typedef enum NodeSimInputTimeType {
+  NODE_SIM_INPUT_SIMULATION_TIME = 0,
+  NODE_SIM_INPUT_SCENE_TIME = 1,
+} NodeSimInputTimeType;
+
 #endif

@@ -477,6 +477,30 @@ texture_node_categories = [
 
 simulation_node_categories = [
     # Simulation Nodes
+    SimulationNodeCategory("SIM_OUTPUT", "Output", items=[
+        NodeItem("SimulationNodeParticleSimulation"),
+    ]),
+    SimulationNodeCategory("SIM_INPUTS", "Input", items=[
+        NodeItem("SimulationNodeTime"),
+        NodeItem("SimulationNodeParticleAttribute"),
+    ]),
+    SimulationNodeCategory("SIM_EMITTERS", "Emitters", items=[
+        NodeItem("SimulationNodeParticleMeshEmitter"),
+        NodeItem("SimulationNodeEmitParticles"),
+    ]),
+    SimulationNodeCategory("SIM_EVENTS", "Events", items=[
+        NodeItem("SimulationNodeParticleBirthEvent"),
+        NodeItem("SimulationNodeParticleTimeStepEvent"),
+        NodeItem("SimulationNodeParticleMeshCollisionEvent"),
+    ]),
+    SimulationNodeCategory("SIM_FORCES", "Forces", items=[
+        NodeItem("SimulationNodeForce"),
+    ]),
+    SimulationNodeCategory("SIM_EXECUTE", "Execute", items=[
+        NodeItem("SimulationNodeSetParticleAttribute"),
+        NodeItem("SimulationNodeExecuteCondition"),
+        NodeItem("SimulationNodeMultiExecute"),
+    ]),
     SimulationNodeCategory("SIM_GROUP", "Group", items=node_group_items),
     SimulationNodeCategory("SIM_LAYOUT", "Layout", items=[
         NodeItem("NodeFrame"),

@@ -258,6 +258,19 @@ DefNode(TextureNode,    TEX_NODE_PROC+TEX_NOISE, 0,                      "TEX_NO
 DefNode(TextureNode,    TEX_NODE_PROC+TEX_STUCCI, 0,                     "TEX_STUCCI",     TexStucci,        "Stucci",            ""              )
 DefNode(TextureNode,    TEX_NODE_PROC+TEX_DISTNOISE, 0,                  "TEX_DISTNOISE",  TexDistNoise,     "Distorted Noise",   ""              )
 
+DefNode(SimulationNode, SIM_NODE_PARTICLE_SIMULATION, 0,                 "PARTICLE_SIMULATION", ParticleSimulation, "Particle Simulation", "")
+DefNode(SimulationNode, SIM_NODE_FORCE,        0,                        "FORCE",               Force,              "Force",               "")
+DefNode(SimulationNode, SIM_NODE_SET_PARTICLE_ATTRIBUTE, def_sim_set_particle_attribute, "SET_PARTICLE_ATTRIBUTE", SetParticleAttribute, "Set Particle Attribute", "")
+DefNode(SimulationNode, SIM_NODE_PARTICLE_BIRTH_EVENT,   0,              "PARTICLE_BIRTH_EVENT",   ParticleBirthEvent,   "Particle Birth Event",   "")
+DefNode(SimulationNode, SIM_NODE_PARTICLE_TIME_STEP_EVENT, def_sim_particle_time_step_event, "PARTICLE_TIME_STEP_EVENT", ParticleTimeStepEvent, "Particle Time Step Event", "")
+DefNode(SimulationNode, SIM_NODE_EXECUTE_CONDITION,   0,                 "EXECUTE_CONDITION",   ExecuteCondition,   "Execute Condition",    "")
+DefNode(SimulationNode, SIM_NODE_MULTI_EXECUTE,       0,                 "MULTI_EXECUTE",       MultiExecute,       "Multi Execute",        "")
+DefNode(SimulationNode, SIM_NODE_PARTICLE_MESH_EMITTER,  0,              "PARTICLE_MESH_EMITTER",  ParticleMeshEmitter,  "Particle Mesh Emitter", "")
+DefNode(SimulationNode, SIM_NODE_PARTICLE_MESH_COLLISION_EVENT, 0,       "PARTICLE_MESH_COLLISION_EVENT", ParticleMeshCollisionEvent, "Particle Mesh Collision Event", "")
+DefNode(SimulationNode, SIM_NODE_EMIT_PARTICLES, 0,                      "EMIT_PARTICLES",      EmitParticles,      "Emit Particles",       "")
+DefNode(SimulationNode, SIM_NODE_TIME,           def_sim_time,           "TIME",                Time,               "Time",                 "")
+DefNode(SimulationNode, SIM_NODE_PARTICLE_ATTRIBUTE, def_sim_particle_attribute, "PARTICLE_ATTRIBUTE",  ParticleAttribute,  "Particle Attribute",   "")
+
 /* undefine macros */
 #undef DefNode
 

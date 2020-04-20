@@ -4227,6 +4227,19 @@ static void registerTextureNodes(void)
 static void registerSimulationNodes(void)
 {
   register_node_type_sim_group();
+
+  register_node_type_sim_particle_simulation();
+  register_node_type_sim_force();
+  register_node_type_sim_set_particle_attribute();
+  register_node_type_sim_particle_birth_event();
+  register_node_type_sim_particle_time_step_event();
+  register_node_type_sim_execute_condition();
+  register_node_type_sim_multi_execute();
+  register_node_type_sim_particle_mesh_emitter();
+  register_node_type_sim_particle_mesh_collision_event();
+  register_node_type_sim_emit_particles();
+  register_node_type_sim_time();
+  register_node_type_sim_particle_attribute();
 }
 
 void init_nodesystem(void)
