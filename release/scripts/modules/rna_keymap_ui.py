@@ -161,7 +161,12 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
     if (not kmi.is_user_defined) and kmi.is_user_modified:
         row.operator("preferences.keyitem_restore", text="", icon='BACK').item_id = kmi.id
     else:
-        row.operator("preferences.keyitem_remove", text="", icon='X').item_id = kmi.id
+        row.operator(
+            "preferences.keyitem_remove",
+            text="",
+            # Abusing the tracking icon, but it works pretty well here.
+            icon=('TRACKING_CLEAR_BACKWARDS' if kmi.is_user_defined else 'X')
+        ).item_id = kmi.id
 
     # Expanded, additional event settings
     if kmi.show_expanded:
