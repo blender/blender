@@ -533,6 +533,9 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
                                            orig_data.co,
                                            alpha);
       madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
+      if (vd.mvert) {
+        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      }
     }
     BKE_pbvh_vertex_iter_end;
   }
