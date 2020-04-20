@@ -2012,9 +2012,11 @@ Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
                 if (ed->crease > max_crease) {
                   max_crease = ed->crease;
                 }
-                char bweight = medge[g->edges[k]->new_edge].bweight;
-                if (bweight > max_bweight) {
-                  max_bweight = bweight;
+                if (g->edges[k]->new_edge != MOD_SOLIDIFY_EMPTY_TAG) {
+                  char bweight = medge[g->edges[k]->new_edge].bweight;
+                  if (bweight > max_bweight) {
+                    max_bweight = bweight;
+                  }
                 }
                 flag |= ed->flag;
               }
