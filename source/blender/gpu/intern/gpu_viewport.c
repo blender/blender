@@ -74,7 +74,7 @@ struct GPUViewportBatch {
     rctf rect_pos;
     rctf rect_uv;
   } last_used_parameters;
-} GPUViewportBatch;
+};
 
 static struct {
   GPUVertFormat format;
