@@ -154,6 +154,8 @@ typedef enum eNodeSocketDatatype {
   __SOCK_MESH = 5, /* deprecated */
   SOCK_INT = 6,
   SOCK_STRING = 7,
+  SOCK_OBJECT = 8,
+  SOCK_IMAGE = 9,
 } eNodeSocketDatatype;
 
 /* socket shape */
@@ -565,6 +567,14 @@ typedef struct bNodeSocketValueString {
   /** 1024 = FILEMAX. */
   char value[1024];
 } bNodeSocketValueString;
+
+typedef struct bNodeSocketValueObject {
+  struct Object *value;
+} bNodeSocketValueObject;
+
+typedef struct bNodeSocketValueImage {
+  struct Image *value;
+} bNodeSocketValueImage;
 
 /* data structs, for node->storage */
 enum {

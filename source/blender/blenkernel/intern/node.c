@@ -88,7 +88,9 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo);
 static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag);
 static void free_localized_node_groups(bNodeTree *ntree);
 static void node_free_node(bNodeTree *ntree, bNode *node);
-static void node_socket_interface_free(bNodeTree *UNUSED(ntree), bNodeSocket *sock);
+static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
+                                       bNodeSocket *sock,
+                                       const bool do_id_user);
 
 static void ntree_init_data(ID *id)
 {
@@ -231,12 +233,12 @@ static void ntree_free_data(ID *id)
   /* free interface sockets */
   for (sock = ntree->inputs.first; sock; sock = nextsock) {
     nextsock = sock->next;
-    node_socket_interface_free(ntree, sock);
+    node_socket_interface_free(ntree, sock, false);
     MEM_freeN(sock);
   }
   for (sock = ntree->outputs.first; sock; sock = nextsock) {
     nextsock = sock->next;
-    node_socket_interface_free(ntree, sock);
+    node_socket_interface_free(ntree, sock, false);
     MEM_freeN(sock);
   }
 
@@ -746,6 +748,58 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   return sock;
 }
 
+static void socket_id_user_increment(bNodeSocket *sock)
+{
+  switch ((eNodeSocketDatatype)sock->type) {
+    case SOCK_OBJECT: {
+      bNodeSocketValueObject *default_value = sock->default_value;
+      id_us_plus(&default_value->value->id);
+      break;
+    }
+    case SOCK_IMAGE: {
+      bNodeSocketValueImage *default_value = sock->default_value;
+      id_us_plus(&default_value->value->id);
+      break;
+    }
+    case SOCK_FLOAT:
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+    case SOCK_STRING:
+    case __SOCK_MESH:
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+      break;
+  }
+}
+
+static void socket_id_user_decrement(bNodeSocket *sock)
+{
+  switch ((eNodeSocketDatatype)sock->type) {
+    case SOCK_OBJECT: {
+      bNodeSocketValueObject *default_value = sock->default_value;
+      id_us_min(&default_value->value->id);
+      break;
+    }
+    case SOCK_IMAGE: {
+      bNodeSocketValueImage *default_value = sock->default_value;
+      id_us_min(&default_value->value->id);
+      break;
+    }
+    case SOCK_FLOAT:
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+    case SOCK_STRING:
+    case __SOCK_MESH:
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+      break;
+  }
+}
+
 void nodeModifySocketType(
     bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock, int type, int subtype)
 {
@@ -757,6 +811,7 @@ void nodeModifySocketType(
   }
 
   if (sock->default_value) {
+    socket_id_user_decrement(sock);
     MEM_freeN(sock->default_value);
     sock->default_value = NULL;
   }
@@ -860,6 +915,10 @@ const char *nodeStaticSocketType(int type, int subtype)
       return "NodeSocketString";
     case SOCK_SHADER:
       return "NodeSocketShader";
+    case SOCK_OBJECT:
+      return "NodeSocketObject";
+    case SOCK_IMAGE:
+      return "NodeSocketImage";
   }
   return NULL;
 }
@@ -921,6 +980,10 @@ const char *nodeStaticSocketInterfaceType(int type, int subtype)
       return "NodeSocketInterfaceString";
     case SOCK_SHADER:
       return "NodeSocketInterfaceShader";
+    case SOCK_OBJECT:
+      return "NodeSocketInterfaceObject";
+    case SOCK_IMAGE:
+      return "NodeSocketInterfaceImage";
   }
   return NULL;
 }
@@ -979,6 +1042,9 @@ static void node_socket_free(bNodeTree *UNUSED(ntree),
   }
 
   if (sock->default_value) {
+    if (do_id_user) {
+      socket_id_user_decrement(sock);
+    }
     MEM_freeN(sock->default_value);
   }
 }
@@ -1265,6 +1331,10 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
 
   if (sock_src->default_value) {
     sock_dst->default_value = MEM_dupallocN(sock_src->default_value);
+
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      socket_id_user_increment(sock_dst);
+    }
   }
 
   sock_dst->stack_index = 0;
@@ -2085,6 +2155,13 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
     if (node->id) {
       id_us_min(node->id);
     }
+
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+      socket_id_user_decrement(sock);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+      socket_id_user_decrement(sock);
+    }
   }
 
   /* Remove animation data. */
@@ -2104,13 +2181,18 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
   node_free_node(ntree, node);
 }
 
-static void node_socket_interface_free(bNodeTree *UNUSED(ntree), bNodeSocket *sock)
+static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
+                                       bNodeSocket *sock,
+                                       const bool do_id_user)
 {
   if (sock->prop) {
-    IDP_FreeProperty(sock->prop);
+    IDP_FreeProperty_ex(sock->prop, do_id_user);
   }
 
   if (sock->default_value) {
+    if (do_id_user) {
+      socket_id_user_decrement(sock);
+    }
     MEM_freeN(sock->default_value);
   }
 }
@@ -2533,7 +2615,7 @@ void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock)
   BLI_remlink(&ntree->inputs, sock);
   BLI_remlink(&ntree->outputs, sock);
 
-  node_socket_interface_free(ntree, sock);
+  node_socket_interface_free(ntree, sock, true);
   MEM_freeN(sock);
 
   ntree->update |= NTREE_UPDATE_GROUP;

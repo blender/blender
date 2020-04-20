@@ -991,6 +991,12 @@ static void write_node_socket_default_value(WriteData *wd, bNodeSocket *sock)
     case SOCK_STRING:
       writestruct(wd, DATA, bNodeSocketValueString, 1, sock->default_value);
       break;
+    case SOCK_OBJECT:
+      writestruct(wd, DATA, bNodeSocketValueObject, 1, sock->default_value);
+      break;
+    case SOCK_IMAGE:
+      writestruct(wd, DATA, bNodeSocketValueImage, 1, sock->default_value);
+      break;
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:

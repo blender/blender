@@ -3602,6 +3602,41 @@ static void lib_link_workspace_instance_hook(FileData *fd, WorkSpaceInstanceHook
 /** \name Read ID: Node Tree
  * \{ */
 
+static void lib_link_node_socket(FileData *fd, Library *lib, bNodeSocket *sock)
+{
+  IDP_LibLinkProperty(sock->prop, fd);
+
+  switch ((eNodeSocketDatatype)sock->type) {
+    case SOCK_OBJECT: {
+      bNodeSocketValueObject *default_value = sock->default_value;
+      default_value->value = newlibadr(fd, lib, default_value->value);
+      break;
+    }
+    case SOCK_IMAGE: {
+      bNodeSocketValueImage *default_value = sock->default_value;
+      default_value->value = newlibadr(fd, lib, default_value->value);
+      break;
+    }
+    case SOCK_FLOAT:
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+    case SOCK_STRING:
+    case __SOCK_MESH:
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+      break;
+  }
+}
+
+static void lib_link_node_sockets(FileData *fd, Library *lib, ListBase *sockets)
+{
+  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
+    lib_link_node_socket(fd, lib, sock);
+  }
+}
+
 /* Single node tree (also used for material/scene trees), ntree is not NULL */
 static void lib_link_ntree(FileData *fd, Library *lib, bNodeTree *ntree)
 {
@@ -3616,20 +3651,12 @@ static void lib_link_ntree(FileData *fd, Library *lib, bNodeTree *ntree)
 
     node->id = newlibadr(fd, lib, node->id);
 
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      IDP_LibLinkProperty(sock->prop, fd);
-    }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      IDP_LibLinkProperty(sock->prop, fd);
-    }
+    lib_link_node_sockets(fd, lib, &node->inputs);
+    lib_link_node_sockets(fd, lib, &node->outputs);
   }
 
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
-    IDP_LibLinkProperty(sock->prop, fd);
-  }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
-    IDP_LibLinkProperty(sock->prop, fd);
-  }
+  lib_link_node_sockets(fd, lib, &ntree->inputs);
+  lib_link_node_sockets(fd, lib, &ntree->outputs);
 
   /* Set node->typeinfo pointers. This is done in lib linking, after the
    * first versioning that can change types still without functions that
@@ -10959,10 +10986,47 @@ static void expand_key(FileData *fd, Main *mainvar, Key *key)
   expand_doit(fd, mainvar, key->ipo);  // XXX deprecated - old animation system
 }
 
+static void expand_node_socket(FileData *fd, Main *mainvar, bNodeSocket *sock)
+{
+  expand_idprops(fd, mainvar, sock->prop);
+
+  if (sock->default_value != NULL) {
+
+    switch ((eNodeSocketDatatype)sock->type) {
+      case SOCK_OBJECT: {
+        bNodeSocketValueObject *default_value = sock->default_value;
+        expand_doit(fd, mainvar, default_value->value);
+        break;
+      }
+      case SOCK_IMAGE: {
+        bNodeSocketValueImage *default_value = sock->default_value;
+        expand_doit(fd, mainvar, default_value->value);
+        break;
+      }
+      case SOCK_FLOAT:
+      case SOCK_VECTOR:
+      case SOCK_RGBA:
+      case SOCK_BOOLEAN:
+      case SOCK_INT:
+      case SOCK_STRING:
+      case __SOCK_MESH:
+      case SOCK_CUSTOM:
+      case SOCK_SHADER:
+        break;
+    }
+  }
+}
+
+static void expand_node_sockets(FileData *fd, Main *mainvar, ListBase *sockets)
+{
+  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
+    expand_node_socket(fd, mainvar, sock);
+  }
+}
+
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 {
   bNode *node;
-  bNodeSocket *sock;
 
   if (ntree->gpd) {
     expand_doit(fd, mainvar, ntree->gpd);
@@ -10975,20 +11039,12 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 
     expand_idprops(fd, mainvar, node->prop);
 
-    for (sock = node->inputs.first; sock; sock = sock->next) {
-      expand_idprops(fd, mainvar, sock->prop);
-    }
-    for (sock = node->outputs.first; sock; sock = sock->next) {
-      expand_idprops(fd, mainvar, sock->prop);
-    }
+    expand_node_sockets(fd, mainvar, &node->inputs);
+    expand_node_sockets(fd, mainvar, &node->outputs);
   }
 
-  for (sock = ntree->inputs.first; sock; sock = sock->next) {
-    expand_idprops(fd, mainvar, sock->prop);
-  }
-  for (sock = ntree->outputs.first; sock; sock = sock->next) {
-    expand_idprops(fd, mainvar, sock->prop);
-  }
+  expand_node_sockets(fd, mainvar, &ntree->inputs);
+  expand_node_sockets(fd, mainvar, &ntree->outputs);
 }
 
 static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
