@@ -223,6 +223,9 @@ static int delete_orientation_exec(bContext *C, wmOperator *UNUSED(op))
 
   WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
 
+  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  WM_msg_publish_rna_prop(mbus, &scene->id, scene, Scene, transform_orientation_slots);
+
   return OPERATOR_FINISHED;
 }
 
@@ -233,12 +236,11 @@ static int delete_orientation_invoke(bContext *C, wmOperator *op, const wmEvent 
 
 static bool delete_orientation_poll(bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
-
   if (ED_operator_areaactive(C) == 0) {
     return 0;
   }
 
+  Scene *scene = CTX_data_scene(C);
   return ((scene->orientation_slots[SCE_ORIENT_DEFAULT].type >= V3D_ORIENT_CUSTOM) &&
           (scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom != -1));
 }
@@ -264,6 +266,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
   const bool overwrite = RNA_boolean_get(op->ptr, "overwrite");
   const bool use_view = RNA_boolean_get(op->ptr, "use_view");
   View3D *v3d = CTX_wm_view3d(C);
+  Scene *scene = CTX_data_scene(C);
 
   RNA_string_get(op->ptr, "name", name);
 
@@ -274,10 +277,18 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BIF_createTransformOrientation(C, op->reports, name, use_view, use, overwrite);
+  if (!BIF_createTransformOrientation(C, op->reports, name, use_view, use, overwrite)) {
+    BKE_report(op->reports, RPT_ERROR, "Unable to create orientation");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (use) {
+    struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+    WM_msg_publish_rna_prop(mbus, &scene->id, scene, Scene, transform_orientation_slots);
+    WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
+  }
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-  WM_event_add_notifier(C, NC_SCENE | NA_EDITED, CTX_data_scene(C));
 
   return OPERATOR_FINISHED;
 }
