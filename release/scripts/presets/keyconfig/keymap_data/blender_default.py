@@ -6532,10 +6532,15 @@ def km_sequencer_editor_tool_select_box(params):
     return (
         "Sequencer Tool: Select Box",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select_actions_simple(
-            "sequencer.select_box", type=params.tool_tweak, value='ANY',
-            properties=[("tweak", True)],
-        )},
+        {"items": [
+            *_template_items_tool_select_actions_simple(
+                "sequencer.select_box", type=params.tool_tweak, value='ANY',
+                properties=[("tweak", params.select_mouse == 'LEFTMOUSE')],
+            ),
+            # RMB select can already set the frame, match the tweak tool.
+            *(_template_items_change_frame(params)
+              if  params.select_mouse == 'LEFTMOUSE' else []),
+        ]},
     )
 
 
