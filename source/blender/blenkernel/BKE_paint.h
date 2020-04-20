@@ -294,10 +294,15 @@ typedef struct SculptSession {
     struct MultiresModifierData *modifier;
     int level;
   } multires;
+
+  /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   struct MVert *mvert;
   struct MPoly *mpoly;
   struct MLoop *mloop;
+
+  /* These contain the vertex and poly counts of the final mesh. */
   int totvert, totpoly;
+
   struct KeyBlock *shapekey_active;
   float *vmask;
 
@@ -306,6 +311,7 @@ typedef struct SculptSession {
   int *pmap_mem;
 
   /* Mesh Face Sets */
+  /* Total number of polys of the base mesh. */
   int totfaces;
   int *face_sets;
 

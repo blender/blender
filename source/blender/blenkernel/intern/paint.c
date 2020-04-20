@@ -1514,9 +1514,12 @@ static void sculpt_update_object(
     ss->totvert = me_eval->totvert;
     ss->totpoly = me_eval->totpoly;
     ss->totfaces = me->totpoly;
-    ss->mvert = NULL;
-    ss->mpoly = NULL;
-    ss->mloop = NULL;
+
+    /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
+     * and tools use the Face Sets data from the base mesh when Multires is active. */
+    ss->mvert = me->mvert;
+    ss->mpoly = me->mpoly;
+    ss->mloop = me->mloop;
   }
   else {
     ss->totvert = me->totvert;
@@ -1851,7 +1854,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
                        subdiv_ccg->grid_flag_mats,
                        subdiv_ccg->grid_hidden);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
-  pbvh_show_face_sets_set(pbvh, false);
+  pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
   return pbvh;
 }
 

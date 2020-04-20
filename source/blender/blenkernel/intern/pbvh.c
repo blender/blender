@@ -2958,7 +2958,7 @@ bool pbvh_has_face_sets(PBVH *bvh)
 {
   switch (bvh->type) {
     case PBVH_GRIDS:
-      return false;
+      return (bvh->pdata && CustomData_get_layer(bvh->pdata, CD_SCULPT_FACE_SETS));
     case PBVH_FACES:
       return (bvh->pdata && CustomData_get_layer(bvh->pdata, CD_SCULPT_FACE_SETS));
     case PBVH_BMESH:
