@@ -23,6 +23,10 @@
 
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bNodeSocketType;
 struct bNodeTreeType;
 struct bNodeType;
@@ -316,5 +320,9 @@ const EnumPropertyItem *RNA_mask_local_itemf(struct bContext *C,
 
 /* Non confirming, utility function. */
 const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(struct bContext *C, bool *r_free);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RNA_ENUM_TYPES_H__ */
