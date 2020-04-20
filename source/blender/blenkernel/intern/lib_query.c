@@ -1286,6 +1286,15 @@ static void library_foreach_ID_link(Main *bmain,
         }
         break;
       }
+      case ID_SIM: {
+        Simulation *simulation = (Simulation *)id;
+        if (simulation->nodetree) {
+          /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
+          library_foreach_ID_as_subdata_link(
+              (ID **)&simulation->nodetree, callback, user_data, flag, &data);
+        }
+        break;
+      }
 
       /* Nothing needed for those... */
       case ID_IM:
@@ -1295,7 +1304,6 @@ static void library_foreach_ID_link(Main *bmain,
       case ID_PAL:
       case ID_PC:
       case ID_CF:
-      case ID_SIM:
         break;
 
       /* Deprecated. */

@@ -37,7 +37,10 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_simulation.h"
+
+#include "NOD_simulation.h"
 
 #include "BLT_translation.h"
 
@@ -47,13 +50,38 @@ static void simulation_init_data(ID *id)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(simulation, id));
 
   MEMCPY_STRUCT_AFTER(simulation, DNA_struct_default_get(Simulation), id);
+
+  bNodeTree *ntree = ntreeAddTree(nullptr, "Simulation Nodetree", ntreeType_Simulation->idname);
+  simulation->nodetree = ntree;
 }
 
-static void simulation_copy_data(Main *UNUSED(bmain),
-                                 ID *UNUSED(id_dst),
-                                 const ID *UNUSED(id_src),
-                                 const int UNUSED(flag))
+static void simulation_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {
+  Simulation *simulation_dst = (Simulation *)id_dst;
+  Simulation *simulation_src = (Simulation *)id_src;
+
+  /* We always need allocation of our private ID data. */
+  const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
+
+  if (simulation_src->nodetree) {
+    BKE_id_copy_ex(bmain,
+                   (ID *)simulation_src->nodetree,
+                   (ID **)&simulation_dst->nodetree,
+                   flag_private_id_data);
+  }
+}
+
+static void simulation_free_data(ID *id)
+{
+  Simulation *simulation = (Simulation *)id;
+
+  BKE_animdata_free(&simulation->id, false);
+
+  if (simulation->nodetree) {
+    ntreeFreeNestedTree(simulation->nodetree);
+    MEM_freeN(simulation->nodetree);
+    simulation->nodetree = nullptr;
+  }
 }
 
 void *BKE_simulation_add(Main *bmain, const char *name)
@@ -77,6 +105,6 @@ IDTypeInfo IDType_ID_SIM = {
 
     /* init_data */ simulation_init_data,
     /* copy_data */ simulation_copy_data,
-    /* free_data */ nullptr,
+    /* free_data */ simulation_free_data,
     /* make_local */ nullptr,
 };

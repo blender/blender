@@ -3858,6 +3858,12 @@ static void write_simulation(WriteData *wd, Simulation *simulation)
     if (simulation->adt) {
       write_animdata(wd, simulation->adt);
     }
+
+    /* nodetree is integral part of simulation, no libdata */
+    if (simulation->nodetree) {
+      writestruct(wd, DATA, bNodeTree, 1, simulation->nodetree);
+      write_nodetree_nolib(wd, simulation->nodetree);
+    }
   }
 }
 

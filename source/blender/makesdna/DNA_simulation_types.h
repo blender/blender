@@ -27,6 +27,8 @@ typedef struct Simulation {
   ID id;
   struct AnimData *adt; /* animation data (must be immediately after id) */
 
+  struct bNodeTree *nodetree;
+
   int flag;
   int _pad1[1];
 } Simulation;

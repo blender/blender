@@ -37,6 +37,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_simulation_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
@@ -2267,6 +2268,8 @@ bNodeTree **BKE_ntree_ptr_from_id(ID *id)
       return &((Scene *)id)->nodetree;
     case ID_LS:
       return &((FreestyleLineStyle *)id)->nodetree;
+    case ID_SIM:
+      return &((Simulation *)id)->nodetree;
     default:
       return NULL;
   }
@@ -4200,6 +4203,7 @@ void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *b
   ntreeiter->light = bmain->lights.first;
   ntreeiter->world = bmain->worlds.first;
   ntreeiter->linestyle = bmain->linestyles.first;
+  ntreeiter->simulation = bmain->simulations.first;
 }
 bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
                              bNodeTree **r_nodetree,
@@ -4239,6 +4243,11 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
     *r_nodetree = ntreeiter->linestyle->nodetree;
     *r_id = (ID *)ntreeiter->linestyle;
     ntreeiter->linestyle = ntreeiter->linestyle->id.next;
+  }
+  else if (ntreeiter->simulation) {
+    *r_nodetree = ntreeiter->simulation->nodetree;
+    *r_id = (ID *)ntreeiter->simulation;
+    ntreeiter->simulation = ntreeiter->simulation->id.next;
   }
   else {
     return false;
