@@ -536,6 +536,9 @@ if(WIN32)
   option(WITH_WINDOWS_BUNDLE_CRT "Bundle the C runtime for install free distribution." ON)
   mark_as_advanced(WITH_WINDOWS_BUNDLE_CRT)
 
+  option(WITH_WINDOWS_SCCACHE "Use sccache to speed up builds (Ninja builder only)" OFF)
+  mark_as_advanced(WITH_WINDOWS_SCCACHE)
+
 endif()
 
 # The following only works with the Ninja generator in CMake >= 3.0.

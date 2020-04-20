@@ -2,6 +2,11 @@ set BUILD_GENERATOR_POST=
 set BUILD_PLATFORM_SELECT=
 set MSBUILD_PLATFORM=x64
 
+if "%BUILD_WITH_SCCACHE%"=="1" (
+		echo sccache is only supported with ninja as the build system. 
+		exit /b 1 
+)
+
 if "%WITH_CLANG%"=="1" (
 	set CLANG_CMAKE_ARGS=-T"llvm"
 	if "%WITH_ASAN%"=="1" (
