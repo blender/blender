@@ -296,7 +296,7 @@ bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const floa
   return true;
 }
 
-void BIF_createTransformOrientation(bContext *C,
+bool BIF_createTransformOrientation(bContext *C,
                                     ReportList *reports,
                                     const char *name,
                                     const bool use_view,
@@ -333,6 +333,7 @@ void BIF_createTransformOrientation(bContext *C,
   if (activate && ts != NULL) {
     BIF_selectTransformOrientation(C, ts);
   }
+  return (ts != NULL);
 }
 
 TransformOrientation *addMatrixSpace(bContext *C,

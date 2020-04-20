@@ -58,17 +58,6 @@ static void light_init_data(ID *id)
   BKE_curvemapping_initialize(la->curfalloff);
 }
 
-Light *BKE_light_add(Main *bmain, const char *name)
-{
-  Light *la;
-
-  la = BKE_libblock_alloc(bmain, ID_LA, name, 0);
-
-  light_init_data(&la->id);
-
-  return la;
-}
-
 /**
  * Only copy internal data of Light ID from source
  * to already allocated/initialized destination.
@@ -98,6 +87,51 @@ static void light_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   else {
     la_dst->preview = NULL;
   }
+}
+
+static void light_free_data(ID *id)
+{
+  Light *la = (Light *)id;
+
+  BKE_curvemapping_free(la->curfalloff);
+
+  /* is no lib link block, but light extension */
+  if (la->nodetree) {
+    ntreeFreeNestedTree(la->nodetree);
+    MEM_freeN(la->nodetree);
+    la->nodetree = NULL;
+  }
+
+  BKE_previewimg_free(&la->preview);
+  BKE_icon_id_delete(&la->id);
+  la->id.icon_id = 0;
+}
+
+IDTypeInfo IDType_ID_LA = {
+    .id_code = ID_LA,
+    .id_filter = FILTER_ID_LA,
+    .main_listbase_index = INDEX_ID_LA,
+    .struct_size = sizeof(Light),
+    .name = "Light",
+    .name_plural = "lights",
+    .translation_context = BLT_I18NCONTEXT_ID_LIGHT,
+    .flags = 0,
+
+    .init_data = light_init_data,
+    .copy_data = light_copy_data,
+    .free_data = light_free_data,
+    .make_local = NULL,
+};
+
+Light *BKE_light_add(Main *bmain, const char *name)
+{
+  Light *la;
+
+  la = BKE_libblock_alloc(bmain, ID_LA, name, 0);
+
+  light_init_data(&la->id);
+
+  return la;
 }
 
 Light *BKE_light_copy(Main *bmain, const Light *la)
@@ -133,42 +167,3 @@ Light *BKE_light_localize(Light *la)
 
   return lan;
 }
-
-static void light_make_local(Main *bmain, ID *id, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, id, flags);
-}
-
-static void light_free_data(ID *id)
-{
-  Light *la = (Light *)id;
-
-  BKE_curvemapping_free(la->curfalloff);
-
-  /* is no lib link block, but light extension */
-  if (la->nodetree) {
-    ntreeFreeNestedTree(la->nodetree);
-    MEM_freeN(la->nodetree);
-    la->nodetree = NULL;
-  }
-
-  BKE_previewimg_free(&la->preview);
-  BKE_icon_id_delete(&la->id);
-  la->id.icon_id = 0;
-}
-
-IDTypeInfo IDType_ID_LA = {
-    .id_code = ID_LA,
-    .id_filter = FILTER_ID_LA,
-    .main_listbase_index = INDEX_ID_LA,
-    .struct_size = sizeof(Light),
-    .name = "Light",
-    .name_plural = "lights",
-    .translation_context = BLT_I18NCONTEXT_ID_LIGHT,
-    .flags = 0,
-
-    .init_data = light_init_data,
-    .copy_data = light_copy_data,
-    .free_data = light_free_data,
-    .make_local = light_make_local,
-};
