@@ -38,6 +38,10 @@
 
 #include "RNA_access.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bNode;
 struct bNodeTree;
 
@@ -102,5 +106,9 @@ void node_socket_set_vector(struct bNodeTree *ntree,
                             struct bNode *node,
                             struct bNodeSocket *sock,
                             const float *value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

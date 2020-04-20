@@ -26,6 +26,10 @@
 
 #include "BKE_node.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void register_node_type_frame(void);
 void register_node_type_reroute(void);
 
@@ -41,5 +45,9 @@ struct bNodeSocket *node_group_input_find_socket(struct bNode *node, const char 
 struct bNodeSocket *node_group_output_find_socket(struct bNode *node, const char *identifier);
 void node_group_input_update(struct bNodeTree *ntree, struct bNode *node);
 void node_group_output_update(struct bNodeTree *ntree, struct bNode *node);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __NOD_COMMON_H__ */

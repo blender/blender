@@ -23,6 +23,7 @@ set(INC
   composite
   intern
   shader
+  simulation
   texture
   ../blenkernel
   ../blenlib
@@ -220,6 +221,10 @@ set(SRC
   shader/node_shader_tree.c
   shader/node_shader_util.c
 
+  simulation/nodes/node_sim_common.cc
+  simulation/node_simulation_tree.cc
+  simulation/node_simulation_util.cc
+
   texture/nodes/node_texture_at.c
   texture/nodes/node_texture_bricks.c
   texture/nodes/node_texture_checker.c
@@ -253,11 +258,13 @@ set(SRC
 
   composite/node_composite_util.h
   shader/node_shader_util.h
+  simulation/node_simulation_util.h
   texture/node_texture_util.h
 
   NOD_common.h
   NOD_composite.h
   NOD_shader.h
+  NOD_simulation.h
   NOD_socket.h
   NOD_static_types.h
   NOD_texture.h

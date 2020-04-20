@@ -12,33 +12,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
  */
 
-/** \file
- * \ingroup nodes
- */
+#include "node_simulation_util.h"
+#include "node_util.h"
 
-#ifndef __NODE_COMMON_H__
-#define __NODE_COMMON_H__
-
-#include "DNA_listBase.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct bNodeTree;
-
-void node_group_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-bool node_group_poll_instance(struct bNode *node, struct bNodeTree *nodetree);
-
-void ntree_update_reroute_nodes(struct bNodeTree *ntree);
-
-#ifdef __cplusplus
+bool sim_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+{
+  return STREQ(ntree->idname, "SimulationNodeTree");
 }
-#endif
 
-#endif
+void sim_node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
+{
+  node_type_base(ntype, type, name, nclass, flag);
+  ntype->poll = sim_node_poll_default;
+}

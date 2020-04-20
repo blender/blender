@@ -67,6 +67,7 @@
 #include "NOD_common.h"
 #include "NOD_composite.h"
 #include "NOD_shader.h"
+#include "NOD_simulation.h"
 #include "NOD_socket.h"
 #include "NOD_texture.h"
 
@@ -4114,6 +4115,11 @@ static void registerTextureNodes(void)
   register_node_type_tex_proc_distnoise();
 }
 
+static void registerSimulationNodes(void)
+{
+  register_node_type_sim_group();
+}
+
 void init_nodesystem(void)
 {
   nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
@@ -4127,6 +4133,7 @@ void init_nodesystem(void)
   register_node_tree_type_cmp();
   register_node_tree_type_sh();
   register_node_tree_type_tex();
+  register_node_tree_type_sim();
 
   register_node_type_frame();
   register_node_type_reroute();
@@ -4136,6 +4143,7 @@ void init_nodesystem(void)
   registerCompositNodes();
   registerShaderNodes();
   registerTextureNodes();
+  registerSimulationNodes();
 }
 
 void free_nodesystem(void)

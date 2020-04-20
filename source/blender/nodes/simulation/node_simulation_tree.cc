@@ -12,33 +12,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
  */
 
-/** \file
- * \ingroup nodes
- */
+#include <string.h>
 
-#ifndef __NODE_COMMON_H__
-#define __NODE_COMMON_H__
+#include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
+#include "NOD_simulation.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BKE_node.h"
 
-struct bNodeTree;
+#include "BLT_translation.h"
 
-void node_group_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-bool node_group_poll_instance(struct bNode *node, struct bNodeTree *nodetree);
+#include "DNA_node_types.h"
 
-void ntree_update_reroute_nodes(struct bNodeTree *ntree);
+#include "RNA_access.h"
 
-#ifdef __cplusplus
+bNodeTreeType *ntreeType_Simulation;
+
+void register_node_tree_type_sim(void)
+{
+  bNodeTreeType *tt = ntreeType_Simulation = (bNodeTreeType *)MEM_callocN(
+      sizeof(bNodeTreeType), "simulation node tree type");
+  tt->type = NTREE_SIMULATION;
+  strcpy(tt->idname, "SimulationNodeTree");
+  strcpy(tt->ui_name, N_("Simulation Editor"));
+  tt->ui_icon = 0; /* defined in drawnode.c */
+  strcpy(tt->ui_description, N_("Simulation nodes"));
+  tt->rna_ext.srna = &RNA_SimulationNodeTree;
+
+  ntreeTypeAdd(tt);
 }
-#endif
-
-#endif

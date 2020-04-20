@@ -69,7 +69,8 @@ static bool node_group_operator_active(bContext *C)
      */
     if (STREQ(snode->tree_idname, "ShaderNodeTree") ||
         STREQ(snode->tree_idname, "CompositorNodeTree") ||
-        STREQ(snode->tree_idname, "TextureNodeTree")) {
+        STREQ(snode->tree_idname, "TextureNodeTree") ||
+        STREQ(snode->tree_idname, "SimulationNodeTree")) {
       return true;
     }
   }
@@ -85,7 +86,8 @@ static bool node_group_operator_editable(bContext *C)
      * Disabled otherwise to allow pynodes define their own operators
      * with same keymap.
      */
-    if (ED_node_is_shader(snode) || ED_node_is_compositor(snode) || ED_node_is_texture(snode)) {
+    if (ED_node_is_shader(snode) || ED_node_is_compositor(snode) || ED_node_is_texture(snode) ||
+        ED_node_is_simulation(snode)) {
       return true;
     }
   }
@@ -110,6 +112,9 @@ static const char *group_node_idname(bContext *C)
   }
   else if (ED_node_is_texture(snode)) {
     return "TextureNodeGroup";
+  }
+  else if (ED_node_is_simulation(snode)) {
+    return "SimulationNodeGroup";
   }
 
   return "";
