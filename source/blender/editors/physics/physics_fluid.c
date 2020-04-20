@@ -361,7 +361,7 @@ static void fluid_bake_endjob(void *customdata)
         RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, PIL_check_seconds_timer() - job->start);
   }
   else {
-    if (mds->error != NULL && mds->error[0] != '\0') {
+    if (mds->error[0] != '\0') {
       WM_reportf(RPT_ERROR, "Fluid: %s failed: %s", job->name, mds->error);
     }
     else { /* User canceled the bake */
@@ -473,7 +473,7 @@ static void fluid_free_endjob(void *customdata)
         RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, PIL_check_seconds_timer() - job->start);
   }
   else {
-    if (mds->error != NULL && mds->error[0] != '\0') {
+    if (mds->error[0] != '\0') {
       WM_reportf(RPT_ERROR, "Fluid: %s failed: %s", job->name, mds->error);
     }
     else { /* User canceled the free job */

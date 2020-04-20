@@ -112,7 +112,7 @@ typedef struct SDefDeformData {
   const SDefVert *const bind_verts;
   float (*const targetCos)[3];
   float (*const vertexCos)[3];
-  float(*const weights);
+  float *const weights;
   float const strength;
 } SDefDeformData;
 

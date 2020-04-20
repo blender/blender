@@ -480,7 +480,7 @@ void Octree::trace()
   if (chdpath != NULL) {
     dc_printf("there are incomplete rings.\n");
     printPaths(chdpath);
-  };
+  }
 }
 
 Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *&paths)

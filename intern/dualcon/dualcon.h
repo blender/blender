@@ -29,7 +29,7 @@ typedef float (*DualConCo)[3];
 
 typedef unsigned int (*DualConTri)[3];
 
-typedef unsigned int(*DualConLoop);
+typedef unsigned int *DualConLoop;
 
 typedef struct DualConInput {
   DualConLoop mloop;
