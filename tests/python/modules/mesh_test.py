@@ -41,8 +41,15 @@
 
 
 import bpy
-import os
+import functools
 import inspect
+import os
+
+
+# Output from this module and from blender itself will occur during tests.
+# We need to flush python so that the output is properly interleaved, otherwise
+# blender's output for one test will end up showing in the middle of another test...
+print = functools.partial(print, flush=True)
 
 
 class ModifierSpec:
@@ -165,8 +172,8 @@ class MeshTest:
         """
         self.operations_stack.append(operator_spec)
 
-    def _on_failed_test(self, compare, evaluated_test_object):
-        if self.update:
+    def _on_failed_test(self, compare_result, validation_success, evaluated_test_object):
+        if self.update and validation_success:
             if self.verbose:
                 print("Test failed expectantly. Updating expected mesh...")
 
@@ -178,8 +185,7 @@ class MeshTest:
             evaluated_test_object.name = expected_object_name
 
             # Save file
-            blend_file = bpy.data.filepath
-            bpy.ops.wm.save_as_mainfile(filepath=blend_file)
+            bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
 
             self._test_updated = True
 
@@ -188,10 +194,10 @@ class MeshTest:
             return True
 
         else:
-            blender_file = bpy.data.filepath
-            print("Test failed with error: {}. Resulting object mesh '{}' did not match expected object '{}' "
-                  "from file blender file {}".
-                  format(compare, evaluated_test_object.name, self.expected_object.name, blender_file))
+            print("Test comparison result: {}".format(compare_result))
+            print("Test validation result: {}".format(validation_success))
+            print("Resulting object mesh '{}' did not match expected object '{}' from file {}".
+                  format(evaluated_test_object.name, self.expected_object.name, bpy.data.filepath))
 
             return False
 
@@ -306,10 +312,13 @@ class MeshTest:
             print("Comparing expected mesh with resulting mesh...")
         evaluated_test_mesh = evaluated_test_object.data
         expected_mesh = self.expected_object.data
-        compare = evaluated_test_mesh.unit_test_compare(mesh=expected_mesh)
-        success = (compare == 'Same')
+        compare_result = evaluated_test_mesh.unit_test_compare(mesh=expected_mesh)
+        compare_success = (compare_result == 'Same')
 
-        if success:
+        # Also check if invalid geometry (which is never expected) had to be corrected...
+        validation_success = evaluated_test_mesh.validate(verbose=True) == False
+
+        if compare_success and validation_success:
             if self.verbose:
                 print("Success!")
 
@@ -321,7 +330,7 @@ class MeshTest:
             return True
 
         else:
-            return self._on_failed_test(compare, evaluated_test_object)
+            return self._on_failed_test(compare_result, validation_success, evaluated_test_object)
 
 
 class OperatorTest:
