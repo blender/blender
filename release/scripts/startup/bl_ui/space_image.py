@@ -384,6 +384,10 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
+        layout.operator("uv.reset")
+
+        layout.separator()
+
 
 class IMAGE_MT_uvs_select_mode(Menu):
     bl_label = "UV Select Mode"
