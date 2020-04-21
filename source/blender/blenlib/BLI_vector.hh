@@ -130,13 +130,10 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   /**
    * Create a vector from a ListBase.
    */
-  Vector(ListBase &values, bool intrusive_next_and_prev_pointers) : Vector()
+  Vector(ListBase &values) : Vector()
   {
-    BLI_assert(intrusive_next_and_prev_pointers);
-    if (intrusive_next_and_prev_pointers) {
-      for (T value : IntrusiveListBaseWrapper<typename std::remove_pointer<T>::type>(values)) {
-        this->append(value);
-      }
+    for (T value : ListBaseWrapper<typename std::remove_pointer<T>::type>(values)) {
+      this->append(value);
     }
   }
 

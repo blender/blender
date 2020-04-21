@@ -53,7 +53,7 @@
 using BLI::Array;
 using BLI::ArrayRef;
 using BLI::IndexRange;
-using BLI::IntrusiveListBaseWrapper;
+using BLI::ListBaseWrapper;
 using BLI::MutableArrayRef;
 using BLI::Vector;
 
@@ -93,7 +93,7 @@ static void compute_vertex_mask__armature_mode(MDeformVert *dvert,
   /* Element i is true if there is a selected bone that uses vertex group i. */
   Vector<bool> selected_bone_uses_group;
 
-  for (bDeformGroup *def : IntrusiveListBaseWrapper<bDeformGroup>(ob->defbase)) {
+  for (bDeformGroup *def : ListBaseWrapper<bDeformGroup>(ob->defbase)) {
     bPoseChannel *pchan = BKE_pose_channel_find_name(armature_ob->pose, def->name);
     bool bone_for_group_exists = pchan && pchan->bone && (pchan->bone->flag & BONE_SELECTED);
     selected_bone_uses_group.append(bone_for_group_exists);

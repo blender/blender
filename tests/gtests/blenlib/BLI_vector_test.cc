@@ -45,7 +45,7 @@ struct TestListValue {
   int value;
 };
 
-TEST(vector, IntrusiveListBaseConstructor)
+TEST(vector, ListBaseConstructor)
 {
   TestListValue *value1 = new TestListValue{0, 0, 4};
   TestListValue *value2 = new TestListValue{0, 0, 5};
@@ -55,7 +55,7 @@ TEST(vector, IntrusiveListBaseConstructor)
   BLI_addtail(&list, value1);
   BLI_addtail(&list, value2);
   BLI_addtail(&list, value3);
-  Vector<TestListValue *> vec(list, true);
+  Vector<TestListValue *> vec(list);
 
   EXPECT_EQ(vec.size(), 3);
   EXPECT_EQ(vec[0]->value, 4);

@@ -29,17 +29,17 @@
 
 namespace BLI {
 
-template<typename T> class IntrusiveListBaseWrapper {
+template<typename T> class ListBaseWrapper {
  private:
   ListBase *m_listbase;
 
  public:
-  IntrusiveListBaseWrapper(ListBase *listbase) : m_listbase(listbase)
+  ListBaseWrapper(ListBase *listbase) : m_listbase(listbase)
   {
     BLI_assert(listbase);
   }
 
-  IntrusiveListBaseWrapper(ListBase &listbase) : IntrusiveListBaseWrapper(&listbase)
+  ListBaseWrapper(ListBase &listbase) : ListBaseWrapper(&listbase)
   {
   }
 
