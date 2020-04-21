@@ -19,14 +19,12 @@
  * \brief Class to build a Node Tree designed to be displayed from a set of strokes structure.
  */
 
-/* clang-format off */
-#include "StrokeAdvancedIterators.h"
 #include "StrokeTesselator.h"
+#include "StrokeAdvancedIterators.h"
 
-#include "../scene_graph/OrientedLineRep.h"
 #include "../scene_graph/NodeGroup.h"
 #include "../scene_graph/NodeShape.h"
-/* clang-format on */
+#include "../scene_graph/OrientedLineRep.h"
 
 namespace Freestyle {
 

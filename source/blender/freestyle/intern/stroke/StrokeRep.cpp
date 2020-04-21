@@ -19,15 +19,13 @@
  * \brief Class to define the representation of a stroke (for display purpose)
  */
 
-/* clang-format off */
-#include "Stroke.h"
-#include "StrokeIterators.h"
-#include "StrokeAdvancedIterators.h"
-#include "StrokeRenderer.h"
 #include "StrokeRep.h"
+#include "Stroke.h"
+#include "StrokeAdvancedIterators.h"
+#include "StrokeIterators.h"
+#include "StrokeRenderer.h"
 
 #include "BKE_global.h"
-/* clang-format on */
 
 using namespace std;
 

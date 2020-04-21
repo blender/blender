@@ -18,18 +18,17 @@
  * \ingroup freestyle
  */
 
-/* clang-format off */
 extern "C" {
 #include <Python.h>
 }
 
-#include <string>
-#include <fstream>
 #include <float.h>
+#include <fstream>
+#include <string>
 
-#include "AppView.h"
 #include "AppCanvas.h"
 #include "AppConfig.h"
+#include "AppView.h"
 #include "Controller.h"
 
 #include "../image/Image.h"
@@ -42,12 +41,12 @@ extern "C" {
 #include "../scene_graph/VertexRep.h"
 
 #include "../stroke/PSStrokeRenderer.h"
-#include "../stroke/TextStrokeRenderer.h"
 #include "../stroke/StrokeTesselator.h"
 #include "../stroke/StyleModule.h"
+#include "../stroke/TextStrokeRenderer.h"
 
-#include "../system/StringUtils.h"
 #include "../system/PythonInterpreter.h"
+#include "../system/StringUtils.h"
 
 #include "../view_map/SteerableViewMap.h"
 #include "../view_map/ViewMap.h"
@@ -56,21 +55,20 @@ extern "C" {
 
 #include "../winged_edge/Curvature.h"
 #include "../winged_edge/WEdge.h"
-#include "../winged_edge/WingedEdgeBuilder.h"
 #include "../winged_edge/WXEdgeBuilder.h"
+#include "../winged_edge/WingedEdgeBuilder.h"
 
 #include "../blender_interface/BlenderFileLoader.h"
 #include "../blender_interface/BlenderStrokeRenderer.h"
 #include "../blender_interface/BlenderStyleModule.h"
 
 #include "BKE_global.h"
-#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_freestyle_types.h"
 
 #include "FRS_freestyle.h"
-/* clang-format off */
 
 namespace Freestyle {
 

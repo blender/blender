@@ -19,11 +19,9 @@
  * \brief Class to define a layer of strokes.
  */
 
-/* clang-format off */
+#include "StrokeLayer.h"
 #include "Canvas.h"
 #include "Stroke.h"
-#include "StrokeLayer.h"
-/* clang-format on */
 
 namespace Freestyle {
 

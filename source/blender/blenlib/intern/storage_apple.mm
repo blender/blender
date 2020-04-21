@@ -30,7 +30,9 @@
 
 bool BLI_file_alias_target(char targetpath[FILE_MAXDIR], const char *filepath)
 {
+  /* clang-format off */
   @autoreleasepool {
+    /* clang-format on */
     NSError *error = nil;
     NSURL *shortcutURL = [[NSURL alloc] initFileURLWithFileSystemRepresentation:filepath
                                                                     isDirectory:NO
@@ -64,7 +66,9 @@ eFileAttributes BLI_file_attributes(const char *path)
 {
   int ret = 0;
 
+  /* clang-format off */
   @autoreleasepool {
+    /* clang-format on */
     NSURL *fileURL = [[NSURL alloc] initFileURLWithFileSystemRepresentation:path
                                                                 isDirectory:NO
                                                               relativeToURL:nil];

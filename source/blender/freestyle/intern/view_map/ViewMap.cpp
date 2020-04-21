@@ -19,15 +19,13 @@
  * \brief Classes to define a View Map (ViewVertex, ViewEdge, etc.)
  */
 
-/* clang-format off */
 #include <float.h>
 
 #include "ViewMap.h"
-#include "ViewMapIterators.h"
 #include "ViewMapAdvancedIterators.h"
+#include "ViewMapIterators.h"
 
 #include "../geometry/GeomUtils.h"
-/* clang-format on */
 
 namespace Freestyle {
 

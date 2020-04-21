@@ -19,18 +19,16 @@
  * \brief Class gathering stroke creation algorithms
  */
 
-/* clang-format off */
 #include <algorithm>
 #include <stdexcept>
 
-#include "Operators.h"
 #include "Canvas.h"
+#include "CurveIterators.h"
+#include "Operators.h"
 #include "Stroke.h"
 #include "StrokeIterators.h"
-#include "CurveIterators.h"
 
 #include "BKE_global.h"
-/* clang-format on */
 
 namespace Freestyle {
 

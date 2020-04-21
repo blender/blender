@@ -290,12 +290,12 @@ static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
 
 #  include "RNA_access.h"
 
-#  include "BKE_colorband.h"
 #  include "BKE_brush.h"
-#  include "BKE_icons.h"
+#  include "BKE_colorband.h"
 #  include "BKE_gpencil.h"
-#  include "BKE_paint.h"
+#  include "BKE_icons.h"
 #  include "BKE_material.h"
+#  include "BKE_paint.h"
 
 #  include "WM_api.h"
 

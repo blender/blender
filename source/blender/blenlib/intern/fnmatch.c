@@ -27,8 +27,9 @@
 # define _GNU_SOURCE    1
 #endif
 
-#include <errno.h>
 #include <ctype.h>
+#include <errno.h>
+
 #include "BLI_fnmatch.h"
 
 
