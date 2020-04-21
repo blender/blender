@@ -2349,21 +2349,27 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
     return;
   }
   /* texture itself */
+  ComponentKey texture_key(&texture->id, NodeType::GENERIC_DATABLOCK);
   build_animdata(&texture->id);
   build_parameters(&texture->id);
+
   /* texture's nodetree */
   build_nodetree(texture->nodetree);
+  build_nested_nodetree(&texture->id, texture->nodetree);
+
   /* Special cases for different IDs which texture uses. */
   if (texture->type == TEX_IMAGE) {
     if (texture->ima != nullptr) {
       build_image(texture->ima);
+
+      ComponentKey image_key(&texture->ima->id, NodeType::GENERIC_DATABLOCK);
+      add_relation(image_key, texture_key, "Texture Image");
     }
   }
-  build_nested_nodetree(&texture->id, texture->nodetree);
+
   if (check_id_has_anim_component(&texture->id)) {
     ComponentKey animation_key(&texture->id, NodeType::ANIMATION);
-    ComponentKey datablock_key(&texture->id, NodeType::GENERIC_DATABLOCK);
-    add_relation(animation_key, datablock_key, "Datablock Animation");
+    add_relation(animation_key, texture_key, "Datablock Animation");
   }
 }
 
