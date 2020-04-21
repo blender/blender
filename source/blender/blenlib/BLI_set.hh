@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_SET_H__
-#define __BLI_SET_H__
+#ifndef __BLI_SET_HH__
+#define __BLI_SET_HH__
 
 /** \file
  * \ingroup bli
@@ -23,9 +23,9 @@
  * This file provides a set implementation that uses open addressing with probing.
  */
 
-#include "BLI_hash_cxx.h"
-#include "BLI_open_addressing.h"
-#include "BLI_vector.h"
+#include "BLI_hash.hh"
+#include "BLI_open_addressing.hh"
+#include "BLI_vector.hh"
 
 namespace BLI {
 
@@ -480,4 +480,4 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
 
 }  // namespace BLI
 
-#endif /* __BLI_SET_H__ */
+#endif /* __BLI_SET_HH__ */

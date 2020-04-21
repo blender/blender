@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_MAP_H__
-#define __BLI_MAP_H__
+#ifndef __BLI_MAP_HH__
+#define __BLI_MAP_HH__
 
 /** \file
  * \ingroup bli
@@ -26,9 +26,9 @@
  * lookups. Keys and values are stored in groups of four to avoid wasting memory due to padding.
  */
 
-#include "BLI_array_ref.h"
-#include "BLI_hash_cxx.h"
-#include "BLI_open_addressing.h"
+#include "BLI_array_ref.hh"
+#include "BLI_hash.hh"
+#include "BLI_open_addressing.hh"
 
 namespace BLI {
 
@@ -733,4 +733,4 @@ template<typename KeyT, typename ValueT, typename Allocator = GuardedAllocator> 
 
 }  // namespace BLI
 
-#endif /* __BLI_MAP_H__ */
+#endif /* __BLI_MAP_HH__ */

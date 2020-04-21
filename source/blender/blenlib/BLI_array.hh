@@ -13,8 +13,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BLI_ARRAY_CXX_H__
-#define __BLI_ARRAY_CXX_H__
+#ifndef __BLI_ARRAY_HH__
+#define __BLI_ARRAY_HH__
 
 /** \file
  * \ingroup bli
@@ -23,10 +23,10 @@
  * a template argument. Instead it can be specified at the construction time.
  */
 
-#include "BLI_allocator.h"
-#include "BLI_array_ref.h"
-#include "BLI_index_range.h"
-#include "BLI_memory_utils_cxx.h"
+#include "BLI_allocator.hh"
+#include "BLI_array_ref.hh"
+#include "BLI_index_range.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 
 namespace BLI {
@@ -231,4 +231,4 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ar
 
 }  // namespace BLI
 
-#endif /* __BLI_ARRAY_CXX_H__ */
+#endif /* __BLI_ARRAY_HH__ */

@@ -46,9 +46,9 @@
 
 #include "MOD_modifiertypes.h"
 
-#include "BLI_array_cxx.h"
-#include "BLI_listbase_wrapper.h"
-#include "BLI_vector.h"
+#include "BLI_array.hh"
+#include "BLI_listbase_wrapper.hh"
+#include "BLI_vector.hh"
 
 using BLI::Array;
 using BLI::ArrayRef;

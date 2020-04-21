@@ -1,5 +1,5 @@
-#include "BLI_string_map.h"
-#include "BLI_vector.h"
+#include "BLI_string_map.hh"
+#include "BLI_vector.hh"
 #include "testing/testing.h"
 
 using namespace BLI;

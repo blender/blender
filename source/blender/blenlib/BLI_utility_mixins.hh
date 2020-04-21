@@ -18,8 +18,8 @@
  * \ingroup bli
  */
 
-#ifndef __BLI_UTILITY_MIXINS_H__
-#define __BLI_UTILITY_MIXINS_H__
+#ifndef __BLI_UTILITY_MIXINS_HH__
+#define __BLI_UTILITY_MIXINS_HH__
 
 namespace BLI {
 
@@ -49,4 +49,4 @@ class NonMovable {
 
 }  // namespace BLI
 
-#endif /* __BLI_UTILITY_MIXINS_H__ */
+#endif /* __BLI_UTILITY_MIXINS_HH__ */

@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_STRING_REF_H__
-#define __BLI_STRING_REF_H__
+#ifndef __BLI_STRING_REF_HH__
+#define __BLI_STRING_REF_HH__
 
 /** \file
  * \ingroup bli
@@ -32,7 +32,7 @@
 #include <sstream>
 #include <string>
 
-#include "BLI_array_ref.h"
+#include "BLI_array_ref.hh"
 #include "BLI_utildefines.h"
 
 namespace BLI {
@@ -252,4 +252,4 @@ inline StringRef StringRefBase::substr(uint start, uint size) const
 
 }  // namespace BLI
 
-#endif /* __BLI_STRING_REF_H__ */
+#endif /* __BLI_STRING_REF_HH__ */

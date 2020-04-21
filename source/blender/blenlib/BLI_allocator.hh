@@ -13,8 +13,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BLI_ALLOCATOR_H__
-#define __BLI_ALLOCATOR_H__
+#ifndef __BLI_ALLOCATOR_HH__
+#define __BLI_ALLOCATOR_HH__
 
 /** \file
  * \ingroup bli
@@ -102,4 +102,4 @@ class RawAllocator {
 
 }  // namespace BLI
 
-#endif /* __BLI_ALLOCATOR_H__ */
+#endif /* __BLI_ALLOCATOR_HH__ */

@@ -1,5 +1,5 @@
-#include "BLI_map.h"
-#include "BLI_set.h"
+#include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "testing/testing.h"
 
 using BLI::Map;

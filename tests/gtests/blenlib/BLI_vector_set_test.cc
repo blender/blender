@@ -1,4 +1,4 @@
-#include "BLI_vector_set.h"
+#include "BLI_vector_set.hh"
 #include "testing/testing.h"
 
 using BLI::VectorSet;

@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ARRAY_REF_H__
-#define __BLI_ARRAY_REF_H__
+#ifndef __BLI_ARRAY_REF_HH__
+#define __BLI_ARRAY_REF_HH__
 
 /** \file
  * \ingroup bli
@@ -41,8 +41,8 @@
 #include <string>
 #include <vector>
 
-#include "BLI_index_range.h"
-#include "BLI_memory_utils_cxx.h"
+#include "BLI_index_range.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 
 namespace BLI {
@@ -542,4 +542,4 @@ void assert_same_size(const T1 &v1, const T2 &v2, const T3 &v3)
 
 } /* namespace BLI */
 
-#endif /* __BLI_ARRAY_REF_H__ */
+#endif /* __BLI_ARRAY_REF_HH__ */

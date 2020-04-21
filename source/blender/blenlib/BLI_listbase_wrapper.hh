@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_LISTBASE_WRAPPER_H__
-#define __BLI_LISTBASE_WRAPPER_H__
+#ifndef __BLI_LISTBASE_WRAPPER_HH__
+#define __BLI_LISTBASE_WRAPPER_HH__
 
 /** \file
  * \ingroup bli
@@ -110,4 +110,4 @@ template<typename T> class IntrusiveListBaseWrapper {
 
 } /* namespace BLI */
 
-#endif /* __BLI_LISTBASE_WRAPPER_H__ */
+#endif /* __BLI_LISTBASE_WRAPPER_HH__ */

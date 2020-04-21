@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_MEMORY_UTILS_CXX_H__
-#define __BLI_MEMORY_UTILS_CXX_H__
+#ifndef __BLI_MEMORY_UTILS_HH__
+#define __BLI_MEMORY_UTILS_HH__
 
 /** \file
  * \ingroup bli
@@ -120,4 +120,4 @@ template<uint Size, uint Alignment> class alignas(Alignment) AlignedBuffer {
 
 }  // namespace BLI
 
-#endif /* __BLI_MEMORY_UTILS_CXX_H__ */
+#endif /* __BLI_MEMORY_UTILS_HH__ */

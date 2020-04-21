@@ -20,10 +20,10 @@
  * Simple version of std::optional, which is only available since C++17.
  */
 
-#ifndef __BLI_OPTIONAL_H__
-#define __BLI_OPTIONAL_H__
+#ifndef __BLI_OPTIONAL_HH__
+#define __BLI_OPTIONAL_HH__
 
-#include "BLI_memory_utils_cxx.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 
 #include <algorithm>
@@ -196,4 +196,4 @@ template<typename T> class Optional {
 
 } /* namespace BLI */
 
-#endif /* __BLI_OPTIONAL_H__ */
+#endif /* __BLI_OPTIONAL_HH__ */

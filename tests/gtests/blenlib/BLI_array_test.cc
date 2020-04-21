@@ -1,4 +1,4 @@
-#include "BLI_array_cxx.h"
+#include "BLI_array.hh"
 #include "testing/testing.h"
 
 using namespace BLI;

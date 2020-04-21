@@ -1,5 +1,5 @@
-#include "BLI_string_ref.h"
-#include "BLI_vector.h"
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 #include "testing/testing.h"
 
 using BLI::StringRef;

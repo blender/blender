@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_STACK_CXX_H__
-#define __BLI_STACK_CXX_H__
+#ifndef __BLI_STACK_HH__
+#define __BLI_STACK_HH__
 
 /** \file
  * \ingroup bli
@@ -23,7 +23,7 @@
  * Basic stack implementation with support for small object optimization.
  */
 
-#include "BLI_vector.h"
+#include "BLI_vector.hh"
 
 namespace BLI {
 
@@ -147,4 +147,4 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class St
 
 } /* namespace BLI */
 
-#endif /* __BLI_STACK_CXX_H__ */
+#endif /* __BLI_STACK_HH__ */

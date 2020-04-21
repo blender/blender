@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_OPEN_ADDRESSING_H__
-#define __BLI_OPEN_ADDRESSING_H__
+#ifndef __BLI_OPEN_ADDRESSING_HH__
+#define __BLI_OPEN_ADDRESSING_HH__
 
 /** \file
  * \ingroup bli
@@ -33,9 +33,9 @@
 
 #include <cmath>
 
-#include "BLI_allocator.h"
+#include "BLI_allocator.hh"
 #include "BLI_math_base.h"
-#include "BLI_memory_utils_cxx.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 
 namespace BLI {
@@ -302,4 +302,4 @@ class OpenAddressingArray {
 
 }  // namespace BLI
 
-#endif /* __BLI_OPEN_ADDRESSING_H__ */
+#endif /* __BLI_OPEN_ADDRESSING_HH__ */

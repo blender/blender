@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_VECTOR_SET_H__
-#define __BLI_VECTOR_SET_H__
+#ifndef __BLI_VECTOR_SET_HH__
+#define __BLI_VECTOR_SET_HH__
 
 /** \file
  * \ingroup bli
@@ -25,9 +25,9 @@
  * no deletes. The expected time to check if a value is in the VectorSet is O(1).
  */
 
-#include "BLI_hash_cxx.h"
-#include "BLI_open_addressing.h"
-#include "BLI_vector.h"
+#include "BLI_hash.hh"
+#include "BLI_open_addressing.hh"
+#include "BLI_vector.hh"
 
 namespace BLI {
 
@@ -422,4 +422,4 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
 }  // namespace BLI
 
-#endif /* __BLI_VECTOR_SET_H__ */
+#endif /* __BLI_VECTOR_SET_HH__ */

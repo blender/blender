@@ -1,4 +1,4 @@
-#include "BLI_stack_cxx.h"
+#include "BLI_stack.hh"
 #include "testing/testing.h"
 
 using BLI::Stack;

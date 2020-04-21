@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_STRING_MAP_H__
-#define __BLI_STRING_MAP_H__
+#ifndef __BLI_STRING_MAP_HH__
+#define __BLI_STRING_MAP_HH__
 
 /** \file
  * \ingroup bli
@@ -27,10 +27,10 @@
  * make it more efficient later on. Also, even if we will never implement this optimization, having
  * a special map with string keys can be quite handy. */
 
-#include "BLI_map.h"
-#include "BLI_optional.h"
-#include "BLI_string_ref.h"
-#include "BLI_vector.h"
+#include "BLI_map.hh"
+#include "BLI_optional.hh"
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 namespace BLI {
 
@@ -457,4 +457,4 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
 
 }  // namespace BLI
 
-#endif /* __BLI_STRING_MAP_H__ */
+#endif /* __BLI_STRING_MAP_HH__ */

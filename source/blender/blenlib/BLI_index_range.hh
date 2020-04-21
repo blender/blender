@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_INDEX_RANGE_H__
-#define __BLI_INDEX_RANGE_H__
+#ifndef __BLI_INDEX_RANGE_HH__
+#define __BLI_INDEX_RANGE_HH__
 
 /** \file
  * \ingroup bli
@@ -208,4 +208,4 @@ class IndexRange {
 
 }  // namespace BLI
 
-#endif /* __BLI_INDEX_RANGE_H__ */
+#endif /* __BLI_INDEX_RANGE_HH__ */

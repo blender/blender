@@ -14,8 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_VECTOR_H__
-#define __BLI_VECTOR_H__
+#ifndef __BLI_VECTOR_HH__
+#define __BLI_VECTOR_HH__
 
 /** \file
  * \ingroup bli
@@ -31,12 +31,12 @@
 #include <iostream>
 #include <memory>
 
-#include "BLI_allocator.h"
-#include "BLI_array_ref.h"
-#include "BLI_index_range.h"
-#include "BLI_listbase_wrapper.h"
+#include "BLI_allocator.hh"
+#include "BLI_array_ref.hh"
+#include "BLI_index_range.hh"
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_math_base.h"
-#include "BLI_memory_utils_cxx.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -665,4 +665,4 @@ template<typename T, uint N = 20> using ScopedVector = Vector<T, N, GuardedAlloc
 
 } /* namespace BLI */
 
-#endif /* __BLI_VECTOR_H__ */
+#endif /* __BLI_VECTOR_HH__ */
