@@ -9581,6 +9581,15 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
 
   const short idcode = GS(id->name);
 
+  /* XXX 3DCursor (witch is UI data and as such should not be affected by undo) is stored in
+   * Scene... So this requires some special handling, previously done in `blo_lib_link_restore()`,
+   * but this cannot work anymore when we overwrite existing memory... */
+  if (idcode == ID_SCE) {
+    Scene *scene_old = (Scene *)id_old;
+    Scene *scene = (Scene *)id;
+    SWAP(View3DCursor, scene_old->cursor, scene->cursor);
+  }
+
   Main *old_bmain = fd->old_mainlist->first;
   ListBase *old_lb = which_libbase(old_bmain, idcode);
   ListBase *new_lb = which_libbase(main, idcode);
