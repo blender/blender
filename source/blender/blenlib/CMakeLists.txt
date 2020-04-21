@@ -151,6 +151,7 @@ set(SRC
   BLI_blenlib.h
   BLI_boxpack_2d.h
   BLI_buffer.h
+  BLI_color.hh
   BLI_compiler_attrs.h
   BLI_compiler_compat.h
   BLI_compiler_typecheck.h
@@ -168,6 +169,9 @@ set(SRC
   BLI_expr_pylike_eval.h
   BLI_fileops.h
   BLI_fileops_types.h
+  BLI_float2.hh
+  BLI_float3.hh
+  BLI_float4x4.hh
   BLI_fnmatch.h
   BLI_ghash.h
   BLI_gsqueue.h
