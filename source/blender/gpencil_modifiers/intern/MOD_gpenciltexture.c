@@ -33,10 +33,10 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_gpencil_geom.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
 
 #include "DEG_depsgraph.h"
@@ -59,7 +59,6 @@ static void initData(GpencilModifierData *md)
   gpmd->materialname[0] = '\0';
   gpmd->vgname[0] = '\0';
 }
-
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
@@ -123,7 +122,6 @@ static void deformStroke(GpencilModifierData *md,
       pt->uv_fac += mmd->uv_offset;
     }
   }
-
 }
 
 static void bakeModifier(struct Main *UNUSED(bmain),
