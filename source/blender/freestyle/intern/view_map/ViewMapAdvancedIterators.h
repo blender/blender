@@ -24,6 +24,7 @@
  */
 
 #include "ViewMap.h"
+#include "ViewMapIterators.h"
 
 #include "../system/Iterator.h"  //soc
 

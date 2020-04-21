@@ -23,6 +23,7 @@
  */
 
 #include "Stroke.h"
+#include "StrokeIterators.h"
 
 namespace Freestyle {
 

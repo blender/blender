@@ -22,6 +22,7 @@
  * \brief Iterators used to iterate over the elements of the Curve. Can't be used in python
  */
 
+#include "CurveIterators.h"
 #include "Stroke.h"
 
 namespace Freestyle {
