@@ -210,8 +210,9 @@ ViewLayer *BKE_view_layer_add(Scene *scene,
     case VIEWLAYER_ADD_COPY: {
       /* Allocate and copy view layer data */
       view_layer_new = MEM_callocN(sizeof(ViewLayer), "View Layer");
-      BLI_addtail(&scene->view_layers, view_layer_new);
+      *view_layer_new = *view_layer_source;
       BKE_view_layer_copy_data(scene, scene, view_layer_new, view_layer_source, 0);
+      BLI_addtail(&scene->view_layers, view_layer_new);
 
       BLI_strncpy_utf8(view_layer_new->name, name, sizeof(view_layer_new->name));
       break;
@@ -467,6 +468,10 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
 
   LayerCollection *lc_scene_dst = view_layer_dst->layer_collections.first;
   lc_scene_dst->collection = scene_dst->master_collection;
+
+  if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+    id_us_plus((ID *)view_layer_dst->mat_override);
+  }
 }
 
 void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, const char *newname)
