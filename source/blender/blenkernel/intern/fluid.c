@@ -3846,7 +3846,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   prev_guide = manta_has_guiding(mds->fluid, mmd, prev_frame, guide_parent);
 
   /* Unused for now. */
-  UNUSED_VARS(prev_guide, next_mesh, next_guide);
+  UNUSED_VARS(has_guide, prev_guide, next_mesh, next_guide);
 
   bool with_gdomain;
   with_gdomain = (mds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);
