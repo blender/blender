@@ -74,6 +74,7 @@ void BKE_libblock_init_empty(struct ID *id) ATTR_NONNULL(1);
 
 void BKE_lib_libblock_session_uuid_reset(void);
 void BKE_lib_libblock_session_uuid_ensure(struct ID *id);
+void BKE_lib_libblock_session_uuid_renew(struct ID *id);
 
 void *BKE_id_new(struct Main *bmain, const short type, const char *name);
 void *BKE_id_new_nomain(const short type, const char *name);
