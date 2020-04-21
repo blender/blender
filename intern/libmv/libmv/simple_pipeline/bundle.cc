@@ -138,8 +138,8 @@ void ApplyDistortionModelUsingIntrinsicsBlock(
 //
 // This functor can only be used for distortion models which have analytically
 // defined Apply() function.
-struct OpenCVReprojectionErrorApplyIntrinsics {
-  OpenCVReprojectionErrorApplyIntrinsics(
+struct ReprojectionErrorApplyIntrinsics {
+  ReprojectionErrorApplyIntrinsics(
       const CameraIntrinsics *invariant_intrinsics,
       const double observed_distorted_x,
       const double observed_distorted_y,
@@ -421,7 +421,7 @@ void AddResidualBlockToProblem(const CameraIntrinsics *invariant_intrinsics,
                                double *camera_R_t,
                                EuclideanPoint *point,
                                ceres::Problem* problem) {
-  AddResidualBlockToProblemImpl<OpenCVReprojectionErrorApplyIntrinsics>(
+  AddResidualBlockToProblemImpl<ReprojectionErrorApplyIntrinsics>(
       invariant_intrinsics,
       marker.x, marker.y,
       marker_weight,
