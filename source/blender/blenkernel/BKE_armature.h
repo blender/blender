@@ -27,6 +27,8 @@
 extern "C" {
 #endif
 
+#include "BLI_listbase.h"
+
 struct Bone;
 struct Depsgraph;
 struct ListBase;
