@@ -580,7 +580,10 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ deformVertsEM,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ NULL,
+    /* modifyMesh */ NULL,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ init_data,
     /* requiredDataMask */ required_data_mask,

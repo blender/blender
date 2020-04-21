@@ -153,7 +153,7 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
   return BM_elem_flag_test(f, BM_FACE_TAG) ? 1 : 0;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
   Mesh *result = mesh;
@@ -359,7 +359,10 @@ ModifierTypeInfo modifierType_Boolean = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

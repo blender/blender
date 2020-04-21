@@ -70,14 +70,14 @@ static void requiredDataMask(Object *UNUSED(ob),
   }
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   const SolidifyModifierData *smd = (SolidifyModifierData *)md;
   switch (smd->mode) {
     case MOD_SOLIDIFY_MODE_EXTRUDE:
-      return MOD_solidify_extrude_applyModifier(md, ctx, mesh);
+      return MOD_solidify_extrude_modifyMesh(md, ctx, mesh);
     case MOD_SOLIDIFY_MODE_NONMANIFOLD:
-      return MOD_solidify_nonmanifold_applyModifier(md, ctx, mesh);
+      return MOD_solidify_nonmanifold_modifyMesh(md, ctx, mesh);
     default:
       BLI_assert(0);
   }
@@ -100,7 +100,10 @@ ModifierTypeInfo modifierType_Solidify = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

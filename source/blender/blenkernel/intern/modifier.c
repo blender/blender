@@ -945,11 +945,9 @@ void modifier_path_init(char *path, int path_maxlen, const char *name)
   BLI_join_dirfile(path, path_maxlen, G.relbase_valid ? "//" : BKE_tempdir_session(), name);
 }
 
-/* wrapper around ModifierTypeInfo.applyModifier that ensures valid normals */
+/* wrapper around ModifierTypeInfo.modifyMesh that ensures valid normals */
 
-struct Mesh *modwrap_applyModifier(ModifierData *md,
-                                   const ModifierEvalContext *ctx,
-                                   struct Mesh *me)
+struct Mesh *modwrap_modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct Mesh *me)
 {
   const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
   BLI_assert(CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
@@ -957,7 +955,7 @@ struct Mesh *modwrap_applyModifier(ModifierData *md,
   if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
     BKE_mesh_calc_normals(me);
   }
-  return mti->applyModifier(md, ctx, me);
+  return mti->modifyMesh(md, ctx, me);
 }
 
 void modwrap_deformVerts(ModifierData *md,

@@ -122,7 +122,7 @@ ModifierTypeInfo modifierType_ShapeKey = {
     /* structName */ "ShapeKeyModifierData",
     /* structSize */ sizeof(ShapeKeyModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
-    /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsLattice |
+    /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
 
     /* copyData */ NULL,
@@ -131,7 +131,10 @@ ModifierTypeInfo modifierType_ShapeKey = {
     /* deformMatrices */ deformMatrices,
     /* deformVertsEM */ deformVertsEM,
     /* deformMatricesEM */ deformMatricesEM,
-    /* applyModifier */ NULL,
+    /* modifyMesh */ NULL,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ NULL,
     /* requiredDataMask */ NULL,

@@ -136,7 +136,7 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   output->curface++;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
 {
   RemeshModifierData *rmd;
   DualConOutput *output;
@@ -210,9 +210,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *UNUSED(c
 
 #else /* !WITH_MOD_REMESH */
 
-static Mesh *applyModifier(ModifierData *UNUSED(md),
-                           const ModifierEvalContext *UNUSED(ctx),
-                           Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *UNUSED(md),
+                        const ModifierEvalContext *UNUSED(ctx),
+                        Mesh *mesh)
 {
   return mesh;
 }
@@ -233,7 +233,10 @@ ModifierTypeInfo modifierType_Remesh = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ NULL,

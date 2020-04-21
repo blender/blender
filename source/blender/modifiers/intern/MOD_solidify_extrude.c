@@ -183,9 +183,7 @@ static void mesh_calc_hq_normal(Mesh *mesh, float (*poly_nors)[3], float (*r_ver
 /** \name Main Solidify Function
  * \{ */
 
-Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
-                                         const ModifierEvalContext *ctx,
-                                         Mesh *mesh)
+Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
   const SolidifyModifierData *smd = (SolidifyModifierData *)md;

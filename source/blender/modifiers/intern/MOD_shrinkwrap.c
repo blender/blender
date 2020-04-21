@@ -204,7 +204,7 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
     /* structSize */ sizeof(ShrinkwrapModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
-        eModifierTypeFlag_AcceptsLattice | eModifierTypeFlag_SupportsEditmode |
+        eModifierTypeFlag_AcceptsVertexCosOnly | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
 
     /* copyData */ modifier_copyData_generic,
@@ -213,7 +213,10 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ deformVertsEM,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ NULL,
+    /* modifyMesh */ NULL,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

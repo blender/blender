@@ -172,7 +172,7 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
   return result;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
@@ -286,7 +286,10 @@ ModifierTypeInfo modifierType_Multires = {
     /* deformMatrices */ deformMatrices,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ NULL,

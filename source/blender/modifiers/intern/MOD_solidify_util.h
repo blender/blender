@@ -22,13 +22,13 @@
 #define __MOD_SOLIDIFY_UTIL_H__
 
 /* MOD_solidify_extrude.c */
-Mesh *MOD_solidify_extrude_applyModifier(ModifierData *md,
-                                         const ModifierEvalContext *ctx,
-                                         Mesh *mesh);
+Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md,
+                                      const ModifierEvalContext *ctx,
+                                      Mesh *mesh);
 
 /* MOD_solidify_nonmanifold.c */
-Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
-                                             const ModifierEvalContext *ctx,
-                                             Mesh *mesh);
+Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
+                                          const ModifierEvalContext *ctx,
+                                          Mesh *mesh);
 
 #endif /* __MOD_SOLIDIFY_UTIL_H__ */

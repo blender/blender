@@ -204,7 +204,7 @@ static void store_float_in_vcol(MLoopCol *vcol, float float_value)
   vcol->a = 1.0f;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
@@ -560,7 +560,10 @@ ModifierTypeInfo modifierType_ParticleInstance = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

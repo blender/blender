@@ -546,7 +546,7 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
   apply_weights_vertex_normal(wnmd, wn_data);
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   WeightedNormalModifierData *wnmd = (WeightedNormalModifierData *)md;
   Object *ob = ctx->object;
@@ -714,7 +714,10 @@ ModifierTypeInfo modifierType_WeightedNormal = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

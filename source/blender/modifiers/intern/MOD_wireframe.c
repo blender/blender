@@ -99,9 +99,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
   return result;
 }
 
-static Mesh *applyModifier(ModifierData *md,
-                           const struct ModifierEvalContext *ctx,
-                           struct Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const struct ModifierEvalContext *ctx, struct Mesh *mesh)
 {
   return WireframeModifier_do((WireframeModifierData *)md, ctx->object, mesh);
 }
@@ -119,7 +117,10 @@ ModifierTypeInfo modifierType_Wireframe = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

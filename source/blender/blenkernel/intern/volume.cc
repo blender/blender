@@ -795,12 +795,52 @@ bool BKE_volume_is_points_only(const Volume *volume)
 
 /* Dependency Graph */
 
-static Volume *volume_evaluate_modifiers(struct Depsgraph *UNUSED(depsgraph),
-                                         struct Scene *UNUSED(scene),
-                                         Object *UNUSED(object),
+static Volume *volume_evaluate_modifiers(struct Depsgraph *depsgraph,
+                                         struct Scene *scene,
+                                         Object *object,
                                          Volume *volume_input)
 {
-  return volume_input;
+  Volume *volume = volume_input;
+
+  /* Modifier evaluation modes. */
+  const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+  const int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
+  ModifierApplyFlag apply_flag = use_render ? MOD_APPLY_RENDER : MOD_APPLY_USECACHE;
+  const ModifierEvalContext mectx = {depsgraph, object, apply_flag};
+
+  /* Get effective list of modifiers to execute. Some effects like shape keys
+   * are added as virtual modifiers before the user created modifiers. */
+  VirtualModifierData virtualModifierData;
+  ModifierData *md = modifiers_getVirtualModifierList(object, &virtualModifierData);
+
+  /* Evaluate modifiers. */
+  for (; md; md = md->next) {
+    const ModifierTypeInfo *mti = (const ModifierTypeInfo *)modifierType_getInfo(
+        (ModifierType)md->type);
+
+    if (!modifier_isEnabled(scene, md, required_mode)) {
+      continue;
+    }
+
+    if (mti->modifyVolume) {
+      /* Ensure we are not modifying the input. */
+      if (volume == volume_input) {
+        volume = BKE_volume_copy_for_eval(volume, true);
+      }
+
+      Volume *volume_next = mti->modifyVolume(md, &mectx, volume);
+
+      if (volume_next && volume_next != volume) {
+        /* If the modifier returned a new volume, release the old one. */
+        if (volume != volume_input) {
+          BKE_id_free(NULL, volume);
+        }
+        volume = volume_next;
+      }
+    }
+  }
+
+  return volume;
 }
 
 void BKE_volume_eval_geometry(struct Depsgraph *depsgraph, Volume *volume)

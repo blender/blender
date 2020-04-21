@@ -857,7 +857,7 @@ static void curve_calc_modifiers_pre(
   Curve *cu = ob->data;
   int numElems = 0, numVerts = 0;
   const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
-  ModifierApplyFlag app_flag = 0;
+  ModifierApplyFlag apply_flag = 0;
   float(*deformedVerts)[3] = NULL;
   float *keyVerts = NULL;
   int required_mode;
@@ -865,17 +865,17 @@ static void curve_calc_modifiers_pre(
   modifiers_clearErrors(ob);
 
   if (editmode) {
-    app_flag |= MOD_APPLY_USECACHE;
+    apply_flag |= MOD_APPLY_USECACHE;
   }
   if (for_render) {
-    app_flag |= MOD_APPLY_RENDER;
+    apply_flag |= MOD_APPLY_RENDER;
     required_mode = eModifierMode_Render;
   }
   else {
     required_mode = eModifierMode_Realtime;
   }
 
-  const ModifierEvalContext mectx = {depsgraph, ob, app_flag};
+  const ModifierEvalContext mectx = {depsgraph, ob, apply_flag};
 
   pretessellatePoint = curve_get_tessellate_point(scene, ob, for_render, editmode);
 
@@ -985,10 +985,10 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
   Mesh *modified = NULL, *mesh_applied;
   float(*vertCos)[3] = NULL;
   int useCache = !for_render;
-  ModifierApplyFlag app_flag = 0;
+  ModifierApplyFlag apply_flag = 0;
 
   if (for_render) {
-    app_flag |= MOD_APPLY_RENDER;
+    apply_flag |= MOD_APPLY_RENDER;
     required_mode = eModifierMode_Render;
   }
   else {
@@ -996,9 +996,9 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
   }
 
   const ModifierEvalContext mectx_deform = {
-      depsgraph, ob, editmode ? app_flag | MOD_APPLY_USECACHE : app_flag};
+      depsgraph, ob, editmode ? apply_flag | MOD_APPLY_USECACHE : apply_flag};
   const ModifierEvalContext mectx_apply = {
-      depsgraph, ob, useCache ? app_flag | MOD_APPLY_USECACHE : app_flag};
+      depsgraph, ob, useCache ? apply_flag | MOD_APPLY_USECACHE : apply_flag};
 
   pretessellatePoint = curve_get_tessellate_point(scene, ob, for_render, editmode);
 
@@ -1095,7 +1095,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
       if (need_normal) {
         BKE_mesh_ensure_normals(modified);
       }
-      mesh_applied = mti->applyModifier(md, &mectx_apply, modified);
+      mesh_applied = mti->modifyMesh(md, &mectx_apply, modified);
 
       if (mesh_applied) {
         /* Modifier returned a new derived mesh */

@@ -55,7 +55,7 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
   return true;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, struct Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct Mesh *mesh)
 {
   Mesh *result;
   BuildModifierData *bmd = (BuildModifierData *)md;
@@ -288,7 +288,10 @@ ModifierTypeInfo modifierType_Build = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ NULL,

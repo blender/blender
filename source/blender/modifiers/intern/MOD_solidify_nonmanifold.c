@@ -132,9 +132,9 @@ static int comp_float_int_pair(const void *a, const void *b)
   return (int)(x->angle > y->angle) - (int)(x->angle < y->angle);
 }
 
-Mesh *MOD_solidify_nonmanifold_applyModifier(ModifierData *md,
-                                             const ModifierEvalContext *ctx,
-                                             Mesh *mesh)
+Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
+                                          const ModifierEvalContext *ctx,
+                                          Mesh *mesh)
 {
   Mesh *result;
   const SolidifyModifierData *smd = (SolidifyModifierData *)md;

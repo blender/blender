@@ -514,21 +514,31 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 
   mti = modifierType_getInfo(modifier_type);
 
-  /* only geometry objects should be able to get modifiers [#25291] */
-  if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
-    return false;
+  /* Only geometry objects should be able to get modifiers [#25291] */
+  if (ob->type == OB_HAIR) {
+    return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
+  }
+  else if (ob->type == OB_POINTCLOUD) {
+    return (mti->modifyPointCloud != NULL) ||
+           (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
+  }
+  else if (ob->type == OB_VOLUME) {
+    return (mti->modifyVolume != NULL);
+  }
+  else if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+    if (ob->type == OB_LATTICE && (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly) == 0) {
+      return false;
+    }
+
+    if (!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
+          (ob->type == OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh)))) {
+      return false;
+    }
+
+    return true;
   }
 
-  if (ob->type == OB_LATTICE && (mti->flags & eModifierTypeFlag_AcceptsLattice) == 0) {
-    return false;
-  }
-
-  if (!((mti->flags & eModifierTypeFlag_AcceptsCVs) ||
-        (ob->type == OB_MESH && (mti->flags & eModifierTypeFlag_AcceptsMesh)))) {
-    return false;
-  }
-
-  return true;
+  return false;
 }
 
 void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src)

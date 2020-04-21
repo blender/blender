@@ -761,7 +761,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   return result;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   ArrayModifierData *amd = (ArrayModifierData *)md;
   return arrayModifier_doArray(amd, ctx, mesh);
@@ -807,7 +807,10 @@ ModifierTypeInfo modifierType_Array = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ NULL,

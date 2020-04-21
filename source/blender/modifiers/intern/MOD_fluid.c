@@ -101,7 +101,7 @@ static void requiredDataMask(Object *UNUSED(ob),
   }
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
 {
 #ifndef WITH_FLUID
   UNUSED_VARS(md, ctx);
@@ -207,7 +207,10 @@ ModifierTypeInfo modifierType_Fluid = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

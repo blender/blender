@@ -293,7 +293,7 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
  * 2. Find edges and polygons only using those vertices.
  * 3. Create a new mesh that only uses the found vertices, edges and polygons.
  */
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   MaskModifierData *mmd = (MaskModifierData *)md;
   Object *ob = ctx->object;
@@ -401,7 +401,10 @@ ModifierTypeInfo modifierType_Mask = {
     /* deformMatrices */ NULL,
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
-    /* applyModifier */ applyModifier,
+    /* modifyMesh */ modifyMesh,
+    /* modifyHair */ NULL,
+    /* modifyPointCloud */ NULL,
+    /* modifyVolume */ NULL,
 
     /* initData */ NULL,
     /* requiredDataMask */ requiredDataMask,

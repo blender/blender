@@ -1353,7 +1353,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
       add_shapekey_layers(mesh_temp, me);
     }
 
-    result = mti->applyModifier(md_eval, &mectx, mesh_temp);
+    result = mti->modifyMesh(md_eval, &mectx, mesh_temp);
     ASSERT_IS_VALID_MESH(result);
 
     if (mesh_temp != result) {
