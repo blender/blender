@@ -66,8 +66,9 @@ class FILEBROWSER_PT_display(Panel):
         if params.display_type == 'THUMBNAIL':
             layout.prop(params, "display_size", text="Size")
         else:
-            layout.prop(params, "show_details_size", text="Size")
-            layout.prop(params, "show_details_datetime", text="Date")
+            col = layout.column(heading="Columns", align=True)
+            col.prop(params, "show_details_size", text="Size")
+            col.prop(params, "show_details_datetime", text="Date")
 
         layout.prop(params, "recursion_level", text="Recursions")
 
