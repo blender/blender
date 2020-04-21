@@ -2054,7 +2054,9 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   }
   else if (!draw_surface) {
     /* grease pencil selection */
-    use_drw_engine(&draw_engine_gpencil_type);
+    if (drw_gpencil_engine_needed(depsgraph, v3d)) {
+      use_drw_engine(&draw_engine_gpencil_type);
+    }
 
     drw_engines_enable_overlays();
   }
@@ -2062,7 +2064,9 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
     /* Draw surface for occlusion. */
     drw_engines_enable_basic();
     /* grease pencil selection */
-    use_drw_engine(&draw_engine_gpencil_type);
+    if (drw_gpencil_engine_needed(depsgraph, v3d)) {
+      use_drw_engine(&draw_engine_gpencil_type);
+    }
 
     drw_engines_enable_overlays();
   }
