@@ -1370,7 +1370,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 static void proxy_task_func(TaskPool *__restrict pool, void *task_data, int UNUSED(threadid))
 {
   ProxyThread *data = (ProxyThread *)task_data;
-  ProxyQueue *queue = (ProxyQueue *)BLI_task_pool_userdata(pool);
+  ProxyQueue *queue = (ProxyQueue *)BLI_task_pool_user_data(pool);
   uchar *mem;
   size_t size;
   int cfra;

@@ -992,7 +992,7 @@ bool BLI_task_pool_canceled(TaskPool *pool)
   return pool->do_cancel;
 }
 
-void *BLI_task_pool_userdata(TaskPool *pool)
+void *BLI_task_pool_user_data(TaskPool *pool)
 {
   return pool->userdata;
 }

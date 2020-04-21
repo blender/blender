@@ -340,7 +340,7 @@ void nearest_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 
 static void processor_apply_func(TaskPool *__restrict pool, void *taskdata, int UNUSED(threadid))
 {
-  void (*do_thread)(void *) = (void (*)(void *))BLI_task_pool_userdata(pool);
+  void (*do_thread)(void *) = (void (*)(void *))BLI_task_pool_user_data(pool);
   do_thread(taskdata);
 }
 
@@ -403,7 +403,7 @@ static void processor_apply_scanline_func(TaskPool *__restrict pool,
                                           void *taskdata,
                                           int UNUSED(threadid))
 {
-  ScanlineGlobalData *data = BLI_task_pool_userdata(pool);
+  ScanlineGlobalData *data = BLI_task_pool_user_data(pool);
   int start_scanline = POINTER_AS_INT(taskdata);
   int num_scanlines = min_ii(data->scanlines_per_task, data->total_scanlines - start_scanline);
   data->do_thread(data->custom_data, start_scanline, num_scanlines);

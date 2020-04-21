@@ -887,7 +887,7 @@ static uchar *prefetch_thread_next_frame(PrefetchQueue *queue,
 
 static void prefetch_task_func(TaskPool *__restrict pool, void *task_data, int UNUSED(threadid))
 {
-  PrefetchQueue *queue = (PrefetchQueue *)BLI_task_pool_userdata(pool);
+  PrefetchQueue *queue = (PrefetchQueue *)BLI_task_pool_user_data(pool);
   MovieClip *clip = (MovieClip *)task_data;
   uchar *mem;
   size_t size;

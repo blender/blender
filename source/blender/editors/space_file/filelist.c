@@ -1268,7 +1268,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool,
                                         void *taskdata,
                                         int UNUSED(threadid))
 {
-  FileListEntryCache *cache = BLI_task_pool_userdata(pool);
+  FileListEntryCache *cache = BLI_task_pool_user_data(pool);
   FileListEntryPreviewTaskData *preview_taskdata = taskdata;
   FileListEntryPreview *preview = preview_taskdata->preview;
 

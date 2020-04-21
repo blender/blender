@@ -105,7 +105,7 @@ void BLI_task_pool_cancel(TaskPool *pool);
 bool BLI_task_pool_canceled(TaskPool *pool);
 
 /* optional userdata pointer to pass along to run function */
-void *BLI_task_pool_userdata(TaskPool *pool);
+void *BLI_task_pool_user_data(TaskPool *pool);
 
 /* optional mutex to use from run function */
 ThreadMutex *BLI_task_pool_user_mutex(TaskPool *pool);

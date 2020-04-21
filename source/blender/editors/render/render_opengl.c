@@ -1035,7 +1035,7 @@ typedef struct WriteTaskData {
 
 static void write_result_func(TaskPool *__restrict pool, void *task_data_v, int UNUSED(thread_id))
 {
-  OGLRender *oglrender = (OGLRender *)BLI_task_pool_userdata(pool);
+  OGLRender *oglrender = (OGLRender *)BLI_task_pool_user_data(pool);
   WriteTaskData *task_data = (WriteTaskData *)task_data_v;
   Scene *scene = &task_data->tmp_scene;
   RenderResult *rr = task_data->rr;

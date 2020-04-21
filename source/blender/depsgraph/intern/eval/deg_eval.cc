@@ -118,7 +118,7 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
 
 void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id)
 {
-  void *userdata_v = BLI_task_pool_userdata(pool);
+  void *userdata_v = BLI_task_pool_user_data(pool);
   DepsgraphEvalState *state = (DepsgraphEvalState *)userdata_v;
 
   /* Evaluate node. */

@@ -65,7 +65,7 @@ struct IndexedNode {
 
 void concurrent_insert(TaskPool *__restrict pool, void *taskdata, int /*threadid*/)
 {
-  LockfreeLinkList *list = (LockfreeLinkList *)BLI_task_pool_userdata(pool);
+  LockfreeLinkList *list = (LockfreeLinkList *)BLI_task_pool_user_data(pool);
   CHECK_NOTNULL(list);
   IndexedNode *node = (IndexedNode *)MEM_mallocN(sizeof(IndexedNode), "test node");
   node->index = POINTER_AS_INT(taskdata);

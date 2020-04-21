@@ -234,7 +234,7 @@ BLI_INLINE bool parallel_range_next_iter_get(TaskParallelRangePool *__restrict r
 
 static void parallel_range_func(TaskPool *__restrict pool, void *tls_data_idx, int thread_id)
 {
-  TaskParallelRangePool *__restrict range_pool = BLI_task_pool_userdata(pool);
+  TaskParallelRangePool *__restrict range_pool = BLI_task_pool_user_data(pool);
   TaskParallelTLS tls = {
       .thread_id = thread_id,
       .userdata_chunk = NULL,
@@ -446,7 +446,7 @@ static void parallel_range_func_finalize(TaskPool *__restrict pool,
                                          void *v_state,
                                          int UNUSED(thread_id))
 {
-  TaskParallelRangePool *__restrict range_pool = BLI_task_pool_userdata(pool);
+  TaskParallelRangePool *__restrict range_pool = BLI_task_pool_user_data(pool);
   TaskParallelRangeState *state = v_state;
 
   for (int i = 0; i < range_pool->num_tasks; i++) {
@@ -666,7 +666,7 @@ static void parallel_iterator_func_do(TaskParallelIteratorState *__restrict stat
 
 static void parallel_iterator_func(TaskPool *__restrict pool, void *userdata_chunk, int threadid)
 {
-  TaskParallelIteratorState *__restrict state = BLI_task_pool_userdata(pool);
+  TaskParallelIteratorState *__restrict state = BLI_task_pool_user_data(pool);
 
   parallel_iterator_func_do(state, userdata_chunk, threadid);
 }
@@ -862,7 +862,7 @@ typedef struct ParallelMempoolState {
 
 static void parallel_mempool_func(TaskPool *__restrict pool, void *taskdata, int UNUSED(threadid))
 {
-  ParallelMempoolState *__restrict state = BLI_task_pool_userdata(pool);
+  ParallelMempoolState *__restrict state = BLI_task_pool_user_data(pool);
   BLI_mempool_iter *iter = taskdata;
   MempoolIterData *item;
 

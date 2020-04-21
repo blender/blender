@@ -1302,7 +1302,7 @@ static void loop_split_worker_do(LoopSplitTaskDataCommon *common_data,
 
 static void loop_split_worker(TaskPool *__restrict pool, void *taskdata, int UNUSED(threadid))
 {
-  LoopSplitTaskDataCommon *common_data = BLI_task_pool_userdata(pool);
+  LoopSplitTaskDataCommon *common_data = BLI_task_pool_user_data(pool);
   LoopSplitTaskData *data = taskdata;
 
   /* Temp edge vectors stack, only used when computing lnor spacearr. */
