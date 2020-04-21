@@ -34,11 +34,11 @@
 #ifndef TEXTSTROKERENDERER_H
 #define TEXTSTROKERENDERER_H
 
-/* clang-format off */
-#include "StrokeRenderer.h"
-#include "../system/FreestyleConfig.h"
 #include <fstream>
-/* clang-format on */
+
+#include "StrokeRenderer.h"
+
+#include "../system/FreestyleConfig.h"
 
 namespace Freestyle {
 

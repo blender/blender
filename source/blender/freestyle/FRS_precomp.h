@@ -1,26 +1,27 @@
 /* Pre-compiled headers, see: D2606. */
 
-/* clang-format off */
 #include <Python.h>
-#include <pthread.h>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <math.h>
-#include <stdbool.h>
+
 #include <algorithm>
-#include <time.h>
-#include <iterator>
-#include <memory>
-#include <set>
-#include <map>
-#include <list>
 #include <deque>
-#include <sstream>
-#include <stdarg.h>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <list>
+#include <map>
+#include <math.h>
+#include <memory>
+#include <pthread.h>
+#include <set>
+#include <sstream>
 #include <stack>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <string>
+#include <time.h>
+#include <vector>
+
 #include "intern/python/BPy_BBox.h"
 #include "intern/python/BPy_BinaryPredicate0D.h"
 #include "intern/python/BPy_BinaryPredicate1D.h"
@@ -47,5 +48,3 @@
 #include "intern/python/BPy_ViewMap.h"
 #include "intern/python/BPy_ViewShape.h"
 #include "intern/python/Director.h"
-
-/* clang-format on */

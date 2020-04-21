@@ -19,12 +19,10 @@
  * \brief Class to define a chain of viewedges.
  */
 
-/* clang-format off */
 #include "Chain.h"
 
-#include "../view_map/ViewMapIterators.h"
 #include "../view_map/ViewMapAdvancedIterators.h"
-/* clang-format on */
+#include "../view_map/ViewMapIterators.h"
 
 namespace Freestyle {
 

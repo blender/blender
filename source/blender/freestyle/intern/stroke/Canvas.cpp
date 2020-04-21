@@ -19,7 +19,6 @@
  * \brief Class to define a canvas designed to draw style modules
  */
 
-/* clang-format off */
 #include <sstream>
 #include <vector>
 
@@ -27,13 +26,13 @@
 #include "StrokeRenderer.h"
 #include "StyleModule.h"
 
-#include "../image/Image.h"
 #include "../image/GaussianFilter.h"
+#include "../image/Image.h"
 #include "../image/ImagePyramid.h"
 
 #include "../system/FreestyleConfig.h"
-#include "../system/TimeStamp.h"
 #include "../system/PseudoNoise.h"
+#include "../system/TimeStamp.h"
 
 #include "../view_map/SteerableViewMap.h"
 
@@ -46,7 +45,6 @@ extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 }
-/* clang-format on */
 
 using namespace std;
 

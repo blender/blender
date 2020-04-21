@@ -22,16 +22,14 @@
  * \brief A class to hold a bounding box
  */
 
-/* clang-format off */
-#include <stdlib.h>
 #include <algorithm>
+#include <stdlib.h>
 
 #include "BLI_utildefines.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
-/* clang-format on */
 
 namespace Freestyle {
 

@@ -22,15 +22,14 @@
  * \brief Python Interpreter
  */
 
-/* clang-format off */
 #include <iostream>
 
 extern "C" {
 #include <Python.h>
 }
 
-#include "StringUtils.h"
 #include "Interpreter.h"
+#include "StringUtils.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -49,7 +48,6 @@ extern "C" {
 
 #include "bpy_capi_utils.h"
 }
-/* clang-format on */
 
 namespace Freestyle {
 

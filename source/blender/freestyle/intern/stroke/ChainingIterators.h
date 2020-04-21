@@ -22,7 +22,6 @@
  * \brief Chaining iterators
  */
 
-/* clang-format off */
 #include <iostream>
 
 #include "Predicates1D.h"
@@ -30,9 +29,8 @@
 #include "../system/Iterator.h"
 
 #include "../view_map/ViewMap.h"
-#include "../view_map/ViewMapIterators.h"
 #include "../view_map/ViewMapAdvancedIterators.h"
-/* clang-format on */
+#include "../view_map/ViewMapIterators.h"
 
 // using namespace ViewEdgeInternal;
 

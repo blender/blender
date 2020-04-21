@@ -22,15 +22,14 @@
  * \brief Configuration file
  */
 
-/* clang-format off */
-#include <string>
 #include <algorithm>
+#include <string>
+
 #include "../system/Precision.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
-/* clang-format on */
 
 using namespace std;
 

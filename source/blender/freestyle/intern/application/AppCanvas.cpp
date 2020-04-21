@@ -18,18 +18,17 @@
  * \ingroup freestyle
  */
 
-/* clang-format off */
-#include "Controller.h"
-#include "AppView.h"
-#include "../image/Image.h"
-#include "../system/TimeStamp.h"
-#include "../stroke/StrokeRenderer.h"
 #include "AppCanvas.h"
 #include "AppConfig.h"
+#include "AppView.h"
+#include "Controller.h"
+
+#include "../image/Image.h"
+#include "../stroke/StrokeRenderer.h"
 #include "../stroke/StyleModule.h"
+#include "../system/TimeStamp.h"
 
 #include "../system/StringUtils.h"
-/* clang-format on */
 namespace Freestyle {
 
 AppCanvas::AppCanvas() : Canvas()

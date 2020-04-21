@@ -19,11 +19,10 @@
  * \brief Class to build silhouette edges from a Winged-Edge structure
  */
 
-/* clang-format off */
 #include <algorithm>
 #include <memory>
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 
 #include "FRS_freestyle.h"
 
@@ -34,13 +33,12 @@
 #include "SphericalGrid.h"
 #include "ViewMapBuilder.h"
 
-#include "../geometry/GridHelpers.h"
 #include "../geometry/GeomUtils.h"
+#include "../geometry/GridHelpers.h"
 
 #include "../winged_edge/WFillGrid.h"
 
 #include "BKE_global.h"
-/* clang-format on */
 
 namespace Freestyle {
 

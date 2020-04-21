@@ -22,7 +22,6 @@
  * \brief String utilities
  */
 
-/* clang-format off */
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -30,10 +29,9 @@
 #include <vector>
 
 extern "C" {
-#include "BLI_string.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 }
-/* clang-format on */
 
 using namespace std;
 

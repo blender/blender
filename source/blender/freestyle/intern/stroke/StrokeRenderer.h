@@ -22,10 +22,9 @@
  * \brief Classes to render a stroke with OpenGL
  */
 
-/* clang-format off */
+#include <algorithm>
 #include <map>
 #include <string.h>
-#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -37,7 +36,6 @@
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
-/* clang-format on */
 
 namespace Freestyle {
 

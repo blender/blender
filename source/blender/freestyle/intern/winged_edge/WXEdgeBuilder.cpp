@@ -20,10 +20,8 @@
  * info (silhouette etc...)) structure from a polygonal model
  */
 
-/* clang-format off */
-#include "WXEdge.h"
 #include "WXEdgeBuilder.h"
-/* clang-format on */
+#include "WXEdge.h"
 
 namespace Freestyle {
 

@@ -20,9 +20,8 @@
  * implies that this geom engine has as member data the viewpoint, transformations, projections...
  */
 
-/* clang-format off */
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 
 #include "Silhouette.h"
 #include "SilhouetteGeomEngine.h"
@@ -30,7 +29,6 @@
 #include "../geometry/GeomUtils.h"
 
 #include "BKE_global.h"
-/* clang-format on */
 
 using namespace std;
 
