@@ -12,6 +12,7 @@ if(WITH_GTESTS)
   remove_strict_flags()
 
   add_subdirectory(testing)
+  add_subdirectory(blenkernel)
   add_subdirectory(blenlib)
   add_subdirectory(blenloader)
   add_subdirectory(guardedalloc)
