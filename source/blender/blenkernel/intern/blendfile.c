@@ -201,6 +201,27 @@ static void setup_app_data(bContext *C,
     SWAP(ListBase, bmain->workspaces, bfd->main->workspaces);
     SWAP(ListBase, bmain->screens, bfd->main->screens);
 
+    /* In case of actual new file reading without loading UI, we need to regenerate the session
+     * uuid of the UI-related datablocks we are keeping from previous session, otherwise their uuid
+     * will collide with some generated for newly read data. */
+    if (mode != LOAD_UNDO) {
+      ID *id;
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (&bfd->main->wm, id) {
+        BKE_lib_libblock_session_uuid_renew(id);
+      }
+      FOREACH_MAIN_LISTBASE_ID_END;
+
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (&bfd->main->workspaces, id) {
+        BKE_lib_libblock_session_uuid_renew(id);
+      }
+      FOREACH_MAIN_LISTBASE_ID_END;
+
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (&bfd->main->screens, id) {
+        BKE_lib_libblock_session_uuid_renew(id);
+      }
+      FOREACH_MAIN_LISTBASE_ID_END;
+    }
+
     /* we re-use current window and screen */
     win = CTX_wm_window(C);
     curscreen = CTX_wm_screen(C);

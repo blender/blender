@@ -1088,6 +1088,18 @@ void BKE_lib_libblock_session_uuid_ensure(ID *id)
 }
 
 /**
+ * Re-generate a new session-wise uuid for the given \a id.
+ *
+ * \warning This has a very specific use-case (to handle UI-related data-blocks that are kept
+ * across new file reading, when we do keep existing UI). No other usage is expected currently.
+ */
+void BKE_lib_libblock_session_uuid_renew(ID *id)
+{
+  id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+  BKE_lib_libblock_session_uuid_ensure(id);
+}
+
+/**
  * Generic helper to create a new empty data-block of given type in given \a bmain database.
  *
  * \param name: can be NULL, in which case we get default name for this ID type.
