@@ -5316,6 +5316,12 @@ static void lib_link_object(FileData *fd, Main *bmain, Object *ob)
       /* Flag for refreshing the simulation after loading */
       mmd->domain->flags |= FLUID_DOMAIN_FILE_LOAD;
     }
+    else if (mmd && (mmd->type == MOD_FLUID_TYPE_FLOW) && mmd->flow) {
+      mmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
+    }
+    else if (mmd && (mmd->type == MOD_FLUID_TYPE_EFFEC) && mmd->effector) {
+      mmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
+    }
   }
 
   /* texture field */
