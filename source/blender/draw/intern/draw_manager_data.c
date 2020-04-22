@@ -858,6 +858,7 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
 typedef struct DRWSculptCallbackData {
   Object *ob;
   DRWShadingGroup **shading_groups;
+  int num_shading_groups;
   bool use_wire;
   bool use_mats;
   bool use_mask;
@@ -896,6 +897,9 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
 
   if (scd->use_mats) {
     index = GPU_pbvh_buffers_material_index_get(buffers);
+    if (index >= scd->num_shading_groups) {
+      index = 0;
+    }
   }
 
   DRWShadingGroup *shgrp = scd->shading_groups[index];
@@ -1035,6 +1039,7 @@ void DRW_shgroup_call_sculpt(
   DRWSculptCallbackData scd = {
       .ob = ob,
       .shading_groups = &shgroup,
+      .num_shading_groups = 1,
       .use_wire = use_wire,
       .use_mats = false,
       .use_mask = use_mask,
@@ -1042,11 +1047,15 @@ void DRW_shgroup_call_sculpt(
   drw_sculpt_generate_calls(&scd, use_vcol);
 }
 
-void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups, Object *ob, bool use_vcol)
+void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
+                                            int num_shgroups,
+                                            Object *ob,
+                                            bool use_vcol)
 {
   DRWSculptCallbackData scd = {
       .ob = ob,
       .shading_groups = shgroups,
+      .num_shading_groups = num_shgroups,
       .use_wire = false,
       .use_mats = true,
       .use_mask = false,
