@@ -1781,7 +1781,7 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
 #endif
 }
 
-int BKE_subdiv_cgg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int grid_index)
+int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int grid_index)
 {
   // Subdiv *subdiv = subdiv_ccg->subdiv; /* UNUSED */
   // OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner; /* UNUSED */

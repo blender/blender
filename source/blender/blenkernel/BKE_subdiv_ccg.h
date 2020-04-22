@@ -305,7 +305,7 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
                                         const bool include_duplicates,
                                         SubdivCCGNeighbors *r_neighbors);
 
-int BKE_subdiv_cgg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int grid_index);
+int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int grid_index);
 
 #ifdef __cplusplus
 }
