@@ -2194,7 +2194,7 @@ static void write_customdata(WriteData *wd,
         datasize = structnum * count;
         writestruct_id(wd, DATA, structname, datasize, layer->data);
       }
-      else {
+      else if (!wd->use_memfile) { /* Do not warn on undo. */
         printf("%s error: layer '%s':%d - can't be written to file\n",
                __func__,
                structname,
