@@ -81,7 +81,7 @@ node_tree_group_type = {
 }
 
 
-# generic node group items generator for shader, compositor and texture node groups
+# generic node group items generator for shader, compositor, simulation and texture node groups
 def node_group_items(context):
     if context is None:
         return
