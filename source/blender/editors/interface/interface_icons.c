@@ -1129,8 +1129,8 @@ void UI_icons_free(void)
 #ifndef WITH_HEADLESS
   free_icons_textures();
   free_iconfile_list(&iconfilelist);
-  BKE_icons_free();
 #endif
+  BKE_icons_free();
 }
 
 void UI_icons_free_drawinfo(void *drawinfo)
