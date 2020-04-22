@@ -92,10 +92,12 @@ void workbench_opaque_cache_init(WORKBENCH_Data *data)
         wpd->prepass[opaque][infront][hair].common_shgrp = grp = DRW_shgroup_create(sh, pass);
         DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", -1);
+        DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
 
         wpd->prepass[opaque][infront][hair].vcol_shgrp = grp = DRW_shgroup_create(sh, pass);
         DRW_shgroup_uniform_block_persistent(grp, "material_block", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. (uses vcol) */
+        DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
 
         sh = workbench_shader_opaque_image_get(wpd, hair, false);
 
