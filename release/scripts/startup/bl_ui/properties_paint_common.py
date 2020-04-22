@@ -1095,7 +1095,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         settings = context.tool_settings.gpencil_sculpt
         if compact:
             row = layout.row(align=True)
-            row.prop(settings, "use_thickness_curve", text="", icon='CURVE_DATA')
+            row.prop(settings, "use_thickness_curve", text="", icon='SPHERECURVE')
             sub = row.row(align=True)
             sub.active = settings.use_thickness_curve
             sub.popover(

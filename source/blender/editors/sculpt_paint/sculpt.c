@@ -222,7 +222,7 @@ int SCULPT_active_face_set_get(SculptSession *ss)
     case PBVH_FACES:
       return ss->face_sets[ss->active_face_index];
     case PBVH_GRIDS: {
-      const int face_index = BKE_subdiv_cgg_grid_to_face_index(ss->subdiv_ccg,
+      const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);
       return ss->face_sets[face_index];
     }
@@ -359,7 +359,7 @@ bool SCULPT_vertex_all_face_sets_visible_get(SculptSession *ss, int index)
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index / key->grid_area;
-      const int face_index = BKE_subdiv_cgg_grid_to_face_index(ss->subdiv_ccg, grid_index);
+      const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
       return ss->face_sets[face_index] > 0;
     }
   }
@@ -382,7 +382,7 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, int index, int face_set)
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index / key->grid_area;
-      const int face_index = BKE_subdiv_cgg_grid_to_face_index(ss->subdiv_ccg, grid_index);
+      const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
       if (ss->face_sets[face_index] > 0) {
         ss->face_sets[face_index] = abs(face_set);
       }
@@ -409,7 +409,7 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, int index)
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index / key->grid_area;
-      const int face_index = BKE_subdiv_cgg_grid_to_face_index(ss->subdiv_ccg, grid_index);
+      const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
       return ss->face_sets[face_index];
     }
   }
@@ -433,7 +433,7 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_set)
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index / key->grid_area;
-      const int face_index = BKE_subdiv_cgg_grid_to_face_index(ss->subdiv_ccg, grid_index);
+      const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
       return ss->face_sets[face_index] == face_set;
     }
   }

@@ -199,32 +199,33 @@ ccl_device float pmj_sample_1D(KernelGlobals *kg, int sample, int rng_hash, int 
 {
   /* Fallback to random */
   if (sample >= NUM_PMJ_SAMPLES) {
-    int p = rng_hash + dimension;
+    const int p = rng_hash + dimension;
     return cmj_randfloat(sample, p);
   }
-  uint tmp_rng = cmj_hash_simple(dimension, rng_hash);
-  int index = ((dimension % NUM_PMJ_PATTERNS) * NUM_PMJ_SAMPLES + sample) * 2;
-  return __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index) ^ (tmp_rng & 0x007fffff)) -
-         1.0f;
+  else {
+    const uint mask = cmj_hash_simple(dimension, rng_hash) & 0x007fffff;
+    const int index = ((dimension % NUM_PMJ_PATTERNS) * NUM_PMJ_SAMPLES + sample) * 2;
+    return __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index) ^ mask) - 1.0f;
+  }
 }
 
-ccl_device void pmj_sample_2D(
-    KernelGlobals *kg, int sample, int rng_hash, int dimension, float *fx, float *fy)
+ccl_device float2 pmj_sample_2D(KernelGlobals *kg, int sample, int rng_hash, int dimension)
 {
   if (sample >= NUM_PMJ_SAMPLES) {
-    int p = rng_hash + dimension;
-    *fx = cmj_randfloat(sample, p);
-    *fy = cmj_randfloat(sample, p + 1);
-    return;
+    const int p = rng_hash + dimension;
+    const float fx = cmj_randfloat(sample, p);
+    const float fy = cmj_randfloat(sample, p + 1);
+    return make_float2(fx, fy);
   }
-  uint tmp_rng = cmj_hash_simple(dimension, rng_hash);
-  int index = ((dimension % NUM_PMJ_PATTERNS) * NUM_PMJ_SAMPLES + sample) * 2;
-  *fx = __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index) ^ (tmp_rng & 0x007fffff)) -
-        1.0f;
-  tmp_rng = cmj_hash_simple(dimension + 1, rng_hash);
-  *fy = __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index + 1) ^
-                        (tmp_rng & 0x007fffff)) -
-        1.0f;
+  else {
+    const int index = ((dimension % NUM_PMJ_PATTERNS) * NUM_PMJ_SAMPLES + sample) * 2;
+    const uint maskx = cmj_hash_simple(dimension, rng_hash) & 0x007fffff;
+    const uint masky = cmj_hash_simple(dimension + 1, rng_hash) & 0x007fffff;
+    const float fx = __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index) ^ maskx) - 1.0f;
+    const float fy = __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index + 1) ^ masky) -
+                     1.0f;
+    return make_float2(fx, fy);
+  }
 }
 
 CCL_NAMESPACE_END

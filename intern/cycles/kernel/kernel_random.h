@@ -102,7 +102,9 @@ ccl_device_forceinline void path_rng_2D(KernelGlobals *kg,
   return;
 #endif
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_PMJ) {
-    pmj_sample_2D(kg, sample, rng_hash, dimension, fx, fy);
+    const float2 f = pmj_sample_2D(kg, sample, rng_hash, dimension);
+    *fx = f.x;
+    *fy = f.y;
     return;
   }
 #ifdef __CMJ__
