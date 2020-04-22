@@ -77,10 +77,33 @@ static struct {
 
 void GPENCIL_shader_free(void)
 {
-  GPUShader **sh_data_as_array = (GPUShader **)&g_shaders;
-  for (int i = 0; i < (sizeof(g_shaders) / sizeof(GPUShader *)); i++) {
-    DRW_SHADER_FREE_SAFE(sh_data_as_array[i]);
-  }
+  DRW_SHADER_FREE_SAFE(g_shaders.antialiasing_sh[0]);
+  DRW_SHADER_FREE_SAFE(g_shaders.antialiasing_sh[1]);
+  DRW_SHADER_FREE_SAFE(g_shaders.antialiasing_sh[2]);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.composite_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.layer_blend_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.depth_merge_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.mask_invert_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.fx_composite_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.fx_colorize_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.fx_blur_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.fx_glow_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.fx_pixel_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.fx_rim_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.fx_shadow_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.fx_transform_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_fill_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_stroke_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_point_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_edit_point_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_line_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_drawing_fill_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_fullscreen_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_simple_fullscreen_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_blend_fullscreen_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_background_sh);
+  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_paper_sh);
 }
 
 GPUShader *GPENCIL_shader_antialiasing(int stage)

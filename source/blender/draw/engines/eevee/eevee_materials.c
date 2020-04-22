@@ -2089,16 +2089,16 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
         for (int i = 0; i < materials_len; i++) {
           sculpt_shgrps_array[i] = shgrps_array[i].shading_grp;
         }
-        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob, use_vcol);
 
         for (int i = 0; i < materials_len; i++) {
           sculpt_shgrps_array[i] = shgrps_array[i].depth_grp;
         }
-        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob, use_vcol);
         for (int i = 0; i < materials_len; i++) {
           sculpt_shgrps_array[i] = shgrps_array[i].depth_clip_grp;
         }
-        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob, use_vcol);
 
         for (int renderpass_index = 0;
              renderpass_index < stl->g_data->render_passes_material_count;
@@ -2106,7 +2106,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           for (int i = 0; i < materials_len; i++) {
             sculpt_shgrps_array[i] = shgrps_array[i].material_accum_grp[renderpass_index];
           }
-          DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, ob, use_vcol);
+          DRW_shgroup_call_sculpt_with_materials(sculpt_shgrps_array, materials_len, ob, use_vcol);
         }
 
         /* TODO(fclem): Support shadows in sculpt mode. */

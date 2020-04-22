@@ -411,7 +411,10 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
                                            struct GPUBatch *inst_attributes);
 
 void DRW_shgroup_call_sculpt(DRWShadingGroup *sh, Object *ob, bool wire, bool mask, bool vcol);
-void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **sh, Object *ob, bool vcol);
+void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **sh,
+                                            int num_sh,
+                                            Object *ob,
+                                            bool vcol);
 
 DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shading_group,
                                        struct GPUVertFormat *format,
