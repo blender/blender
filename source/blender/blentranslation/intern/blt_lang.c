@@ -265,10 +265,6 @@ void BLT_lang_set(const char *str)
   const char *short_locale = str ? str : LOCALE(ulang);
   const char *short_locale_utf8 = NULL;
 
-  if (U.language == ULANGUAGE_ENGLISH) {
-    return;
-  }
-
   /* We want to avoid locales like '.UTF-8'! */
   if (short_locale[0]) {
     /* Hurrey! encoding needs to be placed *before* variant! */
