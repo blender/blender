@@ -152,6 +152,7 @@ static BMFace *bm_vert_pair_best_face_get(
     sub_v3_v3v3(data[1], v_a->co, data[0]);
     r_best_face = BM_vert_pair_shared_face_cb(
         v_a, v_b, false, bm_vert_pair_share_splittable_face_cb, &data, &dummy, &dummy);
+    BLI_assert(!r_best_face || BM_edge_in_face(edgenet[0], r_best_face) == false);
   }
   else {
     struct EDBMSplitBestFaceData data = {
@@ -846,6 +847,7 @@ bool BM_mesh_intersect_edges(
         v_val = (*pair_iter)[1].vert;
         BLI_ghash_insert(r_targetmap, v_key, v_val);
         if (split_faces) {
+          /* The vertex index indicates its position in the pair_array flat. */
           BM_elem_index_set(v_key, i * 2);
           BM_elem_index_set(v_val, i * 2 + 1);
         }
@@ -858,6 +860,7 @@ bool BM_mesh_intersect_edges(
         struct EDBMSplitElem *pair_flat = (struct EDBMSplitElem *)&pair_array[0];
         BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
           if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+            /* Edge out of context or already tested. */
             continue;
           }
 
@@ -869,7 +872,7 @@ bool BM_mesh_intersect_edges(
           int v_cut_other = BM_elem_index_get(vb);
           if (v_cut == -1 && v_cut_other == -1) {
             if (!BM_elem_flag_test(va, BM_ELEM_TAG) && !BM_elem_flag_test(vb, BM_ELEM_TAG)) {
-              /* Ignore edges out of context. */
+              /* Edge out of context. */
               BM_elem_flag_enable(e, BM_ELEM_TAG);
             }
             continue;
@@ -884,38 +887,65 @@ bool BM_mesh_intersect_edges(
             v_cut_other = -1;
           }
 
+          /* `v_cut` indicates the other vertex within the `pair_array`. */
           v_cut += v_cut % 2 ? -1 : 1;
           va_dest = pair_flat[v_cut].vert;
 
+          if (BM_vert_pair_share_face_check(va, va_dest)) {
+            /* Vert par acts on the same face.
+             * Although there are cases like this where the face can be splitted,
+             * for efficiency it is better to ignore then. */
+            continue;
+          }
+
           BMFace *best_face = NULL;
-          int edgenet_len = 0;
           BMVert *v_other_dest, *v_other = vb;
           BMEdge *e_net = e;
+          int edgenet_len = 0;
           while (true) {
+            if (v_cut_other != -1) {
+              v_cut_other += v_cut_other % 2 ? -1 : 1;
+              v_other_dest = pair_flat[v_cut_other].vert;
+
+              if (BM_vert_pair_share_face_check(v_other, v_other_dest)) {
+                /* Vert par acts on the same face.
+                 * Although there are cases like this where the face can be splitted,
+                 * for efficiency and to avoid complications, it is better to ignore these cases.
+                 */
+                break;
+              }
+            }
+            else {
+              v_other_dest = v_other;
+            }
+
+            if (va_dest == v_other_dest) {
+              /* Edge/Edgenet to vertex - we can't split the face. */
+              break;
+            }
+            if (edgenet_len == 0 && BM_edge_exists(va_dest, v_other_dest)) {
+              /* Edge to edge - no need to detect face. */
+              break;
+            }
+
             if (edgenet_alloc_len == edgenet_len) {
               edgenet_alloc_len = (edgenet_alloc_len + 1) * 2;
               edgenet = MEM_reallocN(edgenet, (edgenet_alloc_len) * sizeof(*edgenet));
             }
             edgenet[edgenet_len++] = e_net;
 
-            if (v_cut_other != -1) {
-              v_cut_other += v_cut_other % 2 ? -1 : 1;
-              v_other_dest = pair_flat[v_cut_other].vert;
-            }
-            else {
-              v_other_dest = v_other;
-            }
-
-            if (BM_edge_exists(va_dest, v_other_dest)) {
-              /* No need to detect face. (Optimization). */
-              break;
-            }
-
             best_face = bm_vert_pair_best_face_get(
                 va_dest, v_other_dest, edgenet, edgenet_len, dist);
 
             if (best_face) {
-              if (va_dest != va) {
+              if ((va_dest != va) && !BM_edge_exists(va_dest, va)) {
+                /**
+                 * <pre>
+                 *  va---vb---
+                 *      /
+                 *  va_dest
+                 * </pre>
+                 */
                 e_net = edgenet[0];
                 if (edgenet_len > 1) {
                   vb = BM_edge_other_vert(e_net, va);
@@ -925,7 +955,15 @@ bool BM_mesh_intersect_edges(
                 }
                 edgenet[0] = BM_edge_create(bm, va_dest, vb, e_net, BM_CREATE_NOP);
               }
-              if ((edgenet_len > 1) && (v_other_dest != v_other)) {
+              if ((edgenet_len > 1) && (v_other_dest != v_other) &&
+                  !BM_edge_exists(v_other_dest, v_other)) {
+                /**
+                 * <pre>
+                 *  ---v---v_other
+                 *      \
+                 *       v_other_dest
+                 * </pre>
+                 */
                 e_net = edgenet[edgenet_len - 1];
                 edgenet[edgenet_len - 1] = BM_edge_create(
                     bm, v_other_dest, BM_edge_other_vert(e_net, v_other), e_net, BM_CREATE_NOP);
