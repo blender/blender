@@ -417,8 +417,10 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
 {
   WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
   WORKBENCH_FramebufferList *fbl = vedata->fbl;
+  WORKBENCH_TextureList *txl = vedata->txl;
   WORKBENCH_PassList *psl = vedata->psl;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   if (wpd->taa_sample_len == 0) {
     /* AA disabled. */
@@ -438,12 +440,14 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
   const bool taa_finished = wpd->taa_sample >= wpd->taa_sample_len;
   if (wpd->taa_sample == 0) {
     wpd->valid_history = true;
+    GPU_texture_copy(txl->history_buffer_tx, dtxl->color);
     /* In playback mode, we are sure the next redraw will not use the same viewmatrix.
      * In this case no need to save the depth buffer. */
-    eGPUFrameBufferBits bits = GPU_COLOR_BIT | (!wpd->is_playback ? GPU_DEPTH_BIT : 0);
-    GPU_framebuffer_blit(dfbl->default_fb, 0, fbl->antialiasing_fb, 0, bits);
+    if (!wpd->is_playback) {
+      GPU_texture_copy(txl->depth_buffer_tx, dtxl->depth);
+    }
     if (workbench_in_front_history_needed(vedata)) {
-      GPU_framebuffer_blit(dfbl->in_front_fb, 0, fbl->antialiasing_in_front_fb, 0, GPU_DEPTH_BIT);
+      GPU_texture_copy(txl->depth_buffer_in_front_tx, dtxl->depth_in_front);
     }
   }
   else {
@@ -453,9 +457,9 @@ void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata)
       DRW_draw_pass(psl->aa_accum_ps);
     }
     /* Copy back the saved depth buffer for correct overlays. */
-    GPU_framebuffer_blit(fbl->antialiasing_fb, 0, dfbl->default_fb, 0, GPU_DEPTH_BIT);
+    GPU_texture_copy(dtxl->depth, txl->depth_buffer_tx);
     if (workbench_in_front_history_needed(vedata)) {
-      GPU_framebuffer_blit(fbl->antialiasing_in_front_fb, 0, dfbl->in_front_fb, 0, GPU_DEPTH_BIT);
+      GPU_texture_copy(dtxl->depth_in_front, txl->depth_buffer_in_front_tx);
     }
   }
 
