@@ -1149,7 +1149,6 @@ static void ensure_obstaclefields(FluidDomainSettings *mds)
 }
 
 static void update_obstacleflags(FluidDomainSettings *mds,
-                                 Object *domain,
                                  Object **coll_ob_array,
                                  int coll_ob_array_len)
 {
@@ -1178,7 +1177,6 @@ static void update_obstacleflags(FluidDomainSettings *mds,
       }
       if (mes->flags & FLUID_EFFECTOR_NEEDS_UPDATE) {
         mes->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
-        BKE_fluid_cache_free_all(mds, domain);
         mds->cache_flag |= FLUID_DOMAIN_OUTDATED_DATA;
       }
       if (mes->type == FLUID_EFFECTOR_TYPE_COLLISION) {
@@ -1341,7 +1339,7 @@ static void update_obstacles(Depsgraph *depsgraph,
       depsgraph, ob, mds->effector_group, &numeffecobjs, eModifierType_Fluid);
 
   /* Update all effector related flags and ensure that corresponding grids get initialized. */
-  update_obstacleflags(mds, ob, effecobjs, numeffecobjs);
+  update_obstacleflags(mds, effecobjs, numeffecobjs);
   ensure_obstaclefields(mds);
 
   /* Allocate effector map for each effector object. */
@@ -2637,10 +2635,7 @@ static void ensure_flowsfields(FluidDomainSettings *mds)
   }
 }
 
-static void update_flowsflags(FluidDomainSettings *mds,
-                              Object *domain,
-                              Object **flowobjs,
-                              int numflowobj)
+static void update_flowsflags(FluidDomainSettings *mds, Object **flowobjs, int numflowobj)
 {
   int active_fields = mds->active_fields;
   uint flow_index;
@@ -2668,7 +2663,6 @@ static void update_flowsflags(FluidDomainSettings *mds,
       }
       if (mfs->flags & FLUID_FLOW_NEEDS_UPDATE) {
         mfs->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
-        BKE_fluid_cache_free_all(mds, domain);
         mds->cache_flag |= FLUID_DOMAIN_OUTDATED_DATA;
       }
       if (mfs->flags & FLUID_FLOW_INITVELOCITY) {
@@ -2910,7 +2904,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
       depsgraph, ob, mds->fluid_group, &numflowobjs, eModifierType_Fluid);
 
   /* Update all flow related flags and ensure that corresponding grids get initialized. */
-  update_flowsflags(mds, ob, flowobjs, numflowobjs);
+  update_flowsflags(mds, flowobjs, numflowobjs);
   ensure_flowsfields(mds);
 
   /* Allocate emission map for each flow object. */
@@ -3092,8 +3086,9 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
             }
             /* Main inflow application. */
             else if (is_geometry || is_inflow) {
-              float *levelset = ((is_first_frame || is_resume) && is_static) ? phistatic_in :
-                                                                               phi_in;
+              float *levelset = ((is_first_frame || is_resume) && is_static && !is_geometry) ?
+                                    phistatic_in :
+                                    phi_in;
               apply_inflow_fields(mfs,
                                   emission_map[e_index],
                                   distance_map[e_index],
@@ -3731,18 +3726,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
     return;
   }
 
-  bool bake_outdated = mds->cache_flag &
-                       (FLUID_DOMAIN_OUTDATED_DATA | FLUID_DOMAIN_OUTDATED_NOISE |
-                        FLUID_DOMAIN_OUTDATED_MESH | FLUID_DOMAIN_OUTDATED_PARTICLES |
-                        FLUID_DOMAIN_OUTDATED_GUIDE);
-
-  /* Exit early if cache is outdated. */
-  if (bake_outdated) {
-    return;
-  }
-
-  /* Reset fluid if no fluid present. */
-  if (!mds->fluid || mds->cache_flag & FLUID_DOMAIN_OUTDATED_DATA) {
+  /* Reset fluid if no fluid present. Also resets active fields. */
+  if (!mds->fluid) {
     BKE_fluid_modifier_reset_ex(mmd, false);
   }
 
@@ -3750,17 +3735,27 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   const char *relbase = modifier_path_relbase_from_global(ob);
   BLI_path_abs(mds->cache_directory, relbase);
 
+  /* Ensure that all flags are up to date before doing any baking and/or cache reading. */
   objs = BKE_collision_objects_create(
       depsgraph, ob, mds->fluid_group, &numobj, eModifierType_Fluid);
-  update_flowsflags(mds, ob, objs, numobj);
+  update_flowsflags(mds, objs, numobj);
   if (objs) {
     MEM_freeN(objs);
   }
   objs = BKE_collision_objects_create(
       depsgraph, ob, mds->effector_group, &numobj, eModifierType_Fluid);
-  update_obstacleflags(mds, ob, objs, numobj);
+  update_obstacleflags(mds, objs, numobj);
   if (objs) {
     MEM_freeN(objs);
+  }
+
+  /* If the just updated flags now carry the 'outdated' flag, reset the cache here!
+   * Plus sanity check: Do not clear cache on file load. */
+  if (mds->cache_flag & FLUID_DOMAIN_OUTDATED_DATA &&
+      ((mds->flags & FLUID_DOMAIN_FILE_LOAD) == 0)) {
+    mds->cache_flag &= ~FLUID_DOMAIN_OUTDATED_DATA;
+    BKE_fluid_cache_free_all(mds, ob);
+    BKE_fluid_modifier_reset_ex(mmd, false);
   }
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
@@ -4082,6 +4077,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
       }
     }
   }
+
+  mds->flags &= ~FLUID_DOMAIN_FILE_LOAD;
   mmd->time = scene_framenr;
 }
 
@@ -4163,12 +4160,7 @@ struct Mesh *BKE_fluid_modifier_do(
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_PARTICLES;
     mmd->domain->cache_flag &= ~FLUID_DOMAIN_OUTDATED_GUIDE;
   }
-  else if (mmd->type & MOD_FLUID_TYPE_FLOW && mmd->flow) {
-    mmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
-  }
-  else if (mmd->type & MOD_FLUID_TYPE_EFFEC && mmd->effector) {
-    mmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
-  }
+
   if (!result) {
     result = BKE_mesh_copy_for_eval(me, false);
   }
@@ -4717,6 +4709,7 @@ static void BKE_fluid_modifier_freeFlow(FluidModifierData *mmd)
     }
     mmd->flow->verts_old = NULL;
     mmd->flow->numverts = 0;
+    mmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
 
     MEM_freeN(mmd->flow);
     mmd->flow = NULL;
@@ -4736,6 +4729,7 @@ static void BKE_fluid_modifier_freeEffector(FluidModifierData *mmd)
     }
     mmd->effector->verts_old = NULL;
     mmd->effector->numverts = 0;
+    mmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
 
     MEM_freeN(mmd->effector);
     mmd->effector = NULL;
@@ -4774,6 +4768,7 @@ static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *mmd, bool need
     }
     mmd->flow->verts_old = NULL;
     mmd->flow->numverts = 0;
+    mmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
   }
   else if (mmd->effector) {
     if (mmd->effector->verts_old) {
@@ -4781,6 +4776,7 @@ static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *mmd, bool need
     }
     mmd->effector->verts_old = NULL;
     mmd->effector->numverts = 0;
+    mmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
   }
 }
 
