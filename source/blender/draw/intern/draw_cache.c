@@ -3081,8 +3081,7 @@ GPUBatch *DRW_cache_text_loose_edges_get(Object *ob)
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
   else {
-    /* TODO */
-    return NULL;
+    return DRW_curve_batch_cache_get_wire_edge(cu);
   }
 }
 
