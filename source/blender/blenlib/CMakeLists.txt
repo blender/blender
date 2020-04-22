@@ -123,6 +123,7 @@ set(SRC
   intern/threads.c
   intern/time.c
   intern/timecode.c
+  intern/timeit.cc
   intern/uvproject.c
   intern/voronoi_2d.c
   intern/voxel.c
@@ -243,6 +244,7 @@ set(SRC
   BLI_task.h
   BLI_threads.h
   BLI_timecode.h
+  BLI_timeit.hh
   BLI_timer.h
   BLI_utildefines.h
   BLI_utildefines_iter.h
