@@ -133,7 +133,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   const bool use_wire = !is_mesh_verts_only && ((pd->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
                                                 (ob->dtx & OB_DRAWWIRE) || (ob->dt == OB_WIRE));
 
-  if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
     OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
     float *color;
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
@@ -145,6 +145,12 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
           break;
         }
         geom = DRW_cache_curve_edge_wire_get(ob);
+        break;
+      case OB_FONT:
+        if (ob->runtime.curve_cache && BKE_displist_has_faces(&ob->runtime.curve_cache->disp)) {
+          break;
+        }
+        geom = DRW_cache_text_loose_edges_get(ob);
         break;
       case OB_SURF:
         geom = DRW_cache_surf_edge_wire_get(ob);
