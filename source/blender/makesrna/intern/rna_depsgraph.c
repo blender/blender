@@ -203,6 +203,12 @@ static bool rna_DepsgraphUpdate_is_updated_transform_get(PointerRNA *ptr)
   return ((id->recalc & ID_RECALC_TRANSFORM) != 0);
 }
 
+static bool rna_DepsgraphUpdate_is_updated_shading_get(PointerRNA *ptr)
+{
+  ID *id = ptr->data;
+  return ((id->recalc & ID_RECALC_SHADING) != 0);
+}
+
 static bool rna_DepsgraphUpdate_is_updated_geometry_get(PointerRNA *ptr)
 {
   ID *id = ptr->data;
@@ -601,6 +607,11 @@ static void rna_def_depsgraph_update(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Geometry", "Object geometry is updated");
   RNA_def_property_boolean_funcs(prop, "rna_DepsgraphUpdate_is_updated_geometry_get", NULL);
+
+  prop = RNA_def_property(srna, "is_updated_shading", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Shading", "Object shading is updated");
+  RNA_def_property_boolean_funcs(prop, "rna_DepsgraphUpdate_is_updated_shading_get", NULL);
 }
 
 static void rna_def_depsgraph(BlenderRNA *brna)
