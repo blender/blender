@@ -3110,9 +3110,19 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
                                   levelset,
                                   emission_in);
               if (mfs->flags & FLUID_FLOW_INITVELOCITY) {
-                velx_initial[d_index] = MAX2(velx_initial[d_index], velocity_map[e_index * 3]);
-                vely_initial[d_index] = MAX2(vely_initial[d_index], velocity_map[e_index * 3 + 1]);
-                velz_initial[d_index] = MAX2(velz_initial[d_index], velocity_map[e_index * 3 + 2]);
+                /* Use the initial velocity from the inflow object with the highest velocity for
+                 * now. */
+                float vel_initial[3];
+                vel_initial[0] = velx_initial[d_index];
+                vel_initial[1] = vely_initial[d_index];
+                vel_initial[2] = velz_initial[d_index];
+                float vel_initial_strength = len_squared_v3(vel_initial);
+                float vel_map_strength = len_squared_v3(velocity_map + 3 * e_index);
+                if (vel_map_strength > vel_initial_strength) {
+                  velx_initial[d_index] = velocity_map[e_index * 3];
+                  vely_initial[d_index] = velocity_map[e_index * 3 + 1];
+                  velz_initial[d_index] = velocity_map[e_index * 3 + 2];
+                }
               }
             }
           }
