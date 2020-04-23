@@ -4998,19 +4998,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #do_versions_after_linking_280 in this file.
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 283, 14)) {
     /* Solidify modifier merge tolerance. */
     if (!DNA_struct_elem_find(fd->filesdna, "SolidifyModifierData", "float", "merge_tolerance")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -5023,5 +5011,43 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Enumerator was incorrect for a time in 2.83 development.
+     * Note that this only corrects values known to be invalid. */
+    for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+      RigidBodyCon *rbc = ob->rigidbody_constraint;
+      if (rbc != NULL) {
+        enum {
+          INVALID_RBC_TYPE_SLIDER = 2,
+          INVALID_RBC_TYPE_6DOF_SPRING = 4,
+          INVALID_RBC_TYPE_MOTOR = 7,
+        };
+        switch (rbc->type) {
+          case INVALID_RBC_TYPE_SLIDER:
+            rbc->type = RBC_TYPE_SLIDER;
+            break;
+          case INVALID_RBC_TYPE_6DOF_SPRING:
+            rbc->type = RBC_TYPE_6DOF_SPRING;
+            break;
+          case INVALID_RBC_TYPE_MOTOR:
+            rbc->type = RBC_TYPE_MOTOR;
+            break;
+        }
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #do_versions_after_linking_280 in this file.
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

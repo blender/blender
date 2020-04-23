@@ -1027,6 +1027,11 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
       return;
     }
 
+    /* When 'rbc->type' is unknown. */
+    if (rbc->physics_constraint == NULL) {
+      return;
+    }
+
     RB_constraint_set_enabled(rbc->physics_constraint, rbc->flag & RBC_FLAG_ENABLED);
 
     if (rbc->flag & RBC_FLAG_USE_BREAKING) {
