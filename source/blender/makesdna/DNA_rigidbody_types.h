@@ -172,7 +172,7 @@ typedef enum eRigidBodyOb_Type {
   /* active geometry participant in simulation. is directly controlled by sim */
   RBO_TYPE_ACTIVE = 0,
   /* passive geometry participant in simulation. is directly controlled by animsys */
-  RBO_TYPE_PASSIVE,
+  RBO_TYPE_PASSIVE = 1,
 } eRigidBodyOb_Type;
 
 /* Flags for RigidBodyOb */
@@ -200,18 +200,18 @@ typedef enum eRigidBody_Shape {
   /** Simple box (i.e. bounding box). */
   RB_SHAPE_BOX = 0,
   /** Sphere. */
-  RB_SHAPE_SPHERE,
+  RB_SHAPE_SPHERE = 1,
   /** Rounded "pill" shape (i.e. calcium tablets). */
-  RB_SHAPE_CAPSULE,
+  RB_SHAPE_CAPSULE = 2,
   /** Cylinder (i.e. pringles can). */
-  RB_SHAPE_CYLINDER,
+  RB_SHAPE_CYLINDER = 3,
   /** Cone (i.e. party hat). */
-  RB_SHAPE_CONE,
+  RB_SHAPE_CONE = 4,
 
   /** Convex hull (minimal shrinkwrap encompassing all verts). */
-  RB_SHAPE_CONVEXH,
+  RB_SHAPE_CONVEXH = 5,
   /** Triangulated mesh. */
-  RB_SHAPE_TRIMESH,
+  RB_SHAPE_TRIMESH = 6,
 
   /* concave mesh approximated using primitives */
   // RB_SHAPE_COMPOUND,
@@ -221,9 +221,9 @@ typedef enum eRigidBody_MeshSource {
   /* base mesh */
   RBO_MESH_BASE = 0,
   /* only deformations */
-  RBO_MESH_DEFORM,
+  RBO_MESH_DEFORM = 1,
   /* final derived mesh */
-  RBO_MESH_FINAL,
+  RBO_MESH_FINAL = 2,
 } eRigidBody_MeshSource;
 
 /* ******************************** */
@@ -333,7 +333,7 @@ typedef enum eRigidBodyCon_Type {
 /* Spring implementation type for RigidBodyOb */
 typedef enum eRigidBodyCon_SpringType {
   RBC_SPRING_TYPE1 = 0, /* btGeneric6DofSpringConstraint */
-  RBC_SPRING_TYPE2,     /* btGeneric6DofSpring2Constraint */
+  RBC_SPRING_TYPE2 = 1, /* btGeneric6DofSpring2Constraint */
 } eRigidBodyCon_SpringType;
 
 /* Flags for RigidBodyCon */

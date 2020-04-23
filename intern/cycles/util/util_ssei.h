@@ -57,7 +57,7 @@ struct ssei {
   __forceinline ssei(const __m128i a) : m128(a)
   {
   }
-  __forceinline operator const __m128i &(void)const
+  __forceinline operator const __m128i &(void) const
   {
     return m128;
   }
