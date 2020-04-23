@@ -40,6 +40,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_curveprofile_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -5032,6 +5033,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           case INVALID_RBC_TYPE_MOTOR:
             rbc->type = RBC_TYPE_MOTOR;
             break;
+        }
+      }
+    }
+  }
+
+  /* Match scale of fluid modifier gravity with scene gravity. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 283, 15)) {
+    for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+      for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *fmd = (FluidModifierData *)md;
+          if (fmd->domain != NULL) {
+            mul_v3_fl(fmd->domain->gravity, 9.81f);
+          }
         }
       }
     }

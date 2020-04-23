@@ -489,22 +489,25 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *mds,
 
 static void manta_set_domain_gravity(Scene *scene, FluidDomainSettings *mds)
 {
-  float gravity[3] = {0.0f, 0.0f, -1.0f};
-  float gravity_mag;
+  const float normalization_factor = 1.0f / 9.81f;
 
   /* Use global gravity if enabled. */
   if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+    float gravity[3];
     copy_v3_v3(gravity, scene->physics_settings.gravity);
     /* Map default value to 1.0. */
-    mul_v3_fl(gravity, 1.0f / 9.810f);
+    mul_v3_fl(gravity, normalization_factor);
 
     /* Convert gravity to domain space. */
-    gravity_mag = len_v3(gravity);
+    float gravity_mag = len_v3(gravity);
     mul_mat3_m4_v3(mds->imat, gravity);
     normalize_v3(gravity);
     mul_v3_fl(gravity, gravity_mag);
 
     copy_v3_v3(mds->gravity, gravity);
+  }
+  else {
+    mul_v3_fl(mds->gravity, normalization_factor);
   }
 
   mul_v3_fl(mds->gravity, mds->effector_weights->global_gravity);
@@ -4839,7 +4842,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->flags = FLUID_DOMAIN_USE_DISSOLVE_LOG | FLUID_DOMAIN_USE_ADAPTIVE_TIME;
     mmd->domain->gravity[0] = 0.0f;
     mmd->domain->gravity[1] = 0.0f;
-    mmd->domain->gravity[2] = -1.0f;
+    mmd->domain->gravity[2] = -9.81f;
     mmd->domain->active_fields = 0;
     mmd->domain->type = FLUID_DOMAIN_TYPE_GAS;
     mmd->domain->boundary_width = 1;
