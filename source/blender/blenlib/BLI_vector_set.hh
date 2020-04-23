@@ -150,7 +150,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   ~VectorSet()
   {
-    destruct_n(m_elements, m_array.slots_usable());
+    destruct_n(m_elements, this->size());
     this->deallocate_elements_array(m_elements);
   }
 
@@ -242,7 +242,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
     BLI_assert(this->contains(value));
     ITER_SLOTS_BEGIN (value, m_array, , slot) {
       if (slot.has_value(value, m_elements)) {
-        uint old_index = m_array.slots_set() - 1;
+        uint old_index = this->size() - 1;
         uint new_index = slot.index();
 
         if (new_index < old_index) {
@@ -265,7 +265,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
   T pop()
   {
     BLI_assert(this->size() > 0);
-    uint index_to_pop = m_array.slots_usable() - 1;
+    uint index_to_pop = this->size() - 1;
     T value = std::move(m_elements[index_to_pop]);
     destruct(m_elements + index_to_pop);
 
@@ -324,12 +324,12 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   const T *end() const
   {
-    return m_elements + m_array.slots_set();
+    return m_elements + this->size();
   }
 
   const T &operator[](uint index) const
   {
-    BLI_assert(index <= m_array.slots_set());
+    BLI_assert(index <= this->size());
     return m_elements[index];
   }
 
@@ -340,7 +340,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   operator ArrayRef<T>() const
   {
-    return ArrayRef<T>(m_elements, m_array.slots_set());
+    return ArrayRef<T>(m_elements, this->size());
   }
 
   void print_stats() const
@@ -367,7 +367,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   template<typename ForwardT> void add_new_in_slot(Slot &slot, ForwardT &&value)
   {
-    uint index = m_array.slots_set();
+    uint index = this->size();
     slot.set_index(index);
     new (m_elements + index) T(std::forward<ForwardT>(value));
     m_array.update__empty_to_set();

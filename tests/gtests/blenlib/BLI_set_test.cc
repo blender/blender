@@ -155,16 +155,6 @@ TEST(set, AddMultipleNew)
   EXPECT_TRUE(a.contains(6));
 }
 
-TEST(set, ToSmallVector)
-{
-  IntSet a = {5, 2, 8};
-  BLI::Vector<int> vec = a.to_small_vector();
-  EXPECT_EQ(vec.size(), 3);
-  EXPECT_TRUE(vec.contains(5));
-  EXPECT_TRUE(vec.contains(2));
-  EXPECT_TRUE(vec.contains(8));
-}
-
 TEST(set, Iterator)
 {
   IntSet set = {1, 3, 2, 5, 4};

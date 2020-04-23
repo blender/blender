@@ -40,15 +40,76 @@
 
 namespace BLI {
 
-template<typename Item, uint32_t ItemsInSmallStorage = 1, typename Allocator = GuardedAllocator>
+/** \name Constexpr utility functions.
+ * \{ */
+
+inline constexpr int is_power_of_2_i_constexpr(int n)
+{
+  return (n & (n - 1)) == 0;
+}
+
+inline constexpr uint32_t log2_floor_u_constexpr(uint32_t x)
+{
+  return x <= 1 ? 0 : 1 + log2_floor_u_constexpr(x >> 1);
+}
+
+inline constexpr uint32_t log2_ceil_u_constexpr(uint32_t x)
+{
+  return (is_power_of_2_i_constexpr((int)x)) ? log2_floor_u_constexpr(x) :
+                                               log2_floor_u_constexpr(x) + 1;
+}
+
+template<typename IntT> inline constexpr IntT ceil_division(IntT x, IntT y)
+{
+  BLI_STATIC_ASSERT(!std::is_signed<IntT>::value, "");
+  return x / y + ((x % y) != 0);
+}
+
+template<typename IntT> inline constexpr IntT floor_division(IntT x, IntT y)
+{
+  BLI_STATIC_ASSERT(!std::is_signed<IntT>::value, "");
+  return x / y;
+}
+
+inline constexpr uint8_t compute_item_exponent(uint32_t min_usable_slots,
+                                               uint32_t slots_per_item,
+                                               uint32_t max_load_factor_numerator,
+                                               uint32_t max_load_factor_denominator)
+{
+  // uint64_t min_total_slots = ceil_division((uint64_t)min_usable_slots *
+  //                                              (uint64_t)max_load_factor_denominator,
+  //                                          (uint64_t)max_load_factor_numerator);
+  // uint32_t min_total_items = (uint32_t)ceil_division(min_total_slots, (uint64_t)slots_per_item);
+  // uint8_t item_exponent = (uint8_t)log2_ceil_u_constexpr(min_total_items);
+  // return item_exponent;
+
+  return (uint8_t)log2_ceil_u_constexpr((uint32_t)ceil_division(
+      ceil_division((uint64_t)min_usable_slots * (uint64_t)max_load_factor_denominator,
+                    (uint64_t)max_load_factor_numerator),
+      (uint64_t)slots_per_item));
+}
+
+/** \} */
+
+template<typename Item,
+         uint32_t MinUsableSlotsInSmallStorage = 1,
+         typename Allocator = GuardedAllocator>
 class OpenAddressingArray {
  private:
-  static constexpr uint32_t slots_per_item = Item::slots_per_item;
-  static constexpr float max_load_factor = 0.5f;
+  static constexpr uint32_t s_max_load_factor_numerator = 1;
+  static constexpr uint32_t s_max_load_factor_denominator = 2;
+  static constexpr uint32_t s_slots_per_item = Item::slots_per_item;
+
+  static constexpr uint8_t s_small_storage_item_exponent = compute_item_exponent(
+      MinUsableSlotsInSmallStorage,
+      s_slots_per_item,
+      s_max_load_factor_numerator,
+      s_max_load_factor_denominator);
+  static constexpr uint32_t s_items_in_small_storage = 1u << s_small_storage_item_exponent;
 
   /* Invariants:
    *   2^m_item_exponent = m_item_amount
-   *   m_item_amount * slots_per_item = m_slots_total
+   *   m_item_amount * s_slots_per_item = m_slots_total
    *   m_slot_mask = m_slots_total - 1
    *   m_slots_set_or_dummy < m_slots_total
    */
@@ -70,20 +131,23 @@ class OpenAddressingArray {
   /* Can be used to map a hash value into the range of valid slot indices. */
   uint32_t m_slot_mask;
   Allocator m_allocator;
-  AlignedBuffer<(uint)sizeof(Item) * ItemsInSmallStorage, (uint)alignof(Item)> m_local_storage;
+  AlignedBuffer<(uint)sizeof(Item) * s_items_in_small_storage, (uint)alignof(Item)>
+      m_local_storage;
 
  public:
-  explicit OpenAddressingArray(uint8_t item_exponent = 0)
+  explicit OpenAddressingArray(uint8_t item_exponent = s_small_storage_item_exponent)
   {
-    m_slots_total = ((uint32_t)1 << item_exponent) * slots_per_item;
+    m_item_exponent = item_exponent;
+    m_item_amount = 1u << item_exponent;
+    m_slots_total = m_item_amount * s_slots_per_item;
+    m_slot_mask = m_slots_total - 1;
     m_slots_set_or_dummy = 0;
     m_slots_dummy = 0;
-    m_slots_usable = (uint32_t)((float)m_slots_total * max_load_factor);
-    m_slot_mask = m_slots_total - 1;
-    m_item_amount = m_slots_total / slots_per_item;
-    m_item_exponent = item_exponent;
+    m_slots_usable = (uint32_t)floor_division((uint64_t)m_slots_total *
+                                                  (uint64_t)s_max_load_factor_numerator,
+                                              (uint64_t)s_max_load_factor_denominator);
 
-    if (m_item_amount <= ItemsInSmallStorage) {
+    if (m_item_amount <= s_items_in_small_storage) {
       m_items = this->small_storage();
     }
     else {
@@ -118,7 +182,7 @@ class OpenAddressingArray {
     m_item_amount = other.m_item_amount;
     m_item_exponent = other.m_item_exponent;
 
-    if (m_item_amount <= ItemsInSmallStorage) {
+    if (m_item_amount <= s_items_in_small_storage) {
       m_items = this->small_storage();
     }
     else {
@@ -180,9 +244,10 @@ class OpenAddressingArray {
    * empty. */
   OpenAddressingArray init_reserved(uint32_t min_usable_slots) const
   {
-    float min_total_slots = (float)min_usable_slots / max_load_factor;
-    uint32_t min_total_items = (uint32_t)std::ceil(min_total_slots / (float)slots_per_item);
-    uint8_t item_exponent = (uint8_t)log2_ceil_u(min_total_items);
+    uint8_t item_exponent = compute_item_exponent(min_usable_slots,
+                                                  s_slots_per_item,
+                                                  s_max_load_factor_numerator,
+                                                  s_max_load_factor_denominator);
     OpenAddressingArray grown(item_exponent);
     grown.m_slots_set_or_dummy = this->slots_set();
     return grown;

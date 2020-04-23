@@ -50,7 +50,8 @@ namespace BLI {
 
 // clang-format on
 
-template<typename T, typename Allocator = GuardedAllocator> class Set {
+template<typename T, uint InlineBufferCapacity = 4, typename Allocator = GuardedAllocator>
+class Set {
  private:
   static constexpr uint OFFSET_MASK = 3;
   static constexpr uint OFFSET_SHIFT = 2;
@@ -62,7 +63,7 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
     static constexpr uint8_t IS_DUMMY = 2;
 
     uint8_t m_status[4];
-    char m_values[4 * sizeof(T)];
+    AlignedBuffer<4 * sizeof(T), alignof(T)> m_buffer;
 
    public:
     static constexpr uint slots_per_item = 4;
@@ -114,7 +115,7 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
 
     T *value(uint offset) const
     {
-      return (T *)(m_values + offset * sizeof(T));
+      return (T *)m_buffer.ptr() + offset;
     }
 
     template<typename ForwardT> void store(uint offset, ForwardT &&value)
@@ -153,8 +154,8 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
     }
   };
 
-  using ArrayType = OpenAddressingArray<Item, 1, Allocator>;
-  ArrayType m_array = OpenAddressingArray<Item>();
+  using ArrayType = OpenAddressingArray<Item, InlineBufferCapacity, Allocator>;
+  ArrayType m_array;
 
  public:
   Set() = default;
@@ -202,6 +203,7 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
 
   /**
    * Add a new value to the set if it does not exist yet.
+   * Returns true of the value has been newly added.
    */
   bool add(const T &value)
   {
@@ -266,16 +268,9 @@ template<typename T, typename Allocator = GuardedAllocator> class Set {
     ITER_SLOTS_END(offset);
   }
 
-  Vector<T> to_small_vector() const
-  {
-    Vector<T> vector;
-    vector.reserve(this->size());
-    for (const T &value : *this) {
-      vector.append(value);
-    }
-    return vector;
-  }
-
+  /**
+   * Get the amount of values stored in the set.
+   */
   uint32_t size() const
   {
     return m_array.slots_set();

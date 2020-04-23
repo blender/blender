@@ -27,9 +27,10 @@
 
 namespace BLI {
 
-template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Stack {
+template<typename T, uint InlineBufferCapacity = 4, typename Allocator = GuardedAllocator>
+class Stack {
  private:
-  Vector<T, N, Allocator> m_elements;
+  Vector<T, InlineBufferCapacity, Allocator> m_elements;
 
  public:
   Stack() = default;

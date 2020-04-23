@@ -43,13 +43,14 @@
 
 namespace BLI {
 
-template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Vector {
+template<typename T, uint InlineBufferCapacity = 4, typename Allocator = GuardedAllocator>
+class Vector {
  private:
   T *m_begin;
   T *m_end;
   T *m_capacity_end;
   Allocator m_allocator;
-  AlignedBuffer<(uint)sizeof(T) * N, (uint)alignof(T)> m_small_buffer;
+  AlignedBuffer<(uint)sizeof(T) * InlineBufferCapacity, (uint)alignof(T)> m_small_buffer;
 
 #ifndef NDEBUG
   /* Storing size in debug builds, because it makes debugging much easier sometimes. */
@@ -70,7 +71,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   {
     m_begin = this->small_buffer();
     m_end = m_begin;
-    m_capacity_end = m_begin + N;
+    m_capacity_end = m_begin + InlineBufferCapacity;
     UPDATE_VECTOR_SIZE(this);
   }
 
@@ -140,7 +141,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   /**
    * Create a copy of another vector.
    * The other vector will not be changed.
-   * If the other vector has less than N elements, no allocation will be made.
+   * If the other vector has less than InlineBufferCapacity elements, no allocation will be made.
    */
   Vector(const Vector &other) : m_allocator(other.m_allocator)
   {
@@ -164,11 +165,11 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     uint size = other.size();
 
     if (other.is_small()) {
-      if (size <= N) {
+      if (size <= InlineBufferCapacity) {
         /* Copy between inline buffers. */
         m_begin = this->small_buffer();
         m_end = m_begin + size;
-        m_capacity_end = m_begin + N;
+        m_capacity_end = m_begin + InlineBufferCapacity;
         uninitialized_relocate_n(other.m_begin, size, m_begin);
       }
       else {
@@ -283,7 +284,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
 
     m_begin = this->small_buffer();
     m_end = m_begin;
-    m_capacity_end = m_begin + N;
+    m_capacity_end = m_begin + InlineBufferCapacity;
     UPDATE_VECTOR_SIZE(this);
   }
 
@@ -578,7 +579,8 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     std::cout << "Small Vector at " << (void *)this << ":" << std::endl;
     std::cout << "  Elements: " << this->size() << std::endl;
     std::cout << "  Capacity: " << (m_capacity_end - m_begin) << std::endl;
-    std::cout << "  Small Elements: " << N << "  Size on Stack: " << sizeof(*this) << std::endl;
+    std::cout << "  Small Elements: " << InlineBufferCapacity
+              << "  Size on Stack: " << sizeof(*this) << std::endl;
   }
 
  private:
@@ -634,9 +636,9 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
     uint size = other.size();
     uint capacity = size;
 
-    if (size <= N) {
+    if (size <= InlineBufferCapacity) {
       m_begin = this->small_buffer();
-      capacity = N;
+      capacity = InlineBufferCapacity;
     }
     else {
       m_begin = (T *)m_allocator.allocate_aligned(
@@ -658,7 +660,8 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
  * Use when the vector is used in the local scope of a function. It has a larger inline storage by
  * default to make allocations less likely.
  */
-template<typename T, uint N = 20> using ScopedVector = Vector<T, N, GuardedAllocator>;
+template<typename T, uint InlineBufferCapacity = 20>
+using ScopedVector = Vector<T, InlineBufferCapacity, GuardedAllocator>;
 
 } /* namespace BLI */
 
