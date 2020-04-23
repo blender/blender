@@ -110,12 +110,16 @@ static void move_geom_draw(const wmGizmo *gz,
                                                   ED_GIZMO_MOVE_DRAW_FLAG_FILL_SELECT) :
                                                  ED_GIZMO_MOVE_DRAW_FLAG_FILL)));
 
-  GPU_line_width(gz->line_width);
-
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immBindBuiltinProgram(filled ? GPU_SHADER_3D_UNIFORM_COLOR :
+                                 GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  immUniform2fv("viewportSize", &viewport[2]);
+  immUniform1f("lineWidth", gz->line_width * U.pixelsize);
 
   immUniformColor4fv(color);
 

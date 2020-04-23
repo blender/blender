@@ -88,6 +88,9 @@ extern char datatoc_gpu_shader_image_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_normal_vert_glsl[];
 extern char datatoc_gpu_shader_3D_flat_color_vert_glsl[];
+extern char datatoc_gpu_shader_3D_polyline_frag_glsl[];
+extern char datatoc_gpu_shader_3D_polyline_geom_glsl[];
+extern char datatoc_gpu_shader_3D_polyline_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_passthrough_vert_glsl[];
@@ -1024,6 +1027,36 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
         {
             .vert = datatoc_gpu_shader_3D_clipped_uniform_color_vert_glsl,
             .frag = datatoc_gpu_shader_uniform_color_frag_glsl,
+        },
+
+    [GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR] =
+        {
+            .vert = datatoc_gpu_shader_3D_polyline_vert_glsl,
+            .geom = datatoc_gpu_shader_3D_polyline_geom_glsl,
+            .frag = datatoc_gpu_shader_3D_polyline_frag_glsl,
+            .defs = "#define UNIFORM\n",
+        },
+    [GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR] =
+        {
+            .vert = datatoc_gpu_shader_3D_polyline_vert_glsl,
+            .geom = datatoc_gpu_shader_3D_polyline_geom_glsl,
+            .frag = datatoc_gpu_shader_3D_polyline_frag_glsl,
+            .defs = "#define UNIFORM\n"
+                    "#define CLIP\n",
+        },
+    [GPU_SHADER_3D_POLYLINE_FLAT_COLOR] =
+        {
+            .vert = datatoc_gpu_shader_3D_polyline_vert_glsl,
+            .geom = datatoc_gpu_shader_3D_polyline_geom_glsl,
+            .frag = datatoc_gpu_shader_3D_polyline_frag_glsl,
+            .defs = "#define FLAT\n",
+        },
+    [GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR] =
+        {
+            .vert = datatoc_gpu_shader_3D_polyline_vert_glsl,
+            .geom = datatoc_gpu_shader_3D_polyline_geom_glsl,
+            .frag = datatoc_gpu_shader_3D_polyline_frag_glsl,
+            .defs = "#define SMOOTH\n",
         },
 
     [GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR] =

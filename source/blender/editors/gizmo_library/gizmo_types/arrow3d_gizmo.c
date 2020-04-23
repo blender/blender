@@ -88,9 +88,14 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
   const int draw_style = RNA_enum_get(arrow->gizmo.ptr, "draw_style");
   const int draw_options = RNA_enum_get(arrow->gizmo.ptr, "draw_options");
 
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  immUniform2fv("viewportSize", &viewport[2]);
 
   if (draw_style == ED_GIZMO_ARROW_STYLE_CROSS) {
+    immUniform1f("lineWidth", U.pixelsize);
     immUniformColor4fv(color);
 
     immBegin(GPU_PRIM_LINES, 4);
@@ -112,7 +117,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
         {-unitx, unity, 0},
     };
 
-    GPU_line_width(arrow->gizmo.line_width);
+    immUniform1f("lineWidth", arrow->gizmo.line_width * U.pixelsize);
     wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_LOOP);
   }
   else {
@@ -127,7 +132,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
     };
 
     if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_STEM) {
-      GPU_line_width(arrow->gizmo.line_width);
+      immUniform1f("lineWidth", arrow->gizmo.line_width * U.pixelsize);
       wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_STRIP);
     }
     else {
@@ -159,6 +164,10 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 
       /* translate to line end */
       GPU_matrix_translate_3f(0.0f, 0.0f, arrow_length);
+
+      immUnbindProgram();
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      immUniformColor4fv(color);
 
       imm_draw_circle_fill_3d(pos, 0.0, 0.0, width, 8);
       imm_draw_cylinder_fill_3d(pos, width, 0.0, len, 8, 1);

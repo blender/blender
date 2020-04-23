@@ -162,12 +162,21 @@ static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[2], bool r_con
  * Useful for 3D views, see: #ED_GIZMO_CAGE2D_STYLE_BOX
  * \{ */
 
-static void cage2d_draw_box_corners(const rctf *r, const float margin[2], const float color[3])
+static void cage2d_draw_box_corners(const rctf *r,
+                                    const float margin[2],
+                                    const float color[3],
+                                    const float line_width)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
   immUniformColor3fv(color);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  immUniform2fv("viewportSize", &viewport[2]);
+
+  immUniform1f("lineWidth", line_width * U.pixelsize);
 
   immBegin(GPU_PRIM_LINES, 16);
 
@@ -445,7 +454,7 @@ static void cage2d_draw_box_interaction(const float color[4],
       .pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT),
       .col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT),
   };
-  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  immBindBuiltinProgram(is_solid ? GPU_SHADER_2D_FLAT_COLOR : GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
 
   {
     if (is_solid) {
@@ -459,7 +468,12 @@ static void cage2d_draw_box_interaction(const float color[4],
     }
     else {
       BLI_assert(ELEM(prim_type, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINES));
-      GPU_line_width(line_width + 3.0f);
+
+      float viewport[4];
+      GPU_viewport_size_get_f(viewport);
+      immUniform2fv("viewportSize", &viewport[2]);
+
+      immUniform1f("lineWidth", (line_width * 3.0f) * U.pixelsize);
 
       immBegin(prim_type, verts_len);
       immAttr3f(attr_id.col, 0.0f, 0.0f, 0.0f);
@@ -468,7 +482,7 @@ static void cage2d_draw_box_interaction(const float color[4],
       }
       immEnd();
 
-      GPU_line_width(line_width);
+      immUniform1f("lineWidth", line_width * U.pixelsize);
 
       immBegin(prim_type, verts_len);
       immAttr3fv(attr_id.col, color);
@@ -505,12 +519,18 @@ static void cage2d_draw_circle_wire(const rctf *r,
                                     const float margin[2],
                                     const float color[3],
                                     const int transform_flag,
-                                    const int draw_options)
+                                    const int draw_options,
+                                    const float line_width)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
   immUniformColor3fv(color);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  immUniform2fv("viewportSize", &viewport[2]);
+  immUniform1f("lineWidth", line_width * U.pixelsize);
 
   immBegin(GPU_PRIM_LINE_LOOP, 4);
   immVertex2f(pos, r->xmin, r->ymin);
@@ -662,15 +682,14 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
         .ymax = size_real[1],
     };
     if (draw_style == ED_GIZMO_CAGE2D_STYLE_BOX) {
-      /* corner gizmos */
-      GPU_line_width(gz->line_width + 3.0f);
-      cage2d_draw_box_corners(&r, margin, (const float[3]){0, 0, 0});
+      float color[4], black[3] = {0, 0, 0};
+      gizmo_color_get(gz, highlight, color);
 
       /* corner gizmos */
-      float color[4];
-      gizmo_color_get(gz, highlight, color);
-      GPU_line_width(gz->line_width);
-      cage2d_draw_box_corners(&r, margin, color);
+      cage2d_draw_box_corners(&r, margin, black, gz->line_width + 3.0f);
+
+      /* corner gizmos */
+      cage2d_draw_box_corners(&r, margin, color, gz->line_width);
 
       bool show = false;
       if (gz->highlight_part == ED_GIZMO_CAGE2D_PART_TRANSLATE) {
@@ -700,30 +719,26 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
       }
     }
     else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
-      float color[4];
+      float color[4], black[3] = {0, 0, 0};
       gizmo_color_get(gz, highlight, color);
 
-      GPU_line_smooth(true);
       GPU_blend(true);
 
-      GPU_line_width(gz->line_width + 3.0f);
-      cage2d_draw_circle_wire(&r, margin, (const float[3]){0, 0, 0}, transform_flag, draw_options);
-      GPU_line_width(gz->line_width);
-      cage2d_draw_circle_wire(&r, margin, color, transform_flag, draw_options);
+      float outline_line_width = gz->line_width + 3.0f;
+      cage2d_draw_circle_wire(&r, margin, black, transform_flag, draw_options, outline_line_width);
+      cage2d_draw_circle_wire(&r, margin, color, transform_flag, draw_options, gz->line_width);
 
       /* corner gizmos */
       cage2d_draw_circle_handles(&r, margin, color, transform_flag, true);
       cage2d_draw_circle_handles(&r, margin, (const float[3]){0, 0, 0}, transform_flag, false);
 
       GPU_blend(false);
-      GPU_line_smooth(false);
     }
     else {
       BLI_assert(0);
     }
   }
 
-  GPU_line_width(1.0);
   GPU_matrix_pop();
 }
 
