@@ -77,7 +77,7 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
   }
   plane_from_point_normal_v3(plane, plane_co, plane_no);
 
-  BM_mesh_bisect_plane(bm, plane, false, false, 0, 0, bisect_distance);
+  BM_mesh_bisect_plane(bm, plane, true, false, 0, 0, bisect_distance);
 
   /* Plane definitions for vert killing. */
   float plane_offset[4];
