@@ -94,15 +94,16 @@ TEST(task, RangeIterPool)
 
   /* Those checks should ensure us all items of the listbase were processed once, and only once -
    * as expected. */
-
-  int expected_sum = 0;
-  for (int j = 0; j < num_tasks; j++) {
-    for (int i = 0; i < NUM_ITEMS; i++) {
-      // EXPECT_EQ(data[j][i], i);
-      expected_sum += i;
+  {
+    int expected_sum = 0;
+    for (int j = 0; j < num_tasks; j++) {
+      for (int i = 0; i < NUM_ITEMS; i++) {
+        // EXPECT_EQ(data[j][i], i);
+        expected_sum += i;
+      }
     }
+    EXPECT_EQ(sum, expected_sum);
   }
-  EXPECT_EQ(sum, expected_sum);
 
   /* A pool can be re-used until it is freed. */
 
@@ -126,15 +127,16 @@ TEST(task, RangeIterPool)
 
   /* Those checks should ensure us all items of the listbase were processed once, and only once -
    * as expected. */
-
-  for (int j = 0; j < num_tasks; j++) {
+  {
     int expected_sum = 0;
-    for (int i = 0; i < NUM_ITEMS; i++) {
-      //      EXPECT_EQ(data[j][i], i);
-      expected_sum += i;
+    for (int j = 0; j < num_tasks; j++) {
+      for (int i = 0; i < NUM_ITEMS; i++) {
+        //      EXPECT_EQ(data[j][i], i);
+        expected_sum += i;
+      }
     }
+    EXPECT_EQ(sum, expected_sum);
   }
-  EXPECT_EQ(sum, expected_sum);
 
   BLI_threadapi_exit();
 }
