@@ -202,7 +202,13 @@ void multiresModifier_subdivide_to_level(struct Object *object,
   multires_reshape_store_original_grids(&reshape_context);
   multires_reshape_ensure_grids(coarse_mesh, reshape_context.top.level);
   multires_reshape_assign_final_coords_from_orig_mdisps(&reshape_context);
-  multires_reshape_smooth_object_grids(&reshape_context);
+
+  /* Free original grids which makes it so smoothing with details thinks all the details were
+   * added against base mesh's limit surface. This is similar behavior to as if we've done all
+   * displacement in sculpt mode at the old top level and then propagated to the new top level. */
+  multires_reshape_free_original_grids(&reshape_context);
+
+  multires_reshape_smooth_object_grids_with_details(&reshape_context);
   multires_reshape_object_grids_to_tangent_displacement(&reshape_context);
   multires_reshape_context_free(&reshape_context);
 

@@ -236,7 +236,7 @@ bool multires_reshape_context_create_from_subdivide(MultiresReshapeContext *resh
   return context_verify_or_free(reshape_context);
 }
 
-static void free_original_grids(MultiresReshapeContext *reshape_context)
+void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_context)
 {
   MDisps *orig_mdisps = reshape_context->orig.mdisps;
   GridPaintMask *orig_grid_paint_masks = reshape_context->orig.grid_paint_masks;
@@ -259,6 +259,9 @@ static void free_original_grids(MultiresReshapeContext *reshape_context)
 
   MEM_SAFE_FREE(orig_mdisps);
   MEM_SAFE_FREE(orig_grid_paint_masks);
+
+  reshape_context->orig.mdisps = NULL;
+  reshape_context->orig.grid_paint_masks = NULL;
 }
 
 void multires_reshape_context_free(MultiresReshapeContext *reshape_context)
@@ -267,7 +270,7 @@ void multires_reshape_context_free(MultiresReshapeContext *reshape_context)
     BKE_subdiv_free(reshape_context->subdiv);
   }
 
-  free_original_grids(reshape_context);
+  multires_reshape_free_original_grids(reshape_context);
 
   MEM_freeN(reshape_context->face_start_grid_index);
   MEM_freeN(reshape_context->ptex_start_grid_index);
