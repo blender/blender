@@ -201,18 +201,6 @@ void BLI_task_parallel_range(const int start,
                              TaskParallelRangeFunc func,
                              TaskParallelSettings *settings);
 
-typedef struct TaskParallelRangePool TaskParallelRangePool;
-struct TaskParallelRangePool *BLI_task_parallel_range_pool_init(
-    const struct TaskParallelSettings *settings);
-void BLI_task_parallel_range_pool_push(struct TaskParallelRangePool *range_pool,
-                                       const int start,
-                                       const int stop,
-                                       void *userdata,
-                                       TaskParallelRangeFunc func,
-                                       const struct TaskParallelSettings *settings);
-void BLI_task_parallel_range_pool_work_and_wait(struct TaskParallelRangePool *range_pool);
-void BLI_task_parallel_range_pool_free(struct TaskParallelRangePool *range_pool);
-
 /* This data is shared between all tasks, its access needs thread lock or similar protection.
  */
 typedef struct TaskParallelIteratorStateShared {
