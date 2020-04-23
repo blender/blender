@@ -1727,7 +1727,7 @@ static void object_apply_location(Object *ob, const float loc[3])
   copy_v3_v3(ob->loc, mat[3]);
 }
 
-static void object_orient_to_location(Object *ob,
+static bool object_orient_to_location(Object *ob,
                                       const float rot_orig[3][3],
                                       const float axis[3],
                                       const float location[3])
@@ -1744,9 +1744,10 @@ static void object_orient_to_location(Object *ob,
 
       object_apply_rotation(ob, final_rot);
 
-      DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+      return true;
     }
   }
+  return false;
 }
 
 static void object_transform_axis_target_cancel(bContext *C, wmOperator *op)
@@ -1975,6 +1976,8 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 
                 object_orient_to_location(
                     item->ob, item->rot_mat, item->rot_mat[2], location_world);
+
+                DEG_id_tag_update(&item->ob->id, ID_RECALC_TRANSFORM);
                 WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
               }
               if (normal_found) {
@@ -1986,8 +1989,11 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
           else {
             struct XFormAxisItem *item = xfd->object_data;
             for (int i = 0; i < xfd->object_data_len; i++, item++) {
-              object_orient_to_location(item->ob, item->rot_mat, item->rot_mat[2], location_world);
-              WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
+              if (object_orient_to_location(
+                      item->ob, item->rot_mat, item->rot_mat[2], location_world)) {
+                DEG_id_tag_update(&item->ob->id, ID_RECALC_TRANSFORM);
+                WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
+              }
             }
             xfd->prev.is_normal_valid = false;
           }
