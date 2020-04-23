@@ -306,28 +306,28 @@ typedef enum eRigidBodyCon_Type {
   /** lets bodies rotate around a specified point */
   RBC_TYPE_POINT = 0,
   /** lets bodies rotate around a specified axis */
-  RBC_TYPE_HINGE,
+  RBC_TYPE_HINGE = 1,
   /** simulates wheel suspension */
-  /* RBC_TYPE_HINGE2, */ /* UNUSED */
+  /* RBC_TYPE_HINGE2 = 2, */ /* UNUSED */
   /** restricts movent to a specified axis */
-  RBC_TYPE_SLIDER,
+  RBC_TYPE_SLIDER = 3,
   /** lets object rotate within a specified cone */
-  /* RBC_TYPE_CONE_TWIST, */ /* UNUSED */
+  /* RBC_TYPE_CONE_TWIST = 4, */ /* UNUSED */
   /** allows user to specify constraint axes */
-  RBC_TYPE_6DOF,
+  RBC_TYPE_6DOF = 5,
   /** like 6DOF but has springs */
-  RBC_TYPE_6DOF_SPRING,
+  RBC_TYPE_6DOF_SPRING = 6,
   /** simulates a universal joint */
-  /* RBC_TYPE_UNIVERSAL, */ /* UNUSED */
+  /* RBC_TYPE_UNIVERSAL = 7, */ /* UNUSED */
   /** glues two bodies together */
-  RBC_TYPE_FIXED,
+  RBC_TYPE_FIXED = 8,
   /** similar to slider but also allows rotation around slider axis */
-  RBC_TYPE_PISTON,
+  RBC_TYPE_PISTON = 9,
   /** Simplified spring constraint with only once axis that's
    * automatically placed between the connected bodies */
-  /* RBC_TYPE_SPRING, */ /* UNUSED */
+  /* RBC_TYPE_SPRING = 10, */ /* UNUSED */
   /** dirves bodies by applying linear and angular forces */
-  RBC_TYPE_MOTOR,
+  RBC_TYPE_MOTOR = 11,
 } eRigidBodyCon_Type;
 
 /* Spring implementation type for RigidBodyOb */
