@@ -197,8 +197,8 @@ static void axis_geom_draw(const wmGizmo *gz,
                            const bool select,
                            const struct AxisDrawInfo *draw_info)
 {
-
-  GPU_line_width(gz->line_width);
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -341,8 +341,13 @@ static void axis_geom_draw(const wmGizmo *gz,
       /* Axis Line. */
       if (is_pos) {
         float v_start[3];
-        GPU_line_width(2.0f);
+        immUnbindProgram();
+
+        immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+        immUniform2fv("viewportSize", &viewport[2]);
+        immUniform1f("lineWidth", 2.0f * U.pixelsize);
         immUniformColor4fv(is_pos_color ? color_current : color_current_fade);
+
         immBegin(GPU_PRIM_LINES, 2);
         if (axis_align == -1) {
           zero_v3(v_start);
@@ -358,6 +363,10 @@ static void axis_geom_draw(const wmGizmo *gz,
         immVertex3fv(pos_id, v_start);
         immVertex3fv(pos_id, v_final);
         immEnd();
+
+        immUnbindProgram();
+
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       }
 
       /* Axis Ball. */

@@ -227,21 +227,20 @@ void main()
     }
   }
 
-  /* Add a small bias so the grid will always
-   * be on top of a mesh with the same depth. */
-  float grid_depth = gl_FragCoord.z - 6e-8 - fwidth(gl_FragCoord.z);
   float scene_depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
   if ((gridFlag & GRID_BACK) != 0) {
     fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
   }
   else {
+    /* Add a small bias so the grid will always be below of a mesh with the same depth. */
+    float grid_depth = gl_FragCoord.z + 4.8e-7;
     /* Manual, non hard, depth test:
      * Progressively fade the grid below occluders
      * (avoids popping visuals due to depth buffer precision) */
     /* Harder settings tend to flicker more,
      * but have less "see through" appearance. */
-    const float test_hardness = 1e7;
-    fade *= 1.0 - clamp((grid_depth - scene_depth) * test_hardness, 0.0, 1.0);
+    float bias = max(fwidth(gl_FragCoord.z), 2.4e-7);
+    fade *= linearstep(grid_depth, grid_depth + bias, scene_depth);
   }
 
   FragColor.a *= fade;

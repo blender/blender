@@ -156,6 +156,7 @@ typedef enum eGPUBuiltinShader {
    * \param pos: in vec3
    */
   GPU_SHADER_3D_UNIFORM_COLOR,
+  GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR,
   /**
    * Take a 3D position and color for each vertex without color interpolation.
    *
@@ -171,12 +172,37 @@ typedef enum eGPUBuiltinShader {
    */
   GPU_SHADER_3D_SMOOTH_COLOR,
   /**
+   * Take a single color for all the vertices and a 3D position for each vertex.
+   * Used for drawing wide lines.
+   *
+   * \param color: uniform vec4
+   * \param pos: in vec3
+   */
+  GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR,
+  GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
+  /**
+   * Take a 3D position and color for each vertex without color interpolation.
+   * Used for drawing wide lines.
+   *
+   * \param color: in vec4
+   * \param pos: in vec3
+   */
+  GPU_SHADER_3D_POLYLINE_FLAT_COLOR,
+  /**
+   * Take a 3D position and color for each vertex with perspective correct interpolation.
+   * Used for drawing wide lines.
+   *
+   * \param color: in vec4
+   * \param pos: in vec3
+   */
+  GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR,
+  /**
    * Take a 3D position for each vertex and output only depth.
+   * Used for drawing wide lines.
    *
    * \param pos: in vec3
    */
   GPU_SHADER_3D_DEPTH_ONLY,
-  GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR,
   /* basic image drawing */
   GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE,
   GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE,
