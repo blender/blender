@@ -174,9 +174,8 @@ static void rna_Fluid_domain_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Fluid_reset_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-
 #  ifdef WITH_FLUID
+  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
   BKE_fluid_modifier_reset(settings->mmd);
 #  endif
 

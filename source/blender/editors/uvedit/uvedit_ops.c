@@ -4899,7 +4899,8 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
         if (!stickymode) {
           BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
             BM_elem_flag_disable(efa, BM_ELEM_TAG);
-            if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+            if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) &&
+                !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
               int totsel = 0;
               BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
                 totsel += BM_elem_flag_test(l->v, BM_ELEM_SELECT);
@@ -4919,7 +4920,8 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
         else {
           BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
             BM_elem_flag_disable(efa, BM_ELEM_TAG);
-            if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+            if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) &&
+                !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
               BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
                 if (BM_elem_flag_test(l->v, BM_ELEM_SELECT) == 0) {
                   luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
