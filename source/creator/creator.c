@@ -339,7 +339,7 @@ int main(int argc,
 
   main_callback_setup();
 
-#if defined(__APPLE__) && !defined(WITH_PYTHON_MODULE)
+#if defined(__APPLE__) && !defined(WITH_PYTHON_MODULE) && !defined(WITH_HEADLESS)
   /* patch to ignore argument finder gives us (pid?) */
   if (argc == 2 && STREQLEN(argv[1], "-psn_", 5)) {
     extern int GHOST_HACK_getFirstFile(char buf[]);
