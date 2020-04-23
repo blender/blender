@@ -1755,8 +1755,11 @@ static void material_transparent(Material *ma,
 }
 
 /* Return correct material or empty default material if slot is empty. */
-BLI_INLINE Material *eevee_object_material_get(Object *ob, int slot)
+BLI_INLINE Material *eevee_object_material_get(Object *ob, int slot, bool holdout)
 {
+  if (holdout) {
+    return BKE_material_default_holdout();
+  }
   Material *ma = BKE_object_material_get(ob, slot + 1);
   if (ma == NULL) {
     if (ob->type == OB_VOLUME) {
@@ -1781,10 +1784,10 @@ static void eevee_hair_cache_populate(EEVEE_Data *vedata,
   EEVEE_StorageList *stl = vedata->stl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
+  const bool holdout = (ob->base_flag & BASE_HOLDOUT) != 0;
 
   DRWShadingGroup *shgrp = NULL;
-  Material *ma = eevee_object_material_get(ob, matnr - 1);
-  const bool holdout = (ob->base_flag & BASE_HOLDOUT) != 0;
+  Material *ma = eevee_object_material_get(ob, matnr - 1, holdout);
   const bool use_gpumat = ma->use_nodes && ma->nodetree && !holdout;
   const bool use_alpha_hash = (ma->blend_method == MA_BM_HASHED);
   const bool use_alpha_clip = (ma->blend_method == MA_BM_CLIP);
@@ -2027,22 +2030,10 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
     struct Material **ma_array = BLI_array_alloca(ma_array, materials_len);
 
     for (int i = 0; i < materials_len; i++) {
-      ma_array[i] = eevee_object_material_get(ob, i);
+      ma_array[i] = eevee_object_material_get(ob, i, holdout);
       memset(&shgrps_array[i], 0, sizeof(EeveeMaterialShadingGroups));
       gpumat_array[i] = NULL;
       gpumat_depth_array[i] = NULL;
-
-      if (holdout) {
-        material_opaque(ma_array[i],
-                        material_hash,
-                        sldata,
-                        vedata,
-                        &gpumat_array[i],
-                        &gpumat_depth_array[i],
-                        &shgrps_array[i],
-                        true);
-        continue;
-      }
 
       switch (ma_array[i]->blend_method) {
         case MA_BM_SOLID:
@@ -2055,7 +2046,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
                           &gpumat_array[i],
                           &gpumat_depth_array[i],
                           &shgrps_array[i],
-                          false);
+                          holdout);
           break;
         case MA_BM_BLEND:
           material_transparent(ma_array[i], sldata, vedata, &gpumat_array[i], &shgrps_array[i]);
