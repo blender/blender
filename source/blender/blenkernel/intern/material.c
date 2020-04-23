@@ -1624,11 +1624,13 @@ void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
  * default shader nodes. */
 
 static Material default_material_empty;
+static Material default_material_holdout;
 static Material default_material_surface;
 static Material default_material_volume;
 static Material default_material_gpencil;
 
 static Material *default_materials[] = {&default_material_empty,
+                                        &default_material_holdout,
                                         &default_material_surface,
                                         &default_material_volume,
                                         &default_material_gpencil,
@@ -1693,6 +1695,11 @@ static void material_default_volume_init(Material *ma)
 Material *BKE_material_default_empty(void)
 {
   return &default_material_empty;
+}
+
+Material *BKE_material_default_holdout(void)
+{
+  return &default_material_holdout;
 }
 
 Material *BKE_material_default_surface(void)

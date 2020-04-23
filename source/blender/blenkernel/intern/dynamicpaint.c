@@ -2432,6 +2432,8 @@ static float dist_squared_to_looptri_uv_edges(const MLoopTri *mlooptri,
                                               int tri_index,
                                               const float point[2])
 {
+  BLI_assert(tri_index >= 0);
+
   float min_distance = FLT_MAX;
 
   for (int i = 0; i < 3; i++) {

@@ -119,6 +119,7 @@ void BKE_material_copybuf_paste(struct Main *bmain, struct Material *ma);
 /* Default Materials */
 
 struct Material *BKE_material_default_empty(void);
+struct Material *BKE_material_default_holdout(void);
 struct Material *BKE_material_default_surface(void);
 struct Material *BKE_material_default_volume(void);
 struct Material *BKE_material_default_gpencil(void);

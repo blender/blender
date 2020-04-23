@@ -104,25 +104,28 @@ static void overlay_image_calc_aspect(Image *ima, const int size[2], float r_ima
   }
 }
 
-static void camera_background_images_stereo_setup(Scene *scene,
-                                                  View3D *v3d,
+static eStereoViews camera_background_images_stereo_eye(const Scene *scene, const View3D *v3d)
+{
+  if ((scene->r.scemode & R_MULTIVIEW) == 0) {
+    return STEREO_LEFT_ID;
+  }
+  else if (v3d->stereo3d_camera != STEREO_3D_ID) {
+    /* show only left or right camera */
+    return v3d->stereo3d_camera;
+  }
+  else {
+    return v3d->multiview_eye;
+  }
+}
+
+static void camera_background_images_stereo_setup(const Scene *scene,
+                                                  const View3D *v3d,
                                                   Image *ima,
                                                   ImageUser *iuser)
 {
   if (BKE_image_is_stereo(ima)) {
     iuser->flag |= IMA_SHOW_STEREO;
-
-    if ((scene->r.scemode & R_MULTIVIEW) == 0) {
-      iuser->multiview_eye = STEREO_LEFT_ID;
-    }
-    else if (v3d->stereo3d_camera != STEREO_3D_ID) {
-      /* show only left or right camera */
-      iuser->multiview_eye = v3d->stereo3d_camera;
-    }
-    else {
-      iuser->multiview_eye = v3d->multiview_eye;
-    }
-
+    iuser->multiview_eye = camera_background_images_stereo_eye(scene, v3d);
     BKE_image_multiview_index(ima, iuser);
   }
   else {
@@ -302,6 +305,8 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   OVERLAY_PassList *psl = vedata->psl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  const View3D *v3d = draw_ctx->v3d;
+  const Scene *scene = draw_ctx->scene;
   Camera *cam = ob->data;
 
   const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, draw_ctx->rv3d);
@@ -310,8 +315,10 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
     return;
   }
 
-  float norm_obmat[4][4];
-  normalize_m4_m4(norm_obmat, ob->obmat);
+  const bool stereo_eye = camera_background_images_stereo_eye(scene, v3d) == STEREO_LEFT_ID;
+  const char *viewname = (stereo_eye == STEREO_LEFT_ID) ? STEREO_RIGHT_NAME : STEREO_LEFT_NAME;
+  float modelmat[4][4];
+  BKE_camera_multiview_model_matrix(&scene->r, ob, viewname, modelmat);
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
     if (bgpic->flag & CAM_BGIMG_FLAG_DISABLED) {
@@ -329,7 +336,7 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
     if (tex) {
       image_camera_background_matrix_get(cam, bgpic, draw_ctx, aspect, mat);
 
-      mul_m4_m4m4(mat, norm_obmat, mat);
+      mul_m4_m4m4(mat, modelmat, mat);
       const bool is_foreground = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != 0;
 
       float color_premult_alpha[4] = {bgpic->alpha, bgpic->alpha, bgpic->alpha, bgpic->alpha};
