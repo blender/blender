@@ -49,7 +49,7 @@ template<typename T, uint N = 4, typename Allocator = GuardedAllocator> class Ve
   T *m_end;
   T *m_capacity_end;
   Allocator m_allocator;
-  AlignedBuffer<sizeof(T) * N, alignof(T)> m_small_buffer;
+  AlignedBuffer<(uint)sizeof(T) * N, (uint)alignof(T)> m_small_buffer;
 
 #ifndef NDEBUG
   /* Storing size in debug builds, because it makes debugging much easier sometimes. */

@@ -39,10 +39,30 @@ TEST(vector_set, Copy)
   EXPECT_EQ(set2.index(2), 1);
 }
 
+TEST(vector_set, CopyAssignment)
+{
+  IntVectorSet set1 = {1, 2, 3};
+  IntVectorSet set2 = {};
+  set2 = set1;
+  EXPECT_EQ(set1.size(), 3);
+  EXPECT_EQ(set2.size(), 3);
+  EXPECT_EQ(set1.index(2), 1);
+  EXPECT_EQ(set2.index(2), 1);
+}
+
 TEST(vector_set, Move)
 {
   IntVectorSet set1 = {1, 2, 3};
   IntVectorSet set2 = std::move(set1);
+  EXPECT_EQ(set1.size(), 0);
+  EXPECT_EQ(set2.size(), 3);
+}
+
+TEST(vector_set, MoveAssignment)
+{
+  IntVectorSet set1 = {1, 2, 3};
+  IntVectorSet set2 = {};
+  set2 = std::move(set1);
   EXPECT_EQ(set1.size(), 0);
   EXPECT_EQ(set2.size(), 3);
 }

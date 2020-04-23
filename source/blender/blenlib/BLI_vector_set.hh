@@ -76,7 +76,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
       return m_value == IS_DUMMY;
     }
 
-    bool has_value(const T &value, const Vector<T> &elements) const
+    bool has_value(const T &value, const T *elements) const
     {
       return this->is_set() && elements[this->index()] == value;
     }
@@ -112,12 +112,14 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   using ArrayType = OpenAddressingArray<Slot, 4, Allocator>;
   ArrayType m_array;
-  Vector<T, 4, Allocator> m_elements;
+
+  /* The capacity of the array should always be at least m_array.slots_usable(). */
+  T *m_elements = nullptr;
 
  public:
   VectorSet()
   {
-    BLI_assert(m_array.slots_usable() <= m_elements.capacity());
+    m_elements = this->allocate_elements_array(m_array.slots_usable());
   }
 
   VectorSet(ArrayRef<T> values) : VectorSet()
@@ -133,6 +135,43 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
   VectorSet(const Vector<T> &values) : VectorSet()
   {
     this->add_multiple(values);
+  }
+
+  VectorSet(const VectorSet &other) : m_array(other.m_array)
+  {
+    m_elements = this->allocate_elements_array(m_array.slots_usable());
+    copy_n(other.m_elements, m_array.slots_set(), m_elements);
+  }
+
+  VectorSet(VectorSet &&other) : m_array(std::move(other.m_array)), m_elements(other.m_elements)
+  {
+    other.m_elements = other.allocate_elements_array(other.m_array.slots_usable());
+  }
+
+  ~VectorSet()
+  {
+    destruct_n(m_elements, m_array.slots_usable());
+    this->deallocate_elements_array(m_elements);
+  }
+
+  VectorSet &operator=(const VectorSet &other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    this->~VectorSet();
+    new (this) VectorSet(other);
+    return *this;
+  }
+
+  VectorSet &operator=(VectorSet &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    this->~VectorSet();
+    new (this) VectorSet(std::move(other));
+    return *this;
   }
 
   /**
@@ -203,17 +242,17 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
     BLI_assert(this->contains(value));
     ITER_SLOTS_BEGIN (value, m_array, , slot) {
       if (slot.has_value(value, m_elements)) {
-        uint old_index = m_elements.size() - 1;
+        uint old_index = m_array.slots_set() - 1;
         uint new_index = slot.index();
 
-        m_elements.remove_and_reorder(new_index);
+        if (new_index < old_index) {
+          m_elements[new_index] = std::move(m_elements[old_index]);
+          this->update_slot_index(m_elements[new_index], old_index, new_index);
+        }
+
+        destruct(m_elements + old_index);
         slot.set_dummy();
         m_array.update__set_to_dummy();
-
-        if (old_index != new_index) {
-          T &moved_value = m_elements[new_index];
-          this->update_slot_index(moved_value, old_index, new_index);
-        }
         return;
       }
     }
@@ -226,11 +265,12 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
   T pop()
   {
     BLI_assert(this->size() > 0);
-    T value = m_elements.pop_last();
-    uint old_index = m_elements.size();
+    uint index_to_pop = m_array.slots_usable() - 1;
+    T value = std::move(m_elements[index_to_pop]);
+    destruct(m_elements + index_to_pop);
 
     ITER_SLOTS_BEGIN (value, m_array, , slot) {
-      if (slot.has_index(old_index)) {
+      if (slot.has_index(index_to_pop)) {
         slot.set_dummy();
         m_array.update__set_to_dummy();
         return value;
@@ -279,16 +319,17 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   const T *begin() const
   {
-    return m_elements.begin();
+    return m_elements;
   }
 
   const T *end() const
   {
-    return m_elements.end();
+    return m_elements + m_array.slots_set();
   }
 
   const T &operator[](uint index) const
   {
+    BLI_assert(index <= m_array.slots_set());
     return m_elements[index];
   }
 
@@ -299,7 +340,7 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   operator ArrayRef<T>() const
   {
-    return m_elements;
+    return ArrayRef<T>(m_elements, m_array.slots_set());
   }
 
   void print_stats() const
@@ -326,9 +367,9 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   template<typename ForwardT> void add_new_in_slot(Slot &slot, ForwardT &&value)
   {
-    uint index = m_elements.size();
+    uint index = m_array.slots_set();
     slot.set_index(index);
-    m_elements.append_unchecked(std::forward<ForwardT>(value));
+    new (m_elements + index) T(std::forward<ForwardT>(value));
     m_array.update__empty_to_set();
   }
 
@@ -341,14 +382,20 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   BLI_NOINLINE void grow(uint min_usable_slots)
   {
-    ArrayType new_array = m_array.init_reserved(min_usable_slots);
+    uint size = this->size();
 
-    for (uint i = 0; i < m_elements.size(); i++) {
+    ArrayType new_array = m_array.init_reserved(min_usable_slots);
+    T *new_elements = this->allocate_elements_array(new_array.slots_usable());
+
+    for (uint i : IndexRange(size)) {
       this->add_after_grow(i, new_array);
     }
 
+    uninitialized_relocate_n(m_elements, size, new_elements);
+    this->deallocate_elements_array(m_elements);
+
     m_array = std::move(new_array);
-    m_elements.reserve(m_array.slots_usable());
+    m_elements = new_elements;
   }
 
   void add_after_grow(uint index, ArrayType &new_array)
@@ -365,15 +412,15 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
 
   float compute_average_collisions() const
   {
-    if (m_elements.size() == 0) {
+    if (this->size() == 0) {
       return 0.0f;
     }
 
     uint collisions_sum = 0;
-    for (const T &value : m_elements) {
+    for (const T &value : this->as_ref()) {
       collisions_sum += this->count_collisions(value);
     }
-    return (float)collisions_sum / (float)m_elements.size();
+    return (float)collisions_sum / (float)this->size();
   }
 
   uint count_collisions(const T &value) const
@@ -414,6 +461,16 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
       }
     }
     ITER_SLOTS_END;
+  }
+
+  T *allocate_elements_array(uint size)
+  {
+    return (T *)m_array.allocator().allocate_aligned((uint)sizeof(T) * size, alignof(T), __func__);
+  }
+
+  void deallocate_elements_array(T *elements)
+  {
+    m_array.allocator().deallocate(elements);
   }
 };
 

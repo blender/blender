@@ -70,7 +70,7 @@ class OpenAddressingArray {
   /* Can be used to map a hash value into the range of valid slot indices. */
   uint32_t m_slot_mask;
   Allocator m_allocator;
-  AlignedBuffer<sizeof(Item) * ItemsInSmallStorage, alignof(Item)> m_local_storage;
+  AlignedBuffer<(uint)sizeof(Item) * ItemsInSmallStorage, (uint)alignof(Item)> m_local_storage;
 
  public:
   explicit OpenAddressingArray(uint8_t item_exponent = 0)
@@ -169,6 +169,11 @@ class OpenAddressingArray {
     this->~OpenAddressingArray();
     new (this) OpenAddressingArray(std::move(other));
     return *this;
+  }
+
+  Allocator &allocator()
+  {
+    return m_allocator;
   }
 
   /* Prepare a new array that can hold a minimum of min_usable_slots elements. All entries are
