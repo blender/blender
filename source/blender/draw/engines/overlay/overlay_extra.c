@@ -1160,6 +1160,10 @@ void OVERLAY_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
   else {
     copy_v3_fl3(scale, len_v3(ob->obmat[0]), len_v3(ob->obmat[1]), len_v3(ob->obmat[2]));
+    /* Avoid division by 0. */
+    if (ELEM(0.0f, scale[0], scale[1], scale[2])) {
+      return;
+    }
     invert_v3(scale);
   }
 
