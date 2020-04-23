@@ -302,8 +302,8 @@ static int collection_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op
 void COLLECTION_OT_objects_remove_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove from All Unlinked Collections";
-  ot->description = "Remove selected objects from all collections not used in a scene";
+  ot->name = "Remove from All Collections";
+  ot->description = "Remove selected objects from all collections";
   ot->idname = "COLLECTION_OT_objects_remove_all";
 
   /* api callbacks */
