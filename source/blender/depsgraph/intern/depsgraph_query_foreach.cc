@@ -23,6 +23,8 @@
  * Implementation of Querying and Filtering API's
  */
 
+#include <unordered_set>
+
 #include "MEM_guardedalloc.h"
 
 extern "C" {
@@ -48,23 +50,11 @@ extern "C" {
 namespace DEG {
 namespace {
 
+using std::unordered_set;
+
 typedef deque<OperationNode *> TraversalQueue;
-enum {
-  DEG_NODE_VISITED = (1 << 0),
-};
 
 typedef void (*DEGForeachOperation)(OperationNode *op_node, void *user_data);
-
-void deg_foreach_clear_flags(const Depsgraph *graph)
-{
-  for (OperationNode *op_node : graph->operations) {
-    op_node->scheduled = false;
-    op_node->owner->custom_flags = 0;
-  }
-  for (IDNode *id_node : graph->id_nodes) {
-    id_node->custom_flags = 0;
-  }
-}
 
 bool deg_foreach_needs_visit(const OperationNode *op_node, const int flags)
 {
@@ -77,23 +67,20 @@ bool deg_foreach_needs_visit(const OperationNode *op_node, const int flags)
 }
 
 void deg_foreach_dependent_operation(const Depsgraph *graph,
-                                     const ID *id,
+                                     const IDNode *target_id_node,
                                      eDepsObjectComponentType source_component_type,
                                      int flags,
                                      DEGForeachOperation callback,
                                      void *user_data)
 {
-  /* Start with getting ID node from the graph. */
-  IDNode *target_id_node = graph->find_id_node(id);
   if (target_id_node == nullptr) {
     /* TODO(sergey): Shall we inform or assert here about attempt to start
      * iterating over non-existing ID? */
     return;
   }
-  /* Make sure all runtime flags are ready and clear. */
-  deg_foreach_clear_flags(graph);
   /* Start with scheduling all operations from ID node. */
   TraversalQueue queue;
+  unordered_set<OperationNode *> scheduled;
   GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, target_id_node->components) {
     if (source_component_type != DEG_OB_COMP_ANY &&
         nodeTypeToObjectComponent(comp_node->type) != source_component_type) {
@@ -104,12 +91,10 @@ void deg_foreach_dependent_operation(const Depsgraph *graph,
         continue;
       }
       queue.push_back(op_node);
-      op_node->scheduled = true;
-      op_node->owner->custom_flags |= DEG_NODE_VISITED;
+      scheduled.insert(op_node);
     }
   }
   GHASH_FOREACH_END();
-  target_id_node->custom_flags |= DEG_NODE_VISITED;
   /* Process the queue. */
   while (!queue.empty()) {
     /* get next operation node to process. */
@@ -120,8 +105,9 @@ void deg_foreach_dependent_operation(const Depsgraph *graph,
       /* Schedule outgoing operation nodes. */
       if (op_node->outlinks.size() == 1) {
         OperationNode *to_node = (OperationNode *)op_node->outlinks[0]->to;
-        if (to_node->scheduled == false && deg_foreach_needs_visit(to_node, flags)) {
-          to_node->scheduled = true;
+        if (scheduled.find(to_node) == scheduled.end() &&
+            deg_foreach_needs_visit(to_node, flags)) {
+          scheduled.insert(to_node);
           op_node = to_node;
         }
         else {
@@ -131,9 +117,10 @@ void deg_foreach_dependent_operation(const Depsgraph *graph,
       else {
         for (Relation *rel : op_node->outlinks) {
           OperationNode *to_node = (OperationNode *)rel->to;
-          if (to_node->scheduled == false && deg_foreach_needs_visit(to_node, flags)) {
+          if (scheduled.find(to_node) == scheduled.end() &&
+              deg_foreach_needs_visit(to_node, flags)) {
             queue.push_front(to_node);
-            to_node->scheduled = true;
+            scheduled.insert(to_node);
           }
         }
         break;
@@ -145,17 +132,20 @@ void deg_foreach_dependent_operation(const Depsgraph *graph,
 struct ForeachIDComponentData {
   DEGForeachIDComponentCallback callback;
   void *user_data;
+  IDNode *target_id_node;
+  unordered_set<ComponentNode *> visited;
 };
 
 void deg_foreach_dependent_component_callback(OperationNode *op_node, void *user_data_v)
 {
   ForeachIDComponentData *user_data = reinterpret_cast<ForeachIDComponentData *>(user_data_v);
   ComponentNode *comp_node = op_node->owner;
-  if ((comp_node->custom_flags & DEG_NODE_VISITED) == 0) {
-    IDNode *id_node = comp_node->owner;
+  IDNode *id_node = comp_node->owner;
+  if (id_node != user_data->target_id_node &&
+      user_data->visited.find(comp_node) == user_data->visited.end()) {
     user_data->callback(
         id_node->id_orig, nodeTypeToObjectComponent(comp_node->type), user_data->user_data);
-    comp_node->custom_flags |= DEG_NODE_VISITED;
+    user_data->visited.insert(comp_node);
   }
 }
 
@@ -169,13 +159,20 @@ void deg_foreach_dependent_ID_component(const Depsgraph *graph,
   ForeachIDComponentData data;
   data.callback = callback;
   data.user_data = user_data;
-  deg_foreach_dependent_operation(
-      graph, id, source_component_type, flags, deg_foreach_dependent_component_callback, &data);
+  data.target_id_node = graph->find_id_node(id);
+  deg_foreach_dependent_operation(graph,
+                                  data.target_id_node,
+                                  source_component_type,
+                                  flags,
+                                  deg_foreach_dependent_component_callback,
+                                  &data);
 }
 
 struct ForeachIDData {
   DEGForeachIDCallback callback;
   void *user_data;
+  IDNode *target_id_node;
+  unordered_set<IDNode *> visited;
 };
 
 void deg_foreach_dependent_ID_callback(OperationNode *op_node, void *user_data_v)
@@ -183,9 +180,10 @@ void deg_foreach_dependent_ID_callback(OperationNode *op_node, void *user_data_v
   ForeachIDData *user_data = reinterpret_cast<ForeachIDData *>(user_data_v);
   ComponentNode *comp_node = op_node->owner;
   IDNode *id_node = comp_node->owner;
-  if ((id_node->custom_flags & DEG_NODE_VISITED) == 0) {
+  if (id_node != user_data->target_id_node &&
+      user_data->visited.find(id_node) == user_data->visited.end()) {
     user_data->callback(id_node->id_orig, user_data->user_data);
-    id_node->custom_flags |= DEG_NODE_VISITED;
+    user_data->visited.insert(id_node);
   }
 }
 
@@ -197,8 +195,9 @@ void deg_foreach_dependent_ID(const Depsgraph *graph,
   ForeachIDData data;
   data.callback = callback;
   data.user_data = user_data;
+  data.target_id_node = graph->find_id_node(id);
   deg_foreach_dependent_operation(
-      graph, id, DEG_OB_COMP_ANY, 0, deg_foreach_dependent_ID_callback, &data);
+      graph, data.target_id_node, DEG_OB_COMP_ANY, 0, deg_foreach_dependent_ID_callback, &data);
 }
 
 void deg_foreach_ancestor_ID(const Depsgraph *graph,
@@ -213,18 +212,18 @@ void deg_foreach_ancestor_ID(const Depsgraph *graph,
      * iterating over non-existing ID? */
     return;
   }
-  /* Make sure all runtime flags are ready and clear. */
-  deg_foreach_clear_flags(graph);
   /* Start with scheduling all operations from ID node. */
   TraversalQueue queue;
+  unordered_set<OperationNode *> scheduled;
   GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, target_id_node->components) {
     for (OperationNode *op_node : comp_node->operations) {
       queue.push_back(op_node);
-      op_node->scheduled = true;
+      scheduled.insert(op_node);
     }
   }
   GHASH_FOREACH_END();
-  target_id_node->custom_flags |= DEG_NODE_VISITED;
+  unordered_set<IDNode *> visited;
+  visited.insert(target_id_node);
   /* Process the queue. */
   while (!queue.empty()) {
     /* get next operation node to process. */
@@ -234,18 +233,18 @@ void deg_foreach_ancestor_ID(const Depsgraph *graph,
       /* Check whether we need to inform callee about corresponding ID node. */
       ComponentNode *comp_node = op_node->owner;
       IDNode *id_node = comp_node->owner;
-      if ((id_node->custom_flags & DEG_NODE_VISITED) == 0) {
+      if (visited.find(id_node) == visited.end()) {
         /* TODO(sergey): Is it orig or CoW? */
         callback(id_node->id_orig, user_data);
-        id_node->custom_flags |= DEG_NODE_VISITED;
+        visited.insert(id_node);
       }
       /* Schedule incoming operation nodes. */
       if (op_node->inlinks.size() == 1) {
         Node *from = op_node->inlinks[0]->from;
         if (from->get_class() == NodeClass::OPERATION) {
           OperationNode *from_node = (OperationNode *)from;
-          if (from_node->scheduled == false) {
-            from_node->scheduled = true;
+          if (scheduled.find(from_node) == scheduled.end()) {
+            scheduled.insert(from_node);
             op_node = from_node;
           }
           else {
@@ -258,9 +257,9 @@ void deg_foreach_ancestor_ID(const Depsgraph *graph,
           Node *from = rel->from;
           if (from->get_class() == NodeClass::OPERATION) {
             OperationNode *from_node = (OperationNode *)from;
-            if (from_node->scheduled == false) {
+            if (scheduled.find(from_node) == scheduled.end()) {
               queue.push_front(from_node);
-              from_node->scheduled = true;
+              scheduled.insert(from_node);
             }
           }
         }
