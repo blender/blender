@@ -1258,7 +1258,8 @@ static void set_keyed_keys(ParticleSimulationData *sim)
       key = pa->keys + k;
       key->time = -1.0; /* use current time */
 
-      psys_get_particle_state(&ksim, p % ksim.psys->totpart, key, 1);
+      const int p_ksim = (ksim.psys->totpart) ? p % ksim.psys->totpart : 0;
+      psys_get_particle_state(&ksim, p_ksim, key, 1);
 
       if (psys->flag & PSYS_KEYED_TIMING) {
         key->time = pa->time + pt->time;
