@@ -66,12 +66,11 @@ bool deg_foreach_needs_visit(const OperationNode *op_node, const int flags)
   return true;
 }
 
-void deg_foreach_dependent_operation(const Depsgraph *graph,
-                                     const IDNode *target_id_node,
-                                     eDepsObjectComponentType source_component_type,
-                                     int flags,
-                                     DEGForeachOperation callback,
-                                     void *user_data)
+static void deg_foreach_dependent_operation(const IDNode *target_id_node,
+                                            eDepsObjectComponentType source_component_type,
+                                            int flags,
+                                            DEGForeachOperation callback,
+                                            void *user_data)
 {
   if (target_id_node == nullptr) {
     /* TODO(sergey): Shall we inform or assert here about attempt to start
@@ -160,8 +159,7 @@ void deg_foreach_dependent_ID_component(const Depsgraph *graph,
   data.callback = callback;
   data.user_data = user_data;
   data.target_id_node = graph->find_id_node(id);
-  deg_foreach_dependent_operation(graph,
-                                  data.target_id_node,
+  deg_foreach_dependent_operation(data.target_id_node,
                                   source_component_type,
                                   flags,
                                   deg_foreach_dependent_component_callback,
@@ -197,7 +195,7 @@ void deg_foreach_dependent_ID(const Depsgraph *graph,
   data.user_data = user_data;
   data.target_id_node = graph->find_id_node(id);
   deg_foreach_dependent_operation(
-      graph, data.target_id_node, DEG_OB_COMP_ANY, 0, deg_foreach_dependent_ID_callback, &data);
+      data.target_id_node, DEG_OB_COMP_ANY, 0, deg_foreach_dependent_ID_callback, &data);
 }
 
 void deg_foreach_ancestor_ID(const Depsgraph *graph,
