@@ -2100,7 +2100,7 @@ static float brush_strength(const Sculpt *sd,
       return alpha * pressure * overlap * feather * 2.0f;
     case SCULPT_TOOL_CLAY_STRIPS:
       /* Clay Strips needs less strength to compensate the curve. */
-      final_pressure = pressure * pressure * pressure;
+      final_pressure = powf(pressure, 1.5f);
       return alpha * flip * final_pressure * overlap * feather * 0.3f;
     case SCULPT_TOOL_CLAY_THUMB:
       final_pressure = pressure * pressure;
@@ -4624,7 +4624,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   const bool flip = (ss->cache->bstrength < 0.0f);
   const float radius = flip ? -ss->cache->radius : ss->cache->radius;
   const float offset = SCULPT_brush_plane_offset_get(sd, ss);
-  const float displace = radius * (0.25f + offset);
+  const float displace = radius * (0.18f + offset);
 
   /* The sculpt-plane normal (whatever its set to). */
   float area_no_sp[3];
@@ -6189,7 +6189,7 @@ static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, flo
     case SCULPT_TOOL_CLAY:
       return max_ff(initial_size * 0.20f, initial_size * pow3f(cache->pressure));
     case SCULPT_TOOL_CLAY_STRIPS:
-      return max_ff(initial_size * 0.30f, initial_size * pow2f(cache->pressure));
+      return max_ff(initial_size * 0.30f, initial_size * powf(cache->pressure, 1.5f));
     case SCULPT_TOOL_CLAY_THUMB: {
       float clay_stabilized_pressure = sculpt_clay_thumb_get_stabilized_pressure(cache);
       return initial_size * clay_stabilized_pressure;
