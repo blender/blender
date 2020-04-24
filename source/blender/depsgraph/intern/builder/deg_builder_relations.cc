@@ -2675,7 +2675,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
       rel->flag |= rel_flag;
     }
     /* All dangling operations should also be executed after copy-on-write. */
-    GHASH_FOREACH_BEGIN (OperationNode *, op_node, comp_node->operations_map) {
+    for (OperationNode *op_node : comp_node->operations_map->values()) {
       if (op_node == op_entry) {
         continue;
       }
@@ -2701,7 +2701,6 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
         }
       }
     }
-    GHASH_FOREACH_END();
     /* NOTE: We currently ignore implicit relations to an external
      * data-blocks for copy-on-write operations. This means, for example,
      * copy-on-write component of Object will not wait for copy-on-write

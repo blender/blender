@@ -72,41 +72,10 @@ bool ComponentNode::OperationIDKey::operator==(const OperationIDKey &other) cons
   return (opcode == other.opcode) && (STREQ(name, other.name)) && (name_tag == other.name_tag);
 }
 
-static unsigned int comp_node_hash_key(const void *key_v)
-{
-  const ComponentNode::OperationIDKey *key =
-      reinterpret_cast<const ComponentNode::OperationIDKey *>(key_v);
-  int opcode_as_int = static_cast<int>(key->opcode);
-  return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(opcode_as_int),
-                                    BLI_ghashutil_strhash_p(key->name));
-}
-
-static bool comp_node_hash_key_cmp(const void *a, const void *b)
-{
-  const ComponentNode::OperationIDKey *key_a =
-      reinterpret_cast<const ComponentNode::OperationIDKey *>(a);
-  const ComponentNode::OperationIDKey *key_b =
-      reinterpret_cast<const ComponentNode::OperationIDKey *>(b);
-  return !(*key_a == *key_b);
-}
-
-static void comp_node_hash_key_free(void *key_v)
-{
-  typedef ComponentNode::OperationIDKey OperationIDKey;
-  OperationIDKey *key = reinterpret_cast<OperationIDKey *>(key_v);
-  OBJECT_GUARDED_DELETE(key, OperationIDKey);
-}
-
-static void comp_node_hash_value_free(void *value_v)
-{
-  OperationNode *op_node = reinterpret_cast<OperationNode *>(value_v);
-  OBJECT_GUARDED_DELETE(op_node, OperationNode);
-}
-
 ComponentNode::ComponentNode()
     : entry_operation(nullptr), exit_operation(nullptr), affects_directly_visible(false)
 {
-  operations_map = BLI_ghash_new(comp_node_hash_key, comp_node_hash_key_cmp, "Depsgraph id hash");
+  operations_map = new Map<ComponentNode::OperationIDKey, OperationNode *>();
 }
 
 /* Initialize 'component' node - from pointer data given */
@@ -121,7 +90,7 @@ ComponentNode::~ComponentNode()
 {
   clear_operations();
   if (operations_map != nullptr) {
-    BLI_ghash_free(operations_map, comp_node_hash_key_free, comp_node_hash_value_free);
+    delete operations_map;
   }
 }
 
@@ -137,7 +106,7 @@ OperationNode *ComponentNode::find_operation(OperationIDKey key) const
 {
   OperationNode *node = nullptr;
   if (operations_map != nullptr) {
-    node = (OperationNode *)BLI_ghash_lookup(operations_map, &key);
+    node = operations_map->lookup_default(key, nullptr);
   }
   else {
     for (OperationNode *op_node : operations) {
@@ -203,8 +172,8 @@ OperationNode *ComponentNode::add_operation(const DepsEvalOperationCb &op,
     op_node = (OperationNode *)factory->create_node(this->owner->id_orig, "", name);
 
     /* register opnode in this component's operation set */
-    OperationIDKey *key = OBJECT_GUARDED_NEW(OperationIDKey, opcode, name, name_tag);
-    BLI_ghash_insert(operations_map, key, op_node);
+    OperationIDKey key(opcode, name, name_tag);
+    operations_map->add(key, op_node);
 
     /* set backlink */
     op_node->owner = this;
@@ -242,7 +211,10 @@ void ComponentNode::set_exit_operation(OperationNode *op_node)
 void ComponentNode::clear_operations()
 {
   if (operations_map != nullptr) {
-    BLI_ghash_clear(operations_map, comp_node_hash_key_free, comp_node_hash_value_free);
+    for (OperationNode *op_node : operations_map->values()) {
+      OBJECT_GUARDED_DELETE(op_node, OperationNode);
+    }
+    operations_map->clear();
   }
   for (OperationNode *op_node : operations) {
     OBJECT_GUARDED_DELETE(op_node, OperationNode);
@@ -261,10 +233,9 @@ void ComponentNode::tag_update(Depsgraph *graph, eUpdateSource source)
   }
   // It is possible that tag happens before finalization.
   if (operations_map != nullptr) {
-    GHASH_FOREACH_BEGIN (OperationNode *, op_node, operations_map) {
+    for (OperationNode *op_node : operations_map->values()) {
       op_node->tag_update(graph, source);
     }
-    GHASH_FOREACH_END();
   }
 }
 
@@ -273,13 +244,12 @@ OperationNode *ComponentNode::get_entry_operation()
   if (entry_operation) {
     return entry_operation;
   }
-  else if (operations_map != nullptr && BLI_ghash_len(operations_map) == 1) {
+  else if (operations_map != nullptr && operations_map->size() == 1) {
     OperationNode *op_node = nullptr;
     /* TODO(sergey): This is somewhat slow. */
-    GHASH_FOREACH_BEGIN (OperationNode *, tmp, operations_map) {
+    for (OperationNode *tmp : operations_map->values()) {
       op_node = tmp;
     }
-    GHASH_FOREACH_END();
     /* Cache for the subsequent usage. */
     entry_operation = op_node;
     return op_node;
@@ -295,13 +265,12 @@ OperationNode *ComponentNode::get_exit_operation()
   if (exit_operation) {
     return exit_operation;
   }
-  else if (operations_map != nullptr && BLI_ghash_len(operations_map) == 1) {
+  else if (operations_map != nullptr && operations_map->size() == 1) {
     OperationNode *op_node = nullptr;
     /* TODO(sergey): This is somewhat slow. */
-    GHASH_FOREACH_BEGIN (OperationNode *, tmp, operations_map) {
+    for (OperationNode *tmp : operations_map->values()) {
       op_node = tmp;
     }
-    GHASH_FOREACH_END();
     /* Cache for the subsequent usage. */
     exit_operation = op_node;
     return op_node;
@@ -314,12 +283,11 @@ OperationNode *ComponentNode::get_exit_operation()
 
 void ComponentNode::finalize_build(Depsgraph * /*graph*/)
 {
-  operations.reserve(BLI_ghash_len(operations_map));
-  GHASH_FOREACH_BEGIN (OperationNode *, op_node, operations_map) {
+  operations.reserve(operations_map->size());
+  for (OperationNode *op_node : operations_map->values()) {
     operations.push_back(op_node);
   }
-  GHASH_FOREACH_END();
-  BLI_ghash_free(operations_map, comp_node_hash_key_free, nullptr);
+  delete operations_map;
   operations_map = nullptr;
 }
 
