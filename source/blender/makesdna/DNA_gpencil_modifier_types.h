@@ -48,6 +48,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_Time = 16,
   eGpencilModifierType_Multiply = 17,
   eGpencilModifierType_Texture = 18,
+  /* Keep last. */
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
 

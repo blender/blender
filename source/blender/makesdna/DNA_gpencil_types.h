@@ -276,6 +276,7 @@ typedef enum eGPDstroke_Caps {
   GP_STROKE_CAP_ROUND = 0,
   GP_STROKE_CAP_FLAT = 1,
 
+  /* Keeo last. */
   GP_STROKE_CAP_MAX,
 } GPDstroke_Caps;
 

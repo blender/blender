@@ -1289,8 +1289,8 @@ typedef enum eUserpref_RenderDisplayType {
 } eUserpref_RenderDisplayType;
 
 typedef enum eUserpref_TempSpaceDisplayType {
-  USER_TEMP_SPACE_DISPLAY_FULLSCREEN,
-  USER_TEMP_SPACE_DISPLAY_WINDOW,
+  USER_TEMP_SPACE_DISPLAY_FULLSCREEN = 0,
+  USER_TEMP_SPACE_DISPLAY_WINDOW = 1,
 } eUserpref_TempSpaceDisplayType;
 
 typedef enum eUserpref_EmulateMMBMod {

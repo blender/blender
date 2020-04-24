@@ -62,6 +62,7 @@ typedef enum ePFieldType {
   /** Force based on smoke simulation air flow. */
   PFIELD_SMOKEFLOW = 13,
 
+  /* Keep last. */
   NUM_PFIELD_TYPES,
 } ePFieldType;
 

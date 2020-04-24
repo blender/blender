@@ -634,7 +634,7 @@ enum {
   seqModifierType_Mask = 5,
   seqModifierType_WhiteBalance = 6,
   seqModifierType_Tonemap = 7,
-
+  /* Keep last. */
   NUM_SEQUENCE_MODIFIER_TYPES,
 };
 

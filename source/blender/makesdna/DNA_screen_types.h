@@ -306,8 +306,8 @@ enum GlobalAreaFlag {
 };
 
 typedef enum GlobalAreaAlign {
-  GLOBAL_AREA_ALIGN_TOP,
-  GLOBAL_AREA_ALIGN_BOTTOM,
+  GLOBAL_AREA_ALIGN_TOP = 0,
+  GLOBAL_AREA_ALIGN_BOTTOM = 1,
 } GlobalAreaAlign;
 
 typedef struct ScrArea_Runtime {

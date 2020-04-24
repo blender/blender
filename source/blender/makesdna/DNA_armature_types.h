@@ -261,23 +261,23 @@ typedef enum eBone_InheritScaleMode {
   /* Inherit all scale and shear. */
   BONE_INHERIT_SCALE_FULL = 0,
   /* Inherit scale, but remove final shear. */
-  BONE_INHERIT_SCALE_FIX_SHEAR,
+  BONE_INHERIT_SCALE_FIX_SHEAR = 1,
   /* Inherit average scale. */
-  BONE_INHERIT_SCALE_AVERAGE,
+  BONE_INHERIT_SCALE_AVERAGE = 2,
   /* Inherit no scale or shear. */
-  BONE_INHERIT_SCALE_NONE,
+  BONE_INHERIT_SCALE_NONE = 3,
   /* Inherit effects of shear on parent (same as old disabled Inherit Scale). */
-  BONE_INHERIT_SCALE_NONE_LEGACY,
+  BONE_INHERIT_SCALE_NONE_LEGACY = 4,
   /* Inherit parent X scale as child X scale etc. */
-  BONE_INHERIT_SCALE_ALIGNED,
+  BONE_INHERIT_SCALE_ALIGNED = 5,
 } eBone_InheritScaleMode;
 
 /* bone->bbone_prev_type, bbone_next_type */
 typedef enum eBone_BBoneHandleType {
-  BBONE_HANDLE_AUTO = 0, /* Default mode based on parents & children. */
-  BBONE_HANDLE_ABSOLUTE, /* Custom handle in absolute position mode. */
-  BBONE_HANDLE_RELATIVE, /* Custom handle in relative position mode. */
-  BBONE_HANDLE_TANGENT,  /* Custom handle in tangent mode (use direction, not location). */
+  BBONE_HANDLE_AUTO = 0,     /* Default mode based on parents & children. */
+  BBONE_HANDLE_ABSOLUTE = 1, /* Custom handle in absolute position mode. */
+  BBONE_HANDLE_RELATIVE = 2, /* Custom handle in relative position mode. */
+  BBONE_HANDLE_TANGENT = 3,  /* Custom handle in tangent mode (use direction, not location). */
 } eBone_BBoneHandleType;
 
 #define MAXBONENAME 64

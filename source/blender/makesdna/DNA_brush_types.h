@@ -805,8 +805,8 @@ typedef enum {
 
 /* blur kernel types, Brush.blur_mode */
 typedef enum eBlurKernelType {
-  KERNEL_GAUSSIAN,
-  KERNEL_BOX,
+  KERNEL_GAUSSIAN = 0,
+  KERNEL_BOX = 1,
 } eBlurKernelType;
 
 /* Brush.falloff_shape */

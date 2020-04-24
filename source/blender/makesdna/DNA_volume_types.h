@@ -95,9 +95,9 @@ enum {
 /* Volume.sequence_mode */
 typedef enum VolumeSequenceMode {
   VOLUME_SEQUENCE_CLIP = 0,
-  VOLUME_SEQUENCE_EXTEND,
-  VOLUME_SEQUENCE_REPEAT,
-  VOLUME_SEQUENCE_PING_PONG,
+  VOLUME_SEQUENCE_EXTEND = 1,
+  VOLUME_SEQUENCE_REPEAT = 2,
+  VOLUME_SEQUENCE_PING_PONG = 3,
 } VolumeSequenceMode;
 
 /* VolumeDisplay.wireframe_type */

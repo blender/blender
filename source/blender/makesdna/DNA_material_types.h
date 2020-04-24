@@ -324,35 +324,35 @@ enum {
 /* blend_shadow */
 enum {
   MA_BS_NONE = 0,
-  MA_BS_SOLID,
-  MA_BS_CLIP,
-  MA_BS_HASHED,
+  MA_BS_SOLID = 1,
+  MA_BS_CLIP = 2,
+  MA_BS_HASHED = 3,
 };
 
 /* Grease Pencil Stroke styles */
 enum {
   GP_MATERIAL_STROKE_STYLE_SOLID = 0,
-  GP_MATERIAL_STROKE_STYLE_TEXTURE,
+  GP_MATERIAL_STROKE_STYLE_TEXTURE = 1,
 };
 
 /* Grease Pencil Fill styles */
 enum {
   GP_MATERIAL_FILL_STYLE_SOLID = 0,
-  GP_MATERIAL_FILL_STYLE_GRADIENT,
-  GP_MATERIAL_FILL_STYLE_CHECKER, /* DEPRECATED (only for convert old files) */
-  GP_MATERIAL_FILL_STYLE_TEXTURE,
+  GP_MATERIAL_FILL_STYLE_GRADIENT = 1,
+  GP_MATERIAL_FILL_STYLE_CHECKER = 2, /* DEPRECATED (only for convert old files) */
+  GP_MATERIAL_FILL_STYLE_TEXTURE = 3,
 };
 
 /* Grease Pencil Gradient Types */
 enum {
   GP_MATERIAL_GRADIENT_LINEAR = 0,
-  GP_MATERIAL_GRADIENT_RADIAL,
+  GP_MATERIAL_GRADIENT_RADIAL = 1,
 };
 
 /* Grease Pencil Follow Drawing Modes */
 enum {
   GP_MATERIAL_FOLLOW_PATH = 0,
-  GP_MATERIAL_FOLLOW_OBJ,
-  GP_MATERIAL_FOLLOW_FIXED,
+  GP_MATERIAL_FOLLOW_OBJ = 1,
+  GP_MATERIAL_FOLLOW_FIXED = 2,
 };
 #endif

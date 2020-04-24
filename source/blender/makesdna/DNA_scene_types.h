@@ -99,19 +99,19 @@ typedef struct AviCodecData {
 } AviCodecData;
 
 typedef enum eFFMpegPreset {
-  FFM_PRESET_NONE,
+  FFM_PRESET_NONE = 0,
 
 #ifdef DNA_DEPRECATED_ALLOW
   /* Previously used by h.264 to control encoding speed vs. file size. */
-  FFM_PRESET_ULTRAFAST, /* DEPRECATED */
-  FFM_PRESET_SUPERFAST, /* DEPRECATED */
-  FFM_PRESET_VERYFAST,  /* DEPRECATED */
-  FFM_PRESET_FASTER,    /* DEPRECATED */
-  FFM_PRESET_FAST,      /* DEPRECATED */
-  FFM_PRESET_MEDIUM,    /* DEPRECATED */
-  FFM_PRESET_SLOW,      /* DEPRECATED */
-  FFM_PRESET_SLOWER,    /* DEPRECATED */
-  FFM_PRESET_VERYSLOW,  /* DEPRECATED */
+  FFM_PRESET_ULTRAFAST = 1, /* DEPRECATED */
+  FFM_PRESET_SUPERFAST = 2, /* DEPRECATED */
+  FFM_PRESET_VERYFAST = 3,  /* DEPRECATED */
+  FFM_PRESET_FASTER = 4,    /* DEPRECATED */
+  FFM_PRESET_FAST = 5,      /* DEPRECATED */
+  FFM_PRESET_MEDIUM = 6,    /* DEPRECATED */
+  FFM_PRESET_SLOW = 7,      /* DEPRECATED */
+  FFM_PRESET_SLOWER = 8,    /* DEPRECATED */
+  FFM_PRESET_VERYSLOW = 9,  /* DEPRECATED */
 #endif
 
   /* Used by WEBM/VP9 and h.264 to control encoding speed vs. file size.
@@ -121,9 +121,9 @@ typedef enum eFFMpegPreset {
   /** the default and recommended for most applications */
   FFM_PRESET_GOOD = 10,
   /** recommended if you have lots of time and want the best compression efficiency */
-  FFM_PRESET_BEST,
+  FFM_PRESET_BEST = 11,
   /** recommended for live / fast encoding */
-  FFM_PRESET_REALTIME,
+  FFM_PRESET_REALTIME = 12,
 } eFFMpegPreset;
 
 /* Mapping from easily-understandable descriptions to CRF values.
@@ -2194,14 +2194,14 @@ typedef enum eSculptFlags {
 
 /* ImagePaintSettings.mode */
 typedef enum eImagePaintMode {
-  IMAGEPAINT_MODE_MATERIAL, /* detect texture paint slots from the material */
-  IMAGEPAINT_MODE_IMAGE,    /* select texture paint image directly */
+  IMAGEPAINT_MODE_MATERIAL = 0, /* detect texture paint slots from the material */
+  IMAGEPAINT_MODE_IMAGE = 1,    /* select texture paint image directly */
 } eImagePaintMode;
 
 /* ImagePaintSettings.interp */
 enum {
   IMAGEPAINT_INTERP_LINEAR = 0,
-  IMAGEPAINT_INTERP_CLOSEST,
+  IMAGEPAINT_INTERP_CLOSEST = 1,
 };
 
 /* ImagePaintSettings.flag */
@@ -2301,17 +2301,17 @@ typedef enum eGPencil_Selectmode_types {
 /* ToolSettings.gpencil_guide_types */
 typedef enum eGPencil_GuideTypes {
   GP_GUIDE_CIRCULAR = 0,
-  GP_GUIDE_RADIAL,
-  GP_GUIDE_PARALLEL,
-  GP_GUIDE_GRID,
-  GP_GUIDE_ISO,
+  GP_GUIDE_RADIAL = 1,
+  GP_GUIDE_PARALLEL = 2,
+  GP_GUIDE_GRID = 3,
+  GP_GUIDE_ISO = 4,
 } eGPencil_GuideTypes;
 
 /* ToolSettings.gpencil_guide_references */
 typedef enum eGPencil_Guide_Reference {
   GP_GUIDE_REF_CURSOR = 0,
-  GP_GUIDE_REF_CUSTOM,
-  GP_GUIDE_REF_OBJECT,
+  GP_GUIDE_REF_CUSTOM = 1,
+  GP_GUIDE_REF_OBJECT = 2,
 } eGPencil_Guide_Reference;
 
 /* ToolSettings.particle flag */

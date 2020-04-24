@@ -462,6 +462,7 @@ enum {
 
   OB_VOLUME = 29,
 
+  /* Keep last. */
   OB_TYPE_MAX,
 };
 
