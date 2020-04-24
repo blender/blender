@@ -2335,6 +2335,8 @@ void EDBM_selectmode_convert(BMEditMesh *em,
           BM_edge_select_set(bm, eed, false);
         }
       }
+      /* Deselect faces without edges selected. */
+      BM_mesh_deselect_flush(bm);
     }
     else if (selectmode_new == SCE_SELECT_VERTEX) {
       /* flush down (face -> vert) */
