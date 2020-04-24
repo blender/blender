@@ -30,6 +30,7 @@
 #include <utility>
 
 #include "BLI_math_base.h"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 namespace BLI {
@@ -67,14 +68,33 @@ template<> struct DefaultHash<float> {
   }
 };
 
+inline uint32_t hash_string(StringRef str)
+{
+  uint32_t hash = 5381;
+  for (char c : str) {
+    hash = hash * 33 + c;
+  }
+  return hash;
+}
+
 template<> struct DefaultHash<std::string> {
   uint32_t operator()(const std::string &value) const
   {
-    uint32_t hash = 5381;
-    for (char c : value) {
-      hash = hash * 33 + c;
-    }
-    return hash;
+    return hash_string(value);
+  }
+};
+
+template<> struct DefaultHash<StringRef> {
+  uint32_t operator()(const StringRef &value) const
+  {
+    return hash_string(value);
+  }
+};
+
+template<> struct DefaultHash<StringRefNull> {
+  uint32_t operator()(const StringRefNull &value) const
+  {
+    return hash_string(value);
   }
 };
 
