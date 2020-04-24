@@ -1258,6 +1258,13 @@ bool BM_mesh_intersect(BMesh *bm,
         continue;
       }
 
+      /* It's possible the vertex to dissolve is an edge on an existing face
+       * that doesn't divide the face, therefor the edges are not wire
+       * and shouldn't be handled here, see: T63787. */
+      if (!BLI_gset_haskey(s.wire_edges, e_pair[0]) || !BLI_gset_haskey(s.wire_edges, e_pair[1])) {
+        continue;
+      }
+
       v_a = BM_edge_other_vert(e_pair[0], v);
       v_b = BM_edge_other_vert(e_pair[1], v);
 
