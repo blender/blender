@@ -509,7 +509,7 @@ static bool bm_loop_filter_fn(const BMLoop *l, void *user_data)
  * Return true if we have any intersections.
  */
 static void bm_isect_tri_tri(
-    struct ISectState *s, int a_index, int b_index, BMLoop **a, BMLoop **b)
+    struct ISectState *s, int a_index, int b_index, BMLoop **a, BMLoop **b, bool no_shared)
 {
   BMFace *f_a = (*a)->f;
   BMFace *f_b = (*b)->f;
@@ -527,9 +527,16 @@ static void bm_isect_tri_tri(
   STACK_DECLARE(iv_ls_a);
   STACK_DECLARE(iv_ls_b);
 
-  if (UNLIKELY(ELEM(fv_a[0], UNPACK3(fv_b)) || ELEM(fv_a[1], UNPACK3(fv_b)) ||
-               ELEM(fv_a[2], UNPACK3(fv_b)))) {
-    return;
+  if (no_shared) {
+    if (UNLIKELY(ELEM(fv_a[0], UNPACK3(fv_b)) || ELEM(fv_a[1], UNPACK3(fv_b)) ||
+                 ELEM(fv_a[2], UNPACK3(fv_b)))) {
+      return;
+    }
+  }
+  else {
+    if (UNLIKELY(BM_face_share_edge_check(f_a, f_b))) {
+      return;
+    }
   }
 
   STACK_INIT(iv_ls_a, ARRAY_SIZE(iv_ls_a));
@@ -1082,6 +1089,12 @@ bool BM_mesh_intersect(BMesh *bm,
     tree_b = tree_a;
   }
 
+  /* For self intersection this can be useful, sometimes users generate geometry
+   * where surfaces that seem disconnected happen to share an edge.
+   * So when performing intersection calculation allow shared vertices,
+   * just not shared edges. See T75946. */
+  const bool isect_tri_tri_no_shared = (boolean_mode != BMESH_ISECT_BOOLEAN_NONE);
+
   int flag = BVH_OVERLAP_USE_THREADING | BVH_OVERLAP_RETURN_PAIRS;
 #  ifdef DEBUG
   /* The overlap result must match that obtained in Release to succeed
@@ -1103,7 +1116,8 @@ bool BM_mesh_intersect(BMesh *bm,
                        overlap[i].indexA,
                        overlap[i].indexB,
                        looptris[overlap[i].indexA],
-                       looptris[overlap[i].indexB]);
+                       looptris[overlap[i].indexB],
+                       isect_tri_tri_no_shared);
 #  ifdef USE_DUMP
       printf(")),\n");
 #  endif
@@ -1140,7 +1154,7 @@ bool BM_mesh_intersect(BMesh *bm,
 #  ifdef USE_DUMP
         printf("  ((%d, %d), (", i_a, i_b);
 #  endif
-        bm_isect_tri_tri(&s, i_a, i_b, looptris[i_a], looptris[i_b]);
+        bm_isect_tri_tri(&s, i_a, i_b, looptris[i_a], looptris[i_b], isect_tri_tri_no_shared);
 #  ifdef USE_DUMP
         printf(")),\n");
 #  endif
