@@ -197,6 +197,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
       /* Remove dither pattern in wireframe mode. */
       v3d->shading.xray_alpha_wire = 0.0f;
+      v3d->clip_start = 0.01f;
       /* Skip startups that use the viewport color by default. */
       if (v3d->shading.background_type != V3D_SHADING_BACKGROUND_VIEWPORT) {
         copy_v3_fl(v3d->shading.background_color, 0.05f);
