@@ -349,6 +349,14 @@ static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 }
 
+static void rna_Object_duplicator_visibility_flag_update(Main *UNUSED(bmain),
+                                                         Scene *UNUSED(scene),
+                                                         PointerRNA *ptr)
+{
+  Object *ob = (Object *)ptr->owner_id;
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+}
+
 static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
@@ -3097,10 +3105,14 @@ static void rna_def_object(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_instancer_for_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_RENDER);
   RNA_def_property_ui_text(prop, "Render Instancer", "Make instancer visible when rendering");
+  RNA_def_property_update(
+      prop, NC_OBJECT | ND_DRAW, "rna_Object_duplicator_visibility_flag_update");
 
   prop = RNA_def_property(srna, "show_instancer_for_viewport", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_VIEWPORT);
   RNA_def_property_ui_text(prop, "Display Instancer", "Make instancer visible in the viewport");
+  RNA_def_property_update(
+      prop, NC_OBJECT | ND_DRAW, "rna_Object_duplicator_visibility_flag_update");
 
   /* anim */
   rna_def_animdata_common(srna);
