@@ -31,9 +31,9 @@ struct Main;
 
 /* info_stats.c */
 void ED_info_stats_clear(struct ViewLayer *view_layer);
-const char *ED_info_stats_string(struct Main *bmain,
-                                 struct Scene *scene,
-                                 struct ViewLayer *view_layer);
+const char *ED_info_footer_string(struct ViewLayer *view_layer);
+void ED_info_draw_stats(
+    Main *bmain, Scene *scene, ViewLayer *view_layer, int x, int *y, int height);
 
 #ifdef __cplusplus
 }

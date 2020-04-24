@@ -2000,8 +2000,11 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
           else {
             struct XFormAxisItem *item = xfd->object_data;
             for (int i = 0; i < xfd->object_data_len; i++, item++) {
-              if (object_orient_to_location(
-                      item->ob, item->rot_mat, item->rot_mat[2], location_world, item->is_z_flip)) {
+              if (object_orient_to_location(item->ob,
+                                            item->rot_mat,
+                                            item->rot_mat[2],
+                                            location_world,
+                                            item->is_z_flip)) {
                 DEG_id_tag_update(&item->ob->id, ID_RECALC_TRANSFORM);
                 WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
               }

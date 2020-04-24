@@ -63,6 +63,7 @@
 
 #include "ED_armature.h"
 #include "ED_gpencil.h"
+#include "ED_info.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
@@ -100,6 +101,8 @@
 #include "view3d_intern.h" /* own include */
 
 #define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
+
+#define VIEW3D_OVERLAY_LINEHEIGHT (0.8f * U.widget_unit)
 
 /* -------------------------------------------------------------------- */
 /** \name General Functions
@@ -1341,7 +1344,7 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
 
   UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
 
-  *yoffset -= U.widget_unit;
+  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
 
   BLF_draw_default(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
 
@@ -1473,7 +1476,7 @@ static void draw_selected_name(
   BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
   BLF_shadow_offset(font_id, 1, -1);
 
-  *yoffset -= U.widget_unit;
+  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
   BLF_draw_default(xoffset, *yoffset, 0.0f, info, sizeof(info));
 
   BLF_disable(font_id, BLF_SHADOW);
@@ -1494,7 +1497,7 @@ static void draw_grid_unit_name(
         BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
       }
 
-      *yoffset -= U.widget_unit;
+      *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
       BLF_enable(font_id, BLF_SHADOW);
       BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
       BLF_shadow_offset(font_id, 1, -1);
@@ -1515,6 +1518,8 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
+  Main *bmain = CTX_data_main(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
 #ifdef WITH_INPUT_NDOF
   if ((U.ndof_flag & NDOF_SHOW_GUIDE) && ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) &&
@@ -1550,8 +1555,8 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     }
   }
 
-  int xoffset = rect->xmin + U.widget_unit;
-  int yoffset = rect->ymax;
+  int xoffset = rect->xmin + (0.5f * U.widget_unit);
+  int yoffset = rect->ymax - (0.1f * U.widget_unit);
 
   if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 && (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
     if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
@@ -1562,7 +1567,6 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     }
 
     if (U.uiflag & USER_DRAWVIEWINFO) {
-      ViewLayer *view_layer = CTX_data_view_layer(C);
       Object *ob = OBACT(view_layer);
       draw_selected_name(scene, view_layer, ob, xoffset, &yoffset);
     }
@@ -1571,10 +1575,12 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
       /* draw below the viewport name */
       draw_grid_unit_name(scene, rv3d, v3d, xoffset, &yoffset);
     }
+
+    DRW_draw_region_engine_info(xoffset, yoffset);
   }
 
-  if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
-    DRW_draw_region_engine_info(xoffset, yoffset);
+  if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 && (v3d->overlay.flag & V3D_OVERLAY_STATS)) {
+    ED_info_draw_stats(bmain, scene, view_layer, xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
   }
 
   BLF_batch_draw_end();
@@ -2493,7 +2499,7 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
   BLF_shadow_offset(font_id, 1, -1);
 
-  *yoffset -= U.widget_unit;
+  *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
 
 #ifdef WITH_INTERNATIONAL
   BLF_draw_default(xoffset, *yoffset, 0.0f, printable, sizeof(printable));

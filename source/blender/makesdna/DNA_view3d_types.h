@@ -489,6 +489,7 @@ enum {
   V3D_OVERLAY_HIDE_BONES = (1 << 8),
   V3D_OVERLAY_HIDE_OBJECT_XTRAS = (1 << 9),
   V3D_OVERLAY_HIDE_OBJECT_ORIGINS = (1 << 10),
+  V3D_OVERLAY_STATS = (1 << 11),
 };
 
 /** #View3DOverlay.edit_flag */

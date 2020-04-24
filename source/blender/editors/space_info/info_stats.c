@@ -33,6 +33,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLF_api.h"
+
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -59,9 +61,10 @@
 #include "ED_armature.h"
 #include "ED_info.h"
 
+#include "UI_resources.h"
+
 #include "GPU_extensions.h"
 
-#define MAX_INFO_LEN 512
 #define MAX_INFO_NUM_LEN 16
 
 typedef struct SceneStats {
@@ -73,8 +76,6 @@ typedef struct SceneStats {
   uint64_t totlamp, totlampsel;
   uint64_t tottri;
   uint64_t totgplayer, totgpframe, totgpstroke, totgppoint;
-
-  char infostr[MAX_INFO_LEN];
 } SceneStats;
 
 typedef struct SceneStatsFmt {
@@ -398,26 +399,100 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
   *(view_layer->stats) = stats;
 }
 
-static void stats_string(ViewLayer *view_layer)
+static const char *footer_string(ViewLayer *view_layer)
 {
 #define MAX_INFO_MEM_LEN 64
-  SceneStats *stats = view_layer->stats;
-  SceneStatsFmt stats_fmt;
-  LayerCollection *layer_collection = view_layer->active_collection;
-  Object *ob = OBACT(view_layer);
-  Object *obedit = OBEDIT_FROM_OBACT(ob);
-  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
-  uintptr_t mem_in_use, mmap_in_use;
   char memstr[MAX_INFO_MEM_LEN];
   char gpumemstr[MAX_INFO_MEM_LEN] = "";
   char formatted_mem[15];
-  char *s;
   size_t ofs = 0;
 
-  mem_in_use = MEM_get_memory_in_use();
-  mmap_in_use = MEM_get_mapped_memory_in_use();
+  uintptr_t mem_in_use = MEM_get_memory_in_use();
+  uintptr_t mmap_in_use = MEM_get_mapped_memory_in_use();
 
-  /* Generate formatted numbers */
+  /* get memory statistics */
+  BLI_str_format_byte_unit(formatted_mem, mem_in_use - mmap_in_use, false);
+  ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, TIP_("Mem: %s"), formatted_mem);
+
+  if (mmap_in_use) {
+    BLI_str_format_byte_unit(formatted_mem, mmap_in_use, false);
+    BLI_snprintf(memstr + ofs, MAX_INFO_MEM_LEN - ofs, TIP_(" (%s)"), formatted_mem);
+  }
+
+  if (GPU_mem_stats_supported()) {
+    int gpu_free_mem, gpu_tot_memory;
+
+    GPU_mem_stats_get(&gpu_tot_memory, &gpu_free_mem);
+
+    BLI_str_format_byte_unit(formatted_mem, gpu_free_mem, false);
+    ofs = BLI_snprintf(gpumemstr, MAX_INFO_MEM_LEN, TIP_(" | Free GPU Mem: %s"), formatted_mem);
+
+    if (gpu_tot_memory) {
+      BLI_str_format_byte_unit(formatted_mem, gpu_tot_memory, false);
+      BLI_snprintf(gpumemstr + ofs, MAX_INFO_MEM_LEN - ofs, TIP_("/%s"), formatted_mem);
+    }
+  }
+
+  BLI_snprintf(view_layer->footer_str,
+               sizeof(view_layer->footer_str),
+               "%s%s | %s",
+               memstr,
+               gpumemstr,
+               versionstr);
+
+  return view_layer->footer_str;
+
+#undef MAX_INFO_MEM_LEN
+}
+
+void ED_info_stats_clear(ViewLayer *view_layer)
+{
+  if (view_layer->stats) {
+    MEM_freeN(view_layer->stats);
+    view_layer->stats = NULL;
+  }
+}
+
+const char *ED_info_footer_string(ViewLayer *view_layer)
+{
+  return footer_string(view_layer);
+}
+
+static void stats_row(int col1,
+                      const char *key,
+                      int col2,
+                      const char *value1,
+                      const char *value2,
+                      int *y,
+                      int height)
+{
+  *y -= height;
+  BLF_draw_default(col1, *y, 0.0f, key, 128);
+  char values[128];
+  BLI_snprintf(values, sizeof(values), (value2) ? "%s/%s" : "%s", value1, value2);
+  BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
+}
+
+void ED_info_draw_stats(
+    Main *bmain, Scene *scene, ViewLayer *view_layer, int x, int *y, int height)
+{
+  /* Looping through dependency graph when interface is locked is not safe.
+   * The interface is marked as locked when jobs wants to modify the
+   * dependency graph. */
+  wmWindowManager *wm = bmain->wm.first;
+  if (wm->is_interface_locked) {
+    return;
+  }
+
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
+  if (!view_layer->stats) {
+    stats_update(depsgraph, view_layer);
+  }
+
+  SceneStats *stats = view_layer->stats;
+  SceneStatsFmt stats_fmt;
+
+  /* Generate formatted numbers. */
 #define SCENE_STATS_FMT_INT(_id) BLI_str_format_uint64_grouped(stats_fmt._id, stats->_id)
 
   SCENE_STATS_FMT_INT(totvert);
@@ -447,151 +522,93 @@ static void stats_string(ViewLayer *view_layer)
 
 #undef SCENE_STATS_FMT_INT
 
-  /* get memory statistics */
-  BLI_str_format_byte_unit(formatted_mem, mem_in_use - mmap_in_use, false);
-  ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, TIP_(" | Mem: %s"), formatted_mem);
+  Object *ob = OBACT(view_layer);
+  Object *obedit = OBEDIT_FROM_OBACT(ob);
+  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
+  const int font_id = BLF_default();
 
-  if (mmap_in_use) {
-    BLI_str_format_byte_unit(formatted_mem, mmap_in_use, false);
-    BLI_snprintf(memstr + ofs, MAX_INFO_MEM_LEN - ofs, TIP_(" (%s)"), formatted_mem);
+  UI_FontThemeColor(font_id, TH_TEXT_HI);
+  BLF_enable(font_id, BLF_SHADOW);
+  BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
+  BLF_shadow_offset(font_id, 1, -1);
+
+  /* Translated labels for each stat row. */
+  enum {
+    OBJ,
+    VERTS,
+    EDGES,
+    FACES,
+    TRIS,
+    BONES,
+    LAYERS,
+    FRAMES,
+    STROKES,
+    POINTS,
+    MAX_LABELS_COUNT
+  };
+  char labels[MAX_LABELS_COUNT][64];
+
+  STRNCPY(labels[OBJ], IFACE_("Objects"));
+  STRNCPY(labels[VERTS], IFACE_("Vertices"));
+  STRNCPY(labels[EDGES], IFACE_("Edges"));
+  STRNCPY(labels[FACES], IFACE_("Faces"));
+  STRNCPY(labels[TRIS], IFACE_("Triangles"));
+  STRNCPY(labels[BONES], IFACE_("Bones"));
+  STRNCPY(labels[LAYERS], IFACE_("Layers"));
+  STRNCPY(labels[FRAMES], IFACE_("Frames"));
+  STRNCPY(labels[STROKES], IFACE_("Strokes"));
+  STRNCPY(labels[POINTS], IFACE_("Points"));
+
+  int longest_label = 0;
+  int i;
+  for (i = 0; i < MAX_LABELS_COUNT; ++i) {
+    longest_label = max_ii(longest_label, BLF_width(font_id, labels[i], sizeof(labels[i])));
   }
 
-  if (GPU_mem_stats_supported()) {
-    int gpu_free_mem, gpu_tot_memory;
+  int col1 = x;
+  int col2 = x + longest_label + (0.5f * U.widget_unit);
 
-    GPU_mem_stats_get(&gpu_tot_memory, &gpu_free_mem);
-
-    BLI_str_format_byte_unit(formatted_mem, gpu_free_mem, false);
-    ofs = BLI_snprintf(gpumemstr, MAX_INFO_MEM_LEN, TIP_(" | Free GPU Mem: %s"), formatted_mem);
-
-    if (gpu_tot_memory) {
-      BLI_str_format_byte_unit(formatted_mem, gpu_tot_memory, false);
-      BLI_snprintf(gpumemstr + ofs, MAX_INFO_MEM_LEN - ofs, TIP_("/%s"), formatted_mem);
-    }
-  }
-
-  s = stats->infostr;
-  ofs = 0;
+  /* Add some extra margin above this section. */
+  *y -= (0.5f * height);
 
   if (object_mode == OB_MODE_OBJECT) {
-    ofs += BLI_snprintf(s + ofs,
-                        MAX_INFO_LEN - ofs,
-                        "%s | ",
-                        BKE_collection_ui_name_get(layer_collection->collection));
-  }
-
-  if (ob) {
-    ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s | ", ob->id.name + 2);
+    stats_row(col1, labels[OBJ], col2, stats_fmt.totobjsel, stats_fmt.totobj, y, height);
   }
 
   if (obedit) {
-    if (BKE_keyblock_from_object(obedit)) {
-      ofs += BLI_strncpy_rlen(s + ofs, TIP_("(Key) "), MAX_INFO_LEN - ofs);
-    }
-
     if (obedit->type == OB_MESH) {
-      ofs += BLI_snprintf(s + ofs,
-                          MAX_INFO_LEN - ofs,
-                          TIP_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
-                          stats_fmt.totvertsel,
-                          stats_fmt.totvert,
-                          stats_fmt.totedgesel,
-                          stats_fmt.totedge,
-                          stats_fmt.totfacesel,
-                          stats_fmt.totface,
-                          stats_fmt.tottri);
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
+      stats_row(col1, labels[EDGES], col2, stats_fmt.totedgesel, stats_fmt.totedge, y, height);
+      stats_row(col1, labels[FACES], col2, stats_fmt.totfacesel, stats_fmt.totface, y, height);
+      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
     }
     else if (obedit->type == OB_ARMATURE) {
-      ofs += BLI_snprintf(s + ofs,
-                          MAX_INFO_LEN - ofs,
-                          TIP_("Verts:%s/%s | Bones:%s/%s"),
-                          stats_fmt.totvertsel,
-                          stats_fmt.totvert,
-                          stats_fmt.totbonesel,
-                          stats_fmt.totbone);
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
+      stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
     }
     else {
-      ofs += BLI_snprintf(s + ofs,
-                          MAX_INFO_LEN - ofs,
-                          TIP_("Verts:%s/%s"),
-                          stats_fmt.totvertsel,
-                          stats_fmt.totvert);
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
     }
-
-    ofs += BLI_strncpy_rlen(s + ofs, memstr, MAX_INFO_LEN - ofs);
-    ofs += BLI_strncpy_rlen(s + ofs, gpumemstr, MAX_INFO_LEN - ofs);
   }
   else if (ob && (object_mode & OB_MODE_POSE)) {
-    ofs += BLI_snprintf(s + ofs,
-                        MAX_INFO_LEN - ofs,
-                        TIP_("Bones:%s/%s %s%s"),
-                        stats_fmt.totbonesel,
-                        stats_fmt.totbone,
-                        memstr,
-                        gpumemstr);
+    stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
   }
   else if ((ob) && (ob->type == OB_GPENCIL)) {
-    ofs += BLI_snprintf(s + ofs,
-                        MAX_INFO_LEN - ofs,
-                        TIP_("Layers:%s | Frames:%s | Strokes:%s | Points:%s | Objects:%s/%s"),
-                        stats_fmt.totgplayer,
-                        stats_fmt.totgpframe,
-                        stats_fmt.totgpstroke,
-                        stats_fmt.totgppoint,
-                        stats_fmt.totobjsel,
-                        stats_fmt.totobj);
-
-    ofs += BLI_strncpy_rlen(s + ofs, memstr, MAX_INFO_LEN - ofs);
-    ofs += BLI_strncpy_rlen(s + ofs, gpumemstr, MAX_INFO_LEN - ofs);
+    stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, NULL, y, height);
+    stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, NULL, y, height);
+    stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, NULL, y, height);
+    stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, NULL, y, height);
   }
   else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
-    ofs += BLI_snprintf(s + ofs,
-                        MAX_INFO_LEN - ofs,
-                        TIP_("Verts:%s | Tris:%s%s"),
-                        stats_fmt.totvert,
-                        stats_fmt.tottri,
-                        gpumemstr);
+    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, NULL, y, height);
+    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
   }
   else {
-    ofs += BLI_snprintf(s + ofs,
-                        MAX_INFO_LEN - ofs,
-                        TIP_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s%s%s"),
-                        stats_fmt.totvert,
-                        stats_fmt.totface,
-                        stats_fmt.tottri,
-                        stats_fmt.totobjsel,
-                        stats_fmt.totobj,
-                        memstr,
-                        gpumemstr);
+    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, NULL, y, height);
+    stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, NULL, y, height);
+    stats_row(col1, labels[FACES], col2, stats_fmt.totface, NULL, y, height);
+    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
   }
 
-  ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, " | %s", versionstr);
-#undef MAX_INFO_MEM_LEN
-}
-
-#undef MAX_INFO_LEN
-
-void ED_info_stats_clear(ViewLayer *view_layer)
-{
-  if (view_layer->stats) {
-    MEM_freeN(view_layer->stats);
-    view_layer->stats = NULL;
-  }
-}
-
-const char *ED_info_stats_string(Main *bmain, Scene *scene, ViewLayer *view_layer)
-{
-  /* Looping through dependency graph when interface is locked is not safe.
-   * The interface is marked as locked when jobs wants to modify the
-   * dependency graph. */
-  wmWindowManager *wm = bmain->wm.first;
-  if (wm->is_interface_locked) {
-    return "";
-  }
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
-  if (!view_layer->stats) {
-    stats_update(depsgraph, view_layer);
-  }
-  stats_string(view_layer);
-  return view_layer->stats->infostr;
+  BLF_disable(font_id, BLF_SHADOW);
 }

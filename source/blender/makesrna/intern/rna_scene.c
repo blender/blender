@@ -924,11 +924,11 @@ static void rna_Scene_volume_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
   DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_VOLUME | ID_RECALC_SEQUENCER_STRIPS);
 }
 
-static const char *rna_Scene_statistics_string_get(Scene *scene,
-                                                   Main *bmain,
+static const char *rna_Scene_statistics_string_get(Scene *UNUSED(scene),
+                                                   Main *UNUSED(bmain),
                                                    ViewLayer *view_layer)
 {
-  return ED_info_stats_string(bmain, scene, view_layer);
+  return ED_info_footer_string(view_layer);
 }
 
 static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
