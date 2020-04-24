@@ -564,11 +564,11 @@ static void bm_isect_tri_tri(
       for (i_b = 0; i_b < 3; i_b++) {
         if (len_squared_v3v3(fv_a[i_a]->co, fv_b[i_b]->co) <= s->epsilon.eps2x_sq) {
 #ifdef USE_DUMP
-          if (BM_ELEM_API_FLAG_TEST(fv_a[i_a], VERT_VISIT) == 0) {
-            printf("  ('VERT-VERT-A') %d, %d),\n", i_a, BM_elem_index_get(fv_a[i_a]));
+          if (BM_ELEM_API_FLAG_TEST(fv_a[i_a], VERT_VISIT_A) == 0) {
+            printf("  ('VERT-VERT-A') %u, %d),\n", i_a, BM_elem_index_get(fv_a[i_a]));
           }
-          if (BM_ELEM_API_FLAG_TEST(fv_b[i_b], VERT_VISIT) == 0) {
-            printf("  ('VERT-VERT-B') %d, %d),\n", i_b, BM_elem_index_get(fv_b[i_b]));
+          if (BM_ELEM_API_FLAG_TEST(fv_b[i_b], VERT_VISIT_B) == 0) {
+            printf("  ('VERT-VERT-B') %u, %d),\n", i_b, BM_elem_index_get(fv_b[i_b]));
           }
 #endif
           STACK_PUSH_TEST_A(fv_a[i_a]);
@@ -905,7 +905,7 @@ static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const f
   BLI_bvhtree_ray_cast(tree, co, dir, 0.0f, &hit, raycast_callback, &raycast_data);
 
 #  ifdef USE_DUMP
-  printf("%s: Total intersections: %d\n", __func__, z_buffer.count);
+  printf("%s: Total intersections: %zu\n", __func__, z_buffer.count);
 #  endif
 
   int num_isect;
@@ -1179,7 +1179,7 @@ bool BM_mesh_intersect(BMesh *bm,
       }
 
 #  ifdef USE_DUMP
-      printf("# SPLITTING EDGE: %d, %d\n", BM_elem_index_get(e), v_ls_base->list_len);
+      printf("# SPLITTING EDGE: %d, %u\n", BM_elem_index_get(e), v_ls_base->list_len);
 #  endif
       /* intersect */
       is_wire = BLI_gset_haskey(s.wire_edges, e);
@@ -1255,6 +1255,13 @@ bool BM_mesh_intersect(BMesh *bm,
       e_pair[1] = BM_DISK_EDGE_NEXT(v->e, v);
 
       if (BM_elem_flag_test(e_pair[0], BM_ELEM_TAG) || BM_elem_flag_test(e_pair[1], BM_ELEM_TAG)) {
+        continue;
+      }
+
+      /* It's possible the vertex to dissolve is an edge on an existing face
+       * that doesn't divide the face, therefor the edges are not wire
+       * and shouldn't be handled here, see: T63787. */
+      if (!BLI_gset_haskey(s.wire_edges, e_pair[0]) || !BLI_gset_haskey(s.wire_edges, e_pair[1])) {
         continue;
       }
 
