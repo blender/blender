@@ -94,10 +94,26 @@ class StringRefBase {
     return m_data + m_size;
   }
 
-  void copy_to__with_null(char *dst) const
+  void unsafe_copy(char *dst) const
   {
     memcpy(dst, m_data, m_size);
     dst[m_size] = '\0';
+  }
+
+  void copy(char *dst, uint dst_size) const
+  {
+    if (m_size < dst_size) {
+      this->unsafe_copy(dst);
+    }
+    else {
+      BLI_assert(false);
+      dst[0] = '\0';
+    }
+  }
+
+  template<uint N> void copy(char (&dst)[N])
+  {
+    this->copy(dst, N);
   }
 
   /**

@@ -237,3 +237,14 @@ TEST(string_ref, Substr)
   EXPECT_EQ(ref.substr(3, 4), "lo w");
   EXPECT_EQ(ref.substr(6, 5), "world");
 }
+
+TEST(string_ref, Copy)
+{
+  StringRef ref("hello");
+  char dst[10];
+  memset(dst, 0xFF, 10);
+  ref.copy(dst);
+  EXPECT_EQ(dst[5], '\0');
+  EXPECT_EQ(dst[6], 0xFF);
+  EXPECT_EQ(ref, dst);
+}
