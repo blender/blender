@@ -2942,7 +2942,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
       if (but->pos <= 0) {
         break;
       }
-      if (BLI_str_cursor_step_prev_utf8(str, but->ofs, &pos_i)) {
+      if (BLI_str_cursor_step_prev_utf8(str + but->ofs, but->ofs, &pos_i)) {
         but->pos = pos_i;
         str_last = &str[but->pos + but->ofs];
       }
