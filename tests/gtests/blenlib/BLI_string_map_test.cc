@@ -232,3 +232,20 @@ TEST(string_map, UniquePtrValues)
   std::unique_ptr<int> *b = map.lookup_ptr("A");
   EXPECT_EQ(a.get(), b->get());
 }
+
+TEST(string_map, AddOrModify)
+{
+  StringMap<int> map;
+  auto create_func = [](int *value) {
+    *value = 10;
+    return true;
+  };
+  auto modify_func = [](int *value) {
+    *value += 5;
+    return false;
+  };
+  EXPECT_TRUE(map.add_or_modify("Hello", create_func, modify_func));
+  EXPECT_EQ(map.lookup("Hello"), 10);
+  EXPECT_FALSE(map.add_or_modify("Hello", create_func, modify_func));
+  EXPECT_EQ(map.lookup("Hello"), 15);
+}

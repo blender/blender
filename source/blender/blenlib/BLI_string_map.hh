@@ -156,10 +156,15 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
     template<typename ForwardT>
     void store(uint offset, uint32_t hash, uint32_t index, ForwardT &&value)
     {
+      this->store_without_value(offset, hash, index);
+      new (this->value(offset)) T(std::forward<ForwardT>(value));
+    }
+
+    void store_without_value(uint offset, uint32_t hash, uint32_t index)
+    {
       BLI_assert(!this->is_set(offset));
       m_hashes[offset] = hash;
       m_indices[offset] = index;
-      new (this->value(offset)) T(std::forward<ForwardT>(value));
     }
   };
 
@@ -195,15 +200,51 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
    */
   void add(StringRef key, const T &value)
   {
-    if (!this->contains(key)) {
-      this->add_new(key, value);
-    }
+    this->add__impl(key, value);
   }
   void add(StringRef key, T &&value)
   {
-    if (!this->contains(key)) {
-      this->add_new(key, std::move(value));
+    this->add__impl(key, std::move(value));
+  }
+
+  /**
+   * First, checks if the key exists in the map.
+   * If it does exist, call the modify function with a pointer to the corresponding value.
+   * If it does not exist, call the create function with a pointer to where the value should be
+   * created.
+   *
+   * Returns whatever is returned from one of the callback functions. Both callbacks have to return
+   * the same type.
+   *
+   * CreateValueF: Takes a pointer to where the value should be created.
+   * ModifyValueF: Takes a pointer to the value that should be modified.
+   */
+  template<typename CreateValueF, typename ModifyValueF>
+  auto add_or_modify(StringRef key,
+                     const CreateValueF &create_value,
+                     const ModifyValueF &modify_value) -> decltype(create_value(nullptr))
+  {
+    using CreateReturnT = decltype(create_value(nullptr));
+    using ModifyReturnT = decltype(modify_value(nullptr));
+    BLI_STATIC_ASSERT((std::is_same<CreateReturnT, ModifyReturnT>::value),
+                      "Both callbacks should return the same type.");
+
+    this->ensure_can_add();
+    uint32_t hash = this->compute_string_hash(key);
+    ITER_SLOTS_BEGIN (hash, m_array, , item, offset) {
+      if (item.is_empty(offset)) {
+        m_array.update__empty_to_set();
+        uint32_t index = this->save_key_in_array(key);
+        item.store_without_value(offset, hash, index);
+        T *value_ptr = item.value(offset);
+        return create_value(value_ptr);
+      }
+      else if (item.has_hash(offset, hash) && item.has_exact_key(offset, key, m_chars)) {
+        T *value_ptr = item.value(offset);
+        return modify_value(value_ptr);
+      }
     }
+    ITER_SLOTS_END(offset);
   }
 
   /**
@@ -430,6 +471,24 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
       if (item.is_empty(offset)) {
         item.store(offset, hash, index, std::move(value));
         return;
+      }
+    }
+    ITER_SLOTS_END(offset);
+  }
+
+  template<typename ForwardT> bool add__impl(StringRef key, ForwardT &&value)
+  {
+    this->ensure_can_add();
+    uint32_t hash = this->compute_string_hash(key);
+    ITER_SLOTS_BEGIN (hash, m_array, , item, offset) {
+      if (item.is_empty(offset)) {
+        uint32_t index = this->save_key_in_array(key);
+        item.store(offset, hash, index, std::forward<ForwardT>(value));
+        m_array.update__empty_to_set();
+        return true;
+      }
+      else if (item.has_hash(offset, hash) && item.has_exact_key(offset, key, m_chars)) {
+        return false;
       }
     }
     ITER_SLOTS_END(offset);

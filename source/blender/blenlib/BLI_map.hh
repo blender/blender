@@ -149,9 +149,7 @@ class Map {
     template<typename ForwardKeyT, typename ForwardValueT>
     void store(uint offset, ForwardKeyT &&key, ForwardValueT &&value)
     {
-      BLI_assert(m_status[offset] != IS_SET);
-      m_status[offset] = IS_SET;
-      new (this->key(offset)) KeyT(std::forward<ForwardKeyT>(key));
+      this->store_without_value(offset, std::forward<ForwardKeyT>(key));
       new (this->value(offset)) ValueT(std::forward<ForwardValueT>(value));
     }
 
