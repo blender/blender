@@ -377,6 +377,8 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
 
+  ED_outliner_select_sync_from_object_tag(C);
+
   return OPERATOR_FINISHED;
 }
 
@@ -458,6 +460,7 @@ static int collection_objects_select_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
+  ED_outliner_select_sync_from_object_tag(C);
 
   return OPERATOR_FINISHED;
 }
@@ -580,6 +583,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));
+  ED_outliner_select_sync_from_object_tag(C);
 
   return OPERATOR_FINISHED;
 }

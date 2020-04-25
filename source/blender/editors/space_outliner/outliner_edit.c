@@ -817,6 +817,7 @@ static int outliner_id_paste_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
   BKE_reportf(op->reports, RPT_INFO, "%d data-block(s) pasted", num_pasted);
+
   return OPERATOR_FINISHED;
 }
 
