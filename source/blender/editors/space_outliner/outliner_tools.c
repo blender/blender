@@ -564,9 +564,7 @@ static void merged_element_search_call_cb(struct bContext *C, void *UNUSED(arg1)
   outliner_item_select(soops, te, false, false);
   outliner_item_do_activate_from_tree_element(C, te, te->store_elem, false, false);
 
-  if (soops->flag & SO_SYNC_SELECT) {
-    ED_outliner_select_sync_from_outliner(C, soops);
-  }
+  ED_outliner_select_sync_from_outliner(C, soops);
 }
 
 /**

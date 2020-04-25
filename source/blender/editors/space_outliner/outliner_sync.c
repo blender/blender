@@ -351,8 +351,9 @@ static void outliner_sync_selection_from_outliner(Scene *scene,
 /* Set clean outliner and mark other outliners for syncing */
 void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *soops)
 {
-  /* Don't sync in certain outliner display modes */
-  if (ELEM(soops->outlinevis, SO_LIBRARIES, SO_DATA_API, SO_ID_ORPHANS)) {
+  /* Don't sync if not checked or in certain outliner display modes */
+  if (!(soops->flag & SO_SYNC_SELECT) ||
+      ELEM(soops->outlinevis, SO_LIBRARIES, SO_DATA_API, SO_ID_ORPHANS)) {
     return;
   }
 

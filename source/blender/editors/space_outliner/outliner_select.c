@@ -1417,9 +1417,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
       ED_region_tag_redraw_no_rebuild(region);
     }
 
-    if (soops->flag & SO_SYNC_SELECT) {
-      ED_outliner_select_sync_from_outliner(C, soops);
-    }
+    ED_outliner_select_sync_from_outliner(C, soops);
   }
 
   return OPERATOR_FINISHED;
@@ -1509,9 +1507,7 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   ED_region_tag_redraw(region);
 
-  if (soops->flag & SO_SYNC_SELECT) {
-    ED_outliner_select_sync_from_outliner(C, soops);
-  }
+  ED_outliner_select_sync_from_outliner(C, soops);
 
   return OPERATOR_FINISHED;
 }
@@ -1749,9 +1745,7 @@ static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEven
   /* Scroll outliner to focus on walk element */
   outliner_walk_scroll(region, walk_element);
 
-  if (soops->flag & SO_SYNC_SELECT) {
-    ED_outliner_select_sync_from_outliner(C, soops);
-  }
+  ED_outliner_select_sync_from_outliner(C, soops);
   ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
