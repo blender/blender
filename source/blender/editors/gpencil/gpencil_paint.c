@@ -445,7 +445,10 @@ static void gp_stroke_convertcoords(tGPsdata *p, const float mval[2], float out[
     }
 
     int mval_i[2];
-    round_v2i_v2fl(mval_i, mval);
+    float rmval[2];
+    rmval[0] = mval[0] - 0.5f;
+    rmval[1] = mval[1] - 0.5f;
+    round_v2i_v2fl(mval_i, rmval);
 
     if (gpencil_project_check(p) &&
         (ED_view3d_autodist_simple(p->region, mval_i, out, 0, depth))) {
@@ -1143,6 +1146,16 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
           BKE_gpencil_stroke_smooth_strength(gps, i, brush->gpencil_settings->draw_smoothfac);
         }
         reduce += 0.25f; /* reduce the factor */
+      }
+    }
+    /* If reproject the stroke using Stroke mode, need to apply a smooth because
+     * the reprojection creates small jitter. */
+    if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) {
+      float ifac = (float)brush->gpencil_settings->input_samples / 10.0f;
+      float sfac = interpf(1.0f, 0.2f, ifac);
+      for (i = 0; i < gps->totpoints - 1; i++) {
+        BKE_gpencil_stroke_smooth(gps, i, sfac);
+        BKE_gpencil_stroke_smooth_strength(gps, i, sfac);
       }
     }
 
