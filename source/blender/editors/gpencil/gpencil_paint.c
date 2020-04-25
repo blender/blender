@@ -445,7 +445,10 @@ static void gp_stroke_convertcoords(tGPsdata *p, const float mval[2], float out[
     }
 
     int mval_i[2];
-    round_v2i_v2fl(mval_i, mval);
+    float rmval[2];
+    rmval[0] = mval[0] - 0.5f;
+    rmval[1] = mval[1] - 0.5f;
+    round_v2i_v2fl(mval_i, rmval);
 
     if (gpencil_project_check(p) &&
         (ED_view3d_autodist_simple(p->region, mval_i, out, 0, depth))) {
