@@ -44,6 +44,7 @@
 
 #include "BKE_displist.h"
 #include "BKE_mball_tessellate.h" /* own include */
+#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
@@ -1191,6 +1192,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   int obnr, zero_size = 0;
   char obname[MAX_ID_NAME];
   SceneBaseIter iter;
+  const eEvaluationMode deg_eval_mode = DEG_get_mode(depsgraph);
+  const short parenting_dupli_transflag = (OB_DUPLIFACES | OB_DUPLIVERTS);
 
   copy_m4_m4(obmat, ob->obmat); /* to cope with duplicators from BKE_scene_base_iter_next */
   invert_m4_m4(obinv, ob->obmat);
@@ -1203,6 +1206,14 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
     if (bob->type == OB_MBALL) {
       zero_size = 0;
       ml = NULL;
+
+      /* If this metaball is the original that's used for duplication, only have it it visible when
+       * the instancer is visible too. */
+      if ((base->flag_legacy & OB_FROMDUPLI) == 0 && ob->parent != NULL &&
+          (ob->parent->transflag & parenting_dupli_transflag) != 0 &&
+          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0) {
+        continue;
+      }
 
       if (bob == ob && (base->flag_legacy & OB_FROMDUPLI) == 0) {
         mb = ob->data;

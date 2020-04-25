@@ -103,7 +103,10 @@ static bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, Dupl
    * by its parent. Ideally this should not be needed, but due to the wrong
    * dependency direction in the data design there is no way to keep the object
    * visible otherwise. The better solution eventually would be for objects
-   * to specify which object they instance, instead of through parenting. */
+   * to specify which object they instance, instead of through parenting.
+   *
+   * This function should not be used for metaballs. They have custom visibility rules, as hiding
+   * the base metaball will also hide all the other balls in the group. */
   if (eval_mode == DAG_EVAL_RENDER || dob) {
     const int hide_original_types = OB_DUPLIVERTS | OB_DUPLIFACES;
 
@@ -215,7 +218,7 @@ void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDNode *id_node)
   if (data->flag & DEG_ITER_OBJECT_FLAG_VISIBLE) {
     ob_visibility = BKE_object_visibility(object, data->eval_mode);
 
-    if (deg_object_hide_original(data->eval_mode, object, nullptr)) {
+    if (object->type != OB_MBALL && deg_object_hide_original(data->eval_mode, object, nullptr)) {
       return;
     }
   }

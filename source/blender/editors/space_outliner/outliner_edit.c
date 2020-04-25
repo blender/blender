@@ -817,6 +817,7 @@ static int outliner_id_paste_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
   BKE_reportf(op->reports, RPT_INFO, "%d data-block(s) pasted", num_pasted);
+
   return OPERATOR_FINISHED;
 }
 
@@ -1175,9 +1176,7 @@ static int outliner_select_all_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  if (soops->flag & SO_SYNC_SELECT) {
-    ED_outliner_select_sync_from_outliner(C, soops);
-  }
+  ED_outliner_select_sync_from_outliner(C, soops);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);

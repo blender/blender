@@ -982,6 +982,8 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     WM_drag_add_ID(drag, data.drag_id, data.drag_parent);
   }
 
+  ED_outliner_select_sync_from_all_tag(C);
+
   return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 }
 

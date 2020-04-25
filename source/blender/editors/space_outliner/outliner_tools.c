@@ -566,9 +566,7 @@ static void merged_element_search_call_cb(struct bContext *C, void *UNUSED(arg1)
   outliner_item_select(soops, te, false, false);
   outliner_item_do_activate_from_tree_element(C, te, te->store_elem, false, false);
 
-  if (soops->flag & SO_SYNC_SELECT) {
-    ED_outliner_select_sync_from_outliner(C, soops);
-  }
+  ED_outliner_select_sync_from_outliner(C, soops);
 }
 
 /**
@@ -1356,6 +1354,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   int event;
   const char *str = NULL;
+  bool selection_changed = false;
 
   /* check for invalid states */
   if (soops == NULL) {
@@ -1372,8 +1371,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
     }
 
     str = "Select Objects";
-    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+    selection_changed = true;
   }
   else if (event == OL_OP_SELECT_HIERARCHY) {
     Scene *sce = scene;  // to be able to delete, scenes are set...
@@ -1383,16 +1381,12 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
       WM_window_set_active_scene(bmain, C, win, sce);
     }
     str = "Select Object Hierarchy";
-    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-    ED_outliner_select_sync_from_object_tag(C);
+    selection_changed = true;
   }
   else if (event == OL_OP_DESELECT) {
     outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_deselect_cb);
     str = "Deselect Objects";
-    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-    ED_outliner_select_sync_from_object_tag(C);
+    selection_changed = true;
   }
   else if (event == OL_OP_DELETE) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1415,6 +1409,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
       WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
       WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
     }
+    selection_changed = true;
   }
   else if (event == OL_OP_DELETE_HIERARCHY) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1451,6 +1446,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
       WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
       WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
     }
+    selection_changed = true;
   }
   else if (event == OL_OP_REMAP) {
     outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_remap_cb, NULL);
@@ -1477,6 +1473,12 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
   else {
     BLI_assert(0);
     return OPERATOR_CANCELLED;
+  }
+
+  if (selection_changed) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+    ED_outliner_select_sync_from_object_tag(C);
   }
 
   ED_undo_push(C, str);
