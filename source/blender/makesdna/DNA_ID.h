@@ -106,6 +106,18 @@ enum {
   IDP_NUMTYPES = 10,
 };
 
+/** Used by some IDP utils, keep values in sync with type enum above. */
+enum {
+  IDP_TYPE_FILTER_STRING = 1 << 0,
+  IDP_TYPE_FILTER_INT = 1 << 1,
+  IDP_TYPE_FILTER_FLOAT = 1 << 2,
+  IDP_TYPE_FILTER_ARRAY = 1 << 5,
+  IDP_TYPE_FILTER_GROUP = 1 << 6,
+  IDP_TYPE_FILTER_ID = 1 << 7,
+  IDP_TYPE_FILTER_DOUBLE = 1 << 8,
+  IDP_TYPE_FILTER_IDPARRAY = 1 << 9,
+};
+
 /*->subtype */
 
 /* IDP_STRING */
