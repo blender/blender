@@ -297,6 +297,25 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   }
 
   if (mode == SCULPT_FACE_SET_VISIBLE) {
+
+    /* If all vertices in the sculpt are visible, create the new face set and update the default
+     * color. This way the new face set will be white, which is a quick way of disabling all face
+     * sets and the performance hit of rendering the overlay. */
+    bool all_visible = true;
+    for (int i = 0; i < tot_vert; i++) {
+      if (!SCULPT_vertex_visible_get(ss, i)) {
+        all_visible = false;
+        break;
+      }
+    }
+
+    if (all_visible) {
+      Mesh *mesh = ob->data;
+      mesh->face_sets_color_default = next_face_set;
+      BKE_pbvh_face_sets_color_set(
+          ss->pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
+    }
+
     for (int i = 0; i < tot_vert; i++) {
       if (SCULPT_vertex_visible_get(ss, i)) {
         SCULPT_vertex_face_set_set(ss, i, next_face_set);
