@@ -134,6 +134,19 @@ static void gp_interpolate_free_temp_strokes(bGPDframe *gpf)
     }
   }
 }
+
+/* Helper: Untag all strokes. */
+static void gp_interpolate_untag_strokes(bGPDframe *gpf)
+{
+  BLI_assert(gpf != NULL);
+
+  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+    if (gps->flag & GP_STROKE_TAG) {
+      gps->flag &= ~GP_STROKE_TAG;
+    }
+  }
+}
+
 /* Helper: Update all strokes interpolated */
 static void gp_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgpi)
 {
@@ -264,6 +277,10 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     tgpil->gpl = gpl;
     tgpil->prevFrame = gpl->actframe;
     tgpil->nextFrame = gpl->actframe->next;
+
+    /* Untag interpolated strokes to be sure nothing is pending. */
+    gp_interpolate_untag_strokes(tgpil->prevFrame);
+    gp_interpolate_untag_strokes(tgpil->nextFrame);
 
     BLI_addtail(&tgpi->ilayers, tgpil);
 
