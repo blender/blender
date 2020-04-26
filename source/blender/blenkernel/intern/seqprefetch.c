@@ -331,13 +331,13 @@ static void *seq_prefetch_frames(void *job)
   while (pfjob->cfra + pfjob->num_frames_prefetched <= pfjob->scene->r.efra) {
     pfjob->scene_eval->ed->prefetch_job = NULL;
 
+    seq_prefetch_update_depsgraph(pfjob);
     AnimData *adt = BKE_animdata_from_id(&pfjob->context_cpy.scene->id);
     BKE_animsys_evaluate_animdata(&pfjob->context_cpy.scene->id,
                                   adt,
                                   pfjob->cfra + pfjob->num_frames_prefetched,
                                   ADT_RECALC_ALL,
                                   false);
-    seq_prefetch_update_depsgraph(pfjob);
 
     /* This is quite hacky solution:
      * We need cross-reference original scene with copy for cache.
