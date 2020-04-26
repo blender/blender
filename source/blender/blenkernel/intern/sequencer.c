@@ -5816,7 +5816,7 @@ void BKE_sequence_base_dupli_recursive(const Scene *scene_src,
   Sequence *seqn = NULL;
   Sequence *last_seq = BKE_sequencer_active_get((Scene *)scene_src);
   /* always include meta's strips */
-  int dupe_flag_recursive = dupe_flag | SEQ_DUPE_ALL;
+  int dupe_flag_recursive = dupe_flag | SEQ_DUPE_ALL | SEQ_DUPE_IS_RECURSIVE_CALL;
 
   for (seq = seqbase->first; seq; seq = seq->next) {
     seq->tmp = NULL;
@@ -5840,6 +5840,12 @@ void BKE_sequence_base_dupli_recursive(const Scene *scene_src,
         }
       }
     }
+  }
+
+  /* Fix modifier links recursively from the top level only, when all sequences have been
+   * copied. */
+  if (dupe_flag & SEQ_DUPE_IS_RECURSIVE_CALL) {
+    return;
   }
 
   /* fix modifier linking */

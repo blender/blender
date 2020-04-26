@@ -496,6 +496,7 @@ typedef struct SeqLoadInfo {
 #define SEQ_DUPE_CONTEXT (1 << 1)
 #define SEQ_DUPE_ANIM (1 << 2)
 #define SEQ_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
+#define SEQ_DUPE_IS_RECURSIVE_CALL (1 << 4)
 
 /* use as an api function */
 typedef struct Sequence *(*SeqLoadFn)(struct bContext *, ListBase *, struct SeqLoadInfo *);
