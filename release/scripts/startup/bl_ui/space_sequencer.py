@@ -2083,10 +2083,12 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
             box = layout.box()
 
             row = box.row()
+            row.use_property_decorate = False
             row.prop(mod, "show_expanded", text="", emboss=False)
             row.prop(mod, "name", text="")
 
             row.prop(mod, "mute", text="")
+            row.use_property_decorate = True
 
             sub = row.row(align=True)
             props = sub.operator("sequencer.strip_modifier_move", text="", icon='TRIA_UP')
