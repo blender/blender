@@ -388,6 +388,40 @@ static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
   do_sequence_frame_change_update(scene, seq);
 }
 
+static void rna_Sequence_anim_endofs_final_range(
+    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+{
+  Sequence *seq = (Sequence *)ptr->data;
+
+  *min = 0;
+  *max = seq->len + seq->anim_endofs - seq->startofs - seq->endofs - 1;
+}
+
+static void rna_Sequence_anim_startofs_final_range(
+    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+{
+  Sequence *seq = (Sequence *)ptr->data;
+
+  *min = 0;
+  *max = seq->len + seq->anim_startofs - seq->startofs - seq->endofs - 1;
+}
+
+static void rna_Sequence_frame_offset_start_range(
+    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+{
+  Sequence *seq = (Sequence *)ptr->data;
+  *min = ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) ? 0 : INT_MIN;
+  *max = seq->len - seq->endofs - 1;
+}
+
+static void rna_Sequence_frame_offset_end_range(
+    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+{
+  Sequence *seq = (Sequence *)ptr->data;
+  *min = ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) ? 0 : INT_MIN;
+  *max = seq->len - seq->startofs - 1;
+}
+
 static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
 {
   Sequence *seq = (Sequence *)ptr->data;
@@ -430,14 +464,6 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
   }
   BKE_sequencer_sort(scene);
   BKE_sequence_invalidate_cache_composite(scene, seq);
-}
-
-static void rna_Sequence_frame_offset_range(
-    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
-{
-  Sequence *seq = (Sequence *)ptr->data;
-  *min = ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) ? 0 : INT_MIN;
-  *max = INT_MAX;
 }
 
 static void rna_Sequence_use_proxy_set(PointerRNA *ptr, bool value)
@@ -1733,7 +1759,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
   RNA_def_property_ui_text(prop, "Start Offset", "");
   RNA_def_property_int_funcs(
-      prop, NULL, "rna_Sequence_frame_offset_start_set", "rna_Sequence_frame_offset_range");
+      prop, NULL, "rna_Sequence_frame_offset_start_set", "rna_Sequence_frame_offset_start_range");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
 
   prop = RNA_def_property(srna, "frame_offset_end", PROP_INT, PROP_TIME);
@@ -1741,7 +1767,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
   RNA_def_property_ui_text(prop, "End Offset", "");
   RNA_def_property_int_funcs(
-      prop, NULL, "rna_Sequence_frame_offset_end_set", "rna_Sequence_frame_offset_range");
+      prop, NULL, "rna_Sequence_frame_offset_end_set", "rna_Sequence_frame_offset_end_range");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
 
   prop = RNA_def_property(srna, "frame_still_start", PROP_INT, PROP_TIME);
@@ -2122,8 +2148,10 @@ static void rna_def_input(StructRNA *srna)
   prop = RNA_def_property(srna, "animation_offset_start", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "anim_startofs");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_int_funcs(
-      prop, NULL, "rna_Sequence_anim_startofs_final_set", NULL); /* overlap tests */
+  RNA_def_property_int_funcs(prop,
+                             NULL,
+                             "rna_Sequence_anim_startofs_final_set",
+                             "rna_Sequence_anim_startofs_final_range"); /* overlap tests */
   RNA_def_property_ui_text(prop, "Animation Start Offset", "Animation start offset (trim start)");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
@@ -2131,8 +2159,10 @@ static void rna_def_input(StructRNA *srna)
   prop = RNA_def_property(srna, "animation_offset_end", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "anim_endofs");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_int_funcs(
-      prop, NULL, "rna_Sequence_anim_endofs_final_set", NULL); /* overlap tests */
+  RNA_def_property_int_funcs(prop,
+                             NULL,
+                             "rna_Sequence_anim_endofs_final_set",
+                             "rna_Sequence_anim_endofs_final_range"); /* overlap tests */
   RNA_def_property_ui_text(prop, "Animation End Offset", "Animation end offset (trim end)");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
