@@ -819,25 +819,21 @@ void clipUVData(TransInfo *t)
  * \{ */
 
 /**
- * For modal operation: `t->center_global` may not have been set yet.
+ * Used for `TFM_TIME_EXTEND`.
  */
-void transform_convert_center_global_v2(TransInfo *t, float r_center[2])
+char transform_convert_frame_side_dir_get(TransInfo *t, float cframe)
 {
+  Scene *scene = t->scene;
+  float center[2];
   if (t->flag & T_MODAL) {
     UI_view2d_region_to_view(
-        (View2D *)t->view, t->mouse.imval[0], t->mouse.imval[1], &r_center[0], &r_center[1]);
+        (View2D *)t->view, t->mouse.imval[0], t->mouse.imval[1], &center[0], &center[1]);
   }
   else {
-    copy_v2_v2(r_center, t->center_global);
+    copy_v2_v2(center, t->center_global);
   }
-}
 
-void transform_convert_center_global_v2_int(TransInfo *t, int r_center[2])
-{
-  float center[2];
-  transform_convert_center_global_v2(t, center);
-  r_center[0] = round_fl_to_int(center[0]);
-  r_center[1] = round_fl_to_int(center[1]);
+  return (center[0] > cframe) ? 'R' : 'L';
 }
 
 /* This function tests if a point is on the "mouse" side of the cursor/frame-marking */

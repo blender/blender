@@ -31,6 +31,8 @@
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 
+#include "UI_view2d.h"
+
 #include "transform.h"
 #include "transform_convert.h"
 
@@ -541,10 +543,7 @@ void createTransSeqData(TransInfo *t)
   }
 
   tc->custom.type.free_cb = freeSeqData;
-  /* only side on which center is gets transformed */
-  int center[2];
-  transform_convert_center_global_v2_int(t, center);
-  t->frame_side = (center[0] > CFRA) ? 'R' : 'L';
+  t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
 
 #ifdef XXX_DURIAN_ANIM_TX_HACK
   {
@@ -586,9 +585,12 @@ void createTransSeqData(TransInfo *t)
   SeqToTransData_Recursive(t, ed->seqbasep, td, td2d, tdsq);
   SeqTransDataBounds(t, ed->seqbasep, ts);
 
-  /* set the snap mode based on how close the mouse is at the end/start points */
-  if (abs(center[0] - ts->max) > abs(center[0] - ts->min)) {
-    ts->snap_left = true;
+  if (t->flag & T_MODAL) {
+    /* set the snap mode based on how close the mouse is at the end/start points */
+    int xmouse = (int)UI_view2d_region_to_view_x((View2D *)t->view, t->mouse.imval[0]);
+    if (abs(xmouse - ts->max) > abs(xmouse - ts->min)) {
+      ts->snap_left = true;
+    }
   }
 
 #undef XXX_DURIAN_ANIM_TX_HACK
