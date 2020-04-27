@@ -4819,7 +4819,7 @@ static void draw_setting_widget(bAnimContext *ac,
       icon = ICON_HIDE_ON;
 
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
-        tooltip = TIP_("F-Curve is visible in Graph Editor for editing");
+        tooltip = TIP_("F-Curve visibility in Graph Editor");
       }
       else if (ale->type == ANIMTYPE_GPLAYER) {
         tooltip = TIP_("Grease Pencil layer is visible in the viewport");
@@ -4836,7 +4836,7 @@ static void draw_setting_widget(bAnimContext *ac,
 
     case ACHANNEL_SETTING_MOD_OFF: /* modifiers disabled */
       icon = ICON_MODIFIER_OFF;
-      tooltip = TIP_("F-Curve modifiers are disabled");
+      tooltip = TIP_("Enable F-Curve modifiers");
       break;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded triangle */
