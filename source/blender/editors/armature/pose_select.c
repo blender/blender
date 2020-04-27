@@ -454,22 +454,22 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
   return OPERATOR_FINISHED;
 }
 
-static bool pose_select_linked_poll(bContext *C)
+static bool pose_select_linked_pick_poll(bContext *C)
 {
   return (ED_operator_view3d_active(C) && ED_operator_posemode(C));
 }
 
-void POSE_OT_select_linked(wmOperatorType *ot)
+void POSE_OT_select_linked_pick(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Connected";
-  ot->idname = "POSE_OT_select_linked";
-  ot->description = "Select bones related to selected ones by parent/child relationships";
+  ot->idname = "POSE_OT_select_linked_pick";
+  ot->description = "Select bones linked by parent/child connections under the mouse cursor";
 
   /* callbacks */
   /* leave 'exec' unset */
   ot->invoke = pose_select_connected_invoke;
-  ot->poll = pose_select_linked_poll;
+  ot->poll = pose_select_linked_pick_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -480,6 +480,62 @@ void POSE_OT_select_linked(wmOperatorType *ot)
                   false,
                   "Extend",
                   "Extend selection instead of deselecting everything first");
+}
+
+static int pose_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Bone *curBone, *next = NULL;
+
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
+    if ((pchan->bone->flag & BONE_SELECTED) == 0) {
+      continue;
+    }
+
+    bArmature *arm = ob->data;
+
+    /* Select parents */
+    for (curBone = pchan->bone; curBone; curBone = next) {
+      if (PBONE_SELECTABLE(arm, curBone)) {
+        curBone->flag |= BONE_SELECTED;
+
+        if (curBone->flag & BONE_CONNECTED) {
+          next = curBone->parent;
+        }
+        else {
+          next = NULL;
+        }
+      }
+      else {
+        next = NULL;
+      }
+    }
+
+    /* Select children */
+    for (curBone = pchan->bone->childbase.first; curBone; curBone = curBone->next) {
+      selectconnected_posebonechildren(ob, curBone, false);
+    }
+    ED_pose_bone_select_tag_update(ob);
+  }
+  CTX_DATA_END;
+
+  ED_outliner_select_sync_from_pose_bone_tag(C);
+
+  return OPERATOR_FINISHED;
+}
+
+void POSE_OT_select_linked(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Connected";
+  ot->idname = "POSE_OT_select_linked";
+  ot->description = "Select all bones linked by parent/child connections to the current selection";
+
+  /* callbacks */
+  ot->exec = pose_select_linked_exec;
+  ot->poll = ED_operator_posemode;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* -------------------------------------- */

@@ -104,6 +104,7 @@ void POSE_OT_select_all(struct wmOperatorType *ot);
 void POSE_OT_select_parent(struct wmOperatorType *ot);
 void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
 void POSE_OT_select_linked(struct wmOperatorType *ot);
+void POSE_OT_select_linked_pick(struct wmOperatorType *ot);
 void POSE_OT_select_constraint_target(struct wmOperatorType *ot);
 void POSE_OT_select_grouped(struct wmOperatorType *ot);
 void POSE_OT_select_mirror(struct wmOperatorType *ot);
