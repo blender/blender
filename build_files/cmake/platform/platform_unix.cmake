@@ -575,6 +575,19 @@ if(CMAKE_COMPILER_IS_GNUCC)
     unset(LD_VERSION)
   endif()
 
+  if(WITH_LINKER_LLD)
+    execute_process(
+      COMMAND ${CMAKE_C_COMPILER} -fuse-ld=lld -Wl,--version
+      ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
+    if("${LD_VERSION}" MATCHES "LLD")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fuse-ld=lld")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=lld")
+    else()
+      message(STATUS "LLD linker isn't available, using the default system linker.")
+    endif()
+    unset(LD_VERSION)
+  endif()
+
 # CLang is the same as GCC for now.
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
