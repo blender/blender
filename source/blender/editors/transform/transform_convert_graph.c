@@ -261,10 +261,7 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
   /* which side of the current frame should be allowed */
   // XXX we still want this mode, but how to get this using standard transform too?
   if (t->mode == TFM_TIME_EXTEND) {
-    /* only side on which center is gets transformed */
-    float center[2];
-    transform_convert_center_global_v2(t, center);
-    t->frame_side = (center[0] > CFRA) ? 'R' : 'L';
+    t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
   }
   else {
     /* normal transform - both sides of current frame are considered */
