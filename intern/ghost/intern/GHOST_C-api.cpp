@@ -678,7 +678,7 @@ GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle)
     return context->activateDrawingContext();
   }
   else {
-    GHOST_PRINT("GHOST_ActivateOpenGLContext: Context not valid");
+    GHOST_PRINTF("%s: Context not valid\n", __func__);
     return GHOST_kFailure;
   }
 }
