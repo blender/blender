@@ -118,7 +118,8 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
                                  struct ARegion *region,
                                  struct View3D *v3d,
                                  struct GPUViewport *viewport);
-void DRW_draw_depth_object(struct ARegion *region,
+void DRW_draw_depth_object(struct Scene *scene,
+                           struct ARegion *region,
                            struct View3D *v3d,
                            struct GPUViewport *viewport,
                            struct Object *object);
