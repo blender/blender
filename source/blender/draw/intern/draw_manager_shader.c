@@ -99,6 +99,10 @@ static void drw_deferred_shader_compilation_exec(void *custom_data,
   DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
   void *gl_context = comp->gl_context;
 
+#if TRUST_NO_ONE
+  BLI_assert(gl_context != NULL);
+#endif
+
   WM_opengl_context_activate(gl_context);
 
   while (true) {

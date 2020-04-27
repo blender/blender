@@ -275,6 +275,14 @@ void immBegin(GPUPrimType prim_type, uint vertex_len)
 
   /*  printf("mapping %u to %u\n", imm.buffer_offset, imm.buffer_offset + bytes_needed - 1); */
 
+#if TRUST_NO_ONE
+  {
+    GLint bufsize;
+    glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufsize);
+    assert(active_buffer->buffer_offset + bytes_needed <= bufsize);
+  }
+#endif
+
   active_buffer->buffer_data = glMapBufferRange(
       GL_ARRAY_BUFFER,
       active_buffer->buffer_offset,
