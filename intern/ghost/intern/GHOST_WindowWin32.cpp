@@ -72,6 +72,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      bool is_debug,
                                      bool dialog)
     : GHOST_Window(width, height, state, wantStereoVisual, false),
+      m_tabletInRange(false),
       m_inLiveResize(false),
       m_system(system),
       m_hDC(0),
@@ -86,8 +87,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_fpGetPointerPenInfoHistory(NULL),
       m_fpGetPointerTouchInfoHistory(NULL),
       m_parentWindowHwnd(parentwindow ? parentwindow->m_hWnd : NULL),
-      m_debug_context(is_debug),
-      m_tabletInRange(false)
+      m_debug_context(is_debug)
 {
   // Initialize tablet variables
   memset(&m_wintab, 0, sizeof(m_wintab));
