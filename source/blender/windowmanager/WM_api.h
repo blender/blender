@@ -773,7 +773,7 @@ void WM_draw_region_viewport_bind(struct ARegion *region);
 void WM_draw_region_viewport_unbind(struct ARegion *region);
 
 /* Region drawing */
-void WM_draw_region_free(struct ARegion *region);
+void WM_draw_region_free(struct ARegion *region, bool hide);
 struct GPUViewport *WM_draw_region_get_viewport(struct ARegion *region);
 struct GPUViewport *WM_draw_region_get_bound_viewport(struct ARegion *region);
 
