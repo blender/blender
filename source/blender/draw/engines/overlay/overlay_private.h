@@ -278,6 +278,7 @@ typedef struct OVERLAY_PrivateData {
   View3DOverlay overlay;
   enum eContextObjectMode ctx_mode;
   bool clear_in_front;
+  bool use_in_front;
   bool wireframe_mode;
   bool hide_overlays;
   bool xray_enabled;

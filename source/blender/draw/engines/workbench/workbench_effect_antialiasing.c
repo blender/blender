@@ -151,11 +151,6 @@ static bool workbench_in_front_history_needed(WORKBENCH_Data *vedata)
     return false;
   }
 
-  if (!obact || draw_ctx->object_mode != OB_MODE_WEIGHT_PAINT ||
-      v3d->overlay.weight_paint_mode_opacity == 0.0) {
-    return false;
-  }
-
   return true;
 }
 

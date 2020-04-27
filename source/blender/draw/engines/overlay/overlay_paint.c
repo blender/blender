@@ -62,7 +62,8 @@ void OVERLAY_paint_init(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
-  pd->painting.in_front = draw_ctx->obact && (draw_ctx->obact->dtx & OB_DRAWXRAY);
+  pd->painting.in_front = pd->use_in_front && draw_ctx->obact &&
+                          (draw_ctx->obact->dtx & OB_DRAWXRAY);
   pd->painting.alpha_blending = paint_object_is_rendered_transparent(draw_ctx->v3d,
                                                                      draw_ctx->obact);
 }
