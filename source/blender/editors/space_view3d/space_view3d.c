@@ -238,6 +238,9 @@ void ED_view3d_stop_render_preview(wmWindowManager *wm, ARegion *region)
     RE_engine_free(rv3d->render_engine);
     rv3d->render_engine = NULL;
   }
+
+  /* A bit overkill but this make sure the viewport is reset completely. (fclem) */
+  WM_draw_region_free(region, false);
 }
 
 void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area)

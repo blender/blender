@@ -1037,10 +1037,12 @@ void wm_draw_region_clear(wmWindow *win, ARegion *UNUSED(region))
   screen->do_draw = true;
 }
 
-void WM_draw_region_free(ARegion *region)
+void WM_draw_region_free(ARegion *region, bool hide)
 {
   wm_draw_region_buffer_free(region);
-  region->visible = 0;
+  if (hide) {
+    region->visible = 0;
+  }
 }
 
 void wm_draw_region_test(bContext *C, ScrArea *area, ARegion *region)
