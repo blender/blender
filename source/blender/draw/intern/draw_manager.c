@@ -2430,7 +2430,7 @@ static void draw_world_clip_planes_from_rv3d(GPUBatch *batch, const float world_
 /**
  * Clears the Depth Buffer and draws only the specified object.
  */
-void DRW_draw_depth_object(ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object)
+void DRW_draw_depth_object(Scene *scene, ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object)
 {
   RegionView3D *rv3d = region->regiondata;
 
@@ -2468,7 +2468,7 @@ void DRW_draw_depth_object(ARegion *region, View3D *v3d, GPUViewport *viewport, 
         batch = DRW_mesh_batch_cache_get_surface(me);
       }
 
-      DRW_mesh_batch_cache_create_requested(object, me, NULL, false, true);
+      DRW_mesh_batch_cache_create_requested(object, me, scene, false, true);
 
       const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED :
                                                           GPU_SHADER_CFG_DEFAULT;
