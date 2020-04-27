@@ -4529,7 +4529,7 @@ void MESH_OT_fill(wmOperatorType *ot)
 
 static bool bm_edge_test_fill_grid_cb(BMEdge *e, void *UNUSED(bm_v))
 {
-  return BM_elem_flag_test_bool(e, BM_ELEM_TAG);
+  return BM_elem_flag_test_bool(e, BM_ELEM_SELECT);
 }
 
 static float edbm_fill_grid_vert_tag_angle(BMVert *v)
@@ -4551,7 +4551,7 @@ static float edbm_fill_grid_vert_tag_angle(BMVert *v)
 /**
  * non-essential utility function to select 2 open edge loops from a closed loop.
  */
-static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span_calc)
+static bool edbm_fill_grid_prepare(BMesh *bm, int offset, int *span_p, const bool span_calc)
 {
   /* angle differences below this value are considered 'even'
    * in that they shouldn't be used to calculate corners used for the 'span' */
@@ -4559,28 +4559,48 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
   BMEdge *e;
   BMIter iter;
   int count;
-  int span = *r_span;
+  int span = *span_p;
 
   ListBase eloops = {NULL};
   struct BMEdgeLoopStore *el_store;
   // LinkData *el_store;
 
-  /* select -> tag */
-  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
-  }
-
   count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_fill_grid_cb, bm);
   el_store = eloops.first;
 
-  if (count == 1 && BM_edgeloop_is_closed(el_store) &&
-      (BM_edgeloop_length_get(el_store) & 1) == 0) {
+  if (count != 1) {
+    /* Let the operator use the selection flags,
+     * most likely failing with an error in this case. */
+    BM_mesh_edgeloops_free(&eloops);
+    return false;
+  }
+
+  /* Only tag edges that are part of a loop. */
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    BM_elem_flag_disable(e, BM_ELEM_TAG);
+  }
+  const int verts_len = BM_edgeloop_length_get(el_store);
+  const int edges_len = verts_len - (BM_edgeloop_is_closed(el_store) ? 0 : 1);
+  BMEdge **edges = MEM_mallocN(sizeof(*edges) * edges_len, __func__);
+  BM_edgeloop_edges_get(el_store, edges);
+  for (int i = 0; i < edges_len; i++) {
+    BM_elem_flag_enable(edges[i], BM_ELEM_TAG);
+  }
+
+  if (span_calc) {
+    span = verts_len / 4;
+  }
+  else {
+    span = min_ii(span, (verts_len / 2) - 1);
+  }
+  offset = mod_i(offset, verts_len);
+
+  if ((count == 1) && ((verts_len & 1) == 0) && (verts_len == edges_len)) {
+
     /* be clever! detect 2 edge loops from one closed edge loop */
-    const int verts_len = BM_edgeloop_length_get(el_store);
     ListBase *verts = BM_edgeloop_verts_get(el_store);
     BMVert *v_act = BM_mesh_active_vert_get(bm);
     LinkData *v_act_link;
-    BMEdge **edges = MEM_mallocN(sizeof(*edges) * verts_len, __func__);
     int i;
 
     if (v_act && (v_act_link = BLI_findptr(verts, v_act, offsetof(LinkData, data)))) {
@@ -4610,8 +4630,6 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
       v_act = v_act_link->data;
       BLI_listbase_rotate_first(verts, v_act_link);
     }
-
-    BM_edgeloop_edges_get(el_store, edges);
 
     if (span_calc) {
       /* calculate the span by finding the next corner in 'verts'
@@ -4663,18 +4681,19 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
       BM_elem_flag_disable(edges[i], BM_ELEM_TAG);
       BM_elem_flag_disable(edges[(verts_len / 2) + i], BM_ELEM_TAG);
     }
-    MEM_freeN(edges);
   }
   /* else let the bmesh-operator handle it */
 
   BM_mesh_edgeloops_free(&eloops);
+  MEM_freeN(edges);
 
-  *r_span = span;
+  *span_p = span;
+
+  return true;
 }
 
 static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 {
-  const bool use_prepare = true;
   const bool use_interp_simple = RNA_boolean_get(op->ptr, "use_interp_simple");
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -4686,6 +4705,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
+    bool use_prepare = true;
     const bool use_smooth = edbm_add_edge_face__smooth_get(em->bm);
     const int totedge_orig = em->bm->totedge;
     const int totface_orig = em->bm->totface;
@@ -4700,7 +4720,6 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
       PropertyRNA *prop_offset = RNA_struct_find_property(op->ptr, "offset");
       bool calc_span;
 
-      const int clamp = em->bm->totvertsel;
       int span;
       int offset;
 
@@ -4709,19 +4728,18 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
       if (((op->flag & OP_IS_INVOKE) || (op->flag & OP_IS_REPEAT_LAST) == 0) &&
           RNA_property_is_set(op->ptr, prop_span)) {
         span = RNA_property_int_get(op->ptr, prop_span);
-        span = min_ii(span, (clamp / 2) - 1);
         calc_span = false;
       }
       else {
-        span = clamp / 4;
+        /* Will be overwritten if possible. */
+        span = 0;
         calc_span = true;
       }
 
       offset = RNA_property_int_get(op->ptr, prop_offset);
-      offset = clamp ? mod_i(offset, clamp) : 0;
 
       /* in simple cases, move selection for tags, but also support more advanced cases */
-      edbm_fill_grid_prepare(em->bm, offset, &span, calc_span);
+      use_prepare = edbm_fill_grid_prepare(em->bm, offset, &span, calc_span);
 
       RNA_property_int_set(op->ptr, prop_span, span);
     }
