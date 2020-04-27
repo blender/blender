@@ -58,6 +58,7 @@
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_image_save.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
@@ -898,7 +899,12 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
   /* get bounds */
   float min[2], max[2];
   if (ED_space_image_show_uvedit(sima, obedit)) {
-    if (!ED_uvedit_minmax(scene, ima, obedit, min, max)) {
+    uint objects_len = 0;
+    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+        view_layer, ((View3D *)NULL), &objects_len);
+    bool success = ED_uvedit_minmax_multi(scene, ima, objects, objects_len, min, max);
+    MEM_freeN(objects);
+    if (!success) {
       return OPERATOR_CANCELLED;
     }
   }
