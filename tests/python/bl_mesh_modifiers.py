@@ -842,17 +842,7 @@ if __name__ == "__main__":
         print("Load Handler:", bpy.data.filepath)
         if load_handler.first is False:
             bpy.app.handlers.scene_update_post.remove(load_handler)
-            try:
-                main()
-                import sys
-                sys.exit(0)
-            except:
-                import traceback
-                traceback.print_exc()
-
-                # import sys
-                # sys.exit(1)  # comment to debug
-
+            main()
         else:
             load_handler.first = False
 

@@ -27,7 +27,8 @@ endif()
 # set(TEST_BLENDER_EXE valgrind --track-origins=yes --error-limit=no ${TEST_BLENDER_EXE})
 
 # Standard Blender arguments for running tests.
-set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup)
+# Specify exit code so that if a Python script error happens, the test fails.
+set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --python-exit-code 1)
 
 # Python CTests
 if(WITH_BLENDER AND WITH_PYTHON)
