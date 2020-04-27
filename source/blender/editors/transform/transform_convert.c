@@ -824,7 +824,6 @@ void clipUVData(TransInfo *t)
 char transform_convert_frame_side_dir_get(TransInfo *t, float cframe)
 {
   char r_dir;
-  Scene *scene = t->scene;
   float center[2];
   if (t->flag & T_MODAL) {
     UI_view2d_region_to_view(
