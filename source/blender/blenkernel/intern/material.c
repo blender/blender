@@ -168,9 +168,11 @@ void BKE_gpencil_material_attr_init(Material *ma)
     /* set basic settings */
     gp_style->stroke_rgba[3] = 1.0f;
     gp_style->fill_rgba[3] = 1.0f;
-    ARRAY_SET_ITEMS(gp_style->mix_rgba, 1.0f, 1.0f, 1.0f, 0.2f);
+    ARRAY_SET_ITEMS(gp_style->mix_rgba, 1.0f, 1.0f, 1.0f, 1.0f);
     ARRAY_SET_ITEMS(gp_style->texture_scale, 1.0f, 1.0f);
+    gp_style->texture_offset[0] = -0.5f;
     gp_style->texture_pixsize = 100.0f;
+    gp_style->mix_factor = 0.5f;
 
     gp_style->flag |= GP_MATERIAL_STROKE_SHOW;
   }
