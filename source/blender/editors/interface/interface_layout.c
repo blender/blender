@@ -1874,6 +1874,15 @@ static void ui_item_rna_size(uiLayout *layout,
   *r_h = h;
 }
 
+static bool ui_item_rna_is_expand(PropertyRNA *prop, int index, int item_flag)
+{
+  const bool is_array = RNA_property_array_check(prop);
+  const int subtype = RNA_property_subtype(prop);
+  return is_array && (index == RNA_NO_INDEX) &&
+         ((item_flag & UI_ITEM_R_EXPAND) ||
+          !ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA, PROP_DIRECTION));
+}
+
 /**
  * Find first layout ancestor (or self) with a heading set.
  *
@@ -2120,7 +2129,6 @@ void uiItemFullR(uiLayout *layout,
       }
     }
     else {
-      const PropertySubType subtype = RNA_property_subtype(prop);
       uiLayout *layout_split = uiLayoutSplit(
           layout_row ? layout_row : layout, UI_ITEM_PROP_SEP_DIVIDE, true);
       bool label_added = false;
@@ -2131,8 +2139,7 @@ void uiItemFullR(uiLayout *layout,
       if (!use_prop_sep_split_label) {
         /* Pass */
       }
-      else if ((index == RNA_NO_INDEX && is_array) &&
-               ((!expand && ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA, PROP_DIRECTION)) == 0)) {
+      else if (ui_item_rna_is_expand(prop, index, flag)) {
         char name_with_suffix[UI_MAX_DRAW_STR + 2];
         char str[2] = {'\0'};
         for (int a = 0; a < len; a++) {
@@ -2934,16 +2941,38 @@ void uiItemMContents(uiLayout *layout, const char *menuname)
 void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
   uiBlock *block = layout->root->block;
-  const bool is_anim = ptr && prop && RNA_property_animateable(ptr, prop);
   uiBut *but = NULL;
-  uiLayout *row;
 
+  uiLayout *col;
   UI_block_layout_set_current(block, layout);
-  row = uiLayoutRow(layout, false);
-  row->space = 0;
-  row->emboss = UI_EMBOSS_NONE;
+  col = uiLayoutColumn(layout, false);
+  col->space = 0;
+  col->emboss = UI_EMBOSS_NONE;
 
-  if (is_anim) {
+  if (ELEM(NULL, ptr, prop) || !RNA_property_animateable(ptr, prop)) {
+    but = uiDefIconBut(block,
+                       UI_BTYPE_BUT,
+                       0,
+                       ICON_BLANK1,
+                       0,
+                       0,
+                       UI_UNIT_X,
+                       UI_UNIT_Y,
+                       NULL,
+                       0.0,
+                       0.0,
+                       0.0,
+                       0.0,
+                       "");
+    but->flag |= UI_BUT_DISABLED;
+    return;
+  }
+
+  const bool is_expand = ui_item_rna_is_expand(prop, index, 0);
+  const bool is_array = RNA_property_array_check(prop);
+
+  /* Loop for the array-case, but only do in case of an expanded array. */
+  for (int i = 0; i < (is_expand ? RNA_property_array_length(ptr, prop) : 1); i++) {
     but = uiDefIconBut(block,
                        UI_BTYPE_BUT,
                        0,
@@ -2963,40 +2992,30 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
     /* Reusing RNA search members, setting actual RNA data has many side-effects. */
     but->rnasearchpoin = *ptr;
     but->rnasearchprop = prop;
-    but->custom_data = POINTER_FROM_INT(index);
-  }
-  else {
-    /* We may show other information here in future, for now use empty space. */
-    but = uiDefIconBut(block,
-                       UI_BTYPE_BUT,
-                       0,
-                       ICON_BLANK1,
-                       0,
-                       0,
-                       UI_UNIT_X,
-                       UI_UNIT_Y,
-                       NULL,
-                       0.0,
-                       0.0,
-                       0.0,
-                       0.0,
-                       "");
-    but->flag |= UI_BUT_DISABLED;
+    /* ui_def_but_rna() sets non-array buttons to have a RNA index of 0. */
+    but->custom_data = POINTER_FROM_INT((!is_array || is_expand) ? i : index);
   }
 }
 
+/**
+ * Insert a decorator item for a button with the same property as \a prop.
+ * To force inserting a blank dummy element, NULL can be passed for \a ptr and \a propname.
+ */
 void uiItemDecoratorR(uiLayout *layout, PointerRNA *ptr, const char *propname, int index)
 {
-  PropertyRNA *prop;
+  PropertyRNA *prop = NULL;
 
-  /* validate arguments */
-  prop = RNA_struct_find_property(ptr, propname);
-  if (!prop) {
-    ui_item_disabled(layout, propname);
-    RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
-    return;
+  if (ptr && propname) {
+    /* validate arguments */
+    prop = RNA_struct_find_property(ptr, propname);
+    if (!prop) {
+      ui_item_disabled(layout, propname);
+      RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+      return;
+    }
   }
 
+  /* ptr and prop are allowed to be NULL here. */
   uiItemDecoratorR_prop(layout, ptr, prop, index);
 }
 
