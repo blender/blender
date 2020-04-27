@@ -823,17 +823,25 @@ void clipUVData(TransInfo *t)
  */
 char transform_convert_frame_side_dir_get(TransInfo *t, float cframe)
 {
+  char r_dir;
   Scene *scene = t->scene;
   float center[2];
   if (t->flag & T_MODAL) {
     UI_view2d_region_to_view(
         (View2D *)t->view, t->mouse.imval[0], t->mouse.imval[1], &center[0], &center[1]);
+    r_dir = (center[0] > cframe) ? 'R' : 'L';
+    {
+      /* XXX: This saves the direction in the "mirror" property to be used for redo! */
+      if (r_dir == 'R') {
+        t->flag |= T_NO_MIRROR;
+      }
+    }
   }
   else {
-    copy_v2_v2(center, t->center_global);
+    r_dir = (t->flag & T_NO_MIRROR) ? 'R' : 'L';
   }
 
-  return (center[0] > cframe) ? 'R' : 'L';
+  return r_dir;
 }
 
 /* This function tests if a point is on the "mouse" side of the cursor/frame-marking */
