@@ -1969,7 +1969,7 @@ void uiItemFullR(uiLayout *layout,
    * Keep using 'use_prop_sep' instead of disabling it entirely because
    * we need the ability to have decorators still. */
   bool use_prop_sep_split_label = use_prop_sep;
-  bool forbid_single_col = false;
+  bool use_split_empty_name = (flag & UI_ITEM_R_SPLIT_EMPTY_NAME);
 
 #ifdef UI_PROP_DECORATE
   struct {
@@ -2082,7 +2082,7 @@ void uiItemFullR(uiLayout *layout,
       use_prop_sep_split_label = false;
       /* For checkboxes we make an expection: We allow showing them in a split row even without
        * label. It typically relates to its neighbor items, so no need for an extra label. */
-      forbid_single_col = true;
+      use_split_empty_name = true;
     }
   }
 #endif
@@ -2120,7 +2120,7 @@ void uiItemFullR(uiLayout *layout,
     }
 #endif /* UI_PROP_DECORATE */
 
-    if ((name[0] == '\0') && !forbid_single_col) {
+    if ((name[0] == '\0') && !use_split_empty_name) {
       /* Ensure we get a column when text is not set. */
       layout = uiLayoutColumn(layout_row ? layout_row : layout, true);
       layout->space = 0;
