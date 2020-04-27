@@ -2311,6 +2311,14 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                             const EnumPropertyItem *item_array,
                             int totitem);
 
+typedef struct uiPropertySplitWrapper {
+  uiLayout *label_column;
+  uiLayout *property_row;
+  uiLayout *decorate_column;
+} uiPropertySplitWrapper;
+
+uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout);
+
 void uiItemL(uiLayout *layout, const char *name, int icon); /* label */
 void uiItemL_ex(
     uiLayout *layout, const char *name, int icon, const bool highlight, const bool redalert);

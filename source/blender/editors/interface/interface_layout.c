@@ -3162,35 +3162,40 @@ void uiItemL(uiLayout *layout, const char *name, int icon)
 }
 
 /**
- * Helper to add a label, which handles logic for split property layout if needed.
- *
- * Normally, we handle the split layout in #uiItemFullR(), but there are other cases where we may
- * want to use the logic. For those this helper was added, although it will likely have to be
- * extended to support more cases.
- * Ideally, #uiItemFullR() could just call this, but it currently has too many special needs.
- *
- * \return A layout placed in the row after the split layout. Used to place decorator items.
+ * Normally, we handle the split layout in #uiItemFullR(), but there are other cases where the
+ * logic is needed. Ideally, #uiItemFullR() could just call this, but it currently has too many
+ * special needs.
+ */
+uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
+{
+  uiPropertySplitWrapper split_wrapper = {NULL};
+
+  uiLayout *layout_row = uiLayoutRow(parent_layout, true);
+  uiLayout *layout_split = uiLayoutSplit(layout_row, UI_ITEM_PROP_SEP_DIVIDE, true);
+
+  layout_split->space = 0;
+  split_wrapper.label_column = uiLayoutColumn(layout_split, true);
+  split_wrapper.label_column->alignment = UI_LAYOUT_ALIGN_RIGHT;
+  split_wrapper.property_row = ui_item_prop_split_layout_hack(parent_layout, layout_split);
+  split_wrapper.decorate_column = uiLayoutColumn(layout_row, true);
+
+  return split_wrapper;
+}
+
+/*
+ * Helper to add a label and creates a property split layout if needed.
  */
 uiLayout *uiItemL_respect_property_split(uiLayout *layout, const char *text, int icon)
 {
   if (layout->item.flag & UI_ITEM_PROP_SEP) {
     uiBlock *block = uiLayoutGetBlock(layout);
+    uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(layout);
+    /* Further items added to 'layout' will automatically be added to split_wrapper.property_row */
 
-    uiLayout *layout_row = uiLayoutRow(layout, true);
-    uiLayout *layout_split = uiLayoutSplit(layout_row, UI_ITEM_PROP_SEP_DIVIDE, true);
-    uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
+    uiItemL_(split_wrapper.label_column, text, icon);
+    UI_block_layout_set_current(block, split_wrapper.property_row);
 
-    layout_split->space = layout_sub->space = layout_row->space = 0;
-    layout_sub->alignment = UI_LAYOUT_ALIGN_RIGHT;
-
-    uiItemL_(layout_sub, text, icon);
-
-    layout_split = ui_item_prop_split_layout_hack(layout, layout_split);
-    UI_block_layout_set_current(block, layout_split);
-
-    /* The decorator layout uses the row the split layout was inserted to.  */
-    uiLayout *layout_decorator = layout_row;
-    return layout_decorator;
+    return split_wrapper.decorate_column;
   }
   else {
     char namestr[UI_MAX_NAME_STR];
