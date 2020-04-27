@@ -1894,7 +1894,7 @@ void paint_2d_bucket_fill(const bContext *C,
   int x_px, y_px;
   uint color_b;
   float color_f[4];
-  float strength = br ? BKE_brush_alpha_get(s->scene, br) : 1.0f;
+  float strength = (s && br) ? BKE_brush_alpha_get(s->scene, br) : 1.0f;
 
   bool do_float;
 
