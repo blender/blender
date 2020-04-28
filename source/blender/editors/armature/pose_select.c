@@ -443,7 +443,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
   }
 
   /* Select children */
-  for (curBone = bone->childbase.first; curBone; curBone = next) {
+  for (curBone = bone->childbase.first; curBone; curBone = curBone->next) {
     selectconnected_posebonechildren(base->object, curBone, extend);
   }
 
