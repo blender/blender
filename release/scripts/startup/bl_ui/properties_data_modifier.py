@@ -1341,7 +1341,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if md.mode == 'VOXEL':
             layout.prop(md, "voxel_size")
             layout.prop(md, "adaptivity")
-        else: 
+        else:
             row.prop(md, "octree_depth")
             row.prop(md, "scale")
 
