@@ -356,6 +356,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
   }
   /* Links between operations for each bone. */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+    build_idproperties(pchan->prop);
     OperationKey bone_local_key(
         &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_LOCAL);
     OperationKey bone_pose_key(
@@ -464,6 +465,7 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
   OperationKey pose_done_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_DONE);
   OperationKey pose_cleanup_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_CLEANUP);
   LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+    build_idproperties(pchan->prop);
     OperationKey bone_local_key(
         &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_LOCAL);
     OperationKey bone_ready_key(
