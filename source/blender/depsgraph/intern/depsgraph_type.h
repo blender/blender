@@ -38,7 +38,6 @@
 #include <map>
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "BLI_map.hh"
@@ -65,7 +64,6 @@ using std::pair;
 using std::set;
 using std::string;
 using std::unique_ptr;
-using std::unordered_map;
 using std::vector;
 
 /* Commonly used functions. */

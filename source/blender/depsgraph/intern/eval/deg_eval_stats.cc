@@ -23,7 +23,6 @@
 
 #include "intern/eval/deg_eval_stats.h"
 
-#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "intern/depsgraph.h"

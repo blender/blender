@@ -37,7 +37,6 @@ struct Collection;
 struct FCurve;
 struct FreestyleLineSet;
 struct FreestyleLineStyle;
-struct GHash;
 struct ID;
 struct IDProperty;
 struct Image;

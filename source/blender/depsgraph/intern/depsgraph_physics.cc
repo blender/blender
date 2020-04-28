@@ -28,7 +28,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_compiler_compat.h"
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
 extern "C" {

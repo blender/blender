@@ -43,8 +43,6 @@
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph_type.h"
 
-struct GHash;
-struct GSet;
 struct ID;
 struct Scene;
 struct ViewLayer;

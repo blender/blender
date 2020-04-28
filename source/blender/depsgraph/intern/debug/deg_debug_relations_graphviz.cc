@@ -25,7 +25,6 @@
 
 #include <cstdarg>
 
-#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 extern "C" {

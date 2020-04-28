@@ -23,7 +23,6 @@
  * Implementation of tools for debugging the depsgraph
  */
 
-#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 extern "C" {

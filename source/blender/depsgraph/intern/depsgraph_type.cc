@@ -25,7 +25,6 @@
 
 #include <cstdlib>  // for BLI_assert()
 
-#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_customdata_types.h"

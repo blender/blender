@@ -26,7 +26,6 @@
 #include <cstring> /* required for STREQ later on. */
 #include <stdio.h>
 
-#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 extern "C" {

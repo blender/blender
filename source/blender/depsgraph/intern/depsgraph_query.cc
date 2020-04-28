@@ -28,7 +28,6 @@
 extern "C" {
 #include <string.h>  // XXX: memcpy
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 

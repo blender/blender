@@ -26,7 +26,6 @@
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_operation.h"
 
-struct GHash;
 struct ID;
 struct PointerRNA;
 struct PropertyRNA;

@@ -28,7 +28,6 @@
 #include "PIL_time.h"
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
