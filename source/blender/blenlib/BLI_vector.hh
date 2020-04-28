@@ -427,7 +427,7 @@ class Vector {
   /**
    * Returns true when the vector contains no elements, otherwise false.
    */
-  bool empty() const
+  bool is_empty() const
   {
     return m_begin == m_end;
   }
@@ -438,7 +438,7 @@ class Vector {
    */
   void remove_last()
   {
-    BLI_assert(!this->empty());
+    BLI_assert(!this->is_empty());
     m_end--;
     destruct(m_end);
     UPDATE_VECTOR_SIZE(this);
@@ -449,7 +449,7 @@ class Vector {
    */
   T pop_last()
   {
-    BLI_assert(!this->empty());
+    BLI_assert(!this->is_empty());
     m_end--;
     T value = std::move(*m_end);
     destruct(m_end);

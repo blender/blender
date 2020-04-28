@@ -345,14 +345,14 @@ TEST(vector, RemoveLast)
   EXPECT_EQ(vec.size(), 0);
 }
 
-TEST(vector, Empty)
+TEST(vector, IsEmpty)
 {
   IntVector vec;
-  EXPECT_TRUE(vec.empty());
+  EXPECT_TRUE(vec.is_empty());
   vec.append(1);
-  EXPECT_FALSE(vec.empty());
+  EXPECT_FALSE(vec.is_empty());
   vec.remove_last();
-  EXPECT_TRUE(vec.empty());
+  EXPECT_TRUE(vec.is_empty());
 }
 
 TEST(vector, RemoveReorder)
@@ -368,7 +368,7 @@ TEST(vector, RemoveReorder)
   vec.remove_and_reorder(0);
   EXPECT_EQ(vec[0], 7);
   vec.remove_and_reorder(0);
-  EXPECT_TRUE(vec.empty());
+  EXPECT_TRUE(vec.is_empty());
 }
 
 TEST(vector, RemoveFirstOccurrenceAndReorder)
