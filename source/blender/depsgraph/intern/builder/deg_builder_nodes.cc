@@ -337,7 +337,7 @@ void DepsgraphNodeBuilder::begin_build()
     id_node->id_cow = nullptr;
   }
 
-  GSET_FOREACH_BEGIN (OperationNode *, op_node, graph_->entry_tags) {
+  for (OperationNode *op_node : graph_->entry_tags) {
     ComponentNode *comp_node = op_node->owner;
     IDNode *id_node = comp_node->owner;
 
@@ -349,12 +349,11 @@ void DepsgraphNodeBuilder::begin_build()
     entry_tag.name_tag = op_node->name_tag;
     saved_entry_tags_.push_back(entry_tag);
   }
-  GSET_FOREACH_END();
 
   /* Make sure graph has no nodes left from previous state. */
   graph_->clear_all_nodes();
   graph_->operations.clear();
-  BLI_gset_clear(graph_->entry_tags, nullptr);
+  graph_->entry_tags.clear();
 }
 
 void DepsgraphNodeBuilder::end_build()

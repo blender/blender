@@ -81,7 +81,6 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       is_render_pipeline_depsgraph(false)
 {
   BLI_spin_init(&lock);
-  entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
   memset(id_type_updated, 0, sizeof(id_type_updated));
   memset(id_type_exist, 0, sizeof(id_type_exist));
   memset(physics_relations, 0, sizeof(physics_relations));
@@ -90,7 +89,6 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
 Depsgraph::~Depsgraph()
 {
   clear_id_nodes();
-  BLI_gset_free(entry_tags, nullptr);
   if (time_source != nullptr) {
     OBJECT_GUARDED_DELETE(time_source, TimeSourceNode);
   }
@@ -231,7 +229,7 @@ void Depsgraph::add_entry_tag(OperationNode *node)
    * from.
    * NOTE: this is necessary since we have several thousand nodes to play
    * with. */
-  BLI_gset_insert(entry_tags, node);
+  entry_tags.add(node);
 }
 
 void Depsgraph::clear_all_nodes()

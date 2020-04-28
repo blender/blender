@@ -319,7 +319,7 @@ bool DEG_is_fully_evaluated(const struct Depsgraph *depsgraph)
     return false;
   }
   /* Check whether IDs are up to date. */
-  if (BLI_gset_len(deg_graph->entry_tags) > 0) {
+  if (!deg_graph->entry_tags.is_empty()) {
     return false;
   }
   return true;

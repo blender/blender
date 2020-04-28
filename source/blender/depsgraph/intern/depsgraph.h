@@ -119,7 +119,7 @@ struct Depsgraph {
   /* Quick-Access Temp Data ............. */
 
   /* Nodes which have been tagged as "directly modified". */
-  GSet *entry_tags;
+  Set<OperationNode *> entry_tags;
 
   /* Special entry tag for time source. Allows to tag invisible dependency graphs for update when
    * scene frame changes, so then when dependency graph becomes visible it is on a proper state. */

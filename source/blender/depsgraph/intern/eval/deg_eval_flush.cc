@@ -116,7 +116,7 @@ BLI_INLINE void flush_prepare(Depsgraph *graph)
 
 BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
 {
-  GSET_FOREACH_BEGIN (OperationNode *, op_node, graph->entry_tags) {
+  for (OperationNode *op_node : graph->entry_tags) {
     queue->push_back(op_node);
     op_node->scheduled = true;
     DEG_DEBUG_PRINTF((::Depsgraph *)graph,
@@ -124,7 +124,6 @@ BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
                      "Operation is entry point for update: %s\n",
                      op_node->identifier().c_str());
   }
-  GSET_FOREACH_END();
 }
 
 BLI_INLINE void flush_handle_id_node(IDNode *id_node)
@@ -345,7 +344,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
     graph->ctime = ctime;
     time_source->tag_update(graph, DEG::DEG_UPDATE_SOURCE_TIME);
   }
-  if (BLI_gset_len(graph->entry_tags) == 0) {
+  if (graph->entry_tags.is_empty()) {
     return;
   }
   /* Reset all flags, get ready for the flush. */
@@ -391,7 +390,7 @@ void deg_graph_clear_tags(Depsgraph *graph)
                     DEPSOP_FLAG_USER_MODIFIED);
   }
   /* Clear any entry tags which haven't been flushed. */
-  BLI_gset_clear(graph->entry_tags, nullptr);
+  graph->entry_tags.clear();
 }
 
 }  // namespace DEG
