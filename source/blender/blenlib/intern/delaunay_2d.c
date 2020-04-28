@@ -1264,6 +1264,7 @@ static void fill_crossdata_for_intersect(CDT_state *cdt,
   se_vcva = t->next->next;
   BLI_assert(se_vcva->vert == vc && se_vcva->next->vert == va);
   BLI_assert(se_vcvb->vert == vc && se_vcvb->next->vert == vb);
+  UNUSED_VARS_NDEBUG(vc);
   isect = isect_seg_seg_v2_lambda_mu_db(va->co, vb->co, curco, v2->co, &lambda, &mu);
 #ifdef DEBUG_CDT
   if (dbg_level > 0) {
