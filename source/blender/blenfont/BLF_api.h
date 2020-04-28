@@ -37,6 +37,7 @@ extern "C" {
 struct ColorManagedDisplay;
 struct ResultBLF;
 struct rctf;
+struct rcti;
 
 int BLF_init(void);
 void BLF_exit(void);
@@ -114,6 +115,24 @@ void BLF_draw_ascii_ex(int fontid, const char *str, size_t len, struct ResultBLF
     ATTR_NONNULL(2);
 void BLF_draw_ascii(int fontid, const char *str, size_t len) ATTR_NONNULL(2);
 int BLF_draw_mono(int fontid, const char *str, size_t len, int cwidth) ATTR_NONNULL(2);
+
+typedef bool (*BLF_GlyphBoundsFn)(const char *str,
+                                  const size_t str_ofs,
+                                  const struct rcti *glyph_bounds,
+                                  const int glyph_advance_x,
+                                  void *user_data);
+
+void BLF_boundbox_foreach_glyph_ex(int fontid,
+                                   const char *str,
+                                   size_t len,
+                                   BLF_GlyphBoundsFn user_fn,
+                                   void *user_data,
+                                   struct ResultBLF *r_info) ATTR_NONNULL(2);
+void BLF_boundbox_foreach_glyph(int fontid,
+                                const char *str,
+                                size_t len,
+                                BLF_GlyphBoundsFn user_fn,
+                                void *user_data) ATTR_NONNULL(2);
 
 /* Get the string byte offset that fits within a given width */
 size_t BLF_width_to_strlen(int fontid, const char *str, size_t len, float width, float *r_width)
