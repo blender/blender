@@ -72,8 +72,8 @@ ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collect
   }
 
   ID *collection_orig = DEG_get_original_id(&collection->id);
-  return (ListBase *)BLI_ghash_lookup(deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR],
-                                      collection_orig);
+  return deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR]->lookup_default(collection_orig,
+                                                                            nullptr);
 }
 
 ListBase *DEG_get_collision_relations(const Depsgraph *graph,
@@ -86,7 +86,7 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
     return nullptr;
   }
   ID *collection_orig = DEG_get_original_id(&collection->id);
-  return (ListBase *)BLI_ghash_lookup(deg_graph->physics_relations[type], collection_orig);
+  return deg_graph->physics_relations[type]->lookup_default(collection_orig, nullptr);
 }
 
 /********************** Depsgraph Building API ************************/
@@ -165,19 +165,15 @@ namespace DEG {
 
 ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
 {
-  GHash *hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
+  Map<const ID *, ListBase *> *hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
   if (hash == nullptr) {
-    graph->physics_relations[DEG_PHYSICS_EFFECTOR] = BLI_ghash_ptr_new(
-        "Depsgraph physics relations hash");
+    graph->physics_relations[DEG_PHYSICS_EFFECTOR] = new Map<const ID *, ListBase *>();
     hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
   }
-  ListBase *relations = reinterpret_cast<ListBase *>(BLI_ghash_lookup(hash, collection));
-  if (relations == nullptr) {
+  return hash->lookup_or_add(&collection->id, [&]() {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
-    relations = BKE_effector_relations_create(depsgraph, graph->view_layer, collection);
-    BLI_ghash_insert(hash, &collection->id, relations);
-  }
-  return relations;
+    return BKE_effector_relations_create(depsgraph, graph->view_layer, collection);
+  });
 }
 
 ListBase *build_collision_relations(Depsgraph *graph,
@@ -185,48 +181,38 @@ ListBase *build_collision_relations(Depsgraph *graph,
                                     unsigned int modifier_type)
 {
   const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
-  GHash *hash = graph->physics_relations[type];
+  Map<const ID *, ListBase *> *hash = graph->physics_relations[type];
   if (hash == nullptr) {
-    graph->physics_relations[type] = BLI_ghash_ptr_new("Depsgraph physics relations hash");
+    graph->physics_relations[type] = new Map<const ID *, ListBase *>();
     hash = graph->physics_relations[type];
   }
-  ListBase *relations = reinterpret_cast<ListBase *>(BLI_ghash_lookup(hash, collection));
-  if (relations == nullptr) {
+  return hash->lookup_or_add(&collection->id, [&]() {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
-    relations = BKE_collision_relations_create(depsgraph, collection, modifier_type);
-    BLI_ghash_insert(hash, &collection->id, relations);
-  }
-  return relations;
+    return BKE_collision_relations_create(depsgraph, collection, modifier_type);
+  });
 }
-
-namespace {
-
-void free_effector_relations(void *value)
-{
-  BKE_effector_relations_free(reinterpret_cast<ListBase *>(value));
-}
-
-void free_collision_relations(void *value)
-{
-  BKE_collision_relations_free(reinterpret_cast<ListBase *>(value));
-}
-
-}  // namespace
 
 void clear_physics_relations(Depsgraph *graph)
 {
   for (int i = 0; i < DEG_PHYSICS_RELATIONS_NUM; i++) {
-    if (graph->physics_relations[i]) {
+    Map<const ID *, ListBase *> *hash = graph->physics_relations[i];
+    if (hash) {
       const ePhysicsRelationType type = (ePhysicsRelationType)i;
 
       switch (type) {
         case DEG_PHYSICS_EFFECTOR:
-          BLI_ghash_free(graph->physics_relations[i], nullptr, free_effector_relations);
+          for (ListBase *list : hash->values()) {
+            BKE_effector_relations_free(list);
+          }
+          hash->clear();
           break;
         case DEG_PHYSICS_COLLISION:
         case DEG_PHYSICS_SMOKE_COLLISION:
         case DEG_PHYSICS_DYNAMIC_BRUSH:
-          BLI_ghash_free(graph->physics_relations[i], nullptr, free_collision_relations);
+          for (ListBase *list : hash->values()) {
+            BKE_collision_relations_free(list);
+          }
+          hash->clear();
           break;
         case DEG_PHYSICS_RELATIONS_NUM:
           break;

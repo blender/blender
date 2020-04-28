@@ -2632,7 +2632,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
   Node *node_cow = find_node(copy_on_write_key);
   OperationNode *op_cow = node_cow->get_exit_operation();
   /* Plug any other components to this one. */
-  GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components) {
+  for (ComponentNode *comp_node : id_node->components.values()) {
     if (comp_node->type == NodeType::COPY_ON_WRITE) {
       /* Copy-on-write component never depends on itself. */
       continue;
@@ -2709,7 +2709,6 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
      * evaluation step needs geometry, it will have transitive dependency
      * to Mesh copy-on-write already. */
   }
-  GHASH_FOREACH_END();
   /* TODO(sergey): This solves crash for now, but causes too many
    * updates potentially. */
   if (GS(id_orig->name) == ID_OB) {

@@ -75,7 +75,7 @@ void deg_foreach_dependent_operation(const Depsgraph *UNUSED(graph),
   /* Start with scheduling all operations from ID node. */
   TraversalQueue queue;
   Set<OperationNode *> scheduled;
-  GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, target_id_node->components) {
+  for (ComponentNode *comp_node : target_id_node->components.values()) {
     if (source_component_type != DEG_OB_COMP_ANY &&
         nodeTypeToObjectComponent(comp_node->type) != source_component_type) {
       continue;
@@ -88,7 +88,6 @@ void deg_foreach_dependent_operation(const Depsgraph *UNUSED(graph),
       scheduled.add(op_node);
     }
   }
-  GHASH_FOREACH_END();
   /* Process the queue. */
   while (!queue.empty()) {
     /* get next operation node to process. */
@@ -205,13 +204,12 @@ void deg_foreach_ancestor_ID(const Depsgraph *graph,
   /* Start with scheduling all operations from ID node. */
   TraversalQueue queue;
   Set<OperationNode *> scheduled;
-  GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, target_id_node->components) {
+  for (ComponentNode *comp_node : target_id_node->components.values()) {
     for (OperationNode *op_node : comp_node->operations) {
       queue.push_back(op_node);
       scheduled.add(op_node);
     }
   }
-  GHASH_FOREACH_END();
   Set<IDNode *> visited;
   visited.add_new(target_id_node);
   /* Process the queue. */

@@ -224,13 +224,12 @@ void DEG_stats_simple(const Depsgraph *graph,
 
     for (DEG::IDNode *id_node : deg_graph->id_nodes) {
       tot_outer++;
-      GHASH_FOREACH_BEGIN (DEG::ComponentNode *, comp_node, id_node->components) {
+      for (DEG::ComponentNode *comp_node : id_node->components.values()) {
         tot_outer++;
         for (DEG::OperationNode *op_node : comp_node->operations) {
           tot_rels += op_node->inlinks.size();
         }
       }
-      GHASH_FOREACH_END();
     }
 
     DEG::TimeSourceNode *time_source = deg_graph->find_time_source();

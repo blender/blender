@@ -81,7 +81,6 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       is_render_pipeline_depsgraph(false)
 {
   BLI_spin_init(&lock);
-  id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
   entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
   memset(id_type_updated, 0, sizeof(id_type_updated));
   memset(id_type_exist, 0, sizeof(id_type_exist));
@@ -91,7 +90,6 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
 Depsgraph::~Depsgraph()
 {
   clear_id_nodes();
-  BLI_ghash_free(id_hash, nullptr, nullptr);
   BLI_gset_free(entry_tags, nullptr);
   if (time_source != nullptr) {
     OBJECT_GUARDED_DELETE(time_source, TimeSourceNode);
@@ -117,7 +115,7 @@ TimeSourceNode *Depsgraph::find_time_source() const
 
 IDNode *Depsgraph::find_id_node(const ID *id) const
 {
-  return reinterpret_cast<IDNode *>(BLI_ghash_lookup(id_hash, id));
+  return id_hash.lookup_default(id, nullptr);
 }
 
 IDNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
@@ -132,7 +130,7 @@ IDNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
      *
      * NOTE: We address ID nodes by the original ID pointer they are
      * referencing to. */
-    BLI_ghash_insert(id_hash, id, id_node);
+    id_hash.add_new(id, id_node);
     id_nodes.push_back(id_node);
 
     id_type_exist[BKE_idtype_idcode_to_index(GS(id->name))] = 1;
@@ -170,7 +168,7 @@ void Depsgraph::clear_id_nodes()
     OBJECT_GUARDED_DELETE(id_node, IDNode);
   }
   /* Clear containers. */
-  BLI_ghash_clear(id_hash, nullptr, nullptr);
+  id_hash.clear();
   id_nodes.clear();
   /* Clear physics relation caches. */
   clear_physics_relations(this);

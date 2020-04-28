@@ -277,7 +277,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   bool is_parent_collection_visible_;
 
   /* Indexed by original ID, values are IDInfo. */
-  GHash *id_info_hash_;
+  Map<const ID *, IDInfo *> id_info_hash_;
 
   /* Set of IDs which were already build. Makes it easier to keep track of
    * what was already built and what was not. */

@@ -157,10 +157,9 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 
   BLI_Stack *stack = BLI_stack_new(sizeof(OperationNode *), "DEG flush layers stack");
   for (IDNode *id_node : graph->id_nodes) {
-    GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components) {
+    for (ComponentNode *comp_node : id_node->components.values()) {
       comp_node->affects_directly_visible |= id_node->is_directly_visible;
     }
-    GHASH_FOREACH_END();
   }
   for (OperationNode *op_node : graph->operations) {
     op_node->custom_flags = 0;

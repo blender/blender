@@ -407,15 +407,14 @@ static void deg_debug_graphviz_node(const DebugContext &ctx, const Node *node)
   switch (node->type) {
     case NodeType::ID_REF: {
       const IDNode *id_node = (const IDNode *)node;
-      if (BLI_ghash_len(id_node->components) == 0) {
+      if (id_node->components.is_empty()) {
         deg_debug_graphviz_node_single(ctx, node);
       }
       else {
         deg_debug_graphviz_node_cluster_begin(ctx, node);
-        GHASH_FOREACH_BEGIN (const ComponentNode *, comp, id_node->components) {
+        for (const ComponentNode *comp : id_node->components.values()) {
           deg_debug_graphviz_node(ctx, comp);
         }
-        GHASH_FOREACH_END();
         deg_debug_graphviz_node_cluster_end(ctx);
       }
       break;
@@ -472,7 +471,7 @@ static bool deg_debug_graphviz_is_cluster(const Node *node)
   switch (node->type) {
     case NodeType::ID_REF: {
       const IDNode *id_node = (const IDNode *)node;
-      return BLI_ghash_len(id_node->components) > 0;
+      return !id_node->components.is_empty();
     }
     case NodeType::PARAMETERS:
     case NodeType::ANIMATION:
@@ -568,12 +567,11 @@ static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx, const Depsgr
 static void deg_debug_graphviz_graph_relations(const DebugContext &ctx, const Depsgraph *graph)
 {
   for (IDNode *id_node : graph->id_nodes) {
-    GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components) {
+    for (ComponentNode *comp_node : id_node->components.values()) {
       for (OperationNode *op_node : comp_node->operations) {
         deg_debug_graphviz_node_relations(ctx, op_node);
       }
     }
-    GHASH_FOREACH_END();
   }
 
   TimeSourceNode *time_source = graph->find_time_source();

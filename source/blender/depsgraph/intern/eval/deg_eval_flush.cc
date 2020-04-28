@@ -94,9 +94,9 @@ void flush_init_id_node_func(void *__restrict data_v,
   Depsgraph *graph = (Depsgraph *)data_v;
   IDNode *id_node = graph->id_nodes[i];
   id_node->custom_flags = ID_STATE_NONE;
-  GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components)
+  for (ComponentNode *comp_node : id_node->components.values()) {
     comp_node->custom_flags = COMPONENT_STATE_NONE;
-  GHASH_FOREACH_END();
+  }
 }
 
 BLI_INLINE void flush_prepare(Depsgraph *graph)
@@ -231,7 +231,7 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
     ID *id_orig = id_node->id_orig;
     ID *id_cow = id_node->id_cow;
     /* Gather recalc flags from all changed components. */
-    GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components) {
+    for (DEG::ComponentNode *comp_node : id_node->components.values()) {
       if (comp_node->custom_flags != COMPONENT_STATE_DONE) {
         continue;
       }
@@ -239,7 +239,6 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
       BLI_assert(factory != nullptr);
       id_cow->recalc |= factory->id_recalc_tag();
     }
-    GHASH_FOREACH_END();
     DEG_DEBUG_PRINTF((::Depsgraph *)graph,
                      EVAL,
                      "Accumulated recalc bits for %s: %u\n",
@@ -307,7 +306,7 @@ void invalidate_tagged_evaluated_data(Depsgraph *graph)
     if (!deg_copy_on_write_is_expanded(id_cow)) {
       continue;
     }
-    GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components) {
+    for (ComponentNode *comp_node : id_node->components.values()) {
       if (comp_node->custom_flags != COMPONENT_STATE_DONE) {
         continue;
       }
@@ -322,7 +321,6 @@ void invalidate_tagged_evaluated_data(Depsgraph *graph)
           break;
       }
     }
-    GHASH_FOREACH_END();
   }
 #else
   (void)graph;

@@ -31,7 +31,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-struct GHash;
 struct ID;
 struct bPoseChannel;
 

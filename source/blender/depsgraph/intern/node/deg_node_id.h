@@ -23,11 +23,10 @@
 
 #pragma once
 
+#include "BLI_ghash.h"
 #include "BLI_sys_types.h"
 #include "DNA_ID.h"
 #include "intern/node/deg_node.h"
-
-struct GHash;
 
 namespace DEG {
 
@@ -82,7 +81,7 @@ struct IDNode : public Node {
   ID *id_cow;
 
   /* Hash to make it faster to look up components. */
-  GHash *components;
+  Map<ComponentIDKey, ComponentNode *> components;
 
   /* Additional flags needed for scene evaluation.
    * TODO(sergey): Only needed for until really granular updates
@@ -116,3 +115,16 @@ struct IDNode : public Node {
 };
 
 }  // namespace DEG
+
+namespace BLI {
+
+template<> struct DefaultHash<DEG::IDNode::ComponentIDKey> {
+  uint32_t operator()(const DEG::IDNode::ComponentIDKey &key) const
+  {
+    const int type_as_int = static_cast<int>(key.type);
+    return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(type_as_int),
+                                      BLI_ghashutil_strhash_p(key.name));
+  }
+};
+
+}  // namespace BLI

@@ -495,13 +495,13 @@ void deg_graph_node_tag_zero(Main *bmain,
   ID *id = id_node->id_orig;
   /* TODO(sergey): Which recalc flags to set here? */
   id_node->id_cow->recalc |= deg_recalc_flags_for_legacy_zero();
-  GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components) {
+
+  for (ComponentNode *comp_node : id_node->components.values()) {
     if (comp_node->type == NodeType::ANIMATION) {
       continue;
     }
     comp_node->tag_update(graph, update_source);
   }
-  GHASH_FOREACH_END();
   deg_graph_id_tag_legacy_compat(bmain, graph, id, (IDRecalcFlag)0, update_source);
 }
 
