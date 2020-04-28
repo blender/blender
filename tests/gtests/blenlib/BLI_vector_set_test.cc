@@ -8,6 +8,7 @@ TEST(vector_set, DefaultConstructor)
 {
   IntVectorSet set;
   EXPECT_EQ(set.size(), 0);
+  EXPECT_TRUE(set.is_empty());
 }
 
 TEST(vector_set, InitializerListConstructor_WithoutDuplicates)
@@ -70,8 +71,10 @@ TEST(vector_set, MoveAssignment)
 TEST(vector_set, AddNewIncreasesSize)
 {
   IntVectorSet set;
+  EXPECT_TRUE(set.is_empty());
   EXPECT_EQ(set.size(), 0);
   set.add(5);
+  EXPECT_FALSE(set.is_empty());
   EXPECT_EQ(set.size(), 1);
 }
 

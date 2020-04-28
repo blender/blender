@@ -317,6 +317,11 @@ template<typename T, typename Allocator = GuardedAllocator> class VectorSet {
     return m_array.slots_set();
   }
 
+  bool is_empty() const
+  {
+    return this->size() == 0;
+  }
+
   const T *begin() const
   {
     return m_elements;
