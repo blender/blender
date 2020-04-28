@@ -2094,6 +2094,22 @@ static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
 }
 #endif /* WITH_INPUT_IME */
 
+static bool widget_draw_text_underline_calc_center_x(const char *UNUSED(str),
+                                                     const size_t str_ofs,
+                                                     const rcti *glyph_bounds,
+                                                     const int glyph_advance_x,
+                                                     void *user_data)
+{
+  /* The index of the character to get, set to the x-position. */
+  int *ul_data = user_data;
+  if (ul_data[0] == (int)str_ofs) {
+    ul_data[1] = glyph_bounds->xmin + (glyph_advance_x / 2);
+    /* Early exit. */
+    return false;
+  }
+  return true;
+}
+
 static void widget_draw_text(const uiFontStyle *fstyle,
                              const uiWidgetColors *wcol,
                              uiBut *but,
@@ -2322,31 +2338,40 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                            NULL);
 
       if (but->menu_key != '\0') {
-        char fixedbuf[128];
-        const char *str;
+        const char *drawstr_ofs = drawstr + but->ofs;
+        int ul_index = -1;
 
-        BLI_strncpy(fixedbuf, drawstr + but->ofs, min_ii(sizeof(fixedbuf), drawlen));
-
-        str = strchr(fixedbuf, but->menu_key - 32); /* upper case */
-        if (str == NULL) {
-          str = strchr(fixedbuf, but->menu_key);
+        {
+          /* Find upper case, fallback to lower case. */
+          const char *drawstr_end = drawstr_ofs + drawlen;
+          const char keys[] = {but->menu_key - 32, but->menu_key};
+          for (int i = 0; i < ARRAY_SIZE(keys); i++) {
+            const char *drawstr_menu = strchr(drawstr_ofs, keys[i]);
+            if (drawstr_menu != NULL && drawstr_menu < drawstr_end) {
+              ul_index = (int)(drawstr_menu - drawstr_ofs);
+              break;
+            }
+          }
         }
 
-        if (str) {
-          int ul_index = -1;
-          float ul_advance;
-
-          ul_index = (int)(str - fixedbuf);
-
+        if (ul_index != -1) {
           if (fstyle->kerning == 1) {
             BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
           }
 
-          fixedbuf[ul_index] = '\0';
-          ul_advance = BLF_width(fstyle->uifont_id, fixedbuf, ul_index) + (1.0f * UI_DPI_FAC);
+          int ul_data[2] = {
+              ul_index, /* Character index to test. */
+              0,        /* Write the x-offset here. */
+          };
+          BLF_boundbox_foreach_glyph(fstyle->uifont_id,
+                                     drawstr_ofs,
+                                     ul_index + 1,
+                                     widget_draw_text_underline_calc_center_x,
+                                     ul_data);
+          ul_data[1] -= BLF_width(fstyle->uifont_id, "_", 2) / 2.0f;
 
           BLF_position(fstyle->uifont_id,
-                       rect->xmin + font_xofs + (int)ul_advance,
+                       rect->xmin + font_xofs + ul_data[1],
                        rect->ymin + font_yofs,
                        0.0f);
           BLF_color4ubv(fstyle->uifont_id, wcol->text);
