@@ -179,6 +179,17 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference);
 #  define IDP_Id(prop) ((ID *)(prop)->data.pointer)
 #endif
 
+/**
+ * Call a callback for each idproperty in the hierarchy under given root one (included).
+ *
+ */
+typedef void (*IDPForeachPropertyCallback)(IDProperty *id_property, void *user_data);
+
+void IDP_foreach_property(struct IDProperty *id_property_root,
+                          const int type_filter,
+                          IDPForeachPropertyCallback callback,
+                          void *user_data);
+
 /* Format IDProperty as strings */
 char *IDP_reprN(const struct IDProperty *prop, uint *r_len);
 void IDP_repr_fn(const IDProperty *prop,

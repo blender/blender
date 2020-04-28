@@ -244,6 +244,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
 
     /* Custom properties. */
     if (pchan->prop != nullptr) {
+      build_idproperties(pchan->prop);
       add_operation_node(
           &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, pchan->name);
     }
@@ -323,6 +324,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 
     /* Custom properties. */
     if (pchan->prop != nullptr) {
+      build_idproperties(pchan->prop);
       add_operation_node(
           &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, pchan->name);
     }

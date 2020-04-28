@@ -173,7 +173,12 @@ class OSLRenderServices : public OSL::RendererServices {
                   void *val,
                   bool derivatives) override;
 
+#if OSL_LIBRARY_VERSION_CODE >= 11100
+  TextureSystem::TextureHandle *get_texture_handle(ustring filename,
+                                                   OSL::ShadingContext *context) override;
+#else
   TextureSystem::TextureHandle *get_texture_handle(ustring filename) override;
+#endif
 
   bool good(TextureSystem::TextureHandle *texture_handle) override;
 
@@ -224,6 +229,17 @@ class OSLRenderServices : public OSL::RendererServices {
                    float *dresultdt,
                    ustring *errormessage) override;
 
+#if OSL_LIBRARY_VERSION_CODE >= 11100
+  bool get_texture_info(ustring filename,
+                        TextureHandle *texture_handle,
+                        TexturePerthread *texture_thread_info,
+                        OSL::ShadingContext *shading_context,
+                        int subimage,
+                        ustring dataname,
+                        TypeDesc datatype,
+                        void *data,
+                        ustring *errormessage) override;
+#else
   bool get_texture_info(OSL::ShaderGlobals *sg,
                         ustring filename,
                         TextureHandle *texture_handle,
@@ -231,6 +247,7 @@ class OSLRenderServices : public OSL::RendererServices {
                         ustring dataname,
                         TypeDesc datatype,
                         void *data) override;
+#endif
 
   static bool get_background_attribute(
       KernelGlobals *kg, ShaderData *sd, ustring name, TypeDesc type, bool derivatives, void *val);

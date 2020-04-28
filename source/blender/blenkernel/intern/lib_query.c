@@ -173,41 +173,20 @@ static void library_foreach_ID_link(Main *bmain,
                                     int flag,
                                     LibraryForeachIDData *inherit_data);
 
-static void library_foreach_idproperty_ID_link(LibraryForeachIDData *data,
-                                               IDProperty *prop,
-                                               int flag)
+static void library_foreach_idpropertiesForeachIDLink(IDProperty *id_prop, void *user_data)
 {
-  if (!prop) {
-    return;
-  }
+  BLI_assert(id_prop->type == IDP_ID);
 
-  switch (prop->type) {
-    case IDP_GROUP: {
-      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        library_foreach_idproperty_ID_link(data, loop, flag);
-      }
-      break;
-    }
-    case IDP_IDPARRAY: {
-      IDProperty *loop = IDP_Array(prop);
-      for (int i = 0; i < prop->len; i++) {
-        library_foreach_idproperty_ID_link(data, &loop[i], flag);
-      }
-      break;
-    }
-    case IDP_ID:
-      FOREACH_CALLBACK_INVOKE_ID(data, prop->data.pointer, flag);
-      break;
-    default:
-      break; /* Nothing to do here with other types of IDProperties... */
-  }
+  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
+  FOREACH_CALLBACK_INVOKE_ID(data, id_prop->data.pointer, IDWALK_CB_USER);
 
   FOREACH_FINALIZE_VOID;
 }
 
 static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
 {
-  library_foreach_idproperty_ID_link(data, sock->prop, IDWALK_CB_USER);
+  IDP_foreach_property(
+      sock->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
 
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
@@ -371,7 +350,8 @@ static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
 
 static void library_foreach_bone(LibraryForeachIDData *data, Bone *bone)
 {
-  library_foreach_idproperty_ID_link(data, bone->prop, IDWALK_CB_USER);
+  IDP_foreach_property(
+      bone->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, data);
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
     library_foreach_bone(data, curbone);
@@ -677,7 +657,8 @@ static void library_foreach_ID_link(Main *bmain,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
     }
 
-    library_foreach_idproperty_ID_link(&data, id->properties, IDWALK_CB_USER);
+    IDP_foreach_property(
+        id->properties, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
 
     AnimData *adt = BKE_animdata_from_id(id);
     if (adt) {
@@ -713,7 +694,8 @@ static void library_foreach_ID_link(Main *bmain,
             CALLBACK_INVOKE(seq->clip, IDWALK_CB_USER);
             CALLBACK_INVOKE(seq->mask, IDWALK_CB_USER);
             CALLBACK_INVOKE(seq->sound, IDWALK_CB_USER);
-            library_foreach_idproperty_ID_link(&data, seq->prop, IDWALK_CB_USER);
+            IDP_foreach_property(
+                seq->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
             LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
               CALLBACK_INVOKE(smd->mask_id, IDWALK_CB_USER);
             }
@@ -871,7 +853,8 @@ static void library_foreach_ID_link(Main *bmain,
 
           data.cb_flag |= proxy_cb_flag;
           for (pchan = object->pose->chanbase.first; pchan; pchan = pchan->next) {
-            library_foreach_idproperty_ID_link(&data, pchan->prop, IDWALK_CB_USER);
+            IDP_foreach_property(
+                pchan->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
             CALLBACK_INVOKE(pchan->custom, IDWALK_CB_USER);
             BKE_constraints_id_loop(
                 &pchan->constraints, library_foreach_constraintObjectLooper, &data);
@@ -1058,7 +1041,8 @@ static void library_foreach_ID_link(Main *bmain,
         for (node = ntree->nodes.first; node; node = node->next) {
           CALLBACK_INVOKE_ID(node->id, IDWALK_CB_USER);
 
-          library_foreach_idproperty_ID_link(&data, node->prop, IDWALK_CB_USER);
+          IDP_foreach_property(
+              node->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
           LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
             library_foreach_node_socket(&data, sock);
           }

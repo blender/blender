@@ -52,6 +52,7 @@ void DepsgraphRelationBuilder::build_scene_parameters(Scene *scene)
   if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_PARAMETERS)) {
     return;
   }
+  build_idproperties(scene->id.properties);
   build_parameters(&scene->id);
   OperationKey parameters_eval_key(
       &scene->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);

@@ -54,6 +54,7 @@ struct FCurve;
 struct FreestyleLineSet;
 struct FreestyleLineStyle;
 struct ID;
+struct IDProperty;
 struct Image;
 struct Key;
 struct LayerCollection;
@@ -196,6 +197,8 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
 
   virtual void build_id(ID *id);
 
+  virtual void build_idproperties(IDProperty *id_property);
+
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
@@ -267,6 +270,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_proxy_rig(Object *object);
   virtual void build_shapekeys(Key *key);
   virtual void build_armature(bArmature *armature);
+  virtual void build_armature_bones(ListBase *bones);
   virtual void build_camera(Camera *camera);
   virtual void build_light(Light *lamp);
   virtual void build_nodetree(bNodeTree *ntree);

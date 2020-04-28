@@ -1130,4 +1130,45 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
   }
 }
 
+/**
+ * Loop through all ID properties in hierarchy of given \a id_property_root included.
+ *
+ * \note Container types (groups and arrays) are processed after applying the callback on them.
+ *
+ * \param type_filter: If not 0, only apply callback on properties of matching types, see
+ * IDP_TYPE_FILTER_ enum in DNA_ID.h.
+ */
+void IDP_foreach_property(IDProperty *id_property_root,
+                          const int type_filter,
+                          IDPForeachPropertyCallback callback,
+                          void *user_data)
+{
+  if (!id_property_root) {
+    return;
+  }
+
+  if (type_filter == 0 || (1 << id_property_root->type) & type_filter) {
+    callback(id_property_root, user_data);
+  }
+
+  /* Recursive call into container types of ID properties. */
+  switch (id_property_root->type) {
+    case IDP_GROUP: {
+      LISTBASE_FOREACH (IDProperty *, loop, &id_property_root->data.group) {
+        IDP_foreach_property(loop, type_filter, callback, user_data);
+      }
+      break;
+    }
+    case IDP_IDPARRAY: {
+      IDProperty *loop = IDP_Array(id_property_root);
+      for (int i = 0; i < id_property_root->len; i++) {
+        IDP_foreach_property(&loop[i], type_filter, callback, user_data);
+      }
+      break;
+    }
+    default:
+      break; /* Nothing to do here with other types of IDProperties... */
+  }
+}
+
 /** \} */
