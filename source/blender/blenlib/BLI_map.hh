@@ -416,6 +416,14 @@ class Map {
   }
 
   /**
+   * Returns true if there are no elements in the map.
+   */
+  bool is_empty() const
+  {
+    return this->size() == 0;
+  }
+
+  /**
    * Calls the given function for each key-value-pair.
    */
   template<typename FuncT> void foreach_item(const FuncT &func) const

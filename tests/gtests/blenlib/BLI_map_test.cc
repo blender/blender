@@ -9,16 +9,20 @@ TEST(map, DefaultConstructor)
 {
   IntFloatMap map;
   EXPECT_EQ(map.size(), 0);
+  EXPECT_TRUE(map.is_empty());
 }
 
 TEST(map, AddIncreasesSize)
 {
   IntFloatMap map;
   EXPECT_EQ(map.size(), 0);
+  EXPECT_TRUE(map.is_empty());
   map.add(2, 5.0f);
   EXPECT_EQ(map.size(), 1);
+  EXPECT_FALSE(map.is_empty());
   map.add(6, 2.0f);
   EXPECT_EQ(map.size(), 2);
+  EXPECT_FALSE(map.is_empty());
 }
 
 TEST(map, Contains)
