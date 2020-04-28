@@ -5220,6 +5220,8 @@ static void UV_OT_seams_from_islands(wmOperatorType *ot)
 
 static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 {
+  SpaceImage *sima = CTX_wm_space_image(C);
+  Image *ima = sima ? sima->image : NULL;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const ToolSettings *ts = scene->toolsettings;
@@ -5250,10 +5252,12 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
     const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-      BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
-        if (uvedit_edge_select_test(scene, loop, cd_loop_uv_offset)) {
-          BM_elem_flag_set(loop->e, BM_ELEM_SEAM, flag_set);
-          changed = true;
+      if (uvedit_face_visible_test(scene, ob, ima, efa)) {
+        BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
+          if (uvedit_edge_select_test(scene, loop, cd_loop_uv_offset)) {
+            BM_elem_flag_set(loop->e, BM_ELEM_SEAM, flag_set);
+            changed = true;
+          }
         }
       }
     }
