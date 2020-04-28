@@ -213,6 +213,17 @@ TEST(map, AddOverride)
   EXPECT_EQ(map.lookup(3), 7.0f);
 }
 
+TEST(map, LookupOrAddDefault)
+{
+  IntFloatMap map;
+  map.lookup_or_add_default(3) = 6;
+  EXPECT_EQ(map.lookup(3), 6);
+  map.lookup_or_add_default(5) = 2;
+  EXPECT_EQ(map.lookup(5), 2);
+  map.lookup_or_add_default(3) += 4;
+  EXPECT_EQ(map.lookup(3), 10);
+}
+
 TEST(map, MoveConstructorSmall)
 {
   IntFloatMap map1;
