@@ -441,13 +441,13 @@ bool TileManager::check_neighbor_state(int index, Tile::State min_state)
 
 /* Returns whether the tile should be written (and freed if no denoising is used) instead of
  * updating. */
-bool TileManager::finish_tile(int index, bool &delete_tile)
+bool TileManager::finish_tile(const int index, const bool need_denoise, bool &delete_tile)
 {
   delete_tile = false;
 
   switch (state.tiles[index].state) {
     case Tile::RENDER: {
-      if (!schedule_denoising) {
+      if (!(schedule_denoising && need_denoise)) {
         state.tiles[index].state = Tile::DONE;
         delete_tile = !progressive;
         return true;
