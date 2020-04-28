@@ -21,7 +21,6 @@
 set(INC
   .
   ../glew-mx
-  ../string
   ../../source/blender/imbuf
   ../../source/blender/makesdna
 )
