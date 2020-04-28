@@ -121,26 +121,13 @@ bool RNANodeIdentifier::is_valid() const
 
 /* ********************************** Query ********************************* */
 
-namespace {
-
-void ghash_id_data_free_func(void *value)
-{
-  RNANodeQueryIDData *id_data = static_cast<RNANodeQueryIDData *>(value);
-  OBJECT_GUARDED_DELETE(id_data, RNANodeQueryIDData);
-}
-
-}  // namespace
-
 RNANodeQuery::RNANodeQuery(Depsgraph *depsgraph, DepsgraphBuilder *builder)
-    : depsgraph_(depsgraph),
-      builder_(builder),
-      id_data_map_(BLI_ghash_ptr_new("rna node query id data hash"))
+    : depsgraph_(depsgraph), builder_(builder)
 {
 }
 
 RNANodeQuery::~RNANodeQuery()
 {
-  BLI_ghash_free(id_data_map_, nullptr, ghash_id_data_free_func);
 }
 
 Node *RNANodeQuery::find_node(const PointerRNA *ptr,
@@ -384,12 +371,9 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
 
 RNANodeQueryIDData *RNANodeQuery::ensure_id_data(const ID *id)
 {
-  RNANodeQueryIDData **id_data_ptr;
-  if (!BLI_ghash_ensure_p(
-          id_data_map_, const_cast<ID *>(id), reinterpret_cast<void ***>(&id_data_ptr))) {
-    *id_data_ptr = OBJECT_GUARDED_NEW(RNANodeQueryIDData, id);
-  }
-  return *id_data_ptr;
+  unique_ptr<RNANodeQueryIDData> &id_data = id_data_map_.lookup_or_add(
+      id, [&]() { return BLI::make_unique<RNANodeQueryIDData>(id); });
+  return id_data.get();
 }
 
 }  // namespace DEG
