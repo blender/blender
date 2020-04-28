@@ -2737,7 +2737,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
       if (op_node == op_entry) {
         continue;
       }
-      if (op_node->inlinks.size() == 0) {
+      if (op_node->inlinks.is_empty()) {
         Relation *rel = graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
         rel->flag |= rel_flag;
       }

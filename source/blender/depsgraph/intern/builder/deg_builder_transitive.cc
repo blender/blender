@@ -72,6 +72,8 @@ static void deg_graph_tag_paths_recursive(Node *node)
 void deg_graph_transitive_reduction(Depsgraph *graph)
 {
   int num_removed_relations = 0;
+  Vector<Relation *> relations_to_remove;
+
   for (OperationNode *target : graph->operations) {
     /* Clear tags. */
     for (OperationNode *node : graph->operations) {
@@ -85,25 +87,24 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
       deg_graph_tag_paths_recursive(rel->from);
     }
     /* Remove redundant paths to the target. */
-    for (Node::Relations::const_iterator it_rel = target->inlinks.begin();
-         it_rel != target->inlinks.end();) {
-      Relation *rel = *it_rel;
+    for (Relation *rel : target->inlinks) {
       if (rel->from->type == NodeType::TIMESOURCE) {
         /* HACK: time source nodes don't get "custom_flags" flag
          * set/cleared. */
         /* TODO: there will be other types in future, so iterators above
          * need modifying. */
-        ++it_rel;
+        continue;
       }
       else if (rel->from->custom_flags & OP_REACHABLE) {
-        rel->unlink();
-        OBJECT_GUARDED_DELETE(rel, Relation);
-        num_removed_relations++;
-      }
-      else {
-        ++it_rel;
+        relations_to_remove.append(rel);
       }
     }
+    for (Relation *rel : relations_to_remove) {
+      rel->unlink();
+      OBJECT_GUARDED_DELETE(rel, Relation);
+    }
+    num_removed_relations += relations_to_remove.size();
+    relations_to_remove.clear();
   }
   DEG_DEBUG_PRINTF((::Depsgraph *)graph, BUILD, "Removed %d relations\n", num_removed_relations);
 }

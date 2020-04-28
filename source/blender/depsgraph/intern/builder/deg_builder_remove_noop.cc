@@ -43,7 +43,7 @@ static inline bool is_unused_noop(OperationNode *op_node)
   if (op_node->flag & OperationFlag::DEPSOP_FLAG_PINNED) {
     return false;
   }
-  return op_node->is_noop() && op_node->outlinks.empty();
+  return op_node->is_noop() && op_node->outlinks.is_empty();
 }
 
 void deg_graph_remove_unused_noops(Depsgraph *graph)
@@ -61,7 +61,7 @@ void deg_graph_remove_unused_noops(Depsgraph *graph)
     OperationNode *to_remove = queue.front();
     queue.pop_front();
 
-    while (!to_remove->inlinks.empty()) {
+    while (!to_remove->inlinks.is_empty()) {
       Relation *rel_in = to_remove->inlinks[0];
       Node *dependency = rel_in->from;
 

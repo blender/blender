@@ -60,12 +60,6 @@ extern "C" {
 
 namespace DEG {
 
-/* TODO(sergey): Find a better place for this. */
-template<typename T> static void remove_from_vector(vector<T> *vector, const T &value)
-{
-  vector->erase(std::remove(vector->begin(), vector->end(), value), vector->end());
-}
-
 Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(nullptr),
       need_update(true),
