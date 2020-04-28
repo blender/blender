@@ -2166,18 +2166,19 @@ static void rna_def_modifier_gpenciltexture(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem mode_items[] = {
-      {STROKE, "STROKE", 0, "Stroke UVs", "Manipulate only stroke UVs"},
-      {FILL, "FILL", 0, "Fill UVs", "Manipulate only fill UVs"},
+      {STROKE, "STROKE", 0, "Stroke", "Manipulate only stroke texture coordinates"},
+      {FILL, "FILL", 0, "Fill", "Manipulate only fill texture coordinates"},
       {STROKE_AND_FILL,
        "STROKE_AND_FILL",
        0,
-       "Stroke and Fill UVs",
-       "Manipulate both stroke and fill UVs"},
+       "Stroke and Fill",
+       "Manipulate both stroke and fill texture coordinates"},
       {0, NULL, 0, NULL, NULL},
   };
 
   srna = RNA_def_struct(brna, "TextureGpencilModifier", "GpencilModifier");
-  RNA_def_struct_ui_text(srna, "Texture Modifier", "Transform stroke texture UVs Modifier");
+  RNA_def_struct_ui_text(
+      srna, "Texture Modifier", "Transform stroke texture coordinates Modifier");
   RNA_def_struct_sdna(srna, "TextureGpencilModifierData");
   RNA_def_struct_ui_icon(srna, ICON_TEXTURE);
 
