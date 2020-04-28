@@ -1981,7 +1981,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         col.prop(md, "mode")
         if md.mode in {'STROKE', 'STROKE_AND_FILL'}:
-            col.label(text="Stroke Texture Control:")
+            col.label(text="Stroke Texture:")
             col.prop(md, "fit_method")
             col.prop(md, "uv_offset")
             col.prop(md, "uv_scale")
@@ -1990,7 +1990,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
             col.separator()
 
         if md.mode in {'FILL', 'STROKE_AND_FILL'}:
-            col.label(text="Fill Texture Control:")
+            col.label(text="Fill Texture:")
             col.prop(md, "fill_rotation", text="Rotation")
             col.prop(md, "fill_offset", text="Location")
             col.prop(md, "fill_scale", text="Scale")
