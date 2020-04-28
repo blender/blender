@@ -225,8 +225,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   else if (result->totvert > HIGH_POLY_WARNING ||
            ((Mesh *)(ob_source->data))->totvert > HIGH_POLY_WARNING) {
     modifier_setError(
-        md,
-        "You are using a rather high poly as source or destination, computation might be slow");
+        md, "Source or destination object has a high polygon count, computation might be slow");
   }
 
   return result;
