@@ -407,14 +407,19 @@ bool applyTransformOrientation(const TransformOrientation *ts, float r_mat[3][3]
   return true;
 }
 
-static int count_bone_select(bArmature *arm, ListBase *lb, const bool do_it)
+/* Updates all `BONE_TRANSFORM` flags.
+ * Returns total number of bones with `BONE_TRANSFORM`.
+ * Note: `transform_convert_pose_transflags_update` has a similar logic. */
+static int armature_bone_transflags_update_recursive(bArmature *arm,
+                                                     ListBase *lb,
+                                                     const bool do_it)
 {
   Bone *bone;
   bool do_next;
   int total = 0;
 
   for (bone = lb->first; bone; bone = bone->next) {
-    bone->flag &= ~(BONE_TRANSFORM | BONE_TRANSFORM_MIRROR);
+    bone->flag &= ~BONE_TRANSFORM;
     do_next = do_it;
     if (do_it) {
       if (bone->layer & arm->layer) {
@@ -427,7 +432,7 @@ static int count_bone_select(bArmature *arm, ListBase *lb, const bool do_it)
         }
       }
     }
-    total += count_bone_select(arm, &bone->childbase, do_next);
+    total += armature_bone_transflags_update_recursive(arm, &bone->childbase, do_next);
   }
 
   return total;
@@ -1072,10 +1077,9 @@ int getTransformOrientation_ex(const bContext *C,
       ok = true;
     }
     else {
-      int totsel;
-
-      totsel = count_bone_select(arm, &arm->bonebase, true);
-      if (totsel) {
+      int transformed_len;
+      transformed_len = armature_bone_transflags_update_recursive(arm, &arm->bonebase, true);
+      if (transformed_len) {
         /* use channels to get stats */
         for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
           if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {

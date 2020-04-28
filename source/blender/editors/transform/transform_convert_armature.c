@@ -669,7 +669,9 @@ void createTransPose(TransInfo *t)
     const bool mirror = ((pose->flag & POSE_MIRROR_EDIT) != 0);
 
     /* set flags and count total */
-    tc->data_len = count_set_pose_transflags(ob, t->mode, t->around, has_translate_rotate);
+    tc->data_len = transform_convert_pose_transflags_update(
+        ob, t->mode, t->around, has_translate_rotate);
+
     if (tc->data_len == 0) {
       continue;
     }

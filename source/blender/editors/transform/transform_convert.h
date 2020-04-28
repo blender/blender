@@ -37,10 +37,10 @@ struct bKinematicConstraint;
 struct bPoseChannel;
 
 /* transform_convert.c */
-int count_set_pose_transflags(Object *ob,
-                              const int mode,
-                              const short around,
-                              bool has_translate_rotate[2]);
+int transform_convert_pose_transflags_update(Object *ob,
+                                             const int mode,
+                                             const short around,
+                                             bool has_translate_rotate[2]);
 void transform_autoik_update(TransInfo *t, short mode);
 void autokeyframe_object(struct bContext *C,
                          struct Scene *scene,

@@ -1033,7 +1033,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
       /* mislead counting bones... bah. We don't know the gizmo mode, could be mixed */
       const int mode = TFM_ROTATION;
 
-      const int totsel_iter = count_set_pose_transflags(
+      const int totsel_iter = transform_convert_pose_transflags_update(
           ob_iter, mode, V3D_AROUND_CENTER_BOUNDS, NULL);
 
       if (totsel_iter) {
