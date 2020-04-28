@@ -64,6 +64,7 @@ set(SRC
   intern/buffer.c
   intern/convexhull_2d.c
   intern/delaunay_2d.c
+  intern/dot_export.cc
   intern/dynlib.c
   intern/easing.c
   intern/edgehash.c
@@ -161,6 +162,8 @@ set(SRC
   BLI_delaunay_2d.h
   BLI_dial_2d.h
   BLI_dlrbTree.h
+  BLI_dot_export.hh
+  BLI_dot_export_attribute_enums.hh
   BLI_dynlib.h
   BLI_dynstr.h
   BLI_easing.h
