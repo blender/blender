@@ -34,11 +34,16 @@ typedef struct wmXrSessionState {
   float viewer_viewmat[4][4];
   float focal_len;
 
+  /** Copy of XrSessionSettings.base_pose_ data to detect changes that need
+   * resetting to base pose. */
+  char prev_base_pose_type; /* eXRSessionBasePoseType */
+  Object *prev_base_pose_object;
   /** Copy of XrSessionSettings.flag created on the last draw call, stored to detect changes. */
   int prev_settings_flag;
   /** Copy of wmXrDrawData.eye_position_ofs. */
   float prev_eye_position_ofs[3];
 
+  bool force_reset_to_base_pose;
   bool is_view_data_set;
 } wmXrSessionState;
 

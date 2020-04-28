@@ -95,6 +95,11 @@ bool WM_xr_session_exists(const wmXrData *xr)
   return xr->runtime && xr->runtime->context && xr->runtime->session_state.is_started;
 }
 
+void WM_xr_session_base_pose_reset(wmXrData *xr)
+{
+  xr->runtime->session_state.force_reset_to_base_pose = true;
+}
+
 /**
  * Check if the session is running, according to the OpenXR definition.
  */
@@ -154,6 +159,17 @@ static void wm_xr_session_draw_data_populate(wmXrData *xr_data,
   wm_xr_session_base_pose_calc(r_draw_data->scene, settings, &r_draw_data->base_pose);
 }
 
+static bool wm_xr_session_draw_data_needs_reset_to_base_pose(const wmXrSessionState *state,
+                                                             const XrSessionSettings *settings)
+{
+  if (state->force_reset_to_base_pose) {
+    return true;
+  }
+  return ((settings->flag & XR_SESSION_USE_POSITION_TRACKING) == 0) &&
+         ((state->prev_base_pose_type != settings->base_pose_type) ||
+          (state->prev_base_pose_object != settings->base_pose_object));
+}
+
 void wm_xr_session_draw_data_update(const wmXrSessionState *state,
                                     const XrSessionSettings *settings,
                                     const GHOST_XrDrawViewInfo *draw_view,
@@ -166,7 +182,8 @@ void wm_xr_session_draw_data_update(const wmXrSessionState *state,
 
   /* Set the eye position offset, it's used to offset the base pose when changing positional
    * tracking. */
-  if (!state->is_view_data_set) {
+  if (!state->is_view_data_set ||
+      wm_xr_session_draw_data_needs_reset_to_base_pose(state, settings)) {
     /* Always use the exact base pose with no offset when starting the session. */
     copy_v3_fl(draw_data->eye_position_ofs, 0.0f);
   }
@@ -223,6 +240,8 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
 
   copy_v3_v3(state->prev_eye_position_ofs, draw_data->eye_position_ofs);
   state->prev_settings_flag = settings->flag;
+  state->prev_base_pose_type = settings->base_pose_type;
+  state->prev_base_pose_object = settings->base_pose_object;
   state->is_view_data_set = true;
 }
 
