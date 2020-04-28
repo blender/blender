@@ -141,7 +141,7 @@ static void bakeModifier(struct Main *UNUSED(bmain),
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Texture = {
-    /* name */ "Texture",
+    /* name */ "Texture Mapping",
     /* structName */ "TextureGpencilModifierData",
     /* structSize */ sizeof(TextureGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

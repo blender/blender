@@ -132,7 +132,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
     {eGpencilModifierType_Texture,
      "GP_TEXTURE",
      ICON_TEXTURE,
-     "Texture",
+     "Texture Mapping",
      "Change stroke uv texture values"},
     {0, NULL, 0, NULL, NULL},
 };
