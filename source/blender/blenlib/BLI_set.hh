@@ -277,6 +277,14 @@ class Set {
   }
 
   /**
+   * Return true if this set contains no elements.
+   */
+  bool is_empty() const
+  {
+    return this->size() == 0;
+  }
+
+  /**
    * Returns true when there is at least one element that is in both sets.
    * Otherwise false.
    */
