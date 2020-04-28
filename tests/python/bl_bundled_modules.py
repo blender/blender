@@ -21,7 +21,7 @@
 # Test that modules we ship with our Python installation are available
 
 import bz2
-import cffi
+import ctypes
 import lzma
 import numpy
 import sqlite3
