@@ -194,3 +194,11 @@ TEST(set, UniquePtrValues)
 
   EXPECT_EQ(set.size(), 3);
 }
+
+TEST(set, Clear)
+{
+  Set<int> set = {3, 4, 6, 7};
+  EXPECT_EQ(set.size(), 4);
+  set.clear();
+  EXPECT_EQ(set.size(), 0);
+}
