@@ -23,7 +23,7 @@
 
 #include "testing/testing.h"
 
-static const float FLOAT_EPSILON = 1e-7;
+static const float FLOAT_EPSILON = 1.2e-7;
 
 TEST(mat3_vec_to_roll, UnitMatrix)
 {
