@@ -656,7 +656,7 @@ static void uiblock_layer_pass_buttons(
     /* pass */
     rpass = (rl ? BLI_findlink(&rl->passes, iuser->pass) : NULL);
 
-    if (RE_passes_have_name(rl)) {
+    if (rl && RE_passes_have_name(rl)) {
       display_name = rpass ? rpass->name : "";
       rnd_pt = ui_imageuser_data_copy(&rnd_pt_local);
       but = uiDefMenuBut(block,
