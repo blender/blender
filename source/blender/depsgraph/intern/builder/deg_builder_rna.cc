@@ -57,37 +57,33 @@ namespace DEG {
 
 class RNANodeQueryIDData {
  public:
-  explicit RNANodeQueryIDData(const ID *id) : id_(id), contraint_to_pchan_map_(nullptr)
+  explicit RNANodeQueryIDData(const ID *id) : id_(id), constraint_to_pchan_map_(nullptr)
   {
   }
 
   ~RNANodeQueryIDData()
   {
-    if (contraint_to_pchan_map_ != nullptr) {
-      BLI_ghash_free(contraint_to_pchan_map_, nullptr, nullptr);
-    }
+    delete constraint_to_pchan_map_;
   }
 
   const bPoseChannel *get_pchan_for_constraint(const bConstraint *constraint)
   {
     ensure_constraint_to_pchan_map();
-    return static_cast<bPoseChannel *>(BLI_ghash_lookup(contraint_to_pchan_map_, constraint));
+    return constraint_to_pchan_map_->lookup_default(constraint, nullptr);
   }
 
   void ensure_constraint_to_pchan_map()
   {
-    if (contraint_to_pchan_map_ != nullptr) {
+    if (constraint_to_pchan_map_ != nullptr) {
       return;
     }
     BLI_assert(GS(id_->name) == ID_OB);
     const Object *object = reinterpret_cast<const Object *>(id_);
-    contraint_to_pchan_map_ = BLI_ghash_ptr_new("id data pchan constraint map");
+    constraint_to_pchan_map_ = new Map<const bConstraint *, const bPoseChannel *>();
     if (object->pose != nullptr) {
       LISTBASE_FOREACH (const bPoseChannel *, pchan, &object->pose->chanbase) {
         LISTBASE_FOREACH (const bConstraint *, constraint, &pchan->constraints) {
-          BLI_ghash_insert(contraint_to_pchan_map_,
-                           const_cast<bConstraint *>(constraint),
-                           const_cast<bPoseChannel *>(pchan));
+          constraint_to_pchan_map_->add_new(constraint, pchan);
         }
       }
     }
@@ -99,7 +95,7 @@ class RNANodeQueryIDData {
 
   /* indexed by bConstraint*, returns pose channel which contains that
    * constraint. */
-  GHash *contraint_to_pchan_map_;
+  Map<const bConstraint *, const bPoseChannel *> *constraint_to_pchan_map_;
 };
 
 /* ***************************** Node Identifier **************************** */
