@@ -375,12 +375,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import traceback
-    # So a python error exits Blender itself too
-    try:
-        main()
-    except SystemExit:
-        raise
-    except:
-        traceback.print_exc()
-        sys.exit(1)
+    main()

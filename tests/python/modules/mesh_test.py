@@ -73,6 +73,28 @@ class ModifierSpec:
                " with parameters: " + str(self.modifier_parameters)
 
 
+class PhysicsSpec:
+    """
+    Holds one Physics modifier and its parameters.
+    """
+
+    def __init__(self, modifier_name: str, modifier_type: str, modifier_parameters: dict, frame_end: int):
+        """
+        Constructs a physics spec.
+        :param modifier_name: str - name of object modifier, e.g. "Cloth"
+        :param modifier_type: str - type of object modifier, e.g. "CLOTH"
+        :param modifier_parameters: dict - {name : val} dictionary giving modifier parameters, e.g. {"quality" : 4}
+        :param frame_end:int - the last frame of the simulation at which it is baked
+        """
+        self.modifier_name = modifier_name
+        self.modifier_type = modifier_type
+        self.modifier_parameters = modifier_parameters
+        self.frame_end = frame_end
+
+    def __str__(self):
+        return "Physics Modifier: " + self.modifier_name + " of type " + self.modifier_type + \
+               " with parameters: " + str(self.modifier_parameters) + " with frame end: " + str(self.frame_end)
+
 class OperatorSpec:
     """
     Holds one operator and its parameters.
@@ -105,7 +127,7 @@ class MeshTest:
     the public method run_test().
     """
 
-    def __init__(self, test_object_name: str, expected_object_name: str, operations_stack=None, apply_modifiers=False):
+    def __init__(self, test_object_name: str, expected_object_name: str, operations_stack=None, apply_modifiers=False, threshold=None):
         """
         Constructs a MeshTest object. Raises a KeyError if objects with names expected_object_name
         or test_object_name don't exist.
@@ -125,6 +147,7 @@ class MeshTest:
                                         type(operation)))
         self.operations_stack = operations_stack
         self.apply_modifier = apply_modifiers
+        self.threshold = threshold
 
         self.verbose = os.environ.get("BLENDER_VERBOSE") is not None
         self.update = os.getenv('BLENDER_TEST_UPDATE') is not None
@@ -235,6 +258,49 @@ class MeshTest:
         if self.apply_modifier:
             bpy.ops.object.modifier_apply(modifier=modifier_spec.modifier_name)
 
+
+    def _bake_current_simulation(self, obj, test_mod_type, test_mod_name, frame_end):
+        for scene in bpy.data.scenes:
+            for modifier in obj.modifiers:
+                if modifier.type == test_mod_type:
+                    obj.modifiers[test_mod_name].point_cache.frame_end = frame_end
+                    override = {'scene': scene, 'active_object': obj, 'point_cache': modifier.point_cache}
+                    bpy.ops.ptcache.bake(override, bake=True)
+                    break
+
+    def _apply_physics_settings(self, test_object, physics_spec: PhysicsSpec):
+        """
+        Apply Physics settings to test objects.
+        """
+        scene = bpy.context.scene
+        scene.frame_set(1)
+        modifier = test_object.modifiers.new(physics_spec.modifier_name,
+                                             physics_spec.modifier_type)
+        physics_setting = modifier.settings
+        if self.verbose:
+            print("Created modifier '{}' of type '{}'.".
+                  format(physics_spec.modifier_name, physics_spec.modifier_type))
+
+
+        for param_name in physics_spec.modifier_parameters:
+            try:
+                setattr(physics_setting, param_name, physics_spec.modifier_parameters[param_name])
+                if self.verbose:
+                    print("\t set parameter '{}' with value '{}'".
+                          format(param_name, physics_spec.modifier_parameters[param_name]))
+            except AttributeError:
+                # Clean up first
+                bpy.ops.object.delete()
+                raise AttributeError("Modifier '{}' has no parameter named '{}'".
+                                     format(physics_spec.modifier_type, param_name))
+
+        scene.frame_set(physics_spec.frame_end + 1)
+
+        self._bake_current_simulation(test_object, physics_spec.modifier_type, physics_spec.modifier_name, physics_spec.frame_end)
+        if self.apply_modifier:
+            bpy.ops.object.modifier_apply(modifier=physics_spec.modifier_name)
+
+
     def _apply_operator(self, test_object, operator: OperatorSpec):
         """
         Apply operator on test object.
@@ -302,9 +368,12 @@ class MeshTest:
 
             elif isinstance(operation, OperatorSpec):
                 self._apply_operator(evaluated_test_object, operation)
+
+            elif isinstance(operation, PhysicsSpec):
+                self._apply_physics_settings(evaluated_test_object, operation)
             else:
-                raise ValueError("Expected operation of type {} or {}. Got {}".
-                                 format(type(ModifierSpec), type(OperatorSpec),
+                raise ValueError("Expected operation of type {} or {} or {}. Got {}".
+                                 format(type(ModifierSpec), type(OperatorSpec), type(PhysicsSpec),
                                         type(operation)))
 
         # Compare resulting mesh with expected one.
@@ -312,7 +381,10 @@ class MeshTest:
             print("Comparing expected mesh with resulting mesh...")
         evaluated_test_mesh = evaluated_test_object.data
         expected_mesh = self.expected_object.data
-        compare_result = evaluated_test_mesh.unit_test_compare(mesh=expected_mesh)
+        if self.threshold:
+            compare_result = evaluated_test_mesh.unit_test_compare(mesh=expected_mesh, threshold=self.threshold)
+        else:
+            compare_result = evaluated_test_mesh.unit_test_compare(mesh=expected_mesh)
         compare_success = (compare_result == 'Same')
 
         # Also check if invalid geometry (which is never expected) had to be corrected...
@@ -434,7 +506,7 @@ class ModifierTest:
     >>> modifiers_test.run_all_tests()
     """
 
-    def __init__(self, modifier_tests: list, apply_modifiers=False):
+    def __init__(self, modifier_tests: list, apply_modifiers=False, threshold=None):
         """
         Construct a modifier test.
         :param modifier_tests: list - list of modifier test cases. Each element in the list must contain the following
@@ -445,6 +517,7 @@ class ModifierTest:
         """
         self.modifier_tests = modifier_tests
         self.apply_modifiers = apply_modifiers
+        self.threshold = threshold
         self.verbose = os.environ.get("BLENDER_VERBOSE") is not None
         self._failed_tests_list = []
 
@@ -461,7 +534,7 @@ class ModifierTest:
         expected_object_name = case[1]
         spec_list = case[2]
 
-        test = MeshTest(test_object_name, expected_object_name)
+        test = MeshTest(test_object_name, expected_object_name, threshold=self.threshold)
         if self.apply_modifiers:
             test.apply_modifier = True
 

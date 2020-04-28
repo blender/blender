@@ -185,6 +185,22 @@ add_blender_test(
 )
 
 add_blender_test(
+  physics_cloth
+  ${TEST_SRC_DIR}/physics/cloth_test.blend
+  --python ${TEST_PYTHON_DIR}/physics_cloth.py
+  --
+  --run-all-tests
+)
+
+add_blender_test(
+  physics_softbody
+  ${TEST_SRC_DIR}/physics/softbody_test.blend
+  --python ${TEST_PYTHON_DIR}/physics_softbody.py
+  --
+  --run-all-tests
+)
+
+add_blender_test(
   constraints
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_constraints.py
   --

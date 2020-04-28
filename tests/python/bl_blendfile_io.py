@@ -77,9 +77,4 @@ def main():
 if __name__ == '__main__':
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
-    try:
-        main()
-    except:
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    main()

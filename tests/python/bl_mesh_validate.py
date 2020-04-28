@@ -152,10 +152,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # So a python error exits(1)
-    try:
-        main()
-    except:
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    main()

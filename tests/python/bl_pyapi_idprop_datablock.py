@@ -20,7 +20,6 @@ import bpy
 import sys
 import os
 import tempfile
-import traceback
 import inspect
 from bpy.types import UIList
 
@@ -331,11 +330,4 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except:
-        import traceback
-
-        traceback.print_exc()
-        sys.stderr.flush()
-        os._exit(1)
+    main()
