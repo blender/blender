@@ -309,9 +309,9 @@ void DEG_graph_free(Depsgraph *graph)
   OBJECT_GUARDED_DELETE(deg_depsgraph, Depsgraph);
 }
 
-bool DEG_is_evaluating(struct Depsgraph *depsgraph)
+bool DEG_is_evaluating(const struct Depsgraph *depsgraph)
 {
-  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+  const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
   return deg_graph->is_evaluating;
 }
 

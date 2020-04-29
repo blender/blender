@@ -270,7 +270,7 @@ ID *DEG_get_original_id(ID *id)
   return (ID *)id->orig_id;
 }
 
-bool DEG_is_original_id(ID *id)
+bool DEG_is_original_id(const ID *id)
 {
   /* Some explanation of the logic.
    *
@@ -295,17 +295,17 @@ bool DEG_is_original_id(ID *id)
   return true;
 }
 
-bool DEG_is_original_object(Object *object)
+bool DEG_is_original_object(const Object *object)
 {
   return DEG_is_original_id(&object->id);
 }
 
-bool DEG_is_evaluated_id(ID *id)
+bool DEG_is_evaluated_id(const ID *id)
 {
   return !DEG_is_original_id(id);
 }
 
-bool DEG_is_evaluated_object(Object *object)
+bool DEG_is_evaluated_object(const Object *object)
 {
   return !DEG_is_original_object(object);
 }

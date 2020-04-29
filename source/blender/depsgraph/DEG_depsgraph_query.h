@@ -111,14 +111,14 @@ struct ID *DEG_get_original_id(struct ID *id);
  *
  * Original IDs are considered all the IDs which are not covered by copy-on-write system and are
  * not out-of-main localized data-blocks. */
-bool DEG_is_original_id(struct ID *id);
-bool DEG_is_original_object(struct Object *object);
+bool DEG_is_original_id(const struct ID *id);
+bool DEG_is_original_object(const struct Object *object);
 
 /* Opposite of the above.
  *
  * If the data-block is not original it must be evaluated, and vice versa. */
-bool DEG_is_evaluated_id(struct ID *id);
-bool DEG_is_evaluated_object(struct Object *object);
+bool DEG_is_evaluated_id(const struct ID *id);
+bool DEG_is_evaluated_object(const struct Object *object);
 
 /* Check whether depsgraph os fully evaluated. This includes the following checks:
  * - Relations are up-to-date.
