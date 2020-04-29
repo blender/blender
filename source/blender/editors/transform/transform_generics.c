@@ -1596,7 +1596,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->around = V3D_AROUND_CENTER_BOUNDS;
   }
 
-  if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) &&
+  if (op && (prop = RNA_struct_find_property(op->ptr, "constraint_axis")) &&
       RNA_property_is_set(op->ptr, prop)) {
     bool constraint_axis[3];
 
