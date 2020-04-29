@@ -1710,7 +1710,7 @@ static void gpencil_convert_spline(Main *bmain,
 
   /* Create Stroke. */
   bGPDstroke *gps = MEM_callocN(sizeof(bGPDstroke), "bGPDstroke");
-  gps->thickness = 1.0f;
+  gps->thickness = 10.0f;
   gps->fill_opacity_fac = 1.0f;
   gps->hardeness = 1.0f;
   gps->uv_scale = 1.0f;
@@ -1731,7 +1731,7 @@ static void gpencil_convert_spline(Main *bmain,
   int segments = 0;
   int resolu = nu->resolu + 1;
   segments = nu->pntsu;
-  if (((nu->flagu & CU_NURB_CYCLIC) == 0) || (nu->pntsu == 2)) {
+  if ((nu->flagu & CU_NURB_CYCLIC) == 0) {
     segments--;
     cyclic = false;
   }
@@ -1847,7 +1847,7 @@ static void gpencil_convert_spline(Main *bmain,
       int init = 0;
       resolu = nu->resolu + 1;
       segments = nu->pntsu;
-      if (((nu->flagu & CU_NURB_CYCLIC) == 0) || (nu->pntsu == 2)) {
+      if ((nu->flagu & CU_NURB_CYCLIC) == 0) {
         segments--;
       }
       /* Get all interpolated curve points of Beziert */
