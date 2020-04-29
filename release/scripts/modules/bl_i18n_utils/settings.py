@@ -377,7 +377,6 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "normal",
     "right",
     "the lazy dog",
-    "trunc(A)",
     "unable to load movie clip",
     "unable to load text",
     "unable to open the file",

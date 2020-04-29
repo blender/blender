@@ -203,7 +203,7 @@ const EnumPropertyItem rna_enum_node_math_items[] = {
      "Round A to the nearest integer. Round upward if the fraction part is 0.5"},
     {NODE_MATH_FLOOR, "FLOOR", 0, "Floor", "The largest integer smaller than or equal A"},
     {NODE_MATH_CEIL, "CEIL", 0, "Ceil", "The smallest integer greater than or equal A"},
-    {NODE_MATH_TRUNC, "TRUNC", 0, "Truncate", "trunc(A)"},
+    {NODE_MATH_TRUNC, "TRUNC", 0, "Truncate", "The integer part of A, removing fractional digits"},
     {0, "", ICON_NONE, NULL, NULL},
     {NODE_MATH_FRACTION, "FRACT", 0, "Fraction", "The fraction part of A"},
     {NODE_MATH_MODULO, "MODULO", 0, "Modulo", "Modulo using fmod(A,B)"},
