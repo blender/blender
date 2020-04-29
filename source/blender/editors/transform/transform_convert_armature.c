@@ -687,6 +687,9 @@ void createTransPose(TransInfo *t)
     if (mirror) {
       int total_mirrored = 0;
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        /* Clear the MIRROR flag from previous runs. */
+        pchan->bone->flag &= ~BONE_TRANSFORM_MIRROR;
+
         if ((pchan->bone->flag & BONE_TRANSFORM) &&
             BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) {
           total_mirrored++;
