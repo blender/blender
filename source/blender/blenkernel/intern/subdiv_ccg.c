@@ -40,9 +40,9 @@
 
 #include "opensubdiv_topology_refiner_capi.h"
 
-/* =============================================================================
- * Various forward declarations.
- */
+/* -------------------------------------------------------------------- */
+/** \name Various forward declarations
+ * \{ */
 
 static void subdiv_ccg_average_all_boundaries_and_corners(SubdivCCG *subdiv_ccg, CCGKey *key);
 
@@ -50,9 +50,11 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG *subdiv_ccg,
                                                 CCGKey *key,
                                                 SubdivCCGFace *face);
 
-/* =============================================================================
- * Generally useful internal helpers.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generally useful internal helpers
+ * \{ */
 
 /* Number of floats in per-vertex elements.  */
 static int num_element_float_get(const SubdivCCG *subdiv_ccg)
@@ -74,9 +76,11 @@ static int element_size_bytes_get(const SubdivCCG *subdiv_ccg)
   return sizeof(float) * num_element_float_get(subdiv_ccg);
 }
 
-/* =============================================================================
- * Internal helpers for CCG creation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal helpers for CCG creation
+ * \{ */
 
 static void subdiv_ccg_init_layers(SubdivCCG *subdiv_ccg, const SubdivToCCGSettings *settings)
 {
@@ -158,9 +162,11 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
   }
 }
 
-/* =============================================================================
- * Grids evaluation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Grids evaluation
+ * \{ */
 
 typedef struct CCGEvalGridsData {
   SubdivCCG *subdiv_ccg;
@@ -556,9 +562,11 @@ static void subdiv_ccg_init_faces_neighborhood(SubdivCCG *subdiv_ccg)
   subdiv_ccg_init_faces_vertex_neighborhood(subdiv_ccg);
 }
 
-/* =============================================================================
- * Creation / evaluation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Creation / evaluation
+ * \{ */
 
 SubdivCCG *BKE_subdiv_to_ccg(Subdiv *subdiv,
                              const SubdivToCCGSettings *settings,
@@ -670,9 +678,11 @@ void BKE_subdiv_ccg_key_top_level(CCGKey *key, const SubdivCCG *subdiv_ccg)
   BKE_subdiv_ccg_key(key, subdiv_ccg, subdiv_ccg->level);
 }
 
-/* =============================================================================
- * Normals.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Normals
+ * \{ */
 
 typedef struct RecalcInnerNormalsData {
   SubdivCCG *subdiv_ccg;
@@ -885,9 +895,11 @@ void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
   subdiv_ccg_average_all_boundaries_and_corners(subdiv_ccg, &key);
 }
 
-/* =============================================================================
- * Boundary averaging/stitching.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Boundary averaging/stitching
+ * \{ */
 
 typedef struct AverageInnerGridsData {
   SubdivCCG *subdiv_ccg;
@@ -1244,9 +1256,11 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG *subdiv_ccg,
   *r_num_loops = *r_num_faces * 4;
 }
 
-/* =============================================================================
- * Neighbors.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Neighbors
+ * \{ */
 
 void BKE_subdiv_ccg_print_coord(const char *message, const SubdivCCGCoord *coord)
 {
@@ -1791,3 +1805,5 @@ int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int gri
   const int face_index = face - subdiv_ccg->faces;
   return face_index;
 }
+
+/** \} */

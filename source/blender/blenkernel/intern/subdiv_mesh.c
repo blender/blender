@@ -41,9 +41,9 @@
 
 #include "MEM_guardedalloc.h"
 
-/* =============================================================================
- * Subdivision context.
- */
+/* -------------------------------------------------------------------- */
+/** \name Subdivision Context
+ * \{ */
 
 typedef struct SubdivMeshContext {
   const SubdivToMeshSettings *settings;
@@ -119,9 +119,11 @@ static void subdiv_mesh_context_free(SubdivMeshContext *ctx)
   MEM_SAFE_FREE(ctx->accumulated_counters);
 }
 
-/* =============================================================================
- * Loop custom data copy helpers.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Loop custom data copy helpers
+ * \{ */
 
 typedef struct LoopsOfPtex {
   /* First loop of the ptex, starts at ptex (0, 0) and goes in u direction. */
@@ -159,9 +161,11 @@ static void loops_of_ptex_get(const SubdivMeshContext *ctx,
   }
 }
 
-/* =============================================================================
- * Vertex custom data interpolation helpers.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex custom data interpolation helpers
+ * \{ */
 
 /* TODO(sergey): Somehow de-duplicate with loops storage, without too much
  * exception cases all over the code. */
@@ -295,9 +299,11 @@ static void vertex_interpolation_end(VerticesForInterpolation *vertex_interpolat
   }
 }
 
-/* =============================================================================
- * Loop custom data interpolation helpers.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Loop custom data interpolation helpers
+ * \{ */
 
 typedef struct LoopsForInterpolation {
   /* This field points to a loop data which is to be used for interpolation.
@@ -413,9 +419,11 @@ static void loop_interpolation_end(LoopsForInterpolation *loop_interpolation)
   }
 }
 
-/* =============================================================================
- * TLS.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name TLS
+ * \{ */
 
 typedef struct SubdivMeshTLS {
   bool vertex_interpolation_initialized;
@@ -440,9 +448,11 @@ static void subdiv_mesh_tls_free(void *tls_v)
   }
 }
 
-/* =============================================================================
- * Evaluation helper functions.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation helper functions
+ * \{ */
 
 static void eval_final_point_and_vertex_normal(Subdiv *subdiv,
                                                const int ptex_face_index,
@@ -459,9 +469,11 @@ static void eval_final_point_and_vertex_normal(Subdiv *subdiv,
   }
 }
 
-/* =============================================================================
- * Accumulation helpers.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Accumulation helpers
+ * \{ */
 
 static void subdiv_accumulate_vertex_normal_and_displacement(SubdivMeshContext *ctx,
                                                              const int ptex_face_index,
@@ -490,9 +502,11 @@ static void subdiv_accumulate_vertex_normal_and_displacement(SubdivMeshContext *
   ++ctx->accumulated_counters[subdiv_vertex_index];
 }
 
-/* =============================================================================
- * Callbacks.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks
+ * \{ */
 
 static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_context,
                                       const int num_vertices,
@@ -513,9 +527,11 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
   return true;
 }
 
-/* =============================================================================
- * Vertex subdivision process.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex subdivision process
+ * \{ */
 
 static void subdiv_vertex_data_copy(const SubdivMeshContext *ctx,
                                     const MVert *coarse_vertex,
@@ -778,9 +794,11 @@ static void subdiv_mesh_vertex_inner(const SubdivForeachContext *foreach_context
   subdiv_mesh_tag_center_vertex(coarse_poly, subdiv_vert, u, v);
 }
 
-/* =============================================================================
- * Edge subdivision process.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edge subdivision process
+ * \{ */
 
 static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
                                   MEdge *subdiv_edge,
@@ -827,9 +845,11 @@ static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,
   subdiv_edge->v2 = subdiv_v2;
 }
 
-/* =============================================================================
- * Loops creation/interpolation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Loops creation/interpolation
+ * \{ */
 
 static void subdiv_interpolate_loop_data(const SubdivMeshContext *ctx,
                                          MLoop *subdiv_loop,
@@ -921,9 +941,11 @@ static void subdiv_mesh_loop(const SubdivForeachContext *foreach_context,
   subdiv_loop->e = subdiv_edge_index;
 }
 
-/* =============================================================================
- * Polygons subdivision process.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Polygons subdivision process
+ * \{ */
 
 static void subdiv_copy_poly_data(const SubdivMeshContext *ctx,
                                   MPoly *subdiv_poly,
@@ -955,9 +977,11 @@ static void subdiv_mesh_poly(const SubdivForeachContext *foreach_context,
   subdiv_poly->totloop = num_loops;
 }
 
-/* =============================================================================
- * Loose elements subdivision process.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Loose elements subdivision process
+ * \{ */
 
 static void subdiv_mesh_vertex_loose(const SubdivForeachContext *foreach_context,
                                      void *UNUSED(tls),
@@ -1127,9 +1151,11 @@ static void subdiv_mesh_vertex_of_loose_edge(const struct SubdivForeachContext *
   normal_float_to_short_v3(subdiv_vertex->no, no);
 }
 
-/* =============================================================================
- * Initialization.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Initialization
+ * \{ */
 
 static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
                                     SubdivForeachContext *foreach_context)
@@ -1157,9 +1183,11 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
   foreach_context->user_data_tls_free = subdiv_mesh_tls_free;
 }
 
-/* =============================================================================
- * Public entry point.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public entry point
+ * \{ */
 
 Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
                          const SubdivToMeshSettings *settings,
@@ -1206,3 +1234,5 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   subdiv_mesh_context_free(&subdiv_context);
   return result;
 }
+
+/** \} */

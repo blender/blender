@@ -40,7 +40,7 @@ struct DMFlagMat;
 struct Mesh;
 struct Subdiv;
 
-/* =============================================================================
+/* --------------------------------------------------------------------
  * Masks.
  */
 
@@ -61,7 +61,7 @@ typedef struct SubdivCCGMaskEvaluator {
 bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator,
                                          const struct Mesh *mesh);
 
-/* =============================================================================
+/* --------------------------------------------------------------------
  * Materials.
  */
 
@@ -80,7 +80,7 @@ typedef struct SubdivCCGMaterialFlagsEvaluator {
 void BKE_subdiv_ccg_material_flags_init_from_mesh(
     SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, const struct Mesh *mesh);
 
-/* =============================================================================
+/* --------------------------------------------------------------------
  * SubdivCCG.
  */
 

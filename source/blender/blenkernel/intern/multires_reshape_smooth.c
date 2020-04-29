@@ -48,6 +48,10 @@
 #include "atomic_ops.h"
 #include "subdiv_converter.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Local Structs
+ * \{ */
+
 typedef struct SurfacePoint {
   float P[3];
   float tangent_matrix[3][3];
@@ -117,9 +121,11 @@ typedef struct MultiresReshapeSmoothContext {
   SurfaceGrid *base_surface_grids;
 } MultiresReshapeSmoothContext;
 
-/* ================================================================================================
- * Masks.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Masks
+ * \{ */
 
 /* Interpolate mask grid at a reshape level.
  * Will return 0 if there is no masks custom data layer. */
@@ -165,9 +171,11 @@ static float interpolate_masks_grid(const MultiresReshapeSmoothContext *reshape_
          mask_elements[2] * weights[2] + mask_elements[3] * weights[3];
 }
 
-/* ================================================================================================
- * Surface.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Surface
+ * \{ */
 
 static void base_surface_grids_allocate(MultiresReshapeSmoothContext *reshape_smooth_context)
 {
@@ -227,9 +235,11 @@ static void base_surface_grids_write(const MultiresReshapeSmoothContext *reshape
   copy_m3_m3(point->tangent_matrix, tangent_matrix);
 }
 
-/* ================================================================================================
- * Evaluation of subdivision surface at a reshape level.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation of subdivision surface at a reshape level
+ * \{ */
 
 typedef void (*ForeachTopLevelGridCoordCallback)(
     const MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -383,11 +393,14 @@ static void foreach_toplevel_grid_coord(const MultiresReshapeSmoothContext *resh
       0, num_faces, &data, foreach_toplevel_grid_coord_task, &parallel_range_settings);
 }
 
-/* ================================================================================================
- * Generation of a topology information for OpenSubdiv converter.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generation of a topology information for OpenSubdiv converter
  *
  * Calculates vertices, their coordinates in the original grids, and connections of them so then
- * it's easy to create OpenSubdiv's topology refiner. */
+ * it's easy to create OpenSubdiv's topology refiner.
+ * \{ */
 
 static int get_reshape_level_resolution(const MultiresReshapeContext *reshape_context)
 {
@@ -757,9 +770,11 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
       reshape_context->subdiv, &foreach_context, &mesh_settings, reshape_context->base_mesh);
 }
 
-/* ================================================================================================
- * Generation of OpenSubdiv evaluator for topology created form reshape level.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generation of OpenSubdiv evaluator for topology created form reshape level
+ * \{ */
 
 static OpenSubdiv_SchemeType get_scheme_type(const OpenSubdiv_Converter *UNUSED(converter))
 {
@@ -1037,9 +1052,11 @@ static void reshape_subdiv_evaluate_limit_at_grid(
   BKE_multires_construct_tangent_matrix(r_tangent_matrix, dPdu, dPdv, corner);
 }
 
-/* ================================================================================================
- * Evaluation of base surface.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation of base surface
+ * \{ */
 
 static void evaluate_base_surface_grids_callback(
     const MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -1060,9 +1077,11 @@ static void evaluate_base_surface_grids(const MultiresReshapeSmoothContext *resh
   foreach_toplevel_grid_coord(reshape_smooth_context, evaluate_base_surface_grids_callback, NULL);
 }
 
-/* ================================================================================================
- * Evaluation of new surface.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation of new surface
+ * \{ */
 
 /* Evaluate final position of the original (pre-sculpt-edit) point position at a given grid
  * coordinate. */
@@ -1176,9 +1195,12 @@ static void evaluate_higher_grid_positions(
   foreach_toplevel_grid_coord(
       reshape_smooth_context, evaluate_higher_grid_positions_callback, NULL);
 }
-/* ================================================================================================
- * Entry point.
- */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Entry point
+ * \{ */
 
 void multires_reshape_smooth_object_grids_with_details(
     const MultiresReshapeContext *reshape_context)
@@ -1226,3 +1248,5 @@ void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_
 
   context_free(&reshape_smooth_context);
 }
+
+/** \} */
