@@ -1341,14 +1341,11 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
 }
 
 /**
- * Say whether given \a id_type_owner can use (in any way) a data-block of \a id_type_used.
+ * Say whether given \a id_owner may use (in any way) a data-block of \a id_type_used.
  *
  * This is a 'simplified' abstract version of #BKE_library_foreach_ID_link() above,
- * quite useful to reduce* useless iterations in some cases.
+ * quite useful to reduce useless iterations in some cases.
  */
-/* XXX This has to be fully rethink, basing check on ID type is not really working anymore
- * (and even worth once IDProps will support ID pointers),
- * we'll have to do some quick checks on IDs themselves... */
 bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 {
   /* any type of ID can be used in custom props. */
@@ -1458,6 +1455,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
     case ID_PAL:
     case ID_PC:
     case ID_CF:
+    case ID_SIM:
       /* Those types never use/reference other IDs... */
       return false;
     case ID_IP:
