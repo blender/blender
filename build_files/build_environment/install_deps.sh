@@ -2654,7 +2654,7 @@ compile_USD() {
 
     cd $CWD
     INFO "Done compiling USD-$USD_VERSION!"
-    _is_building=true
+    _is_building=false
   else
     INFO "Own USD-$USD_VERSION is up to date, nothing to do!"
     INFO "If you want to force rebuild of this lib, use the --force-usd option."
@@ -5354,6 +5354,11 @@ print_info() {
     _1="-D WITH_USD=ON"
     PRINT "  $_1"
     _buildargs="$_buildargs $_1"
+    if [ -d $INST/usd ]; then
+      _1="-D USD_ROOT_DIR=$INST/usd"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
   fi
 
   if [ "$NO_SYSTEM_GLEW" = true ]; then
