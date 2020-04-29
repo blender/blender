@@ -529,7 +529,7 @@ void headerRotation(TransInfo *t, char str[UI_MAX_DRAW_STR], float final)
 void postInputRotation(TransInfo *t, float values[3])
 {
   float axis_final[3];
-  copy_v3_v3(axis_final, t->orient_matrix[t->orient_axis]);
+  copy_v3_v3(axis_final, t->spacemtx[t->orient_axis]);
   if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
     t->con.applyRot(t, NULL, NULL, axis_final, values);
   }

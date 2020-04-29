@@ -778,9 +778,10 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cmode, bool is_plane)
+static void transform_event_xyz_constraint(TransInfo *t, short key_type, bool is_plane)
 {
   if (!(t->flag & T_NO_CONSTRAINT)) {
+    char cmode = constraintModeToChar(t);
     int constraint_axis, constraint_plane;
     const bool edit_2d = (t->flag & T_2D_EDIT) != 0;
     const char *msg1 = "", *msg2 = "", *msg3 = "";
@@ -824,34 +825,23 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
       }
     }
     else if (!edit_2d) {
-      if (cmode != axis) {
-        /* First press, constraint to an axis. */
-        t->orientation.index = 0;
-        const short *orientation_ptr = t->orientation.types[t->orientation.index];
-        const short orientation = orientation_ptr ? *orientation_ptr : V3D_ORIENT_GLOBAL;
+      if (ELEM(cmode, '\0', axis)) {
+        /* Successive presses on existing axis, cycle orientation modes. */
+        t->orientation.index = (t->orientation.index + 1) % ARRAY_SIZE(t->orientation.types);
+        BLI_assert(t->orientation.types[0] != V3D_ORIENT_CUSTOM_MATRIX);
+        initTransformOrientation(t->context, t, t->orientation.types[t->orientation.index]);
+      }
+
+      if (t->orientation.index == 0) {
+        stopConstraint(t);
+      }
+      else {
+        const short orientation = t->orientation.types[t->orientation.index];
         if (is_plane == false) {
           setUserConstraint(t, orientation, constraint_axis, msg2);
         }
         else {
           setUserConstraint(t, orientation, constraint_plane, msg3);
-        }
-      }
-      else {
-        /* Successive presses on existing axis, cycle orientation modes. */
-        t->orientation.index = (t->orientation.index + 1) % ARRAY_SIZE(t->orientation.types);
-
-        if (t->orientation.index == 0) {
-          stopConstraint(t);
-        }
-        else {
-          const short *orientation_ptr = t->orientation.types[t->orientation.index];
-          const short orientation = orientation_ptr ? *orientation_ptr : V3D_ORIENT_GLOBAL;
-          if (is_plane == false) {
-            setUserConstraint(t, orientation, constraint_axis, msg2);
-          }
-          else {
-            setUserConstraint(t, orientation, constraint_plane, msg3);
-          }
         }
       }
     }
@@ -861,7 +851,6 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 
 int transformEvent(TransInfo *t, const wmEvent *event)
 {
-  char cmode = constraintModeToChar(t);
   bool handled = false;
   const int modifiers_prev = t->modifiers;
   const int mode_prev = t->mode;
@@ -1047,42 +1036,42 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_AXIS_X:
         if (!(t->flag & T_NO_CONSTRAINT)) {
-          transform_event_xyz_constraint(t, EVT_XKEY, cmode, false);
+          transform_event_xyz_constraint(t, EVT_XKEY, false);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_AXIS_Y:
         if ((t->flag & T_NO_CONSTRAINT) == 0) {
-          transform_event_xyz_constraint(t, EVT_YKEY, cmode, false);
+          transform_event_xyz_constraint(t, EVT_YKEY, false);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_AXIS_Z:
         if ((t->flag & (T_NO_CONSTRAINT)) == 0) {
-          transform_event_xyz_constraint(t, EVT_ZKEY, cmode, false);
+          transform_event_xyz_constraint(t, EVT_ZKEY, false);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_PLANE_X:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          transform_event_xyz_constraint(t, EVT_XKEY, cmode, true);
+          transform_event_xyz_constraint(t, EVT_XKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_PLANE_Y:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          transform_event_xyz_constraint(t, EVT_YKEY, cmode, true);
+          transform_event_xyz_constraint(t, EVT_YKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
       case TFM_MODAL_PLANE_Z:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          transform_event_xyz_constraint(t, EVT_ZKEY, cmode, true);
+          transform_event_xyz_constraint(t, EVT_ZKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
@@ -1228,17 +1217,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
               stopConstraint(t);
             }
             else {
-              if (event->shift) {
-                /* bit hackish... but it prevents mmb select to print the
-                 * orientation from menu */
-                float mati[3][3];
-                strcpy(t->spacename, "global");
-                unit_m3(mati);
-                initSelectConstraint(t, mati);
-              }
-              else {
-                initSelectConstraint(t, t->spacemtx);
-              }
+              initSelectConstraint(t, event->shift);
               postSelectConstraint(t);
             }
           }
@@ -1699,18 +1678,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         ts->prop_mode = t->prop_mode;
       }
     }
-
-    if (t->spacetype == SPACE_VIEW3D) {
-      if ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
-          !RNA_property_is_set(op->ptr, prop) &&
-          (t->orientation.user != V3D_ORIENT_CUSTOM_MATRIX)) {
-        TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
-        orient_slot->type = t->orientation.user;
-        BLI_assert(((orient_slot->index_custom == -1) && (t->orientation.custom == NULL)) ||
-                   (BKE_scene_transform_orientation_get_index(t->scene, t->orientation.custom) ==
-                    orient_slot->index_custom));
-      }
-    }
   }
 
   if (t->flag & T_MODAL) {
@@ -1737,34 +1704,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     RNA_property_boolean_set(op->ptr, prop, (t->flag & T_NO_MIRROR) == 0);
   }
 
-  /* Orientation used for redo. */
-  const bool use_orient_axis = (t->orient_matrix_is_set &&
-                                (RNA_struct_find_property(op->ptr, "orient_axis") != NULL));
-  short orientation;
-  if (t->con.mode & CON_APPLY) {
-    orientation = t->con.orientation;
-    if (orientation == V3D_ORIENT_CUSTOM) {
-      const int orientation_index_custom = BKE_scene_transform_orientation_get_index(
-          t->scene, t->orientation.custom);
-      /* Maybe we need a t->con.custom_orientation?
-       * Seems like it would always match t->orientation.custom. */
-      orientation = V3D_ORIENT_CUSTOM + orientation_index_custom;
-      BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
-    }
-  }
-  else if ((t->orientation.user == V3D_ORIENT_CUSTOM_MATRIX) &&
-           (prop = RNA_struct_find_property(op->ptr, "orient_matrix_type"))) {
-    orientation = RNA_property_enum_get(op->ptr, prop);
-  }
-  else if (use_orient_axis) {
-    /* We're not using an orientation, use the fallback. */
-    orientation = t->orientation.unset;
-  }
-  else {
-    orientation = V3D_ORIENT_GLOBAL;
-    unit_m3(t->spacemtx);
-  }
-
   if ((prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
     if (t->flag & T_MODAL) {
       if (t->con.mode & CON_APPLY) {
@@ -1784,43 +1723,34 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
-  if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix"))) {
-    if (t->flag & T_MODAL) {
-      if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
-        if (t->flag & T_MODAL) {
-          RNA_enum_set(op->ptr, "orient_matrix_type", orientation);
-        }
-      }
-      if (t->con.mode & CON_APPLY) {
-        RNA_float_set_array(op->ptr, "orient_matrix", &t->con.mtx[0][0]);
-      }
-      else if (use_orient_axis) {
-        RNA_float_set_array(op->ptr, "orient_matrix", &t->orient_matrix[0][0]);
-      }
-      else {
+  if ((prop = RNA_struct_find_property(op->ptr, "orient_type"))) {
+    short orient_set, orient_cur;
+    orient_set = RNA_property_is_set(op->ptr, prop) ? RNA_property_enum_get(op->ptr, prop) : -1;
+    orient_cur = t->orientation.types[t->orientation.index];
+
+    if (!ELEM(orient_cur, orient_set, V3D_ORIENT_CUSTOM_MATRIX)) {
+      RNA_property_enum_set(op->ptr, prop, orient_cur);
+      orient_set = orient_cur;
+    }
+
+    if (((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
+         !RNA_property_is_set(op->ptr, prop))) {
+      /* Set the first time to register on redo. */
+      RNA_property_enum_set(op->ptr, prop, orient_set);
+
+      if (((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
+           !RNA_property_is_set(op->ptr, prop))) {
         RNA_float_set_array(op->ptr, "orient_matrix", &t->spacemtx[0][0]);
       }
     }
   }
 
-  if ((prop = RNA_struct_find_property(op->ptr, "orient_type"))) {
-    /* constraint orientation can be global, even if user selects something else
-     * so use the orientation in the constraint if set */
-
-    /* Use 'orient_matrix' instead. */
-    if (t->flag & T_MODAL) {
-      if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
-        RNA_property_enum_set(op->ptr, prop, orientation);
-      }
-    }
-  }
-
   if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
-    bool constraint_axis[3] = {false, false, false};
-    if (t->flag & T_MODAL) {
-      /* Only set if needed, so we can hide in the UI when nothing is set.
-       * See 'transform_poll_property'. */
-      if (t->con.mode & CON_APPLY) {
+    if (t->con.mode & CON_APPLY) {
+      bool constraint_axis[3] = {false, false, false};
+      if (t->idx_max == 0) {
+        /* Only set if needed, so we can hide in the UI when nothing is set.
+         * See 'transform_poll_property'. */
         if (t->con.mode & CON_AXIS0) {
           constraint_axis[0] = true;
         }
@@ -1831,9 +1761,15 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
           constraint_axis[2] = true;
         }
       }
-      if (ELEM(true, UNPACK3(constraint_axis))) {
-        RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+      else {
+        constraint_axis[0] = true;
+        constraint_axis[1] = true;
+        constraint_axis[2] = true;
       }
+      RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+    }
+    else {
+      RNA_property_unset(op->ptr, prop);
     }
   }
 
@@ -1959,7 +1895,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   unit_m3(t->spacemtx);
 
   initTransInfo(C, t, op, event);
-  initTransformOrientation(C, t);
+
+  /* Although `t->orientation.index` can be different from 0, always init the
+   * default orientation so that in redo the contraint uses the `orient_matrix` */
+  initTransformOrientation(C, t, t->orientation.types[0]);
 
   if (t->spacetype == SPACE_VIEW3D) {
     t->draw_handle_apply = ED_region_draw_cb_activate(
@@ -2141,38 +2080,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   /* Constraint init from operator */
-  if ((t->flag & T_MODAL) ||
-      /* For mirror operator the constraint axes are effectively the values. */
-      (RNA_struct_find_property(op->ptr, "value") == NULL)) {
-    if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) &&
-        RNA_property_is_set(op->ptr, prop)) {
-      bool constraint_axis[3];
-
-      RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
-
-      if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
-        t->con.mode |= CON_APPLY;
-
-        if (constraint_axis[0]) {
-          t->con.mode |= CON_AXIS0;
-        }
-        if (constraint_axis[1]) {
-          t->con.mode |= CON_AXIS1;
-        }
-        if (constraint_axis[2]) {
-          t->con.mode |= CON_AXIS2;
-        }
-
-        setUserConstraint(t, t->orientation.user, t->con.mode, "%s");
-      }
-    }
-  }
-  else {
-    /* So we can adjust in non global orientation. */
-    if (t->orientation.user != V3D_ORIENT_GLOBAL) {
-      t->con.mode |= CON_APPLY | CON_AXIS0 | CON_AXIS1 | CON_AXIS2;
-      setUserConstraint(t, t->orientation.user, t->con.mode, "%s");
-    }
+  if (t->con.mode & CON_APPLY) {
+    setUserConstraint(t, t->orientation.types[t->orientation.index], t->con.mode, "%s");
   }
 
   /* Don't write into the values when non-modal because they are already set from operator redo

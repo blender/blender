@@ -53,10 +53,10 @@ static void initShear_mouseInputMode(TransInfo *t)
 {
   float dir[3];
   bool dir_flip = false;
-  copy_v3_v3(dir, t->orient_matrix[t->orient_axis_ortho]);
+  copy_v3_v3(dir, t->spacemtx[t->orient_axis_ortho]);
 
   /* Needed for axis aligned view gizmo. */
-  if (t->orientation.user == V3D_ORIENT_VIEW) {
+  if (t->orientation.types[t->orientation.index] == V3D_ORIENT_VIEW) {
     if (t->orient_axis_ortho == 0) {
       if (t->center2d[1] > t->mouse.imval[1]) {
         dir_flip = !dir_flip;
@@ -154,8 +154,8 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
   unit_m3(smat);
   smat[1][0] = value;
 
-  copy_v3_v3(axismat_inv[0], t->orient_matrix[t->orient_axis_ortho]);
-  copy_v3_v3(axismat_inv[2], t->orient_matrix[t->orient_axis]);
+  copy_v3_v3(axismat_inv[0], t->spacemtx[t->orient_axis_ortho]);
+  copy_v3_v3(axismat_inv[2], t->spacemtx[t->orient_axis]);
   cross_v3_v3v3(axismat_inv[1], axismat_inv[0], axismat_inv[2]);
   invert_m3_m3(axismat, axismat_inv);
 

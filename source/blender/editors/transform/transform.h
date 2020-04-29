@@ -531,17 +531,12 @@ typedef struct TransInfo {
   bool is_launch_event_tweak;
 
   struct {
-    /** Orientation type when when we're not constrained.
-     * nearly always global except for rotate which defaults to screen-space orientation. */
-    short unset;
-    /** Orientation to use when a key is pressed. */
-    short user;
-    /* Used when user is global. */
-    short user_alt;
     short index;
-    short *types[2];
-    /* this gets used when custom_orientation is V3D_ORIENT_CUSTOM */
+    short types[3];
+    /* this gets used when orientation.type[x] is V3D_ORIENT_CUSTOM */
     struct TransformOrientation *custom;
+    /* this gets used when orientation.type[0] is V3D_ORIENT_CUSTOM_MATRIX */
+    float custom_matrix[3][3];
   } orientation;
   /** backup from view3d, to restore on end. */
   short gizmo_flag;
@@ -565,15 +560,6 @@ typedef struct TransInfo {
   int orient_axis;
   /** Secondary axis, shear uses this. */
   int orient_axis_ortho;
-
-  /** Often this matrix has similar usage to #TransInfo.spacemtx however this
-   * is used to define extra axes to operate on, not necessarily a space.
-   *
-   * For example, by default rotation operates on the view (`orient_matrix[2]`),
-   * even when the current space isn't set to the view. */
-  float orient_matrix[3][3];
-  /** Don't overwrite when set by operator redo defines the orientation axis. */
-  bool orient_matrix_is_set;
 
   /** remove elements if operator is canceled. */
   bool remove_on_cancel;
@@ -926,7 +912,7 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 
 /*********************** Transform Orientations ******************************/
 
-void initTransformOrientation(struct bContext *C, TransInfo *t);
+void initTransformOrientation(struct bContext *C, TransInfo *t, short orientation);
 
 /* Those two fill in mat and return non-zero on success */
 bool createSpaceNormal(float mat[3][3], const float normal[3]);

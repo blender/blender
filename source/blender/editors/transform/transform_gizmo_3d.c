@@ -1402,7 +1402,7 @@ void drawDial3d(const TransInfo *t)
     }
     else {
       axis_idx = MAN_AXIS_ROT_C;
-      negate_v3_v3(mat_basis[2], t->orient_matrix[t->orient_axis]);
+      negate_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
       scale *= 1.2f;
       line_with -= 1.0f;
     }

@@ -713,7 +713,10 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
       break;
     case V3D_ORIENT_VIEW:
       BLI_snprintf(text, sizeof(text), ftext, TIP_("view"));
-      setConstraint(t, t->spacemtx, mode, text);
+      float mtx[3][3];
+      copy_m3_m3(mtx, t->spacemtx);
+      negate_v3(mtx[2]);
+      setConstraint(t, mtx, mode, text);
       break;
     case V3D_ORIENT_CURSOR:
       BLI_snprintf(text, sizeof(text), ftext, TIP_("cursor"));
@@ -984,17 +987,23 @@ void getConstraintMatrix(TransInfo *t)
 
 /*------------------------- MMB Select -------------------------------*/
 
-void initSelectConstraint(TransInfo *t, float mtx[3][3])
+void initSelectConstraint(TransInfo *t, bool force_global)
 {
-  copy_m3_m3(t->con.mtx, mtx);
-  t->con.mode |= CON_APPLY;
-  t->con.mode |= CON_SELECT;
+  short orientation;
+  if (force_global) {
+    orientation = V3D_ORIENT_GLOBAL;
+  }
+  else {
+    if (t->orientation.index == 0) {
+      t->orientation.index = 1;
+      BLI_assert(t->orientation.types[0] != V3D_ORIENT_CUSTOM_MATRIX);
+      initTransformOrientation(t->context, t, t->orientation.types[t->orientation.index]);
+    }
+    orientation = t->orientation.types[t->orientation.index];
+  }
 
+  setUserConstraint(t, orientation, CON_APPLY | CON_SELECT, "");
   setNearestAxis(t);
-  t->con.drawExtra = NULL;
-  t->con.applyVec = applyAxisConstraintVec;
-  t->con.applySize = applyAxisConstraintSize;
-  t->con.applyRot = applyAxisConstraintRot;
 }
 
 void selectConstraint(TransInfo *t)

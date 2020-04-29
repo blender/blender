@@ -1431,11 +1431,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   unit_m3(t->mat);
 
-  unit_m3(t->orient_matrix);
-  negate_m3(t->orient_matrix);
-  /* Leave 't->orient_matrix_is_set' to false,
-   * so we overwrite it when we have a useful value. */
-
   /* Default to rotate on the Z axis. */
   t->orient_axis = 2;
   t->orient_axis_ortho = 1;
@@ -1511,22 +1506,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     /* bend always uses the cursor */
     if (t->mode == TFM_BEND) {
       t->around = V3D_AROUND_CURSOR;
-    }
-
-    TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
-    t->orientation.unset = V3D_ORIENT_GLOBAL;
-    t->orientation.user = orient_slot->type;
-    t->orientation.custom = BKE_scene_transform_orientation_find(t->scene,
-                                                                 orient_slot->index_custom);
-
-    t->orientation.index = 0;
-    ARRAY_SET_ITEMS(t->orientation.types, &t->orientation.user, NULL);
-
-    /* Make second orientation local if both are global. */
-    if (t->orientation.user == V3D_ORIENT_GLOBAL) {
-      t->orientation.user_alt = V3D_ORIENT_LOCAL;
-      t->orientation.types[0] = &t->orientation.user_alt;
-      SWAP(short *, t->orientation.types[0], t->orientation.types[1]);
     }
 
     /* exceptional case */
@@ -1617,48 +1596,100 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->around = V3D_AROUND_CENTER_BOUNDS;
   }
 
-  if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
-    t->orient_axis = RNA_property_enum_get(op->ptr, prop);
-  }
-  if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
-    t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
-  }
+  if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    bool constraint_axis[3];
 
-  if (op &&
-      ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
-       RNA_property_is_set(op->ptr, prop)) &&
-      ((t->flag & T_MODAL) ||
-       /* When using redo, don't use the custom constraint matrix
-        * if the user selects a different orientation. */
-       (RNA_enum_get(op->ptr, "orient_type") == RNA_enum_get(op->ptr, "orient_matrix_type")))) {
-    RNA_property_float_get_array(op->ptr, prop, &t->orient_matrix[0][0]);
-    copy_m3_m3(t->spacemtx, t->orient_matrix);
-    /* Some transform modes use this to operate on an axis. */
-    t->orient_matrix_is_set = true;
-    t->orientation.user = V3D_ORIENT_CUSTOM_MATRIX;
-    t->orientation.custom = 0;
-    if (t->flag & T_MODAL) {
-      RNA_enum_set(op->ptr, "orient_matrix_type", RNA_enum_get(op->ptr, "orient_type"));
+    RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
+
+    if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
+      t->con.mode |= CON_APPLY;
+
+      if (constraint_axis[0]) {
+        t->con.mode |= CON_AXIS0;
+      }
+      if (constraint_axis[1]) {
+        t->con.mode |= CON_AXIS1;
+      }
+      if (constraint_axis[2]) {
+        t->con.mode |= CON_AXIS2;
+      }
     }
   }
-  else if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
-                  RNA_property_is_set(op->ptr, prop))) {
-    short orientation = RNA_property_enum_get(op->ptr, prop);
-    TransformOrientation *custom_orientation = NULL;
 
-    if (orientation >= V3D_ORIENT_CUSTOM) {
-      if (orientation >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
-        orientation = V3D_ORIENT_GLOBAL;
+  {
+    TransformOrientation *custom_orientation = NULL;
+    short orient_type_default = V3D_ORIENT_GLOBAL;
+    short orient_type_set = -1;
+    short orient_type_matrix_set = -1;
+    short orient_type_constraint = -1;
+
+    if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
+      t->orient_axis = RNA_property_enum_get(op->ptr, prop);
+      orient_type_default = V3D_ORIENT_VIEW;
+    }
+    if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
+      t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
+    }
+
+    if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
+               RNA_property_is_set(op->ptr, prop))) {
+      orient_type_set = RNA_property_enum_get(op->ptr, prop);
+    }
+
+    if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
+               RNA_property_is_set(op->ptr, prop))) {
+      RNA_property_float_get_array(op->ptr, prop, &t->orientation.custom_matrix[0][0]);
+
+      if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
+          RNA_property_is_set(op->ptr, prop)) {
+        orient_type_matrix_set = RNA_property_enum_get(op->ptr, prop);
       }
       else {
-        custom_orientation = BKE_scene_transform_orientation_find(t->scene,
-                                                                  orientation - V3D_ORIENT_CUSTOM);
-        orientation = V3D_ORIENT_CUSTOM;
+        orient_type_matrix_set = orient_type_set;
+      }
+
+      if (orient_type_matrix_set == orient_type_set) {
+        /* When using redo, don't use the custom constraint matrix
+         * if the user selects a different orientation. */
+        orient_type_default = V3D_ORIENT_CUSTOM_MATRIX;
+        orient_type_constraint = orient_type_set;
       }
     }
 
-    t->orientation.user = orientation;
+    if (orient_type_constraint == -1) {
+      if (orient_type_set != -1) {
+        orient_type_default = orient_type_set;
+
+        if (orient_type_default >= V3D_ORIENT_CUSTOM) {
+          if (orient_type_default >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
+            orient_type_default = V3D_ORIENT_GLOBAL;
+          }
+          else {
+            custom_orientation = BKE_scene_transform_orientation_find(
+                t->scene, orient_type_default - V3D_ORIENT_CUSTOM);
+            orient_type_default = V3D_ORIENT_CUSTOM;
+          }
+        }
+        orient_type_constraint = orient_type_default;
+      }
+      else {
+        TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
+        orient_type_constraint = orient_slot->type;
+        custom_orientation = BKE_scene_transform_orientation_find(t->scene,
+                                                                  orient_slot->index_custom);
+      }
+    }
+
+    t->orientation.types[0] = orient_type_default;
+    t->orientation.types[1] = orient_type_constraint;
+    t->orientation.types[2] = orient_type_constraint != V3D_ORIENT_GLOBAL ? V3D_ORIENT_GLOBAL :
+                                                                            V3D_ORIENT_LOCAL;
     t->orientation.custom = custom_orientation;
+
+    if (t->con.mode & CON_APPLY) {
+      t->orientation.index = 1;
+    }
   }
 
   if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
