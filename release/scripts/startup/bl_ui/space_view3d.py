@@ -1469,6 +1469,7 @@ class VIEW3D_MT_select_pose(Menu):
         layout.separator()
 
         layout.operator("pose.select_constraint_target", text="Constraint Target")
+        layout.operator("pose.select_linked", text="Linked")
 
         layout.separator()
 

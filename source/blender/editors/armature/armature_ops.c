@@ -100,6 +100,7 @@ void ED_operatortypes_armature(void)
   WM_operatortype_append(POSE_OT_select_parent);
   WM_operatortype_append(POSE_OT_select_hierarchy);
   WM_operatortype_append(POSE_OT_select_linked);
+  WM_operatortype_append(POSE_OT_select_linked_pick);
   WM_operatortype_append(POSE_OT_select_constraint_target);
   WM_operatortype_append(POSE_OT_select_grouped);
   WM_operatortype_append(POSE_OT_select_mirror);
