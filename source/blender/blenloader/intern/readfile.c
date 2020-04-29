@@ -10137,6 +10137,15 @@ static void lib_link_all(FileData *fd, Main *bmain)
      * 'permanently' in our data structures... */
     BKE_main_collections_parent_relations_rebuild(bmain);
   }
+
+#ifndef NDEBUG
+  /* Double check we do not have any 'need link' tag remaining, this should never be the case once
+   * this function has run. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    BLI_assert((id->tag & LIB_TAG_NEED_LINK) == 0);
+  }
+  FOREACH_MAIN_ID_END;
+#endif
 }
 
 /** \} */
