@@ -9715,7 +9715,9 @@ static bool read_libblock_undo_restore(
     /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
      * this is only for do_version-like code), but for sake of consistency, and also because
      * it will tell us which ID is re-used from old Main, and which one is actually new. */
-    const int id_tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_UNDO_OLD_ID_REUSED;
+    /* Also do not add LIB_TAG_NEED_LINK, those IDs will never be re-liblinked, hence that tag will
+     * never be cleared, leading to critical issue in link/appemd code. */
+    const int id_tag = tag | LIB_TAG_UNDO_OLD_ID_REUSED;
     read_libblock_undo_restore_identical(fd, main, id, id_old, id_tag);
 
     /* Insert into library map for lookup by newly read datablocks (with pointer value bhead->old).
@@ -10195,6 +10197,15 @@ static void lib_link_all(FileData *fd, Main *bmain)
      * 'permanently' in our data structures... */
     BKE_main_collections_parent_relations_rebuild(bmain);
   }
+
+#ifndef NDEBUG
+  /* Double check we do not have any 'need link' tag remaining, this should never be the case once
+   * this function has run. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    BLI_assert((id->tag & LIB_TAG_NEED_LINK) == 0);
+  }
+  FOREACH_MAIN_ID_END;
+#endif
 }
 
 /** \} */

@@ -25,6 +25,8 @@ if(UNIX AND NOT APPLE)
   set(BZIP2_CFLAGS "-fPIC -Wall -Winline -O2 -g -D_FILE_OFFSET_BITS=64")
   set(BZIP2_CONFIGURE_ENV ${BZIP2_CONFIGURE_ENV} && export LDFLAGS=${BZIP2_LDFLAGS} && export CFLAGS=${BZIP2_CFLAGS}
     && export PREFIX=${BZIP2_PREFIX})
+else()
+  set(BZIP2_CONFIGURE_ENV ${CONFIGURE_ENV})
 endif()
 
 ExternalProject_Add(external_bzip2

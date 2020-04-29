@@ -807,6 +807,36 @@ void wm_window_ghostwindows_remove_invalid(bContext *C, wmWindowManager *wm)
   }
 }
 
+/* Update window size and position based on data from GHOST window. */
+static bool wm_window_update_size_position(wmWindow *win)
+{
+  GHOST_RectangleHandle client_rect;
+  int l, t, r, b, scr_w, scr_h;
+  int sizex, sizey, posx, posy;
+
+  client_rect = GHOST_GetClientBounds(win->ghostwin);
+  GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
+
+  GHOST_DisposeRectangle(client_rect);
+
+  wm_get_desktopsize(&scr_w, &scr_h);
+  sizex = r - l;
+  sizey = b - t;
+  posx = l;
+  posy = scr_h - t - win->sizey;
+
+  if (win->sizex != sizex || win->sizey != sizey || win->posx != posx || win->posy != posy) {
+    win->sizex = sizex;
+    win->sizey = sizey;
+    win->posx = posx;
+    win->posy = posy;
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 /**
  * new window, no screen yet, but we open ghostwindow for it,
  * also gets the window level handlers
@@ -941,12 +971,19 @@ wmWindow *WM_window_open_temp(bContext *C,
   ED_area_newspace(C, area, space_type, false);
 
   ED_screen_change(C, screen);
-  ED_screen_refresh(wm, win); /* test scale */
 
   if (win->ghostwin) {
+    /* Set size in GHOST window and then update size and position from GHOST,
+     * in case they where changed by GHOST to fit the monitor/screen. */
     wm_window_set_size(win, win->sizex, win->sizey);
-    wm_window_raise(win);
+    wm_window_update_size_position(win);
+  }
 
+  /* Refresh screen dimensions, after the effective window size is known. */
+  ED_screen_refresh(wm, win);
+
+  if (win->ghostwin) {
+    wm_window_raise(win);
     GHOST_SetTitle(win->ghostwin, title);
     return win;
   }
@@ -1354,21 +1391,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
         /* win32: gives undefined window size when minimized */
         if (state != GHOST_kWindowStateMinimized) {
-          GHOST_RectangleHandle client_rect;
-          int l, t, r, b, scr_w, scr_h;
-          int sizex, sizey, posx, posy;
-
-          client_rect = GHOST_GetClientBounds(win->ghostwin);
-          GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
-
-          GHOST_DisposeRectangle(client_rect);
-
-          wm_get_desktopsize(&scr_w, &scr_h);
-          sizex = r - l;
-          sizey = b - t;
-          posx = l;
-          posy = scr_h - t - win->sizey;
-
           /*
            * Ghost sometimes send size or move events when the window hasn't changed.
            * One case of this is using compiz on linux. To alleviate the problem
@@ -1377,14 +1399,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
            * It might be good to eventually do that at Ghost level, but that is for
            * another time.
            */
-          if (win->sizex != sizex || win->sizey != sizey || win->posx != posx ||
-              win->posy != posy) {
+          if (wm_window_update_size_position(win)) {
             const bScreen *screen = WM_window_get_active_screen(win);
-
-            win->sizex = sizex;
-            win->sizey = sizey;
-            win->posx = posx;
-            win->posy = posy;
 
             /* debug prints */
             if (G.debug & G_DEBUG_EVENTS) {
