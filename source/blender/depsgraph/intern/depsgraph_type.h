@@ -44,6 +44,7 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 struct Depsgraph;
 
@@ -58,6 +59,7 @@ using BLI::Set;
 using BLI::StringRef;
 using BLI::StringRefNull;
 using BLI::Vector;
+using BLI::VectorSet;
 using std::deque;
 using std::map;
 using std::pair;
