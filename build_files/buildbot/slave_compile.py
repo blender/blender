@@ -37,10 +37,6 @@ def get_cmake_options(builder):
     elif builder.platform == 'win':
         options.extend(['-G', 'Visual Studio 15 2017 Win64'])
         options.extend(['-DPOSTINSTALL_SCRIPT:PATH=' + post_install_script])
-
-        info = buildbot_utils.VersionInfo(builder)
-        if info.version_cycle == 'release':
-            options.append('-DWITH_WINDOWS_PDB=OFF')
     elif builder.platform == 'linux':
         config_file = "build_files/buildbot/config/blender_linux.cmake"
 
