@@ -317,7 +317,13 @@ static void playanim_toscreen(
     GPU_blend(true);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-    imm_draw_box_checker_2d(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
+    imm_draw_box_checker_2d_ex(offs_x,
+                               offs_y,
+                               offs_x + span_x,
+                               offs_y + span_y,
+                               (const float[4]){0.15, 0.15, 0.15, 1.0},
+                               (const float[4]){0.20, 0.20, 0.20, 1.0},
+                               8);
   }
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);

@@ -70,6 +70,13 @@ void imm_draw_disk_partial_fill_2d(uint pos,
 void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2);
 void imm_draw_box_wire_3d(uint pos, float x1, float y1, float x2, float y2);
 
+void imm_draw_box_checker_2d_ex(float x1,
+                                float y1,
+                                float x2,
+                                float y2,
+                                const float color_primary[4],
+                                const float color_secondary[4],
+                                int checker_size);
 void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2);
 
 void imm_draw_cube_fill_3d(uint pos, const float co[3], const float aspect[3]);
