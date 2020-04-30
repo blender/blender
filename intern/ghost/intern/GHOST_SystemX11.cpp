@@ -2456,7 +2456,7 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
           string cmd = "xdg-open \"" + string(link) + "\"";
           if (system(cmd.c_str()) != 0) {
             GHOST_PRINTF("GHOST_SystemX11::showMessageBox: Unable to run system command [%s]",
-                         cmd);
+                         cmd.c_str());
           }
         }
         break;
