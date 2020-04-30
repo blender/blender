@@ -684,7 +684,8 @@ ccl_device void voronoi_f1_4d(float4 coord,
   float4 targetPosition = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      for (int j = -1; j <= 1; j++) {
+      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
+      {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 pointPosition = cellOffset +
@@ -722,7 +723,8 @@ ccl_device void voronoi_smooth_f1_4d(float4 coord,
   float4 smoothPosition = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   for (int u = -2; u <= 2; u++) {
     for (int k = -2; k <= 2; k++) {
-      for (int j = -2; j <= 2; j++) {
+      ccl_loop_no_unroll for (int j = -2; j <= 2; j++)
+      {
         for (int i = -2; i <= 2; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 pointPosition = cellOffset +
@@ -765,7 +767,8 @@ ccl_device void voronoi_f2_4d(float4 coord,
   float4 positionF2 = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      for (int j = -1; j <= 1; j++) {
+      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
+      {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 pointPosition = cellOffset +
@@ -803,7 +806,8 @@ ccl_device void voronoi_distance_to_edge_4d(float4 coord, float randomness, floa
   float minDistance = 8.0f;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      for (int j = -1; j <= 1; j++) {
+      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
+      {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 vectorToPoint = cellOffset +
@@ -822,7 +826,8 @@ ccl_device void voronoi_distance_to_edge_4d(float4 coord, float randomness, floa
   minDistance = 8.0f;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      for (int j = -1; j <= 1; j++) {
+      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
+      {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 vectorToPoint = cellOffset +
@@ -851,7 +856,8 @@ ccl_device void voronoi_n_sphere_radius_4d(float4 coord, float randomness, float
   float minDistance = 8.0f;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      for (int j = -1; j <= 1; j++) {
+      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
+      {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 pointPosition = cellOffset +
@@ -871,7 +877,8 @@ ccl_device void voronoi_n_sphere_radius_4d(float4 coord, float randomness, float
   float4 closestPointToClosestPoint = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      for (int j = -1; j <= 1; j++) {
+      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
+      {
         for (int i = -1; i <= 1; i++) {
           if (i == 0 && j == 0 && k == 0 && u == 0) {
             continue;

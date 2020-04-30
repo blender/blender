@@ -302,6 +302,9 @@ def smoke_adaptive_step_$ID$(framenr):\n\
     setObstacleFlags(flags=flags_s$ID$, phiObs=phiObs_s$ID$, phiOut=phiOut_s$ID$, phiIn=phiIn_s$ID$, boundaryWidth=1)\n\
     flags_s$ID$.fillGrid()\n\
     \n\
+    # reset emission accumulation at the beginning of an adaptive frame\n\
+    if not s$ID$.timePerFrame:\n\
+        emission_s$ID$.setConst(0.)\n\
     # accumulate emission value per adaptive step for later use in noise computation\n\
     emission_s$ID$.join(emissionIn_s$ID$)\n\
     \n\
