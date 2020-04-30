@@ -481,6 +481,40 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
   return item;
 }
 
+/* Just existing Materials */
+const EnumPropertyItem *ED_gpencil_material_enum_itemf(bContext *C,
+                                                       PointerRNA *UNUSED(ptr),
+                                                       PropertyRNA *UNUSED(prop),
+                                                       bool *r_free)
+{
+  Object *ob = CTX_data_active_object(C);
+  EnumPropertyItem *item = NULL, item_tmp = {0};
+  int totitem = 0;
+  int i = 0;
+
+  if (ELEM(NULL, C, ob)) {
+    return DummyRNA_DEFAULT_items;
+  }
+
+  /* Existing materials */
+  for (i = 1; i <= ob->totcol; i++) {
+    Material *ma = BKE_object_material_get(ob, i);
+    if (ma) {
+      item_tmp.identifier = ma->id.name + 2;
+      item_tmp.name = ma->id.name + 2;
+      item_tmp.value = i;
+      item_tmp.icon = ma->preview->icon_id;
+
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+    }
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
+}
+
 /* ******************************************************** */
 /* Brush Tool Core */
 

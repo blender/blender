@@ -653,7 +653,8 @@ void ED_operatortypes_gpencil(void)
   WM_operatortype_append(GPENCIL_OT_material_reveal);
   WM_operatortype_append(GPENCIL_OT_material_lock_all);
   WM_operatortype_append(GPENCIL_OT_material_unlock_all);
-  WM_operatortype_append(GPENCIL_OT_select_material);
+  WM_operatortype_append(GPENCIL_OT_material_select);
+  WM_operatortype_append(GPENCIL_OT_material_set);
 
   /* Editing (Time) --------------- */
 
