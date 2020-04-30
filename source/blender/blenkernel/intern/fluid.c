@@ -81,6 +81,8 @@
 
 #  include "RE_shader_ext.h"
 
+#  include "CLG_log.h"
+
 #  include "manta_fluid_API.h"
 
 #endif /* WITH_FLUID */
@@ -95,6 +97,8 @@ static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *mmd, bool need
 
 #ifdef WITH_FLUID
 // #define DEBUG_PRINT
+
+static CLG_LogRef LOG = {"bke.fluid"};
 
 /* -------------------------------------------------------------------- */
 /** \name Fluid API
@@ -948,11 +952,7 @@ static void sample_effector(FluidEffectorSettings *mes,
         velocity_map[index * 3 + 2] += hit_vel[2];
 #  ifdef DEBUG_PRINT
         /* Debugging: Print object velocities. */
-        printf("adding effector object vel: [%f, %f, %f], dx is: %f\n",
-               hit_vel[0],
-               hit_vel[1],
-               hit_vel[2],
-               mds->dx);
+        printf("adding effector object vel: [%f, %f, %f]\n", hit_vel[0], hit_vel[1], hit_vel[2]);
 #  endif
       }
     }
@@ -3773,6 +3773,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
   if (!mds->fluid && !BKE_fluid_modifier_init(mmd, depsgraph, ob, scene, me)) {
+    CLOG_ERROR(&LOG, "Fluid initialization failed. Should not happen!");
     return;
   }
   BLI_assert(mds->fluid);
