@@ -7128,6 +7128,49 @@ static void menu_types_add_from_keymap_items(bContext *C,
   }
 }
 
+static void menu_items_from_all_operators(bContext *C, struct MenuSearch_Data *data)
+{
+  /* Add to temporary list so we can sort them separately. */
+  ListBase operator_items = {NULL, NULL};
+
+  MemArena *memarena = data->memarena;
+  GHashIterator iter;
+  for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter);
+       BLI_ghashIterator_step(&iter)) {
+    wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
+
+    if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0) {
+      continue;
+    }
+
+    if (WM_operator_poll((bContext *)C, ot)) {
+      const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
+
+      struct MenuSearch_Item *item = NULL;
+      item = BLI_memarena_calloc(memarena, sizeof(*item));
+      item->type = MENU_SEARCH_TYPE_OP;
+
+      item->op.type = ot;
+      item->op.opcontext = WM_OP_EXEC_DEFAULT;
+      item->op.context = NULL;
+
+      char idname_as_py[OP_MAX_TYPENAME];
+      char uiname[256];
+      WM_operator_py_idname(idname_as_py, ot->idname);
+
+      SNPRINTF(uiname, "%s " MENU_SEP "%s", idname_as_py, ot_ui_name);
+
+      item->drawwstr_full = strdup_memarena(memarena, uiname);
+
+      BLI_addtail(&operator_items, item);
+    }
+  }
+
+  BLI_listbase_sort(&operator_items, menu_item_sort_by_drawstr_full);
+
+  BLI_movelisttolist(&data->items, &operator_items);
+}
+
 /**
  * Create #MenuSearch_Data by inspecting the current context, this uses two methods:
  *
@@ -7440,6 +7483,10 @@ static struct MenuSearch_Data *menu_items_from_ui_create(bContext *C,
   BLI_gset_free(menu_tagged, NULL);
 
   data->memarena = memarena;
+
+  if (U.flag & USER_DEVELOPER_UI) {
+    menu_items_from_all_operators(C, data);
+  }
 
   return data;
 }
