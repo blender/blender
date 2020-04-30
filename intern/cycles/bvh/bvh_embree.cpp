@@ -16,11 +16,6 @@
 
 /* This class implements a ray accelerator for Cycles using Intel's Embree library.
  * It supports triangles, curves, object and deformation blur and instancing.
- * Not supported are thick line segments, those have no native equivalent in Embree.
- * They could be implemented using Embree's thick curves, at the expense of wasted memory.
- * User defined intersections for Embree could also be an option, but since Embree only uses
- * aligned BVHs for user geometry, this would come with reduced performance and/or higher memory
- * usage.
  *
  * Since Embree allows object to be either curves or triangles but not both, Cycles object IDs are
  * mapped to Embree IDs by multiplying by two and adding one for curves.
@@ -775,6 +770,21 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair
       }
     }
   }
+#  if RTC_VERSION >= 30900
+  if (!use_curves) {
+    unsigned char *flags = (unsigned char *)rtcSetNewGeometryBuffer(geom_id,
+                                                                    RTC_BUFFER_TYPE_FLAGS,
+                                                                    0,
+                                                                    RTC_FORMAT_UCHAR,
+                                                                    sizeof(unsigned char),
+                                                                    num_keys_embree);
+    flags[0] = RTC_CURVE_FLAG_NEIGHBOR_RIGHT;
+    ::memset(flags + 1,
+             RTC_CURVE_FLAG_NEIGHBOR_RIGHT | RTC_CURVE_FLAG_NEIGHBOR_RIGHT,
+             num_keys_embree - 2);
+    flags[num_keys_embree - 1] = RTC_CURVE_FLAG_NEIGHBOR_LEFT;
+  }
+#  endif
 }
 
 void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
@@ -810,10 +820,18 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   size_t prim_tri_index_size = pack.prim_index.size();
   pack.prim_tri_index.resize(prim_tri_index_size + num_segments);
 
+#  if RTC_VERSION >= 30900
+  enum RTCGeometryType type = (!use_curves) ?
+                                  (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_LINEAR_CURVE :
+                                                 RTC_GEOMETRY_TYPE_ROUND_LINEAR_CURVE) :
+                                  (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
+                                                 RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
+#  else
   enum RTCGeometryType type = (!use_curves) ?
                                   RTC_GEOMETRY_TYPE_FLAT_LINEAR_CURVE :
                                   (use_ribbons ? RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
                                                  RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
+#  endif
 
   RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, type);
   rtcSetGeometryTessellationRate(geom_id, curve_subdivisions);
