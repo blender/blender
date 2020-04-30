@@ -175,6 +175,7 @@ set(SRC
   intern/multires_reshape_apply_base.c
   intern/multires_reshape_ccg.c
   intern/multires_reshape_smooth.c
+  intern/multires_reshape_subdivide.c
   intern/multires_reshape_util.c
   intern/multires_reshape_vertcos.c
   intern/multires_subdiv.c

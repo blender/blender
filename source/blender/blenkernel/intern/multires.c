@@ -2234,7 +2234,14 @@ void multiresModifier_sync_levels_ex(Object *ob_dst,
   }
 
   if (mmd_src->totlvl > mmd_dst->totlvl) {
-    multiresModifier_subdivide_to_level(ob_dst, mmd_dst, mmd_src->totlvl);
+    if (mmd_dst->simple) {
+      multiresModifier_subdivide_to_level(
+          ob_dst, mmd_dst, mmd_src->totlvl, MULTIRES_SUBDIVIDE_SIMPLE);
+    }
+    else {
+      multiresModifier_subdivide_to_level(
+          ob_dst, mmd_dst, mmd_src->totlvl, MULTIRES_SUBDIVIDE_CATMULL_CLARK);
+    }
   }
   else {
     multires_del_higher(mmd_dst, ob_dst, mmd_src->totlvl);

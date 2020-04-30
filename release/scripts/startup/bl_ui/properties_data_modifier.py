@@ -696,7 +696,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
 
         col.enabled = ob.mode != 'EDIT'
-        col.operator("object.multires_subdivide", text="Subdivide")
+        op = col.operator("object.multires_subdivide", text="Subdivide")
+        op.mode = 'CATMULL_CLARK'
+
+        op = col.operator("object.multires_subdivide", text="Subdivide Simple")
+        op.mode = 'SIMPLE'
+
+        op = col.operator("object.multires_subdivide", text="Subdivide Linear")
+        op.mode = 'LINEAR'
+
         col.operator("object.multires_higher_levels_delete", text="Delete Higher")
         col.operator("object.multires_unsubdivide", text="Unsubdivide")
         col.operator("object.multires_reshape", text="Reshape")

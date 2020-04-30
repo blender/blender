@@ -180,13 +180,25 @@ bool multiresModifier_reshapeFromCCG(const int tot_level,
                                      struct SubdivCCG *subdiv_ccg);
 
 /* Subdivide multires displacement once. */
-void multiresModifier_subdivide(struct Object *object, struct MultiresModifierData *mmd);
+
+typedef enum eMultiresSubdivideModeType {
+  MULTIRES_SUBDIVIDE_CATMULL_CLARK,
+  MULTIRES_SUBDIVIDE_SIMPLE,
+  MULTIRES_SUBDIVIDE_LINEAR,
+} eMultiresSubdivideModeType;
+
+void multiresModifier_subdivide(struct Object *object,
+                                struct MultiresModifierData *mmd,
+                                const eMultiresSubdivideModeType mode);
+void multires_subdivide_create_tangent_displacement_linear_grids(struct Object *object,
+                                                                 struct MultiresModifierData *mmd);
 
 /* Subdivide displacement to the given level.
  * If level is lower than the current top level nothing happens. */
 void multiresModifier_subdivide_to_level(struct Object *object,
                                          struct MultiresModifierData *mmd,
-                                         const int top_level);
+                                         const int top_level,
+                                         const eMultiresSubdivideModeType mode);
 
 /* Subdivision integration, defined in multires_subdiv.c */
 

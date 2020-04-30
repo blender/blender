@@ -28,8 +28,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_vector.h"
-
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
@@ -37,6 +35,8 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"
+#include "BKE_subsurf.h"
+#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -171,15 +171,18 @@ bool multiresModifier_reshapeFromCCG(const int tot_level,
 /** \name Subdivision
  * \{ */
 
-void multiresModifier_subdivide(Object *object, MultiresModifierData *mmd)
+void multiresModifier_subdivide(Object *object,
+                                MultiresModifierData *mmd,
+                                const eMultiresSubdivideModeType mode)
 {
   const int top_level = mmd->totlvl + 1;
-  multiresModifier_subdivide_to_level(object, mmd, top_level);
+  multiresModifier_subdivide_to_level(object, mmd, top_level, mode);
 }
 
 void multiresModifier_subdivide_to_level(struct Object *object,
                                          struct MultiresModifierData *mmd,
-                                         const int top_level)
+                                         const int top_level,
+                                         const eMultiresSubdivideModeType mode)
 {
   if (top_level <= mmd->totlvl) {
     return;
@@ -196,7 +199,12 @@ void multiresModifier_subdivide_to_level(struct Object *object,
   }
   if (!has_mdisps || top_level == 1) {
     multires_reshape_ensure_grids(coarse_mesh, top_level);
-    multires_set_tot_level(object, mmd, top_level);
+    if (ELEM(mode, MULTIRES_SUBDIVIDE_LINEAR, MULTIRES_SUBDIVIDE_SIMPLE)) {
+      multires_subdivide_create_tangent_displacement_linear_grids(object, mmd);
+    }
+    else {
+      multires_set_tot_level(object, mmd, top_level);
+    }
     return;
   }
 
@@ -205,16 +213,22 @@ void multiresModifier_subdivide_to_level(struct Object *object,
   if (!multires_reshape_context_create_from_subdivide(&reshape_context, object, mmd, top_level)) {
     return;
   }
+
   multires_reshape_store_original_grids(&reshape_context);
   multires_reshape_ensure_grids(coarse_mesh, reshape_context.top.level);
   multires_reshape_assign_final_coords_from_orig_mdisps(&reshape_context);
 
-  /* Free original grids which makes it so smoothing with details thinks all the details were
-   * added against base mesh's limit surface. This is similar behavior to as if we've done all
-   * displacement in sculpt mode at the old top level and then propagated to the new top level. */
-  multires_reshape_free_original_grids(&reshape_context);
+  if (ELEM(mode, MULTIRES_SUBDIVIDE_LINEAR, MULTIRES_SUBDIVIDE_SIMPLE)) {
+    multires_reshape_smooth_object_grids(&reshape_context, mode);
+  }
+  else {
+    /* Free original grids which makes it so smoothing with details thinks all the details were
+     * added against base mesh's limit surface. This is similar behavior to as if we've done all
+     * displacement in sculpt mode at the old top level and then propagated to the new top level.*/
+    multires_reshape_free_original_grids(&reshape_context);
 
-  multires_reshape_smooth_object_grids_with_details(&reshape_context);
+    multires_reshape_smooth_object_grids_with_details(&reshape_context);
+  }
   multires_reshape_object_grids_to_tangent_displacement(&reshape_context);
   multires_reshape_context_free(&reshape_context);
 

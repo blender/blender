@@ -119,6 +119,14 @@ typedef struct MultiresReshapeSmoothContext {
   Subdiv *reshape_subdiv;
 
   SurfaceGrid *base_surface_grids;
+
+  /* Defines how displacement is interpolated on the higher levels (for example, whether
+   * displacement is smoothed in Catmull-Clark mode or interpolated linearly preserving sharp edges
+   * of the current sculpt level).
+   *
+   * NOTE: Uses same enumerator type as Subdivide operator, since the values are the same and
+   * decoupling type just adds extra headache to convert one enumerator to another. */
+  eMultiresSubdivideModeType smoothing_type;
 } MultiresReshapeSmoothContext;
 
 /** \} */
@@ -412,15 +420,17 @@ static int get_reshape_level_resolution(const MultiresReshapeContext *reshape_co
 static char get_effective_edge_crease_char(
     const MultiresReshapeSmoothContext *reshape_smooth_context, const MEdge *base_edge)
 {
-  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  if (reshape_context->subdiv->settings.is_simple) {
+  if (ELEM(reshape_smooth_context->smoothing_type,
+           MULTIRES_SUBDIVIDE_LINEAR,
+           MULTIRES_SUBDIVIDE_SIMPLE)) {
     return 255;
   }
   return base_edge->crease;
 }
 
 static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
-                         const MultiresReshapeContext *reshape_context)
+                         const MultiresReshapeContext *reshape_context,
+                         const eMultiresSubdivideModeType mode)
 {
   reshape_smooth_context->reshape_context = reshape_context;
 
@@ -440,6 +450,8 @@ static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
   reshape_smooth_context->non_loose_base_edge_map = NULL;
   reshape_smooth_context->reshape_subdiv = NULL;
   reshape_smooth_context->base_surface_grids = NULL;
+
+  reshape_smooth_context->smoothing_type = mode;
 }
 
 static void context_free_geometry(MultiresReshapeSmoothContext *reshape_smooth_context)
@@ -474,12 +486,14 @@ static void context_free(MultiresReshapeSmoothContext *reshape_smooth_context)
 
 static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
                                   const int num_vertices,
-                                  const int UNUSED(num_edges),
+                                  const int num_edges,
                                   const int num_loops,
                                   const int num_polygons)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
-  const int max_edges = reshape_smooth_context->geometry.max_edges;
+  const int max_edges = reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR ?
+                            num_edges :
+                            reshape_smooth_context->geometry.max_edges;
 
   /* NOTE: Calloc so the counters are re-set to 0 "for free". */
   reshape_smooth_context->geometry.num_vertices = num_vertices;
@@ -672,6 +686,22 @@ static void foreach_vertex_of_loose_edge(const struct SubdivForeachContext *fore
   }
 }
 
+static void store_edge(MultiresReshapeSmoothContext *reshape_smooth_context,
+                       const int subdiv_v1,
+                       const int subdiv_v2,
+                       const char crease)
+{
+  /* This is a bit overhead to use atomics in such a simple function called from many threads,
+   * but this allows to save quite measurable amount of memory. */
+  const int edge_index = atomic_fetch_and_add_z(&reshape_smooth_context->geometry.num_edges, 1);
+  BLI_assert(edge_index < reshape_smooth_context->geometry.max_edges);
+
+  Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
+  edge->v1 = subdiv_v1;
+  edge->v2 = subdiv_v2;
+  edge->sharpness = BKE_subdiv_edge_crease_to_sharpness_char(crease);
+}
+
 static void foreach_edge(const struct SubdivForeachContext *foreach_context,
                          void *UNUSED(tls),
                          const int coarse_edge_index,
@@ -682,8 +712,15 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
-  /* Ignore all inner face edges as they have sharpness of zero. */
-  if (coarse_edge_index == ORIGINDEX_NONE) {
+  if (reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR) {
+    store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, (char)255);
+    return;
+  }
+
+  /* Ignore all inner face edges as they have sharpness of zero when using Catmull-Clark mode. In
+   * simple mode, all edges have maximum sharpness, so they can't be skipped. */
+  if (coarse_edge_index == ORIGINDEX_NONE &&
+      reshape_smooth_context->smoothing_type != MULTIRES_SUBDIVIDE_SIMPLE) {
     return;
   }
   /* Ignore all loose edges as well, as they are not communicated to the OpenSubdiv. */
@@ -697,16 +734,7 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
   if (crease == 0) {
     return;
   }
-
-  /* This is a bit overhead to use atomics in such a simple function called from many threads,
-   * but this allows to save quite measurable amount of memory. */
-  const int edge_index = atomic_fetch_and_add_z(&reshape_smooth_context->geometry.num_edges, 1);
-  BLI_assert(edge_index < reshape_smooth_context->geometry.max_edges);
-
-  Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
-  edge->v1 = subdiv_v1;
-  edge->v2 = subdiv_v2;
-  edge->sharpness = BKE_subdiv_edge_crease_to_sharpness_char(crease);
+  store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, crease);
 }
 
 static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshape_smooth_context)
@@ -1212,7 +1240,12 @@ void multires_reshape_smooth_object_grids_with_details(
   }
 
   MultiresReshapeSmoothContext reshape_smooth_context;
-  context_init(&reshape_smooth_context, reshape_context);
+  if (reshape_context->mmd->simple) {
+    context_init(&reshape_smooth_context, reshape_context, MULTIRES_SUBDIVIDE_SIMPLE);
+  }
+  else {
+    context_init(&reshape_smooth_context, reshape_context, MULTIRES_SUBDIVIDE_CATMULL_CLARK);
+  }
 
   geometry_create(&reshape_smooth_context);
 
@@ -1228,7 +1261,8 @@ void multires_reshape_smooth_object_grids_with_details(
   context_free(&reshape_smooth_context);
 }
 
-void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_context)
+void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_context,
+                                          const eMultiresSubdivideModeType mode)
 {
   const int level_difference = (reshape_context->top.level - reshape_context->reshape.level);
   if (level_difference == 0) {
@@ -1237,7 +1271,7 @@ void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_
   }
 
   MultiresReshapeSmoothContext reshape_smooth_context;
-  context_init(&reshape_smooth_context, reshape_context);
+  context_init(&reshape_smooth_context, reshape_context, mode);
 
   geometry_create(&reshape_smooth_context);
 
