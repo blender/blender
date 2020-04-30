@@ -1240,7 +1240,7 @@ void multires_reshape_smooth_object_grids_with_details(
   }
 
   MultiresReshapeSmoothContext reshape_smooth_context;
-  if (reshape_context->mmd->simple) {
+  if (reshape_context->subdiv->settings.is_simple) {
     context_init(&reshape_smooth_context, reshape_context, MULTIRES_SUBDIVIDE_SIMPLE);
   }
   else {
