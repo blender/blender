@@ -244,13 +244,15 @@ struct KnApplyForce : public KernelBase {
   bool additive;
 };
 
-//! add gravity forces to all fluid cells, automatically adapts to different grid sizes
+//! add gravity forces to all fluid cells, optionally  adapts to different grid sizes automatically
 void addGravity(const FlagGrid &flags,
                 MACGrid &vel,
                 Vec3 gravity,
-                const Grid<Real> *exclude = NULL)
+                const Grid<Real> *exclude = NULL,
+                bool scale = true)
 {
-  Vec3 f = gravity * flags.getParent()->getDt() / flags.getDx();
+  float gridScale = (scale) ? flags.getDx() : 1;
+  Vec3 f = gravity * flags.getParent()->getDt() / gridScale;
   KnApplyForce(flags, vel, f, exclude, true);
 }
 static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
@@ -267,8 +269,9 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       MACGrid &vel = *_args.getPtr<MACGrid>("vel", 1, &_lock);
       Vec3 gravity = _args.get<Vec3>("gravity", 2, &_lock);
       const Grid<Real> *exclude = _args.getPtrOpt<Grid<Real>>("exclude", 3, NULL, &_lock);
+      bool scale = _args.getOpt<bool>("scale", 4, true, &_lock);
       _retval = getPyNone();
-      addGravity(flags, vel, gravity, exclude);
+      addGravity(flags, vel, gravity, exclude, scale);
       _args.check();
     }
     pbFinalizePlugin(parent, "addGravity", !noTiming);
@@ -287,14 +290,13 @@ void PbRegister_addGravity()
 }
 }
 
-//! add gravity forces to all fluid cells , but dont account for changing cell size
+//! Deprecated: use addGravity(scale=false) instead
 void addGravityNoScale(const FlagGrid &flags,
                        MACGrid &vel,
                        const Vec3 &gravity,
                        const Grid<Real> *exclude = NULL)
 {
-  const Vec3 f = gravity * flags.getParent()->getDt();
-  KnApplyForce(flags, vel, f, exclude, true);
+  addGravity(flags, vel, gravity, exclude, false);
 }
 static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
@@ -412,14 +414,17 @@ struct KnAddBuoyancy : public KernelBase {
   Vec3 strength;
 };
 
-//! add Buoyancy force based on fctor (e.g. smoke density)
+//! add Buoyancy force based on factor (e.g. smoke density), optionally adapts to different grid
+//! sizes automatically
 void addBuoyancy(const FlagGrid &flags,
                  const Grid<Real> &density,
                  MACGrid &vel,
                  Vec3 gravity,
-                 Real coefficient = 1.)
+                 Real coefficient = 1.,
+                 bool scale = true)
 {
-  Vec3 f = -gravity * flags.getParent()->getDt() / flags.getParent()->getDx() * coefficient;
+  float gridScale = (scale) ? flags.getDx() : 1;
+  Vec3 f = -gravity * flags.getParent()->getDt() / gridScale * coefficient;
   KnAddBuoyancy(flags, density, vel, f);
 }
 static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
@@ -437,8 +442,9 @@ static PyObject *_W_2(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       MACGrid &vel = *_args.getPtr<MACGrid>("vel", 2, &_lock);
       Vec3 gravity = _args.get<Vec3>("gravity", 3, &_lock);
       Real coefficient = _args.getOpt<Real>("coefficient", 4, 1., &_lock);
+      bool scale = _args.getOpt<bool>("scale", 5, true, &_lock);
       _retval = getPyNone();
-      addBuoyancy(flags, density, vel, gravity, coefficient);
+      addBuoyancy(flags, density, vel, gravity, coefficient, scale);
       _args.check();
     }
     pbFinalizePlugin(parent, "addBuoyancy", !noTiming);
