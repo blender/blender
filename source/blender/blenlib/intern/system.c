@@ -32,11 +32,7 @@
 /* for backtrace and gethostname/GetComputerName */
 #if defined(WIN32)
 #  include <intrin.h>
-#  include <windows.h>
-#  pragma warning(push)
-#  pragma warning(disable : 4091)
-#  include <dbghelp.h>
-#  pragma warning(pop)
+#  include "BLI_winstuff.h"
 #else
 #  include <execinfo.h>
 #  include <unistd.h>
@@ -74,6 +70,8 @@ int BLI_cpu_support_sse2(void)
 #endif
 }
 
+/* Windows stackwalk lives in system_win32.c */
+#if !defined(_MSC_VER)
 /**
  * Write a backtrace into a file for systems which support it.
  */
@@ -81,9 +79,9 @@ void BLI_system_backtrace(FILE *fp)
 {
   /* ------------- */
   /* Linux / Apple */
-#if defined(__linux__) || defined(__APPLE__)
+#  if defined(__linux__) || defined(__APPLE__)
 
-#  define SIZE 100
+#    define SIZE 100
   void *buffer[SIZE];
   int nptrs;
   char **strings;
@@ -98,48 +96,15 @@ void BLI_system_backtrace(FILE *fp)
   }
 
   free(strings);
-#  undef SIZE
-
-  /* -------- */
-  /* Windows  */
-#elif defined(_MSC_VER)
-
-#  ifndef NDEBUG
-#    define MAXSYMBOL 256
-#    define SIZE 100
-  unsigned short i;
-  void *stack[SIZE];
-  unsigned short nframes;
-  SYMBOL_INFO *symbolinfo;
-  HANDLE process;
-
-  process = GetCurrentProcess();
-
-  SymInitialize(process, NULL, TRUE);
-
-  nframes = CaptureStackBackTrace(0, SIZE, stack, NULL);
-  symbolinfo = MEM_callocN(sizeof(SYMBOL_INFO) + MAXSYMBOL * sizeof(char), "crash Symbol table");
-  symbolinfo->MaxNameLen = MAXSYMBOL - 1;
-  symbolinfo->SizeOfStruct = sizeof(SYMBOL_INFO);
-
-  for (i = 0; i < nframes; i++) {
-    SymFromAddr(process, (DWORD64)(stack[i]), 0, symbolinfo);
-
-    fprintf(fp, "%u: %s - 0x%0llX\n", nframes - i - 1, symbolinfo->Name, symbolinfo->Address);
-  }
-
-  MEM_freeN(symbolinfo);
-#    undef MAXSYMBOL
 #    undef SIZE
+
 #  else
-  fprintf(fp, "Crash backtrace not supported on release builds\n");
-#  endif /* NDEBUG */
-#else    /* _MSC_VER */
   /* ------------------ */
   /* non msvc/osx/linux */
   (void)fp;
-#endif
+#  endif
 }
+#endif
 /* end BLI_system_backtrace */
 
 /* NOTE: The code for CPU brand string is adopted from Cycles. */

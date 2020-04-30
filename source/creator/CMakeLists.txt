@@ -687,6 +687,14 @@ elseif(WIN32)
     )
   endif()
 
+  if(WITH_WINDOWS_PDB)
+    if(WITH_WINDOWS_STRIPPED_PDB)
+      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/blender_public.pdb DESTINATION . RENAME blender.pdb)
+    else()
+      install(FILES $<TARGET_PDB_FILE:blender> DESTINATION . RENAME blender.pdb)
+    endif()
+  endif()
+
   if(WITH_PYTHON)
     string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
@@ -1085,6 +1093,13 @@ endif()
 # the use of vcpkg
 if(WIN32)
   set_target_properties(blender PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
+  set_target_properties(blender PROPERTIES
+    PDB_NAME "blender_private"
+    PDB_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+    if (WITH_WINDOWS_PDB AND WITH_WINDOWS_STRIPPED_PDB)
+    message("poop : ${COMPILE_PDB_OUTPUT_DIRECTORY}")
+      target_link_options(blender PRIVATE "/PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/blender_public.pdb")
+  endif()
 endif()
 
 # -----------------------------------------------------------------------------

@@ -295,6 +295,9 @@ if(WIN32)
   list(APPEND LIB
     bf_intern_utfconv
   )
+  list(APPEND SRC
+    intern/system_win32.c
+  )
 endif()
 
 
