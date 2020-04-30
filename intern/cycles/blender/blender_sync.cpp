@@ -108,7 +108,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     }
 
     if (dicing_prop_changed) {
-      for (const pair<GeometryKey, Geometry *> &iter : geometry_map.key_to_scene_data()) {
+      for (const pair<const GeometryKey, Geometry *> &iter : geometry_map.key_to_scene_data()) {
         Geometry *geom = iter.second;
         if (geom->type == Geometry::MESH) {
           Mesh *mesh = static_cast<Mesh *>(geom);
