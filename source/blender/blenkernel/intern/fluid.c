@@ -4889,7 +4889,6 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *mmd)
     mmd->domain->surface_tension = 0.0f;
     mmd->domain->viscosity_base = 1.0f;
     mmd->domain->viscosity_exponent = 6.0f;
-    mmd->domain->domain_size = 0.5f;
 
     /* mesh options */
     mmd->domain->mesh_velocities = NULL;
@@ -5133,7 +5132,6 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *mmd,
     tmds->surface_tension = mds->surface_tension;
     tmds->viscosity_base = mds->viscosity_base;
     tmds->viscosity_exponent = mds->viscosity_exponent;
-    tmds->domain_size = mds->domain_size;
 
     /* mesh options */
     if (mds->mesh_velocities) {

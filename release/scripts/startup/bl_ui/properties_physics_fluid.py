@@ -1002,7 +1002,6 @@ class PHYSICS_PT_diffusion(PhysicButtonsPanel, Panel):
         col.prop(domain, "viscosity_exponent", text="Exponent", slider=True)
 
         col = flow.column()
-        col.prop(domain, "domain_size", text="Real World Size")
         col.prop(domain, "surface_tension", text="Surface Tension")
 
 

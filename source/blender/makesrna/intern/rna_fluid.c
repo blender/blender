@@ -1687,11 +1687,6 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       "e.g. 5*10^-6)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
-  prop = RNA_def_property(srna, "domain_size", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_range(prop, 0.001, 10000.0);
-  RNA_def_property_ui_text(prop, "Meters", "Domain size in meters (longest domain side)");
-  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_domain_reset");
-
   /*  mesh options options */
 
   prop = RNA_def_property(srna, "mesh_concave_upper", PROP_FLOAT, PROP_NONE);

@@ -393,7 +393,6 @@ typedef struct FluidDomainSettings {
   float surface_tension;
   float viscosity_base;
   int viscosity_exponent;
-  float domain_size;
 
   /* Mesh options. */
   float mesh_concave_upper;
@@ -404,7 +403,7 @@ typedef struct FluidDomainSettings {
   int mesh_scale;
   int totvert;
   short mesh_generator;
-  char _pad5[2]; /* Unused. */
+  char _pad5[6]; /* Unused. */
 
   /* Secondary particle options. */
   int particle_type;
