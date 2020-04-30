@@ -232,86 +232,9 @@ static void display_destroy(display_t *d)
 
 static GHOST_TKey xkb_map_gkey(const xkb_keysym_t &sym)
 {
-  static const std::unordered_map<xkb_keysym_t, GHOST_TKey> special_keys = {
-      {XKB_KEY_BackSpace, GHOST_kKeyBackSpace},
-      {XKB_KEY_Tab, GHOST_kKeyTab},
-      {XKB_KEY_Linefeed, GHOST_kKeyLinefeed},
-      {XKB_KEY_Clear, GHOST_kKeyClear},
-      {XKB_KEY_Return, GHOST_kKeyEnter},
 
-      {XKB_KEY_Escape, GHOST_kKeyEsc},
-      {XKB_KEY_space, GHOST_kKeySpace},
-      {XKB_KEY_comma, GHOST_kKeyComma},
-      {XKB_KEY_minus, GHOST_kKeyMinus},
-      {XKB_KEY_plus, GHOST_kKeyPlus},
-      {XKB_KEY_period, GHOST_kKeyPeriod},
-      {XKB_KEY_slash, GHOST_kKeySlash},
-
-      {XKB_KEY_semicolon, GHOST_kKeySemicolon},
-      {XKB_KEY_equal, GHOST_kKeyEqual},
-
-      {XKB_KEY_bracketleft, GHOST_kKeyLeftBracket},
-      {XKB_KEY_bracketright, GHOST_kKeyRightBracket},
-      {XKB_KEY_backslash, GHOST_kKeyBackslash},
-      {XKB_KEY_grave, GHOST_kKeyAccentGrave},
-
-      {XKB_KEY_Shift_L, GHOST_kKeyLeftShift},
-      {XKB_KEY_Shift_R, GHOST_kKeyRightShift},
-      {XKB_KEY_Control_L, GHOST_kKeyLeftControl},
-      {XKB_KEY_Control_R, GHOST_kKeyRightControl},
-      {XKB_KEY_Alt_L, GHOST_kKeyLeftAlt},
-      {XKB_KEY_Alt_R, GHOST_kKeyRightAlt},
-      {XKB_KEY_Super_L, GHOST_kKeyOS},
-      {XKB_KEY_Super_R, GHOST_kKeyOS},
-      {XKB_KEY_Menu, GHOST_kKeyApp},
-
-      {XKB_KEY_Caps_Lock, GHOST_kKeyCapsLock},
-      {XKB_KEY_Num_Lock, GHOST_kKeyNumLock},
-      {XKB_KEY_Scroll_Lock, GHOST_kKeyScrollLock},
-
-      {XKB_KEY_Left, GHOST_kKeyLeftArrow},
-      {XKB_KEY_KP_Left, GHOST_kKeyLeftArrow},
-      {XKB_KEY_Right, GHOST_kKeyRightArrow},
-      {XKB_KEY_KP_Right, GHOST_kKeyRightArrow},
-      {XKB_KEY_Up, GHOST_kKeyUpArrow},
-      {XKB_KEY_KP_Up, GHOST_kKeyUpArrow},
-      {XKB_KEY_Down, GHOST_kKeyDownArrow},
-      {XKB_KEY_KP_Down, GHOST_kKeyDownArrow},
-
-      {XKB_KEY_Print, GHOST_kKeyPrintScreen},
-      {XKB_KEY_Pause, GHOST_kKeyPause},
-
-      {XKB_KEY_Insert, GHOST_kKeyInsert},
-      {XKB_KEY_KP_Insert, GHOST_kKeyInsert},
-      {XKB_KEY_Delete, GHOST_kKeyDelete},
-      {XKB_KEY_KP_Delete, GHOST_kKeyDelete},
-      {XKB_KEY_Home, GHOST_kKeyHome},
-      {XKB_KEY_KP_Home, GHOST_kKeyHome},
-      {XKB_KEY_End, GHOST_kKeyEnd},
-      {XKB_KEY_KP_End, GHOST_kKeyEnd},
-      {XKB_KEY_Page_Up, GHOST_kKeyUpPage},
-      {XKB_KEY_KP_Page_Up, GHOST_kKeyUpPage},
-      {XKB_KEY_Page_Down, GHOST_kKeyDownPage},
-      {XKB_KEY_KP_Page_Down, GHOST_kKeyDownPage},
-
-      {XKB_KEY_KP_Decimal, GHOST_kKeyNumpadPeriod},
-      {XKB_KEY_KP_Enter, GHOST_kKeyNumpadEnter},
-      {XKB_KEY_KP_Add, GHOST_kKeyNumpadPlus},
-      {XKB_KEY_KP_Subtract, GHOST_kKeyNumpadMinus},
-      {XKB_KEY_KP_Multiply, GHOST_kKeyNumpadAsterisk},
-      {XKB_KEY_KP_Divide, GHOST_kKeyNumpadSlash},
-
-      {XKB_KEY_XF86AudioPlay, GHOST_kKeyMediaPlay},
-      {XKB_KEY_XF86AudioStop, GHOST_kKeyMediaStop},
-      {XKB_KEY_XF86AudioPrev, GHOST_kKeyMediaFirst},
-      {XKB_KEY_XF86AudioNext, GHOST_kKeyMediaLast},
-  };
-
-  GHOST_TKey gkey = GHOST_kKeyUnknown;
-  if (special_keys.count(sym)) {
-    gkey = special_keys.at(sym);
-  }
-  else if (sym >= XKB_KEY_0 && sym <= XKB_KEY_9) {
+  GHOST_TKey gkey;
+  if (sym >= XKB_KEY_0 && sym <= XKB_KEY_9) {
     gkey = GHOST_TKey(sym);
   }
   else if (sym >= XKB_KEY_KP_0 && sym <= XKB_KEY_KP_9) {
@@ -327,7 +250,90 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t &sym)
     gkey = GHOST_TKey(GHOST_kKeyF1 + sym - XKB_KEY_F1);
   }
   else {
-    GHOST_PRINT("unhandled key: " << sym << std::endl);
+
+#define GXMAP(k, x, y) \
+  case x: \
+    k = y; \
+    break
+
+    switch (sym) {
+      GXMAP(gkey, XKB_KEY_BackSpace, GHOST_kKeyBackSpace);
+      GXMAP(gkey, XKB_KEY_Tab, GHOST_kKeyTab);
+      GXMAP(gkey, XKB_KEY_Linefeed, GHOST_kKeyLinefeed);
+      GXMAP(gkey, XKB_KEY_Clear, GHOST_kKeyClear);
+      GXMAP(gkey, XKB_KEY_Return, GHOST_kKeyEnter);
+
+      GXMAP(gkey, XKB_KEY_Escape, GHOST_kKeyEsc);
+      GXMAP(gkey, XKB_KEY_space, GHOST_kKeySpace);
+      GXMAP(gkey, XKB_KEY_comma, GHOST_kKeyComma);
+      GXMAP(gkey, XKB_KEY_minus, GHOST_kKeyMinus);
+      GXMAP(gkey, XKB_KEY_plus, GHOST_kKeyPlus);
+      GXMAP(gkey, XKB_KEY_period, GHOST_kKeyPeriod);
+      GXMAP(gkey, XKB_KEY_slash, GHOST_kKeySlash);
+
+      GXMAP(gkey, XKB_KEY_semicolon, GHOST_kKeySemicolon);
+      GXMAP(gkey, XKB_KEY_equal, GHOST_kKeyEqual);
+
+      GXMAP(gkey, XKB_KEY_bracketleft, GHOST_kKeyLeftBracket);
+      GXMAP(gkey, XKB_KEY_bracketright, GHOST_kKeyRightBracket);
+      GXMAP(gkey, XKB_KEY_backslash, GHOST_kKeyBackslash);
+      GXMAP(gkey, XKB_KEY_grave, GHOST_kKeyAccentGrave);
+
+      GXMAP(gkey, XKB_KEY_Shift_L, GHOST_kKeyLeftShift);
+      GXMAP(gkey, XKB_KEY_Shift_R, GHOST_kKeyRightShift);
+      GXMAP(gkey, XKB_KEY_Control_L, GHOST_kKeyLeftControl);
+      GXMAP(gkey, XKB_KEY_Control_R, GHOST_kKeyRightControl);
+      GXMAP(gkey, XKB_KEY_Alt_L, GHOST_kKeyLeftAlt);
+      GXMAP(gkey, XKB_KEY_Alt_R, GHOST_kKeyRightAlt);
+      GXMAP(gkey, XKB_KEY_Super_L, GHOST_kKeyOS);
+      GXMAP(gkey, XKB_KEY_Super_R, GHOST_kKeyOS);
+      GXMAP(gkey, XKB_KEY_Menu, GHOST_kKeyApp);
+
+      GXMAP(gkey, XKB_KEY_Caps_Lock, GHOST_kKeyCapsLock);
+      GXMAP(gkey, XKB_KEY_Num_Lock, GHOST_kKeyNumLock);
+      GXMAP(gkey, XKB_KEY_Scroll_Lock, GHOST_kKeyScrollLock);
+
+      GXMAP(gkey, XKB_KEY_Left, GHOST_kKeyLeftArrow);
+      GXMAP(gkey, XKB_KEY_KP_Left, GHOST_kKeyLeftArrow);
+      GXMAP(gkey, XKB_KEY_Right, GHOST_kKeyRightArrow);
+      GXMAP(gkey, XKB_KEY_KP_Right, GHOST_kKeyRightArrow);
+      GXMAP(gkey, XKB_KEY_Up, GHOST_kKeyUpArrow);
+      GXMAP(gkey, XKB_KEY_KP_Up, GHOST_kKeyUpArrow);
+      GXMAP(gkey, XKB_KEY_Down, GHOST_kKeyDownArrow);
+      GXMAP(gkey, XKB_KEY_KP_Down, GHOST_kKeyDownArrow);
+
+      GXMAP(gkey, XKB_KEY_Print, GHOST_kKeyPrintScreen);
+      GXMAP(gkey, XKB_KEY_Pause, GHOST_kKeyPause);
+
+      GXMAP(gkey, XKB_KEY_Insert, GHOST_kKeyInsert);
+      GXMAP(gkey, XKB_KEY_KP_Insert, GHOST_kKeyInsert);
+      GXMAP(gkey, XKB_KEY_Delete, GHOST_kKeyDelete);
+      GXMAP(gkey, XKB_KEY_KP_Delete, GHOST_kKeyDelete);
+      GXMAP(gkey, XKB_KEY_Home, GHOST_kKeyHome);
+      GXMAP(gkey, XKB_KEY_KP_Home, GHOST_kKeyHome);
+      GXMAP(gkey, XKB_KEY_End, GHOST_kKeyEnd);
+      GXMAP(gkey, XKB_KEY_KP_End, GHOST_kKeyEnd);
+      GXMAP(gkey, XKB_KEY_Page_Up, GHOST_kKeyUpPage);
+      GXMAP(gkey, XKB_KEY_KP_Page_Up, GHOST_kKeyUpPage);
+      GXMAP(gkey, XKB_KEY_Page_Down, GHOST_kKeyDownPage);
+      GXMAP(gkey, XKB_KEY_KP_Page_Down, GHOST_kKeyDownPage);
+
+      GXMAP(gkey, XKB_KEY_KP_Decimal, GHOST_kKeyNumpadPeriod);
+      GXMAP(gkey, XKB_KEY_KP_Enter, GHOST_kKeyNumpadEnter);
+      GXMAP(gkey, XKB_KEY_KP_Add, GHOST_kKeyNumpadPlus);
+      GXMAP(gkey, XKB_KEY_KP_Subtract, GHOST_kKeyNumpadMinus);
+      GXMAP(gkey, XKB_KEY_KP_Multiply, GHOST_kKeyNumpadAsterisk);
+      GXMAP(gkey, XKB_KEY_KP_Divide, GHOST_kKeyNumpadSlash);
+
+      GXMAP(gkey, XKB_KEY_XF86AudioPlay, GHOST_kKeyMediaPlay);
+      GXMAP(gkey, XKB_KEY_XF86AudioStop, GHOST_kKeyMediaStop);
+      GXMAP(gkey, XKB_KEY_XF86AudioPrev, GHOST_kKeyMediaFirst);
+      GXMAP(gkey, XKB_KEY_XF86AudioNext, GHOST_kKeyMediaLast);
+      default:
+        GHOST_PRINT("unhandled key: " << sym << std::endl);
+        gkey = GHOST_kKeyUnknown;
+    }
+#undef GXMAP
   }
 
   return gkey;
