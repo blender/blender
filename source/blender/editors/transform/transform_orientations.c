@@ -476,20 +476,20 @@ void initTransformOrientation(bContext *C, TransInfo *t, short orientation)
 
       break;
 
-    case V3D_ORIENT_VIEW:
+    case V3D_ORIENT_VIEW: {
+      float mat[3][3];
       if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
-        float mat[3][3];
-
         BLI_strncpy(t->spacename, TIP_("view"), sizeof(t->spacename));
         copy_m3_m4(mat, t->viewinv);
         normalize_m3(mat);
-        negate_v3(mat[2]);
-        copy_m3_m3(t->spacemtx, mat);
       }
       else {
-        unit_m3(t->spacemtx);
+        unit_m3(mat);
       }
+      negate_v3(mat[2]);
+      copy_m3_m3(t->spacemtx, mat);
       break;
+    }
     case V3D_ORIENT_CURSOR: {
       BLI_strncpy(t->spacename, TIP_("cursor"), sizeof(t->spacename));
       BKE_scene_cursor_rot_to_mat3(&t->scene->cursor, t->spacemtx);
