@@ -173,6 +173,8 @@ static void tbb_task_pool_create(TaskPool *pool, TaskPriority priority)
   if (pool->use_threads) {
     new (&pool->tbb_group) TBBTaskGroup(priority);
   }
+#else
+  UNUSED_VARS(priority);
 #endif
 }
 
@@ -234,6 +236,8 @@ static void tbb_task_pool_cancel(TaskPool *pool)
     pool->tbb_group.cancel();
     pool->tbb_group.wait();
   }
+#else
+  UNUSED_VARS(pool);
 #endif
 }
 
@@ -243,6 +247,8 @@ static bool tbb_task_pool_canceled(TaskPool *pool)
   if (pool->use_threads) {
     return pool->tbb_group.is_canceling();
   }
+#else
+  UNUSED_VARS(pool);
 #endif
 
   return false;
