@@ -178,6 +178,7 @@ set(SRC
   intern/multires_reshape_util.c
   intern/multires_reshape_vertcos.c
   intern/multires_subdiv.c
+  intern/multires_unsubdivide.c
   intern/nla.c
   intern/node.c
   intern/object.c
@@ -397,6 +398,7 @@ set(SRC
   intern/lib_intern.h
   intern/multires_inline.h
   intern/multires_reshape.h
+  intern/multires_unsubdivide.h
   intern/pbvh_intern.h
   intern/subdiv_converter.h
   intern/subdiv_inline.h

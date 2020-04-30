@@ -152,6 +152,39 @@ static bool context_verify_or_free(MultiresReshapeContext *reshape_context)
   return is_valid;
 }
 
+bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *reshape_context,
+                                                    Depsgraph *depsgraph,
+                                                    Object *object,
+                                                    MultiresModifierData *mmd)
+{
+  context_zero(reshape_context);
+
+  const bool use_render_params = false;
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Mesh *base_mesh = (Mesh *)object->data;
+
+  reshape_context->depsgraph = depsgraph;
+  reshape_context->object = object;
+  reshape_context->mmd = mmd;
+
+  reshape_context->base_mesh = base_mesh;
+
+  reshape_context->subdiv = multires_reshape_create_subdiv(NULL, object, mmd);
+  reshape_context->need_free_subdiv = true;
+
+  reshape_context->reshape.level = multires_get_level(
+      scene_eval, object, mmd, use_render_params, true);
+  reshape_context->reshape.grid_size = BKE_subdiv_grid_size_from_level(
+      reshape_context->reshape.level);
+
+  reshape_context->top.level = mmd->totlvl;
+  reshape_context->top.grid_size = BKE_subdiv_grid_size_from_level(reshape_context->top.level);
+
+  context_init_commoon(reshape_context);
+
+  return context_verify_or_free(reshape_context);
+}
+
 bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape_context,
                                                  Depsgraph *depsgraph,
                                                  Object *object,
@@ -272,9 +305,9 @@ void multires_reshape_context_free(MultiresReshapeContext *reshape_context)
 
   multires_reshape_free_original_grids(reshape_context);
 
-  MEM_freeN(reshape_context->face_start_grid_index);
-  MEM_freeN(reshape_context->ptex_start_grid_index);
-  MEM_freeN(reshape_context->grid_to_face_index);
+  MEM_SAFE_FREE(reshape_context->face_start_grid_index);
+  MEM_SAFE_FREE(reshape_context->ptex_start_grid_index);
+  MEM_SAFE_FREE(reshape_context->grid_to_face_index);
 }
 
 /** \} */

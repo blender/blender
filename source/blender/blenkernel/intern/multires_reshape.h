@@ -156,6 +156,11 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
                                                  struct Object *object,
                                                  struct MultiresModifierData *mmd);
 
+bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *reshape_context,
+                                                    struct Depsgraph *depsgraph,
+                                                    struct Object *object,
+                                                    struct MultiresModifierData *mmd);
+
 bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_context,
                                               struct SubdivCCG *subdiv_ccg,
                                               struct Mesh *base_mesh,
