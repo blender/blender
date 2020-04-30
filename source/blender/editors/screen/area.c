@@ -2515,6 +2515,7 @@ void ED_region_panels_layout_ex(const bContext *C,
   int margin_x = 0;
   const bool region_layout_based = region->flag & RGN_FLAG_DYNAMIC_SIZE;
   const bool is_context_new = (contextnr != -1) ? UI_view2d_tab_set(v2d, contextnr) : false;
+  bool update_tot_size = true;
 
   /* before setting the view */
   if (vertical) {
@@ -2583,6 +2584,11 @@ void ED_region_panels_layout_ex(const bContext *C,
       }
     }
 
+    if (panel && UI_panel_is_dragging(panel)) {
+      /* Prevent View2d.tot rectangle size changes while dragging panels. */
+      update_tot_size = false;
+    }
+
     ed_panel_draw(C, area, region, &region->panels, pt, panel, w, em, vertical);
   }
 
@@ -2638,8 +2644,10 @@ void ED_region_panels_layout_ex(const bContext *C,
     y = -y;
   }
 
-  /* this also changes the 'cur' */
-  UI_view2d_totRect_set(v2d, x, y);
+  if (update_tot_size) {
+    /* this also changes the 'cur' */
+    UI_view2d_totRect_set(v2d, x, y);
+  }
 
   if (use_category_tabs) {
     region->runtime.category = category;

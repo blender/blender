@@ -876,6 +876,16 @@ static int get_panel_real_ofsx(Panel *panel)
   }
 }
 
+bool UI_panel_is_dragging(const struct Panel *panel)
+{
+  uiHandlePanelData *data = panel->activedata;
+  if (!data) {
+    return false;
+  }
+
+  return (data->state == PANEL_STATE_DRAG);
+}
+
 typedef struct PanelSort {
   Panel *panel, *orig;
 } PanelSort;
