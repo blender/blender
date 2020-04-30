@@ -156,6 +156,19 @@ void BVHOptiX::pack_tlas()
     PackedBVH &bvh_pack = geom->bvh->pack;
     int geom_prim_offset = geom->prim_offset;
 
+    // Merge visibility flags of all objects and fix object indices for non-instanced geometry
+    int object_index = 0;  // Unused for instanced geometry
+    int object_visibility = 0;
+    foreach (Object *ob, objects) {
+      if (ob->geometry == geom) {
+        object_visibility |= ob->visibility_for_tracing();
+        if (!geom->is_instanced()) {
+          object_index = ob->get_device_index();
+          break;
+        }
+      }
+    }
+
     // Merge primitive, object and triangle indexes
     if (!bvh_pack.prim_index.empty()) {
       int *bvh_prim_type = &bvh_pack.prim_type[0];
@@ -174,8 +187,8 @@ void BVHOptiX::pack_tlas()
         }
 
         pack_prim_type[pack_offset] = bvh_prim_type[i];
-        pack_prim_object[pack_offset] = 0;  // Unused for instanced geometry
-        pack_prim_visibility[pack_offset] = bvh_prim_visibility[i];
+        pack_prim_object[pack_offset] = object_index;
+        pack_prim_visibility[pack_offset] = bvh_prim_visibility[i] | object_visibility;
       }
     }
 
@@ -186,27 +199,6 @@ void BVHOptiX::pack_tlas()
              bvh_pack.prim_tri_verts.data(),
              prim_tri_size * sizeof(float4));
       pack_verts_offset += prim_tri_size;
-    }
-  }
-
-  // Merge visibility flags of all objects and fix object indices for non-instanced geometry
-  foreach (Object *ob, objects) {
-    Geometry *const geom = ob->geometry;
-    size_t num_primitives = 0;
-
-    if (geom->type == Geometry::MESH) {
-      num_primitives = static_cast<Mesh *const>(geom)->num_triangles();
-    }
-    else if (geom->type == Geometry::HAIR) {
-      num_primitives = static_cast<Hair *const>(geom)->num_segments();
-    }
-
-    for (size_t i = 0; i < num_primitives; ++i) {
-      if (!geom->is_instanced()) {
-        assert(pack.prim_object[geom->optix_prim_offset + i] == 0);
-        pack.prim_object[geom->optix_prim_offset + i] = ob->get_device_index();
-      }
-      pack.prim_visibility[geom->optix_prim_offset + i] |= ob->visibility_for_tracing();
     }
   }
 }
