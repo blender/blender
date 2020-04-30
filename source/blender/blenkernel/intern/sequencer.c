@@ -1394,7 +1394,7 @@ static void multibuf(ImBuf *ibuf, const float fmul)
   }
 }
 
-static float give_stripelem_index(Sequence *seq, float cfra)
+float BKE_sequencer_give_stripelem_index(Sequence *seq, float cfra)
 {
   float nr;
   int sta = seq->start;
@@ -1452,7 +1452,7 @@ StripElem *BKE_sequencer_give_stripelem(Sequence *seq, int cfra)
      * all other strips don't use this...
      */
 
-    int nr = (int)give_stripelem_index(seq, cfra);
+    int nr = (int)BKE_sequencer_give_stripelem_index(seq, cfra);
 
     if (nr == -1 || se == NULL) {
       return NULL;
@@ -1889,7 +1889,7 @@ static bool seq_proxy_get_fname(Editing *ed,
     frameno = 1;
   }
   else {
-    frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
+    frameno = (int)BKE_sequencer_give_stripelem_index(seq, cfra) + seq->anim_startofs;
     BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####%s", dir, proxy_size_number, suffix);
   }
 
@@ -1922,7 +1922,7 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
   }
 
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
-    int frameno = (int)give_stripelem_index(seq, cfra) + seq->anim_startofs;
+    int frameno = (int)BKE_sequencer_give_stripelem_index(seq, cfra) + seq->anim_startofs;
     if (proxy->anim == NULL) {
       if (seq_proxy_get_fname(ed, seq, cfra, psize, name, context->view_id) == 0) {
         return NULL;
@@ -2887,15 +2887,15 @@ static void *render_effect_execute_do_thread(void *thread_data_v)
   return NULL;
 }
 
-static ImBuf *seq_render_effect_execute_threaded(struct SeqEffectHandle *sh,
-                                                 const SeqRenderData *context,
-                                                 Sequence *seq,
-                                                 float cfra,
-                                                 float facf0,
-                                                 float facf1,
-                                                 ImBuf *ibuf1,
-                                                 ImBuf *ibuf2,
-                                                 ImBuf *ibuf3)
+ImBuf *BKE_sequencer_effect_execute_threaded(struct SeqEffectHandle *sh,
+                                             const SeqRenderData *context,
+                                             Sequence *seq,
+                                             float cfra,
+                                             float facf0,
+                                             float facf1,
+                                             ImBuf *ibuf1,
+                                             ImBuf *ibuf2,
+                                             ImBuf *ibuf3)
 {
   RenderEffectInitData init_data;
   ImBuf *out = sh->init_execution(context, ibuf1, ibuf2, ibuf3);
@@ -2969,14 +2969,21 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
       break;
     case EARLY_DO_EFFECT:
       for (i = 0; i < 3; i++) {
-        if (input[i]) {
-          ibuf[i] = seq_render_strip(context, state, input[i], cfra);
+        /* Speed effect requires time remapping of cfra for input(s). */
+        if (input[1] && seq->type == SEQ_TYPE_SPEED) {
+          float target_frame = BKE_sequencer_speed_effect_target_frame_get(context, seq, cfra, i);
+          ibuf[i] = seq_render_strip(context, state, input[i], target_frame);
+        }
+        else { /* Other effects. */
+          if (input[i]) {
+            ibuf[i] = seq_render_strip(context, state, input[i], cfra);
+          }
         }
       }
 
       if (ibuf[0] && ibuf[1]) {
         if (sh.multithreaded) {
-          out = seq_render_effect_execute_threaded(
+          out = BKE_sequencer_effect_execute_threaded(
               &sh, context, seq, cfra, fac, facf, ibuf[0], ibuf[1], ibuf[2]);
         }
         else {
@@ -3679,9 +3686,8 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
                                        float cfra)
 {
   ImBuf *ibuf = NULL;
-  float nr = give_stripelem_index(seq, cfra);
-  int type = (seq->type & SEQ_TYPE_EFFECT && seq->type != SEQ_TYPE_SPEED) ? SEQ_TYPE_EFFECT :
-                                                                            seq->type;
+  float nr = BKE_sequencer_give_stripelem_index(seq, cfra);
+  int type = (seq->type & SEQ_TYPE_EFFECT) ? SEQ_TYPE_EFFECT : seq->type;
   switch (type) {
     case SEQ_TYPE_META: {
       ibuf = do_render_strip_seqbase(context, state, seq, nr);
@@ -3723,21 +3729,8 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
       break;
     }
 
-    case SEQ_TYPE_SPEED: {
-      float f_cfra;
-      SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
-
-      BKE_sequence_effect_speed_rebuild_map(context->scene, seq, false);
-
-      /* weeek! */
-      f_cfra = seq->start + s->frameMap[(int)nr];
-      ibuf = seq_render_strip(context, state, seq->seq1, f_cfra);
-
-      break;
-    }
-
     case SEQ_TYPE_EFFECT: {
-      ibuf = seq_render_effect_strip_impl(context, state, seq, seq->start + nr);
+      ibuf = seq_render_effect_strip_impl(context, state, seq, cfra);
       break;
     }
 
@@ -3931,7 +3924,7 @@ static ImBuf *seq_render_strip_stack_apply_effect(
 
   if (swap_input) {
     if (sh.multithreaded) {
-      out = seq_render_effect_execute_threaded(
+      out = BKE_sequencer_effect_execute_threaded(
           &sh, context, seq, cfra, facf, facf, ibuf2, ibuf1, NULL);
     }
     else {
@@ -3940,7 +3933,7 @@ static ImBuf *seq_render_strip_stack_apply_effect(
   }
   else {
     if (sh.multithreaded) {
-      out = seq_render_effect_execute_threaded(
+      out = BKE_sequencer_effect_execute_threaded(
           &sh, context, seq, cfra, facf, facf, ibuf1, ibuf2, NULL);
     }
     else {

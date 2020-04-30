@@ -468,6 +468,7 @@ typedef struct SequencerScopes {
 #define SEQ_SPEED_INTEGRATE (1 << 0)
 #define SEQ_SPEED_UNUSED_1 (1 << 1) /* cleared */
 #define SEQ_SPEED_COMPRESS_IPO_Y (1 << 2)
+#define SEQ_SPEED_USE_INTERPOLATION (1 << 3)
 
 /* ***************** SEQUENCE ****************** */
 #define SEQ_NAME_MAXSTR 64
