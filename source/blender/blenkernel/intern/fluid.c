@@ -3772,6 +3772,12 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   /* Get distance between cache start and current frame for total time. */
   mds->time_total = abs(scene_framenr - mds->cache_frame_start) * mds->frame_length;
 
+  /* Ensure that gravity is copied over every frame (could be keyframed). */
+  if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+    copy_v3_v3(mds->gravity, scene->physics_settings.gravity);
+    mul_v3_fl(mds->gravity, mds->effector_weights->global_gravity);
+  }
+
   int next_frame = scene_framenr + 1;
   int prev_frame = scene_framenr - 1;
   /* Ensure positivity of previous frame. */
