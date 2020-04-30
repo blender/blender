@@ -102,6 +102,7 @@ typedef struct uiHandlePanelData {
   double starttime;
 
   /* dragging */
+  bool is_drag_drop;
   int startx, starty;
   int startofsx, startofsy;
   int startsizex, startsizey;
@@ -883,7 +884,7 @@ bool UI_panel_is_dragging(const struct Panel *panel)
     return false;
   }
 
-  return (data->state == PANEL_STATE_DRAG);
+  return data->is_drag_drop;
 }
 
 typedef struct PanelSort {
@@ -2496,6 +2497,8 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
     return;
   }
 
+  bool was_drag_drop = (data && data->state == PANEL_STATE_DRAG);
+
   if (state == PANEL_STATE_EXIT || state == PANEL_STATE_ANIMATION) {
     if (data && data->state != PANEL_STATE_ANIMATION) {
       /* XXX:
@@ -2547,6 +2550,12 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
     data->startsizex = panel->sizex;
     data->startsizey = panel->sizey;
     data->starttime = PIL_check_seconds_timer();
+
+    /* Remember drag drop state even when animating to the aligned position after dragging. */
+    data->is_drag_drop = was_drag_drop;
+    if (state == PANEL_STATE_DRAG) {
+      data->is_drag_drop = true;
+    }
   }
 
   ED_region_tag_redraw(region);
