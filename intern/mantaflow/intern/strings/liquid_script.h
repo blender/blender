@@ -67,8 +67,7 @@ lMax_sp$ID$ = $SNDPARTICLE_L_MAX$\n\
 c_s_sp$ID$ = 0.4   # classification constant for snd parts\n\
 c_b_sp$ID$ = 0.77  # classification constant for snd parts\n\
 pot_radius_sp$ID$ = $SNDPARTICLE_POTENTIAL_RADIUS$\n\
-update_radius_sp$ID$ = $SNDPARTICLE_UPDATE_RADIUS$\n\
-scaleFromManta_sp$ID$ = $FLUID_DOMAIN_SIZE$ / float(res_s$ID$) # resize factor for snd parts\n";
+update_radius_sp$ID$ = $SNDPARTICLE_UPDATE_RADIUS$\n";
 
 //////////////////////////////////////////////////////////////////////
 // GRIDS & MESH & PARTICLESYSTEM
@@ -263,7 +262,7 @@ def liquid_step_$ID$():\n\
     velOld_s$ID$.copyFrom(vel_s$ID$)\n\
     \n\
     # forces & pressure solve\n\
-    addGravity(flags=flags_s$ID$, vel=vel_s$ID$, gravity=gravity_s$ID$)\n\
+    addGravity(flags=flags_s$ID$, vel=vel_s$ID$, gravity=gravity_s$ID$, scale=False)\n\
     \n\
     mantaMsg('Adding external forces')\n\
     addForceField(flags=flags_s$ID$, vel=vel_s$ID$, force=forces_s$ID$)\n\
@@ -371,7 +370,7 @@ def liquid_step_particles_$ID$():\n\
     flags_sp$ID$.updateFromLevelset(levelset=phi_sp$ID$)\n\
     \n\
     # Actual secondary particle simulation\n\
-    flipComputeSecondaryParticlePotentials(potTA=trappedAir_sp$ID$, potWC=waveCrest_sp$ID$, potKE=kineticEnergy_sp$ID$, neighborRatio=neighborRatio_sp$ID$, flags=flags_sp$ID$, v=vel_sp$ID$, normal=normal_sp$ID$, phi=phi_sp$ID$, radius=pot_radius_sp$ID$, tauMinTA=tauMin_ta_sp$ID$, tauMaxTA=tauMax_ta_sp$ID$, tauMinWC=tauMin_wc_sp$ID$, tauMaxWC=tauMax_wc_sp$ID$, tauMinKE=tauMin_k_sp$ID$, tauMaxKE=tauMax_k_sp$ID$, scaleFromManta=scaleFromManta_sp$ID$)\n\
+    flipComputeSecondaryParticlePotentials(potTA=trappedAir_sp$ID$, potWC=waveCrest_sp$ID$, potKE=kineticEnergy_sp$ID$, neighborRatio=neighborRatio_sp$ID$, flags=flags_sp$ID$, v=vel_sp$ID$, normal=normal_sp$ID$, phi=phi_sp$ID$, radius=pot_radius_sp$ID$, tauMinTA=tauMin_ta_sp$ID$, tauMaxTA=tauMax_ta_sp$ID$, tauMinWC=tauMin_wc_sp$ID$, tauMaxWC=tauMax_wc_sp$ID$, tauMinKE=tauMin_k_sp$ID$, tauMaxKE=tauMax_k_sp$ID$, scaleFromManta=ratioMetersToRes_s$ID$)\n\
     flipSampleSecondaryParticles(mode='single', flags=flags_sp$ID$, v=vel_sp$ID$, pts_sec=ppSnd_sp$ID$, v_sec=pVelSnd_pp$ID$, l_sec=pLifeSnd_pp$ID$, lMin=lMin_sp$ID$, lMax=lMax_sp$ID$, potTA=trappedAir_sp$ID$, potWC=waveCrest_sp$ID$, potKE=kineticEnergy_sp$ID$, neighborRatio=neighborRatio_sp$ID$, c_s=c_s_sp$ID$, c_b=c_b_sp$ID$, k_ta=k_ta_sp$ID$, k_wc=k_wc_sp$ID$, dt=sp$ID$.timestep)\n\
     flipUpdateSecondaryParticles(mode='linear', pts_sec=ppSnd_sp$ID$, v_sec=pVelSnd_pp$ID$, l_sec=pLifeSnd_pp$ID$, f_sec=pForceSnd_pp$ID$, flags=flags_sp$ID$, v=vel_sp$ID$, neighborRatio=neighborRatio_sp$ID$, radius=update_radius_sp$ID$, gravity=gravity_s$ID$, k_b=k_b_sp$ID$, k_d=k_d_sp$ID$, c_s=c_s_sp$ID$, c_b=c_b_sp$ID$, dt=sp$ID$.timestep)\n\
     if $SNDPARTICLE_BOUNDARY_PUSHOUT$:\n\

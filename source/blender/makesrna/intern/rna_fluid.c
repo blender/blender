@@ -2467,7 +2467,7 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Random", "Amount of random velocity");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_flow_reset");
 
-  prop = RNA_def_property(srna, "velocity_coord", PROP_FLOAT, PROP_XYZ);
+  prop = RNA_def_property(srna, "velocity_coord", PROP_FLOAT, PROP_VELOCITY);
   RNA_def_property_float_sdna(prop, NULL, "vel_coord");
   RNA_def_property_array(prop, 3);
   RNA_def_property_range(prop, -1000.1, 1000.1);

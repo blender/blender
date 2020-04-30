@@ -711,6 +711,8 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResZ;
     }
   }
+  else if (varName == "TIME_SCALE")
+    ss << mmd->domain->time_scale;
   else if (varName == "FRAME_LENGTH")
     ss << mmd->domain->frame_length;
   else if (varName == "CFL")

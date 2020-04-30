@@ -491,32 +491,6 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *mds,
   mds->cell_size[2] /= (float)mds->base_res[2];
 }
 
-static void manta_set_domain_gravity(Scene *scene, FluidDomainSettings *mds)
-{
-  const float normalization_factor = 1.0f / 9.81f;
-
-  /* Use global gravity if enabled. */
-  if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
-    float gravity[3];
-    copy_v3_v3(gravity, scene->physics_settings.gravity);
-    /* Map default value to 1.0. */
-    mul_v3_fl(gravity, normalization_factor);
-
-    /* Convert gravity to domain space. */
-    float gravity_mag = len_v3(gravity);
-    mul_mat3_m4_v3(mds->imat, gravity);
-    normalize_v3(gravity);
-    mul_v3_fl(gravity, gravity_mag);
-
-    copy_v3_v3(mds->gravity, gravity);
-  }
-  else {
-    mul_v3_fl(mds->gravity, normalization_factor);
-  }
-
-  mul_v3_fl(mds->gravity, mds->effector_weights->global_gravity);
-}
-
 static bool BKE_fluid_modifier_init(
     FluidModifierData *mmd, Depsgraph *depsgraph, Object *ob, Scene *scene, Mesh *me)
 {
@@ -527,8 +501,11 @@ static bool BKE_fluid_modifier_init(
     int res[3];
     /* Set domain dimensions from mesh. */
     manta_set_domain_from_mesh(mds, ob, me, true);
-    /* Set domain gravity. */
-    manta_set_domain_gravity(scene, mds);
+    /* Set domain gravity, use global gravity if enabled. */
+    if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+      copy_v3_v3(mds->gravity, scene->physics_settings.gravity);
+    }
+    mul_v3_fl(mds->gravity, mds->effector_weights->global_gravity);
     /* Reset domain values. */
     zero_v3_int(mds->shift);
     zero_v3(mds->shift_f);
@@ -1996,9 +1973,9 @@ static void sample_mesh(FluidFlowSettings *mfs,
         normalize_v3(hit_normal);
 
         /* Apply normal directional velocity. */
-        velocity_map[index * 3] += hit_normal[0] * mfs->vel_normal * 0.25f;
-        velocity_map[index * 3 + 1] += hit_normal[1] * mfs->vel_normal * 0.25f;
-        velocity_map[index * 3 + 2] += hit_normal[2] * mfs->vel_normal * 0.25f;
+        velocity_map[index * 3] += hit_normal[0] * mfs->vel_normal;
+        velocity_map[index * 3 + 1] += hit_normal[1] * mfs->vel_normal;
+        velocity_map[index * 3 + 2] += hit_normal[2] * mfs->vel_normal;
       }
       /* Apply object velocity. */
       if (has_velocity && mfs->vel_multi) {
