@@ -80,13 +80,13 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getDisplaySetting(GHOST_TUns8 display,
   GHOST_TSuccess success;
   DEVMODE dm;
   if (::EnumDisplaySettings(display_device.DeviceName, index, &dm)) {
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
     printf("display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
            dm.dmPelsWidth,
            dm.dmPelsHeight,
            dm.dmBitsPerPel,
            dm.dmDisplayFrequency);
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
     setting.xPixels = dm.dmPelsWidth;
     setting.yPixels = dm.dmPelsHeight;
     setting.bpp = dm.dmBitsPerPel;
@@ -142,16 +142,16 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(
    * dm.dmSize = sizeof(DEVMODE);
    * dm.dmDriverExtra = 0;
    */
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
   printf("display change: Requested settings:\n");
   printf("  dmBitsPerPel=%d\n", dm.dmBitsPerPel);
   printf("  dmPelsWidth=%d\n", dm.dmPelsWidth);
   printf("  dmPelsHeight=%d\n", dm.dmPelsHeight);
   printf("  dmDisplayFrequency=%d\n", dm.dmDisplayFrequency);
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
 
   LONG status = ::ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
   switch (status) {
     case DISP_CHANGE_SUCCESSFUL:
       printf("display change: The settings change was successful.\n");
@@ -182,6 +182,6 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(
       printf("display change: Return value invalid\n");
       break;
   }
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
   return status == DISP_CHANGE_SUCCESSFUL ? GHOST_kSuccess : GHOST_kFailure;
 }

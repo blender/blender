@@ -1881,7 +1881,7 @@ static GHOST_TKey ghost_key_from_keysym(const KeySym key)
 #  endif
 #endif
       default:
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
         printf("%s: unknown key: %lu / 0x%lx\n", __func__, key, key);
 #endif
         type = GHOST_kKeyUnknown;
@@ -1905,7 +1905,7 @@ static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCo
     switch (id) {
       case MAKE_ID('T', 'L', 'D', 'E'):
         return GHOST_kKeyAccentGrave;
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
       default:
         printf("%s unhandled keycode: %.*s\n", __func__, XkbKeyNameLength, id_str);
         break;

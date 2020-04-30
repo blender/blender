@@ -28,10 +28,10 @@
 #include "utf_winfunc.h"
 #include "utfconv.h"
 
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
 // utility
 void printLastError(void);
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
 
 GHOST_DropTargetWin32::GHOST_DropTargetWin32(GHOST_WindowWin32 *window, GHOST_SystemWin32 *system)
     : m_window(window), m_system(system)
@@ -209,9 +209,9 @@ void *GHOST_DropTargetWin32::getGhostData(IDataObject *pDataObject)
       // return getDropDataAsBitmap(pDataObject);
       break;
     default:
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
       ::printf("\nGHOST_kDragnDropTypeUnknown");
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
       return NULL;
       break;
   }
@@ -284,10 +284,10 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
       // Free memory
       ::GlobalUnlock(stgmed.hGlobal);
       ::ReleaseStgMedium(&stgmed);
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
       ::printf("\n<converted droped unicode string>\n%s\n</droped converted unicode string>\n",
                tmp_string);
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
       return tmp_string;
     }
   }
@@ -336,9 +336,9 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char *&out)
                                NULL);
 
   if (!size) {
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
     ::printLastError();
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
     return 0;
   }
 
@@ -351,16 +351,16 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char *&out)
   size = ::WideCharToMultiByte(CP_ACP, 0x00000400, in, -1, (LPSTR)out, size, NULL, NULL);
 
   if (!size) {
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
     ::printLastError();
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
     ::free(out);
     out = NULL;
   }
   return size;
 }
 
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
 void printLastError(void)
 {
   LPTSTR s;
@@ -378,4 +378,4 @@ void printLastError(void)
     LocalFree(s);
   }
 }
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG

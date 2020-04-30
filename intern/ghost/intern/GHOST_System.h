@@ -31,9 +31,9 @@
 #include "GHOST_Debug.h"
 #include "GHOST_EventManager.h"
 #include "GHOST_ModifierKeys.h"
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
 #  include "GHOST_EventPrinter.h"
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
 
 class GHOST_DisplayManager;
 class GHOST_Event;
@@ -390,9 +390,9 @@ class GHOST_System : public GHOST_ISystem {
 #endif
 
   /** Prints all the events. */
-#ifdef GHOST_DEBUG
+#ifdef WITH_GHOST_DEBUG
   GHOST_EventPrinter *m_eventPrinter;
-#endif  // GHOST_DEBUG
+#endif  // WITH_GHOST_DEBUG
 
   /** Settings of the display before the display went fullscreen. */
   GHOST_DisplaySetting m_preFullScreenSetting;
