@@ -369,10 +369,16 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
 
   if (obedit) {
     /* Edit Mode */
-    FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, ((View3D *)NULL), ob->type, ob->mode, ob_iter) {
-      stats_object_edit(ob_iter, &stats);
+    FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
+      if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
+        if (ob_iter->mode == OB_MODE_EDIT) {
+          stats_object_edit(ob_iter, &stats);
+          stats.totobjsel++;
+        }
+        stats.totobj++;
+      }
     }
-    FOREACH_OBJECT_IN_MODE_END;
+    FOREACH_OBJECT_END;
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
     /* Pose Mode */
@@ -469,23 +475,21 @@ static void stats_row(int col1,
   *y -= height;
   BLF_draw_default(col1, *y, 0.0f, key, 128);
   char values[128];
-  BLI_snprintf(values, sizeof(values), (value2) ? "%s/%s" : "%s", value1, value2);
+  BLI_snprintf(values, sizeof(values), (value2) ? "%s / %s" : "%s", value1, value2);
   BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
 }
 
 void ED_info_draw_stats(
     Main *bmain, Scene *scene, ViewLayer *view_layer, int x, int *y, int height)
 {
-  /* Looping through dependency graph when interface is locked is not safe.
-   * The interface is marked as locked when jobs wants to modify the
-   * dependency graph. */
-  wmWindowManager *wm = bmain->wm.first;
-  if (wm->is_interface_locked) {
-    return;
-  }
-
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
+  /* Create stats if they don't already exist. */
   if (!view_layer->stats) {
+    /* Do not not access dependency graph if interface is marked as locked. */
+    wmWindowManager *wm = bmain->wm.first;
+    if (wm->is_interface_locked) {
+      return;
+    }
+    Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
     stats_update(depsgraph, view_layer);
   }
 
@@ -569,7 +573,7 @@ void ED_info_draw_stats(
   int col2 = x + longest_label + (0.5f * U.widget_unit);
 
   /* Add some extra margin above this section. */
-  *y -= (0.5f * height);
+  *y -= (0.6f * height);
 
   if (object_mode == OB_MODE_OBJECT) {
     stats_row(col1, labels[OBJ], col2, stats_fmt.totobjsel, stats_fmt.totobj, y, height);
@@ -577,6 +581,7 @@ void ED_info_draw_stats(
 
   if (obedit) {
     if (obedit->type == OB_MESH) {
+      stats_row(col1, labels[OBJ], col2, stats_fmt.totobjsel, stats_fmt.totobj, y, height);
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
       stats_row(col1, labels[EDGES], col2, stats_fmt.totedgesel, stats_fmt.totedge, y, height);
       stats_row(col1, labels[FACES], col2, stats_fmt.totfacesel, stats_fmt.totface, y, height);
