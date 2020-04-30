@@ -1097,7 +1097,6 @@ if(WIN32)
     PDB_NAME "blender_private"
     PDB_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
     if (WITH_WINDOWS_PDB AND WITH_WINDOWS_STRIPPED_PDB)
-    message("poop : ${COMPILE_PDB_OUTPUT_DIRECTORY}")
       target_link_options(blender PRIVATE "/PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/blender_public.pdb")
   endif()
 endif()
