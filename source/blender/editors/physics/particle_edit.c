@@ -849,7 +849,6 @@ static void foreach_mouse_hit_key(PEData *data, ForHitKeyMatFunc func, int selec
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, foreach_mouse_hit_key_iter, &settings);
 }
 
@@ -1229,7 +1228,6 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, deflect_emitter_iter, &settings);
 }
 
@@ -1278,7 +1276,6 @@ static void PE_apply_lengths(Scene *scene, PTCacheEdit *edit)
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, apply_lengths_iter, &settings);
 }
 
@@ -1353,7 +1350,6 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, iterate_lengths_iter, &settings);
 }
 
@@ -4112,7 +4108,7 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
     dmy = size;
     if (tls->rng == NULL) {
       tls->rng = BLI_rng_new_srandom(psys->seed + data->mval[0] + data->mval[1] +
-                                     tls_v->thread_id);
+                                     BLI_task_parallel_thread_id(tls_v));
     }
     /* rejection sampling to get points in circle */
     while (dmx * dmx + dmy * dmy > size2) {
@@ -4257,7 +4253,6 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   settings.userdata_chunk = &tls;
   settings.userdata_chunk_size = sizeof(BrushAddCountIterTLSData);
   settings.func_reduce = brush_add_count_iter_reduce;

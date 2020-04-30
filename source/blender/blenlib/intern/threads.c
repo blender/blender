@@ -61,9 +61,6 @@ extern pthread_key_t gomp_tls_key;
 static void *thread_tls_data;
 #endif
 
-/* We're using one global task scheduler for all kind of tasks. */
-static TaskScheduler *task_scheduler = NULL;
-
 /* ********** basic thread control API ************
  *
  * Many thread cases have an X amount of jobs, and only an Y amount of
@@ -157,25 +154,7 @@ void BLI_threadapi_init(void)
 
 void BLI_threadapi_exit(void)
 {
-  if (task_scheduler) {
-    BLI_task_scheduler_free(task_scheduler);
-    task_scheduler = NULL;
-  }
   BLI_spin_end(&_malloc_lock);
-}
-
-TaskScheduler *BLI_task_scheduler_get(void)
-{
-  if (task_scheduler == NULL) {
-    int tot_thread = BLI_system_thread_count();
-
-    /* Do a lazy initialization, so it happens after
-     * command line arguments parsing
-     */
-    task_scheduler = BLI_task_scheduler_create(tot_thread);
-  }
-
-  return task_scheduler;
 }
 
 /* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
@@ -839,11 +818,6 @@ void BLI_threaded_malloc_begin(void)
   unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
   if (level == 0) {
     MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
-    /* There is a little chance that two threads will need to access to a
-     * scheduler which was not yet created from main thread. which could
-     * cause scheduler created multiple times.
-     */
-    BLI_task_scheduler_get();
   }
 }
 

@@ -1300,7 +1300,7 @@ static void loop_split_worker_do(LoopSplitTaskDataCommon *common_data,
   }
 }
 
-static void loop_split_worker(TaskPool *__restrict pool, void *taskdata, int UNUSED(threadid))
+static void loop_split_worker(TaskPool *__restrict pool, void *taskdata)
 {
   LoopSplitTaskDataCommon *common_data = BLI_task_pool_user_data(pool);
   LoopSplitTaskData *data = taskdata;
@@ -1704,11 +1704,7 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
     loop_split_generator(NULL, &common_data);
   }
   else {
-    TaskScheduler *task_scheduler;
-    TaskPool *task_pool;
-
-    task_scheduler = BLI_task_scheduler_get();
-    task_pool = BLI_task_pool_create(task_scheduler, &common_data, TASK_PRIORITY_HIGH);
+    TaskPool *task_pool = BLI_task_pool_create(&common_data, TASK_PRIORITY_HIGH);
 
     loop_split_generator(task_pool, &common_data);
 

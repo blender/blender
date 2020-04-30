@@ -415,9 +415,9 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 
     BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-    PBVHParallelSettings settings;
+    TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-    BKE_pbvh_parallel_range(
+    BLI_task_parallel_range(
         0, totnode, nodes, sculpt_undo_bmesh_restore_generic_task_cb, &settings);
 
     if (nodes) {

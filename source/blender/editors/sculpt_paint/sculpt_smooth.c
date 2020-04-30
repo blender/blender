@@ -245,6 +245,8 @@ static void do_smooth_brush_mesh_task_cb_ex(void *__restrict userdata,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
 
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -257,7 +259,7 @@ static void do_smooth_brush_mesh_task_cb_ex(void *__restrict userdata,
                                          vd.fno,
                                          smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
                                          vd.index,
-                                         tls->thread_id);
+                                         thread_id);
       if (smooth_mask) {
         float val = SCULPT_neighbor_mask_average(ss, vd.vert_indices[vd.i]) - *vd.mask;
         val *= fade * bstrength;
@@ -301,6 +303,7 @@ static void do_smooth_brush_bmesh_task_cb_ex(void *__restrict userdata,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
@@ -313,7 +316,7 @@ static void do_smooth_brush_bmesh_task_cb_ex(void *__restrict userdata,
                                                                   vd.fno,
                                                                   smooth_mask ? 0.0f : *vd.mask,
                                                                   vd.index,
-                                                                  tls->thread_id);
+                                                                  thread_id);
       if (smooth_mask) {
         float val = SCULPT_neighbor_mask_average(ss, vd.index) - *vd.mask;
         val *= fade * bstrength;
@@ -358,6 +361,8 @@ static void do_smooth_brush_multires_task_cb_ex(void *__restrict userdata,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
 
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -370,7 +375,7 @@ static void do_smooth_brush_multires_task_cb_ex(void *__restrict userdata,
                                          vd.fno,
                                          smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
                                          vd.index,
-                                         tls->thread_id);
+                                         thread_id);
       if (smooth_mask) {
         float val = SCULPT_neighbor_mask_average(ss, vd.index) - *vd.mask;
         val *= fade * bstrength;
@@ -427,18 +432,18 @@ void SCULPT_smooth(Sculpt *sd,
         .strength = strength,
     };
 
-    PBVHParallelSettings settings;
+    TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
 
     switch (type) {
       case PBVH_GRIDS:
-        BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_multires_task_cb_ex, &settings);
+        BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_multires_task_cb_ex, &settings);
         break;
       case PBVH_FACES:
-        BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_mesh_task_cb_ex, &settings);
+        BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_mesh_task_cb_ex, &settings);
         break;
       case PBVH_BMESH:
-        BKE_pbvh_parallel_range(0, totnode, &data, do_smooth_brush_bmesh_task_cb_ex, &settings);
+        BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_bmesh_task_cb_ex, &settings);
         break;
     }
   }
@@ -512,6 +517,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
 
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
 
@@ -522,7 +528,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
       const float fade =
           bstrength *
           SCULPT_brush_strength_factor(
-              ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, vd.index, tls->thread_id);
+              ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, vd.index, thread_id);
 
       float disp[3];
       SCULPT_surface_smooth_laplacian_step(ss,
@@ -555,6 +561,7 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
@@ -562,7 +569,7 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
       const float fade =
           bstrength *
           SCULPT_brush_strength_factor(
-              ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, vd.index, tls->thread_id);
+              ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, 0.0f, vd.index, thread_id);
       SCULPT_surface_smooth_displace_step(
           ss, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.index, beta, fade);
     }
@@ -590,12 +597,12 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
       .nodes = nodes,
   };
 
-  PBVHParallelSettings settings;
+  TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
   for (int i = 0; i < brush->surface_smooth_iterations; i++) {
-    BKE_pbvh_parallel_range(
+    BLI_task_parallel_range(
         0, totnode, &data, SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex, &settings);
-    BKE_pbvh_parallel_range(
+    BLI_task_parallel_range(
         0, totnode, &data, SCULPT_do_surface_smooth_brush_displace_task_cb_ex, &settings);
   }
 }

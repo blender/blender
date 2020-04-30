@@ -263,7 +263,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
   };
 
   data.pose_initial_co = pose_target;
-  PBVHParallelSettings settings;
+  TaskParallelSettings settings;
   PoseGrowFactorTLSData gftd;
   gftd.pos_count = 0;
   zero_v3(gftd.pos_avg);
@@ -279,7 +279,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
     zero_v3(gftd.pos_avg);
     gftd.pos_count = 0;
     memcpy(data.prev_mask, pose_factor, SCULPT_vertex_count_get(ss) * sizeof(float));
-    BKE_pbvh_parallel_range(0, totnode, &data, pose_brush_grow_factor_task_cb_ex, &settings);
+    BLI_task_parallel_range(0, totnode, &data, pose_brush_grow_factor_task_cb_ex, &settings);
 
     if (gftd.pos_count != 0) {
       mul_v3_fl(gftd.pos_avg, 1.0f / (float)gftd.pos_count);
@@ -793,9 +793,9 @@ void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br
   for (int ik = 0; ik < ss->cache->pose_ik_chain->tot_segments; ik++) {
     data.pose_factor = ss->cache->pose_ik_chain->segments[ik].weights;
     for (int i = 0; i < br->pose_smooth_iterations; i++) {
-      PBVHParallelSettings settings;
+      TaskParallelSettings settings;
       BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-      BKE_pbvh_parallel_range(0, totnode, &data, pose_brush_init_task_cb_ex, &settings);
+      BLI_task_parallel_range(0, totnode, &data, pose_brush_init_task_cb_ex, &settings);
     }
   }
 
@@ -885,9 +885,9 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       .grab_delta = grab_delta,
   };
 
-  PBVHParallelSettings settings;
+  TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  BKE_pbvh_parallel_range(0, totnode, &data, do_pose_brush_task_cb_ex, &settings);
+  BLI_task_parallel_range(0, totnode, &data, do_pose_brush_task_cb_ex, &settings);
 }
 
 void SCULPT_pose_ik_chain_free(SculptPoseIKChain *ik_chain)

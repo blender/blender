@@ -60,18 +60,17 @@ namespace {
 
 struct DepsgraphEvalState;
 
-void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id);
+void deg_task_run_func(TaskPool *pool, void *taskdata);
 
 template<typename ScheduleFunction, typename... ScheduleFunctionArgs>
 void schedule_children(DepsgraphEvalState *state,
                        OperationNode *node,
-                       const int thread_id,
                        ScheduleFunction *schedule_function,
                        ScheduleFunctionArgs... schedule_function_args);
 
-void schedule_node_to_pool(OperationNode *node, const int thread_id, TaskPool *pool)
+void schedule_node_to_pool(OperationNode *node, const int UNUSED(thread_id), TaskPool *pool)
 {
-  BLI_task_pool_push_from_thread(pool, deg_task_run_func, node, false, NULL, thread_id);
+  BLI_task_pool_push(pool, deg_task_run_func, node, false, NULL);
 }
 
 /* Denotes which part of dependency graph is being evaluated. */
@@ -115,7 +114,7 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
   }
 }
 
-void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id)
+void deg_task_run_func(TaskPool *pool, void *taskdata)
 {
   void *userdata_v = BLI_task_pool_user_data(pool);
   DepsgraphEvalState *state = (DepsgraphEvalState *)userdata_v;
@@ -125,9 +124,7 @@ void deg_task_run_func(TaskPool *pool, void *taskdata, int thread_id)
   evaluate_node(state, operation_node);
 
   /* Schedule children. */
-  BLI_task_pool_delayed_push_begin(pool, thread_id);
-  schedule_children(state, operation_node, thread_id, schedule_node_to_pool, pool);
-  BLI_task_pool_delayed_push_end(pool, thread_id);
+  schedule_children(state, operation_node, schedule_node_to_pool, pool);
 }
 
 bool check_operation_node_visible(OperationNode *op_node)
@@ -237,7 +234,6 @@ template<typename ScheduleFunction, typename... ScheduleFunctionArgs>
 void schedule_node(DepsgraphEvalState *state,
                    OperationNode *node,
                    bool dec_parents,
-                   const int thread_id,
                    ScheduleFunction *schedule_function,
                    ScheduleFunctionArgs... schedule_function_args)
 {
@@ -270,11 +266,11 @@ void schedule_node(DepsgraphEvalState *state,
   if (!is_scheduled) {
     if (node->is_noop()) {
       /* skip NOOP node, schedule children right away */
-      schedule_children(state, node, thread_id, schedule_function, schedule_function_args...);
+      schedule_children(state, node, schedule_function, schedule_function_args...);
     }
     else {
       /* children are scheduled once this task is completed */
-      schedule_function(node, thread_id, schedule_function_args...);
+      schedule_function(node, 0, schedule_function_args...);
     }
   }
 }
@@ -285,14 +281,13 @@ void schedule_graph(DepsgraphEvalState *state,
                     ScheduleFunctionArgs... schedule_function_args)
 {
   for (OperationNode *node : state->graph->operations) {
-    schedule_node(state, node, false, -1, schedule_function, schedule_function_args...);
+    schedule_node(state, node, false, schedule_function, schedule_function_args...);
   }
 }
 
 template<typename ScheduleFunction, typename... ScheduleFunctionArgs>
 void schedule_children(DepsgraphEvalState *state,
                        OperationNode *node,
-                       const int thread_id,
                        ScheduleFunction *schedule_function,
                        ScheduleFunctionArgs... schedule_function_args)
 {
@@ -306,7 +301,6 @@ void schedule_children(DepsgraphEvalState *state,
     schedule_node(state,
                   child,
                   (rel->flag & RELATION_FLAG_CYCLIC) == 0,
-                  thread_id,
                   schedule_function,
                   schedule_function_args...);
   }
@@ -329,7 +323,7 @@ void evaluate_graph_single_threaded(DepsgraphEvalState *state)
     BLI_gsqueue_pop(evaluation_queue, &operation_node);
 
     evaluate_node(state, operation_node);
-    schedule_children(state, operation_node, 0, schedule_node_to_queue, evaluation_queue);
+    schedule_children(state, operation_node, schedule_node_to_queue, evaluation_queue);
   }
 
   BLI_gsqueue_free(evaluation_queue);
@@ -352,6 +346,16 @@ void depsgraph_ensure_view_layer(Depsgraph *graph)
 }
 
 }  // namespace
+
+static TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
+{
+  if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
+    return BLI_task_pool_create_no_threads(state);
+  }
+  else {
+    return BLI_task_pool_create_suspended(state, TASK_PRIORITY_HIGH);
+  }
+}
 
 /**
  * Evaluate all nodes tagged for updating,
@@ -376,30 +380,20 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   state.graph = graph;
   state.do_stats = graph->debug.do_time_debug();
   state.need_single_thread_pass = false;
-  /* Set up task scheduler and pull for threaded evaluation. */
-  TaskScheduler *task_scheduler;
-  bool need_free_scheduler;
-  if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
-    task_scheduler = BLI_task_scheduler_create(1);
-    need_free_scheduler = true;
-  }
-  else {
-    task_scheduler = BLI_task_scheduler_get();
-    need_free_scheduler = false;
-  }
-  TaskPool *task_pool = BLI_task_pool_create_suspended(task_scheduler, &state, TASK_PRIORITY_HIGH);
   /* Prepare all nodes for evaluation. */
   initialize_execution(&state, graph);
 
   /* Do actual evaluation now. */
-
   /* First, process all Copy-On-Write nodes. */
   state.stage = EvaluationStage::COPY_ON_WRITE;
+  TaskPool *task_pool = deg_evaluate_task_pool_create(&state);
   schedule_graph(&state, schedule_node_to_pool, task_pool);
-  BLI_task_pool_work_wait_and_reset(task_pool);
+  BLI_task_pool_work_and_wait(task_pool);
+  BLI_task_pool_free(task_pool);
 
   /* After that, process all other nodes. */
   state.stage = EvaluationStage::THREADED_EVALUATION;
+  task_pool = deg_evaluate_task_pool_create(&state);
   schedule_graph(&state, schedule_node_to_pool, task_pool);
   BLI_task_pool_work_and_wait(task_pool);
   BLI_task_pool_free(task_pool);
@@ -417,9 +411,6 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   }
   /* Clear any uncleared tags - just in case. */
   deg_graph_clear_tags(graph);
-  if (need_free_scheduler) {
-    BLI_task_scheduler_free(task_scheduler);
-  }
   graph->is_evaluating = false;
 
   graph->debug.end_graph_evaluation();

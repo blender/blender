@@ -49,6 +49,7 @@ struct PBVH;
 struct PBVHNode;
 struct SubdivCCG;
 struct TaskParallelTLS;
+struct TaskParallelSettings;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -456,29 +457,9 @@ bool pbvh_has_face_sets(PBVH *bvh);
 void pbvh_show_face_sets_set(PBVH *bvh, bool show_face_sets);
 
 /* Parallelization */
-typedef void (*PBVHParallelRangeFunc)(void *__restrict userdata,
-                                      const int iter,
-                                      const struct TaskParallelTLS *__restrict tls);
-typedef void (*PBVHParallelReduceFunc)(const void *__restrict userdata,
-                                       void *__restrict chunk_join,
-                                       void *__restrict chunk);
-
-typedef struct PBVHParallelSettings {
-  bool use_threading;
-  void *userdata_chunk;
-  size_t userdata_chunk_size;
-  PBVHParallelReduceFunc func_reduce;
-} PBVHParallelSettings;
-
-void BKE_pbvh_parallel_range_settings(struct PBVHParallelSettings *settings,
+void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode);
-
-void BKE_pbvh_parallel_range(const int start,
-                             const int stop,
-                             void *userdata,
-                             PBVHParallelRangeFunc func,
-                             const struct PBVHParallelSettings *settings);
 
 struct MVert *BKE_pbvh_get_verts(const PBVH *bvh);
 

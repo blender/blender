@@ -338,7 +338,7 @@ void nearest_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 
 /*********************** Threaded image processing *************************/
 
-static void processor_apply_func(TaskPool *__restrict pool, void *taskdata, int UNUSED(threadid))
+static void processor_apply_func(TaskPool *__restrict pool, void *taskdata)
 {
   void (*do_thread)(void *) = (void (*)(void *))BLI_task_pool_user_data(pool);
   do_thread(taskdata);
@@ -353,14 +353,13 @@ void IMB_processor_apply_threaded(
 {
   const int lines_per_task = 64;
 
-  TaskScheduler *task_scheduler = BLI_task_scheduler_get();
   TaskPool *task_pool;
 
   void *handles;
   int total_tasks = (buffer_lines + lines_per_task - 1) / lines_per_task;
   int i, start_line;
 
-  task_pool = BLI_task_pool_create(task_scheduler, do_thread, TASK_PRIORITY_LOW);
+  task_pool = BLI_task_pool_create(do_thread, TASK_PRIORITY_LOW);
 
   handles = MEM_callocN(handle_size * total_tasks, "processor apply threaded handles");
 
@@ -399,9 +398,7 @@ typedef struct ScanlineGlobalData {
   int total_scanlines;
 } ScanlineGlobalData;
 
-static void processor_apply_scanline_func(TaskPool *__restrict pool,
-                                          void *taskdata,
-                                          int UNUSED(threadid))
+static void processor_apply_scanline_func(TaskPool *__restrict pool, void *taskdata)
 {
   ScanlineGlobalData *data = BLI_task_pool_user_data(pool);
   int start_scanline = POINTER_AS_INT(taskdata);
@@ -420,8 +417,7 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
   data.scanlines_per_task = scanlines_per_task;
   data.total_scanlines = total_scanlines;
   const int total_tasks = (total_scanlines + scanlines_per_task - 1) / scanlines_per_task;
-  TaskScheduler *task_scheduler = BLI_task_scheduler_get();
-  TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &data, TASK_PRIORITY_LOW);
+  TaskPool *task_pool = BLI_task_pool_create(&data, TASK_PRIORITY_LOW);
   for (int i = 0, start_line = 0; i < total_tasks; i++) {
     BLI_task_pool_push(
         task_pool, processor_apply_scanline_func, POINTER_FROM_INT(start_line), false, NULL);

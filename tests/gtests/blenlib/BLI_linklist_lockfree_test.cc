@@ -63,7 +63,7 @@ struct IndexedNode {
   int index;
 };
 
-void concurrent_insert(TaskPool *__restrict pool, void *taskdata, int /*threadid*/)
+void concurrent_insert(TaskPool *__restrict pool, void *taskdata)
 {
   LockfreeLinkList *list = (LockfreeLinkList *)BLI_task_pool_user_data(pool);
   CHECK_NOTNULL(list);
@@ -76,14 +76,12 @@ void concurrent_insert(TaskPool *__restrict pool, void *taskdata, int /*threadid
 
 TEST(LockfreeLinkList, InsertMultipleConcurrent)
 {
-  static const int num_threads = 512;
   static const int num_nodes = 655360;
   /* Initialize list. */
   LockfreeLinkList list;
   BLI_linklist_lockfree_init(&list);
   /* Initialize task scheduler and pool. */
-  TaskScheduler *scheduler = BLI_task_scheduler_create(num_threads);
-  TaskPool *pool = BLI_task_pool_create_suspended(scheduler, &list, TASK_PRIORITY_HIGH);
+  TaskPool *pool = BLI_task_pool_create_suspended(&list, TASK_PRIORITY_HIGH);
   /* Push tasks to the pool. */
   for (int i = 0; i < num_nodes; ++i) {
     BLI_task_pool_push(pool, concurrent_insert, POINTER_FROM_INT(i), false, NULL);
@@ -112,5 +110,4 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   /* Cleanup data. */
   BLI_linklist_lockfree_free(&list, MEM_freeN);
   BLI_task_pool_free(pool);
-  BLI_task_scheduler_free(scheduler);
 }

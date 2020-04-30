@@ -4509,7 +4509,7 @@ BLI_INLINE void mesh_extract_iter(const MeshRenderData *mr,
   }
 }
 
-static void extract_run(TaskPool *__restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
+static void extract_run(TaskPool *__restrict UNUSED(pool), void *taskdata)
 {
   ExtractTaskData *data = taskdata;
   mesh_extract_iter(
@@ -4595,7 +4595,7 @@ static void extract_task_create(TaskPool *task_pool,
   else {
     /* Single threaded extraction. */
     (*task_counter)++;
-    extract_run(NULL, taskdata, -1);
+    extract_run(NULL, taskdata);
     MEM_freeN(taskdata);
   }
 }
@@ -4685,11 +4685,11 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
   double rdata_end = PIL_check_seconds_timer();
 #endif
 
-  TaskScheduler *task_scheduler;
   TaskPool *task_pool;
 
-  task_scheduler = BLI_task_scheduler_get();
-  task_pool = BLI_task_pool_create_suspended(task_scheduler, NULL, TASK_PRIORITY_HIGH);
+  /* Create a suspended pool as the finalize method could be called too early.
+   * See `extract_run`. */
+  task_pool = BLI_task_pool_create_suspended(NULL, TASK_PRIORITY_HIGH);
 
   size_t counters_size = (sizeof(mbc) / sizeof(void *)) * sizeof(int32_t);
   int32_t *task_counters = MEM_callocN(counters_size, __func__);

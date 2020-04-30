@@ -171,6 +171,8 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
   bool convert_to_linear = false;
   struct ColorSpace *colorspace = NULL;
 
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
   if (mtex->tex && mtex->tex->type == TEX_IMAGE && mtex->tex->ima) {
     ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(mtex->tex->ima, &mtex->tex->iuser, pool);
     /* For consistency, sampling always returns color in linear space. */
@@ -214,8 +216,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
       if (col) {
         float rgba[4];
 
-        paint_get_tex_pixel_col(
-            mtex, x, y, rgba, pool, tls->thread_id, convert_to_linear, colorspace);
+        paint_get_tex_pixel_col(mtex, x, y, rgba, pool, thread_id, convert_to_linear, colorspace);
 
         buffer[index * 4] = rgba[0] * 255;
         buffer[index * 4 + 1] = rgba[1] * 255;
@@ -223,7 +224,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
         buffer[index * 4 + 3] = rgba[3] * 255;
       }
       else {
-        float avg = paint_get_tex_pixel(mtex, x, y, pool, tls->thread_id);
+        float avg = paint_get_tex_pixel(mtex, x, y, pool, thread_id);
 
         avg += br->texture_sample_bias;
 

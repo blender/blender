@@ -79,6 +79,7 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
 
   /* Apply the brush normal radius to the test before sampling. */
   float test_radius = sqrtf(test.radius_squared);
@@ -107,7 +108,7 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
                                                       vd.fno,
                                                       vd.mask ? *vd.mask : 0.0f,
                                                       vd.index,
-                                                      tls->thread_id);
+                                                      thread_id);
 
       /* Sample the normal and area of the +X and -X axis individually. */
       if (local_co[0] > 0.0f) {
@@ -163,6 +164,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
@@ -208,7 +210,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
                                                                       vd.fno,
                                                                       vd.mask ? *vd.mask : 0.0f,
                                                                       vd.index,
-                                                                      tls->thread_id);
+                                                                      thread_id);
 
           mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -301,13 +303,13 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
 
     MultiplaneScrapeSampleData mssd = {{{0}}};
 
-    PBVHParallelSettings sample_settings;
+    TaskParallelSettings sample_settings;
     BKE_pbvh_parallel_range_settings(&sample_settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
     sample_settings.func_reduce = calc_multiplane_scrape_surface_reduce;
     sample_settings.userdata_chunk = &mssd;
     sample_settings.userdata_chunk_size = sizeof(MultiplaneScrapeSampleData);
 
-    BKE_pbvh_parallel_range(
+    BLI_task_parallel_range(
         0, totnode, &sample_data, calc_multiplane_scrape_surface_task_cb, &sample_settings);
 
     float sampled_plane_normals[2][3];
@@ -392,9 +394,9 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
   normalize_v3(plane_no);
   plane_from_point_normal_v3(data.multiplane_scrape_planes[0], area_co, plane_no);
 
-  PBVHParallelSettings settings;
+  TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  BKE_pbvh_parallel_range(0, totnode, &data, do_multiplane_scrape_brush_task_cb_ex, &settings);
+  BLI_task_parallel_range(0, totnode, &data, do_multiplane_scrape_brush_task_cb_ex, &settings);
 }
 
 void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,

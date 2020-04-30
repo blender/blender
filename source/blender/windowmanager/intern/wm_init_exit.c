@@ -44,6 +44,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
@@ -648,6 +649,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   DNA_sdna_current_free();
 
   BLI_threadapi_exit();
+  BLI_task_scheduler_exit();
 
   /* No need to call this early, rather do it late so that other
    * pieces of Blender using sound may exit cleanly, see also T50676. */

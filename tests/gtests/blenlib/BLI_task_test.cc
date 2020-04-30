@@ -54,7 +54,7 @@ TEST(task, RangeIter)
 
   BLI_task_parallel_range(0, NUM_ITEMS, data, task_range_iter_func, &settings);
 
-  /* Those checks should ensure us all items of the listbase were processed once, and only once -
+  /* Those checks should ensure us all items of the listbase were processed once, and only once
    * as expected. */
 
   int expected_sum = 0;

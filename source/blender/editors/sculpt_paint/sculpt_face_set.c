@@ -87,6 +87,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
@@ -107,7 +108,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                       vd.fno,
                                                                       vd.mask ? *vd.mask : 0.0f,
                                                                       vd.index,
-                                                                      tls->thread_id);
+                                                                      thread_id);
 
           if (fade > 0.05f && ss->face_sets[vert_map->indices[j]] > 0) {
             ss->face_sets[vert_map->indices[j]] = abs(ss->cache->paint_face_set);
@@ -127,7 +128,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                       vd.fno,
                                                                       vd.mask ? *vd.mask : 0.0f,
                                                                       vd.index,
-                                                                      tls->thread_id);
+                                                                      thread_id);
 
           if (fade > 0.05f) {
             SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
@@ -160,6 +161,8 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
     bstrength *= 2.0f;
   }
 
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -172,7 +175,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                     vd.fno,
                                                                     vd.mask ? *vd.mask : 0.0f,
                                                                     vd.index,
-                                                                    tls->thread_id);
+                                                                    thread_id);
 
         SCULPT_relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
         if (vd.mvert) {
@@ -211,15 +214,15 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
       .nodes = nodes,
   };
 
-  PBVHParallelSettings settings;
+  TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
   if (ss->cache->alt_smooth) {
     for (int i = 0; i < 4; i++) {
-      BKE_pbvh_parallel_range(0, totnode, &data, do_relax_face_sets_brush_task_cb_ex, &settings);
+      BLI_task_parallel_range(0, totnode, &data, do_relax_face_sets_brush_task_cb_ex, &settings);
     }
   }
   else {
-    BKE_pbvh_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
+    BLI_task_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
   }
 }
 

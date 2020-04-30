@@ -43,6 +43,7 @@
 #include "BLI_args.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -400,6 +401,9 @@ int main(int argc,
   /* Using preferences or user startup makes no sense for #WITH_PYTHON_MODULE. */
   G.factory_startup = true;
 #endif
+
+  /* After parsing number of threads argument. */
+  BLI_task_scheduler_init();
 
 #ifdef WITH_FFMPEG
   IMB_ffmpeg_init();

@@ -251,9 +251,7 @@ finally:
   pRes[3] = fSign;
 }
 
-static void emDM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool),
-                                           void *taskdata,
-                                           int UNUSED(threadid))
+static void emDM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool), void *taskdata)
 {
   struct SGLSLEditMeshToTangent *mesh2tangent = taskdata;
   /* new computation method */
@@ -362,9 +360,8 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
 #endif
     /* Calculation */
     if (em->tottri != 0) {
-      TaskScheduler *scheduler = BLI_task_scheduler_get();
       TaskPool *task_pool;
-      task_pool = BLI_task_pool_create(scheduler, NULL, TASK_PRIORITY_LOW);
+      task_pool = BLI_task_pool_create(NULL, TASK_PRIORITY_LOW);
 
       tangent_mask_curr = 0;
       /* Calculate tangent layers */

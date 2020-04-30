@@ -47,8 +47,6 @@ struct TaskScheduler;
 void BLI_threadapi_init(void);
 void BLI_threadapi_exit(void);
 
-struct TaskScheduler *BLI_task_scheduler_get(void);
-
 void BLI_threadpool_init(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int BLI_available_threads(struct ListBase *threadbase);
 int BLI_threadpool_available_thread_index(struct ListBase *threadbase);

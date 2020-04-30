@@ -1367,7 +1367,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
   return mem;
 }
 
-static void proxy_task_func(TaskPool *__restrict pool, void *task_data, int UNUSED(threadid))
+static void proxy_task_func(TaskPool *__restrict pool, void *task_data)
 {
   ProxyThread *data = (ProxyThread *)task_data;
   ProxyQueue *queue = (ProxyQueue *)BLI_task_pool_user_data(pool);
@@ -1413,11 +1413,10 @@ static void do_sequence_proxy(void *pjv,
   ProxyJob *pj = pjv;
   MovieClip *clip = pj->clip;
   Scene *scene = pj->scene;
-  TaskScheduler *task_scheduler = BLI_task_scheduler_get();
   TaskPool *task_pool;
   int sfra = SFRA, efra = EFRA;
   ProxyThread *handles;
-  int i, tot_thread = BLI_task_scheduler_num_threads(task_scheduler);
+  int i, tot_thread = BLI_task_scheduler_num_threads();
   int width, height;
   ProxyQueue queue;
 
@@ -1434,7 +1433,7 @@ static void do_sequence_proxy(void *pjv,
   queue.do_update = do_update;
   queue.progress = progress;
 
-  task_pool = BLI_task_pool_create(task_scheduler, &queue, TASK_PRIORITY_LOW);
+  task_pool = BLI_task_pool_create(&queue, TASK_PRIORITY_LOW);
   handles = MEM_callocN(sizeof(ProxyThread) * tot_thread, "proxy threaded handles");
   for (i = 0; i < tot_thread; i++) {
     ProxyThread *handle = &handles[i];

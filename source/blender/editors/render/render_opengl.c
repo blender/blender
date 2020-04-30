@@ -144,7 +144,6 @@ typedef struct OGLRender {
   wmTimer *timer; /* use to check if running modal or not (invoke'd or exec'd)*/
   void **movie_ctx_arr;
 
-  TaskScheduler *task_scheduler;
   TaskPool *task_pool;
   bool pool_ok;
   bool is_animation;
@@ -856,22 +855,16 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
       gather_frames_to_render(C, oglrender);
     }
 
-    TaskScheduler *task_scheduler = BLI_task_scheduler_get();
     if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-      task_scheduler = BLI_task_scheduler_create(1);
-      oglrender->task_scheduler = task_scheduler;
-      oglrender->task_pool = BLI_task_pool_create_background(
-          task_scheduler, oglrender, TASK_PRIORITY_LOW);
+      oglrender->task_pool = BLI_task_pool_create_background_serial(oglrender, TASK_PRIORITY_LOW);
     }
     else {
-      oglrender->task_scheduler = NULL;
-      oglrender->task_pool = BLI_task_pool_create(task_scheduler, oglrender, TASK_PRIORITY_LOW);
+      oglrender->task_pool = BLI_task_pool_create(oglrender, TASK_PRIORITY_LOW);
     }
     oglrender->pool_ok = true;
     BLI_spin_init(&oglrender->reports_lock);
   }
   else {
-    oglrender->task_scheduler = NULL;
     oglrender->task_pool = NULL;
   }
   oglrender->num_scheduled_frames = 0;
@@ -910,10 +903,6 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
     }
     BLI_task_pool_work_and_wait(oglrender->task_pool);
     BLI_task_pool_free(oglrender->task_pool);
-    /* Depending on various things we might or might not use global scheduler. */
-    if (oglrender->task_scheduler != NULL) {
-      BLI_task_scheduler_free(oglrender->task_scheduler);
-    }
     BLI_spin_end(&oglrender->reports_lock);
   }
   BLI_mutex_end(&oglrender->task_mutex);
@@ -1033,7 +1022,7 @@ typedef struct WriteTaskData {
   Scene tmp_scene;
 } WriteTaskData;
 
-static void write_result_func(TaskPool *__restrict pool, void *task_data_v, int UNUSED(thread_id))
+static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
 {
   OGLRender *oglrender = (OGLRender *)BLI_task_pool_user_data(pool);
   WriteTaskData *task_data = (WriteTaskData *)task_data_v;

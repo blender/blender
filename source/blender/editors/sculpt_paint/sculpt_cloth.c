@@ -221,6 +221,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
 
   /* For Pich Perpendicular Deform Type. */
   float x_object_space[3];
@@ -269,7 +270,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
                                                       vd.fno,
                                                       vd.mask ? *vd.mask : 0.0f,
                                                       vd.index,
-                                                      tls->thread_id);
+                                                      thread_id);
 
       float brush_disp[3];
       float normal[3];
@@ -412,7 +413,7 @@ static void cloth_brush_build_nodes_constraints(Sculpt *sd,
    * storing the constraints per node. */
   /* Currently all constrains are added to the same global array which can't be accessed from
    * different threads. */
-  PBVHParallelSettings settings;
+  TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, false, totnode);
 
   SculptThreadedTaskData build_constraints_data = {
@@ -421,7 +422,7 @@ static void cloth_brush_build_nodes_constraints(Sculpt *sd,
       .brush = brush,
       .nodes = nodes,
   };
-  BKE_pbvh_parallel_range(
+  BLI_task_parallel_range(
       0, totnode, &build_constraints_data, do_cloth_brush_build_constraints_task_cb_ex, &settings);
 }
 
@@ -490,9 +491,9 @@ static void cloth_brush_do_simulation_step(Sculpt *sd, Object *ob, PBVHNode **no
       .cloth_time_step = CLOTH_SIMULATION_TIME_STEP,
   };
 
-  PBVHParallelSettings settings;
+  TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  BKE_pbvh_parallel_range(
+  BLI_task_parallel_range(
       0, totnode, &solve_simulation_data, do_cloth_brush_solve_simulation_task_cb_ex, &settings);
 }
 
@@ -565,9 +566,9 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, PBVHNode **nod
     }
   }
 
-  PBVHParallelSettings settings;
+  TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, (sd->flags & SCULPT_USE_OPENMP), totnode);
-  BKE_pbvh_parallel_range(
+  BLI_task_parallel_range(
       0, totnode, &apply_forces_data, do_cloth_brush_apply_forces_task_cb_ex, &settings);
 }
 
