@@ -635,36 +635,36 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
 
   if (varName == "USING_SMOKE")
     ss << ((mmd->domain->type == FLUID_DOMAIN_TYPE_GAS) ? "True" : "False");
-  else if (varName == "USING_LIQUID")
+  if (varName == "USING_LIQUID")
     ss << ((mmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID) ? "True" : "False");
-  else if (varName == "USING_COLORS")
+  if (varName == "USING_COLORS")
     ss << (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_COLORS ? "True" : "False");
-  else if (varName == "USING_HEAT")
+  if (varName == "USING_HEAT")
     ss << (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_HEAT ? "True" : "False");
-  else if (varName == "USING_FIRE")
+  if (varName == "USING_FIRE")
     ss << (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_FIRE ? "True" : "False");
-  else if (varName == "USING_NOISE")
+  if (varName == "USING_NOISE")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_NOISE ? "True" : "False");
-  else if (varName == "USING_OBSTACLE")
+  if (varName == "USING_OBSTACLE")
     ss << (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE ? "True" : "False");
-  else if (varName == "USING_GUIDING")
+  if (varName == "USING_GUIDING")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_GUIDE ? "True" : "False");
-  else if (varName == "USING_INVEL")
+  if (varName == "USING_INVEL")
     ss << (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_INVEL ? "True" : "False");
-  else if (varName == "USING_OUTFLOW")
+  if (varName == "USING_OUTFLOW")
     ss << (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW ? "True" : "False");
-  else if (varName == "USING_LOG_DISSOLVE")
+  if (varName == "USING_LOG_DISSOLVE")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_DISSOLVE_LOG ? "True" : "False");
-  else if (varName == "USING_DISSOLVE")
+  if (varName == "USING_DISSOLVE")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_DISSOLVE ? "True" : "False");
-  else if (varName == "SOLVER_DIM")
+  if (varName == "SOLVER_DIM")
     ss << mmd->domain->solver_res;
-  else if (varName == "DO_OPEN") {
+  if (varName == "DO_OPEN") {
     tmpVar = (FLUID_DOMAIN_BORDER_BACK | FLUID_DOMAIN_BORDER_FRONT | FLUID_DOMAIN_BORDER_LEFT |
               FLUID_DOMAIN_BORDER_RIGHT | FLUID_DOMAIN_BORDER_BOTTOM | FLUID_DOMAIN_BORDER_TOP);
     ss << (((mmd->domain->border_collisions & tmpVar) == tmpVar) ? "False" : "True");
   }
-  else if (varName == "BOUND_CONDITIONS") {
+  if (varName == "BOUND_CONDITIONS") {
     if (mmd->domain->solver_res == 2) {
       if ((mmd->domain->border_collisions & FLUID_DOMAIN_BORDER_LEFT) == 0)
         ss << "x";
@@ -690,13 +690,13 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
         ss << "Z";
     }
   }
-  else if (varName == "BOUNDARY_WIDTH")
+  if (varName == "BOUNDARY_WIDTH")
     ss << mmd->domain->boundary_width;
-  else if (varName == "RES")
+  if (varName == "RES")
     ss << mMaxRes;
-  else if (varName == "RESX")
+  if (varName == "RESX")
     ss << mResX;
-  else if (varName == "RESY")
+  if (varName == "RESY")
     if (is2D) {
       ss << mResZ;
     }
@@ -711,35 +711,35 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResZ;
     }
   }
-  else if (varName == "TIME_SCALE")
+  if (varName == "TIME_SCALE")
     ss << mmd->domain->time_scale;
-  else if (varName == "FRAME_LENGTH")
+  if (varName == "FRAME_LENGTH")
     ss << mmd->domain->frame_length;
-  else if (varName == "CFL")
+  if (varName == "CFL")
     ss << mmd->domain->cfl_condition;
-  else if (varName == "DT")
+  if (varName == "DT")
     ss << mmd->domain->dt;
-  else if (varName == "TIMESTEPS_MIN")
+  if (varName == "TIMESTEPS_MIN")
     ss << mmd->domain->timesteps_minimum;
-  else if (varName == "TIMESTEPS_MAX")
+  if (varName == "TIMESTEPS_MAX")
     ss << mmd->domain->timesteps_maximum;
-  else if (varName == "TIME_TOTAL")
+  if (varName == "TIME_TOTAL")
     ss << mmd->domain->time_total;
-  else if (varName == "TIME_PER_FRAME")
+  if (varName == "TIME_PER_FRAME")
     ss << mmd->domain->time_per_frame;
-  else if (varName == "VORTICITY")
+  if (varName == "VORTICITY")
     ss << mmd->domain->vorticity / mConstantScaling;
-  else if (varName == "FLAME_VORTICITY")
+  if (varName == "FLAME_VORTICITY")
     ss << mmd->domain->flame_vorticity / mConstantScaling;
-  else if (varName == "NOISE_SCALE")
+  if (varName == "NOISE_SCALE")
     ss << mmd->domain->noise_scale;
-  else if (varName == "MESH_SCALE")
+  if (varName == "MESH_SCALE")
     ss << mmd->domain->mesh_scale;
-  else if (varName == "PARTICLE_SCALE")
+  if (varName == "PARTICLE_SCALE")
     ss << mmd->domain->particle_scale;
-  else if (varName == "NOISE_RESX")
+  if (varName == "NOISE_RESX")
     ss << mResXNoise;
-  else if (varName == "NOISE_RESY") {
+  if (varName == "NOISE_RESY") {
     if (is2D) {
       ss << mResZNoise;
     }
@@ -747,7 +747,7 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResYNoise;
     }
   }
-  else if (varName == "NOISE_RESZ") {
+  if (varName == "NOISE_RESZ") {
     if (is2D) {
       ss << 1;
     }
@@ -755,9 +755,9 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResZNoise;
     }
   }
-  else if (varName == "MESH_RESX")
+  if (varName == "MESH_RESX")
     ss << mResXMesh;
-  else if (varName == "MESH_RESY") {
+  if (varName == "MESH_RESY") {
     if (is2D) {
       ss << mResZMesh;
     }
@@ -765,7 +765,7 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResYMesh;
     }
   }
-  else if (varName == "MESH_RESZ") {
+  if (varName == "MESH_RESZ") {
     if (is2D) {
       ss << 1;
     }
@@ -773,9 +773,9 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResZMesh;
     }
   }
-  else if (varName == "PARTICLE_RESX")
+  if (varName == "PARTICLE_RESX")
     ss << mResXParticle;
-  else if (varName == "PARTICLE_RESY") {
+  if (varName == "PARTICLE_RESY") {
     if (is2D) {
       ss << mResZParticle;
     }
@@ -783,7 +783,7 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResYParticle;
     }
   }
-  else if (varName == "PARTICLE_RESZ") {
+  if (varName == "PARTICLE_RESZ") {
     if (is2D) {
       ss << 1;
     }
@@ -791,9 +791,9 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResZParticle;
     }
   }
-  else if (varName == "GUIDING_RESX")
+  if (varName == "GUIDING_RESX")
     ss << mResGuiding[0];
-  else if (varName == "GUIDING_RESY") {
+  if (varName == "GUIDING_RESY") {
     if (is2D) {
       ss << mResGuiding[2];
     }
@@ -801,7 +801,7 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResGuiding[1];
     }
   }
-  else if (varName == "GUIDING_RESZ") {
+  if (varName == "GUIDING_RESZ") {
     if (is2D) {
       ss << 1;
     }
@@ -809,65 +809,65 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << mResGuiding[2];
     }
   }
-  else if (varName == "MIN_RESX")
+  if (varName == "MIN_RESX")
     ss << mmd->domain->res_min[0];
-  else if (varName == "MIN_RESY")
+  if (varName == "MIN_RESY")
     ss << mmd->domain->res_min[1];
-  else if (varName == "MIN_RESZ")
+  if (varName == "MIN_RESZ")
     ss << mmd->domain->res_min[2];
-  else if (varName == "BASE_RESX")
+  if (varName == "BASE_RESX")
     ss << mmd->domain->base_res[0];
-  else if (varName == "BASE_RESY")
+  if (varName == "BASE_RESY")
     ss << mmd->domain->base_res[1];
-  else if (varName == "BASE_RESZ")
+  if (varName == "BASE_RESZ")
     ss << mmd->domain->base_res[2];
-  else if (varName == "WLT_STR")
+  if (varName == "WLT_STR")
     ss << mmd->domain->noise_strength;
-  else if (varName == "NOISE_POSSCALE")
+  if (varName == "NOISE_POSSCALE")
     ss << mmd->domain->noise_pos_scale;
-  else if (varName == "NOISE_TIMEANIM")
+  if (varName == "NOISE_TIMEANIM")
     ss << mmd->domain->noise_time_anim;
-  else if (varName == "COLOR_R")
+  if (varName == "COLOR_R")
     ss << mmd->domain->active_color[0];
-  else if (varName == "COLOR_G")
+  if (varName == "COLOR_G")
     ss << mmd->domain->active_color[1];
-  else if (varName == "COLOR_B")
+  if (varName == "COLOR_B")
     ss << mmd->domain->active_color[2];
-  else if (varName == "BUOYANCY_ALPHA")
+  if (varName == "BUOYANCY_ALPHA")
     ss << mmd->domain->alpha;
-  else if (varName == "BUOYANCY_BETA")
+  if (varName == "BUOYANCY_BETA")
     ss << mmd->domain->beta;
-  else if (varName == "DISSOLVE_SPEED")
+  if (varName == "DISSOLVE_SPEED")
     ss << mmd->domain->diss_speed;
-  else if (varName == "BURNING_RATE")
+  if (varName == "BURNING_RATE")
     ss << mmd->domain->burning_rate;
-  else if (varName == "FLAME_SMOKE")
+  if (varName == "FLAME_SMOKE")
     ss << mmd->domain->flame_smoke;
-  else if (varName == "IGNITION_TEMP")
+  if (varName == "IGNITION_TEMP")
     ss << mmd->domain->flame_ignition;
-  else if (varName == "MAX_TEMP")
+  if (varName == "MAX_TEMP")
     ss << mmd->domain->flame_max_temp;
-  else if (varName == "FLAME_SMOKE_COLOR_X")
+  if (varName == "FLAME_SMOKE_COLOR_X")
     ss << mmd->domain->flame_smoke_color[0];
-  else if (varName == "FLAME_SMOKE_COLOR_Y")
+  if (varName == "FLAME_SMOKE_COLOR_Y")
     ss << mmd->domain->flame_smoke_color[1];
-  else if (varName == "FLAME_SMOKE_COLOR_Z")
+  if (varName == "FLAME_SMOKE_COLOR_Z")
     ss << mmd->domain->flame_smoke_color[2];
-  else if (varName == "CURRENT_FRAME")
+  if (varName == "CURRENT_FRAME")
     ss << mmd->time;
-  else if (varName == "START_FRAME")
+  if (varName == "START_FRAME")
     ss << mmd->domain->cache_frame_start;
-  else if (varName == "END_FRAME")
+  if (varName == "END_FRAME")
     ss << mmd->domain->cache_frame_end;
-  else if (varName == "CACHE_DATA_FORMAT")
+  if (varName == "CACHE_DATA_FORMAT")
     ss << getCacheFileEnding(mmd->domain->cache_data_format);
-  else if (varName == "CACHE_MESH_FORMAT")
+  if (varName == "CACHE_MESH_FORMAT")
     ss << getCacheFileEnding(mmd->domain->cache_mesh_format);
-  else if (varName == "CACHE_NOISE_FORMAT")
+  if (varName == "CACHE_NOISE_FORMAT")
     ss << getCacheFileEnding(mmd->domain->cache_noise_format);
-  else if (varName == "CACHE_PARTICLE_FORMAT")
+  if (varName == "CACHE_PARTICLE_FORMAT")
     ss << getCacheFileEnding(mmd->domain->cache_particle_format);
-  else if (varName == "SIMULATION_METHOD") {
+  if (varName == "SIMULATION_METHOD") {
     if (mmd->domain->simulation_method & FLUID_DOMAIN_METHOD_FLIP) {
       ss << "'FLIP'";
     }
@@ -878,78 +878,78 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
       ss << "'NONE'";
     }
   }
-  else if (varName == "FLIP_RATIO")
+  if (varName == "FLIP_RATIO")
     ss << mmd->domain->flip_ratio;
-  else if (varName == "PARTICLE_RANDOMNESS")
+  if (varName == "PARTICLE_RANDOMNESS")
     ss << mmd->domain->particle_randomness;
-  else if (varName == "PARTICLE_NUMBER")
+  if (varName == "PARTICLE_NUMBER")
     ss << mmd->domain->particle_number;
-  else if (varName == "PARTICLE_MINIMUM")
+  if (varName == "PARTICLE_MINIMUM")
     ss << mmd->domain->particle_minimum;
-  else if (varName == "PARTICLE_MAXIMUM")
+  if (varName == "PARTICLE_MAXIMUM")
     ss << mmd->domain->particle_maximum;
-  else if (varName == "PARTICLE_RADIUS")
+  if (varName == "PARTICLE_RADIUS")
     ss << mmd->domain->particle_radius;
-  else if (varName == "FRACTIONS_THRESHOLD")
+  if (varName == "FRACTIONS_THRESHOLD")
     ss << mmd->domain->fractions_threshold;
-  else if (varName == "MESH_CONCAVE_UPPER")
+  if (varName == "MESH_CONCAVE_UPPER")
     ss << mmd->domain->mesh_concave_upper;
-  else if (varName == "MESH_CONCAVE_LOWER")
+  if (varName == "MESH_CONCAVE_LOWER")
     ss << mmd->domain->mesh_concave_lower;
-  else if (varName == "MESH_PARTICLE_RADIUS")
+  if (varName == "MESH_PARTICLE_RADIUS")
     ss << mmd->domain->mesh_particle_radius;
-  else if (varName == "MESH_SMOOTHEN_POS")
+  if (varName == "MESH_SMOOTHEN_POS")
     ss << mmd->domain->mesh_smoothen_pos;
-  else if (varName == "MESH_SMOOTHEN_NEG")
+  if (varName == "MESH_SMOOTHEN_NEG")
     ss << mmd->domain->mesh_smoothen_neg;
-  else if (varName == "USING_MESH")
+  if (varName == "USING_MESH")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_MESH ? "True" : "False");
-  else if (varName == "USING_IMPROVED_MESH")
+  if (varName == "USING_IMPROVED_MESH")
     ss << (mmd->domain->mesh_generator == FLUID_DOMAIN_MESH_IMPROVED ? "True" : "False");
-  else if (varName == "PARTICLE_BAND_WIDTH")
+  if (varName == "PARTICLE_BAND_WIDTH")
     ss << mmd->domain->particle_band_width;
-  else if (varName == "SNDPARTICLE_TAU_MIN_WC")
+  if (varName == "SNDPARTICLE_TAU_MIN_WC")
     ss << mmd->domain->sndparticle_tau_min_wc;
-  else if (varName == "SNDPARTICLE_TAU_MAX_WC")
+  if (varName == "SNDPARTICLE_TAU_MAX_WC")
     ss << mmd->domain->sndparticle_tau_max_wc;
-  else if (varName == "SNDPARTICLE_TAU_MIN_TA")
+  if (varName == "SNDPARTICLE_TAU_MIN_TA")
     ss << mmd->domain->sndparticle_tau_min_ta;
-  else if (varName == "SNDPARTICLE_TAU_MAX_TA")
+  if (varName == "SNDPARTICLE_TAU_MAX_TA")
     ss << mmd->domain->sndparticle_tau_max_ta;
-  else if (varName == "SNDPARTICLE_TAU_MIN_K")
+  if (varName == "SNDPARTICLE_TAU_MIN_K")
     ss << mmd->domain->sndparticle_tau_min_k;
-  else if (varName == "SNDPARTICLE_TAU_MAX_K")
+  if (varName == "SNDPARTICLE_TAU_MAX_K")
     ss << mmd->domain->sndparticle_tau_max_k;
-  else if (varName == "SNDPARTICLE_K_WC")
+  if (varName == "SNDPARTICLE_K_WC")
     ss << mmd->domain->sndparticle_k_wc;
-  else if (varName == "SNDPARTICLE_K_TA")
+  if (varName == "SNDPARTICLE_K_TA")
     ss << mmd->domain->sndparticle_k_ta;
-  else if (varName == "SNDPARTICLE_K_B")
+  if (varName == "SNDPARTICLE_K_B")
     ss << mmd->domain->sndparticle_k_b;
-  else if (varName == "SNDPARTICLE_K_D")
+  if (varName == "SNDPARTICLE_K_D")
     ss << mmd->domain->sndparticle_k_d;
-  else if (varName == "SNDPARTICLE_L_MIN")
+  if (varName == "SNDPARTICLE_L_MIN")
     ss << mmd->domain->sndparticle_l_min;
-  else if (varName == "SNDPARTICLE_L_MAX")
+  if (varName == "SNDPARTICLE_L_MAX")
     ss << mmd->domain->sndparticle_l_max;
-  else if (varName == "SNDPARTICLE_BOUNDARY_DELETE")
+  if (varName == "SNDPARTICLE_BOUNDARY_DELETE")
     ss << (mmd->domain->sndparticle_boundary == SNDPARTICLE_BOUNDARY_DELETE);
-  else if (varName == "SNDPARTICLE_BOUNDARY_PUSHOUT")
+  if (varName == "SNDPARTICLE_BOUNDARY_PUSHOUT")
     ss << (mmd->domain->sndparticle_boundary == SNDPARTICLE_BOUNDARY_PUSHOUT);
-  else if (varName == "SNDPARTICLE_POTENTIAL_RADIUS")
+  if (varName == "SNDPARTICLE_POTENTIAL_RADIUS")
     ss << mmd->domain->sndparticle_potential_radius;
-  else if (varName == "SNDPARTICLE_UPDATE_RADIUS")
+  if (varName == "SNDPARTICLE_UPDATE_RADIUS")
     ss << mmd->domain->sndparticle_update_radius;
-  else if (varName == "LIQUID_SURFACE_TENSION")
+  if (varName == "LIQUID_SURFACE_TENSION")
     ss << mmd->domain->surface_tension;
-  else if (varName == "FLUID_VISCOSITY")
+  if (varName == "FLUID_VISCOSITY")
     ss << mmd->domain->viscosity_base * pow(10.0f, -mmd->domain->viscosity_exponent);
-  else if (varName == "FLUID_DOMAIN_SIZE") {
+  if (varName == "FLUID_DOMAIN_SIZE") {
     tmpFloat = MAX3(
         mmd->domain->global_size[0], mmd->domain->global_size[1], mmd->domain->global_size[2]);
     ss << tmpFloat;
   }
-  else if (varName == "SNDPARTICLE_TYPES") {
+  if (varName == "SNDPARTICLE_TYPES") {
     if (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) {
       ss << "PtypeSpray";
     }
@@ -971,38 +971,38 @@ std::string MANTA::getRealValue(const std::string &varName, FluidModifierData *m
     if (ss.str().empty())
       ss << "0";
   }
-  else if (varName == "USING_SNDPARTS") {
+  if (varName == "USING_SNDPARTS") {
     tmpVar = (FLUID_DOMAIN_PARTICLE_SPRAY | FLUID_DOMAIN_PARTICLE_BUBBLE |
               FLUID_DOMAIN_PARTICLE_FOAM | FLUID_DOMAIN_PARTICLE_TRACER);
     ss << (((mmd->domain->particle_type & tmpVar)) ? "True" : "False");
   }
-  else if (varName == "GUIDING_ALPHA")
+  if (varName == "GUIDING_ALPHA")
     ss << mmd->domain->guide_alpha;
-  else if (varName == "GUIDING_BETA")
+  if (varName == "GUIDING_BETA")
     ss << mmd->domain->guide_beta;
-  else if (varName == "GUIDING_FACTOR")
+  if (varName == "GUIDING_FACTOR")
     ss << mmd->domain->guide_vel_factor;
-  else if (varName == "GRAVITY_X")
+  if (varName == "GRAVITY_X")
     ss << mmd->domain->gravity[0];
-  else if (varName == "GRAVITY_Y")
+  if (varName == "GRAVITY_Y")
     ss << mmd->domain->gravity[1];
-  else if (varName == "GRAVITY_Z")
+  if (varName == "GRAVITY_Z")
     ss << mmd->domain->gravity[2];
-  else if (varName == "CACHE_DIR")
+  if (varName == "CACHE_DIR")
     ss << mmd->domain->cache_directory;
-  else if (varName == "CACHE_RESUMABLE")
+  if (varName == "CACHE_RESUMABLE")
     ss << (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL ? "False" : "True");
-  else if (varName == "USING_ADAPTIVETIME")
+  if (varName == "USING_ADAPTIVETIME")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_ADAPTIVE_TIME ? "True" : "False");
-  else if (varName == "USING_SPEEDVECTORS")
+  if (varName == "USING_SPEEDVECTORS")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_SPEED_VECTORS ? "True" : "False");
-  else if (varName == "USING_FRACTIONS")
+  if (varName == "USING_FRACTIONS")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_FRACTIONS ? "True" : "False");
-  else if (varName == "DELETE_IN_OBSTACLE")
+  if (varName == "DELETE_IN_OBSTACLE")
     ss << (mmd->domain->flags & FLUID_DOMAIN_DELETE_IN_OBSTACLE ? "True" : "False");
-  else if (varName == "USING_DIFFUSION")
+  if (varName == "USING_DIFFUSION")
     ss << (mmd->domain->flags & FLUID_DOMAIN_USE_DIFFUSION ? "True" : "False");
-  else
+  if (MANTA::with_debug && ss.str().empty())
     std::cerr << "Fluid Error -- Unknown option: " << varName << std::endl;
   return ss.str();
 }
