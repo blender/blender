@@ -213,8 +213,6 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3]
                                                       const float dPdv[3],
                                                       const int corner);
 
-int BKE_multires_sculpt_level_get(const struct MultiresModifierData *mmd);
-
 #ifdef __cplusplus
 }
 #endif

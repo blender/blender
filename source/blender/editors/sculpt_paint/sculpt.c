@@ -7517,7 +7517,7 @@ static int ed_object_sculptmode_flush_recalc_flag(Scene *scene,
 {
   int flush_recalc = 0;
   /* Multires in sculpt mode could have different from object mode subdivision level. */
-  flush_recalc |= mmd && BKE_multires_sculpt_level_get(mmd) != mmd->lvl;
+  flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
   /* If object has got active modifiers, it's dm could be different in sculpt mode.  */
   flush_recalc |= sculpt_has_active_modifiers(scene, ob);
   return flush_recalc;

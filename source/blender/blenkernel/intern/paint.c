@@ -1414,7 +1414,7 @@ MultiresModifierData *BKE_sculpt_multires_active(Scene *scene, Object *ob)
         continue;
       }
 
-      if (BKE_multires_sculpt_level_get(mmd) > 0) {
+      if (mmd->sculptlvl > 0) {
         return mmd;
       }
       else {
@@ -1686,7 +1686,7 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
    * isn't one already */
   if (mmd && !CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
     GridPaintMask *gmask;
-    int level = max_ii(1, BKE_multires_sculpt_level_get(mmd));
+    int level = max_ii(1, mmd->sculptlvl);
     int gridsize = BKE_ccg_gridsize(level);
     int gridarea = gridsize * gridsize;
     int i, j;

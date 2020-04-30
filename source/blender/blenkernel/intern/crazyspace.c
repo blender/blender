@@ -386,7 +386,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
   crazyspace_init_object_for_eval(depsgraph, object, &object_eval);
   MultiresModifierData *mmd = get_multires_modifier(scene, &object_eval, 0);
   const bool is_sculpt_mode = (object->mode & OB_MODE_SCULPT) != 0;
-  const bool has_multires = mmd != NULL && BKE_multires_sculpt_level_get(mmd) > 0;
+  const bool has_multires = mmd != NULL && mmd->sculptlvl > 0;
   const ModifierEvalContext mectx = {depsgraph, &object_eval, 0};
 
   if (is_sculpt_mode && has_multires) {
