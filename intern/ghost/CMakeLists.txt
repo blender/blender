@@ -293,7 +293,9 @@ elseif(WITH_X11 OR WITH_GHOST_WAYLAND)
       )
     endmacro()
 
-    include_directories(${CMAKE_CURRENT_BINARY_DIR})
+    list(APPEND INC_SYS
+      ${CMAKE_CURRENT_BINARY_DIR}
+    )
 
     # xdg-shell.
     generate_protocol_bindings(
