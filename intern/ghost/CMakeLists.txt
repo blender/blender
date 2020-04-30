@@ -177,73 +177,141 @@ elseif(APPLE AND NOT WITH_X11)
     )
   endif()
 
-elseif(WITH_X11)
-  list(APPEND INC_SYS
-    ${X11_X11_INCLUDE_PATH}
-  )
-
-  list(APPEND SRC
-    intern/GHOST_DisplayManagerX11.cpp
-    intern/GHOST_SystemX11.cpp
-    intern/GHOST_TaskbarX11.cpp
-    intern/GHOST_WindowX11.cpp
-
-    intern/GHOST_DisplayManagerX11.h
-    intern/GHOST_IconX11.h
-    intern/GHOST_SystemX11.h
-    intern/GHOST_TaskbarX11.h
-    intern/GHOST_WindowX11.h
-  )
-
-  if(NOT WITH_GL_EGL)
-    list(APPEND SRC
-      intern/GHOST_ContextGLX.cpp
-
-      intern/GHOST_ContextGLX.h
-    )
-  endif()
-
-  if(WITH_GHOST_XDND)
-    add_definitions(-DWITH_XDND)
-
-    list(APPEND LIB
-      extern_xdnd
-    )
-
-    list(APPEND INC
-      ../../extern/xdnd
+elseif(WITH_X11 OR WITH_GHOST_WAYLAND)
+  if(WITH_X11)
+    list(APPEND INC_SYS
+      ${X11_X11_INCLUDE_PATH}
     )
 
     list(APPEND SRC
-      intern/GHOST_DropTargetX11.cpp
+      intern/GHOST_DisplayManagerX11.cpp
+      intern/GHOST_SystemX11.cpp
+      intern/GHOST_TaskbarX11.cpp
+      intern/GHOST_WindowX11.cpp
 
-      intern/GHOST_DropTargetX11.h
+      intern/GHOST_DisplayManagerX11.h
+      intern/GHOST_IconX11.h
+      intern/GHOST_SystemX11.h
+      intern/GHOST_TaskbarX11.h
+      intern/GHOST_WindowX11.h
     )
+
+    if(NOT WITH_GL_EGL)
+      list(APPEND SRC
+        intern/GHOST_ContextGLX.cpp
+
+        intern/GHOST_ContextGLX.h
+      )
+    endif()
+
+    if(WITH_GHOST_XDND)
+      add_definitions(-DWITH_XDND)
+
+      list(APPEND LIB
+        extern_xdnd
+      )
+
+      list(APPEND INC
+        ../../extern/xdnd
+      )
+
+      list(APPEND SRC
+        intern/GHOST_DropTargetX11.cpp
+
+        intern/GHOST_DropTargetX11.h
+      )
+    endif()
+
+    if(X11_XF86keysym_INCLUDE_PATH)
+      add_definitions(-DWITH_XF86KEYSYM)
+      list(APPEND INC_SYS
+        ${X11_XF86keysym_INCLUDE_PATH}
+      )
+    endif()
+
+    if(WITH_X11_XF86VMODE)
+      add_definitions(-DWITH_X11_XF86VMODE)
+      list(APPEND INC_SYS
+        ${X11_xf86vmode_INCLUDE_PATH}
+      )
+    endif()
+
+    if(WITH_X11_XFIXES)
+      add_definitions(-DWITH_X11_XFIXES)
+      list(APPEND INC_SYS
+        ${X11_Xfixes_INCLUDE_PATH}
+      )
+    endif()
+
+    if(WITH_X11_ALPHA)
+      add_definitions(-DWITH_X11_ALPHA)
+    endif()
+
+    if(WITH_X11_XINPUT)
+      add_definitions(-DWITH_X11_XINPUT)
+      list(APPEND INC_SYS
+        ${X11_Xinput_INCLUDE_PATH}
+      )
+    endif()
+
+    add_definitions(-DWITH_X11)
   endif()
 
-  if(X11_XF86keysym_INCLUDE_PATH)
-    add_definitions(-DWITH_XF86KEYSYM)
+  if(WITH_GHOST_WAYLAND)
     list(APPEND INC_SYS
-      ${X11_XF86keysym_INCLUDE_PATH}
+      ${wayland-client_INCLUDE_DIRS}
+      ${wayland-egl_INCLUDE_DIRS}
+      ${xkbcommon_INCLUDE_DIRS}
+      ${wayland-cursor_INCLUDE_DIRS}
     )
-  endif()
 
-  if(WITH_X11_XF86VMODE)
-    add_definitions(-DWITH_X11_XF86VMODE)
-    list(APPEND INC_SYS
-      ${X11_xf86vmode_INCLUDE_PATH}
+    list(APPEND SRC
+      intern/GHOST_SystemWayland.cpp
+      intern/GHOST_WindowWayland.cpp
+
+      intern/GHOST_SystemWayland.h
+      intern/GHOST_WindowWayland.h
     )
-  endif()
 
-  if(WITH_X11_XFIXES)
-    add_definitions(-DWITH_X11_XFIXES)
-    list(APPEND INC_SYS
-      ${X11_Xfixes_INCLUDE_PATH}
+    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+    pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
+
+    # Generate protocols bindings.
+    macro(generate_protocol_bindings NAME PROT_DEF)
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-client-protocol.h
+        COMMAND ${WAYLAND_SCANNER} client-header ${PROT_DEF} ${NAME}-client-protocol.h
+      )
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-client-protocol.c
+        COMMAND ${WAYLAND_SCANNER} private-code ${PROT_DEF} ${NAME}-client-protocol.c
+        DEPENDS ${NAME}-client-protocol.h
+      )
+      list(APPEND SRC
+        ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-client-protocol.c
+        ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-client-protocol.h
+      )
+    endmacro()
+
+    include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+    # xdg-shell.
+    generate_protocol_bindings(
+      xdg-shell
+      "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
     )
-  endif()
+    # Pointer-constraints.
+    generate_protocol_bindings(
+      pointer-constraints
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml"
+    )
+    # Relative-pointer.
+    generate_protocol_bindings(
+      relative-pointer
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/relative-pointer/relative-pointer-unstable-v1.xml"
+    )
 
-  if(WITH_X11_ALPHA)
-    add_definitions(-DWITH_X11_ALPHA)
+    add_definitions(-DWITH_GHOST_WAYLAND)
   endif()
 
   if(WITH_INPUT_NDOF)

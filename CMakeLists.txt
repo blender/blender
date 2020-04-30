@@ -207,6 +207,10 @@ mark_as_advanced(WITH_GHOST_DEBUG)
 option(WITH_GHOST_SDL    "Enable building Blender against SDL for windowing rather than the native APIs" OFF)
 mark_as_advanced(WITH_GHOST_SDL)
 
+if(UNIX AND NOT APPLE)
+  option(WITH_GHOST_WAYLAND   "Enable building Blender against Wayland for windowing" OFF)
+endif()
+
 if(WITH_X11)
   option(WITH_GHOST_XDND    "Enable drag'n'drop support on X11 using XDND protocol" ON)
 endif()
