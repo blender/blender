@@ -70,6 +70,7 @@ __device__ half __float2half(const float f)
 #define ccl_private
 #define ccl_may_alias
 #define ccl_addr_space
+#define ccl_loop_no_unroll
 #define ccl_restrict __restrict__
 #define ccl_ref
 #define ccl_align(n) __align__(n)

@@ -71,6 +71,7 @@ __device__ half __float2half(const float f)
 #define ccl_may_alias
 #define ccl_addr_space
 #define ccl_restrict __restrict__
+#define ccl_loop_no_unroll
 /* TODO(sergey): In theory we might use references with CUDA, however
  * performance impact yet to be investigated.
  */
