@@ -822,6 +822,72 @@ void drawConstraint(TransInfo *t)
   }
 }
 
+static void drawPropVerts(TransInfo *t)
+{
+  if (ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+    return;
+  }
+
+  int vec_len;
+  if (t->spacetype == SPACE_VIEW3D) {
+    vec_len = 3;
+  }
+  else if (t->spacetype == SPACE_IMAGE) {
+    vec_len = 2;
+  }
+  else {
+    return;
+  }
+
+  const float vertex_size = UI_GetThemeValuef(TH_VERTEX_SIZE) * 1.666f;
+  float color[3];
+  UI_GetThemeColor3fv(TH_EDITMESH_ACTIVE, color);
+
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, vec_len, GPU_FETCH_FLOAT);
+  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  if (vec_len == 3) {
+    immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+  }
+  else {
+    immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  }
+
+  GPU_point_size(vertex_size);
+  GPU_blend(true);
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (tc->use_local_mat) {
+      GPU_matrix_push();
+      GPU_matrix_mul(tc->mat);
+    }
+
+    immBeginAtMost(GPU_PRIM_POINTS, tc->data_len);
+    for (int i = 0; i < tc->data_len; i++) {
+      TransData td = tc->data[i];
+      if (td.factor == 0.0) {
+        break;
+      }
+
+      immAttr4f(col, UNPACK3(color), td.factor * 0.5f);
+      if (vec_len == 3) {
+        immVertex3fv(pos, td.loc);
+      }
+      else {
+        immVertex2fv(pos, td.loc);
+      }
+    }
+    immEnd();
+
+    if (tc->use_local_mat) {
+      GPU_matrix_pop();
+    }
+  }
+
+  GPU_blend(false);
+  immUnbindProgram();
+}
+
 /* called from drawview.c, as an extra per-window draw option */
 void drawPropCircle(const struct bContext *C, TransInfo *t)
 {
@@ -873,6 +939,8 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
     GPU_logic_op_invert_set(false);
 
     immUnbindProgram();
+
+    drawPropVerts(t);
 
     if (depth_test_enabled) {
       GPU_depth_test(true);
