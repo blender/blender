@@ -1068,7 +1068,7 @@ static void drw_engines_draw_text(void)
 }
 
 /* Draw render engine info. */
-void DRW_draw_region_engine_info(int xoffset, int yoffset)
+void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
 {
   LISTBASE_FOREACH (LinkData *, link, &DST.enabled_engines) {
     DrawEngineType *engine = link->data;
@@ -1091,8 +1091,8 @@ void DRW_draw_region_engine_info(int xoffset, int yoffset)
         if (*chr_current == '\n') {
           char info[GPU_INFO_SIZE];
           BLI_strncpy(info, chr_start, line_len + 1);
-          yoffset -= U.widget_unit;
-          BLF_draw_default(xoffset, yoffset, 0.0f, info, sizeof(info));
+          *yoffset -= line_height;
+          BLF_draw_default(xoffset, *yoffset, 0.0f, info, sizeof(info));
 
           /* Re-start counting. */
           chr_start = chr_current + 1;
@@ -1102,8 +1102,8 @@ void DRW_draw_region_engine_info(int xoffset, int yoffset)
 
       char info[GPU_INFO_SIZE];
       BLI_strncpy(info, chr_start, line_len + 1);
-      yoffset -= U.widget_unit;
-      BLF_draw_default(xoffset, yoffset, 0.0f, info, sizeof(info));
+      *yoffset -= line_height;
+      BLF_draw_default(xoffset, *yoffset, 0.0f, info, sizeof(info));
 
       BLF_disable(font_id, BLF_SHADOW);
     }

@@ -1576,7 +1576,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
       draw_grid_unit_name(scene, rv3d, v3d, xoffset, &yoffset);
     }
 
-    DRW_draw_region_engine_info(xoffset, yoffset);
+    DRW_draw_region_engine_info(xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
   }
 
   if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 && (v3d->overlay.flag & V3D_OVERLAY_STATS)) {
