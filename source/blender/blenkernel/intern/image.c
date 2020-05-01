@@ -571,7 +571,7 @@ ImageTile *BKE_image_get_tile(Image *ima, int tile_number)
   return NULL;
 }
 
-ImageTile *BKE_image_get_tile_from_iuser(Image *ima, ImageUser *iuser)
+ImageTile *BKE_image_get_tile_from_iuser(Image *ima, const ImageUser *iuser)
 {
   return BKE_image_get_tile(ima, (iuser && iuser->tile) ? iuser->tile : 1001);
 }
@@ -4796,7 +4796,7 @@ static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *r_entry, 
   return ibuf;
 }
 
-BLI_INLINE bool image_quick_test(Image *ima, ImageUser *iuser)
+BLI_INLINE bool image_quick_test(Image *ima, const ImageUser *iuser)
 {
   if (ima == NULL) {
     return false;

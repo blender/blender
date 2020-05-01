@@ -318,7 +318,7 @@ bool BKE_image_fill_tile(struct Image *ima,
                          bool is_float);
 
 struct ImageTile *BKE_image_get_tile(struct Image *ima, int tile_number);
-struct ImageTile *BKE_image_get_tile_from_iuser(struct Image *ima, struct ImageUser *iuser);
+struct ImageTile *BKE_image_get_tile_from_iuser(struct Image *ima, const struct ImageUser *iuser);
 
 int BKE_image_get_tile_from_pos(struct Image *ima,
                                 const float uv[2],
