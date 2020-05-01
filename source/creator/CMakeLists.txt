@@ -687,6 +687,17 @@ elseif(WIN32)
     )
   endif()
 
+  if(WITH_WINDOWS_PDB)
+    if(WITH_WINDOWS_STRIPPED_PDB)
+      # Icky hack for older cmake from https://stackoverflow.com/a/21198501
+      # $<CONFIG> will work in newer cmake but the version currently (3.12)
+      # on the buildbot does not support this endavour.
+      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/\${CMAKE_INSTALL_CONFIG_NAME}/blender_public.pdb DESTINATION . RENAME blender.pdb)
+    else()
+      install(FILES $<TARGET_PDB_FILE:blender> DESTINATION . RENAME blender.pdb)
+    endif()
+  endif()
+
   if(WITH_PYTHON)
     string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
@@ -1085,6 +1096,20 @@ endif()
 # the use of vcpkg
 if(WIN32)
   set_target_properties(blender PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
+  set_target_properties(blender PROPERTIES
+    PDB_NAME "blender_private"
+    PDB_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+    if (WITH_WINDOWS_PDB AND WITH_WINDOWS_STRIPPED_PDB)
+      # This is slightly messy, but single target generators like ninja will not have the
+      # CMAKE_CFG_INTDIR variable and multitarget generators like msbuild will not have
+      # CMAKE_BUILD_TYPE. This can be simplified by target_link_options and the $<CONFIG>
+      # generator expression in newer cmake (2.13+) but until that time this fill have suffice.
+      if(CMAKE_BUILD_TYPE)
+        set_property(TARGET blender APPEND PROPERTY LINK_FLAGS  " /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb")
+      else()
+        set_property(TARGET blender APPEND PROPERTY LINK_FLAGS  " /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/blender_public.pdb")
+      endif()
+  endif()
 endif()
 
 # -----------------------------------------------------------------------------

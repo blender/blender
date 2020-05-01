@@ -53,6 +53,10 @@ int BLI_system_memory_max_in_megabytes_int(void);
 /* getpid */
 #ifdef WIN32
 #  define BLI_SYSTEM_PID_H <process.h>
+
+/* void* since we really do not want to drag Windows.h in to get the proper typedef. */
+void BLI_windows_handle_exception(void *exception);
+
 #else
 #  define BLI_SYSTEM_PID_H <unistd.h>
 #endif

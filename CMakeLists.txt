@@ -546,6 +546,12 @@ if(WIN32)
   option(WITH_WINDOWS_SCCACHE "Use sccache to speed up builds (Ninja builder only)" OFF)
   mark_as_advanced(WITH_WINDOWS_SCCACHE)
 
+  option(WITH_WINDOWS_PDB "Generate a pdb file for client side stacktraces" ON)
+  mark_as_advanced(WITH_WINDOWS_PDB)
+
+  option(WITH_WINDOWS_STRIPPED_PDB "Use a stripped PDB file" On)
+  mark_as_advanced(WITH_WINDOWS_STRIPPED_PDB)
+
 endif()
 
 # The following only works with the Ninja generator in CMake >= 3.0.
