@@ -27,8 +27,8 @@
 
 #include "GHOST_ISystem.h"
 
-#if defined(WITH_X11) || defined(WITH_GHOST_WAYLAND)
-#  ifdef WITH_X11
+#if defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
+#  ifdef WITH_GHOST_X11
 #    include "GHOST_SystemX11.h"
 #  endif
 #  ifdef WITH_GHOST_WAYLAND
@@ -54,7 +54,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 {
   GHOST_TSuccess success;
   if (!m_system) {
-#if defined(WITH_X11) || defined(WITH_GHOST_WAYLAND)
+#if defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
 #  ifdef WITH_GHOST_WAYLAND
     try {
       m_system = new GHOST_SystemWayland();
@@ -62,7 +62,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
     catch (const std::exception &) {
     }
 #  endif
-#  ifdef WITH_X11
+#  ifdef WITH_GHOST_X11
     if (!m_system) {
       m_system = new GHOST_SystemX11();
     }

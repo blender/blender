@@ -149,7 +149,7 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
     endif()
   endif()
 
-elseif(APPLE AND NOT WITH_X11)
+elseif(APPLE AND NOT WITH_GHOST_X11)
   list(APPEND SRC
     intern/GHOST_DisplayManagerCocoa.mm
     intern/GHOST_SystemCocoa.mm
@@ -177,8 +177,8 @@ elseif(APPLE AND NOT WITH_X11)
     )
   endif()
 
-elseif(WITH_X11 OR WITH_GHOST_WAYLAND)
-  if(WITH_X11)
+elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
+  if(WITH_GHOST_X11)
     list(APPEND INC_SYS
       ${X11_X11_INCLUDE_PATH}
     )
@@ -254,7 +254,7 @@ elseif(WITH_X11 OR WITH_GHOST_WAYLAND)
       )
     endif()
 
-    add_definitions(-DWITH_X11)
+    add_definitions(-DWITH_GHOST_X11)
   endif()
 
   if(WITH_GHOST_WAYLAND)
@@ -335,7 +335,7 @@ elseif(WITH_X11 OR WITH_GHOST_WAYLAND)
     )
   endif()
 
-  add_definitions(-DWITH_X11)
+  add_definitions(-DWITH_GHOST_X11)
 
 elseif(WIN32)
   # # Warnings as errors, this is too strict!

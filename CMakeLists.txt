@@ -140,7 +140,7 @@ get_blender_version()
 
 # First platform specific non-cached vars
 if(UNIX AND NOT (APPLE OR HAIKU))
-  set(WITH_X11 ON)
+  set(WITH_GHOST_X11 ON)
 endif()
 
 # Blender internal features
@@ -211,7 +211,7 @@ if(UNIX AND NOT APPLE)
   option(WITH_GHOST_WAYLAND   "Enable building Blender against Wayland for windowing" OFF)
 endif()
 
-if(WITH_X11)
+if(WITH_GHOST_X11)
   option(WITH_GHOST_XDND    "Enable drag'n'drop support on X11 using XDND protocol" ON)
 endif()
 
@@ -236,7 +236,7 @@ if(UNIX AND NOT APPLE)
   mark_as_advanced(WITH_OPENMP_STATIC)
 endif()
 
-if(WITH_X11)
+if(WITH_GHOST_X11)
   option(WITH_X11_XINPUT    "Enable X11 Xinput (tablet support and unicode input)"  ON)
   option(WITH_X11_XF86VMODE "Enable X11 video mode switching"                       ON)
   option(WITH_X11_XFIXES    "Enable X11 XWayland cursor warping workaround"         ON)
@@ -693,7 +693,7 @@ if(WITH_INSTALL_PORTABLE)
 endif()
 
 if(WITH_GHOST_SDL OR WITH_HEADLESS)
-  set(WITH_X11           OFF)
+  set(WITH_GHOST_X11     OFF)
   set(WITH_X11_XINPUT    OFF)
   set(WITH_X11_XF86VMODE OFF)
   set(WITH_X11_XFIXES    OFF)

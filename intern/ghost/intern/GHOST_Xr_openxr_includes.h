@@ -42,7 +42,7 @@
 #ifdef XR_USE_GRAPHICS_API_D3D12
 #  include <d3d12.h>
 #endif
-#ifdef WITH_X11
+#ifdef WITH_GHOST_X11
 #  include <GL/glxew.h>
 #endif
 

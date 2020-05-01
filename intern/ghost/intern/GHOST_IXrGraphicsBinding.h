@@ -33,7 +33,7 @@ class GHOST_IXrGraphicsBinding {
 
  public:
   union {
-#if defined(WITH_X11)
+#if defined(WITH_GHOST_X11)
     XrGraphicsBindingOpenGLXlibKHR glx;
 #elif defined(WIN32)
     XrGraphicsBindingOpenGLWin32KHR wgl;

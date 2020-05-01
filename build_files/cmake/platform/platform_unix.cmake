@@ -524,7 +524,7 @@ if(WITH_GHOST_WAYLAND)
   endif()
 endif()
 
-if(WITH_X11)
+if(WITH_GHOST_X11)
   find_package(X11 REQUIRED)
 
   find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})

@@ -22,7 +22,7 @@
 #include <list>
 #include <sstream>
 
-#if defined(WITH_X11)
+#if defined(WITH_GHOST_X11)
 #  include "GHOST_ContextGLX.h"
 #elif defined(WIN32)
 #  include "GHOST_ContextD3D.h"
@@ -68,7 +68,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
                                 XrSystemId system_id,
                                 std::string *r_requirement_info) const override
   {
-#if defined(WITH_X11)
+#if defined(WITH_GHOST_X11)
     GHOST_ContextGLX *ctx_gl = static_cast<GHOST_ContextGLX *>(ghost_ctx);
 #else
     GHOST_ContextWGL *ctx_gl = static_cast<GHOST_ContextWGL *>(ghost_ctx);
@@ -107,7 +107,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
 
   void initFromGhostContext(GHOST_Context *ghost_ctx) override
   {
-#if defined(WITH_X11)
+#if defined(WITH_GHOST_X11)
     GHOST_ContextGLX *ctx_glx = static_cast<GHOST_ContextGLX *>(ghost_ctx);
     XVisualInfo *visual_info = glXGetVisualFromFBConfig(ctx_glx->m_display, ctx_glx->m_fbconfig);
 
