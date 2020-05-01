@@ -83,9 +83,11 @@
 
 #include "outliner_intern.h"
 
-/* ************************************************************** */
+/** \} */
 
-/* Highlight --------------------------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Highlight on Cursor Motion Operator
+ * \{ */
 
 static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
@@ -140,7 +142,11 @@ void OUTLINER_OT_highlight_update(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 }
 
-/* Toggle Open/Closed ------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Toggle Open/Closed Operator
+ * \{ */
 
 /* Open or close a tree element, optionally toggling all children recursively */
 void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all)
@@ -262,8 +268,10 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "all", false, "All", "Close or open all items");
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/** \name Object Mode Enter/Exit
+/** \name Object Mode Enter/Exit Utilities
  * \{ */
 
 static void item_object_mode_enter_exit(bContext *C, ReportList *reports, Object *ob, bool enter)
@@ -317,7 +325,9 @@ void item_object_mode_exit_cb(bContext *C,
 
 /** \} */
 
-/* Rename --------------------------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Rename Operator
+ * \{ */
 
 static void do_item_rename(ARegion *region,
                            TreeElement *te,
@@ -449,7 +459,11 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 }
 
-/* ID delete --------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID Delete Operator
+ * \{ */
 
 static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeStoreElem *tselem)
 {
@@ -563,7 +577,11 @@ void OUTLINER_OT_id_delete(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 }
 
-/* ID remap --------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID Remap Operator
+ * \{ */
 
 static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 {
@@ -736,7 +754,11 @@ void id_remap_cb(bContext *C,
   WM_operator_properties_free(&op_props);
 }
 
-/* ID copy/Paste ------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID Copy Operator
+ * \{ */
 
 static int outliner_id_copy_tag(SpaceOutliner *soops, ListBase *tree)
 {
@@ -801,6 +823,12 @@ void OUTLINER_OT_id_copy(wmOperatorType *ot)
   ot->flag = 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID Paste Operator
+ * \{ */
+
 static int outliner_id_paste_exec(bContext *C, wmOperator *op)
 {
   char str[FILE_MAX];
@@ -835,7 +863,11 @@ void OUTLINER_OT_id_paste(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-/* Library relocate/reload --------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Library Relocate Operator
+ * \{ */
 
 static int lib_relocate(
     bContext *C, TreeElement *te, TreeStoreElem *tselem, wmOperatorType *ot, const bool reload)
@@ -979,6 +1011,12 @@ static int outliner_lib_reload_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_CANCELLED;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Library Reload Operator
+ * \{ */
+
 void OUTLINER_OT_lib_reload(wmOperatorType *ot)
 {
   ot->name = "Reload Library";
@@ -1002,13 +1040,11 @@ void lib_reload_cb(bContext *C,
   lib_relocate(C, te, tselem, ot, true);
 }
 
-/* ************************************************************** */
-/* Setting Toggling Operators */
+/** \} */
 
-/* =============================================== */
-/* Toggling Utilities (Exported) */
-
-/* Apply Settings ------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Apply Settings Utilities
+ * \{ */
 
 static int outliner_count_levels(ListBase *lb, const int curlevel)
 {
@@ -1090,7 +1126,11 @@ bool outliner_flag_flip(ListBase *lb, short flag)
   return changed;
 }
 
-/* Restriction Columns ------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Restriction Column Utility
+ * \{ */
 
 /* same check needed for both object operation and restrict column button func
  * return 0 when in edit mode (cannot restrict view or select)
@@ -1116,10 +1156,11 @@ int common_restrict_check(bContext *C, Object *ob)
   return 1;
 }
 
-/* =============================================== */
-/* Outliner setting toggles */
+/** \} */
 
-/* Toggle Expanded (Outliner) ---------------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Toggle Expanded (Outliner) Operator
+ * \{ */
 
 static int outliner_toggle_expanded_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1152,7 +1193,11 @@ void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
   /* no undo or registry, UI option */
 }
 
-/* Toggle Selected (Outliner) ---------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Toggle Selected (Outliner) Operator
+ * \{ */
 
 static int outliner_select_all_exec(bContext *C, wmOperator *op)
 {
@@ -1202,10 +1247,11 @@ void OUTLINER_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
-/* ************************************************************** */
-/* Hotkey Only Operators */
+/** \} */
 
-/* Show Active --------------------------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name View Show Active (Outliner) Operator
+ * \{ */
 
 static void outliner_set_coordinates_element_recursive(SpaceOutliner *soops,
                                                        TreeElement *te,
@@ -1355,7 +1401,11 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 }
 
-/* View Panning --------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Panning (Outliner) Operator
+ * \{ */
 
 static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 {
@@ -1393,10 +1443,14 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* Search ------------------------------------------------------- */
-// TODO: probably obsolete now with filtering?
+/** \} */
 
-#if 0
+#if 0  // TODO: probably obsolete now with filtering?
+
+/* -------------------------------------------------------------------- */
+/** \name Search
+ * \{ */
+
 
 /* find next element that has this name */
 static TreeElement *outliner_find_name(
@@ -1509,9 +1563,14 @@ static void outliner_find_panel(
     BKE_reportf(reports, RPT_WARNING, "Not found: %s", name);
   }
 }
-#endif
 
-/* Show One Level ----------------------------------------------- */
+/** \} */
+
+#endif /* if 0 */
+
+/* -------------------------------------------------------------------- */
+/** \name Show One Level Operator
+ * \{ */
 
 /* helper function for Show/Hide one level operator */
 static void outliner_openclose_level(ListBase *lb, int curlevel, int level, int open)
@@ -1584,7 +1643,11 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* Show Hierarchy ----------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Show Hierarchy Operator
+ * \{ */
 
 /* Helper function for tree_element_shwo_hierarchy() -
  * recursively checks whether subtrees have any objects. */
@@ -1676,11 +1739,15 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
   /* no undo or registry, UI option */
 }
 
-/* ************************************************************** */
-/* ANIMATO OPERATIONS */
-/* KeyingSet and Driver Creation - Helper functions */
+/** \} */
 
-/* specialized poll callback for these operators to work in Datablocks view only */
+/* -------------------------------------------------------------------- */
+/** \name Animation Internal Utilities
+ * \{ */
+
+/**
+ * Specialized poll callback for these operators to work in data-blocks view only.
+ */
 static bool ed_operator_outliner_datablocks_active(bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -1842,18 +1909,22 @@ static void tree_element_to_path(TreeElement *te,
   BLI_freelistN(&hierarchy);
 }
 
-/* =============================================== */
-/* Driver Operations */
+/** \} */
 
-/* These operators are only available in databrowser mode for now, as
- * they depend on having RNA paths and/or hierarchies available.
+/* -------------------------------------------------------------------- */
+/** \name Driver Internal Utilities
+ * \{ */
+
+/**
+ * Driver Operations
+ *
+ * These operators are only available in data-browser mode for now,
+ * as they depend on having RNA paths and/or hierarchies available.
  */
 enum {
   DRIVERS_EDITMODE_ADD = 0,
   DRIVERS_EDITMODE_REMOVE,
 } /*eDrivers_EditModes*/;
-
-/* Utilities ---------------------------------- */
 
 /* Recursively iterate over tree, finding and working on selected items */
 static void do_outliner_drivers_editop(SpaceOutliner *soops,
@@ -1930,7 +2001,11 @@ static void do_outliner_drivers_editop(SpaceOutliner *soops,
   }
 }
 
-/* Add Operator ---------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Driver Add Operator
+ * \{ */
 
 static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
 {
@@ -1965,7 +2040,11 @@ void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* Remove Operator ---------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Driver Remove Operator
+ * \{ */
 
 static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
 {
@@ -2000,18 +2079,22 @@ void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* =============================================== */
-/* Keying Set Operations */
+/** \} */
 
-/* These operators are only available in databrowser mode for now, as
+/* -------------------------------------------------------------------- */
+/** \name Keying-Set Internal Utilities
+ * \{ */
+
+/**
+ * Keying-Set Operations
+ *
+ * These operators are only available in data-browser mode for now, as
  * they depend on having RNA paths and/or hierarchies available.
  */
 enum {
   KEYINGSET_EDITMODE_ADD = 0,
   KEYINGSET_EDITMODE_REMOVE,
 } /*eKeyingSet_EditModes*/;
-
-/* Utilities ---------------------------------- */
 
 /* find the 'active' KeyingSet, and add if not found (if adding is allowed) */
 // TODO: should this be an API func?
@@ -2104,7 +2187,11 @@ static void do_outliner_keyingset_editop(SpaceOutliner *soops,
   }
 }
 
-/* Add Operator ---------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keying-Set Add Operator
+ * \{ */
 
 static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
 {
@@ -2145,7 +2232,11 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* Remove Operator ---------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keying-Set Remove Operator
+ * \{ */
 
 static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2182,8 +2273,11 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************************************************** */
-/* ORPHANED DATABLOCKS */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Purge Orphan Data-Blocks Operator
+ * \{ */
 
 static bool ed_operator_outliner_id_orphans_active(bContext *C)
 {
@@ -2195,7 +2289,7 @@ static bool ed_operator_outliner_id_orphans_active(bContext *C)
   return true;
 }
 
-/* Purge Orphans Operator --------------------------------------- */
+/** \} */
 
 static void outliner_orphans_purge_tag(ID *id, int *num_tagged)
 {
@@ -2313,3 +2407,5 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_int(ot->srna, "num_deleted", 0, 0, INT_MAX, "", "", 0, INT_MAX);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
+
+/** \} */

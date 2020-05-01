@@ -89,9 +89,9 @@
 
 #include "outliner_intern.h"
 
-/* ****************************************************** */
-
-/* ************ SELECTION OPERATIONS ********* */
+/* -------------------------------------------------------------------- */
+/** \name ID/Library/Data Set/Un-link Utilities
+ * \{ */
 
 static void set_operation_types(SpaceOutliner *soops,
                                 ListBase *lb,
@@ -414,7 +414,12 @@ static void outliner_do_libdata_operation(bContext *C,
   }
 }
 
-/* ******************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene Menu Operator
+ * \{ */
+
 typedef enum eOutliner_PropSceneOps {
   OL_SCENE_OP_DELETE = 1,
 } eOutliner_PropSceneOps;
@@ -502,7 +507,12 @@ void OUTLINER_OT_scene_operation(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(ot->srna, "type", prop_scene_op_types, 0, "Scene Operation", "");
 }
-/* ******************************************** */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Search Utilities
+ * \{ */
 
 /**
  * Stores the parent and a child element of a merged icon-row icon for
@@ -642,6 +652,12 @@ static void object_select_cb(bContext *C,
     ED_object_base_select(base, BA_SELECT);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks (Selection, Users & Library) Utilities
+ * \{ */
 
 static void object_select_hierarchy_cb(bContext *C,
                                        ReportList *UNUSED(reports),
@@ -882,7 +898,11 @@ void outliner_do_object_operation(bContext *C,
   outliner_do_object_operation_ex(C, reports, scene_act, soops, lb, operation_cb, NULL, true);
 }
 
-/* ******************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Tagging Utilities
+ * \{ */
 
 static void clear_animdata_cb(int UNUSED(event),
                               TreeElement *UNUSED(te),
@@ -934,7 +954,11 @@ static void refreshdrivers_animdata_cb(int UNUSED(event),
   }
 }
 
-/* --------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Operation Utilities
+ * \{ */
 
 typedef enum eOutliner_PropDataOps {
   OL_DOP_SELECT = 1,
@@ -1307,7 +1331,11 @@ static void object_batch_delete_hierarchy_cb(bContext *C,
   }
 }
 
-/* **************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Menu Operator
+ * \{ */
 
 enum {
   OL_OP_SELECT = 1,
@@ -1474,6 +1502,12 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_object_op_types, 0, "Object Operation", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Object/Collection Operator
+ * \{ */
+
 static void outliner_objects_delete(
     bContext *C, Scene *scene, SpaceOutliner *soops, ReportList *reports, ListBase *lb)
 {
@@ -1542,7 +1576,11 @@ void OUTLINER_OT_delete(wmOperatorType *ot)
   ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* **************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ID-Data Menu Operator
+ * \{ */
 
 typedef enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_INVALID = 0,
@@ -1842,7 +1880,11 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
   RNA_def_enum_funcs(ot->prop, outliner_id_operation_itemf);
 }
 
-/* **************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Library Menu Operator
+ * \{ */
 
 typedef enum eOutlinerLibOpTypes {
   OL_LIB_INVALID = 0,
@@ -1943,7 +1985,11 @@ void OUTLINER_OT_lib_operation(wmOperatorType *ot)
       ot->srna, "type", outliner_lib_op_type_items, 0, "Library Operation", "");
 }
 
-/* **************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Outliner Set Active Action Operator
+ * \{ */
 
 static void outliner_do_id_set_operation(
     SpaceOutliner *soops,
@@ -1968,8 +2014,6 @@ static void outliner_do_id_set_operation(
     }
   }
 }
-
-/* ------------------------------------------ */
 
 static void actionset_id_cb(TreeElement *UNUSED(te),
                             TreeStoreElem *tselem,
@@ -2068,7 +2112,11 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-/* **************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Menu Operator
+ * \{ */
 
 typedef enum eOutliner_AnimDataOps {
   OUTLINER_ANIMOP_INVALID = 0,
@@ -2184,7 +2232,11 @@ void OUTLINER_OT_animdata_operation(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_animdata_op_types, 0, "Animation Operation", "");
 }
 
-/* **************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Constraint Menu Operator
+ * \{ */
 
 static const EnumPropertyItem prop_constraint_op_types[] = {
     {OL_CONSTRAINTOP_ENABLE, "ENABLE", ICON_HIDE_OFF, "Enable", ""},
@@ -2230,7 +2282,11 @@ void OUTLINER_OT_constraint_operation(wmOperatorType *ot)
       ot->srna, "type", prop_constraint_op_types, 0, "Constraint Operation", "");
 }
 
-/* ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Modifier Menu Operator
+ * \{ */
 
 static const EnumPropertyItem prop_modifier_op_types[] = {
     {OL_MODIFIER_OP_TOGVIS, "TOGVIS", ICON_RESTRICT_VIEW_OFF, "Toggle viewport use", ""},
@@ -2275,7 +2331,11 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_modifier_op_types, 0, "Modifier Operation", "");
 }
 
-/* ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Data Menu Operator
+ * \{ */
 
 // XXX: select linked is for RNA structs only
 static const EnumPropertyItem prop_data_op_types[] = {
@@ -2368,7 +2428,11 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
 }
 
-/* ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Context Menu Operator
+ * \{ */
 
 static int outliner_operator_menu(bContext *C, const char *opname)
 {
@@ -2533,4 +2597,4 @@ void OUTLINER_OT_operation(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 }
 
-/* ****************************************************** */
+/** \} */
