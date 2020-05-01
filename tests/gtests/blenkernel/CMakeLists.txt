@@ -41,4 +41,4 @@ if(WITH_BUILDINFO)
 endif()
 
 BLENDER_TEST(BKE_armature "bf_blenloader;bf_blenkernel;bf_blenlib;${BUILDINFO}")
-BLENDER_TEST(BKE_fcurve "bf_blenloader;bf_blenkernel;bf_editor_animation")
+BLENDER_TEST(BKE_fcurve "bf_blenloader;bf_blenkernel;bf_editor_animation;${BUILDINFO}")
