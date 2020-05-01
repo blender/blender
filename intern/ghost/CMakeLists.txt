@@ -328,14 +328,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
   endif()
 
-  if(WITH_X11_XINPUT)
-    add_definitions(-DWITH_X11_XINPUT)
-    list(APPEND INC_SYS
-      ${X11_Xinput_INCLUDE_PATH}
-    )
-  endif()
-
-  add_definitions(-DWITH_GHOST_X11)
 
 elseif(WIN32)
   # # Warnings as errors, this is too strict!
