@@ -176,6 +176,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   wl_surface_commit(w->surface);
   wl_display_roundtrip(m_system->display());
 
+  setState(state);
+
   setTitle(title);
 
   /* EGL context. */
