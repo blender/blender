@@ -3592,6 +3592,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
 
               memcpy(bpn, nextbp, sizeof(BPoint));
               interp_v4_v4v4(bpn->vec, bp->vec, nextbp->vec, factor);
+              bpn->radius = interpf(bp->radius, nextbp->radius, factor);
               bpn++;
             }
           }
