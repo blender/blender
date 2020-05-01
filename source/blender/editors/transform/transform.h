@@ -912,7 +912,7 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 
 /*********************** Transform Orientations ******************************/
 
-void initTransformOrientation(struct bContext *C, TransInfo *t);
+void initTransformOrientation(struct bContext *C, TransInfo *t, short orientation);
 
 /* Those two fill in mat and return non-zero on success */
 bool createSpaceNormal(float mat[3][3], const float normal[3]);

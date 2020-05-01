@@ -996,7 +996,7 @@ void initSelectConstraint(TransInfo *t, bool force_global)
   else {
     if (t->orientation.index == 0) {
       t->orientation.index = 1;
-      initTransformOrientation(t->context, t);
+      initTransformOrientation(t->context, t, t->orientation.types[t->orientation.index]);
     }
     orientation = t->orientation.types[t->orientation.index];
   }
