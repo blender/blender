@@ -59,7 +59,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve_driver.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"

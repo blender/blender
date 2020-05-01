@@ -213,6 +213,7 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 
 #  include "BKE_anim_data.h"
 #  include "BKE_fcurve.h"
+#  include "BKE_fcurve_driver.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

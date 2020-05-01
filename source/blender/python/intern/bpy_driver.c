@@ -33,7 +33,7 @@
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
 
 #include "bpy_rna_driver.h" /* for pyrna_driver_get_variable_value */

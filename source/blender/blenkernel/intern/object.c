@@ -83,6 +83,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
+#include "BKE_fcurve_driver.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"

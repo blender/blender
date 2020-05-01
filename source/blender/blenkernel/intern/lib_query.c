@@ -68,7 +68,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve_driver.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"

@@ -26,7 +26,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve_driver.h"
 
 #include "RNA_access.h"
 

@@ -116,6 +116,7 @@ set(SRC
   intern/editmesh_tangent.c
   intern/effect.c
   intern/fcurve.c
+  intern/fcurve_driver.c
   intern/fluid.c
   intern/fmodifier.c
   intern/font.c
@@ -301,6 +302,7 @@ set(SRC
   BKE_editmesh_tangent.h
   BKE_effect.h
   BKE_fcurve.h
+  BKE_fcurve_driver.h
   BKE_fluid.h
   BKE_font.h
   BKE_freestyle.h

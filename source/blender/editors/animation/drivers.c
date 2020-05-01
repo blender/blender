@@ -40,6 +40,7 @@
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
+#include "BKE_fcurve_driver.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"

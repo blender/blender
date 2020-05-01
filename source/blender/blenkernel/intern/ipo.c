@@ -60,6 +60,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_fcurve.h"
+#include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_ipo.h"
