@@ -716,18 +716,14 @@ static void ui_node_draw_node(
     uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, int depth)
 {
   bNodeSocket *input;
-  uiLayout *col, *split;
   PointerRNA nodeptr;
 
   RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
 
   if (node->typeinfo->draw_buttons) {
     if (node->type != NODE_GROUP) {
-      split = uiLayoutSplit(layout, 0.5f, false);
-      col = uiLayoutColumn(split, false);
-      col = uiLayoutColumn(split, false);
-
-      node->typeinfo->draw_buttons(col, C, &nodeptr);
+      uiLayoutSetPropSep(layout, true);
+      node->typeinfo->draw_buttons(layout, C, &nodeptr);
     }
   }
 
@@ -741,12 +737,9 @@ static void ui_node_draw_input(
 {
   PointerRNA inputptr, nodeptr;
   uiBlock *block = uiLayoutGetBlock(layout);
-  uiBut *bt;
-  uiLayout *split, *row, *col;
+  uiLayout *row = NULL;
   bNode *lnode;
-  char label[UI_MAX_NAME_STR];
-  int i, indent = (depth > 1) ? 2 * (depth - 1) : 0;
-  int dependency_loop;
+  bool dependency_loop;
 
   if (input->flag & SOCK_UNAVAIL) {
     return;
@@ -765,48 +758,43 @@ static void ui_node_draw_input(
   RNA_pointer_create(&ntree->id, &RNA_NodeSocket, input, &inputptr);
   RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
 
-  /* indented label */
-  for (i = 0; i < indent; i++) {
-    label[i] = ' ';
-  }
-  label[indent] = '\0';
-  BLI_snprintf(label + indent, UI_MAX_NAME_STR - indent, "%s", IFACE_(input->name));
+  row = uiLayoutRow(layout, true);
+  /* Decorations are added manually here. */
+  uiLayoutSetPropDecorate(row, false);
 
-  /* split in label and value */
-  split = uiLayoutSplit(layout, 0.5f, false);
+  uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(row);
+  /* Empty decorator item for alignment. */
+  bool add_dummy_decorator = false;
 
-  row = uiLayoutRow(split, true);
+  {
+    uiLayout *sub = uiLayoutRow(split_wrapper.label_column, true);
 
-  if (depth > 0) {
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
+    if (depth > 0) {
+      UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
-    if (lnode &&
-        (lnode->inputs.first || (lnode->typeinfo->draw_buttons && lnode->type != NODE_GROUP))) {
-      int icon = (input->flag & SOCK_COLLAPSED) ? ICON_DISCLOSURE_TRI_RIGHT :
-                                                  ICON_DISCLOSURE_TRI_DOWN;
-      uiItemR(row, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
+      if (lnode &&
+          (lnode->inputs.first || (lnode->typeinfo->draw_buttons && lnode->type != NODE_GROUP))) {
+        int icon = (input->flag & SOCK_COLLAPSED) ? ICON_DISCLOSURE_TRI_RIGHT :
+                                                    ICON_DISCLOSURE_TRI_DOWN;
+        uiItemR(sub, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
+      }
+
+      UI_block_emboss_set(block, UI_EMBOSS);
     }
-    else {
-      uiItemL(row, "", ICON_BLANK1);
-    }
 
-    bt = block->buttons.last;
-    bt->rect.xmax = UI_UNIT_X / 2;
-
-    UI_block_emboss_set(block, UI_EMBOSS);
+    sub = uiLayoutRow(sub, true);
+    uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
+    uiItemL(sub, IFACE_(input->name), ICON_NONE);
   }
-
-  uiItemL(row, label, ICON_NONE);
-  bt = block->buttons.last;
-  bt->drawflag = UI_BUT_TEXT_RIGHT;
 
   if (dependency_loop) {
-    row = uiLayoutRow(split, false);
     uiItemL(row, IFACE_("Dependency Loop"), ICON_ERROR);
+    add_dummy_decorator = true;
   }
   else if (lnode) {
     /* input linked to a node */
-    uiTemplateNodeLink(split, C, ntree, node, input);
+    uiTemplateNodeLink(row, C, ntree, node, input);
+    add_dummy_decorator = true;
 
     if (depth == 0 || !(input->flag & SOCK_COLLAPSED)) {
       if (depth == 0) {
@@ -817,27 +805,41 @@ static void ui_node_draw_input(
     }
   }
   else {
-    row = uiLayoutRow(split, true);
+    row = uiLayoutRow(row, true);
 
     uiTemplateNodeLink(row, C, ntree, node, input);
 
+    if (input->flag & SOCK_HIDE_VALUE) {
+      add_dummy_decorator = true;
+    }
     /* input not linked, show value */
-    if (!(input->flag & SOCK_HIDE_VALUE)) {
+    else {
+      uiLayout *sub = row;
+
       switch (input->type) {
+        case SOCK_VECTOR:
+          if (input->type == SOCK_VECTOR) {
+            uiItemS(row);
+            sub = uiLayoutColumn(row, true);
+          }
+          ATTR_FALLTHROUGH;
         case SOCK_FLOAT:
         case SOCK_INT:
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
         case SOCK_STRING:
-          uiItemR(row, &inputptr, "default_value", 0, "", ICON_NONE);
+          uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
+          uiItemDecoratorR(
+              split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
           break;
-        case SOCK_VECTOR:
-          uiItemS(row);
-          col = uiLayoutColumn(row, false);
-          uiItemR(col, &inputptr, "default_value", 0, "", ICON_NONE);
-          break;
+        default:
+          add_dummy_decorator = true;
       }
     }
+  }
+
+  if (add_dummy_decorator) {
+    uiItemDecoratorR(split_wrapper.decorate_column, NULL, NULL, 0);
   }
 
   /* clear */

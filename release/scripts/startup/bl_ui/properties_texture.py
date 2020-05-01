@@ -163,6 +163,8 @@ class TEXTURE_PT_node(TextureButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+
         node = context.texture_node
         ntree = node.id_data
         layout.template_node_view(ntree, node, None)

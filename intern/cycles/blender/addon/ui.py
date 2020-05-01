@@ -1410,6 +1410,8 @@ class CYCLES_LIGHT_PT_nodes(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+
         light = context.light
         panel_node_draw(layout, light, 'OUTPUT_LIGHT', 'Surface')
 
@@ -1459,6 +1461,8 @@ class CYCLES_WORLD_PT_surface(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+
         world = context.world
 
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
@@ -1477,6 +1481,8 @@ class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
+        layout.use_property_split = True
 
         world = context.world
         panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
@@ -1665,6 +1671,8 @@ class CYCLES_MATERIAL_PT_surface(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+
         mat = context.material
         if not panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface'):
             layout.prop(mat, "diffuse_color")
@@ -1683,6 +1691,8 @@ class CYCLES_MATERIAL_PT_volume(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+
         mat = context.material
         # cmat = mat.cycles
 
@@ -1700,6 +1710,8 @@ class CYCLES_MATERIAL_PT_displacement(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
+        layout.use_property_split = True
 
         mat = context.material
         panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Displacement')

@@ -105,6 +105,8 @@ class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
         layout.prop(world, "use_nodes", icon='NODETREE')
         layout.separator()
 
+        layout.use_property_split = True
+
         if world.use_nodes:
             ntree = world.node_tree
             node = ntree.get_output_node('EEVEE')
@@ -138,6 +140,8 @@ class EEVEE_WORLD_PT_volume(WorldButtonsPanel, Panel):
         world = context.world
         ntree = world.node_tree
         node = ntree.get_output_node('EEVEE')
+
+        layout.use_property_split = True
 
         if node:
             input = find_node_input(node, 'Volume')
