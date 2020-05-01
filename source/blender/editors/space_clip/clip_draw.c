@@ -1730,7 +1730,6 @@ static void draw_distortion(SpaceClip *sc,
 {
   float x, y;
   const int n = 10;
-  int i, j, a;
   float pos[2], tpos[2], grid[11][11][2];
   MovieTracking *tracking = &clip->tracking;
   bGPdata *gpd = NULL;
@@ -1764,7 +1763,7 @@ static void draw_distortion(SpaceClip *sc,
     float val[4][2], idx[4][2];
     float min[2], max[2];
 
-    for (a = 0; a < 4; a++) {
+    for (int a = 0; a < 4; a++) {
       if (a < 2) {
         val[a][a % 2] = FLT_MAX;
       }
@@ -1774,12 +1773,12 @@ static void draw_distortion(SpaceClip *sc,
     }
 
     zero_v2(pos);
-    for (i = 0; i <= n; i++) {
-      for (j = 0; j <= n; j++) {
+    for (int i = 0; i <= n; i++) {
+      for (int j = 0; j <= n; j++) {
         if (i == 0 || j == 0 || i == n || j == n) {
           BKE_tracking_distort_v2(tracking, width, height, pos, tpos);
 
-          for (a = 0; a < 4; a++) {
+          for (int a = 0; a < 4; a++) {
             int ok;
 
             if (a < 2) {
@@ -1806,7 +1805,7 @@ static void draw_distortion(SpaceClip *sc,
 
     INIT_MINMAX2(min, max);
 
-    for (a = 0; a < 4; a++) {
+    for (int a = 0; a < 4; a++) {
       pos[0] = idx[a][0] * dx;
       pos[1] = idx[a][1] * dy;
 
@@ -1819,8 +1818,8 @@ static void draw_distortion(SpaceClip *sc,
     dx = (max[0] - min[0]) / n;
     dy = (max[1] - min[1]) / n;
 
-    for (i = 0; i <= n; i++) {
-      for (j = 0; j <= n; j++) {
+    for (int i = 0; i <= n; i++) {
+      for (int j = 0; j <= n; j++) {
         BKE_tracking_distort_v2(tracking, width, height, pos, grid[i][j]);
 
         grid[i][j][0] /= width;
@@ -1835,20 +1834,20 @@ static void draw_distortion(SpaceClip *sc,
 
     immUniformColor3f(1.0f, 0.0f, 0.0f);
 
-    for (i = 0; i <= n; i++) {
+    for (int i = 0; i <= n; i++) {
       immBegin(GPU_PRIM_LINE_STRIP, n + 1);
 
-      for (j = 0; j <= n; j++) {
+      for (int j = 0; j <= n; j++) {
         immVertex2fv(position, grid[i][j]);
       }
 
       immEnd();
     }
 
-    for (j = 0; j <= n; j++) {
+    for (int j = 0; j <= n; j++) {
       immBegin(GPU_PRIM_LINE_STRIP, n + 1);
 
-      for (i = 0; i <= n; i++) {
+      for (int i = 0; i <= n; i++) {
         immVertex2fv(position, grid[i][j]);
       }
 
@@ -1882,7 +1881,7 @@ static void draw_distortion(SpaceClip *sc,
         while (stroke) {
           if (stroke->flag & GP_STROKE_2DSPACE) {
             if (stroke->totpoints > 1) {
-              for (i = 0; i < stroke->totpoints - 1; i++) {
+              for (int i = 0; i < stroke->totpoints - 1; i++) {
                 float npos[2], dpos[2], len;
                 int steps;
 
@@ -1906,7 +1905,7 @@ static void draw_distortion(SpaceClip *sc,
 
                 immBegin(GPU_PRIM_LINE_STRIP, steps + 1);
 
-                for (j = 0; j <= steps; j++) {
+                for (int j = 0; j <= steps; j++) {
                   BKE_tracking_distort_v2(tracking, width, height, pos, tpos);
                   immVertex2f(position, tpos[0] / width, tpos[1] / (height * aspy));
 
