@@ -86,6 +86,12 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
 {
   bNodeSocket *sock = BLI_findstring(&node->outputs, name, offsetof(bNodeSocket, name));
 
+  /* Replace if types don't match. */
+  if (sock && sock->type != type) {
+    nodeRemoveSocket(ntree, node, sock);
+    sock = NULL;
+  }
+
   /* Create socket if it doesn't exist yet. */
   if (sock == NULL) {
     if (rres_index >= 0) {
