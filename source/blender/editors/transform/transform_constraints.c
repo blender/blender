@@ -1064,8 +1064,7 @@ void initSelectConstraint(TransInfo *t, bool force_global)
   else {
     if (t->orientation.index == 0) {
       t->orientation.index = 1;
-      BLI_assert(t->orientation.types[0] != V3D_ORIENT_CUSTOM_MATRIX);
-      initTransformOrientation(t->context, t, t->orientation.types[t->orientation.index]);
+      initTransformOrientation(t->context, t);
     }
     orientation = t->orientation.types[t->orientation.index];
   }

@@ -438,10 +438,15 @@ static int armature_bone_transflags_update_recursive(bArmature *arm,
   return total;
 }
 
-void initTransformOrientation(bContext *C, TransInfo *t, short orientation)
+void initTransformOrientation(bContext *C, TransInfo *t)
 {
   Object *ob = CTX_data_active_object(C);
   Object *obedit = CTX_data_active_object(C);
+
+  /* Use the custom orientation when it is set. */
+  short orientation = t->orientation.types[0] == V3D_ORIENT_CUSTOM_MATRIX ?
+                          V3D_ORIENT_CUSTOM_MATRIX :
+                          t->orientation.types[t->orientation.index];
 
   switch (orientation) {
     case V3D_ORIENT_GLOBAL:
