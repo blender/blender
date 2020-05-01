@@ -761,8 +761,7 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
   }
 
   voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
-  texres->tin = sc * fabsf(tex->vn_w1 * da[0] + tex->vn_w2 * da[1] + tex->vn_w3 * da[2] +
-                           tex->vn_w4 * da[3]);
+  texres->tin = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
 
   if (tex->vn_coltype) {
     float ca[3]; /* cell color */
@@ -809,14 +808,11 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
 
     /* calculate bumpnormal */
     voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
-    texres->nor[0] = sc * fabsf(tex->vn_w1 * da[0] + tex->vn_w2 * da[1] + tex->vn_w3 * da[2] +
-                                tex->vn_w4 * da[3]);
+    texres->nor[0] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
     voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
-    texres->nor[1] = sc * fabsf(tex->vn_w1 * da[0] + tex->vn_w2 * da[1] + tex->vn_w3 * da[2] +
-                                tex->vn_w4 * da[3]);
+    texres->nor[1] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
     voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp, tex->vn_distm);
-    texres->nor[2] = sc * fabsf(tex->vn_w1 * da[0] + tex->vn_w2 * da[1] + tex->vn_w3 * da[2] +
-                                tex->vn_w4 * da[3]);
+    texres->nor[2] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
 
     tex_normal_derivate(tex, texres);
     rv |= TEX_NOR;
