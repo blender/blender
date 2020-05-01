@@ -1415,12 +1415,140 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
 
 /* -------------------------- */
 
+static float fcurve_eval_keyframes_before_first(FCurve *fcu, BezTriple *bezts, float evaltime)
+{
+  BezTriple *bezt, *prevbezt;
+  float dx, fac;
+  float cvalue = 0.0f;
+
+  /* get pointers */
+  prevbezt = bezts;
+  bezt = prevbezt + 1;
+
+  /* before or on first keyframe */
+  if ((fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (prevbezt->ipo != BEZT_IPO_CONST) &&
+      !(fcu->flag & FCURVE_DISCRETE_VALUES)) {
+    /* linear or bezier interpolation */
+    if (prevbezt->ipo == BEZT_IPO_LIN) {
+      /* Use the next center point instead of our own handle for
+       * linear interpolated extrapolate
+       */
+      if (fcu->totvert == 1) {
+        cvalue = prevbezt->vec[1][1];
+      }
+      else {
+        bezt = prevbezt + 1;
+        dx = prevbezt->vec[1][0] - evaltime;
+        fac = bezt->vec[1][0] - prevbezt->vec[1][0];
+
+        /* prevent division by zero */
+        if (fac) {
+          fac = (bezt->vec[1][1] - prevbezt->vec[1][1]) / fac;
+          cvalue = prevbezt->vec[1][1] - (fac * dx);
+        }
+        else {
+          cvalue = prevbezt->vec[1][1];
+        }
+      }
+    }
+    else {
+      /* Use the first handle (earlier) of first BezTriple to calculate the
+       * gradient and thus the value of the curve at evaltime
+       */
+      dx = prevbezt->vec[1][0] - evaltime;
+      fac = prevbezt->vec[1][0] - prevbezt->vec[0][0];
+
+      /* prevent division by zero */
+      if (fac) {
+        fac = (prevbezt->vec[1][1] - prevbezt->vec[0][1]) / fac;
+        cvalue = prevbezt->vec[1][1] - (fac * dx);
+      }
+      else {
+        cvalue = prevbezt->vec[1][1];
+      }
+    }
+  }
+  else {
+    /* constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation,
+     * so just extend first keyframe's value
+     */
+    cvalue = prevbezt->vec[1][1];
+  }
+
+  return cvalue;
+}
+
+static float fcurve_eval_keyframes_after_last(FCurve *fcu, BezTriple *bezts, float evaltime)
+{
+  BezTriple *prevbezt, *lastbezt;
+  float dx, fac;
+  unsigned int a;
+  float cvalue = 0.0f;
+
+  /* get pointers */
+  a = fcu->totvert - 1;
+  prevbezt = bezts;
+  lastbezt = prevbezt + a;
+
+  /* after or on last keyframe */
+  if ((fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (lastbezt->ipo != BEZT_IPO_CONST) &&
+      !(fcu->flag & FCURVE_DISCRETE_VALUES)) {
+    /* linear or bezier interpolation */
+    if (lastbezt->ipo == BEZT_IPO_LIN) {
+      /* Use the next center point instead of our own handle for
+       * linear interpolated extrapolate
+       */
+      if (fcu->totvert == 1) {
+        cvalue = lastbezt->vec[1][1];
+      }
+      else {
+        prevbezt = lastbezt - 1;
+        dx = evaltime - lastbezt->vec[1][0];
+        fac = lastbezt->vec[1][0] - prevbezt->vec[1][0];
+
+        /* prevent division by zero */
+        if (fac) {
+          fac = (lastbezt->vec[1][1] - prevbezt->vec[1][1]) / fac;
+          cvalue = lastbezt->vec[1][1] + (fac * dx);
+        }
+        else {
+          cvalue = lastbezt->vec[1][1];
+        }
+      }
+    }
+    else {
+      /* Use the gradient of the second handle (later) of last BezTriple to calculate the
+       * gradient and thus the value of the curve at evaltime
+       */
+      dx = evaltime - lastbezt->vec[1][0];
+      fac = lastbezt->vec[2][0] - lastbezt->vec[1][0];
+
+      /* prevent division by zero */
+      if (fac) {
+        fac = (lastbezt->vec[2][1] - lastbezt->vec[1][1]) / fac;
+        cvalue = lastbezt->vec[1][1] + (fac * dx);
+      }
+      else {
+        cvalue = lastbezt->vec[1][1];
+      }
+    }
+  }
+  else {
+    /* constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation,
+     * so just extend last keyframe's value
+     */
+    cvalue = lastbezt->vec[1][1];
+  }
+
+  return cvalue;
+}
+
 /* Calculate F-Curve value for 'evaltime' using BezTriple keyframes */
 static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime)
 {
   const float eps = 1.e-8f;
   BezTriple *bezt, *prevbezt, *lastbezt;
-  float v1[2], v2[2], v3[2], v4[2], opl[32], dx, fac;
+  float v1[2], v2[2], v3[2], v4[2], opl[32];
   unsigned int a;
   int b;
   float cvalue = 0.0f;
@@ -1433,106 +1561,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 
   /* evaluation time at or past endpoints? */
   if (prevbezt->vec[1][0] >= evaltime) {
-    /* before or on first keyframe */
-    if ((fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (prevbezt->ipo != BEZT_IPO_CONST) &&
-        !(fcu->flag & FCURVE_DISCRETE_VALUES)) {
-      /* linear or bezier interpolation */
-      if (prevbezt->ipo == BEZT_IPO_LIN) {
-        /* Use the next center point instead of our own handle for
-         * linear interpolated extrapolate
-         */
-        if (fcu->totvert == 1) {
-          cvalue = prevbezt->vec[1][1];
-        }
-        else {
-          bezt = prevbezt + 1;
-          dx = prevbezt->vec[1][0] - evaltime;
-          fac = bezt->vec[1][0] - prevbezt->vec[1][0];
-
-          /* prevent division by zero */
-          if (fac) {
-            fac = (bezt->vec[1][1] - prevbezt->vec[1][1]) / fac;
-            cvalue = prevbezt->vec[1][1] - (fac * dx);
-          }
-          else {
-            cvalue = prevbezt->vec[1][1];
-          }
-        }
-      }
-      else {
-        /* Use the first handle (earlier) of first BezTriple to calculate the
-         * gradient and thus the value of the curve at evaltime
-         */
-        dx = prevbezt->vec[1][0] - evaltime;
-        fac = prevbezt->vec[1][0] - prevbezt->vec[0][0];
-
-        /* prevent division by zero */
-        if (fac) {
-          fac = (prevbezt->vec[1][1] - prevbezt->vec[0][1]) / fac;
-          cvalue = prevbezt->vec[1][1] - (fac * dx);
-        }
-        else {
-          cvalue = prevbezt->vec[1][1];
-        }
-      }
-    }
-    else {
-      /* constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation,
-       * so just extend first keyframe's value
-       */
-      cvalue = prevbezt->vec[1][1];
-    }
+    cvalue = fcurve_eval_keyframes_before_first(fcu, bezts, evaltime);
   }
   else if (lastbezt->vec[1][0] <= evaltime) {
-    /* after or on last keyframe */
-    if ((fcu->extend == FCURVE_EXTRAPOLATE_LINEAR) && (lastbezt->ipo != BEZT_IPO_CONST) &&
-        !(fcu->flag & FCURVE_DISCRETE_VALUES)) {
-      /* linear or bezier interpolation */
-      if (lastbezt->ipo == BEZT_IPO_LIN) {
-        /* Use the next center point instead of our own handle for
-         * linear interpolated extrapolate
-         */
-        if (fcu->totvert == 1) {
-          cvalue = lastbezt->vec[1][1];
-        }
-        else {
-          prevbezt = lastbezt - 1;
-          dx = evaltime - lastbezt->vec[1][0];
-          fac = lastbezt->vec[1][0] - prevbezt->vec[1][0];
-
-          /* prevent division by zero */
-          if (fac) {
-            fac = (lastbezt->vec[1][1] - prevbezt->vec[1][1]) / fac;
-            cvalue = lastbezt->vec[1][1] + (fac * dx);
-          }
-          else {
-            cvalue = lastbezt->vec[1][1];
-          }
-        }
-      }
-      else {
-        /* Use the gradient of the second handle (later) of last BezTriple to calculate the
-         * gradient and thus the value of the curve at evaltime
-         */
-        dx = evaltime - lastbezt->vec[1][0];
-        fac = lastbezt->vec[2][0] - lastbezt->vec[1][0];
-
-        /* prevent division by zero */
-        if (fac) {
-          fac = (lastbezt->vec[2][1] - lastbezt->vec[1][1]) / fac;
-          cvalue = lastbezt->vec[1][1] + (fac * dx);
-        }
-        else {
-          cvalue = lastbezt->vec[1][1];
-        }
-      }
-    }
-    else {
-      /* constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation,
-       * so just extend last keyframe's value
-       */
-      cvalue = lastbezt->vec[1][1];
-    }
+    cvalue = fcurve_eval_keyframes_after_last(fcu, bezts, evaltime);
   }
   else {
     /* evaltime occurs somewhere in the middle of the curve */
