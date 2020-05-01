@@ -1231,10 +1231,6 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     MEM_freeN(poly_nors);
   }
 
-  if (numPolys == 0 && numVerts != 0) {
-    modifier_setError(md, "Faces needed for useful output");
-  }
-
   return result;
 }
 

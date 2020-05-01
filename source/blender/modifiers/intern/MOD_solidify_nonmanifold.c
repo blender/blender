@@ -149,7 +149,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   const uint numLoops = (uint)mesh->totloop;
 
   if (numPolys == 0 && numVerts != 0) {
-    modifier_setError(md, "Faces needed for useful output");
     return mesh;
   }
 
