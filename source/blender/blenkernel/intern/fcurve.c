@@ -1415,15 +1415,17 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
 
 /* -------------------------- */
 
-static float fcurve_eval_keyframes_before_first(FCurve *fcu, BezTriple *bezts, float evaltime)
+static float fcurve_eval_keyframes_extrapolate(
+    FCurve *fcu, BezTriple *bezts, float evaltime, int endpoint_offset, int direction_to_neighbor)
 {
-  BezTriple *endpoint_bezt = bezts;             /* The first keyframe. */
-  BezTriple *neighbor_bezt = endpoint_bezt + 1; /* The second keyframe. */
+  BezTriple *endpoint_bezt = bezts + endpoint_offset; /* The first/last keyframe. */
+  BezTriple *neighbor_bezt = endpoint_bezt +
+                             direction_to_neighbor; /* The second (to last) keyframe. */
 
   if (endpoint_bezt->ipo == BEZT_IPO_CONST || fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT ||
       (fcu->flag & FCURVE_DISCRETE_VALUES) != 0) {
-    /* Constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation, so just extend first
-     * keyframe's value. */
+    /* Constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation, so just extend the
+     * endpoint's value. */
     return endpoint_bezt->vec[1][1];
   }
 
@@ -1445,62 +1447,19 @@ static float fcurve_eval_keyframes_before_first(FCurve *fcu, BezTriple *bezts, f
     return endpoint_bezt->vec[1][1] - (fac * dx);
   }
 
-  /* Use the first handle (earlier) of first BezTriple to calculate the gradient and thus the value
-   * of the curve at evaltime. */
+  /* Use the gradient of the second handle (later) of neighbour to calculate the gradient and thus
+   * the value of the curve at evaltime */
+  int handle = direction_to_neighbor > 0 ? 0 : 2;
   float dx = endpoint_bezt->vec[1][0] - evaltime;
-  float fac = endpoint_bezt->vec[1][0] - endpoint_bezt->vec[0][0];
+  float fac = endpoint_bezt->vec[1][0] - endpoint_bezt->vec[handle][0];
 
   /* Prevent division by zero. */
   if (fac == 0.0f) {
     return endpoint_bezt->vec[1][1];
   }
 
-  fac = (endpoint_bezt->vec[1][1] - endpoint_bezt->vec[0][1]) / fac;
+  fac = (endpoint_bezt->vec[1][1] - endpoint_bezt->vec[handle][1]) / fac;
   return endpoint_bezt->vec[1][1] - (fac * dx);
-}
-
-static float fcurve_eval_keyframes_after_last(FCurve *fcu, BezTriple *bezts, float evaltime)
-{
-  BezTriple *endpoint_bezt = bezts + fcu->totvert - 1; /* The last keyframe. */
-  BezTriple *neighbor_bezt = endpoint_bezt - 1;        /* The second to last keyframe. */
-
-  if (endpoint_bezt->ipo == BEZT_IPO_CONST || fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT ||
-      (fcu->flag & FCURVE_DISCRETE_VALUES) != 0) {
-    /* Constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation, so just extend last
-     * keyframe's value. */
-    return endpoint_bezt->vec[1][1];
-  }
-
-  if (endpoint_bezt->ipo == BEZT_IPO_LIN) {
-    /* Use the next center point instead of our own handle for linear interpolated extrapolate. */
-    if (fcu->totvert == 1) {
-      return endpoint_bezt->vec[1][1];
-    }
-
-    float dx = evaltime - endpoint_bezt->vec[1][0];
-    float fac = endpoint_bezt->vec[1][0] - neighbor_bezt->vec[1][0];
-
-    /* Prevent division by zero. */
-    if (fac == 0.0f) {
-      return endpoint_bezt->vec[1][1];
-    }
-
-    fac = (endpoint_bezt->vec[1][1] - neighbor_bezt->vec[1][1]) / fac;
-    return endpoint_bezt->vec[1][1] + (fac * dx);
-  }
-
-  /* Use the gradient of the second handle (later) of last BezTriple to calculate the gradient and
-   * thus the value of the curve at evaltime */
-  float dx = evaltime - endpoint_bezt->vec[1][0];
-  float fac = endpoint_bezt->vec[2][0] - endpoint_bezt->vec[1][0];
-
-  /* Prevent division by zero. */
-  if (fac == 0.0f) {
-    return endpoint_bezt->vec[1][1];
-  }
-
-  fac = (endpoint_bezt->vec[2][1] - endpoint_bezt->vec[1][1]) / fac;
-  return endpoint_bezt->vec[1][1] + (fac * dx);
 }
 
 /* Calculate F-Curve value for 'evaltime' using BezTriple keyframes */
@@ -1521,10 +1480,10 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 
   /* evaluation time at or past endpoints? */
   if (prevbezt->vec[1][0] >= evaltime) {
-    cvalue = fcurve_eval_keyframes_before_first(fcu, bezts, evaltime);
+    cvalue = fcurve_eval_keyframes_extrapolate(fcu, bezts, evaltime, 0, +1);
   }
   else if (lastbezt->vec[1][0] <= evaltime) {
-    cvalue = fcurve_eval_keyframes_after_last(fcu, bezts, evaltime);
+    cvalue = fcurve_eval_keyframes_extrapolate(fcu, bezts, evaltime, fcu->totvert - 1, -1);
   }
   else {
     /* evaltime occurs somewhere in the middle of the curve */
