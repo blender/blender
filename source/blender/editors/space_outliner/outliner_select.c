@@ -357,20 +357,24 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
   }
 
   te_ob = outliner_find_id(soops, &soops->tree, (ID *)ob);
-  if (te_ob != NULL) {
+  if (te_ob != NULL && te_ob != te) {
     parent_tselem = TREESTORE(te_ob);
   }
 
-  if (!ELEM(NULL, parent_tselem, base)) {
+  if (base) {
     if (set == OL_SETSEL_EXTEND) {
       /* swap select */
       if (base->flag & BASE_SELECTED) {
         ED_object_base_select(base, BA_DESELECT);
-        parent_tselem->flag &= ~TSE_SELECTED;
+        if (parent_tselem) {
+          parent_tselem->flag &= ~TSE_SELECTED;
+        }
       }
       else {
         ED_object_base_select(base, BA_SELECT);
-        parent_tselem->flag |= TSE_SELECTED;
+        if (parent_tselem) {
+          parent_tselem->flag |= TSE_SELECTED;
+        }
       }
     }
     else {
@@ -386,7 +390,9 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
         BKE_view_layer_base_deselect_all(view_layer);
       }
       ED_object_base_select(base, BA_SELECT);
-      parent_tselem->flag |= TSE_SELECTED;
+      if (parent_tselem) {
+        parent_tselem->flag |= TSE_SELECTED;
+      }
     }
 
     if (recursive) {

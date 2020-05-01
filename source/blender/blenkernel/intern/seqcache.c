@@ -1225,6 +1225,10 @@ struct ImBuf *BKE_sequencer_cache_get(
     seq = BKE_sequencer_prefetch_get_original_sequence(seq, scene);
   }
 
+  if (!seq) {
+    return NULL;
+  }
+
   if (!scene->ed->cache) {
     seq_cache_create(context->bmain, scene);
   }
@@ -1285,6 +1289,10 @@ bool BKE_sequencer_cache_put_if_possible(const SeqRenderData *context,
     context = BKE_sequencer_prefetch_get_original_context(context);
     scene = context->scene;
     seq = BKE_sequencer_prefetch_get_original_sequence(seq, scene);
+  }
+
+  if (!seq) {
+    return NULL;
   }
 
   if (BKE_sequencer_cache_recycle_item(scene)) {
