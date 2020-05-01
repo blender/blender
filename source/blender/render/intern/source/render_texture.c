@@ -533,7 +533,7 @@ static int stucci(Tex *tex, const float texvec[3], TexResult *texres)
 /* ------------------------------------------------------------------------- */
 /* newnoise: musgrave terrain noise types */
 
-static float mg_mFractalOrfBmTex(Tex *tex, const float texvec[3], TexResult *texres)
+static int mg_mFractalOrfBmTex(Tex *tex, const float texvec[3], TexResult *texres)
 {
   int rv = TEX_INT;
   float (*mgravefunc)(float, float, float, float, float, float, int);
@@ -588,7 +588,7 @@ static float mg_mFractalOrfBmTex(Tex *tex, const float texvec[3], TexResult *tex
   return rv;
 }
 
-static float mg_ridgedOrHybridMFTex(Tex *tex, const float texvec[3], TexResult *texres)
+static int mg_ridgedOrHybridMFTex(Tex *tex, const float texvec[3], TexResult *texres)
 {
   int rv = TEX_INT;
   float (*mgravefunc)(float, float, float, float, float, float, float, float, int);
@@ -651,7 +651,7 @@ static float mg_ridgedOrHybridMFTex(Tex *tex, const float texvec[3], TexResult *
   return rv;
 }
 
-static float mg_HTerrainTex(Tex *tex, const float texvec[3], TexResult *texres)
+static int mg_HTerrainTex(Tex *tex, const float texvec[3], TexResult *texres)
 {
   int rv = TEX_INT;
 
@@ -702,7 +702,7 @@ static float mg_HTerrainTex(Tex *tex, const float texvec[3], TexResult *texres)
   return rv;
 }
 
-static float mg_distNoiseTex(Tex *tex, const float texvec[3], TexResult *texres)
+static int mg_distNoiseTex(Tex *tex, const float texvec[3], TexResult *texres)
 {
   int rv = TEX_INT;
 
@@ -747,7 +747,7 @@ static float mg_distNoiseTex(Tex *tex, const float texvec[3], TexResult *texres)
  * probably the slowest, especially with minkovsky, bumpmapping, could be done another way.
  */
 
-static float voronoiTex(Tex *tex, const float texvec[3], TexResult *texres)
+static int voronoiTex(Tex *tex, const float texvec[3], TexResult *texres)
 {
   int rv = TEX_INT;
   float da[4], pa[12]; /* distance and point coordinate arrays of 4 nearest neighbors */
