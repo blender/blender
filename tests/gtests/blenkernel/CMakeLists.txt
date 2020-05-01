@@ -23,7 +23,9 @@ set(INC
   ..
   ../../../source/blender/blenkernel
   ../../../source/blender/blenlib
+  ../../../source/blender/editors/include
   ../../../source/blender/makesdna
+  ../../../source/blender/makesrna
   ../../../intern/guardedalloc
   ../../../intern/atomic
 )
@@ -39,3 +41,4 @@ if(WITH_BUILDINFO)
 endif()
 
 BLENDER_TEST(BKE_armature "bf_blenloader;bf_blenkernel;bf_blenlib;${BUILDINFO}")
+BLENDER_TEST(BKE_fcurve "bf_blenloader;bf_blenkernel;bf_editor_animation")
