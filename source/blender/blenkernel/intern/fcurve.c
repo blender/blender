@@ -1466,15 +1466,7 @@ static float fcurve_eval_keyframes_interpolate(FCurve *fcu, BezTriple *bezts, fl
 {
   const float eps = 1.e-8f;
   BezTriple *bezt, *prevbezt;
-  float v1[2], v2[2], v3[2], v4[2], opl[32];
   unsigned int a;
-  int b;
-  float cvalue = 0.0f;
-
-  /* get pointers */
-  a = fcu->totvert - 1;
-  prevbezt = bezts;
-  bezt = prevbezt + 1;
 
   /* evaltime occurs somewhere in the middle of the curve */
   bool exact = false;
@@ -1490,290 +1482,27 @@ static float fcurve_eval_keyframes_interpolate(FCurve *fcu, BezTriple *bezts, fl
    *   This lower bound was established in b888a32eee8147b028464336ad2404d8155c64dd.
    */
   a = binarysearch_bezt_index_ex(bezts, evaltime, fcu->totvert, 0.0001, &exact);
+  bezt = bezts + a;
 
   if (exact) {
     /* index returned must be interpreted differently when it sits on top of an existing keyframe
      * - that keyframe is the start of the segment we need (see action_bug_2.blend in T39207)
      */
-    prevbezt = bezts + a;
-    bezt = (a < fcu->totvert - 1) ? (prevbezt + 1) : prevbezt;
-  }
-  else {
-    /* index returned refers to the keyframe that the eval-time occurs *before*
-     * - hence, that keyframe marks the start of the segment we're dealing with
-     */
-    bezt = bezts + a;
-    prevbezt = (a > 0) ? (bezt - 1) : bezt;
+    return bezt->vec[1][1];
   }
 
-  /* use if the key is directly on the frame,
-   * rare cases this is needed else we get 0.0 instead. */
-  /* XXX: consult T39207 for examples of files where failure of these checks can cause issues */
-  if (exact) {
-    cvalue = prevbezt->vec[1][1];
+  /* index returned refers to the keyframe that the eval-time occurs *before*
+   * - hence, that keyframe marks the start of the segment we're dealing with
+   */
+  prevbezt = (a > 0) ? (bezt - 1) : bezt;
+
+  /* Use if the key is directly on the frame, in rare cases this is needed else we get 0.0 instead.
+   * XXX: consult T39207 for examples of files where failure of these checks can cause issues */
+  if (fabsf(bezt->vec[1][0] - evaltime) < eps) {
+    return bezt->vec[1][1];
   }
-  else if (fabsf(bezt->vec[1][0] - evaltime) < eps) {
-    cvalue = bezt->vec[1][1];
-  }
-  /* evaltime occurs within the interval defined by these two keyframes */
-  else if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) {
-    const float begin = prevbezt->vec[1][1];
-    const float change = bezt->vec[1][1] - prevbezt->vec[1][1];
-    const float duration = bezt->vec[1][0] - prevbezt->vec[1][0];
-    const float time = evaltime - prevbezt->vec[1][0];
-    const float amplitude = prevbezt->amplitude;
-    const float period = prevbezt->period;
 
-    /* value depends on interpolation mode */
-    if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES) ||
-        (duration == 0)) {
-      /* constant (evaltime not relevant, so no interpolation needed) */
-      cvalue = prevbezt->vec[1][1];
-    }
-    else {
-      switch (prevbezt->ipo) {
-        /* interpolation ...................................... */
-        case BEZT_IPO_BEZ:
-          /* bezier interpolation */
-          /* (v1, v2) are the first keyframe and its 2nd handle */
-          v1[0] = prevbezt->vec[1][0];
-          v1[1] = prevbezt->vec[1][1];
-          v2[0] = prevbezt->vec[2][0];
-          v2[1] = prevbezt->vec[2][1];
-          /* (v3, v4) are the last keyframe's 1st handle + the last keyframe */
-          v3[0] = bezt->vec[0][0];
-          v3[1] = bezt->vec[0][1];
-          v4[0] = bezt->vec[1][0];
-          v4[1] = bezt->vec[1][1];
-
-          if (fabsf(v1[1] - v4[1]) < FLT_EPSILON && fabsf(v2[1] - v3[1]) < FLT_EPSILON &&
-              fabsf(v3[1] - v4[1]) < FLT_EPSILON) {
-            /* Optimization: If all the handles are flat/at the same values,
-             * the value is simply the shared value (see T40372 -> F91346)
-             */
-            cvalue = v1[1];
-          }
-          else {
-            /* adjust handles so that they don't overlap (forming a loop) */
-            correct_bezpart(v1, v2, v3, v4);
-
-            /* try to get a value for this position - if failure, try another set of points */
-            b = findzero(evaltime, v1[0], v2[0], v3[0], v4[0], opl);
-            if (b) {
-              berekeny(v1[1], v2[1], v3[1], v4[1], opl, 1);
-              cvalue = opl[0];
-              /* break; */
-            }
-            else {
-              if (G.debug & G_DEBUG) {
-                printf("    ERROR: findzero() failed at %f with %f %f %f %f\n",
-                       evaltime,
-                       v1[0],
-                       v2[0],
-                       v3[0],
-                       v4[0]);
-              }
-            }
-          }
-          break;
-
-        case BEZT_IPO_LIN:
-          /* linear - simply linearly interpolate between values of the two keyframes */
-          cvalue = BLI_easing_linear_ease(time, begin, change, duration);
-          break;
-
-        /* easing ............................................ */
-        case BEZT_IPO_BACK:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_back_ease_in(time, begin, change, duration, prevbezt->back);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_back_ease_out(time, begin, change, duration, prevbezt->back);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_back_ease_in_out(time, begin, change, duration, prevbezt->back);
-              break;
-
-            default: /* default/auto: same as ease out */
-              cvalue = BLI_easing_back_ease_out(time, begin, change, duration, prevbezt->back);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_BOUNCE:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_bounce_ease_in(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_bounce_ease_out(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_bounce_ease_in_out(time, begin, change, duration);
-              break;
-
-            default: /* default/auto: same as ease out */
-              cvalue = BLI_easing_bounce_ease_out(time, begin, change, duration);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_CIRC:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_circ_ease_in(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_circ_ease_out(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_circ_ease_in_out(time, begin, change, duration);
-              break;
-
-            default: /* default/auto: same as ease in */
-              cvalue = BLI_easing_circ_ease_in(time, begin, change, duration);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_CUBIC:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_cubic_ease_in(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_cubic_ease_out(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_cubic_ease_in_out(time, begin, change, duration);
-              break;
-
-            default: /* default/auto: same as ease in */
-              cvalue = BLI_easing_cubic_ease_in(time, begin, change, duration);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_ELASTIC:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_elastic_ease_in(
-                  time, begin, change, duration, amplitude, period);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_elastic_ease_out(
-                  time, begin, change, duration, amplitude, period);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_elastic_ease_in_out(
-                  time, begin, change, duration, amplitude, period);
-              break;
-
-            default: /* default/auto: same as ease out */
-              cvalue = BLI_easing_elastic_ease_out(
-                  time, begin, change, duration, amplitude, period);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_EXPO:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_expo_ease_in(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_expo_ease_out(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_expo_ease_in_out(time, begin, change, duration);
-              break;
-
-            default: /* default/auto: same as ease in */
-              cvalue = BLI_easing_expo_ease_in(time, begin, change, duration);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_QUAD:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_quad_ease_in(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_quad_ease_out(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_quad_ease_in_out(time, begin, change, duration);
-              break;
-
-            default: /* default/auto: same as ease in */
-              cvalue = BLI_easing_quad_ease_in(time, begin, change, duration);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_QUART:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_quart_ease_in(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_quart_ease_out(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_quart_ease_in_out(time, begin, change, duration);
-              break;
-
-            default: /* default/auto: same as ease in */
-              cvalue = BLI_easing_quart_ease_in(time, begin, change, duration);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_QUINT:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_quint_ease_in(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_quint_ease_out(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_quint_ease_in_out(time, begin, change, duration);
-              break;
-
-            default: /* default/auto: same as ease in */
-              cvalue = BLI_easing_quint_ease_in(time, begin, change, duration);
-              break;
-          }
-          break;
-
-        case BEZT_IPO_SINE:
-          switch (prevbezt->easing) {
-            case BEZT_IPO_EASE_IN:
-              cvalue = BLI_easing_sine_ease_in(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_OUT:
-              cvalue = BLI_easing_sine_ease_out(time, begin, change, duration);
-              break;
-            case BEZT_IPO_EASE_IN_OUT:
-              cvalue = BLI_easing_sine_ease_in_out(time, begin, change, duration);
-              break;
-
-            default: /* default/auto: same as ease in */
-              cvalue = BLI_easing_sine_ease_in(time, begin, change, duration);
-              break;
-          }
-          break;
-
-        default:
-          cvalue = prevbezt->vec[1][1];
-          break;
-      }
-    }
-  }
-  else {
+  if (evaltime < prevbezt->vec[1][0] || bezt->vec[1][0] < evaltime) {
     if (G.debug & G_DEBUG) {
       printf("   ERROR: failed eval - p=%f b=%f, t=%f (%f)\n",
              prevbezt->vec[1][0],
@@ -1781,9 +1510,215 @@ static float fcurve_eval_keyframes_interpolate(FCurve *fcu, BezTriple *bezts, fl
              evaltime,
              fabsf(bezt->vec[1][0] - evaltime));
     }
+    return 0.0f;
   }
 
-  return cvalue;
+  /* Evaltime occurs within the interval defined by these two keyframes. */
+  const float begin = prevbezt->vec[1][1];
+  const float change = bezt->vec[1][1] - prevbezt->vec[1][1];
+  const float duration = bezt->vec[1][0] - prevbezt->vec[1][0];
+  const float time = evaltime - prevbezt->vec[1][0];
+  const float amplitude = prevbezt->amplitude;
+  const float period = prevbezt->period;
+
+  /* value depends on interpolation mode */
+  if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES) ||
+      (duration == 0)) {
+    /* constant (evaltime not relevant, so no interpolation needed) */
+    return prevbezt->vec[1][1];
+  }
+
+  switch (prevbezt->ipo) {
+    /* interpolation ...................................... */
+    case BEZT_IPO_BEZ: {
+      float v1[2], v2[2], v3[2], v4[2], opl[32];
+
+      /* bezier interpolation */
+      /* (v1, v2) are the first keyframe and its 2nd handle */
+      v1[0] = prevbezt->vec[1][0];
+      v1[1] = prevbezt->vec[1][1];
+      v2[0] = prevbezt->vec[2][0];
+      v2[1] = prevbezt->vec[2][1];
+      /* (v3, v4) are the last keyframe's 1st handle + the last keyframe */
+      v3[0] = bezt->vec[0][0];
+      v3[1] = bezt->vec[0][1];
+      v4[0] = bezt->vec[1][0];
+      v4[1] = bezt->vec[1][1];
+
+      if (fabsf(v1[1] - v4[1]) < FLT_EPSILON && fabsf(v2[1] - v3[1]) < FLT_EPSILON &&
+          fabsf(v3[1] - v4[1]) < FLT_EPSILON) {
+        /* Optimization: If all the handles are flat/at the same values,
+         * the value is simply the shared value (see T40372 -> F91346)
+         */
+        return v1[1];
+      }
+      /* adjust handles so that they don't overlap (forming a loop) */
+      correct_bezpart(v1, v2, v3, v4);
+
+      /* try to get a value for this position - if failure, try another set of points */
+      if (!findzero(evaltime, v1[0], v2[0], v3[0], v4[0], opl)) {
+        if (G.debug & G_DEBUG) {
+          printf("    ERROR: findzero() failed at %f with %f %f %f %f\n",
+                 evaltime,
+                 v1[0],
+                 v2[0],
+                 v3[0],
+                 v4[0]);
+        }
+        return 0.0;
+      }
+
+      berekeny(v1[1], v2[1], v3[1], v4[1], opl, 1);
+      return opl[0];
+    }
+    case BEZT_IPO_LIN:
+      /* linear - simply linearly interpolate between values of the two keyframes */
+      return BLI_easing_linear_ease(time, begin, change, duration);
+
+    /* easing ............................................ */
+    case BEZT_IPO_BACK:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_back_ease_in(time, begin, change, duration, prevbezt->back);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_back_ease_out(time, begin, change, duration, prevbezt->back);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_back_ease_in_out(time, begin, change, duration, prevbezt->back);
+
+        default: /* default/auto: same as ease out */
+          return BLI_easing_back_ease_out(time, begin, change, duration, prevbezt->back);
+      }
+      break;
+
+    case BEZT_IPO_BOUNCE:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_bounce_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_bounce_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_bounce_ease_in_out(time, begin, change, duration);
+
+        default: /* default/auto: same as ease out */
+          return BLI_easing_bounce_ease_out(time, begin, change, duration);
+      }
+      break;
+
+    case BEZT_IPO_CIRC:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_circ_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_circ_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_circ_ease_in_out(time, begin, change, duration);
+
+        default: /* default/auto: same as ease in */
+          return BLI_easing_circ_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case BEZT_IPO_CUBIC:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_cubic_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_cubic_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_cubic_ease_in_out(time, begin, change, duration);
+
+        default: /* default/auto: same as ease in */
+          return BLI_easing_cubic_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case BEZT_IPO_ELASTIC:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_elastic_ease_in(time, begin, change, duration, amplitude, period);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_elastic_ease_out(time, begin, change, duration, amplitude, period);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_elastic_ease_in_out(time, begin, change, duration, amplitude, period);
+
+        default: /* default/auto: same as ease out */
+          return BLI_easing_elastic_ease_out(time, begin, change, duration, amplitude, period);
+      }
+      break;
+
+    case BEZT_IPO_EXPO:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_expo_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_expo_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_expo_ease_in_out(time, begin, change, duration);
+
+        default: /* default/auto: same as ease in */
+          return BLI_easing_expo_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case BEZT_IPO_QUAD:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_quad_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_quad_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_quad_ease_in_out(time, begin, change, duration);
+
+        default: /* default/auto: same as ease in */
+          return BLI_easing_quad_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case BEZT_IPO_QUART:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_quart_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_quart_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_quart_ease_in_out(time, begin, change, duration);
+
+        default: /* default/auto: same as ease in */
+          return BLI_easing_quart_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case BEZT_IPO_QUINT:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_quint_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_quint_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_quint_ease_in_out(time, begin, change, duration);
+
+        default: /* default/auto: same as ease in */
+          return BLI_easing_quint_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    case BEZT_IPO_SINE:
+      switch (prevbezt->easing) {
+        case BEZT_IPO_EASE_IN:
+          return BLI_easing_sine_ease_in(time, begin, change, duration);
+        case BEZT_IPO_EASE_OUT:
+          return BLI_easing_sine_ease_out(time, begin, change, duration);
+        case BEZT_IPO_EASE_IN_OUT:
+          return BLI_easing_sine_ease_in_out(time, begin, change, duration);
+
+        default: /* default/auto: same as ease in */
+          return BLI_easing_sine_ease_in(time, begin, change, duration);
+      }
+      break;
+
+    default:
+      return prevbezt->vec[1][1];
+  }
 }
 
 /* Calculate F-Curve value for 'evaltime' using BezTriple keyframes */
