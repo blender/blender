@@ -1730,7 +1730,7 @@ static void draw_distortion(SpaceClip *sc,
 {
   float x, y;
   const int n = 10;
-  float pos[2], tpos[2], grid[11][11][2];
+  float tpos[2], grid[11][11][2];
   MovieTracking *tracking = &clip->tracking;
   bGPdata *gpd = NULL;
   float aspy = 1.0f / tracking->camera.pixel_aspect;
@@ -1772,10 +1772,10 @@ static void draw_distortion(SpaceClip *sc,
       }
     }
 
-    zero_v2(pos);
     for (int i = 0; i <= n; i++) {
       for (int j = 0; j <= n; j++) {
         if (i == 0 || j == 0 || i == n || j == n) {
+          const float pos[2] = {dx * j, dy * i};
           BKE_tracking_distort_v2(tracking, width, height, pos, tpos);
 
           for (int a = 0; a < 4; a++) {
@@ -1795,41 +1795,31 @@ static void draw_distortion(SpaceClip *sc,
             }
           }
         }
-
-        pos[0] += dx;
       }
-
-      pos[0] = 0.0f;
-      pos[1] += dy;
     }
 
     INIT_MINMAX2(min, max);
 
     for (int a = 0; a < 4; a++) {
-      pos[0] = idx[a][0] * dx;
-      pos[1] = idx[a][1] * dy;
+      const float pos[2] = {idx[a][0] * dx, idx[a][1] * dy};
 
       BKE_tracking_undistort_v2(tracking, width, height, pos, tpos);
 
       minmax_v2v2_v2(min, max, tpos);
     }
 
-    copy_v2_v2(pos, min);
     dx = (max[0] - min[0]) / n;
     dy = (max[1] - min[1]) / n;
 
     for (int i = 0; i <= n; i++) {
       for (int j = 0; j <= n; j++) {
+        const float pos[2] = {min[0] + dx * j, min[1] + dy * i};
+
         BKE_tracking_distort_v2(tracking, width, height, pos, grid[i][j]);
 
         grid[i][j][0] /= width;
         grid[i][j][1] /= height * aspy;
-
-        pos[0] += dx;
       }
-
-      pos[0] = min[0];
-      pos[1] += dy;
     }
 
     immUniformColor3f(1.0f, 0.0f, 0.0f);
@@ -1882,7 +1872,7 @@ static void draw_distortion(SpaceClip *sc,
           if (stroke->flag & GP_STROKE_2DSPACE) {
             if (stroke->totpoints > 1) {
               for (int i = 0; i < stroke->totpoints - 1; i++) {
-                float npos[2], dpos[2], len;
+                float pos[2], npos[2], dpos[2], len;
                 int steps;
 
                 pos[0] = (stroke->points[i].x + offsx) * width;
