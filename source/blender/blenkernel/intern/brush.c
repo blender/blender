@@ -2055,7 +2055,7 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
   unsigned int *texcache = NULL;
   MTex *mtex = (use_secondary) ? &br->mask_mtex : &br->mtex;
   float intensity;
-  float rgba[4];
+  float rgba_dummy[4];
   int ix, iy;
   int side = half_side * 2;
 
@@ -2073,11 +2073,8 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
 
         /* This is copied from displace modifier code */
         /* TODO(sergey): brush are always caching with CM enabled for now. */
-        RE_texture_evaluate(mtex, co, 0, NULL, false, false, &intensity, rgba);
-
-        ((char *)texcache)[(iy * side + ix) * 4] = ((char *)texcache)[(iy * side + ix) * 4 + 1] =
-            ((char *)texcache)[(iy * side + ix) * 4 + 2] = ((
-                char *)texcache)[(iy * side + ix) * 4 + 3] = (char)(intensity * 255.0f);
+        RE_texture_evaluate(mtex, co, 0, NULL, false, false, &intensity, rgba_dummy);
+        copy_v4_uchar((uchar *)&texcache[iy * side + ix], (char)(intensity * 255.0f));
       }
     }
   }

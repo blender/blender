@@ -123,6 +123,27 @@ MINLINE void copy_v4_v4_uchar(unsigned char r[4], const unsigned char a[4])
   r[3] = a[3];
 }
 
+MINLINE void copy_v2_uchar(unsigned char r[2], const unsigned char a)
+{
+  r[0] = a;
+  r[1] = a;
+}
+
+MINLINE void copy_v3_uchar(unsigned char r[3], const unsigned char a)
+{
+  r[0] = a;
+  r[1] = a;
+  r[2] = a;
+}
+
+MINLINE void copy_v4_uchar(unsigned char r[4], const unsigned char a)
+{
+  r[0] = a;
+  r[1] = a;
+  r[2] = a;
+  r[3] = a;
+}
+
 /* char */
 MINLINE void copy_v2_v2_char(char r[2], const char a[2])
 {
