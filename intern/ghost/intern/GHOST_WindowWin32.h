@@ -35,6 +35,8 @@
 #  include "GHOST_ImeWin32.h"
 #endif
 
+#include <vector>
+
 #include <wintab.h>
 #define PACKETDATA (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
 #define PACKETMODE PK_BUTTONS

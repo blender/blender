@@ -19,6 +19,7 @@
 #include "render/scene.h"
 
 #include "util/util_foreach.h"
+#include "util/util_hash.h"
 #include "util/util_logging.h"
 #include "util/util_progress.h"
 #include "util/util_types.h"
@@ -447,7 +448,14 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
   start_point = transform_point(&itfm, start_point);
   cell_size = transform_direction(&itfm, cell_size);
 
-  volume_params.start_point = start_point;
+  /* Slightly offset vertex coordinates to avoid overlapping faces with other
+   * volumes or meshes. The proper solution would be to improve intersection in
+   * the kernel to support robust handling of multiple overlapping faces or use
+   * an all-hit intersection similar to shadows. */
+  const float3 face_overlap_avoidance = cell_size * 0.1f *
+                                        hash_uint_to_float(hash_string(mesh->name.c_str()));
+
+  volume_params.start_point = start_point + face_overlap_avoidance;
   volume_params.cell_size = cell_size;
   volume_params.pad_size = pad_size;
 
