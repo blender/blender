@@ -3250,11 +3250,6 @@ static void gpencil_add_arc_points(tGPsdata *p, float mval[2], int segments)
     pt->pressure = pt_prev->pressure;
     pt->strength = pt_prev->strength;
 
-    /* Apply angle of stroke to brush size. */
-    if (brush_settings->draw_angle_factor != 0.0f) {
-      gp_brush_angle_segment(p, pt_prev, pt);
-    }
-
     /* Apply randomness to pressure. */
     if (brush_settings->draw_random_press > 0.0f) {
       float rand = BLI_rng_get_float(p->rng) * 2.0f - 1.0f;
