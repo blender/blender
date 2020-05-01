@@ -54,30 +54,30 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 {
   GHOST_TSuccess success;
   if (!m_system) {
-#if defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
-#  ifdef WITH_GHOST_WAYLAND
+#if defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
+    /* Special case, try Wayland, fall back to X11. */
     try {
       m_system = new GHOST_SystemWayland();
     }
-    catch (const std::exception &) {
+    catch (const std::runtime_error &) {
+      /* fallback to X11. */
     }
-#  endif
-#  ifdef WITH_GHOST_X11
     if (!m_system) {
       m_system = new GHOST_SystemX11();
     }
-#  endif
-#else
-#  ifdef WITH_HEADLESS
+#elif defined(WITH_GHOST_X11)
+    m_system = new GHOST_SystemX11();
+#elif defined(WITH_GHOST_WAYLAND)
+    m_system = new GHOST_SystemWayland();
+#elif defined(WITH_HEADLESS)
     m_system = new GHOST_SystemNULL();
-#  elif defined(WITH_GHOST_SDL)
+#elif defined(WITH_GHOST_SDL)
     m_system = new GHOST_SystemSDL();
-#  elif defined(WIN32)
+#elif defined(WIN32)
     m_system = new GHOST_SystemWin32();
-#  else
-#    ifdef __APPLE__
+#else
+#  ifdef __APPLE__
     m_system = new GHOST_SystemCocoa();
-#    endif
 #  endif
 #endif
     success = m_system != NULL ? GHOST_kSuccess : GHOST_kFailure;

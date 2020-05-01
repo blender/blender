@@ -138,11 +138,6 @@ get_blender_version()
 #-----------------------------------------------------------------------------
 # Options
 
-# First platform specific non-cached vars
-if(UNIX AND NOT (APPLE OR HAIKU))
-  set(WITH_GHOST_X11 ON)
-endif()
-
 # Blender internal features
 option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
 mark_as_advanced(WITH_BLENDER)
@@ -207,8 +202,12 @@ mark_as_advanced(WITH_GHOST_DEBUG)
 option(WITH_GHOST_SDL    "Enable building Blender against SDL for windowing rather than the native APIs" OFF)
 mark_as_advanced(WITH_GHOST_SDL)
 
-if(UNIX AND NOT APPLE)
-  option(WITH_GHOST_WAYLAND   "Enable building Blender against Wayland for windowing" OFF)
+if(UNIX AND NOT (APPLE OR HAIKU))
+  option(WITH_GHOST_X11 "Enable building Blender against X11 for windowing" ON)
+  mark_as_advanced(WITH_GHOST_X11)
+
+  option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing (under development)" OFF)
+  mark_as_advanced(WITH_GHOST_WAYLAND)
 endif()
 
 if(WITH_GHOST_X11)
@@ -693,6 +692,7 @@ if(WITH_INSTALL_PORTABLE)
 endif()
 
 if(WITH_GHOST_SDL OR WITH_HEADLESS)
+  set(WITH_GHOST_WAYLAND OFF)
   set(WITH_GHOST_X11     OFF)
   set(WITH_X11_XINPUT    OFF)
   set(WITH_X11_XF86VMODE OFF)

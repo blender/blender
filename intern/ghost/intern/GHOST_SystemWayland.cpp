@@ -1197,7 +1197,7 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
   d->display = wl_display_connect(nullptr);
   if (!d->display) {
     display_destroy(d);
-    throw std::exception();
+    throw std::runtime_error("Wayland: unable to connect to display!");
   }
 
   /* Register interfaces. */
@@ -1211,7 +1211,7 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
 
   if (!d->xdg_shell) {
     display_destroy(d);
-    throw std::exception();
+    throw std::runtime_error("Wayland: unable to access xdg_shell!");
   }
 
   /* Register data device per seat for IPC between Wayland clients. */
@@ -1230,7 +1230,7 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
   d->cursor_theme = wl_cursor_theme_load(theme, sizei, d->shm);
   if (!d->cursor_theme) {
     display_destroy(d);
-    throw std::exception();
+    throw std::runtime_error("Wayland: unable to access cursor themes!");
   }
 }
 
