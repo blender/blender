@@ -25,6 +25,7 @@
 #define __BKE_INTERN_MULTIRES_RESHAPE_H__
 
 #include "BLI_sys_types.h"
+
 #include "BKE_multires.h"
 
 struct Depsgraph;

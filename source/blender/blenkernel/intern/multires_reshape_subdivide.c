@@ -42,7 +42,7 @@
 
 #include "multires_reshape.h"
 
-void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
+static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
 {
   MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
   const int totpoly = mesh->totpoly;

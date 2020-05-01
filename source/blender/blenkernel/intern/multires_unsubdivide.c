@@ -843,8 +843,8 @@ static BMesh *get_bmesh_from_mesh(Mesh *mesh)
 }
 
 /* Datalayer names to store the original indices of the elements before modifying the mesh. */
-const static char lname[] = "l_remap_index";
-const static char vname[] = "v_remap_index";
+static const char lname[] = "l_remap_index";
+static const char vname[] = "v_remap_index";
 
 static void multires_unsubdivide_free_original_datalayers(Mesh *mesh)
 {
