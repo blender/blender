@@ -4004,7 +4004,7 @@ static void get_cpa_texture(Mesh *mesh,
           break;
       }
 
-      externtex(mtex, texvec, &value, rgba, rgba + 1, rgba + 2, rgba + 3, 0, NULL, false, false);
+      RE_texture_evaluate(mtex, texvec, 0, NULL, false, false, &value, rgba);
 
       if ((event & mtex->mapto) & PAMAP_ROUGH) {
         ptex->rough1 = ptex->rough2 = ptex->roughe = texture_value_blend(
@@ -4119,7 +4119,7 @@ void psys_get_texture(
           break;
       }
 
-      externtex(mtex, texvec, &value, rgba, rgba + 1, rgba + 2, rgba + 3, 0, NULL, false, false);
+      RE_texture_evaluate(mtex, texvec, 0, NULL, false, false, &value, rgba);
 
       if ((event & mtex->mapto) & PAMAP_TIME) {
         /* the first time has to set the base value for time regardless of blend mode */

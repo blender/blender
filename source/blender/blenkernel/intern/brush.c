@@ -49,7 +49,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RE_render_ext.h" /* externtex */
+#include "RE_render_ext.h" /* RE_texture_evaluate */
 
 static void brush_init_data(ID *id)
 {
@@ -1552,8 +1552,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
   else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
     /* Get strength by feeding the vertex
      * location directly into a texture */
-    hasrgb = externtex(
-        mtex, point, &intensity, rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool, false, false);
+    hasrgb = RE_texture_evaluate(mtex, point, thread, pool, false, false, &intensity, rgba);
   }
   else if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
     float rotation = -mtex->rot;
@@ -1583,8 +1582,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
     co[1] = y;
     co[2] = 0.0f;
 
-    hasrgb = externtex(
-        mtex, co, &intensity, rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool, false, false);
+    hasrgb = RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);
   }
   else {
     float rotation = -mtex->rot;
@@ -1640,8 +1638,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
     co[1] = y;
     co[2] = 0.0f;
 
-    hasrgb = externtex(
-        mtex, co, &intensity, rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool, false, false);
+    hasrgb = RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);
   }
 
   intensity += br->texture_sample_bias;
@@ -1698,8 +1695,7 @@ float BKE_brush_sample_masktex(
     co[1] = y;
     co[2] = 0.0f;
 
-    externtex(
-        mtex, co, &intensity, rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool, false, false);
+    RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);
   }
   else {
     float rotation = -mtex->rot;
@@ -1755,8 +1751,7 @@ float BKE_brush_sample_masktex(
     co[1] = y;
     co[2] = 0.0f;
 
-    externtex(
-        mtex, co, &intensity, rgba, rgba + 1, rgba + 2, rgba + 3, thread, pool, false, false);
+    RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);
   }
 
   CLAMP(intensity, 0.0f, 1.0f);
@@ -2078,7 +2073,7 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
 
         /* This is copied from displace modifier code */
         /* TODO(sergey): brush are always caching with CM enabled for now. */
-        externtex(mtex, co, &intensity, rgba, rgba + 1, rgba + 2, rgba + 3, 0, NULL, false, false);
+        RE_texture_evaluate(mtex, co, 0, NULL, false, false, &intensity, rgba);
 
         ((char *)texcache)[(iy * side + ix) * 4] = ((char *)texcache)[(iy * side + ix) * 4 + 1] =
             ((char *)texcache)[(iy * side + ix) * 4 + 2] = ((

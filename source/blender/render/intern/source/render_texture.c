@@ -1724,17 +1724,20 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 
 /* ------------------------------------------------------------------------- */
 
-int externtex(const MTex *mtex,
-              const float vec[3],
-              float *tin,
-              float *tr,
-              float *tg,
-              float *tb,
-              float *ta,
-              const int thread,
-              struct ImagePool *pool,
-              const bool skip_load_image,
-              const bool texnode_preview)
+/**
+ * \param pool: Thread pool, may be NULL.
+ *
+ * \return True if the texture has color, otherwise false.
+ */
+bool RE_texture_evaluate(const MTex *mtex,
+                         const float vec[3],
+                         const int thread,
+                         struct ImagePool *pool,
+                         const bool skip_load_image,
+                         const bool texnode_preview,
+                         /* Return arguments. */
+                         float *r_intensity,
+                         float r_rgba[4])
 {
   Tex *tex;
   TexResult texr;
@@ -1796,11 +1799,11 @@ int externtex(const MTex *mtex,
     texr.tb = mtex->b;
   }
 
-  *tin = texr.tin;
-  *tr = texr.tr;
-  *tg = texr.tg;
-  *tb = texr.tb;
-  *ta = texr.ta;
+  *r_intensity = texr.tin;
+  r_rgba[0] = texr.tr;
+  r_rgba[1] = texr.tg;
+  r_rgba[2] = texr.tb;
+  r_rgba[3] = texr.ta;
 
   return (rgb != 0);
 }
