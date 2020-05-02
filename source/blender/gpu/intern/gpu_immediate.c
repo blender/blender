@@ -268,7 +268,8 @@ void immBegin(GPUPrimType prim_type, uint vertex_len)
   else {
     /* orphan this buffer & start with a fresh one */
     /* this method works on all platforms, old & new */
-    glBufferData(GL_ARRAY_BUFFER, active_buffer->buffer_size, NULL, GL_DYNAMIC_DRAW);
+    /* `GL_DYNAMIC_DRAW` was causing problems when closing temporary windows on old AMD GPUs. */
+    glBufferData(GL_ARRAY_BUFFER, active_buffer->buffer_size, NULL, GL_STATIC_DRAW);
 
     active_buffer->buffer_offset = 0;
   }
