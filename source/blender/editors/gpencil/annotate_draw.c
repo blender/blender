@@ -524,131 +524,6 @@ static void annotation_draw_strokes(const bGPDframe *gpf,
   GPU_program_point_size(false);
 }
 
-/* Draw selected verts for strokes being edited */
-static void annotation_draw_strokes_edit(bGPDlayer *gpl,
-                                         const bGPDframe *gpf,
-                                         int offsx,
-                                         int offsy,
-                                         int winx,
-                                         int winy,
-                                         short dflag,
-                                         float alpha)
-{
-  /* if alpha 0 do not draw */
-  if (alpha == 0.0f) {
-    return;
-  }
-
-  const bool no_xray = (dflag & GP_DRAWDATA_NO_XRAY) != 0;
-  int mask_orig = 0;
-
-  /* set up depth masks... */
-  if (dflag & GP_DRAWDATA_ONLY3D) {
-    if (no_xray) {
-      glGetIntegerv(GL_DEPTH_WRITEMASK, &mask_orig);
-      glDepthMask(0);
-      GPU_depth_test(true);
-
-      /* first arg is normally rv3d->dist, but this isn't
-       * available here and seems to work quite well without */
-      bglPolygonOffset(1.0f, 1.0f);
-    }
-  }
-
-  GPU_program_point_size(true);
-
-  /* draw stroke verts */
-  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-    /* check if stroke can be drawn */
-    if (annotation_can_draw_stroke(gps, dflag) == false) {
-      continue;
-    }
-
-    /* Optimization: only draw points for selected strokes
-     * We assume that selected points can only occur in
-     * strokes that are selected too.
-     */
-    if ((gps->flag & GP_STROKE_SELECT) == 0) {
-      continue;
-    }
-
-    /* Get size of verts:
-     * - The selected state needs to be larger than the unselected state so that
-     *   they stand out more.
-     * - We use the theme setting for size of the unselected verts
-     */
-    float bsize = UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
-    float vsize;
-    if ((int)bsize > 8) {
-      vsize = 10.0f;
-      bsize = 8.0f;
-    }
-    else {
-      vsize = bsize + 2;
-    }
-
-    /* Why? */
-    UNUSED_VARS(vsize);
-
-    float selectColor[4];
-    UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, selectColor);
-    selectColor[3] = alpha;
-
-    GPUVertFormat *format = immVertexFormat();
-    uint pos; /* specified later */
-    uint size = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
-    if (gps->flag & GP_STROKE_3DSPACE) {
-      pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
-    }
-    else {
-      pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_POINT_VARYING_SIZE_VARYING_COLOR);
-    }
-
-    immBegin(GPU_PRIM_POINTS, gps->totpoints);
-
-    /* Draw all the stroke points (selected or not) */
-    bGPDspoint *pt = gps->points;
-    for (int i = 0; i < gps->totpoints; i++, pt++) {
-      /* size and color first */
-      immAttr3fv(color, gpl->color);
-      immAttr1f(size, bsize);
-
-      /* then position */
-      if (gps->flag & GP_STROKE_3DSPACE) {
-        immVertex3fv(pos, &pt->x);
-      }
-      else {
-        float co[2];
-        annotation_calc_2d_stroke_fxy(&pt->x, gps->flag, offsx, offsy, winx, winy, co);
-        immVertex2fv(pos, co);
-      }
-    }
-
-    immEnd();
-    immUnbindProgram();
-  }
-
-  GPU_program_point_size(false);
-
-  /* clear depth mask */
-  if (dflag & GP_DRAWDATA_ONLY3D) {
-    if (no_xray) {
-      glDepthMask(mask_orig);
-      GPU_depth_test(false);
-
-      bglPolygonOffset(0.0, 0.0);
-#if 0
-      glDisable(GL_POLYGON_OFFSET_LINE);
-      glPolygonOffset(0, 0);
-#endif
-    }
-  }
-}
-
 /* ----- General Drawing ------ */
 /* draw onion-skinning for a layer */
 static void annotation_draw_onionskins(
@@ -767,21 +642,6 @@ static void annotation_draw_data_layers(
     /* draw the strokes already in active frame */
     annotation_draw_strokes(gpf, offsx, offsy, winx, winy, dflag, lthick, ink);
 
-    /* Draw verts of selected strokes:
-     *  - when doing OpenGL renders, we don't want to be showing these, as that ends up
-     * flickering
-     *  - locked layers can't be edited, so there's no point showing these verts
-     *    as they will have no bearings on what gets edited
-     *  - only show when in editmode, since operators shouldn't work otherwise
-     *    (NOTE: doing it this way means that the toggling editmode
-     *    shows visible change immediately).
-     */
-    /* XXX: perhaps we don't want to show these when users are drawing... */
-    if ((G.f & G_FLAG_RENDER_VIEWPORT) == 0 && (gpl->flag & GP_LAYER_LOCKED) == 0 &&
-        (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
-      annotation_draw_strokes_edit(gpl, gpf, offsx, offsy, winx, winy, dflag, alpha);
-    }
-
     /* Check if may need to draw the active stroke cache, only if this layer is the active layer
      * that is being edited. (Stroke buffer is currently stored in gp-data)
      */
@@ -800,54 +660,6 @@ static void annotation_draw_data_layers(
                                     gpd->runtime.sbuffer_sflag,
                                     ink);
     }
-  }
-}
-
-/* draw a short status message in the top-right corner */
-static void annotation_draw_status_text(const bGPdata *gpd, ARegion *region)
-{
-
-  /* Cannot draw any status text when drawing OpenGL Renders */
-  if (G.f & G_FLAG_RENDER_VIEWPORT) {
-    return;
-  }
-
-  /* Get bounds of region - Necessary to avoid problems with region overlap */
-  const rcti *rect = ED_region_visible_rect(region);
-
-  /* for now, this should only be used to indicate when we are in stroke editmode */
-  if (gpd->flag & GP_DATA_STROKE_EDITMODE) {
-    const char *printable = IFACE_("GPencil Stroke Editing");
-    float printable_size[2];
-
-    int font_id = BLF_default();
-
-    BLF_width_and_height(
-        font_id, printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
-
-    int xco = (rect->xmax - U.widget_unit) - (int)printable_size[0];
-    int yco = (rect->ymax - U.widget_unit);
-
-    /* text label */
-    UI_FontThemeColor(font_id, TH_TEXT_HI);
-#ifdef WITH_INTERNATIONAL
-    BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
-#else
-    BLF_draw_default_ascii(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
-#endif
-
-    /* grease pencil icon... */
-    // XXX: is this too intrusive?
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-    GPU_blend(true);
-
-    xco -= U.widget_unit;
-    yco -= (int)printable_size[1] / 2;
-
-    UI_icon_draw(xco, yco, ICON_GREASEPENCIL);
-
-    GPU_blend(false);
   }
 }
 
@@ -1026,11 +838,6 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
 
   annotation_draw_data_all(
       scene, gpd, 0, 0, region->winx, region->winy, CFRA, dflag, area->spacetype);
-
-  /* draw status text (if in screen/pixel-space) */
-  if (!onlyv2d) {
-    annotation_draw_status_text(gpd, region);
-  }
 }
 
 /* draw annotations sketches to specified 3d-view assuming that matrices are already set
