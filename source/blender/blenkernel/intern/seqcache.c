@@ -1292,7 +1292,7 @@ bool BKE_sequencer_cache_put_if_possible(const SeqRenderData *context,
   }
 
   if (!seq) {
-    return NULL;
+    return false;
   }
 
   if (BKE_sequencer_cache_recycle_item(scene)) {
