@@ -56,6 +56,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_numinput.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 #include "ED_space_api.h"
@@ -3561,6 +3562,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  ED_outliner_select_sync_from_sequence_tag(C);
 
   return OPERATOR_FINISHED;
 }

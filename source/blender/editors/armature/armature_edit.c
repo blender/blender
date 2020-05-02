@@ -54,6 +54,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -1283,6 +1284,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
       BKE_pose_tag_recalc(CTX_data_main(C), obedit->pose);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
       DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
+      ED_outliner_select_sync_from_edit_bone_tag(C);
     }
   }
   MEM_freeN(objects);
@@ -1458,6 +1460,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
       ED_armature_edit_refresh_layer_used(arm);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
       DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
+      ED_outliner_select_sync_from_edit_bone_tag(C);
     }
   }
   MEM_freeN(objects);

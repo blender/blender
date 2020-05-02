@@ -29,12 +29,13 @@ extern "C" {
 
 struct ListBase;
 struct bContext;
+struct Base;
 
 bool ED_outliner_collections_editor_poll(struct bContext *C);
 
 void ED_outliner_selected_objects_get(const struct bContext *C, struct ListBase *objects);
 
-Base *ED_outliner_give_base_under_cursor(struct bContext *C, const int mval[2]);
+struct Base *ED_outliner_give_base_under_cursor(struct bContext *C, const int mval[2]);
 
 void ED_outliner_select_sync_from_object_tag(struct bContext *C);
 void ED_outliner_select_sync_from_edit_bone_tag(struct bContext *C);

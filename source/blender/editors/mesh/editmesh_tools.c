@@ -69,6 +69,7 @@
 
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_uvedit.h"
@@ -4404,6 +4405,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
     /* delay depsgraph recalc until all objects are duplicated */
     DEG_relations_tag_update(bmain);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
+    ED_outliner_select_sync_from_object_tag(C);
 
     return OPERATOR_FINISHED;
   }
