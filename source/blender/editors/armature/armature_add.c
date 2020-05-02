@@ -53,7 +53,6 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
-#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -223,7 +222,6 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
   DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
-  ED_outliner_select_sync_from_edit_bone_tag(C);
 
   return OPERATOR_FINISHED;
 }
@@ -1051,8 +1049,6 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  ED_outliner_select_sync_from_edit_bone_tag(C);
-
   return OPERATOR_FINISHED;
 }
 
@@ -1525,13 +1521,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  if (!changed_multi) {
-    return OPERATOR_CANCELLED;
-  }
-
-  ED_outliner_select_sync_from_edit_bone_tag(C);
-
-  return OPERATOR_FINISHED;
+  return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ARMATURE_OT_extrude(wmOperatorType *ot)
@@ -1602,7 +1592,6 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
   /* note, notifier might evolve */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
   DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
-  ED_outliner_select_sync_from_edit_bone_tag(C);
 
   return OPERATOR_FINISHED;
 }
@@ -1693,7 +1682,6 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
   /* note, notifier might evolve */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
   DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
-  ED_outliner_select_sync_from_edit_bone_tag(C);
 
   return OPERATOR_FINISHED;
 }

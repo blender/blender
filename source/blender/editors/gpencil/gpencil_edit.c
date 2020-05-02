@@ -77,7 +77,6 @@
 
 #include "ED_gpencil.h"
 #include "ED_object.h"
-#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_space_api.h"
@@ -4366,7 +4365,6 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, NULL);
-  ED_outliner_select_sync_from_object_tag(C);
 
   return OPERATOR_FINISHED;
 }
