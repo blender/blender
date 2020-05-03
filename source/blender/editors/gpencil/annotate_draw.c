@@ -599,7 +599,7 @@ static void annotation_draw_onionskins(
 
 /* loop over gpencil data layers, drawing them */
 static void annotation_draw_data_layers(
-    bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag, float alpha)
+    bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
 {
   float ink[4];
 
@@ -665,7 +665,7 @@ static void annotation_draw_data_layers(
 
 /* draw grease-pencil datablock */
 static void annotation_draw_data(
-    bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag, float alpha)
+    bGPdata *gpd, int offsx, int offsy, int winx, int winy, int cfra, int dflag)
 {
   /* turn on smooth lines (i.e. anti-aliasing) */
   GPU_line_smooth(true);
@@ -676,7 +676,7 @@ static void annotation_draw_data(
   GPU_blend(true);
 
   /* draw! */
-  annotation_draw_data_layers(gpd, offsx, offsy, winx, winy, cfra, dflag, alpha);
+  annotation_draw_data_layers(gpd, offsx, offsy, winx, winy, cfra, dflag);
 
   /* turn off alpha blending, then smooth lines */
   GPU_blend(false);        // alpha blending
@@ -696,7 +696,6 @@ static void annotation_draw_data_all(Scene *scene,
                                      const char spacetype)
 {
   bGPdata *gpd_source = NULL;
-  float alpha = 1.0f;
 
   if (scene) {
     if (spacetype == SPACE_VIEW3D) {
@@ -709,14 +708,14 @@ static void annotation_draw_data_all(Scene *scene,
     }
 
     if (gpd_source) {
-      annotation_draw_data(gpd_source, offsx, offsy, winx, winy, cfra, dflag, alpha);
+      annotation_draw_data(gpd_source, offsx, offsy, winx, winy, cfra, dflag);
     }
   }
 
   /* scene/clip data has already been drawn, only object/track data is drawn here
    * if gpd_source == gpd, we don't have any object/track data and we can skip */
   if (gpd_source == NULL || (gpd_source && gpd_source != gpd)) {
-    annotation_draw_data(gpd, offsx, offsy, winx, winy, cfra, dflag, alpha);
+    annotation_draw_data(gpd, offsx, offsy, winx, winy, cfra, dflag);
   }
 }
 
