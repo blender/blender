@@ -30,6 +30,11 @@
 #include <unordered_map>
 #include <vector>
 
+using std::atomic;
+using std::string;
+using std::unordered_map;
+using std::vector;
+
 struct MANTA {
  public:
   MANTA(int *res, struct FluidModifierData *mmd);
@@ -415,7 +420,7 @@ struct MANTA {
     return mPhi;
   }
 
-  static std::atomic<int> solverID;
+  static atomic<int> solverID;
   static int with_debug;  // on or off (1 or 0), also sets manta debug level
 
   // Mesh getters
@@ -742,7 +747,7 @@ struct MANTA {
   size_t mTotalCellsMesh;
   size_t mTotalCellsParticles;
 
-  std::unordered_map<std::string, std::string> mRNAMap;
+  unordered_map<string, string> mRNAMap;
 
   int mCurrentID;
 
@@ -855,17 +860,17 @@ struct MANTA {
   float *mPhi;
 
   // Mesh fields
-  std::vector<Node> *mMeshNodes;
-  std::vector<Triangle> *mMeshTriangles;
-  std::vector<pVel> *mMeshVelocities;
+  vector<Node> *mMeshNodes;
+  vector<Triangle> *mMeshTriangles;
+  vector<pVel> *mMeshVelocities;
 
   // Particle fields
-  std::vector<pData> *mFlipParticleData;
-  std::vector<pVel> *mFlipParticleVelocity;
+  vector<pData> *mFlipParticleData;
+  vector<pVel> *mFlipParticleVelocity;
 
-  std::vector<pData> *mSndParticleData;
-  std::vector<pVel> *mSndParticleVelocity;
-  std::vector<float> *mSndParticleLife;
+  vector<pData> *mSndParticleData;
+  vector<pVel> *mSndParticleVelocity;
+  vector<float> *mSndParticleLife;
 
   void initializeRNAMap(struct FluidModifierData *mmd = NULL);
   void initDomain(struct FluidModifierData *mmd = NULL);
@@ -875,26 +880,26 @@ struct MANTA {
   void initSmokeNoise(struct FluidModifierData *mmd = NULL);
   void initializeMantaflow();
   void terminateMantaflow();
-  bool runPythonString(std::vector<std::string> commands);
-  std::string getRealValue(const std::string &varName);
-  std::string parseLine(const std::string &line);
-  std::string parseScript(const std::string &setup_string, FluidModifierData *mmd = NULL);
-  bool updateMeshFromBobj(std::string filename);
-  bool updateMeshFromObj(std::string filename);
-  bool updateMeshFromUni(std::string filename);
-  bool updateParticlesFromUni(std::string filename, bool isSecondarySys, bool isVelData);
-  bool updateGridFromUni(std::string filename, float *grid, bool isNoise);
-  bool updateGridFromVDB(std::string filename, float *grid, bool isNoise);
-  bool updateGridFromRaw(std::string filename, float *grid, bool isNoise);
-  bool updateMeshFromFile(std::string filename);
-  bool updateParticlesFromFile(std::string filename, bool isSecondarySys, bool isVelData);
-  bool updateGridFromFile(std::string filename, float *grid, bool isNoise);
-  std::string getDirectory(struct FluidModifierData *mmd, std::string subdirectory);
-  std::string getFile(struct FluidModifierData *mmd,
-                      std::string subdirectory,
-                      std::string fname,
-                      std::string extension,
-                      int framenr);
+  bool runPythonString(vector<string> commands);
+  string getRealValue(const string &varName);
+  string parseLine(const string &line);
+  string parseScript(const string &setup_string, FluidModifierData *mmd = NULL);
+  bool updateMeshFromBobj(string filename);
+  bool updateMeshFromObj(string filename);
+  bool updateMeshFromUni(string filename);
+  bool updateParticlesFromUni(string filename, bool isSecondarySys, bool isVelData);
+  bool updateGridFromUni(string filename, float *grid, bool isNoise);
+  bool updateGridFromVDB(string filename, float *grid, bool isNoise);
+  bool updateGridFromRaw(string filename, float *grid, bool isNoise);
+  bool updateMeshFromFile(string filename);
+  bool updateParticlesFromFile(string filename, bool isSecondarySys, bool isVelData);
+  bool updateGridFromFile(string filename, float *grid, bool isNoise);
+  string getDirectory(struct FluidModifierData *mmd, string subdirectory);
+  string getFile(struct FluidModifierData *mmd,
+                 string subdirectory,
+                 string fname,
+                 string extension,
+                 int framenr);
 };
 
 #endif
