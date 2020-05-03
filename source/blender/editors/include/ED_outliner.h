@@ -27,9 +27,9 @@
 extern "C" {
 #endif
 
+struct Base;
 struct ListBase;
 struct bContext;
-struct Base;
 
 bool ED_outliner_collections_editor_poll(struct bContext *C);
 

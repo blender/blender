@@ -29,9 +29,9 @@ extern "C" {
 #endif
 
 typedef struct GPUShader GPUShader;
+struct GPUShaderInterface;
 struct GPUTexture;
 struct GPUUniformBuffer;
-struct GPUShaderInterface;
 
 /* GPU Shader
  * - only for fragment shaders now
