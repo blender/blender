@@ -2848,6 +2848,23 @@ static bool ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
   return changed;
 }
 
+static bool ui_textedit_set_cursor_pos_foreach_glyph(const char *UNUSED(str),
+                                                     const size_t str_step_ofs,
+                                                     const rcti *glyph_step_bounds,
+                                                     const int UNUSED(glyph_advance_x),
+                                                     const rctf *glyph_bounds,
+                                                     const float UNUSED(glyph_bearing[2]),
+                                                     void *user_data)
+{
+  int *cursor_data = user_data;
+  float center = glyph_step_bounds->xmin + (BLI_rctf_size_x(glyph_bounds) / 2.0f);
+  if (cursor_data[0] < center) {
+    cursor_data[1] = str_step_ofs;
+    return false;
+  }
+  return true;
+}
+
 /**
  * \param x: Screen space cursor location - #wmEvent.x
  *
@@ -2883,8 +2900,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
       startx += UI_DPI_ICON_SIZE / aspect;
     }
   }
-  /* But this extra .05 makes clicks in between characters feel nicer. */
-  startx += ((UI_TEXT_MARGIN_X + 0.05f) * U.widget_unit) / aspect;
+  startx += (UI_TEXT_MARGIN_X * U.widget_unit) / aspect;
 
   /* mouse dragged outside the widget to the left */
   if (x < startx) {
@@ -2907,48 +2923,24 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
     but->pos = but->ofs;
   }
   /* mouse inside the widget, mouse coords mapped in widget space */
-  else { /* (x >= startx) */
-    int pos_i;
-
-    /* keep track of previous distance from the cursor to the char */
-    float cdist, cdist_prev = 0.0f;
-    short pos_prev;
-
-    str_last = &str[strlen(str)];
-
-    but->pos = pos_prev = ((str_last - str) - but->ofs);
-
-    while (true) {
-      cdist = startx + BLF_width(fstyle.uifont_id, str + but->ofs, (str_last - str) - but->ofs);
-
-      /* check if position is found */
-      if (cdist < x) {
-        /* check is previous location was in fact closer */
-        if ((x - cdist) > (cdist_prev - x)) {
-          but->pos = pos_prev;
-        }
-        break;
-      }
-      cdist_prev = cdist;
-      pos_prev = but->pos;
-      /* done with tricky distance checks */
-
-      pos_i = but->pos;
-      if (but->pos <= 0) {
-        break;
-      }
-      if (BLI_str_cursor_step_prev_utf8(str + but->ofs, but->ofs, &pos_i)) {
-        but->pos = pos_i;
-        str_last = &str[but->pos + but->ofs];
-      }
-      else {
-        break; /* unlikely but possible */
-      }
+  else {
+    str_last = &str[but->ofs];
+    const int str_last_len = strlen(str_last);
+    int x_pos = (int)(x - startx);
+    int glyph_data[2] = {
+        x_pos, /* horizontal position to test. */
+        -1,    /* Write the character offset here. */
+    };
+    BLF_boundbox_foreach_glyph(fstyle.uifont_id,
+                               str + but->ofs,
+                               INT_MAX,
+                               ui_textedit_set_cursor_pos_foreach_glyph,
+                               glyph_data);
+    /* If value untouched then we are to the right. */
+    if (glyph_data[1] == -1) {
+      glyph_data[1] = str_last_len;
     }
-    but->pos += but->ofs;
-    if (but->pos < 0) {
-      but->pos = 0;
-    }
+    but->pos = glyph_data[1] + but->ofs;
   }
 
   if (fstyle.kerning == 1) {
