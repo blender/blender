@@ -24,8 +24,6 @@
 #include <shlwapi.h>
 #include <tlhelp32.h>
 
-#include "BLI_fileops.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "MEM_guardedalloc.h"
@@ -319,24 +317,29 @@ static void bli_load_symbols()
     PathRemoveFileSpecA(pdb_file);
     /* append blender.pdb */
     PathAppendA(pdb_file, "blender.pdb");
-    if (BLI_exists(pdb_file)) {
+    if (PathFileExistsA(pdb_file)) {
       HMODULE mod = GetModuleHandle(NULL);
       if (mod) {
-        size_t size = BLI_file_size(pdb_file);
+        WIN32_FILE_ATTRIBUTE_DATA file_data;
+        if (GetFileAttributesExA(pdb_file, GetFileExInfoStandard, &file_data)) {
+          /* SymInitialize will try to load symbols on its own, so we first must unload whatever it
+           * did trying to help */
+          SymUnloadModule64(GetCurrentProcess(), (DWORD64)mod);
 
-        /* SymInitialize will try to load symbols on its own, so we first must unload whatever it
-         * did trying to help */
-        SymUnloadModule64(GetCurrentProcess(), (DWORD64)mod);
-
-        DWORD64 module_base = SymLoadModule(
-            GetCurrentProcess(), NULL, pdb_file, NULL, (DWORD64)mod, (DWORD)size);
-        if (module_base == 0) {
-          fprintf(stderr,
-                  "Error loading symbols %s\n\terror:0x%.8x\n\tsize = %zi\n\tbase=0x%p\n",
-                  pdb_file,
-                  GetLastError(),
-                  size,
-                  (LPVOID)mod);
+          DWORD64 module_base = SymLoadModule(GetCurrentProcess(),
+                                              NULL,
+                                              pdb_file,
+                                              NULL,
+                                              (DWORD64)mod,
+                                              (DWORD)file_data.nFileSizeLow);
+          if (module_base == 0) {
+            fprintf(stderr,
+                    "Error loading symbols %s\n\terror:0x%.8x\n\tsize = %d\n\tbase=0x%p\n",
+                    pdb_file,
+                    GetLastError(),
+                    file_data.nFileSizeLow,
+                    (LPVOID)mod);
+          }
         }
       }
     }
