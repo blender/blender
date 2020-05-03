@@ -212,7 +212,7 @@ void blf_glyph_cache_free(GlyphCacheBLF *gc)
   GlyphBLF *g;
   unsigned int i;
 
-  for (i = 0; i < 257; i++) {
+  for (i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
     while ((g = BLI_pophead(&gc->bucket[i]))) {
       blf_glyph_free(g);
     }
@@ -330,17 +330,18 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
   g->dims[0] = (int)bitmap.width;
   g->dims[1] = (int)bitmap.rows;
 
-  if (g->dims[0] && g->dims[1]) {
+  const int buffer_size = g->dims[0] * g->dims[1];
+
+  if (buffer_size != 0) {
     if (font->flags & BLF_MONOCHROME) {
       /* Font buffer uses only 0 or 1 values, Blender expects full 0..255 range */
-      int i;
-      for (i = 0; i < (g->dims[0] * g->dims[1]); i++) {
+      for (int i = 0; i < buffer_size; i++) {
         bitmap.buffer[i] = bitmap.buffer[i] ? 255 : 0;
       }
     }
 
-    g->bitmap = MEM_mallocN((size_t)g->dims[0] * (size_t)g->dims[1], "glyph bitmap");
-    memcpy(g->bitmap, (void *)bitmap.buffer, (size_t)g->dims[0] * (size_t)g->dims[1]);
+    g->bitmap = MEM_mallocN((size_t)buffer_size, "glyph bitmap");
+    memcpy(g->bitmap, bitmap.buffer, (size_t)buffer_size);
   }
 
   g->advance = ((float)slot->advance.x) / 64.0f;
