@@ -27,6 +27,7 @@
 #include <atomic>
 #include <cassert>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct MANTA {
@@ -58,20 +59,20 @@ struct MANTA {
   void step(struct FluidModifierData *mmd, int startFrame);
 
   // Grid initialization functions
-  void initHeat(struct FluidModifierData *mmd);
-  void initFire(struct FluidModifierData *mmd);
-  void initColors(struct FluidModifierData *mmd);
-  void initFireHigh(struct FluidModifierData *mmd);
-  void initColorsHigh(struct FluidModifierData *mmd);
-  void initLiquid(FluidModifierData *mmd);
-  void initLiquidMesh(FluidModifierData *mmd);
-  void initObstacle(FluidModifierData *mmd);
-  void initGuiding(FluidModifierData *mmd);
-  void initFractions(FluidModifierData *mmd);
-  void initInVelocity(FluidModifierData *mmd);
-  void initOutflow(FluidModifierData *mmd);
-  void initSndParts(FluidModifierData *mmd);
-  void initLiquidSndParts(FluidModifierData *mmd);
+  void initHeat(struct FluidModifierData *mmd = NULL);
+  void initFire(struct FluidModifierData *mmd = NULL);
+  void initColors(struct FluidModifierData *mmd = NULL);
+  void initFireHigh(struct FluidModifierData *mmd = NULL);
+  void initColorsHigh(struct FluidModifierData *mmd = NULL);
+  void initLiquid(FluidModifierData *mmd = NULL);
+  void initLiquidMesh(FluidModifierData *mmd = NULL);
+  void initObstacle(FluidModifierData *mmd = NULL);
+  void initGuiding(FluidModifierData *mmd = NULL);
+  void initFractions(FluidModifierData *mmd = NULL);
+  void initInVelocity(FluidModifierData *mmd = NULL);
+  void initOutflow(FluidModifierData *mmd = NULL);
+  void initSndParts(FluidModifierData *mmd = NULL);
+  void initLiquidSndParts(FluidModifierData *mmd = NULL);
 
   // Pointer transfer: Mantaflow -> Blender
   void updatePointers();
@@ -741,6 +742,8 @@ struct MANTA {
   size_t mTotalCellsMesh;
   size_t mTotalCellsParticles;
 
+  std::unordered_map<std::string, std::string> mRNAMap;
+
   int mCurrentID;
 
   bool mUsingHeat;
@@ -864,16 +867,17 @@ struct MANTA {
   std::vector<pVel> *mSndParticleVelocity;
   std::vector<float> *mSndParticleLife;
 
-  void initDomain(struct FluidModifierData *mmd);
-  void initNoise(struct FluidModifierData *mmd);
-  void initMesh(struct FluidModifierData *mmd);
-  void initSmoke(struct FluidModifierData *mmd);
-  void initSmokeNoise(struct FluidModifierData *mmd);
+  void initializeRNAMap(struct FluidModifierData *mmd = NULL);
+  void initDomain(struct FluidModifierData *mmd = NULL);
+  void initNoise(struct FluidModifierData *mmd = NULL);
+  void initMesh(struct FluidModifierData *mmd = NULL);
+  void initSmoke(struct FluidModifierData *mmd = NULL);
+  void initSmokeNoise(struct FluidModifierData *mmd = NULL);
   void initializeMantaflow();
   void terminateMantaflow();
   bool runPythonString(std::vector<std::string> commands);
-  std::string getRealValue(const std::string &varName, FluidModifierData *mmd);
-  std::string parseLine(const std::string &line, FluidModifierData *mmd);
+  std::string getRealValue(const std::string &varName);
+  std::string parseLine(const std::string &line);
   std::string parseScript(const std::string &setup_string, FluidModifierData *mmd = NULL);
   bool updateMeshFromBobj(std::string filename);
   bool updateMeshFromObj(std::string filename);
