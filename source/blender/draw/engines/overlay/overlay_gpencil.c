@@ -238,6 +238,15 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
         break;
     }
 
+    /* Move the grid to the right location depending of the align type.
+     * This is required only for 3D Cursor or Origin. */
+    if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
+      copy_v3_v3(mat[3], cursor->location);
+    }
+    else if (ts->gpencil_v3d_align & GP_PROJECT_VIEWSPACE) {
+      copy_v3_v3(mat[3], ob->obmat[3]);
+    }
+
     translate_m4(mat, gpd->grid.offset[0], gpd->grid.offset[1], 0.0f);
     mul_v2_v2fl(size, gpd->grid.scale, 2.0f * ED_scene_grid_scale(scene, &grid_unit));
     rescale_m4(mat, (float[3]){size[0], size[1], 0.0f});
