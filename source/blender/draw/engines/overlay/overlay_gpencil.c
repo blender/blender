@@ -201,7 +201,9 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
   }
 
   const bool show_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
-  const bool show_grid = (v3d->gp_flag & V3D_GP_SHOW_GRID) != 0;
+  const bool show_grid = (v3d->gp_flag & V3D_GP_SHOW_GRID) != 0 &&
+                         ((ts->gpencil_v3d_align &
+                           (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE)) == 0);
 
   if (show_grid && show_overlays) {
     const char *grid_unit = NULL;
