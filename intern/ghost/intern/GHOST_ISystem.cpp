@@ -27,25 +27,22 @@
 
 #include "GHOST_ISystem.h"
 
-#if defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
-#  ifdef WITH_GHOST_X11
-#    include "GHOST_SystemX11.h"
-#  endif
-#  ifdef WITH_GHOST_WAYLAND
-#    include "GHOST_SystemWayland.h"
-#  endif
-#else
-#  ifdef WITH_HEADLESS
-#    include "GHOST_SystemNULL.h"
-#  elif defined(WITH_GHOST_SDL)
-#    include "GHOST_SystemSDL.h"
-#  elif defined(WIN32)
-#    include "GHOST_SystemWin32.h"
-#  else
-#    ifdef __APPLE__
-#      include "GHOST_SystemCocoa.h"
-#    endif
-#  endif
+#if defined(WITH_HEADLESS)
+#  include "GHOST_SystemNULL.h"
+#elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
+#  include "GHOST_SystemWayland.h"
+#  include "GHOST_SystemX11.h"
+#  include <stdexcept>
+#elif defined(WITH_GHOST_X11)
+#  include "GHOST_SystemX11.h"
+#elif defined(WITH_GHOST_WAYLAND)
+#  include "GHOST_SystemWayland.h"
+#elif defined(WITH_GHOST_SDL)
+#  include "GHOST_SystemSDL.h"
+#elif defined(WIN32)
+#  include "GHOST_SystemWin32.h"
+#elif defined(__APPLE__)
+#  include "GHOST_SystemCocoa.h"
 #endif
 
 GHOST_ISystem *GHOST_ISystem::m_system = NULL;
@@ -54,7 +51,9 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 {
   GHOST_TSuccess success;
   if (!m_system) {
-#if defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
+#if defined(WITH_HEADLESS)
+    m_system = new GHOST_SystemNULL();
+#elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
     /* Special case, try Wayland, fall back to X11. */
     try {
       m_system = new GHOST_SystemWayland();
@@ -69,16 +68,12 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
     m_system = new GHOST_SystemX11();
 #elif defined(WITH_GHOST_WAYLAND)
     m_system = new GHOST_SystemWayland();
-#elif defined(WITH_HEADLESS)
-    m_system = new GHOST_SystemNULL();
 #elif defined(WITH_GHOST_SDL)
     m_system = new GHOST_SystemSDL();
 #elif defined(WIN32)
     m_system = new GHOST_SystemWin32();
-#else
-#  ifdef __APPLE__
+#elif defined(__APPLE__)
     m_system = new GHOST_SystemCocoa();
-#  endif
 #endif
     success = m_system != NULL ? GHOST_kSuccess : GHOST_kFailure;
   }
