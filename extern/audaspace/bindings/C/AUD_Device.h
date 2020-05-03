@@ -221,14 +221,14 @@ extern AUD_API AUD_Device* AUD_Device_getCurrent();
  * \param handle Playback handle.
  * \param time Time in seconds to seek to.
  */
-extern AUD_API void AUD_seekSynchronizer(AUD_Handle* handle, float time);
+extern AUD_API void AUD_seekSynchronizer(AUD_Handle* handle, double time);
 
 /**
  * Returns the current sound scene playback time.
  * \param handle Playback handle.
  * \return The playback time in seconds.
  */
-extern AUD_API float AUD_getSynchronizerPosition(AUD_Handle* handle);
+extern AUD_API double AUD_getSynchronizerPosition(AUD_Handle* handle);
 
 /**
  * Starts the playback of jack transport if possible.

@@ -164,7 +164,7 @@ void BKE_sound_stop_scene(struct Scene *scene);
 
 void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene);
 
-float BKE_sound_sync_scene(struct Scene *scene);
+double BKE_sound_sync_scene(struct Scene *scene);
 
 int BKE_sound_scene_playing(struct Scene *scene);
 
@@ -180,10 +180,10 @@ float BKE_sound_get_length(struct Main *bmain, struct bSound *sound);
 
 char **BKE_sound_get_device_names(void);
 
-typedef void (*SoundJackSyncCallback)(struct Main *bmain, int mode, float time);
+typedef void (*SoundJackSyncCallback)(struct Main *bmain, int mode, double time);
 
 void BKE_sound_jack_sync_callback_set(SoundJackSyncCallback callback);
-void BKE_sound_jack_scene_update(struct Scene *scene, int mode, float time);
+void BKE_sound_jack_scene_update(struct Scene *scene, int mode, double time);
 
 /* Dependency graph evaluation. */
 

@@ -151,7 +151,7 @@ public:
 	 * \param skip How much seconds should be skipped at the beginning.
 	 * \return The entry added.
 	 */
-	std::shared_ptr<SequenceEntry> add(std::shared_ptr<ISound> sound, float begin, float end, float skip);
+	std::shared_ptr<SequenceEntry> add(std::shared_ptr<ISound> sound, double begin, double end, double skip);
 
 	/**
 	 * Removes an entry from the scene.

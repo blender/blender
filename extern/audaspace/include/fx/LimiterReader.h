@@ -35,12 +35,12 @@ private:
 	/**
 	 * The start sample: inclusive.
 	 */
-	const float m_start;
+	const double m_start;
 
 	/**
 	 * The end sample: exlusive.
 	 */
-	const float m_end;
+	const double m_end;
 
 	// delete copy constructor and operator=
 	LimiterReader(const LimiterReader&) = delete;
@@ -54,7 +54,7 @@ public:
 	 * \param end The desired end time (sample exklusive), a negative value
 	 *            signals that it should play to the end.
 	 */
-	LimiterReader(std::shared_ptr<IReader> reader, float start = 0, float end = -1);
+	LimiterReader(std::shared_ptr<IReader> reader, double start = 0, double end = -1);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

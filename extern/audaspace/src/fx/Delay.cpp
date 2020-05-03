@@ -19,13 +19,13 @@
 
 AUD_NAMESPACE_BEGIN
 
-Delay::Delay(std::shared_ptr<ISound> sound, float delay) :
+Delay::Delay(std::shared_ptr<ISound> sound, double delay) :
 	Effect(sound),
 	m_delay(delay)
 {
 }
 
-float Delay::getDelay() const
+double Delay::getDelay() const
 {
 	return m_delay;
 }

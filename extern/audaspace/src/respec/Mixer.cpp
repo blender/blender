@@ -66,11 +66,11 @@ void Mixer::setSpecs(Specs specs)
 
 void Mixer::clear(int length)
 {
-	m_buffer.assureSize(length * m_specs.channels * AUD_SAMPLE_SIZE(m_specs));
+	m_buffer.assureSize(length * AUD_SAMPLE_SIZE(m_specs));
 
 	m_length = length;
 
-	std::memset(m_buffer.getBuffer(), 0, length * m_specs.channels * AUD_SAMPLE_SIZE(m_specs));
+	std::memset(m_buffer.getBuffer(), 0, length * AUD_SAMPLE_SIZE(m_specs));
 }
 
 void Mixer::mix(sample_t* buffer, int start, int length, float volume)

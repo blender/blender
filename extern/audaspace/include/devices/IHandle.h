@@ -105,14 +105,14 @@ public:
 	 *        - false if the handle is invalid.
 	 * \warning Whether the seek works or not depends on the sound source.
 	 */
-	virtual bool seek(float position)=0;
+	virtual bool seek(double position)=0;
 
 	/**
 	 * Retrieves the current playback position of a sound.
 	 * \return The playback position in seconds, or 0.0 if the handle is
 	 *         invalid.
 	 */
-	virtual float getPosition()=0;
+	virtual double getPosition()=0;
 
 	/**
 	 * Returns the status of a played back sound.

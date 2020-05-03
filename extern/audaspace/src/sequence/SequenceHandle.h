@@ -71,7 +71,7 @@ private:
 	 * \param position Current playback position in seconds.
 	 * \return Whether the handle is valid.
 	 */
-	bool updatePosition(float position);
+	bool updatePosition(double position);
 
 public:
 	/**
@@ -104,14 +104,14 @@ public:
 	 * \param frame The current frame during playback.
 	 * \param fps The animation frames per second.
 	 */
-	void update(float position, float frame, float fps);
+	void update(double position, float frame, float fps);
 
 	/**
 	 * Seeks the handle to a specific time position.
 	 * \param position The time to seek to.
 	 * \return Whether the handle is valid.
 	 */
-	bool seek(float position);
+	bool seek(double position);
 };
 
 AUD_NAMESPACE_END

@@ -43,12 +43,12 @@ private:
 	/**
 	 * The fading start.
 	 */
-	const float m_start;
+	const double m_start;
 
 	/**
 	 * The fading length.
 	 */
-	const float m_length;
+	const double m_length;
 
 	// delete copy constructor and operator=
 	Fader(const Fader&) = delete;
@@ -64,7 +64,7 @@ public:
 	 */
 	Fader(std::shared_ptr<ISound> sound,
 	                 FadeType type = FADE_IN,
-	                 float start = 0.0f, float length = 1.0f);
+					 double start = 0, double length = 1);
 
 	/**
 	 * Returns the fading type.
@@ -74,12 +74,12 @@ public:
 	/**
 	 * Returns the fading start.
 	 */
-	float getStart() const;
+	double getStart() const;
 
 	/**
 	 * Returns the fading length.
 	 */
-	float getLength() const;
+	double getLength() const;
 
 	virtual std::shared_ptr<IReader> createReader();
 };

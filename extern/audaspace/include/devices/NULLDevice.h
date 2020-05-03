@@ -53,8 +53,8 @@ private:
 		virtual bool stop();
 		virtual bool getKeep();
 		virtual bool setKeep(bool keep);
-		virtual bool seek(float position);
-		virtual float getPosition();
+		virtual bool seek(double position);
+		virtual double getPosition();
 		virtual Status getStatus();
 		virtual float getVolume();
 		virtual bool setVolume(float volume);

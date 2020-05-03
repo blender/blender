@@ -101,14 +101,14 @@ AUD_API int AUD_DynamicMusic_pause(AUD_DynamicMusic* player)
 	return (*player)->pause();
 }
 
-AUD_API int AUD_DynamicMusic_seek(AUD_DynamicMusic* player, float position)
+AUD_API int AUD_DynamicMusic_seek(AUD_DynamicMusic* player, double position)
 {
 	assert(player);
 
 	return (*player)->seek(position);
 }
 
-AUD_API float AUD_DynamicMusic_getPosition(AUD_DynamicMusic* player)
+AUD_API double AUD_DynamicMusic_getPosition(AUD_DynamicMusic* player)
 {
 	assert(player);
 

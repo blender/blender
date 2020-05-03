@@ -46,18 +46,18 @@ PyDoc_STRVAR(M_aud_SequenceEntry_move_doc,
 			 ".. classmethod:: move()\n\n"
 			 "   Moves the entry.\n\n"
 			 "   :arg begin: The new start time.\n"
-			 "   :type begin: float\n"
+			 "   :type begin: double\n"
 			 "   :arg end: The new end time or a negative value if unknown.\n"
-			 "   :type end: float\n"
+			 "   :type end: double\n"
 			 "   :arg skip: How many seconds to skip at the beginning.\n"
-			 "   :type skip: float\n");
+			 "   :type skip: double\n");
 
 static PyObject *
 SequenceEntry_move(SequenceEntry* self, PyObject* args)
 {
-	float begin, end, skip;
+	double begin, end, skip;
 
-	if(!PyArg_ParseTuple(args, "fff:move", &begin, &end, &skip))
+	if(!PyArg_ParseTuple(args, "ddd:move", &begin, &end, &skip))
 		return nullptr;
 
 	try

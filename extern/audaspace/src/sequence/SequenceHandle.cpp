@@ -57,7 +57,7 @@ void SequenceHandle::start()
 	m_valid = m_handle.get();
 }
 
-bool SequenceHandle::updatePosition(float position)
+bool SequenceHandle::updatePosition(double position)
 {
 	std::lock_guard<ILockable> lock(*m_entry);
 
@@ -140,7 +140,7 @@ void SequenceHandle::stop()
 	m_3dhandle = nullptr;
 }
 
-void SequenceHandle::update(float position, float frame, float fps)
+void SequenceHandle::update(double position, float frame, float fps)
 {
 	if(m_sound_status != m_entry->m_sound_status)
 	{
@@ -229,7 +229,7 @@ void SequenceHandle::update(float position, float frame, float fps)
 		m_handle->setVolume(0);
 }
 
-bool SequenceHandle::seek(float position)
+bool SequenceHandle::seek(double position)
 {
 	if(!m_valid)
 		// sound not valid, aborting
@@ -240,7 +240,7 @@ bool SequenceHandle::seek(float position)
 		return false;
 
 	std::lock_guard<ILockable> lock(*m_entry);
-	float seekpos = position - m_entry->m_begin;
+	double seekpos = position - m_entry->m_begin;
 	if(seekpos < 0)
 		seekpos = 0;
 	seekpos += m_entry->m_skip;

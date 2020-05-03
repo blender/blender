@@ -35,6 +35,9 @@ AUD_NAMESPACE_BEGIN
 class AUD_API IDeviceFactory
 {
 public:
+	/**
+	 * Destroys the device factory.
+	 */
 	virtual ~IDeviceFactory() {}
 
 	/**

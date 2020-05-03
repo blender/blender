@@ -90,7 +90,7 @@ AnimateableProperty* Sequence::getAnimProperty(AnimateablePropertyType type)
 	return m_sequence->getAnimProperty(type);
 }
 
-std::shared_ptr<SequenceEntry> Sequence::add(std::shared_ptr<ISound> sound, float begin, float end, float skip)
+std::shared_ptr<SequenceEntry> Sequence::add(std::shared_ptr<ISound> sound, double begin, double end, double skip)
 {
 	return m_sequence->add(sound, begin, end, skip);
 }

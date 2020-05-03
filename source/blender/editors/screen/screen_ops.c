@@ -4388,7 +4388,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
     wmWindow *window;
     ScrArea *area;
     int sync;
-    float time;
+    double time;
 
     /* sync, don't sync, or follow scene setting */
     if (sad->flag & ANIMPLAY_FLAG_SYNC) {
@@ -4411,7 +4411,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
     }
     else if ((scene->audio.flag & AUDIO_SYNC) && (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
              isfinite(time = BKE_sound_sync_scene(scene_eval))) {
-      double newfra = (double)time * FPS;
+      double newfra = time * FPS;
 
       /* give some space here to avoid jumps */
       if (newfra + 0.5 > scene->r.cfra && newfra - 0.5 < scene->r.cfra) {

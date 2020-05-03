@@ -40,7 +40,10 @@ class Buffer;
 class AUD_API IFileInput
 {
 public:
-	virtual ~IFileInput() {};
+	/**
+	 * Destroys the file input.
+	 */
+	virtual ~IFileInput() {}
 
 	/**
 	 * Creates a reader for a file to be read.

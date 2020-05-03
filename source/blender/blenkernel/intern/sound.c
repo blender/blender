@@ -751,12 +751,12 @@ static void sound_start_play_scene(Scene *scene)
   }
 }
 
-static float get_cur_time(Scene *scene)
+static double get_cur_time(Scene *scene)
 {
   /* We divide by the current framelen to take into account time remapping.
    * Otherwise we will get the wrong starting time which will break A/V sync.
    * See T74111 for further details. */
-  return FRA2TIME((CFRA + SUBFRA) / scene->r.framelen);
+  return FRA2TIME((CFRA + SUBFRA) / (double)scene->r.framelen);
 }
 
 void BKE_sound_play_scene(Scene *scene)
@@ -764,7 +764,7 @@ void BKE_sound_play_scene(Scene *scene)
   sound_verify_evaluated_id(&scene->id);
 
   AUD_Status status;
-  const float cur_time = get_cur_time(scene);
+  const double cur_time = get_cur_time(scene);
 
   AUD_Device_lock(sound_device);
 
@@ -811,8 +811,8 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
   bScreen *screen;
   int animation_playing;
 
-  const float one_frame = (float)(1.0 / FPS);
-  const float cur_time = FRA2TIME(CFRA);
+  const double one_frame = 1.0 / FPS;
+  const double cur_time = FRA2TIME(CFRA);
 
   AUD_Device_lock(sound_device);
 
@@ -869,7 +869,7 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
   AUD_Device_unlock(sound_device);
 }
 
-float BKE_sound_sync_scene(Scene *scene)
+double BKE_sound_sync_scene(Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
 
@@ -1230,7 +1230,7 @@ void BKE_sound_stop_scene(Scene *UNUSED(scene))
 void BKE_sound_seek_scene(Main *UNUSED(bmain), Scene *UNUSED(scene))
 {
 }
-float BKE_sound_sync_scene(Scene *UNUSED(scene))
+double BKE_sound_sync_scene(Scene *UNUSED(scene))
 {
   return NAN_FLT;
 }
@@ -1341,7 +1341,7 @@ void BKE_sound_jack_sync_callback_set(SoundJackSyncCallback callback)
 #endif
 }
 
-void BKE_sound_jack_scene_update(Scene *scene, int mode, float time)
+void BKE_sound_jack_scene_update(Scene *scene, int mode, double time)
 {
   sound_verify_evaluated_id(&scene->id);
 

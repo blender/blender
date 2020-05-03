@@ -20,7 +20,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-FaderReader::FaderReader(std::shared_ptr<IReader> reader, FadeType type, float start,float length) :
+FaderReader::FaderReader(std::shared_ptr<IReader> reader, FadeType type, double start, double length) :
 		EffectReader(reader),
 		m_type(type),
 		m_start(start),
@@ -36,14 +36,14 @@ void FaderReader::read(int& length, bool& eos, sample_t* buffer)
 
 	m_reader->read(length, eos, buffer);
 
-	if((position + length) / (float)specs.rate <= m_start)
+	if((position + length) / specs.rate <= m_start)
 	{
 		if(m_type != FADE_OUT)
 		{
 			std::memset(buffer, 0, length * samplesize);
 		}
 	}
-	else if(position / (float)specs.rate >= m_start+m_length)
+	else if(position / specs.rate >= m_start+m_length)
 	{
 		if(m_type == FADE_OUT)
 		{
@@ -58,7 +58,7 @@ void FaderReader::read(int& length, bool& eos, sample_t* buffer)
 		{
 			if(i % specs.channels == 0)
 			{
-				volume = (((position+i)/(float)specs.rate)-m_start) / m_length;
+				volume = float((((position + i) / specs.rate) - m_start) / m_length);
 				if(volume > 1.0f)
 					volume = 1.0f;
 				else if(volume < 0.0f)

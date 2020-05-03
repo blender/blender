@@ -52,7 +52,7 @@ public:
 	 * \param reader The reader to read from.
 	 * \param delay The delay in seconds.
 	 */
-	DelayReader(std::shared_ptr<IReader> reader, float delay);
+	DelayReader(std::shared_ptr<IReader> reader, double delay);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

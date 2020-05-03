@@ -45,7 +45,7 @@ extern AUD_API float* AUD_readSoundBuffer(const char* filename, float low, float
  * \param seconds The time in seconds.
  * \return The silence handle.
  */
-extern AUD_API AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds);
+extern AUD_API AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, double seconds);
 
 /**
  * Reads a sound into a buffer for drawing at a specific sampling rate.
@@ -101,7 +101,7 @@ extern AUD_API const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned in
  * \param start The start time of the mixdown in the sound scene.
  * \return The read device for the mixdown.
  */
-extern AUD_API AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer, float volume, float start);
+extern AUD_API AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer, float volume, double start);
 
 /**
  * Initializes audio routines (FFMPEG/JACK if it is enabled).

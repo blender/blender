@@ -20,19 +20,19 @@
 AUD_NAMESPACE_BEGIN
 
 Limiter::Limiter(std::shared_ptr<ISound> sound,
-									   float start, float end) :
+									   double start, double end) :
 		Effect(sound),
 		m_start(start),
 		m_end(end)
 {
 }
 
-float Limiter::getStart() const
+double Limiter::getStart() const
 {
 	return m_start;
 }
 
-float Limiter::getEnd() const
+double Limiter::getEnd() const
 {
 	return m_end;
 }

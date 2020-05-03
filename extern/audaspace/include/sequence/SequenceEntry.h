@@ -55,13 +55,13 @@ private:
 	std::shared_ptr<ISound> m_sound;
 
 	/// The begin time.
-	float m_begin;
+	double m_begin;
 
 	/// The end time.
-	float m_end;
+	double m_end;
 
 	/// How many seconds are skipped at the beginning.
-	float m_skip;
+	double m_skip;
 
 	/// Whether the entry is muted.
 	bool m_muted;
@@ -124,7 +124,7 @@ public:
 	 * \param skip How much seconds should be skipped at the beginning.
 	 * \param id The ID of the entry.
 	 */
-	SequenceEntry(std::shared_ptr<ISound> sound, float begin, float end, float skip, int id);
+	SequenceEntry(std::shared_ptr<ISound> sound, double begin, double end, double skip, int id);
 	virtual ~SequenceEntry();
 
 	/**
@@ -155,7 +155,7 @@ public:
 	 * \param end The new end time or a negative value if unknown.
 	 * \param skip How many seconds to skip at the beginning.
 	 */
-	void move(float begin, float end, float skip);
+	void move(double begin, double end, double skip);
 
 	/**
 	 * Retrieves the muting state of the entry.

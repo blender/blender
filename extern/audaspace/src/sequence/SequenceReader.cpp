@@ -49,7 +49,7 @@ void SequenceReader::seek(int position)
 
 	for(auto& handle : m_handles)
 	{
-		handle->seek(position / m_sequence->m_specs.rate);
+		handle->seek(position / (double)m_sequence->m_specs.rate);
 	}
 }
 
@@ -150,12 +150,11 @@ void SequenceReader::read(int& length, bool& eos, sample_t* buffer)
 
 	Specs specs = m_sequence->m_specs;
 	int pos = 0;
-	float time = float(m_position) / float(specs.rate);
+	double time = double(m_position) / double(specs.rate);
 	float volume, frame;
 	int len, cfra;
 	Vector3 v, v2;
 	Quaternion q;
-
 
 	while(pos < length)
 	{
@@ -187,7 +186,7 @@ void SequenceReader::read(int& length, bool& eos, sample_t* buffer)
 		m_device.read(reinterpret_cast<data_t*>(buffer + specs.channels * pos), len);
 
 		pos += len;
-		time += float(len) / float(specs.rate);
+		time += double(len) / double(specs.rate);
 	}
 
 	m_position += length;

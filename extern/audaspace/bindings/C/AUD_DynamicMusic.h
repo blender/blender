@@ -103,14 +103,14 @@ extern AUD_API int AUD_DynamicMusic_pause(AUD_DynamicMusic* player);
 * \param position The new position from which to play back, in seconds.
 * \return 0 if the seeking wasn't possible.
 */
-extern AUD_API int AUD_DynamicMusic_seek(AUD_DynamicMusic* player, float position);
+extern AUD_API int AUD_DynamicMusic_seek(AUD_DynamicMusic* player, double position);
 
 /**
 * Retrieves the position of the current scene of a dynamic music player.
 * \param player The DynamicMusic object.
 * \return The position of the current playing scene.
 */
-extern AUD_API float AUD_DynamicMusic_getPosition(AUD_DynamicMusic* player);
+extern AUD_API double AUD_DynamicMusic_getPosition(AUD_DynamicMusic* player);
 
 /**
 * Retrieves the volume of the current scene of a dynamic music player.

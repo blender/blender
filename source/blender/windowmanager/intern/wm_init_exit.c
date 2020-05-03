@@ -199,7 +199,7 @@ void WM_init_opengl(Main *bmain)
   opengl_is_init = true;
 }
 
-static void sound_jack_sync_callback(Main *bmain, int mode, float time)
+static void sound_jack_sync_callback(Main *bmain, int mode, double time)
 {
   /* Ugly: Blender doesn't like it when the animation is played back during rendering. */
   if (G.is_rendering) {

@@ -104,11 +104,11 @@ PyDoc_STRVAR(M_aud_Sequence_add_doc,
 			 "   :arg sound: The sound this entry should play.\n"
 			 "   :type sound: :class:`Sound`\n"
 			 "   :arg begin: The start time.\n"
-			 "   :type begin: float\n"
+			 "   :type begin: double\n"
 			 "   :arg end: The end time or a negative value if determined by the sound.\n"
-			 "   :type end: float\n"
+			 "   :type end: double\n"
 			 "   :arg skip: How much seconds should be skipped at the beginning.\n"
-			 "   :type skip: float\n"
+			 "   :type skip: double\n"
 			 "   :return: The entry added.\n"
 			 "   :rtype: :class:`SequenceEntry`");
 
@@ -116,13 +116,13 @@ static PyObject *
 Sequence_add(Sequence* self, PyObject* args, PyObject* kwds)
 {
 	PyObject* object;
-	float begin;
-	float end = -1.0f;
-	float skip = 0.0f;
+	double begin;
+	double end = -1.0;
+	double skip = 0.0;
 
 	static const char* kwlist[] = {"sound", "begin", "end", "skip", nullptr};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "Of|ff:add", const_cast<char**>(kwlist), &object, &begin, &end, &skip))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "Od|dd:add", const_cast<char**>(kwlist), &object, &begin, &end, &skip))
 		return nullptr;
 
 	Sound* sound = checkSound(object);

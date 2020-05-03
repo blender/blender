@@ -22,7 +22,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-SequenceEntry::SequenceEntry(std::shared_ptr<ISound> sound, float begin, float end, float skip, int id) :
+SequenceEntry::SequenceEntry(std::shared_ptr<ISound> sound, double begin, double end, double skip, int id) :
 	m_status(0),
 	m_pos_status(1),
 	m_sound_status(0),
@@ -84,7 +84,7 @@ void SequenceEntry::setSound(std::shared_ptr<ISound> sound)
 	}
 }
 
-void SequenceEntry::move(float begin, float end, float skip)
+void SequenceEntry::move(double begin, double end, double skip)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
 

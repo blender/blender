@@ -290,14 +290,14 @@ AUD_API AUD_Device* AUD_Device_getCurrent()
 	return new AUD_Device(device);
 }
 
-AUD_API void AUD_seekSynchronizer(AUD_Handle* handle, float time)
+AUD_API void AUD_seekSynchronizer(AUD_Handle* handle, double time)
 {
 	auto synchronizer = DeviceManager::getDevice()->getSynchronizer();
 	if(synchronizer)
 		synchronizer->seek(*reinterpret_cast<std::shared_ptr<IHandle>*>(handle), time);
 }
 
-AUD_API float AUD_getSynchronizerPosition(AUD_Handle* handle)
+AUD_API double AUD_getSynchronizerPosition(AUD_Handle* handle)
 {
 	auto synchronizer = DeviceManager::getDevice()->getSynchronizer();
 	if(synchronizer)

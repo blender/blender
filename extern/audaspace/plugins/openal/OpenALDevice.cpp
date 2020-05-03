@@ -269,7 +269,7 @@ bool OpenALDevice::OpenALHandle::setKeep(bool keep)
 	return true;
 }
 
-bool OpenALDevice::OpenALHandle::seek(float position)
+bool OpenALDevice::OpenALHandle::seek(double position)
 {
 	if(!m_status)
 		return false;
@@ -335,7 +335,7 @@ bool OpenALDevice::OpenALHandle::seek(float position)
 	return true;
 }
 
-float OpenALDevice::OpenALHandle::getPosition()
+double OpenALDevice::OpenALHandle::getPosition()
 {
 	if(!m_status)
 		return false;

@@ -56,14 +56,14 @@ public:
 	 * @param handle The handle that should be synchronized/seeked.
 	 * @param time The absolute time to synchronize to.
 	 */
-	virtual void seek(std::shared_ptr<IHandle> handle, float time) = 0;
+	virtual void seek(std::shared_ptr<IHandle> handle, double time) = 0;
 
 	/**
 	 * Retrieves the position of the synchronizer.
 	 * @param handle The handle which is synchronized.
 	 * @return The position in seconds.
 	 */
-	virtual float getPosition(std::shared_ptr<IHandle> handle) = 0;
+	virtual double getPosition(std::shared_ptr<IHandle> handle) = 0;
 
 	/**
 	 * Starts the synchronizer playback.

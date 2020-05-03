@@ -35,7 +35,7 @@ private:
 	/**
 	 * The delay in samples.
 	 */
-	const float m_delay;
+	const double m_delay;
 
 	// delete copy constructor and operator=
 	Delay(const Delay&) = delete;
@@ -47,12 +47,12 @@ public:
 	 * \param sound The input sound.
 	 * \param delay The desired delay in seconds.
 	 */
-	Delay(std::shared_ptr<ISound> sound, float delay = 0);
+	Delay(std::shared_ptr<ISound> sound, double delay = 0);
 
 	/**
 	 * Returns the delay in seconds.
 	 */
-	float getDelay() const;
+	double getDelay() const;
 
 	virtual std::shared_ptr<IReader> createReader();
 };

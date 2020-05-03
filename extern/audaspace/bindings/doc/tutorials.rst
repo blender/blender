@@ -40,7 +40,7 @@ and create a :func:`aud.Sound.sine` signal with a frequency of 440 Hz.
    sine = aud.Sound.sine(440)
 
 .. note:: At this point nothing is playing back yet,
-:class:`aud.Sound` objects are just descriptions of sounds.
+   :class:`aud.Sound` objects are just descriptions of sounds.
 
 However instead of a sine wave, we would like to have a square wave
 to produce a more retro gaming sound. We could of course use the

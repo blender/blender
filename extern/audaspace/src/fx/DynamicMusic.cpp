@@ -133,14 +133,14 @@ bool DynamicMusic::addTransition(int init, int end, std::shared_ptr<ISound> soun
 	return false;
 }
 
-void DynamicMusic::setFadeTime(float seconds)
+void DynamicMusic::setFadeTime(double seconds)
 {
 	m_device->lock();
 	m_fadeTime = seconds;
 	m_device->unlock();
 }
 
-float DynamicMusic::getFadeTime()
+double DynamicMusic::getFadeTime()
 {
 	return m_fadeTime;
 }
@@ -169,7 +169,7 @@ bool DynamicMusic::pause()
 	return result || resultTrans;
 }
 
-bool DynamicMusic::seek(float position)
+bool DynamicMusic::seek(double position)
 {
 	bool result = false;
 
@@ -183,9 +183,9 @@ bool DynamicMusic::seek(float position)
 	return result;
 }
 
-float DynamicMusic::getPosition()
+double DynamicMusic::getPosition()
 {
-	float result = 0.0f;
+	double result = 0.0f;
 
 	if(m_currentHandle != nullptr)
 		result = m_currentHandle->getPosition();

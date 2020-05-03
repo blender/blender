@@ -49,12 +49,12 @@ private:
 	/**
 	 * The fading start.
 	 */
-	const float m_start;
+	const double m_start;
 
 	/**
 	 * The fading length.
 	 */
-	const float m_length;
+	const double m_length;
 
 	// delete copy constructor and operator=
 	FaderReader(const FaderReader&) = delete;
@@ -69,7 +69,7 @@ public:
 	 * \param length How long fading should last in seconds.
 	 */
 	FaderReader(std::shared_ptr<IReader> reader, FadeType type,
-					float start,float length);
+					double start,double length);
 
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };

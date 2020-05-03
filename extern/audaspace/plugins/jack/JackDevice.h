@@ -174,7 +174,7 @@ public:
 	 * Seeks jack transport playback.
 	 * \param time The time to seek to.
 	 */
-	void seekPlayback(float time);
+	void seekPlayback(double time);
 
 	/**
 	 * Sets the sync callback for jack transport playback.
@@ -187,7 +187,7 @@ public:
 	 * Retrieves the jack transport playback time.
 	 * \return The current time position.
 	 */
-	float getPlaybackPosition();
+	double getPlaybackPosition();
 
 	/**
 	 * Returns whether jack transport plays back.

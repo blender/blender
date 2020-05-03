@@ -347,7 +347,7 @@ bool SoftwareDevice::SoftwareHandle::setKeep(bool keep)
 	return true;
 }
 
-bool SoftwareDevice::SoftwareHandle::seek(float position)
+bool SoftwareDevice::SoftwareHandle::seek(double position)
 {
 	if(!m_status)
 		return false;
@@ -366,7 +366,7 @@ bool SoftwareDevice::SoftwareHandle::seek(float position)
 	return true;
 }
 
-float SoftwareDevice::SoftwareHandle::getPosition()
+double SoftwareDevice::SoftwareHandle::getPosition()
 {
 	if(!m_status)
 		return false;
@@ -376,7 +376,7 @@ float SoftwareDevice::SoftwareHandle::getPosition()
 	if(!m_status)
 		return 0.0f;
 
-	float position = m_reader->getPosition() / (float)m_device->m_specs.rate;
+	double position = m_reader->getPosition() / (double)m_device->m_specs.rate;
 
 	return position;
 }

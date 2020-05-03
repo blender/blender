@@ -228,9 +228,9 @@ PyDoc_STRVAR(M_aud_DynamicMusic_position_doc,
 static int
 DynamicMusic_set_position(DynamicMusicP* self, PyObject* args, void* nothing)
 {
-	float position;
+	double position;
 
-	if(!PyArg_Parse(args, "f:position", &position))
+	if(!PyArg_Parse(args, "d:position", &position))
 		return -1;
 
 	try
@@ -252,7 +252,7 @@ DynamicMusic_get_position(DynamicMusicP* self, void* nothing)
 {
 	try
 	{
-		return Py_BuildValue("f", (*reinterpret_cast<std::shared_ptr<aud::DynamicMusic>*>(self->dynamicMusic))->getPosition());
+		return Py_BuildValue("d", (*reinterpret_cast<std::shared_ptr<aud::DynamicMusic>*>(self->dynamicMusic))->getPosition());
 	}
 	catch(aud::Exception& e)
 	{

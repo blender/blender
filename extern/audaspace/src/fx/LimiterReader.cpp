@@ -21,7 +21,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-LimiterReader::LimiterReader(std::shared_ptr<IReader> reader, float start, float end) :
+LimiterReader::LimiterReader(std::shared_ptr<IReader> reader, double start, double end) :
 		EffectReader(reader),
 		m_start(start),
 		m_end(end)

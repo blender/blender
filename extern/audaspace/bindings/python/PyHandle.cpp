@@ -696,7 +696,7 @@ Handle_get_position(Handle* self, void* nothing)
 {
 	try
 	{
-		return Py_BuildValue("f", (*reinterpret_cast<std::shared_ptr<IHandle>*>(self->handle))->getPosition());
+		return Py_BuildValue("d", (*reinterpret_cast<std::shared_ptr<IHandle>*>(self->handle))->getPosition());
 	}
 	catch(Exception& e)
 	{
@@ -708,9 +708,9 @@ Handle_get_position(Handle* self, void* nothing)
 static int
 Handle_set_position(Handle* self, PyObject* args, void* nothing)
 {
-	float position;
+	double position;
 
-	if(!PyArg_Parse(args, "f:position", &position))
+	if(!PyArg_Parse(args, "d:position", &position))
 		return -1;
 
 	try

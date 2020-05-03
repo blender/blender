@@ -41,7 +41,7 @@ AUD_API void AUD_Sequence_free(AUD_Sound* sequence)
 	delete sequence;
 }
 
-AUD_API AUD_SequenceEntry* AUD_Sequence_add(AUD_Sound* sequence, AUD_Sound* sound, float begin, float end, float skip)
+AUD_API AUD_SequenceEntry* AUD_Sequence_add(AUD_Sound* sequence, AUD_Sound* sound, double begin, double end, double skip)
 {
 	if(!sound)
 		return new AUD_SequenceEntry(((Sequence *)sequence->get())->add(AUD_Sound(), begin, end, skip));
@@ -160,7 +160,7 @@ AUD_API void AUD_Sequence_setSpeedOfSound(AUD_Sound* sequence, float value)
 
 
 
-AUD_API void AUD_SequenceEntry_move(AUD_SequenceEntry* entry, float begin, float end, float skip)
+AUD_API void AUD_SequenceEntry_move(AUD_SequenceEntry* entry, double begin, double end, double skip)
 {
 	(*entry)->move(begin, end, skip);
 }

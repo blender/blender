@@ -211,14 +211,14 @@ extern AUD_API int AUD_Handle_setPitch(AUD_Handle* handle, float value);
  * param handle The handle to get the position from.
  * return The position of the handle.
  */
-extern AUD_API float AUD_Handle_getPosition(AUD_Handle* handle);
+extern AUD_API double AUD_Handle_getPosition(AUD_Handle* handle);
 
 /**
  * Sets the position of a handle.
  * param handle The handle to set the position from.
  * param value The new position to set.
  */
-extern AUD_API int AUD_Handle_setPosition(AUD_Handle* handle, float value);
+extern AUD_API int AUD_Handle_setPosition(AUD_Handle* handle, double value);
 
 /**
  * Retrieves the relative of a handle.

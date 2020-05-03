@@ -19,12 +19,12 @@
 
 AUD_NAMESPACE_BEGIN
 
-void DefaultSynchronizer::seek(std::shared_ptr<IHandle> handle, float time)
+void DefaultSynchronizer::seek(std::shared_ptr<IHandle> handle, double time)
 {
 	handle->seek(time);
 }
 
-float DefaultSynchronizer::getPosition(std::shared_ptr<IHandle> handle)
+double DefaultSynchronizer::getPosition(std::shared_ptr<IHandle> handle)
 {
 	return handle->getPosition();
 }

@@ -55,7 +55,7 @@ extern AUD_API void AUD_Sequence_free(AUD_Sound* sequence);
  * \param skip How much seconds should be skipped at the beginning.
  * \return The entry added.
  */
-extern AUD_API AUD_SequenceEntry* AUD_Sequence_add(AUD_Sound* sequence, AUD_Sound* sound, float begin, float end, float skip);
+extern AUD_API AUD_SequenceEntry* AUD_Sequence_add(AUD_Sound* sequence, AUD_Sound* sound, double begin, double end, double skip);
 
 /**
  * Removes an entry from the scene.
@@ -167,7 +167,7 @@ extern AUD_API void AUD_Sequence_setSpeedOfSound(AUD_Sound* sequence, float valu
  * \param end The new end time or a negative value if unknown.
  * \param skip How many seconds to skip at the beginning.
  */
-extern AUD_API void AUD_SequenceEntry_move(AUD_SequenceEntry* entry, float begin, float end, float skip);
+extern AUD_API void AUD_SequenceEntry_move(AUD_SequenceEntry* entry, double begin, double end, double skip);
 
 /**
  * Writes animation data to a sequenced entry.

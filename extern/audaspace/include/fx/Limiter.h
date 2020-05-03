@@ -35,12 +35,12 @@ private:
 	/**
 	 * The start time.
 	 */
-	const float m_start;
+	const double m_start;
 
 	/**
 	 * The end time.
 	 */
-	const float m_end;
+	const double m_end;
 
 	// delete copy constructor and operator=
 	Limiter(const Limiter&) = delete;
@@ -55,17 +55,17 @@ public:
 	 *            play to the end.
 	 */
 	Limiter(std::shared_ptr<ISound> sound,
-					   float start = 0, float end = -1);
+					   double start = 0, double end = -1);
 
 	/**
 	 * Returns the start time.
 	 */
-	float getStart() const;
+	double getStart() const;
 
 	/**
 	 * Returns the end time.
 	 */
-	float getEnd() const;
+	double getEnd() const;
 
 	virtual std::shared_ptr<IReader> createReader();
 };

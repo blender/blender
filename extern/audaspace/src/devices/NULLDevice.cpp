@@ -52,12 +52,12 @@ bool NULLDevice::NULLHandle::setKeep(bool keep)
 	return false;
 }
 
-bool NULLDevice::NULLHandle::seek(float position)
+bool NULLDevice::NULLHandle::seek(double position)
 {
 	return false;
 }
 
-float NULLDevice::NULLHandle::getPosition()
+double NULLDevice::NULLHandle::getPosition()
 {
 	return std::numeric_limits<float>::quiet_NaN();
 }

@@ -1394,7 +1394,7 @@ PyDoc_STRVAR(M_aud_Sound_threshold_doc,
 			 "   with a amplitude >= threshold to 1, all <= -threshold to -1 and\n"
 			 "   all between to 0.\n\n"
 			 "   :arg threshold: Threshold value over which an amplitude counts\n"
-			 "      non-zero.\n"
+			 "      non-zero.\n\n"
 			 ":type threshold: float\n"
 			 ":return: The created :class:`Sound` object.\n"
 			 ":rtype: :class:`Sound`");
@@ -1434,7 +1434,8 @@ PyDoc_STRVAR(M_aud_Sound_volume_doc,
 			 "   :type volume: float\n"
 			 "   :return: The created :class:`Sound` object.\n"
 			 "   :rtype: :class:`Sound`\n\n"
-			 "   .. note:: Should be in the range [0, 1] to avoid clipping.\n\n"
+			 "   .. note::\n\n"
+			 "      Should be in the range [0, 1] to avoid clipping.\n\n"
 			 "   .. note::\n\n"
 			 "      This is a filter function, you might consider using\n"
 			 "      :attr:`Handle.volume` instead.");
@@ -1475,8 +1476,8 @@ PyDoc_STRVAR(M_aud_Sound_join_doc,
 			 "   :return: The created :class:`Sound` object.\n"
 			 "   :rtype: :class:`Sound`\n\n"
 			 "   .. note::\n\n"
-			 "   The two factories have to have the same specifications\n"
-			 "   (channels and samplerate).");
+			 "      The two factories have to have the same specifications\n"
+			 "      (channels and samplerate).");
 
 static PyObject *
 Sound_join(Sound* self, PyObject* object)

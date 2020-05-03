@@ -55,7 +55,7 @@ private:
 	/**
 	* Length of the crossfade transition in seconds, used when no custom transition has been set.
 	*/
-	float m_fadeTime;
+	double m_fadeTime;
 
 	/**
 	* Handle to the playback of the current scene.
@@ -145,13 +145,13 @@ public:
 	* Sets the length of the crossfade transition (default 1 second).
 	* \param seconds The time in seconds.
 	*/
-	void setFadeTime(float seconds);
+	void setFadeTime(double seconds);
 
 	/**
 	* Gets the length of the crossfade transition (default 1 second).
 	* \return The length of the cressfade transition in seconds.
 	*/
-	float getFadeTime();
+	double getFadeTime();
 
 	/**
 	* Resumes a paused sound.
@@ -177,14 +177,14 @@ public:
 	*        - false if the handle is invalid.
 	* \warning Whether the seek works or not depends on the sound source.
 	*/
-	bool seek(float position); 
+	bool seek(double position);
 
 	/**
 	* Retrieves the current playback position of a sound.
 	* \return The playback position in seconds, or 0.0 if the handle is
 	*         invalid.
 	*/
-	float getPosition();
+	double getPosition();
 
 	/**
 	* Retrieves the volume of the scenes.

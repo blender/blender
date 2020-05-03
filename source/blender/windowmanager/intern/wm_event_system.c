@@ -3170,9 +3170,9 @@ void wm_event_do_handlers(bContext *C)
           }
 
           if (is_playing_sound == 0) {
-            const float time = BKE_sound_sync_scene(scene_eval);
+            const double time = BKE_sound_sync_scene(scene_eval);
             if (isfinite(time)) {
-              int ncfra = time * (float)FPS + 0.5f;
+              int ncfra = time * FPS + 0.5;
               if (ncfra != scene->r.cfra) {
                 scene->r.cfra = ncfra;
                 ED_update_for_newframe(CTX_data_main(C), depsgraph);

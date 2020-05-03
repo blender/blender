@@ -18,7 +18,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-Fader::Fader(std::shared_ptr<ISound> sound, FadeType type, float start, float length) :
+Fader::Fader(std::shared_ptr<ISound> sound, FadeType type, double start, double length) :
 		Effect(sound),
 		m_type(type),
 		m_start(start),
@@ -31,12 +31,12 @@ FadeType Fader::getType() const
 	return m_type;
 }
 
-float Fader::getStart() const
+double Fader::getStart() const
 {
 	return m_start;
 }
 
-float Fader::getLength() const
+double Fader::getLength() const
 {
 	return m_length;
 }

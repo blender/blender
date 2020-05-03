@@ -259,13 +259,13 @@ AUD_API int AUD_Handle_setPitch(AUD_Handle* handle, float value)
 	return (*handle)->setPitch(value);
 }
 
-AUD_API float AUD_Handle_getPosition(AUD_Handle* handle)
+AUD_API double AUD_Handle_getPosition(AUD_Handle* handle)
 {
 	assert(handle);
 	return (*handle)->getPosition();
 }
 
-AUD_API int AUD_Handle_setPosition(AUD_Handle* handle, float value)
+AUD_API int AUD_Handle_setPosition(AUD_Handle* handle, double value)
 {
 	assert(handle);
 	return (*handle)->seek(value);
