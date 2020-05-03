@@ -195,16 +195,16 @@ extern LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
   /* If this is a stack overflow then we can't walk the stack, so just try to show
    * where the error happened */
   if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW) {
-      HMODULE mod;
-      CHAR modulename[MAX_PATH];
-      LPVOID address = ExceptionInfo->ExceptionRecord->ExceptionAddress;
-      fprintf(stderr, "Error   : EXCEPTION_STACK_OVERFLOW\n");
-      fprintf(stderr, "Address : 0x%p\n", address);
-      if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, address, &mod)) {
-        if (GetModuleFileName(mod, modulename, MAX_PATH)) {
-          fprintf(stderr, "Module  : %s\n", modulename);
-        }
+    HMODULE mod;
+    CHAR modulename[MAX_PATH];
+    LPVOID address = ExceptionInfo->ExceptionRecord->ExceptionAddress;
+    fprintf(stderr, "Error   : EXCEPTION_STACK_OVERFLOW\n");
+    fprintf(stderr, "Address : 0x%p\n", address);
+    if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, address, &mod)) {
+      if (GetModuleFileName(mod, modulename, MAX_PATH)) {
+        fprintf(stderr, "Module  : %s\n", modulename);
       }
+    }
   }
   else {
     BLI_windows_handle_exception(ExceptionInfo);

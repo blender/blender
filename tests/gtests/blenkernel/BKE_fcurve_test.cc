@@ -16,6 +16,7 @@
  * The Original Code is Copyright (C) 2020 by Blender Foundation.
  */
 #include "testing/testing.h"
+
 #include "MEM_guardedalloc.h"
 
 extern "C" {

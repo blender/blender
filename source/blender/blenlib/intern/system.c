@@ -32,6 +32,7 @@
 /* for backtrace and gethostname/GetComputerName */
 #if defined(WIN32)
 #  include <intrin.h>
+
 #  include "BLI_winstuff.h"
 #else
 #  include <execinfo.h>
