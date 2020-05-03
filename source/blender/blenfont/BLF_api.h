@@ -117,9 +117,11 @@ void BLF_draw_ascii(int fontid, const char *str, size_t len) ATTR_NONNULL(2);
 int BLF_draw_mono(int fontid, const char *str, size_t len, int cwidth) ATTR_NONNULL(2);
 
 typedef bool (*BLF_GlyphBoundsFn)(const char *str,
-                                  const size_t str_ofs,
-                                  const struct rcti *glyph_bounds,
+                                  const size_t str_step_ofs,
+                                  const struct rcti *glyph_step_bounds,
                                   const int glyph_advance_x,
+                                  const struct rctf *glyph_bounds,
+                                  const float glyph_bearing[2],
                                   void *user_data);
 
 void BLF_boundbox_foreach_glyph_ex(int fontid,

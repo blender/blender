@@ -1252,7 +1252,7 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
 
     pen_x += g->advance_i;
 
-    if (user_fn(str, i_curr, &gbox, g->advance_i, user_data) == false) {
+    if (user_fn(str, i_curr, &gbox, g->advance_i, &g->box, &g->pos_x, user_data) == false) {
       break;
     }
 
