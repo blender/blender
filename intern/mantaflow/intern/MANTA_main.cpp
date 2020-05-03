@@ -64,26 +64,27 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
     std::cout << "FLUID: " << mCurrentID << " with res(" << res[0] << ", " << res[1] << ", "
               << res[2] << ")" << std::endl;
 
-  mmd->domain->fluid = this;
+  FluidDomainSettings *mds = mmd->domain;
+  mds->fluid = this;
 
-  mUsingLiquid = (mmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID);
-  mUsingSmoke = (mmd->domain->type == FLUID_DOMAIN_TYPE_GAS);
-  mUsingNoise = (mmd->domain->flags & FLUID_DOMAIN_USE_NOISE) && mUsingSmoke;
-  mUsingFractions = (mmd->domain->flags & FLUID_DOMAIN_USE_FRACTIONS) && mUsingLiquid;
-  mUsingMesh = (mmd->domain->flags & FLUID_DOMAIN_USE_MESH) && mUsingLiquid;
-  mUsingMVel = (mmd->domain->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) && mUsingLiquid;
-  mUsingGuiding = (mmd->domain->flags & FLUID_DOMAIN_USE_GUIDE);
-  mUsingDrops = (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && mUsingLiquid;
-  mUsingBubbles = (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) && mUsingLiquid;
-  mUsingFloats = (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) && mUsingLiquid;
-  mUsingTracers = (mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) && mUsingLiquid;
+  mUsingLiquid = (mds->type == FLUID_DOMAIN_TYPE_LIQUID);
+  mUsingSmoke = (mds->type == FLUID_DOMAIN_TYPE_GAS);
+  mUsingNoise = (mds->flags & FLUID_DOMAIN_USE_NOISE) && mUsingSmoke;
+  mUsingFractions = (mds->flags & FLUID_DOMAIN_USE_FRACTIONS) && mUsingLiquid;
+  mUsingMesh = (mds->flags & FLUID_DOMAIN_USE_MESH) && mUsingLiquid;
+  mUsingMVel = (mds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) && mUsingLiquid;
+  mUsingGuiding = (mds->flags & FLUID_DOMAIN_USE_GUIDE);
+  mUsingDrops = (mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && mUsingLiquid;
+  mUsingBubbles = (mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) && mUsingLiquid;
+  mUsingFloats = (mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) && mUsingLiquid;
+  mUsingTracers = (mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) && mUsingLiquid;
 
-  mUsingHeat = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_HEAT) && mUsingSmoke;
-  mUsingFire = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) && mUsingSmoke;
-  mUsingColors = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) && mUsingSmoke;
-  mUsingObstacle = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
-  mUsingInvel = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
-  mUsingOutflow = (mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
+  mUsingHeat = (mds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT) && mUsingSmoke;
+  mUsingFire = (mds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) && mUsingSmoke;
+  mUsingColors = (mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) && mUsingSmoke;
+  mUsingObstacle = (mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
+  mUsingInvel = (mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
+  mUsingOutflow = (mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
 
   // Simulation constants
   mTempAmb = 0;  // TODO: Maybe use this later for buoyancy calculation
@@ -91,10 +92,8 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
   mResY = res[1];
   mResZ = res[2];
   mMaxRes = MAX3(mResX, mResY, mResZ);
-  mConstantScaling = 64.0f / mMaxRes;
-  mConstantScaling = (mConstantScaling < 1.0f) ? 1.0f : mConstantScaling;
   mTotalCells = mResX * mResY * mResZ;
-  mResGuiding = mmd->domain->res;
+  mResGuiding = mds->res;
 
   // Smoke low res grids
   mDensity = nullptr;
@@ -200,7 +199,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
       initOutflow();
 
     if (mUsingDrops || mUsingBubbles || mUsingFloats || mUsingTracers) {
-      mUpresParticle = mmd->domain->particle_scale;
+      mUpresParticle = mds->particle_scale;
       mResXParticle = mUpresParticle * mResX;
       mResYParticle = mUpresParticle * mResY;
       mResZParticle = mUpresParticle * mResZ;
@@ -211,7 +210,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
     }
 
     if (mUsingMesh) {
-      mUpresMesh = mmd->domain->mesh_scale;
+      mUpresMesh = mds->mesh_scale;
       mResXMesh = mUpresMesh * mResX;
       mResYMesh = mUpresMesh * mResY;
       mResZMesh = mUpresMesh * mResZ;
@@ -223,7 +222,7 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
     }
 
     if (mUsingGuiding) {
-      mResGuiding = (mmd->domain->guide_parent) ? mmd->domain->guide_res : mmd->domain->res;
+      mResGuiding = (mds->guide_parent) ? mds->guide_res : mds->res;
       initGuiding();
     }
     if (mUsingFractions) {
@@ -249,12 +248,12 @@ MANTA::MANTA(int *res, FluidModifierData *mmd) : mCurrentID(++solverID)
       initOutflow();
 
     if (mUsingGuiding) {
-      mResGuiding = (mmd->domain->guide_parent) ? mmd->domain->guide_res : mmd->domain->res;
+      mResGuiding = (mds->guide_parent) ? mds->guide_res : mds->res;
       initGuiding();
     }
 
     if (mUsingNoise) {
-      int amplify = mmd->domain->noise_scale;
+      int amplify = mds->noise_scale;
       mResXNoise = amplify * mResX;
       mResYNoise = amplify * mResY;
       mResZNoise = amplify * mResZ;
@@ -893,11 +892,12 @@ bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
   if (MANTA::with_debug)
     std::cout << "MANTA::updateFlipStructures()" << std::endl;
 
+  FluidDomainSettings *mds = mmd->domain;
   mFlipFromFile = false;
 
   if (!mUsingLiquid)
     return false;
-  if (BLI_path_is_rel(mmd->domain->cache_directory))
+  if (BLI_path_is_rel(mds->cache_directory))
     return false;
 
   int result = 0;
@@ -910,7 +910,7 @@ bool MANTA::updateFlipStructures(FluidModifierData *mmd, int framenr)
   mFlipParticleData->clear();
   mFlipParticleVelocity->clear();
 
-  std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+  std::string pformat = getCacheFileEnding(mds->cache_particle_format);
   std::string file = getFile(
       mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_PP, pformat.c_str(), framenr);
 
@@ -935,11 +935,12 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
   if (MANTA::with_debug)
     std::cout << "MANTA::updateMeshStructures()" << std::endl;
 
+  FluidDomainSettings *mds = mmd->domain;
   mMeshFromFile = false;
 
   if (!mUsingMesh)
     return false;
-  if (BLI_path_is_rel(mmd->domain->cache_directory))
+  if (BLI_path_is_rel(mds->cache_directory))
     return false;
 
   int result = 0;
@@ -955,8 +956,8 @@ bool MANTA::updateMeshStructures(FluidModifierData *mmd, int framenr)
   if (mMeshVelocities)
     mMeshVelocities->clear();
 
-  std::string mformat = getCacheFileEnding(mmd->domain->cache_mesh_format);
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
+  std::string mformat = getCacheFileEnding(mds->cache_mesh_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
   std::string file = getFile(mmd, FLUID_DOMAIN_DIR_MESH, FLUID_DOMAIN_FILE_MESH, mformat, framenr);
 
   expected += 1;
@@ -982,11 +983,12 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
   if (MANTA::with_debug)
     std::cout << "MANTA::updateParticleStructures()" << std::endl;
 
+  FluidDomainSettings *mds = mmd->domain;
   mParticlesFromFile = false;
 
   if (!mUsingDrops && !mUsingBubbles && !mUsingFloats && !mUsingTracers)
     return false;
-  if (BLI_path_is_rel(mmd->domain->cache_directory))
+  if (BLI_path_is_rel(mds->cache_directory))
     return false;
 
   int result = 0;
@@ -1000,7 +1002,7 @@ bool MANTA::updateParticleStructures(FluidModifierData *mmd, int framenr)
   mSndParticleVelocity->clear();
   mSndParticleLife->clear();
 
-  std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+  std::string pformat = getCacheFileEnding(mds->cache_particle_format);
   std::string file = getFile(
       mmd, FLUID_DOMAIN_DIR_PARTICLES, FLUID_DOMAIN_FILE_PPSND, pformat, framenr);
 
@@ -1032,17 +1034,18 @@ bool MANTA::updateSmokeStructures(FluidModifierData *mmd, int framenr)
   if (MANTA::with_debug)
     std::cout << "MANTA::updateGridStructures()" << std::endl;
 
+  FluidDomainSettings *mds = mmd->domain;
   mSmokeFromFile = false;
 
   if (!mUsingSmoke)
     return false;
-  if (BLI_path_is_rel(mmd->domain->cache_directory))
+  if (BLI_path_is_rel(mds->cache_directory))
     return false;
 
   int result = 0;
   int expected = 0; /* Expected number of read successes for this frame. */
 
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
   std::string file = getFile(
       mmd, FLUID_DOMAIN_DIR_DATA, FLUID_DOMAIN_FILE_DENSITY, dformat, framenr);
 
@@ -1122,18 +1125,19 @@ bool MANTA::updateNoiseStructures(FluidModifierData *mmd, int framenr)
   if (MANTA::with_debug)
     std::cout << "MANTA::updateNoiseStructures()" << std::endl;
 
+  FluidDomainSettings *mds = mmd->domain;
   mNoiseFromFile = false;
 
   if (!mUsingSmoke || !mUsingNoise)
     return false;
-  if (BLI_path_is_rel(mmd->domain->cache_directory))
+  if (BLI_path_is_rel(mds->cache_directory))
     return false;
 
   int result = 0;
   int expected = 0; /* Expected number of read successes for this frame. */
 
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
+  std::string nformat = getCacheFileEnding(mds->cache_noise_format);
   std::string file = getFile(
       mmd, FLUID_DOMAIN_DIR_NOISE, FLUID_DOMAIN_FILE_DENSITYNOISE, nformat, framenr);
 
@@ -1259,12 +1263,13 @@ bool MANTA::writeData(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_DATA);
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
+  std::string pformat = getCacheFileEnding(mds->cache_particle_format);
 
-  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
   ss.str("");
@@ -1294,11 +1299,12 @@ bool MANTA::writeNoise(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
-  std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
+  std::string nformat = getCacheFileEnding(mds->cache_noise_format);
 
-  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
   if (mUsingSmoke && mUsingNoise) {
@@ -1361,13 +1367,14 @@ bool MANTA::readData(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
   bool result = true;
 
   std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_DATA);
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
+  std::string pformat = getCacheFileEnding(mds->cache_particle_format);
 
-  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
   /* Sanity check: Are cache files present? */
@@ -1406,11 +1413,12 @@ bool MANTA::readNoise(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_NOISE);
-  std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
+  std::string nformat = getCacheFileEnding(mds->cache_noise_format);
 
-  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
   /* Sanity check: Are cache files present? */
@@ -1438,10 +1446,11 @@ bool MANTA::readMesh(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_MESH);
-  std::string mformat = getCacheFileEnding(mmd->domain->cache_mesh_format);
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
+  std::string mformat = getCacheFileEnding(mds->cache_mesh_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
 
   /* Sanity check: Are cache files present? */
   if (!hasMesh(mmd, framenr))
@@ -1477,11 +1486,12 @@ bool MANTA::readParticles(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   std::string directory = getDirectory(mmd, FLUID_DOMAIN_DIR_PARTICLES);
-  std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+  std::string pformat = getCacheFileEnding(mds->cache_particle_format);
 
-  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
   /* Sanity check: Are cache files present? */
@@ -1501,9 +1511,11 @@ bool MANTA::readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
   if (with_debug)
     std::cout << "MANTA::readGuiding()" << std::endl;
 
+  FluidDomainSettings *mds = mmd->domain;
+
   if (!mUsingGuiding)
     return false;
-  if (!mmd->domain)
+  if (!mds)
     return false;
 
   std::ostringstream ss;
@@ -1511,7 +1523,7 @@ bool MANTA::readGuiding(FluidModifierData *mmd, int framenr, bool sourceDomain)
 
   std::string directory = (sourceDomain) ? getDirectory(mmd, FLUID_DOMAIN_DIR_DATA) :
                                            getDirectory(mmd, FLUID_DOMAIN_DIR_GUIDE);
-  std::string gformat = getCacheFileEnding(mmd->domain->cache_data_format);
+  std::string gformat = getCacheFileEnding(mds->cache_data_format);
 
   /* Sanity check: Are cache files present? */
   if (!hasGuiding(mmd, framenr, sourceDomain))
@@ -1540,23 +1552,21 @@ bool MANTA::bakeData(FluidModifierData *mmd, int framenr)
   std::string tmpString, finalString;
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   char cacheDirData[FILE_MAX], cacheDirGuiding[FILE_MAX];
   cacheDirData[0] = '\0';
   cacheDirGuiding[0] = '\0';
 
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
+  std::string pformat = getCacheFileEnding(mds->cache_particle_format);
   std::string gformat = dformat;  // Use same data format for guiding format
 
-  BLI_path_join(cacheDirData,
-                sizeof(cacheDirData),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_DATA,
-                nullptr);
+  BLI_path_join(
+      cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
   BLI_path_join(cacheDirGuiding,
                 sizeof(cacheDirGuiding),
-                mmd->domain->cache_directory,
+                mds->cache_directory,
                 FLUID_DOMAIN_DIR_GUIDE,
                 nullptr);
   BLI_path_make_safe(cacheDirData);
@@ -1578,27 +1588,22 @@ bool MANTA::bakeNoise(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   char cacheDirData[FILE_MAX], cacheDirNoise[FILE_MAX];
   cacheDirData[0] = '\0';
   cacheDirNoise[0] = '\0';
 
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  std::string nformat = getCacheFileEnding(mmd->domain->cache_noise_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
+  std::string nformat = getCacheFileEnding(mds->cache_noise_format);
 
-  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
-  BLI_path_join(cacheDirData,
-                sizeof(cacheDirData),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_DATA,
-                nullptr);
-  BLI_path_join(cacheDirNoise,
-                sizeof(cacheDirNoise),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_NOISE,
-                nullptr);
+  BLI_path_join(
+      cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
+  BLI_path_join(
+      cacheDirNoise, sizeof(cacheDirNoise), mds->cache_directory, FLUID_DOMAIN_DIR_NOISE, nullptr);
   BLI_path_make_safe(cacheDirData);
   BLI_path_make_safe(cacheDirNoise);
 
@@ -1618,25 +1623,20 @@ bool MANTA::bakeMesh(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   char cacheDirData[FILE_MAX], cacheDirMesh[FILE_MAX];
   cacheDirData[0] = '\0';
   cacheDirMesh[0] = '\0';
 
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  std::string mformat = getCacheFileEnding(mmd->domain->cache_mesh_format);
-  std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
+  std::string mformat = getCacheFileEnding(mds->cache_mesh_format);
+  std::string pformat = getCacheFileEnding(mds->cache_particle_format);
 
-  BLI_path_join(cacheDirData,
-                sizeof(cacheDirData),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_DATA,
-                nullptr);
-  BLI_path_join(cacheDirMesh,
-                sizeof(cacheDirMesh),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_MESH,
-                nullptr);
+  BLI_path_join(
+      cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
+  BLI_path_join(
+      cacheDirMesh, sizeof(cacheDirMesh), mds->cache_directory, FLUID_DOMAIN_DIR_MESH, nullptr);
   BLI_path_make_safe(cacheDirData);
   BLI_path_make_safe(cacheDirMesh);
 
@@ -1656,25 +1656,23 @@ bool MANTA::bakeParticles(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   char cacheDirData[FILE_MAX], cacheDirParticles[FILE_MAX];
   cacheDirData[0] = '\0';
   cacheDirParticles[0] = '\0';
 
-  std::string dformat = getCacheFileEnding(mmd->domain->cache_data_format);
-  std::string pformat = getCacheFileEnding(mmd->domain->cache_particle_format);
+  std::string dformat = getCacheFileEnding(mds->cache_data_format);
+  std::string pformat = getCacheFileEnding(mds->cache_particle_format);
 
-  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
-  BLI_path_join(cacheDirData,
-                sizeof(cacheDirData),
-                mmd->domain->cache_directory,
-                FLUID_DOMAIN_DIR_DATA,
-                nullptr);
+  BLI_path_join(
+      cacheDirData, sizeof(cacheDirData), mds->cache_directory, FLUID_DOMAIN_DIR_DATA, nullptr);
   BLI_path_join(cacheDirParticles,
                 sizeof(cacheDirParticles),
-                mmd->domain->cache_directory,
+                mds->cache_directory,
                 FLUID_DOMAIN_DIR_PARTICLES,
                 nullptr);
   BLI_path_make_safe(cacheDirData);
@@ -1696,18 +1694,19 @@ bool MANTA::bakeGuiding(FluidModifierData *mmd, int framenr)
 
   std::ostringstream ss;
   std::vector<std::string> pythonCommands;
+  FluidDomainSettings *mds = mmd->domain;
 
   char cacheDirGuiding[FILE_MAX];
   cacheDirGuiding[0] = '\0';
 
-  std::string gformat = getCacheFileEnding(mmd->domain->cache_data_format);
+  std::string gformat = getCacheFileEnding(mds->cache_data_format);
 
-  bool final_cache = (mmd->domain->cache_type == FLUID_DOMAIN_CACHE_FINAL);
+  bool final_cache = (mds->cache_type == FLUID_DOMAIN_CACHE_FINAL);
   std::string resumable_cache = (final_cache) ? "False" : "True";
 
   BLI_path_join(cacheDirGuiding,
                 sizeof(cacheDirGuiding),
-                mmd->domain->cache_directory,
+                mds->cache_directory,
                 FLUID_DOMAIN_DIR_GUIDE,
                 nullptr);
   BLI_path_make_safe(cacheDirGuiding);
@@ -1758,8 +1757,10 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
   char cacheDir[FILE_MAX] = "\0";
   char cacheDirScript[FILE_MAX] = "\0";
 
+  FluidDomainSettings *mds = mmd->domain;
+
   BLI_path_join(
-      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
+      cacheDir, sizeof(cacheDir), mds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
   BLI_path_make_safe(cacheDir);
   /* Create 'script' subdir if it does not exist already */
   BLI_dir_create_recursive(cacheDir);
@@ -1767,14 +1768,14 @@ void MANTA::exportSmokeScript(FluidModifierData *mmd)
       cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_SMOKE_SCRIPT, nullptr);
   BLI_path_make_safe(cacheDir);
 
-  bool noise = mmd->domain->flags & FLUID_DOMAIN_USE_NOISE;
-  bool heat = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_HEAT;
-  bool colors = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_COLORS;
-  bool fire = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_FIRE;
-  bool obstacle = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
-  bool guiding = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
-  bool invel = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
-  bool outflow = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
+  bool noise = mds->flags & FLUID_DOMAIN_USE_NOISE;
+  bool heat = mds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT;
+  bool colors = mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS;
+  bool fire = mds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE;
+  bool obstacle = mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
+  bool guiding = mds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
+  bool invel = mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
+  bool outflow = mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
 
   std::string manta_script;
 
@@ -1865,8 +1866,10 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
   char cacheDir[FILE_MAX] = "\0";
   char cacheDirScript[FILE_MAX] = "\0";
 
+  FluidDomainSettings *mds = mmd->domain;
+
   BLI_path_join(
-      cacheDir, sizeof(cacheDir), mmd->domain->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
+      cacheDir, sizeof(cacheDir), mds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, nullptr);
   BLI_path_make_safe(cacheDir);
   /* Create 'script' subdir if it does not exist already */
   BLI_dir_create_recursive(cacheDir);
@@ -1874,16 +1877,16 @@ void MANTA::exportLiquidScript(FluidModifierData *mmd)
       cacheDirScript, sizeof(cacheDirScript), cacheDir, FLUID_DOMAIN_LIQUID_SCRIPT, nullptr);
   BLI_path_make_safe(cacheDirScript);
 
-  bool mesh = mmd->domain->flags & FLUID_DOMAIN_USE_MESH;
-  bool drops = mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY;
-  bool bubble = mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
-  bool floater = mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
-  bool tracer = mmd->domain->particle_type & FLUID_DOMAIN_PARTICLE_TRACER;
-  bool obstacle = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
-  bool fractions = mmd->domain->flags & FLUID_DOMAIN_USE_FRACTIONS;
-  bool guiding = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
-  bool invel = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
-  bool outflow = mmd->domain->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
+  bool mesh = mds->flags & FLUID_DOMAIN_USE_MESH;
+  bool drops = mds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY;
+  bool bubble = mds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE;
+  bool floater = mds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM;
+  bool tracer = mds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER;
+  bool obstacle = mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE;
+  bool fractions = mds->flags & FLUID_DOMAIN_USE_FRACTIONS;
+  bool guiding = mds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE;
+  bool invel = mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL;
+  bool outflow = mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW;
 
   std::string manta_script;
 
