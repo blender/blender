@@ -18,17 +18,6 @@ diff --git a/mkl-dnn/cmake/TBB.cmake b/mkl-dnn/cmake/TBB.cmake
 index 0711e699..c14210b6 100644
 --- a/mkl-dnn/cmake/TBB.cmake
 +++ b/mkl-dnn/cmake/TBB.cmake
-@@ -90,8 +90,8 @@ if(WIN32)
-             NO_DEFAULT_PATH
-         )
-         set(TBB_LIB_DIR ${TBB_ROOT}/lib/${TBB_ARCH}/${TBB_VCVER})
--        find_library(TBB_LIBRARY tbb PATHS ${TBB_LIB_DIR} ${TBB_ROOT}/lib NO_DEFAULT_PATH)
--        find_library(TBB_LIBRARY_MALLOC tbbmalloc PATHS ${TBB_LIB_DIR} ${TBB_ROOT}/lib NO_DEFAULT_PATH)
-+        find_library(TBB_LIBRARY tbb_static PATHS ${TBB_LIB_DIR} ${TBB_ROOT}/lib NO_DEFAULT_PATH)
-+        find_library(TBB_LIBRARY_MALLOC tbbmalloc_static PATHS ${TBB_LIB_DIR} ${TBB_ROOT}/lib NO_DEFAULT_PATH)
-     endif()
- 
- else()
 @@ -138,13 +138,13 @@ else()
          set(TBB_LIBRARY_MALLOC TBB_LIBRARY_MALLOC-NOTFOUND)
          if(APPLE)

@@ -23,8 +23,8 @@ set(USD_EXTRA_ARGS
   -DBoost_USE_STATIC_RUNTIME=OFF
   -DBOOST_ROOT=${LIBDIR}/boost
   -DTBB_INCLUDE_DIRS=${LIBDIR}/tbb/include
-  -DTBB_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}tbb_static${LIBEXT}
-  -DTbb_TBB_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}tbb_static${LIBEXT}
+  -DTBB_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${LIBEXT}
+  -DTbb_TBB_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${LIBEXT}
 
   # This is a preventative measure that avoids possible conflicts when add-ons
   # try to load another USD library into the same process space.

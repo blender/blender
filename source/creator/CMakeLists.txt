@@ -814,7 +814,20 @@ elseif(WIN32)
       DESTINATION "."
     )
   endif()
-
+  if(WITH_TBB)
+    install(
+      FILES
+        ${LIBDIR}/tbb/lib/tbb.dll
+      DESTINATION "."
+      CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+    )
+    install(
+      FILES
+        ${LIBDIR}/tbb/lib/debug/tbb_debug.dll
+      DESTINATION "."
+      CONFIGURATIONS Debug
+    )
+  endif()
   if(WITH_TBB_MALLOC_PROXY)
     install(
       FILES

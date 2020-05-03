@@ -109,6 +109,9 @@ if (WIN32)
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/tbbmalloc/${ARCH_PREFIX}-tbbmalloc-export.def
     COMMENT "Preprocessing tbbmalloc.def"
   )
+  list(APPEND tbb_src ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/tbb_resource.rc)
+  list(APPEND tbbmalloc_src ${CMAKE_CURRENT_SOURCE_DIR}/src/tbbmalloc/tbbmalloc.rc)
+  list(APPEND tbbmalloc_proxy_src ${CMAKE_CURRENT_SOURCE_DIR}/src/tbbmalloc/tbbmalloc.rc)
 else()
   add_custom_command(OUTPUT tbb.def
     COMMAND ${CMAKE_CXX_COMPILER} -xc++ -E ${CMAKE_CURRENT_SOURCE_DIR}/src/tbb/${ARCH_PREFIX}-tbb-export.def  -I ${CMAKE_CURRENT_SOURCE_DIR}/include -o tbb.def
@@ -145,8 +148,12 @@ if (TBB_BUILD_SHARED)
     set_property(TARGET tbb APPEND PROPERTY LINK_FLAGS "-Wl,-version-script,${CMAKE_CURRENT_BINARY_DIR}/tbb.def")
   elseif(WIN32)
     set_property(TARGET tbb APPEND PROPERTY LINK_FLAGS "/DEF:${CMAKE_CURRENT_BINARY_DIR}/tbb.def")
+    
   endif()
   install(TARGETS tbb DESTINATION lib)
+  if(WIN32)
+    set_target_properties(tbb PROPERTIES OUTPUT_NAME "tbb$<$<CONFIG:Debug>:_debug>")
+  endif()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -196,7 +203,7 @@ if(TBB_BUILD_TBBMALLOC_PROXY)
     add_library(tbbmalloc_proxy SHARED ${tbbmalloc_proxy_src})
     set_property(TARGET tbbmalloc_proxy APPEND PROPERTY COMPILE_DEFINITIONS "__TBBMALLOC_BUILD=1")
     set_property(TARGET tbbmalloc_proxy APPEND_STRING PROPERTY COMPILE_FLAGS ${DISABLE_RTTI})
-    link_libraries(tbbmalloc_proxy tbbmalloc)
+    target_link_libraries(tbbmalloc_proxy tbbmalloc)
     install(TARGETS tbbmalloc_proxy DESTINATION lib)
   endif()
 endif()
