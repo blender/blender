@@ -2853,7 +2853,7 @@ static bool ui_textedit_set_cursor_pos_foreach_glyph(const char *UNUSED(str),
                                                      const rcti *glyph_step_bounds,
                                                      const int UNUSED(glyph_advance_x),
                                                      const rctf *glyph_bounds,
-                                                     const float UNUSED(glyph_bearing[2]),
+                                                     const int UNUSED(glyph_bearing[2]),
                                                      void *user_data)
 {
   int *cursor_data = user_data;

@@ -121,7 +121,7 @@ typedef bool (*BLF_GlyphBoundsFn)(const char *str,
                                   const struct rcti *glyph_step_bounds,
                                   const int glyph_advance_x,
                                   const struct rctf *glyph_bounds,
-                                  const float glyph_bearing[2],
+                                  const int glyph_bearing[2],
                                   void *user_data);
 
 void BLF_boundbox_foreach_glyph_ex(int fontid,

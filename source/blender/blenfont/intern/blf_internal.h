@@ -107,7 +107,7 @@ void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
                                                      const struct rcti *glyph_step_bounds,
                                                      const int glyph_advance_x,
                                                      const struct rctf *glyph_bounds,
-                                                     const float glyph_bearing[2],
+                                                     const int glyph_bearing[2],
                                                      void *user_data),
                                      void *user_data,
                                      struct ResultBLF *r_info);

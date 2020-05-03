@@ -946,8 +946,8 @@ void BLF_buffer(int fontid,
   if (font) {
     font->buf_info.fbuf = fbuf;
     font->buf_info.cbuf = cbuf;
-    font->buf_info.w = w;
-    font->buf_info.h = h;
+    font->buf_info.dims[0] = w;
+    font->buf_info.dims[1] = h;
     font->buf_info.ch = nch;
     font->buf_info.display = display;
   }

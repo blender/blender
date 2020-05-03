@@ -78,8 +78,8 @@ void BLF_thumb_preview(const char *filename,
   /* Would be done via the BLF API, but we're not using a fontid here */
   font->buf_info.cbuf = buf;
   font->buf_info.ch = channels;
-  font->buf_info.w = w;
-  font->buf_info.h = h;
+  font->buf_info.dims[0] = w;
+  font->buf_info.dims[1] = h;
 
   /* Always create the image with a white font,
    * the caller can theme how it likes */

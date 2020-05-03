@@ -327,26 +327,26 @@ GlyphBLF *blf_glyph_add(FontBLF *font, GlyphCacheBLF *gc, unsigned int index, un
   g->c = c;
   g->idx = (FT_UInt)index;
   bitmap = slot->bitmap;
-  g->width = (int)bitmap.width;
-  g->height = (int)bitmap.rows;
+  g->dims[0] = (int)bitmap.width;
+  g->dims[1] = (int)bitmap.rows;
 
-  if (g->width && g->height) {
+  if (g->dims[0] && g->dims[1]) {
     if (font->flags & BLF_MONOCHROME) {
       /* Font buffer uses only 0 or 1 values, Blender expects full 0..255 range */
       int i;
-      for (i = 0; i < (g->width * g->height); i++) {
+      for (i = 0; i < (g->dims[0] * g->dims[1]); i++) {
         bitmap.buffer[i] = bitmap.buffer[i] ? 255 : 0;
       }
     }
 
-    g->bitmap = (unsigned char *)MEM_mallocN((size_t)g->width * (size_t)g->height, "glyph bitmap");
-    memcpy((void *)g->bitmap, (void *)bitmap.buffer, (size_t)g->width * (size_t)g->height);
+    g->bitmap = MEM_mallocN((size_t)g->dims[0] * (size_t)g->dims[1], "glyph bitmap");
+    memcpy(g->bitmap, (void *)bitmap.buffer, (size_t)g->dims[0] * (size_t)g->dims[1]);
   }
 
   g->advance = ((float)slot->advance.x) / 64.0f;
   g->advance_i = (int)g->advance;
-  g->pos_x = (float)slot->bitmap_left;
-  g->pos_y = (float)slot->bitmap_top;
+  g->pos[0] = slot->bitmap_left;
+  g->pos[1] = slot->bitmap_top;
   g->pitch = slot->bitmap.pitch;
 
   FT_Outline_Get_CBox(&(slot->outline), &bbox);
@@ -431,10 +431,10 @@ static void blf_texture3_draw(const unsigned char color_in[4],
 
 static void blf_glyph_calc_rect(rctf *rect, GlyphBLF *g, float x, float y)
 {
-  rect->xmin = floorf(x + g->pos_x);
-  rect->xmax = rect->xmin + (float)g->width;
-  rect->ymin = floorf(y + g->pos_y);
-  rect->ymax = rect->ymin - (float)g->height;
+  rect->xmin = floorf(x + (float)g->pos[0]);
+  rect->xmax = rect->xmin + (float)g->dims[0];
+  rect->ymin = floorf(y + (float)g->pos[1]);
+  rect->ymax = rect->ymin - (float)g->dims[1];
 }
 
 static void blf_glyph_calc_rect_test(rctf *rect, GlyphBLF *g, float x, float y)
@@ -443,9 +443,9 @@ static void blf_glyph_calc_rect_test(rctf *rect, GlyphBLF *g, float x, float y)
    * width used by BLF_width. This allows that the text slightly
    * overlaps the clipping border to achieve better alignment. */
   rect->xmin = floorf(x);
-  rect->xmax = rect->xmin + MIN2(g->advance, (float)g->width);
+  rect->xmax = rect->xmin + MIN2(g->advance, (float)g->dims[0]);
   rect->ymin = floorf(y);
-  rect->ymax = rect->ymin - (float)g->height;
+  rect->ymax = rect->ymin - (float)g->dims[1];
 }
 
 static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y, FontBLF *font)
@@ -455,7 +455,7 @@ static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y
 
 void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, float y)
 {
-  if ((!g->width) || (!g->height)) {
+  if ((!g->dims[0]) || (!g->dims[1])) {
     return;
   }
 
@@ -466,7 +466,7 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
 
     g->offset = gc->bitmap_len;
 
-    int buff_size = g->width * g->height;
+    int buff_size = g->dims[0] * g->dims[1];
     int bitmap_len = gc->bitmap_len + buff_size;
 
     if (bitmap_len > gc->bitmap_len_alloc) {
@@ -514,7 +514,7 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
 
     if (font->shadow == 0) {
       blf_texture_draw(font->shadow_color,
-                       (int[2]){g->width, g->height},
+                       g->dims,
                        g->offset,
                        rect_ofs.xmin,
                        rect_ofs.ymin,
@@ -523,7 +523,7 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
     }
     else if (font->shadow <= 4) {
       blf_texture3_draw(font->shadow_color,
-                        (int[2]){g->width, g->height},
+                        g->dims,
                         g->offset,
                         rect_ofs.xmin,
                         rect_ofs.ymin,
@@ -532,7 +532,7 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
     }
     else {
       blf_texture5_draw(font->shadow_color,
-                        (int[2]){g->width, g->height},
+                        g->dims,
                         g->offset,
                         rect_ofs.xmin,
                         rect_ofs.ymin,
@@ -547,39 +547,18 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
 #if BLF_BLUR_ENABLE
   switch (font->blur) {
     case 3:
-      blf_texture3_draw(font->color,
-                        (int[2]){g->width, g->height},
-                        g->offset,
-                        rect.xmin,
-                        rect.ymin,
-                        rect.xmax,
-                        rect.ymax);
+      blf_texture3_draw(
+          font->color, g->dims, g->offset, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
       break;
     case 5:
-      blf_texture5_draw(font->color,
-                        (int[2]){g->width, g->height},
-                        g->offset,
-                        rect.xmin,
-                        rect.ymin,
-                        rect.xmax,
-                        rect.ymax);
+      blf_texture5_draw(
+          font->color, g->dims, g->offset, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
       break;
     default:
-      blf_texture_draw(font->color,
-                       (int[2]){g->width, g->height},
-                       g->offset,
-                       rect.xmin,
-                       rect.ymin,
-                       rect.xmax,
-                       rect.ymax);
+      blf_texture_draw(
+          font->color, g->dims, g->offset, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
   }
 #else
-  blf_texture_draw(font->color,
-                   (int[2]){g->width, g->height},
-                   g->offset,
-                   rect.xmin,
-                   rect.ymin,
-                   rect.xmax,
-                   rect.ymax);
+  blf_texture_draw(font->color, g->dims, g->offset, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 #endif
 }

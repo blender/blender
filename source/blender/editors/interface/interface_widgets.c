@@ -2099,7 +2099,7 @@ static bool widget_draw_text_underline_calc_center_x(const char *UNUSED(str),
                                                      const rcti *glyph_step_bounds,
                                                      const int UNUSED(glyph_advance_x),
                                                      const rctf *glyph_bounds,
-                                                     const float glyph_bearing[2],
+                                                     const int glyph_bearing[2],
                                                      void *user_data)
 {
   /* The index of the character to get, set to the x-position. */
