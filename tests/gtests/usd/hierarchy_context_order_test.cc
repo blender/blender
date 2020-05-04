@@ -36,11 +36,11 @@ static Object *fake_pointer(int value)
 
 TEST_F(HierarchyContextOrderTest, ObjectPointerTest)
 {
-  HierarchyContext ctx_a;
+  HierarchyContext ctx_a = {0};
   ctx_a.object = fake_pointer(1);
   ctx_a.duplicator = nullptr;
 
-  HierarchyContext ctx_b;
+  HierarchyContext ctx_b = {0};
   ctx_b.object = fake_pointer(2);
   ctx_b.duplicator = nullptr;
 
@@ -51,12 +51,12 @@ TEST_F(HierarchyContextOrderTest, ObjectPointerTest)
 
 TEST_F(HierarchyContextOrderTest, DuplicatorPointerTest)
 {
-  HierarchyContext ctx_a;
+  HierarchyContext ctx_a = {0};
   ctx_a.object = fake_pointer(1);
   ctx_a.duplicator = fake_pointer(1);
   ctx_a.export_name = "A";
 
-  HierarchyContext ctx_b;
+  HierarchyContext ctx_b = {0};
   ctx_b.object = fake_pointer(1);
   ctx_b.duplicator = fake_pointer(1);
   ctx_b.export_name = "B";
@@ -68,11 +68,11 @@ TEST_F(HierarchyContextOrderTest, DuplicatorPointerTest)
 
 TEST_F(HierarchyContextOrderTest, ExportParentTest)
 {
-  HierarchyContext ctx_a;
+  HierarchyContext ctx_a = {0};
   ctx_a.object = fake_pointer(1);
   ctx_a.export_parent = fake_pointer(1);
 
-  HierarchyContext ctx_b;
+  HierarchyContext ctx_b = {0};
   ctx_b.object = fake_pointer(1);
   ctx_b.export_parent = fake_pointer(2);
 
@@ -83,25 +83,25 @@ TEST_F(HierarchyContextOrderTest, ExportParentTest)
 
 TEST_F(HierarchyContextOrderTest, TransitiveTest)
 {
-  HierarchyContext ctx_a;
+  HierarchyContext ctx_a = {0};
   ctx_a.object = fake_pointer(1);
   ctx_a.export_parent = fake_pointer(1);
   ctx_a.duplicator = nullptr;
   ctx_a.export_name = "A";
 
-  HierarchyContext ctx_b;
+  HierarchyContext ctx_b = {0};
   ctx_b.object = fake_pointer(2);
   ctx_b.export_parent = nullptr;
   ctx_b.duplicator = fake_pointer(1);
   ctx_b.export_name = "B";
 
-  HierarchyContext ctx_c;
+  HierarchyContext ctx_c = {0};
   ctx_c.object = fake_pointer(2);
   ctx_c.export_parent = fake_pointer(2);
   ctx_c.duplicator = fake_pointer(1);
   ctx_c.export_name = "C";
 
-  HierarchyContext ctx_d;
+  HierarchyContext ctx_d = {0};
   ctx_d.object = fake_pointer(2);
   ctx_d.export_parent = fake_pointer(3);
   ctx_d.duplicator = nullptr;
