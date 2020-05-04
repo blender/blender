@@ -598,8 +598,8 @@ void CLIP_OT_select_box(wmOperatorType *ot)
 /********************** lasso select operator *********************/
 
 static int do_lasso_select_marker(bContext *C,
-                                  const int mcords[][2],
-                                  const short moves,
+                                  const int mcoords[][2],
+                                  const short mcoords_len,
                                   bool select)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
@@ -616,7 +616,7 @@ static int do_lasso_select_marker(bContext *C,
   int framenr = ED_space_clip_get_clip_frame_number(sc);
 
   /* get rectangle from operator */
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   /* do actual selection */
   track = tracksbase->first;
@@ -631,7 +631,8 @@ static int do_lasso_select_marker(bContext *C,
         ED_clip_point_stable_pos__reverse(sc, region, marker->pos, screen_co);
 
         if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-            BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
+            BLI_lasso_is_point_inside(
+                mcoords, mcoords_len, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
           if (select) {
             BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
           }
@@ -659,7 +660,8 @@ static int do_lasso_select_marker(bContext *C,
         ED_clip_point_stable_pos__reverse(sc, region, plane_marker->corners[i], screen_co);
 
         if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-            BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
+            BLI_lasso_is_point_inside(
+                mcoords, mcoords_len, screen_co[0], screen_co[1], V2D_IS_CLIPPED)) {
           if (select) {
             plane_track->flag |= SELECT;
           }
@@ -685,10 +687,10 @@ static int do_lasso_select_marker(bContext *C,
 
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  int mcords_tot;
-  const int(*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+  int mcoords_len;
+  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
-  if (mcords) {
+  if (mcoords) {
     const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
     const bool select = (sel_op != SEL_OP_SUB);
     if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -696,9 +698,9 @@ static int clip_lasso_select_exec(bContext *C, wmOperator *op)
       ED_clip_select_all(sc, SEL_DESELECT, NULL);
     }
 
-    do_lasso_select_marker(C, mcords, mcords_tot, select);
+    do_lasso_select_marker(C, mcoords, mcoords_len, select);
 
-    MEM_freeN((void *)mcords);
+    MEM_freeN((void *)mcoords);
 
     return OPERATOR_FINISHED;
   }

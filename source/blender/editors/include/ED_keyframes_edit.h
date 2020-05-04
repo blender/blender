@@ -106,8 +106,8 @@ typedef enum eEditKeyframes_Mirror {
 typedef struct KeyframeEdit_LassoData {
   rctf *rectf_scaled;
   const rctf *rectf_view;
-  const int (*mcords)[2];
-  int mcords_tot;
+  const int (*mcoords)[2];
+  int mcoords_len;
 } KeyframeEdit_LassoData;
 
 /* use with BEZT_OK_REGION_CIRCLE */

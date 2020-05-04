@@ -456,10 +456,10 @@ static void mask_gesture_lasso_task_cb(void *__restrict userdata,
 
 static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-  int mcords_tot;
-  const int(*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+  int mcoords_len;
+  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
-  if (mcords) {
+  if (mcoords) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     float clip_planes[4][4], clip_planes_final[4][4];
     BoundBox bb;
@@ -485,7 +485,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     ob = vc.obact;
     ED_view3d_ob_project_mat_get(vc.rv3d, ob, data.projviewobjmat);
 
-    BLI_lasso_boundbox(&data.rect, mcords, mcords_tot);
+    BLI_lasso_boundbox(&data.rect, mcoords, mcoords_len);
     data.width = data.rect.xmax - data.rect.xmin;
     data.px = BLI_BITMAP_NEW(data.width * (data.rect.ymax - data.rect.ymin), __func__);
 
@@ -493,8 +493,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
                                   data.rect.ymin,
                                   data.rect.xmax,
                                   data.rect.ymax,
-                                  mcords,
-                                  mcords_tot,
+                                  mcoords,
+                                  mcoords_len,
                                   mask_lasso_px_cb,
                                   &data);
 
@@ -551,7 +551,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     SCULPT_undo_push_end();
 
     ED_region_tag_redraw(vc.region);
-    MEM_freeN((void *)mcords);
+    MEM_freeN((void *)mcoords);
     MEM_freeN(data.px);
 
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);

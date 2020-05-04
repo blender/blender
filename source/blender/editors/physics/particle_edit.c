@@ -2252,7 +2252,7 @@ bool PE_circle_select(bContext *C, const int sel_op, const int mval[2], float ra
 
 /************************ lasso select operator ************************/
 
-int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const int sel_op)
+int PE_lasso_select(bContext *C, const int mcoords[][2], const short mcoords_len, const int sel_op)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
@@ -2296,7 +2296,8 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
         const bool is_inside =
             ((ED_view3d_project_int_global(region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
               V3D_PROJ_RET_OK) &&
-             BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
+             BLI_lasso_is_point_inside(
+                 mcoords, mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED) &&
              key_test_depth(&data, co, screen_co));
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
         if (sel_op_result != -1) {
@@ -2315,7 +2316,8 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
         const bool is_inside =
             ((ED_view3d_project_int_global(region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
               V3D_PROJ_RET_OK) &&
-             BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
+             BLI_lasso_is_point_inside(
+                 mcoords, mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED) &&
              key_test_depth(&data, co, screen_co));
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
         if (sel_op_result != -1) {

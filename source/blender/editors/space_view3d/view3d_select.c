@@ -408,8 +408,8 @@ typedef struct LassoSelectUserData {
   const rcti *rect;
   const rctf *rect_fl;
   rctf _rect_fl;
-  const int (*mcords)[2];
-  int moves;
+  const int (*mcoords)[2];
+  int mcoords_len;
   eSelectOp sel_op;
 
   /* runtime */
@@ -421,8 +421,8 @@ typedef struct LassoSelectUserData {
 static void view3d_userdata_lassoselect_init(LassoSelectUserData *r_data,
                                              ViewContext *vc,
                                              const rcti *rect,
-                                             const int (*mcords)[2],
-                                             const int moves,
+                                             const int (*mcoords)[2],
+                                             const int mcoords_len,
                                              const eSelectOp sel_op)
 {
   r_data->vc = vc;
@@ -431,8 +431,8 @@ static void view3d_userdata_lassoselect_init(LassoSelectUserData *r_data,
   r_data->rect_fl = &r_data->_rect_fl;
   BLI_rctf_rcti_copy(&r_data->_rect_fl, rect);
 
-  r_data->mcords = mcords;
-  r_data->moves = moves;
+  r_data->mcoords = mcoords;
+  r_data->mcoords_len = mcoords_len;
   r_data->sel_op = sel_op;
 
   /* runtime */
@@ -527,7 +527,8 @@ static void do_lasso_select_pose__do_tag(void *userData,
     if (screen_co_a[0] != IS_CLIPPED) {
       points_proj_tot++;
       if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
-          BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_a), INT_MAX)) {
+          BLI_lasso_is_point_inside(
+              data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX)) {
         is_point_done = true;
       }
     }
@@ -536,22 +537,28 @@ static void do_lasso_select_pose__do_tag(void *userData,
     if (screen_co_b[0] != IS_CLIPPED) {
       points_proj_tot++;
       if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
-          BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_b), INT_MAX)) {
+          BLI_lasso_is_point_inside(
+              data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX)) {
         is_point_done = true;
       }
     }
 
     /* if one of points selected, we skip the bone itself */
-    if ((is_point_done == true) ||
-        ((is_point_done == false) && (points_proj_tot == 2) &&
-         BLI_lasso_is_edge_inside(
-             data->mcords, data->moves, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX))) {
+    if ((is_point_done == true) || ((is_point_done == false) && (points_proj_tot == 2) &&
+                                    BLI_lasso_is_edge_inside(data->mcoords,
+                                                             data->mcoords_len,
+                                                             UNPACK2(screen_co_a),
+                                                             UNPACK2(screen_co_b),
+                                                             INT_MAX))) {
       pchan->bone->flag |= BONE_DONE;
     }
     data->is_changed |= is_point_done;
   }
 }
-static void do_lasso_tag_pose(ViewContext *vc, Object *ob, const int mcords[][2], short moves)
+static void do_lasso_tag_pose(ViewContext *vc,
+                              Object *ob,
+                              const int mcoords[][2],
+                              short mcoords_len)
 {
   ViewContext vc_tmp;
   LassoSelectUserData data;
@@ -564,9 +571,9 @@ static void do_lasso_tag_pose(ViewContext *vc, Object *ob, const int mcords[][2]
   vc_tmp = *vc;
   vc_tmp.obact = ob;
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
-  view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, 0);
+  view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, mcoords_len, 0);
 
   ED_view3d_init_mats_rv3d(vc_tmp.obact, vc->rv3d);
 
@@ -574,8 +581,8 @@ static void do_lasso_tag_pose(ViewContext *vc, Object *ob, const int mcords[][2]
 }
 
 static bool do_lasso_select_objects(ViewContext *vc,
-                                    const int mcords[][2],
-                                    const short moves,
+                                    const int mcoords[][2],
+                                    const short mcoords_len,
                                     const eSelectOp sel_op)
 {
   View3D *v3d = vc->v3d;
@@ -591,7 +598,7 @@ static bool do_lasso_select_objects(ViewContext *vc,
       const bool is_select = base->flag & BASE_SELECTED;
       const bool is_inside = ((ED_view3d_project_base(vc->region, base) == V3D_PROJ_RET_OK) &&
                               BLI_lasso_is_point_inside(
-                                  mcords, moves, base->sx, base->sy, IS_CLIPPED));
+                                  mcoords, mcoords_len, base->sx, base->sy, IS_CLIPPED));
       const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
         ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
@@ -685,8 +692,8 @@ static bool do_pose_tag_select_op_exec(Base **bases, const uint bases_len, const
 }
 
 static bool do_lasso_select_pose(ViewContext *vc,
-                                 const int mcords[][2],
-                                 const short moves,
+                                 const int mcoords[][2],
+                                 const short mcoords_len,
                                  const eSelectOp sel_op)
 {
   uint bases_len;
@@ -695,7 +702,7 @@ static bool do_lasso_select_pose(ViewContext *vc,
   for (int i = 0; i < bases_len; i++) {
     Base *base_iter = bases[i];
     Object *ob_iter = base_iter->object;
-    do_lasso_tag_pose(vc, ob_iter, mcords, moves);
+    do_lasso_tag_pose(vc, ob_iter, mcoords, mcoords_len);
   }
 
   const bool changed_multi = do_pose_tag_select_op_exec(bases, bases_len, sel_op);
@@ -715,9 +722,10 @@ static void do_lasso_select_mesh__doSelectVert(void *userData,
 {
   LassoSelectUserData *data = userData;
   const bool is_select = BM_elem_flag_test(eve, BM_ELEM_SELECT);
-  const bool is_inside = (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
-                          BLI_lasso_is_point_inside(
-                              data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED));
+  const bool is_inside =
+      (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+       BLI_lasso_is_point_inside(
+           data->mcoords, data->mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED));
   const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
   if (sel_op_result != -1) {
     BM_vert_select_set(data->vc->em->bm, eve, sel_op_result);
@@ -746,8 +754,10 @@ static void do_lasso_select_mesh__doSelectEdge_pass0(void *user_data,
   const bool is_select = BM_elem_flag_test(eed, BM_ELEM_SELECT);
   const bool is_inside =
       (is_visible && edge_fully_inside_rect(data->rect_fl, screen_co_a, screen_co_b) &&
-       BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_a), IS_CLIPPED) &&
-       BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_b), IS_CLIPPED));
+       BLI_lasso_is_point_inside(
+           data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), IS_CLIPPED) &&
+       BLI_lasso_is_point_inside(
+           data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), IS_CLIPPED));
   const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
   if (sel_op_result != -1) {
     BM_edge_select_set(data->vc->em->bm, eed, sel_op_result);
@@ -770,8 +780,8 @@ static void do_lasso_select_mesh__doSelectEdge_pass1(void *user_data,
   }
 
   const bool is_select = BM_elem_flag_test(eed, BM_ELEM_SELECT);
-  const bool is_inside = (is_visible && BLI_lasso_is_edge_inside(data->mcords,
-                                                                 data->moves,
+  const bool is_inside = (is_visible && BLI_lasso_is_edge_inside(data->mcoords,
+                                                                 data->mcoords_len,
                                                                  UNPACK2(screen_co_a),
                                                                  UNPACK2(screen_co_b),
                                                                  IS_CLIPPED));
@@ -789,9 +799,10 @@ static void do_lasso_select_mesh__doSelectFace(void *userData,
 {
   LassoSelectUserData *data = userData;
   const bool is_select = BM_elem_flag_test(efa, BM_ELEM_SELECT);
-  const bool is_inside = (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
-                          BLI_lasso_is_point_inside(
-                              data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED));
+  const bool is_inside =
+      (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+       BLI_lasso_is_point_inside(
+           data->mcoords, data->mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED));
   const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
   if (sel_op_result != -1) {
     BM_face_select_set(data->vc->em->bm, efa, sel_op_result);
@@ -801,8 +812,8 @@ static void do_lasso_select_mesh__doSelectFace(void *userData,
 
 static bool do_lasso_select_mesh(ViewContext *vc,
                                  wmGenericUserData *wm_userdata,
-                                 const int mcords[][2],
-                                 short moves,
+                                 const int mcoords[][2],
+                                 short mcoords_len,
                                  const eSelectOp sel_op)
 {
   LassoSelectUserData data;
@@ -812,9 +823,9 @@ static bool do_lasso_select_mesh(ViewContext *vc,
   /* set editmesh */
   vc->em = BKE_editmesh_from_object(vc->obedit);
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
-  view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, sel_op);
+  view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, mcoords_len, sel_op);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     if (vc->em->bm->totvertsel) {
@@ -836,7 +847,7 @@ static bool do_lasso_select_mesh(ViewContext *vc,
       editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, ts->selectmode);
       esel = wm_userdata->data;
       esel->select_bitmap = DRW_select_buffer_bitmap_from_poly(
-          vc->depsgraph, vc->region, vc->v3d, mcords, moves, &rect, NULL);
+          vc->depsgraph, vc->region, vc->v3d, mcoords, mcoords_len, &rect, NULL);
     }
   }
 
@@ -897,7 +908,7 @@ static void do_lasso_select_curve__doSelect(void *userData,
   LassoSelectUserData *data = userData;
 
   const bool is_inside = BLI_lasso_is_point_inside(
-      data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED);
+      data->mcoords, data->mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED);
   if (bp) {
     const bool is_select = bp->f1 & SELECT;
     const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
@@ -930,16 +941,16 @@ static void do_lasso_select_curve__doSelect(void *userData,
 }
 
 static bool do_lasso_select_curve(ViewContext *vc,
-                                  const int mcords[][2],
-                                  short moves,
+                                  const int mcoords[][2],
+                                  short mcoords_len,
                                   const eSelectOp sel_op)
 {
   LassoSelectUserData data;
   rcti rect;
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
-  view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, sel_op);
+  view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, mcoords_len, sel_op);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     Curve *curve = (Curve *)vc->obedit->data;
@@ -958,9 +969,10 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, const 
 {
   LassoSelectUserData *data = userData;
   const bool is_select = bp->f1 & SELECT;
-  const bool is_inside = (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
-                          BLI_lasso_is_point_inside(
-                              data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED));
+  const bool is_inside =
+      (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+       BLI_lasso_is_point_inside(
+           data->mcoords, data->mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED));
   const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
   if (sel_op_result != -1) {
     SET_FLAG_FROM_TEST(bp->f1, sel_op_result, SELECT);
@@ -968,16 +980,16 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, const 
   }
 }
 static bool do_lasso_select_lattice(ViewContext *vc,
-                                    const int mcords[][2],
-                                    short moves,
+                                    const int mcoords[][2],
+                                    short mcoords_len,
                                     const eSelectOp sel_op)
 {
   LassoSelectUserData data;
   rcti rect;
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
-  view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, sel_op);
+  view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, mcoords_len, sel_op);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     data.is_changed |= ED_lattice_flags_set(vc->obedit, 0);
@@ -1002,7 +1014,8 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 
     if (screen_co_a[0] != IS_CLIPPED) {
       if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
-          BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_a), INT_MAX)) {
+          BLI_lasso_is_point_inside(
+              data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX)) {
         is_inside_flag |= BONESEL_ROOT;
       }
     }
@@ -1012,7 +1025,8 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 
     if (screen_co_b[0] != IS_CLIPPED) {
       if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
-          BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_b), INT_MAX)) {
+          BLI_lasso_is_point_inside(
+              data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX)) {
         is_inside_flag |= BONESEL_TIP;
       }
     }
@@ -1022,8 +1036,11 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 
     if (is_ignore_flag == 0) {
       if (is_inside_flag == (BONE_ROOTSEL | BONE_TIPSEL) ||
-          BLI_lasso_is_edge_inside(
-              data->mcords, data->moves, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX)) {
+          BLI_lasso_is_edge_inside(data->mcoords,
+                                   data->mcoords_len,
+                                   UNPACK2(screen_co_a),
+                                   UNPACK2(screen_co_b),
+                                   INT_MAX)) {
         is_inside_flag |= BONESEL_BONE;
       }
     }
@@ -1033,16 +1050,16 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 }
 
 static bool do_lasso_select_armature(ViewContext *vc,
-                                     const int mcords[][2],
-                                     short moves,
+                                     const int mcoords[][2],
+                                     short mcoords_len,
                                      const eSelectOp sel_op)
 {
   LassoSelectUserData data;
   rcti rect;
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
-  view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, sel_op);
+  view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, mcoords_len, sel_op);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     data.is_changed |= ED_armature_edit_deselect_all_visible(vc->obedit);
@@ -1071,9 +1088,10 @@ static void do_lasso_select_mball__doSelectElem(void *userData,
 {
   LassoSelectUserData *data = userData;
   const bool is_select = ml->flag & SELECT;
-  const bool is_inside = (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
-                          BLI_lasso_is_point_inside(
-                              data->mcords, data->moves, screen_co[0], screen_co[1], INT_MAX));
+  const bool is_inside =
+      (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+       BLI_lasso_is_point_inside(
+           data->mcoords, data->mcoords_len, screen_co[0], screen_co[1], INT_MAX));
   const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
   if (sel_op_result != -1) {
     SET_FLAG_FROM_TEST(ml->flag, sel_op_result, SELECT);
@@ -1081,8 +1099,8 @@ static void do_lasso_select_mball__doSelectElem(void *userData,
   }
 }
 static bool do_lasso_select_meta(ViewContext *vc,
-                                 const int mcords[][2],
-                                 short moves,
+                                 const int mcoords[][2],
+                                 short mcoords_len,
                                  const eSelectOp sel_op)
 {
   LassoSelectUserData data;
@@ -1090,9 +1108,9 @@ static bool do_lasso_select_meta(ViewContext *vc,
 
   MetaBall *mb = (MetaBall *)vc->obedit->data;
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
-  view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, sel_op);
+  view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, mcoords_len, sel_op);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     data.is_changed |= BKE_mball_deselect_all(mb);
@@ -1113,9 +1131,10 @@ static void do_lasso_select_meshobject__doSelectVert(void *userData,
 {
   LassoSelectUserData *data = userData;
   const bool is_select = mv->flag & SELECT;
-  const bool is_inside = (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
-                          BLI_lasso_is_point_inside(
-                              data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED));
+  const bool is_inside =
+      (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+       BLI_lasso_is_point_inside(
+           data->mcoords, data->mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED));
   const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
   if (sel_op_result != -1) {
     SET_FLAG_FROM_TEST(mv->flag, sel_op_result, SELECT);
@@ -1124,8 +1143,8 @@ static void do_lasso_select_meshobject__doSelectVert(void *userData,
 }
 static bool do_lasso_select_paintvert(ViewContext *vc,
                                       wmGenericUserData *wm_userdata,
-                                      const int mcords[][2],
-                                      short moves,
+                                      const int mcoords[][2],
+                                      short mcoords_len,
                                       const eSelectOp sel_op)
 {
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
@@ -1143,7 +1162,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
     changed |= paintvert_deselect_all_visible(ob, SEL_DESELECT, false);
   }
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
   if (use_zbuf) {
@@ -1151,7 +1170,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
       editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, SCE_SELECT_VERTEX);
       esel = wm_userdata->data;
       esel->select_bitmap = DRW_select_buffer_bitmap_from_poly(
-          vc->depsgraph, vc->region, vc->v3d, mcords, moves, &rect, NULL);
+          vc->depsgraph, vc->region, vc->v3d, mcoords, mcoords_len, &rect, NULL);
     }
   }
 
@@ -1163,7 +1182,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
   else {
     LassoSelectUserData data;
 
-    view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, sel_op);
+    view3d_userdata_lassoselect_init(&data, vc, &rect, mcoords, mcoords_len, sel_op);
 
     ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d);
 
@@ -1185,8 +1204,8 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
 }
 static bool do_lasso_select_paintface(ViewContext *vc,
                                       wmGenericUserData *wm_userdata,
-                                      const int mcords[][2],
-                                      short moves,
+                                      const int mcoords[][2],
+                                      short mcoords_len,
                                       const eSelectOp sel_op)
 {
   Object *ob = vc->obact;
@@ -1203,14 +1222,14 @@ static bool do_lasso_select_paintface(ViewContext *vc,
     changed |= paintface_deselect_all_visible(vc->C, ob, SEL_DESELECT, false);
   }
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
   if (esel == NULL) {
     editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, SCE_SELECT_FACE);
     esel = wm_userdata->data;
     esel->select_bitmap = DRW_select_buffer_bitmap_from_poly(
-        vc->depsgraph, vc->region, vc->v3d, mcords, moves, &rect, NULL);
+        vc->depsgraph, vc->region, vc->v3d, mcoords, mcoords_len, &rect, NULL);
   }
 
   if (esel->select_bitmap) {
@@ -1224,7 +1243,7 @@ static bool do_lasso_select_paintface(ViewContext *vc,
 }
 
 #if 0
-static void do_lasso_select_node(int mcords[][2], short moves, const eSelectOp sel_op)
+static void do_lasso_select_node(int mcoords[][2], short mcoords_len, const eSelectOp sel_op)
 {
   SpaceNode *snode = area->spacedata.first;
 
@@ -1234,7 +1253,7 @@ static void do_lasso_select_node(int mcords[][2], short moves, const eSelectOp s
   float node_centf[2];
   bool changed = false;
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   /* store selection in temp test flag */
   for (node = snode->edittree->nodes.first; node; node = node->next) {
@@ -1244,7 +1263,7 @@ static void do_lasso_select_node(int mcords[][2], short moves, const eSelectOp s
     ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
     const bool is_select = node->flag & SELECT;
     const bool is_inside = (BLI_rcti_isect_pt_v(&rect, node_cent) &&
-                            BLI_lasso_is_point_inside(mcords, moves, node_cent[0], node_cent[1]));
+                            BLI_lasso_is_point_inside(mcoords, mcoords_len, node_cent[0], node_cent[1]));
     const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
     if (sel_op_result != -1) {
       SET_FLAG_FROM_TEST(node->flag, sel_op_result, SELECT);
@@ -1257,8 +1276,11 @@ static void do_lasso_select_node(int mcords[][2], short moves, const eSelectOp s
 }
 #endif
 
-static bool view3d_lasso_select(
-    bContext *C, ViewContext *vc, const int mcords[][2], short moves, const eSelectOp sel_op)
+static bool view3d_lasso_select(bContext *C,
+                                ViewContext *vc,
+                                const int mcoords[][2],
+                                short mcoords_len,
+                                const eSelectOp sel_op)
 {
   Object *ob = CTX_data_active_object(C);
   bool changed_multi = false;
@@ -1268,26 +1290,26 @@ static bool view3d_lasso_select(
 
   if (vc->obedit == NULL) { /* Object Mode */
     if (BKE_paint_select_face_test(ob)) {
-      changed_multi |= do_lasso_select_paintface(vc, wm_userdata, mcords, moves, sel_op);
+      changed_multi |= do_lasso_select_paintface(vc, wm_userdata, mcoords, mcoords_len, sel_op);
     }
     else if (BKE_paint_select_vert_test(ob)) {
-      changed_multi |= do_lasso_select_paintvert(vc, wm_userdata, mcords, moves, sel_op);
+      changed_multi |= do_lasso_select_paintvert(vc, wm_userdata, mcoords, mcoords_len, sel_op);
     }
     else if (ob &&
              (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
       /* pass */
     }
     else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-      changed_multi |= PE_lasso_select(C, mcords, moves, sel_op);
+      changed_multi |= PE_lasso_select(C, mcoords, mcoords_len, sel_op);
     }
     else if (ob && (ob->mode & OB_MODE_POSE)) {
-      changed_multi |= do_lasso_select_pose(vc, mcords, moves, sel_op);
+      changed_multi |= do_lasso_select_pose(vc, mcoords, mcoords_len, sel_op);
       if (changed_multi) {
         ED_outliner_select_sync_from_pose_bone_tag(C);
       }
     }
     else {
-      changed_multi |= do_lasso_select_objects(vc, mcords, moves, sel_op);
+      changed_multi |= do_lasso_select_objects(vc, mcoords, mcoords_len, sel_op);
       if (changed_multi) {
         ED_outliner_select_sync_from_object_tag(C);
       }
@@ -1300,23 +1322,23 @@ static bool view3d_lasso_select(
 
       switch (vc->obedit->type) {
         case OB_MESH:
-          changed = do_lasso_select_mesh(vc, wm_userdata, mcords, moves, sel_op);
+          changed = do_lasso_select_mesh(vc, wm_userdata, mcoords, mcoords_len, sel_op);
           break;
         case OB_CURVE:
         case OB_SURF:
-          changed = do_lasso_select_curve(vc, mcords, moves, sel_op);
+          changed = do_lasso_select_curve(vc, mcoords, mcoords_len, sel_op);
           break;
         case OB_LATTICE:
-          changed = do_lasso_select_lattice(vc, mcords, moves, sel_op);
+          changed = do_lasso_select_lattice(vc, mcoords, mcoords_len, sel_op);
           break;
         case OB_ARMATURE:
-          changed = do_lasso_select_armature(vc, mcords, moves, sel_op);
+          changed = do_lasso_select_armature(vc, mcoords, mcoords_len, sel_op);
           if (changed) {
             ED_outliner_select_sync_from_edit_bone_tag(C);
           }
           break;
         case OB_MBALL:
-          changed = do_lasso_select_meta(vc, mcords, moves, sel_op);
+          changed = do_lasso_select_meta(vc, mcoords, mcoords_len, sel_op);
           break;
         default:
           BLI_assert(!"lasso select on incorrect object type");
@@ -1342,10 +1364,10 @@ static bool view3d_lasso_select(
 static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 {
   ViewContext vc;
-  int mcords_tot;
-  const int(*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+  int mcoords_len;
+  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
-  if (mcords) {
+  if (mcoords) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     view3d_operator_needs_opengl(C);
     BKE_object_update_select_id(CTX_data_main(C));
@@ -1354,9 +1376,9 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
     ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
     eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
-    bool changed_multi = view3d_lasso_select(C, &vc, mcords, mcords_tot, sel_op);
+    bool changed_multi = view3d_lasso_select(C, &vc, mcoords, mcoords_len, sel_op);
 
-    MEM_freeN((void *)mcords);
+    MEM_freeN((void *)mcoords);
 
     if (changed_multi) {
       return OPERATOR_FINISHED;

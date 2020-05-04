@@ -2914,8 +2914,8 @@ static bool do_lasso_select_mesh_uv_is_point_inside(const ARegion *region,
 }
 
 static bool do_lasso_select_mesh_uv(bContext *C,
-                                    const int mcords[][2],
-                                    short moves,
+                                    const int mcoords[][2],
+                                    short mcoords_len,
                                     const eSelectOp sel_op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -2945,7 +2945,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
 
   uv_select_island_limit_default(sima, limit);
 
-  BLI_lasso_boundbox(&rect, mcords, moves);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -2972,7 +2972,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
         if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
           float cent[2];
           uv_poly_center(efa, cent, cd_loop_uv_offset);
-          if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcords, moves, cent)) {
+          if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, mcoords_len, cent)) {
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
             changed = true;
           }
@@ -3000,9 +3000,10 @@ static bool do_lasso_select_mesh_uv(bContext *C,
           MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
           const bool luv_select = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
           if ((select != luv_select) || (select != luv_select_prev)) {
-            if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcords, moves, luv->uv) &&
+            if (do_lasso_select_mesh_uv_is_point_inside(
+                    region, &rect, mcoords, mcoords_len, luv->uv) &&
                 do_lasso_select_mesh_uv_is_point_inside(
-                    region, &rect, mcords, moves, luv_prev->uv)) {
+                    region, &rect, mcoords, mcoords_len, luv_prev->uv)) {
               uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
               uvedit_uv_select_set(em, scene, l_prev, select, false, cd_loop_uv_offset);
               changed = true;
@@ -3031,7 +3032,8 @@ static bool do_lasso_select_mesh_uv(bContext *C,
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
             MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-            if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcords, moves, luv->uv)) {
+            if (do_lasso_select_mesh_uv_is_point_inside(
+                    region, &rect, mcoords, mcoords_len, luv->uv)) {
               uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
               changed = true;
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
@@ -3068,13 +3070,13 @@ static bool do_lasso_select_mesh_uv(bContext *C,
 
 static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  int mcords_tot;
-  const int(*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+  int mcoords_len;
+  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
-  if (mcords) {
+  if (mcoords) {
     const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
-    bool changed = do_lasso_select_mesh_uv(C, mcords, mcords_tot, sel_op);
-    MEM_freeN((void *)mcords);
+    bool changed = do_lasso_select_mesh_uv(C, mcoords, mcoords_len, sel_op);
+    MEM_freeN((void *)mcoords);
 
     return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
   }

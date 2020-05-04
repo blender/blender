@@ -760,8 +760,8 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
   }
 
   data_lasso.rectf_view = &rect_fl;
-  data_lasso.mcords = WM_gesture_lasso_path_to_array(C, op, &data_lasso.mcords_tot);
-  if (data_lasso.mcords == NULL) {
+  data_lasso.mcoords = WM_gesture_lasso_path_to_array(C, op, &data_lasso.mcoords_len);
+  if (data_lasso.mcoords == NULL) {
     return OPERATOR_CANCELLED;
   }
 
@@ -782,13 +782,13 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
   }
 
   /* get settings from operator */
-  BLI_lasso_boundbox(&rect, data_lasso.mcords, data_lasso.mcords_tot);
+  BLI_lasso_boundbox(&rect, data_lasso.mcoords, data_lasso.mcoords_len);
   BLI_rctf_rcti_copy(&rect_fl, &rect);
 
   /* apply box_select action */
   box_select_graphkeys(&ac, &rect_fl, BEZT_OK_REGION_LASSO, selectmode, incl_handles, &data_lasso);
 
-  MEM_freeN((void *)data_lasso.mcords);
+  MEM_freeN((void *)data_lasso.mcoords);
 
   /* send notifier that keyframe selection has changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);

@@ -718,10 +718,10 @@ void WM_gesture_lines_cancel(bContext *C, wmOperator *op)
  */
 const int (*WM_gesture_lasso_path_to_array(bContext *UNUSED(C),
                                            wmOperator *op,
-                                           int *mcords_tot))[2]
+                                           int *r_mcoords_len))[2]
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "path");
-  int(*mcords)[2] = NULL;
+  int(*mcoords)[2] = NULL;
   BLI_assert(prop != NULL);
 
   if (prop) {
@@ -729,26 +729,26 @@ const int (*WM_gesture_lasso_path_to_array(bContext *UNUSED(C),
 
     if (len) {
       int i = 0;
-      mcords = MEM_mallocN(sizeof(int) * 2 * len, __func__);
+      mcoords = MEM_mallocN(sizeof(int[2]) * len, __func__);
 
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
         float loc[2];
 
         RNA_float_get_array(&itemptr, "loc", loc);
-        mcords[i][0] = (int)loc[0];
-        mcords[i][1] = (int)loc[1];
+        mcoords[i][0] = (int)loc[0];
+        mcoords[i][1] = (int)loc[1];
         i++;
       }
       RNA_PROP_END;
     }
-    *mcords_tot = len;
+    *r_mcoords_len = len;
   }
   else {
-    *mcords_tot = 0;
+    *r_mcoords_len = 0;
   }
 
   /* cast for 'const' */
-  return (const int(*)[2])mcords;
+  return mcoords;
 }
 
 #if 0

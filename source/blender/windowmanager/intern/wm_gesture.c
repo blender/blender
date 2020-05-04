@@ -320,24 +320,24 @@ static void draw_filled_lasso_px_cb(int x, int x_end, int y, void *user_data)
 static void draw_filled_lasso(wmGesture *gt)
 {
   const short *lasso = (short *)gt->customdata;
-  const int tot = gt->points;
-  int(*moves)[2] = MEM_mallocN(sizeof(*moves) * (tot + 1), __func__);
+  const int mcoords_len = gt->points;
+  int(*mcoords)[2] = MEM_mallocN(sizeof(*mcoords) * (mcoords_len + 1), __func__);
   int i;
   rcti rect;
   float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
-  for (i = 0; i < tot; i++, lasso += 2) {
-    moves[i][0] = lasso[0];
-    moves[i][1] = lasso[1];
+  for (i = 0; i < mcoords_len; i++, lasso += 2) {
+    mcoords[i][0] = lasso[0];
+    mcoords[i][1] = lasso[1];
   }
 
-  BLI_lasso_boundbox(&rect, (const int(*)[2])moves, tot);
+  BLI_lasso_boundbox(&rect, (const int(*)[2])mcoords, mcoords_len);
 
   BLI_rcti_translate(&rect, gt->winrct.xmin, gt->winrct.ymin);
   BLI_rcti_isect(&gt->winrct, &rect, &rect);
   BLI_rcti_translate(&rect, -gt->winrct.xmin, -gt->winrct.ymin);
 
-  /* highly unlikely this will fail, but could crash if (tot == 0) */
+  /* Highly unlikely this will fail, but could crash if (mcoords_len == 0). */
   if (BLI_rcti_is_empty(&rect) == false) {
     const int w = BLI_rcti_size_x(&rect);
     const int h = BLI_rcti_size_y(&rect);
@@ -348,8 +348,8 @@ static void draw_filled_lasso(wmGesture *gt)
                                   rect.ymin,
                                   rect.xmax,
                                   rect.ymax,
-                                  (const int(*)[2])moves,
-                                  tot,
+                                  (const int(*)[2])mcoords,
+                                  mcoords_len,
                                   draw_filled_lasso_px_cb,
                                   &lasso_fill_data);
 
@@ -390,7 +390,7 @@ static void draw_filled_lasso(wmGesture *gt)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-  MEM_freeN(moves);
+  MEM_freeN(mcoords);
 }
 
 static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)

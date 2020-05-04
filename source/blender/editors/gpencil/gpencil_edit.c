@@ -4547,8 +4547,8 @@ void GPENCIL_OT_stroke_smooth(wmOperatorType *ot)
 /* smart stroke cutter for trimming stroke ends */
 struct GP_SelectLassoUserData {
   rcti rect;
-  const int (*mcords)[2];
-  int mcords_len;
+  const int (*mcoords)[2];
+  int mcoords_len;
 };
 
 static bool gpencil_test_lasso(bGPDstroke *gps,
@@ -4564,7 +4564,7 @@ static bool gpencil_test_lasso(bGPDstroke *gps,
   gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
   /* test if in lasso */
   return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&data->rect, x0, y0) &&
-          BLI_lasso_is_point_inside(data->mcords, data->mcords_len, x0, y0, INT_MAX));
+          BLI_lasso_is_point_inside(data->mcoords, data->mcoords_len, x0, y0, INT_MAX));
 }
 
 typedef bool (*GPencilTestFn)(bGPDstroke *gps,
@@ -4742,19 +4742,19 @@ static int gpencil_cutter_exec(bContext *C, wmOperator *op)
   }
 
   struct GP_SelectLassoUserData data = {0};
-  data.mcords = WM_gesture_lasso_path_to_array(C, op, &data.mcords_len);
+  data.mcoords = WM_gesture_lasso_path_to_array(C, op, &data.mcoords_len);
 
   /* Sanity check. */
-  if (data.mcords == NULL) {
+  if (data.mcoords == NULL) {
     return OPERATOR_PASS_THROUGH;
   }
 
   /* Compute boundbox of lasso (for faster testing later). */
-  BLI_lasso_boundbox(&data.rect, data.mcords, data.mcords_len);
+  BLI_lasso_boundbox(&data.rect, data.mcoords, data.mcoords_len);
 
   gpencil_cutter_lasso_select(C, op, gpencil_test_lasso, &data);
 
-  MEM_freeN((void *)data.mcords);
+  MEM_freeN((void *)data.mcoords);
 
   return OPERATOR_FINISHED;
 }
