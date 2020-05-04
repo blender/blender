@@ -24,6 +24,8 @@ extern "C" {
 void register_node_type_fn_boolean_math(void);
 void register_node_type_fn_float_compare(void);
 void register_node_type_fn_switch(void);
+void register_node_type_fn_group_instance_id(void);
+void register_node_type_fn_combine_strings(void);
 
 #ifdef __cplusplus
 }

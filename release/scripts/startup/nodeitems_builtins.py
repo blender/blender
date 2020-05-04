@@ -483,6 +483,7 @@ simulation_node_categories = [
     SimulationNodeCategory("SIM_INPUTS", "Input", items=[
         NodeItem("SimulationNodeTime"),
         NodeItem("SimulationNodeParticleAttribute"),
+        NodeItem("FunctionNodeGroupInstanceID"),
     ]),
     SimulationNodeCategory("SIM_EMITTERS", "Emitters", items=[
         NodeItem("SimulationNodeParticleMeshEmitter"),
@@ -527,6 +528,7 @@ simulation_node_categories = [
         NodeItem("FunctionNodeBooleanMath"),
         NodeItem("FunctionNodeFloatCompare"),
         NodeItem("FunctionNodeSwitch"),
+        NodeItem("FunctionNodeCombineStrings"),
     ]),
     SimulationNodeCategory("SIM_GROUP", "Group", items=node_group_items),
     SimulationNodeCategory("SIM_LAYOUT", "Layout", items=[

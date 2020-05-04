@@ -1309,6 +1309,8 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_BOOLEAN_MATH 1200
 #define FN_NODE_SWITCH 1201
 #define FN_NODE_FLOAT_COMPARE 1202
+#define FN_NODE_GROUP_INSTANCE_ID 1203
+#define FN_NODE_COMBINE_STRINGS 1204
 
 /** \} */
 
