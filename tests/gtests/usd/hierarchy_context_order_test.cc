@@ -44,9 +44,9 @@ TEST_F(HierarchyContextOrderTest, ObjectPointerTest)
   ctx_b.object = fake_pointer(2);
   ctx_b.duplicator = nullptr;
 
-  EXPECT_EQ(true, ctx_a < ctx_b);
-  EXPECT_EQ(false, ctx_b < ctx_a);
-  EXPECT_EQ(false, ctx_a < ctx_a);
+  EXPECT_LT(ctx_a, ctx_b);
+  EXPECT_FALSE(ctx_b < ctx_a);
+  EXPECT_FALSE(ctx_a < ctx_a);
 }
 
 TEST_F(HierarchyContextOrderTest, DuplicatorPointerTest)
@@ -61,9 +61,9 @@ TEST_F(HierarchyContextOrderTest, DuplicatorPointerTest)
   ctx_b.duplicator = fake_pointer(1);
   ctx_b.export_name = "B";
 
-  EXPECT_EQ(true, ctx_a < ctx_b);
-  EXPECT_EQ(false, ctx_b < ctx_a);
-  EXPECT_EQ(false, ctx_a < ctx_a);
+  EXPECT_LT(ctx_a, ctx_b);
+  EXPECT_FALSE(ctx_b < ctx_a);
+  EXPECT_FALSE(ctx_a < ctx_a);
 }
 
 TEST_F(HierarchyContextOrderTest, ExportParentTest)
@@ -76,9 +76,9 @@ TEST_F(HierarchyContextOrderTest, ExportParentTest)
   ctx_b.object = fake_pointer(1);
   ctx_b.export_parent = fake_pointer(2);
 
-  EXPECT_EQ(true, ctx_a < ctx_b);
-  EXPECT_EQ(false, ctx_b < ctx_a);
-  EXPECT_EQ(false, ctx_a < ctx_a);
+  EXPECT_LT(ctx_a, ctx_b);
+  EXPECT_FALSE(ctx_b < ctx_a);
+  EXPECT_FALSE(ctx_a < ctx_a);
 }
 
 TEST_F(HierarchyContextOrderTest, TransitiveTest)
@@ -107,17 +107,17 @@ TEST_F(HierarchyContextOrderTest, TransitiveTest)
   ctx_d.duplicator = nullptr;
   ctx_d.export_name = "D";
 
-  EXPECT_EQ(true, ctx_a < ctx_b);
-  EXPECT_EQ(true, ctx_a < ctx_c);
-  EXPECT_EQ(true, ctx_a < ctx_d);
-  EXPECT_EQ(true, ctx_b < ctx_c);
-  EXPECT_EQ(true, ctx_b < ctx_d);
-  EXPECT_EQ(true, ctx_c < ctx_d);
+  EXPECT_LT(ctx_a, ctx_b);
+  EXPECT_LT(ctx_a, ctx_c);
+  EXPECT_LT(ctx_a, ctx_d);
+  EXPECT_LT(ctx_b, ctx_c);
+  EXPECT_LT(ctx_b, ctx_d);
+  EXPECT_LT(ctx_c, ctx_d);
 
-  EXPECT_EQ(false, ctx_b < ctx_a);
-  EXPECT_EQ(false, ctx_c < ctx_a);
-  EXPECT_EQ(false, ctx_d < ctx_a);
-  EXPECT_EQ(false, ctx_c < ctx_b);
-  EXPECT_EQ(false, ctx_d < ctx_b);
-  EXPECT_EQ(false, ctx_d < ctx_c);
+  EXPECT_FALSE(ctx_b < ctx_a);
+  EXPECT_FALSE(ctx_c < ctx_a);
+  EXPECT_FALSE(ctx_d < ctx_a);
+  EXPECT_FALSE(ctx_c < ctx_b);
+  EXPECT_FALSE(ctx_d < ctx_b);
+  EXPECT_FALSE(ctx_d < ctx_c);
 }
