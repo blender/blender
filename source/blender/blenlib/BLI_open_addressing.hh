@@ -34,6 +34,7 @@
 #include <cmath>
 
 #include "BLI_allocator.hh"
+#include "BLI_array.hh"
 #include "BLI_math_base.h"
 #include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
@@ -114,8 +115,6 @@ class OpenAddressingArray {
    *   m_slots_set_or_dummy < m_slots_total
    */
 
-  /* Array containing the actual hash table. Might be a pointer to the inlined storage. */
-  Item *m_items;
   /* Number of items in the hash table. Must be a power of two. */
   uint32_t m_item_amount;
   /* Exponent of the current item amount. */
@@ -130,9 +129,8 @@ class OpenAddressingArray {
   uint32_t m_slots_usable;
   /* Can be used to map a hash value into the range of valid slot indices. */
   uint32_t m_slot_mask;
-  Allocator m_allocator;
-  AlignedBuffer<(uint)sizeof(Item) * s_items_in_small_storage, (uint)alignof(Item)>
-      m_local_storage;
+
+  Array<Item, s_items_in_small_storage, Allocator> m_items;
 
  public:
   explicit OpenAddressingArray(uint8_t item_exponent = s_small_storage_item_exponent)
@@ -147,51 +145,12 @@ class OpenAddressingArray {
                                                   (uint64_t)s_max_load_factor_numerator,
                                               (uint64_t)s_max_load_factor_denominator);
 
-    if (m_item_amount <= s_items_in_small_storage) {
-      m_items = this->small_storage();
-    }
-    else {
-      m_items = (Item *)m_allocator.allocate_aligned(
-          (uint32_t)sizeof(Item) * m_item_amount, std::alignment_of<Item>::value, __func__);
-    }
-
-    for (uint32_t i = 0; i < m_item_amount; i++) {
-      new (m_items + i) Item();
-    }
+    m_items = Array<Item, s_items_in_small_storage, Allocator>(m_item_amount);
   }
 
-  ~OpenAddressingArray()
-  {
-    if (m_items != nullptr) {
-      for (uint32_t i = 0; i < m_item_amount; i++) {
-        m_items[i].~Item();
-      }
-      if (!this->is_in_small_storage()) {
-        m_allocator.deallocate((void *)m_items);
-      }
-    }
-  }
+  ~OpenAddressingArray() = default;
 
-  OpenAddressingArray(const OpenAddressingArray &other)
-  {
-    m_slots_total = other.m_slots_total;
-    m_slots_set_or_dummy = other.m_slots_set_or_dummy;
-    m_slots_dummy = other.m_slots_dummy;
-    m_slots_usable = other.m_slots_usable;
-    m_slot_mask = other.m_slot_mask;
-    m_item_amount = other.m_item_amount;
-    m_item_exponent = other.m_item_exponent;
-
-    if (m_item_amount <= s_items_in_small_storage) {
-      m_items = this->small_storage();
-    }
-    else {
-      m_items = (Item *)m_allocator.allocate_aligned(
-          sizeof(Item) * m_item_amount, std::alignment_of<Item>::value, __func__);
-    }
-
-    uninitialized_copy_n(other.m_items, m_item_amount, m_items);
-  }
+  OpenAddressingArray(const OpenAddressingArray &other) = default;
 
   OpenAddressingArray(OpenAddressingArray &&other) noexcept
   {
@@ -202,15 +161,8 @@ class OpenAddressingArray {
     m_slot_mask = other.m_slot_mask;
     m_item_amount = other.m_item_amount;
     m_item_exponent = other.m_item_exponent;
-    if (other.is_in_small_storage()) {
-      m_items = this->small_storage();
-      uninitialized_relocate_n(other.m_items, m_item_amount, m_items);
-    }
-    else {
-      m_items = other.m_items;
-    }
+    m_items = std::move(other.m_items);
 
-    other.m_items = nullptr;
     other.~OpenAddressingArray();
     new (&other) OpenAddressingArray();
   }
@@ -237,7 +189,7 @@ class OpenAddressingArray {
 
   Allocator &allocator()
   {
-    return m_allocator;
+    return m_items.allocator();
   }
 
   /* Prepare a new array that can hold a minimum of min_usable_slots elements. All entries are
@@ -340,33 +292,22 @@ class OpenAddressingArray {
 
   Item *begin()
   {
-    return m_items;
+    return m_items.begin();
   }
 
   Item *end()
   {
-    return m_items + m_item_amount;
+    return m_items.end();
   }
 
   const Item *begin() const
   {
-    return m_items;
+    return m_items.begin();
   }
 
   const Item *end() const
   {
-    return m_items + m_item_amount;
-  }
-
- private:
-  Item *small_storage() const
-  {
-    return reinterpret_cast<Item *>((char *)m_local_storage.ptr());
-  }
-
-  bool is_in_small_storage() const
-  {
-    return m_items == this->small_storage();
+    return m_items.end();
   }
 };
 

@@ -80,7 +80,7 @@ class Array {
     m_allocator = other.m_allocator;
 
     m_data = this->get_buffer_for_size(other.size());
-    copy_n(other.begin(), m_size, m_data);
+    uninitialized_copy_n(other.begin(), m_size, m_data);
   }
 
   Array(Array &&other) noexcept
@@ -200,6 +200,11 @@ class Array {
   IndexRange index_range() const
   {
     return IndexRange(m_size);
+  }
+
+  Allocator &allocator()
+  {
+    return m_allocator;
   }
 
  private:
