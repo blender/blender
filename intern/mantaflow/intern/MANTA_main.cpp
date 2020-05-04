@@ -627,6 +627,11 @@ static string getCacheFileEnding(char cache_format)
   }
 }
 
+static string getBooleanString(int value)
+{
+  return (value) ? "True" : "False";
+}
+
 void MANTA::initializeRNAMap(FluidModifierData *mmd)
 {
   if (with_debug)
@@ -642,10 +647,6 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
 
   FluidDomainSettings *mds = mmd->domain;
   bool is2D = (mds->solver_res == 2);
-
-  int openDomain = (FLUID_DOMAIN_BORDER_BACK | FLUID_DOMAIN_BORDER_FRONT |
-                    FLUID_DOMAIN_BORDER_LEFT | FLUID_DOMAIN_BORDER_RIGHT |
-                    FLUID_DOMAIN_BORDER_BOTTOM | FLUID_DOMAIN_BORDER_TOP);
 
   string borderCollisions = "";
   if ((mds->border_collisions & FLUID_DOMAIN_BORDER_LEFT) == 0)
@@ -693,20 +694,38 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
 
   string cacheDirectory(mds->cache_directory);
 
-  mRNAMap["USING_SMOKE"] = to_string((mds->type == FLUID_DOMAIN_TYPE_GAS) != 0);
-  mRNAMap["USING_LIQUID"] = to_string((mds->type == FLUID_DOMAIN_TYPE_LIQUID) != 0);
-  mRNAMap["USING_COLORS"] = to_string((mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) != 0);
-  mRNAMap["USING_HEAT"] = to_string((mds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT) != 0);
-  mRNAMap["USING_FIRE"] = to_string((mds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) != 0);
-  mRNAMap["USING_NOISE"] = to_string((mds->flags & FLUID_DOMAIN_USE_NOISE) != 0);
-  mRNAMap["USING_OBSTACLE"] = to_string((mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE) != 0);
-  mRNAMap["USING_GUIDING"] = to_string((mds->flags & FLUID_DOMAIN_USE_GUIDE) != 0);
-  mRNAMap["USING_INVEL"] = to_string((mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL) != 0);
-  mRNAMap["USING_OUTFLOW"] = to_string((mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW) != 0);
-  mRNAMap["USING_LOG_DISSOLVE"] = to_string((mds->flags & FLUID_DOMAIN_USE_DISSOLVE_LOG) != 0);
-  mRNAMap["USING_DISSOLVE"] = to_string((mds->flags & FLUID_DOMAIN_USE_DISSOLVE) != 0);
+  float viscosity = mds->viscosity_base * pow(10.0f, -mds->viscosity_exponent);
+  float domainSize = MAX3(mds->global_size[0], mds->global_size[1], mds->global_size[2]);
+
+  mRNAMap["USING_SMOKE"] = getBooleanString(mds->type == FLUID_DOMAIN_TYPE_GAS);
+  mRNAMap["USING_LIQUID"] = getBooleanString(mds->type == FLUID_DOMAIN_TYPE_LIQUID);
+  mRNAMap["USING_COLORS"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS);
+  mRNAMap["USING_HEAT"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_HEAT);
+  mRNAMap["USING_FIRE"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE);
+  mRNAMap["USING_NOISE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_NOISE);
+  mRNAMap["USING_OBSTACLE"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
+  mRNAMap["USING_GUIDING"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_GUIDE);
+  mRNAMap["USING_INVEL"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
+  mRNAMap["USING_OUTFLOW"] = getBooleanString(mds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
+  mRNAMap["USING_LOG_DISSOLVE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DISSOLVE_LOG);
+  mRNAMap["USING_DISSOLVE"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DISSOLVE);
+  mRNAMap["DO_OPEN"] = getBooleanString(mds->border_collisions == 0);
+  mRNAMap["CACHE_RESUMABLE"] = getBooleanString(mds->cache_type != FLUID_DOMAIN_CACHE_FINAL);
+  mRNAMap["USING_ADAPTIVETIME"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_TIME);
+  mRNAMap["USING_SPEEDVECTORS"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS);
+  mRNAMap["USING_FRACTIONS"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_FRACTIONS);
+  mRNAMap["DELETE_IN_OBSTACLE"] = getBooleanString(mds->flags & FLUID_DOMAIN_DELETE_IN_OBSTACLE);
+  mRNAMap["USING_DIFFUSION"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_DIFFUSION);
+  mRNAMap["USING_MESH"] = getBooleanString(mds->flags & FLUID_DOMAIN_USE_MESH);
+  mRNAMap["USING_IMPROVED_MESH"] = getBooleanString(mds->mesh_generator ==
+                                                    FLUID_DOMAIN_MESH_IMPROVED);
+  mRNAMap["USING_SNDPARTS"] = getBooleanString(mds->particle_type & particleTypes);
+  mRNAMap["SNDPARTICLE_BOUNDARY_DELETE"] = getBooleanString(mds->sndparticle_boundary ==
+                                                            SNDPARTICLE_BOUNDARY_DELETE);
+  mRNAMap["SNDPARTICLE_BOUNDARY_PUSHOUT"] = getBooleanString(mds->sndparticle_boundary ==
+                                                             SNDPARTICLE_BOUNDARY_PUSHOUT);
+
   mRNAMap["SOLVER_DIM"] = to_string(mds->solver_res);
-  mRNAMap["DO_OPEN"] = to_string(((mds->border_collisions & openDomain) == openDomain) == 0);
   mRNAMap["BOUND_CONDITIONS"] = borderCollisions;
   mRNAMap["BOUNDARY_WIDTH"] = to_string(mds->boundary_width);
   mRNAMap["RES"] = to_string(mMaxRes);
@@ -780,9 +799,6 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["MESH_PARTICLE_RADIUS"] = to_string(mds->mesh_particle_radius);
   mRNAMap["MESH_SMOOTHEN_POS"] = to_string(mds->mesh_smoothen_pos);
   mRNAMap["MESH_SMOOTHEN_NEG"] = to_string(mds->mesh_smoothen_neg);
-  mRNAMap["USING_MESH"] = to_string((mds->flags & FLUID_DOMAIN_USE_MESH) != 0);
-  mRNAMap["USING_IMPROVED_MESH"] = to_string((mds->mesh_generator == FLUID_DOMAIN_MESH_IMPROVED) !=
-                                             0);
   mRNAMap["PARTICLE_BAND_WIDTH"] = to_string(mds->particle_band_width);
   mRNAMap["SNDPARTICLE_TAU_MIN_WC"] = to_string(mds->sndparticle_tau_min_wc);
   mRNAMap["SNDPARTICLE_TAU_MAX_WC"] = to_string(mds->sndparticle_tau_max_wc);
@@ -796,19 +812,12 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["SNDPARTICLE_K_D"] = to_string(mds->sndparticle_k_d);
   mRNAMap["SNDPARTICLE_L_MIN"] = to_string(mds->sndparticle_l_min);
   mRNAMap["SNDPARTICLE_L_MAX"] = to_string(mds->sndparticle_l_max);
-  mRNAMap["SNDPARTICLE_BOUNDARY_DELETE"] = to_string(
-      (mds->sndparticle_boundary == SNDPARTICLE_BOUNDARY_DELETE) != 0);
-  mRNAMap["SNDPARTICLE_BOUNDARY_PUSHOUT"] = to_string(
-      (mds->sndparticle_boundary == SNDPARTICLE_BOUNDARY_PUSHOUT) != 0);
   mRNAMap["SNDPARTICLE_POTENTIAL_RADIUS"] = to_string(mds->sndparticle_potential_radius);
   mRNAMap["SNDPARTICLE_UPDATE_RADIUS"] = to_string(mds->sndparticle_update_radius);
   mRNAMap["LIQUID_SURFACE_TENSION"] = to_string(mds->surface_tension);
-  mRNAMap["FLUID_VISCOSITY"] = to_string(mds->viscosity_base *
-                                         pow(10.0f, -mds->viscosity_exponent));
-  mRNAMap["FLUID_DOMAIN_SIZE"] = to_string(
-      MAX3(mds->global_size[0], mds->global_size[1], mds->global_size[2]));
+  mRNAMap["FLUID_VISCOSITY"] = to_string(viscosity);
+  mRNAMap["FLUID_DOMAIN_SIZE"] = to_string(domainSize);
   mRNAMap["SNDPARTICLE_TYPES"] = particleTypesStr;
-  mRNAMap["USING_SNDPARTS"] = to_string((mds->particle_type & particleTypes) != 0);
   mRNAMap["GUIDING_ALPHA"] = to_string(mds->guide_alpha);
   mRNAMap["GUIDING_BETA"] = to_string(mds->guide_beta);
   mRNAMap["GUIDING_FACTOR"] = to_string(mds->guide_vel_factor);
@@ -816,12 +825,6 @@ void MANTA::initializeRNAMap(FluidModifierData *mmd)
   mRNAMap["GRAVITY_Y"] = to_string(mds->gravity[1]);
   mRNAMap["GRAVITY_Z"] = to_string(mds->gravity[2]);
   mRNAMap["CACHE_DIR"] = cacheDirectory;
-  mRNAMap["CACHE_RESUMABLE"] = to_string((mds->cache_type == FLUID_DOMAIN_CACHE_FINAL) == 0);
-  mRNAMap["USING_ADAPTIVETIME"] = to_string((mds->flags & FLUID_DOMAIN_USE_ADAPTIVE_TIME) != 0);
-  mRNAMap["USING_SPEEDVECTORS"] = to_string((mds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) != 0);
-  mRNAMap["USING_FRACTIONS"] = to_string((mds->flags & FLUID_DOMAIN_USE_FRACTIONS) != 0);
-  mRNAMap["DELETE_IN_OBSTACLE"] = to_string((mds->flags & FLUID_DOMAIN_DELETE_IN_OBSTACLE) != 0);
-  mRNAMap["USING_DIFFUSION"] = to_string((mds->flags & FLUID_DOMAIN_USE_DIFFUSION) != 0);
 }
 
 string MANTA::getRealValue(const string &varName)
