@@ -1464,7 +1464,12 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
   const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)(
       RNA_enum_get(op->ptr, "mode"));
+
+  ED_sculpt_undo_push_multires_mesh_begin(C, op->type->name);
+
   multiresModifier_subdivide(object, mmd, subdivide_mode);
+
+  ED_sculpt_undo_push_multires_mesh_end(C, op->type->name);
 
   ED_object_iter_other(
       CTX_data_main(C), object, true, ED_object_multires_update_totlevels_cb, &mmd->totlvl);
