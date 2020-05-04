@@ -2495,6 +2495,9 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
   const bool use_face_center = ((ts->uv_flag & UV_SYNC_SELECTION) ?
                                     (ts->selectmode == SCE_SELECT_FACE) :
                                     (ts->uv_selectmode == UV_SELECT_FACE));
+  const bool use_edge = ((ts->uv_flag & UV_SYNC_SELECTION) ?
+                             (ts->selectmode == SCE_SELECT_EDGE) :
+                             (ts->uv_selectmode == UV_SELECT_EDGE));
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rectf);
@@ -2548,6 +2551,41 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
       /* (de)selects all tagged faces and deals with sticky modes */
       if (changed) {
         uv_select_flush_from_tag_face(sima, scene, obedit, select);
+      }
+    }
+    else if (use_edge && !pinned) {
+      changed = true;
+      BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+
+      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+        if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+          continue;
+        }
+
+        BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
+        MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l_prev, cd_loop_uv_offset);
+        bool luv_select_prev = uvedit_uv_select_test(scene, l_prev, cd_loop_uv_offset);
+
+        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+          const bool luv_select = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
+          if ((select != luv_select) || (select != luv_select_prev)) {
+            if (BLI_rctf_isect_pt_v(&rectf, luv->uv) &&
+                BLI_rctf_isect_pt_v(&rectf, luv_prev->uv)) {
+              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(em, scene, l_prev, select, false, cd_loop_uv_offset);
+              BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+              BM_elem_flag_enable(l_prev->v, BM_ELEM_TAG);
+            }
+          }
+          l_prev = l;
+          luv_prev = luv;
+          luv_select_prev = luv_select;
+        }
+      }
+
+      if (sima->sticky == SI_STICKY_VERTEX) {
+        uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
       }
     }
     else {
@@ -2637,13 +2675,33 @@ void UV_OT_select_box(wmOperatorType *ot)
 /** \name Circle Select Operator
  * \{ */
 
-static int uv_inside_circle(const float uv[2], const float offset[2], const float ellipse[2])
+static int uv_circle_select_is_point_inside(const float uv[2],
+                                            const float offset[2],
+                                            const float ellipse[2])
 {
   /* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
-  float x, y;
-  x = (uv[0] - offset[0]) * ellipse[0];
-  y = (uv[1] - offset[1]) * ellipse[1];
-  return ((x * x + y * y) < 1.0f);
+  const float co[2] = {
+      (uv[0] - offset[0]) * ellipse[0],
+      (uv[1] - offset[1]) * ellipse[1],
+  };
+  return len_squared_v2(co) < 1.0f;
+}
+
+static int uv_circle_select_is_edge_inside(const float uv_a[2],
+                                           const float uv_b[2],
+                                           const float offset[2],
+                                           const float ellipse[2])
+{
+  /* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
+  const float co_a[2] = {
+      (uv_a[0] - offset[0]) * ellipse[0],
+      (uv_a[1] - offset[1]) * ellipse[1],
+  };
+  const float co_b[2] = {
+      (uv_b[0] - offset[0]) * ellipse[0],
+      (uv_b[1] - offset[1]) * ellipse[1],
+  };
+  return dist_squared_to_line_segment_v2((const float[2]){0.0f, 0.0f}, co_a, co_b) < 1.0f;
 }
 
 static int uv_circle_select_exec(bContext *C, wmOperator *op)
@@ -2666,6 +2724,9 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
   const bool use_face_center = ((ts->uv_flag & UV_SYNC_SELECTION) ?
                                     (ts->selectmode == SCE_SELECT_FACE) :
                                     (ts->uv_selectmode == UV_SELECT_FACE));
+  const bool use_edge = ((ts->uv_flag & UV_SYNC_SELECTION) ?
+                             (ts->selectmode == SCE_SELECT_EDGE) :
+                             (ts->uv_selectmode == UV_SELECT_EDGE));
 
   /* get operator properties */
   x = RNA_int_get(op->ptr, "x");
@@ -2715,7 +2776,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
         if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
           float cent[2];
           uv_poly_center(efa, cent, cd_loop_uv_offset);
-          if (uv_inside_circle(cent, offset, ellipse)) {
+          if (uv_circle_select_is_point_inside(cent, offset, ellipse)) {
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
             changed = true;
           }
@@ -2725,6 +2786,40 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
       /* (de)selects all tagged faces and deals with sticky modes */
       if (changed) {
         uv_select_flush_from_tag_face(sima, scene, obedit, select);
+      }
+    }
+    else if (use_edge) {
+      BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+
+      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+        if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+          continue;
+        }
+
+        BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
+        MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l_prev, cd_loop_uv_offset);
+        bool luv_select_prev = uvedit_uv_select_test(scene, l_prev, cd_loop_uv_offset);
+
+        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+          const bool luv_select = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
+          if ((select != luv_select) || (select != luv_select_prev)) {
+            if (uv_circle_select_is_edge_inside(luv->uv, luv_prev->uv, offset, ellipse)) {
+              changed = true;
+              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(em, scene, l_prev, select, false, cd_loop_uv_offset);
+              BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+              BM_elem_flag_enable(l_prev->v, BM_ELEM_TAG);
+            }
+          }
+          l_prev = l;
+          luv_prev = luv;
+          luv_select_prev = luv_select;
+        }
+      }
+
+      if (sima->sticky == SI_STICKY_VERTEX) {
+        uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
       }
     }
     else {
@@ -2738,7 +2833,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
             luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-            if (uv_inside_circle(luv->uv, offset, ellipse)) {
+            if (uv_circle_select_is_point_inside(luv->uv, offset, ellipse)) {
               changed = true;
               uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
@@ -2801,6 +2896,23 @@ void UV_OT_select_circle(wmOperatorType *ot)
 /** \name Lasso Select Operator
  * \{ */
 
+static bool do_lasso_select_mesh_uv_is_point_inside(ARegion *region,
+                                                    const rcti *clip_rect,
+                                                    const int mcoords[][2],
+                                                    const int mcoords_len,
+                                                    const float co_test[2])
+{
+  int co_screen[2];
+  if (UI_view2d_view_to_region_clip(
+          &region->v2d, co_test[0], co_test[1], &co_screen[0], &co_screen[1]) &&
+      BLI_rcti_isect_pt_v(clip_rect, co_screen) &&
+      BLI_lasso_is_point_inside(
+          mcoords, mcoords_len, co_screen[0], co_screen[1], V2D_IS_CLIPPED)) {
+    return true;
+  }
+  return false;
+}
+
 static bool do_lasso_select_mesh_uv(bContext *C,
                                     const int mcords[][2],
                                     short moves,
@@ -2816,6 +2928,10 @@ static bool do_lasso_select_mesh_uv(bContext *C,
   const bool use_face_center = ((ts->uv_flag & UV_SYNC_SELECTION) ?
                                     (ts->selectmode == SCE_SELECT_FACE) :
                                     (ts->uv_selectmode == UV_SELECT_FACE));
+  const bool use_edge = ((ts->uv_flag & UV_SYNC_SELECTION) ?
+                             (ts->selectmode == SCE_SELECT_EDGE) :
+                             (ts->uv_selectmode == UV_SELECT_EDGE));
+
   const bool select = (sel_op != SEL_OP_SUB);
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
 
@@ -2823,7 +2939,6 @@ static bool do_lasso_select_mesh_uv(bContext *C,
 
   BMFace *efa;
   BMLoop *l;
-  int screen_uv[2];
   float limit[2];
   bool changed_multi = false;
   rcti rect;
@@ -2857,12 +2972,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
         if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
           float cent[2];
           uv_poly_center(efa, cent, cd_loop_uv_offset);
-
-          if (UI_view2d_view_to_region_clip(
-                  &region->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]) &&
-              BLI_rcti_isect_pt_v(&rect, screen_uv) &&
-              BLI_lasso_is_point_inside(
-                  mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED)) {
+          if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcords, moves, cent)) {
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
             changed = true;
           }
@@ -2872,6 +2982,42 @@ static bool do_lasso_select_mesh_uv(bContext *C,
       /* (de)selects all tagged faces and deals with sticky modes */
       if (changed) {
         uv_select_flush_from_tag_face(sima, scene, obedit, select);
+      }
+    }
+    else if (use_edge) {
+      BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+
+      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+        if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+          continue;
+        }
+
+        BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
+        MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l_prev, cd_loop_uv_offset);
+        bool luv_select_prev = uvedit_uv_select_test(scene, l_prev, cd_loop_uv_offset);
+
+        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+          const bool luv_select = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
+          if ((select != luv_select) || (select != luv_select_prev)) {
+            if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcords, moves, luv->uv) &&
+                do_lasso_select_mesh_uv_is_point_inside(
+                    region, &rect, mcords, moves, luv_prev->uv)) {
+              uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+              uvedit_uv_select_set(em, scene, l_prev, select, false, cd_loop_uv_offset);
+              changed = true;
+              BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+              BM_elem_flag_enable(l_prev->v, BM_ELEM_TAG);
+            }
+          }
+          l_prev = l;
+          luv_prev = luv;
+          luv_select_prev = luv_select;
+        }
+      }
+
+      if (sima->sticky == SI_STICKY_VERTEX) {
+        uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
       }
     }
     else { /* Vert Sel */
@@ -2885,11 +3031,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
             MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-            if (UI_view2d_view_to_region_clip(
-                    &region->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]) &&
-                BLI_rcti_isect_pt_v(&rect, screen_uv) &&
-                BLI_lasso_is_point_inside(
-                    mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED)) {
+            if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcords, moves, luv->uv)) {
               uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
               changed = true;
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
