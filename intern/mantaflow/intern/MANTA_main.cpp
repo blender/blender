@@ -3062,7 +3062,7 @@ void MANTA::updatePointers()
 
 bool MANTA::hasConfig(FluidModifierData *mmd, int framenr)
 {
-  string extension = getCacheFileEnding(mmd->domain->cache_data_format);
+  string extension = FLUID_DOMAIN_EXTENSION_UNI;
   return BLI_exists(
       getFile(mmd, FLUID_DOMAIN_DIR_CONFIG, FLUID_DOMAIN_FILE_CONFIG, extension, framenr).c_str());
 }
