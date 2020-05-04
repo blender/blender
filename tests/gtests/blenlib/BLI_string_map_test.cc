@@ -249,3 +249,27 @@ TEST(string_map, AddOrModify)
   EXPECT_FALSE(map.add_or_modify("Hello", create_func, modify_func));
   EXPECT_EQ(map.lookup("Hello"), 15);
 }
+
+TEST(string_map, LookupOrAdd)
+{
+  StringMap<int> map;
+  auto return_5 = []() { return 5; };
+  auto return_8 = []() { return 8; };
+
+  int &a = map.lookup_or_add("A", return_5);
+  EXPECT_EQ(a, 5);
+  EXPECT_EQ(map.lookup_or_add("A", return_8), 5);
+  EXPECT_EQ(map.lookup_or_add("B", return_8), 8);
+}
+
+TEST(string_map, LookupOrAddDefault)
+{
+  StringMap<std::string> map;
+
+  std::string &a = map.lookup_or_add_default("A");
+  EXPECT_EQ(a.size(), 0);
+  a += "Test";
+  EXPECT_EQ(a.size(), 4);
+  std::string &b = map.lookup_or_add_default("A");
+  EXPECT_EQ(b, "Test");
+}

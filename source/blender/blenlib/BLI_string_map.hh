@@ -342,6 +342,27 @@ template<typename T, typename Allocator = GuardedAllocator> class StringMap {
   }
 
   /**
+   * Return the value that corresponds to the given key.
+   * If it does not exist yet, create and insert it first.
+   */
+  template<typename CreateValueF> T &lookup_or_add(StringRef key, const CreateValueF &create_value)
+  {
+    return *this->add_or_modify(
+        key,
+        [&](T *value) { return new (value) T(create_value()); },
+        [](T *value) { return value; });
+  }
+
+  /**
+   * Return the value that corresponds to the given key.
+   * If it does not exist yet, insert a new default constructed value and return that.
+   */
+  T &lookup_or_add_default(StringRef key)
+  {
+    return this->lookup_or_add(key, []() { return T(); });
+  }
+
+  /**
    * Do a linear search over all items to find a key for a value.
    */
   StringRefNull find_key_for_value(const T &value) const
