@@ -1843,20 +1843,26 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
   ED_undo_push(C, "Modifier convert to real");
 }
 
-static int modifier_can_delete(ModifierData *md)
+static bool modifier_can_delete(ModifierData *md)
 {
   /* fluid particle modifier can't be deleted here */
   if (md->type == eModifierType_ParticleSystem) {
     short particle_type = ((ParticleSystemModifierData *)md)->psys->part->type;
-    if (particle_type == PART_FLUID || particle_type == PART_FLUID_FLIP ||
-        particle_type == PART_FLUID_FOAM || particle_type == PART_FLUID_SPRAY ||
-        particle_type == PART_FLUID_BUBBLE || particle_type == PART_FLUID_TRACER ||
-        particle_type == PART_FLUID_SPRAYFOAM || particle_type == PART_FLUID_SPRAYBUBBLE ||
-        particle_type == PART_FLUID_FOAMBUBBLE || particle_type == PART_FLUID_SPRAYFOAMBUBBLE) {
-      return 0;
+    if (ELEM(particle_type,
+             PART_FLUID,
+             PART_FLUID_FLIP,
+             PART_FLUID_FOAM,
+             PART_FLUID_SPRAY,
+             PART_FLUID_BUBBLE,
+             PART_FLUID_TRACER,
+             PART_FLUID_SPRAYFOAM,
+             PART_FLUID_SPRAYBUBBLE,
+             PART_FLUID_FOAMBUBBLE,
+             PART_FLUID_SPRAYFOAMBUBBLE)) {
+      return false;
     }
   }
-  return 1;
+  return true;
 }
 
 /* Check whether Modifier is a simulation or not,
