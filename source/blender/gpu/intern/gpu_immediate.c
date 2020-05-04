@@ -48,7 +48,6 @@ typedef struct ImmediateDrawBuffer {
   GLubyte *buffer_data;
   uint buffer_offset;
   uint buffer_size;
-  uint default_size;
 } ImmediateDrawBuffer;
 
 typedef struct {
@@ -96,12 +95,10 @@ void immInit(void)
 
   imm.draw_buffer.vbo_id = GPU_buf_alloc();
   imm.draw_buffer.buffer_size = DEFAULT_INTERNAL_BUFFER_SIZE;
-  imm.draw_buffer.default_size = DEFAULT_INTERNAL_BUFFER_SIZE;
   glBindBuffer(GL_ARRAY_BUFFER, imm.draw_buffer.vbo_id);
   glBufferData(GL_ARRAY_BUFFER, imm.draw_buffer.buffer_size, NULL, GL_DYNAMIC_DRAW);
   imm.draw_buffer_strict.vbo_id = GPU_buf_alloc();
-  imm.draw_buffer_strict.buffer_size = 0;
-  imm.draw_buffer_strict.default_size = 0;
+  imm.draw_buffer_strict.buffer_size = DEFAULT_INTERNAL_BUFFER_SIZE;
   glBindBuffer(GL_ARRAY_BUFFER, imm.draw_buffer_strict.vbo_id);
   glBufferData(GL_ARRAY_BUFFER, imm.draw_buffer_strict.buffer_size, NULL, GL_DYNAMIC_DRAW);
 
@@ -251,10 +248,10 @@ void immBegin(GPUPrimType prim_type, uint vertex_len)
     active_buffer->buffer_size = bytes_needed;
     recreate_buffer = true;
   }
-  else if (bytes_needed < active_buffer->default_size &&
-           active_buffer->buffer_size > active_buffer->default_size) {
+  else if (bytes_needed < DEFAULT_INTERNAL_BUFFER_SIZE &&
+           active_buffer->buffer_size > DEFAULT_INTERNAL_BUFFER_SIZE) {
     /* shrink the internal buffer */
-    active_buffer->buffer_size = active_buffer->default_size;
+    active_buffer->buffer_size = DEFAULT_INTERNAL_BUFFER_SIZE;
     recreate_buffer = true;
   }
 
