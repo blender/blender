@@ -930,7 +930,7 @@ PyDoc_STRVAR(Vector_dot_doc,
              "   :arg other: The other vector to perform the dot product with.\n"
              "   :type other: :class:`Vector`\n"
              "   :return: The dot product.\n"
-             "   :rtype: :class:`Vector`\n");
+             "   :rtype: float\n");
 static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 {
   float *tvec;
