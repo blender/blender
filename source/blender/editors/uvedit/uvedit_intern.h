@@ -99,6 +99,7 @@ bool uv_find_nearest_face_multi(struct Scene *scene,
 void uvedit_live_unwrap_update(struct SpaceImage *sima,
                                struct Scene *scene,
                                struct Object *obedit);
+void uvedit_pixel_to_float(struct SpaceImage *sima, float r_dist[2], float pixeldist);
 
 /* operators */
 
@@ -112,5 +113,32 @@ void UV_OT_reset(struct wmOperatorType *ot);
 void UV_OT_sphere_project(struct wmOperatorType *ot);
 void UV_OT_unwrap(struct wmOperatorType *ot);
 void UV_OT_stitch(struct wmOperatorType *ot);
+
+/* uvedit_select.c */
+
+bool uvedit_select_is_any_selected(struct Scene *scene, struct Image *ima, struct Object *obedit);
+bool uvedit_select_is_any_selected_multi(struct Scene *scene,
+                                         struct Image *ima,
+                                         struct Object **objects,
+                                         const uint objects_len);
+float *uv_sel_co_from_eve(struct Scene *scene,
+                          struct Object *obedit,
+                          struct Image *ima,
+                          struct BMEditMesh *em,
+                          struct BMVert *eve);
+
+void UV_OT_select_all(struct wmOperatorType *ot);
+void UV_OT_select(struct wmOperatorType *ot);
+void UV_OT_select_loop(struct wmOperatorType *ot);
+void UV_OT_select_linked(struct wmOperatorType *ot);
+void UV_OT_select_linked_pick(struct wmOperatorType *ot);
+void UV_OT_select_split(struct wmOperatorType *ot);
+void UV_OT_select_pinned(struct wmOperatorType *ot);
+void UV_OT_select_box(struct wmOperatorType *ot);
+void UV_OT_select_lasso(struct wmOperatorType *ot);
+void UV_OT_select_circle(struct wmOperatorType *ot);
+void UV_OT_select_more(struct wmOperatorType *ot);
+void UV_OT_select_less(struct wmOperatorType *ot);
+void UV_OT_select_overlap(struct wmOperatorType *ot);
 
 #endif /* __UVEDIT_INTERN_H__ */

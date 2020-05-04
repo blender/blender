@@ -40,6 +40,7 @@ set(SRC
   uvedit_draw.c
   uvedit_ops.c
   uvedit_parametrizer.c
+  uvedit_select.c
   uvedit_smart_stitch.c
   uvedit_unwrap_ops.c
 
