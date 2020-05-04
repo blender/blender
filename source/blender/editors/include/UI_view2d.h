@@ -137,9 +137,9 @@ void UI_view2d_view_orthoSpecial(struct ARegion *region, struct View2D *v2d, con
 void UI_view2d_view_restore(const struct bContext *C);
 
 /* grid drawing */
-void UI_view2d_constant_grid_draw(struct View2D *v2d, float step);
+void UI_view2d_constant_grid_draw(const struct View2D *v2d, float step);
 void UI_view2d_multi_grid_draw(
-    struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
+    const struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
 
 void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
 void UI_view2d_draw_lines_x__values(const struct View2D *v2d);
@@ -209,14 +209,17 @@ bool UI_view2d_view_to_region_clip(
     const struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
 
 void UI_view2d_view_to_region(
-    struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
-void UI_view2d_view_to_region_fl(
-    struct View2D *v2d, float x, float y, float *r_region_x, float *r_region_y) ATTR_NONNULL();
-void UI_view2d_view_to_region_m4(struct View2D *v2d, float matrix[4][4]) ATTR_NONNULL();
-void UI_view2d_view_to_region_rcti(struct View2D *v2d,
+    const struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
+void UI_view2d_view_to_region_fl(const struct View2D *v2d,
+                                 float x,
+                                 float y,
+                                 float *r_region_x,
+                                 float *r_region_y) ATTR_NONNULL();
+void UI_view2d_view_to_region_m4(const struct View2D *v2d, float matrix[4][4]) ATTR_NONNULL();
+void UI_view2d_view_to_region_rcti(const struct View2D *v2d,
                                    const struct rctf *rect_src,
                                    struct rcti *rect_dst) ATTR_NONNULL();
-bool UI_view2d_view_to_region_rcti_clip(struct View2D *v2d,
+bool UI_view2d_view_to_region_rcti_clip(const struct View2D *v2d,
                                         const struct rctf *rect_src,
                                         struct rcti *rect_dst) ATTR_NONNULL();
 
@@ -228,9 +231,9 @@ void UI_view2d_scroller_size_get(const struct View2D *v2d, float *r_x, float *r_
 void UI_view2d_scale_get(struct View2D *v2d, float *r_x, float *r_y);
 float UI_view2d_scale_get_x(const struct View2D *v2d);
 float UI_view2d_scale_get_y(const struct View2D *v2d);
-void UI_view2d_scale_get_inverse(struct View2D *v2d, float *r_x, float *r_y);
+void UI_view2d_scale_get_inverse(const struct View2D *v2d, float *r_x, float *r_y);
 
-void UI_view2d_center_get(struct View2D *v2d, float *r_x, float *r_y);
+void UI_view2d_center_get(const struct View2D *v2d, float *r_x, float *r_y);
 void UI_view2d_center_set(struct View2D *v2d, float x, float y);
 
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);

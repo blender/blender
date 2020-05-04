@@ -1234,7 +1234,7 @@ void UI_view2d_view_restore(const bContext *C)
  * \{ */
 
 /* Draw a constant grid in given 2d-region */
-void UI_view2d_constant_grid_draw(View2D *v2d, float step)
+void UI_view2d_constant_grid_draw(const View2D *v2d, float step)
 {
   float start_x, start_y;
   int count_x, count_y;
@@ -1306,7 +1306,8 @@ void UI_view2d_constant_grid_draw(View2D *v2d, float step)
 }
 
 /* Draw a multi-level grid in given 2d-region */
-void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_size, int totlevels)
+void UI_view2d_multi_grid_draw(
+    const View2D *v2d, int colorid, float step, int level_size, int totlevels)
 {
   /* Exit if there is nothing to draw */
   if (totlevels == 0) {
@@ -1777,7 +1778,8 @@ bool UI_view2d_view_to_region_clip(
  * \param x, y: Coordinates to convert.
  * \param r_region_x, r_region_y: Resultant coordinates.
  */
-void UI_view2d_view_to_region(View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
+void UI_view2d_view_to_region(
+    const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
   /* step 1: express given coordinates as proportional values */
   x = (x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
@@ -1793,7 +1795,7 @@ void UI_view2d_view_to_region(View2D *v2d, float x, float y, int *r_region_x, in
 }
 
 void UI_view2d_view_to_region_fl(
-    View2D *v2d, float x, float y, float *r_region_x, float *r_region_y)
+    const View2D *v2d, float x, float y, float *r_region_x, float *r_region_y)
 {
   /* express given coordinates as proportional values */
   x = (x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
@@ -1804,7 +1806,7 @@ void UI_view2d_view_to_region_fl(
   *r_region_y = v2d->mask.ymin + (y * BLI_rcti_size_y(&v2d->mask));
 }
 
-void UI_view2d_view_to_region_rcti(View2D *v2d, const rctf *rect_src, rcti *rect_dst)
+void UI_view2d_view_to_region_rcti(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
   const float mask_size[2] = {BLI_rcti_size_x(&v2d->mask), BLI_rcti_size_y(&v2d->mask)};
@@ -1825,7 +1827,7 @@ void UI_view2d_view_to_region_rcti(View2D *v2d, const rctf *rect_src, rcti *rect
   clamp_rctf_to_rcti(rect_dst, &rect_tmp);
 }
 
-void UI_view2d_view_to_region_m4(View2D *v2d, float matrix[4][4])
+void UI_view2d_view_to_region_m4(const View2D *v2d, float matrix[4][4])
 {
   rctf mask;
   unit_m4(matrix);
@@ -1833,7 +1835,7 @@ void UI_view2d_view_to_region_m4(View2D *v2d, float matrix[4][4])
   BLI_rctf_transform_calc_m4_pivot_min(&v2d->cur, &mask, matrix);
 }
 
-bool UI_view2d_view_to_region_rcti_clip(View2D *v2d, const rctf *rect_src, rcti *rect_dst)
+bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
   const float mask_size[2] = {BLI_rcti_size_x(&v2d->mask), BLI_rcti_size_y(&v2d->mask)};
@@ -1959,7 +1961,7 @@ float UI_view2d_scale_get_y(const View2D *v2d)
 /**
  * Same as ``UI_view2d_scale_get() - 1.0f / x, y``
  */
-void UI_view2d_scale_get_inverse(View2D *v2d, float *r_x, float *r_y)
+void UI_view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
 {
   if (r_x) {
     *r_x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
@@ -1973,7 +1975,7 @@ void UI_view2d_scale_get_inverse(View2D *v2d, float *r_x, float *r_y)
  * Simple functions for consistent center offset access.
  * Used by node editor to shift view center for each individual node tree.
  */
-void UI_view2d_center_get(struct View2D *v2d, float *r_x, float *r_y)
+void UI_view2d_center_get(const struct View2D *v2d, float *r_x, float *r_y)
 {
   /* get center */
   if (r_x) {

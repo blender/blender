@@ -1971,7 +1971,7 @@ static bool ed_object_select_pick(bContext *C,
   /* setup view context for argument to callbacks */
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
-  ARegion *region = CTX_wm_region(C);
+  const ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);

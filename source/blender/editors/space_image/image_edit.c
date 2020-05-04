@@ -264,7 +264,10 @@ void ED_space_image_get_aspect(SpaceImage *sima, float *r_aspx, float *r_aspy)
   }
 }
 
-void ED_space_image_get_zoom(SpaceImage *sima, ARegion *region, float *r_zoomx, float *r_zoomy)
+void ED_space_image_get_zoom(SpaceImage *sima,
+                             const ARegion *region,
+                             float *r_zoomx,
+                             float *r_zoomy)
 {
   int width, height;
 
@@ -314,7 +317,7 @@ void ED_image_get_uv_aspect(Image *ima, ImageUser *iuser, float *r_aspx, float *
 }
 
 /* takes event->mval */
-void ED_image_mouse_pos(SpaceImage *sima, ARegion *region, const int mval[2], float co[2])
+void ED_image_mouse_pos(SpaceImage *sima, const ARegion *region, const int mval[2], float co[2])
 {
   int sx, sy, width, height;
   float zoomx, zoomy;
@@ -341,7 +344,7 @@ void ED_image_view_center_to_point(SpaceImage *sima, float x, float y)
 }
 
 void ED_image_point_pos(
-    SpaceImage *sima, ARegion *region, float x, float y, float *r_x, float *r_y)
+    SpaceImage *sima, const ARegion *region, float x, float y, float *r_x, float *r_y)
 {
   int sx, sy, width, height;
   float zoomx, zoomy;
@@ -356,7 +359,7 @@ void ED_image_point_pos(
 }
 
 void ED_image_point_pos__reverse(SpaceImage *sima,
-                                 ARegion *region,
+                                 const ARegion *region,
                                  const float co[2],
                                  float r_co[2])
 {
