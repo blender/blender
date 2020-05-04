@@ -72,7 +72,10 @@ class Task {
     }
   }
 
-  /* Move constructor. */
+  /* Move constructor.
+   * For performance, ensure we never copy the task and only move it.
+   * For TBB version 2017 and earlier we apply a workaround to make up for
+   * the lack of move constructor support. */
   Task(Task &&other)
       : pool(other.pool),
         run(other.run),
@@ -87,16 +90,32 @@ class Task {
     other.freedata = NULL;
   }
 
+#if defined(WITH_TBB) && TBB_INTERFACE_VERSION_MAJOR < 10
+  Task(const Task &other)
+      : pool(other.pool),
+        run(other.run),
+        taskdata(other.taskdata),
+        free_taskdata(other.free_taskdata),
+        freedata(other.freedata)
+  {
+    ((Task &)other).pool = NULL;
+    ((Task &)other).run = NULL;
+    ((Task &)other).taskdata = NULL;
+    ((Task &)other).free_taskdata = false;
+    ((Task &)other).freedata = NULL;
+  }
+#else
+  Task(const Task &other) = delete;
+#endif
+
+  Task &operator=(const Task &other) = delete;
+  Task &operator=(Task &&other) = delete;
+
   /* Execute task. */
   void operator()() const
   {
     run(pool, taskdata);
   }
-
-  /* For performance, ensure we never copy the task and only move it. */
-  Task(const Task &other) = delete;
-  Task &operator=(const Task &other) = delete;
-  Task &operator=(Task &&other) = delete;
 };
 
 /* TBB Task Group.

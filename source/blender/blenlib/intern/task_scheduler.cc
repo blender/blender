@@ -29,18 +29,21 @@
 /* Quiet top level deprecation message, unrelated to API usage here. */
 #  define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
 #  include <tbb/tbb.h>
+#  if TBB_INTERFACE_VERSION_MAJOR >= 10
+#    define WITH_TBB_GLOBAL_CONTROL
+#  endif
 #endif
 
 /* Task Scheduler */
 
 static int task_scheduler_num_threads = 1;
-#ifdef WITH_TBB
+#ifdef WITH_TBB_GLOBAL_CONTROL
 static tbb::global_control *task_scheduler_global_control = nullptr;
 #endif
 
 void BLI_task_scheduler_init()
 {
-#ifdef WITH_TBB
+#ifdef WITH_TBB_GLOBAL_CONTROL
   const int num_threads_override = BLI_system_num_threads_override_get();
 
   if (num_threads_override > 0) {
@@ -57,12 +60,14 @@ void BLI_task_scheduler_init()
      * at all. */
     task_scheduler_num_threads = BLI_system_thread_count();
   }
+#else
+  task_scheduler_num_threads = BLI_system_thread_count();
 #endif
 }
 
 void BLI_task_scheduler_exit()
 {
-#ifdef WITH_TBB
+#ifdef WITH_TBB_GLOBAL_CONTROL
   OBJECT_GUARDED_DELETE(task_scheduler_global_control, tbb::global_control);
 #endif
 }
