@@ -1719,6 +1719,8 @@ static float fcurve_eval_keyframes_interpolate(FCurve *fcu, BezTriple *bezts, fl
     default:
       return prevbezt->vec[1][1];
   }
+
+  return 0.0f;
 }
 
 /* Calculate F-Curve value for 'evaltime' using BezTriple keyframes */
