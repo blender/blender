@@ -121,11 +121,11 @@ bool uvedit_select_is_any_selected_multi(struct Scene *scene,
                                          struct Image *ima,
                                          struct Object **objects,
                                          const uint objects_len);
-float *uv_sel_co_from_eve(struct Scene *scene,
-                          struct Object *obedit,
-                          struct Image *ima,
-                          struct BMEditMesh *em,
-                          struct BMVert *eve);
+const float *uvedit_first_selected_uv_from_vertex(struct Scene *scene,
+                                                  struct Object *obedit,
+                                                  struct Image *ima,
+                                                  struct BMVert *eve,
+                                                  const int cd_loop_uv_offset);
 
 void UV_OT_select_all(struct wmOperatorType *ot);
 void UV_OT_select(struct wmOperatorType *ot);

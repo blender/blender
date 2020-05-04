@@ -1117,14 +1117,15 @@ static void uv_select_linked_multi(Scene *scene,
   }
 }
 
-/* WATCH IT: this returns first selected UV,
- * not ideal in many cases since there could be multiple */
-float *uv_sel_co_from_eve(Scene *scene, Object *obedit, Image *ima, BMEditMesh *em, BMVert *eve)
+/**
+ * \warning This returns first selected UV,
+ * not ideal in many cases since there could be multiple.
+ */
+const float *uvedit_first_selected_uv_from_vertex(
+    Scene *scene, Object *obedit, Image *ima, BMVert *eve, const int cd_loop_uv_offset)
 {
   BMIter liter;
   BMLoop *l;
-
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   BM_ITER_ELEM (l, &liter, eve, BM_LOOPS_OF_VERT) {
     if (!uvedit_face_visible_test(scene, obedit, ima, l->f)) {

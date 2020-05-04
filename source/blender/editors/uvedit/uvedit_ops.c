@@ -618,9 +618,10 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
         if (BLI_array_len(eve_line) > 2) {
 
           /* we know the returns from these must be valid */
-          const float *uv_start = uv_sel_co_from_eve(scene, obedit, ima, em, eve_line[0]);
-          const float *uv_end = uv_sel_co_from_eve(
-              scene, obedit, ima, em, eve_line[BLI_array_len(eve_line) - 1]);
+          const float *uv_start = uvedit_first_selected_uv_from_vertex(
+              scene, obedit, ima, eve_line[0], cd_loop_uv_offset);
+          const float *uv_end = uvedit_first_selected_uv_from_vertex(
+              scene, obedit, ima, eve_line[BLI_array_len(eve_line) - 1], cd_loop_uv_offset);
           /* For UV_STRAIGHTEN_X & UV_STRAIGHTEN_Y modes */
           float a = 0.0f;
           eUVWeldAlign tool_local = tool;
