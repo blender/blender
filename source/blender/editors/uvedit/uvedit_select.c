@@ -89,6 +89,11 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
 /** \name Visibility and Selection Utilities
  * \{ */
 
+static void uv_select_island_limit_default(SpaceImage *sima, float r_limit[2])
+{
+  uvedit_pixel_to_float(sima, 0.05f, r_limit);
+}
+
 static void uvedit_vertex_select_tagged(BMEditMesh *em,
                                         Scene *scene,
                                         bool select,
@@ -1527,8 +1532,8 @@ static int uv_mouse_select_multi(bContext *C,
   float penalty_dist;
   {
     float penalty[2];
-    uvedit_pixel_to_float(sima, limit, 0.05f);
-    uvedit_pixel_to_float(sima, penalty, 5.0f / (sima ? sima->zoom : 1.0f));
+    uvedit_pixel_to_float(sima, 0.05f, limit);
+    uvedit_pixel_to_float(sima, 5.0f / (sima ? sima->zoom : 1.0f), penalty);
     penalty_dist = len_v2(penalty);
   }
 
@@ -1959,7 +1964,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
     extend = RNA_boolean_get(op->ptr, "extend");
     deselect = RNA_boolean_get(op->ptr, "deselect");
   }
-  uvedit_pixel_to_float(sima, limit, 0.05f);
+  uv_select_island_limit_default(sima, limit);
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -2346,7 +2351,7 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima,
     float limit[2];
     uint efa_index;
 
-    uvedit_pixel_to_float(sima, limit, 0.05);
+    uv_select_island_limit_default(sima, limit);
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
     vmap = BM_uv_vert_map_create(em->bm, limit, false, false);
@@ -2433,7 +2438,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima,
     float limit[2];
     uint efa_index;
 
-    uvedit_pixel_to_float(sima, limit, 0.05);
+    uv_select_island_limit_default(sima, limit);
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
     vmap = BM_uv_vert_map_create(em->bm, limit, false, false);
@@ -2466,10 +2471,6 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima,
 
 /** \} */
 
-#define UV_SELECT_ISLAND_LIMIT \
-  float limit[2]; \
-  uvedit_pixel_to_float(sima, limit, 0.05f)
-
 /* -------------------------------------------------------------------- */
 /** \name Box Select Operator
  * \{ */
@@ -2489,6 +2490,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
   MLoopUV *luv;
   rctf rectf;
   bool pinned;
+  float limit[2];
   const bool use_face_center = ((ts->uv_flag & UV_SYNC_SELECTION) ?
                                     (ts->selectmode == SCE_SELECT_FACE) :
                                     (ts->uv_selectmode == UV_SELECT_FACE));
@@ -2503,7 +2505,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
 
   pinned = RNA_boolean_get(op->ptr, "pinned");
 
-  UV_SELECT_ISLAND_LIMIT;
+  uv_select_island_limit_default(sima, limit);
 
   bool changed_multi = false;
 
@@ -2657,7 +2659,8 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
   BMIter iter, liter;
   MLoopUV *luv;
   int x, y, radius, width, height;
-  float zoomx, zoomy, offset[2], ellipse[2];
+  float zoomx, zoomy;
+  float limit[2], offset[2], ellipse[2];
 
   const bool use_face_center = ((ts->uv_flag & UV_SYNC_SELECTION) ?
                                     (ts->selectmode == SCE_SELECT_FACE) :
@@ -2678,7 +2681,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 
   UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
 
-  UV_SELECT_ISLAND_LIMIT;
+  uv_select_island_limit_default(sima, limit);
 
   bool changed_multi = false;
 
@@ -2820,10 +2823,11 @@ static bool do_lasso_select_mesh_uv(bContext *C,
   BMFace *efa;
   BMLoop *l;
   int screen_uv[2];
+  float limit[2];
   bool changed_multi = false;
   rcti rect;
 
-  UV_SELECT_ISLAND_LIMIT;
+  uv_select_island_limit_default(sima, limit);
 
   BLI_lasso_boundbox(&rect, mcords, moves);
 

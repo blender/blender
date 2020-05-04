@@ -190,7 +190,7 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 /** \name Space Conversion
  * \{ */
 
-void uvedit_pixel_to_float(SpaceImage *sima, float r_dist[2], float pixeldist)
+void uvedit_pixel_to_float(SpaceImage *sima, float pixeldist, float r_dist[2])
 {
   int width, height;
 

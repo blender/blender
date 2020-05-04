@@ -99,7 +99,7 @@ bool uv_find_nearest_face_multi(struct Scene *scene,
 void uvedit_live_unwrap_update(struct SpaceImage *sima,
                                struct Scene *scene,
                                struct Object *obedit);
-void uvedit_pixel_to_float(struct SpaceImage *sima, float r_dist[2], float pixeldist);
+void uvedit_pixel_to_float(struct SpaceImage *sima, float pixeldist, float r_dist[2]);
 
 /* operators */
 
