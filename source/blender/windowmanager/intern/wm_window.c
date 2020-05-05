@@ -940,7 +940,8 @@ wmWindow *WM_window_open_temp(bContext *C,
 
   /* make window active, and validate/resize */
   CTX_wm_window_set(C, win);
-  if (!win->ghostwin) {
+  const bool new_window = (win->ghostwin == NULL);
+  if (new_window) {
     wm_window_ghostwindow_ensure(wm, win, dialog);
   }
   WM_check(C);
@@ -959,7 +960,7 @@ wmWindow *WM_window_open_temp(bContext *C,
 
   ED_screen_change(C, screen);
 
-  if (win->ghostwin) {
+  if (!new_window) {
     /* Set size in GHOST window and then update size and position from GHOST,
      * in case they where changed by GHOST to fit the monitor/screen. */
     wm_window_set_size(win, win->sizex, win->sizey);
