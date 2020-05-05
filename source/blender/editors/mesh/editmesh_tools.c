@@ -4633,6 +4633,9 @@ static bool edbm_fill_grid_prepare(BMesh *bm, int offset, int *span_p, const boo
       BLI_listbase_rotate_first(verts, v_act_link);
     }
 
+    /* Run again to update the edge order from the rotated vertex list. */
+    BM_edgeloop_edges_get(el_store, edges);
+
     if (span_calc) {
       /* calculate the span by finding the next corner in 'verts'
        * we dont know what defines a corner exactly so find the 4 verts
