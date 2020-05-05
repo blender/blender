@@ -367,7 +367,7 @@ void imm_draw_box_checker_2d_ex(float x1,
                                 float y2,
                                 const float color_primary[4],
                                 const float color_secondary[4],
-                                const int checker_size)
+                                int checker_size)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 

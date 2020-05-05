@@ -756,7 +756,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     }
   }
 #else
-  UNUSED_VARS(is_label);
+  UNUSED_VARS(is_label, has_valid_context, has_valid_context_error);
 #endif /* WITH_PYTHON */
 
   if (data->fields_len == 0) {
