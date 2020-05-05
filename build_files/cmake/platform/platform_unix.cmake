@@ -57,6 +57,7 @@ if(EXISTS ${LIBDIR})
   set(BOOST_ROOT ${LIBDIR}/boost)
   set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)
   set(Boost_NO_SYSTEM_PATHS ON)
+  set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
 endif()
 
 if(WITH_STATIC_LIBS)
