@@ -369,7 +369,13 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
 /**
  * Update defaults in startup.blend, without having to save and embed the file.
- * This function can be emptied each time the startup.blend is updated. */
+ * This function can be emptied each time the startup.blend is updated.
+ *
+ * \note Screen data may be cleared at this point, this will happen in the case
+ * an app-template's data needs to be versioned when read-file is called with "Load UI" disabled.
+ * Versioning the screen data can be safely skipped without "Load UI" since the screen data
+ * will have been versioned when it was first loaded.
+ */
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
   /* For all app templates. */
@@ -480,24 +486,26 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   /* Workspaces. */
-  wmWindow *win = ((wmWindowManager *)bmain->wm.first)->windows.first;
-  for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-    WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook,
-                                                                          workspace);
+  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+        WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook,
+                                                                              workspace);
+        /* Name all screens by their workspaces (avoids 'Default.###' names). */
+        /* Default only has one window. */
+        if (layout->screen) {
+          bScreen *screen = layout->screen;
+          BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
+          BLI_libblock_ensure_unique_name(bmain, screen->id.name);
+        }
 
-    /* Name all screens by their workspaces (avoids 'Default.###' names). */
-    /* Default only has one window. */
-    if (layout->screen) {
-      bScreen *screen = layout->screen;
-      BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
-      BLI_libblock_ensure_unique_name(bmain, screen->id.name);
-    }
-
-    /* For some reason we have unused screens, needed until re-saving.
-     * Clear unused layouts because they're visible in the outliner & Python API. */
-    LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout_iter, &workspace->layouts) {
-      if (layout != layout_iter) {
-        BKE_workspace_layout_remove(bmain, workspace, layout_iter);
+        /* For some reason we have unused screens, needed until re-saving.
+         * Clear unused layouts because they're visible in the outliner & Python API. */
+        LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout_iter, &workspace->layouts) {
+          if (layout != layout_iter) {
+            BKE_workspace_layout_remove(bmain, workspace, layout_iter);
+          }
+        }
       }
     }
   }
