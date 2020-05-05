@@ -892,6 +892,17 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node)
   return BLI_findptr(&usculpt->nodes, node, offsetof(SculptUndoNode, node));
 }
 
+SculptUndoNode *SCULPT_undo_get_first_node()
+{
+  UndoSculpt *usculpt = sculpt_undo_get_nodes();
+
+  if (usculpt == NULL) {
+    return NULL;
+  }
+
+  return usculpt->nodes.first;
+}
+
 static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh, SculptUndoNode *unode)
 {
   PBVHNode *node = unode->node;

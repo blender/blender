@@ -192,18 +192,6 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (ss->cache->first_time && ss->cache->mirror_symmetry_pass == 0 &&
-      ss->cache->radial_symmetry_pass == 0) {
-    if (ss->cache->invert) {
-      /* When inverting the brush, pick the paint face mask ID from the mesh. */
-      ss->cache->paint_face_set = SCULPT_active_face_set_get(ss);
-    }
-    else {
-      /* By default create a new Face Sets. */
-      ss->cache->paint_face_set = SCULPT_face_set_next_available_get(ss);
-    }
-  }
-
   BKE_curvemapping_initialize(brush->curve);
 
   /* Threaded loop over nodes. */
