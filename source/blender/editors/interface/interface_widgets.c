@@ -5409,21 +5409,6 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
     }
   }
 
-  /* part text right aligned */
-  if (use_sep) {
-    if (cpoin) {
-      rect->xmax = _rect.xmax - 5;
-      UI_fontstyle_draw(fstyle,
-                        rect,
-                        cpoin + 1,
-                        wt->wcol.text,
-                        &(struct uiFontStyleDraw_Params){
-                            .align = UI_STYLE_TEXT_RIGHT,
-                        });
-      *cpoin = UI_SEP_CHAR;
-    }
-  }
-
   /* restore rect, was messed with */
   *rect = _rect;
 
@@ -5439,6 +5424,24 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
     /* XXX scale weak get from fstyle? */
     UI_icon_draw_ex(xs, ys, iconid, aspect, 1.0f, 0.0f, wt->wcol.text, false);
     GPU_blend(false);
+  }
+
+  /* part text right aligned */
+  if (use_sep) {
+    if (cpoin) {
+      /* Set inactive state for grayed out text. */
+      wt->state(wt, state | UI_BUT_INACTIVE, 0);
+
+      rect->xmax = _rect.xmax - 5;
+      UI_fontstyle_draw(fstyle,
+                        rect,
+                        cpoin + 1,
+                        wt->wcol.text,
+                        &(struct uiFontStyleDraw_Params){
+                            .align = UI_STYLE_TEXT_RIGHT,
+                        });
+      *cpoin = UI_SEP_CHAR;
+    }
   }
 }
 
