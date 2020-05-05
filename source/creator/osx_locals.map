@@ -39,6 +39,7 @@ lame_*
 *mkldnn*
 Name
 NumNamedVarArgParams
+nvrtc*
 oc_*
 ogg*
 *oidn*
