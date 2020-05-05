@@ -238,6 +238,12 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     object_updated = true;
   }
 
+  float shadow_terminator_offset = get_float(cobject, "shadow_terminator_offset");
+  if (shadow_terminator_offset != object->shadow_terminator_offset) {
+    object->shadow_terminator_offset = shadow_terminator_offset;
+    object_updated = true;
+  }
+
   /* sync the asset name for Cryptomatte */
   BL::Object parent = b_ob.parent();
   ustring parent_name;

@@ -1480,6 +1480,9 @@ typedef struct KernelObject {
 
   float cryptomatte_object;
   float cryptomatte_asset;
+
+  float shadow_terminator_offset;
+  float pad1, pad2, pad3;
 } KernelObject;
 static_assert_align(KernelObject, 16);
 

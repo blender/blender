@@ -1205,6 +1205,13 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         default=1.0,
     )
 
+    shadow_terminator_offset: FloatProperty(
+        name="Shadow Terminator Offset",
+        description="Push the shadow terminator towards the light to hide artifacts on low poly geometry",
+        min=0.0, max=1.0,
+        default=0.0,
+    )
+
     is_shadow_catcher: BoolProperty(
         name="Shadow Catcher",
         description="Only render shadows on this object, for compositing renders into real footage",

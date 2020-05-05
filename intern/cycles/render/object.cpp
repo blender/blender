@@ -101,6 +101,7 @@ NODE_DEFINE(Object)
   SOCKET_POINT(dupli_generated, "Dupli Generated", make_float3(0.0f, 0.0f, 0.0f));
   SOCKET_POINT2(dupli_uv, "Dupli UV", make_float2(0.0f, 0.0f));
   SOCKET_TRANSFORM_ARRAY(motion, "Motion", array<Transform>());
+  SOCKET_FLOAT(shadow_terminator_offset, "Terminator Offset", 0.0f);
 
   SOCKET_BOOLEAN(is_shadow_catcher, "Shadow Catcher", false);
 
@@ -534,6 +535,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   uint32_t hash_asset = util_murmur_hash3(ob->asset_name.c_str(), ob->asset_name.length(), 0);
   kobject.cryptomatte_object = util_hash_to_float(hash_name);
   kobject.cryptomatte_asset = util_hash_to_float(hash_asset);
+  kobject.shadow_terminator_offset = 1.0f / (1.0f - 0.5f * ob->shadow_terminator_offset);
 
   /* Object flag. */
   if (ob->use_holdout) {
