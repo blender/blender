@@ -899,7 +899,10 @@ bool ED_object_parent_set(ReportList *reports,
         invert_m4_m4(ob->parentinv, workob.obmat);
       }
       else if (pararm && (ob->type == OB_GPENCIL) && (par->type == OB_ARMATURE)) {
-        if (partype == PAR_ARMATURE_NAME) {
+        if (partype == PAR_ARMATURE) {
+          ED_gpencil_add_armature(C, reports, ob, par);
+        }
+        else if (partype == PAR_ARMATURE_NAME) {
           ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_NAME);
         }
         else if ((partype == PAR_ARMATURE_AUTO) || (partype == PAR_ARMATURE_ENVELOPE)) {
