@@ -768,7 +768,7 @@ static int node_lasso_select_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 static bool do_lasso_select_node(bContext *C,
                                  const int mcoords[][2],
-                                 short mcoords_len,
+                                 const int mcoords_len,
                                  eSelectOp sel_op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);

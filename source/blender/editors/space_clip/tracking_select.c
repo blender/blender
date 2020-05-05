@@ -599,7 +599,7 @@ void CLIP_OT_select_box(wmOperatorType *ot)
 
 static int do_lasso_select_marker(bContext *C,
                                   const int mcoords[][2],
-                                  const short mcoords_len,
+                                  const int mcoords_len,
                                   bool select)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);

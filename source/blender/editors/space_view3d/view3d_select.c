@@ -558,7 +558,7 @@ static void do_lasso_select_pose__do_tag(void *userData,
 static void do_lasso_tag_pose(ViewContext *vc,
                               Object *ob,
                               const int mcoords[][2],
-                              short mcoords_len)
+                              const int mcoords_len)
 {
   ViewContext vc_tmp;
   LassoSelectUserData data;
@@ -582,7 +582,7 @@ static void do_lasso_tag_pose(ViewContext *vc,
 
 static bool do_lasso_select_objects(ViewContext *vc,
                                     const int mcoords[][2],
-                                    const short mcoords_len,
+                                    const int mcoords_len,
                                     const eSelectOp sel_op)
 {
   View3D *v3d = vc->v3d;
@@ -693,7 +693,7 @@ static bool do_pose_tag_select_op_exec(Base **bases, const uint bases_len, const
 
 static bool do_lasso_select_pose(ViewContext *vc,
                                  const int mcoords[][2],
-                                 const short mcoords_len,
+                                 const int mcoords_len,
                                  const eSelectOp sel_op)
 {
   uint bases_len;
@@ -813,7 +813,7 @@ static void do_lasso_select_mesh__doSelectFace(void *userData,
 static bool do_lasso_select_mesh(ViewContext *vc,
                                  wmGenericUserData *wm_userdata,
                                  const int mcoords[][2],
-                                 short mcoords_len,
+                                 const int mcoords_len,
                                  const eSelectOp sel_op)
 {
   LassoSelectUserData data;
@@ -942,7 +942,7 @@ static void do_lasso_select_curve__doSelect(void *userData,
 
 static bool do_lasso_select_curve(ViewContext *vc,
                                   const int mcoords[][2],
-                                  short mcoords_len,
+                                  const int mcoords_len,
                                   const eSelectOp sel_op)
 {
   LassoSelectUserData data;
@@ -981,7 +981,7 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, const 
 }
 static bool do_lasso_select_lattice(ViewContext *vc,
                                     const int mcoords[][2],
-                                    short mcoords_len,
+                                    const int mcoords_len,
                                     const eSelectOp sel_op)
 {
   LassoSelectUserData data;
@@ -1051,7 +1051,7 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 
 static bool do_lasso_select_armature(ViewContext *vc,
                                      const int mcoords[][2],
-                                     short mcoords_len,
+                                     const int mcoords_len,
                                      const eSelectOp sel_op)
 {
   LassoSelectUserData data;
@@ -1100,7 +1100,7 @@ static void do_lasso_select_mball__doSelectElem(void *userData,
 }
 static bool do_lasso_select_meta(ViewContext *vc,
                                  const int mcoords[][2],
-                                 short mcoords_len,
+                                 const int mcoords_len,
                                  const eSelectOp sel_op)
 {
   LassoSelectUserData data;
@@ -1144,7 +1144,7 @@ static void do_lasso_select_meshobject__doSelectVert(void *userData,
 static bool do_lasso_select_paintvert(ViewContext *vc,
                                       wmGenericUserData *wm_userdata,
                                       const int mcoords[][2],
-                                      short mcoords_len,
+                                      const int mcoords_len,
                                       const eSelectOp sel_op)
 {
   const bool use_zbuf = !XRAY_ENABLED(vc->v3d);
@@ -1205,7 +1205,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
 static bool do_lasso_select_paintface(ViewContext *vc,
                                       wmGenericUserData *wm_userdata,
                                       const int mcoords[][2],
-                                      short mcoords_len,
+                                      const int mcoords_len,
                                       const eSelectOp sel_op)
 {
   Object *ob = vc->obact;
@@ -1243,7 +1243,7 @@ static bool do_lasso_select_paintface(ViewContext *vc,
 }
 
 #if 0
-static void do_lasso_select_node(int mcoords[][2], short mcoords_len, const eSelectOp sel_op)
+static void do_lasso_select_node(int mcoords[][2], const int mcoords_len, const eSelectOp sel_op)
 {
   SpaceNode *snode = area->spacedata.first;
 
@@ -1279,7 +1279,7 @@ static void do_lasso_select_node(int mcoords[][2], short mcoords_len, const eSel
 static bool view3d_lasso_select(bContext *C,
                                 ViewContext *vc,
                                 const int mcoords[][2],
-                                short mcoords_len,
+                                const int mcoords_len,
                                 const eSelectOp sel_op)
 {
   Object *ob = CTX_data_active_object(C);

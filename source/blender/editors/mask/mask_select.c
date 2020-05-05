@@ -522,7 +522,7 @@ void MASK_OT_select_box(wmOperatorType *ot)
 
 static bool do_lasso_select_mask(bContext *C,
                                  const int mcoords[][2],
-                                 short mcoords_len,
+                                 const int mcoords_len,
                                  const eSelectOp sel_op)
 {
   ScrArea *area = CTX_wm_area(C);

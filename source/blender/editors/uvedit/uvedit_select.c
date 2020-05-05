@@ -2915,7 +2915,7 @@ static bool do_lasso_select_mesh_uv_is_point_inside(const ARegion *region,
 
 static bool do_lasso_select_mesh_uv(bContext *C,
                                     const int mcoords[][2],
-                                    short mcoords_len,
+                                    const int mcoords_len,
                                     const eSelectOp sel_op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
