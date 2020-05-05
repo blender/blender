@@ -21,7 +21,6 @@
 # Some misc utilities...
 
 import collections
-import concurrent.futures
 import copy
 import hashlib
 import os
@@ -238,6 +237,12 @@ class I18nMessage:
         self.is_fuzzy = is_fuzzy
         self.is_commented = is_commented
 
+    # ~ def __getstate__(self):
+        # ~ return {key: getattr(self, key) for key in self.__slots__}
+
+    # ~ def __getstate__(self):
+        # ~ return {key: getattr(self, key) for key in self.__slots__}
+
     def _get_msgctxt(self):
         return "".join(self.msgctxt_lines)
 
@@ -426,6 +431,14 @@ class I18nMessages:
 
         self._reverse_cache = None
 
+    def __getstate__(self):
+        return (self.settings, self.uid, self.msgs, self.parsing_errors)
+
+    def __setstate__(self, data):
+        self.__init__()
+        self.settings, self.uid, self.msgs, self.parsing_errors = data
+        self.update_info()
+
     @staticmethod
     def _new_messages():
         return getattr(collections, 'OrderedDict', dict)()
@@ -566,24 +579,23 @@ class I18nMessages:
 
         # Next process new keys.
         if use_similar > 0.0:
-            with concurrent.futures.ProcessPoolExecutor() as exctr:
-                for key, msgid in exctr.map(get_best_similar,
-                                            tuple((nk, use_similar, tuple(similar_pool.keys())) for nk in new_keys)):
-                    if msgid:
-                        # Try to get the same context, else just get one...
-                        skey = (key[0], msgid)
-                        if skey not in similar_pool[msgid]:
-                            skey = tuple(similar_pool[msgid])[0]
-                        # We keep org translation and comments, and mark message as fuzzy.
-                        msg, refmsg = self.msgs[skey].copy(), ref.msgs[key]
-                        msg.msgctxt = refmsg.msgctxt
-                        msg.msgid = refmsg.msgid
-                        msg.sources = refmsg.sources
-                        msg.is_fuzzy = True
-                        msg.is_commented = refmsg.is_commented
-                        msgs[key] = msg
-                    else:
-                        msgs[key] = ref.msgs[key]
+            for key, msgid in map(get_best_similar,
+                                  tuple((nk, use_similar, tuple(similar_pool.keys())) for nk in new_keys)):
+                if msgid:
+                    # Try to get the same context, else just get one...
+                    skey = (key[0], msgid)
+                    if skey not in similar_pool[msgid]:
+                        skey = tuple(similar_pool[msgid])[0]
+                    # We keep org translation and comments, and mark message as fuzzy.
+                    msg, refmsg = self.msgs[skey].copy(), ref.msgs[key]
+                    msg.msgctxt = refmsg.msgctxt
+                    msg.msgid = refmsg.msgid
+                    msg.sources = refmsg.sources
+                    msg.is_fuzzy = True
+                    msg.is_commented = refmsg.is_commented
+                    msgs[key] = msg
+                else:
+                    msgs[key] = ref.msgs[key]
         else:
             for key in new_keys:
                 msgs[key] = ref.msgs[key]
@@ -1075,9 +1087,7 @@ class I18nMessages:
                 "-o",
                 fname,
             )
-            print("Running ", " ".join(cmd))
             ret = subprocess.call(cmd)
-            print("Finished.")
             return
         # XXX Code below is currently broken (generates corrupted mo files it seems :( )!
         # Using http://www.gnu.org/software/gettext/manual/html_node/MO-Files.html notation.

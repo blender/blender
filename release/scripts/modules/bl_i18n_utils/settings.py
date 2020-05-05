@@ -28,6 +28,7 @@
 import json
 import os
 import sys
+import types
 
 import bpy
 
@@ -556,6 +557,10 @@ def _gen_get_set_path(ref, name):
     return _get, _set
 
 
+def _check_valid_data(uid, val):
+    return not uid.startswith("_") and type(val) not in tuple(types.__dict__.values()) + (type,)
+
+
 class I18nSettings:
     """
     Class allowing persistence of our settings!
@@ -567,20 +572,32 @@ class I18nSettings:
         # Addon preferences are singleton by definition, so is this class!
         if not I18nSettings._settings:
             cls._settings = super(I18nSettings, cls).__new__(cls)
-            cls._settings.__dict__ = {uid: data for uid, data in globals().items() if not uid.startswith("_")}
+            cls._settings.__dict__ = {uid: val for uid, val in globals().items() if _check_valid_data(uid, val)}
         return I18nSettings._settings
 
-    def from_json(self, string):
-        data = dict(json.loads(string))
+    def __getstate__(self):
+        return self.to_dict()
+
+    def __setstate__(self, mapping):
+        return self.from_dict(mapping)
+
+    def from_dict(self, mapping):
         # Special case... :/
-        if "INTERN_PY_SYS_PATHS" in data:
-            self.PY_SYS_PATHS = data["INTERN_PY_SYS_PATHS"]
-        self.__dict__.update(data)
+        if "INTERN_PY_SYS_PATHS" in mapping:
+            self.PY_SYS_PATHS = mapping["INTERN_PY_SYS_PATHS"]
+        self.__dict__.update(mapping)
+
+    def to_dict(self):
+        glob = globals()
+        return {uid: val for uid, val in self.__dict__.items() if _check_valid_data(uid, val) and uid in glob}
+
+    def from_json(self, string):
+        self.from_dict(dict(json.loads(string)))
 
     def to_json(self):
         # Only save the diff from default i18n_settings!
         glob = globals()
-        export_dict = {uid: val for uid, val in self.__dict__.items() if glob.get(uid) != val}
+        export_dict = {uid: val for uid, val in self.__dict__.items() if _check_valid_data(uid, val) and glob.get(uid) != val}
         return json.dumps(export_dict)
 
     def load(self, fname, reset=False):
