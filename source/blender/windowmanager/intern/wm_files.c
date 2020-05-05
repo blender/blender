@@ -956,20 +956,20 @@ void wm_homefile_read(bContext *C,
     }
   }
 
+  if (use_userdef) {
+    if ((skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
+      UserDef *userdef_default = BKE_blendfile_userdef_from_defaults();
+      BKE_blender_userdef_data_set_and_free(userdef_default);
+      skip_flags |= BLO_READ_SKIP_USERDEF;
+    }
+  }
+
   if (success == false && filepath_startup_override && reports) {
     /* We can not return from here because wm is already reset */
     BKE_reportf(reports, RPT_ERROR, "Could not read '%s'", filepath_startup_override);
   }
 
   if (success == false) {
-    if (use_userdef) {
-      if ((skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
-        UserDef *userdef_default = BKE_blendfile_userdef_from_defaults();
-        BKE_blender_userdef_data_set_and_free(userdef_default);
-        skip_flags |= BLO_READ_SKIP_USERDEF;
-      }
-    }
-
     success = BKE_blendfile_read_from_memory(C,
                                              datatoc_startup_blend,
                                              datatoc_startup_blend_size,
@@ -1959,9 +1959,11 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     RNA_property_string_get(op->ptr, prop_app_template, app_template_buf);
     app_template = app_template_buf;
 
-    /* Always load preferences when switching templates with own preferences. */
-    use_userdef = BKE_appdir_app_template_has_userpref(app_template) ||
-                  BKE_appdir_app_template_has_userpref(U.app_template);
+    if (!use_factory_settings) {
+      /* Always load preferences when switching templates with own preferences. */
+      use_userdef = BKE_appdir_app_template_has_userpref(app_template) ||
+                    BKE_appdir_app_template_has_userpref(U.app_template);
+    }
 
     /* Turn override off, since we're explicitly loading a different app-template. */
     WM_init_state_app_template_set(NULL);
