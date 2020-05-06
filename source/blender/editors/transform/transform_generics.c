@@ -1187,7 +1187,6 @@ void recalcData(TransInfo *t)
     flushTransPaintCurve(t);
   }
   else if (t->options & CTX_GPENCIL_STROKES) {
-    /* set recalc triangle cache flag */
     recalcData_gpencil_strokes(t);
   }
   else if (t->options & CTX_SCULPT) {
