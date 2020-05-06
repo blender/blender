@@ -1685,19 +1685,30 @@ static int selectbuffer_ret_hits_5(uint *buffer,
 /**
  * Populate a select buffer with objects and bones, if there are any.
  * Checks three selection levels and compare.
+ *
+ * \param do_nearest_xray_if_supported: When set, read in hits that don't stop
+ * at the nearest surface. The hit's must still be ordered by depth.
+ * Needed so we can step to the next, non-active object when it's already selected, see: T76445.
  */
 static int mixed_bones_object_selectbuffer(ViewContext *vc,
                                            uint *buffer,
                                            const int mval[2],
                                            eV3DSelectObjectFilter select_filter,
-                                           bool do_nearest)
+                                           bool do_nearest,
+                                           bool do_nearest_xray_if_supported)
 {
   rcti rect;
   int hits15, hits9 = 0, hits5 = 0;
   bool has_bones15 = false, has_bones9 = false, has_bones5 = false;
 
-  const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
+  int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
   int hits = 0;
+
+  if (do_nearest_xray_if_supported) {
+    if ((U.gpu_flag & USER_GPU_FLAG_NO_DEPT_PICK) == 0) {
+      select_mode = VIEW3D_SELECT_PICK_ALL;
+    }
+  }
 
   /* we _must_ end cache before return, use 'goto finally' */
   view3d_opengl_select_cache_begin();
@@ -1802,7 +1813,7 @@ static int mixed_bones_object_selectbuffer_extended(ViewContext *vc,
 
   do_nearest = do_nearest && !enumerate;
 
-  int hits = mixed_bones_object_selectbuffer(vc, buffer, mval, select_filter, do_nearest);
+  int hits = mixed_bones_object_selectbuffer(vc, buffer, mval, select_filter, do_nearest, true);
 
   return hits;
 }
@@ -1934,7 +1945,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 
   const bool do_nearest = !XRAY_ACTIVE(vc.v3d);
   const int hits = mixed_bones_object_selectbuffer(
-      &vc, buffer, mval, VIEW3D_SELECT_FILTER_NOP, do_nearest);
+      &vc, buffer, mval, VIEW3D_SELECT_FILTER_NOP, do_nearest, false);
 
   if (hits > 0) {
     const bool has_bones = selectbuffer_has_bones(buffer, hits);
