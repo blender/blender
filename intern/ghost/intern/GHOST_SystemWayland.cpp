@@ -330,7 +330,8 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t &sym)
       GXMAP(gkey, XKB_KEY_XF86AudioPrev, GHOST_kKeyMediaFirst);
       GXMAP(gkey, XKB_KEY_XF86AudioNext, GHOST_kKeyMediaLast);
       default:
-        GHOST_PRINT("unhandled key: " << sym << std::endl);
+        GHOST_PRINT("unhandled key: " << std::hex << std::showbase << sym << std::dec << " ("
+                                      << sym << ")" << std::endl);
         gkey = GHOST_kKeyUnknown;
     }
 #undef GXMAP
@@ -942,6 +943,20 @@ static void keyboard_leave(void * /*data*/,
   /* pass */
 }
 
+/**
+ * A version of #xkb_state_key_get_one_sym which returns the key without any modifiers pressed.
+ * Needed because #GHOST_TKey uses these values as key-codes.
+ */
+static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(struct xkb_state *xkb_state,
+                                                                xkb_keycode_t key)
+{
+  /* Use an empty keyboard state to access key symbol without modifiers. */
+  struct xkb_state *xkb_state_empty = xkb_state_new(xkb_state_get_keymap(xkb_state));
+  const xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_empty, key);
+  xkb_state_unref(xkb_state_empty);
+  return sym;
+}
+
 static void keyboard_key(void *data,
                          struct wl_keyboard * /*wl_keyboard*/,
                          uint32_t serial,
@@ -961,7 +976,8 @@ static void keyboard_key(void *data,
       break;
   }
 
-  const xkb_keysym_t sym = xkb_state_key_get_one_sym(input->xkb_state, key + 8);
+  const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(input->xkb_state, key + 8);
+
   if (sym == XKB_KEY_NoSymbol) {
     return;
   }
