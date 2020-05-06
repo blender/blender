@@ -3293,7 +3293,6 @@ static void gpencil_flip_stroke(bGPDstroke *gps)
 static void gpencil_stroke_copy_point(bGPDstroke *gps,
                                       MDeformVert *dvert,
                                       bGPDspoint *point,
-                                      int UNUSED(idx),
                                       const float delta[3],
                                       float pressure,
                                       float strength,
@@ -3386,17 +3385,17 @@ static void gpencil_stroke_join_strokes(bGPDstroke *gps_a,
     point = gps_a->points[gps_a->totpoints - 1];
     deltatime = point.time;
 
-    gpencil_stroke_copy_point(gps_a, NULL, &point, gps_a->totpoints - 1, delta, 0.0f, 0.0f, 0.0f);
+    gpencil_stroke_copy_point(gps_a, NULL, &point, delta, 0.0f, 0.0f, 0.0f);
 
     /* 2nd: add one head point to finish invisible area */
     point = gps_b->points[0];
-    gpencil_stroke_copy_point(gps_a, NULL, &point, 0, delta, 0.0f, 0.0f, deltatime);
+    gpencil_stroke_copy_point(gps_a, NULL, &point, delta, 0.0f, 0.0f, deltatime);
   }
 
   /* 3rd: add all points */
   for (i = 0, pt = gps_b->points; i < gps_b->totpoints && pt; i++, pt++) {
     MDeformVert *dvert = (gps_b->dvert) ? &gps_b->dvert[i] : NULL;
-    gpencil_stroke_copy_point(gps_a, dvert, pt, i, delta, pt->pressure, pt->strength, deltatime);
+    gpencil_stroke_copy_point(gps_a, dvert, pt, delta, pt->pressure, pt->strength, deltatime);
   }
 }
 
