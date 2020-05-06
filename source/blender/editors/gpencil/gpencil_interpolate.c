@@ -970,12 +970,16 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     bGPDstroke *gps_from, *gps_to;
     int cframe, fFrame;
 
+    /* Need a set of frames to interpolate. */
+    if ((gpl->actframe == NULL) || (gpl->actframe->next == NULL)) {
+      continue;
+    }
     /* all layers or only active */
     if (((flag & GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
       continue;
     }
     /* only editable and visible layers are considered */
-    if (!BKE_gpencil_layer_is_editable(gpl) || (gpl->actframe == NULL)) {
+    if (!BKE_gpencil_layer_is_editable(gpl)) {
       continue;
     }
 
