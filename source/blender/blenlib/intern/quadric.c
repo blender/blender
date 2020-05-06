@@ -141,9 +141,14 @@ void BLI_quadric_mul(Quadric *a, const double scalar)
 
 double BLI_quadric_evaluate(const Quadric *q, const double v[3])
 {
-  return ((q->a2 * v[0] * v[0]) + (q->ab * 2 * v[0] * v[1]) + (q->ac * 2 * v[0] * v[2]) +
-          (q->ad * 2 * v[0]) + (q->b2 * v[1] * v[1]) + (q->bc * 2 * v[1] * v[2]) +
-          (q->bd * 2 * v[1]) + (q->c2 * v[2] * v[2]) + (q->cd * 2 * v[2]) + (q->d2));
+  const double v00 = v[0] * v[0], v01 = v[0] * v[1], v02 = v[0] * v[2];
+  const double v11 = v[1] * v[1], v12 = v[1] * v[2];
+  const double v22 = v[1] * v[2];
+  return ((q->a2 * v00) + (q->ab * 2 * v01) + (q->ac * 2 * v02) + (q->ad * 2 * v[0]) + /* a */
+          (q->b2 * v11) + (q->bc * 2 * v12) + (q->bd * 2 * v[1]) +                     /* b */
+          (q->c2 * v22) + (q->cd * 2 * v[2]) +                                         /* c */
+          (q->d2)                                                                      /* d */
+  );
 }
 
 bool BLI_quadric_optimize(const Quadric *q, double v[3], const double epsilon)
