@@ -984,6 +984,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
         options={'HIDDEN'},
     )
     type: EnumProperty(
+        name="Type",
         items=(
             ('MATCAP', "MatCap", ""),
             ('WORLD', "World", ""),
