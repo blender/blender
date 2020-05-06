@@ -406,7 +406,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
         }
 
         if (wm_contexts[space_type_ui_index].space_type_ui_index != -1) {
-          ScrArea *area_best = wm_contexts[area->spacetype].area;
+          ScrArea *area_best = wm_contexts[space_type_ui_index].area;
           const uint value_best = (uint)area_best->winx * (uint)area_best->winy;
           const uint value_test = (uint)area->winx * (uint)area->winy;
           if (value_best > value_test) {
