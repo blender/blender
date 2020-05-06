@@ -370,9 +370,9 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
 
   /* Types match, cycle the subtype. */
 
+  PropertyRNA *prop_ui_type = NULL;
   if (include_all_areas) {
     /* First create arrays for ui_type. */
-    PropertyRNA *prop_ui_type;
     {
       PointerRNA ptr;
       RNA_pointer_create(NULL, &RNA_Area, NULL, &ptr);
