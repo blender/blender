@@ -22,6 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_action_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -477,6 +478,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
     break
 
       if (area != NULL) {
+        SpaceLink *sl = area->spacedata.first;
         switch (area->spacetype) {
           SPACE_MENU_MAP(SPACE_VIEW3D, "VIEW3D_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_GRAPH, "GRAPH_MT_editor_menus");
@@ -487,13 +489,16 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
           SPACE_MENU_MAP(SPACE_INFO, "INFO_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_SEQ, "SEQUENCER_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_TEXT, "TEXT_MT_editor_menus");
-          SPACE_MENU_MAP(SPACE_ACTION, "DOPESHEET_MT_editor_menus");
+          SPACE_MENU_MAP(SPACE_ACTION,
+                         (((const SpaceAction *)sl)->mode == SACTCONT_TIMELINE) ?
+                             "TIME_MT_editor_menus" :
+                             "DOPESHEET_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_NLA, "NLA_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_NODE, "NODE_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_CONSOLE, "CONSOLE_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_USERPREF, "USERPREF_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_CLIP,
-                         (((const SpaceClip *)area->spacedata.first)->mode == SC_MODE_TRACKING) ?
+                         (((const SpaceClip *)sl)->mode == SC_MODE_TRACKING) ?
                              "CLIP_MT_tracking_editor_menus" :
                              "CLIP_MT_masking_editor_menus");
           SPACE_MENU_NOP(SPACE_TOPBAR);
