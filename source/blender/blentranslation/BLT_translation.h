@@ -65,9 +65,9 @@ bool BLT_lang_is_ime_supported(void);
 #  define IFACE_(msgid) msgid
 #  define TIP_(msgid) msgid
 #  define DATA_(msgid) msgid
-#  define CTX_IFACE_(context, msgid) msgid
-#  define CTX_TIP_(context, msgid) msgid
-#  define CTX_DATA_(context, msgid) msgid
+#  define CTX_IFACE_(context, msgid) ((void)(0 ? (context) : 0), msgid)
+#  define CTX_TIP_(context, msgid) ((void)(0 ? (context) : 0), msgid)
+#  define CTX_DATA_(context, msgid) ((void)(0 ? (context) : 0), msgid)
 #endif
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...

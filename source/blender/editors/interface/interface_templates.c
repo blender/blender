@@ -697,6 +697,8 @@ static const char *template_id_context(StructRNA *type)
   }
   return BLT_I18NCONTEXT_DEFAULT;
 }
+#else
+#  define template_id_context(type) 0
 #endif
 
 static uiBut *template_id_def_new_but(uiBlock *block,
