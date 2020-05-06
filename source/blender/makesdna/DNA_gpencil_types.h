@@ -264,6 +264,10 @@ typedef enum eGPDstroke_Flag {
   /* Flag used to indicate that stroke is used for fill close and must use
    * fill color for stroke and no fill area */
   GP_STROKE_NOFILL = (1 << 8),
+  /* only for use with stroke-buffer (while drawing arrows) */
+  GP_STROKE_USE_ARROW_START = (1 << 12),
+  /* only for use with stroke-buffer (while drawing arrows) */
+  GP_STROKE_USE_ARROW_END = (1 << 13),
   /* Tag for update geometry */
   GP_STROKE_TAG = (1 << 14),
   /* only for use with stroke-buffer (while drawing eraser) */
@@ -279,6 +283,17 @@ typedef enum eGPDstroke_Caps {
   /* Keeo last. */
   GP_STROKE_CAP_MAX,
 } GPDstroke_Caps;
+
+/* Arrows ----------------------- */
+
+/* bGPDataRuntime.arrowstyle */
+typedef enum eGPDstroke_Arrowstyle {
+  GP_STROKE_ARROWSTYLE_NONE = 0,
+  GP_STROKE_ARROWSTYLE_SEGMENT = 2,
+  GP_STROKE_ARROWSTYLE_OPEN = 3,
+  GP_STROKE_ARROWSTYLE_CLOSED = 4,
+  GP_STROKE_ARROWSTYLE_SQUARE = 6,
+} eGPDstroke_Arrowstyle;
 
 /* ***************************************** */
 /* GP Frame */
@@ -510,6 +525,13 @@ typedef struct bGPdata_Runtime {
 
   /** Vertex Color applied to Fill (while drawing). */
   float vert_color_fill[4];
+
+  /** Arrow points for stroke corners **/
+  float arrow_start[8];
+  float arrow_end[8];
+  /* Arrow style for each corner */
+  int arrow_start_style;
+  int arrow_end_style;
 
   /** Number of control-points for stroke. */
   int tot_cp_points;

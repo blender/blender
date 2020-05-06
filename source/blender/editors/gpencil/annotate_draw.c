@@ -90,14 +90,54 @@ typedef enum eDrawStrokeFlags {
 
 /* ----- Tool Buffer Drawing ------ */
 
+static void annotation_draw_stroke_arrow_buffer(uint pos,
+                                                const float *corner_point,
+                                                const float *arrow_coords,
+                                                const int arrow_style)
+{
+  immBeginAtMost(GPU_PRIM_LINE_STRIP, arrow_style);
+
+  switch (arrow_style) {
+    case GP_STROKE_ARROWSTYLE_SEGMENT:
+      immVertex2f(pos, arrow_coords[0], arrow_coords[1]);
+      immVertex2f(pos, arrow_coords[2], arrow_coords[3]);
+      break;
+    case GP_STROKE_ARROWSTYLE_CLOSED:
+      immVertex2f(pos, arrow_coords[0], arrow_coords[1]);
+      immVertex2f(pos, arrow_coords[2], arrow_coords[3]);
+      immVertex2f(pos, arrow_coords[4], arrow_coords[5]);
+      immVertex2f(pos, arrow_coords[0], arrow_coords[1]);
+      break;
+    case GP_STROKE_ARROWSTYLE_OPEN:
+      immVertex2f(pos, arrow_coords[0], arrow_coords[1]);
+      immVertex2f(pos, corner_point[0], corner_point[1]);
+      immVertex2f(pos, arrow_coords[2], arrow_coords[3]);
+      break;
+    case GP_STROKE_ARROWSTYLE_SQUARE:
+      immVertex2f(pos, corner_point[0], corner_point[1]);
+      immVertex2f(pos, arrow_coords[0], arrow_coords[1]);
+      immVertex2f(pos, arrow_coords[4], arrow_coords[5]);
+      immVertex2f(pos, arrow_coords[6], arrow_coords[7]);
+      immVertex2f(pos, arrow_coords[2], arrow_coords[3]);
+      immVertex2f(pos, corner_point[0], corner_point[1]);
+      break;
+    default:
+      break;
+  }
+  immEnd();
+}
+
 /* draw stroke defined in buffer (simple ogl lines/points for now, as dotted lines) */
-static void annotation_draw_stroke_buffer(const tGPspoint *points,
-                                          int totpoints,
+static void annotation_draw_stroke_buffer(bGPdata *gps,
                                           short thickness,
                                           short dflag,
-                                          short sflag,
                                           const float ink[4])
 {
+  bGPdata_Runtime runtime = gps->runtime;
+  const tGPspoint *points = runtime.sbuffer;
+  int totpoints = runtime.sbuffer_used;
+  short sflag = runtime.sbuffer_sflag;
+
   int draw_points = 0;
 
   /* error checking */
@@ -176,6 +216,26 @@ static void annotation_draw_stroke_buffer(const tGPspoint *points,
   }
 
   immEnd();
+
+  /* Draw arrow stroke. */
+  if (totpoints > 1) {
+    /* Draw ending arrow stroke. */
+    if ((sflag & GP_STROKE_USE_ARROW_END) &&
+        (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE)) {
+      float end[2];
+      copy_v2_fl2(end, points[1].x, points[1].y);
+      annotation_draw_stroke_arrow_buffer(pos, end, runtime.arrow_end, runtime.arrow_end_style);
+    }
+    /* Draw starting arrow stroke. */
+    if ((sflag & GP_STROKE_USE_ARROW_START) &&
+        (runtime.arrow_start_style != GP_STROKE_ARROWSTYLE_NONE)) {
+      float start[2];
+      copy_v2_fl2(start, points[0].x, points[0].y);
+      annotation_draw_stroke_arrow_buffer(
+          pos, start, runtime.arrow_start, runtime.arrow_start_style);
+    }
+  }
+
   immUnbindProgram();
 }
 
@@ -653,12 +713,7 @@ static void annotation_draw_data_layers(
        * It should also be noted that sbuffer contains temporary point types
        * i.e. tGPspoints NOT bGPDspoints
        */
-      annotation_draw_stroke_buffer(gpd->runtime.sbuffer,
-                                    gpd->runtime.sbuffer_used,
-                                    lthick,
-                                    dflag,
-                                    gpd->runtime.sbuffer_sflag,
-                                    ink);
+      annotation_draw_stroke_buffer(gpd, lthick, dflag, ink);
     }
   }
 }

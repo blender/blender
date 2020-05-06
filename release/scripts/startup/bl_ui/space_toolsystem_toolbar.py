@@ -148,6 +148,8 @@ class _defs_annotate:
 
     def draw_settings_common(context, layout, tool):
         gpd = context.annotation_data
+        region_type = context.region.type
+
         if gpd is not None:
             if gpd.layers.active_note is not None:
                 text = gpd.layers.active_note
@@ -160,17 +162,24 @@ class _defs_annotate:
             gpl = context.active_annotation_layer
             if gpl is not None:
                 layout.label(text="Annotation:")
-                sub = layout.row(align=True)
-                sub.ui_units_x = 8
+                if context.space_data.type == 'VIEW_3D':
+                    if region_type == 'TOOL_HEADER':
+                        sub = layout.split(align=True, factor=0.5)
+                        sub.ui_units_x = 6.5
+                        sub.prop(gpl, "color", text="")
+                    else:
+                        sub = layout.row(align=True)
+                        sub.prop(gpl, "color", text="")
+                    sub.popover(
+                        panel="TOPBAR_PT_annotation_layers",
+                        text=text,
+                    )
+                else:
+                    layout.prop(gpl, "color", text="")
 
-                sub.prop(gpl, "color", text="")
-                sub.popover(
-                    panel="TOPBAR_PT_annotation_layers",
-                    text=text,
-                )
-
-        tool_settings = context.tool_settings
         space_type = tool.space_type
+        tool_settings = context.tool_settings
+
         if space_type == 'VIEW_3D':
             layout.separator()
 
@@ -180,6 +189,21 @@ class _defs_annotate:
                 row.prop(tool_settings.gpencil_sculpt, "lockaxis")
             elif tool_settings.gpencil_stroke_placement_view3d in {'SURFACE', 'STROKE'}:
                 row.prop(tool_settings, "use_gpencil_stroke_endpoints")
+
+        if tool.idname == "builtin.annotate_line":
+            layout.separator()
+
+            props = tool.operator_properties("gpencil.annotate")
+            if region_type == 'TOOL_HEADER':
+                row = layout.row()
+                row.ui_units_x = 15
+                row.prop(props, "arrowstyle_start", text="Start")
+                row.separator()
+                row.prop(props, "arrowstyle_end", text="End")
+            else:
+                col = layout.row().column(align=True)
+                col.prop(props, "arrowstyle_start", text="Style Start")
+                col.prop(props, "arrowstyle_end", text="End")
 
     @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
     def scribble(*, draw_settings):

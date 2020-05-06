@@ -418,6 +418,85 @@ static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
   copy_v2_v2(&ptc->x, c);
 }
 
+static void gp_stroke_arrow_calc_points_segment(float stroke_points[8],
+                                                const float ref_point[2],
+                                                const float dir_cw[2],
+                                                const float dir_ccw[2],
+                                                const float lenght,
+                                                const float sign)
+{
+  stroke_points[0] = ref_point[0] + dir_cw[0] * lenght * sign;
+  stroke_points[1] = ref_point[1] + dir_cw[1] * lenght * sign;
+  stroke_points[2] = ref_point[0] + dir_ccw[0] * lenght * sign;
+  stroke_points[3] = ref_point[1] + dir_ccw[1] * lenght * sign;
+}
+
+static void gp_stroke_arrow_calc_points(tGPspoint *point,
+                                        const float stroke_dir[2],
+                                        float corner[2],
+                                        float stroke_points[8],
+                                        const int arrow_style)
+{
+  const int arrow_lenght = 8;
+  float norm_dir[2];
+  copy_v2_v2(norm_dir, stroke_dir);
+  normalize_v2(norm_dir);
+  const float inv_norm_dir_clockwise[2] = {norm_dir[1], -norm_dir[0]};
+  const float inv_norm_dir_counterclockwise[2] = {-norm_dir[1], norm_dir[0]};
+
+  switch (arrow_style) {
+    case GP_STROKE_ARROWSTYLE_OPEN:
+      mul_v2_fl(norm_dir, arrow_lenght);
+      stroke_points[0] = corner[0] + inv_norm_dir_clockwise[0] * arrow_lenght + norm_dir[0];
+      stroke_points[1] = corner[1] + inv_norm_dir_clockwise[1] * arrow_lenght + norm_dir[1];
+      stroke_points[2] = corner[0] + inv_norm_dir_counterclockwise[0] * arrow_lenght + norm_dir[0];
+      stroke_points[3] = corner[1] + inv_norm_dir_counterclockwise[1] * arrow_lenght + norm_dir[1];
+      break;
+    case GP_STROKE_ARROWSTYLE_SEGMENT:
+      gp_stroke_arrow_calc_points_segment(stroke_points,
+                                          corner,
+                                          inv_norm_dir_clockwise,
+                                          inv_norm_dir_counterclockwise,
+                                          arrow_lenght,
+                                          1.0f);
+      break;
+    case GP_STROKE_ARROWSTYLE_CLOSED:
+      mul_v2_fl(norm_dir, arrow_lenght);
+      if (point != NULL) {
+        add_v2_v2(&point->x, norm_dir);
+        copy_v2_v2(corner, &point->x);
+      }
+      gp_stroke_arrow_calc_points_segment(stroke_points,
+                                          corner,
+                                          inv_norm_dir_clockwise,
+                                          inv_norm_dir_counterclockwise,
+                                          arrow_lenght,
+                                          -1.0f);
+      stroke_points[4] = corner[0] - norm_dir[0];
+      stroke_points[5] = corner[1] - norm_dir[1];
+      break;
+    case GP_STROKE_ARROWSTYLE_SQUARE:
+      mul_v2_fl(norm_dir, arrow_lenght * 1.5f);
+      if (point != NULL) {
+        add_v2_v2(&point->x, norm_dir);
+        copy_v2_v2(corner, &point->x);
+      }
+      gp_stroke_arrow_calc_points_segment(stroke_points,
+                                          corner,
+                                          inv_norm_dir_clockwise,
+                                          inv_norm_dir_counterclockwise,
+                                          arrow_lenght * 0.75f,
+                                          -1.0f);
+      stroke_points[4] = stroke_points[0] - norm_dir[0];
+      stroke_points[5] = stroke_points[1] - norm_dir[1];
+      stroke_points[6] = stroke_points[2] - norm_dir[0];
+      stroke_points[7] = stroke_points[3] - norm_dir[1];
+      break;
+    default:
+      break;
+  }
+}
+
 /* add current stroke-point to buffer (returns whether point was successfully added) */
 static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure, double curtime)
 {
@@ -457,6 +536,32 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
 
       /* now the buffer has 2 points (and shouldn't be allowed to get any larger) */
       gpd->runtime.sbuffer_used = 2;
+
+      /* Arrows. */
+      if (gpd->runtime.sbuffer_sflag & (GP_STROKE_USE_ARROW_START | GP_STROKE_USE_ARROW_END)) {
+        /* Store start and end point coords for arrows. */
+        float end[2];
+        copy_v2_v2(end, &pt->x);
+        pt = ((tGPspoint *)(gpd->runtime.sbuffer));
+        float start[2];
+        copy_v2_v2(start, &pt->x);
+
+        /* Arrow end corner. */
+        if (gpd->runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_END) {
+          pt++;
+          float e_heading[2] = {start[0] - end[0], start[1] - end[1]};
+          /* Calculate points for ending arrow. */
+          gp_stroke_arrow_calc_points(
+              pt, e_heading, end, gpd->runtime.arrow_end, gpd->runtime.arrow_end_style);
+        }
+        /* Arrow start corner. */
+        if (gpd->runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_START) {
+          float s_heading[2] = {end[0] - start[0], end[1] - start[1]};
+          /* Calculate points for starting arrow. */
+          gp_stroke_arrow_calc_points(
+              NULL, s_heading, start, gpd->runtime.arrow_start, gpd->runtime.arrow_start_style);
+        }
+      }
     }
 
     /* can keep carrying on this way :) */
@@ -490,7 +595,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
   }
   else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
     /* get pointer to destination point */
-    pt = (tGPspoint *)(gpd->runtime.sbuffer);
+    pt = (tGPspoint *)gpd->runtime.sbuffer;
 
     /* store settings */
     copy_v2_v2(&pt->x, mval);
@@ -550,6 +655,123 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
 
   /* return invalid state for now... */
   return GP_STROKEADD_INVALID;
+}
+
+static void gp_stroke_arrow_init_point_default(bGPDspoint *pt)
+{
+  pt->pressure = 1.0f;
+  pt->strength = 1.0f;
+  pt->time = 1.0f;
+}
+
+static void gp_stroke_arrow_init_conv_point(bGPDspoint *pt, const float point[3])
+{
+  copy_v3_v3(&pt->x, point);
+  gp_stroke_arrow_init_point_default(pt);
+}
+
+static void gp_stroke_arrow_init_point(
+    tGPsdata *p, tGPspoint *ptc, bGPDspoint *pt, const float co[8], const int co_idx)
+{
+  /* Note: provided co_idx should be always pair number as it's [x1, y1, x2, y2, x3, y3]. */
+  float real_co[2] = {co[co_idx], co[co_idx + 1]};
+  copy_v2_v2(&ptc->x, real_co);
+  gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+  gp_stroke_arrow_init_point_default(pt);
+}
+
+static void gp_stroke_arrow_allocate(bGPDstroke *gps, const int totpoints)
+{
+  /* Copy appropriate settings for stroke. */
+  gps->totpoints = totpoints;
+  /* Allocate enough memory for a continuous array for storage points. */
+  gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+}
+
+static void gp_arrow_create_open(tGPsdata *p,
+                                 tGPspoint *ptc,
+                                 bGPDspoint *pt,
+                                 const float corner_point[3],
+                                 const float arrow_points[8])
+{
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 0);
+  pt++;
+  gp_stroke_arrow_init_conv_point(pt, corner_point);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 2);
+}
+
+static void gp_arrow_create_segm(tGPsdata *p,
+                                 tGPspoint *ptc,
+                                 bGPDspoint *pt,
+                                 const float arrow_points[8])
+{
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 0);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 2);
+}
+
+static void gp_arrow_create_closed(tGPsdata *p,
+                                   tGPspoint *ptc,
+                                   bGPDspoint *pt,
+                                   const float arrow_points[8])
+{
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 0);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 2);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 4);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 0);
+}
+
+static void gp_arrow_create_square(tGPsdata *p,
+                                   tGPspoint *ptc,
+                                   bGPDspoint *pt,
+                                   const float corner_point[3],
+                                   const float arrow_points[8])
+{
+  gp_stroke_arrow_init_conv_point(pt, corner_point);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 0);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 4);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 6);
+  pt++;
+  gp_stroke_arrow_init_point(p, ptc, pt, arrow_points, 2);
+  pt++;
+  gp_stroke_arrow_init_conv_point(pt, corner_point);
+}
+
+static void gp_arrow_create(tGPsdata *p,
+                            tGPspoint *ptc,
+                            bGPDspoint *pt,
+                            bGPDstroke *arrow_stroke,
+                            const float arrow_points[8],
+                            const int style)
+{
+  float corner_conv[3];
+  copy_v3_v3(corner_conv, &pt->x);
+
+  switch (style) {
+    case GP_STROKE_ARROWSTYLE_SEGMENT:
+      gp_arrow_create_segm(p, ptc, pt, arrow_points);
+      break;
+    case GP_STROKE_ARROWSTYLE_CLOSED:
+      gp_arrow_create_closed(p, ptc, pt, arrow_points);
+      break;
+    case GP_STROKE_ARROWSTYLE_OPEN:
+      gp_arrow_create_open(p, ptc, pt, corner_conv, arrow_points);
+      break;
+    case GP_STROKE_ARROWSTYLE_SQUARE:
+      gp_arrow_create_square(p, ptc, pt, corner_conv, arrow_points);
+      break;
+    default:
+      break;
+  }
+  /* Link stroke to frame. */
+  BLI_addtail(&p->gpf->strokes, arrow_stroke);
 }
 
 /* make a new stroke from the buffer data */
@@ -637,17 +859,61 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
     }
 
     if (totelem == 2) {
-      /* last point if applicable */
-      ptc = ((tGPspoint *)gpd->runtime.sbuffer) + (gpd->runtime.sbuffer_used - 1);
+      bGPdata_Runtime runtime = gpd->runtime;
 
-      /* convert screen-coordinates to appropriate coordinates (and store them) */
+      /* Last point if applicable. */
+      ptc = ((tGPspoint *)runtime.sbuffer) + (runtime.sbuffer_used - 1);
+
+      /* Convert screen-coordinates to appropriate coordinates (and store them). */
       gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
 
-      /* copy pressure and time */
+      /* Copy pressure and time. */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
       CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
       pt->time = ptc->time;
+
+      /** Create arrow strokes. **/
+      /* End arrow stroke. */
+      if ((runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_END) &&
+          (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE)) {
+        int totarrowpoints = runtime.arrow_end_style;
+
+        /* Setting up arrow stroke. */
+        bGPDstroke *e_arrow_gps = BKE_gpencil_stroke_duplicate(gps, false);
+        gp_stroke_arrow_allocate(e_arrow_gps, totarrowpoints);
+
+        /* Set pointer to first non-initialized point. */
+        pt = e_arrow_gps->points + (e_arrow_gps->totpoints - totarrowpoints);
+
+        /* End point. */
+        ptc = ((tGPspoint *)runtime.sbuffer) + (runtime.sbuffer_used - 1);
+        gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+        gp_stroke_arrow_init_point_default(pt);
+
+        /* Fill and convert arrow points to create arrow shape. */
+        gp_arrow_create(p, ptc, pt, e_arrow_gps, runtime.arrow_end, runtime.arrow_end_style);
+      }
+      /* Start arrow stroke. */
+      if ((runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_START) &&
+          (runtime.arrow_start_style != GP_STROKE_ARROWSTYLE_NONE)) {
+        int totarrowpoints = runtime.arrow_start_style;
+
+        /* Setting up arrow stroke. */
+        bGPDstroke *s_arrow_gps = BKE_gpencil_stroke_duplicate(gps, false);
+        gp_stroke_arrow_allocate(s_arrow_gps, totarrowpoints);
+
+        /* Set pointer to first non-initialized point. */
+        pt = s_arrow_gps->points + (s_arrow_gps->totpoints - totarrowpoints);
+
+        /* Start point. */
+        ptc = runtime.sbuffer;
+        gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+        gp_stroke_arrow_init_point_default(pt);
+
+        /* Fill and convert arrow points to create arrow shape. */
+        gp_arrow_create(p, ptc, pt, s_arrow_gps, runtime.arrow_start, runtime.arrow_start_style);
+      }
     }
   }
   else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
@@ -1902,6 +2168,16 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
   if (p->paintmode == GP_PAINTMODE_ERASER) {
     gpencil_draw_toggle_eraser_cursor(C, p, true);
   }
+  else if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
+    if (RNA_enum_get(op->ptr, "arrowstyle_start") != GP_STROKE_ARROWSTYLE_NONE) {
+      p->gpd->runtime.sbuffer_sflag |= GP_STROKE_USE_ARROW_START;
+      p->gpd->runtime.arrow_start_style = RNA_enum_get(op->ptr, "arrowstyle_start");
+    }
+    if (RNA_enum_get(op->ptr, "arrowstyle_end") != GP_STROKE_ARROWSTYLE_NONE) {
+      p->gpd->runtime.sbuffer_sflag |= GP_STROKE_USE_ARROW_END;
+      p->gpd->runtime.arrow_end_style = RNA_enum_get(op->ptr, "arrowstyle_end");
+    }
+  }
   /* set cursor
    * NOTE: This may change later (i.e. intentionally via brush toggle,
    *       or unintentionally if the user scrolls outside the area)...
@@ -2370,6 +2646,19 @@ static const EnumPropertyItem prop_gpencil_drawmodes[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem arrow_types[] = {
+    {GP_STROKE_ARROWSTYLE_NONE, "NONE", 0, "None", "Don't use any arrow/style in corner"},
+    {GP_STROKE_ARROWSTYLE_CLOSED, "ARROW", 0, "Arrow", "Use closed arrow style"},
+    {GP_STROKE_ARROWSTYLE_OPEN, "ARROW_OPEN", 0, "Open Arrow", "Use open arrow style"},
+    {GP_STROKE_ARROWSTYLE_SEGMENT,
+     "ARROW_OPEN_INVERTED",
+     0,
+     "Segment",
+     "Use perpendicular segment style"},
+    {GP_STROKE_ARROWSTYLE_SQUARE, "DIAMOND", 0, "Square", "Use square style"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 void GPENCIL_OT_annotate(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -2392,6 +2681,12 @@ void GPENCIL_OT_annotate(wmOperatorType *ot)
   /* settings for drawing */
   ot->prop = RNA_def_enum(
       ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to interpret mouse movements");
+
+  /* properties */
+  prop = RNA_def_enum(
+      ot->srna, "arrowstyle_start", arrow_types, 0, "Start Arrow Style", "Stroke start style");
+  prop = RNA_def_enum(
+      ot->srna, "arrowstyle_end", arrow_types, 0, "End Arrow Style", "Stroke end style");
 
   prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
