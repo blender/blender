@@ -3188,7 +3188,7 @@ static void gpencil_flip_stroke(bGPDstroke *gps)
 static void gpencil_stroke_copy_point(bGPDstroke *gps,
                                       MDeformVert *dvert,
                                       bGPDspoint *point,
-                                      int idx,
+                                      int UNUSED(idx),
                                       const float delta[3],
                                       float pressure,
                                       float strength,
