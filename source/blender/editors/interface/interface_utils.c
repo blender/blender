@@ -22,6 +22,7 @@
  */
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,6 +51,22 @@
 #include "WM_types.h"
 
 #include "interface_intern.h"
+
+bool ui_str_has_word_prefix(const char *haystack, const char *needle, size_t needle_len)
+{
+  const char *match = BLI_strncasestr(haystack, needle, needle_len);
+  if (match) {
+    if ((match == haystack) || (*(match - 1) == ' ') || ispunct(*(match - 1))) {
+      return true;
+    }
+    else {
+      return ui_str_has_word_prefix(match + 1, needle, needle_len);
+    }
+  }
+  else {
+    return false;
+  }
+}
 
 /*************************** RNA Utilities ******************************/
 
