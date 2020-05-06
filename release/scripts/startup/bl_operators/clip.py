@@ -486,7 +486,18 @@ class CLIP_OT_constraint_to_fcurve(Operator):
             return {'FINISHED'}
 
         # Find start and end frames.
-        for track in clip.tracking.tracks:
+        if con.object:
+            tracking_object = clip.tracking.objects.get(con.object, None)
+            if not tracking_object:
+                self.report({'ERROR'}, "Motion Tracking object not found")
+
+                return {'CANCELLED'}
+
+            tracks = tracking_object.tracks
+        else:
+            tracks = clip.tracking.tracks
+
+        for track in tracks:
             if sfra is None:
                 sfra = track.markers[0].frame
             else:
