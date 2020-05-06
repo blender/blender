@@ -98,14 +98,6 @@ bool BKE_gpencil_stroke_shrink(struct bGPDstroke *gps, const float dist);
 
 float BKE_gpencil_stroke_length(const struct bGPDstroke *gps, bool use_3d);
 
-void BKE_gpencil_convert_curve(struct Main *bmain,
-                               struct Scene *scene,
-                               struct Object *ob_gp,
-                               struct Object *ob_cu,
-                               const bool gpencil_lines,
-                               const bool use_collections,
-                               const bool only_stroke);
-
 #ifdef __cplusplus
 }
 #endif
