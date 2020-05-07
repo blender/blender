@@ -1740,38 +1740,26 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
          !RNA_property_is_set(op->ptr, prop))) {
       /* Set the first time to register on redo. */
       RNA_property_enum_set(op->ptr, prop, orient_set);
-
-      if (((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
-           !RNA_property_is_set(op->ptr, prop))) {
-        RNA_float_set_array(op->ptr, "orient_matrix", &t->spacemtx[0][0]);
-      }
+      RNA_float_set_array(op->ptr, "orient_matrix", &t->spacemtx[0][0]);
     }
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
     bool constraint_axis[3] = {false, false, false};
-    if (t->idx_max == 0) {
-      if (t->con.mode & CON_APPLY) {
-        if (t->con.mode & CON_AXIS0) {
-          constraint_axis[0] = true;
-        }
-        if (t->con.mode & CON_AXIS1) {
-          constraint_axis[1] = true;
-        }
-        if (t->con.mode & CON_AXIS2) {
-          constraint_axis[2] = true;
-        }
-        RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+    if (t->con.mode & CON_APPLY) {
+      if (t->con.mode & CON_AXIS0) {
+        constraint_axis[0] = true;
       }
-      else {
-        RNA_property_unset(op->ptr, prop);
+      if (t->con.mode & CON_AXIS1) {
+        constraint_axis[1] = true;
       }
+      if (t->con.mode & CON_AXIS2) {
+        constraint_axis[2] = true;
+      }
+      RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
     }
     else {
-      constraint_axis[0] = true;
-      constraint_axis[1] = true;
-      constraint_axis[2] = true;
-      RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+      RNA_property_unset(op->ptr, prop);
     }
   }
 
@@ -2027,33 +2015,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   calculatePropRatio(t);
   calculateCenter(t);
-
-  /* Overwrite initial values if operator supplied a non-null vector.
-   *
-   * Run before init functions so 'values_modal_offset' can be applied on mouse input.
-   */
-  BLI_assert(is_zero_v4(t->values_modal_offset));
-  if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
-    float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory  */
-
-    if (RNA_property_array_check(prop)) {
-      RNA_float_get_array(op->ptr, "value", values);
-    }
-    else {
-      values[0] = RNA_float_get(op->ptr, "value");
-    }
-
-    copy_v4_v4(t->values, values);
-
-    if (t->flag & T_MODAL) {
-      copy_v4_v4(t->values_modal_offset, values);
-      t->redraw = TREDRAW_HARD;
-    }
-    else {
-      copy_v4_v4(t->values, values);
-      t->flag |= T_INPUT_IS_VALUES_FINAL;
-    }
-  }
 
   if (event) {
     /* Initialize accurate transform to settings requested by keymap. */

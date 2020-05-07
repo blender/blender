@@ -1595,11 +1595,43 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->around = V3D_AROUND_CENTER_BOUNDS;
   }
 
-  if (op && (prop = RNA_struct_find_property(op->ptr, "constraint_axis")) &&
+  BLI_assert(is_zero_v4(t->values_modal_offset));
+  bool t_values_set_is_array = false;
+  if (op && (prop = RNA_struct_find_property(op->ptr, "value")) &&
       RNA_property_is_set(op->ptr, prop)) {
-    bool constraint_axis[3];
+    float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory  */
+    if (RNA_property_array_check(prop)) {
+      RNA_float_get_array(op->ptr, "value", values);
+      t_values_set_is_array = true;
+    }
+    else {
+      values[0] = RNA_float_get(op->ptr, "value");
+    }
 
-    RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
+    copy_v4_v4(t->values, values);
+    if (t->flag & T_MODAL) {
+      /* Run before init functions so 'values_modal_offset' can be applied on mouse input. */
+      copy_v4_v4(t->values_modal_offset, values);
+    }
+    else {
+      copy_v4_v4(t->values, values);
+      t->flag |= T_INPUT_IS_VALUES_FINAL;
+    }
+  }
+
+  if (op && (prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
+    bool constraint_axis[3] = {false, false, false};
+    if (RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
+    }
+
+    if (t_values_set_is_array && t->flag & T_INPUT_IS_VALUES_FINAL) {
+      /* For operators whose `t->values` is array, set contrain so that the
+       * orientation is more intuitive in the Redo Panel. */
+      for (int i = 3; i--;) {
+        constraint_axis[i] |= t->values[i] != 0.0f;
+      }
+    }
 
     if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
       t->con.mode |= CON_APPLY;
