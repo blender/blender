@@ -245,7 +245,7 @@ void GPU_texture_generate_mipmap(GPUTexture *tex);
 void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
 void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
-void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat);
+void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
 void GPU_texture_filters(GPUTexture *tex,
                          eGPUFilterFunction min_filter,
                          eGPUFilterFunction mag_filter);
