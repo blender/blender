@@ -68,7 +68,8 @@ class GHOST_XrSession {
   std::unique_ptr<GHOST_XrDrawInfo> m_draw_info;
 
   void initSystem();
-  void end();
+  void beginSession();
+  void endSession();
 
   void bindGraphicsContext();
 
