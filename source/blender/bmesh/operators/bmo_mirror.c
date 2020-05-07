@@ -48,6 +48,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
   int axis = BMO_slot_int_get(op->slots_in, "axis");
   bool mirror_u = BMO_slot_bool_get(op->slots_in, "mirror_u");
   bool mirror_v = BMO_slot_bool_get(op->slots_in, "mirror_v");
+  bool mirror_udim = BMO_slot_bool_get(op->slots_in, "mirror_udim");
   BMOpSlot *slot_targetmap;
 
   ototvert = bm->totvert;
@@ -94,10 +95,22 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
         for (i = 0; i < totlayer; i++) {
           luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
           if (mirror_u) {
-            luv->uv[0] = 1.0f - luv->uv[0];
+            float uv_u = luv->uv[0];
+            if (mirror_udim) {
+              luv->uv[0] = ceilf(uv_u) - fmodf(uv_u, 1.0f);
+            }
+            else {
+              luv->uv[0] = 1.0f - uv_u;
+            }
           }
           if (mirror_v) {
-            luv->uv[1] = 1.0f - luv->uv[1];
+            float uv_v = luv->uv[1];
+            if (mirror_udim) {
+              luv->uv[1] = ceilf(uv_v) - fmodf(uv_v, 1.0f);
+            }
+            else {
+              luv->uv[1] = 1.0f - uv_v;
+            }
           }
         }
       }
