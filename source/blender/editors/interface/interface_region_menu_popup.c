@@ -581,21 +581,18 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 /** \name Popup Block API
  * \{ */
 
-void UI_popup_block_invoke_ex(bContext *C,
-                              uiBlockCreateFunc func,
-                              void *arg,
-                              void (*arg_free)(void *arg),
-                              const char *opname,
-                              int opcontext)
+void UI_popup_block_invoke_ex(
+    bContext *C, uiBlockCreateFunc func, void *arg, void (*arg_free)(void *arg), bool can_refresh)
 {
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;
 
   handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg, arg_free);
   handle->popup = true;
-  handle->can_refresh = true;
-  handle->optype = (opname) ? WM_operatortype_find(opname, 0) : NULL;
-  handle->opcontext = opcontext;
+
+  /* It can be useful to disable refresh (even though it will work)
+   * as this exists text fields which can be disruptive if refresh isn't needed. */
+  handle->can_refresh = can_refresh;
 
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
   UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
@@ -607,7 +604,7 @@ void UI_popup_block_invoke(bContext *C,
                            void *arg,
                            void (*arg_free)(void *arg))
 {
-  UI_popup_block_invoke_ex(C, func, arg, arg_free, NULL, WM_OP_INVOKE_DEFAULT);
+  UI_popup_block_invoke_ex(C, func, arg, arg_free, true);
 }
 
 void UI_popup_block_ex(bContext *C,

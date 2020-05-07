@@ -621,8 +621,7 @@ void UI_popup_block_invoke_ex(struct bContext *C,
                               uiBlockCreateFunc func,
                               void *arg,
                               void (*arg_free)(void *arg),
-                              const char *opname,
-                              int opcontext);
+                              bool can_refresh);
 void UI_popup_block_ex(struct bContext *C,
                        uiBlockCreateFunc func,
                        uiBlockHandleFunc popup_func,

@@ -10764,9 +10764,6 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
       if (temp.popup_func) {
         temp.popup_func(C, temp.popup_arg, temp.retvalue);
       }
-      if (temp.optype) {
-        WM_operator_name_call_ptr(C, temp.optype, temp.opcontext, NULL);
-      }
     }
     else if (temp.cancel_func) {
       temp.cancel_func(C, temp.popup_arg);

@@ -597,10 +597,8 @@ struct uiPopupBlockHandle {
 
   /* for operator popups */
   struct wmOperator *popup_op;
-  struct wmOperatorType *optype;
   ScrArea *ctx_area;
   ARegion *ctx_region;
-  int opcontext;
 
   /* return values */
   int butretval;
