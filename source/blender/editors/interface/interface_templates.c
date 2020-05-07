@@ -203,7 +203,7 @@ static void template_add_button_search_menu(const bContext *C,
 
 static uiBlock *template_common_search_menu(const bContext *C,
                                             ARegion *region,
-                                            uiButSearchFunc search_func,
+                                            uiButSearchUpdateFn search_update_fn,
                                             void *search_arg,
                                             uiButHandleFunc handle_func,
                                             void *active_item,
@@ -279,7 +279,7 @@ static uiBlock *template_common_search_menu(const bContext *C,
   }
   UI_but_func_search_set(but,
                          ui_searchbox_create_generic,
-                         search_func,
+                         search_update_fn,
                          search_arg,
                          NULL,
                          handle_func,
@@ -451,7 +451,8 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
 {
   static TemplateID template_ui;
   PointerRNA active_item_ptr;
-  void (*id_search_cb_p)(const bContext *, void *, const char *, uiSearchItems *) = id_search_cb;
+  void (*id_search_update_fn)(
+      const bContext *, void *, const char *, uiSearchItems *) = id_search_cb;
 
   /* arg_litem is malloced, can be freed by parent button */
   template_ui = *((TemplateID *)arg_litem);
@@ -461,14 +462,14 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
     /* Currently only used for objects. */
     if (template_ui.idcode == ID_OB) {
       if (template_ui.filter == UI_TEMPLATE_ID_FILTER_AVAILABLE) {
-        id_search_cb_p = id_search_cb_objects_from_scene;
+        id_search_update_fn = id_search_cb_objects_from_scene;
       }
     }
   }
 
   return template_common_search_menu(C,
                                      region,
-                                     id_search_cb_p,
+                                     id_search_update_fn,
                                      &template_ui,
                                      template_ID_set_property_cb,
                                      active_item_ptr.data,
@@ -1552,7 +1553,7 @@ static uiBlock *template_search_menu(bContext *C, ARegion *region, void *arg_tem
 
   return template_common_search_menu(C,
                                      region,
-                                     ui_rna_collection_search_cb,
+                                     ui_rna_collection_search_update_fn,
                                      &template_search,
                                      template_search_handle_cb,
                                      active_ptr.data,

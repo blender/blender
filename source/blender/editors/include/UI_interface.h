@@ -502,15 +502,16 @@ typedef void (*uiButHandleRenameFunc)(struct bContext *C, void *arg, char *origs
 typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
 typedef void (*uiButHandleHoldFunc)(struct bContext *C, struct ARegion *butregion, uiBut *but);
 typedef int (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
-typedef struct ARegion *(*uiButSearchCreateFunc)(struct bContext *C,
-                                                 struct ARegion *butregion,
-                                                 uiBut *but);
-typedef void (*uiButSearchFunc)(const struct bContext *C,
-                                void *arg,
-                                const char *str,
-                                uiSearchItems *items);
 
-typedef void (*uiButSearchArgFreeFunc)(void *arg);
+/* Search types. */
+typedef struct ARegion *(*uiButSearchCreateFn)(struct bContext *C,
+                                               struct ARegion *butregion,
+                                               uiBut *but);
+typedef void (*uiButSearchUpdateFn)(const struct bContext *C,
+                                    void *arg,
+                                    const char *str,
+                                    uiSearchItems *items);
+typedef void (*uiButSearchArgFreeFn)(void *arg);
 
 /* Must return allocated string. */
 typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *tip);
@@ -1573,10 +1574,10 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
 bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid, int state);
 /* bfunc gets search item *poin as arg2, or if NULL the old string */
 void UI_but_func_search_set(uiBut *but,
-                            uiButSearchCreateFunc cfunc,
-                            uiButSearchFunc sfunc,
+                            uiButSearchCreateFn search_create_fn,
+                            uiButSearchUpdateFn search_update_fn,
                             void *arg,
-                            uiButSearchArgFreeFunc search_arg_free_func,
+                            uiButSearchArgFreeFn search_arg_free_fn,
                             uiButHandleFunc bfunc,
                             const char *search_sep_string,
                             void *active);

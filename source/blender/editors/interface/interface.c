@@ -807,8 +807,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
 
     SWAP(ListBase, but->extra_op_icons, oldbut->extra_op_icons);
 
-    SWAP(uiButSearchArgFreeFunc, oldbut->search_arg_free_func, but->search_arg_free_func);
-    SWAP(void *, oldbut->search_arg, but->search_arg);
+    SWAP(struct uiButSearchData *, oldbut->search, but->search);
 
     /* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
      * when scrolling without moving mouse (see [#28432]) */
@@ -3227,9 +3226,12 @@ static void ui_but_free(const bContext *C, uiBut *but)
     MEM_freeN(but->hold_argN);
   }
 
-  if (but->search_arg_free_func) {
-    but->search_arg_free_func(but->search_arg);
-    but->search_arg = NULL;
+  if (but->search != NULL) {
+    if (but->search->arg_free_fn) {
+      but->search->arg_free_fn(but->search->arg);
+      but->search->arg = NULL;
+    }
+    MEM_freeN(but->search);
   }
 
   if (but->active) {
@@ -6356,31 +6358,38 @@ uiBut *uiDefSearchBut(uiBlock *block,
  * showing the icon and highlighted text after the last instance of this string.
  */
 void UI_but_func_search_set(uiBut *but,
-                            uiButSearchCreateFunc search_create_func,
-                            uiButSearchFunc search_func,
+                            uiButSearchCreateFn search_create_fn,
+                            uiButSearchUpdateFn search_update_fn,
                             void *arg,
-                            uiButSearchArgFreeFunc search_arg_free_func,
+                            uiButSearchArgFreeFn search_arg_free_fn,
                             uiButHandleFunc bfunc,
                             const char *search_sep_string,
                             void *active)
 {
   /* needed since callers don't have access to internal functions
    * (as an alternative we could expose it) */
-  if (search_create_func == NULL) {
-    search_create_func = ui_searchbox_create_generic;
+  if (search_create_fn == NULL) {
+    search_create_fn = ui_searchbox_create_generic;
   }
 
-  if (but->search_arg_free_func != NULL) {
-    but->search_arg_free_func(but->search_arg);
-    but->search_arg = NULL;
+  struct uiButSearchData *search = but->search;
+  if (search != NULL) {
+    if (search->arg_free_fn != NULL) {
+      search->arg_free_fn(but->search->arg);
+      search->arg = NULL;
+    }
+  }
+  else {
+    search = MEM_callocN(sizeof(*but->search), __func__);
+    but->search = search;
   }
 
-  but->search_create_func = search_create_func;
-  but->search_func = search_func;
+  search->create_fn = search_create_fn;
+  search->update_fn = search_update_fn;
 
-  but->search_arg = arg;
-  but->search_arg_free_func = search_arg_free_func;
-  but->search_sep_string = search_sep_string;
+  search->arg = arg;
+  search->arg_free_fn = search_arg_free_fn;
+  search->sep_string = search_sep_string;
 
   if (bfunc) {
 #ifdef DEBUG

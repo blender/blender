@@ -1135,8 +1135,9 @@ static bool jump_to_target_button(bContext *C, bool poll)
     else if (type == PROP_STRING) {
       const uiBut *but = UI_context_active_but_get(C);
 
-      if (but->type == UI_BTYPE_SEARCH_MENU && but->search_func == ui_rna_collection_search_cb) {
-        uiRNACollectionSearch *coll_search = but->search_arg;
+      if (but->type == UI_BTYPE_SEARCH_MENU && but->search &&
+          but->search->update_fn == ui_rna_collection_search_update_fn) {
+        uiRNACollectionSearch *coll_search = but->search->arg;
 
         char str_buf[MAXBONENAME];
         char *str_ptr = RNA_property_string_get_alloc(&ptr, prop, str_buf, sizeof(str_buf), NULL);

@@ -399,10 +399,10 @@ static int sort_search_items_list(const void *a, const void *b)
   }
 }
 
-void ui_rna_collection_search_cb(const struct bContext *C,
-                                 void *arg,
-                                 const char *str,
-                                 uiSearchItems *items)
+void ui_rna_collection_search_update_fn(const struct bContext *C,
+                                        void *arg,
+                                        const char *str,
+                                        uiSearchItems *items)
 {
   uiRNACollectionSearch *data = arg;
   int i = 0, iconid = 0, flag = RNA_property_flag(data->target_prop);

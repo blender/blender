@@ -350,9 +350,9 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
     data->active = -1;
 
     /* handle active */
-    if (but->search_func && but->func_arg2) {
+    if (but->search->update_fn && but->func_arg2) {
       data->items.active = but->func_arg2;
-      but->search_func(C, but->search_arg, but->editstr, &data->items);
+      but->search->update_fn(C, but->search->arg, but->editstr, &data->items);
       data->items.active = NULL;
 
       /* found active item, calculate real offset by centering it */
@@ -381,8 +381,8 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
   }
 
   /* callback */
-  if (but->search_func) {
-    but->search_func(C, but->search_arg, but->editstr, &data->items);
+  if (but->search->update_fn) {
+    but->search->update_fn(C, but->search->arg, but->editstr, &data->items);
   }
 
   /* handle case where editstr is equal to one of items */
@@ -416,7 +416,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
   if (str[0]) {
     data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_max_length(but));
 
-    but->search_func(C, but->search_arg, but->editstr, &data->items);
+    but->search->update_fn(C, but->search->arg, but->editstr, &data->items);
 
     match = UI_autocomplete_end(data->items.autocpl, str);
     data->items.autocpl = NULL;
@@ -603,7 +603,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
   if (but->optype != NULL || (but->drawflag & UI_BUT_HAS_SHORTCUT) != 0) {
     data->use_sep = true;
   }
-  data->sep_string = but->search_sep_string;
+  data->sep_string = but->search->sep_string;
 
   /* compute position */
   if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
@@ -881,7 +881,7 @@ void ui_but_search_refresh(uiBut *but)
     items->names[x1] = MEM_callocN(but->hardmax + 1, "search names");
   }
 
-  but->search_func(but->block->evil_C, but->search_arg, but->drawstr, items);
+  but->search->update_fn(but->block->evil_C, but->search->arg, but->drawstr, items);
 
   /* only redalert when we are sure of it, this can miss cases when >10 matches */
   if (items->totitem == 0) {

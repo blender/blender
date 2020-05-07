@@ -962,7 +962,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     const PropertyType prop_type = RNA_property_type(but->rnaprop);
     if (((prop_type == PROP_POINTER) ||
          (prop_type == PROP_STRING && but->type == UI_BTYPE_SEARCH_MENU &&
-          but->search_func == ui_rna_collection_search_cb)) &&
+          but->search->update_fn == ui_rna_collection_search_update_fn)) &&
         ui_jump_to_target_button_poll(C)) {
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Jump to Target"),

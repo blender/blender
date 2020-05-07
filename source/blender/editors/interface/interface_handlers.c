@@ -417,7 +417,7 @@ typedef struct uiAfterFunc {
   PropertyRNA *rnaprop;
 
   void *search_arg;
-  uiButSearchArgFreeFunc search_arg_free_func;
+  uiButSearchArgFreeFn search_arg_free_fn;
 
   bContextStore *context;
 
@@ -753,10 +753,12 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
     after->rnapoin = but->rnapoin;
     after->rnaprop = but->rnaprop;
 
-    after->search_arg_free_func = but->search_arg_free_func;
-    after->search_arg = but->search_arg;
-    but->search_arg_free_func = NULL;
-    but->search_arg = NULL;
+    if (but->search != NULL) {
+      after->search_arg_free_fn = but->search->arg_free_fn;
+      after->search_arg = but->search->arg;
+      but->search->arg_free_fn = NULL;
+      but->search->arg = NULL;
+    }
 
     if (but->context) {
       after->context = CTX_store_copy(but->context);
@@ -924,8 +926,8 @@ static void ui_apply_but_funcs_after(bContext *C)
       MEM_freeN(after.rename_orig);
     }
 
-    if (after.search_arg_free_func) {
-      after.search_arg_free_func(after.search_arg);
+    if (after.search_arg_free_fn) {
+      after.search_arg_free_fn(after.search_arg);
     }
 
     ui_afterfunc_update_preferences_dirty(&after);
@@ -3308,7 +3310,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
   /* optional searchbox */
   if (but->type == UI_BTYPE_SEARCH_MENU) {
-    data->searchbox = but->search_create_func(C, data->region, but);
+    data->searchbox = but->search->create_fn(C, data->region, but);
     ui_searchbox_update(C, data->searchbox, but, true); /* true = reset */
   }
 

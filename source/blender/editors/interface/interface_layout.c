@@ -2697,7 +2697,7 @@ void ui_but_add_search(
 
     UI_but_func_search_set(but,
                            ui_searchbox_create_generic,
-                           ui_rna_collection_search_cb,
+                           ui_rna_collection_search_update_fn,
                            coll_search,
                            ui_rna_collection_search_free_cb,
                            NULL,
