@@ -64,6 +64,7 @@
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -143,6 +144,22 @@ static void material_free_data(ID *id)
   BKE_previewimg_free(&material->preview);
 }
 
+static void material_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Material *material = (Material *)id;
+  /* Nodetrees **are owned by IDs**, treat them as mere sub-data and not real ID! */
+  if (!BKE_library_foreach_ID_embedded(data, (ID **)&material->nodetree)) {
+    return;
+  }
+  if (material->texpaintslot != NULL) {
+    BKE_LIB_FOREACHID_PROCESS(data, material->texpaintslot->ima, IDWALK_CB_NOP);
+  }
+  if (material->gp_style != NULL) {
+    BKE_LIB_FOREACHID_PROCESS(data, material->gp_style->sima, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS(data, material->gp_style->ima, IDWALK_CB_USER);
+  }
+}
+
 IDTypeInfo IDType_ID_MA = {
     .id_code = ID_MA,
     .id_filter = FILTER_ID_MA,
@@ -157,6 +174,7 @@ IDTypeInfo IDType_ID_MA = {
     .copy_data = material_copy_data,
     .free_data = material_free_data,
     .make_local = NULL,
+    .foreach_id = material_foreach_id,
 };
 
 void BKE_gpencil_material_attr_init(Material *ma)

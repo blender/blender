@@ -976,18 +976,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_MA: {
-        Material *material = (Material *)id;
-        if (material->nodetree) {
-          /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          BKE_library_foreach_ID_embedded(&data, (ID **)&material->nodetree);
-        }
-        if (material->texpaintslot != NULL) {
-          CALLBACK_INVOKE(material->texpaintslot->ima, IDWALK_CB_NOP);
-        }
-        if (material->gp_style != NULL) {
-          CALLBACK_INVOKE(material->gp_style->sima, IDWALK_CB_USER);
-          CALLBACK_INVOKE(material->gp_style->ima, IDWALK_CB_USER);
-        }
+        BLI_assert(0);
         break;
       }
 
