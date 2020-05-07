@@ -214,41 +214,6 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
   BKE_LIB_FOREACHID_PROCESS_ID(data, id_prop->data.pointer, IDWALK_CB_USER);
 }
 
-static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
-{
-  IDP_foreach_property(
-      sock->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
-
-  switch ((eNodeSocketDatatype)sock->type) {
-    case SOCK_OBJECT: {
-      bNodeSocketValueObject *default_value = sock->default_value;
-      FOREACH_CALLBACK_INVOKE_ID_PP(data, (ID **)&default_value->value, IDWALK_CB_USER);
-      break;
-    }
-    case SOCK_IMAGE: {
-      bNodeSocketValueImage *default_value = sock->default_value;
-      FOREACH_CALLBACK_INVOKE_ID_PP(data, (ID **)&default_value->value, IDWALK_CB_USER);
-      break;
-    }
-    case SOCK_FLOAT:
-    case SOCK_VECTOR:
-    case SOCK_RGBA:
-    case SOCK_BOOLEAN:
-    case SOCK_INT:
-    case SOCK_STRING:
-    case __SOCK_MESH:
-    case SOCK_CUSTOM:
-    case SOCK_SHADER:
-    case SOCK_EMITTERS:
-    case SOCK_EVENTS:
-    case SOCK_FORCES:
-    case SOCK_CONTROL_FLOW:
-      break;
-  }
-
-  FOREACH_FINALIZE_VOID;
-}
-
 static void library_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSED(rbw),
                                                       ID **id_pointer,
                                                       void *user_data,
@@ -1055,31 +1020,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_NT: {
-        bNodeTree *ntree = (bNodeTree *)id;
-
-        CALLBACK_INVOKE(ntree->gpd, IDWALK_CB_USER);
-
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          CALLBACK_INVOKE_ID(node->id, IDWALK_CB_USER);
-
-          IDP_foreach_property(node->prop,
-                               IDP_TYPE_FILTER_ID,
-                               BKE_lib_query_idpropertiesForeachIDLink_callback,
-                               &data);
-          LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-            library_foreach_node_socket(&data, sock);
-          }
-          LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-            library_foreach_node_socket(&data, sock);
-          }
-        }
-
-        LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
-          library_foreach_node_socket(&data, sock);
-        }
-        LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
-          library_foreach_node_socket(&data, sock);
-        }
+        BLI_assert(0);
         break;
       }
 

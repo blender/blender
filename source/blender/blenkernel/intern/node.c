@@ -32,6 +32,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
@@ -57,6 +58,7 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -253,6 +255,66 @@ static void ntree_free_data(ID *id)
   }
 }
 
+static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
+{
+  IDP_foreach_property(
+      sock->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+
+  switch ((eNodeSocketDatatype)sock->type) {
+    case SOCK_OBJECT: {
+      bNodeSocketValueObject *default_value = sock->default_value;
+      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      break;
+    }
+    case SOCK_IMAGE: {
+      bNodeSocketValueImage *default_value = sock->default_value;
+      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      break;
+    }
+    case SOCK_FLOAT:
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+    case SOCK_STRING:
+    case __SOCK_MESH:
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+    case SOCK_EMITTERS:
+    case SOCK_EVENTS:
+    case SOCK_FORCES:
+    case SOCK_CONTROL_FLOW:
+      break;
+  }
+}
+
+static void node_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  bNodeTree *ntree = (bNodeTree *)id;
+
+  BKE_LIB_FOREACHID_PROCESS(data, ntree->gpd, IDWALK_CB_USER);
+
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    BKE_LIB_FOREACHID_PROCESS_ID(data, node->id, IDWALK_CB_USER);
+
+    IDP_foreach_property(
+        node->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+      library_foreach_node_socket(data, sock);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+      library_foreach_node_socket(data, sock);
+    }
+  }
+
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+    library_foreach_node_socket(data, sock);
+  }
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+    library_foreach_node_socket(data, sock);
+  }
+}
+
 IDTypeInfo IDType_ID_NT = {
     .id_code = ID_NT,
     .id_filter = FILTER_ID_NT,
@@ -267,6 +329,7 @@ IDTypeInfo IDType_ID_NT = {
     .copy_data = ntree_copy_data,
     .free_data = ntree_free_data,
     .make_local = NULL,
+    .foreach_id = node_foreach_id,
 };
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
