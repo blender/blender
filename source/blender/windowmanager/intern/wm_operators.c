@@ -1799,7 +1799,7 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
       .size = {UI_searchbox_size_x() * 2, UI_searchbox_size_y()},
   };
 
-  UI_popup_block_invoke(C, wm_block_search_menu, &data, NULL);
+  UI_popup_block_invoke_ex(C, wm_block_search_menu, &data, NULL, false);
 
   return OPERATOR_INTERFACE;
 }

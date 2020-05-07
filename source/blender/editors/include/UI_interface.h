@@ -512,6 +512,10 @@ typedef void (*uiButSearchUpdateFn)(const struct bContext *C,
                                     const char *str,
                                     uiSearchItems *items);
 typedef void (*uiButSearchArgFreeFn)(void *arg);
+typedef bool (*uiButSearchContextMenuFn)(struct bContext *C,
+                                         void *arg,
+                                         void *active,
+                                         const struct wmEvent *event);
 
 /* Must return allocated string. */
 typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *tip);
@@ -1579,6 +1583,7 @@ void UI_but_func_search_set(uiBut *but,
                             uiButSearchArgFreeFn search_arg_free_fn,
                             uiButHandleFunc handle_fn,
                             void *active);
+void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn);
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string);
 
 /* height in pixels, it's using hardcoded values still */

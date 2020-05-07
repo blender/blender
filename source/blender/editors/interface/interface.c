@@ -6409,6 +6409,12 @@ void UI_but_func_search_set(uiBut *but,
   }
 }
 
+void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn)
+{
+  struct uiButSearchData *search = but->search;
+  search->context_menu_fn = context_menu_fn;
+}
+
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string)
 {
   struct uiButSearchData *search = but->search;

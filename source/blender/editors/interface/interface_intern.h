@@ -150,6 +150,8 @@ struct uiButSearchData {
   uiButSearchUpdateFn update_fn;
   void *arg;
   uiButSearchArgFreeFn arg_free_fn;
+  uiButSearchContextMenuFn context_menu_fn;
+
   const char *sep_string;
 };
 
@@ -658,7 +660,7 @@ bool ui_searchbox_inside(struct ARegion *region, int x, int y);
 int ui_searchbox_find_index(struct ARegion *region, const char *name);
 void ui_searchbox_update(struct bContext *C, struct ARegion *region, uiBut *but, const bool reset);
 int ui_searchbox_autocomplete(struct bContext *C, struct ARegion *region, uiBut *but, char *str);
-void ui_searchbox_event(struct bContext *C,
+bool ui_searchbox_event(struct bContext *C,
                         struct ARegion *region,
                         uiBut *but,
                         const struct wmEvent *event);

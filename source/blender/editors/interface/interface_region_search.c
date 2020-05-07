@@ -153,7 +153,8 @@ bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int 
 
   /* Limit flags that can be set so flags such as 'UI_SELECT' aren't accidentally set
    * which will cause problems, add others as needed. */
-  BLI_assert((state & ~(UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT)) == 0);
+  BLI_assert(
+      (state & ~(UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT | UI_BUT_HAS_SEP_CHAR)) == 0);
   if (items->states) {
     items->states[items->totitem] = state;
   }
@@ -295,10 +296,11 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
   }
 }
 
-void ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent *event)
+bool ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent *event)
 {
   uiSearchboxData *data = region->regiondata;
   int type = event->type, val = event->val;
+  bool handled = false;
 
   if (type == MOUSEPAN) {
     ui_pan_to_scroll(event, &type, &val);
@@ -308,10 +310,32 @@ void ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent 
     case WHEELUPMOUSE:
     case EVT_UPARROWKEY:
       ui_searchbox_select(C, region, but, -1);
+      handled = true;
       break;
     case WHEELDOWNMOUSE:
     case EVT_DOWNARROWKEY:
       ui_searchbox_select(C, region, but, 1);
+      handled = true;
+      break;
+    case RIGHTMOUSE:
+      if (val) {
+        if (but->search->context_menu_fn) {
+          if (data->active != -1) {
+            /* Check the cursor is over the active element
+             * (a little confusing if this isn't the case, although it does work). */
+            rcti rect;
+            ui_searchbox_butrect(&rect, data, data->active);
+            if (BLI_rcti_isect_pt(
+                    &rect, event->x - region->winrct.xmin, event->y - region->winrct.ymin)) {
+
+              void *active = data->items.pointers[data->active];
+              if (but->search->context_menu_fn(C, but->search->arg, active, event)) {
+                handled = true;
+              }
+            }
+          }
+        }
+      }
       break;
     case MOUSEMOVE:
       if (BLI_rcti_isect_pt(&region->winrct, event->x, event->y)) {
@@ -325,6 +349,7 @@ void ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent 
             if (data->active != a) {
               data->active = a;
               ui_searchbox_select(C, region, but, 0);
+              handled = true;
               break;
             }
           }
@@ -332,6 +357,7 @@ void ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent 
       }
       break;
   }
+  return handled;
 }
 
 /* region is the search box itself */
