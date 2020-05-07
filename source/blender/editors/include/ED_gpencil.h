@@ -40,6 +40,7 @@ struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
 struct tGPspoint;
+struct GpRandomSettings;
 
 struct ARegion;
 struct Depsgraph;
@@ -48,6 +49,7 @@ struct RegionView3D;
 struct ReportList;
 struct Scene;
 struct ScrArea;
+struct SnapObjectContext;
 struct ToolSettings;
 struct View3D;
 struct ViewLayer;
@@ -69,14 +71,15 @@ struct wmOperator;
  * Used as part of the 'stroke cache' used during drawing of new strokes
  */
 typedef struct tGPspoint {
-  float x, y;     /* x and y coordinates of cursor (in relative to area) */
-  float pressure; /* pressure of tablet at this point */
-  float strength; /* pressure of tablet at this point for alpha factor */
-  float time;     /* Time relative to stroke start (used when converting to path) */
-  float uv_fac;   /* factor of uv along the stroke */
-  float uv_rot;   /* uv rotation for dor mode */
-  float rnd[3];   /* rnd value */
-  bool rnd_dirty; /* rnd flag */
+  float x, y;          /* x and y coordinates of cursor (in relative to area) */
+  float pressure;      /* pressure of tablet at this point */
+  float strength;      /* pressure of tablet at this point for alpha factor */
+  float time;          /* Time relative to stroke start (used when converting to path) */
+  float uv_fac;        /* factor of uv along the stroke */
+  float uv_rot;        /* uv rotation for dor mode */
+  float rnd[3];        /* rnd value */
+  bool rnd_dirty;      /* rnd flag */
+  float vert_color[4]; /* Point vertex color. */
 } tGPspoint;
 
 /* ----------- Grease Pencil Tools/Context ------------- */
@@ -296,12 +299,18 @@ void ED_gpencil_fill_vertex_color_set(struct ToolSettings *ts,
                                       struct bGPDstroke *gps);
 void ED_gpencil_point_vertex_color_set(struct ToolSettings *ts,
                                        struct Brush *brush,
-                                       struct bGPDspoint *pt);
+                                       struct bGPDspoint *pt,
+                                       struct tGPspoint *tpt);
 void ED_gpencil_sbuffer_vertex_color_set(struct Depsgraph *depsgraph,
                                          struct Object *ob,
                                          struct ToolSettings *ts,
                                          struct Brush *brush,
-                                         struct Material *material);
+                                         struct Material *material,
+                                         float random_color[3],
+                                         float pen_pressure);
+void ED_gpencil_init_random_settings(struct Brush *brush,
+                                     const int mval[2],
+                                     struct GpRandomSettings *random_settings);
 
 bool ED_gpencil_stroke_check_collision(struct GP_SpaceConversion *gsc,
                                        struct bGPDstroke *gps,

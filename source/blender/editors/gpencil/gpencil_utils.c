@@ -30,10 +30,13 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
+
+#include "PIL_time.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
@@ -74,6 +77,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
+#include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
 
 #include "GPU_immediate.h"
@@ -2559,25 +2563,169 @@ void ED_gpencil_fill_vertex_color_set(ToolSettings *ts, Brush *brush, bGPDstroke
   }
 }
 
-void ED_gpencil_point_vertex_color_set(ToolSettings *ts, Brush *brush, bGPDspoint *pt)
+void ED_gpencil_point_vertex_color_set(ToolSettings *ts,
+                                       Brush *brush,
+                                       bGPDspoint *pt,
+                                       tGPspoint *tpt)
 {
   if (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush)) {
-    copy_v3_v3(pt->vert_color, brush->rgb);
-    pt->vert_color[3] = brush->gpencil_settings->vertex_factor;
-    srgb_to_linearrgb_v4(pt->vert_color, pt->vert_color);
+    if (tpt == NULL) {
+      copy_v3_v3(pt->vert_color, brush->rgb);
+      pt->vert_color[3] = brush->gpencil_settings->vertex_factor;
+      srgb_to_linearrgb_v4(pt->vert_color, pt->vert_color);
+    }
+    else {
+      copy_v3_v3(pt->vert_color, tpt->vert_color);
+      pt->vert_color[3] = brush->gpencil_settings->vertex_factor;
+    }
   }
   else {
     zero_v4(pt->vert_color);
   }
 }
 
-void ED_gpencil_sbuffer_vertex_color_set(
-    Depsgraph *depsgraph, Object *ob, ToolSettings *ts, Brush *brush, Material *material)
+void ED_gpencil_init_random_settings(Brush *brush,
+                                     const int mval[2],
+                                     GpRandomSettings *random_settings)
+{
+  int seed = ((uint)(ceil(PIL_check_seconds_timer())) + 1) % 128;
+  /* Use mouse position to get randomness. */
+  int ix = mval[0] * seed;
+  int iy = mval[1] * seed;
+  int iz = ix + iy * seed;
+  zero_v3(random_settings->hsv);
+
+  BrushGpencilSettings *brush_settings = brush->gpencil_settings;
+  /* Random to Hue. */
+  if (brush_settings->random_hue > 0.0f) {
+    float rand = BLI_hash_int_01(BLI_hash_int_2d(ix, iy)) * 2.0f - 1.0f;
+    random_settings->hsv[0] = rand * brush_settings->random_hue * 0.5f;
+  }
+  /* Random to Saturation. */
+  if (brush_settings->random_saturation > 0.0f) {
+    float rand = BLI_hash_int_01(BLI_hash_int_2d(iy, ix)) * 2.0f - 1.0f;
+    random_settings->hsv[1] = rand * brush_settings->random_saturation;
+  }
+  /* Random to Value. */
+  if (brush_settings->random_value > 0.0f) {
+    float rand = BLI_hash_int_01(BLI_hash_int_2d(ix * iz, iy * iz)) * 2.0f - 1.0f;
+    random_settings->hsv[2] = rand * brush_settings->random_value;
+  }
+
+  /* Random to pressure. */
+  if (brush_settings->draw_random_press > 0.0f) {
+    random_settings->pressure = BLI_hash_int_01(BLI_hash_int_2d(ix + iz, iy + iz)) * 2.0f - 1.0f;
+  }
+
+  /* Randomn to color strength. */
+  if (brush_settings->draw_random_strength) {
+    random_settings->strength = BLI_hash_int_01(BLI_hash_int_2d(ix + iy, iy + iz + ix)) * 2.0f -
+                                1.0f;
+  }
+
+  /* Random to uv texture rotation. */
+  if (brush_settings->uv_random > 0.0f) {
+    random_settings->uv = BLI_hash_int_01(BLI_hash_int_2d(iy + iz, ix * iz)) * 2.0f - 1.0f;
+  }
+}
+
+static void gpencil_sbuffer_vertex_color_random(
+    bGPdata *gpd, Brush *brush, tGPspoint *tpt, float random_color[3], float pen_pressure)
+{
+  BrushGpencilSettings *brush_settings = brush->gpencil_settings;
+  if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
+    int seed = ((uint)(ceil(PIL_check_seconds_timer())) + 1) % 128;
+
+    int ix = (int)(tpt->x * seed);
+    int iy = (int)(tpt->y * seed);
+    int iz = ix + iy * seed;
+    float hsv[3];
+    float factor_value[3];
+    zero_v3(factor_value);
+
+    /* Apply randomness to Hue. */
+    if (brush_settings->random_hue > 0.0f) {
+      if ((brush_settings->flag2 & GP_BRUSH_USE_HUE_AT_STROKE) == 0) {
+
+        float rand = BLI_hash_int_01(BLI_hash_int_2d(ix, gpd->runtime.sbuffer_used)) * 2.0f - 1.0f;
+        factor_value[0] = rand * brush_settings->random_hue * 0.5f;
+      }
+      else {
+        factor_value[0] = random_color[0];
+      }
+
+      /* Apply random curve. */
+      if (brush_settings->flag2 & GP_BRUSH_USE_HUE_RAND_PRESS) {
+        factor_value[0] *= BKE_curvemapping_evaluateF(
+            brush_settings->curve_rand_hue, 0, pen_pressure);
+      }
+    }
+
+    /* Apply randomness to Saturation. */
+    if (brush_settings->random_saturation > 0.0f) {
+      if ((brush_settings->flag2 & GP_BRUSH_USE_SAT_AT_STROKE) == 0) {
+        float rand = BLI_hash_int_01(BLI_hash_int_2d(iy, gpd->runtime.sbuffer_used)) * 2.0f - 1.0f;
+        factor_value[1] = rand * brush_settings->random_saturation;
+      }
+      else {
+        factor_value[1] = random_color[1];
+      }
+
+      /* Apply random curve. */
+      if (brush_settings->flag2 & GP_BRUSH_USE_SAT_RAND_PRESS) {
+        factor_value[1] *= BKE_curvemapping_evaluateF(
+            brush_settings->curve_rand_saturation, 0, pen_pressure);
+      }
+    }
+
+    /* Apply randomness to Value. */
+    if (brush_settings->random_value > 0.0f) {
+      if ((brush_settings->flag2 & GP_BRUSH_USE_VAL_AT_STROKE) == 0) {
+        float rand = BLI_hash_int_01(BLI_hash_int_2d(iz, gpd->runtime.sbuffer_used)) * 2.0f - 1.0f;
+        factor_value[2] = rand * brush_settings->random_value;
+      }
+      else {
+        factor_value[2] = random_color[2];
+      }
+
+      /* Apply random curve. */
+      if (brush_settings->flag2 & GP_BRUSH_USE_VAL_RAND_PRESS) {
+        factor_value[2] *= BKE_curvemapping_evaluateF(
+            brush_settings->curve_rand_value, 0, pen_pressure);
+      }
+    }
+
+    rgb_to_hsv_v(tpt->vert_color, hsv);
+    add_v3_v3(hsv, factor_value);
+    /* For Hue need to cover all range, but for Saturation and Value
+     * is not logic because the effect is too hard, so the value is just clamped. */
+    if (hsv[0] < 0.0f) {
+      hsv[0] += 1.0f;
+    }
+    else if (hsv[0] > 1.0f) {
+      hsv[0] -= 1.0f;
+    }
+
+    CLAMP3(hsv, 0.0f, 1.0f);
+    hsv_to_rgb_v(hsv, tpt->vert_color);
+  }
+}
+
+void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
+                                         Object *ob,
+                                         ToolSettings *ts,
+                                         Brush *brush,
+                                         Material *material,
+                                         float random_color[3],
+                                         float pen_pressure)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   Object *ob_eval = (Object *)DEG_get_evaluated_id(depsgraph, &ob->id);
   bGPdata *gpd_eval = (bGPdata *)ob_eval->data;
   MaterialGPencilStyle *gp_style = material->gp_style;
+
+  int idx = gpd->runtime.sbuffer_used;
+  tGPspoint *tpt = (tGPspoint *)gpd->runtime.sbuffer + idx;
 
   float vertex_color[4];
   copy_v3_v3(vertex_color, brush->rgb);
@@ -2593,15 +2741,18 @@ void ED_gpencil_sbuffer_vertex_color_set(
   }
   /* Copy stroke vertex color. */
   if (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush)) {
-    copy_v4_v4(gpd->runtime.vert_color, vertex_color);
+    copy_v4_v4(tpt->vert_color, vertex_color);
   }
   else {
-    copy_v4_v4(gpd->runtime.vert_color, gp_style->stroke_rgba);
+    copy_v4_v4(tpt->vert_color, gp_style->stroke_rgba);
   }
 
-  /* Copy to eval data because paint operators don't tag refresh until end for speedup painting. */
+  /* Random Color. */
+  gpencil_sbuffer_vertex_color_random(gpd, brush, tpt, random_color, pen_pressure);
+
+  /* Copy to eval data because paint operators don't tag refresh until end for speedup
+     painting. */
   if (gpd_eval != NULL) {
-    copy_v4_v4(gpd_eval->runtime.vert_color, gpd->runtime.vert_color);
     copy_v4_v4(gpd_eval->runtime.vert_color_fill, gpd->runtime.vert_color_fill);
     gpd_eval->runtime.matid = gpd->runtime.matid;
   }

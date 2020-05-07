@@ -44,38 +44,6 @@ def gpencil_stroke_placement_settings(context, layout):
         row.prop_enum(tool_settings, propname, 'CURSOR', text="Cursor")
 
 
-def gpencil_active_brush_settings_simple(context, layout):
-    tool_settings = context.tool_settings
-    brush = tool_settings.gpencil_paint.brush
-    if brush is None:
-        layout.label(text="No Active Brush")
-        return
-
-    col = layout.column()
-    col.label(text="Active Brush:      ")
-
-    row = col.row(align=True)
-    row.operator_context = 'EXEC_REGION_WIN'
-    row.operator_menu_enum("gpencil.brush_change", "brush", text="", icon='BRUSH_DATA')
-    row.prop(brush, "name", text="")
-
-    col.prop(brush, "size", slider=True)
-    row = col.row(align=True)
-    row.prop(brush, "use_random_pressure", text="", icon='RNDCURVE')
-    row.prop(brush, "pen_sensitivity_factor", slider=True)
-    row.prop(brush, "use_pressure", text="", icon='STYLUS_PRESSURE')
-    row = col.row(align=True)
-    row.prop(brush, "use_random_strength", text="", icon='RNDCURVE')
-    row.prop(brush, "strength", slider=True)
-    row.prop(brush, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
-    row = col.row(align=True)
-    row.prop(brush, "jitter", slider=True)
-    row.prop(brush, "use_jitter_pressure", text="", icon='STYLUS_PRESSURE')
-    row = col.row()
-    row.prop(brush, "angle", slider=True)
-    row.prop(brush, "angle_factor", text="Factor", slider=True)
-
-
 # XXX: To be replaced with active tools
 class AnnotationDrawingToolsPanel:
     # subclass must set
@@ -575,30 +543,6 @@ class AnnotationOnionSkin:
         row = sub.row(align=True)
         row.prop(gpl, "annotation_onion_after_color", text="")
         sub.prop(gpl, "annotation_onion_after_range", text="After")
-
-
-class GreasePencilToolsPanel:
-    # For use in "2D" Editors without their own toolbar
-    # subclass must set
-    # bl_space_type = 'IMAGE_EDITOR'
-    bl_label = "Grease Pencil Settings"
-    bl_region_type = 'UI'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, _context):
-        # XXX - disabled in 2.8 branch.
-        # return (context.gpencil_data is not None)
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-
-        gpencil_active_brush_settings_simple(context, layout)
-
-        layout.separator()
-
-        gpencil_stroke_placement_settings(context, layout)
 
 
 class GreasePencilMaterialsPanel:

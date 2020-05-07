@@ -1076,9 +1076,21 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         row = layout.row(align=True)
         row.prop(brush, "size", text="Radius")
         row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
+
+        if gp_settings.use_pressure and context.area.type == 'PROPERTIES':
+            col = layout.column()
+            col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True,
+                                      use_negative_slope=True)
+
         row = layout.row(align=True)
         row.prop(gp_settings, "pen_strength", slider=True)
         row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
+
+        if gp_settings.use_strength_pressure and context.area.type == 'PROPERTIES':
+            col = layout.column()
+            col.template_curve_mapping(gp_settings, "curve_strength", brush=True,
+                                        use_negative_slope=True)
+
         if brush.gpencil_tool == 'TINT':
             row = layout.row(align=True)
             row.prop(gp_settings, "vertex_mode", text="Mode")

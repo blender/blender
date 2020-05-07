@@ -1606,7 +1606,9 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        brush = context.tool_settings.gpencil_paint.brush
+        tool_settings = context.tool_settings
+        brush = tool_settings.gpencil_paint.brush
+        mode = tool_settings.gpencil_paint.color_mode
         gp_settings = brush.gpencil_settings
 
         if self.is_popover:
@@ -1615,83 +1617,68 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
             row.label(text=self.bl_label)
 
         col = layout.column()
-        col.active = gp_settings.use_settings_random
+        col.enabled = gp_settings.use_settings_random
 
-        col.prop(gp_settings, "random_pressure", text="Pressure", slider=True)
-        col.prop(gp_settings, "random_strength", text="Strength", slider=True)
-        col.prop(gp_settings, "uv_random", text="UV", slider=True)
+        row = col.row(align=True)
+        row.prop(gp_settings, "random_pressure", text="Radius", slider=True)
+        row.prop(gp_settings, "use_stroke_random_radius", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_radius", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_radius and self.is_popover is False:
+            col.template_curve_mapping(gp_settings, "curve_random_pressure", brush=True,
+                                use_negative_slope=True)
+
+        row = col.row(align=True)
+        row.prop(gp_settings, "random_strength", text="Strength", slider=True)
+        row.prop(gp_settings, "use_stroke_random_strength", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_strength", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_strength and self.is_popover is False:
+            col.template_curve_mapping(gp_settings, "curve_random_strength", brush=True,
+                                use_negative_slope=True)
+
+        row = col.row(align=True)
+        row.prop(gp_settings, "uv_random", text="UV", slider=True)
+        row.prop(gp_settings, "use_stroke_random_uv", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_uv", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_uv and self.is_popover is False:
+            col.template_curve_mapping(gp_settings, "curve_random_uv", brush=True,
+                                use_negative_slope=True)
+
+        col.separator()
+
+        col1 = col.column(align=True)
+        col1.enabled = mode == 'VERTEXCOLOR' and gp_settings.use_settings_random
+        row = col1.row(align=True)
+        row.prop(gp_settings, "random_hue_factor", slider=True)
+        row.prop(gp_settings, "use_stroke_random_hue", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_hue", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_hue and self.is_popover is False:
+            col1.template_curve_mapping(gp_settings, "curve_random_hue", brush=True,
+                                use_negative_slope=True)
+
+        row = col1.row(align=True)
+        row.prop(gp_settings, "random_saturation_factor", slider=True)
+        row.prop(gp_settings, "use_stroke_random_sat", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_sat", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_sat and self.is_popover is False:
+            col1.template_curve_mapping(gp_settings, "curve_random_saturation", brush=True,
+                                use_negative_slope=True)
+
+        row = col1.row(align=True)
+        row.prop(gp_settings, "random_value_factor", slider=True)
+        row.prop(gp_settings, "use_stroke_random_val", text="", icon='GP_SELECT_STROKES')
+        row.prop(gp_settings, "use_random_press_val", text="", icon='STYLUS_PRESSURE')
+        if gp_settings.use_random_press_val and self.is_popover is False:
+            col1.template_curve_mapping(gp_settings, "curve_random_value", brush=True,
+                                use_negative_slope=True)
+
+        col.separator()
 
         row = col.row(align=True)
         row.prop(gp_settings, "pen_jitter", slider=True)
         row.prop(gp_settings, "use_jitter_pressure", text="", icon='STYLUS_PRESSURE')
-
-
-# Grease Pencil drawingcurves
-class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
-    bl_context = ".greasepencil_paint"
-    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_settings'
-    bl_label = "Curves"
-    bl_category = "Tool"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        brush = context.tool_settings.gpencil_paint.brush
-        return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL', 'TINT'}
-
-    def draw(self, context):
-        pass
-
-
-class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):
-    bl_context = ".greasepencil_paint"
-    bl_label = "Sensitivity"
-    bl_category = "Tool"
-    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        brush = context.tool_settings.gpencil_paint.brush
-        gp_settings = brush.gpencil_settings
-
-        layout.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True,
-                                      use_negative_slope=True)
-
-
-class VIEW3D_PT_tools_grease_pencil_brushcurves_strength(View3DPanel, Panel):
-    bl_context = ".greasepencil_paint"
-    bl_label = "Strength"
-    bl_category = "Tool"
-    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        brush = context.tool_settings.gpencil_paint.brush
-        gp_settings = brush.gpencil_settings
-
-        layout.template_curve_mapping(gp_settings, "curve_strength", brush=True,
-                                      use_negative_slope=True)
-
-
-class VIEW3D_PT_tools_grease_pencil_brushcurves_jitter(View3DPanel, Panel):
-    bl_context = ".greasepencil_paint"
-    bl_label = "Jitter"
-    bl_category = "Tool"
-    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        brush = context.tool_settings.gpencil_paint.brush
-        gp_settings = brush.gpencil_settings
-
-        layout.template_curve_mapping(gp_settings, "curve_jitter", brush=True,
-                                      use_negative_slope=True)
+        if gp_settings.use_jitter_pressure and self.is_popover is False:
+            col.template_curve_mapping(gp_settings, "curve_jitter", brush=True,
+                                use_negative_slope=True)
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_paint_falloff(GreasePencilBrushFalloff, Panel, View3DPaintPanel):
@@ -2187,11 +2174,13 @@ class VIEW3D_PT_tools_grease_pencil_weight_appearance(GreasePencilDisplayPanel, 
     bl_category = "Tool"
     bl_label = "Cursor"
 
+
 class VIEW3D_PT_tools_grease_pencil_vertex_appearance(GreasePencilDisplayPanel, Panel, View3DPanel):
     bl_context = ".greasepencil_vertex"
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_vertex_paint_settings'
     bl_category = "Tool"
     bl_label = "Cursor"
+
 
 class VIEW3D_PT_gpencil_brush_presets(Panel, PresetPanel):
     """Brush settings"""
@@ -2269,10 +2258,6 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_post_processing,
     VIEW3D_PT_tools_grease_pencil_brush_random,
     VIEW3D_PT_tools_grease_pencil_brush_stabilizer,
-    VIEW3D_PT_tools_grease_pencil_brushcurves,
-    VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity,
-    VIEW3D_PT_tools_grease_pencil_brushcurves_strength,
-    VIEW3D_PT_tools_grease_pencil_brushcurves_jitter,
     VIEW3D_PT_tools_grease_pencil_paint_appearance,
     VIEW3D_PT_tools_grease_pencil_sculpt_select,
     VIEW3D_PT_tools_grease_pencil_sculpt_settings,

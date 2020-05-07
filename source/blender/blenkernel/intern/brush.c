@@ -89,6 +89,19 @@ static void brush_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
         brush_src->gpencil_settings->curve_strength);
     brush_dst->gpencil_settings->curve_jitter = BKE_curvemapping_copy(
         brush_src->gpencil_settings->curve_jitter);
+
+    brush_dst->gpencil_settings->curve_rand_pressure = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_rand_pressure);
+    brush_dst->gpencil_settings->curve_rand_strength = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_rand_strength);
+    brush_dst->gpencil_settings->curve_rand_uv = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_rand_uv);
+    brush_dst->gpencil_settings->curve_rand_hue = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_rand_hue);
+    brush_dst->gpencil_settings->curve_rand_saturation = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_rand_saturation);
+    brush_dst->gpencil_settings->curve_rand_value = BKE_curvemapping_copy(
+        brush_src->gpencil_settings->curve_rand_value);
   }
 
   /* enable fake user by default */
@@ -107,6 +120,14 @@ static void brush_free_data(ID *id)
     BKE_curvemapping_free(brush->gpencil_settings->curve_sensitivity);
     BKE_curvemapping_free(brush->gpencil_settings->curve_strength);
     BKE_curvemapping_free(brush->gpencil_settings->curve_jitter);
+
+    BKE_curvemapping_free(brush->gpencil_settings->curve_rand_pressure);
+    BKE_curvemapping_free(brush->gpencil_settings->curve_rand_strength);
+    BKE_curvemapping_free(brush->gpencil_settings->curve_rand_uv);
+    BKE_curvemapping_free(brush->gpencil_settings->curve_rand_hue);
+    BKE_curvemapping_free(brush->gpencil_settings->curve_rand_saturation);
+    BKE_curvemapping_free(brush->gpencil_settings->curve_rand_value);
+
     MEM_SAFE_FREE(brush->gpencil_settings);
   }
 
@@ -280,6 +301,13 @@ void BKE_brush_init_gpencil_settings(Brush *brush)
   brush->gpencil_settings->curve_sensitivity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   brush->gpencil_settings->curve_strength = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   brush->gpencil_settings->curve_jitter = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+
+  brush->gpencil_settings->curve_rand_pressure = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  brush->gpencil_settings->curve_rand_strength = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  brush->gpencil_settings->curve_rand_uv = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  brush->gpencil_settings->curve_rand_hue = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  brush->gpencil_settings->curve_rand_saturation = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  brush->gpencil_settings->curve_rand_value = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 /* add a new gp-brush */

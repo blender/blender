@@ -544,7 +544,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
       ED_gpencil_tpoint_to_point(region, origin, &tpoints[i], &gps->points[i]);
       mul_m4_v3(ob->imat, &gps->points[i].x);
       bGPDspoint *pt = &gps->points[i];
-      copy_v4_v4(pt->vert_color, gpd->runtime.vert_color);
+      copy_v4_v4(pt->vert_color, tpoints[i].vert_color);
     }
     /* Calc uv data along the stroke. */
     BKE_gpencil_stroke_uv_update(gps);

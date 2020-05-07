@@ -75,7 +75,7 @@ typedef struct BrushGpencilSettings {
   short fill_leak;
   /** Fill zoom factor */
   short fill_factor;
-  char _pad1[4];
+  int flag2;
 
   /** Number of simplify steps. */
   int fill_simplylvl;
@@ -118,11 +118,24 @@ typedef struct BrushGpencilSettings {
   int sculpt_mode_flag;
   /** Preset type (used to reset brushes - internal). */
   short preset_type;
-  char _pad3[6];
+  char _pad3[2];
+
+  /** Randomness for Hue. */
+  float random_hue;
+  /** Randomness for Saturation. */
+  float random_saturation;
+  /** Randomness for Value. */
+  float random_value;
 
   struct CurveMapping *curve_sensitivity;
   struct CurveMapping *curve_strength;
   struct CurveMapping *curve_jitter;
+  struct CurveMapping *curve_rand_pressure;
+  struct CurveMapping *curve_rand_strength;
+  struct CurveMapping *curve_rand_uv;
+  struct CurveMapping *curve_rand_hue;
+  struct CurveMapping *curve_rand_saturation;
+  struct CurveMapping *curve_rand_value;
 
   /* optional link of material to replace default in context */
   /** Material. */
@@ -203,6 +216,33 @@ typedef enum eGPDbrush_Flag {
   /* Post process trim stroke */
   GP_BRUSH_TRIM_STROKE = (1 << 16),
 } eGPDbrush_Flag;
+
+typedef enum eGPDbrush_Flag2 {
+  /* Brush use random Hue at stroke level */
+  GP_BRUSH_USE_HUE_AT_STROKE = (1 << 0),
+  /* Brush use random Saturation at stroke level */
+  GP_BRUSH_USE_SAT_AT_STROKE = (1 << 1),
+  /* Brush use random Value at stroke level */
+  GP_BRUSH_USE_VAL_AT_STROKE = (1 << 2),
+  /* Brush use random Pressure at stroke level */
+  GP_BRUSH_USE_PRESS_AT_STROKE = (1 << 3),
+  /* Brush use random Strength at stroke level */
+  GP_BRUSH_USE_STRENGTH_AT_STROKE = (1 << 4),
+  /* Brush use random UV at stroke level */
+  GP_BRUSH_USE_UV_AT_STROKE = (1 << 5),
+  /* Brush use Hue random pressure */
+  GP_BRUSH_USE_HUE_RAND_PRESS = (1 << 6),
+  /* Brush use Saturation random pressure */
+  GP_BRUSH_USE_SAT_RAND_PRESS = (1 << 7),
+  /* Brush use Value random pressure */
+  GP_BRUSH_USE_VAL_RAND_PRESS = (1 << 8),
+  /* Brush use Pressure random pressure */
+  GP_BRUSH_USE_PRESSURE_RAND_PRESS = (1 << 9),
+  /* Brush use Strength random pressure */
+  GP_BRUSH_USE_STRENGTH_RAND_PRESS = (1 << 10),
+  /* Brush use UV random pressure */
+  GP_BRUSH_USE_UV_RAND_PRESS = (1 << 11),
+} eGPDbrush_Flag2;
 
 /* BrushGpencilSettings->gp_fill_draw_mode */
 typedef enum eGP_FillDrawModes {

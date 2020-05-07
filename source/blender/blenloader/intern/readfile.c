@@ -3001,6 +3001,19 @@ static void direct_link_brush(FileData *fd, Brush *brush)
                                                          brush->gpencil_settings->curve_strength);
     brush->gpencil_settings->curve_jitter = newdataadr(fd, brush->gpencil_settings->curve_jitter);
 
+    brush->gpencil_settings->curve_rand_pressure = newdataadr(
+        fd, brush->gpencil_settings->curve_rand_pressure);
+    brush->gpencil_settings->curve_rand_strength = newdataadr(
+        fd, brush->gpencil_settings->curve_rand_strength);
+    brush->gpencil_settings->curve_rand_uv = newdataadr(fd,
+                                                        brush->gpencil_settings->curve_rand_uv);
+    brush->gpencil_settings->curve_rand_hue = newdataadr(fd,
+                                                         brush->gpencil_settings->curve_rand_hue);
+    brush->gpencil_settings->curve_rand_saturation = newdataadr(
+        fd, brush->gpencil_settings->curve_rand_saturation);
+    brush->gpencil_settings->curve_rand_value = newdataadr(
+        fd, brush->gpencil_settings->curve_rand_value);
+
     if (brush->gpencil_settings->curve_sensitivity) {
       direct_link_curvemapping(fd, brush->gpencil_settings->curve_sensitivity);
     }
@@ -3011,6 +3024,30 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 
     if (brush->gpencil_settings->curve_jitter) {
       direct_link_curvemapping(fd, brush->gpencil_settings->curve_jitter);
+    }
+
+    if (brush->gpencil_settings->curve_rand_pressure) {
+      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_pressure);
+    }
+
+    if (brush->gpencil_settings->curve_rand_strength) {
+      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_strength);
+    }
+
+    if (brush->gpencil_settings->curve_rand_uv) {
+      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_uv);
+    }
+
+    if (brush->gpencil_settings->curve_rand_hue) {
+      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_hue);
+    }
+
+    if (brush->gpencil_settings->curve_rand_saturation) {
+      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_saturation);
+    }
+
+    if (brush->gpencil_settings->curve_rand_value) {
+      direct_link_curvemapping(fd, brush->gpencil_settings->curve_rand_value);
     }
   }
 
