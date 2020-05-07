@@ -203,13 +203,17 @@ void GHOST_XrSession::requestEnd()
   xrRequestExitSession(m_oxr->session);
 }
 
-void GHOST_XrSession::end()
+void GHOST_XrSession::beginSession()
+{
+  XrSessionBeginInfo begin_info = {XR_TYPE_SESSION_BEGIN_INFO};
+  begin_info.primaryViewConfigurationType = m_oxr->view_type;
+  CHECK_XR(xrBeginSession(m_oxr->session, &begin_info), "Failed to cleanly begin the VR session.");
+}
+
+void GHOST_XrSession::endSession()
 {
   assert(m_oxr->session != XR_NULL_HANDLE);
-
   CHECK_XR(xrEndSession(m_oxr->session), "Failed to cleanly end the VR session.");
-  unbindGraphicsContext();
-  m_draw_info = nullptr;
 }
 
 GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
@@ -222,16 +226,11 @@ GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
 
   switch (lifecycle->state) {
     case XR_SESSION_STATE_READY: {
-      XrSessionBeginInfo begin_info = {XR_TYPE_SESSION_BEGIN_INFO};
-
-      begin_info.primaryViewConfigurationType = m_oxr->view_type;
-      CHECK_XR(xrBeginSession(m_oxr->session, &begin_info),
-               "Failed to cleanly begin the VR session.");
+      beginSession();
       break;
     }
     case XR_SESSION_STATE_STOPPING:
-      /* Runtime will change state to STATE_EXITING, don't destruct session yet. */
-      end();
+      endSession();
       break;
     case XR_SESSION_STATE_EXITING:
     case XR_SESSION_STATE_LOSS_PENDING:
