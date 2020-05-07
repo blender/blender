@@ -126,6 +126,8 @@ static void button2d_draw_intern(const bContext *C,
                                  const bool highlight)
 {
   ButtonGizmo2D *button = (ButtonGizmo2D *)gz;
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
 
   const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
   if (button->is_init == false) {
@@ -158,11 +160,10 @@ static void button2d_draw_intern(const bContext *C,
   bool is_3d = (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) != 0;
 
   if ((select == false) && (draw_options & ED_GIZMO_BUTTON_SHOW_HELPLINE)) {
-    float matrix_final_no_offset[4][4], viewport[4];
+    float matrix_final_no_offset[4][4];
     WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
-    GPU_viewport_size_get_f(viewport);
     immUniform2fv("viewportSize", &viewport[2]);
     immUniform1f("lineWidth", gz->line_width * U.pixelsize);
     immUniformColor4fv(color);
@@ -205,9 +206,18 @@ static void button2d_draw_intern(const bContext *C,
       GPU_line_smooth(true);
       GPU_polygon_smooth(false);
       for (uint i = 0; i < ARRAY_SIZE(button->shape_batch) && button->shape_batch[i]; i++) {
-        /* Invert line color for wire. */
-        GPU_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
+        const bool do_wires = (i == 1);
+        if (do_wires) {
+          GPU_batch_program_set_builtin(button->shape_batch[i],
+                                        GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+          GPU_batch_uniform_2fv(button->shape_batch[i], "viewportSize", &viewport[2]);
+          GPU_batch_uniform_1f(button->shape_batch[i], "lineWidth", gz->line_width * U.pixelsize);
+        }
+        else {
+          GPU_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
+        }
 
+        /* Invert line color for wire. */
         if (draw_options & ED_GIZMO_BUTTON_SHOW_BACKDROP) {
           /* If we have a backdrop already,
            * draw a contrasting shape over it instead of drawing it the same color.
@@ -222,7 +232,7 @@ static void button2d_draw_intern(const bContext *C,
           GPU_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
         }
 
-        // GPU_batch_draw(button->shape_batch[i]);
+        GPU_batch_draw(button->shape_batch[i]);
 
         if (draw_options & ED_GIZMO_BUTTON_SHOW_OUTLINE) {
           color[0] = 1.0f - color[0];
