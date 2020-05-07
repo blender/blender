@@ -43,11 +43,16 @@
 #define ccl_local __local
 #define ccl_local_param __local
 #define ccl_private __private
-#define ccl_loop_no_unroll __attribute__((opencl_unroll_hint(1)))
 #define ccl_restrict restrict
 #define ccl_ref
 #define ccl_align(n) __attribute__((aligned(n)))
 #define ccl_optional_struct_init
+
+#if __OPENCL_VERSION__ >= 200
+#  define ccl_loop_no_unroll __attribute__((opencl_unroll_hint(1)))
+#else
+#  define ccl_loop_no_unroll
+#endif
 
 #ifdef __SPLIT_KERNEL__
 #  define ccl_addr_space __global
