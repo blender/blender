@@ -1856,11 +1856,11 @@ void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter)
   glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, filter);
 }
 
-void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat)
+void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp)
 {
   WARN_NOT_BOUND(tex);
 
-  GLenum repeat = (use_repeat) ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+  GLenum repeat = (use_repeat) ? GL_REPEAT : (use_clamp) ? GL_CLAMP_TO_EDGE : GL_CLAMP_TO_BORDER;
 
   glActiveTexture(GL_TEXTURE0 + tex->number);
   glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, repeat);
@@ -1869,6 +1869,11 @@ void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat)
   }
   if (tex->target_base == GL_TEXTURE_3D) {
     glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_R, repeat);
+  }
+
+  if (repeat == GL_CLAMP_TO_BORDER) {
+    const float black[] = {0.0f, 0.0f, 0.0f, 0.0f};
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
   }
 }
 
