@@ -19,10 +19,10 @@
 /* For constants. */
 #include "BLI_math_base.h"
 
-#include "DNA_userdef_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_space_types.h"
-#include "DNA_anim_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_math_rotation.h"
 
