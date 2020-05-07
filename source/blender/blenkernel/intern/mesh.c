@@ -25,6 +25,7 @@
 
 #include "DNA_defaults.h"
 #include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -47,6 +48,7 @@
 #include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -142,6 +144,16 @@ static void mesh_free_data(ID *id)
   MEM_SAFE_FREE(mesh->mat);
 }
 
+static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Mesh *mesh = (Mesh *)id;
+  BKE_LIB_FOREACHID_PROCESS(data, mesh->texcomesh, IDWALK_CB_NEVER_SELF);
+  BKE_LIB_FOREACHID_PROCESS(data, mesh->key, IDWALK_CB_USER);
+  for (int i = 0; i < mesh->totcol; i++) {
+    BKE_LIB_FOREACHID_PROCESS(data, mesh->mat[i], IDWALK_CB_USER);
+  }
+}
+
 IDTypeInfo IDType_ID_ME = {
     .id_code = ID_ME,
     .id_filter = FILTER_ID_ME,
@@ -156,6 +168,7 @@ IDTypeInfo IDType_ID_ME = {
     .copy_data = mesh_copy_data,
     .free_data = mesh_free_data,
     .make_local = NULL,
+    .foreach_id = mesh_foreach_id,
 };
 
 enum {

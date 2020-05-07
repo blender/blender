@@ -947,12 +947,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_ME: {
-        Mesh *mesh = (Mesh *)id;
-        CALLBACK_INVOKE(mesh->texcomesh, IDWALK_CB_NEVER_SELF);
-        CALLBACK_INVOKE(mesh->key, IDWALK_CB_USER);
-        for (i = 0; i < mesh->totcol; i++) {
-          CALLBACK_INVOKE(mesh->mat[i], IDWALK_CB_USER);
-        }
+        BLI_assert(0);
         break;
       }
 
