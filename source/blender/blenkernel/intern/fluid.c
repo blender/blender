@@ -533,7 +533,6 @@ static bool BKE_fluid_modifier_init(
     /* Initially dt is equal to frame length (dt can change with adaptive-time stepping though). */
     mds->dt = mds->frame_length;
     mds->time_per_frame = 0;
-    mds->time_total = abs(scene_framenr - mds->cache_frame_start) * mds->frame_length;
 
     mmd->time = scene_framenr;
 
@@ -3547,7 +3546,7 @@ static int manta_step(
     Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me, FluidModifierData *mmd, int frame)
 {
   FluidDomainSettings *mds = mmd->domain;
-  float dt, frame_length, time_total;
+  float dt, frame_length, time_total, time_total_old;
   float time_per_frame;
   bool init_resolution = true;
 
@@ -3571,6 +3570,8 @@ static int manta_step(
   dt = mds->dt;
   time_per_frame = 0;
   time_total = mds->time_total;
+  /* Keep track of original total time to correct small errors at end of step. */
+  time_total_old = mds->time_total;
 
   BLI_mutex_lock(&object_update_lock);
 
@@ -3616,6 +3617,8 @@ static int manta_step(
     mds->time_per_frame = time_per_frame;
     mds->time_total = time_total;
   }
+  /* Total time must not exceed framecount times framelength. Correct tiny errors here. */
+  CLAMP(mds->time_total, mds->time_total, time_total_old + mds->frame_length);
 
   if (mds->type == FLUID_DOMAIN_TYPE_GAS && result) {
     manta_smoke_calc_transparency(mds, DEG_get_evaluated_view_layer(depsgraph));
@@ -3771,8 +3774,6 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   mds->frame_length = DT_DEFAULT * (25.0f / fps) * mds->time_scale;
   mds->dt = mds->frame_length;
   mds->time_per_frame = 0;
-  /* Get distance between cache start and current frame for total time. */
-  mds->time_total = abs(scene_framenr - mds->cache_frame_start) * mds->frame_length;
 
   /* Ensure that gravity is copied over every frame (could be keyframed). */
   if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
@@ -3805,12 +3806,13 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
   with_guide = mds->flags & FLUID_DOMAIN_USE_GUIDE;
   with_particles = drops || bubble || floater;
 
-  bool has_data, has_noise, has_mesh, has_particles, has_guide;
+  bool has_data, has_noise, has_mesh, has_particles, has_guide, has_config;
   has_data = manta_has_data(mds->fluid, mmd, scene_framenr);
   has_noise = manta_has_noise(mds->fluid, mmd, scene_framenr);
   has_mesh = manta_has_mesh(mds->fluid, mmd, scene_framenr);
   has_particles = manta_has_particles(mds->fluid, mmd, scene_framenr);
   has_guide = manta_has_guiding(mds->fluid, mmd, scene_framenr, guide_parent);
+  has_config = false;
 
   bool baking_data, baking_noise, baking_mesh, baking_particles, baking_guide;
   baking_data = mds->cache_flag & FLUID_DOMAIN_BAKING_DATA;
@@ -3921,12 +3923,16 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
 
     /* Read mesh cache. */
     if (with_liquid && with_mesh) {
+      has_config = manta_read_config(mds->fluid, mmd, mesh_frame);
+
       /* Update mesh data from file is faster than via Python (manta_read_mesh()). */
       has_mesh = manta_update_mesh_structures(mds->fluid, mmd, mesh_frame);
     }
 
     /* Read particles cache. */
     if (with_liquid && with_particles) {
+      has_config = manta_read_config(mds->fluid, mmd, particles_frame);
+
       if (!baking_data && !baking_particles && next_particles) {
         /* Update particle data from file is faster than via Python (manta_read_particles()). */
         has_particles = manta_update_particle_structures(mds->fluid, mmd, particles_frame);
@@ -3944,10 +3950,10 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
 
     /* Read noise and data cache */
     if (with_smoke && with_noise) {
+      has_config = manta_read_config(mds->fluid, mmd, noise_frame);
 
       /* Only reallocate when just reading cache or when resuming during bake. */
-      if ((!baking_noise || (baking_noise && resume_noise)) &&
-          manta_read_config(mds->fluid, mmd, noise_frame) &&
+      if ((!baking_noise || (baking_noise && resume_noise)) && has_config &&
           manta_needs_realloc(mds->fluid, mmd)) {
         BKE_fluid_reallocate_fluid(mds, mds->res, 1);
       }
@@ -3965,8 +3971,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
         copy_v3_v3_int(o_min, mds->res_min);
         copy_v3_v3_int(o_max, mds->res_max);
         copy_v3_v3_int(o_shift, mds->shift);
-        if (manta_read_config(mds->fluid, mmd, data_frame) &&
-            manta_needs_realloc(mds->fluid, mmd)) {
+        if (has_config && manta_needs_realloc(mds->fluid, mmd)) {
           BKE_fluid_reallocate_copy_fluid(
               mds, o_res, mds->res, o_min, mds->res_min, o_max, o_shift, mds->shift);
         }
@@ -3982,10 +3987,11 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *mmd,
     }
     /* Read data cache only */
     else {
+      has_config = manta_read_config(mds->fluid, mmd, data_frame);
+
       if (with_smoke) {
         /* Read config and realloc fluid object if needed. */
-        if (manta_read_config(mds->fluid, mmd, data_frame) &&
-            manta_needs_realloc(mds->fluid, mmd)) {
+        if (has_config && manta_needs_realloc(mds->fluid, mmd)) {
           BKE_fluid_reallocate_fluid(mds, mds->res, 1);
         }
         /* Read data cache */

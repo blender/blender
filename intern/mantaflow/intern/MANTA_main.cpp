@@ -1254,6 +1254,7 @@ bool MANTA::writeConfiguration(FluidModifierData *mmd, int framenr)
   gzwrite(gzf, &mds->res_min, 3 * sizeof(int));
   gzwrite(gzf, &mds->res_max, 3 * sizeof(int));
   gzwrite(gzf, &mds->active_color, 3 * sizeof(float));
+  gzwrite(gzf, &mds->time_total, sizeof(int));
 
   return (gzclose(gzf) == Z_OK);
 }
@@ -1353,6 +1354,8 @@ bool MANTA::readConfiguration(FluidModifierData *mmd, int framenr)
   gzread(gzf, &mds->res_min, 3 * sizeof(int));
   gzread(gzf, &mds->res_max, 3 * sizeof(int));
   gzread(gzf, &mds->active_color, 3 * sizeof(float));
+  gzread(gzf, &mds->time_total, sizeof(int));
+
   mds->total_cells = mds->res[0] * mds->res[1] * mds->res[2];
 
   return (gzclose(gzf) == Z_OK);

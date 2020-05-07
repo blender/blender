@@ -552,7 +552,7 @@ def bake_noise_process_$ID$(framenr, format_data, format_noise, path_data, path_
     \n\
     sn$ID$.frame = framenr\n\
     sn$ID$.frameLength = frameLength_s$ID$\n\
-    sn$ID$.timeTotal = abs(framenr - start_frame_s$ID$) * frameLength_s$ID$\n\
+    sn$ID$.timeTotal = timeTotal_s$ID$\n\
     sn$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for noise\n\
     \n\
     smoke_step_noise_$ID$(framenr)\n\
@@ -570,7 +570,7 @@ def bake_mesh_process_$ID$(framenr, format_data, format_mesh, format_particles, 
     \n\
     sm$ID$.frame = framenr\n\
     sm$ID$.frameLength = frameLength_s$ID$\n\
-    sm$ID$.timeTotal = abs(framenr - start_frame_s$ID$) * frameLength_s$ID$\n\
+    sm$ID$.timeTotal = timeTotal_s$ID$\n\
     sm$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for mesh\n\
     \n\
     #if using_smoke_s$ID$:\n\
@@ -594,7 +594,7 @@ def bake_particles_process_$ID$(framenr, format_data, format_particles, path_dat
     \n\
     sp$ID$.frame = framenr\n\
     sp$ID$.frameLength = frameLength_s$ID$\n\
-    sp$ID$.timeTotal = abs(framenr - start_frame_s$ID$) * frameLength_s$ID$\n\
+    sp$ID$.timeTotal = timeTotal_s$ID$\n\
     sp$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for particles\n\
     \n\
     #if using_smoke_s$ID$:\n\
