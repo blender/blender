@@ -60,28 +60,13 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     }
   }
 
-  void provide_buffer(void *buffer, uint size)
-  {
-    m_unused_borrowed_buffers.append(ArrayRef<char>((char *)buffer, size));
-  }
-
-  template<uint Size, uint Alignment>
-  void provide_buffer(AlignedBuffer<Size, Alignment> &aligned_buffer)
-  {
-    this->provide_buffer(aligned_buffer.ptr(), Size);
-  }
-
-  template<typename T> T *allocate()
-  {
-    return (T *)this->allocate(sizeof(T), alignof(T));
-  }
-
-  template<typename T> MutableArrayRef<T> allocate_array(uint length)
-  {
-    return MutableArrayRef<T>((T *)this->allocate(sizeof(T) * length), length);
-  }
-
-  void *allocate(uint size, uint alignment = 4)
+  /**
+   * Get a pointer to a memory buffer with the given size an alignment. The memory buffer will be
+   * freed when this LinearAllocator is destructed.
+   *
+   * The alignment has to be a power of 2.
+   */
+  void *allocate(uint size, uint alignment)
   {
     BLI_assert(alignment >= 1);
     BLI_assert(is_power_of_2_i(alignment));
@@ -104,6 +89,55 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     }
   };
 
+  /**
+   * Allocate a memory buffer that can hold an instance of T.
+   *
+   * This method only allocates memory and does not construct the instance.
+   */
+  template<typename T> T *allocate()
+  {
+    return (T *)this->allocate(sizeof(T), alignof(T));
+  }
+
+  /**
+   * Allocate a memory buffer that can hold T array with the given size.
+   *
+   * This method only allocates memory and does not construct the instance.
+   */
+  template<typename T> MutableArrayRef<T> allocate_array(uint size)
+  {
+    return MutableArrayRef<T>((T *)this->allocate(sizeof(T) * size, alignof(T)), size);
+  }
+
+  /**
+   * Construct an instance of T in memory provided by this allocator.
+   *
+   * Arguments passed to this method will be forwarded to the constructor of T.
+   *
+   * You must not call `delete` on the returned pointer. Instead, the destructor has to be called
+   * explicitely.
+   */
+  template<typename T, typename... Args> T *construct(Args &&... args)
+  {
+    void *buffer = this->allocate(sizeof(T), alignof(T));
+    T *value = new (buffer) T(std::forward<Args>(args)...);
+    return value;
+  }
+
+  /**
+   * Copy the given array into a memory buffer provided by this allocator.
+   */
+  template<typename T> MutableArrayRef<T> construct_array_copy(ArrayRef<T> src)
+  {
+    MutableArrayRef<T> dst = this->allocate_array<T>(src.size());
+    uninitialized_copy_n(src.begin(), src.size(), dst.begin());
+    return dst;
+  }
+
+  /**
+   * Copy the given string into a memory buffer provided by this allocator. The returned string is
+   * always null terminated.
+   */
   StringRefNull copy_string(StringRef str)
   {
     uint alloc_size = str.size() + 1;
@@ -112,37 +146,50 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     return StringRefNull((const char *)buffer);
   }
 
-  template<typename T, typename... Args> T *construct(Args &&... args)
+  MutableArrayRef<void *> allocate_elements_and_pointer_array(uint element_amount,
+                                                              uint element_size,
+                                                              uint element_alignment)
   {
-    void *buffer = this->allocate(sizeof(T), alignof(T));
-    T *value = new (buffer) T(std::forward<Args>(args)...);
-    return value;
-  }
+    void *pointer_buffer = this->allocate(element_amount * sizeof(void *), alignof(void *));
+    void *elements_buffer = this->allocate(element_amount * element_size, element_alignment);
 
-  template<typename T, typename... Args>
-  ArrayRef<T *> construct_elements_and_pointer_array(uint n, Args &&... args)
-  {
-    void *pointer_buffer = this->allocate(n * sizeof(T *), alignof(T *));
-    void *element_buffer = this->allocate(n * sizeof(T), alignof(T));
-
-    MutableArrayRef<T *> pointers((T **)pointer_buffer, n);
-    T *elements = (T *)element_buffer;
-
-    for (uint i : IndexRange(n)) {
-      pointers[i] = elements + i;
-    }
-    for (uint i : IndexRange(n)) {
-      new (elements + i) T(std::forward<Args>(args)...);
+    MutableArrayRef<void *> pointers((void **)pointer_buffer, element_amount);
+    void *next_element_buffer = elements_buffer;
+    for (uint i : IndexRange(element_amount)) {
+      pointers[i] = next_element_buffer;
+      next_element_buffer = POINTER_OFFSET(next_element_buffer, element_size);
     }
 
     return pointers;
   }
 
-  template<typename T> MutableArrayRef<T> construct_array_copy(ArrayRef<T> source)
+  template<typename T, typename... Args>
+  ArrayRef<T *> construct_elements_and_pointer_array(uint n, Args &&... args)
   {
-    T *buffer = (T *)this->allocate(source.byte_size(), alignof(T));
-    uninitialized_copy_n(source.begin(), source.size(), buffer);
-    return MutableArrayRef<T>(buffer, source.size());
+    MutableArrayRef<void *> void_pointers = this->allocate_elements_and_pointer_array(
+        n, sizeof(T), alignof(T));
+    MutableArrayRef<T *> pointers = void_pointers.cast<T *>();
+
+    for (uint i : IndexRange(n)) {
+      new (pointers[i]) T(std::forward<Args>(args)...);
+    }
+
+    return pointers;
+  }
+
+  /**
+   * Tell the allocator to use up the given memory buffer, before allocating new memory from the
+   * system.
+   */
+  void provide_buffer(void *buffer, uint size)
+  {
+    m_unused_borrowed_buffers.append(ArrayRef<char>((char *)buffer, size));
+  }
+
+  template<uint Size, uint Alignment>
+  void provide_buffer(AlignedBuffer<Size, Alignment> &aligned_buffer)
+  {
+    this->provide_buffer(aligned_buffer.ptr(), Size);
   }
 
  private:

@@ -508,6 +508,16 @@ template<typename T> class MutableArrayRef {
     BLI_assert(m_size > 0);
     return m_start[m_size - 1];
   }
+
+  /**
+   * Get a new array ref to the same underlying memory buffer. No conversions are done.
+   */
+  template<typename NewT> MutableArrayRef<NewT> cast() const
+  {
+    BLI_assert((m_size * sizeof(T)) % sizeof(NewT) == 0);
+    uint new_size = m_size * sizeof(T) / sizeof(NewT);
+    return MutableArrayRef<NewT>(reinterpret_cast<NewT *>(m_start), new_size);
+  }
 };
 
 /**
