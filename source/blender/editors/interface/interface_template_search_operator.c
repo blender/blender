@@ -16,6 +16,9 @@
 
 /** \file
  * \ingroup edinterface
+ *
+ * Search available operators by scanning all and checking their poll function.
+ * accessed via the #WM_OT_search_operator operator.
  */
 
 #include <string.h>
@@ -42,8 +45,6 @@
 
 #include "UI_interface.h"
 #include "interface_intern.h"
-
-/* For key-map item access. */
 
 /* -------------------------------------------------------------------- */
 /** \name Operator Search Template Implementation

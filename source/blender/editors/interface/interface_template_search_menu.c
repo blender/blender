@@ -16,6 +16,9 @@
 
 /** \file
  * \ingroup edinterface
+ *
+ * Search available menu items via the user interface & key-maps.
+ * Accessed via the #WM_OT_search_menu operator.
  */
 
 #include <string.h>
@@ -65,8 +68,17 @@
 /* Unicode arrow. */
 #define MENU_SEP "\xe2\x96\xb6"
 
+/**
+ * Use when #menu_items_from_ui_create is called with `include_all_areas`.
+ * so we can run the menu item in the area it was extracted from.
+ */
 struct MenuSearch_Context {
+  /**
+   * Index into `Area.ui_type` #EnumPropertyItem or the top-bar when -1.
+   * Needed to get the display-name to use as a prefix for each menu item.
+   */
   int space_type_ui_index;
+
   ScrArea *area;
   ARegion *region;
 };
@@ -74,9 +86,10 @@ struct MenuSearch_Context {
 struct MenuSearch_Parent {
   struct MenuSearch_Parent *parent;
   MenuType *parent_mt;
-  /* Set while writing menu items only. */
-  struct MenuSearch_Parent *temp_child;
   const char *drawstr;
+
+  /** Set while writing menu items only. */
+  struct MenuSearch_Parent *temp_child;
 };
 
 struct MenuSearch_Item {
@@ -97,7 +110,7 @@ struct MenuSearch_Item {
   } type;
 
   union {
-    /* Operator menu item. */
+    /** Operator menu item. */
     struct {
       wmOperatorType *type;
       PointerRNA *opptr;
@@ -105,7 +118,7 @@ struct MenuSearch_Item {
       bContextStore *context;
     } op;
 
-    /* Property (only for check-boxe/boolean). */
+    /** Property (only for check-box/boolean). */
     struct {
       PointerRNA ptr;
       PropertyRNA *prop;
@@ -115,10 +128,7 @@ struct MenuSearch_Item {
     } rna;
   };
 
-  /**
-   * Set when we need each menu item to be able to set it's own context.
-   * may be NULL.
-   */
+  /** Set when we need each menu item to be able to set it's own context. may be NULL. */
   struct MenuSearch_Context *wm_context;
 };
 
@@ -234,7 +244,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
       continue;
     }
     LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers[handler_index]) {
-      /* During this loop, ui handlers for nested menus can tag multiple handlers free. */
+      /* During this loop, UI handlers for nested menus can tag multiple handlers free. */
       if (handler_base->flag & WM_HANDLER_DO_FREE) {
         continue;
       }
@@ -272,6 +282,9 @@ static void menu_types_add_from_keymap_items(bContext *C,
   }
 }
 
+/**
+ * Display all operators (last). Developer-only convenience feature.
+ */
 static void menu_items_from_all_operators(bContext *C, struct MenuSearch_Data *data)
 {
   /* Add to temporary list so we can sort them separately. */
@@ -368,11 +381,12 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
   int space_type_ui_items_len = 0;
   bool space_type_ui_items_free = false;
 
-  /* Types match, cycle the subtype. */
+  /* Text used as prefix for top-bar menu items. */
+  const char *global_menu_prefix = NULL;
 
-  PropertyRNA *prop_ui_type = NULL;
   if (include_all_areas) {
     /* First create arrays for ui_type. */
+    PropertyRNA *prop_ui_type = NULL;
     {
       PointerRNA ptr;
       RNA_pointer_create(NULL, &RNA_Area, NULL, &ptr);
@@ -384,12 +398,9 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
                               &space_type_ui_items_len,
                               &space_type_ui_items_free);
 
-      wm_contexts = BLI_memarena_alloc(memarena, sizeof(*wm_contexts) * space_type_ui_items_len);
-
+      wm_contexts = BLI_memarena_calloc(memarena, sizeof(*wm_contexts) * space_type_ui_items_len);
       for (int i = 0; i < space_type_ui_items_len; i++) {
         wm_contexts[i].space_type_ui_index = -1;
-        wm_contexts[i].area = NULL;
-        wm_contexts[i].region = NULL;
       }
     }
 
@@ -420,6 +431,8 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
         wm_contexts[space_type_ui_index].region = region;
       }
     }
+
+    global_menu_prefix = CTX_IFACE_(RNA_property_translation_context(prop_ui_type), "Top Bar");
   }
 
   GHashIterator iter;
@@ -675,12 +688,11 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
     BLI_assert(BLI_dynstr_get_len(dyn_str) == 0);
 
     if (include_all_areas) {
-      BLI_dynstr_appendf(
-          dyn_str,
-          "%s: ",
-          (item->wm_context != NULL) ?
-              space_type_ui_items[item->wm_context->space_type_ui_index].name :
-              CTX_IFACE_(RNA_property_translation_context(prop_ui_type), "Top Bar"));
+      BLI_dynstr_appendf(dyn_str,
+                         "%s: ",
+                         (item->wm_context != NULL) ?
+                             space_type_ui_items[item->wm_context->space_type_ui_index].name :
+                             global_menu_prefix);
     }
 
     if (item->menu_parent != NULL) {
@@ -749,6 +761,17 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
     }
   }
 
+  /* Include all operators for developers,
+   * since it can be handy to have a quick way to access any operator,
+   * including operators being developed which haven't yet been added into the interface.
+   *
+   * These are added after all menu items so developers still get normal behavior by default,
+   * unless searching for something that isn't already in a menu (or scroll down).
+   *
+   * Keep this behind a developer only check:
+   * - Many operators need options to be set to give useful results, see: T74157.
+   * - User who really prefer to list all operators can use #WM_OT_search_operator.
+   */
   if (U.flag & USER_DEVELOPER_UI) {
     menu_items_from_all_operators(C, data);
   }
