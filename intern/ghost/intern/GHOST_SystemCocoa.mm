@@ -1063,14 +1063,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
   }
   switch (eventType) {
     case GHOST_kEventWindowClose:
-      // check for index of mainwindow as it would quit blender without dialog and discard
-      if ([windowsList count] > 1 &&
-          window->getCocoaWindow() != [windowsList objectAtIndex:[windowsList count] - 1]) {
-        pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window));
-      }
-      else {
-        handleQuitRequest();  // -> quit dialog
-      }
+      pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window));
       break;
     case GHOST_kEventWindowActivate:
       m_windowManager->setActiveWindow(window);
