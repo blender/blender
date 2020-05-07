@@ -20,6 +20,7 @@
 from bpy.types import Header, Panel, Menu, UIList
 
 
+
 class FILEBROWSER_HT_header(Header):
     bl_space_type = 'FILE_BROWSER'
 
@@ -31,8 +32,7 @@ class FILEBROWSER_HT_header(Header):
         if st.active_operator is None:
             layout.template_header()
 
-        layout.menu("FILEBROWSER_MT_view")
-        layout.menu("FILEBROWSER_MT_select")
+        FILEBROWSER_MT_editor_menus.draw_collapsible(context, layout)
 
         # can be None when save/reload with a file selector open
 
@@ -411,6 +411,17 @@ class FILEBROWSER_PT_directory_path(Panel):
             ).region_type = 'TOOL_PROPS'
 
 
+class FILEBROWSER_MT_editor_menus(Menu):
+    bl_idname = "FILEBROWSER_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.menu("FILEBROWSER_MT_view")
+        layout.menu("FILEBROWSER_MT_select")
+
+
 class FILEBROWSER_MT_view(Menu):
     bl_label = "View"
 
@@ -502,6 +513,7 @@ classes = (
     FILEBROWSER_PT_bookmarks_recents,
     FILEBROWSER_PT_advanced_filter,
     FILEBROWSER_PT_directory_path,
+    FILEBROWSER_MT_editor_menus,
     FILEBROWSER_MT_view,
     FILEBROWSER_MT_select,
     FILEBROWSER_MT_context_menu,
