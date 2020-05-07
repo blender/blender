@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 struct ID;
+struct LibraryForeachIDData;
 struct Main;
 
 /** IDTypeInfo.flags. */
@@ -59,6 +60,8 @@ typedef void (*IDTypeFreeDataFunction)(struct ID *id);
 
 /** \param flag: See BKE_lib_id.h's LIB_ID_MAKELOCAL_... flags. */
 typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, const int flags);
+
+typedef void (*IDTypeForeachIDFunction)(struct ID *id, struct LibraryForeachIDData *data);
 
 typedef struct IDTypeInfo {
   /* ********** General IDType data. ********** */
@@ -121,6 +124,12 @@ typedef struct IDTypeInfo {
    * `BKE_lib_id_make_local_generic()` is enough.
    */
   IDTypeMakeLocalFunction make_local;
+
+  /**
+   * Called by `BKE_library_foreach_ID_link()` to apply a callback over all other ID usages (ID
+   * pointers) of given data-block.
+   */
+  IDTypeForeachIDFunction foreach_id;
 } IDTypeInfo;
 
 /* ********** Declaration of each IDTypeInfo. ********** */

@@ -71,6 +71,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -165,6 +166,38 @@ typedef struct LibraryForeachIDData {
   BLI_LINKSTACK_DECLARE(ids_todo, ID *);
 } LibraryForeachIDData;
 
+bool BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int cb_flag)
+{
+  if (!(data->status & IDWALK_STOP)) {
+    const int flag = data->flag;
+    ID *old_id = *id_pp;
+    const int callback_return = data->callback(&(struct LibraryIDLinkCallbackData){
+        .user_data = data->user_data,
+        .id_owner = data->owner_id,
+        .id_self = data->self_id,
+        .id_pointer = id_pp,
+        .cb_flag = ((cb_flag | data->cb_flag) & ~data->cb_flag_clear)});
+    if (flag & IDWALK_READONLY) {
+      BLI_assert(*(id_pp) == old_id);
+    }
+    if (old_id && (flag & IDWALK_RECURSE)) {
+      if (BLI_gset_add((data)->ids_handled, old_id)) {
+        if (!(callback_return & IDWALK_RET_STOP_RECURSION)) {
+          BLI_LINKSTACK_PUSH(data->ids_todo, old_id);
+        }
+      }
+    }
+    if (callback_return & IDWALK_RET_STOP_ITER) {
+      data->status |= IDWALK_STOP;
+      return false;
+    }
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 static void library_foreach_ID_link(Main *bmain,
                                     ID *id_owner,
                                     ID *id,
@@ -173,20 +206,18 @@ static void library_foreach_ID_link(Main *bmain,
                                     int flag,
                                     LibraryForeachIDData *inherit_data);
 
-static void library_foreach_idpropertiesForeachIDLink(IDProperty *id_prop, void *user_data)
+void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void *user_data)
 {
   BLI_assert(id_prop->type == IDP_ID);
 
   LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  FOREACH_CALLBACK_INVOKE_ID(data, id_prop->data.pointer, IDWALK_CB_USER);
-
-  FOREACH_FINALIZE_VOID;
+  BKE_LIB_FOREACHID_PROCESS_ID(data, id_prop->data.pointer, IDWALK_CB_USER);
 }
 
 static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
 {
   IDP_foreach_property(
-      sock->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
+      sock->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, &data);
 
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
@@ -344,7 +375,7 @@ static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
 static void library_foreach_bone(LibraryForeachIDData *data, Bone *bone)
 {
   IDP_foreach_property(
-      bone->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, data);
+      bone->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
     library_foreach_bone(data, curbone);
@@ -535,14 +566,20 @@ static void library_foreach_screen_area(LibraryForeachIDData *data, ScrArea *are
   FOREACH_FINALIZE_VOID;
 }
 
-static void library_foreach_ID_as_subdata_link(ID **id_pp, LibraryForeachIDData *data)
+bool BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
 {
   /* Needed e.g. for callbacks handling relationships... This call shall be absolutely readonly. */
   ID *id = *id_pp;
   const int flag = data->flag;
 
-  FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pp, IDWALK_CB_EMBEDDED);
+  if (!BKE_lib_query_foreachid_process(data, id_pp, IDWALK_CB_EMBEDDED)) {
+    return false;
+  }
   BLI_assert(id == *id_pp);
+
+  if (id == NULL) {
+    return true;
+  }
 
   if (flag & IDWALK_IGNORE_EMBEDDED_ID) {
     /* Do Nothing. */
@@ -561,7 +598,7 @@ static void library_foreach_ID_as_subdata_link(ID **id_pp, LibraryForeachIDData 
         data->bmain, data->owner_id, id, data->callback, data->user_data, data->flag, data);
   }
 
-  FOREACH_FINALIZE_VOID;
+  return true;
 }
 
 static void library_foreach_ID_link(Main *bmain,
@@ -648,12 +685,28 @@ static void library_foreach_ID_link(Main *bmain,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
     }
 
-    IDP_foreach_property(
-        id->properties, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
+    IDP_foreach_property(id->properties,
+                         IDP_TYPE_FILTER_ID,
+                         BKE_lib_query_idpropertiesForeachIDLink_callback,
+                         &data);
 
     AnimData *adt = BKE_animdata_from_id(id);
     if (adt) {
       library_foreach_animationData(&data, adt);
+    }
+
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+
+    /* Note: this is temp logic until all code has been ported to IDTypeInfo... */
+    if (id_type->foreach_id != NULL) {
+      id_type->foreach_id(id, &data);
+
+      if (data.status & IDWALK_STOP) {
+        break;
+      }
+      else {
+        continue;
+      }
     }
 
     switch ((ID_Type)GS(id->name)) {
@@ -674,7 +727,7 @@ static void library_foreach_ID_link(Main *bmain,
         CALLBACK_INVOKE(scene->r.bake.cage_object, IDWALK_CB_NOP);
         if (scene->nodetree) {
           /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          library_foreach_ID_as_subdata_link((ID **)&scene->nodetree, &data);
+          BKE_library_foreach_ID_embedded(&data, (ID **)&scene->nodetree);
         }
         if (scene->ed) {
           Sequence *seq;
@@ -684,8 +737,10 @@ static void library_foreach_ID_link(Main *bmain,
             CALLBACK_INVOKE(seq->clip, IDWALK_CB_USER);
             CALLBACK_INVOKE(seq->mask, IDWALK_CB_USER);
             CALLBACK_INVOKE(seq->sound, IDWALK_CB_USER);
-            IDP_foreach_property(
-                seq->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
+            IDP_foreach_property(seq->prop,
+                                 IDP_TYPE_FILTER_ID,
+                                 BKE_lib_query_idpropertiesForeachIDLink_callback,
+                                 &data);
             LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
               CALLBACK_INVOKE(smd->mask_id, IDWALK_CB_USER);
             }
@@ -839,8 +894,10 @@ static void library_foreach_ID_link(Main *bmain,
         if (object->pose) {
           data.cb_flag |= proxy_cb_flag;
           LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-            IDP_foreach_property(
-                pchan->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
+            IDP_foreach_property(pchan->prop,
+                                 IDP_TYPE_FILTER_ID,
+                                 BKE_lib_query_idpropertiesForeachIDLink_callback,
+                                 &data);
             CALLBACK_INVOKE(pchan->custom, IDWALK_CB_USER);
             BKE_constraints_id_loop(
                 &pchan->constraints, library_foreach_constraintObjectLooper, &data);
@@ -927,7 +984,7 @@ static void library_foreach_ID_link(Main *bmain,
         Material *material = (Material *)id;
         if (material->nodetree) {
           /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          library_foreach_ID_as_subdata_link((ID **)&material->nodetree, &data);
+          BKE_library_foreach_ID_embedded(&data, (ID **)&material->nodetree);
         }
         if (material->texpaintslot != NULL) {
           CALLBACK_INVOKE(material->texpaintslot->ima, IDWALK_CB_NOP);
@@ -943,7 +1000,7 @@ static void library_foreach_ID_link(Main *bmain,
         Tex *texture = (Tex *)id;
         if (texture->nodetree) {
           /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          library_foreach_ID_as_subdata_link((ID **)&texture->nodetree, &data);
+          BKE_library_foreach_ID_embedded(&data, (ID **)&texture->nodetree);
         }
         CALLBACK_INVOKE(texture->ima, IDWALK_CB_USER);
         break;
@@ -959,7 +1016,7 @@ static void library_foreach_ID_link(Main *bmain,
         Light *lamp = (Light *)id;
         if (lamp->nodetree) {
           /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          library_foreach_ID_as_subdata_link((ID **)&lamp->nodetree, &data);
+          BKE_library_foreach_ID_embedded(&data, (ID **)&lamp->nodetree);
         }
         break;
       }
@@ -989,7 +1046,7 @@ static void library_foreach_ID_link(Main *bmain,
         World *world = (World *)id;
         if (world->nodetree) {
           /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          library_foreach_ID_as_subdata_link((ID **)&world->nodetree, &data);
+          BKE_library_foreach_ID_embedded(&data, (ID **)&world->nodetree);
         }
         break;
       }
@@ -1021,8 +1078,10 @@ static void library_foreach_ID_link(Main *bmain,
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           CALLBACK_INVOKE_ID(node->id, IDWALK_CB_USER);
 
-          IDP_foreach_property(
-              node->prop, IDP_TYPE_FILTER_ID, library_foreach_idpropertiesForeachIDLink, &data);
+          IDP_foreach_property(node->prop,
+                               IDP_TYPE_FILTER_ID,
+                               BKE_lib_query_idpropertiesForeachIDLink_callback,
+                               &data);
           LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
             library_foreach_node_socket(&data, sock);
           }
@@ -1145,7 +1204,7 @@ static void library_foreach_ID_link(Main *bmain,
         }
         if (linestyle->nodetree) {
           /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          library_foreach_ID_as_subdata_link((ID **)&linestyle->nodetree, &data);
+          BKE_library_foreach_ID_embedded(&data, (ID **)&linestyle->nodetree);
         }
 
         LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->color_modifiers) {
@@ -1275,7 +1334,7 @@ static void library_foreach_ID_link(Main *bmain,
         Simulation *simulation = (Simulation *)id;
         if (simulation->nodetree) {
           /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          library_foreach_ID_as_subdata_link((ID **)&simulation->nodetree, &data);
+          BKE_library_foreach_ID_embedded(&data, (ID **)&simulation->nodetree);
         }
         break;
       }

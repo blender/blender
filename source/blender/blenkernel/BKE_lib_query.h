@@ -40,6 +40,7 @@ extern "C" {
 #endif
 
 struct ID;
+struct IDProperty;
 struct Main;
 
 /* Tips for the callback for cases it's gonna to modify the pointer. */
@@ -125,6 +126,33 @@ enum {
 
   IDWALK_NO_INDIRECT_PROXY_DATA_USAGE = (1 << 8), /* Ugly special case :(((( */
 };
+
+typedef struct LibraryForeachIDData LibraryForeachIDData;
+
+bool BKE_lib_query_foreachid_process(struct LibraryForeachIDData *data,
+                                     struct ID **id_pp,
+                                     int cb_flag);
+
+#define BKE_LIB_FOREACHID_PROCESS_ID(_data, _id, _cb_flag) \
+  { \
+    CHECK_TYPE_ANY((_id), ID *, void *); \
+    if (!BKE_lib_query_foreachid_process((_data), (ID **)&(_id), (_cb_flag))) { \
+      return; \
+    } \
+  } \
+  ((void)0)
+
+#define BKE_LIB_FOREACHID_PROCESS(_data, _id_super, _cb_flag) \
+  { \
+    CHECK_TYPE(&((_id_super)->id), ID *); \
+    if (!BKE_lib_query_foreachid_process((_data), (ID **)&(_id_super), (_cb_flag))) { \
+      return; \
+    } \
+  } \
+  ((void)0)
+
+bool BKE_library_foreach_ID_embedded(struct LibraryForeachIDData *data, struct ID **id_pp);
+void BKE_lib_query_idpropertiesForeachIDLink_callback(struct IDProperty *id_prop, void *user_data);
 
 /* Loop over all of the ID's this datablock links to. */
 void BKE_library_foreach_ID_link(
