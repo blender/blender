@@ -492,7 +492,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
 
       if (area != NULL) {
         SpaceLink *sl = area->spacedata.first;
-        switch (area->spacetype) {
+        switch ((eSpace_Type)area->spacetype) {
           SPACE_MENU_MAP(SPACE_VIEW3D, "VIEW3D_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_GRAPH, "GRAPH_MT_editor_menus");
           SPACE_MENU_MAP(SPACE_OUTLINER, "OUTLINER_MT_editor_menus");
@@ -514,10 +514,10 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
                          (((const SpaceClip *)sl)->mode == SC_MODE_TRACKING) ?
                              "CLIP_MT_tracking_editor_menus" :
                              "CLIP_MT_masking_editor_menus");
-          SPACE_MENU_NOP(SPACE_TOPBAR);
+          SPACE_MENU_NOP(SPACE_EMPTY);
+          SPACE_MENU_NOP(SPACE_SCRIPT);
           SPACE_MENU_NOP(SPACE_STATUSBAR);
-          default:
-            printf("Unknown space type '%d'\n", area->spacetype);
+          SPACE_MENU_NOP(SPACE_TOPBAR);
         }
       }
       for (int i = 0; i < idname_array_len; i++) {
