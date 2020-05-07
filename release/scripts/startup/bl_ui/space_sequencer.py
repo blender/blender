@@ -1973,13 +1973,21 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
             col.prop(st, "show_separate_color")
 
         col.prop(st, "proxy_render_size")
-        col.prop(ed, "use_prefetch")
+
+        if ed:
+            col.prop(ed, "use_prefetch")
 
 
 class SEQUENCER_PT_frame_overlay(SequencerButtonsPanel_Output, Panel):
     bl_label = "Frame Overlay"
     bl_category = "View"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        if not context.scene.sequence_editor:
+            return False
+        return SequencerButtonsPanel_Output.poll(context)
 
     def draw_header(self, context):
         scene = context.scene

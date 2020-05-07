@@ -116,9 +116,9 @@ class AnnotationDrawingToolsPanel:
             col.label(text="Data Source:")
             row = col.row(align=True)
             if is_3d_view:
-                row.prop(context.tool_settings, "grease_pencil_source", expand=True)
+                row.prop(context.tool_settings, "annotation_source", expand=True)
             elif is_clip_editor:
-                row.prop(context.space_data, "grease_pencil_source", expand=True)
+                row.prop(context.space_data, "annotation_source", expand=True)
 
         gpencil_stroke_placement_settings(context, col)
 
@@ -477,7 +477,7 @@ class AnnotationDataPanel:
 
         # Owner selector.
         if context.space_data.type == 'CLIP_EDITOR':
-            layout.row().prop(context.space_data, "grease_pencil_source", expand=True)
+            layout.row().prop(context.space_data, "annotation_source", expand=True)
 
         layout.template_ID(gpd_owner, "grease_pencil", new="gpencil.annotation_add", unlink="gpencil.data_unlink")
 
