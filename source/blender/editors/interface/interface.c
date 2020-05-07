@@ -6362,8 +6362,7 @@ void UI_but_func_search_set(uiBut *but,
                             uiButSearchUpdateFn search_update_fn,
                             void *arg,
                             uiButSearchArgFreeFn search_arg_free_fn,
-                            uiButHandleFunc bfunc,
-                            const char *search_sep_string,
+                            uiButHandleFunc handle_fn,
                             void *active)
 {
   /* needed since callers don't have access to internal functions
@@ -6389,9 +6388,8 @@ void UI_but_func_search_set(uiBut *but,
 
   search->arg = arg;
   search->arg_free_fn = search_arg_free_fn;
-  search->sep_string = search_sep_string;
 
-  if (bfunc) {
+  if (handle_fn) {
 #ifdef DEBUG
     if (but->func) {
       /* watch this, can be cause of much confusion, see: T47691 */
@@ -6399,7 +6397,7 @@ void UI_but_func_search_set(uiBut *but,
              __func__);
     }
 #endif
-    UI_but_func_set(but, bfunc, arg, active);
+    UI_but_func_set(but, handle_fn, search->arg, active);
   }
 
   /* search buttons show red-alert if item doesn't exist, not for menus */
@@ -6409,6 +6407,12 @@ void UI_but_func_search_set(uiBut *but,
       ui_but_search_refresh(but);
     }
   }
+}
+
+void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string)
+{
+  struct uiButSearchData *search = but->search;
+  search->sep_string = search_sep_string;
 }
 
 /* Callbacks for operator search button. */
@@ -6499,7 +6503,6 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
                          but,
                          NULL,
                          operator_enum_call_cb,
-                         NULL,
                          NULL);
 
   but->optype = ot;

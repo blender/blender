@@ -125,14 +125,8 @@ static void operator_search_cb(const bContext *C,
 
 void UI_but_func_operator_search(uiBut *but)
 {
-  UI_but_func_search_set(but,
-                         ui_searchbox_create_operator,
-                         operator_search_cb,
-                         NULL,
-                         false,
-                         operator_call_cb,
-                         NULL,
-                         NULL);
+  UI_but_func_search_set(
+      but, ui_searchbox_create_operator, operator_search_cb, NULL, false, operator_call_cb, NULL);
 }
 
 void uiTemplateOperatorSearch(uiLayout *layout)

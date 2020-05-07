@@ -1572,15 +1572,15 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
 
 /* use inside searchfunc to add items */
 bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid, int state);
-/* bfunc gets search item *poin as arg2, or if NULL the old string */
 void UI_but_func_search_set(uiBut *but,
                             uiButSearchCreateFn search_create_fn,
                             uiButSearchUpdateFn search_update_fn,
                             void *arg,
                             uiButSearchArgFreeFn search_arg_free_fn,
-                            uiButHandleFunc bfunc,
-                            const char *search_sep_string,
+                            uiButHandleFunc handle_fn,
                             void *active);
+void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string);
+
 /* height in pixels, it's using hardcoded values still */
 int UI_searchbox_size_y(void);
 int UI_searchbox_size_x(void);

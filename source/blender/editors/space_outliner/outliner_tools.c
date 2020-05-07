@@ -600,7 +600,7 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
   but = uiDefSearchBut(
       block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, menu_width, UI_UNIT_Y, 0, 0, "");
   UI_but_func_search_set(
-      but, NULL, merged_element_search_cb, data, NULL, merged_element_search_call_cb, NULL, NULL);
+      but, NULL, merged_element_search_cb, data, NULL, merged_element_search_call_cb, NULL);
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
   /* Fake button to hold space for search items */

@@ -915,8 +915,8 @@ void UI_but_func_menu_search(uiBut *but)
                          data,
                          menu_items_from_ui_destroy,
                          menu_call_fn,
-                         MENU_SEP,
                          NULL);
+  UI_but_func_search_set_sep_string(but, MENU_SEP);
 }
 
 void uiTemplateMenuSearch(uiLayout *layout)

@@ -283,7 +283,6 @@ static uiBlock *template_common_search_menu(const bContext *C,
                          search_arg,
                          NULL,
                          handle_func,
-                         NULL,
                          active_item);
 
   UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
