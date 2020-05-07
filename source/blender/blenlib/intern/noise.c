@@ -24,6 +24,7 @@
 #include <math.h>
 
 #include "BLI_noise.h"
+#include "BLI_compiler_compat.h"
 
 /* local */
 static float noise3_perlin(float vec[3]);
@@ -264,17 +265,17 @@ static const float hashvectf[768] = {
 /*  IMPROVED PERLIN NOISE */
 /**************************/
 
-static float lerp(float t, float a, float b)
+BLI_INLINE float lerp(float t, float a, float b)
 {
   return (a + t * (b - a));
 }
 
-static float npfade(float t)
+BLI_INLINE float npfade(float t)
 {
   return (t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f));
 }
 
-static float grad(int hash_val, float x, float y, float z)
+BLI_INLINE float grad(int hash_val, float x, float y, float z)
 {
   int h = hash_val & 15;   /* CONVERT LO 4 BITS OF HASH CODE */
   float u = h < 8 ? x : y; /* INTO 12 GRADIENT DIRECTIONS. */
