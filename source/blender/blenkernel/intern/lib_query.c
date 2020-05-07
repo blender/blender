@@ -217,7 +217,7 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
 static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
 {
   IDP_foreach_property(
-      sock->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, &data);
+      sock->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
 
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
