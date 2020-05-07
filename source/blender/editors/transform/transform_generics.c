@@ -1681,13 +1681,21 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
 
     t->orientation.types[0] = orient_type_default;
-    t->orientation.types[1] = orient_type_constraint;
-    t->orientation.types[2] = orient_type_constraint != V3D_ORIENT_GLOBAL ? V3D_ORIENT_GLOBAL :
-                                                                            V3D_ORIENT_LOCAL;
     t->orientation.custom = custom_orientation;
 
+    /* To keep the old behavior logic to init contraint orientarions became this: */
+    t->orientation.types[1] = V3D_ORIENT_GLOBAL;
+    t->orientation.types[2] = orient_type_constraint != V3D_ORIENT_GLOBAL ?
+                                  orient_type_constraint :
+                                  V3D_ORIENT_LOCAL;
+
     if (t->con.mode & CON_APPLY) {
-      t->orientation.index = 1;
+      if (orient_type_constraint == V3D_ORIENT_GLOBAL) {
+        t->orientation.index = 1;
+      }
+      else {
+        t->orientation.index = 2;
+      }
     }
   }
 
