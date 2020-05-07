@@ -176,9 +176,6 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
 {
   Object *ob_dst = (Object *)id_dst;
   const Object *ob_src = (const Object *)id_src;
-  ModifierData *md;
-  GpencilModifierData *gmd;
-  ShaderFxData *fx;
 
   /* Do not copy runtime data. */
   BKE_object_runtime_reset_on_copy(ob_dst, flag);
@@ -208,7 +205,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
 
   BLI_listbase_clear(&ob_dst->modifiers);
 
-  for (md = ob_src->modifiers.first; md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &ob_src->modifiers) {
     ModifierData *nmd = modifier_new(md->type);
     BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
     modifier_copyData_ex(md, nmd, flag_subdata);
@@ -217,7 +214,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
 
   BLI_listbase_clear(&ob_dst->greasepencil_modifiers);
 
-  for (gmd = ob_src->greasepencil_modifiers.first; gmd; gmd = gmd->next) {
+  LISTBASE_FOREACH (GpencilModifierData *, gmd, &ob_src->greasepencil_modifiers) {
     GpencilModifierData *nmd = BKE_gpencil_modifier_new(gmd->type);
     BLI_strncpy(nmd->name, gmd->name, sizeof(nmd->name));
     BKE_gpencil_modifier_copyData_ex(gmd, nmd, flag_subdata);
@@ -226,7 +223,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
 
   BLI_listbase_clear(&ob_dst->shader_fx);
 
-  for (fx = ob_src->shader_fx.first; fx; fx = fx->next) {
+  LISTBASE_FOREACH (ShaderFxData *, fx, &ob_src->shader_fx) {
     ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
     BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
     BKE_shaderfx_copyData_ex(fx, nfx, flag_subdata);
