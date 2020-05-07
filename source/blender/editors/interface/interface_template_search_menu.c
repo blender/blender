@@ -365,7 +365,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
   struct MenuSearch_Context *wm_contexts = NULL;
 
   const EnumPropertyItem *space_type_ui_items = NULL;
-  int space_type_ui_items_len;
+  int space_type_ui_items_len = 0;
   bool space_type_ui_items_free = false;
 
   /* Types match, cycle the subtype. */
