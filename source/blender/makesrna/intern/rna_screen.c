@@ -218,18 +218,22 @@ static int rna_Area_ui_type_get(PointerRNA *ptr)
   const bool area_changing = area->butspacetype != SPACE_EMPTY;
   int value = area_type << 16;
 
-  /* area->type can be NULL (when not yet initialized), try to do it now. */
-  /* Copied from `ED_area_initialize()`.*/
-  if (area->type == NULL || area_changing) {
-    area->type = BKE_spacetype_from_id(area_type);
-    if (area->type == NULL) {
-      area->spacetype = SPACE_VIEW3D;
-      area->type = BKE_spacetype_from_id(area->spacetype);
+  /* Area->type can be NULL when not yet initialized (for example when accessed
+   * through the outliner or API when not visible), or it can be wrong while
+   * the area type is changing.
+   * So manually do the lookup in those cases, but do not actually change area->type
+   * since that prevents a proper exit when the area type is changing.
+   * Logic copied from `ED_area_initialize()`.*/
+  SpaceType *type = area->type;
+  if (type == NULL || area_changing) {
+    type = BKE_spacetype_from_id(area_type);
+    if (type == NULL) {
+      type = BKE_spacetype_from_id(SPACE_VIEW3D);
     }
-    BLI_assert(area->type != NULL);
+    BLI_assert(type != NULL);
   }
-  if (area->type->space_subtype_item_extend != NULL) {
-    value |= area_changing ? area->butspacetype_subtype : area->type->space_subtype_get(area);
+  if (type->space_subtype_item_extend != NULL) {
+    value |= area_changing ? area->butspacetype_subtype : type->space_subtype_get(area);
   }
   return value;
 }
