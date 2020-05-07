@@ -363,6 +363,7 @@ enum {
   MOD_MIR_BISECT_FLIP_AXIS_X = (1 << 11),
   MOD_MIR_BISECT_FLIP_AXIS_Y = (1 << 12),
   MOD_MIR_BISECT_FLIP_AXIS_Z = (1 << 13),
+  MOD_MIR_MIRROR_UDIM = (1 << 14),
 };
 
 typedef struct EdgeSplitModifierData {

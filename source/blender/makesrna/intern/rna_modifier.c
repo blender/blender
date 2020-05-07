@@ -2111,6 +2111,12 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
       prop, "Mirror V", "Mirror the V texture coordinate around the flip offset point");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "use_mirror_udim", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_MIRROR_UDIM);
+  RNA_def_property_ui_text(
+      prop, "Mirror UDIM", "Mirror the texture coordinate around each tile center");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "mirror_offset_u", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "uv_offset[0]");
   RNA_def_property_range(prop, -1, 1);

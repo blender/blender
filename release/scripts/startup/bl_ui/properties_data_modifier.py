@@ -655,6 +655,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row = layout.row()
         row.prop(md, "use_mirror_u", text="Flip U")
         row.prop(md, "use_mirror_v", text="Flip V")
+        row = layout.row()
+        row.prop(md, "use_mirror_udim", text="Flip UDIM")
 
         col = layout.column(align=True)
 
