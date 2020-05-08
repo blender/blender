@@ -28,7 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
-static EXCEPTION_POINTERS *current_exception;
+static EXCEPTION_POINTERS *current_exception = NULL;
 
 static const char *bli_windows_get_exception_description(const DWORD exceptioncode)
 {
@@ -212,20 +212,25 @@ static bool BLI_windows_system_backtrace_run_trace(FILE *fp, HANDLE hThread, PCO
   return result;
 }
 
-static void bli_windows_system_backtrace_stack_thread(FILE *fp, HANDLE hThread)
+static bool bli_windows_system_backtrace_stack_thread(FILE *fp, HANDLE hThread)
 {
+  CONTEXT context = {0};
+  context.ContextFlags = CONTEXT_ALL;
+  /* GetThreadContext requires the thread to be in a suspended state, which is problematic for the
+   * currently running thread, RtlCaptureContext is used as an alternative to sidestep this */
   if (hThread != GetCurrentThread()) {
     SuspendThread(hThread);
-  }
-  CONTEXT context;
-  context.ContextFlags = CONTEXT_ALL;
-  if (!GetThreadContext(hThread, &context)) {
-    fprintf(fp, "Cannot get thread context : 0x0%.8x\n", GetLastError());
-  }
-  BLI_windows_system_backtrace_run_trace(fp, hThread, &context);
-  if (hThread != GetCurrentThread()) {
+    bool success = GetThreadContext(hThread, &context);
     ResumeThread(hThread);
+    if (!success) {
+      fprintf(fp, "Cannot get thread context : 0x0%.8x\n", GetLastError());
+      return false;
+    }
   }
+  else {
+    RtlCaptureContext(&context);
+  }
+  return BLI_windows_system_backtrace_run_trace(fp, hThread, &context);
 }
 
 static void bli_windows_system_backtrace_modules(FILE *fp)
@@ -287,8 +292,16 @@ static void bli_windows_system_backtrace_threads(FILE *fp)
 static bool BLI_windows_system_backtrace_stack(FILE *fp)
 {
   fprintf(fp, "Stack trace:\n");
-  CONTEXT TempContext = *current_exception->ContextRecord;
-  return BLI_windows_system_backtrace_run_trace(fp, GetCurrentThread(), &TempContext);
+  /* If we are handling an exception use the context record from that. */
+  if (current_exception) {
+    /* The back trace code will write to the context record, to protect the original record from
+     * modifications give the backtrace a copy to work on.  */
+    CONTEXT TempContext = *current_exception->ContextRecord;
+    return BLI_windows_system_backtrace_run_trace(fp, GetCurrentThread(), &TempContext);
+  }
+  else {
+    return bli_windows_system_backtrace_stack_thread(fp, GetCurrentThread());
+  }
 }
 
 static bool bli_private_symbols_loaded()
@@ -350,7 +363,9 @@ void BLI_system_backtrace(FILE *fp)
 {
   SymInitialize(GetCurrentProcess(), NULL, TRUE);
   bli_load_symbols();
-  bli_windows_system_backtrace_exception_record(fp, current_exception->ExceptionRecord);
+  if (current_exception) {
+    bli_windows_system_backtrace_exception_record(fp, current_exception->ExceptionRecord);
+  }
   if (BLI_windows_system_backtrace_stack(fp)) {
     /* When the blender symbols are missing the stack traces will be unreliable
      * so only run if the previous step completed successfully. */
@@ -363,16 +378,18 @@ void BLI_system_backtrace(FILE *fp)
 void BLI_windows_handle_exception(EXCEPTION_POINTERS *exception)
 {
   current_exception = exception;
-  fprintf(stderr,
-          "Error   : %s\n",
-          bli_windows_get_exception_description(exception->ExceptionRecord->ExceptionCode));
-  fflush(stderr);
+  if (current_exception) {
+    fprintf(stderr,
+            "Error   : %s\n",
+            bli_windows_get_exception_description(exception->ExceptionRecord->ExceptionCode));
+    fflush(stderr);
 
-  LPVOID address = exception->ExceptionRecord->ExceptionAddress;
-  fprintf(stderr, "Address : 0x%p\n", address);
+    LPVOID address = exception->ExceptionRecord->ExceptionAddress;
+    fprintf(stderr, "Address : 0x%p\n", address);
 
-  CHAR modulename[MAX_PATH];
-  bli_windows_get_module_name(address, modulename, sizeof(modulename));
-  fprintf(stderr, "Module  : %s\n", modulename);
+    CHAR modulename[MAX_PATH];
+    bli_windows_get_module_name(address, modulename, sizeof(modulename));
+    fprintf(stderr, "Module  : %s\n", modulename);
+  }
   fflush(stderr);
 }
