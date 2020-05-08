@@ -24,9 +24,7 @@
 
 #include "Node.h"
 
-extern "C" {
 #include "DNA_scene_types.h" /* for Scene and ViewLayer */
-}
 
 using namespace std;
 

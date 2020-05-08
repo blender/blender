@@ -34,7 +34,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -44,7 +43,6 @@ extern "C" {
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
-} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

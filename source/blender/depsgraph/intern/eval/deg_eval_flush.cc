@@ -35,12 +35,10 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "DRW_engine.h"
-} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 

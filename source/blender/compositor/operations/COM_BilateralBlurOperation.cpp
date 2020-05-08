@@ -19,9 +19,7 @@
 #include "COM_BilateralBlurOperation.h"
 #include "BLI_math.h"
 
-extern "C" {
 #include "RE_pipeline.h"
-}
 
 BilateralBlurOperation::BilateralBlurOperation() : NodeOperation()
 {

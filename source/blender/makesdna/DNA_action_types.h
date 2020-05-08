@@ -28,15 +28,15 @@
 #ifndef __DNA_ACTION_TYPES_H__
 #define __DNA_ACTION_TYPES_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h" /* ThemeWireColor */
 #include "DNA_vec_types.h"
 #include "DNA_view2d_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Collection;
 struct GHash;

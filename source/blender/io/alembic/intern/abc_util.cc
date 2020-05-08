@@ -32,13 +32,11 @@
 
 #include <algorithm>
 
-extern "C" {
 #include "DNA_object_types.h"
 
 #include "BLI_math_geom.h"
 
 #include "PIL_time.h"
-}
 
 std::string get_id_name(const Object *const ob)
 {

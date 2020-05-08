@@ -25,6 +25,7 @@
  */
 
 #include "DNA_listBase.h"
+#include "DNA_object_enums.h"
 #include "RNA_types.h"
 
 #ifdef __cplusplus
@@ -65,8 +66,6 @@ struct bPoseChannel;
 struct bScreen;
 struct wmWindow;
 struct wmWindowManager;
-
-#include "DNA_object_enums.h"
 
 /* Structs */
 

@@ -33,7 +33,6 @@
 #include "abc_writer_points.h"
 #include "abc_writer_transform.h"
 
-extern "C" {
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_fluid_types.h"
@@ -62,7 +61,6 @@ extern "C" {
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.h"
-}
 
 using Alembic::Abc::OBox3dProperty;
 using Alembic::Abc::TimeSamplingPtr;

@@ -23,11 +23,11 @@
  * \ingroup bke
  */
 
+#include "DNA_text_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_text_types.h"
 
 /* ****************************************************************************
  * Suggestions should be added in sorted order although a linear sorting method is

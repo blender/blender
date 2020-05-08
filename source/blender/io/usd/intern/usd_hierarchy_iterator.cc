@@ -31,7 +31,6 @@
 
 #include <pxr/base/tf/stringUtils.h>
 
-extern "C" {
 #include "BKE_duplilist.h"
 
 #include "BLI_assert.h"
@@ -41,7 +40,6 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
-}
 
 namespace USD {
 

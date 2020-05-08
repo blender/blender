@@ -27,13 +27,13 @@
 #ifndef __GPU_BATCH_PRIVATE_H__
 #define __GPU_BATCH_PRIVATE_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "GPU_batch.h"
 #include "GPU_context.h"
 #include "GPU_shader_interface.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface);
 

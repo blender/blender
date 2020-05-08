@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern "C" {
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -47,7 +46,6 @@ extern "C" {
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "ED_keyframing.h"
-}
 
 #include "COLLADASWAsset.h"
 #include "COLLADASWBaseInputElement.h"

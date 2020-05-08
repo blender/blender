@@ -25,9 +25,7 @@
 #include "collada.h"
 #include "collada_utils.h"
 
-extern "C" {
 #include "DNA_customdata_types.h"
-}
 
 class DocumentExporter {
  public:

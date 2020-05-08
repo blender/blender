@@ -25,12 +25,12 @@ struct ListBase;
  * \ingroup bli
  */
 
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 struct BLI_mempool;
 

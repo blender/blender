@@ -24,9 +24,7 @@
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 
-extern "C" {
 #include "BKE_node.h"
-}
 
 static bool check_corners(float corners[4][2])
 {

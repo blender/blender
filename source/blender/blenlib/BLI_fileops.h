@@ -29,10 +29,6 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* for size_t (needed on windows) */
 #include <stddef.h>
 
@@ -40,6 +36,10 @@ extern "C" {
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef PATH_MAX
 #  define PATH_MAX 4096

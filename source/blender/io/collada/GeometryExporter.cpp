@@ -29,7 +29,6 @@
 
 #include "DNA_meshdata_types.h"
 
-extern "C" {
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
@@ -37,7 +36,6 @@ extern "C" {
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-}
 
 #include "collada_internal.h"
 #include "collada_utils.h"

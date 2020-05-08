@@ -33,11 +33,11 @@
  * - `BKE_lib_remap_callback_` should be used for functions managing remapping callbacks.
  */
 
+#include "BLI_compiler_attrs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
 
 struct wmWindowManager;
 

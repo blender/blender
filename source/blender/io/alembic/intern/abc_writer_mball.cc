@@ -21,7 +21,6 @@
 #include "abc_writer_mball.h"
 #include "abc_writer_mesh.h"
 
-extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
@@ -33,7 +32,6 @@ extern "C" {
 #include "BKE_object.h"
 
 #include "BLI_utildefines.h"
-}
 
 AbcMBallWriter::AbcMBallWriter(Main *bmain,
                                Object *ob,

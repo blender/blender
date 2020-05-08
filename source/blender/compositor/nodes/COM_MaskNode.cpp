@@ -20,9 +20,7 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_MaskOperation.h"
 
-extern "C" {
 #include "DNA_mask_types.h"
-}
 
 MaskNode::MaskNode(bNode *editorNode) : Node(editorNode)
 {

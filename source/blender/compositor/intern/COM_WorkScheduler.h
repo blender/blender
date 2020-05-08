@@ -20,9 +20,9 @@
 #define __COM_WORKSCHEDULER_H__
 
 #include "COM_ExecutionGroup.h"
-extern "C" {
+
 #include "BLI_threads.h"
-}
+
 #include "COM_Device.h"
 #include "COM_WorkPackage.h"
 #include "COM_defines.h"

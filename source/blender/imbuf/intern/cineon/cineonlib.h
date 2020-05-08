@@ -26,11 +26,11 @@
 #ifndef __CINEONLIB_H__
 #define __CINEONLIB_H__
 
+#include "logImageCore.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "logImageCore.h"
 
 #define CINEON_FILE_MAGIC 0x802A5FD7
 #define CINEON_UNDEFINED_U8 0xFF

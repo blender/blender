@@ -35,7 +35,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_blenlib.h"
 
 #include "IMB_allocimbuf.h"
@@ -43,7 +42,6 @@ extern "C" {
 #include "IMB_colormanagement_intern.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-}
 
 OIIO_NAMESPACE_USING
 

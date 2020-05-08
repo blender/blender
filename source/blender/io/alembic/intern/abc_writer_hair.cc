@@ -24,7 +24,6 @@
 
 #include <cstdio>
 
-extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -35,7 +34,6 @@ extern "C" {
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_particle.h"
-}
 
 using Alembic::Abc::P3fArraySamplePtr;
 

@@ -109,10 +109,6 @@
 #ifndef __WM_TYPES_H__
 #define __WM_TYPES_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 struct ImBuf;
 struct bContext;
@@ -132,6 +128,10 @@ struct wmWindowManager;
 
 /* Include external gizmo API's */
 #include "gizmo/WM_gizmo_api.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct wmGenericUserData {
   void *data;

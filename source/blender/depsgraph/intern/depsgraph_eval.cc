@@ -28,12 +28,10 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "BKE_scene.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

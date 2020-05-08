@@ -30,7 +30,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_customdata_types.h"
@@ -75,7 +74,6 @@ extern "C" {
 #if 0
 #  include "NOD_common.h"
 #endif
-}
 
 #include "BlenderContext.h"
 #include "ExportSettings.h"

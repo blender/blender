@@ -20,9 +20,7 @@
 #include "BLI_math.h"
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "RE_pipeline.h"
-}
 
 GaussianAlphaXBlurOperation::GaussianAlphaXBlurOperation() : BlurBaseOperation(COM_DT_VALUE)
 {

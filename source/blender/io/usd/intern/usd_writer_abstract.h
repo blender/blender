@@ -29,10 +29,9 @@
 
 #include <vector>
 
-extern "C" {
 #include "DEG_depsgraph_query.h"
+
 #include "DNA_material_types.h"
-}
 
 struct Material;
 struct Object;

@@ -23,11 +23,10 @@
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 #include "MEM_guardedalloc.h"
-extern "C" {
+
 #include "RE_pipeline.h"
 #include "RE_render_ext.h"
 #include "RE_shader_ext.h"
-}
 
 /**
  * Base class for all renderlayeroperations

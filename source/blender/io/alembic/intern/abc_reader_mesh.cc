@@ -27,7 +27,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -40,7 +39,6 @@ extern "C" {
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-}
 
 using Alembic::Abc::Int32ArraySamplePtr;
 using Alembic::Abc::P3fArraySamplePtr;

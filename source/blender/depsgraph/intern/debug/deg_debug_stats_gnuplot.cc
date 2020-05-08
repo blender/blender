@@ -32,9 +32,7 @@
 #include "intern/depsgraph.h"
 #include "intern/node/deg_node_id.h"
 
-extern "C" {
 #include "DNA_ID.h"
-} /* extern "C" */
 
 #define NL "\r\n"
 

@@ -26,7 +26,6 @@
 #include "abc_writer_mesh.h"
 #include "abc_writer_transform.h"
 
-extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
@@ -36,7 +35,6 @@ extern "C" {
 #include "BLI_math.h"
 
 #include "DEG_depsgraph_query.h"
-}
 
 using Alembic::AbcGeom::kVertexScope;
 using Alembic::AbcGeom::OPoints;

@@ -20,9 +20,7 @@
 
 #include "COM_Node.h"
 
-extern "C" {
 #include "DNA_node_types.h"
-}
 
 /**
  * \brief CornerPinNode

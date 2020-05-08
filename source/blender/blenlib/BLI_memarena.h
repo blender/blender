@@ -24,11 +24,11 @@
 #ifndef __BLI_MEMARENA_H__
 #define __BLI_MEMARENA_H__
 
+#include "BLI_compiler_attrs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
 
 /* A reasonable standard buffer size, big
  * enough to not cause much internal fragmentation,

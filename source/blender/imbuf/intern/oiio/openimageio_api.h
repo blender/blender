@@ -24,11 +24,11 @@
 #ifndef __OPENIMAGEIO_API_H__
 #define __OPENIMAGEIO_API_H__
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdio.h>
 
 struct ImBuf;
 

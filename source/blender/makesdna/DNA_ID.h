@@ -25,13 +25,12 @@
 #ifndef __DNA_ID_H__
 #define __DNA_ID_H__
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_defs.h"
 
 struct FileData;
 struct GHash;

@@ -25,10 +25,8 @@
 
 #include "intern/node/deg_node_id.h"
 
-extern "C" {
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
-}
 
 namespace DEG {
 

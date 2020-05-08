@@ -21,15 +21,15 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdio.h>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 #include "DNA_windowmanager_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Reporting Information and Errors
  *

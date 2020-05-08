@@ -21,11 +21,11 @@
  * \ingroup bke
  */
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_utildefines.h"
 
 struct Depsgraph;
 struct DynamicPaintCanvasSettings;

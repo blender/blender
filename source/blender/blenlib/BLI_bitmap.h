@@ -24,11 +24,11 @@
  * \ingroup bli
  */
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_utildefines.h"
 
 typedef unsigned int BLI_bitmap;
 

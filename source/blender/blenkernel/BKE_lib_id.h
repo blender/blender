@@ -46,11 +46,11 @@
  * specific cases requiring advanced (and potentially dangerous) handling.
  */
 
+#include "BLI_compiler_attrs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
 
 struct GHash;
 struct ID;

@@ -29,10 +29,6 @@
 /* XXX, temp feature - campbell */
 #define DURIAN_CAMERA_SWITCH
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_color_types.h" /* color management */
@@ -45,6 +41,10 @@ extern "C" {
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct AnimData;
 struct Brush;

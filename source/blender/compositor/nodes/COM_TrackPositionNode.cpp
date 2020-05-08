@@ -22,11 +22,9 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_TrackPositionOperation.h"
 
-extern "C" {
 #include "DNA_movieclip_types.h"
 
 #include "BKE_node.h"
-}
 
 TrackPositionNode::TrackPositionNode(bNode *editorNode) : Node(editorNode)
 {

@@ -28,11 +28,9 @@
 
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "DNA_object_types.h"
 
 #include "BKE_action.h"
-} /* extern "C" */
 
 #include "intern/node/deg_node_factory.h"
 #include "intern/node/deg_node_id.h"

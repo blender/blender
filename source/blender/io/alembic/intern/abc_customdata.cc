@@ -27,7 +27,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-extern "C" {
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 
@@ -35,7 +34,6 @@ extern "C" {
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-}
 
 /* NOTE: for now only UVs and Vertex Colors are supported for streaming.
  * Although Alembic only allows for a single UV layer per {I|O}Schema, and does

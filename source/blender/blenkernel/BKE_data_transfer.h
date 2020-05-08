@@ -24,11 +24,11 @@
 #ifndef __BKE_DATA_TRANSFER_H__
 #define __BKE_DATA_TRANSFER_H__
 
+#include "BKE_customdata.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BKE_customdata.h"
 
 struct Depsgraph;
 struct Object;

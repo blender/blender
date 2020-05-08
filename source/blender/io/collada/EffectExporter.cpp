@@ -31,7 +31,6 @@
 #include "collada_internal.h"
 #include "collada_utils.h"
 
-extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_world_types.h"
 
@@ -39,7 +38,6 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-}
 
 static std::string getActiveUVLayerName(Object *ob)
 {

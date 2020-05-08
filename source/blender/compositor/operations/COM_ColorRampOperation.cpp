@@ -18,13 +18,7 @@
 
 #include "COM_ColorRampOperation.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "BKE_colorband.h"
-#ifdef __cplusplus
-}
-#endif
 
 ColorRampOperation::ColorRampOperation() : NodeOperation()
 {

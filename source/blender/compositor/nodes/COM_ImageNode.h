@@ -23,9 +23,8 @@
 #include "COM_defines.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
-extern "C" {
+
 #include "RE_engine.h"
-}
 
 /**
  * \brief ImageNode

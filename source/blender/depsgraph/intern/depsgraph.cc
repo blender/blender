@@ -34,11 +34,9 @@
 #include "BLI_hash.h"
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_scene.h"
-}
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"

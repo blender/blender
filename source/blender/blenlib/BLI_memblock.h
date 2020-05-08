@@ -24,11 +24,11 @@
  * \ingroup bli
  */
 
+#include "BLI_compiler_attrs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
 
 #define BLI_MEM_BLOCK_CHUNK_SIZE (1 << 15) /* 32KiB */
 

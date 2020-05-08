@@ -27,11 +27,11 @@
  * \ingroup bli
  */
 
+#include "BLI_math_inline.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_math_inline.h"
 
 /* YCbCr */
 #define BLI_YCC_ITU_BT601 0

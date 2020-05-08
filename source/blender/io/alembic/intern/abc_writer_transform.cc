@@ -23,13 +23,11 @@
 
 #include <OpenEXR/ImathBoxAlgo.h>
 
-extern "C" {
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
 
 #include "DEG_depsgraph_query.h"
-}
 
 using Alembic::AbcGeom::OObject;
 using Alembic::AbcGeom::OXform;

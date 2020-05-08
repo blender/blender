@@ -18,11 +18,9 @@
 
 #include <string.h>
 
-extern "C" {
 #include "DNA_node_types.h"
 
 #include "BKE_node.h"
-}
 
 #include "COM_NodeOperation.h"
 #include "COM_NodeOperationBuilder.h"

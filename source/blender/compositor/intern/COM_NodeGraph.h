@@ -23,9 +23,7 @@
 #include <set>
 #include <vector>
 
-extern "C" {
 #include "DNA_node_types.h"
-}
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

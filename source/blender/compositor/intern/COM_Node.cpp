@@ -18,11 +18,9 @@
 
 #include <string.h>
 
-extern "C" {
 #include "BKE_node.h"
 
 #include "RNA_access.h"
-}
 
 #include "COM_ExecutionSystem.h"
 #include "COM_NodeOperation.h"

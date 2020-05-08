@@ -20,9 +20,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "IMB_colormanagement.h"
-}
 
 CalculateMeanOperation::CalculateMeanOperation() : NodeOperation()
 {

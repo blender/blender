@@ -21,12 +21,12 @@
  * \ingroup bli
  */
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
-#include "BLI_sys_types.h"
 
 char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
     ATTR_NONNULL();

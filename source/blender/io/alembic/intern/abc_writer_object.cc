@@ -20,11 +20,9 @@
 
 #include "abc_writer_object.h"
 
-extern "C" {
 #include "DNA_object_types.h"
 
 #include "BKE_object.h"
-}
 
 AbcObjectWriter::AbcObjectWriter(Object *ob,
                                  uint32_t time_sampling,

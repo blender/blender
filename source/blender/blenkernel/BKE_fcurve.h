@@ -24,6 +24,8 @@
  * \ingroup bke
  */
 
+#include "DNA_curve_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,8 +43,6 @@ struct PropertyRNA;
 struct StructRNA;
 struct bAction;
 struct bContext;
-
-#include "DNA_curve_types.h"
 
 /* ************** Keyframe Tools ***************** */
 

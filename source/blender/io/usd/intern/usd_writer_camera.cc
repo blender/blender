@@ -22,13 +22,11 @@
 #include <pxr/usd/usdGeom/camera.h>
 #include <pxr/usd/usdGeom/tokens.h>
 
-extern "C" {
 #include "BKE_camera.h"
 #include "BLI_assert.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
-}
 
 namespace USD {
 

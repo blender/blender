@@ -30,7 +30,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -43,7 +42,6 @@ extern "C" {
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-}
 
 #include "ArmatureImporter.h"
 #include "MeshImporter.h"

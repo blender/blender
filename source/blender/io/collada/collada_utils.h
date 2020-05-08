@@ -33,7 +33,6 @@
 #include <set>
 #include <vector>
 
-extern "C" {
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
@@ -57,7 +56,6 @@ extern "C" {
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-}
 
 #include "DEG_depsgraph_query.h"
 

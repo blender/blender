@@ -24,11 +24,11 @@
 #ifndef __OPENEXR_API_H__
 #define __OPENEXR_API_H__
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdio.h>
 
 void imb_initopenexr(void);
 void imb_exitopenexr(void);

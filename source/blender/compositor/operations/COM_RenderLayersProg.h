@@ -24,9 +24,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_scene_types.h"
 #include "MEM_guardedalloc.h"
-extern "C" {
+
 #include "RE_pipeline.h"
-}
 
 /**
  * Base class for all renderlayeroperations

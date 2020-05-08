@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <string>
 
-extern "C" {
 #include "BKE_anim_data.h"
 #include "BKE_duplilist.h"
 #include "BKE_key.h"
@@ -41,7 +40,6 @@ extern "C" {
 #include "DNA_particle_types.h"
 
 #include "DEG_depsgraph_query.h"
-}
 
 namespace USD {
 

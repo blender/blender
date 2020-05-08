@@ -40,7 +40,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DNA_cachefile_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
@@ -74,7 +73,6 @@ extern "C" {
 
 #include "WM_api.h"
 #include "WM_types.h"
-}
 
 using Alembic::Abc::Int32ArraySamplePtr;
 using Alembic::Abc::ObjectHeader;

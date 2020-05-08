@@ -38,6 +38,10 @@
 
 #include "BLI_math_base.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* copied from BLI_utildefines.h */
 #ifdef __GNUC__
 #  define UNLIKELY(x) __builtin_expect(!!(x), 0)
@@ -792,5 +796,9 @@ MINLINE unsigned char unit_ushort_to_uchar(unsigned short val)
     (v1)[3] = unit_float_to_uchar_clamp((v2[3])); \
   } \
   ((void)0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MATH_BASE_INLINE_C__ */

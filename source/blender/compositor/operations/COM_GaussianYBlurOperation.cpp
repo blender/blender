@@ -21,9 +21,7 @@
 #include "COM_OpenCLDevice.h"
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "RE_pipeline.h"
-}
 
 GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {

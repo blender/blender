@@ -22,7 +22,6 @@
 #include "abc_axis_conversion.h"
 #include "abc_util.h"
 
-extern "C" {
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
@@ -37,7 +36,6 @@ extern "C" {
 #include "BLI_math_geom.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-}
 
 using Alembic::AbcGeom::IObject;
 using Alembic::AbcGeom::IXform;

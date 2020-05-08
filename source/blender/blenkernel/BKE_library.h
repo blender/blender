@@ -25,11 +25,11 @@
  * API to manage `Library` data-blocks.
  */
 
+#include "BLI_compiler_attrs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
 
 struct Library;
 struct Main;

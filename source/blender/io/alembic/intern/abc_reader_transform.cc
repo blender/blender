@@ -21,13 +21,11 @@
 #include "abc_reader_transform.h"
 #include "abc_util.h"
 
-extern "C" {
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 
 #include "BKE_object.h"
-}
 
 using Alembic::Abc::ISampleSelector;
 

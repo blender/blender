@@ -22,12 +22,11 @@
 /** \file
  * \ingroup bke
  */
+#include "BLI_listbase.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_listbase.h"
 
 struct Bone;
 struct Depsgraph;

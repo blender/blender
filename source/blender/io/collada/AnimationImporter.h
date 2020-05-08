@@ -35,14 +35,14 @@
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
 
-extern "C" {
 #include "BKE_context.h"
+
 #include "DNA_anim_types.h"
+
 #include "DNA_camera_types.h"
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-}
 
 //#include "ArmatureImporter.h"
 #include "TransformReader.h"

@@ -33,11 +33,9 @@
 #include "DNA_color_types.h"
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-}
 
 /************************************ OpenEXR Singlelayer Multiview ******************************/
 

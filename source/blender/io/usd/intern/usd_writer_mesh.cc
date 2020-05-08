@@ -23,7 +23,6 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
-extern "C" {
 #include "BLI_assert.h"
 #include "BLI_math_vector.h"
 
@@ -42,7 +41,6 @@ extern "C" {
 #include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_particle_types.h"
-}
 
 namespace USD {
 

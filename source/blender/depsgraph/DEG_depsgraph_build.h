@@ -42,11 +42,11 @@ struct Scene;
 struct ViewLayer;
 struct bNodeTree;
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_sys_types.h"
 
 /* Graph Building -------------------------------- */
 

@@ -16,13 +16,11 @@
  * Copyright 2011, Blender Foundation.
  */
 
-extern "C" {
-#include "BKE_node.h"
 #include "BLI_threads.h"
-}
 
 #include "BLT_translation.h"
 
+#include "BKE_node.h"
 #include "BKE_scene.h"
 
 #include "COM_ExecutionSystem.h"

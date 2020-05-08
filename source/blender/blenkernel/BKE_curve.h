@@ -23,11 +23,11 @@
  * \ingroup bke
  */
 
+#include "DNA_scene_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_scene_types.h"
 
 struct BezTriple;
 struct Curve;

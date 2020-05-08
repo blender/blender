@@ -16,9 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
-extern "C" {
 #include "BLI_utildefines.h"
-}
 
 #include "COM_Converter.h"
 #include "COM_Debug.h"

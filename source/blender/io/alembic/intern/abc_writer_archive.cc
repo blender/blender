@@ -22,14 +22,13 @@
  */
 
 #include "abc_writer_archive.h"
-extern "C" {
+
 #include "BKE_blender_version.h"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "DNA_scene_types.h"
-}
 
 #ifdef WIN32
 #  include "utfconv.h"

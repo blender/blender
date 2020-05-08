@@ -21,10 +21,8 @@
 #include "abc_writer_camera.h"
 #include "abc_writer_transform.h"
 
-extern "C" {
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
-}
 
 using Alembic::AbcGeom::OCamera;
 using Alembic::AbcGeom::OFloatProperty;

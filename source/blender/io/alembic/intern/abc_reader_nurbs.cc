@@ -25,7 +25,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
@@ -34,7 +33,6 @@ extern "C" {
 
 #include "BKE_curve.h"
 #include "BKE_object.h"
-}
 
 using Alembic::AbcGeom::FloatArraySamplePtr;
 using Alembic::AbcGeom::kWrapExisting;

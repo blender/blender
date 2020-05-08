@@ -22,13 +22,11 @@
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/usd/usdGeom/xform.h>
 
-extern "C" {
 #include "BKE_object.h"
 
 #include "BLI_math_matrix.h"
 
 #include "DNA_layer_types.h"
-}
 
 namespace USD {
 

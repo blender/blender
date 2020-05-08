@@ -26,14 +26,12 @@
 #include "abc_reader_transform.h"
 #include "abc_util.h"
 
-extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-}
 
 using Alembic::AbcGeom::kWrapExisting;
 using Alembic::AbcGeom::N3fArraySamplePtr;

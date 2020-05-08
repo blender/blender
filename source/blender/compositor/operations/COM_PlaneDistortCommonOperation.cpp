@@ -20,7 +20,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_jitter_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -29,7 +28,6 @@ extern "C" {
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_tracking.h"
-}
 
 /* ******** PlaneDistort WarpImage ******** */
 

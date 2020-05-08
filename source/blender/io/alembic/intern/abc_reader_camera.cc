@@ -22,7 +22,6 @@
 #include "abc_reader_transform.h"
 #include "abc_util.h"
 
-extern "C" {
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 
@@ -30,7 +29,6 @@ extern "C" {
 #include "BKE_object.h"
 
 #include "BLI_math.h"
-}
 
 using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::ICamera;

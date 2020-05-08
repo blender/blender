@@ -24,6 +24,9 @@
  * \ingroup bke
  */
 
+#include "BLI_utildefines.h"
+#include "DNA_object_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -64,9 +67,6 @@ struct bToolRef;
 struct tPaletteColorHSV;
 
 enum eOverlayFlags;
-
-#include "BLI_utildefines.h"
-#include "DNA_object_enums.h"
 
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];

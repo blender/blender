@@ -26,11 +26,11 @@
 #ifndef __DNA_CUSTOMDATA_TYPES_H__
 #define __DNA_CUSTOMDATA_TYPES_H__
 
+#include "DNA_defs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_defs.h"
 
 /** Descriptor and storage for a custom data layer. */
 typedef struct CustomDataLayer {

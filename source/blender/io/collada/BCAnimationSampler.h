@@ -21,12 +21,12 @@
 #include "BCSampleData.h"
 #include "collada_utils.h"
 
-extern "C" {
 #include "BKE_action.h"
 #include "BKE_lib_id.h"
+
 #include "BLI_math_rotation.h"
+
 #include "DNA_action_types.h"
-}
 
 /* Collection of animation curves */
 class BCAnimation {

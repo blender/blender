@@ -18,9 +18,7 @@
 
 #include "COM_ConvertOperation.h"
 
-extern "C" {
 #include "IMB_colormanagement.h"
-}
 
 ConvertBaseOperation::ConvertBaseOperation()
 {

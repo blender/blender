@@ -24,11 +24,9 @@
 #include "../stroke/StyleModule.h"
 #include "../system/PythonInterpreter.h"
 
-extern "C" {
 #include "BLI_utildefines.h"  // BLI_assert()
 
 struct Text;
-}
 
 namespace Freestyle {
 

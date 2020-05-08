@@ -30,10 +30,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
-extern "C" {
 #include "DNA_material_types.h"  // for MAX_MTEX
 struct bNodeTree;
-}
 
 namespace Freestyle {
 

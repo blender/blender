@@ -29,12 +29,10 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 
 #include "BKE_lib_id.h"
-}
 
 #include "DEG_depsgraph.h"
 

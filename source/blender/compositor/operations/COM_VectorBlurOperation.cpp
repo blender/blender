@@ -16,12 +16,13 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include "BLI_math.h"
-#include "MEM_guardedalloc.h"
 #include <string.h>
-extern "C" {
+
+#include "MEM_guardedalloc.h"
+
 #include "BLI_jitter_2d.h"
-}
+#include "BLI_math.h"
+
 #include "COM_VectorBlurOperation.h"
 
 /* Defined */

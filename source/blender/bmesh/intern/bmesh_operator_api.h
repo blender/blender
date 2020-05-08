@@ -21,13 +21,13 @@
  * \ingroup bmesh
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "BLI_ghash.h"
 
 #include <stdarg.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * operators represent logical, executable mesh modules.  all topological

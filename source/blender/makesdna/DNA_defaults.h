@@ -29,11 +29,11 @@
 
 #include "BLI_utildefines.h"
 
+#include "dna_type_offsets.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "dna_type_offsets.h"
 
 extern const void *DNA_default_table[SDNA_TYPE_MAX];
 

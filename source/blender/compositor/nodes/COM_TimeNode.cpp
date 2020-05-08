@@ -19,9 +19,9 @@
 #include "COM_TimeNode.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
-extern "C" {
+
 #include "BKE_colortools.h"
-}
+
 #include "BLI_utildefines.h"
 
 TimeNode::TimeNode(bNode *editorNode) : Node(editorNode)

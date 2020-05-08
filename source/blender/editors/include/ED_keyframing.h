@@ -24,6 +24,9 @@
 #ifndef __ED_KEYFRAMING_H__
 #define __ED_KEYFRAMING_H__
 
+#include "DNA_anim_types.h"
+#include "RNA_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,9 +52,6 @@ struct PointerRNA;
 struct PropertyRNA;
 
 struct NlaKeyframingContext;
-
-#include "DNA_anim_types.h"
-#include "RNA_types.h"
 
 /* ************ Keyframing Management **************** */
 

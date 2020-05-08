@@ -92,6 +92,10 @@ static const int NAN_INT = 0x7FC00000;
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************* Float ******************************/
 
 MINLINE float pow2f(float x);
@@ -279,6 +283,10 @@ double double_round(double x, int ndigits);
 #  define BLI_ASSERT_ZERO_M3(m) (void)(m)
 #  define BLI_ASSERT_ZERO_M4(m) (void)(m)
 #  define BLI_ASSERT_UNIT_M3(m) (void)(m)
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __BLI_MATH_BASE_H__ */

@@ -24,11 +24,12 @@
  * \ingroup bke
  * \brief General operations, lookup, etc. for blender lights.
  */
+
+#include "BLI_compiler_attrs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
 
 struct Light;
 struct Main;

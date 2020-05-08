@@ -27,9 +27,7 @@
 
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "DNA_listBase.h"
-} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"

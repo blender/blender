@@ -24,11 +24,11 @@
  * \ingroup bke
  */
 
+#include "BLI_sys_types.h" /* for bool */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_sys_types.h" /* for bool */
 
 struct AnimData;
 struct ID;

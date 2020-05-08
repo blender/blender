@@ -53,7 +53,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -92,7 +91,6 @@ extern "C" {
 #include "BKE_pointcache.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
-}
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_nodes.h"

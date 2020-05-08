@@ -33,7 +33,6 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -54,7 +53,6 @@ extern "C" {
 #define new new_
 #include "BKE_screen.h"
 #undef new
-} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"

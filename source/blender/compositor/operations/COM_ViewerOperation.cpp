@@ -28,11 +28,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-extern "C" {
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-}
 
 ViewerOperation::ViewerOperation() : NodeOperation()
 {

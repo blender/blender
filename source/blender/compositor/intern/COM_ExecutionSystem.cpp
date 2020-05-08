@@ -20,9 +20,8 @@
 
 #include "BLI_utildefines.h"
 #include "PIL_time.h"
-extern "C" {
+
 #include "BKE_node.h"
-}
 
 #include "BLT_translation.h"
 

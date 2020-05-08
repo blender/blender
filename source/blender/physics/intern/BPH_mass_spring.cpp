@@ -23,7 +23,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DNA_cloth_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -38,7 +37,6 @@ extern "C" {
 #include "BKE_cloth.h"
 #include "BKE_collision.h"
 #include "BKE_effect.h"
-}
 
 #include "BPH_mass_spring.h"
 #include "implicit.h"

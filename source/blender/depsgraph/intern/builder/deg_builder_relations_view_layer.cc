@@ -34,7 +34,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "DNA_linestyle_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -43,7 +42,6 @@ extern "C" {
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-} /* extern "C" */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

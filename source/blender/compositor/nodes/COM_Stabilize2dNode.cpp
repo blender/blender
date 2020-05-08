@@ -24,10 +24,9 @@
 #include "COM_SetSamplerOperation.h"
 #include "COM_TranslateOperation.h"
 
-extern "C" {
 #include "BKE_tracking.h"
+
 #include "DNA_movieclip_types.h"
-}
 
 Stabilize2dNode::Stabilize2dNode(bNode *editorNode) : Node(editorNode)
 {

@@ -22,11 +22,11 @@
  * \brief A min-heap / priority queue ADT
  */
 
+#include "BLI_math.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_math.h"
 
 struct Heap;
 struct HeapNode;

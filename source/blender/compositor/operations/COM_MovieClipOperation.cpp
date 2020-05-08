@@ -20,11 +20,11 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-extern "C" {
-#include "BKE_movieclip.h"
-#include "IMB_imbuf.h"
-}
+
 #include "BKE_image.h"
+#include "BKE_movieclip.h"
+
+#include "IMB_imbuf.h"
 
 MovieClipBaseOperation::MovieClipBaseOperation() : NodeOperation()
 {

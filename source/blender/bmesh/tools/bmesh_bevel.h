@@ -47,4 +47,5 @@ void BM_mesh_bevel(BMesh *bm,
                    const bool use_custom_profile,
                    const struct CurveProfile *custom_profile,
                    const int vmesh_method);
+
 #endif /* __BMESH_BEVEL_H__ */

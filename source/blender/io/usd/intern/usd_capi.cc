@@ -26,7 +26,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -44,7 +43,6 @@ extern "C" {
 
 #include "WM_api.h"
 #include "WM_types.h"
-}
 
 namespace USD {
 

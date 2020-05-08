@@ -25,11 +25,11 @@
 #ifndef __DPXLIB_H__
 #define __DPXLIB_H__
 
+#include "logImageCore.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "logImageCore.h"
 
 #define DPX_FILE_MAGIC 0x53445058
 #define DPX_UNDEFINED_U8 0xFF

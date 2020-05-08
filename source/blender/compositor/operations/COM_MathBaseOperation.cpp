@@ -17,9 +17,8 @@
  */
 
 #include "COM_MathBaseOperation.h"
-extern "C" {
+
 #include "BLI_math.h"
-}
 
 MathBaseOperation::MathBaseOperation() : NodeOperation()
 {

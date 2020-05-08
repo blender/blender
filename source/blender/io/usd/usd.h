@@ -20,11 +20,11 @@
 #ifndef __USD_H__
 #define __USD_H__
 
+#include "DEG_depsgraph.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DEG_depsgraph.h"
 
 struct Scene;
 struct bContext;

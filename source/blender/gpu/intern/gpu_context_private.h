@@ -26,11 +26,11 @@
 #ifndef __GPU_CONTEXT_PRIVATE_H__
 #define __GPU_CONTEXT_PRIVATE_H__
 
+#include "GPU_context.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "GPU_context.h"
 
 struct GPUFrameBuffer;
 

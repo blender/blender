@@ -25,7 +25,6 @@
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
 
-extern "C" {
 #include "BKE_context.h"
 #include "BKE_key.h"
 
@@ -35,7 +34,6 @@ extern "C" {
 #include "DNA_scene_types.h"
 
 #include "ED_armature.h"
-}
 
 #include "AnimationImporter.h"
 #include "ExtraTags.h"

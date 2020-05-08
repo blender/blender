@@ -25,14 +25,12 @@
 
 #include "COLLADAFWUniqueId.h"
 
-extern "C" {
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_object.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "ED_armature.h"
-}
 
 #include "DEG_depsgraph.h"
 

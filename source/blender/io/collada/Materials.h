@@ -20,13 +20,11 @@
 #include <map>
 #include <string>
 
-extern "C" {
 #include "BKE_context.h"
 #include "BKE_node.h"
 #include "BLI_listbase.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
-}
 
 #include "COLLADAFWEffectCommon.h"
 #include "collada_utils.h"

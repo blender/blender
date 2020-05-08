@@ -24,11 +24,9 @@
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 
-extern "C" {
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_tracking.h"
-}
 
 TrackPositionOperation::TrackPositionOperation() : NodeOperation()
 {

@@ -25,7 +25,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include <string.h>  // XXX: memcpy
 
 #include "BLI_listbase.h"
@@ -35,8 +34,6 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
-
-} /* extern "C" */
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

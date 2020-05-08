@@ -27,16 +27,16 @@
  * \ingroup bli
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_inline.h"
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /********************************** Polygons *********************************/

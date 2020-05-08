@@ -23,14 +23,12 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_texture_types.h"
 
 #include "BKE_effect.h"
-}
 
 #include "eigen_utils.h"
 #include "implicit.h"

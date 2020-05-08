@@ -27,7 +27,6 @@
 #include "ImportSettings.h"
 #include "collada.h"
 
-extern "C" {
 #include "BKE_context.h"
 #include "BKE_scene.h"
 #include "DEG_depsgraph.h"
@@ -36,6 +35,8 @@ extern "C" {
 /* make dummy file */
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
+
+extern "C" {
 
 static void print_import_header(ImportSettings &import_settings)
 {

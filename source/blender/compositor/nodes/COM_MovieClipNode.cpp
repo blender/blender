@@ -22,12 +22,12 @@
 #include "COM_MovieClipOperation.h"
 #include "COM_SetValueOperation.h"
 
-extern "C" {
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
+
 #include "DNA_movieclip_types.h"
+
 #include "IMB_imbuf.h"
-}
 
 MovieClipNode::MovieClipNode(bNode *editorNode) : Node(editorNode)
 {

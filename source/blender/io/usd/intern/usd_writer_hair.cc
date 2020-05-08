@@ -22,11 +22,9 @@
 #include <pxr/usd/usdGeom/basisCurves.h>
 #include <pxr/usd/usdGeom/tokens.h>
 
-extern "C" {
 #include "BKE_particle.h"
 
 #include "DNA_particle_types.h"
-}
 
 namespace USD {
 

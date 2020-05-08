@@ -24,6 +24,9 @@
 #ifndef __ED_OBJECT_H__
 #define __ED_OBJECT_H__
 
+#include "BLI_compiler_attrs.h"
+#include "DNA_object_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,9 +56,6 @@ struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 struct wmWindowManager;
-
-#include "BLI_compiler_attrs.h"
-#include "DNA_object_enums.h"
 
 /* object_edit.c */
 /* context.object */

@@ -19,9 +19,7 @@
 #include "COM_GlareThresholdOperation.h"
 #include "BLI_math.h"
 
-extern "C" {
 #include "IMB_colormanagement.h"
-}
 
 GlareThresholdOperation::GlareThresholdOperation() : NodeOperation()
 {

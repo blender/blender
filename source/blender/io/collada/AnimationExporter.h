@@ -23,7 +23,6 @@
 
 #include "BCAnimationCurve.h"
 
-extern "C" {
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -48,7 +47,6 @@ extern "C" {
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "ED_object.h"
-}
 
 #include "MEM_guardedalloc.h"
 

@@ -52,10 +52,6 @@
 
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "BLI_listbase.h"
 
 #include "BLI_string.h"
@@ -67,9 +63,5 @@ extern "C" {
 #include "BLI_fileops.h"
 
 #include "BLI_rect.h"
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

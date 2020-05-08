@@ -35,11 +35,11 @@ struct bContext;
 struct bContextDataResult;
 struct bPythonConstraint; /* DNA_constraint_types.h */
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_utildefines.h"
 
 void BPY_pyconstraint_exec(struct bPythonConstraint *con,
                            struct bConstraintOb *cob,

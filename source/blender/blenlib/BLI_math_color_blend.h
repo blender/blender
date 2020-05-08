@@ -27,11 +27,11 @@
  * \ingroup bli
  */
 
+#include "BLI_math_inline.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_math_inline.h"
 
 /******************** Blending Modes **********************
  * - byte function assume straight alpha

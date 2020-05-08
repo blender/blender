@@ -21,11 +21,11 @@
 #ifndef __DDS_API_H__
 #define __DDS_API_H__
 
+#include "../../IMB_imbuf.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "../../IMB_imbuf.h"
 
 int imb_is_a_dds(const unsigned char *mem); /* use only first 32 bytes of mem */
 int imb_save_dds(struct ImBuf *ibuf, const char *name, int flags);

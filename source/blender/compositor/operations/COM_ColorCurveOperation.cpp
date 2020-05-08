@@ -18,14 +18,9 @@
 
 #include "COM_ColorCurveOperation.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "BKE_colortools.h"
-#ifdef __cplusplus
-}
-#  include "MEM_guardedalloc.h"
-#endif
+
+#include "MEM_guardedalloc.h"
 
 ColorCurveOperation::ColorCurveOperation() : CurveBaseOperation()
 {

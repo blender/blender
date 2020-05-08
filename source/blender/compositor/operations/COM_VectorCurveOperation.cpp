@@ -18,13 +18,7 @@
 
 #include "COM_VectorCurveOperation.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "BKE_colortools.h"
-#ifdef __cplusplus
-}
-#endif
 
 VectorCurveOperation::VectorCurveOperation() : CurveBaseOperation()
 {

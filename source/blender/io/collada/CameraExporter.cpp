@@ -22,9 +22,8 @@
 
 #include "COLLADASWCamera.h"
 
-extern "C" {
 #include "DNA_camera_types.h"
-}
+
 #include "CameraExporter.h"
 
 #include "collada_internal.h"

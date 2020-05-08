@@ -21,11 +21,11 @@
  * \ingroup bli
  */
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_utildefines.h"
 
 BLI_INLINE unsigned int BLI_hash_int_2d(unsigned int kx, unsigned int ky)
 {

@@ -17,11 +17,11 @@
  */
 
 #include "COM_DirectionalBlurOperation.h"
-#include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
-extern "C" {
+
+#include "BLI_math.h"
+
 #include "RE_pipeline.h"
-}
 
 DirectionalBlurOperation::DirectionalBlurOperation() : NodeOperation()
 {

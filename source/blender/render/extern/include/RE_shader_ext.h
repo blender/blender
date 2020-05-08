@@ -23,6 +23,10 @@
 #ifndef __RE_SHADER_EXT_H__
 #define __RE_SHADER_EXT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is for texture exports                        */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -74,5 +78,9 @@ int multitex_nodes(struct Tex *tex,
                    short which_output,
                    struct MTex *mtex,
                    struct ImagePool *pool);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RE_SHADER_EXT_H__ */

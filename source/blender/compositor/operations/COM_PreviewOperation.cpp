@@ -27,12 +27,11 @@
 #include "PIL_time.h"
 #include "WM_api.h"
 #include "WM_types.h"
-extern "C" {
+
 #include "BKE_node.h"
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-}
 
 PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
                                    const ColorManagedDisplaySettings *displaySettings)

@@ -21,11 +21,11 @@
  * \ingroup eduv
  */
 
+#include "BLI_sys_types.h"  // for intptr_t support
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_sys_types.h"  // for intptr_t support
 
 typedef void ParamHandle;  /* handle to a set of charts */
 typedef intptr_t ParamKey; /* (hash) key for identifying verts and faces */

@@ -24,12 +24,12 @@
  * \ingroup bli
  */
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_math_inline.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
-#include "BLI_math_inline.h"
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push

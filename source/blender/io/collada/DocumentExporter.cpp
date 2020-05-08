@@ -58,7 +58,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -96,13 +95,12 @@ extern "C" {
 
 #include "ED_keyframing.h"
 #ifdef WITH_BUILDINFO
-extern char build_commit_date[];
-extern char build_commit_time[];
-extern char build_hash[];
+extern "C" char build_commit_date[];
+extern "C" char build_commit_time[];
+extern "C" char build_hash[];
 #endif
 
 #include "RNA_access.h"
-}
 
 #include "DocumentExporter.h"
 #include "collada_internal.h"

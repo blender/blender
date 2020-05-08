@@ -17,10 +17,9 @@
  */
 
 #include "COM_MultilayerImageOperation.h"
-extern "C" {
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-}
 
 MultilayerBaseOperation::MultilayerBaseOperation(int passindex, int view) : BaseImageOperation()
 {

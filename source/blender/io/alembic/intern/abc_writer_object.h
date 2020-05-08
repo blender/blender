@@ -26,9 +26,7 @@
 
 #include "abc_exporter.h"
 
-extern "C" {
 #include "DNA_ID.h"
-}
 
 class AbcTransformWriter;
 

@@ -22,13 +22,14 @@
 #include "BLI_listbase.h"
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_threads.h"
+
 #include "RE_pipeline.h"
 #include "RE_render_ext.h"
 #include "RE_shader_ext.h"
+
 #include "render_types.h"
-}
+
 #include "PIL_time.h"
 
 CompositorOperation::CompositorOperation() : NodeOperation()

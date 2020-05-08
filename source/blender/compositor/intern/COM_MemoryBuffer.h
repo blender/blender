@@ -25,10 +25,8 @@ class MemoryBuffer;
 #include "COM_MemoryProxy.h"
 #include "COM_SocketReader.h"
 
-extern "C" {
 #include "BLI_math.h"
 #include "BLI_rect.h"
-}
 
 /**
  * \brief state of a memory buffer

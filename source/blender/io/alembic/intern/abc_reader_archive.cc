@@ -23,12 +23,10 @@
 
 #include "abc_reader_archive.h"
 
-extern "C" {
 #include "BKE_main.h"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-}
 
 #ifdef WIN32
 #  include "utfconv.h"

@@ -21,12 +21,12 @@
 #ifndef __DNA_LAYER_TYPES_H__
 #define __DNA_LAYER_TYPES_H__
 
+#include "DNA_freestyle_types.h"
+#include "DNA_listBase.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_freestyle_types.h"
-#include "DNA_listBase.h"
 
 /**
  * Render-passes for EEVEE.

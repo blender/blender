@@ -23,9 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-extern "C" {
 #include "BKE_mask.h"
-}
 
 MaskOperation::MaskOperation() : NodeOperation()
 {

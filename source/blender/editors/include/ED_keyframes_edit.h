@@ -24,11 +24,11 @@
 #ifndef __ED_KEYFRAMES_EDIT_H__
 #define __ED_KEYFRAMES_EDIT_H__
 
+#include "ED_anim_api.h" /* for enum eAnimFilter_Flags */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "ED_anim_api.h" /* for enum eAnimFilter_Flags */
 
 struct BezTriple;
 struct FCurve;

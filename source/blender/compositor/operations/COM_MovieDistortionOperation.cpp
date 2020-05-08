@@ -18,11 +18,10 @@
 
 #include "COM_MovieDistortionOperation.h"
 
-extern "C" {
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
+
 #include "BLI_linklist.h"
-}
 
 MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperation()
 {

@@ -18,13 +18,11 @@
  * \ingroup collada
  */
 
-extern "C" {
 #include "BKE_collection.h"
 #include "BKE_lib_id.h"
 #include "BKE_object.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-}
 
 #include "BCSampleData.h"
 #include "SceneExporter.h"

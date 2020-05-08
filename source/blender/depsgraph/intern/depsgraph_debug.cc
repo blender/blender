@@ -25,9 +25,7 @@
 
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "DNA_scene_types.h"
-} /* extern "C" */
 
 #include "DNA_object_types.h"
 

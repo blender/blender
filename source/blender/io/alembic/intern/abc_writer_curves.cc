@@ -26,14 +26,12 @@
 #include "abc_reader_curves.h"
 #include "abc_writer_transform.h"
 
-extern "C" {
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_curve.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-}
 
 using Alembic::AbcGeom::OCompoundProperty;
 using Alembic::AbcGeom::OCurves;

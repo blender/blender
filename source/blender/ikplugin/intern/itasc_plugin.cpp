@@ -40,7 +40,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BIK_api.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -55,7 +54,6 @@ extern "C" {
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-};
 
 #include "itasc_plugin.h"
 

@@ -23,9 +23,7 @@
 #include "DNA_movieclip_types.h"
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BKE_tracking.h"
-}
 
 class MovieDistortionOperation : public NodeOperation {
  private:

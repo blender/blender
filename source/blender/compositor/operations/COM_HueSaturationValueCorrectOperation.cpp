@@ -20,13 +20,7 @@
 
 #include "BLI_math.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "BKE_colortools.h"
-#ifdef __cplusplus
-}
-#endif
 
 HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation() : CurveBaseOperation()
 {

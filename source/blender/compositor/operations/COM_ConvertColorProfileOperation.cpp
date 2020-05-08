@@ -18,9 +18,8 @@
 
 #include "COM_ConvertColorProfileOperation.h"
 
-extern "C" {
 #include "IMB_imbuf.h"
-}
+
 ConvertColorProfileOperation::ConvertColorProfileOperation() : NodeOperation()
 {
   this->addInputSocket(COM_DT_COLOR);

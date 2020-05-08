@@ -25,11 +25,11 @@
  * \brief Blender kernel action and pose functionality.
  */
 
+#include "DNA_listBase.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_listBase.h"
 
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
 struct FCurve;

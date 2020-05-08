@@ -24,9 +24,7 @@
 #include <Alembic/Abc/All.h>
 #include <Alembic/AbcGeom/All.h>
 
-extern "C" {
 #include "DNA_ID.h"
-}
 
 struct CacheFile;
 struct Main;

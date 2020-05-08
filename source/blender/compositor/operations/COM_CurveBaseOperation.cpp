@@ -18,13 +18,7 @@
 
 #include "COM_CurveBaseOperation.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "BKE_colortools.h"
-#ifdef __cplusplus
-}
-#endif
 
 CurveBaseOperation::CurveBaseOperation() : NodeOperation()
 {

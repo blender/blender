@@ -18,9 +18,7 @@
  * \ingroup imbdds
  */
 
-extern "C" {
 #include "BLI_utildefines.h"
-}
 
 #include <DirectDrawSurface.h>
 #include <FlipDXT.h>
@@ -34,8 +32,6 @@ extern "C" {
 #  include "utfconv.h"
 #endif
 
-extern "C" {
-
 #include "IMB_allocimbuf.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -43,6 +39,8 @@ extern "C" {
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
+
+extern "C" {
 
 int imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
 {

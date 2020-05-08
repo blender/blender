@@ -19,9 +19,7 @@
 #include "COM_LuminanceMatteOperation.h"
 #include "BLI_math.h"
 
-extern "C" {
 #include "IMB_colormanagement.h"
-}
 
 LuminanceMatteOperation::LuminanceMatteOperation() : NodeOperation()
 {

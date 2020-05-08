@@ -24,10 +24,8 @@
 #include "COLLADASWLibraryCameras.h"
 #include "COLLADASWStreamWriter.h"
 
-extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-}
 
 #include "DNA_camera_types.h"
 #include "ExportSettings.h"

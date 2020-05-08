@@ -26,10 +26,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Define icon enum. */
 #define DEF_ICON(name) ICON_##name,
 #define DEF_ICON_VECTOR(name) ICON_##name,
@@ -46,6 +42,10 @@ typedef enum {
 
 /* use to denote intentionally unset theme color */
 #define TH_UNDEFINED -1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum ThemeColorID {
   TH_REDALERT,

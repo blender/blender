@@ -45,7 +45,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -72,7 +71,6 @@ extern "C" {
 
 #include "WM_api.h"
 #include "WM_types.h"
-}
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

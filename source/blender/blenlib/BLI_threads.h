@@ -23,9 +23,6 @@
 /** \file
  * \ingroup bli
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <pthread.h>
 
@@ -33,6 +30,10 @@ extern "C" {
 
 #ifdef __APPLE__
 #  include <libkern/OSAtomic.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /* for tables, button in UI, etc */

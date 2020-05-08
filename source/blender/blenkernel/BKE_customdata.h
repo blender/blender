@@ -25,14 +25,14 @@
 #ifndef __BKE_CUSTOMDATA_H__
 #define __BKE_CUSTOMDATA_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_customdata_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BMesh;
 struct CustomData;

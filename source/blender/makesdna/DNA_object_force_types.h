@@ -24,12 +24,12 @@
 #ifndef __DNA_OBJECT_FORCE_TYPES_H__
 #define __DNA_OBJECT_FORCE_TYPES_H__
 
+#include "DNA_defs.h"
+#include "DNA_listBase.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_defs.h"
-#include "DNA_listBase.h"
 
 /* pd->forcefield:  Effector Fields types */
 typedef enum ePFieldType {

@@ -29,9 +29,7 @@
 
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "BKE_animsys.h"
-}
 
 namespace DEG {
 

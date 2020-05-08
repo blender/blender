@@ -21,15 +21,15 @@
 #ifndef __EXPORTSETTINGS_H__
 #define __EXPORTSETTINGS_H__
 
+#include "BLI_linklist.h"
+#include "BlenderContext.h"
+
 #ifdef __cplusplus
 #  include "BCMath.h"
 #  include <vector>
 
 extern "C" {
 #endif
-
-#include "BLI_linklist.h"
-#include "BlenderContext.h"
 
 typedef enum BC_export_mesh_type {
   BC_MESH_TYPE_VIEW,

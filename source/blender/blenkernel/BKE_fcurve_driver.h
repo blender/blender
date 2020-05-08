@@ -24,6 +24,8 @@
  * \ingroup bke
  */
 
+#include "DNA_curve_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,8 +37,6 @@ struct FCurve;
 struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
-
-#include "DNA_curve_types.h"
 
 /* ************** F-Curve Drivers ***************** */
 

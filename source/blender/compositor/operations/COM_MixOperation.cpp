@@ -18,9 +18,7 @@
 
 #include "COM_MixOperation.h"
 
-extern "C" {
 #include "BLI_math.h"
-}
 
 /* ******** Mix Base Operation ******** */
 

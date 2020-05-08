@@ -33,9 +33,7 @@
 
 #include "../system/FreestyleConfig.h"
 
-extern "C" {
 #include "BLI_utildefines.h"
-}
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

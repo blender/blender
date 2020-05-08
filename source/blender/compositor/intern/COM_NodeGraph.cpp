@@ -18,14 +18,12 @@
 
 #include <cstring>
 
-extern "C" {
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"
 
 #include "BKE_node.h"
-}
 
 #include "COM_CompositorContext.h"
 #include "COM_Converter.h"

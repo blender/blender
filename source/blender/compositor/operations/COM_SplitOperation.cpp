@@ -24,10 +24,8 @@
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-}
 
 SplitOperation::SplitOperation() : NodeOperation()
 {

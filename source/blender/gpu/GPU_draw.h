@@ -24,6 +24,9 @@
 #ifndef __GPU_DRAW_H__
 #define __GPU_DRAW_H__
 
+#include "BLI_utildefines.h"
+#include "DNA_object_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,9 +36,6 @@ struct ImBuf;
 struct Image;
 struct ImageUser;
 struct Main;
-
-#include "BLI_utildefines.h"
-#include "DNA_object_enums.h"
 
 /* OpenGL drawing functions related to shading. */
 

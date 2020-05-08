@@ -40,6 +40,10 @@ struct StampData;
 struct ViewLayer;
 struct bMovieHandle;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -385,5 +389,9 @@ struct RenderView *RE_RenderViewGetById(struct RenderResult *res, const int view
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *viewname);
 
 RenderResult *RE_DuplicateRenderResult(RenderResult *rr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __RE_PIPELINE_H__ */

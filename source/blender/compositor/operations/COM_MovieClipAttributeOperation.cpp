@@ -17,10 +17,10 @@
  */
 
 #include "COM_MovieClipAttributeOperation.h"
-extern "C" {
+
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
-}
+
 MovieClipAttributeOperation::MovieClipAttributeOperation() : NodeOperation()
 {
   this->addOutputSocket(COM_DT_VALUE);

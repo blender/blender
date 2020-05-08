@@ -26,13 +26,13 @@
 #include "ExportSettings.h"
 #include "ImportSettings.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "RNA_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct bContext;
 

@@ -19,9 +19,7 @@
 #include "COM_ColorCorrectionOperation.h"
 #include "BLI_math.h"
 
-extern "C" {
 #include "IMB_colormanagement.h"
-}
 
 ColorCorrectionOperation::ColorCorrectionOperation() : NodeOperation()
 {

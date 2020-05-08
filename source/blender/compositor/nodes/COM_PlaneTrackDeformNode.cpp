@@ -21,11 +21,9 @@
 
 #include "COM_PlaneTrackOperation.h"
 
-extern "C" {
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_tracking.h"
-}
 
 PlaneTrackDeformNode::PlaneTrackDeformNode(bNode *editorNode) : Node(editorNode)
 {

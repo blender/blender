@@ -22,7 +22,6 @@
 #include "abc_axis_conversion.h"
 #include "abc_writer_transform.h"
 
-extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -40,7 +39,6 @@ extern "C" {
 #include "bmesh_tools.h"
 
 #include "DEG_depsgraph_query.h"
-}
 
 using Alembic::Abc::FloatArraySample;
 using Alembic::Abc::Int32ArraySample;

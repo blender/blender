@@ -30,14 +30,12 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-extern "C" {
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_sequence_types.h"
-}
 
 #include "BKE_constraint.h"
 
