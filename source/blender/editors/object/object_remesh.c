@@ -114,7 +114,7 @@ static bool object_remesh_poll(bContext *C)
     return false;
   }
 
-  if (modifiers_usesMultires(ob)) {
+  if (BKE_modifiers_uses_multires(ob)) {
     CTX_wm_operator_poll_msg_set(
         C, "The remesher cannot run with a Multires modifier in the modifier stack");
     return false;

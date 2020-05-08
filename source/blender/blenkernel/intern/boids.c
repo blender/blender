@@ -861,7 +861,7 @@ static Object *boid_find_ground(BoidBrainData *bbd,
     SurfaceModifierData *surmd = NULL;
     float x[3], v[3];
 
-    surmd = (SurfaceModifierData *)modifiers_findByType(bpa->ground, eModifierType_Surface);
+    surmd = (SurfaceModifierData *)BKE_modifiers_findby_type(bpa->ground, eModifierType_Surface);
 
     /* take surface velocity into account */
     closest_point_on_surface(surmd, pa->state.co, x, NULL, v);

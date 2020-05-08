@@ -63,7 +63,7 @@ static void rna_cloth_pinning_changed(Main *UNUSED(bmain), Scene *UNUSED(scene),
 {
   Object *ob = (Object *)ptr->owner_id;
   /*  ClothSimSettings *settings = (ClothSimSettings *)ptr->data; */
-  ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+  ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
   cloth_free_modifier(clmd);
 
@@ -434,7 +434,7 @@ static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
 static char *rna_ClothSettings_path(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
   if (md) {
     char name_esc[sizeof(md->name) * 2];
@@ -449,7 +449,7 @@ static char *rna_ClothSettings_path(PointerRNA *ptr)
 static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
   if (md) {
     char name_esc[sizeof(md->name) * 2];

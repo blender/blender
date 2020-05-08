@@ -93,7 +93,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   const MeshDeformModifierData *mmd = (const MeshDeformModifierData *)md;
   MeshDeformModifierData *tmmd = (MeshDeformModifierData *)target;
 
-  modifier_copyData_generic(md, target, flag);
+  BKE_modifier_copydata_generic(md, target, flag);
 
   if (mmd->bindinfluences) {
     tmmd->bindinfluences = MEM_dupallocN(mmd->bindinfluences);
@@ -363,7 +363,7 @@ static void meshdeformModifier_do(ModifierData *md,
   Object *ob_target = mmd->object;
   cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
   if (cagemesh == NULL) {
-    modifier_setError(md, "Cannot get mesh from cage object");
+    BKE_modifier_set_error(md, "Cannot get mesh from cage object");
     return;
   }
 
@@ -378,7 +378,7 @@ static void meshdeformModifier_do(ModifierData *md,
   if (!mmd->bindcagecos) {
     /* progress bar redraw can make this recursive .. */
     if (!DEG_is_active(ctx->depsgraph)) {
-      modifier_setError(md, "Attempt to bind from inactive dependency graph");
+      BKE_modifier_set_error(md, "Attempt to bind from inactive dependency graph");
       goto finally;
     }
     if (!recursive_bind_sentinel) {
@@ -395,15 +395,15 @@ static void meshdeformModifier_do(ModifierData *md,
   totcagevert = cagemesh->totvert;
 
   if (mmd->totvert != totvert) {
-    modifier_setError(md, "Verts changed from %d to %d", mmd->totvert, totvert);
+    BKE_modifier_set_error(md, "Verts changed from %d to %d", mmd->totvert, totvert);
     goto finally;
   }
   else if (mmd->totcagevert != totcagevert) {
-    modifier_setError(md, "Cage verts changed from %d to %d", mmd->totcagevert, totcagevert);
+    BKE_modifier_set_error(md, "Cage verts changed from %d to %d", mmd->totcagevert, totcagevert);
     goto finally;
   }
   else if (mmd->bindcagecos == NULL) {
-    modifier_setError(md, "Bind data missing");
+    BKE_modifier_set_error(md, "Bind data missing");
     goto finally;
   }
 
@@ -488,7 +488,7 @@ static void deformVertsEM(ModifierData *md,
 
 #define MESHDEFORM_MIN_INFLUENCE 0.00001f
 
-void modifier_mdef_compact_influences(ModifierData *md)
+void BKE_modifier_mdef_compact_influences(ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
   float weight, *weights, totweight;

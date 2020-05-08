@@ -334,7 +334,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
       default:
         break;
     }
-    test_object_modifiers(ob);
+    BKE_modifiers_test_object(ob);
     BKE_object_materials_test(bmain, ob, new_id);
   }
 }

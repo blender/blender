@@ -156,7 +156,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
       ok = mmd->totlvl > 0;
 
       for (md = (ModifierData *)mmd->modifier.next; md && ok; md = md->next) {
-        if (modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
+        if (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
           ok = false;
         }
       }

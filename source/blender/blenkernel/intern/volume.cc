@@ -811,14 +811,14 @@ static Volume *volume_evaluate_modifiers(struct Depsgraph *depsgraph,
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
   VirtualModifierData virtualModifierData;
-  ModifierData *md = modifiers_getVirtualModifierList(object, &virtualModifierData);
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtualModifierData);
 
   /* Evaluate modifiers. */
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = (const ModifierTypeInfo *)modifierType_getInfo(
+    const ModifierTypeInfo *mti = (const ModifierTypeInfo *)BKE_modifier_get_info(
         (ModifierType)md->type);
 
-    if (!modifier_isEnabled(scene, md, required_mode)) {
+    if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
     }
 

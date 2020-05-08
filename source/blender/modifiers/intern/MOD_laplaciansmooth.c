@@ -574,7 +574,7 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ deformVerts,
     /* deformMatrices */ NULL,

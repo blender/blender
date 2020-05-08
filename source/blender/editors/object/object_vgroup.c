@@ -3945,7 +3945,7 @@ static int vgroup_sort_name(const void *def_a_ptr, const void *def_b_ptr)
 static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
 {
   if (bonebase == NULL) {
-    Object *armobj = modifiers_isDeformedByArmature(ob);
+    Object *armobj = BKE_modifiers_is_deformed_by_armature(ob);
     if (armobj != NULL) {
       bArmature *armature = armobj->data;
       bonebase = &armature->bonebase;

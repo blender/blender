@@ -106,7 +106,7 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
       continue;
     }
     if (filter_function == nullptr ||
-        filter_function(ob1, modifiers_findByType(ob1, (ModifierType)modifier_type))) {
+        filter_function(ob1, BKE_modifiers_findby_type(ob1, (ModifierType)modifier_type))) {
       DEG_add_object_pointcache_relation(handle, ob1, DEG_OB_COMP_TRANSFORM, name);
       DEG_add_object_pointcache_relation(handle, ob1, DEG_OB_COMP_GEOMETRY, name);
     }

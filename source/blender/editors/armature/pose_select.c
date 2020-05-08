@@ -263,7 +263,7 @@ void ED_armature_pose_select_in_wpaint_mode(ViewLayer *view_layer, Base *base_se
   Object *ob_active = OBACT(view_layer);
   BLI_assert(ob_active && (ob_active->mode & OB_MODE_WEIGHT_PAINT));
   VirtualModifierData virtualModifierData;
-  ModifierData *md = modifiers_getVirtualModifierList(ob_active, &virtualModifierData);
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob_active, &virtualModifierData);
   for (; md; md = md->next) {
     if (md->type == eModifierType_Armature) {
       ArmatureModifierData *amd = (ArmatureModifierData *)md;

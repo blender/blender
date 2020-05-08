@@ -827,7 +827,7 @@ static void rna_Particle_hair_dynamics_update(Main *bmain, Scene *scene, Pointer
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
   if (psys && !psys->clmd) {
-    psys->clmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
+    psys->clmd = (ClothModifierData *)BKE_modifier_new(eModifierType_Cloth);
     psys->clmd->sim_parms->goalspring = 0.0f;
     psys->clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESIST_SPRING_COMPRESS;
     psys->clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_SELF;

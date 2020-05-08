@@ -108,7 +108,7 @@ static bool weight_from_bones_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  return (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && modifiers_isDeformedByArmature(ob));
+  return (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && BKE_modifiers_is_deformed_by_armature(ob));
 }
 
 static int weight_from_bones_exec(bContext *C, wmOperator *op)
@@ -116,7 +116,7 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  Object *armob = modifiers_isDeformedByArmature(ob);
+  Object *armob = BKE_modifiers_is_deformed_by_armature(ob);
   Mesh *me = ob->data;
   int type = RNA_enum_get(op->ptr, "type");
 

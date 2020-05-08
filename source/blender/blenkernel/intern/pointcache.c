@@ -583,7 +583,7 @@ static int ptcache_cloth_totpoint(void *cloth_v, int UNUSED(cfra))
 static void ptcache_cloth_error(void *cloth_v, const char *message)
 {
   ClothModifierData *clmd = cloth_v;
-  modifier_setError(&clmd->modifier, "%s", message);
+  BKE_modifier_set_error(&clmd->modifier, "%s", message);
 }
 
 #ifdef WITH_SMOKE
@@ -604,7 +604,7 @@ static int ptcache_smoke_totpoint(void *smoke_v, int UNUSED(cfra))
 static void ptcache_smoke_error(void *smoke_v, const char *message)
 {
   FluidModifierData *mmd = (FluidModifierData *)smoke_v;
-  modifier_setError(&mmd->modifier, "%s", message);
+  BKE_modifier_set_error(&mmd->modifier, "%s", message);
 }
 
 #  define SMOKE_CACHE_VERSION "1.04"

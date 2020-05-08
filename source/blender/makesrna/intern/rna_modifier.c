@@ -741,7 +741,7 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
   /* make sure the name is truly unique */
   if (ptr->owner_id) {
     Object *ob = (Object *)ptr->owner_id;
-    modifier_unique_name(&ob->modifiers, md);
+    BKE_modifier_unique_name(&ob->modifiers, md);
   }
 
   /* fix all the animation data which may link to this */

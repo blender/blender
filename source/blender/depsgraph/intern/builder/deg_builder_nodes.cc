@@ -606,7 +606,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     BuilderWalkUserData data;
     data.builder = this;
     data.is_parent_visible = is_visible;
-    modifiers_foreachIDLink(object, modifier_walk, &data);
+    BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
   }
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {

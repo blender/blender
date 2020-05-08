@@ -895,7 +895,7 @@ static int bake(Render *re,
   /* for multires bake, use linear UV subdivision to match low res UVs */
   if (pass_type == SCE_PASS_NORMAL && normal_space == R_BAKE_SPACE_TANGENT &&
       !is_selected_to_active) {
-    mmd_low = (MultiresModifierData *)modifiers_findByType(ob_low, eModifierType_Multires);
+    mmd_low = (MultiresModifierData *)BKE_modifiers_findby_type(ob_low, eModifierType_Multires);
     if (mmd_low) {
       mmd_flags_low = mmd_low->flags;
       mmd_low->uv_smooth = SUBSURF_UV_SMOOTH_NONE;
@@ -945,7 +945,7 @@ static int bake(Render *re,
 
         if (md->type == eModifierType_EdgeSplit) {
           BLI_remlink(&ob_low_eval->modifiers, md);
-          modifier_free(md);
+          BKE_modifier_free(md);
           is_changed = true;
         }
         md = md_next;
@@ -1096,7 +1096,7 @@ static int bake(Render *re,
           int mode;
 
           BKE_object_eval_reset(ob_low_eval);
-          md = modifiers_findByType(ob_low_eval, eModifierType_Multires);
+          md = BKE_modifiers_findby_type(ob_low_eval, eModifierType_Multires);
 
           if (md) {
             mode = md->mode;

@@ -2741,7 +2741,7 @@ void createTransData(bContext *C, TransInfo *t)
     /* important that ob_armature can be set even when its not selected [#23412]
      * lines below just check is also visible */
     has_transform_context = false;
-    Object *ob_armature = modifiers_isDeformedByArmature(ob);
+    Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
     if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
       Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
       if (base_arm) {

@@ -285,7 +285,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   float hull;
   int i;
 
-  cmd = (CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
+  cmd = (CollisionModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Collision);
 
   /* first some paranoia checks */
   if (!cmd) {
@@ -371,7 +371,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
   float hull;
   int i;
 
-  cmd = (CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
+  cmd = (CollisionModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Collision);
 
   /* first some paranoia checks */
   if (!cmd) {

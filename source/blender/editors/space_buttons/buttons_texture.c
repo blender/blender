@@ -236,7 +236,7 @@ static void buttons_texture_users_from_context(ListBase *users,
     int a;
 
     /* modifiers */
-    modifiers_foreachTexLink(ob, buttons_texture_modifier_foreach, users);
+    BKE_modifiers_foreach_tex_link(ob, buttons_texture_modifier_foreach, users);
 
     /* grease pencil modifiers */
     BKE_gpencil_modifiers_foreachTexLink(ob, buttons_texture_modifier_gpencil_foreach, users);

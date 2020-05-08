@@ -289,7 +289,7 @@ Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
       .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY,
   };
 
-  const ModifierTypeInfo *mti = modifierType_getInfo(mmd->modifier.type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(mmd->modifier.type);
   Mesh *result = mti->modifyMesh(&mmd->modifier, &modifier_ctx, deformed_mesh);
 
   if (result == deformed_mesh) {
@@ -318,7 +318,7 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(struct Depsgraph *dep
   const int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
 
   VirtualModifierData virtual_modifier_data;
-  ModifierData *first_md = modifiers_getVirtualModifierList(&object_for_eval,
+  ModifierData *first_md = BKE_modifiers_get_virtual_modifierlist(&object_for_eval,
                                                             &virtual_modifier_data);
 
   Mesh *base_mesh = object->data;
@@ -327,13 +327,13 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(struct Depsgraph *dep
   float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(base_mesh, &num_deformed_verts);
 
   for (ModifierData *md = first_md; md != NULL; md = md->next) {
-    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (md == &mmd->modifier) {
       break;
     }
 
-    if (!modifier_isEnabled(scene_eval, md, required_mode)) {
+    if (!BKE_modifier_is_enabled(scene_eval, md, required_mode)) {
       continue;
     }
 
@@ -341,7 +341,7 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(struct Depsgraph *dep
       break;
     }
 
-    modwrap_deformVerts(md, &mesh_eval_context, base_mesh, deformed_verts, num_deformed_verts);
+    BKE_modifier_deform_verts(md, &mesh_eval_context, base_mesh, deformed_verts, num_deformed_verts);
   }
 
   if (r_num_deformed_verts != NULL) {
@@ -356,7 +356,7 @@ MultiresModifierData *find_multires_modifier_before(Scene *scene, ModifierData *
 
   for (md = lastmd; md; md = md->prev) {
     if (md->type == eModifierType_Multires) {
-      if (modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
+      if (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
         return (MultiresModifierData *)md;
       }
     }
@@ -380,7 +380,7 @@ MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, bool use_f
         firstmmd = (MultiresModifierData *)md;
       }
 
-      if (modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
+      if (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
         mmd = (MultiresModifierData *)md;
         break;
       }
@@ -2193,10 +2193,10 @@ void multires_load_old(Object *ob, Mesh *me)
 
   /* Add a multires modifier to the object */
   md = ob->modifiers.first;
-  while (md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform) {
+  while (md && BKE_modifier_get_info(md->type)->type == eModifierTypeType_OnlyDeform) {
     md = md->next;
   }
-  mmd = (MultiresModifierData *)modifier_new(eModifierType_Multires);
+  mmd = (MultiresModifierData *)BKE_modifier_new(eModifierType_Multires);
   BLI_insertlinkbefore(&ob->modifiers, md, mmd);
 
   for (i = 0; i < me->mr->level_count - 1; i++) {

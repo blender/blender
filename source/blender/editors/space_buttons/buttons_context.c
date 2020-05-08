@@ -1041,7 +1041,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     if (ptr && ptr->data) {
       Object *ob = ptr->data;
-      ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+      ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
       CTX_data_pointer_set(result, &ob->id, &RNA_ClothModifier, md);
       return 1;
     }
@@ -1051,7 +1051,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     if (ptr && ptr->data) {
       Object *ob = ptr->data;
-      ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
+      ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Softbody);
       CTX_data_pointer_set(result, &ob->id, &RNA_SoftBodyModifier, md);
       return 1;
     }
@@ -1062,7 +1062,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     if (ptr && ptr->data) {
       Object *ob = ptr->data;
-      ModifierData *md = modifiers_findByType(ob, eModifierType_Fluid);
+      ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
       CTX_data_pointer_set(result, &ob->id, &RNA_FluidModifier, md);
       return 1;
     }
@@ -1072,7 +1072,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     if (ptr && ptr->data) {
       Object *ob = ptr->data;
-      ModifierData *md = modifiers_findByType(ob, eModifierType_Collision);
+      ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Collision);
       CTX_data_pointer_set(result, &ob->id, &RNA_CollisionModifier, md);
       return 1;
     }
@@ -1086,7 +1086,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     if (ptr && ptr->data) {
       Object *ob = ptr->data;
-      ModifierData *md = modifiers_findByType(ob, eModifierType_DynamicPaint);
+      ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_DynamicPaint);
       CTX_data_pointer_set(result, &ob->id, &RNA_DynamicPaintModifier, md);
       return 1;
     }

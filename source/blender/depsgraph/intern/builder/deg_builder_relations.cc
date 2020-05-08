@@ -660,7 +660,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
   if (object->modifiers.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    modifiers_foreachIDLink(object, modifier_walk, &data);
+    BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
   }
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
@@ -1973,7 +1973,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     ctx.scene = scene_;
     ctx.object = object;
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
+      const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
       if (mti->updateDepsgraph) {
         DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
         ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);

@@ -56,7 +56,7 @@ static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int
 {
   SurfaceModifierData *surmd_dst = (SurfaceModifierData *)md_dst;
 
-  modifier_copyData_generic(md_src, md_dst, flag);
+  BKE_modifier_copydata_generic(md_src, md_dst, flag);
 
   surmd_dst->bvhtree = NULL;
   surmd_dst->mesh = NULL;

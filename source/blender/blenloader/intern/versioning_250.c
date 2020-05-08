@@ -514,7 +514,7 @@ static void do_version_mdef_250(Main *main)
           mmd->bindcagecos = mmd->bindcos;
           mmd->bindcos = NULL;
 
-          modifier_mdef_compact_influences(md);
+          BKE_modifier_mdef_compact_influences(md);
         }
       }
     }
@@ -871,7 +871,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       /* fluid-sim stuff */
-      FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(
+      FluidsimModifierData *fluidmd = (FluidsimModifierData *)BKE_modifiers_findby_type(
           ob, eModifierType_Fluidsim);
       if (fluidmd) {
         fluidmd->fss->fmd = fluidmd;
@@ -918,7 +918,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
       if (do_gravity) {
         for (md = ob->modifiers.first; md; md = md->next) {
-          ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob,
+          ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(ob,
                                                                               eModifierType_Cloth);
           if (clmd) {
             clmd->sim_parms->effector_weights->global_gravity = clmd->sim_parms->gravity[2] /
@@ -1154,7 +1154,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       }
 
       for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-        MultiresModifierData *mmd = (MultiresModifierData *)modifiers_findByType(
+        MultiresModifierData *mmd = (MultiresModifierData *)BKE_modifiers_findby_type(
             ob, eModifierType_Multires);
 
         if (mmd) {
@@ -1625,7 +1625,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
             ArmatureModifierData *amd;
             bArmature *arm = (bArmature *)blo_do_versions_newlibadr(fd, lib, parent->data);
 
-            amd = (ArmatureModifierData *)modifier_new(eModifierType_Armature);
+            amd = (ArmatureModifierData *)BKE_modifier_new(eModifierType_Armature);
             amd->object = ob->parent;
             BLI_addtail((ListBase *)&ob->modifiers, amd);
             amd->deformflag = arm->deformflag;
@@ -1634,7 +1634,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
           else if (parent->type == OB_LATTICE && ob->partype == PARSKEL) {
             LatticeModifierData *lmd;
 
-            lmd = (LatticeModifierData *)modifier_new(eModifierType_Lattice);
+            lmd = (LatticeModifierData *)BKE_modifier_new(eModifierType_Lattice);
             lmd->object = ob->parent;
             BLI_addtail((ListBase *)&ob->modifiers, lmd);
             ob->partype = PAROBJECT;
@@ -1642,7 +1642,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
           else if (parent->type == OB_CURVE && ob->partype == PARCURVE) {
             CurveModifierData *cmd;
 
-            cmd = (CurveModifierData *)modifier_new(eModifierType_Curve);
+            cmd = (CurveModifierData *)BKE_modifier_new(eModifierType_Curve);
             cmd->object = ob->parent;
             BLI_addtail((ListBase *)&ob->modifiers, cmd);
             ob->partype = PAROBJECT;

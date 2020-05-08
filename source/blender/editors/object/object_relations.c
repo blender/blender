@@ -557,7 +557,7 @@ static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
       /* free modifier if match */
       if (free) {
         BLI_remlink(&ob->modifiers, md);
-        modifier_free(md);
+        BKE_modifier_free(md);
       }
     }
   }
@@ -803,7 +803,7 @@ bool ED_object_parent_set(ReportList *reports,
 
           switch (partype) {
             case PAR_CURVE: /* curve deform */
-              if (modifiers_isDeformedByCurve(ob) != par) {
+              if (BKE_modifiers_is_deformed_by_curve(ob) != par) {
                 md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
                 if (md) {
                   ((CurveModifierData *)md)->object = par;
@@ -814,7 +814,7 @@ bool ED_object_parent_set(ReportList *reports,
               }
               break;
             case PAR_LATTICE: /* lattice deform */
-              if (modifiers_isDeformedByLattice(ob) != par) {
+              if (BKE_modifiers_is_deformed_by_lattice(ob) != par) {
                 md = ED_object_modifier_add(
                     reports, bmain, scene, ob, NULL, eModifierType_Lattice);
                 if (md) {
@@ -823,7 +823,7 @@ bool ED_object_parent_set(ReportList *reports,
               }
               break;
             default: /* armature deform */
-              if (modifiers_isDeformedByArmature(ob) != par) {
+              if (BKE_modifiers_is_deformed_by_armature(ob) != par) {
                 md = ED_object_modifier_add(
                     reports, bmain, scene, ob, NULL, eModifierType_Armature);
                 if (md) {

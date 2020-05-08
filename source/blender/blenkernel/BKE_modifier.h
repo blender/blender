@@ -353,60 +353,59 @@ typedef struct ModifierTypeInfo {
 /* Initialize modifier's global data (type info and some common global storages). */
 void BKE_modifier_init(void);
 
-const ModifierTypeInfo *modifierType_getInfo(ModifierType type);
+const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type);
 
 /* Modifier utility calls, do call through type pointer and return
  * default values if pointer is optional.
  */
-struct ModifierData *modifier_new(int type);
-void modifier_free_ex(struct ModifierData *md, const int flag);
-void modifier_free(struct ModifierData *md);
+struct ModifierData *BKE_modifier_new(int type);
+void BKE_modifier_free_ex(struct ModifierData *md, const int flag);
+void BKE_modifier_free(struct ModifierData *md);
 
-bool modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
+bool BKE_modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
 
-void modifier_copyData_generic(const struct ModifierData *md,
+void BKE_modifier_copydata_generic(const struct ModifierData *md,
                                struct ModifierData *target,
                                const int flag);
-void modifier_copyData(struct ModifierData *md, struct ModifierData *target);
-void modifier_copyData_ex(struct ModifierData *md, struct ModifierData *target, const int flag);
-bool modifier_dependsOnTime(struct ModifierData *md);
-bool modifier_supportsMapping(struct ModifierData *md);
-bool modifier_supportsCage(struct Scene *scene, struct ModifierData *md);
-bool modifier_couldBeCage(struct Scene *scene, struct ModifierData *md);
-bool modifier_isCorrectableDeformed(struct ModifierData *md);
-bool modifier_isSameTopology(ModifierData *md);
-bool modifier_isNonGeometrical(ModifierData *md);
-bool modifier_isEnabled(const struct Scene *scene, struct ModifierData *md, int required_mode);
-void modifier_setError(struct ModifierData *md, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
-bool modifier_isPreview(struct ModifierData *md);
+void BKE_modifier_copydata(struct ModifierData *md, struct ModifierData *target);
+void BKE_modifier_copydata_ex(struct ModifierData *md, struct ModifierData *target, const int flag);
+bool BKE_modifier_depends_ontime(struct ModifierData *md);
+bool BKE_modifier_supports_mapping(struct ModifierData *md);
+bool BKE_modifier_supports_cage(struct Scene *scene, struct ModifierData *md);
+bool BKE_modifier_couldbe_cage(struct Scene *scene, struct ModifierData *md);
+bool BKE_modifier_is_correctable_deformed(struct ModifierData *md);
+bool BKE_modifier_is_same_topology(ModifierData *md);
+bool BKE_modifier_is_non_geometrical(ModifierData *md);
+bool BKE_modifier_is_enabled(const struct Scene *scene, struct ModifierData *md, int required_mode);
+void BKE_modifier_set_error(struct ModifierData *md, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
+bool BKE_modifier_is_preview(struct ModifierData *md);
 
-void modifiers_foreachObjectLink(struct Object *ob, ObjectWalkFunc walk, void *userData);
-void modifiers_foreachIDLink(struct Object *ob, IDWalkFunc walk, void *userData);
-void modifiers_foreachTexLink(struct Object *ob, TexWalkFunc walk, void *userData);
+void BKE_modifiers_foreach_object_link(struct Object *ob, ObjectWalkFunc walk, void *userData);
+void BKE_modifiers_foreach_ID_link(struct Object *ob, IDWalkFunc walk, void *userData);
+void BKE_modifiers_foreach_tex_link(struct Object *ob, TexWalkFunc walk, void *userData);
 
-struct ModifierData *modifiers_findByType(struct Object *ob, ModifierType type);
-struct ModifierData *modifiers_findByName(struct Object *ob, const char *name);
-void modifiers_clearErrors(struct Object *ob);
-int modifiers_getCageIndex(struct Scene *scene,
+struct ModifierData *BKE_modifiers_findby_type(struct Object *ob, ModifierType type);
+struct ModifierData *BKE_modifiers_findny_name(struct Object *ob, const char *name);
+void BKE_modifiers_clear_errors(struct Object *ob);
+int BKE_modifiers_get_cage_index(struct Scene *scene,
                            struct Object *ob,
                            int *r_lastPossibleCageIndex,
                            bool is_virtual);
 
-bool modifiers_isModifierEnabled(struct Object *ob, int modifierType);
-bool modifiers_isSoftbodyEnabled(struct Object *ob);
-bool modifiers_isClothEnabled(struct Object *ob);
-bool modifiers_isParticleEnabled(struct Object *ob);
+bool BKE_modifiers_is_modifier_enabled(struct Object *ob, int modifierType);
+bool BKE_modifiers_is_softbody_enabled(struct Object *ob);
+bool BKE_modifiers_is_cloth_enabled(struct Object *ob);
+bool BKE_modifiers_is_particle_enabled(struct Object *ob);
 
-struct Object *modifiers_isDeformedByArmature(struct Object *ob);
-struct Object *modifiers_isDeformedByMeshDeform(struct Object *ob);
-struct Object *modifiers_isDeformedByLattice(struct Object *ob);
-struct Object *modifiers_isDeformedByCurve(struct Object *ob);
-bool modifiers_usesMultires(struct Object *ob);
-bool modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
-bool modifiers_usesSubsurfFacedots(struct Scene *scene, struct Object *ob);
-bool modifiers_isCorrectableDeformed(struct Scene *scene, struct Object *ob);
-void modifier_freeTemporaryData(struct ModifierData *md);
-bool modifiers_isPreview(struct Object *ob);
+struct Object *BKE_modifiers_is_deformed_by_armature(struct Object *ob);
+struct Object *BKE_modifiers_is_deformed_by_meshdeform(struct Object *ob);
+struct Object *BKE_modifiers_is_deformed_by_lattice(struct Object *ob);
+struct Object *BKE_modifiers_is_deformed_by_curve(struct Object *ob);
+bool BKE_modifiers_uses_multires(struct Object *ob);
+bool BKE_modifiers_uses_armature(struct Object *ob, struct bArmature *arm);
+bool BKE_modifiers_uses_subsurf_facedots(struct Scene *scene, struct Object *ob);
+bool BKE_modifiers_is_correctable_deformed(struct Scene *scene, struct Object *ob);
+void BKE_modifier_free_temporary_data(struct ModifierData *md);
 
 typedef struct CDMaskLink {
   struct CDMaskLink *next;
@@ -418,14 +417,14 @@ typedef struct CDMaskLink {
  * pointed to by md for correct evaluation, assuming the data indicated by
  * final_datamask is required at the end of the stack.
  */
-struct CDMaskLink *modifiers_calcDataMasks(struct Scene *scene,
+struct CDMaskLink *BKE_modifier_calc_data_masks(struct Scene *scene,
                                            struct Object *ob,
                                            struct ModifierData *md,
                                            struct CustomData_MeshMasks *final_datamask,
                                            int required_mode,
                                            ModifierData *previewmd,
                                            const struct CustomData_MeshMasks *previewmask);
-struct ModifierData *modifiers_getLastPreview(struct Scene *scene,
+struct ModifierData *BKE_modifier_get_last_preview(struct Scene *scene,
                                               struct ModifierData *md,
                                               int required_mode);
 
@@ -436,41 +435,41 @@ typedef struct VirtualModifierData {
   ShapeKeyModifierData smd;
 } VirtualModifierData;
 
-struct ModifierData *modifiers_getVirtualModifierList(const struct Object *ob,
+struct ModifierData *BKE_modifiers_get_virtual_modifierlist(const struct Object *ob,
                                                       struct VirtualModifierData *data);
 
 /* ensure modifier correctness when changing ob->data */
-void test_object_modifiers(struct Object *ob);
+void BKE_modifiers_test_object(struct Object *ob);
 
 /* here for do_versions */
-void modifier_mdef_compact_influences(struct ModifierData *md);
+void BKE_modifier_mdef_compact_influences(struct ModifierData *md);
 
-void modifier_path_init(char *path, int path_maxlen, const char *name);
-const char *modifier_path_relbase(struct Main *bmain, struct Object *ob);
-const char *modifier_path_relbase_from_global(struct Object *ob);
+void BKE_modifier_path_init(char *path, int path_maxlen, const char *name);
+const char *BKE_modifier_path_relbase(struct Main *bmain, struct Object *ob);
+const char *BKE_modifier_path_relbase_from_global(struct Object *ob);
 
 /* Accessors of original/evaluated modifiers. */
 
 /* For a given modifier data, get corresponding original one.
  * If the modifier data is already original, return it as-is. */
-struct ModifierData *modifier_get_original(struct ModifierData *md);
-struct ModifierData *modifier_get_evaluated(struct Depsgraph *depsgraph,
+struct ModifierData *BKE_modifier_get_original(struct ModifierData *md);
+struct ModifierData *BKE_modifier_get_evaluated(struct Depsgraph *depsgraph,
                                             struct Object *object,
                                             struct ModifierData *md);
 
 /* wrappers for modifier callbacks that ensure valid normals */
 
-struct Mesh *modwrap_modifyMesh(ModifierData *md,
+struct Mesh *BKE_modifier_modify_mesh(ModifierData *md,
                                 const struct ModifierEvalContext *ctx,
                                 struct Mesh *me);
 
-void modwrap_deformVerts(ModifierData *md,
+void BKE_modifier_deform_verts(ModifierData *md,
                          const struct ModifierEvalContext *ctx,
                          struct Mesh *me,
                          float (*vertexCos)[3],
                          int numVerts);
 
-void modwrap_deformVertsEM(ModifierData *md,
+void BKE_modifier_deform_vertsEM(ModifierData *md,
                            const struct ModifierEvalContext *ctx,
                            struct BMEditMesh *em,
                            struct Mesh *me,

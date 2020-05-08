@@ -464,7 +464,7 @@ static bool is_valid_target(NormalEditModifierData *enmd)
   else if ((enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) && enmd->target) {
     return true;
   }
-  modifier_setError((ModifierData *)enmd, "Invalid target settings");
+  BKE_modifier_set_error((ModifierData *)enmd, "Invalid target settings");
   return false;
 }
 
@@ -494,7 +494,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   if (!(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH))
 #endif
   {
-    modifier_setError((ModifierData *)enmd, "Enable 'Auto Smooth' in Object Data Properties");
+    BKE_modifier_set_error((ModifierData *)enmd, "Enable 'Auto Smooth' in Object Data Properties");
     return mesh;
   }
 
@@ -697,7 +697,7 @@ ModifierTypeInfo modifierType_NormalEdit = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

@@ -1351,7 +1351,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         };
 
         if ((me->flag & ME_SUBSURF)) {
-          SubsurfModifierData *smd = (SubsurfModifierData *)modifier_new(eModifierType_Subsurf);
+          SubsurfModifierData *smd = (SubsurfModifierData *)BKE_modifier_new(eModifierType_Subsurf);
 
           smd->levels = MAX2(1, me->subdiv);
           smd->renderLevels = MAX2(1, me->subdivr);
@@ -1371,7 +1371,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
           BLI_addtail(&ob->modifiers, smd);
 
-          modifier_unique_name(&ob->modifiers, (ModifierData *)smd);
+          BKE_modifier_unique_name(&ob->modifiers, (ModifierData *)smd);
         }
       }
 
@@ -1428,18 +1428,18 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      if ((ob->softflag & OB_SB_ENABLE) && !modifiers_findByType(ob, eModifierType_Softbody)) {
+      if ((ob->softflag & OB_SB_ENABLE) && !BKE_modifiers_findby_type(ob, eModifierType_Softbody)) {
         if (ob->softflag & OB_SB_POSTDEF) {
           md = ob->modifiers.first;
 
-          while (md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform) {
+          while (md && BKE_modifier_get_info(md->type)->type == eModifierTypeType_OnlyDeform) {
             md = md->next;
           }
 
-          BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(eModifierType_Softbody));
+          BLI_insertlinkbefore(&ob->modifiers, md, BKE_modifier_new(eModifierType_Softbody));
         }
         else {
-          BLI_addhead(&ob->modifiers, modifier_new(eModifierType_Softbody));
+          BLI_addhead(&ob->modifiers, BKE_modifier_new(eModifierType_Softbody));
         }
 
         ob->softflag &= ~OB_SB_ENABLE;
@@ -2271,7 +2271,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         BLI_addtail(&ob->particlesystem, psys);
 
-        md = modifier_new(eModifierType_ParticleSystem);
+        md = BKE_modifier_new(eModifierType_ParticleSystem);
         BLI_snprintf(md->name,
                      sizeof(md->name),
                      "ParticleSystem %i",
@@ -2357,7 +2357,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
 
         {
-          FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(
+          FluidsimModifierData *fluidmd = (FluidsimModifierData *)BKE_modifiers_findby_type(
               ob, eModifierType_Fluidsim);
           if (fluidmd && fluidmd->fss && fluidmd->fss->type == OB_FLUIDSIM_PARTICLE) {
             part->type = PART_FLUID;
@@ -2483,7 +2483,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       if (ob->fluidsimSettings) {
-        FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifier_new(
+        FluidsimModifierData *fluidmd = (FluidsimModifierData *)BKE_modifier_new(
             eModifierType_Fluidsim);
         BLI_addhead(&ob->modifiers, (ModifierData *)fluidmd);
 

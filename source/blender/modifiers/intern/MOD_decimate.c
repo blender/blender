@@ -73,7 +73,7 @@ static DecimateModifierData *getOriginalModifierData(const DecimateModifierData 
                                                      const ModifierEvalContext *ctx)
 {
   Object *ob_orig = DEG_get_original_object(ctx->object);
-  return (DecimateModifierData *)modifiers_findByName(ob_orig, dmd->modifier.name);
+  return (DecimateModifierData *)BKE_modifiers_findny_name(ob_orig, dmd->modifier.name);
 }
 
 static void updateFaceCount(const ModifierEvalContext *ctx,
@@ -128,7 +128,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if (dmd->face_count <= 3) {
-    modifier_setError(md, "Modifier requires more than 3 input faces");
+    BKE_modifier_set_error(md, "Modifier requires more than 3 input faces");
     return mesh;
   }
 
@@ -222,7 +222,7 @@ ModifierTypeInfo modifierType_Decimate = {
     /* type */ eModifierTypeType_Nonconstructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

@@ -951,7 +951,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(func, "Clears mesh data-block created by to_mesh()");
 
   /* Armature */
-  func = RNA_def_function(srna, "find_armature", "modifiers_isDeformedByArmature");
+  func = RNA_def_function(srna, "find_armature", "BKE_modifiers_is_deformed_by_armature");
   RNA_def_function_ui_description(
       func, "Find armature influencing this object as a parent or via a modifier");
   parm = RNA_def_pointer(

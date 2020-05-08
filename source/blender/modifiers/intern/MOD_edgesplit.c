@@ -136,7 +136,7 @@ ModifierTypeInfo modifierType_EdgeSplit = {
         eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

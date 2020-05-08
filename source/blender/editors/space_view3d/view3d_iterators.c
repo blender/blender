@@ -388,7 +388,7 @@ void mesh_foreachScreenFace(
 
   BM_mesh_elem_table_ensure(vc->em->bm, BM_FACE);
 
-  if (modifiers_usesSubsurfFacedots(vc->scene, vc->obedit)) {
+  if (BKE_modifiers_uses_subsurf_facedots(vc->scene, vc->obedit)) {
     BKE_mesh_foreach_mapped_subdiv_face_center(
         me, mesh_foreachScreenFace__mapFunc, &data, MESH_FOREACH_NOP);
   }

@@ -1062,7 +1062,7 @@ int view3d_opengl_select(ViewContext *vc,
        * the number of items is nearly always 1, maybe 2..3 in rare cases. */
       LinkNode *ob_pose_list = NULL;
       VirtualModifierData virtualModifierData;
-      const ModifierData *md = modifiers_getVirtualModifierList(obact, &virtualModifierData);
+      const ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact, &virtualModifierData);
       for (; md; md = md->next) {
         if (md->type == eModifierType_Armature) {
           ArmatureModifierData *amd = (ArmatureModifierData *)md;

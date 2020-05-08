@@ -667,15 +667,15 @@ static void LaplacianDeformModifier_do(
       }
       else {
         if (sysdif == LAPDEFORM_SYSTEM_CHANGE_VERTEXES) {
-          modifier_setError(
+          BKE_modifier_set_error(
               &lmd->modifier, "Vertices changed from %d to %d", lmd->total_verts, numVerts);
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_EDGES) {
-          modifier_setError(
+          BKE_modifier_set_error(
               &lmd->modifier, "Edges changed from %d to %d", sys->total_edges, mesh->totedge);
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP) {
-          modifier_setError(&lmd->modifier,
+          BKE_modifier_set_error(&lmd->modifier,
                             "Vertex group '%s' is not valid, or maybe empty",
                             sys->anchor_grp_name);
         }
@@ -688,7 +688,7 @@ static void LaplacianDeformModifier_do(
   }
   else {
     if (!isValidVertexGroup(lmd, ob, mesh)) {
-      modifier_setError(
+      BKE_modifier_set_error(
           &lmd->modifier, "Vertex group '%s' is not valid, or maybe empty", lmd->anchor_grp_name);
       lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
     }
@@ -709,7 +709,7 @@ static void LaplacianDeformModifier_do(
     }
   }
   if (sys && sys->is_matrix_computed && !sys->has_solution) {
-    modifier_setError(&lmd->modifier, "The system did not find a solution");
+    BKE_modifier_set_error(&lmd->modifier, "The system did not find a solution");
   }
 }
 
@@ -729,7 +729,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   const LaplacianDeformModifierData *lmd = (const LaplacianDeformModifierData *)md;
   LaplacianDeformModifierData *tlmd = (LaplacianDeformModifierData *)target;
 
-  modifier_copyData_generic(md, target, flag);
+  BKE_modifier_copydata_generic(md, target, flag);
 
   tlmd->vertexco = MEM_dupallocN(lmd->vertexco);
   tlmd->cache_system = NULL;

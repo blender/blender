@@ -124,7 +124,7 @@ ModifierTypeInfo modifierType_Mirror = {
         /* this is only the case when 'MOD_MIR_VGROUP' is used */
         eModifierTypeFlag_UsesPreview,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

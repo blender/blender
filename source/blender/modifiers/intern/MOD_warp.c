@@ -64,7 +64,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   const WarpModifierData *wmd = (const WarpModifierData *)md;
   WarpModifierData *twmd = (WarpModifierData *)target;
 
-  modifier_copyData_generic(md, target, flag);
+  BKE_modifier_copydata_generic(md, target, flag);
 
   twmd->curfalloff = BKE_curvemapping_copy(wmd->curfalloff);
 }

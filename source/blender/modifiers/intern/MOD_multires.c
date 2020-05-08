@@ -66,7 +66,7 @@ static void initData(ModifierData *md)
 
 static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
-  modifier_copyData_generic(md_src, md_dst, flag);
+  BKE_modifier_copydata_generic(md_src, md_dst, flag);
 }
 
 static void freeRuntimeData(void *runtime_data_v)
@@ -176,7 +176,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 {
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
-  modifier_setError(md, "Disabled, built without OpenSubdiv");
+  BKE_modifier_set_error(md, "Disabled, built without OpenSubdiv");
   return result;
 #endif
   MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -245,7 +245,7 @@ static void deformMatrices(ModifierData *md,
 
 {
 #if !defined(WITH_OPENSUBDIV)
-  modifier_setError(md, "Disabled, built without OpenSubdiv");
+  BKE_modifier_set_error(md, "Disabled, built without OpenSubdiv");
   return;
 #endif
 

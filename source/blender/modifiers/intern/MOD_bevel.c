@@ -72,7 +72,7 @@ static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int
   const BevelModifierData *bmd_src = (const BevelModifierData *)md_src;
   BevelModifierData *bmd_dst = (BevelModifierData *)md_dst;
 
-  modifier_copyData_generic(md_src, md_dst, flag);
+  BKE_modifier_copydata_generic(md_src, md_dst, flag);
   bmd_dst->custom_profile = BKE_curveprofile_copy(bmd_src->custom_profile);
 }
 
@@ -206,7 +206,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   Object *ob = ctx->object;
 
   if (harden_normals && (ob->type == OB_MESH) && !(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH)) {
-    modifier_setError(md, "Enable 'Auto Smooth' in Object Data Properties");
+    BKE_modifier_set_error(md, "Enable 'Auto Smooth' in Object Data Properties");
     harden_normals = false;
   }
 

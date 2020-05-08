@@ -79,7 +79,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   const CorrectiveSmoothModifierData *csmd = (const CorrectiveSmoothModifierData *)md;
   CorrectiveSmoothModifierData *tcsmd = (CorrectiveSmoothModifierData *)target;
 
-  modifier_copyData_generic(md, target, flag);
+  BKE_modifier_copydata_generic(md, target, flag);
 
   if (csmd->bind_coords) {
     tcsmd->bind_coords = MEM_dupallocN(csmd->bind_coords);
@@ -602,12 +602,12 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       BLI_assert(csmd->bind_coords != NULL);
       /* Copy bound data to the original modifier. */
       CorrectiveSmoothModifierData *csmd_orig = (CorrectiveSmoothModifierData *)
-          modifier_get_original(&csmd->modifier);
+          BKE_modifier_get_original(&csmd->modifier);
       csmd_orig->bind_coords = MEM_dupallocN(csmd->bind_coords);
       csmd_orig->bind_coords_num = csmd->bind_coords_num;
     }
     else {
-      modifier_setError(md, "Attempt to bind from inactive dependency graph");
+      BKE_modifier_set_error(md, "Attempt to bind from inactive dependency graph");
     }
   }
 
@@ -617,14 +617,14 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   }
 
   if ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) && (csmd->bind_coords == NULL)) {
-    modifier_setError(md, "Bind data required");
+    BKE_modifier_set_error(md, "Bind data required");
     goto error;
   }
 
   /* If the number of verts has changed, the bind is invalid, so we do nothing */
   if (csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
     if (csmd->bind_coords_num != numVerts) {
-      modifier_setError(
+      BKE_modifier_set_error(
           md, "Bind vertex count mismatch: %u to %u", csmd->bind_coords_num, numVerts);
       goto error;
     }
@@ -632,14 +632,14 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   else {
     /* MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO */
     if (ob->type != OB_MESH) {
-      modifier_setError(md, "Object is not a mesh");
+      BKE_modifier_set_error(md, "Object is not a mesh");
       goto error;
     }
     else {
       uint me_numVerts = (uint)((em) ? em->bm->totvert : ((Mesh *)ob->data)->totvert);
 
       if (me_numVerts != numVerts) {
-        modifier_setError(md, "Original vertex count mismatch: %u to %u", me_numVerts, numVerts);
+        BKE_modifier_set_error(md, "Original vertex count mismatch: %u to %u", me_numVerts, numVerts);
         goto error;
       }
     }

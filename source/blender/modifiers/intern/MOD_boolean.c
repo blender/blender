@@ -330,7 +330,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* if new mesh returned, return it; otherwise there was
      * an error, so delete the modifier object */
     if (result == NULL) {
-      modifier_setError(md, "Cannot execute boolean operation");
+      BKE_modifier_set_error(md, "Cannot execute boolean operation");
     }
   }
 
@@ -353,7 +353,7 @@ ModifierTypeInfo modifierType_Boolean = {
     /* type */ eModifierTypeType_Nonconstructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

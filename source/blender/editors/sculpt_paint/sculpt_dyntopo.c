@@ -384,12 +384,12 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
 
   {
     VirtualModifierData virtualModifierData;
-    ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
 
     /* Exception for shape keys because we can edit those. */
     for (; md; md = md->next) {
-      const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-      if (!modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+      if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
         continue;
       }
 

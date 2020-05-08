@@ -121,7 +121,7 @@ bool multiresModifier_reshapeFromDeformModifier(struct Depsgraph *depsgraph,
       .object = object,
       .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY,
   };
-  modwrap_deformVerts(
+  BKE_modifier_deform_verts(
       deform_md, &modifier_ctx, multires_mesh, deformed_verts, multires_mesh->totvert);
   BKE_id_free(NULL, multires_mesh);
 

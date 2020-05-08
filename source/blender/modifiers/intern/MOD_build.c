@@ -282,7 +282,7 @@ ModifierTypeInfo modifierType_Build = {
     /* type */ eModifierTypeType_Nonconstructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

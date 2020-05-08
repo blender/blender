@@ -540,7 +540,7 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, Depsgraph *depsgr
   for (int i = 0; i < numobjects; i++) {
     Object *brushObj = objects[i];
 
-    ModifierData *md = modifiers_findByType(brushObj, eModifierType_DynamicPaint);
+    ModifierData *md = BKE_modifiers_findby_type(brushObj, eModifierType_DynamicPaint);
     if (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render)) {
       DynamicPaintModifierData *pmd2 = (DynamicPaintModifierData *)md;
 
@@ -1099,7 +1099,7 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
   surface->wave_spring = 0.20f;
   surface->wave_smoothness = 1.0f;
 
-  modifier_path_init(
+  BKE_modifier_path_init(
       surface->image_output_path, sizeof(surface->image_output_path), "cache_dynamicpaint");
 
   /* Using ID_BRUSH i18n context, as we have no physics/dpaint one for now... */
@@ -6248,7 +6248,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
       Object *brushObj = objects[i];
 
       /* check if target has an active dp modifier */
-      ModifierData *md = modifiers_findByType(brushObj, eModifierType_DynamicPaint);
+      ModifierData *md = BKE_modifiers_findby_type(brushObj, eModifierType_DynamicPaint);
       if (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render)) {
         DynamicPaintModifierData *pmd2 = (DynamicPaintModifierData *)md;
         /* make sure we're dealing with a brush */

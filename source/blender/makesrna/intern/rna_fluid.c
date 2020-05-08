@@ -224,7 +224,7 @@ static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *p
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
-  mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
+  mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_FLIP);
 
   /* Only create a particle system in liquid domain mode. */
@@ -249,7 +249,7 @@ static void rna_Fluid_spray_parts_update(Main *bmain, Scene *UNUSED(scene), Poin
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
-  mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
+  mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAY);
 
   if (ob->type == OB_MESH && !exists) {
@@ -267,7 +267,7 @@ static void rna_Fluid_bubble_parts_update(Main *bmain, Scene *UNUSED(scene), Poi
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
-  mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
+  mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_BUBBLE);
 
   if (ob->type == OB_MESH && !exists) {
@@ -289,7 +289,7 @@ static void rna_Fluid_foam_parts_update(Main *bmain, Scene *UNUSED(scene), Point
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
-  mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
+  mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_FOAM);
 
   if (ob->type == OB_MESH && !exists) {
@@ -307,7 +307,7 @@ static void rna_Fluid_tracer_parts_update(Main *bmain, Scene *UNUSED(scene), Poi
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
-  mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
+  mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_TRACER);
 
   if (ob->type == OB_MESH && !exists) {
@@ -329,7 +329,7 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
 {
   Object *ob = (Object *)ptr->owner_id;
   FluidModifierData *mmd;
-  mmd = (FluidModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
+  mmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
 
   if (mmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_OFF) {
     rna_Fluid_parts_delete(ptr, PART_FLUID_SPRAYFOAM);
@@ -515,7 +515,7 @@ static void rna_Fluid_guide_parent_set(struct PointerRNA *ptr,
   FluidModifierData *mmd_par = NULL;
 
   if (par != NULL) {
-    mmd_par = (FluidModifierData *)modifiers_findByType(par, eModifierType_Fluid);
+    mmd_par = (FluidModifierData *)BKE_modifiers_findby_type(par, eModifierType_Fluid);
     if (mmd_par && mmd_par->domain) {
       mds->guide_parent = value.data;
       copy_v3_v3_int(mds->guide_res, mmd_par->domain->res);

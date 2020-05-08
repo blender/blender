@@ -80,7 +80,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   const WeightVGEditModifierData *wmd = (const WeightVGEditModifierData *)md;
   WeightVGEditModifierData *twmd = (WeightVGEditModifierData *)target;
 
-  modifier_copyData_generic(md, target, flag);
+  BKE_modifier_copydata_generic(md, target, flag);
 
   twmd->cmap_curve = BKE_curvemapping_copy(wmd->cmap_curve);
 }

@@ -881,7 +881,7 @@ static void library_foreach_ID_link(Main *bmain,
           }
         }
 
-        modifiers_foreachIDLink(object, library_foreach_modifiersForeachIDLink, &data);
+        BKE_modifiers_foreach_ID_link(object, library_foreach_modifiersForeachIDLink, &data);
         BKE_gpencil_modifiers_foreachIDLink(
             object, library_foreach_gpencil_modifiersForeachIDLink, &data);
         BKE_constraints_id_loop(

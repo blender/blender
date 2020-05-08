@@ -105,7 +105,7 @@ ExportSettings::ExportSettings()
 
 static bool object_is_smoke_sim(Object *ob)
 {
-  ModifierData *md = modifiers_findByType(ob, eModifierType_Fluid);
+  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
 
   if (md) {
     FluidModifierData *smd = reinterpret_cast<FluidModifierData *>(md);

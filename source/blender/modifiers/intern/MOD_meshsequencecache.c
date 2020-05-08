@@ -64,7 +64,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 #endif
   MeshSeqCacheModifierData *tmcmd = (MeshSeqCacheModifierData *)target;
 
-  modifier_copyData_generic(md, target, flag);
+  BKE_modifier_copydata_generic(md, target, flag);
 
   tmcmd->reader = NULL;
   tmcmd->reader_object_path[0] = '\0';
@@ -109,7 +109,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     STRNCPY(mcmd->reader_object_path, mcmd->object_path);
     BKE_cachefile_reader_open(cache_file, &mcmd->reader, ctx->object, mcmd->object_path);
     if (!mcmd->reader) {
-      modifier_setError(md, "Could not create Alembic reader for file %s", cache_file->filepath);
+      BKE_modifier_set_error(md, "Could not create Alembic reader for file %s", cache_file->filepath);
       return mesh;
     }
   }
@@ -141,7 +141,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   Mesh *result = ABC_read_mesh(mcmd->reader, ctx->object, mesh, time, &err_str, mcmd->read_flag);
 
   if (err_str) {
-    modifier_setError(md, "%s", err_str);
+    BKE_modifier_set_error(md, "%s", err_str);
   }
 
   if (!ELEM(result, NULL, mesh) && (mesh != org_mesh)) {

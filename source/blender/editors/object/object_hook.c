@@ -552,14 +552,14 @@ static int add_hook_object(const bContext *C,
   }
 
   md = obedit->modifiers.first;
-  while (md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform) {
+  while (md && BKE_modifier_get_info(md->type)->type == eModifierTypeType_OnlyDeform) {
     md = md->next;
   }
 
-  hmd = (HookModifierData *)modifier_new(eModifierType_Hook);
+  hmd = (HookModifierData *)BKE_modifier_new(eModifierType_Hook);
   BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
   BLI_snprintf(hmd->modifier.name, sizeof(hmd->modifier.name), "Hook-%s", ob->id.name + 2);
-  modifier_unique_name(&obedit->modifiers, (ModifierData *)hmd);
+  BKE_modifier_unique_name(&obedit->modifiers, (ModifierData *)hmd);
 
   hmd->object = ob;
   hmd->indexar = indexar;
@@ -725,7 +725,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
   /* remove functionality */
 
   BLI_remlink(&ob->modifiers, (ModifierData *)hmd);
-  modifier_free((ModifierData *)hmd);
+  BKE_modifier_free((ModifierData *)hmd);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

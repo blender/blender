@@ -952,11 +952,11 @@ static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
   ModifierData *md;
   VirtualModifierData virtualModifierData;
 
-  md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+  md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
 
   /* Exception for shape keys because we can edit those. */
   for (; md; md = md->next) {
-    if (modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
+    if (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
       return true;
     }
   }

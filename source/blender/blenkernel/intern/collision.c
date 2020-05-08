@@ -1307,7 +1307,7 @@ static void add_collision_object(ListBase *relations,
   /* only get objects with collision modifier */
   if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) ||
       (modifier_type != eModifierType_Collision)) {
-    cmd = (CollisionModifierData *)modifiers_findByType(ob, modifier_type);
+    cmd = (CollisionModifierData *)BKE_modifiers_findby_type(ob, modifier_type);
   }
 
   if (cmd) {
@@ -1426,7 +1426,7 @@ ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collecti
       continue;
     }
 
-    CollisionModifierData *cmd = (CollisionModifierData *)modifiers_findByType(
+    CollisionModifierData *cmd = (CollisionModifierData *)BKE_modifiers_findby_type(
         ob, eModifierType_Collision);
     if (cmd && cmd->bvhtree) {
       if (cache == NULL) {
@@ -1527,7 +1527,7 @@ static int cloth_bvh_objcollisions_resolve(ClothModifierData *clmd,
 
     for (i = 0; i < numcollobj; i++) {
       Object *collob = collobjs[i];
-      CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(
+      CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
           collob, eModifierType_Collision);
 
       if (collmd->bvhtree) {
@@ -1658,7 +1658,7 @@ int cloth_bvh_collision(
 
       for (i = 0; i < numcollobj; i++) {
         Object *collob = collobjs[i];
-        CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(
+        CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
             collob, eModifierType_Collision);
 
         if (!collmd->bvhtree) {
@@ -1693,7 +1693,7 @@ int cloth_bvh_collision(
 
       for (i = 0; i < numcollobj; i++) {
         Object *collob = collobjs[i];
-        CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(
+        CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
             collob, eModifierType_Collision);
 
         if (!collmd->bvhtree) {

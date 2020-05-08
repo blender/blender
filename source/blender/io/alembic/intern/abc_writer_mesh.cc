@@ -169,7 +169,7 @@ static ModifierData *get_subsurf_modifier(Scene *scene, Object *ob)
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
 
   for (; md; md = md->prev) {
-    if (!modifier_isEnabled(scene, md, eModifierMode_Render)) {
+    if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Render)) {
       continue;
     }
 
@@ -192,9 +192,9 @@ static ModifierData *get_subsurf_modifier(Scene *scene, Object *ob)
 
 static ModifierData *get_liquid_sim_modifier(Scene *scene, Object *ob)
 {
-  ModifierData *md = modifiers_findByType(ob, eModifierType_Fluidsim);
+  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluidsim);
 
-  if (md && (modifier_isEnabled(scene, md, eModifierMode_Render))) {
+  if (md && (BKE_modifier_is_enabled(scene, md, eModifierMode_Render))) {
     FluidsimModifierData *fsmd = reinterpret_cast<FluidsimModifierData *>(md);
 
     if (fsmd->fss && fsmd->fss->type == OB_FLUIDSIM_DOMAIN) {

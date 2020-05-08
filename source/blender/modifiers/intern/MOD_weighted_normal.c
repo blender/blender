@@ -562,7 +562,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (!(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH))
 #endif
   {
-    modifier_setError((ModifierData *)wnmd, "Enable 'Auto Smooth' in Object Data Properties");
+    BKE_modifier_set_error((ModifierData *)wnmd, "Enable 'Auto Smooth' in Object Data Properties");
     return mesh;
   }
 
@@ -708,7 +708,7 @@ ModifierTypeInfo modifierType_WeightedNormal = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

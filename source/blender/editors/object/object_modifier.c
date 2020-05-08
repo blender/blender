@@ -135,7 +135,7 @@ static void object_force_modifier_bind_simple_options(Depsgraph *depsgraph,
                                                       Object *object,
                                                       ModifierData *md)
 {
-  ModifierData *md_eval = (ModifierData *)modifier_get_evaluated(depsgraph, object, md);
+  ModifierData *md_eval = (ModifierData *)BKE_modifier_get_evaluated(depsgraph, object, md);
   const int mode = md_eval->mode;
   md_eval->mode |= eModifierMode_Realtime;
   object_force_modifier_update_for_bind(depsgraph, object);
@@ -152,7 +152,7 @@ ModifierData *ED_object_modifier_add(
     ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)
 {
   ModifierData *md = NULL, *new_md = NULL;
-  const ModifierTypeInfo *mti = modifierType_getInfo(type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
 
   /* Check compatibility of modifier [T25291, T50373]. */
   if (!BKE_object_support_modifier_type_check(ob, type)) {
@@ -161,7 +161,7 @@ ModifierData *ED_object_modifier_add(
   }
 
   if (mti->flags & eModifierTypeFlag_Single) {
-    if (modifiers_findByType(ob, type)) {
+    if (BKE_modifiers_findby_type(ob, type)) {
       BKE_report(reports, RPT_WARNING, "Only one modifier of this type is allowed");
       return NULL;
     }
@@ -175,12 +175,12 @@ ModifierData *ED_object_modifier_add(
   }
   else {
     /* get new modifier data to add */
-    new_md = modifier_new(type);
+    new_md = BKE_modifier_new(type);
 
     if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
       md = ob->modifiers.first;
 
-      while (md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform) {
+      while (md && BKE_modifier_get_info(md->type)->type == eModifierTypeType_OnlyDeform) {
         md = md->next;
       }
 
@@ -196,7 +196,7 @@ ModifierData *ED_object_modifier_add(
 
     /* make sure modifier data has unique name */
 
-    modifier_unique_name(&ob->modifiers, new_md);
+    BKE_modifier_unique_name(&ob->modifiers, new_md);
 
     /* special cases */
     if (type == eModifierType_Softbody) {
@@ -383,7 +383,7 @@ static bool object_modifier_remove(Main *bmain,
   }
 
   BLI_remlink(&ob->modifiers, md);
-  modifier_free(md);
+  BKE_modifier_free(md);
   BKE_object_free_derived_caches(ob);
 
   return 1;
@@ -433,10 +433,10 @@ void ED_object_modifier_clear(Main *bmain, Object *ob)
 int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)
 {
   if (md->prev) {
-    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (mti->type != eModifierTypeType_OnlyDeform) {
-      const ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
+      const ModifierTypeInfo *nmti = BKE_modifier_get_info(md->prev->type);
 
       if (nmti->flags & eModifierTypeFlag_RequiresOriginalData) {
         BKE_report(reports, RPT_WARNING, "Cannot move above a modifier requiring original data");
@@ -454,10 +454,10 @@ int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md
 int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *md)
 {
   if (md->next) {
-    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
-      const ModifierTypeInfo *nmti = modifierType_getInfo(md->next->type);
+      const ModifierTypeInfo *nmti = BKE_modifier_get_info(md->next->type);
 
       if (nmti->type != eModifierTypeType_OnlyDeform) {
         BKE_report(reports, RPT_WARNING, "Cannot move beyond a non-deforming modifier");
@@ -620,7 +620,7 @@ static int modifier_apply_shape(Main *bmain,
                                 Object *ob,
                                 ModifierData *md_eval)
 {
-  const ModifierTypeInfo *mti = modifierType_getInfo(md_eval->type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
 
   if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
@@ -644,7 +644,7 @@ static int modifier_apply_shape(Main *bmain,
     Key *key = me->key;
     KeyBlock *kb;
 
-    if (!modifier_isSameTopology(md_eval) || mti->type == eModifierTypeType_NonGeometrical) {
+    if (!BKE_modifier_is_same_topology(md_eval) || mti->type == eModifierTypeType_NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to shapes");
       return 0;
     }
@@ -680,7 +680,7 @@ static int modifier_apply_shape(Main *bmain,
 static int modifier_apply_obdata(
     ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md_eval)
 {
-  const ModifierTypeInfo *mti = modifierType_getInfo(md_eval->type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
 
   if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
@@ -791,7 +791,7 @@ bool ED_object_modifier_apply(Main *bmain,
     return false;
   }
   else if ((ob->mode & OB_MODE_SCULPT) && (find_multires_modifier_before(scene, md)) &&
-           (modifier_isSameTopology(md) == false)) {
+           (BKE_modifier_is_same_topology(md) == false)) {
     BKE_report(reports,
                RPT_ERROR,
                "Constructive modifier cannot be applied to multi-res data in sculpt mode");
@@ -805,7 +805,7 @@ bool ED_object_modifier_apply(Main *bmain,
   /* Get evaluated modifier, so object links pointer to evaluated data,
    * but still use original object it is applied to the original mesh. */
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  ModifierData *md_eval = (ob_eval) ? modifiers_findByName(ob_eval, md->name) : md;
+  ModifierData *md_eval = (ob_eval) ? BKE_modifiers_findny_name(ob_eval, md->name) : md;
 
   /* allow apply of a not-realtime modifier, by first re-enabling realtime. */
   prev_mode = md_eval->mode;
@@ -826,7 +826,7 @@ bool ED_object_modifier_apply(Main *bmain,
 
   md_eval->mode = prev_mode;
   BLI_remlink(&ob->modifiers, md);
-  modifier_free(md);
+  BKE_modifier_free(md);
 
   BKE_object_free_derived_caches(ob);
 
@@ -837,10 +837,10 @@ int ED_object_modifier_copy(ReportList *UNUSED(reports), Object *ob, ModifierDat
 {
   ModifierData *nmd;
 
-  nmd = modifier_new(md->type);
-  modifier_copyData(md, nmd);
+  nmd = BKE_modifier_new(md->type);
+  BKE_modifier_copydata(md, nmd);
   BLI_insertlinkafter(&ob->modifiers, md, nmd);
-  modifier_unique_name(&ob->modifiers, nmd);
+  BKE_modifier_unique_name(&ob->modifiers, nmd);
 
   return 1;
 }
@@ -886,7 +886,7 @@ static const EnumPropertyItem *modifier_add_itemf(bContext *C,
     md_item = &rna_enum_object_modifier_type_items[a];
 
     if (md_item->identifier[0]) {
-      mti = modifierType_getInfo(md_item->value);
+      mti = BKE_modifier_get_info(md_item->value);
 
       if (mti->flags & eModifierTypeFlag_NoUserAdd) {
         continue;
@@ -1020,7 +1020,7 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
   ModifierData *md;
   RNA_string_get(op->ptr, "modifier", modifier_name);
 
-  md = modifiers_findByName(ob, modifier_name);
+  md = BKE_modifiers_findny_name(ob, modifier_name);
 
   if (md && type != 0 && md->type != type) {
     md = NULL;
@@ -1200,7 +1200,7 @@ static bool modifier_apply_poll(bContext *C)
   }
   else if (md != NULL) {
     if ((ob->mode & OB_MODE_SCULPT) && (find_multires_modifier_before(scene, md)) &&
-        (modifier_isSameTopology(md) == false)) {
+        (BKE_modifier_is_same_topology(md) == false)) {
       CTX_wm_operator_poll_msg_set(
           C, "Constructive modifier cannot be applied to multi-res data in sculpt mode");
       return false;
@@ -2212,7 +2212,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
   arm_ob = modifier_skin_armature_create(depsgraph, bmain, scene, ob);
 
   /* add a modifier to connect the new armature to the mesh */
-  arm_md = (ArmatureModifierData *)modifier_new(eModifierType_Armature);
+  arm_md = (ArmatureModifierData *)BKE_modifier_new(eModifierType_Armature);
   if (arm_md) {
     skin_md = edit_modifier_property_get(op, ob, eModifierType_Skin);
     BLI_insertlinkafter(&ob->modifiers, skin_md, arm_md);
@@ -2276,7 +2276,7 @@ static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!modifier_isEnabled(scene, &csmd->modifier, eModifierMode_Realtime)) {
+  if (!BKE_modifier_is_enabled(scene, &csmd->modifier, eModifierMode_Realtime)) {
     BKE_report(op->reports, RPT_ERROR, "Modifier is disabled");
     return OPERATOR_CANCELLED;
   }
@@ -2293,7 +2293,7 @@ static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
   else {
     /* Signal to modifier to recalculate. */
     CorrectiveSmoothModifierData *csmd_eval = (CorrectiveSmoothModifierData *)
-        modifier_get_evaluated(depsgraph, ob, &csmd->modifier);
+        BKE_modifier_get_evaluated(depsgraph, ob, &csmd->modifier);
     csmd_eval->bind_coords_num = (uint)-1;
 
     /* Force modifier to run, it will call binding routine
@@ -2372,7 +2372,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
   else {
     /* Force modifier to run, it will call binding routine
      * (this has to happen outside of depsgraph evaluation). */
-    MeshDeformModifierData *mmd_eval = (MeshDeformModifierData *)modifier_get_evaluated(
+    MeshDeformModifierData *mmd_eval = (MeshDeformModifierData *)BKE_modifier_get_evaluated(
         depsgraph, ob, &mmd->modifier);
     mmd_eval->bindfunc = ED_mesh_deform_bind_callback;
     object_force_modifier_bind_simple_options(depsgraph, ob, &mmd->modifier);
@@ -2577,7 +2577,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
   }
 
   och = BKE_ocean_init_cache(omd->cachepath,
-                             modifier_path_relbase(bmain, ob),
+                             BKE_modifier_path_relbase(bmain, ob),
                              omd->bakestart,
                              omd->bakeend,
                              omd->wave_scale,
@@ -2700,7 +2700,7 @@ static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
     lmd->flag |= MOD_LAPLACIANDEFORM_BIND;
   }
 
-  LaplacianDeformModifierData *lmd_eval = (LaplacianDeformModifierData *)modifier_get_evaluated(
+  LaplacianDeformModifierData *lmd_eval = (LaplacianDeformModifierData *)BKE_modifier_get_evaluated(
       depsgraph, ob, &lmd->modifier);
   lmd_eval->flag = lmd->flag;
 
@@ -2779,7 +2779,7 @@ static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
     smd->flags |= MOD_SDEF_BIND;
   }
 
-  SurfaceDeformModifierData *smd_eval = (SurfaceDeformModifierData *)modifier_get_evaluated(
+  SurfaceDeformModifierData *smd_eval = (SurfaceDeformModifierData *)BKE_modifier_get_evaluated(
       depsgraph, ob, &smd->modifier);
   smd_eval->flags = smd->flags;
 

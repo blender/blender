@@ -61,7 +61,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 #endif
   ArmatureModifierData *tamd = (ArmatureModifierData *)target;
 
-  modifier_copyData_generic(md, target, flag);
+  BKE_modifier_copydata_generic(md, target, flag);
   tamd->prevCos = NULL;
 }
 

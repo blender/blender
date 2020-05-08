@@ -781,9 +781,9 @@ void createTransEditVerts(TransInfo *t)
     }
 
     /* detect CrazySpace [tm] */
-    if (modifiers_getCageIndex(t->scene, tc->obedit, NULL, 1) != -1) {
+    if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, NULL, 1) != -1) {
       int totleft = -1;
-      if (modifiers_isCorrectableDeformed(t->scene, tc->obedit)) {
+      if (BKE_modifiers_is_correctable_deformed(t->scene, tc->obedit)) {
         BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
 
         /* Use evaluated state because we need b-bone cache. */

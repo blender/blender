@@ -2204,7 +2204,7 @@ void OVERLAY_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
 static bool POSE_is_driven_by_active_armature(Object *ob)
 {
-  Object *ob_arm = modifiers_isDeformedByArmature(ob);
+  Object *ob_arm = BKE_modifiers_is_deformed_by_armature(ob);
   if (ob_arm) {
     const DRWContextState *draw_ctx = DRW_context_state_get();
     bool is_active = OVERLAY_armature_is_pose_mode(ob_arm, draw_ctx);
@@ -2214,7 +2214,7 @@ static bool POSE_is_driven_by_active_armature(Object *ob)
     return is_active;
   }
   else {
-    Object *ob_mesh_deform = modifiers_isDeformedByMeshDeform(ob);
+    Object *ob_mesh_deform = BKE_modifiers_is_deformed_by_meshdeform(ob);
     if (ob_mesh_deform) {
       /* Recursive. */
       return POSE_is_driven_by_active_armature(ob_mesh_deform);

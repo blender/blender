@@ -2428,7 +2428,7 @@ static size_t animdata_filter_ds_modifiers(
   afm.filter_mode = filter_mode;
 
   /* 2) walk over dependencies */
-  modifiers_foreachIDLink(ob, animfilter_modifier_idpoin_cb, &afm);
+  BKE_modifiers_foreach_ID_link(ob, animfilter_modifier_idpoin_cb, &afm);
 
   /* 3) extract data from the context, merging it back into the standard list */
   if (afm.items) {

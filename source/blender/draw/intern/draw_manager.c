@@ -2025,7 +2025,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
         Object *obweight = OBWEIGHTPAINT_FROM_OBACT(obact);
         if (obweight) {
           /* Only use Armature pose selection, when connected armature is in pose mode. */
-          Object *ob_armature = modifiers_isDeformedByArmature(obweight);
+          Object *ob_armature = BKE_modifiers_is_deformed_by_armature(obweight);
           if (ob_armature && ob_armature->mode == OB_MODE_POSE) {
             obpose = ob_armature;
           }

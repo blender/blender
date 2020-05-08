@@ -1398,7 +1398,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
    */
   {
     VirtualModifierData virtualModifierData;
-    ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
     if (md != NULL) {
       /* Can be NULL. */
       View3D *v3d = CTX_wm_view3d(C);

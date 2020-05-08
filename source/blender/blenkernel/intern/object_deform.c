@@ -620,7 +620,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
 
   /* now loop through the armature modifiers and identify deform bones */
   for (md = ob->modifiers.first; md; md = !md->next && step1 ? (step1 = 0),
-      modifiers_getVirtualModifierList(ob, &virtualModifierData) :
+      BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
                                      md->next) {
     if (!(md->mode & (eModifierMode_Realtime | eModifierMode_Virtual))) {
       continue;

@@ -841,7 +841,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (ob = bmain->objects.first; ob != NULL; ob = ob->id.next) {
       ModifierData *md;
       for (md = ob->modifiers.last; md != NULL; md = md->prev) {
-        if (modifier_unique_name(&ob->modifiers, md)) {
+        if (BKE_modifier_unique_name(&ob->modifiers, md)) {
           printf(
               "Warning: Object '%s' had several modifiers with the "
               "same name, renamed one of them to '%s'.\n",

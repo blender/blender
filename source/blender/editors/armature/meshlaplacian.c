@@ -1549,7 +1549,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
       }
     }
     else {
-      modifier_setError(&mmd->modifier, "Failed to find bind solution (increase precision?)");
+      BKE_modifier_set_error(&mmd->modifier, "Failed to find bind solution (increase precision?)");
       error("Mesh Deform: failed to find bind solution.");
       break;
     }
@@ -1753,7 +1753,7 @@ void ED_mesh_deform_bind_callback(MeshDeformModifierData *mmd,
                                   int totvert,
                                   float cagemat[4][4])
 {
-  MeshDeformModifierData *mmd_orig = (MeshDeformModifierData *)modifier_get_original(
+  MeshDeformModifierData *mmd_orig = (MeshDeformModifierData *)BKE_modifier_get_original(
       &mmd->modifier);
   MeshDeformBind mdb;
   MVert *mvert;
@@ -1799,7 +1799,7 @@ void ED_mesh_deform_bind_callback(MeshDeformModifierData *mmd,
   MEM_freeN(mdb.vertexcos);
 
   /* compact weights */
-  modifier_mdef_compact_influences((ModifierData *)mmd_orig);
+  BKE_modifier_mdef_compact_influences((ModifierData *)mmd_orig);
 
   end_progress_bar();
   waitcursor(0);

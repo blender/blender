@@ -1141,7 +1141,7 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
 
   BKE_object_materials_test(bmain, ob, (ID *)me);
 
-  test_object_modifiers(ob);
+  BKE_modifiers_test_object(ob);
 }
 
 void BKE_mesh_material_index_remove(Mesh *me, short index)

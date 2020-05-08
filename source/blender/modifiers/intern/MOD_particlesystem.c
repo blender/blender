@@ -61,7 +61,7 @@ static void freeData(ModifierData *md)
   psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
 
   /* ED_object_modifier_remove may have freed this first before calling
-   * modifier_free (which calls this function) */
+   * BKE_modifier_free (which calls this function) */
   if (psmd->psys) {
     psmd->psys->flag |= PSYS_DELETE;
   }
@@ -74,7 +74,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 #endif
   ParticleSystemModifierData *tpsmd = (ParticleSystemModifierData *)target;
 
-  modifier_copyData_generic(md, target, flag);
+  BKE_modifier_copydata_generic(md, target, flag);
 
   tpsmd->mesh_final = NULL;
   tpsmd->mesh_original = NULL;
@@ -216,7 +216,7 @@ static void deformVerts(ModifierData *md,
 
   if (DEG_is_active(ctx->depsgraph)) {
     Object *object_orig = DEG_get_original_object(ctx->object);
-    ModifierData *md_orig = modifiers_findByName(object_orig, psmd->modifier.name);
+    ModifierData *md_orig = BKE_modifiers_findny_name(object_orig, psmd->modifier.name);
     BLI_assert(md_orig != NULL);
     ParticleSystemModifierData *psmd_orig = (ParticleSystemModifierData *)md_orig;
     psmd_orig->flag = psmd->flag;

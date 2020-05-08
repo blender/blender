@@ -124,7 +124,7 @@ ModifierTypeInfo modifierType_Triangulate = {
         eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_EnableInEditmode |
         eModifierTypeFlag_AcceptsCVs,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

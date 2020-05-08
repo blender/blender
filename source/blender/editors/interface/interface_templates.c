@@ -1818,14 +1818,14 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 {
   Object *ob = ob_v;
   ModifierData *md = md_v;
-  ModifierData *nmd = modifier_new(md->type);
+  ModifierData *nmd = BKE_modifier_new(md->type);
 
-  modifier_copyData(md, nmd);
+  BKE_modifier_copydata(md, nmd);
   nmd->mode &= ~eModifierMode_Virtual;
 
   BLI_addhead(&ob->modifiers, nmd);
 
-  modifier_unique_name(&ob->modifiers, nmd);
+  BKE_modifier_unique_name(&ob->modifiers, nmd);
 
   ob->partype = PAROBJECT;
 
@@ -1889,7 +1889,7 @@ static uiLayout *draw_modifier(uiLayout *layout,
                                int cageIndex,
                                int lastCageIndex)
 {
-  const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   PointerRNA ptr;
   uiBut *but;
   uiBlock *block;
@@ -1983,9 +1983,9 @@ static uiLayout *draw_modifier(uiLayout *layout,
     }
 
     if (ob->type == OB_MESH) {
-      if (modifier_supportsCage(scene, md) && (index <= lastCageIndex)) {
+      if (BKE_modifier_supports_cage(scene, md) && (index <= lastCageIndex)) {
         sub = uiLayoutRow(row, true);
-        if (index < cageIndex || !modifier_couldBeCage(scene, md)) {
+        if (index < cageIndex || !BKE_modifier_couldbe_cage(scene, md)) {
           uiLayoutSetActive(sub, false);
         }
         uiItemR(sub, &ptr, "show_on_cage", 0, "", ICON_NONE);
@@ -2081,7 +2081,7 @@ static uiLayout *draw_modifier(uiLayout *layout,
                     "apply_as",
                     MODIFIER_APPLY_DATA);
 
-        if (modifier_isSameTopology(md) && !modifier_isNonGeometrical(md)) {
+        if (BKE_modifier_is_same_topology(md) && !BKE_modifier_is_non_geometrical(md)) {
           uiItemEnumO(row,
                       "OBJECT_OT_modifier_apply",
                       CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
@@ -2148,10 +2148,10 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
   UI_block_lock_set(uiLayoutGetBlock(layout), (ob && ID_IS_LINKED(ob)), ERROR_LIBDATA_MESSAGE);
 
   /* find modifier and draw it */
-  cageIndex = modifiers_getCageIndex(scene, ob, &lastCageIndex, 0);
+  cageIndex = BKE_modifiers_get_cage_index(scene, ob, &lastCageIndex, 0);
 
   /* XXX virtual modifiers are not accessible for python */
-  vmd = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+  vmd = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
 
   for (i = 0; vmd; i++, vmd = vmd->next) {
     if (md == vmd) {

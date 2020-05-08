@@ -2424,15 +2424,15 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     MEM_freeN(face_edges);
   }
   if (edge_index != numNewEdges) {
-    modifier_setError(
+    BKE_modifier_set_error(
         md, "Internal Error: edges array wrong size: %u instead of %u", numNewEdges, edge_index);
   }
   if (poly_index != numNewPolys) {
-    modifier_setError(
+    BKE_modifier_set_error(
         md, "Internal Error: polys array wrong size: %u instead of %u", numNewPolys, poly_index);
   }
   if (loop_index != numNewLoops) {
-    modifier_setError(
+    BKE_modifier_set_error(
         md, "Internal Error: loops array wrong size: %u instead of %u", numNewLoops, loop_index);
   }
   BLI_assert(edge_index == numNewEdges);

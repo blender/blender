@@ -145,7 +145,7 @@ static char *rna_PointCache_path(PointerRNA *ptr)
   PointCache *cache = ptr->data;
 
   for (md = ob->modifiers.first; md; md = md->next) {
-    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!(mti->flags & eModifierTypeFlag_UsesPointCache)) {
       continue;
@@ -430,7 +430,7 @@ static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
   /* both methods work ok, but return the shorter path */
 #  if 0
   Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Collision);
+  ModifierData *md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Collision);
 
   if (md) {
     char name_esc[sizeof(md->name) * 2];
@@ -604,7 +604,7 @@ static void rna_SoftBodySettings_spring_vgroup_set(PointerRNA *ptr, const char *
 static char *rna_SoftBodySettings_path(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
+  ModifierData *md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Softbody);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_strescape(name_esc, md->name, sizeof(name_esc));
@@ -780,7 +780,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
     ModifierData *md;
 
     /* check softbody modifier */
-    md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
+    md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Softbody);
     if (md) {
       /* no pointer from modifier data to actual softbody storage, would be good to add */
       if (ob->soft->effector_weights == ew) {
@@ -791,7 +791,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
     }
 
     /* check cloth modifier */
-    md = (ModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+    md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Cloth);
     if (md) {
       ClothModifierData *cmd = (ClothModifierData *)md;
       if (cmd->sim_parms->effector_weights == ew) {
@@ -802,7 +802,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
     }
 
     /* check smoke modifier */
-    md = (ModifierData *)modifiers_findByType(ob, eModifierType_Fluid);
+    md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
     if (md) {
       FluidModifierData *mmd = (FluidModifierData *)md;
       if (mmd->domain->effector_weights == ew) {
@@ -813,7 +813,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
     }
 
     /* check dynamic paint modifier */
-    md = (ModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
+    md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_DynamicPaint);
     if (md) {
       DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
@@ -843,7 +843,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = modifiers_findByType(ob, eModifierType_Collision);
+  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Collision);
 
   /* add/remove modifier as needed */
   if (ob->pd->deflect && !md) {

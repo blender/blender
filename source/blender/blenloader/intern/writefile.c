@@ -1646,7 +1646,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
   }
 
   for (md = modbase->first; md; md = md->next) {
-    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (mti == NULL) {
       return;
     }

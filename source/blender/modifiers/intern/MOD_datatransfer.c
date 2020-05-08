@@ -217,14 +217,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                               &reports);
 
   if (BKE_reports_contain(&reports, RPT_ERROR)) {
-    modifier_setError(md, "%s", BKE_reports_string(&reports, RPT_ERROR));
+    BKE_modifier_set_error(md, "%s", BKE_reports_string(&reports, RPT_ERROR));
   }
   else if ((dtmd->data_types & DT_TYPE_LNOR) && !(me->flag & ME_AUTOSMOOTH)) {
-    modifier_setError((ModifierData *)dtmd, "Enable 'Auto Smooth' in Object Data Properties");
+    BKE_modifier_set_error((ModifierData *)dtmd, "Enable 'Auto Smooth' in Object Data Properties");
   }
   else if (result->totvert > HIGH_POLY_WARNING ||
            ((Mesh *)(ob_source->data))->totvert > HIGH_POLY_WARNING) {
-    modifier_setError(
+    BKE_modifier_set_error(
         md, "Source or destination object has a high polygon count, computation might be slow");
   }
 
@@ -242,7 +242,7 @@ ModifierTypeInfo modifierType_DataTransfer = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ BKE_modifier_copydata_generic,
 
     /* deformVerts */ NULL,
     /* deformMatrices */ NULL,

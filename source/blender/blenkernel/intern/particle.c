@@ -583,7 +583,7 @@ void free_hair(Object *object, ParticleSystem *psys, int dynamics)
 
   if (psys->clmd) {
     if (dynamics) {
-      modifier_free((ModifierData *)psys->clmd);
+      BKE_modifier_free((ModifierData *)psys->clmd);
       psys->clmd = NULL;
       PTCacheID pid;
       BKE_ptcache_id_from_particles(&pid, object, psys);
@@ -735,7 +735,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
      */
     free_hair(ob, psys, 0);
     if (psys->clmd != NULL) {
-      modifier_free((ModifierData *)psys->clmd);
+      BKE_modifier_free((ModifierData *)psys->clmd);
     }
 
     psys_free_particles(psys);
@@ -3585,9 +3585,9 @@ ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, 
 
   psys->part = BKE_particlesettings_add(bmain, psys->name);
 
-  md = modifier_new(eModifierType_ParticleSystem);
+  md = BKE_modifier_new(eModifierType_ParticleSystem);
   BLI_strncpy(md->name, psys->name, sizeof(md->name));
-  modifier_unique_name(&ob->modifiers, md);
+  BKE_modifier_unique_name(&ob->modifiers, md);
 
   psmd = (ParticleSystemModifierData *)md;
   psmd->psys = psys;
@@ -3615,7 +3615,7 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
   }
 
   /* Clear particle system in fluid modifier. */
-  if ((md = modifiers_findByType(ob, eModifierType_Fluid))) {
+  if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid))) {
     FluidModifierData *mmd = (FluidModifierData *)md;
 
     /* Clear particle system pointer in flow settings. */
@@ -3657,7 +3657,7 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
     }
   }
 
-  if ((md = modifiers_findByType(ob, eModifierType_DynamicPaint))) {
+  if ((md = BKE_modifiers_findby_type(ob, eModifierType_DynamicPaint))) {
     DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
     if (pmd->brush && pmd->brush->psys) {
       if (pmd->brush->psys == psys) {
@@ -3670,7 +3670,7 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
   psmd = psys_get_modifier(ob, psys);
   if (psmd) {
     BLI_remlink(&ob->modifiers, psmd);
-    modifier_free((ModifierData *)psmd);
+    BKE_modifier_free((ModifierData *)psmd);
   }
 
   /* Clear particle system. */

@@ -72,7 +72,7 @@ static int surface_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
   DynamicPaintSurface *surface;
 
   /* Make sure we're dealing with a canvas */
-  pmd = (DynamicPaintModifierData *)modifiers_findByType(cObject, eModifierType_DynamicPaint);
+  pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(cObject, eModifierType_DynamicPaint);
   if (!pmd || !pmd->canvas) {
     return OPERATOR_CANCELLED;
   }
@@ -117,7 +117,7 @@ static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
   int id = 0;
 
   /* Make sure we're dealing with a canvas */
-  pmd = (DynamicPaintModifierData *)modifiers_findByType(obj_ctx, eModifierType_DynamicPaint);
+  pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(obj_ctx, eModifierType_DynamicPaint);
   if (!pmd || !pmd->canvas) {
     return OPERATOR_CANCELLED;
   }
@@ -162,7 +162,7 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
 
   Object *cObject = ED_object_context(C);
   Scene *scene = CTX_data_scene(C);
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(
+  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(
       cObject, eModifierType_DynamicPaint);
   int type = RNA_enum_get(op->ptr, "type");
 
@@ -222,7 +222,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   DynamicPaintSurface *surface;
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(
+  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(
       ob, eModifierType_DynamicPaint);
   int output = RNA_enum_get(op->ptr, "output"); /* currently only 1/0 */
 
@@ -483,7 +483,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
   /*
    * Get modifier data
    */
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(
+  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(
       object_eval, eModifierType_DynamicPaint);
   if (pmd == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Bake failed: no Dynamic Paint modifier found");
