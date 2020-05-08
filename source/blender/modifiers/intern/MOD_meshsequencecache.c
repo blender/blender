@@ -109,7 +109,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     STRNCPY(mcmd->reader_object_path, mcmd->object_path);
     BKE_cachefile_reader_open(cache_file, &mcmd->reader, ctx->object, mcmd->object_path);
     if (!mcmd->reader) {
-      BKE_modifier_set_error(md, "Could not create Alembic reader for file %s", cache_file->filepath);
+      BKE_modifier_set_error(
+          md, "Could not create Alembic reader for file %s", cache_file->filepath);
       return mesh;
     }
   }

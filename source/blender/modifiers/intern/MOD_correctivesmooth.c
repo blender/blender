@@ -639,7 +639,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       uint me_numVerts = (uint)((em) ? em->bm->totvert : ((Mesh *)ob->data)->totvert);
 
       if (me_numVerts != numVerts) {
-        BKE_modifier_set_error(md, "Original vertex count mismatch: %u to %u", me_numVerts, numVerts);
+        BKE_modifier_set_error(
+            md, "Original vertex count mismatch: %u to %u", me_numVerts, numVerts);
         goto error;
       }
     }

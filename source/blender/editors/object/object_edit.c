@@ -1429,7 +1429,8 @@ static const EnumPropertyItem *object_mode_set_itemsf(bContext *C,
   if (ob) {
     const bool use_mode_particle_edit = (BLI_listbase_is_empty(&ob->particlesystem) == false) ||
                                         (ob->soft != NULL) ||
-                                        (BKE_modifiers_findby_type(ob, eModifierType_Cloth) != NULL);
+                                        (BKE_modifiers_findby_type(ob, eModifierType_Cloth) !=
+                                         NULL);
     while (input->identifier) {
       if ((input->value == OB_MODE_EDIT && OB_TYPE_SUPPORT_EDITMODE(ob->type)) ||
           (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||

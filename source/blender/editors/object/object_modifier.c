@@ -2700,8 +2700,8 @@ static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
     lmd->flag |= MOD_LAPLACIANDEFORM_BIND;
   }
 
-  LaplacianDeformModifierData *lmd_eval = (LaplacianDeformModifierData *)BKE_modifier_get_evaluated(
-      depsgraph, ob, &lmd->modifier);
+  LaplacianDeformModifierData *lmd_eval = (LaplacianDeformModifierData *)
+      BKE_modifier_get_evaluated(depsgraph, ob, &lmd->modifier);
   lmd_eval->flag = lmd->flag;
 
   /* Force modifier to run, it will call binding routine

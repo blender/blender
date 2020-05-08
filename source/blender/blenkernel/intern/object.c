@@ -4045,7 +4045,8 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
     }
 
     if (can_deform) {
-      if (!(flag & eModifierMode_Render) && BKE_modifier_is_enabled(scene, md, eModifierMode_Render)) {
+      if (!(flag & eModifierMode_Render) &&
+          BKE_modifier_is_enabled(scene, md, eModifierMode_Render)) {
         flag |= eModifierMode_Render;
       }
 

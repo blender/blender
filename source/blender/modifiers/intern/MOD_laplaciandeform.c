@@ -676,8 +676,8 @@ static void LaplacianDeformModifier_do(
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP) {
           BKE_modifier_set_error(&lmd->modifier,
-                            "Vertex group '%s' is not valid, or maybe empty",
-                            sys->anchor_grp_name);
+                                 "Vertex group '%s' is not valid, or maybe empty",
+                                 sys->anchor_grp_name);
         }
       }
     }

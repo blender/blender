@@ -698,7 +698,8 @@ static float (*get_orco_coords(Object *ob, BMEditMesh *em, int layer, int *free)
     /* apply shape key for cloth, this should really be solved
      * by a more flexible customdata system, but not simple */
     if (!em) {
-      ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Cloth);
+      ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(
+          ob, eModifierType_Cloth);
       KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ob),
                                            clmd->sim_parms->shapekey_rest);
 

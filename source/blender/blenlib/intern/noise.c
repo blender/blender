@@ -23,8 +23,8 @@
 
 #include <math.h>
 
-#include "BLI_noise.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_noise.h"
 
 /* local */
 static float noise3_perlin(float vec[3]);

@@ -1351,7 +1351,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         };
 
         if ((me->flag & ME_SUBSURF)) {
-          SubsurfModifierData *smd = (SubsurfModifierData *)BKE_modifier_new(eModifierType_Subsurf);
+          SubsurfModifierData *smd = (SubsurfModifierData *)BKE_modifier_new(
+              eModifierType_Subsurf);
 
           smd->levels = MAX2(1, me->subdiv);
           smd->renderLevels = MAX2(1, me->subdivr);
@@ -1428,7 +1429,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      if ((ob->softflag & OB_SB_ENABLE) && !BKE_modifiers_findby_type(ob, eModifierType_Softbody)) {
+      if ((ob->softflag & OB_SB_ENABLE) &&
+          !BKE_modifiers_findby_type(ob, eModifierType_Softbody)) {
         if (ob->softflag & OB_SB_POSTDEF) {
           md = ob->modifiers.first;
 

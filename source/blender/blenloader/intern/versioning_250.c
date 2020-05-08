@@ -918,8 +918,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
       if (do_gravity) {
         for (md = ob->modifiers.first; md; md = md->next) {
-          ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(ob,
-                                                                              eModifierType_Cloth);
+          ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(
+              ob, eModifierType_Cloth);
           if (clmd) {
             clmd->sim_parms->effector_weights->global_gravity = clmd->sim_parms->gravity[2] /
                                                                 -9.81f;

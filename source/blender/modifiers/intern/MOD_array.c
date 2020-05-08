@@ -515,8 +515,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
             (size_t)end_cap_nverts) > max_num_vertices) {
     count = 1;
     BKE_modifier_set_error(&amd->modifier,
-                      "The amount of copies is too high, we cannot generate the amount of "
-                      "geometry it would require");
+                           "The amount of copies is too high, we cannot generate the amount of "
+                           "geometry it would require");
   }
 
   if (count < 1) {

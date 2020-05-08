@@ -267,7 +267,7 @@ void BKE_gpencil_modifier_free(struct GpencilModifierData *md);
 bool BKE_gpencil_modifier_unique_name(struct ListBase *modifiers, struct GpencilModifierData *gmd);
 bool BKE_gpencil_modifier_depends_ontime(struct GpencilModifierData *md);
 struct GpencilModifierData *BKE_gpencil_modifiers_findby_type(struct Object *ob,
-                                                             GpencilModifierType type);
+                                                              GpencilModifierType type);
 struct GpencilModifierData *BKE_gpencil_modifiers_findny_name(struct Object *ob, const char *name);
 void BKE_gpencil_modifier_copydata_generic(const struct GpencilModifierData *md_src,
                                            struct GpencilModifierData *md_dst);
@@ -277,11 +277,11 @@ void BKE_gpencil_modifier_copydata_ex(struct GpencilModifierData *md,
                                       struct GpencilModifierData *target,
                                       const int flag);
 void BKE_gpencil_modifiers_foreach_ID_link(struct Object *ob,
-                                         GreasePencilIDWalkFunc walk,
-                                         void *userData);
+                                           GreasePencilIDWalkFunc walk,
+                                           void *userData);
 void BKE_gpencil_modifiers_foreach_tex_link(struct Object *ob,
-                                          GreasePencilTexWalkFunc walk,
-                                          void *userData);
+                                            GreasePencilTexWalkFunc walk,
+                                            void *userData);
 
 bool BKE_gpencil_has_geometry_modifiers(struct Object *ob);
 bool BKE_gpencil_has_time_modifiers(struct Object *ob);

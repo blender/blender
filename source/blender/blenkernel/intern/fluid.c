@@ -1142,7 +1142,7 @@ static void update_obstacleflags(FluidDomainSettings *mds,
   for (coll_index = 0; coll_index < coll_ob_array_len; coll_index++) {
     Object *coll_ob = coll_ob_array[coll_index];
     FluidModifierData *mmd2 = (FluidModifierData *)BKE_modifiers_findby_type(coll_ob,
-                                                                        eModifierType_Fluid);
+                                                                             eModifierType_Fluid);
 
     /* Sanity check. */
     if (!mmd2) {
@@ -1215,7 +1215,7 @@ static void compute_obstaclesemission(Scene *scene,
   for (int effec_index = 0; effec_index < numeffecobjs; effec_index++) {
     Object *effecobj = effecobjs[effec_index];
     FluidModifierData *mmd2 = (FluidModifierData *)BKE_modifiers_findby_type(effecobj,
-                                                                        eModifierType_Fluid);
+                                                                             eModifierType_Fluid);
 
     /* Sanity check. */
     if (!mmd2) {
@@ -1388,7 +1388,7 @@ static void update_obstacles(Depsgraph *depsgraph,
   for (int effec_index = 0; effec_index < numeffecobjs; effec_index++) {
     Object *effecobj = effecobjs[effec_index];
     FluidModifierData *mmd2 = (FluidModifierData *)BKE_modifiers_findby_type(effecobj,
-                                                                        eModifierType_Fluid);
+                                                                             eModifierType_Fluid);
 
     /* Sanity check. */
     if (!mmd2) {
@@ -2628,7 +2628,7 @@ static void update_flowsflags(FluidDomainSettings *mds, Object **flowobjs, int n
   for (flow_index = 0; flow_index < numflowobj; flow_index++) {
     Object *flow_ob = flowobjs[flow_index];
     FluidModifierData *mmd2 = (FluidModifierData *)BKE_modifiers_findby_type(flow_ob,
-                                                                        eModifierType_Fluid);
+                                                                             eModifierType_Fluid);
 
     /* Sanity check. */
     if (!mmd2) {
@@ -2759,7 +2759,7 @@ static void compute_flowsemission(Scene *scene,
   for (int flow_index = 0; flow_index < numflowobjs; flow_index++) {
     Object *flowobj = flowobjs[flow_index];
     FluidModifierData *mmd2 = (FluidModifierData *)BKE_modifiers_findby_type(flowobj,
-                                                                        eModifierType_Fluid);
+                                                                             eModifierType_Fluid);
 
     /* Sanity check. */
     if (!mmd2) {
@@ -2979,7 +2979,7 @@ static void update_flowsfluids(struct Depsgraph *depsgraph,
   for (int flow_index = 0; flow_index < numflowobjs; flow_index++) {
     Object *flowobj = flowobjs[flow_index];
     FluidModifierData *mmd2 = (FluidModifierData *)BKE_modifiers_findby_type(flowobj,
-                                                                        eModifierType_Fluid);
+                                                                             eModifierType_Fluid);
 
     /* Sanity check. */
     if (!mmd2) {

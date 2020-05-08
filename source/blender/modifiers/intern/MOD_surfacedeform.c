@@ -1056,7 +1056,8 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd_orig,
       mpoly, medge, mloop, tnumpoly, tnumedges, vert_edges, adj_array, edge_polys);
 
   if (adj_result == MOD_SDEF_BIND_RESULT_NONMANY_ERR) {
-    BKE_modifier_set_error((ModifierData *)smd_eval, "Target has edges with more than two polygons");
+    BKE_modifier_set_error((ModifierData *)smd_eval,
+                           "Target has edges with more than two polygons");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);
     free_bvhtree_from_mesh(&treeData);
     MEM_freeN(smd_orig->verts);
@@ -1106,7 +1107,8 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd_orig,
     freeData((ModifierData *)smd_orig);
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_NONMANY_ERR) {
-    BKE_modifier_set_error((ModifierData *)smd_eval, "Target has edges with more than two polygons");
+    BKE_modifier_set_error((ModifierData *)smd_eval,
+                           "Target has edges with more than two polygons");
     freeData((ModifierData *)smd_orig);
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_CONCAVE_ERR) {
@@ -1245,7 +1247,8 @@ static void surfacedeformModifier_do(ModifierData *md,
       return;
     }
 
-    SurfaceDeformModifierData *smd_orig = (SurfaceDeformModifierData *)BKE_modifier_get_original(md);
+    SurfaceDeformModifierData *smd_orig = (SurfaceDeformModifierData *)BKE_modifier_get_original(
+        md);
     float tmp_mat[4][4];
 
     invert_m4_m4(tmp_mat, ob->obmat);

@@ -319,7 +319,7 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(struct Depsgraph *dep
 
   VirtualModifierData virtual_modifier_data;
   ModifierData *first_md = BKE_modifiers_get_virtual_modifierlist(&object_for_eval,
-                                                            &virtual_modifier_data);
+                                                                  &virtual_modifier_data);
 
   Mesh *base_mesh = object->data;
 
@@ -341,7 +341,8 @@ float (*BKE_multires_create_deformed_base_mesh_vert_coords(struct Depsgraph *dep
       break;
     }
 
-    BKE_modifier_deform_verts(md, &mesh_eval_context, base_mesh, deformed_verts, num_deformed_verts);
+    BKE_modifier_deform_verts(
+        md, &mesh_eval_context, base_mesh, deformed_verts, num_deformed_verts);
   }
 
   if (r_num_deformed_verts != NULL) {

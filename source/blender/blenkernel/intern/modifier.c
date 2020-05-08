@@ -303,8 +303,8 @@ void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *userData
  * to avoid copying every member.
  */
 void BKE_modifier_copydata_generic(const ModifierData *md_src,
-                               ModifierData *md_dst,
-                               const int UNUSED(flag))
+                                   ModifierData *md_dst,
+                                   const int UNUSED(flag))
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md_src->type);
 
@@ -374,7 +374,8 @@ bool BKE_modifier_couldbe_cage(struct Scene *scene, ModifierData *md)
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
   return ((md->mode & eModifierMode_Realtime) && (md->mode & eModifierMode_Editmode) &&
-          (!mti->isDisabled || !mti->isDisabled(scene, md, 0)) && BKE_modifier_supports_mapping(md));
+          (!mti->isDisabled || !mti->isDisabled(scene, md, 0)) &&
+          BKE_modifier_supports_mapping(md));
 }
 
 bool BKE_modifier_is_same_topology(ModifierData *md)
@@ -417,13 +418,14 @@ void BKE_modifier_set_error(ModifierData *md, const char *_format, ...)
  * also used for some mesh tools to give warnings
  */
 int BKE_modifiers_get_cage_index(struct Scene *scene,
-                           Object *ob,
-                           int *r_lastPossibleCageIndex,
-                           bool is_virtual)
+                                 Object *ob,
+                                 int *r_lastPossibleCageIndex,
+                                 bool is_virtual)
 {
   VirtualModifierData virtualModifierData;
-  ModifierData *md = (is_virtual) ? BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
-                                    ob->modifiers.first;
+  ModifierData *md = (is_virtual) ?
+                         BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
+                         ob->modifiers.first;
   int i, cageIndex = -1;
 
   if (r_lastPossibleCageIndex) {
@@ -527,12 +529,12 @@ bool BKE_modifier_is_enabled(const struct Scene *scene, ModifierData *md, int re
 }
 
 CDMaskLink *BKE_modifier_calc_data_masks(struct Scene *scene,
-                                    Object *ob,
-                                    ModifierData *md,
-                                    CustomData_MeshMasks *final_datamask,
-                                    int required_mode,
-                                    ModifierData *previewmd,
-                                    const CustomData_MeshMasks *previewmask)
+                                         Object *ob,
+                                         ModifierData *md,
+                                         CustomData_MeshMasks *final_datamask,
+                                         int required_mode,
+                                         ModifierData *previewmd,
+                                         const CustomData_MeshMasks *previewmask)
 {
   CDMaskLink *dataMasks = NULL;
   CDMaskLink *curr, *prev;
@@ -594,7 +596,9 @@ CDMaskLink *BKE_modifier_calc_data_masks(struct Scene *scene,
   return dataMasks;
 }
 
-ModifierData *BKE_modifier_get_last_preview(struct Scene *scene, ModifierData *md, int required_mode)
+ModifierData *BKE_modifier_get_last_preview(struct Scene *scene,
+                                            ModifierData *md,
+                                            int required_mode)
 {
   ModifierData *tmp_md = NULL;
 
@@ -614,7 +618,7 @@ ModifierData *BKE_modifier_get_last_preview(struct Scene *scene, ModifierData *m
 /* This is to include things that are not modifiers in the evaluation of the modifier stack, for
  * example parenting to an armature. */
 ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
-                                               VirtualModifierData *virtualModifierData)
+                                                     VirtualModifierData *virtualModifierData)
 {
   ModifierData *md;
 
@@ -932,7 +936,9 @@ void BKE_modifier_path_init(char *path, int path_maxlen, const char *name)
 
 /* wrapper around ModifierTypeInfo.modifyMesh that ensures valid normals */
 
-struct Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, struct Mesh *me)
+struct Mesh *BKE_modifier_modify_mesh(ModifierData *md,
+                                      const ModifierEvalContext *ctx,
+                                      struct Mesh *me)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   BLI_assert(CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
@@ -944,10 +950,10 @@ struct Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContex
 }
 
 void BKE_modifier_deform_verts(ModifierData *md,
-                         const ModifierEvalContext *ctx,
-                         Mesh *me,
-                         float (*vertexCos)[3],
-                         int numVerts)
+                               const ModifierEvalContext *ctx,
+                               Mesh *me,
+                               float (*vertexCos)[3],
+                               int numVerts)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   BLI_assert(!me || CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
@@ -959,11 +965,11 @@ void BKE_modifier_deform_verts(ModifierData *md,
 }
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           struct BMEditMesh *em,
-                           Mesh *me,
-                           float (*vertexCos)[3],
-                           int numVerts)
+                                 const ModifierEvalContext *ctx,
+                                 struct BMEditMesh *em,
+                                 Mesh *me,
+                                 float (*vertexCos)[3],
+                                 int numVerts)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   BLI_assert(!me || CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
@@ -1016,7 +1022,9 @@ ModifierData *BKE_modifier_get_original(ModifierData *md)
   return md->orig_modifier_data;
 }
 
-struct ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph, Object *object, ModifierData *md)
+struct ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph,
+                                                Object *object,
+                                                ModifierData *md)
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   if (object_eval == object) {

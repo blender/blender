@@ -63,7 +63,8 @@ static void rna_cloth_pinning_changed(Main *UNUSED(bmain), Scene *UNUSED(scene),
 {
   Object *ob = (Object *)ptr->owner_id;
   /*  ClothSimSettings *settings = (ClothSimSettings *)ptr->data; */
-  ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Cloth);
+  ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(ob,
+                                                                           eModifierType_Cloth);
 
   cloth_free_modifier(clmd);
 

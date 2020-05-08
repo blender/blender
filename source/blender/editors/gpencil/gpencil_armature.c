@@ -591,7 +591,7 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
   else {
     /* get armature from modifier */
     GpencilModifierData *md = BKE_gpencil_modifiers_findby_type(ob_eval,
-                                                               eGpencilModifierType_Armature);
+                                                                eGpencilModifierType_Armature);
     if (md == NULL) {
       BKE_report(op->reports, RPT_ERROR, "The grease pencil object need an Armature modifier");
       return OPERATOR_CANCELLED;

@@ -943,7 +943,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
                                          "clothVertex");
   if (clmd->clothObject->verts == NULL) {
     cloth_free_modifier(clmd);
-    BKE_modifier_set_error(&(clmd->modifier), "Out of memory on allocating clmd->clothObject->verts");
+    BKE_modifier_set_error(&(clmd->modifier),
+                           "Out of memory on allocating clmd->clothObject->verts");
     printf("cloth_free_modifier clmd->clothObject->verts\n");
     return;
   }
@@ -959,7 +960,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
   clmd->clothObject->tri = MEM_mallocN(sizeof(MVertTri) * looptri_num, "clothLoopTris");
   if (clmd->clothObject->tri == NULL) {
     cloth_free_modifier(clmd);
-    BKE_modifier_set_error(&(clmd->modifier), "Out of memory on allocating clmd->clothObject->looptri");
+    BKE_modifier_set_error(&(clmd->modifier),
+                           "Out of memory on allocating clmd->clothObject->looptri");
     printf("cloth_free_modifier clmd->clothObject->looptri\n");
     return;
   }

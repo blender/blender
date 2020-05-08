@@ -605,7 +605,9 @@ void BKE_gpencil_modifiers_foreach_ID_link(Object *ob, GreasePencilIDWalkFunc wa
   }
 }
 
-void BKE_gpencil_modifiers_foreach_tex_link(Object *ob, GreasePencilTexWalkFunc walk, void *userData)
+void BKE_gpencil_modifiers_foreach_tex_link(Object *ob,
+                                            GreasePencilTexWalkFunc walk,
+                                            void *userData)
 {
   GpencilModifierData *md = ob->greasepencil_modifiers.first;
 
