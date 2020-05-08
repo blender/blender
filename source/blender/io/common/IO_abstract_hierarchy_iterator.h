@@ -91,6 +91,14 @@ struct HierarchyContext {
    * exported objects, in which case this string is empty even though 'duplicator' is set. */
   std::string original_export_path;
 
+  /* Export path of the higher-up exported data. For transforms, this is the export path of the
+   * parent object. For object data, this is the export path of that object's transform.
+   *
+   * From the exported file's point of view, this is the path to the parent in that file. The term
+   * "parent" is not used here to avoid confusion with Blender's meaning of the word (which always
+   * refers to a different object). */
+  std::string higher_up_export_path;
+
   bool operator<(const HierarchyContext &other) const;
 
   /* Return a HierarchyContext representing the root of the export hierarchy. */
@@ -243,6 +251,10 @@ class AbstractHierarchyIterator {
   void make_writers(const HierarchyContext *parent_context);
   void make_writer_object_data(const HierarchyContext *context);
   void make_writers_particle_systems(const HierarchyContext *context);
+
+  /* Return the appropriate HierarchyContext for the data of the object represented by
+   * object_context. */
+  HierarchyContext context_for_object_data(const HierarchyContext *object_context) const;
 
   /* Convenience wrappers around get_id_name(). */
   std::string get_object_name(const Object *object) const;
