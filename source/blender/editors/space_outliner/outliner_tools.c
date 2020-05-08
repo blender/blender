@@ -553,10 +553,10 @@ static void merged_element_search_cb_recursive(
 }
 
 /* Get a list of elements that match the search string */
-static void merged_element_search_cb(const bContext *UNUSED(C),
-                                     void *data,
-                                     const char *str,
-                                     uiSearchItems *items)
+static void merged_element_search_update_fn(const bContext *UNUSED(C),
+                                            void *data,
+                                            const char *str,
+                                            uiSearchItems *items)
 {
   MergedSearchData *search_data = (MergedSearchData *)data;
   TreeElement *parent = search_data->parent_element;
@@ -568,7 +568,7 @@ static void merged_element_search_cb(const bContext *UNUSED(C),
 }
 
 /* Activate an element from the merged element search menu */
-static void merged_element_search_call_cb(struct bContext *C, void *UNUSED(arg1), void *element)
+static void merged_element_search_exec_fn(struct bContext *C, void *UNUSED(arg1), void *element)
 {
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   TreeElement *te = (TreeElement *)element;
@@ -600,7 +600,7 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
   but = uiDefSearchBut(
       block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, menu_width, UI_UNIT_Y, 0, 0, "");
   UI_but_func_search_set(
-      but, NULL, merged_element_search_cb, data, NULL, merged_element_search_call_cb, NULL);
+      but, NULL, merged_element_search_update_fn, data, NULL, merged_element_search_exec_fn, NULL);
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
   /* Fake button to hold space for search items */

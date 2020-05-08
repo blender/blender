@@ -2645,7 +2645,7 @@ static void search_id_collection(StructRNA *ptype, PointerRNA *r_ptr, PropertyRN
   RNA_STRUCT_END;
 }
 
-static void ui_rna_collection_search_free_cb(void *ptr)
+static void ui_rna_collection_search_arg_free_fn(void *ptr)
 {
   uiRNACollectionSearch *coll_search = ptr;
   UI_butstore_free(coll_search->butstore_block, coll_search->butstore);
@@ -2699,7 +2699,7 @@ void ui_but_add_search(
                            ui_searchbox_create_generic,
                            ui_rna_collection_search_update_fn,
                            coll_search,
-                           ui_rna_collection_search_free_cb,
+                           ui_rna_collection_search_arg_free_fn,
                            NULL,
                            NULL);
   }

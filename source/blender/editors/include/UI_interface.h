@@ -1581,7 +1581,7 @@ void UI_but_func_search_set(uiBut *but,
                             uiButSearchUpdateFn search_update_fn,
                             void *arg,
                             uiButSearchArgFreeFn search_arg_free_fn,
-                            uiButHandleFunc handle_fn,
+                            uiButHandleFunc search_exec_fn,
                             void *active);
 void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn);
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string);

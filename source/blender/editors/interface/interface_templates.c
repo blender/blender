@@ -205,7 +205,7 @@ static uiBlock *template_common_search_menu(const bContext *C,
                                             ARegion *region,
                                             uiButSearchUpdateFn search_update_fn,
                                             void *search_arg,
-                                            uiButHandleFunc handle_func,
+                                            uiButHandleFunc search_exec_fn,
                                             void *active_item,
                                             const int preview_rows,
                                             const int preview_cols,
@@ -282,7 +282,7 @@ static uiBlock *template_common_search_menu(const bContext *C,
                          search_update_fn,
                          search_arg,
                          NULL,
-                         handle_func,
+                         search_exec_fn,
                          active_item);
 
   UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
@@ -315,7 +315,7 @@ typedef struct TemplateID {
 } TemplateID;
 
 /* Search browse menu, assign  */
-static void template_ID_set_property_cb(bContext *C, void *arg_template, void *item)
+static void template_ID_set_property_exec_fn(bContext *C, void *arg_template, void *item)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
 
@@ -470,7 +470,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
                                      region,
                                      id_search_update_fn,
                                      &template_ui,
-                                     template_ID_set_property_cb,
+                                     template_ID_set_property_exec_fn,
                                      active_item_ptr.data,
                                      template_ui.prv_rows,
                                      template_ui.prv_cols,
@@ -1182,7 +1182,7 @@ static void template_ID_tabs(bContext *C,
                                                0.0f,
                                                0.0f,
                                                "");
-    UI_but_funcN_set(&tab->but, template_ID_set_property_cb, MEM_dupallocN(template), id);
+    UI_but_funcN_set(&tab->but, template_ID_set_property_exec_fn, MEM_dupallocN(template), id);
     tab->but.custom_data = (void *)id;
     tab->but.dragpoin = id;
     tab->menu = mt;
@@ -1528,7 +1528,7 @@ typedef struct TemplateSearch {
   int preview_rows, preview_cols;
 } TemplateSearch;
 
-static void template_search_handle_cb(bContext *C, void *arg_template, void *item)
+static void template_search_exec_fn(bContext *C, void *arg_template, void *item)
 {
   TemplateSearch *template_search = arg_template;
   uiRNACollectionSearch *coll_search = &template_search->search_data;
@@ -1554,7 +1554,7 @@ static uiBlock *template_search_menu(bContext *C, ARegion *region, void *arg_tem
                                      region,
                                      ui_rna_collection_search_update_fn,
                                      &template_search,
-                                     template_search_handle_cb,
+                                     template_search_exec_fn,
                                      active_ptr.data,
                                      template_search.preview_rows,
                                      template_search.preview_cols,

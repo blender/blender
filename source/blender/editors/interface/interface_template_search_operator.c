@@ -50,7 +50,7 @@
 /** \name Operator Search Template Implementation
  * \{ */
 
-static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
+static void operator_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
 {
   wmOperatorType *ot = arg2;
 
@@ -59,10 +59,10 @@ static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
   }
 }
 
-static void operator_search_cb(const bContext *C,
-                               void *UNUSED(arg),
-                               const char *str,
-                               uiSearchItems *items)
+static void operator_search_update_fn(const bContext *C,
+                                      void *UNUSED(arg),
+                                      const char *str,
+                                      uiSearchItems *items)
 {
   GHashIterator iter;
   const size_t str_len = strlen(str);
@@ -125,8 +125,13 @@ static void operator_search_cb(const bContext *C,
 
 void UI_but_func_operator_search(uiBut *but)
 {
-  UI_but_func_search_set(
-      but, ui_searchbox_create_operator, operator_search_cb, NULL, false, operator_call_cb, NULL);
+  UI_but_func_search_set(but,
+                         ui_searchbox_create_operator,
+                         operator_search_update_fn,
+                         NULL,
+                         false,
+                         operator_search_exec_fn,
+                         NULL);
 }
 
 void uiTemplateOperatorSearch(uiLayout *layout)

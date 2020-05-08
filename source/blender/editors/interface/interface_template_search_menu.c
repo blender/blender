@@ -832,7 +832,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
   return data;
 }
 
-static void menu_items_from_ui_destroy(void *data_v)
+static void menu_search_arg_free_fn(void *data_v)
 {
   struct MenuSearch_Data *data = data_v;
   LISTBASE_FOREACH (struct MenuSearch_Item *, item, &data->items) {
@@ -854,7 +854,7 @@ static void menu_items_from_ui_destroy(void *data_v)
   MEM_freeN(data);
 }
 
-static void menu_call_fn(bContext *C, void *UNUSED(arg1), void *arg2)
+static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
 {
   struct MenuSearch_Item *item = arg2;
   if (item == NULL) {
@@ -916,10 +916,10 @@ static void menu_call_fn(bContext *C, void *UNUSED(arg1), void *arg2)
   }
 }
 
-static void menu_search_cb(const bContext *UNUSED(C),
-                           void *arg,
-                           const char *str,
-                           uiSearchItems *items)
+static void menu_search_update_fn(const bContext *UNUSED(C),
+                                  void *arg,
+                                  const char *str,
+                                  uiSearchItems *items)
 {
   struct MenuSearch_Data *data = arg;
   const size_t str_len = strlen(str);
@@ -956,10 +956,10 @@ static void menu_search_cb(const bContext *UNUSED(C),
  * a separate context menu just for the search, however this is fairly involved.
  * \{ */
 
-static bool menu_search_context_menu_fn(struct bContext *C,
-                                        void *arg,
-                                        void *active,
-                                        const struct wmEvent *UNUSED(event))
+static bool ui_search_menu_create_context_menu(struct bContext *C,
+                                               void *arg,
+                                               void *active,
+                                               const struct wmEvent *UNUSED(event))
 {
   struct MenuSearch_Data *data = arg;
   struct MenuSearch_Item *item = active;
@@ -1010,14 +1010,15 @@ void UI_but_func_menu_search(uiBut *but)
   struct MenuSearch_Data *data = menu_items_from_ui_create(
       C, win, area, region, include_all_areas);
   UI_but_func_search_set(but,
+                         /* Generic callback. */
                          ui_searchbox_create_menu,
-                         menu_search_cb,
+                         menu_search_update_fn,
                          data,
-                         menu_items_from_ui_destroy,
-                         menu_call_fn,
+                         menu_search_arg_free_fn,
+                         menu_search_exec_fn,
                          NULL);
 
-  UI_but_func_search_set_context_menu(but, menu_search_context_menu_fn);
+  UI_but_func_search_set_context_menu(but, ui_search_menu_create_context_menu);
   UI_but_func_search_set_sep_string(but, MENU_SEP);
 }
 

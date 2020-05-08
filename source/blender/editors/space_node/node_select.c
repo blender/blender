@@ -1116,10 +1116,10 @@ void NODE_OT_select_same_type_step(wmOperatorType *ot)
  * \{ */
 
 /* generic  search invoke */
-static void node_find_cb(const struct bContext *C,
-                         void *UNUSED(arg),
-                         const char *str,
-                         uiSearchItems *items)
+static void node_find_update_fn(const struct bContext *C,
+                                void *UNUSED(arg),
+                                const char *str,
+                                uiSearchItems *items)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node;
@@ -1142,7 +1142,7 @@ static void node_find_cb(const struct bContext *C,
   }
 }
 
-static void node_find_call_cb(struct bContext *C, void *UNUSED(arg1), void *arg2)
+static void node_find_exec_fn(struct bContext *C, void *UNUSED(arg1), void *arg2)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *active = arg2;
@@ -1182,7 +1182,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
                        0,
                        0,
                        "");
-  UI_but_func_search_set(but, NULL, node_find_cb, op->type, NULL, node_find_call_cb, NULL);
+  UI_but_func_search_set(but, NULL, node_find_update_fn, op->type, NULL, node_find_exec_fn, NULL);
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
   /* fake button, it holds space for search items */
