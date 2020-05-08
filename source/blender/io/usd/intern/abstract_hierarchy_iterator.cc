@@ -576,7 +576,7 @@ void AbstractHierarchyIterator::make_writers_particle_systems(
 
     HierarchyContext hair_context = *transform_context;
     hair_context.export_path = path_concatenate(transform_context->export_path,
-                                                get_id_name(&psys->part->id));
+                                                make_valid_name(psys->name));
     hair_context.particle_system = psys;
 
     AbstractHierarchyWriter *writer = nullptr;
