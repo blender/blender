@@ -253,7 +253,21 @@ static void bli_windows_system_backtrace_modules(FILE *fp)
     if (me32.th32ProcessID == GetCurrentProcessId()) {
       char version[MAX_PATH];
       bli_windows_get_module_version(me32.szExePath, version, sizeof(version));
-      fprintf(fp, "0x%p %-20s %s\n", me32.modBaseAddr, version, me32.szModule);
+
+      IMAGEHLP_MODULE64 m64;
+      m64.SizeOfStruct = sizeof(m64);
+      if (SymGetModuleInfo64(GetCurrentProcess(), (DWORD64)me32.modBaseAddr, &m64)) {
+        fprintf(fp,
+                "0x%p %-20s %s %s %s\n",
+                me32.modBaseAddr,
+                version,
+                me32.szModule,
+                m64.LoadedPdbName,
+                m64.PdbUnmatched ? "[unmatched]" : "");
+      }
+      else {
+        fprintf(fp, "0x%p %-20s %s\n", me32.modBaseAddr, version, me32.szModule);
+      }
     }
   } while (Module32Next(hModuleSnap, &me32));
 }
