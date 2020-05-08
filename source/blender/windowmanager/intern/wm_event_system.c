@@ -3110,6 +3110,25 @@ static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
   }
 }
 
+/**
+ * Account for the special case when events are being handled and a file is loaded.
+ * In this case event handling exits early, however when "Load UI" is disabled
+ * the even will still be in #wmWindow.queue.
+ *
+ * Without this it's possible to continuously handle the same event, see: T76484.
+ */
+static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
+{
+  LISTBASE_FOREACH (wmWindowManager *, wm, &G_MAIN->wm) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      if (BLI_remlink_safe(&win->queue, event)) {
+        wm_event_free(event);
+        return;
+      }
+    }
+  }
+}
+
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void wm_event_do_handlers(bContext *C)
@@ -3232,6 +3251,7 @@ void wm_event_do_handlers(bContext *C)
 
       /* fileread case */
       if (CTX_wm_window(C) == NULL) {
+        wm_event_free_and_remove_from_queue_if_valid(event);
         return;
       }
 
@@ -3306,6 +3326,7 @@ void wm_event_do_handlers(bContext *C)
 
                   /* fileread case (python), [#29489] */
                   if (CTX_wm_window(C) == NULL) {
+                    wm_event_free_and_remove_from_queue_if_valid(event);
                     return;
                   }
 
@@ -3340,6 +3361,7 @@ void wm_event_do_handlers(bContext *C)
 
           /* fileread case */
           if (CTX_wm_window(C) == NULL) {
+            wm_event_free_and_remove_from_queue_if_valid(event);
             return;
           }
         }
