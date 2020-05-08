@@ -18,20 +18,28 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(common)
+set(INC
+  .
+  ../../blenkernel
+  ../../blenlib
+  ../../depsgraph
+  ../../makesdna
+)
 
-if(WITH_ALEMBIC)
-  add_subdirectory(alembic)
-endif()
+set(INC_SYS
+)
 
-if(WITH_CODEC_AVI)
-  add_subdirectory(avi)
-endif()
+set(SRC
+  intern/abstract_hierarchy_iterator.cc
 
-if(WITH_OPENCOLLADA)
-  add_subdirectory(collada)
-endif()
+  IO_abstract_hierarchy_iterator.h
+)
 
-if(WITH_USD)
-  add_subdirectory(usd)
-endif()
+set(LIB
+  bf_blenkernel
+  bf_blenlib
+)
+
+blender_add_lib(bf_io_common "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+target_link_libraries(bf_io_common INTERFACE)

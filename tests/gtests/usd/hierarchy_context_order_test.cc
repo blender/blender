@@ -16,7 +16,7 @@
  * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  */
-#include "intern/abstract_hierarchy_iterator.h"
+#include "IO_abstract_hierarchy_iterator.h"
 
 #include "testing/testing.h"
 
@@ -24,7 +24,7 @@ extern "C" {
 #include "BLI_utildefines.h"
 }
 
-using namespace USD;
+using namespace blender::io;
 
 class HierarchyContextOrderTest : public testing::Test {
 };

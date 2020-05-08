@@ -16,8 +16,8 @@
  * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  */
+#include "IO_abstract_hierarchy_iterator.h"
 #include "blenloader/blendfile_loading_base_test.h"
-#include "intern/abstract_hierarchy_iterator.h"
 
 extern "C" {
 #include "BLI_math.h"
@@ -32,7 +32,7 @@ extern "C" {
  * multiple times with different export paths, hence the set. */
 typedef std::map<std::string, std::set<std::string>> created_writers;
 
-using namespace USD;
+using namespace blender::io;
 
 class TestHierarchyWriter : public AbstractHierarchyWriter {
  public:

@@ -35,6 +35,7 @@ set(INC
   ..
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel
+  ../../../source/blender/io/common
   ../../../source/blender/io/usd
   ../../../source/blender/makesdna
   ../../../source/blender/depsgraph
@@ -52,6 +53,7 @@ set(LIB
   bf_gpu
 
   bf_usd
+  bf_io_common
 
   ${BOOST_LIBRARIES}
   ${TBB_LIBRARIES}

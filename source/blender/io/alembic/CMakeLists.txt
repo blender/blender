@@ -20,6 +20,7 @@
 
 set(INC
   .
+  ../common
   ../../blenkernel
   ../../blenlib
   ../../blenloader
@@ -92,6 +93,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_io_common
 
   ${ALEMBIC_LIBRARIES}
   ${OPENEXR_LIBRARIES}

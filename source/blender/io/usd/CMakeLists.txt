@@ -32,6 +32,7 @@ add_definitions(-DPXR_STATIC)
 
 set(INC
   .
+  ../common
   ../../blenkernel
   ../../blenlib
   ../../blenloader
@@ -52,7 +53,6 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/abstract_hierarchy_iterator.cc
   intern/usd_capi.cc
   intern/usd_hierarchy_iterator.cc
   intern/usd_writer_abstract.cc
@@ -64,7 +64,6 @@ set(SRC
   intern/usd_writer_transform.cc
 
   usd.h
-  intern/abstract_hierarchy_iterator.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
   intern/usd_writer_abstract.h
@@ -79,6 +78,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_io_common
 )
 
 list(APPEND LIB
