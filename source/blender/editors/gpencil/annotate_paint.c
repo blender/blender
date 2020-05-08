@@ -2834,7 +2834,7 @@ void GPENCIL_OT_annotate(wmOperatorType *ot)
   prop = RNA_def_boolean(ot->srna,
                          "use_stabilizer",
                          false,
-                         "Use Stabilizer",
+                         "Stabilize Stroke",
                          "Helper to draw smooth and clean lines. Press Shift for an invert effect "
                          "(even if this option is not active)");
   prop = RNA_def_float(ot->srna,
