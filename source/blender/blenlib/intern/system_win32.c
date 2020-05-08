@@ -309,8 +309,7 @@ static bool bli_private_symbols_loaded()
   IMAGEHLP_MODULE64 m64;
   m64.SizeOfStruct = sizeof(m64);
   if (SymGetModuleInfo64(GetCurrentProcess(), (DWORD64)GetModuleHandle(NULL), &m64)) {
-    PathStripPath(m64.LoadedPdbName);
-    return BLI_strcasecmp(m64.LoadedPdbName, "blender_private.pdb") == 0;
+    return m64.GlobalSymbols;
   }
   return false;
 }
