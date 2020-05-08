@@ -250,6 +250,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
     wpd->shading = v3d->shading;
     if (wpd->shading.type < OB_SOLID) {
+      wpd->shading.light = V3D_LIGHTING_FLAT;
+      wpd->shading.color_type = V3D_SHADING_OBJECT_COLOR;
       wpd->shading.xray_alpha = 0.0f;
     }
     else if (XRAY_ENABLED(v3d)) {
