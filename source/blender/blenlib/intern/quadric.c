@@ -143,7 +143,7 @@ double BLI_quadric_evaluate(const Quadric *q, const double v[3])
 {
   const double v00 = v[0] * v[0], v01 = v[0] * v[1], v02 = v[0] * v[2];
   const double v11 = v[1] * v[1], v12 = v[1] * v[2];
-  const double v22 = v[1] * v[2];
+  const double v22 = v[2] * v[2];
   return ((q->a2 * v00) + (q->ab * 2 * v01) + (q->ac * 2 * v02) + (q->ad * 2 * v[0]) + /* a */
           (q->b2 * v11) + (q->bc * 2 * v12) + (q->bd * 2 * v[1]) +                     /* b */
           (q->c2 * v22) + (q->cd * 2 * v[2]) +                                         /* c */
