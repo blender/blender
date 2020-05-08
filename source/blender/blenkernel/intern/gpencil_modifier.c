@@ -620,7 +620,7 @@ void BKE_gpencil_modifiers_foreach_tex_link(Object *ob,
   }
 }
 
-GpencilModifierData *BKE_gpencil_modifiers_findny_name(Object *ob, const char *name)
+GpencilModifierData *BKE_gpencil_modifiers_findby_name(Object *ob, const char *name)
 {
   return BLI_findstring(&(ob->greasepencil_modifiers), name, offsetof(GpencilModifierData, name));
 }

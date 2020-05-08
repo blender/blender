@@ -455,7 +455,7 @@ static GpencilModifierData *gpencil_edit_modifier_property_get(wmOperator *op,
   GpencilModifierData *md;
   RNA_string_get(op->ptr, "modifier", modifier_name);
 
-  md = BKE_gpencil_modifiers_findny_name(ob, modifier_name);
+  md = BKE_gpencil_modifiers_findby_name(ob, modifier_name);
 
   if (md && type != 0 && md->type != type) {
     md = NULL;

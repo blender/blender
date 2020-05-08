@@ -268,7 +268,7 @@ bool BKE_gpencil_modifier_unique_name(struct ListBase *modifiers, struct Gpencil
 bool BKE_gpencil_modifier_depends_ontime(struct GpencilModifierData *md);
 struct GpencilModifierData *BKE_gpencil_modifiers_findby_type(struct Object *ob,
                                                               GpencilModifierType type);
-struct GpencilModifierData *BKE_gpencil_modifiers_findny_name(struct Object *ob, const char *name);
+struct GpencilModifierData *BKE_gpencil_modifiers_findby_name(struct Object *ob, const char *name);
 void BKE_gpencil_modifier_copydata_generic(const struct GpencilModifierData *md_src,
                                            struct GpencilModifierData *md_dst);
 void BKE_gpencil_modifier_copydata(struct GpencilModifierData *md,
