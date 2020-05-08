@@ -118,7 +118,13 @@ using_diffusion_s$ID$    = $USING_DIFFUSION$\n\
 timeScale_s$ID$    = $TIME_SCALE$\n\
 timeTotal_s$ID$    = $TIME_TOTAL$\n\
 timePerFrame_s$ID$ = $TIME_PER_FRAME$\n\
-frameLength_s$ID$  = $FRAME_LENGTH$\n\
+\n\
+# In Blender fluid.c: frame_length = DT_DEFAULT * (25.0 / fps) * time_scale\n\
+# with DT_DEFAULT = 0.1\n\
+frameLength_s$ID$ = $FRAME_LENGTH$\n\
+frameLengthUnscaled_s$ID$  = frameLength_s$ID$ / timeScale_s$ID$\n\
+frameLengthRaw_s$ID$ = 0.1 * 25 # dt = 0.1 at 25 fps\n\
+\n\
 dt0_s$ID$          = $DT$\n\
 cflCond_s$ID$      = $CFL$\n\
 timestepsMin_s$ID$ = $TIMESTEPS_MIN$\n\
@@ -140,10 +146,10 @@ mantaMsg('1 Mantaflow cell is ' + str(ratioMetersToRes_s$ID$) + ' Blender length
 ratioResToBLength_s$ID$ = float(res_s$ID$) / float(domainSize_s$ID$) # [cells / blength] (blength: cm, m, or km, ... )\n\
 mantaMsg('1 Blender length unit is ' + str(ratioResToBLength_s$ID$) + ' Mantaflow cells long.')\n\
 \n\
-ratioBTimeToTimstep_s$ID$ = float(1) / float(0.1 * 25) # the time within 1 blender time unit, see also fluid.c\n\
+ratioBTimeToTimstep_s$ID$ = float(1) / float(frameLengthRaw_s$ID$) # the time within 1 blender time unit, see also fluid.c\n\
 mantaMsg('1 Blender time unit is ' + str(ratioBTimeToTimstep_s$ID$) + ' Mantaflow time units long.')\n\
 \n\
-ratioFrameToFramelength_s$ID$ = float(1) / float(frameLength_s$ID$) # the time within 1 frame\n\
+ratioFrameToFramelength_s$ID$ = float(1) / float(frameLengthUnscaled_s$ID$ ) # the time within 1 frame\n\
 mantaMsg('frame / frameLength is ' + str(ratioFrameToFramelength_s$ID$) + ' Mantaflow time units long.')\n\
 \n\
 scaleAcceleration_s$ID$ = ratioResToBLength_s$ID$ * (ratioBTimeToTimstep_s$ID$**2)# [meters/btime^2] to [cells/timestep^2] (btime: sec, min, or h, ...)\n\
