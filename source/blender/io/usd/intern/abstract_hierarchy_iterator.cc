@@ -448,8 +448,7 @@ void AbstractHierarchyIterator::determine_export_paths(const HierarchyContext *p
       duplisource_export_path_[source_ob] = context->export_path;
 
       if (context->object->data != nullptr) {
-        ID *object_data = static_cast<ID *>(context->object->data);
-        ID *source_data = object_data;
+        ID *source_data = static_cast<ID *>(context->object->data);
         duplisource_export_path_[source_data] = get_object_data_path(context);
       }
     }
