@@ -295,8 +295,6 @@ extern "C" {
  *
  * \section executePixel executing a pixel
  * Finally the last step, the node functionality :)
- *
- * \page newnode Creating new nodes
  */
 
 /**
