@@ -56,7 +56,7 @@ class AbstractHierarchyWriter;
  * struct contains everything necessary to export a single object to a file. */
 struct HierarchyContext {
   /*********** Determined during hierarchy iteration: ***************/
-  Object *object;
+  Object *object; /* Evaluated object. */
   Object *export_parent;
   Object *duplicator;
   float matrix_world[4][4];
@@ -188,6 +188,8 @@ class AbstractHierarchyIterator {
                           const std::set<Object *> &dupli_set);
 
   ExportChildren &graph_children(const HierarchyContext *parent_context);
+  void context_update_for_graph_index(HierarchyContext *context,
+                                      const ExportGraph::key_type &graph_index) const;
 
   void determine_export_paths(const HierarchyContext *parent_context);
   void determine_duplication_references(const HierarchyContext *parent_context,
@@ -232,6 +234,10 @@ class AbstractHierarchyIterator {
   virtual bool mark_as_weak_export(const Object *object) const;
 
   virtual bool should_visit_dupli_object(const DupliObject *dupli_object) const;
+
+  virtual ExportGraph::key_type determine_graph_index_object(const HierarchyContext *context);
+  virtual ExportGraph::key_type determine_graph_index_dupli(const HierarchyContext *context,
+                                                            const std::set<Object *> &dupli_set);
 
   /* These functions should create an AbstractHierarchyWriter subclass instance, or return
    * nullptr if the object or its data should not be exported. Returning a nullptr for

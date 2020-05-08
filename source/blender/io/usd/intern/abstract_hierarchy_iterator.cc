@@ -345,8 +345,11 @@ void AbstractHierarchyIterator::visit_object(Object *object,
   context->original_export_path = "";
   copy_m4_m4(context->matrix_world, object->obmat);
 
+  ExportGraph::key_type graph_index = determine_graph_index_object(context);
+  context_update_for_graph_index(context, graph_index);
+
   // Store this HierarchyContext as child of the export parent.
-  export_graph_[std::make_pair(export_parent, nullptr)].insert(context);
+  export_graph_[graph_index].insert(context);
 
   // Create an empty entry for this object to indicate it is part of the export. This will be used
   // by connect_loose_objects(). Having such an "indicator" will make it possible to do an O(log n)
@@ -359,38 +362,25 @@ void AbstractHierarchyIterator::visit_object(Object *object,
   }
 }
 
+AbstractHierarchyIterator::ExportGraph::key_type AbstractHierarchyIterator::
+    determine_graph_index_object(const HierarchyContext *context)
+{
+  return std::make_pair(context->export_parent, nullptr);
+}
+
 void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
                                                    Object *duplicator,
                                                    const std::set<Object *> &dupli_set)
 {
-  ExportGraph::key_type graph_index;
-  bool animation_check_include_parent = false;
-
   HierarchyContext *context = new HierarchyContext();
   context->object = dupli_object->ob;
   context->duplicator = duplicator;
   context->weak_export = false;
   context->export_path = "";
   context->original_export_path = "";
+  context->export_path = "";
+  context->animation_check_include_parent = false;
 
-  /* If the dupli-object's parent is also instanced by this object, use that as the
-   * export parent. Otherwise use the dupli-parent as export parent. */
-  Object *parent = dupli_object->ob->parent;
-  if (parent != nullptr && dupli_set.find(parent) != dupli_set.end()) {
-    // The parent object is part of the duplicated collection.
-    context->export_parent = parent;
-    graph_index = std::make_pair(parent, duplicator);
-  }
-  else {
-    /* The parent object is NOT part of the duplicated collection. This means that the world
-     * transform of this dupli-object can be influenced by objects that are not part of its
-     * export graph. */
-    animation_check_include_parent = true;
-    context->export_parent = duplicator;
-    graph_index = std::make_pair(duplicator, nullptr);
-  }
-
-  context->animation_check_include_parent = animation_check_include_parent;
   copy_m4_m4(context->matrix_world, dupli_object->mat);
 
   // Construct export name for the dupli-instance.
@@ -401,7 +391,37 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
   }
   context->export_name = make_valid_name(get_object_name(context->object) + suffix_stream.str());
 
+  ExportGraph::key_type graph_index = determine_graph_index_dupli(context, dupli_set);
+  context_update_for_graph_index(context, graph_index);
   export_graph_[graph_index].insert(context);
+}
+
+AbstractHierarchyIterator::ExportGraph::key_type AbstractHierarchyIterator::
+    determine_graph_index_dupli(const HierarchyContext *context,
+                                const std::set<Object *> &dupli_set)
+{
+  /* If the dupli-object's parent is also instanced by this object, use that as the
+   * export parent. Otherwise use the dupli-parent as export parent. */
+
+  Object *parent = context->object->parent;
+  if (parent != nullptr && dupli_set.find(parent) != dupli_set.end()) {
+    // The parent object is part of the duplicated collection.
+    return std::make_pair(parent, context->duplicator);
+  }
+  return std::make_pair(context->duplicator, nullptr);
+}
+
+void AbstractHierarchyIterator::context_update_for_graph_index(
+    HierarchyContext *context, const ExportGraph::key_type &graph_index) const
+{
+  // Update the HierarchyContext so that it is consistent with the graph index.
+  context->export_parent = graph_index.first;
+  if (context->export_parent != context->object->parent) {
+    /* The parent object in Blender is NOT used as the export parent. This means
+     * that the world transform of this object can be influenced by objects that
+     * are not part of its export graph. */
+    context->animation_check_include_parent = true;
+  }
 }
 
 AbstractHierarchyIterator::ExportChildren &AbstractHierarchyIterator::graph_children(
