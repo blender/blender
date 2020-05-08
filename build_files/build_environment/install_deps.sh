@@ -1248,8 +1248,10 @@ _update_deps_python() {
 clean_Python() {
   clean_Numpy
   _init_python
+  if [ -d $_inst ]; then
+    _update_deps_python
+  fi
   _clean
-  _update_deps_python
 }
 
 compile_Python() {
@@ -1332,8 +1334,10 @@ _update_deps_numpy() {
 
 clean_Numpy() {
   _init_numpy
+  if [ -d $_inst ]; then
+    _update_deps_numpy
+  fi
   _clean
-  _update_deps_numpy
 }
 
 compile_Numpy() {
@@ -1418,8 +1422,10 @@ _update_deps_boost() {
 
 clean_Boost() {
   _init_boost
+  if [ -d $_inst ]; then
+    _update_deps_boost
+  fi
   _clean
-  _update_deps_boost
 }
 
 compile_Boost() {
@@ -1504,8 +1510,10 @@ _update_deps_ocio() {
 
 clean_OCIO() {
   _init_ocio
+  if [ -d $_inst ]; then
+    _update_deps_ocio
+  fi
   _clean
-  _update_deps_ocio
 }
 
 compile_OCIO() {
@@ -1632,8 +1640,10 @@ _update_deps_openexr() {
 
 clean_OPENEXR() {
   _init_openexr
+  if [ -d $_inst ]; then
+    _update_deps_openexr
+  fi
   _clean
-  _update_deps_openexr
 }
 
 compile_OPENEXR() {
@@ -1759,8 +1769,10 @@ _update_deps_oiio() {
 
 clean_OIIO() {
   _init_oiio
+  if [ -d $_inst ]; then
+    _update_deps_oiio
+  fi
   _clean
-  _update_deps_oiio
 }
 
 compile_OIIO() {
@@ -1912,8 +1924,10 @@ _update_deps_llvm() {
 
 clean_LLVM() {
   _init_llvm
+  if [ -d $_inst ]; then
+    _update_deps_llvm
+  fi
   _clean
-  _update_deps_llvm
 }
 
 compile_LLVM() {
@@ -2019,8 +2033,10 @@ _update_deps_osl() {
 
 clean_OSL() {
   _init_osl
+  if [ -d $_inst ]; then
+    _update_deps_osl
+  fi
   _clean
-  _update_deps_osl
 }
 
 compile_OSL() {
@@ -2162,8 +2178,10 @@ _update_deps_osd() {
 
 clean_OSD() {
   _init_osd
+  if [ -d $_inst ]; then
+    _update_deps_osd
+  fi
   _clean
-  _update_deps_osd
 }
 
 compile_OSD() {
@@ -2274,8 +2292,10 @@ _update_deps_blosc() {
 
 clean_BLOSC() {
   _init_blosc
+  if [ -d $_inst ]; then
+    _update_deps_blosc
+  fi
   _clean
-  _update_deps_blosc
 }
 
 compile_BLOSC() {
@@ -2369,8 +2389,10 @@ _update_deps_openvdb() {
 
 clean_OPENVDB() {
   _init_openvdb
+  if [ -d $_inst ]; then
+    _update_deps_openvdb
+  fi
   _clean
-  _update_deps_openvdb
 }
 
 compile_OPENVDB() {
@@ -2482,8 +2504,10 @@ _update_deps_alembic() {
 
 clean_ALEMBIC() {
   _init_alembic
+  if [ -d $_inst ]; then
+    _update_deps_alembic
+  fi
   _clean
-  _update_deps_alembic
 }
 
 compile_ALEMBIC() {
@@ -2585,8 +2609,10 @@ _update_deps_usd() {
 
 clean_USD() {
   _init_usd
+  if [ -d $_inst ]; then
+    _update_deps_usd
+  fi
   _clean
-  _update_deps_usd
 }
 
 compile_USD() {
@@ -2678,8 +2704,10 @@ _update_deps_collada() {
 
 clean_OpenCOLLADA() {
   _init_opencollada
+  if [ -d $_inst ]; then
+    _update_deps_collada
+  fi
   _clean
-  _update_deps_collada
 }
 
 compile_OpenCOLLADA() {
@@ -2782,8 +2810,10 @@ _update_deps_embree() {
 
 clean_Embree() {
   _init_embree
+  if [ -d $_inst ]; then
+    _update_deps_embree
+  fi
   _clean
-  _update_deps_embree
 }
 
 compile_Embree() {
@@ -2889,8 +2919,10 @@ _update_deps_oidn() {
 
 clean_oidn() {
   _init_oidn
+  if [ -d $_inst ]; then
+    _update_deps_oidn
+  fi
   _clean
-  _update_deps_oidn
 }
 
 compile_OIDN() {
@@ -2992,8 +3024,10 @@ _update_deps_ffmpeg() {
 
 clean_FFmpeg() {
   _init_ffmpeg
+  if [ -d $_inst ]; then
+    _update_deps_ffmpeg
+  fi
   _clean
-  _update_deps_ffmpeg
 }
 
 compile_FFmpeg() {
@@ -3119,8 +3153,10 @@ _update_deps_xr_openxr_sdk() {
 
 clean_XR_OpenXR_SDK() {
   _init_xr_openxr_sdk
+  if [ -d $_inst ]; then
+    _update_deps_xr_openxr_sdk
+  fi
   _clean
-  _update_deps_xr_openxr_sdk
 }
 
 compile_XR_OpenXR_SDK() {
