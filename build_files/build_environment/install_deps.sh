@@ -4968,15 +4968,10 @@ install_OTHER() {
   fi
 
   PRINT ""
-  _do_compile_python=false
   if [ "$PYTHON_SKIP" = true ]; then
     WARNING "Skipping Python/NumPy installation, as requested..."
   elif [ "$PYTHON_FORCE_BUILD" = true ]; then
     INFO "Forced Python/NumPy building, as requested..."
-    _do_compile_python=true
-  fi
-
-  if [ "$_do_compile_python" = true ]; then
     compile_Python
     PRINT ""
     if [ "$NUMPY_SKIP" = true ]; then
@@ -5025,16 +5020,10 @@ install_OTHER() {
 
   PRINT ""
   have_llvm=false
-  _do_compile_llvm=false
   if [ "$LLVM_SKIP" = true ]; then
     WARNING "Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
   elif [ "$LLVM_FORCE_BUILD" = true ]; then
     INFO "Forced LLVM building, as requested..."
-    _do_compile_llvm=true
-  fi
-
-  if [ "$_do_compile_llvm" = true ]; then
-    PRINT ""
     compile_LLVM
     have_llvm=true
     LLVM_VERSION_FOUND=$LLVM_VERSION
@@ -5042,15 +5031,10 @@ install_OTHER() {
 
 
   PRINT ""
-  _do_compile_osl=false
   if [ "$OSL_SKIP" = true ]; then
     WARNING "Skipping OpenShadingLanguage installation, as requested..."
   elif [ "$OSL_FORCE_BUILD" = true ]; then
     INFO "Forced OpenShadingLanguage building, as requested..."
-    _do_compile_osl=true
-  fi
-
-  if [ "$_do_compile_osl" = true ]; then
     if [ "$have_llvm" = true ]; then
       PRINT ""
       compile_OSL
@@ -5061,66 +5045,40 @@ install_OTHER() {
 
 
   PRINT ""
-  _do_compile_osd=false
   if [ "$OSD_SKIP" = true ]; then
     WARNING "Skipping OpenSubdiv installation, as requested..."
   elif [ "$OSD_FORCE_BUILD" = true ]; then
     INFO "Forced OpenSubdiv building, as requested..."
-    _do_compile_osd=true
-  fi
-
-  if [ "$_do_compile_osd" = true ]; then
-    PRINT ""
     compile_OSD
   fi
 
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
-    _do_compile_collada=false
     PRINT ""
     if [ "$OPENCOLLADA_SKIP" = true ]; then
       WARNING "Skipping OpenCOLLADA installation, as requested..."
     elif [ "$OPENCOLLADA_FORCE_BUILD" = true ]; then
       INFO "Forced OpenCollada building, as requested..."
-      _do_compile_collada=true
-    fi
-
-    if [ "$_do_compile_collada" = true ]; then
-      PRINT ""
       compile_OpenCOLLADA
     fi
   fi
 
   if [ "$WITH_EMBREE" = true ]; then
-    _do_compile_embree=false
     PRINT ""
     if [ "$EMBREE_SKIP" = true ]; then
       WARNING "Skipping Embree installation, as requested..."
     elif [ "$EMBREE_FORCE_BUILD" = true ]; then
       INFO "Forced Embree building, as requested..."
-      _do_compile_embree=true
-    fi
-
-    if [ "$_do_compile_embree" = true ]; then
-      PRINT ""
       compile_Embree
     fi
   fi
 
   if [ "$WITH_OIDN" = true ]; then
-    _do_compile_oidn=false
     PRINT ""
     if [ "$OIDN_SKIP" = true ]; then
       WARNING "Skipping OpenImgeDenoise installation, as requested..."
     elif [ "$OIDN_FORCE_BUILD" = true ]; then
       INFO "Forced OpenImageDenoise building, as requested..."
-      _do_compile_oidn=true
-    else
-      # No package currently!
-      _do_compile_oidn=true
-    fi
-
-    if [ "$_do_compile_oidn" = true ]; then
       compile_OIDN
     fi
   fi
@@ -5138,9 +5096,6 @@ install_OTHER() {
     WARNING "Skipping OpenXR-SDK installation, as requested..."
   elif [ "$XR_OPENXR_FORCE_BUILD" = true ]; then
     INFO "Forced OpenXR-SDK building, as requested..."
-    compile_XR_OpenXR_SDK
-  else
-    # No package currently!
     compile_XR_OpenXR_SDK
   fi
 }
