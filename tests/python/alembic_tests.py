@@ -76,7 +76,7 @@ class AbstractAlembicTest(AbstractBlenderRunnerTest):
         output = output.replace('\r\n', '\n').replace('\r', '\n')
 
         if proc.returncode:
-            raise AbcPropError('Error %d running abcls:\n%s' % (proc.returncode, output))
+            raise AbcPropError('Error %d running %s:\n%s' % (proc.returncode, ' '.join(command), output))
 
         # Mapping from value type to callable that can convert a string to Python values.
         converters = {
