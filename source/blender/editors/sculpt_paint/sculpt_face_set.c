@@ -252,7 +252,7 @@ static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static int sculpt_face_set_create_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -354,7 +354,7 @@ void SCULPT_OT_face_sets_create(wmOperatorType *ot)
   ot->description = "Create a new Face Set";
 
   /* api callbacks */
-  ot->invoke = sculpt_face_set_create_invoke;
+  ot->exec = sculpt_face_set_create_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -594,7 +594,7 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
   BM_mesh_free(bm);
 }
 
-static int sculpt_face_set_init_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -687,7 +687,7 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
   ot->description = "Initializes all Face Sets in the mesh";
 
   /* api callbacks */
-  ot->invoke = sculpt_face_set_init_invoke;
+  ot->exec = sculpt_face_set_init_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -753,9 +753,7 @@ static EnumPropertyItem prop_sculpt_face_sets_change_visibility_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static int sculpt_face_sets_change_visibility_invoke(bContext *C,
-                                                     wmOperator *op,
-                                                     const wmEvent *UNUSED(event))
+static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -888,7 +886,7 @@ void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot)
   ot->description = "Change the visibility of the Face Sets of the sculpt";
 
   /* Api callbacks. */
-  ot->invoke = sculpt_face_sets_change_visibility_invoke;
+  ot->exec = sculpt_face_sets_change_visibility_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -901,9 +899,7 @@ void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot)
                "");
 }
 
-static int sculpt_face_sets_randomize_colors_invoke(bContext *C,
-                                                    wmOperator *UNUSED(op),
-                                                    const wmEvent *UNUSED(event))
+static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator *UNUSED(op))
 {
 
   Object *ob = CTX_data_active_object(C);
@@ -955,7 +951,7 @@ void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot)
   ot->description = "Generates a new set of random colors to render the Face Sets in the viewport";
 
   /* Api callbacks. */
-  ot->invoke = sculpt_face_sets_randomize_colors_invoke;
+  ot->exec = sculpt_face_sets_randomize_colors_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
