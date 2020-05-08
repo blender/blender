@@ -53,7 +53,8 @@ AbcHairWriter::AbcHairWriter(Object *ob,
 {
   m_psys = psys;
 
-  OCurves curves(parent->alembicXform(), psys->name, m_time_sampling);
+  std::string psys_name = get_valid_abc_name(psys->name);
+  OCurves curves(parent->alembicXform(), psys_name, m_time_sampling);
   m_schema = curves.getSchema();
 }
 

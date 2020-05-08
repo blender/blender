@@ -280,10 +280,10 @@ class HairParticlesExportTest(AbstractAlembicTest):
     def test_with_both(self, tempdir: pathlib.Path):
         abc = self._do_test(tempdir, True, True)
 
-        abcprop = self.abcprop(abc, '/Suzanne/Hair system/.geom')
+        abcprop = self.abcprop(abc, '/Suzanne/Hair_system/.geom')
         self.assertIn('nVertices', abcprop)
 
-        abcprop = self.abcprop(abc, '/Suzanne/Non-hair particle system/.geom')
+        abcprop = self.abcprop(abc, '/Suzanne/Non-hair_particle_system/.geom')
         self.assertIn('.velocities', abcprop)
 
         abcprop = self.abcprop(abc, '/Suzanne/MonkeyMesh/.geom')
@@ -293,11 +293,11 @@ class HairParticlesExportTest(AbstractAlembicTest):
     def test_with_hair_only(self, tempdir: pathlib.Path):
         abc = self._do_test(tempdir, True, False)
 
-        abcprop = self.abcprop(abc, '/Suzanne/Hair system/.geom')
+        abcprop = self.abcprop(abc, '/Suzanne/Hair_system/.geom')
         self.assertIn('nVertices', abcprop)
 
         self.assertRaises(AbcPropError, self.abcprop, abc,
-                          '/Suzanne/Non-hair particle system/.geom')
+                          '/Suzanne/Non-hair_particle_system/.geom')
 
         abcprop = self.abcprop(abc, '/Suzanne/MonkeyMesh/.geom')
         self.assertIn('.faceIndices', abcprop)
@@ -306,9 +306,9 @@ class HairParticlesExportTest(AbstractAlembicTest):
     def test_with_particles_only(self, tempdir: pathlib.Path):
         abc = self._do_test(tempdir, False, True)
 
-        self.assertRaises(AbcPropError, self.abcprop, abc, '/Suzanne/Hair system/.geom')
+        self.assertRaises(AbcPropError, self.abcprop, abc, '/Suzanne/Hair_system/.geom')
 
-        abcprop = self.abcprop(abc, '/Suzanne/Non-hair particle system/.geom')
+        abcprop = self.abcprop(abc, '/Suzanne/Non-hair_particle_system/.geom')
         self.assertIn('.velocities', abcprop)
 
         abcprop = self.abcprop(abc, '/Suzanne/MonkeyMesh/.geom')
@@ -318,9 +318,9 @@ class HairParticlesExportTest(AbstractAlembicTest):
     def test_with_neither(self, tempdir: pathlib.Path):
         abc = self._do_test(tempdir, False, False)
 
-        self.assertRaises(AbcPropError, self.abcprop, abc, '/Suzanne/Hair system/.geom')
+        self.assertRaises(AbcPropError, self.abcprop, abc, '/Suzanne/Hair_system/.geom')
         self.assertRaises(AbcPropError, self.abcprop, abc,
-                          '/Suzanne/Non-hair particle system/.geom')
+                          '/Suzanne/Non-hair_particle_system/.geom')
 
         abcprop = self.abcprop(abc, '/Suzanne/MonkeyMesh/.geom')
         self.assertIn('.faceIndices', abcprop)

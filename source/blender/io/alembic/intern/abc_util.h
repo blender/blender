@@ -49,6 +49,7 @@ struct Object;
 
 std::string get_id_name(const ID *const id);
 std::string get_id_name(const Object *const ob);
+std::string get_valid_abc_name(const char *name);
 std::string get_object_dag_path_name(const Object *const ob, Object *dupli_parent);
 
 /* Convert from float to Alembic matrix representations. Does NOT convert from Z-up to Y-up. */

@@ -49,12 +49,16 @@ std::string get_id_name(const Object *const ob)
 
 std::string get_id_name(const ID *const id)
 {
-  std::string name(id->name + 2);
-  std::replace(name.begin(), name.end(), ' ', '_');
-  std::replace(name.begin(), name.end(), '.', '_');
-  std::replace(name.begin(), name.end(), ':', '_');
+  return get_valid_abc_name(id->name + 2);
+}
 
-  return name;
+std::string get_valid_abc_name(const char *name)
+{
+  std::string name_string(name);
+  std::replace(name_string.begin(), name_string.end(), ' ', '_');
+  std::replace(name_string.begin(), name_string.end(), '.', '_');
+  std::replace(name_string.begin(), name_string.end(), ':', '_');
+  return name_string;
 }
 
 /**

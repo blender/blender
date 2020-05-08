@@ -51,7 +51,8 @@ AbcPointsWriter::AbcPointsWriter(Object *ob,
 {
   m_psys = psys;
 
-  OPoints points(parent->alembicXform(), psys->name, m_time_sampling);
+  std::string psys_name = get_valid_abc_name(psys->name);
+  OPoints points(parent->alembicXform(), psys_name, m_time_sampling);
   m_schema = points.getSchema();
 }
 
