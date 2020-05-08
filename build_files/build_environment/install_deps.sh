@@ -1625,7 +1625,7 @@ compile_OCIO() {
 _init_openexr() {
   _src=$SRC/OpenEXR-$OPENEXR_VERSION
   _git=false
-  _inst=$_openexr_inst
+  _inst=$INST/openexr-$OPENEXR_VERSION
   _inst_shortcut=$INST/openexr
 }
 
@@ -1661,7 +1661,6 @@ compile_OPENEXR() {
     clean_OPENEXR
   fi
 
-  _openexr_inst=$INST/openexr-$OPENEXR_VERSION
   PRINT ""
   _init_openexr
 
@@ -1707,7 +1706,7 @@ compile_OPENEXR() {
     mkdir build
     cd build
 
-    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_openexr_inst"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_DOCDIR=/dev/null"  # Hack, there is no option to disable that currently...
     cmake_d="$cmake_d -D BUILD_SHARED_LIBS=ON"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
