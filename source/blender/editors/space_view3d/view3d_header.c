@@ -77,7 +77,8 @@ static int toggle_matcap_flip(bContext *C, wmOperator *UNUSED(op))
   else {
     Scene *scene = CTX_data_scene(C);
     scene->display.shading.flag ^= V3D_SHADING_MATCAP_FLIP_X;
-    WM_event_add_notifier(C, NC_SCENE | NA_EDITED, v3d);
+    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
   }
 
   return OPERATOR_FINISHED;
