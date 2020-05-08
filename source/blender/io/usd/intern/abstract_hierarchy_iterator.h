@@ -195,6 +195,7 @@ class AbstractHierarchyIterator {
   void determine_duplication_references(const HierarchyContext *parent_context,
                                         std::string indent);
 
+  /* These three functions create writers and call their write() method. */
   void make_writers(const HierarchyContext *parent_context);
   void make_writer_object_data(const HierarchyContext *context);
   void make_writers_particle_systems(const HierarchyContext *context);
@@ -244,7 +245,10 @@ class AbstractHierarchyIterator {
    * data/hair/particle will NOT prevent the transform to be written.
    *
    * The returned writer is owned by the AbstractHierarchyWriter, and should be freed in
-   * delete_object_writer(). */
+   * delete_object_writer().
+   *
+   * The created AbstractHierarchyWriter instances should NOT keep a copy of the context pointer.
+   * The context can be stack-allocated and go out of scope. */
   virtual AbstractHierarchyWriter *create_transform_writer(const HierarchyContext *context) = 0;
   virtual AbstractHierarchyWriter *create_data_writer(const HierarchyContext *context) = 0;
   virtual AbstractHierarchyWriter *create_hair_writer(const HierarchyContext *context) = 0;

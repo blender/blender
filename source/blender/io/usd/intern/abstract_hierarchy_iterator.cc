@@ -508,6 +508,7 @@ void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_cont
   }
 
   for (HierarchyContext *context : graph_children(parent_context)) {
+    // Update the context so that it is correct for this parent-child relation.
     copy_m4_m4(context->parent_matrix_inv_world, parent_matrix_inv_world);
 
     // Get or create the transform writer.
