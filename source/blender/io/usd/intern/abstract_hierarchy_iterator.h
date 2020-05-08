@@ -204,7 +204,7 @@ class AbstractHierarchyIterator {
   std::string get_object_name(const Object *object) const;
   std::string get_object_data_name(const Object *object) const;
 
-  AbstractHierarchyWriter *get_writer(const std::string &export_path);
+  AbstractHierarchyWriter *get_writer(const std::string &export_path) const;
 
   typedef AbstractHierarchyWriter *(AbstractHierarchyIterator::*create_writer_func)(
       const HierarchyContext *);

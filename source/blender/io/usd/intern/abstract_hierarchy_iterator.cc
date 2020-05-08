@@ -607,9 +607,10 @@ std::string AbstractHierarchyIterator::get_object_data_name(const Object *object
   return get_id_name(object_data);
 }
 
-AbstractHierarchyWriter *AbstractHierarchyIterator::get_writer(const std::string &export_path)
+AbstractHierarchyWriter *AbstractHierarchyIterator::get_writer(
+    const std::string &export_path) const
 {
-  WriterMap::iterator it = writers_.find(export_path);
+  WriterMap::const_iterator it = writers_.find(export_path);
 
   if (it == writers_.end()) {
     return nullptr;
