@@ -29,7 +29,7 @@ extern "C" {
 #include <set>
 
 /* Mapping from ID.name to set of export hierarchy path. Duplicated objects can be exported
- * multiple times, hence the set. */
+ * multiple times with different export paths, hence the set. */
 typedef std::map<std::string, std::set<std::string>> created_writers;
 
 using namespace USD;
