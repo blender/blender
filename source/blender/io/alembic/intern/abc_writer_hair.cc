@@ -19,7 +19,7 @@
  */
 
 #include "abc_writer_hair.h"
-#include "abc_util.h"
+#include "abc_axis_conversion.h"
 #include "abc_writer_transform.h"
 
 #include <cstdio>

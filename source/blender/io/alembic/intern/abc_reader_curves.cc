@@ -22,6 +22,7 @@
  */
 
 #include "abc_reader_curves.h"
+#include "abc_axis_conversion.h"
 #include "abc_reader_transform.h"
 #include "abc_util.h"
 

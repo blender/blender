@@ -41,6 +41,7 @@ set(INC_SYS
 )
 
 set(SRC
+  intern/abc_axis_conversion.cc
   intern/abc_customdata.cc
   intern/abc_exporter.cc
   intern/abc_reader_archive.cc
@@ -65,6 +66,7 @@ set(SRC
   intern/alembic_capi.cc
 
   ABC_alembic.h
+  intern/abc_axis_conversion.h
   intern/abc_customdata.h
   intern/abc_exporter.h
   intern/abc_reader_archive.h

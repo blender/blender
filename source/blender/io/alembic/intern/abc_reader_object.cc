@@ -19,6 +19,7 @@
  */
 
 #include "abc_reader_object.h"
+#include "abc_axis_conversion.h"
 #include "abc_util.h"
 
 extern "C" {
