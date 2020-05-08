@@ -33,7 +33,7 @@ class ProjectiveReconstruction;
     Initialize the \link EuclideanReconstruction reconstruction \endlink using
     two frames.
 
-    \a markers should contain all \l Marker markers \endlink belonging to
+    \a markers should contain all \link Marker markers \endlink belonging to
     tracks visible in both frames. The pose estimation of the camera for
     these frames will be inserted into \a *reconstruction.
 
@@ -54,7 +54,7 @@ bool EuclideanReconstructTwoFrames(const vector<Marker> &markers,
     Initialize the \link ProjectiveReconstruction reconstruction \endlink using
     two frames.
 
-    \a markers should contain all \l Marker markers \endlink belonging to
+    \a markers should contain all \link Marker markers \endlink belonging to
     tracks visible in both frames. An estimate of the projection matrices for
     the two frames will get added to the reconstruction.
 

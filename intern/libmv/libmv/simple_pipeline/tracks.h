@@ -36,7 +36,7 @@ namespace libmv {
     \a weight is used by bundle adjustment and weight means how much the
     track affects on a final solution.
 
-    \note Markers are typically aggregated with the help of the \l Tracks class.
+    \note Markers are typically aggregated with the help of the \link Tracks class.
 
     \sa Tracks
 */
@@ -56,7 +56,7 @@ struct Marker {
     images, which must get created before any 3D reconstruction can take place.
 
     The container has several fast lookups for queries typically needed for
-    structure from motion algorithms, such as \l MarkersForTracksInBothImages().
+    structure from motion algorithms, such as \link MarkersForTracksInBothImages().
 
     \sa Marker
 */
@@ -81,7 +81,7 @@ class Tracks {
       \a weight is used by bundle adjustment and weight means how much the
       track affects on a final solution.
 
-      \note To get an identifier for a new track, use \l MaxTrack() + 1.
+      \note To get an identifier for a new track, use \link MaxTrack() + 1.
   */
   // TODO(sergey): Consider using InsetWeightedMarker istead of using
   //               stupid default value?

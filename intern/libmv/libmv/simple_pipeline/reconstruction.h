@@ -29,7 +29,7 @@ namespace libmv {
 /*!
     A EuclideanCamera is the location and rotation of the camera viewing \a image.
 
-    \a image identify which image from \l Tracks this camera represents.
+    \a image identify which image from \link Tracks this camera represents.
     \a R is a 3x3 matrix representing the rotation of the camera.
     \a t is a translation vector representing its positions.
 
@@ -47,7 +47,7 @@ struct EuclideanCamera {
 /*!
     A Point is the 3D location of a track.
 
-    \a track identify which track from \l Tracks this point corresponds to.
+    \a track identify which track from \link Tracks this point corresponds to.
     \a X represents the 3D position of the track.
 
     \sa Reconstruction
@@ -89,7 +89,7 @@ class EuclideanReconstruction {
       \a image is the key used to retrieve the cameras with the other methods
       in this class.
 
-      \note You should use the same \a image identifier as in \l Tracks.
+      \note You should use the same \a image identifier as in \link Tracks.
   */
   void InsertCamera(int image, const Mat3 &R, const Vec3 &t);
 
@@ -101,7 +101,7 @@ class EuclideanReconstruction {
       \a track is the key used to retrieve the points with the
       other methods in this class.
 
-      \note You should use the same \a track identifier as in \l Tracks.
+      \note You should use the same \a track identifier as in \link Tracks.
   */
   void InsertPoint(int track, const Vec3 &X);
 
@@ -127,7 +127,7 @@ class EuclideanReconstruction {
 /*!
     A ProjectiveCamera is the projection matrix for the camera of \a image.
 
-    \a image identify which image from \l Tracks this camera represents.
+    \a image identify which image from \link Tracks this camera represents.
     \a P is the 3x4 projection matrix.
 
     \sa ProjectiveReconstruction
@@ -143,7 +143,7 @@ struct ProjectiveCamera {
 /*!
     A Point is the 3D location of a track.
 
-    \a track identifies which track from \l Tracks this point corresponds to.
+    \a track identifies which track from \link Tracks this point corresponds to.
     \a X is the homogeneous 3D position of the track.
 
     \sa Reconstruction
@@ -177,7 +177,7 @@ class ProjectiveReconstruction {
       \a image is the key used to retrieve the cameras with the other methods
       in this class.
 
-      \note You should use the same \a image identifier as in \l Tracks.
+      \note You should use the same \a image identifier as in \link Tracks.
   */
   void InsertCamera(int image, const Mat34 &P);
 
@@ -189,7 +189,7 @@ class ProjectiveReconstruction {
       \a track is the key used to retrieve the points with the
       other methods in this class.
 
-      \note You should use the same \a track identifier as in \l Tracks.
+      \note You should use the same \a track identifier as in \link Tracks.
   */
   void InsertPoint(int track, const Vec4 &X);
 

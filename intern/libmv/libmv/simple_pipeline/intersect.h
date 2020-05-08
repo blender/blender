@@ -35,10 +35,10 @@ namespace libmv {
     the frames for which there is a marker for that track must have a
     corresponding reconstructed camera in \a *reconstruction.
 
-    \a markers should contain all \l Marker markers \endlink belonging to
+    \a markers should contain all \link Marker markers \endlink belonging to
        tracks visible in all frames.
     \a reconstruction should contain the cameras for all frames.
-       The new \l Point points \endlink will be inserted in \a reconstruction.
+       The new \link Point points \endlink will be inserted in \a reconstruction.
 
     \note This assumes a calibrated reconstruction, e.g. the markers are
           already corrected for camera intrinsics and radial distortion.
@@ -57,10 +57,10 @@ bool EuclideanIntersect(const vector<Marker> &markers,
     track. Each of the frames for which there is a marker for that track must
     have a corresponding reconstructed camera in \a *reconstruction.
 
-    \a markers should contain all \l Marker markers \endlink belonging to
+    \a markers should contain all \link Marker markers \endlink belonging to
        tracks visible in all frames.
     \a reconstruction should contain the cameras for all frames.
-       The new \l Point points \endlink will be inserted in \a reconstruction.
+       The new \link Point points \endlink will be inserted in \a reconstruction.
 
     \note This assumes that radial distortion is already corrected for, but
           does not assume that e.g. focal length and principal point are

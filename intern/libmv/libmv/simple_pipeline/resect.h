@@ -35,7 +35,7 @@ namespace libmv {
     reconstruction object, and solves for the pose and orientation of the
     camera for that frame.
 
-    \a markers should contain \l Marker markers \endlink belonging to tracks
+    \a markers should contain \link Marker markers \endlink belonging to tracks
     visible in the one frame to be resectioned. Each of the tracks associated
     with the markers must have a corresponding reconstructed 3D position in the
     \a *reconstruction object.
@@ -62,7 +62,7 @@ bool EuclideanResect(const vector<Marker> &markers,
     frame in the reconstruction object, and solves for the projective matrix of
     the camera for that frame.
 
-    \a markers should contain \l Marker markers \endlink belonging to tracks
+    \a markers should contain \link Marker markers \endlink belonging to tracks
     visible in the one frame to be resectioned. Each of the tracks associated
     with the markers must have a corresponding reconstructed homogeneous 3D
     position in the \a *reconstruction object.
