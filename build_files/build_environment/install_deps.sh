@@ -3169,7 +3169,7 @@ compile_XR_OpenXR_SDK() {
   _init_xr_openxr_sdk
 
   # Clean install if needed!
-  magic_compile_check xr-openxr-$OPENXR_VERSION $xr_openxr_magic
+  magic_compile_check xr-openxr-$XR_OPENXR_VERSION $xr_openxr_magic
   if [ $? -eq 1 -o "$XR_OPENXR_FORCE_REBUILD" = true ]; then
     clean_XR_OpenXR_SDK
   fi
