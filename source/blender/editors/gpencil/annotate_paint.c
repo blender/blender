@@ -100,6 +100,9 @@ typedef enum eGPencil_PaintFlags {
   GP_PAINTFLAG_STROKEADDED = (1 << 1),
   GP_PAINTFLAG_V3D_ERASER_DEPTH = (1 << 2),
   GP_PAINTFLAG_SELECTMASK = (1 << 3),
+  /* Flags used to indicate if stabilization is being used. */
+  GP_PAINTFLAG_USE_STABILIZER = (1 << 7),
+  GP_PAINTFLAG_USE_STABILIZER_TEMP = (1 << 8),
 } eGPencil_PaintFlags;
 
 /* Temporary 'Stroke' Operation data
@@ -147,6 +150,11 @@ typedef struct tGPsdata {
 
   /** radius of influence for eraser. */
   short radius;
+
+  /* Stabilizer. */
+  float stabilizer_factor;
+  char stabilizer_radius;
+  void *stabilizer_cursor;
 
   /** current mouse-position. */
   float mval[2];
@@ -277,6 +285,18 @@ static bool gp_stroke_filtermval(tGPsdata *p, const float mval[2], float pmval[2
     /* check if mouse moved at least certain distance on both axes (best case)
      * - aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
      */
+  }
+  /* If lazy mouse, check minimum distance. */
+  else if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
+    if ((dx * dx + dy * dy) > (p->stabilizer_radius * p->stabilizer_radius)) {
+      return true;
+    }
+    else {
+      /* If the mouse is moving within the radius of the last move,
+       * don't update the mouse position. This allows sharp turns. */
+      copy_v2_v2(p->mval, p->mvalo);
+      return false;
+    }
   }
   else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX)) {
     return true;
@@ -586,9 +606,13 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
 
     /* increment counters */
     gpd->runtime.sbuffer_used++;
-    /* smooth while drawing previous points with a reduction factor for previous */
-    for (int s = 0; s < 3; s++) {
-      gp_smooth_buffer(p, 0.5f * ((3.0f - s) / 3.0f), gpd->runtime.sbuffer_used - s);
+
+    /* Don't smooth if stabilizer is on. */
+    if ((p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) == 0) {
+      /* smooth while drawing previous points with a reduction factor for previous */
+      for (int s = 0; s < 3; s++) {
+        gp_smooth_buffer(p, 0.5f * ((3.0f - s) / 3.0f), gpd->runtime.sbuffer_used - s);
+      }
     }
 
     return GP_STROKEADD_NORMAL;
@@ -1722,6 +1746,67 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
                                                p);
   }
 }
+static void gpencil_draw_stabilizer(bContext *C, int x, int y, void *p_ptr)
+{
+  ARegion *region = CTX_wm_region(C);
+  tGPsdata *p = (tGPsdata *)p_ptr;
+  bGPdata_Runtime runtime = p->gpd->runtime;
+  const tGPspoint *points = runtime.sbuffer;
+  int totpoints = runtime.sbuffer_used;
+  if (totpoints < 2) {
+    return;
+  }
+  const tGPspoint *pt = &points[totpoints - 1];
+
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  GPU_line_smooth(true);
+  GPU_blend(true);
+  GPU_line_width(1.25f);
+  const float color[3] = {1.0f, 0.39f, 0.39f};
+
+  /* default radius and color */
+  float darkcolor[3];
+  const float radius = 4.0f;
+
+  /* Inner Ring: Color from UI panel */
+  immUniformColor4f(color[0], color[1], color[2], 0.8f);
+  imm_draw_circle_wire_2d(pos, x, y, radius, 40);
+
+  /* Outer Ring: Dark color for contrast on light backgrounds (e.g. gray on white) */
+  mul_v3_v3fl(darkcolor, color, 0.40f);
+  immUniformColor4f(darkcolor[0], darkcolor[1], darkcolor[2], 0.8f);
+  imm_draw_circle_wire_2d(pos, x, y, radius + 1, 40);
+
+  /* Rope Simple. */
+  immUniformColor4f(color[0], color[1], color[2], 0.8f);
+  immBegin(GPU_PRIM_LINES, 2);
+  immVertex2f(pos, pt->x + region->winrct.xmin, pt->y + region->winrct.ymin);
+  immVertex2f(pos, x, y);
+  immEnd();
+
+  /* Returns back all GPU settings */
+  GPU_blend(false);
+  GPU_line_smooth(false);
+
+  immUnbindProgram();
+}
+
+/* Turn *stabilizer* brush cursor in 3D view on/off */
+static void gpencil_draw_toggle_stabilizer_cursor(bContext *C, tGPsdata *p, short enable)
+{
+  if (p->stabilizer_cursor && !enable) {
+    /* clear cursor */
+    WM_paint_cursor_end(CTX_wm_manager(C), p->stabilizer_cursor);
+    p->stabilizer_cursor = NULL;
+  }
+  else if (enable && !p->stabilizer_cursor) {
+    /* enable cursor */
+    p->stabilizer_cursor = WM_paint_cursor_activate(
+        CTX_wm_manager(C), SPACE_TYPE_ANY, RGN_TYPE_ANY, NULL, gpencil_draw_stabilizer, p);
+  }
+}
 
 /* Check if tablet eraser is being used (when processing events) */
 static bool gpencil_is_tablet_eraser_active(const wmEvent *event)
@@ -1744,6 +1829,9 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
     if (p->paintmode == GP_PAINTMODE_ERASER) {
       /* turn off radial brush cursor */
       gpencil_draw_toggle_eraser_cursor(C, p, false);
+    }
+    else if (p->paintmode == GP_PAINTMODE_DRAW) {
+      gpencil_draw_toggle_stabilizer_cursor(C, p, false);
     }
 
     /* always store the new eraser size to be used again next time
@@ -1832,8 +1920,8 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
                    "ESC/Enter to end  (or click outside this area)"));
           break;
         default:
-          /* Do nothing - the others are self explanatory, exit quickly once the mouse is released
-           * Showing any text would just be annoying as it would flicker.
+          /* Do nothing - the others are self explanatory, exit quickly once the mouse is
+           * released Showing any text would just be annoying as it would flicker.
            */
           break;
       }
@@ -1898,6 +1986,16 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph
   /* Only add current point to buffer if mouse moved
    * (even though we got an event, it might be just noise). */
   else if (gp_stroke_filtermval(p, p->mval, p->mvalo)) {
+    /* If lazy mouse, interpolate the last and current mouse positions. */
+    if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
+      float now_mouse[2];
+      float last_mouse[2];
+      copy_v2_v2(now_mouse, p->mval);
+      copy_v2_v2(last_mouse, p->mvalo);
+      interp_v2_v2v2(now_mouse, now_mouse, last_mouse, min_ff(p->stabilizer_factor, .995f));
+      copy_v2_v2(p->mval, now_mouse);
+    }
+
     /* try to add point */
     short ok = gp_stroke_addpoint(p, p->mval, p->pressure, p->curtime);
 
@@ -1941,7 +2039,7 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph
 
 /* handle draw event */
 static void annotation_draw_apply_event(
-    wmOperator *op, const wmEvent *event, Depsgraph *depsgraph, float x, float y)
+    bContext *C, wmOperator *op, const wmEvent *event, Depsgraph *depsgraph, float x, float y)
 {
   tGPsdata *p = op->customdata;
   PointerRNA itemptr;
@@ -1953,8 +2051,23 @@ static void annotation_draw_apply_event(
   p->mval[0] = (float)event->mval[0] - x;
   p->mval[1] = (float)event->mval[1] - y;
 
+  /* Key to toggle stabilization. */
+  if (event->shift > 0 && p->paintmode == GP_PAINTMODE_DRAW) {
+    /* Using permanent stabilization, shift will deactivate the flag. */
+    if (p->flags & (GP_PAINTFLAG_USE_STABILIZER)) {
+      if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
+        gpencil_draw_toggle_stabilizer_cursor(C, p, false);
+        p->flags &= ~GP_PAINTFLAG_USE_STABILIZER_TEMP;
+      }
+    }
+    /* Not using any stabilization flag. Activate temporal one. */
+    else if ((p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) == 0) {
+      p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
+      gpencil_draw_toggle_stabilizer_cursor(C, p, true);
+    }
+  }
   /* verify key status for straight lines */
-  if ((event->ctrl > 0) || (event->alt > 0)) {
+  else if ((event->ctrl > 0) || (event->alt > 0)) {
     if (p->straight[0] == 0) {
       int dx = abs((int)(p->mval[0] - p->mvalo[0]));
       int dy = abs((int)(p->mval[1] - p->mvalo[1]));
@@ -1975,6 +2088,22 @@ static void annotation_draw_apply_event(
   }
   else {
     p->straight[0] = 0;
+    /* We were using shift while having permanent stabilization actived,
+       so activate the temp flag back again. */
+    if (p->flags & GP_PAINTFLAG_USE_STABILIZER) {
+      if ((p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) == 0) {
+        gpencil_draw_toggle_stabilizer_cursor(C, p, true);
+        p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
+      }
+    }
+    /* We are using the temporal stabilizer flag atm,
+       but shift is not pressed as well as the permanent flag is not used,
+       so we don't need the cursor anymore. */
+    else if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
+      /* Reset temporal stabilizer flag and remove cursor. */
+      p->flags &= ~GP_PAINTFLAG_USE_STABILIZER_TEMP;
+      gpencil_draw_toggle_stabilizer_cursor(C, p, false);
+    }
   }
 
   p->curtime = PIL_check_seconds_timer();
@@ -2162,7 +2291,8 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
   /* TODO: set any additional settings that we can take from the events?
    * TODO? if tablet is erasing, force eraser to be on? */
 
-  /* TODO: move cursor setting stuff to stroke-start so that paintmode can be changed midway... */
+  /* TODO: move cursor setting stuff to stroke-start so that paintmode can be changed midway...
+   */
 
   /* if eraser is on, draw radial aid */
   if (p->paintmode == GP_PAINTMODE_ERASER) {
@@ -2178,6 +2308,18 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
       p->gpd->runtime.arrow_end_style = RNA_enum_get(op->ptr, "arrowstyle_end");
     }
   }
+  else if (p->paintmode == GP_PAINTMODE_DRAW) {
+    p->stabilizer_factor = RNA_float_get(op->ptr, "stabilizer_factor");
+    p->stabilizer_radius = RNA_int_get(op->ptr, "stabilizer_radius");
+    if (RNA_boolean_get(op->ptr, "use_stabilizer")) {
+      p->flags |= GP_PAINTFLAG_USE_STABILIZER | GP_PAINTFLAG_USE_STABILIZER_TEMP;
+      gpencil_draw_toggle_stabilizer_cursor(C, p, true);
+    }
+    else if (event->shift > 0) {
+      p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
+      gpencil_draw_toggle_stabilizer_cursor(C, p, true);
+    }
+  }
   /* set cursor
    * NOTE: This may change later (i.e. intentionally via brush toggle,
    *       or unintentionally if the user scrolls outside the area)...
@@ -2191,7 +2333,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
     p->status = GP_STATUS_PAINTING;
 
     /* handle the initial drawing - i.e. for just doing a simple dot */
-    annotation_draw_apply_event(op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
+    annotation_draw_apply_event(C, op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
     op->flag |= OP_IS_MODAL_CURSOR_REGION;
   }
   else {
@@ -2283,7 +2425,7 @@ static void annotation_add_missing_events(bContext *C,
     interp_v2_v2v2(pt, a, b, 0.5f);
     sub_v2_v2v2(pt, b, pt);
     /* create fake event */
-    annotation_draw_apply_event(op, event, depsgraph, pt[0], pt[1]);
+    annotation_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
   }
   else if (dist >= factor) {
     int slices = 2 + (int)((dist - 1.0) / factor);
@@ -2292,7 +2434,7 @@ static void annotation_add_missing_events(bContext *C,
       interp_v2_v2v2(pt, a, b, n * i);
       sub_v2_v2v2(pt, b, pt);
       /* create fake event */
-      annotation_draw_apply_event(op, event, depsgraph, pt[0], pt[1]);
+      annotation_draw_apply_event(C, op, event, depsgraph, pt[0], pt[1]);
     }
   }
 }
@@ -2382,7 +2524,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* toggle painting mode upon mouse-button movement
-   *  - LEFTMOUSE  = standard drawing (all) / straight line drawing (all) / polyline (toolbox only)
+   *  - LEFTMOUSE  = standard drawing (all) / straight line drawing (all) / polyline (toolbox
+   * only)
    *  - RIGHTMOUSE = polyline (hotkey) / eraser (all)
    *    (Disabling RIGHTMOUSE case here results in bugs like [#32647])
    * also making sure we have a valid event value, to not exit too early
@@ -2538,7 +2681,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
 
       /* TODO(sergey): Possibly evaluating dependency graph from modal operator? */
-      annotation_draw_apply_event(op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
+      annotation_draw_apply_event(
+          C, op, event, CTX_data_ensure_evaluated_depsgraph(C), 0.0f, 0.0f);
 
       /* finish painting operation if anything went wrong just now */
       if (p->status == GP_STATUS_ERROR) {
@@ -2687,6 +2831,31 @@ void GPENCIL_OT_annotate(wmOperatorType *ot)
       ot->srna, "arrowstyle_start", arrow_types, 0, "Start Arrow Style", "Stroke start style");
   prop = RNA_def_enum(
       ot->srna, "arrowstyle_end", arrow_types, 0, "End Arrow Style", "Stroke end style");
+  prop = RNA_def_boolean(ot->srna,
+                         "use_stabilizer",
+                         false,
+                         "Use Stabilizer",
+                         "Helper to draw smooth and clean lines. Press Shift for an invert effect "
+                         "(even if this option is not active)");
+  prop = RNA_def_float(ot->srna,
+                       "stabilizer_factor",
+                       0.75f,
+                       0.0f,
+                       1.0f,
+                       "Stabilizer Stroke Factor",
+                       "Higher values gives a smoother stroke",
+                       0.0f,
+                       1.0f);
+  prop = RNA_def_int(ot->srna,
+                     "stabilizer_radius",
+                     35,
+                     0,
+                     200,
+                     "Stabilizer Stroke Radius",
+                     "Minimun distance from last point before stroke continues",
+                     1,
+                     100);
+  RNA_def_property_subtype(prop, PROP_PIXEL);
 
   prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
