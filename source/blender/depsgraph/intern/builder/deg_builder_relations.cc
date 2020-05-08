@@ -666,13 +666,13 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
   if (object->greasepencil_modifiers.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_gpencil_modifiers_foreachIDLink(object, modifier_walk, &data);
+    BKE_gpencil_modifiers_foreach_ID_link(object, modifier_walk, &data);
   }
   /* Shader FX. */
   if (object->shader_fx.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_shaderfx_foreachIDLink(object, modifier_walk, &data);
+    BKE_shaderfx_foreach_ID_link(object, modifier_walk, &data);
   }
   /* Constraints. */
   if (object->constraints.first != nullptr) {
@@ -1991,7 +1991,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     ctx.scene = scene_;
     ctx.object = object;
     LISTBASE_FOREACH (GpencilModifierData *, md, &object->greasepencil_modifiers) {
-      const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(
+      const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
           (GpencilModifierType)md->type);
       if (mti->updateDepsgraph) {
         DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
@@ -2010,7 +2010,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     ctx.scene = scene_;
     ctx.object = object;
     LISTBASE_FOREACH (ShaderFxData *, fx, &object->shader_fx) {
-      const ShaderFxTypeInfo *fxi = BKE_shaderfxType_getInfo((ShaderFxType)fx->type);
+      const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info((ShaderFxType)fx->type);
       if (fxi->updateDepsgraph) {
         DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
         ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);

@@ -39,7 +39,7 @@ static void initData(ShaderFxData *fx)
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
 {
-  BKE_shaderfx_copyData_generic(md, target);
+  BKE_shaderfx_copydata_generic(md, target);
 }
 
 ShaderFxTypeInfo shaderfx_Type_Flip = {

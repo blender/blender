@@ -99,7 +99,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
     tgmd->curfalloff = NULL;
   }
 
-  BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copydata_generic(md, target);
 
   tgmd->curfalloff = BKE_curvemapping_copy(gmd->curfalloff);
 }

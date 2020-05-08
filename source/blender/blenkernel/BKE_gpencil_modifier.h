@@ -260,26 +260,26 @@ typedef struct GpencilModifierTypeInfo {
 /* Initialize modifier's global data (type info and some common global storages). */
 void BKE_gpencil_modifier_init(void);
 
-const GpencilModifierTypeInfo *BKE_gpencil_modifierType_getInfo(GpencilModifierType type);
+const GpencilModifierTypeInfo *BKE_gpencil_modifier_get_info(GpencilModifierType type);
 struct GpencilModifierData *BKE_gpencil_modifier_new(int type);
 void BKE_gpencil_modifier_free_ex(struct GpencilModifierData *md, const int flag);
 void BKE_gpencil_modifier_free(struct GpencilModifierData *md);
 bool BKE_gpencil_modifier_unique_name(struct ListBase *modifiers, struct GpencilModifierData *gmd);
-bool BKE_gpencil_modifier_dependsOnTime(struct GpencilModifierData *md);
-struct GpencilModifierData *BKE_gpencil_modifiers_findByType(struct Object *ob,
+bool BKE_gpencil_modifier_depends_ontime(struct GpencilModifierData *md);
+struct GpencilModifierData *BKE_gpencil_modifiers_findby_type(struct Object *ob,
                                                              GpencilModifierType type);
-struct GpencilModifierData *BKE_gpencil_modifiers_findByName(struct Object *ob, const char *name);
-void BKE_gpencil_modifier_copyData_generic(const struct GpencilModifierData *md_src,
+struct GpencilModifierData *BKE_gpencil_modifiers_findny_name(struct Object *ob, const char *name);
+void BKE_gpencil_modifier_copydata_generic(const struct GpencilModifierData *md_src,
                                            struct GpencilModifierData *md_dst);
-void BKE_gpencil_modifier_copyData(struct GpencilModifierData *md,
+void BKE_gpencil_modifier_copydata(struct GpencilModifierData *md,
                                    struct GpencilModifierData *target);
-void BKE_gpencil_modifier_copyData_ex(struct GpencilModifierData *md,
+void BKE_gpencil_modifier_copydata_ex(struct GpencilModifierData *md,
                                       struct GpencilModifierData *target,
                                       const int flag);
-void BKE_gpencil_modifiers_foreachIDLink(struct Object *ob,
+void BKE_gpencil_modifiers_foreach_ID_link(struct Object *ob,
                                          GreasePencilIDWalkFunc walk,
                                          void *userData);
-void BKE_gpencil_modifiers_foreachTexLink(struct Object *ob,
+void BKE_gpencil_modifiers_foreach_tex_link(struct Object *ob,
                                           GreasePencilTexWalkFunc walk,
                                           void *userData);
 

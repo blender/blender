@@ -162,20 +162,20 @@ typedef struct ShaderFxTypeInfo {
 /* Initialize  global data (type info and some common global storages). */
 void BKE_shaderfx_init(void);
 
-const ShaderFxTypeInfo *BKE_shaderfxType_getInfo(ShaderFxType type);
+const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type);
 struct ShaderFxData *BKE_shaderfx_new(int type);
 void BKE_shaderfx_free_ex(struct ShaderFxData *fx, const int flag);
 void BKE_shaderfx_free(struct ShaderFxData *fx);
 bool BKE_shaderfx_unique_name(struct ListBase *shaderfx, struct ShaderFxData *fx);
-bool BKE_shaderfx_dependsOnTime(struct ShaderFxData *fx);
-struct ShaderFxData *BKE_shaderfx_findByType(struct Object *ob, ShaderFxType type);
-struct ShaderFxData *BKE_shaderfx_findByName(struct Object *ob, const char *name);
-void BKE_shaderfx_copyData_generic(const struct ShaderFxData *fx_src, struct ShaderFxData *fx_dst);
-void BKE_shaderfx_copyData(struct ShaderFxData *fx, struct ShaderFxData *target);
-void BKE_shaderfx_copyData_ex(struct ShaderFxData *fx,
+bool BKE_shaderfx_depends_ontime(struct ShaderFxData *fx);
+struct ShaderFxData *BKE_shaderfx_findby_type(struct Object *ob, ShaderFxType type);
+struct ShaderFxData *BKE_shaderfx_findby_name(struct Object *ob, const char *name);
+void BKE_shaderfx_copydata_generic(const struct ShaderFxData *fx_src, struct ShaderFxData *fx_dst);
+void BKE_shaderfx_copydata(struct ShaderFxData *fx, struct ShaderFxData *target);
+void BKE_shaderfx_copydata_ex(struct ShaderFxData *fx,
                               struct ShaderFxData *target,
                               const int flag);
-void BKE_shaderfx_foreachIDLink(struct Object *ob, ShaderFxIDWalkFunc walk, void *userData);
+void BKE_shaderfx_foreach_ID_link(struct Object *ob, ShaderFxIDWalkFunc walk, void *userData);
 
 bool BKE_shaderfx_has_gpencil(struct Object *ob);
 

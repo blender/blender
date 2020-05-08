@@ -613,14 +613,14 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     BuilderWalkUserData data;
     data.builder = this;
     data.is_parent_visible = is_visible;
-    BKE_gpencil_modifiers_foreachIDLink(object, modifier_walk, &data);
+    BKE_gpencil_modifiers_foreach_ID_link(object, modifier_walk, &data);
   }
   /* Shader FX. */
   if (object->shader_fx.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     data.is_parent_visible = is_visible;
-    BKE_shaderfx_foreachIDLink(object, modifier_walk, &data);
+    BKE_shaderfx_foreach_ID_link(object, modifier_walk, &data);
   }
   /* Constraints. */
   if (object->constraints.first != nullptr) {

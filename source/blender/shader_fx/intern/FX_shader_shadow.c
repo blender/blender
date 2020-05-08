@@ -59,7 +59,7 @@ static void initData(ShaderFxData *md)
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
 {
-  BKE_shaderfx_copyData_generic(md, target);
+  BKE_shaderfx_copydata_generic(md, target);
 }
 
 static void updateDepsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)

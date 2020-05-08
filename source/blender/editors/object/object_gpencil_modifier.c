@@ -65,7 +65,7 @@ GpencilModifierData *ED_object_gpencil_modifier_add(
     ReportList *reports, Main *bmain, Scene *UNUSED(scene), Object *ob, const char *name, int type)
 {
   GpencilModifierData *new_md = NULL;
-  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(type);
+  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(type);
 
   if (ob->type != OB_GPENCIL) {
     BKE_reportf(reports, RPT_WARNING, "Modifiers cannot be added to object '%s'", ob->id.name + 2);
@@ -73,7 +73,7 @@ GpencilModifierData *ED_object_gpencil_modifier_add(
   }
 
   if (mti->flags & eGpencilModifierTypeFlag_Single) {
-    if (BKE_gpencil_modifiers_findByType(ob, type)) {
+    if (BKE_gpencil_modifiers_findby_type(ob, type)) {
       BKE_report(reports, RPT_WARNING, "Only one modifier of this type is allowed");
       return NULL;
     }
@@ -214,7 +214,7 @@ int ED_object_gpencil_modifier_move_down(ReportList *UNUSED(reports),
 static int gpencil_modifier_apply_obdata(
     ReportList *reports, Main *bmain, Depsgraph *depsgraph, Object *ob, GpencilModifierData *md)
 {
-  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
+  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
 
   if (mti->isDisabled && mti->isDisabled(md, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
@@ -281,18 +281,18 @@ int ED_object_gpencil_modifier_apply(Main *bmain,
 int ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModifierData *md)
 {
   GpencilModifierData *nmd;
-  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
+  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
   GpencilModifierType type = md->type;
 
   if (mti->flags & eGpencilModifierTypeFlag_Single) {
-    if (BKE_gpencil_modifiers_findByType(ob, type)) {
+    if (BKE_gpencil_modifiers_findby_type(ob, type)) {
       BKE_report(reports, RPT_WARNING, "Only one modifier of this type is allowed");
       return 0;
     }
   }
 
   nmd = BKE_gpencil_modifier_new(md->type);
-  BKE_gpencil_modifier_copyData(md, nmd);
+  BKE_gpencil_modifier_copydata(md, nmd);
   BLI_insertlinkafter(&ob->greasepencil_modifiers, md, nmd);
   BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, nmd);
 
@@ -335,7 +335,7 @@ static const EnumPropertyItem *gpencil_modifier_add_itemf(bContext *C,
   for (a = 0; rna_enum_object_greasepencil_modifier_type_items[a].identifier; a++) {
     md_item = &rna_enum_object_greasepencil_modifier_type_items[a];
     if (md_item->identifier[0]) {
-      mti = BKE_gpencil_modifierType_getInfo(md_item->value);
+      mti = BKE_gpencil_modifier_get_info(md_item->value);
 
       if (mti->flags & eGpencilModifierTypeFlag_NoUserAdd) {
         continue;
@@ -455,7 +455,7 @@ static GpencilModifierData *gpencil_edit_modifier_property_get(wmOperator *op,
   GpencilModifierData *md;
   RNA_string_get(op->ptr, "modifier", modifier_name);
 
-  md = BKE_gpencil_modifiers_findByName(ob, modifier_name);
+  md = BKE_gpencil_modifiers_findny_name(ob, modifier_name);
 
   if (md && type != 0 && md->type != type) {
     md = NULL;

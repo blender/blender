@@ -63,7 +63,7 @@ static void initData(GpencilModifierData *md)
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-  BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copydata_generic(md, target);
 }
 
 static void gpencil_deform_verts(ArmatureGpencilModifierData *mmd, Object *target, bGPDstroke *gps)
@@ -127,7 +127,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
-  GpencilModifierData *md_eval = BKE_gpencil_modifiers_findByName(object_eval, md->name);
+  GpencilModifierData *md_eval = BKE_gpencil_modifiers_findny_name(object_eval, md->name);
   bGPdata *gpd = (bGPdata *)ob->data;
   int oldframe = (int)DEG_get_ctime(depsgraph);
 

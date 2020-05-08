@@ -217,7 +217,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   LISTBASE_FOREACH (GpencilModifierData *, gmd, &ob_src->greasepencil_modifiers) {
     GpencilModifierData *nmd = BKE_gpencil_modifier_new(gmd->type);
     BLI_strncpy(nmd->name, gmd->name, sizeof(nmd->name));
-    BKE_gpencil_modifier_copyData_ex(gmd, nmd, flag_subdata);
+    BKE_gpencil_modifier_copydata_ex(gmd, nmd, flag_subdata);
     BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
   }
 
@@ -226,7 +226,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   LISTBASE_FOREACH (ShaderFxData *, fx, &ob_src->shader_fx) {
     ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
     BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
-    BKE_shaderfx_copyData_ex(fx, nfx, flag_subdata);
+    BKE_shaderfx_copydata_ex(fx, nfx, flag_subdata);
     BLI_addtail(&ob_dst->shader_fx, nfx);
   }
 
@@ -595,7 +595,7 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
       nmd = BKE_gpencil_modifier_new(md->type);
       BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
 
-      const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
+      const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
       mti->copyData(md, nmd);
 
       BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
@@ -4428,7 +4428,7 @@ bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
 
 bool BKE_object_modifier_gpencil_use_time(Object *ob, GpencilModifierData *md)
 {
-  if (BKE_gpencil_modifier_dependsOnTime(md)) {
+  if (BKE_gpencil_modifier_depends_ontime(md)) {
     return true;
   }
 
@@ -4463,7 +4463,7 @@ bool BKE_object_modifier_gpencil_use_time(Object *ob, GpencilModifierData *md)
 
 bool BKE_object_shaderfx_use_time(Object *ob, ShaderFxData *fx)
 {
-  if (BKE_shaderfx_dependsOnTime(fx)) {
+  if (BKE_shaderfx_depends_ontime(fx)) {
     return true;
   }
 

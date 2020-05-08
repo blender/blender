@@ -77,7 +77,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
     tgmd->curve_thickness = NULL;
   }
 
-  BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copydata_generic(md, target);
 
   tgmd->curve_thickness = BKE_curvemapping_copy(gmd->curve_thickness);
 }

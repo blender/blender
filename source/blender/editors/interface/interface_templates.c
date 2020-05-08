@@ -2173,7 +2173,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static uiLayout *gpencil_draw_modifier(uiLayout *layout, Object *ob, GpencilModifierData *md)
 {
-  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
+  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
   PointerRNA ptr;
   uiBlock *block;
   uiLayout *box, *column, *row, *sub;
@@ -2316,7 +2316,7 @@ uiLayout *uiTemplateGpencilModifier(uiLayout *layout, bContext *UNUSED(C), Point
 
 static uiLayout *gpencil_draw_shaderfx(uiLayout *layout, Object *ob, ShaderFxData *md)
 {
-  const ShaderFxTypeInfo *mti = BKE_shaderfxType_getInfo(md->type);
+  const ShaderFxTypeInfo *mti = BKE_shaderfx_get_info(md->type);
   PointerRNA ptr;
   uiBlock *block;
   uiLayout *box, *column, *row, *sub;

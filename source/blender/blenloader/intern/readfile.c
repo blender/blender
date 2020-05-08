@@ -5230,7 +5230,7 @@ static void lib_link_modifiers(FileData *fd, Object *ob)
 
 static void lib_link_gpencil_modifiers(FileData *fd, Object *ob)
 {
-  BKE_gpencil_modifiers_foreachIDLink(ob, lib_link_modifiers_common, fd);
+  BKE_gpencil_modifiers_foreach_ID_link(ob, lib_link_modifiers_common, fd);
 
   /* If linking from a library, clear 'local' library override flag. */
   if (ob->id.lib != NULL) {
@@ -5243,7 +5243,7 @@ static void lib_link_gpencil_modifiers(FileData *fd, Object *ob)
 
 static void lib_link_shaderfxs(FileData *fd, Object *ob)
 {
-  BKE_shaderfx_foreachIDLink(ob, lib_link_modifiers_common, fd);
+  BKE_shaderfx_foreach_ID_link(ob, lib_link_modifiers_common, fd);
 
   /* If linking from a library, clear 'local' library override flag. */
   if (ob->id.lib != NULL) {
@@ -5999,7 +5999,7 @@ static void direct_link_gpencil_modifiers(FileData *fd, ListBase *lb)
     md->error = NULL;
 
     /* if modifiers disappear, or for upward compatibility */
-    if (NULL == BKE_gpencil_modifierType_getInfo(md->type)) {
+    if (NULL == BKE_gpencil_modifier_get_info(md->type)) {
       md->type = eModifierType_None;
     }
 
@@ -6080,7 +6080,7 @@ static void direct_link_shaderfxs(FileData *fd, ListBase *lb)
     fx->error = NULL;
 
     /* if shader disappear, or for upward compatibility */
-    if (NULL == BKE_shaderfxType_getInfo(fx->type)) {
+    if (NULL == BKE_shaderfx_get_info(fx->type)) {
       fx->type = eShaderFxType_None;
     }
   }
@@ -11313,7 +11313,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
     data.fd = fd;
     data.mainvar = mainvar;
 
-    BKE_gpencil_modifiers_foreachIDLink(ob, expand_object_expandModifiers, (void *)&data);
+    BKE_gpencil_modifiers_foreach_ID_link(ob, expand_object_expandModifiers, (void *)&data);
   }
 
   /* expand_object_expandShaderFx() */
@@ -11325,7 +11325,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
     data.fd = fd;
     data.mainvar = mainvar;
 
-    BKE_shaderfx_foreachIDLink(ob, expand_object_expandModifiers, (void *)&data);
+    BKE_shaderfx_foreach_ID_link(ob, expand_object_expandModifiers, (void *)&data);
   }
 
   expand_pose(fd, mainvar, ob->pose);

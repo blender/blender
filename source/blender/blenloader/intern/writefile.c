@@ -1829,7 +1829,7 @@ static void write_gpencil_modifiers(WriteData *wd, ListBase *modbase)
   }
 
   for (md = modbase->first; md; md = md->next) {
-    const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
+    const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
     if (mti == NULL) {
       return;
     }
@@ -1896,7 +1896,7 @@ static void write_shaderfxs(WriteData *wd, ListBase *fxbase)
   }
 
   for (fx = fxbase->first; fx; fx = fx->next) {
-    const ShaderFxTypeInfo *fxi = BKE_shaderfxType_getInfo(fx->type);
+    const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(fx->type);
     if (fxi == NULL) {
       return;
     }

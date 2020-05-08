@@ -103,7 +103,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
     tgmd->curve_intensity = NULL;
   }
 
-  BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copydata_generic(md, target);
 
   if (gmd->colorband) {
     tgmd->colorband = MEM_dupallocN(gmd->colorband);

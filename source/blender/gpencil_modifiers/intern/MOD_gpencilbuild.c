@@ -63,7 +63,7 @@ static void initData(GpencilModifierData *md)
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 {
-  BKE_gpencil_modifier_copyData_generic(md, target);
+  BKE_gpencil_modifier_copydata_generic(md, target);
 }
 
 static bool dependsOnTime(GpencilModifierData *UNUSED(md))
