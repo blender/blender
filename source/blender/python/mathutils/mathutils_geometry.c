@@ -1419,7 +1419,7 @@ static void boxPack_ToPyObject(PyObject *value, BoxPack **boxarray)
 PyDoc_STRVAR(M_Geometry_box_pack_2d_doc,
              ".. function:: box_pack_2d(boxes)\n"
              "\n"
-             "   Returns the normal of the 3D tri or quad.\n"
+             "   Returns a tuple with the width and height of the packed bounding box.\n"
              "\n"
              "   :arg boxes: list of boxes, each box is a list where the first 4 items are [x, y, "
              "width, height, ...] other items are ignored.\n"
