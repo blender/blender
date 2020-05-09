@@ -359,7 +359,7 @@ static bool get_path_user(char *targetpath,
  * \param folder_name: default name of folder within installation area
  * \param subfolder_name: optional name of subfolder within folder
  * \param ver: Blender version, used to construct a subdirectory name
- * \return  true if it was able to construct such a path.
+ * \return true if it was able to construct such a path.
  */
 static bool get_path_system(char *targetpath,
                             size_t targetpath_len,

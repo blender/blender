@@ -1059,7 +1059,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
     if (type == SIMVERT_VGROUP) {
       /* We store the names of the vertex groups, so we can select
-       * vertex groups with the same name in  different objects. */
+       * vertex groups with the same name in different objects. */
       const int dvert_tot = BLI_listbase_count(&ob->defbase);
       for (int i = 0; i < dvert_tot; i++) {
         if (dvert_selected & (1 << i)) {

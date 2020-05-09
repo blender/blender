@@ -55,7 +55,7 @@ bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3],
 }
 
 /**
- * \brief Compute the SVD (Singular Values Decomposition) of given 3D  matrix (m3 = USV*).
+ * \brief Compute the SVD (Singular Values Decomposition) of given 3D matrix (m3 = USV*).
  *
  * \param m3: the matrix to decompose.
  * \return r_U the computed left singular vector of \a m3 (NULL if not needed).

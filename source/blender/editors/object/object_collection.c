@@ -483,7 +483,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
   /* Adding object to collection which is used as dupli-collection for self is bad idea.
    *
-   * It is also  bad idea to add object to collection which is in collection which
+   * It is also bad idea to add object to collection which is in collection which
    * contains our current object.
    */
   if (BKE_collection_object_cyclic_check(bmain, ob, collection)) {

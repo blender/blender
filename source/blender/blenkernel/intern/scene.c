@@ -2102,7 +2102,7 @@ static Depsgraph **scene_get_depsgraph_p(Main *bmain,
       if (allocate_depsgraph) {
         *depsgraph_ptr = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
         /* TODO(sergey): Would be cool to avoid string format print,
-         * but is a bit tricky because we can't know in advance  whether
+         * but is a bit tricky because we can't know in advance whether
          * we will ever enable debug messages for this depsgraph.
          */
         char name[1024];

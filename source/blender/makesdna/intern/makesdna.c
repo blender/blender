@@ -1074,8 +1074,8 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
           types_size_native[structtype] = size_native;
           types_size_32[structtype] = size_32;
           types_size_64[structtype] = size_64;
-          /* two ways to detect if a struct contains a pointer:
-           * has_pointer is set or size_native  doesn't match any of 32/64bit lengths*/
+          /* Two ways to detect if a struct contains a pointer:
+           * has_pointer is set or size_native doesn't match any of 32/64bit lengths. */
           if (has_pointer || size_64 != size_native || size_32 != size_native) {
             if (size_64 % 8) {
               fprintf(stderr,

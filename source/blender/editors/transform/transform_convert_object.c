@@ -197,7 +197,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   /* NOTE: This is not really following copy-on-write design and we should not
    * be re-evaluating the evaluated object. But as the comment above mentioned
    * this is part of a hack.
-   * More proper solution would be to make a shallow copy of the object  and
+   * More proper solution would be to make a shallow copy of the object and
    * evaluate that, and access matrix of that evaluated copy of the object.
    * Might be more tricky than it sounds, if some logic later on accesses the
    * object matrix via td->ob->obmat. */

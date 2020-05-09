@@ -1927,7 +1927,7 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
 
 /**
  * \note doing a full search on all vertices here seems expensive,
- * however this is important to avoid having to recalculate boundbox & sync the buffers to the
+ * however this is important to avoid having to recalculate bound-box & sync the buffers to the
  * GPU (which is far more expensive!) See: T47232.
  */
 bool BKE_pbvh_node_vert_update_check_any(PBVH *bvh, PBVHNode *node)

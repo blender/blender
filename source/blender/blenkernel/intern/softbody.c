@@ -3010,7 +3010,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
        *    (C2= continuous in second derivate -> no jump in bending ) condition.
        *
        * Not too hard to do, but needs some more code to care for;
-       * some one may want look at it  JOW 2010/06/12. */
+       * some one may want look at it (JOW 2010/06/12). */
       for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++, bp += 3, curindex += 3) {
         if (setgoal) {
           bp->goal *= bezt->weight;
