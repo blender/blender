@@ -305,7 +305,6 @@ static void background_task_pool_create(TaskPool *pool)
 {
   pool->background_queue = BLI_thread_queue_init();
   BLI_threadpool_init(&pool->background_threads, background_task_run, 1);
-  BLI_threadpool_insert(&pool->background_threads, pool);
 }
 
 static void background_task_pool_run(TaskPool *pool, Task &&task)
@@ -313,6 +312,10 @@ static void background_task_pool_run(TaskPool *pool, Task &&task)
   Task *task_mem = (Task *)MEM_mallocN(sizeof(Task), __func__);
   new (task_mem) Task(std::move(task));
   BLI_thread_queue_push(pool->background_queue, task_mem);
+
+  if (BLI_available_threads(&pool->background_threads)) {
+    BLI_threadpool_insert(&pool->background_threads, pool);
+  }
 }
 
 static void background_task_pool_work_and_wait(TaskPool *pool)
@@ -321,7 +324,7 @@ static void background_task_pool_work_and_wait(TaskPool *pool)
    * left, and wait for tasks and thread to finish. */
   BLI_thread_queue_nowait(pool->background_queue);
   BLI_thread_queue_wait_finish(pool->background_queue);
-  BLI_threadpool_remove(&pool->background_threads, pool);
+  BLI_threadpool_clear(&pool->background_threads);
 }
 
 static void background_task_pool_cancel(TaskPool *pool)
