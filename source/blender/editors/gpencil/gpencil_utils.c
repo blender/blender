@@ -708,8 +708,8 @@ void gp_apply_parent_point(Depsgraph *depsgraph, Object *obact, bGPDlayer *gpl, 
 /**
  * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D)
  *
- * \param[out] r_x  The screen-space x-coordinate of the point
- * \param[out] r_y  The screen-space y-coordinate of the point
+ * \param[out] r_x: The screen-space x-coordinate of the point
+ * \param[out] r_y: The screen-space y-coordinate of the point
  *
  * \warning This assumes that the caller has already checked
  * whether the stroke in question can be drawn.

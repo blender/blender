@@ -218,8 +218,8 @@ void RB_dworld_step_simulation(rbDynamicsWorld *world,
  * Exports entire dynamics world to Bullet's "*.bullet" binary format
  * which is similar to Blender's SDNA system.
  *
- * \param world Dynamics world to write to file
- * \param filename Assumed to be a valid filename, with .bullet extension
+ * \param world: Dynamics world to write to file
+ * \param filename: Assumed to be a valid filename, with .bullet extension
  */
 void RB_dworld_export(rbDynamicsWorld *world, const char *filename)
 {

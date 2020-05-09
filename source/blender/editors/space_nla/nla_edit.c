@@ -410,8 +410,8 @@ void NLA_OT_previewrange_set(wmOperatorType *ot)
 /**
  * Find the extents of the active channel
  *
- * \param[out] min Bottom y-extent of channel
- * \param[out] max Top y-extent of channel
+ * \param[out] min: Bottom y-extent of channel.
+ * \param[out] max: Top y-extent of channel.
  * \return Success of finding a selected channel
  */
 static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, float *max)
