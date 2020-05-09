@@ -55,7 +55,7 @@ class RenderLayersProg : public NodeOperation {
   float *m_inputBuffer;
 
   /**
-   * renderpass where this operation needs to get its data from
+   * Render-pass where this operation needs to get its data from.
    */
   std::string m_passName;
 

@@ -443,7 +443,7 @@ bool BKE_shrinkwrap_project_normal(char options,
                                    BVHTreeRayHit *hit)
 {
   /* don't use this because this dist value could be incompatible
-   * this value used by the callback for comparing prev/new dist values.
+   * this value used by the callback for comparing previous/new dist values.
    * also, at the moment there is no need to have a corrected 'dist' value */
   // #define USE_DIST_CORRECT
 

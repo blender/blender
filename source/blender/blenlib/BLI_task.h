@@ -218,7 +218,7 @@ BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *setti
 }
 
 /* Don't use this, store any thread specific data in tls->userdata_chunk instead.
- * Ony here for code to be removed. */
+ * Only here for code to be removed. */
 int BLI_task_parallel_thread_id(const TaskParallelTLS *tls);
 
 #ifdef __cplusplus

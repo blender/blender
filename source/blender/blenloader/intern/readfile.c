@@ -9754,7 +9754,7 @@ static bool read_libblock_undo_restore(
      * this is only for do_version-like code), but for sake of consistency, and also because
      * it will tell us which ID is re-used from old Main, and which one is actually new. */
     /* Also do not add LIB_TAG_NEED_LINK, those IDs will never be re-liblinked, hence that tag will
-     * never be cleared, leading to critical issue in link/appemd code. */
+     * never be cleared, leading to critical issue in link/append code. */
     const int id_tag = tag | LIB_TAG_UNDO_OLD_ID_REUSED;
     read_libblock_undo_restore_identical(fd, main, id, id_old, id_tag);
 

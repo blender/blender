@@ -2080,7 +2080,7 @@ void uiItemFullR(uiLayout *layout,
   if (use_prop_sep) {
     if (type == PROP_BOOLEAN && (icon == ICON_NONE) && !icon_only) {
       use_prop_sep_split_label = false;
-      /* For checkboxes we make an expection: We allow showing them in a split row even without
+      /* For check-boxes we make an exception: We allow showing them in a split row even without
        * label. It typically relates to its neighbor items, so no need for an extra label. */
       use_split_empty_name = true;
     }

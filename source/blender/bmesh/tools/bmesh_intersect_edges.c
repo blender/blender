@@ -893,7 +893,7 @@ bool BM_mesh_intersect_edges(
 
           if (BM_vert_pair_share_face_check(va, va_dest)) {
             /* Vert par acts on the same face.
-             * Although there are cases like this where the face can be splitted,
+             * Although there are cases like this where the face can be split,
              * for efficiency it is better to ignore then. */
             continue;
           }
@@ -909,7 +909,7 @@ bool BM_mesh_intersect_edges(
 
               if (BM_vert_pair_share_face_check(v_other, v_other_dest)) {
                 /* Vert par acts on the same face.
-                 * Although there are cases like this where the face can be splitted,
+                 * Although there are cases like this where the face can be split,
                  * for efficiency and to avoid complications, it is better to ignore these cases.
                  */
                 break;

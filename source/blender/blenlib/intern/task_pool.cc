@@ -443,7 +443,7 @@ TaskPool *BLI_task_pool_create_no_threads(void *userdata)
 }
 
 /**
- * Task pool that executeds one task after the other, possibly on different threads
+ * Task pool that executes one task after the other, possibly on different threads
  * but never in parallel.
  */
 TaskPool *BLI_task_pool_create_background_serial(void *userdata, TaskPriority priority)

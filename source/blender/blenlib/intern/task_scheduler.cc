@@ -54,7 +54,7 @@ void BLI_task_scheduler_init()
     task_scheduler_num_threads = num_threads_override;
   }
   else {
-    /* Let TBB choose the number of threads. For (legacy) code that calss
+    /* Let TBB choose the number of threads. For (legacy) code that calls
      * BLI_task_scheduler_num_threads() we provide the system thread count.
      * Ideally such code should be rewritten not to use the number of threads
      * at all. */

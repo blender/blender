@@ -114,8 +114,8 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    *
    * Arguments passed to this method will be forwarded to the constructor of T.
    *
-   * You must not call `delete` on the returned pointer. Instead, the destructor has to be called
-   * explicitely.
+   * You must not call `delete` on the returned pointer.
+   * Instead, the destruct has to be called explicitly.
    */
   template<typename T, typename... Args> T *construct(Args &&... args)
   {

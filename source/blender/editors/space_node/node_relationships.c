@@ -1657,7 +1657,7 @@ static bool node_link_insert_offset_frame_chain_cb(bNode *fromnode,
 }
 
 /**
- * Applies NodeInsertOfsData.offset_x to all childs of \a parent
+ * Applies #NodeInsertOfsData.offset_x to all children of \a parent.
  */
 static void node_link_insert_offset_frame_chains(const bNodeTree *ntree,
                                                  const bNode *parent,

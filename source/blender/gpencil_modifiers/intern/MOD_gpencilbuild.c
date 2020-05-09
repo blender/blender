@@ -462,8 +462,8 @@ static void generate_geometry(GpencilModifierData *md,
   }
 
   /* Early exit if current frame is outside start/end bounds */
-  /* NOTE: If we're beyond the next/prev frames (if existent), then we wouldn't have this problem
-   * anyway... */
+  /* NOTE: If we're beyond the next/previous frames (if existent),
+   * then we wouldn't have this problem anyway... */
   if (ctime < start_frame) {
     /* Before Start - Animation hasn't started. Display initial state. */
     if (reverse) {
