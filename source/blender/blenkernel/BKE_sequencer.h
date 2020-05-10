@@ -35,6 +35,7 @@ struct GSet;
 struct ImBuf;
 struct Main;
 struct Mask;
+struct ReportList;
 struct Scene;
 struct Sequence;
 struct SequenceModifierData;
@@ -612,6 +613,7 @@ void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb,
                                        struct ImBuf *mask_input);
 
 void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int cfra);
+bool BKE_sequencer_check_scene_recursion(struct Scene *scene, struct ReportList *reports);
 
 #ifdef __cplusplus
 }

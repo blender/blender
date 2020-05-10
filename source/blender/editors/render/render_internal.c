@@ -945,6 +945,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
+  /* Reports are done inside check function, and it will return false if there are other strips to
+   * render. */
+  if ((scene->r.scemode & R_DOSEQ) && BKE_sequencer_check_scene_recursion(scene, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
   /* stop all running jobs, except screen one. currently previews frustrate Render */
   WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
 
