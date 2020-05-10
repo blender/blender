@@ -194,7 +194,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg,
         average(shader_bsdf_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold) {
       if (state->sample == 0) {
         if (flag & PASSMASK(DEPTH)) {
-          float depth = camera_distance(kg, sd->P);
+          float depth = camera_z_depth(kg, sd->P);
           kernel_write_pass_float(buffer + kernel_data.film.pass_depth, depth);
         }
         if (flag & PASSMASK(OBJECT_ID)) {

@@ -441,8 +441,22 @@ ccl_device_inline float camera_distance(KernelGlobals *kg, float3 P)
     float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
     return fabsf(dot((P - camP), camD));
   }
-  else
+  else {
     return len(P - camP);
+  }
+}
+
+ccl_device_inline float camera_z_depth(KernelGlobals *kg, float3 P)
+{
+  if (kernel_data.cam.type != CAMERA_PANORAMA) {
+    Transform worldtocamera = kernel_data.cam.worldtocamera;
+    return transform_point(&worldtocamera, P).z;
+  }
+  else {
+    Transform cameratoworld = kernel_data.cam.cameratoworld;
+    float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+    return len(P - camP);
+  }
 }
 
 ccl_device_inline float3 camera_direction_from_point(KernelGlobals *kg, float3 P)
