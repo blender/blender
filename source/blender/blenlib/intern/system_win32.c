@@ -307,13 +307,14 @@ static bool BLI_windows_system_backtrace_stack(FILE *fp)
 {
   fprintf(fp, "Stack trace:\n");
   /* If we are handling an exception use the context record from that. */
-  if (current_exception) {
+  if (current_exception && current_exception->ExceptionRecord->ExceptionAddress) {
     /* The back trace code will write to the context record, to protect the original record from
      * modifications give the backtrace a copy to work on.  */
     CONTEXT TempContext = *current_exception->ContextRecord;
     return BLI_windows_system_backtrace_run_trace(fp, GetCurrentThread(), &TempContext);
   }
   else {
+    /* If there is no current exception or the address is not set, walk the current stack. */
     return bli_windows_system_backtrace_stack_thread(fp, GetCurrentThread());
   }
 }
@@ -403,6 +404,7 @@ void BLI_windows_handle_exception(EXCEPTION_POINTERS *exception)
     CHAR modulename[MAX_PATH];
     bli_windows_get_module_name(address, modulename, sizeof(modulename));
     fprintf(stderr, "Module  : %s\n", modulename);
+    fprintf(stderr, "Thread  : %.8x\n", GetCurrentThreadId());
   }
   fflush(stderr);
 }
