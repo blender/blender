@@ -131,6 +131,7 @@ static ThreadMutex seq_render_mutex = BLI_MUTEX_INITIALIZER;
 #define SELECT 1
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
+
 SequencerDrawView sequencer_view3d_fn = NULL; /* NULL in background mode */
 
 #if 0 /* unused function */
@@ -4609,6 +4610,10 @@ bool BKE_sequence_test_overlap(ListBase *seqbasep, Sequence *test)
 
 void BKE_sequence_translate(Scene *evil_scene, Sequence *seq, int delta)
 {
+  if (delta == 0) {
+    return;
+  }
+
   BKE_sequencer_offset_animdata(evil_scene, seq, delta);
   seq->start += delta;
 
