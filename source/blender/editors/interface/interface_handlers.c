@@ -10944,8 +10944,7 @@ void UI_screen_free_active_but(const bContext *C, bScreen *screen)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  ED_screen_areas_iter(win, screen, area)
-  {
+  ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       uiBut *but = ui_region_find_active_but(region);
       if (but) {

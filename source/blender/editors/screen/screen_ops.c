@@ -1741,8 +1741,7 @@ static void area_move_apply_do(const bContext *C,
   /* only redraw if we actually moved a screen vert, for AREAGRID */
   if (doredraw) {
     bool redraw_all = false;
-    ED_screen_areas_iter(win, screen, area)
-    {
+    ED_screen_areas_iter (win, screen, area) {
       if (area->v1->editflag || area->v2->editflag || area->v3->editflag || area->v4->editflag) {
         if (ED_area_is_global(area)) {
           /* Snap to minimum or maximum for global areas. */
@@ -1761,8 +1760,7 @@ static void area_move_apply_do(const bContext *C,
       }
     }
     if (redraw_all) {
-      ED_screen_areas_iter(win, screen, area)
-      {
+      ED_screen_areas_iter (win, screen, area) {
         ED_area_tag_redraw(area);
       }
     }
