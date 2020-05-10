@@ -39,6 +39,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
@@ -69,6 +70,7 @@
 #include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_sequencer_offscreen.h"
@@ -3462,6 +3464,11 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
     return NULL;
   }
 
+  /* Prevent rendering scene recursively. */
+  if (seq->scene == context->scene) {
+    return NULL;
+  }
+
   scene = seq->scene;
   frame = (double)scene->r.sfra + (double)nr + (double)seq->anim_startofs;
 
@@ -5969,4 +5976,63 @@ void BKE_sequencer_all_free_anim_ibufs(Scene *scene, int cfra)
   }
   sequencer_all_free_anim_ibufs(&ed->seqbase, cfra);
   BKE_sequencer_cache_cleanup(scene);
+}
+
+static bool sequencer_seq_generates_image(Sequence *seq)
+{
+  switch (seq->type) {
+    case SEQ_TYPE_IMAGE:
+    case SEQ_TYPE_SCENE:
+    case SEQ_TYPE_MOVIE:
+    case SEQ_TYPE_MOVIECLIP:
+    case SEQ_TYPE_MASK:
+    case SEQ_TYPE_COLOR:
+    case SEQ_TYPE_TEXT:
+      return true;
+  }
+  return false;
+}
+
+static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (seq->type == SEQ_TYPE_SCENE && seq->scene == scene) {
+      return seq;
+    }
+
+    if (seq->type == SEQ_TYPE_META && sequencer_check_scene_recursion(scene, &seq->seqbase)) {
+      return seq;
+    }
+  }
+
+  return NULL;
+}
+
+bool BKE_sequencer_check_scene_recursion(Scene *scene, ReportList *reports)
+{
+  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  if (ed == NULL) {
+    return false;
+  }
+
+  Sequence *recursive_seq = sequencer_check_scene_recursion(scene, &ed->seqbase);
+
+  if (recursive_seq != NULL) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Recursion detected in video sequencer. Strip %s at frame %d will not be rendered",
+                recursive_seq->name + 2,
+                recursive_seq->startdisp);
+
+    LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
+      if (seq->type != SEQ_TYPE_SCENE && sequencer_seq_generates_image(seq)) {
+        /* There are other strips to render, so render them. */
+        return false;
+      }
+    }
+    /* No other strips to render - cancel operator. */
+    return true;
+  }
+
+  return false;
 }
