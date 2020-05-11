@@ -408,6 +408,11 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
   int i = 0, iconid = 0, flag = RNA_property_flag(data->target_prop);
   ListBase *items_list = MEM_callocN(sizeof(ListBase), "items_list");
   CollItemSearch *cis;
+  const bool is_ptr_target = (RNA_property_type(data->target_prop) == PROP_POINTER);
+  /* For non-pointer properties, UI code acts entirely based on the item's name. So the name has to
+   * match the RNA name exactly. So only for pointer properties, the name can be modified to add
+   * further UI hints. */
+  const bool requires_exact_data_name = !is_ptr_target;
   const bool skip_filter = data->search_but && !data->search_but->changed;
   char name_buf[UI_MAX_DRAW_STR];
   char *name;
@@ -422,7 +427,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
     }
 
     /* use filter */
-    if (RNA_property_type(data->target_prop) == PROP_POINTER) {
+    if (is_ptr_target) {
       if (RNA_property_pointer_poll(&data->target_ptr, data->target_prop, &itemptr) == 0) {
         continue;
       }
@@ -432,10 +437,15 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
     if (itemptr.type && RNA_struct_is_ID(itemptr.type)) {
       iconid = ui_id_icon_get(C, itemptr.data, false);
 
-      BKE_id_full_name_ui_prefix_get(name_buf, itemptr.data);
-      BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
-                        "Name string buffer should be big enough to hold full UI ID name");
-      name = name_buf;
+      if (requires_exact_data_name) {
+        name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), NULL);
+      }
+      else {
+        BKE_id_full_name_ui_prefix_get(name_buf, itemptr.data);
+        BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
+                          "Name string buffer should be big enough to hold full UI ID name");
+        name = name_buf;
+      }
     }
     else {
       name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), NULL);
