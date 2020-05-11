@@ -377,6 +377,9 @@ static int gpencil_transform_fill_exec(bContext *C, wmOperator *op)
 
 static bool gpencil_transform_fill_poll(bContext *C)
 {
+  if (!ED_operator_view3d_active(C)) {
+    return false;
+  }
   Object *ob = CTX_data_active_object(C);
   if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
     return false;
