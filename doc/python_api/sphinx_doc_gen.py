@@ -1482,6 +1482,8 @@ def pyrna2sphinx(basepath):
                     lines.append("   * :class:`%s.%s`\n" % (base.identifier, func.identifier))
                 for identifier, py_func in base.get_py_functions():
                     lines.append("   * :class:`%s.%s`\n" % (base.identifier, identifier))
+                for identifier, py_func in base.get_py_c_functions():
+                    lines.append("   * :class:`%s.%s`\n" % (base.identifier, identifier))
 
             if lines:
                 fw(".. rubric:: Inherited Functions\n\n")
