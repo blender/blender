@@ -37,6 +37,8 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_lib_query.h"
+#include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -50,7 +52,7 @@ static void initData(GpencilModifierData *md)
   gpmd->thickness_fac = 1.0f;
   gpmd->thickness = 30;
   gpmd->layername[0] = '\0';
-  gpmd->materialname[0] = '\0';
+  gpmd->material = NULL;
   gpmd->vgname[0] = '\0';
   gpmd->curve_thickness = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   if (gpmd->curve_thickness) {
@@ -95,7 +97,7 @@ static void deformStroke(GpencilModifierData *md,
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
-                                      mmd->materialname,
+                                      mmd->material,
                                       mmd->pass_index,
                                       mmd->layer_pass,
                                       1,
@@ -159,6 +161,13 @@ static void bakeModifier(struct Main *UNUSED(bmain),
   }
 }
 
+static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+{
+  ThickGpencilModifierData *mmd = (ThickGpencilModifierData *)md;
+
+  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Thick = {
     /* name */ "Thickness",
     /* structName */ "ThickGpencilModifierData",
@@ -179,6 +188,6 @@ GpencilModifierTypeInfo modifierType_Gpencil_Thick = {
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
     /* foreachObjectLink */ NULL,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
 };

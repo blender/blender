@@ -1750,6 +1750,144 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 0)) {
+    /* Patch old grease pencil modifiers material filter. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+        switch (md->type) {
+          case eGpencilModifierType_Array: {
+            ArrayGpencilModifierData *gpmd = (ArrayGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Color: {
+            ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Hook: {
+            HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Lattice: {
+            LatticeGpencilModifierData *gpmd = (LatticeGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Mirror: {
+            MirrorGpencilModifierData *gpmd = (MirrorGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Multiply: {
+            MultiplyGpencilModifierData *gpmd = (MultiplyGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Noise: {
+            NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Offset: {
+            OffsetGpencilModifierData *gpmd = (OffsetGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Opacity: {
+            OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Simplify: {
+            SimplifyGpencilModifierData *gpmd = (SimplifyGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Smooth: {
+            SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Subdiv: {
+            SubdivGpencilModifierData *gpmd = (SubdivGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Texture: {
+            TextureGpencilModifierData *gpmd = (TextureGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          case eGpencilModifierType_Thick: {
+            ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
+            if (gpmd->materialname[0] != '\0') {
+              gpmd->material = BLI_findstring(
+                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->materialname[0] = '\0';
+            }
+            break;
+          }
+          default:
+            break;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

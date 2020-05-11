@@ -57,7 +57,7 @@ static void initData(GpencilModifierData *md)
   MirrorGpencilModifierData *gpmd = (MirrorGpencilModifierData *)md;
   gpmd->pass_index = 0;
   gpmd->layername[0] = '\0';
-  gpmd->materialname[0] = '\0';
+  gpmd->material = NULL;
   gpmd->object = NULL;
   gpmd->flag |= GP_MIRROR_AXIS_X;
 }
@@ -130,7 +130,7 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
       for (i = 0, gps = gpf->strokes.first; i < tot_strokes; i++, gps = gps->next) {
         if (is_stroke_affected_by_modifier(ob,
                                            mmd->layername,
-                                           mmd->materialname,
+                                           mmd->material,
                                            mmd->pass_index,
                                            mmd->layer_pass,
                                            1,
@@ -213,6 +213,15 @@ static void foreachObjectLink(GpencilModifierData *md,
   walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
+static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+{
+  MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
+
+  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+
+  foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Mirror = {
     /* name */ "Mirror",
     /* structName */ "MirrorGpencilModifierData",
@@ -233,6 +242,6 @@ GpencilModifierTypeInfo modifierType_Gpencil_Mirror = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
 };

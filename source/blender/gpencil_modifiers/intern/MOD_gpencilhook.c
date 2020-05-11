@@ -78,7 +78,7 @@ static void initData(GpencilModifierData *md)
   HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
   gpmd->pass_index = 0;
   gpmd->layername[0] = '\0';
-  gpmd->materialname[0] = '\0';
+  gpmd->material = NULL;
   gpmd->vgname[0] = '\0';
   gpmd->object = NULL;
   gpmd->force = 0.5f;
@@ -208,7 +208,7 @@ static void deformStroke(GpencilModifierData *md,
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
-                                      mmd->materialname,
+                                      mmd->material,
                                       mmd->pass_index,
                                       mmd->layer_pass,
                                       1,
@@ -338,6 +338,15 @@ static void foreachObjectLink(GpencilModifierData *md,
   walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
+static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+{
+  HookGpencilModifierData *mmd = (HookGpencilModifierData *)md;
+
+  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+
+  foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Hook = {
     /* name */ "Hook",
     /* structName */ "HookGpencilModifierData",
@@ -358,6 +367,6 @@ GpencilModifierTypeInfo modifierType_Gpencil_Hook = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
 };

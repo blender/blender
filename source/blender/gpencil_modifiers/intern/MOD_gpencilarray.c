@@ -77,6 +77,8 @@ static void initData(GpencilModifierData *md)
   gpmd->object = NULL;
   gpmd->flag |= GP_ARRAY_USE_RELATIVE;
   gpmd->seed = 1;
+  gpmd->layername[0] = '\0';
+  gpmd->material = NULL;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -163,7 +165,7 @@ static void generate_geometry(GpencilModifierData *md,
     LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
       if (is_stroke_affected_by_modifier(ob,
                                          mmd->layername,
-                                         mmd->materialname,
+                                         mmd->material,
                                          mmd->pass_index,
                                          mmd->layer_pass,
                                          1,
@@ -320,6 +322,15 @@ static void foreachObjectLink(GpencilModifierData *md,
   walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
+static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+{
+  ArrayGpencilModifierData *mmd = (ArrayGpencilModifierData *)md;
+
+  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+
+  foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Array = {
     /* name */ "Array",
     /* structName */ "ArrayGpencilModifierData",
@@ -340,6 +351,6 @@ GpencilModifierTypeInfo modifierType_Gpencil_Array = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
 };

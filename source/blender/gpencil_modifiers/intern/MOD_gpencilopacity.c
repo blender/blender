@@ -38,8 +38,10 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -53,7 +55,7 @@ static void initData(GpencilModifierData *md)
   gpmd->factor = 1.0f;
   gpmd->hardeness = 1.0f;
   gpmd->layername[0] = '\0';
-  gpmd->materialname[0] = '\0';
+  gpmd->material = NULL;
   gpmd->vgname[0] = '\0';
   gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
   gpmd->curve_intensity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -92,7 +94,7 @@ static void deformStroke(GpencilModifierData *md,
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
-                                      mmd->materialname,
+                                      mmd->material,
                                       mmd->pass_index,
                                       mmd->layer_pass,
                                       1,
@@ -189,6 +191,13 @@ static void freeData(GpencilModifierData *md)
   }
 }
 
+static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+{
+  OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
+
+  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Opacity = {
     /* name */ "Opacity",
     /* structName */ "OpacityGpencilModifierData",
@@ -209,6 +218,6 @@ GpencilModifierTypeInfo modifierType_Gpencil_Opacity = {
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
     /* foreachObjectLink */ NULL,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
 };

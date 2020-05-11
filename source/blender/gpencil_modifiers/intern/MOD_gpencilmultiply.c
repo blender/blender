@@ -71,6 +71,8 @@ static void initData(GpencilModifierData *md)
   mmd->fading_center = 0.5f;
   mmd->fading_thickness = 0.5f;
   mmd->fading_opacity = 0.5f;
+  mmd->layername[0] = '\0';
+  mmd->material = NULL;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -211,7 +213,7 @@ static void bakeModifier(Main *UNUSED(bmain),
       for (gps = gpf->strokes.first; gps; gps = gps->next) {
         if (!is_stroke_affected_by_modifier(ob,
                                             mmd->layername,
-                                            mmd->materialname,
+                                            mmd->material,
                                             mmd->pass_index,
                                             mmd->layer_pass,
                                             1,
@@ -252,7 +254,7 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
   for (gps = gpf->strokes.first; gps; gps = gps->next) {
     if (!is_stroke_affected_by_modifier(ob,
                                         mmd->layername,
-                                        mmd->materialname,
+                                        mmd->material,
                                         mmd->pass_index,
                                         mmd->layer_pass,
                                         1,
@@ -297,6 +299,13 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
 }
 
+static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+{
+  MultiplyGpencilModifierData *mmd = (MultiplyGpencilModifierData *)md;
+
+  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Multiply = {
     /* name */ "Multiple Strokes",
     /* structName */ "MultiplyGpencilModifierData",
@@ -317,6 +326,6 @@ GpencilModifierTypeInfo modifierType_Gpencil_Multiply = {
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
     /* foreachObjectLink */ NULL,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
 };
