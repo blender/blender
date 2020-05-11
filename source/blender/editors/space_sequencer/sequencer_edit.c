@@ -3495,7 +3495,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 }
 
-static int sequencer_paste_exec(bContext *C, wmOperator *op)
+static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
