@@ -139,7 +139,7 @@ static void deformStroke(GpencilModifierData *md,
 
     pt->pressure = interpf(target, pt->pressure, weight);
 
-    CLAMP_MIN(pt->pressure, 0.1f);
+    CLAMP_MIN(pt->pressure, 0.0f);
   }
 }
 
