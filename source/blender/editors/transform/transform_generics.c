@@ -1690,25 +1690,28 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
     if (orient_type_constraint == -1) {
       if (orient_type_set != -1) {
-        orient_type_default = orient_type_set;
-
-        if (orient_type_default >= V3D_ORIENT_CUSTOM) {
-          if (orient_type_default >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
-            orient_type_default = V3D_ORIENT_GLOBAL;
-          }
-          else {
-            custom_orientation = BKE_scene_transform_orientation_find(
-                t->scene, orient_type_default - V3D_ORIENT_CUSTOM);
-            orient_type_default = V3D_ORIENT_CUSTOM;
-          }
-        }
-        orient_type_constraint = orient_type_default;
+        orient_type_default = orient_type_constraint = orient_type_set;
       }
       else {
         TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
-        orient_type_constraint = orient_slot->type;
         custom_orientation = BKE_scene_transform_orientation_find(t->scene,
                                                                   orient_slot->index_custom);
+
+        /* Add the slot value to the orient_type to be used for Redo. */
+        orient_type_constraint = orient_slot->type + orient_slot->index_custom;
+      }
+    }
+
+    if (custom_orientation == NULL && orient_type_constraint >= V3D_ORIENT_CUSTOM) {
+      if (orient_type_constraint >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
+        if (orient_type_default == orient_type_constraint) {
+          orient_type_default = V3D_ORIENT_GLOBAL;
+        }
+        orient_type_constraint = V3D_ORIENT_GLOBAL;
+      }
+      else {
+        custom_orientation = BKE_scene_transform_orientation_find(
+            t->scene, orient_type_constraint - V3D_ORIENT_CUSTOM);
       }
     }
 

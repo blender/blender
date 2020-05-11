@@ -730,7 +730,9 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
       BLI_snprintf(text, sizeof(text), ftext, TIP_("custom matrix"));
       setConstraint(t, t->spacemtx, mode, text);
       break;
-    case V3D_ORIENT_CUSTOM: {
+    case V3D_ORIENT_CUSTOM:
+    default: {
+      BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
       char orientation_str[128];
       BLI_snprintf(orientation_str,
                    sizeof(orientation_str),
