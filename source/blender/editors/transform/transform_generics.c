@@ -1698,7 +1698,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
                                                                   orient_slot->index_custom);
 
         /* Add the slot value to the orient_type to be used for Redo. */
-        orient_type_constraint = orient_slot->type + orient_slot->index_custom;
+        orient_type_constraint = orient_slot->type;
+        if (orient_type_constraint == V3D_ORIENT_CUSTOM) {
+          orient_type_constraint += orient_slot->index_custom;
+        }
       }
     }
 
