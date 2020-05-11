@@ -45,6 +45,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_image.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
@@ -1360,19 +1361,9 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
       ED_region_draw_cb_exit(tgpf->region->type, tgpf->draw_handle_3d);
     }
 
-    /* delete temp image */
+    /* Delete temp image. */
     if (tgpf->ima) {
-      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
-        if (ima == tgpf->ima) {
-          /* XXX This is super, super suspicious!
-           * There should NEVER be any need to handle datablocks in Main in such custom code.
-           * Please change to using BKE_id_free() or similar! */
-          BLI_remlink(&bmain->images, ima);
-          BKE_image_free(tgpf->ima);
-          MEM_SAFE_FREE(tgpf->ima);
-          break;
-        }
-      }
+      BKE_id_free(bmain, tgpf->ima);
     }
 
     /* finally, free memory used by temp data */
