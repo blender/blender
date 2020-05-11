@@ -55,9 +55,7 @@ static void initData(GpencilModifierData *md)
 {
   LatticeGpencilModifierData *gpmd = (LatticeGpencilModifierData *)md;
   gpmd->pass_index = 0;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
-  gpmd->vgname[0] = '\0';
   gpmd->object = NULL;
   gpmd->cache_data = NULL;
   gpmd->strength = 1.0f;

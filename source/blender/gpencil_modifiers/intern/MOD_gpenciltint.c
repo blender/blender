@@ -61,9 +61,7 @@ static void initData(GpencilModifierData *md)
 {
   TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
   gpmd->pass_index = 0;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
-  gpmd->vgname[0] = '\0';
   gpmd->object = NULL;
   gpmd->radius = 1.0f;
   gpmd->factor = 0.5f;

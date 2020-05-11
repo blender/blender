@@ -49,9 +49,7 @@ static void initData(GpencilModifierData *md)
   gpmd->pass_index = 0;
   gpmd->flag |= GP_SMOOTH_MOD_LOCATION;
   gpmd->factor = 0.5f;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
-  gpmd->vgname[0] = '\0';
   gpmd->step = 1;
 
   gpmd->curve_intensity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);

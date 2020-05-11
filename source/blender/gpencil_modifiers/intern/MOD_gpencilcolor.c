@@ -52,7 +52,6 @@ static void initData(GpencilModifierData *md)
   ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
   gpmd->pass_index = 0;
   ARRAY_SET_ITEMS(gpmd->hsv, 0.5f, 1.0f, 1.0f);
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
   gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
 

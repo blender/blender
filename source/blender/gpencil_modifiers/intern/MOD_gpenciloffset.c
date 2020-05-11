@@ -50,9 +50,7 @@ static void initData(GpencilModifierData *md)
 {
   OffsetGpencilModifierData *gpmd = (OffsetGpencilModifierData *)md;
   gpmd->pass_index = 0;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
-  gpmd->vgname[0] = '\0';
   ARRAY_SET_ITEMS(gpmd->loc, 0.0f, 0.0f, 0.0f);
   ARRAY_SET_ITEMS(gpmd->rot, 0.0f, 0.0f, 0.0f);
   ARRAY_SET_ITEMS(gpmd->scale, 0.0f, 0.0f, 0.0f);

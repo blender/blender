@@ -77,7 +77,6 @@ static void initData(GpencilModifierData *md)
   gpmd->object = NULL;
   gpmd->flag |= GP_ARRAY_USE_RELATIVE;
   gpmd->seed = 1;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
 }
 

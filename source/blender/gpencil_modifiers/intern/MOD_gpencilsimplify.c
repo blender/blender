@@ -50,7 +50,6 @@ static void initData(GpencilModifierData *md)
   gpmd->factor = 0.0f;
   gpmd->length = 0.1f;
   gpmd->distance = 0.1f;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
 }
 

@@ -45,7 +45,6 @@
 static void initData(GpencilModifierData *md)
 {
   TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
-  gpmd->layername[0] = '\0';
   gpmd->offset = 1;
   gpmd->frame_scale = 1.0f;
   gpmd->flag |= GP_TIME_KEEP_LOOP;

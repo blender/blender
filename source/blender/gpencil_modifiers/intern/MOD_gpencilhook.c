@@ -77,9 +77,7 @@ static void initData(GpencilModifierData *md)
 {
   HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
   gpmd->pass_index = 0;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
-  gpmd->vgname[0] = '\0';
   gpmd->object = NULL;
   gpmd->force = 0.5f;
   gpmd->falloff_type = eGPHook_Falloff_Smooth;

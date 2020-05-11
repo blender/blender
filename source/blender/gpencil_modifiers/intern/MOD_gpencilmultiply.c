@@ -71,7 +71,6 @@ static void initData(GpencilModifierData *md)
   mmd->fading_center = 0.5f;
   mmd->fading_thickness = 0.5f;
   mmd->fading_opacity = 0.5f;
-  mmd->layername[0] = '\0';
   mmd->material = NULL;
 }
 

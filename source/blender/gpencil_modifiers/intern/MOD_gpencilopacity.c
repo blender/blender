@@ -54,9 +54,7 @@ static void initData(GpencilModifierData *md)
   gpmd->pass_index = 0;
   gpmd->factor = 1.0f;
   gpmd->hardeness = 1.0f;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
-  gpmd->vgname[0] = '\0';
   gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
   gpmd->curve_intensity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   if (gpmd->curve_intensity) {

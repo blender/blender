@@ -49,7 +49,6 @@ static void initData(GpencilModifierData *md)
   SubdivGpencilModifierData *gpmd = (SubdivGpencilModifierData *)md;
   gpmd->pass_index = 0;
   gpmd->level = 1;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
 }
 

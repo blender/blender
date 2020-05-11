@@ -56,7 +56,6 @@ static void initData(GpencilModifierData *md)
 {
   MirrorGpencilModifierData *gpmd = (MirrorGpencilModifierData *)md;
   gpmd->pass_index = 0;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
   gpmd->object = NULL;
   gpmd->flag |= GP_MIRROR_AXIS_X;

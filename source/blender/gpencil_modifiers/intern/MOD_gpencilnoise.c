@@ -61,9 +61,7 @@ static void initData(GpencilModifierData *md)
   gpmd->flag |= GP_NOISE_FULL_STROKE;
   gpmd->flag |= GP_NOISE_USE_RANDOM;
   gpmd->factor = 0.5f;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
-  gpmd->vgname[0] = '\0';
   gpmd->step = 4;
   gpmd->seed = 1;
   gpmd->curve_intensity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);

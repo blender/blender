@@ -57,9 +57,7 @@ static void initData(GpencilModifierData *md)
   gpmd->uv_offset = 0.0f;
   gpmd->uv_scale = 1.0f;
   gpmd->pass_index = 0;
-  gpmd->layername[0] = '\0';
   gpmd->material = NULL;
-  gpmd->vgname[0] = '\0';
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
