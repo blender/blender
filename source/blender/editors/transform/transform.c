@@ -825,7 +825,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, bool is
       }
     }
     else if (!edit_2d) {
-      if (ELEM(cmode, '\0', axis)) {
+      if (t->orientation.index == 0 || ELEM(cmode, '\0', axis)) {
         /* Successive presses on existing axis, cycle orientation modes. */
         t->orientation.index = (t->orientation.index + 1) % ARRAY_SIZE(t->orientation.types);
         initTransformOrientation(t->context, t, t->orientation.types[t->orientation.index]);
