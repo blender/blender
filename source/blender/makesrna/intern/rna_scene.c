@@ -3843,7 +3843,7 @@ static void rna_def_unit_settings(BlenderRNA *brna)
       "Scale to use when converting between blender units and dimensions."
       " When working at microscopic or astronomical scale, a small or large unit scale"
       " respectively can be used to avoid numerical precision problems");
-  RNA_def_property_range(prop, 0.00001, 100000.0);
+  RNA_def_property_range(prop, 1e-9f, 1e+9f);
   RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 6);
   RNA_def_property_update(prop, NC_WINDOW, NULL);
 
