@@ -4590,230 +4590,390 @@ static void followtrack_id_looper(bConstraint *con, ConstraintIDFunc func, void 
   func(con, (ID **)&data->depth_ob, false, userdata);
 }
 
-static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
+static MovieClip *followtrack_tracking_clip_get(bConstraint *con, bConstraintOb *cob)
 {
-  Depsgraph *depsgraph = cob->depsgraph;
-  Scene *scene = cob->scene;
   bFollowTrackConstraint *data = con->data;
-  MovieClip *clip = data->clip;
-  MovieTracking *tracking;
-  MovieTrackingTrack *track;
-  MovieTrackingObject *tracking_object;
-  Object *camob = data->camera ? data->camera : scene->camera;
-
-  float ctime = DEG_get_ctime(depsgraph);
-  float framenr;
 
   if (data->flag & FOLLOWTRACK_ACTIVECLIP) {
-    clip = scene->clip;
+    Scene *scene = cob->scene;
+    return scene->clip;
   }
 
-  if (!clip || !data->track[0] || !camob) {
-    return;
-  }
+  return data->clip;
+}
 
-  tracking = &clip->tracking;
+static MovieTrackingObject *followtrack_tracking_object_get(bConstraint *con, bConstraintOb *cob)
+{
+  MovieClip *clip = followtrack_tracking_clip_get(con, cob);
+  MovieTracking *tracking = &clip->tracking;
+  bFollowTrackConstraint *data = con->data;
 
   if (data->object[0]) {
-    tracking_object = BKE_tracking_object_get_named(tracking, data->object);
+    return BKE_tracking_object_get_named(tracking, data->object);
+  }
+  return BKE_tracking_object_get_camera(tracking);
+}
+
+static Object *followtrack_camera_object_get(bConstraint *con, bConstraintOb *cob)
+{
+  bFollowTrackConstraint *data = con->data;
+
+  if (data->camera == NULL) {
+    Scene *scene = cob->scene;
+    return scene->camera;
+  }
+
+  return data->camera;
+}
+
+typedef struct FollowTrackContext {
+  int flag;
+  int frame_method;
+
+  Depsgraph *depsgraph;
+  Scene *scene;
+
+  MovieClip *clip;
+  Object *camera_object;
+  Object *depth_object;
+
+  MovieTracking *tracking;
+  MovieTrackingObject *tracking_object;
+  MovieTrackingTrack *track;
+
+  float depsgraph_time;
+  float clip_frame;
+} FollowTrackContext;
+
+static bool followtrack_context_init(FollowTrackContext *context,
+                                     bConstraint *con,
+                                     bConstraintOb *cob)
+{
+  bFollowTrackConstraint *data = con->data;
+
+  context->flag = data->flag;
+  context->frame_method = data->frame_method;
+
+  context->depsgraph = cob->depsgraph;
+  context->scene = cob->scene;
+
+  context->clip = followtrack_tracking_clip_get(con, cob);
+  context->camera_object = followtrack_camera_object_get(con, cob);
+  if (context->clip == NULL || context->camera_object == NULL) {
+    return false;
+  }
+  context->depth_object = data->depth_ob;
+
+  context->tracking = &context->clip->tracking;
+  context->tracking_object = followtrack_tracking_object_get(con, cob);
+  if (context->tracking_object == NULL) {
+    return false;
+  }
+
+  context->track = BKE_tracking_track_get_named(
+      context->tracking, context->tracking_object, data->track);
+  if (context->track == NULL) {
+    return false;
+  }
+
+  context->depsgraph_time = DEG_get_ctime(context->depsgraph);
+  context->clip_frame = BKE_movieclip_remap_scene_to_clip_frame(context->clip,
+                                                                context->depsgraph_time);
+
+  return true;
+}
+
+static void followtrack_evaluate_using_3d_position_object(FollowTrackContext *context,
+                                                          bConstraintOb *cob)
+{
+  Object *camera_object = context->camera_object;
+  MovieTracking *tracking = context->tracking;
+  MovieTrackingTrack *track = context->track;
+  MovieTrackingObject *tracking_object = context->tracking_object;
+
+  /* Matrix of the object which is being solved prior to this contraint. */
+  float obmat[4][4];
+  copy_m4_m4(obmat, cob->matrix);
+
+  /* Object matrix of the camera. */
+  float camera_obmat[4][4];
+  copy_m4_m4(camera_obmat, camera_object->obmat);
+
+  /* Calculate inverted matrix of the solved camera at the current time. */
+  float reconstructed_camera_mat[4][4];
+  BKE_tracking_camera_get_reconstructed_interpolate(
+      tracking, tracking_object, context->clip_frame, reconstructed_camera_mat);
+  float reconstructed_camera_mat_inv[4][4];
+  invert_m4_m4(reconstructed_camera_mat_inv, reconstructed_camera_mat);
+
+  mul_m4_series(cob->matrix, obmat, camera_obmat, reconstructed_camera_mat_inv);
+  translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
+}
+
+static void followtrack_evaluate_using_3d_position_camera(FollowTrackContext *context,
+                                                          bConstraintOb *cob)
+{
+  Object *camera_object = context->camera_object;
+  MovieTrackingTrack *track = context->track;
+
+  /* Matrix of the object which is being solved prior to this contraint. */
+  float obmat[4][4];
+  copy_m4_m4(obmat, cob->matrix);
+
+  float reconstructed_camera_mat[4][4];
+  BKE_tracking_get_camera_object_matrix(camera_object, reconstructed_camera_mat);
+
+  mul_m4_m4m4(cob->matrix, obmat, reconstructed_camera_mat);
+  translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
+}
+
+static void followtrack_evaluate_using_3d_position(FollowTrackContext *context, bConstraintOb *cob)
+{
+  MovieTrackingTrack *track = context->track;
+  if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
+    return;
+  }
+
+  if ((context->tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
+    followtrack_evaluate_using_3d_position_object(context, cob);
+    return;
+  }
+
+  followtrack_evaluate_using_3d_position_camera(context, cob);
+}
+
+/* Apply undistortion if it is enabled in constraint settings. */
+static void followtrack_undistort_if_needed(FollowTrackContext *context,
+                                            const int clip_width,
+                                            const int clip_height,
+                                            float marker_position[2])
+{
+  if ((context->flag & FOLLOWTRACK_USE_UNDISTORTION) == 0) {
+    return;
+  }
+
+  /* Undistortion need to happen in pixel space. */
+  marker_position[0] *= clip_width;
+  marker_position[1] *= clip_height;
+
+  BKE_tracking_undistort_v2(
+      context->tracking, clip_width, clip_height, marker_position, marker_position);
+
+  /* Normalize pixel coordinates back. */
+  marker_position[0] /= clip_width;
+  marker_position[1] /= clip_height;
+}
+
+/* Modify the marker position matching the frame fitting method. */
+static void followtrack_fit_frame(FollowTrackContext *context,
+                                  const int clip_width,
+                                  const int clip_height,
+                                  float marker_position[2])
+{
+  if (context->frame_method == FOLLOWTRACK_FRAME_STRETCH) {
+    return;
+  }
+
+  Scene *scene = context->scene;
+  MovieClip *clip = context->clip;
+
+  /* apply clip display aspect */
+  const float w_src = clip_width * clip->aspx;
+  const float h_src = clip_height * clip->aspy;
+
+  const float w_dst = scene->r.xsch * scene->r.xasp;
+  const float h_dst = scene->r.ysch * scene->r.yasp;
+
+  const float asp_src = w_src / h_src;
+  const float asp_dst = w_dst / h_dst;
+
+  if (fabsf(asp_src - asp_dst) < FLT_EPSILON) {
+    return;
+  }
+
+  if ((asp_src > asp_dst) == (context->frame_method == FOLLOWTRACK_FRAME_CROP)) {
+    /* fit X */
+    float div = asp_src / asp_dst;
+    float cent = (float)clip_width / 2.0f;
+
+    marker_position[0] = (((marker_position[0] * clip_width - cent) * div) + cent) / clip_width;
   }
   else {
-    tracking_object = BKE_tracking_object_get_camera(tracking);
-  }
+    /* fit Y */
+    float div = asp_dst / asp_src;
+    float cent = (float)clip_height / 2.0f;
 
-  if (!tracking_object) {
+    marker_position[1] = (((marker_position[1] * clip_height - cent) * div) + cent) / clip_height;
+  }
+}
+
+/* Effectively this is a Z-depth of the object form the movie clip camera.
+ * The idea is to preserve this depth while moving the object in 2D. */
+static float followtrack_distance_from_viewplane_get(FollowTrackContext *context,
+                                                     bConstraintOb *cob)
+{
+  Object *camera_object = context->camera_object;
+
+  float camera_matrix[4][4];
+  BKE_object_where_is_calc_mat4(camera_object, camera_matrix);
+
+  const float z_axis[3] = {0.0f, 0.0f, 1.0f};
+
+  /* Direction of camera's local Z axis in the world space. */
+  float camera_axis[3];
+  mul_v3_m4v3(camera_axis, camera_matrix, z_axis);
+
+  /* Distance to projection plane. */
+  float vec[3];
+  copy_v3_v3(vec, cob->matrix[3]);
+  sub_v3_v3(vec, camera_matrix[3]);
+
+  float projection[3];
+  project_v3_v3v3(projection, vec, camera_axis);
+
+  return len_v3(projection);
+}
+
+/* For the evaluated constraint object project it to the surface of the depth object. */
+static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *context,
+                                                          bConstraintOb *cob)
+{
+  if (context->depth_object == NULL) {
     return;
   }
 
-  track = BKE_tracking_track_get_named(tracking, tracking_object, data->track);
-
-  if (!track) {
+  Object *depth_object = context->depth_object;
+  Mesh *depth_mesh = BKE_object_get_evaluated_mesh(depth_object);
+  if (depth_mesh == NULL) {
     return;
   }
 
-  framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
+  float depth_object_mat_inv[4][4];
+  invert_m4_m4(depth_object_mat_inv, depth_object->obmat);
 
+  float ray_start[3], ray_end[3];
+  mul_v3_m4v3(ray_start, depth_object_mat_inv, context->camera_object->obmat[3]);
+  mul_v3_m4v3(ray_end, depth_object_mat_inv, cob->matrix[3]);
+
+  float ray_direction[3];
+  sub_v3_v3v3(ray_direction, ray_end, ray_start);
+  normalize_v3(ray_direction);
+
+  BVHTreeFromMesh tree_data = NULL_BVHTreeFromMesh;
+  BKE_bvhtree_from_mesh_get(&tree_data, depth_mesh, BVHTREE_FROM_LOOPTRI, 4);
+
+  BVHTreeRayHit hit;
+  hit.dist = BVH_RAYCAST_DIST_MAX;
+  hit.index = -1;
+
+  const int result = BLI_bvhtree_ray_cast(tree_data.tree,
+                                          ray_start,
+                                          ray_direction,
+                                          0.0f,
+                                          &hit,
+                                          tree_data.raycast_callback,
+                                          &tree_data);
+
+  if (result != -1) {
+    mul_v3_m4v3(cob->matrix[3], depth_object->obmat, hit.co);
+  }
+
+  free_bvhtree_from_mesh(&tree_data);
+}
+
+static void followtrack_evaluate_using_2d_position(FollowTrackContext *context, bConstraintOb *cob)
+{
+  Scene *scene = context->scene;
+  MovieClip *clip = context->clip;
+  MovieTrackingTrack *track = context->track;
+  Object *camera_object = context->camera_object;
+  const float clip_frame = context->clip_frame;
+  const float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
+
+  const float object_depth = followtrack_distance_from_viewplane_get(context, cob);
+  if (object_depth < FLT_EPSILON) {
+    return;
+  }
+
+  int clip_width, clip_height;
+  BKE_movieclip_get_size(clip, NULL, &clip_width, &clip_height);
+
+  float marker_position[2];
+  BKE_tracking_marker_get_subframe_position(track, clip_frame, marker_position);
+
+  followtrack_undistort_if_needed(context, clip_width, clip_height, marker_position);
+  followtrack_fit_frame(context, clip_width, clip_height, marker_position);
+
+  float rmat[4][4];
+  CameraParams params;
+  BKE_camera_params_init(&params);
+  BKE_camera_params_from_object(&params, camera_object);
+
+  if (params.is_ortho) {
+    float vec[3];
+    vec[0] = params.ortho_scale * (marker_position[0] - 0.5f + params.shiftx);
+    vec[1] = params.ortho_scale * (marker_position[1] - 0.5f + params.shifty);
+    vec[2] = -object_depth;
+
+    if (aspect > 1.0f) {
+      vec[1] /= aspect;
+    }
+    else {
+      vec[0] *= aspect;
+    }
+
+    float disp[3];
+    mul_v3_m4v3(disp, camera_object->obmat, vec);
+
+    copy_m4_m4(rmat, camera_object->obmat);
+    zero_v3(rmat[3]);
+    mul_m4_m4m4(cob->matrix, cob->matrix, rmat);
+
+    copy_v3_v3(cob->matrix[3], disp);
+  }
+  else {
+    const float d = (object_depth * params.sensor_x) / (2.0f * params.lens);
+
+    float vec[3];
+    vec[0] = d * (2.0f * (marker_position[0] + params.shiftx) - 1.0f);
+    vec[1] = d * (2.0f * (marker_position[1] + params.shifty) - 1.0f);
+    vec[2] = -object_depth;
+
+    if (aspect > 1.0f) {
+      vec[1] /= aspect;
+    }
+    else {
+      vec[0] *= aspect;
+    }
+
+    float disp[3];
+    mul_v3_m4v3(disp, camera_object->obmat, vec);
+
+    /* apply camera rotation so Z-axis would be co-linear */
+    copy_m4_m4(rmat, camera_object->obmat);
+    zero_v3(rmat[3]);
+    mul_m4_m4m4(cob->matrix, cob->matrix, rmat);
+
+    copy_v3_v3(cob->matrix[3], disp);
+  }
+
+  followtrack_project_to_depth_object_if_needed(context, cob);
+}
+
+static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
+{
+  FollowTrackContext context;
+  if (!followtrack_context_init(&context, con, cob)) {
+    return;
+  }
+
+  bFollowTrackConstraint *data = con->data;
   if (data->flag & FOLLOWTRACK_USE_3D_POSITION) {
-    if (track->flag & TRACK_HAS_BUNDLE) {
-      float obmat[4][4], mat[4][4];
-
-      copy_m4_m4(obmat, cob->matrix);
-
-      if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
-        float imat[4][4];
-
-        copy_m4_m4(mat, camob->obmat);
-
-        BKE_tracking_camera_get_reconstructed_interpolate(
-            tracking, tracking_object, framenr, imat);
-        invert_m4(imat);
-
-        mul_m4_series(cob->matrix, obmat, mat, imat);
-        translate_m4(
-            cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
-      }
-      else {
-        BKE_tracking_get_camera_object_matrix(camob, mat);
-
-        mul_m4_m4m4(cob->matrix, obmat, mat);
-        translate_m4(
-            cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
-      }
-    }
+    followtrack_evaluate_using_3d_position(&context, cob);
+    return;
   }
-  else {
-    float vec[3], disp[3], axis[3], mat[4][4];
-    float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
-    float len, d;
 
-    BKE_object_where_is_calc_mat4(camob, mat);
-
-    /* camera axis */
-    vec[0] = 0.0f;
-    vec[1] = 0.0f;
-    vec[2] = 1.0f;
-    mul_v3_m4v3(axis, mat, vec);
-
-    /* distance to projection plane */
-    copy_v3_v3(vec, cob->matrix[3]);
-    sub_v3_v3(vec, mat[3]);
-    project_v3_v3v3(disp, vec, axis);
-
-    len = len_v3(disp);
-
-    if (len > FLT_EPSILON) {
-      CameraParams params;
-      int width, height;
-      float pos[2], rmat[4][4];
-
-      BKE_movieclip_get_size(clip, NULL, &width, &height);
-      BKE_tracking_marker_get_subframe_position(track, framenr, pos);
-
-      if (data->flag & FOLLOWTRACK_USE_UNDISTORTION) {
-        /* Undistortion need to happen in pixel space. */
-        pos[0] *= width;
-        pos[1] *= height;
-
-        BKE_tracking_undistort_v2(tracking, width, height, pos, pos);
-
-        /* Normalize pixel coordinates back. */
-        pos[0] /= width;
-        pos[1] /= height;
-      }
-
-      /* aspect correction */
-      if (data->frame_method != FOLLOWTRACK_FRAME_STRETCH) {
-        float w_src, h_src, w_dst, h_dst, asp_src, asp_dst;
-
-        /* apply clip display aspect */
-        w_src = width * clip->aspx;
-        h_src = height * clip->aspy;
-
-        w_dst = scene->r.xsch * scene->r.xasp;
-        h_dst = scene->r.ysch * scene->r.yasp;
-
-        asp_src = w_src / h_src;
-        asp_dst = w_dst / h_dst;
-
-        if (fabsf(asp_src - asp_dst) >= FLT_EPSILON) {
-          if ((asp_src > asp_dst) == (data->frame_method == FOLLOWTRACK_FRAME_CROP)) {
-            /* fit X */
-            float div = asp_src / asp_dst;
-            float cent = (float)width / 2.0f;
-
-            pos[0] = (((pos[0] * width - cent) * div) + cent) / width;
-          }
-          else {
-            /* fit Y */
-            float div = asp_dst / asp_src;
-            float cent = (float)height / 2.0f;
-
-            pos[1] = (((pos[1] * height - cent) * div) + cent) / height;
-          }
-        }
-      }
-
-      BKE_camera_params_init(&params);
-      BKE_camera_params_from_object(&params, camob);
-
-      if (params.is_ortho) {
-        vec[0] = params.ortho_scale * (pos[0] - 0.5f + params.shiftx);
-        vec[1] = params.ortho_scale * (pos[1] - 0.5f + params.shifty);
-        vec[2] = -len;
-
-        if (aspect > 1.0f) {
-          vec[1] /= aspect;
-        }
-        else {
-          vec[0] *= aspect;
-        }
-
-        mul_v3_m4v3(disp, camob->obmat, vec);
-
-        copy_m4_m4(rmat, camob->obmat);
-        zero_v3(rmat[3]);
-        mul_m4_m4m4(cob->matrix, cob->matrix, rmat);
-
-        copy_v3_v3(cob->matrix[3], disp);
-      }
-      else {
-        d = (len * params.sensor_x) / (2.0f * params.lens);
-
-        vec[0] = d * (2.0f * (pos[0] + params.shiftx) - 1.0f);
-        vec[1] = d * (2.0f * (pos[1] + params.shifty) - 1.0f);
-        vec[2] = -len;
-
-        if (aspect > 1.0f) {
-          vec[1] /= aspect;
-        }
-        else {
-          vec[0] *= aspect;
-        }
-
-        mul_v3_m4v3(disp, camob->obmat, vec);
-
-        /* apply camera rotation so Z-axis would be co-linear */
-        copy_m4_m4(rmat, camob->obmat);
-        zero_v3(rmat[3]);
-        mul_m4_m4m4(cob->matrix, cob->matrix, rmat);
-
-        copy_v3_v3(cob->matrix[3], disp);
-      }
-
-      if (data->depth_ob) {
-        Object *depth_ob = data->depth_ob;
-        Mesh *target_eval = BKE_object_get_evaluated_mesh(depth_ob);
-        if (target_eval) {
-          BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
-          BVHTreeRayHit hit;
-          float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
-          int result;
-
-          invert_m4_m4(imat, depth_ob->obmat);
-
-          mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
-          mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
-
-          sub_v3_v3v3(ray_nor, ray_end, ray_start);
-          normalize_v3(ray_nor);
-
-          BKE_bvhtree_from_mesh_get(&treeData, target_eval, BVHTREE_FROM_LOOPTRI, 4);
-
-          hit.dist = BVH_RAYCAST_DIST_MAX;
-          hit.index = -1;
-
-          result = BLI_bvhtree_ray_cast(
-              treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
-
-          if (result != -1) {
-            mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
-          }
-
-          free_bvhtree_from_mesh(&treeData);
-        }
-      }
-    }
-  }
+  followtrack_evaluate_using_2d_position(&context, cob);
 }
 
 static bConstraintTypeInfo CTI_FOLLOWTRACK = {
