@@ -406,6 +406,7 @@ static void generate_geometry(GpencilModifierData *md,
 {
   BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)md;
   const bool reverse = (mmd->transition != GP_BUILD_TRANSITION_GROW);
+  const bool is_percentage = (mmd->flag & GP_BUILD_PERCENTAGE);
 
   const float ctime = DEG_get_ctime(depsgraph);
 
@@ -500,7 +501,8 @@ static void generate_geometry(GpencilModifierData *md,
   }
 
   /* Determine how far along we are between the keyframes */
-  float fac = (ctime - start_frame) / (end_frame - start_frame);
+  float fac = is_percentage ? mmd->percentage_fac :
+                              (ctime - start_frame) / (end_frame - start_frame);
 
   /* Time management mode */
   switch (mmd->mode) {

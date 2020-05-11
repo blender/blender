@@ -370,6 +370,9 @@ typedef struct BuildGpencilModifierData {
    * For the "Concurrent" mode, when should "shorter" strips start/end.
    */
   short time_alignment;
+  /** Factor of the stroke (used instead of frame evaluation. */
+  float percentage_fac;
+  char _pad[4];
 } BuildGpencilModifierData;
 
 typedef enum eBuildGpencil_Mode {
@@ -405,6 +408,9 @@ typedef enum eBuildGpencil_Flag {
   /* Restrict modifier to only operating between the nominated frames */
   GP_BUILD_RESTRICT_TIME = (1 << 2),
   GP_BUILD_INVERT_LAYERPASS = (1 << 3),
+
+  /* Use a percentage instead of frame number to evaluate strokes. */
+  GP_BUILD_PERCENTAGE = (1 << 4),
 } eBuildGpencil_Flag;
 
 typedef struct LatticeGpencilModifierData {

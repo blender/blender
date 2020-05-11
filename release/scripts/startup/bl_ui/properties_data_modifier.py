@@ -2182,6 +2182,11 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         sub.prop(md, "frame_start", text="Start")
         sub.prop(md, "frame_end", text="End")
 
+        col.prop(md, "use_percentage")
+        sub = col.column(align=True)
+        sub.active = md.use_percentage
+        sub.prop(md, "percentage_factor")
+
         layout.label(text="Influence Filters:")
 
         split = layout.split(factor=0.25)
