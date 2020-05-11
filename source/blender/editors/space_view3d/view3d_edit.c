@@ -5372,6 +5372,7 @@ void VIEW3D_OT_toggle_xray(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Toggle X-Ray";
   ot->idname = "VIEW3D_OT_toggle_xray";
+  ot->description = "Transparent scene display. Allow selecting through items";
 
   /* api callbacks */
   ot->exec = toggle_xray_exec;
