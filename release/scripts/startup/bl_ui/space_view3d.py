@@ -829,18 +829,17 @@ class VIEW3D_HT_header(Header):
 
         # While exposing 'shading.show_xray(_wireframe)' is correct.
         # this hides the key shortcut from users: T70433.
+        if has_pose_mode:
+            draw_depressed = overlay.show_xray_bone
+        elif shading.type == 'WIREFRAME':
+            draw_depressed = shading.show_xray_wireframe
+        else:
+            draw_depressed = shading.show_xray
         row.operator(
             "view3d.toggle_xray",
             text="",
             icon='XRAY',
-            depress=(
-                overlay.show_xray_bone if has_pose_mode else
-                getattr(
-                    shading,
-                    "show_xray_wireframe" if shading.type == 'WIREFRAME' else
-                    "show_xray"
-                )
-            ),
+            depress=draw_depressed,
         )
 
         row = layout.row(align=True)
