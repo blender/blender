@@ -6431,6 +6431,12 @@ void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string
   search->sep_string = search_sep_string;
 }
 
+void UI_but_func_search_set_tooltip(uiBut *but, uiButSearchTooltipFn tooltip_fn)
+{
+  struct uiButSearchData *search = but->search;
+  search->tooltip_fn = tooltip_fn;
+}
+
 /* Callbacks for operator search button. */
 static void operator_enum_search_update_fn(const struct bContext *C,
                                            void *but,

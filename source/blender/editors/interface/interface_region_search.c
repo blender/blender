@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 
+#include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -296,11 +297,31 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
   }
 }
 
-bool ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent *event)
+static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,
+                                                 struct ARegion *region,
+                                                 int *UNUSED(r_pass),
+                                                 double *UNUSED(pass_delay),
+                                                 bool *r_exit_on_event)
+{
+  *r_exit_on_event = true;
+
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+      if (but->search && but->search->tooltip_fn) {
+        return but->search->tooltip_fn(C, region, but->search->arg, but->func_arg2);
+      }
+    }
+  }
+  return NULL;
+}
+
+bool ui_searchbox_event(
+    bContext *C, ARegion *region, uiBut *but, ARegion *butregion, const wmEvent *event)
 {
   uiSearchboxData *data = region->regiondata;
   int type = event->type, val = event->val;
   bool handled = false;
+  bool tooltip_timer_started = false;
 
   if (type == MOUSEPAN) {
     ui_pan_to_scroll(event, &type, &val);
@@ -337,7 +358,9 @@ bool ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent 
         }
       }
       break;
-    case MOUSEMOVE:
+    case MOUSEMOVE: {
+      bool is_inside = false;
+
       if (BLI_rcti_isect_pt(&region->winrct, event->x, event->y)) {
         rcti rect;
         int a;
@@ -346,6 +369,7 @@ bool ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent 
           ui_searchbox_butrect(&rect, data, a);
           if (BLI_rcti_isect_pt(
                   &rect, event->x - region->winrct.xmin, event->y - region->winrct.ymin)) {
+            is_inside = true;
             if (data->active != a) {
               data->active = a;
               ui_searchbox_select(C, region, but, 0);
@@ -355,9 +379,36 @@ bool ui_searchbox_event(bContext *C, ARegion *region, uiBut *but, const wmEvent 
           }
         }
       }
+
+      if (U.flag & USER_TOOLTIPS) {
+        if (is_inside) {
+          if (data->active != -1) {
+            ScrArea *area = CTX_wm_area(C);
+            but->func_arg2 = data->items.pointers[data->active];
+            WM_tooltip_timer_init(C, CTX_wm_window(C), area, butregion, wm_searchbox_tooltip_init);
+            tooltip_timer_started = true;
+          }
+        }
+      }
+
       break;
+    }
   }
+
+  if (handled && (tooltip_timer_started == false)) {
+    wmWindow *win = CTX_wm_window(C);
+    WM_tooltip_clear(C, win);
+  }
+
   return handled;
+}
+
+/** Wrap #uiButSearchUpdateFn callback. */
+static void ui_searchbox_update_fn(bContext *C, uiBut *but, const char *str, uiSearchItems *items)
+{
+  wmWindow *win = CTX_wm_window(C);
+  WM_tooltip_clear(C, win);
+  but->search->update_fn(C, but->search->arg, str, items);
 }
 
 /* region is the search box itself */
@@ -378,7 +429,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
     /* handle active */
     if (but->search->update_fn && but->func_arg2) {
       data->items.active = but->func_arg2;
-      but->search->update_fn(C, but->search->arg, but->editstr, &data->items);
+      ui_searchbox_update_fn(C, but, but->editstr, &data->items);
       data->items.active = NULL;
 
       /* found active item, calculate real offset by centering it */
@@ -408,7 +459,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
 
   /* callback */
   if (but->search->update_fn) {
-    but->search->update_fn(C, but->search->arg, but->editstr, &data->items);
+    ui_searchbox_update_fn(C, but, but->editstr, &data->items);
   }
 
   /* handle case where editstr is equal to one of items */
@@ -442,7 +493,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
   if (str[0]) {
     data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_max_length(but));
 
-    but->search->update_fn(C, but->search->arg, but->editstr, &data->items);
+    ui_searchbox_update_fn(C, but, but->editstr, &data->items);
 
     match = UI_autocomplete_end(data->items.autocpl, str);
     data->items.autocpl = NULL;
@@ -907,7 +958,7 @@ void ui_but_search_refresh(uiBut *but)
     items->names[x1] = MEM_callocN(but->hardmax + 1, "search names");
   }
 
-  but->search->update_fn(but->block->evil_C, but->search->arg, but->drawstr, items);
+  ui_searchbox_update_fn(but->block->evil_C, but, but->drawstr, items);
 
   /* only redalert when we are sure of it, this can miss cases when >10 matches */
   if (items->totitem == 0) {

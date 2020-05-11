@@ -38,6 +38,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -996,6 +997,61 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tooltip
+ * \{ */
+
+static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
+                                                     struct ARegion *region,
+                                                     void *arg,
+                                                     void *active)
+{
+  struct MenuSearch_Data *data = arg;
+  struct MenuSearch_Item *item = active;
+
+  memset(&data->context_menu_data, 0x0, sizeof(data->context_menu_data));
+  uiBut *but = &data->context_menu_data.but;
+  uiBlock *block = &data->context_menu_data.block;
+  unit_m4(block->winmat);
+  block->aspect = 1;
+
+  but->block = block;
+
+  /* Place the fake button at the cursor so the tool-tip is places properly. */
+  float tip_init[2];
+  const wmEvent *event = CTX_wm_window(C)->eventstate;
+  tip_init[0] = event->x;
+  tip_init[1] = event->y - (UI_UNIT_Y / 2);
+  ui_window_to_block_fl(region, block, &tip_init[0], &tip_init[1]);
+
+  but->rect.xmin = tip_init[0];
+  but->rect.xmax = tip_init[0];
+  but->rect.ymin = tip_init[1];
+  but->rect.ymax = tip_init[1];
+
+  if (menu_items_to_ui_button(item, but)) {
+    ScrArea *area_prev = CTX_wm_area(C);
+    ARegion *region_prev = CTX_wm_region(C);
+
+    if (item->wm_context != NULL) {
+      CTX_wm_area_set(C, item->wm_context->area);
+      CTX_wm_region_set(C, item->wm_context->region);
+    }
+
+    ARegion *region_tip = UI_tooltip_create_from_button(C, region, but, false);
+
+    if (item->wm_context != NULL) {
+      CTX_wm_area_set(C, area_prev);
+      CTX_wm_region_set(C, region_prev);
+    }
+    return region_tip;
+  }
+
+  return NULL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Menu Search Template Public API
  * \{ */
 
@@ -1019,6 +1075,7 @@ void UI_but_func_menu_search(uiBut *but)
                          NULL);
 
   UI_but_func_search_set_context_menu(but, ui_search_menu_create_context_menu);
+  UI_but_func_search_set_tooltip(but, ui_search_menu_create_tooltip);
   UI_but_func_search_set_sep_string(but, MENU_SEP);
 }
 

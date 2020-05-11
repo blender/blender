@@ -151,6 +151,7 @@ struct uiButSearchData {
   void *arg;
   uiButSearchArgFreeFn arg_free_fn;
   uiButSearchContextMenuFn context_menu_fn;
+  uiButSearchTooltipFn tooltip_fn;
 
   const char *sep_string;
 };
@@ -663,6 +664,7 @@ int ui_searchbox_autocomplete(struct bContext *C, struct ARegion *region, uiBut 
 bool ui_searchbox_event(struct bContext *C,
                         struct ARegion *region,
                         uiBut *but,
+                        struct ARegion *butregion,
                         const struct wmEvent *event);
 bool ui_searchbox_apply(uiBut *but, struct ARegion *region);
 void ui_searchbox_free(struct bContext *C, struct ARegion *region);
