@@ -1712,7 +1712,7 @@ class PatchedPythonDomain(PythonDomain):
 
     fw("def setup(app):\n")
     fw("    app.add_stylesheet('css/theme_overrides.css')\n")
-    fw("    app.override_domain(PatchedPythonDomain)\n\n")
+    fw("    app.add_domain(PatchedPythonDomain, override=True)\n\n")
 
     file.close()
 
