@@ -79,6 +79,7 @@ static struct {
 typedef struct BASIC_PrivateData {
   DRWShadingGroup *depth_shgrp[2];
   DRWShadingGroup *depth_shgrp_cull[2];
+  DRWShadingGroup *depth_hair_shgrp[2];
 } BASIC_PrivateData; /* Transient data */
 
 /* Functions */
@@ -137,6 +138,9 @@ static void basic_cache_init(void *vedata)
     DRW_shgroup_uniform_vec2(grp, "sizeViewport", DRW_viewport_size_get(), 1);
     DRW_shgroup_uniform_vec2(grp, "sizeViewportInv", DRW_viewport_invert_size_get(), 1);
 
+    stl->g_data->depth_hair_shgrp[i] = grp = DRW_shgroup_create(sh_data->depth,
+                                                                psl->depth_pass[i]);
+
     state |= DRW_STATE_CULL_BACK;
     DRW_PASS_CREATE(psl->depth_pass_cull[i], state | clip_state | infront_state);
     stl->g_data->depth_shgrp_cull[i] = grp = DRW_shgroup_create(sh, psl->depth_pass_cull[i]);
@@ -167,7 +171,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
       const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
       if (draw_as == PART_DRAW_PATH) {
         struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
-        DRW_shgroup_call(stl->g_data->depth_shgrp[do_in_front], hairs, NULL);
+        DRW_shgroup_call(stl->g_data->depth_hair_shgrp[do_in_front], hairs, NULL);
       }
     }
   }
