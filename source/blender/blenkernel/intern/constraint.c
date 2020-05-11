@@ -4821,7 +4821,7 @@ static float followtrack_distance_from_viewplane_get(FollowTrackContext *context
 
   /* Direction of camera's local Z axis in the world space. */
   float camera_axis[3];
-  mul_v3_m4v3(camera_axis, camera_matrix, z_axis);
+  mul_v3_mat3_m4v3(camera_axis, camera_matrix, z_axis);
 
   /* Distance to projection plane. */
   float vec[3];
