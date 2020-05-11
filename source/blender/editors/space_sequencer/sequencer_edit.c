@@ -3495,7 +3495,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 }
 
-static int sequencer_paste_exec(bContext *C, wmOperator *op)
+static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -3520,7 +3520,8 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
   for (iseq = iseq_first; iseq; iseq = iseq->next) {
     /* Make sure, that pasted strips have unique names. */
     BKE_sequencer_recursive_apply(iseq, apply_unique_name_fn, scene);
-    /* Translate after name has been changed, otherwise this will affect animdata of original strip. */
+    /* Translate after name has been changed, otherwise this will affect animdata of original
+     * strip. */
     BKE_sequence_translate(scene, iseq, ofs);
     /* Ensure, that pasted strips don't overlap. */
     if (BKE_sequence_test_overlap(ed->seqbasep, iseq)) {
