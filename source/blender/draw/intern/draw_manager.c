@@ -1507,6 +1507,8 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   /* Fix 3D view being "laggy" on macos and win+nvidia. (See T56996, T61474) */
   GPU_flush();
 
+  DRW_stats_reset();
+
   DRW_draw_callbacks_post_scene();
 
   if (WM_draw_region_get_bound_viewport(region)) {
