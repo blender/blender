@@ -25,6 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_math_base.h"
+#include "BLI_threads.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -177,7 +178,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
         BLI_assert(false);
         break;
     }
-
+    /* TODO(jbakker): Dualcon crashes when run in parallel. Could be related to incorrect
+     * input data or that the library isn't thread safe. This was identified when changing the task
+     * isolations during T76553. */
+    static ThreadMutex dualcon_mutex = BLI_MUTEX_INITIALIZER;
+    BLI_mutex_lock(&dualcon_mutex);
     output = dualcon(&input,
                      dualcon_alloc_output,
                      dualcon_add_vert,
@@ -188,6 +193,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
                      rmd->hermite_num,
                      rmd->scale,
                      rmd->depth);
+    BLI_mutex_unlock(&dualcon_mutex);
+
     result = output->mesh;
     MEM_freeN(output);
   }
