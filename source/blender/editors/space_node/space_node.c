@@ -855,19 +855,17 @@ static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, I
 {
   SpaceNode *snode = (SpaceNode *)slink;
 
-  if (GS(old_id->name) == ID_SCE) {
-    if (snode->id == old_id) {
-      /* nasty DNA logic for SpaceNode:
-       * ideally should be handled by editor code, but would be bad level call
-       */
-      BLI_freelistN(&snode->treepath);
+  if (snode->id == old_id) {
+    /* nasty DNA logic for SpaceNode:
+     * ideally should be handled by editor code, but would be bad level call
+     */
+    BLI_freelistN(&snode->treepath);
 
-      /* XXX Untested in case new_id != NULL... */
-      snode->id = new_id;
-      snode->from = NULL;
-      snode->nodetree = NULL;
-      snode->edittree = NULL;
-    }
+    /* XXX Untested in case new_id != NULL... */
+    snode->id = new_id;
+    snode->from = NULL;
+    snode->nodetree = NULL;
+    snode->edittree = NULL;
   }
   else if (GS(old_id->name) == ID_OB) {
     if (snode->from == old_id) {
