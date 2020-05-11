@@ -51,6 +51,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "DEG_depsgraph.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "node_intern.h" /* own include */
@@ -549,6 +551,7 @@ static int node_mouse_select(bContext *C,
     }
     ED_node_set_active_viewer_key(snode);
     ED_node_sort(snode->edittree);
+    DEG_id_tag_update(&snode->edittree->id, ID_RECALC_COPY_ON_WRITE);
 
     WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
   }
