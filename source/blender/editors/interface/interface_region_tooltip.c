@@ -756,7 +756,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     }
   }
 #else
-  UNUSED_VARS(is_label);
+  UNUSED_VARS(is_label, has_valid_context, has_valid_context_error);
 #endif /* WITH_PYTHON */
 
   if (data->fields_len == 0) {
@@ -1451,11 +1451,12 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
   }
   else {
     init_position[0] = BLI_rctf_cent_x(&but->rect);
-    init_position[1] = but->rect.ymin - (UI_POPUP_MARGIN / 2);
+    init_position[1] = but->rect.ymin;
     if (butregion) {
       ui_block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
       init_position[0] = win->eventstate->x;
     }
+    init_position[1] -= (UI_POPUP_MARGIN / 2);
   }
 
   ARegion *region = ui_tooltip_create_with_data(
