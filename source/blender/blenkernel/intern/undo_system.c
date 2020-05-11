@@ -427,16 +427,18 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
   }
 
   if (us) {
-    if (us->prev && us->prev->prev) {
-      us = us->prev;
-    }
-
 #ifdef WITH_GLOBAL_UNDO_KEEP_ONE
     /* Hack, we need to keep at least one BKE_UNDOSYS_TYPE_MEMFILE. */
     if (us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
       us_exclude = us->prev;
       while (us_exclude && us_exclude->type != BKE_UNDOSYS_TYPE_MEMFILE) {
         us_exclude = us_exclude->prev;
+      }
+      /* Once this is outside the given number of 'steps', undoing onto this state
+       * may skip past many undo steps which is confusing, instead,
+       * disallow stepping onto this state entirely. */
+      if (us_exclude) {
+        us_exclude->skip = true;
       }
     }
 #endif
@@ -672,7 +674,15 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
     us = us_prev;
   }
 
-  if (us != NULL) {
+  /* This will be active once complete. */
+  UndoStep *us_active = us_prev;
+  if (use_skip) {
+    while (us_active && us_active->skip) {
+      us_active = us_active->prev;
+    }
+  }
+
+  if ((us != NULL) && (us_active != NULL)) {
     CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 
     /* Handle accumulate steps. */
@@ -686,13 +696,6 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
         undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, false);
 
         us_iter = us_iter->prev;
-      }
-    }
-
-    UndoStep *us_active = us_prev;
-    if (use_skip) {
-      while (us_active->skip && us_active->prev) {
-        us_active = us_active->prev;
       }
     }
 
@@ -744,7 +747,15 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
   /* Unlike undo accumulate, we always use the next. */
   us = us_next;
 
-  if (us != NULL) {
+  /* This will be active once complete. */
+  UndoStep *us_active = us_next;
+  if (use_skip) {
+    while (us_active && us_active->skip) {
+      us_active = us_active->next;
+    }
+  }
+
+  if ((us != NULL) && (us_active != NULL)) {
     CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 
     /* Handle accumulate steps. */
@@ -753,13 +764,6 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
       while (us_iter != us) {
         undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, false);
         us_iter = us_iter->next;
-      }
-    }
-
-    UndoStep *us_active = us_next;
-    if (use_skip) {
-      while (us_active->skip && us_active->prev) {
-        us_active = us_active->next;
       }
     }
 
