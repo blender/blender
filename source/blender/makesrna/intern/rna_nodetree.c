@@ -2035,6 +2035,11 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
                                         const char *name,
                                         const char *identifier)
 {
+
+  if (ELEM(node->type, NODE_GROUP_INPUT, NODE_FRAME)) {
+    BKE_report(reports, RPT_ERROR, "Unable to create socket");
+    return NULL;
+  }
   /* Adding an input to a group node is not working,
    * simpler to add it to its underlying nodetree. */
   if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {
@@ -2065,6 +2070,10 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
                                          const char *name,
                                          const char *identifier)
 {
+  if (ELEM(node->type, NODE_GROUP_OUTPUT, NODE_FRAME)) {
+    BKE_report(reports, RPT_ERROR, "Unable to create socket");
+    return NULL;
+  }
   /* Adding an output to a group node is not working,
    * simpler to add it to its underlying nodetree. */
   if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {

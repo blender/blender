@@ -900,6 +900,10 @@ bNodeSocket *nodeAddSocket(bNodeTree *ntree,
                            const char *identifier,
                            const char *name)
 {
+  BLI_assert(node->type != NODE_FRAME);
+  BLI_assert(!(in_out == SOCK_IN && node->type == NODE_GROUP_INPUT));
+  BLI_assert(!(in_out == SOCK_OUT && node->type == NODE_GROUP_OUTPUT));
+
   ListBase *lb = (in_out == SOCK_IN ? &node->inputs : &node->outputs);
   bNodeSocket *sock = make_socket(ntree, node, in_out, lb, idname, identifier, name);
 
