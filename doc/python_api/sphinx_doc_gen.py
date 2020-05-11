@@ -492,6 +492,11 @@ if _BPY_PROP_COLLECTION_FAKE:
 else:
     _BPY_PROP_COLLECTION_ID = "collection"
 
+if _BPY_STRUCT_FAKE:
+    bpy_struct = bpy.types.bpy_struct
+else:
+    bpy_struct = None
+
 
 def escape_rst(text):
     """ Escape plain text which may contain characters used by RST.
@@ -1443,7 +1448,7 @@ def pyrna2sphinx(basepath):
 
             if _BPY_STRUCT_FAKE:
                 descr_items = [
-                    (key, descr) for key, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items())
+                    (key, descr) for key, descr in sorted(bpy_struct.__dict__.items())
                     if not key.startswith("__")
                 ]
 
@@ -1571,7 +1576,7 @@ def pyrna2sphinx(basepath):
 
         # write fake classes
         if _BPY_STRUCT_FAKE:
-            class_value = bpy.types.Struct.__bases__[0]
+            class_value = bpy_struct
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_STRUCT_FAKE,
                 "built-in base class for all classes in bpy.types.", use_subclasses=True,
