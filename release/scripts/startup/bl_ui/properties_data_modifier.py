@@ -1855,6 +1855,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
     # the mt.type enum is (ab)used for a lookup on function names
     # ...to avoid lengthy if statements
     # so each type must have a function here.
+
     def gpencil_masking(self, layout, ob, md, use_vertex, use_curve=False):
         gpd = ob.data
         layout.separator()
