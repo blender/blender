@@ -1750,7 +1750,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 290, 0)) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 1)) {
     /* Patch old grease pencil modifiers material filter. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
