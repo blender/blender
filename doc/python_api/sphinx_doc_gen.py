@@ -1459,9 +1459,6 @@ def pyrna2sphinx(basepath):
                 for identifier, py_prop in base.get_py_properties():
                     lines.append("   * :class:`%s.%s`\n" % (base.identifier, identifier))
 
-                for identifier, py_prop in base.get_py_properties():
-                    lines.append("   * :class:`%s.%s`\n" % (base.identifier, identifier))
-
             if lines:
                 fw(".. rubric:: Inherited Properties\n\n")
 
