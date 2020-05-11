@@ -35,7 +35,6 @@ typedef struct OVERLAY_FramebufferList {
   struct GPUFrameBuffer *overlay_color_only_fb;
   struct GPUFrameBuffer *overlay_in_front_fb;
   struct GPUFrameBuffer *overlay_line_in_front_fb;
-  struct GPUFrameBuffer *overlay_xray_depth_copy_fb;
   struct GPUFrameBuffer *outlines_prepass_fb;
   struct GPUFrameBuffer *outlines_resolve_fb;
 } OVERLAY_FramebufferList;

@@ -193,12 +193,6 @@ void OVERLAY_antialiasing_cache_finish(OVERLAY_Data *vedata)
                             pd->antialiasing.do_depth_infront_copy;
   if (pd->xray_enabled || do_wireframe) {
     DRW_texture_ensure_fullscreen_2d(&txl->temp_depth_tx, GPU_DEPTH24_STENCIL8, 0);
-
-    GPU_framebuffer_ensure_config(&fbl->overlay_xray_depth_copy_fb,
-                                  {
-                                      GPU_ATTACHMENT_TEXTURE(txl->temp_depth_tx),
-                                      GPU_ATTACHMENT_NONE,
-                                  });
   }
 }
 
@@ -224,12 +218,13 @@ void OVERLAY_antialiasing_start(OVERLAY_Data *vedata)
 void OVERLAY_xray_depth_copy(OVERLAY_Data *vedata)
 {
   OVERLAY_FramebufferList *fbl = vedata->fbl;
+  OVERLAY_TextureList *txl = vedata->txl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
   if (DRW_state_is_fbo() && pd->antialiasing.do_depth_copy) {
+    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     /* We copy the depth of the rendered geometry to be able to compare to the overlays depth. */
-    GPU_framebuffer_blit(
-        fbl->overlay_default_fb, 0, fbl->overlay_xray_depth_copy_fb, 0, GPU_DEPTH_BIT);
+    GPU_texture_copy(txl->temp_depth_tx, dtxl->depth);
   }
 
   if (DRW_state_is_fbo() && pd->xray_enabled) {
@@ -241,13 +236,13 @@ void OVERLAY_xray_depth_copy(OVERLAY_Data *vedata)
 
 void OVERLAY_xray_depth_infront_copy(OVERLAY_Data *vedata)
 {
-  OVERLAY_FramebufferList *fbl = vedata->fbl;
+  OVERLAY_TextureList *txl = vedata->txl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
   if (DRW_state_is_fbo() && pd->antialiasing.do_depth_infront_copy) {
+    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     /* We copy the depth of the rendered geometry to be able to compare to the overlays depth. */
-    GPU_framebuffer_blit(
-        fbl->overlay_in_front_fb, 0, fbl->overlay_xray_depth_copy_fb, 0, GPU_DEPTH_BIT);
+    GPU_texture_copy(txl->temp_depth_tx, dtxl->depth_in_front);
   }
 }
 
