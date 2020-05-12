@@ -45,6 +45,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_image.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
@@ -620,40 +621,38 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
 
     get_pixel(ibuf, v, rgba);
 
-    if (true) { /* Was: 'rgba' */
-      /* check if no border(red) or already filled color(green) */
-      if ((rgba[0] != 1.0f) && (rgba[1] != 1.0f)) {
-        /* fill current pixel with green */
-        set_pixel(ibuf, v, fill_col);
+    /* check if no border(red) or already filled color(green) */
+    if ((rgba[0] != 1.0f) && (rgba[1] != 1.0f)) {
+      /* fill current pixel with green */
+      set_pixel(ibuf, v, fill_col);
 
-        /* add contact pixels */
-        /* pixel left */
-        if (v - 1 >= 0) {
-          index = v - 1;
-          if (!is_leak_narrow(ibuf, maxpixel, tgpf->fill_leak, v, LEAK_HORZ)) {
-            BLI_stack_push(stack, &index);
-          }
+      /* add contact pixels */
+      /* pixel left */
+      if (v - 1 >= 0) {
+        index = v - 1;
+        if (!is_leak_narrow(ibuf, maxpixel, tgpf->fill_leak, v, LEAK_HORZ)) {
+          BLI_stack_push(stack, &index);
         }
-        /* pixel right */
-        if (v + 1 <= maxpixel) {
-          index = v + 1;
-          if (!is_leak_narrow(ibuf, maxpixel, tgpf->fill_leak, v, LEAK_HORZ)) {
-            BLI_stack_push(stack, &index);
-          }
+      }
+      /* pixel right */
+      if (v + 1 <= maxpixel) {
+        index = v + 1;
+        if (!is_leak_narrow(ibuf, maxpixel, tgpf->fill_leak, v, LEAK_HORZ)) {
+          BLI_stack_push(stack, &index);
         }
-        /* pixel top */
-        if (v + ibuf->x <= maxpixel) {
-          index = v + ibuf->x;
-          if (!is_leak_narrow(ibuf, maxpixel, tgpf->fill_leak, v, LEAK_VERT)) {
-            BLI_stack_push(stack, &index);
-          }
+      }
+      /* pixel top */
+      if (v + ibuf->x <= maxpixel) {
+        index = v + ibuf->x;
+        if (!is_leak_narrow(ibuf, maxpixel, tgpf->fill_leak, v, LEAK_VERT)) {
+          BLI_stack_push(stack, &index);
         }
-        /* pixel bottom */
-        if (v - ibuf->x >= 0) {
-          index = v - ibuf->x;
-          if (!is_leak_narrow(ibuf, maxpixel, tgpf->fill_leak, v, LEAK_VERT)) {
-            BLI_stack_push(stack, &index);
-          }
+      }
+      /* pixel bottom */
+      if (v - ibuf->x >= 0) {
+        index = v - ibuf->x;
+        if (!is_leak_narrow(ibuf, maxpixel, tgpf->fill_leak, v, LEAK_VERT)) {
+          BLI_stack_push(stack, &index);
         }
       }
     }
@@ -725,31 +724,32 @@ static bool gpencil_check_borders(tGPDfill *tgpf)
   return found;
 }
 
-/* clean external border of image to avoid infinite loops */
-static void gpencil_clean_borders(tGPDfill *tgpf)
+/* Set a border to create image limits. */
+static void gpencil_set_borders(tGPDfill *tgpf, const bool transparent)
 {
   ImBuf *ibuf;
   void *lock;
-  const float fill_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float fill_col[2][4] = {{1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 0.0f}};
   ibuf = BKE_image_acquire_ibuf(tgpf->ima, NULL, &lock);
   int idx;
   int pixel = 0;
+  const int coloridx = transparent ? 0 : 1;
 
   /* horizontal lines */
   for (idx = 0; idx < ibuf->x; idx++) {
     /* bottom line */
-    set_pixel(ibuf, idx, fill_col);
+    set_pixel(ibuf, idx, fill_col[coloridx]);
     /* top line */
     pixel = idx + (ibuf->x * (ibuf->y - 1));
-    set_pixel(ibuf, pixel, fill_col);
+    set_pixel(ibuf, pixel, fill_col[coloridx]);
   }
   /* vertical lines */
   for (idx = 0; idx < ibuf->y; idx++) {
     /* left line */
-    set_pixel(ibuf, ibuf->x * idx, fill_col);
+    set_pixel(ibuf, ibuf->x * idx, fill_col[coloridx]);
     /* right line */
     pixel = ibuf->x * idx + (ibuf->x - 1);
-    set_pixel(ibuf, pixel, fill_col);
+    set_pixel(ibuf, pixel, fill_col[coloridx]);
   }
 
   /* release ibuf */
@@ -1360,19 +1360,9 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
       ED_region_draw_cb_exit(tgpf->region->type, tgpf->draw_handle_3d);
     }
 
-    /* delete temp image */
+    /* Delete temp image. */
     if (tgpf->ima) {
-      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
-        if (ima == tgpf->ima) {
-          /* XXX This is super, super suspicious!
-           * There should NEVER be any need to handle datablocks in Main in such custom code.
-           * Please change to using BKE_id_free() or similar! */
-          BLI_remlink(&bmain->images, ima);
-          BKE_image_free(tgpf->ima);
-          MEM_SAFE_FREE(tgpf->ima);
-          break;
-        }
-      }
+      BKE_id_free(bmain, tgpf->ima);
     }
 
     /* finally, free memory used by temp data */
@@ -1512,30 +1502,26 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             /* render screen to temp image */
             if (gp_render_offscreen(tgpf)) {
 
+              /* Set red borders to create a external limit. */
+              gpencil_set_borders(tgpf, true);
+
               /* apply boundary fill */
               gpencil_boundaryfill_area(tgpf);
 
-              /* Check if detected some border to fill. */
-              if (gpencil_check_borders(tgpf)) {
+              /* Clean borders to avoid infinite loops. */
+              gpencil_set_borders(tgpf, false);
 
-                /* clean borders to avoid infinite loops */
-                gpencil_clean_borders(tgpf);
+              /* analyze outline */
+              gpencil_get_outline_points(tgpf);
 
-                /* analyze outline */
-                gpencil_get_outline_points(tgpf);
+              /* create array of points from stack */
+              gpencil_points_from_stack(tgpf);
 
-                /* create array of points from stack */
-                gpencil_points_from_stack(tgpf);
+              /* create z-depth array for reproject */
+              gpencil_get_depth_array(tgpf);
 
-                /* create z-depth array for reproject */
-                gpencil_get_depth_array(tgpf);
-
-                /* create stroke and reproject */
-                gpencil_stroke_from_buffer(tgpf);
-              }
-              else {
-                BKE_report(op->reports, RPT_ERROR, "Fill canceled. No edges detected");
-              }
+              /* create stroke and reproject */
+              gpencil_stroke_from_buffer(tgpf);
             }
 
             /* free temp stack data */
