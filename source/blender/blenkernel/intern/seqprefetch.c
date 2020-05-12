@@ -42,6 +42,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -239,6 +240,14 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
   if (cfra < pfjob->cfra) {
     pfjob->cfra = cfra;
     pfjob->num_frames_prefetched = 1;
+  }
+}
+
+void BKE_sequencer_prefetch_stop_all(void)
+{
+  /*TODO(Richard): Use wm_jobs for prefetch, or pass main. */
+  for (Scene *scene = G.main->scenes.first; scene; scene = scene->id.next) {
+    BKE_sequencer_prefetch_stop(scene);
   }
 }
 

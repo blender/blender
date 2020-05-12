@@ -360,6 +360,7 @@ bool BKE_sequencer_cache_is_full(struct Scene *scene);
  * ********************************************************************** */
 
 void BKE_sequencer_prefetch_start(const SeqRenderData *context, float cfra, float cost);
+void BKE_sequencer_prefetch_stop_all();
 void BKE_sequencer_prefetch_stop(struct Scene *scene);
 void BKE_sequencer_prefetch_free(struct Scene *scene);
 bool BKE_sequencer_prefetch_need_redraw(struct Main *bmain, struct Scene *scene);
