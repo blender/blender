@@ -167,6 +167,9 @@ static void display_destroy(display_t *d)
         munmap(input->cursor.file_buffer->data, input->cursor.file_buffer->size);
         delete input->cursor.file_buffer;
       }
+      if (input->cursor.buffer) {
+        wl_buffer_destroy(input->cursor.buffer);
+      }
       if (input->cursor.surface) {
         wl_surface_destroy(input->cursor.surface);
       }
@@ -1612,15 +1615,18 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
     return GHOST_kFailure;
   }
 
-  cursor_t *cursor = &d->inputs[0]->cursor;
+  input_t *input = d->inputs[0];
+
+  cursor_t *cursor = &input->cursor;
   if (visible) {
     if (!cursor->visible) {
-      set_cursor_buffer(d->inputs[0], d->inputs[0]->cursor.buffer);
+      set_cursor_buffer(input, cursor->buffer);
     }
   }
   else {
     if (cursor->visible) {
-      set_cursor_buffer(d->inputs[0], nullptr);
+      set_cursor_buffer(input, nullptr);
+      cursor->buffer = nullptr;
     }
   }
 
