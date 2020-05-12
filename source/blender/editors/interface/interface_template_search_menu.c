@@ -361,7 +361,7 @@ static void menu_items_from_all_operators(bContext *C, struct MenuSearch_Data *d
       item->type = MENU_SEARCH_TYPE_OP;
 
       item->op.type = ot;
-      item->op.opcontext = WM_OP_EXEC_DEFAULT;
+      item->op.opcontext = WM_OP_INVOKE_DEFAULT;
       item->op.context = NULL;
 
       char idname_as_py[OP_MAX_TYPENAME];
