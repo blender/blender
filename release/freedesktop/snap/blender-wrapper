@@ -1,0 +1,19 @@
+# Disable ALSA and OSS as they are not available, and trying to initialize them
+# breaks sound in other apps. Use PulseAudio instead.
+export ALSOFT_DRIVERS=-oss,-alsa,
+export SDL_AUDIODRIVER=pulseaudio
+
+# Make PulseAudio socket available inside the snap-specific $XDG_RUNTIME_DIR
+# This is adapted from https://github.com/ubuntu/snapcraft-desktop-helpers,
+# in common/desktop-exports.
+mkdir -p $XDG_RUNTIME_DIR -m 700
+if [ -n "$XDG_RUNTIME_DIR" ]; then
+    pulsenative="pulse/native"
+    pulseaudio_sockpath="$XDG_RUNTIME_DIR/../$pulsenative"
+    if [ -S "$pulseaudio_sockpath" ]; then
+        export PULSE_SERVER="unix:${pulseaudio_sockpath}"
+    fi
+fi
+
+# Run Blender
+$SNAP/blender

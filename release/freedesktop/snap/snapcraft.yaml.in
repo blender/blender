@@ -24,7 +24,7 @@ confinement: classic
 
 apps:
     blender:
-        command: ./blender
+        command: ./blender-wrapper
         desktop: ./blender.desktop
 
 version: '@VERSION@'
@@ -46,3 +46,8 @@ parts:
             - libxfixes3
             - libxrender1
             - libxxf86vm1
+    wrapper:
+        plugin: copy
+        source: .
+        files:
+            blender-wrapper: blender-wrapper

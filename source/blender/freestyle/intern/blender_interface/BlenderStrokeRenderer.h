@@ -21,6 +21,8 @@
  * \ingroup freestyle
  */
 
+#include "BLI_map.hh"
+
 #include "../stroke/StrokeRenderer.h"
 #include "../system/FreestyleConfig.h"
 
@@ -50,15 +52,15 @@ class BlenderStrokeRenderer : public StrokeRenderer {
   Object *NewMesh() const;
 
   struct StrokeGroup {
-    explicit StrokeGroup() : totvert(0), totedge(0), totpoly(0), totloop(0), totcol(0)
+    explicit StrokeGroup() : totvert(0), totedge(0), totpoly(0), totloop(0)
     {
     }
     vector<StrokeRep *> strokes;
+    BLI::Map<Material *, int> materials;
     int totvert;
     int totedge;
     int totpoly;
     int totloop;
-    int totcol;
   };
   vector<StrokeGroup *> strokeGroups, texturedStrokeGroups;
 
