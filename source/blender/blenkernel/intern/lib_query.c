@@ -337,18 +337,6 @@ static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
   FOREACH_FINALIZE_VOID;
 }
 
-static void library_foreach_bone(LibraryForeachIDData *data, Bone *bone)
-{
-  IDP_foreach_property(
-      bone->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
-
-  LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
-    library_foreach_bone(data, curbone);
-  }
-
-  FOREACH_FINALIZE_VOID;
-}
-
 static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
 {
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
@@ -902,11 +890,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_AR: {
-        bArmature *arm = (bArmature *)id;
-
-        LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
-          library_foreach_bone(&data, bone);
-        }
+        BLI_assert(0);
         break;
       }
 

@@ -61,6 +61,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -150,6 +151,24 @@ static void armature_free_data(struct ID *id)
   }
 }
 
+static void armature_foreach_id_bone(Bone *bone, LibraryForeachIDData *data)
+{
+  IDP_foreach_property(
+      bone->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+
+  LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
+    armature_foreach_id_bone(curbone, data);
+  }
+}
+
+static void armature_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  bArmature *arm = (bArmature *)id;
+  LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
+    armature_foreach_id_bone(bone, data);
+  }
+}
+
 IDTypeInfo IDType_ID_AR = {
     .id_code = ID_AR,
     .id_filter = FILTER_ID_AR,
@@ -164,6 +183,7 @@ IDTypeInfo IDType_ID_AR = {
     .copy_data = armature_copy_data,
     .free_data = armature_free_data,
     .make_local = NULL,
+    .foreach_id = armature_foreach_id,
 };
 
 /* **************** Generic Functions, data level *************** */
