@@ -2557,6 +2557,36 @@ class WM_MT_splash(Menu):
         layout.separator()
 
 
+class WM_MT_splash_about(Menu):
+    bl_label = "About"
+
+    def draw(self, context):
+
+        layout = self.layout
+        layout.operator_context = 'EXEC_DEFAULT'
+
+        layout.label(text="Blender is free software")
+        layout.label(text="Licensed under the GNU General Public License")
+        layout.separator()
+        layout.separator()
+
+        split = layout.split()
+        split.emboss = 'PULLDOWN_MENU'
+        split.scale_y = 1.3
+
+        col1 = split.column()
+
+        col1.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
+        col1.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
+        col1.operator("wm.url_open", text="License", icon='URL').url = "https://www.blender.org/about/license/"
+
+        col2 = split.column()
+
+        col2.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
+        col2.operator("wm.url_open", text="Blender Store", icon='URL').url = "https://store.blender.org"
+        col2.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
+
+
 class WM_OT_drop_blend_file(Operator):
     bl_idname = "wm.drop_blend_file"
     bl_label = "Handle dropped .blend file"
@@ -2626,4 +2656,5 @@ classes = (
     BatchRenameAction,
     WM_OT_batch_rename,
     WM_MT_splash,
+    WM_MT_splash_about,
 )

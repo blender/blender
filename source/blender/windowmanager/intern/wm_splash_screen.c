@@ -48,6 +48,8 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "BLT_translation.h"
+
 #include "BLF_api.h"
 
 #include "IMB_imbuf.h"
@@ -56,6 +58,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -63,13 +66,11 @@
 
 #include "wm.h"
 
-static void wm_block_splash_close(bContext *C, void *arg_block, void *UNUSED(arg))
+static void wm_block_close(bContext *C, void *arg_block, void *UNUSED(arg))
 {
   wmWindow *win = CTX_wm_window(C);
   UI_popup_block_close(C, win, arg_block);
 }
-
-static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *arg_unused);
 
 static void wm_block_splash_refreshmenu(bContext *C, void *UNUSED(arg_block), void *UNUSED(arg))
 {
@@ -77,7 +78,7 @@ static void wm_block_splash_refreshmenu(bContext *C, void *UNUSED(arg_block), vo
   ED_region_tag_refresh_ui(region_menu);
 }
 
-static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, int *y)
+static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, int y)
 {
   if (!(label && label[0])) {
     return;
@@ -86,21 +87,19 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
   uiBut *but = uiDefBut(
-      block, UI_BTYPE_LABEL, 0, label, 0, *y, x, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+      block, UI_BTYPE_LABEL, 0, label, 0, y, x, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
   UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
 
   /* 1 = UI_SELECT, internal flag to draw in white. */
   UI_but_flag_enable(but, 1);
   UI_block_emboss_set(block, UI_EMBOSS);
-  *y -= 12 * U.dpi_fac;
 }
 
-static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
+static void get_version_string(char *ver, const int max_length)
 {
   /* Version number. */
   const char *version_cycle = NULL;
-  bool show_build_info = true;
 
   if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
     version_cycle = " Alpha";
@@ -110,11 +109,9 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
   }
   else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
     version_cycle = " Release Candidate";
-    show_build_info = false;
   }
   else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
     version_cycle = STRINGIFY(BLENDER_VERSION_CHAR);
-    show_build_info = false;
   }
 
   const char *version_cycle_number = "";
@@ -122,46 +119,14 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
     version_cycle_number = " " STRINGIFY(BLENDER_VERSION_CYCLE_NUMBER);
   }
 
-  char version_buf[256] = "\0";
-  BLI_snprintf(version_buf,
-               sizeof(version_buf),
-               "v %d.%d%s%s",
+  BLI_snprintf(ver,
+               max_length,
+               "%d.%d.%d%s%s",
                BLENDER_VERSION / 100,
                BLENDER_VERSION % 100,
+               BLENDER_SUBVERSION,
                version_cycle,
                version_cycle_number);
-
-  wm_block_splash_add_label(block, version_buf, x, &y);
-
-#ifdef WITH_BUILDINFO
-  if (show_build_info) {
-    extern unsigned long build_commit_timestamp;
-    extern char build_hash[], build_commit_date[], build_commit_time[], build_branch[];
-
-    /* Date, hidden for builds made from tag. */
-    if (build_commit_timestamp != 0) {
-      char date_buf[256] = "\0";
-      BLI_snprintf(
-          date_buf, sizeof(date_buf), "Date: %s %s", build_commit_date, build_commit_time);
-      wm_block_splash_add_label(block, date_buf, x, &y);
-    }
-
-    /* Hash. */
-    char hash_buf[256] = "\0";
-    BLI_snprintf(hash_buf, sizeof(hash_buf), "Hash: %s", build_hash);
-    wm_block_splash_add_label(block, hash_buf, x, &y);
-
-    /* Branch. */
-    if (!STREQ(build_branch, "master")) {
-      char branch_buf[256] = "\0";
-      BLI_snprintf(branch_buf, sizeof(branch_buf), "Branch: %s", build_branch);
-
-      wm_block_splash_add_label(block, branch_buf, x, &y);
-    }
-  }
-#else
-  UNUSED_VARS(show_build_info);
-#endif /* WITH_BUILDINFO */
 }
 
 static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
@@ -281,10 +246,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
 
   but = uiDefButImage(block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
 
-  UI_but_func_set(but, wm_block_splash_close, block, NULL);
+  UI_but_func_set(but, wm_block_close, block, NULL);
   UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 
-  wm_block_splash_add_labels(block, splash_width, splash_height - 13 * U.dpi_fac);
+  char version_buf[256] = "\0";
+  get_version_string(version_buf, sizeof(version_buf));
+  wm_block_splash_add_label(block, version_buf, splash_width, splash_height - 13.0 * U.dpi_fac);
 
   const int layout_margin_x = U.dpi_fac * 26;
   uiLayout *layout = UI_block_layout(block,
@@ -321,5 +288,95 @@ void WM_OT_splash(wmOperatorType *ot)
   ot->description = "Open the splash screen with release info";
 
   ot->invoke = wm_splash_invoke;
+  ot->poll = WM_operator_winactive;
+}
+
+static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED(arg))
+{
+  uiBlock *block;
+  const uiStyle *style = UI_style_get_dpi();
+  const int dialog_width = U.widget_unit * 24;
+  const short logo_size = 128 * U.dpi_fac;
+
+  /* Calculate icon column factor. */
+  const float split_factor = (float)logo_size / (float)(dialog_width - style->columnspace);
+
+  block = UI_block_begin(C, region, "about", UI_EMBOSS);
+
+  UI_block_flag_enable(
+      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_emboss_set(block, UI_EMBOSS);
+
+  uiLayout *block_layout = UI_block_layout(
+      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, 0, 0, style);
+
+  /* Split layout to put Blender logo on left side. */
+  uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
+
+  /* Blender Logo. */
+  uiLayout *layout = uiLayoutColumn(split_block, false);
+  uiDefButAlert(block, ALERT_ICON_BLENDER, 0, 0, 0, logo_size);
+
+  /* The rest of the content on the right. */
+  layout = uiLayoutColumn(split_block, false);
+
+  uiLayoutSetScaleY(layout, 0.7f);
+
+  uiItemS_ex(layout, 1.0f);
+
+  /* Title. */
+  uiItemL_ex(layout, "Blender", ICON_NONE, true, false);
+
+  /* Version. */
+  char str_buf[256] = "\0";
+  get_version_string(str_buf, sizeof(str_buf));
+  uiItemL(layout, str_buf, ICON_NONE);
+
+  uiItemS_ex(layout, 3.0f);
+
+#ifdef WITH_BUILDINFO
+
+  extern char build_hash[], build_commit_date[], build_commit_time[], build_branch[];
+
+  BLI_snprintf(str_buf, sizeof(str_buf), "Date: %s %s", build_commit_date, build_commit_time);
+  uiItemL(layout, str_buf, ICON_NONE);
+
+  BLI_snprintf(str_buf, sizeof(str_buf), "Hash: %s", build_hash);
+  uiItemL(layout, str_buf, ICON_NONE);
+
+  BLI_snprintf(str_buf, sizeof(str_buf), "Branch: %s", build_branch);
+  uiItemL(layout, str_buf, ICON_NONE);
+
+#endif /* WITH_BUILDINFO */
+
+  uiItemS_ex(layout, 1.5f);
+
+  MenuType *mt = WM_menutype_find("WM_MT_splash_about", true);
+  if (mt) {
+    UI_menutype_draw(C, mt, layout);
+  }
+
+  uiItemS_ex(layout, 2.0f);
+
+  UI_block_bounds_set_centered(block, 14 * U.dpi_fac);
+
+  return block;
+}
+
+static int wm_about_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+{
+  UI_popup_block_invoke(C, wm_block_create_about, NULL, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_splash_about(wmOperatorType *ot)
+{
+  ot->name = "About Blender";
+  ot->idname = "WM_OT_splash_about";
+  ot->description = "Open a window with information about Blender";
+
+  ot->invoke = wm_about_invoke;
   ot->poll = WM_operator_winactive;
 }
