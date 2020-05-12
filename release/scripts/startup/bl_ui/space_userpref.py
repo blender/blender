@@ -360,6 +360,7 @@ class USERPREF_PT_edit_objects_new(EditingPanel, CenterAlignMixIn, Panel):
         flow.prop(edit, "material_link", text="Link Materials to")
         flow.prop(edit, "object_align", text="Align to")
         flow.prop(edit, "use_enter_edit_mode", text="Enter Edit Mode")
+        flow.prop(edit, "collection_instance_empty_size", text="Instance Empty Size")
 
 
 class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Panel):

@@ -1357,6 +1357,7 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
     Object *ob = ED_object_add_type(
         C, OB_EMPTY, collection->id.name + 2, loc, rot, false, local_view_bits);
     ob->instance_collection = collection;
+    ob->empty_drawsize = U.collection_instance_empty_size;
     ob->transflag |= OB_DUPLICOLLECTION;
     id_us_plus(&collection->id);
 

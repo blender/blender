@@ -873,8 +873,10 @@ typedef struct UserDef {
   int sequencer_disk_cache_compression; /* eUserpref_DiskCacheCompression */
   int sequencer_disk_cache_size_limit;
   short sequencer_disk_cache_flag;
-
   char _pad5[2];
+
+  float collection_instance_empty_size;
+  char _pad10[4];
 
   struct WalkNavigation walk_navigation;
 

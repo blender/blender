@@ -227,6 +227,8 @@ const UserDef U_default = {
     .sequencer_disk_cache_size_limit = 100,
     .sequencer_disk_cache_flag = 0,
 
+    .collection_instance_empty_size = 1.0f,
+
     .runtime =
         {
             .is_dirty = 0,

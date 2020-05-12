@@ -764,6 +764,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
+
+    if (userdef->collection_instance_empty_size == 0) {
+      userdef->collection_instance_empty_size = 1.0f;
+    }
   }
 
   if (userdef->pixelsize == 0.0f) {

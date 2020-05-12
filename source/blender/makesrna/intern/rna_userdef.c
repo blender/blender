@@ -4840,6 +4840,12 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Enter Edit Mode", "Enter Edit Mode automatically after adding a new object");
 
+  prop = RNA_def_property(srna, "collection_instance_empty_size", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_range(prop, 0.001f, FLT_MAX);
+  RNA_def_property_ui_text(prop,
+                           "Collection Instance Empty Size",
+                           "Display size of the empty when new collection instances are created");
+
   /* Undo */
 
   prop = RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);
