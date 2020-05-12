@@ -917,18 +917,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_CU: {
-        Curve *curve = (Curve *)id;
-        CALLBACK_INVOKE(curve->bevobj, IDWALK_CB_NOP);
-        CALLBACK_INVOKE(curve->taperobj, IDWALK_CB_NOP);
-        CALLBACK_INVOKE(curve->textoncurve, IDWALK_CB_NOP);
-        CALLBACK_INVOKE(curve->key, IDWALK_CB_USER);
-        for (i = 0; i < curve->totcol; i++) {
-          CALLBACK_INVOKE(curve->mat[i], IDWALK_CB_USER);
-        }
-        CALLBACK_INVOKE(curve->vfont, IDWALK_CB_USER);
-        CALLBACK_INVOKE(curve->vfontb, IDWALK_CB_USER);
-        CALLBACK_INVOKE(curve->vfonti, IDWALK_CB_USER);
-        CALLBACK_INVOKE(curve->vfontbi, IDWALK_CB_USER);
+        BLI_assert(0);
         break;
       }
 
