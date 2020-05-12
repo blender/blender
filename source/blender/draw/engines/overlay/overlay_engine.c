@@ -30,6 +30,7 @@
 #include "ED_view3d.h"
 
 #include "BKE_object.h"
+#include "BKE_paint.h"
 
 #include "overlay_engine.h"
 #include "overlay_private.h"
@@ -237,7 +238,8 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool in_particle_edit_mode = ob->mode == OB_MODE_PARTICLE_EDIT;
   const bool in_paint_mode = (ob == draw_ctx->obact) &&
                              (draw_ctx->object_mode & OB_MODE_ALL_PAINT);
-  const bool in_sculpt_mode = (ob == draw_ctx->obact) && (ob->sculpt != NULL);
+  const bool in_sculpt_mode = (ob == draw_ctx->obact) && (ob->sculpt != NULL) &&
+                              (ob->sculpt->mode_type == OB_MODE_SCULPT);
   const bool has_surface = ELEM(ob->type,
                                 OB_MESH,
                                 OB_CURVE,

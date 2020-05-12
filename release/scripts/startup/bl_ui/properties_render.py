@@ -531,6 +531,27 @@ class RENDER_PT_eevee_performance(RenderButtonsPanel, Panel):
         layout.prop(rd, "use_high_quality_normals")
 
 
+class RENDER_PT_gpencil(RenderButtonsPanel, Panel):
+    bl_label = "Grease Pencil"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        props = scene.grease_pencil_settings
+
+        col = layout.column()
+        col.prop(props, "antialias_threshold")
+
+
+
 class RENDER_PT_opengl_sampling(RenderButtonsPanel, Panel):
     bl_label = "Sampling"
     COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
@@ -684,6 +705,8 @@ classes = (
     RENDER_PT_eevee_indirect_lighting,
     RENDER_PT_eevee_indirect_lighting_display,
     RENDER_PT_eevee_film,
+
+    RENDER_PT_gpencil,
     RENDER_PT_opengl_sampling,
     RENDER_PT_opengl_lighting,
     RENDER_PT_opengl_color,

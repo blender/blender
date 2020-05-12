@@ -135,10 +135,11 @@ GPUShader *GPENCIL_shader_antialiasing(int stage)
             },
         .defs =
             (const char *[]){
+                "uniform float lumaWeight;\n",
                 "#define SMAA_GLSL_3\n",
                 "#define SMAA_RT_METRICS viewportMetrics\n",
                 "#define SMAA_PRESET_HIGH\n",
-                "#define SMAA_LUMA_WEIGHT float4(1.0, 1.0, 1.0, 0.0)\n",
+                "#define SMAA_LUMA_WEIGHT float4(lumaWeight, lumaWeight, lumaWeight, 0.0)\n",
                 "#define SMAA_NO_DISCARD\n",
                 stage_define,
                 NULL,
