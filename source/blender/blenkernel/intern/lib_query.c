@@ -922,10 +922,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_MB: {
-        MetaBall *metaball = (MetaBall *)id;
-        for (i = 0; i < metaball->totcol; i++) {
-          CALLBACK_INVOKE(metaball->mat[i], IDWALK_CB_USER);
-        }
+        BLI_assert(0);
         break;
       }
 

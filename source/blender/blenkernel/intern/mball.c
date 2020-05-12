@@ -54,6 +54,7 @@
 #include "BKE_displist.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
@@ -101,6 +102,14 @@ static void metaball_free_data(ID *id)
   }
 }
 
+static void metaball_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  MetaBall *metaball = (MetaBall *)id;
+  for (int i = 0; i < metaball->totcol; i++) {
+    BKE_LIB_FOREACHID_PROCESS(data, metaball->mat[i], IDWALK_CB_USER);
+  }
+}
+
 IDTypeInfo IDType_ID_MB = {
     .id_code = ID_MB,
     .id_filter = FILTER_ID_MB,
@@ -115,6 +124,7 @@ IDTypeInfo IDType_ID_MB = {
     .copy_data = metaball_copy_data,
     .free_data = metaball_free_data,
     .make_local = NULL,
+    .foreach_id = metaball_foreach_id,
 };
 
 /* Functions */
