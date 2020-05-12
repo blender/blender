@@ -482,6 +482,19 @@ bool AbcMeshReader::valid() const
   return m_schema.valid();
 }
 
+/* Specialisation of has_animations() as defined in abc_reader_object.h. */
+template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, ImportSettings *settings)
+{
+  if (settings->is_sequence || !schema.isConstant()) {
+    return true;
+  }
+
+  IV2fGeomParam uvsParam = schema.getUVsParam();
+  IN3fGeomParam normalsParam = schema.getNormalsParam();
+  return (uvsParam.valid() && !uvsParam.isConstant()) ||
+         (normalsParam.valid() && !normalsParam.isConstant());
+}
+
 void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
   Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
