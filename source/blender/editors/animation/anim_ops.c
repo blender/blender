@@ -73,14 +73,8 @@ static bool change_frame_poll(bContext *C)
    * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
    */
   if (area) {
-    if (ELEM(area->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
+    if (ELEM(area->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP, SPACE_GRAPH)) {
       return true;
-    }
-    else if (area->spacetype == SPACE_GRAPH) {
-      /* NOTE: Graph Editor has special version which does some extra stuff.
-       * No need to show the generic error message for that case though!
-       */
-      return false;
     }
   }
 
