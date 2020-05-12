@@ -33,15 +33,21 @@ roles:
   # Default color space sequencer is working in
   default_sequencer: sRGB
 
-  # Color spaces for color picking and texture painting (not internally supported yet)
+  # Distribution of colors in color picker
   color_picking: sRGB
-  texture_paint: Raw
 
   # Non-color data
   data: Non-Color
 
   # CIE XYZ color space
   XYZ: XYZ
+
+  # Specifed by OCIO, not used in Blender
+  color_timing: Filmic Log
+  compositing_log: Filmic Log
+  default: Linear
+  matte_paint: Linear
+  texture_paint: Linear
 
 displays:
   sRGB:
