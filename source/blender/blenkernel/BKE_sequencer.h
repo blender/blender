@@ -277,6 +277,10 @@ void BKE_sequence_reload_new_file(struct Main *bmain,
                                   struct Sequence *seq,
                                   const bool lock_range);
 int BKE_sequencer_evaluate_frame(struct Scene *scene, int cfra);
+int BKE_sequencer_get_shown_sequences(struct ListBase *seqbasep,
+                                      int cfra,
+                                      int chanshown,
+                                      struct Sequence **seq_arr_out);
 
 struct StripElem *BKE_sequencer_give_stripelem(struct Sequence *seq, int cfra);
 
