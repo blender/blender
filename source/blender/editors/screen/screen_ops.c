@@ -4443,10 +4443,29 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
     }
     else {
       if (sync) {
-        /* note: this is very simplistic,
-         * its has problem that it may skip too many frames.
-         * however at least this gives a less jittery playback */
-        const int step = max_ii(1, floor((wt->duration - sad->last_duration) * FPS));
+        /* Try to keep the playback in realtime by dropping frames. */
+
+        /* How much time (in frames) has passed since the last frame was drawn? */
+        double delta_frames = wt->delta * FPS;
+
+        /* Add the remaining fraction from the last time step. */
+        delta_frames += sad->lagging_frame_count;
+
+        if (delta_frames < 1.0) {
+          /* We can render faster than the scene frame rate. However skipping or delaying frames
+           * here seems to in practice lead to jittery playback so just step forward a minimum of
+           * one frame. (Even though this can lead to too fast playback, the jitteryness is more
+           * annoying)
+           */
+          delta_frames = 1.0f;
+          sad->lagging_frame_count = 0;
+        }
+        else {
+          /* Extract the delta frame fractions that will be skipped when converting to int. */
+          sad->lagging_frame_count = delta_frames - (int)delta_frames;
+        }
+
+        const int step = delta_frames;
 
         /* skip frames */
         if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
@@ -4466,8 +4485,6 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
         }
       }
     }
-
-    sad->last_duration = wt->duration;
 
     /* reset 'jumped' flag before checking if we need to jump... */
     sad->flag &= ~ANIMPLAY_FLAG_JUMPED;
