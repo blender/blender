@@ -512,7 +512,7 @@ def is_struct_seq(value):
 
 
 def undocumented_message(module_name, type_name, identifier):
-    return "Undocumented `contribute <https://developer.blender.org/T51061>`"
+    return "Undocumented, consider `contributing <https://developer.blender.org/T51061>`__."
 
 
 def range_str(val):
