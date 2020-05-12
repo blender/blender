@@ -4003,6 +4003,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout.separator()
 
         layout.operator("transform.edge_slide")
+        layout.operator("mesh.offset_edge_loops_slide")
 
         layout.separator()
 
