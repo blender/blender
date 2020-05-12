@@ -942,8 +942,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_LT: {
-        Lattice *lattice = (Lattice *)id;
-        CALLBACK_INVOKE(lattice->key, IDWALK_CB_USER);
+        BLI_assert(0);
         break;
       }
 
