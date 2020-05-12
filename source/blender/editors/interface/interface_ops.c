@@ -1679,7 +1679,7 @@ static void UI_OT_button_execute(wmOperatorType *ot)
 
 static int button_string_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  uiBut *but = UI_context_active_but_get(C);
+  uiBut *but = UI_context_active_but_get_respect_menu(C);
 
   if (but) {
     ui_but_active_string_clear_and_exit(C, but);
