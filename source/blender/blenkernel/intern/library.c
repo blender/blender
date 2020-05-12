@@ -38,6 +38,7 @@
 
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
@@ -51,6 +52,12 @@ static void library_free_data(ID *id)
   if (library->packedfile) {
     BKE_packedfile_free(library->packedfile);
   }
+}
+
+static void library_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Library *lib = (Library *)id;
+  BKE_LIB_FOREACHID_PROCESS(data, lib->parent, IDWALK_CB_NEVER_SELF);
 }
 
 IDTypeInfo IDType_ID_LI = {
@@ -67,6 +74,7 @@ IDTypeInfo IDType_ID_LI = {
     .copy_data = NULL,
     .free_data = library_free_data,
     .make_local = NULL,
+    .foreach_id = library_foreach_id,
 };
 
 void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)

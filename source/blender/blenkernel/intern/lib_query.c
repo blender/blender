@@ -676,8 +676,7 @@ static void library_foreach_ID_link(Main *bmain,
 
     switch ((ID_Type)GS(id->name)) {
       case ID_LI: {
-        Library *lib = (Library *)id;
-        CALLBACK_INVOKE(lib->parent, IDWALK_CB_NEVER_SELF);
+        BLI_assert(0);
         break;
       }
       case ID_SCE: {
