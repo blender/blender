@@ -27,7 +27,7 @@
  * \note Use #STRINGIFY() rather than defining with quotes.
  */
 #define BLENDER_VERSION 283
-#define BLENDER_SUBVERSION 15
+#define BLENDER_SUBVERSION 16
 /** Several breakages with 280, e.g. collections vs layers. */
 #define BLENDER_MINVERSION 280
 #define BLENDER_MINSUBVERSION 0

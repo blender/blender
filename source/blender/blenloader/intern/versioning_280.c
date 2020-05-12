@@ -5052,6 +5052,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 283, 16)) {
+    /* Init SMAA threshold for grease pencil render. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->grease_pencil_settings.smaa_threshold = 1.0f;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

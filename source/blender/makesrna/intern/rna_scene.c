@@ -1137,6 +1137,11 @@ static char *rna_SceneEEVEE_path(PointerRNA *UNUSED(ptr))
   return BLI_strdup("eevee");
 }
 
+static char *rna_SceneGpencil_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("grease_pencil_settings");
+}
+
 static int rna_RenderSettings_stereoViews_skip(CollectionPropertyIterator *iter,
                                                void *UNUSED(data))
 {
@@ -7194,6 +7199,28 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
+static void rna_def_scene_gpencil(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "SceneGpencil", NULL);
+  RNA_def_struct_path_func(srna, "rna_SceneGpencil_path");
+  RNA_def_struct_ui_text(srna, "Grease Pencil Render", "Render settings");
+
+  prop = RNA_def_property(srna, "antialias_threshold", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "smaa_threshold");
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0f, 2.0f, 1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Anti-Aliasing Threshold",
+                           "Threshold for edge detection algorithm (higher values might overblur "
+                           "some part of the image)");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+}
+
 void RNA_def_scene(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -7667,6 +7694,11 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "SceneEEVEE");
   RNA_def_property_ui_text(prop, "EEVEE", "EEVEE settings for the scene");
 
+  /* Grease Pencil */
+  prop = RNA_def_property(srna, "grease_pencil_settings", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SceneGpencil");
+  RNA_def_property_ui_text(prop, "Grease Pencil", "Grease Pencil settings for the scene");
+
   /* Nestled Data  */
   /* *** Non-Animated *** */
   RNA_define_animate_sdna(false);
@@ -7685,6 +7717,7 @@ void RNA_def_scene(BlenderRNA *brna)
   rna_def_scene_display(brna);
   rna_def_scene_eevee(brna);
   rna_def_view_layer_eevee(brna);
+  rna_def_scene_gpencil(brna);
   RNA_define_animate_sdna(true);
   /* *** Animated *** */
   rna_def_scene_render_data(brna);
