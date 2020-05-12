@@ -1593,8 +1593,15 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
       MLoop *l_prev = (l + (mp->totloop - 1));
       int j;
       for (j = 0; j < mp->totloop; j++, l++) {
-        /* lookup hashed edge index */
-        med_index = POINTER_AS_INT(BLI_edgehash_lookup(eh, l_prev->v, l->v));
+        /* Lookup hashed edge index, if it's valid. */
+        if (l_prev->v != l->v) {
+          med_index = POINTER_AS_INT(BLI_edgehash_lookup(eh, l_prev->v, l->v));
+        }
+        else {
+          /* This is an invalid edge; normally this does not happen in Blender, but it can be part
+           * of an imported mesh with invalid geometry. See T76514. */
+          med_index = 0;
+        }
         l_prev->e = med_index;
         l_prev = l;
       }

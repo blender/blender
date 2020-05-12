@@ -200,6 +200,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   unsigned int loop_index = 0;
   unsigned int rev_loop_index = 0;
   unsigned int uv_index = 0;
+  bool seen_invalid_geometry = false;
 
   for (int i = 0; i < face_counts->size(); i++) {
     const int face_size = (*face_counts)[i];
@@ -215,9 +216,17 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
     /* NOTE: Alembic data is stored in the reverse order. */
     rev_loop_index = loop_index + (face_size - 1);
 
+    uint last_vertex_index = 0;
     for (int f = 0; f < face_size; f++, loop_index++, rev_loop_index--) {
       MLoop &loop = mloops[rev_loop_index];
       loop.v = (*face_indices)[loop_index];
+
+      if (f > 0 && loop.v == last_vertex_index) {
+        /* This face is invalid, as it has consecutive loops from the same vertex. This is caused
+         * by invalid geometry in the Alembic file, such as in T76514. */
+        seen_invalid_geometry = true;
+      }
+      last_vertex_index = loop.v;
 
       if (do_uvs) {
         MLoopUV &loopuv = mloopuvs[rev_loop_index];
@@ -236,6 +245,12 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   }
 
   BKE_mesh_calc_edges(config.mesh, false, false);
+  if (seen_invalid_geometry) {
+    if (config.modifier_error_message) {
+      *config.modifier_error_message = "Mesh hash invalid geometry; more details on the console";
+    }
+    BKE_mesh_validate(config.mesh, true, true);
+  }
 }
 
 static void process_no_normals(CDStreamConfig &config)
@@ -608,6 +623,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
 
   CDStreamConfig config = get_config(new_mesh ? new_mesh : existing_mesh);
   config.time = sample_sel.getRequestedTime();
+  config.modifier_error_message = err_str;
 
   read_mesh_sample(m_iobject.getFullName(), &settings, m_schema, sample_sel, config);
 
