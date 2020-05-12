@@ -432,7 +432,6 @@ int join_armature_exec(bContext *C, wmOperator *op)
   ED_armature_from_edit(bmain, arm);
   ED_armature_edit_free(arm);
 
-  BKE_armature_refresh_layer_used(arm);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -689,9 +688,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 
     /* 5) restore original conditions */
     ED_armature_to_edit(ob_old->data);
-
     ED_armature_edit_refresh_layer_used(ob_old->data);
-    BKE_armature_refresh_layer_used(ob_new->data);
 
     /* parents tips remain selected when connected children are removed. */
     ED_armature_edit_deselect_all(ob_old);
