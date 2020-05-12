@@ -346,6 +346,11 @@ static void scene_free_data(ID *id)
   }
 
   if (scene->rigidbody_world) {
+    /* Prevent rigidbody freeing code to follow other IDs pointers, this should never be allowed
+     * nor necessary from here, and with new undo code, those pointers may be fully invalid or
+     * worse, pointing to data actually belonging to new BMain! */
+    scene->rigidbody_world->constraints = NULL;
+    scene->rigidbody_world->group = NULL;
     BKE_rigidbody_free_world(scene);
   }
 
