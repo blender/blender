@@ -514,6 +514,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
       ANIM_animdata_filter(&ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac.data, ac.datatype);
       for (ale = anim_data.first; ale; ale = ale->next) {
+        if (ale->datatype != ALE_NLASTRIP) {
+          continue;
+        }
         NlaTrack *nlt = (NlaTrack *)ale->data;
         NlaStrip *strip;
         for (strip = nlt->strips.first; strip; strip = strip->next) {

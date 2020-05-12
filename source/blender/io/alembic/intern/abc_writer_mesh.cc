@@ -333,7 +333,7 @@ void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
       V3fArraySample(points), Int32ArraySample(poly_verts), Int32ArraySample(loop_counts));
 
   UVSample sample;
-  if (m_first_frame && m_settings.export_uvs) {
+  if (m_settings.export_uvs) {
     const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->ldata);
 
     if (!sample.indices.empty() && !sample.uvs.empty()) {
