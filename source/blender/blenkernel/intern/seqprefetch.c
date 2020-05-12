@@ -334,6 +334,66 @@ void BKE_sequencer_prefetch_free(Scene *scene)
   scene->ed->prefetch_job = NULL;
 }
 
+static bool seq_prefetch_do_skip_frame(Scene *scene)
+{
+  Editing *ed = scene->ed;
+  PrefetchJob *pfjob = seq_prefetch_job_get(scene);
+  float cfra = pfjob->cfra + pfjob->num_frames_prefetched;
+  Sequence *seq_arr[MAXSEQ + 1];
+  int count = BKE_sequencer_get_shown_sequences(ed->seqbasep, cfra, 0, seq_arr);
+  SeqRenderData *ctx = &pfjob->context_cpy;
+  ImBuf *ibuf = NULL;
+
+  /* Disable prefetching 3D scene strips, but check for disk cache. */
+  for (int i = 0; i < count; i++) {
+    if (seq_arr[i]->type == SEQ_TYPE_SCENE && (seq_arr[i]->flag & SEQ_SCENE_STRIPS) == 0) {
+      int cached_types = 0;
+
+      ibuf = BKE_sequencer_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
+      if (ibuf != NULL) {
+        cached_types |= SEQ_CACHE_STORE_FINAL_OUT;
+        IMB_freeImBuf(ibuf);
+        ibuf = NULL;
+      }
+
+      ibuf = BKE_sequencer_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_FINAL_OUT, false);
+      if (ibuf != NULL) {
+        cached_types |= SEQ_CACHE_STORE_COMPOSITE;
+        IMB_freeImBuf(ibuf);
+        ibuf = NULL;
+      }
+
+      ibuf = BKE_sequencer_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_PREPROCESSED, false);
+      if (ibuf != NULL) {
+        cached_types |= SEQ_CACHE_STORE_PREPROCESSED;
+        IMB_freeImBuf(ibuf);
+        ibuf = NULL;
+      }
+
+      ibuf = BKE_sequencer_cache_get(ctx, seq_arr[i], cfra, SEQ_CACHE_STORE_RAW, false);
+      if (ibuf != NULL) {
+        cached_types |= SEQ_CACHE_STORE_RAW;
+        IMB_freeImBuf(ibuf);
+        ibuf = NULL;
+      }
+
+      if ((cached_types & (SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_PREPROCESSED)) != 0) {
+        continue;
+      }
+
+      /* It is only safe to use these cache types if strip is last in stack. */
+      if (i == count - 1 &&
+          (cached_types & (SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_RAW)) != 0) {
+        continue;
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
 static void *seq_prefetch_frames(void *job)
 {
   PrefetchJob *pfjob = (PrefetchJob *)job;
@@ -356,6 +416,11 @@ static void *seq_prefetch_frames(void *job)
      * Set to NULL before return!
      */
     pfjob->scene_eval->ed->prefetch_job = pfjob;
+
+    if (seq_prefetch_do_skip_frame(pfjob->scene)) {
+      pfjob->num_frames_prefetched++;
+      continue;
+    }
 
     ImBuf *ibuf = BKE_sequencer_give_ibuf(
         &pfjob->context_cpy, pfjob->cfra + pfjob->num_frames_prefetched, 0);
