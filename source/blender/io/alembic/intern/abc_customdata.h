@@ -68,6 +68,8 @@ struct CDStreamConfig {
   Alembic::AbcGeom::index_t index;
   Alembic::AbcGeom::index_t ceil_index;
 
+  const char **modifier_error_message;
+
   CDStreamConfig()
       : mloop(NULL),
         totloop(0),
@@ -80,7 +82,8 @@ struct CDStreamConfig {
         weight(0.0f),
         time(0.0f),
         index(0),
-        ceil_index(0)
+        ceil_index(0),
+        modifier_error_message(NULL)
   {
   }
 };
