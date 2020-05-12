@@ -2670,8 +2670,9 @@ bool EDBM_selectmode_disable_multi_ex(Scene *scene,
     Object *ob_iter = base_iter->object;
     BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
 
-    EDBM_selectmode_disable(scene, em_iter, selectmode_disable, selectmode_fallback);
-    changed_multi = true;
+    if (EDBM_selectmode_disable(scene, em_iter, selectmode_disable, selectmode_fallback)) {
+      changed_multi = true;
+    }
   }
   return changed_multi;
 }
