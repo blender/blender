@@ -1668,7 +1668,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
       t->orient_axis = RNA_property_enum_get(op->ptr, prop);
+
+      /* For transfor modes that require "orient_axis" use
+       * `V3D_ORIENT_VIEW` as default. */
       orient_type_default = V3D_ORIENT_VIEW;
+      if (t->con.mode & CON_APPLY) {
+        orient_index = 1;
+      }
     }
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
       t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
