@@ -381,6 +381,9 @@ typedef struct uiHandleButtonData {
   uiSelectContextStore select_others;
 #endif
 
+  /* Text field undo. */
+  struct uiUndoStack_Text *undo_stack_text;
+
   /* post activate */
   uiButtonActivateType posttype;
   uiBut *postbut;
@@ -3308,6 +3311,10 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
   but->selsta = 0;
   but->selend = len;
 
+  /* Initialize undo history tracking. */
+  data->undo_stack_text = ui_textedit_undo_stack_create();
+  ui_textedit_undo_push(data->undo_stack_text, but->editstr, but->pos);
+
   /* optional searchbox */
   if (but->type == UI_BTYPE_SEARCH_MENU) {
     data->searchbox = but->search->create_fn(C, data->region, but);
@@ -3362,6 +3369,10 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
   }
 
   WM_cursor_modal_restore(win);
+
+  /* Free text undo history text blocks. */
+  ui_textedit_undo_stack_destroy(data->undo_stack_text);
+  data->undo_stack_text = NULL;
 
 #ifdef WITH_INPUT_IME
   if (win->ime_data) {
@@ -3442,7 +3453,7 @@ static void ui_do_but_textedit(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   int retval = WM_UI_HANDLER_CONTINUE;
-  bool changed = false, inbox = false, update = false;
+  bool changed = false, inbox = false, update = false, skip_undo_push = false;
 
 #ifdef WITH_INPUT_IME
   wmWindow *win = CTX_wm_window(C);
@@ -3674,6 +3685,32 @@ static void ui_do_but_textedit(
         }
         retval = WM_UI_HANDLER_BREAK;
         break;
+      case EVT_ZKEY: {
+        /* Ctrl-Z or Ctrl-Shift-Z: Undo/Redo (allowing for OS-Key on Apple). */
+
+        const bool is_redo = (event->shift != 0);
+        if (
+#if defined(__APPLE__)
+            (event->oskey && !IS_EVENT_MOD(event, alt, ctrl)) ||
+#endif
+            (event->ctrl && !IS_EVENT_MOD(event, alt, oskey))) {
+          int undo_pos;
+          const char *undo_str = ui_textedit_undo(
+              data->undo_stack_text, is_redo ? 1 : -1, &undo_pos);
+          if (undo_str != NULL) {
+            ui_textedit_string_set(but, data, undo_str);
+
+            /* Set the cursor & clear selection. */
+            but->pos = undo_pos;
+            but->selsta = but->pos;
+            but->selend = but->pos;
+            changed = true;
+          }
+        }
+        skip_undo_push = true;
+        retval = WM_UI_HANDLER_BREAK;
+        break;
+      }
     }
 
     if ((event->ascii || event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)
@@ -3727,6 +3764,11 @@ static void ui_do_but_textedit(
 #endif
 
   if (changed) {
+    /* The undo stack may be NULL if an event exits editing. */
+    if ((skip_undo_push == false) && (data->undo_stack_text != NULL)) {
+      ui_textedit_undo_push(data->undo_stack_text, data->str, but->pos);
+    }
+
     /* only do live update when but flag request it (UI_BUT_TEXTEDIT_UPDATE). */
     if (update && data->interactive) {
       ui_apply_but(C, block, but, data, true);

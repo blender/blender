@@ -26,6 +26,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "DNA_listBase.h"
+#include "DNA_screen_types.h"
 #include "RNA_types.h"
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -39,6 +40,7 @@ struct bContextStore;
 struct uiHandleButtonData;
 struct uiLayout;
 struct uiStyle;
+struct uiUndoStack_Text;
 struct uiWidgetColors;
 struct wmEvent;
 struct wmKeyConfig;
@@ -769,6 +771,16 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
                               uiBut *but,
                               const struct uiWidgetColors *wcol,
                               const rcti *rect);
+
+/* interface_undo.c */
+struct uiUndoStack_Text *ui_textedit_undo_stack_create(void);
+void ui_textedit_undo_stack_destroy(struct uiUndoStack_Text *undo_stack);
+void ui_textedit_undo_push(struct uiUndoStack_Text *undo_stack,
+                           const char *text,
+                           int cursor_index);
+const char *ui_textedit_undo(struct uiUndoStack_Text *undo_stack,
+                             int direction,
+                             int *r_cursor_index);
 
 /* interface_handlers.c */
 PointerRNA *ui_handle_afterfunc_add_operator(struct wmOperatorType *ot,

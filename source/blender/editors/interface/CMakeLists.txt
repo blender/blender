@@ -71,6 +71,7 @@ set(SRC
   interface_templates.c
   interface_template_search_menu.c
   interface_template_search_operator.c
+  interface_undo.c
   interface_utils.c
   interface_widgets.c
   resources.c
