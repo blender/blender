@@ -249,7 +249,9 @@ static void draw_azone_arrow(float x1, float y1, float x2, float y2, AZEdge edge
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   GPU_blend(true);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  /* NOTE(fclem): There is something strange going on with Mesa and GPU_SHADER_2D_UNIFORM_COLOR
+   * that causes a crash on some GPUs (see T76113). Using 3D variant avoid the issue. */
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 
   immBegin(GPU_PRIM_TRI_FAN, 6);
