@@ -925,11 +925,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_LA: {
-        Light *lamp = (Light *)id;
-        if (lamp->nodetree) {
-          /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          BKE_library_foreach_ID_embedded(&data, (ID **)&lamp->nodetree);
-        }
+        BLI_assert(0);
         break;
       }
 

@@ -41,6 +41,7 @@
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_light.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -107,6 +108,15 @@ static void light_free_data(ID *id)
   la->id.icon_id = 0;
 }
 
+static void light_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Light *lamp = (Light *)id;
+  if (lamp->nodetree) {
+    /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
+    BKE_library_foreach_ID_embedded(data, (ID **)&lamp->nodetree);
+  }
+}
+
 IDTypeInfo IDType_ID_LA = {
     .id_code = ID_LA,
     .id_filter = FILTER_ID_LA,
@@ -121,6 +131,7 @@ IDTypeInfo IDType_ID_LA = {
     .copy_data = light_copy_data,
     .free_data = light_free_data,
     .make_local = NULL,
+    .foreach_id = light_foreach_id,
 };
 
 Light *BKE_light_add(Main *bmain, const char *name)
