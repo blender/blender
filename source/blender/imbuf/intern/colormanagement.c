@@ -1349,6 +1349,23 @@ void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name)
   }
 }
 
+void IMB_colormanagegent_copy_settings(ImBuf *ibuf_src, ImBuf *ibuf_dst)
+{
+  IMB_colormanagement_assign_rect_colorspace(ibuf_dst,
+                                             IMB_colormanagement_get_rect_colorspace(ibuf_src));
+  IMB_colormanagement_assign_float_colorspace(ibuf_dst,
+                                              IMB_colormanagement_get_float_colorspace(ibuf_src));
+  if (ibuf_src->flags & IB_alphamode_premul) {
+    ibuf_dst->flags |= IB_alphamode_premul;
+  }
+  else if (ibuf_src->flags & IB_alphamode_channel_packed) {
+    ibuf_dst->flags |= IB_alphamode_channel_packed;
+  }
+  else if (ibuf_src->flags & IB_alphamode_ignore) {
+    ibuf_dst->flags |= IB_alphamode_ignore;
+  }
+}
+
 void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name)
 {
   ColorSpace *colorspace = colormanage_colorspace_get_named(name);
