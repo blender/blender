@@ -5071,5 +5071,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Reset the cloth mass to 1.0 in brushes with an invalid value. */
+    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+      if (br->sculpt_tool == SCULPT_TOOL_CLOTH) {
+        if (br->cloth_mass == 0.0f) {
+          br->cloth_mass = 1.0f;
+        }
+      }
+    }
   }
 }
