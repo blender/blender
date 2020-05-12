@@ -915,12 +915,7 @@ static void library_foreach_ID_link(Main *bmain,
       }
 
       case ID_TE: {
-        Tex *texture = (Tex *)id;
-        if (texture->nodetree) {
-          /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-          BKE_library_foreach_ID_embedded(&data, (ID **)&texture->nodetree);
-        }
-        CALLBACK_INVOKE(texture->ima, IDWALK_CB_USER);
+        BLI_assert(0);
         break;
       }
 
